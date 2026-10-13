@@ -158,7 +158,7 @@ final class CommandTaskTest {
     final Process finished = builder.start();
     finished.waitFor();
     final CommandTask task = new CommandTask(java, "-version");
-    final IOException readFailure = new IOException("broken pipe");
+    final IOException readFailure = new IOException("broken pipe!");
     final Future<String> failedOutput = CompletableFuture.failedFuture(readFailure);
     final Future<String> errorOutput = CompletableFuture.completedFuture("");
     final IOException exception = assertThrows(IOException.class, () -> task.awaitCompletion(finished, failedOutput, errorOutput, null));
@@ -177,7 +177,7 @@ final class CommandTaskTest {
     final ProcessHandle sleeper = ProcessHandle.of(Long.parseLong(line.strip())).orElseThrow();
     try {
       final CommandTask task = new CommandTask("sh");
-      final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe"));
+      final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
       assertThrows(IOException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
       final boolean ended = sleeper.onExit().completeOnTimeout(null, 10, TimeUnit.SECONDS).join() != null;
@@ -193,12 +193,12 @@ final class CommandTaskTest {
       final InputStream broken = new InputStream() {
         @Override
         public int read() throws IOException {
-          throw new IOException("stream failed");
+          throw new IOException("stream failed!");
         }
 
         @Override
         public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-          throw new IOException("stream failed");
+          throw new IOException("stream failed!");
         }
       }
     ) {

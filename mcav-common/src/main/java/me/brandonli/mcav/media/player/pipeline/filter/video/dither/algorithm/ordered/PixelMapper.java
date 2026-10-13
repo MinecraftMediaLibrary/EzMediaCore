@@ -66,7 +66,7 @@ public interface PixelMapper {
    * @throws IllegalArgumentException if the strength is negative or nonfinite, or {@code max} is nonpositive
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final int max, final float strength) {
-    Preconditions.checkNotNull(matrix, "Matrix must not be null");
+    Preconditions.checkNotNull(matrix, "Matrix must not be null!");
     final int[][] entries = matrix.toArray();
     return ofPixelMapper(entries, max, strength);
   }
@@ -81,7 +81,7 @@ public interface PixelMapper {
    * @throws IllegalArgumentException if the strength is negative or nonfinite
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final float strength) {
-    Preconditions.checkNotNull(matrix, "Matrix must not be null");
+    Preconditions.checkNotNull(matrix, "Matrix must not be null!");
     final int[][] entries = matrix.toArray();
     return ofPixelMapper(entries, strength);
   }
@@ -99,8 +99,8 @@ public interface PixelMapper {
    *                                  or the matrix is empty or has unequal or empty rows
    */
   static PixelMapper ofPixelMapper(final int[][] matrix, final int max, final float strength) {
-    Preconditions.checkNotNull(matrix, "Matrix must not be null");
-    Preconditions.checkArgument(max > 0, "Max must be positive");
+    Preconditions.checkNotNull(matrix, "Matrix must not be null!");
+    Preconditions.checkArgument(max > 0, "Max must be positive!");
     return new OrderedPixelMapper(matrix, strength);
   }
 
@@ -115,7 +115,7 @@ public interface PixelMapper {
    *                                  or the matrix is empty or has unequal or empty rows
    */
   static PixelMapper ofPixelMapper(final int[][] matrix, final float strength) {
-    Preconditions.checkNotNull(matrix, "Matrix must not be null");
+    Preconditions.checkNotNull(matrix, "Matrix must not be null!");
     return new OrderedPixelMapper(matrix, strength);
   }
 }

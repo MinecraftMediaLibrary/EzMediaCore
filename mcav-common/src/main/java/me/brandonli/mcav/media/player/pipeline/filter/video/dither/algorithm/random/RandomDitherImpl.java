@@ -68,13 +68,13 @@ public final class RandomDitherImpl extends AbstractDitherAlgorithm implements R
   public RandomDitherImpl(final DitherPalette palette, final int weight, final RandomNumberProvider random) {
     super(palette);
     checkWeight(weight);
-    Preconditions.checkNotNull(random, "Random number provider must not be null");
+    Preconditions.checkNotNull(random, "Random number provider must not be null!");
     this.weight = weight;
     this.providers = ThreadLocal.withInitial(() -> random);
   }
 
   private static void checkWeight(final int weight) {
-    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255");
+    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255!");
   }
 
   /**
@@ -94,7 +94,7 @@ public final class RandomDitherImpl extends AbstractDitherAlgorithm implements R
   @VisibleForTesting
   RandomNumberProvider getRandomNumberProvider() {
     final RandomNumberProvider provider = this.providers.get();
-    return Objects.requireNonNull(provider, "Every thread gets a provider from the initial value");
+    return Objects.requireNonNull(provider, "Every thread gets a provider from the initial value!");
   }
 
   /**

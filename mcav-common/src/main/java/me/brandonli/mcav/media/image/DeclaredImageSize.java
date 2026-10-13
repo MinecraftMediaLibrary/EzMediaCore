@@ -47,10 +47,7 @@ final class DeclaredImageSize {
   /** The limit when the property is not set: 8192 by 8192 pixels, 192 MiB of decoded BGR. */
   private static final long DEFAULT_MAX_PIXELS = 1L << 26;
 
-  private static final String UNSUPPORTED_BYTES = "Bytes are not a supported image format";
-  private static final String UNSUPPORTED_FILE = "File is not a supported image: %s";
-  private static final String TOO_LARGE =
-    "Image declares %sx%s pixels, more than the %s pixels mcav decodes (the system property " + MAX_PIXELS_PROPERTY + " raises the limit)";
+  private static final String UNSUPPORTED_FILE = "File %s is not a supported image!";
 
   // OpenCV reads its header lines in pieces of at most 127 characters, the way fgets does with a 128-byte buffer
   private static final int HDR_PIECE = 127;
@@ -61,7 +58,7 @@ final class DeclaredImageSize {
   private static final int WEBP_SIGNATURE = 32;
 
   private DeclaredImageSize() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -81,7 +78,7 @@ final class DeclaredImageSize {
     final MemorySegment segment = MemorySegment.ofArray(encoded);
     final Size size = read(segment);
     if (size == null) {
-      throw new IllegalArgumentException(UNSUPPORTED_BYTES);
+      throw new IllegalArgumentException("Bytes are not a supported image format!");
     }
     checkLimit(size, limit);
   }
@@ -107,10 +104,12 @@ final class DeclaredImageSize {
       final MemorySegment segment = channel.map(FileChannel.MapMode.READ_ONLY, 0, length, arena);
       size = read(segment);
     } catch (final IOException failure) {
-      throw new IllegalArgumentException(String.format(UNSUPPORTED_FILE, path), failure);
+      final String message = UNSUPPORTED_FILE.formatted(path);
+      throw new IllegalArgumentException(message, failure);
     }
     if (size == null) {
-      throw new IllegalArgumentException(String.format(UNSUPPORTED_FILE, path));
+      final String message = UNSUPPORTED_FILE.formatted(path);
+      throw new IllegalArgumentException(message);
     }
     checkLimit(size, limit);
   }
@@ -125,7 +124,13 @@ final class DeclaredImageSize {
     // Test width * height > limit without overflowing the product.
     final boolean tooLarge = width > limit / height;
     if (tooLarge) {
-      throw new IllegalArgumentException(String.format(TOO_LARGE, width, height, limit));
+      final String message = "Image size %sx%s exceeds the limit of %s pixels that the system property %s sets!".formatted(
+        width,
+        height,
+        limit,
+        MAX_PIXELS_PROPERTY
+      );
+      throw new IllegalArgumentException(message);
     }
   }
 

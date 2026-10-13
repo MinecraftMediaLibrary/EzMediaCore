@@ -309,7 +309,7 @@ final class ErrorDiffusionDitherTest {
     final ErrorDiffusionDither dither = build(ErrorDiffusionDitherBuilder.Algorithm.FLOYD_STEINBERG);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null));
     final String missingImageMessage = missingImage.getMessage();
-    assertEquals("Image must not be null", missingImageMessage);
+    assertEquals("Image must not be null!", missingImageMessage);
     assertThrows(NullPointerException.class, () -> dither.dither(null, 1));
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[4], 0));
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[5], 2));

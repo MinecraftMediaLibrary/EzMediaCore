@@ -30,7 +30,7 @@ public final class DitherTestImages {
   public static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);
 
   private DitherTestImages() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

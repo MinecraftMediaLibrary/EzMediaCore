@@ -35,7 +35,7 @@ public class FlipFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code direction} is null
    */
   public FlipFilter(final FlipDirection direction) {
-    Preconditions.checkNotNull(direction, "Direction must not be null");
+    Preconditions.checkNotNull(direction, "Direction must not be null!");
     this.flipCode = direction.getCode();
   }
 

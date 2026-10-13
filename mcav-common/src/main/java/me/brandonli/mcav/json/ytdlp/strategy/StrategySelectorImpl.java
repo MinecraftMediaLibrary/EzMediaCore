@@ -51,11 +51,12 @@ public final class StrategySelectorImpl implements StrategySelector {
    */
   @Override
   public Format getAudioSource(final URLParseDump dump) {
-    Preconditions.checkNotNull(dump, "Dump must not be null");
+    Preconditions.checkNotNull(dump, "Dump must not be null!");
     final Optional<Format> selected = this.audio.select(dump);
     if (selected.isEmpty()) {
       final String description = describe(dump);
-      throw new NoMatchingFormatException("No audio stream matches the strategy for " + description);
+      final String message = "No audio stream of %s matches the strategy!".formatted(description);
+      throw new NoMatchingFormatException(message);
     }
     return selected.get();
   }
@@ -66,11 +67,12 @@ public final class StrategySelectorImpl implements StrategySelector {
    */
   @Override
   public Format getVideoSource(final URLParseDump dump) {
-    Preconditions.checkNotNull(dump, "Dump must not be null");
+    Preconditions.checkNotNull(dump, "Dump must not be null!");
     final Optional<Format> selected = this.video.select(dump);
     if (selected.isEmpty()) {
       final String description = describe(dump);
-      throw new NoMatchingFormatException("No video stream matches the strategy for " + description);
+      final String message = "No video stream of %s matches the strategy!".formatted(description);
+      throw new NoMatchingFormatException(message);
     }
     return selected.get();
   }

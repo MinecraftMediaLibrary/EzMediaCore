@@ -167,7 +167,10 @@ final class ScriptedFrameGrabber extends FrameGrabber {
         case final FrameGrabber.Exception exception -> throw exception;
         case final RuntimeException exception -> throw exception;
         case final Delay delay -> delay.block();
-        default -> throw new IllegalStateException("Unknown step in the script: " + next);
+        default -> {
+          final String message = "Script step %s is unknown!".formatted(next);
+          throw new IllegalStateException(message);
+        }
       }
     }
   }

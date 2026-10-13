@@ -30,7 +30,7 @@ import org.bytedeco.javacpp.Loader;
 public final class OpenCvModules {
 
   private OpenCvModules() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -40,7 +40,7 @@ public final class OpenCvModules {
    * @return true if the natives were loaded
    */
   public static boolean canLoad(final Class<?> preset) {
-    Preconditions.checkNotNull(preset, "Preset must not be null");
+    Preconditions.checkNotNull(preset, "Preset must not be null!");
     try {
       Loader.load(preset);
       return true;

@@ -422,7 +422,7 @@ final class PlaybackSessionTest {
     first.start();
     awaitEnd(first);
 
-    final List<Object> crash = List.of(new IllegalStateException("bug"));
+    final List<Object> crash = List.of(new IllegalStateException("bug!"));
     final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(4, 2, true, crash);
     final PlaybackSession second = this.session(crashing, 0L, false);
     second.start();
@@ -529,10 +529,10 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> {
       frames.incrementAndGet();
-      throw new IllegalStateException("video filter bug");
+      throw new IllegalStateException("video filter bug!");
     });
     this.onAudio((_, _) -> {
-      throw new AssertionError("audio filter bug");
+      throw new AssertionError("audio filter bug!");
     });
     final ScriptedFrameGrabber grabber = pictureSoundPicture();
     final PlaybackSession session = this.session(grabber, 0L, false);
@@ -713,7 +713,7 @@ final class PlaybackSessionTest {
         "the detached frame returns to the pool and is released when rendering ends"
       );
       final String message = released.getMessage();
-      assertEquals("Image buffer has been released", message);
+      assertEquals("Image buffer has been released!", message);
     }
 
     final long position = session.getPositionMicros();

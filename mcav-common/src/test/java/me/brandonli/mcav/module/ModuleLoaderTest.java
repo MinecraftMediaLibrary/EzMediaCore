@@ -87,7 +87,7 @@ final class ModuleLoaderTest {
     @Override
     public void stop() {
       super.stop();
-      throw new IllegalStateException("stop failed");
+      throw new IllegalStateException("stop failed!");
     }
   }
 
@@ -96,13 +96,13 @@ final class ModuleLoaderTest {
     @Override
     public void stop() {
       super.stop();
-      throw new AssertionError("stop crashed");
+      throw new AssertionError("stop crashed!");
     }
   }
 
   static final class FatalStopModule extends RecordingModule {
 
-    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed");
+    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
 
     @Override
     public void stop() {
@@ -113,11 +113,11 @@ final class ModuleLoaderTest {
 
   static final class FailingStartAndFatalStopModule extends RecordingModule {
 
-    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed");
+    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
 
     @Override
     public void start() {
-      throw new IllegalStateException("port in use");
+      throw new IllegalStateException("port in use!");
     }
 
     @Override
@@ -128,7 +128,7 @@ final class ModuleLoaderTest {
 
   static final class FatalConstructorModule extends RecordingModule {
 
-    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("heap is full");
+    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("heap is full!");
 
     FatalConstructorModule() {
       throw FAILURE;
@@ -140,13 +140,13 @@ final class ModuleLoaderTest {
     @Override
     public void start() {
       super.start();
-      throw new IllegalStateException("port in use");
+      throw new IllegalStateException("port in use!");
     }
   }
 
   static final class LinkageStartModule extends RecordingModule {
 
-    private static final UnsatisfiedLinkError FAILURE = new UnsatisfiedLinkError("native module missing");
+    private static final UnsatisfiedLinkError FAILURE = new UnsatisfiedLinkError("native module missing!");
     private static final AtomicInteger STOPS = new AtomicInteger();
 
     @Override
@@ -164,8 +164,8 @@ final class ModuleLoaderTest {
 
   static final class AssertionStartAndStopModule extends RecordingModule {
 
-    private static final AssertionError START_FAILURE = new AssertionError("startup invariant failed");
-    private static final LinkageError STOP_FAILURE = new LinkageError("cleanup native missing");
+    private static final AssertionError START_FAILURE = new AssertionError("startup invariant failed!");
+    private static final LinkageError STOP_FAILURE = new LinkageError("cleanup native missing!");
     private static final AtomicInteger STOPS = new AtomicInteger();
 
     @Override
@@ -184,7 +184,7 @@ final class ModuleLoaderTest {
     public String getModuleName() {
       final int starts = this.starts.get();
       if (starts != 0) {
-        throw new IllegalStateException("a failed module cannot describe itself");
+        throw new IllegalStateException("a failed module cannot describe itself!");
       }
       return "asserting module";
     }
@@ -192,7 +192,7 @@ final class ModuleLoaderTest {
 
   static final class FatalStartModule extends RecordingModule {
 
-    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("start exhausted memory");
+    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("start exhausted memory!");
     private static final AtomicInteger STOPS = new AtomicInteger();
 
     @Override
@@ -208,7 +208,7 @@ final class ModuleLoaderTest {
 
   static final class SameStartAndStopFailureModule extends RecordingModule {
 
-    private static final ModuleException FAILURE = new ModuleException("module failed");
+    private static final ModuleException FAILURE = new ModuleException("Module failed!");
     private static final AtomicInteger STOPS = new AtomicInteger();
 
     @Override
@@ -228,7 +228,7 @@ final class ModuleLoaderTest {
     @Override
     public void start() {
       super.start();
-      throw new ModuleException("missing configuration");
+      throw new ModuleException("Missing configuration!");
     }
   }
 
@@ -239,7 +239,7 @@ final class ModuleLoaderTest {
     @Override
     public void start() {
       super.start();
-      throw new IllegalStateException("port in use");
+      throw new IllegalStateException("port in use!");
     }
 
     @Override
@@ -256,7 +256,7 @@ final class ModuleLoaderTest {
     @Override
     public void start() {
       super.start();
-      throw new ModuleException("missing configuration");
+      throw new ModuleException("Missing configuration!");
     }
 
     @Override
@@ -270,19 +270,19 @@ final class ModuleLoaderTest {
 
     @Override
     public void start() {
-      throw new IllegalStateException("port in use");
+      throw new IllegalStateException("port in use!");
     }
 
     @Override
     public void stop() {
-      throw new IllegalStateException("socket already closed");
+      throw new IllegalStateException("socket already closed!");
     }
   }
 
   static final class ThrowingConstructorModule extends RecordingModule {
 
     ThrowingConstructorModule() {
-      throw new IllegalStateException("broken constructor");
+      throw new IllegalStateException("broken constructor!");
     }
   }
 
@@ -371,7 +371,7 @@ final class ModuleLoaderTest {
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(FirstModule.class, NotAModule.class));
     final String message = exception.getMessage();
     final Collection<MCAVModule> modules = loader.getModules();
-    assertEquals("NotAModule does not implement MCAVModule", message);
+    assertEquals("NotAModule does not implement MCAVModule!", message);
     final boolean modulesEmpty = modules.isEmpty();
     assertTrue(modulesEmpty);
   }
@@ -383,7 +383,7 @@ final class ModuleLoaderTest {
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final Collection<MCAVModule> modules = loader.getModules();
-    assertEquals("Module ThrowingConstructorModule could not be created: broken constructor", message);
+    assertEquals("Module ThrowingConstructorModule failed with \"broken constructor!\" while being created!", message);
     assertInstanceOf(IllegalStateException.class, cause);
     final boolean modulesEmpty = modules.isEmpty();
     assertTrue(modulesEmpty);
@@ -401,9 +401,9 @@ final class ModuleLoaderTest {
     final Throwable withArgumentCause = withArgument.getCause();
     final Throwable abstractCause = abstractClass.getCause();
     final Throwable interfaceCause = interfaceType.getCause();
-    final boolean withArgumentExplained = withArgumentMessage.startsWith("Module ArgumentModule could not be created: ");
-    final boolean abstractExplained = abstractMessage.startsWith("Module AbstractModule could not be created: ");
-    final boolean interfaceExplained = interfaceMessage.startsWith("Module MCAVModule could not be created: ");
+    final boolean withArgumentExplained = withArgumentMessage.startsWith("Module ArgumentModule failed with \"");
+    final boolean abstractExplained = abstractMessage.startsWith("Module AbstractModule failed with \"");
+    final boolean interfaceExplained = interfaceMessage.startsWith("Module MCAVModule failed with \"");
     assertTrue(withArgumentExplained, withArgumentMessage);
     assertTrue(abstractExplained, abstractMessage);
     assertTrue(interfaceExplained, interfaceMessage);
@@ -423,7 +423,7 @@ final class ModuleLoaderTest {
     final FirstModule first = loader.getModule(FirstModule.class);
     final Collection<MCAVModule> modules = loader.getModules();
     final List<MCAVModule> expected = List.of(first);
-    assertEquals("Module FailingStartModule failed to start: port in use", message);
+    assertEquals("Module FailingStartModule failed with \"port in use!\" while starting!", message);
     assertInstanceOf(IllegalStateException.class, cause);
     assertEquals(expected, modules);
     assertThrows(ModuleException.class, () -> loader.getModule(FailingStartModule.class));
@@ -475,7 +475,7 @@ final class ModuleLoaderTest {
     assertEquals(1, suppressed.length);
     final Throwable firstSuppressed = suppressed[0];
     assertSame(AssertionStartAndStopModule.STOP_FAILURE, firstSuppressed);
-    assertEquals("Module asserting module failed to start: startup invariant failed", message);
+    assertEquals("Module asserting module failed with \"startup invariant failed!\" while starting!", message);
     assertTrue(empty);
   }
 
@@ -511,7 +511,7 @@ final class ModuleLoaderTest {
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final Collection<MCAVModule> modules = loader.getModules();
-    assertEquals("missing configuration", message);
+    assertEquals("Missing configuration!", message);
     assertNull(cause);
     final boolean modulesEmpty = modules.isEmpty();
     assertTrue(modulesEmpty);
@@ -581,7 +581,7 @@ final class ModuleLoaderTest {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.getModule(FirstModule.class));
     final String message = exception.getMessage();
-    assertEquals("Module FirstModule is not installed", message);
+    assertEquals("Module FirstModule is not installed!", message);
   }
 
   @Test
@@ -637,11 +637,11 @@ final class ModuleLoaderTest {
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(FailingStartAndStopModule.class));
     final String message = exception.getMessage();
     final Throwable[] suppressed = exception.getSuppressed();
-    assertEquals("Module FailingStartAndStopModule failed to start: port in use", message);
+    assertEquals("Module FailingStartAndStopModule failed with \"port in use!\" while starting!", message);
     assertEquals(1, suppressed.length);
     final Throwable stopFailure = suppressed[0];
     final String stopMessage = stopFailure.getMessage();
-    assertEquals("socket already closed", stopMessage);
+    assertEquals("socket already closed!", stopMessage);
   }
 
   @Test
@@ -673,18 +673,18 @@ final class ModuleLoaderTest {
 
   @Test
   void shouldCreateExceptionsWithMessageAndCause() {
-    final IllegalStateException cause = new IllegalStateException("cause");
-    final ModuleException withMessage = new ModuleException("message");
-    final ModuleException withCause = new ModuleException("wrapped", cause);
+    final IllegalStateException cause = new IllegalStateException("cause!");
+    final ModuleException withMessage = new ModuleException("Message!");
+    final ModuleException withCause = new ModuleException("Wrapped!", cause);
     final ModuleException withNulls = new ModuleException(null, null);
     final String message = withMessage.getMessage();
     final Throwable noCause = withMessage.getCause();
     final String wrappedMessage = withCause.getMessage();
     final Throwable wrappedCause = withCause.getCause();
     final String nullMessage = withNulls.getMessage();
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertNull(noCause);
-    assertEquals("wrapped", wrappedMessage);
+    assertEquals("Wrapped!", wrappedMessage);
     assertSame(cause, wrappedCause);
     assertNull(nullMessage);
     assertInstanceOf(RuntimeException.class, withMessage, "a module failure is recoverable, so it is no Error");

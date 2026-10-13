@@ -131,8 +131,8 @@ final class VLCPlaybackTest {
 
   @Test
   void shouldLetFatalSecondaryFailuresEscapeWithoutBeingSuppressed() {
-    final IllegalStateException primary = new IllegalStateException("recoverable failure");
-    final OutOfMemoryError fatal = new OutOfMemoryError("cleanup exhausted memory");
+    final IllegalStateException primary = new IllegalStateException("recoverable failure!");
+    final OutOfMemoryError fatal = new OutOfMemoryError("cleanup exhausted memory!");
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () ->
       VLCPlayback.attemptAfterFailure(primary, () -> {
         throw fatal;
@@ -183,7 +183,7 @@ final class VLCPlaybackTest {
     final VLCPlayback playback = this.separatePlayback(0L, 0L);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
     final StatusApi status = audioPlayer.getStatus();
-    final IllegalStateException failure = new IllegalStateException("native crash");
+    final IllegalStateException failure = new IllegalStateException("native crash!");
     when(status.isPlaying()).thenThrow(failure);
     this.synchronize(playback);
     final List<String> expectedMessages = List.of("Failed to synchronize VLC players");
@@ -232,9 +232,9 @@ final class VLCPlaybackTest {
 
   static Stream<Throwable> recoverableStopFailures() {
     return Stream.of(
-      new IllegalStateException("stop failed"),
-      new UnsatisfiedLinkError("native stop missing"),
-      new AssertionError("stop assertion")
+      new IllegalStateException("stop failed!"),
+      new UnsatisfiedLinkError("native stop missing!"),
+      new AssertionError("stop assertion!")
     );
   }
 
@@ -246,7 +246,7 @@ final class VLCPlaybackTest {
     final MockVlc.Player first = this.vlc.player(0);
     final ControlsApi controls = first.getControls();
     final EmbeddedMediaPlayer firstPlayer = first.getPlayer();
-    final IllegalStateException releaseFailure = new IllegalStateException("release failed");
+    final IllegalStateException releaseFailure = new IllegalStateException("release failed!");
     doThrow(failure).when(controls).stop();
     doThrow(releaseFailure).when(firstPlayer).release();
 
@@ -279,7 +279,7 @@ final class VLCPlaybackTest {
     final MockVlc.Player first = this.vlc.player(0);
     final ControlsApi controls = first.getControls();
     final EmbeddedMediaPlayer firstPlayer = first.getPlayer();
-    final IllegalStateException failure = new IllegalStateException("same native failure");
+    final IllegalStateException failure = new IllegalStateException("same native failure!");
     doThrow(failure).when(controls).stop();
     doThrow(failure).when(firstPlayer).release();
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, playback::stop);
@@ -295,7 +295,7 @@ final class VLCPlaybackTest {
   void shouldPropagateFatalVmErrorsImmediatelyOnStop() {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final ControlsApi controls = this.videoControls();
-    final OutOfMemoryError failure = new OutOfMemoryError("fatal native allocation");
+    final OutOfMemoryError failure = new OutOfMemoryError("fatal native allocation!");
     doThrow(failure).when(controls).stop();
     final SharedMediaPlayerFactory shared = this.vlc.getSharedFactory();
     try {

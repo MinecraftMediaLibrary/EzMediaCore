@@ -54,7 +54,7 @@ public interface ControllablePlayer {
    * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> pauseAsync(final ExecutorService executor) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(this::pause, executor);
   }
 
@@ -86,7 +86,7 @@ public interface ControllablePlayer {
    * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> resumeAsync(final ExecutorService executor) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(this::resume, executor);
   }
 }

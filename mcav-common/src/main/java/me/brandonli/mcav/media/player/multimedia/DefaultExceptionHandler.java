@@ -30,8 +30,6 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
 
-  private static final String FAILURE = "{}";
-
   private volatile BiConsumer<String, Throwable> handler;
 
   DefaultExceptionHandler() {
@@ -39,7 +37,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   }
 
   private static void log(final String message, final Throwable error) {
-    LOGGER.error(FAILURE, message, error);
+    LOGGER.error("{}", message, error);
   }
 
   /**
@@ -61,7 +59,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.handler = exceptionHandler;
   }
 }

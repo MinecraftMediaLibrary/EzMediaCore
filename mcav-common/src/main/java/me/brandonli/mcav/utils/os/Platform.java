@@ -35,9 +35,9 @@ public final class Platform {
   private final Bits bits;
 
   Platform(final OS os, final Arch arch, final Bits bits) {
-    Preconditions.checkNotNull(os, "OS must not be null");
-    Preconditions.checkNotNull(arch, "Arch must not be null");
-    Preconditions.checkNotNull(bits, "Bits must not be null");
+    Preconditions.checkNotNull(os, "OS must not be null!");
+    Preconditions.checkNotNull(arch, "Arch must not be null!");
+    Preconditions.checkNotNull(bits, "Bits must not be null!");
     this.os = os;
     this.arch = arch;
     this.bits = bits;

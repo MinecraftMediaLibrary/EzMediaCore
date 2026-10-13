@@ -86,7 +86,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    */
   @Override
   public ErrorDiffusionDitherBuilderImpl withPalette(final DitherPalette palette) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
   }
@@ -100,7 +100,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    */
   @Override
   public ErrorDiffusionDitherBuilderImpl withAlgorithm(final Algorithm algorithm) {
-    Preconditions.checkNotNull(algorithm, "Algorithm must not be null");
+    Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
     this.algorithm = algorithm;
     return this;
   }
@@ -115,7 +115,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    */
   @Override
   public ErrorDiffusionDitherBuilderImpl withTemporalThreshold(final int threshold) {
-    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Temporal threshold must be between 0 and 255");
+    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Temporal threshold must be between 0 and 255!");
     this.temporalThreshold = threshold;
     return this;
   }
@@ -130,7 +130,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    */
   @Override
   public ErrorDiffusionDitherBuilderImpl withErrorThreshold(final int threshold) {
-    Preconditions.checkArgument(threshold >= 0, "Error threshold must not be negative");
+    Preconditions.checkArgument(threshold >= 0, "Error threshold must not be negative!");
     this.errorThreshold = threshold;
     return this;
   }
@@ -145,7 +145,7 @@ public class ErrorDiffusionDitherBuilderImpl implements ErrorDiffusionDitherBuil
    */
   @Override
   public ErrorDiffusionDitherBuilderImpl withErrorStrength(final float strength) {
-    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Error strength must be between 0 and 1");
+    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Error strength must be between 0 and 1!");
     this.errorStrength = strength;
     return this;
   }

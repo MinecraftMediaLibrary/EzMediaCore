@@ -185,7 +185,7 @@ final class ScriptedPlayerTest {
     final String message = error.getMessage();
     assertFalse(started);
     assertTrue(closed);
-    assertEquals("invalid option", message);
+    assertEquals("invalid option!", message);
   }
 
   @Test
@@ -196,9 +196,9 @@ final class ScriptedPlayerTest {
     try {
       final boolean started = player.start(VIDEO);
       final ScriptedFrameGrabber playing = player.getLatestGrabber();
-      player.failNextOpen(new IllegalStateException("unknown option"));
+      player.failNextOpen(new IllegalStateException("unknown option!"));
       final boolean runtimeFailure = player.start(AUDIO);
-      player.failNextOpen(new UnsatisfiedLinkError("natives are missing"));
+      player.failNextOpen(new UnsatisfiedLinkError("natives are missing!"));
       final boolean linkageFailure = player.start(AUDIO);
 
       final boolean stillPlaying = player.isPlaying();
@@ -405,7 +405,7 @@ final class ScriptedPlayerTest {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     final BiConsumer<String, Throwable> defaultHandler = player.getExceptionHandler();
-    final IllegalStateException expected = new IllegalStateException("expected in this test");
+    final IllegalStateException expected = new IllegalStateException("expected in this test!");
     defaultHandler.accept("logged by the default handler", expected);
 
     player.setExceptionHandler(handler);
@@ -669,7 +669,7 @@ final class ScriptedPlayerTest {
     protected void configureGrabber(final FrameGrabber grabber, final Source source) {
       super.configureGrabber(grabber, source);
       if (this.configurationFails) {
-        throw new IllegalArgumentException("invalid option");
+        throw new IllegalArgumentException("invalid option!");
       }
     }
 

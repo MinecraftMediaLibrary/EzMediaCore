@@ -49,9 +49,9 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
     final int audioChannels,
     final int samplingFormat
   ) {
-    Preconditions.checkNotNull(codec, "Codec must not be null");
-    Preconditions.checkArgument(audioSampleRate > 0, "Sample rate must be positive but was %s", audioSampleRate);
-    Preconditions.checkArgument(audioChannels > 0, "Channel count must be positive but was %s", audioChannels);
+    Preconditions.checkNotNull(codec, "Codec must not be null!");
+    Preconditions.checkArgument(audioSampleRate > 0, "Sample rate %s must be positive!", audioSampleRate);
+    Preconditions.checkArgument(audioChannels > 0, "Channel count %s must be positive!", audioChannels);
     return new OriginalAudioMetadataImpl(codec, audioBitrate, audioSampleRate, audioChannels, samplingFormat);
   }
 

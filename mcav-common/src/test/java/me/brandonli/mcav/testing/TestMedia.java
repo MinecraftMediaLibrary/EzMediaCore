@@ -70,7 +70,7 @@ public final class TestMedia {
   private static final Path DIRECTORY = createDirectory();
 
   private TestMedia() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static Path createDirectory() {
@@ -142,7 +142,7 @@ public final class TestMedia {
    * @return the audio file
    */
   public static synchronized Path audio(final double seconds) {
-    Preconditions.checkArgument(seconds > 0, "Seconds must be positive but was %s", seconds);
+    Preconditions.checkArgument(seconds > 0, "Seconds %s must be positive!", seconds);
     final String length = String.valueOf(seconds);
     final String fileName = "audio-" + length + ".m4a";
     final String arguments = SINE_INPUT + "880 -t " + length + " -c:a aac -ac 2";

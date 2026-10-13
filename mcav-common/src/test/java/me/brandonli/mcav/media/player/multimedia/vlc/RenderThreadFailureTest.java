@@ -35,7 +35,7 @@ final class RenderThreadFailureTest {
   @ParameterizedTest
   @ValueSource(ints = { 0, 1, 2, 3 })
   void shouldStopAcceptingWorkBeforeCleanupOnEveryAbnormalExit(final int failureSite) throws Exception {
-    final AssertionError failure = new AssertionError("render failure");
+    final AssertionError failure = new AssertionError("render failure!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final CountDownLatch cleaned = new CountDownLatch(1);
@@ -52,9 +52,9 @@ final class RenderThreadFailureTest {
           throw failure;
         }
         if (failureSite == 1) {
-          throw new IllegalStateException("handler will fail");
+          throw new IllegalStateException("handler will fail!");
         }
-        throw new InterruptedException("natural loop exit");
+        throw new InterruptedException("natural loop exit!");
       },
       () -> {
         acceptingDuringCleanup.set(thread.isRunning());

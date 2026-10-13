@@ -53,8 +53,8 @@ public class TextFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code text} or {@code color} is null
    */
   public TextFilter(final String text, final int left, final int baseline, final int font, final double scale, final double[] color) {
-    Preconditions.checkNotNull(text, "Text must not be null");
-    Preconditions.checkArgument(scale > 0, "Scale must be positive");
+    Preconditions.checkNotNull(text, "Text must not be null!");
+    Preconditions.checkArgument(scale > 0, "Scale must be positive!");
     this.text = text;
     this.position = new Point(left, baseline);
     this.font = font;

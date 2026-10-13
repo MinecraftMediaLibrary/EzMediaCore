@@ -32,26 +32,26 @@ final class InputMetadataExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final InputMetadataException exception = new InputMetadataException("Source video.mp4 has no video track");
+    final InputMetadataException exception = new InputMetadataException("Source video.mp4 has no video track!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Source video.mp4 has no video track", message);
+    assertEquals("Source video.mp4 has no video track!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final IOException readFailure = new IOException("connection reset");
-    final InputMetadataException exception = new InputMetadataException("Failed to read video metadata", readFailure);
+    final IOException readFailure = new IOException("connection reset!");
+    final InputMetadataException exception = new InputMetadataException("Failed to read video metadata!", readFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Failed to read video metadata", message);
+    assertEquals("Failed to read video metadata!", message);
     assertSame(readFailure, cause);
   }
 
   @Test
   void shouldBeARuntimeException() {
-    final InputMetadataException exception = new InputMetadataException("failure");
+    final InputMetadataException exception = new InputMetadataException("failure!");
     assertInstanceOf(RuntimeException.class, exception, "unreadable media is recoverable, so it is no Error");
   }
 }

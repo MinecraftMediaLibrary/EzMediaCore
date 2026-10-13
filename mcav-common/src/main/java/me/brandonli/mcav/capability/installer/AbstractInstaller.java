@@ -91,10 +91,10 @@ public abstract class AbstractInstaller implements Installer {
    * @throws NullPointerException if {@code folder}, {@code name} or {@code downloads} is null
    */
   protected AbstractInstaller(final Path folder, final String name, final Supplier<Download[]> downloads) {
-    Preconditions.checkNotNull(folder, "Folder must not be null");
-    Preconditions.checkNotNull(name, "Name must not be null");
-    Preconditions.checkNotNull(downloads, "Downloads must not be null");
-    Preconditions.checkArgument(!name.isBlank(), "Name must not be blank");
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
+    Preconditions.checkNotNull(name, "Name must not be null!");
+    Preconditions.checkNotNull(downloads, "Downloads must not be null!");
+    Preconditions.checkArgument(!name.isBlank(), "Name must not be blank!");
     this.folder = folder;
     this.name = name;
     this.downloadSupplier = downloads;
@@ -112,7 +112,7 @@ public abstract class AbstractInstaller implements Installer {
    * @throws NullPointerException if {@code folder}, {@code name} or {@code downloads} is null
    */
   protected AbstractInstaller(final Path folder, final String name, final Download[] downloads) {
-    Preconditions.checkNotNull(downloads, "Downloads must not be null");
+    Preconditions.checkNotNull(downloads, "Downloads must not be null!");
     final Supplier<Download[]> fixedDownloads = () -> downloads;
     this(folder, name, fixedDownloads);
   }
@@ -219,12 +219,13 @@ public abstract class AbstractInstaller implements Installer {
    * @throws NullPointerException if {@code file} is null
    */
   protected static void markExecutable(final Path file) throws IOException {
-    Preconditions.checkNotNull(file, "File must not be null");
+    Preconditions.checkNotNull(file, "File must not be null!");
     try {
       IOUtils.markExecutable(file);
     } catch (final UncheckedIOException exception) {
       final String reason = exception.getMessage();
-      throw new IOException("Cannot mark " + file + " as executable: " + reason, exception);
+      final String message = "Failed with \"%s\" while marking %s as executable!".formatted(reason, file);
+      throw new IOException(message, exception);
     }
   }
 
@@ -390,7 +391,7 @@ public abstract class AbstractInstaller implements Installer {
     final Optional<Download> download = this.resolveDownload();
     if (download.isEmpty()) {
       final Platform platform = Platform.getCurrentPlatform();
-      final String message = "No %s download is available for %s".formatted(this.name, platform);
+      final String message = "Platform %s has no %s download available!".formatted(platform, this.name);
       throw new IOException(message);
     }
     return download.get();
@@ -500,7 +501,7 @@ public abstract class AbstractInstaller implements Installer {
    * @throws NullPointerException if {@code installedPath} is null
    */
   public void writePathToConfig(final Path installedPath) throws IOException {
-    Preconditions.checkNotNull(installedPath, "Path must not be null");
+    Preconditions.checkNotNull(installedPath, "Path must not be null!");
     synchronized (CONFIG_LOCK) {
       final Properties properties = this.readConfig();
       final Path absolute = installedPath.toAbsolutePath();

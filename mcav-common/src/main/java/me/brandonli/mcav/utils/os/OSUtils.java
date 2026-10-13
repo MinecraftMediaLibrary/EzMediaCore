@@ -46,7 +46,7 @@ public final class OSUtils {
   }
 
   private OSUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   @VisibleForTesting

@@ -58,7 +58,7 @@ public final class NetworkUtils {
   private static final int HTTP_OK = 200;
 
   private NetworkUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -74,7 +74,7 @@ public final class NetworkUtils {
    * @throws NullPointerException if the address is null
    */
   public static String formatHostForUrl(final String address) {
-    Preconditions.checkNotNull(address, "Address must not be null");
+    Preconditions.checkNotNull(address, "Address must not be null!");
     final boolean ipAddress = InetAddresses.isInetAddress(address);
     final boolean isIpv6 = ipAddress && address.contains(":");
     if (!isIpv6) {
@@ -113,7 +113,7 @@ public final class NetworkUtils {
    *                                  a host
    */
   public static Optional<String> lookUpPublicAddress(final URI addressService) {
-    Preconditions.checkNotNull(addressService, "Address service must not be null");
+    Preconditions.checkNotNull(addressService, "Address service must not be null!");
     final HttpRequest request = createRequest(addressService, "GET");
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.limiting(
       HttpResponse.BodyHandlers.ofString(),
@@ -153,7 +153,7 @@ public final class NetworkUtils {
    * @throws NullPointerException if the URI is null
    */
   public static boolean isReachable(final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
     final boolean usesHttpScheme = isHttpScheme(uri);
     if (!usesHttpScheme) {
       return false;

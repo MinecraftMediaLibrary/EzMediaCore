@@ -469,7 +469,7 @@ final class VideoRendererTest {
 
   @Test
   void shouldLetFatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
-    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory");
+    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
     this.attach((_, _) -> {
@@ -494,8 +494,8 @@ final class VideoRendererTest {
   @Test
   void shouldReportPipelineFailuresAndKeepRendering() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
-    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
-    final AssertionError errorFailure = new AssertionError("filter assertion");
+    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug!");
+    final AssertionError errorFailure = new AssertionError("filter assertion!");
     final CountDownLatch third = new CountDownLatch(1);
     final VideoFilter failing = failingTwiceThenCounting(calls, runtimeFailure, errorFailure, third);
     this.attach(failing);
@@ -615,7 +615,7 @@ final class VideoRendererTest {
     final VideoPipelineStep recording = VideoPipelineStep.of(recorder);
     final VideoAttachableCallback callback = VideoAttachableCallback.create();
     callback.attach(recording);
-    final IllegalStateException failure = new IllegalStateException("native failure");
+    final IllegalStateException failure = new IllegalStateException("native failure!");
     final VideoPlayerMultiplexer failingOwner = ownerFailingOnce(callback, failure, reported);
     final VideoRenderer failing = new VideoRenderer(failingOwner);
     failing.createBufferFormat(1, 1, 1, 1);
@@ -626,7 +626,7 @@ final class VideoRendererTest {
       this.displayPixel(failing, GREEN);
       final RecordedFrame frame = take(recorded);
       final int[] rgb = frame.getRgb();
-      final List<String> expectedReports = List.of("Video rendering failed: native failure");
+      final List<String> expectedReports = List.of("Video rendering failed: native failure!");
       assertEquals(expectedReports, reported);
       assertArrayEquals(new int[] { GREEN }, rgb, "the render thread survived the failure");
     } finally {

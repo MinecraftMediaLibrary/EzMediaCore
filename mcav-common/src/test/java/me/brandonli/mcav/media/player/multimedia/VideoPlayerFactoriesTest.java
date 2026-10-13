@@ -44,7 +44,7 @@ final class VideoPlayerFactoriesTest {
       final IllegalStateException exception = assertThrows(IllegalStateException.class, VideoPlayer::vlc);
       final String message = exception.getMessage();
       assertEquals(
-        "VLC is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.VLC) or try again shortly",
+        "VLC is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.VLC) or try again shortly!",
         message
       );
     } finally {
@@ -59,7 +59,7 @@ final class VideoPlayerFactoriesTest {
     try {
       final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> new VLCPlayer("--x"));
       final String message = exception.getMessage();
-      assertEquals("VLC is not available on this system", message);
+      assertEquals("VLC is not available on this system!", message);
     } finally {
       guard.forget(Capability.VLC);
     }

@@ -41,8 +41,8 @@ public interface RepeatingFrameSource extends FrameSource {
    * @throws NullPointerException if {@code animation} is null
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation, final int repeatCount) {
-    Preconditions.checkNotNull(animation, "Animation must not be null");
-    Preconditions.checkArgument(repeatCount > 0, "Repeat count must be positive");
+    Preconditions.checkNotNull(animation, "Animation must not be null!");
+    Preconditions.checkArgument(repeatCount > 0, "Repeat count must be positive!");
     return new RepeatingFrameSourceImpl(animation, repeatCount);
   }
 
@@ -56,7 +56,7 @@ public interface RepeatingFrameSource extends FrameSource {
    * @throws NullPointerException if {@code animation} is null
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation) {
-    Preconditions.checkNotNull(animation, "Animation must not be null");
+    Preconditions.checkNotNull(animation, "Animation must not be null!");
     return new RepeatingFrameSourceImpl(animation, Integer.MAX_VALUE);
   }
 

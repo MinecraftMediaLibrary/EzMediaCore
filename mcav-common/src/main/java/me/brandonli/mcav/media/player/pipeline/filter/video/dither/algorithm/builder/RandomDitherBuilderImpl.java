@@ -58,7 +58,7 @@ public class RandomDitherBuilderImpl implements RandomDitherBuilder<RandomDither
    */
   @Override
   public RandomDitherBuilderImpl withPalette(final DitherPalette palette) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
   }
@@ -73,7 +73,7 @@ public class RandomDitherBuilderImpl implements RandomDitherBuilder<RandomDither
    */
   @Override
   public RandomDitherBuilderImpl withWeight(final int weight) {
-    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255");
+    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255!");
     this.weight = weight;
     return this;
   }

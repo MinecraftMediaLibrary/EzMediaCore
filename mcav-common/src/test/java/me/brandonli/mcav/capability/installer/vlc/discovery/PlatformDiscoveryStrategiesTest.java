@@ -162,7 +162,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldRejectADirectoryWhoseCoreLibraryCannotBeLoadedOnOsx() {
     // vlcj does not catch errors of onFound, so an Intel VLC on Apple silicon must be reported, not thrown
-    final UnsatisfiedLinkError wrongArchitecture = new UnsatisfiedLinkError("incompatible architecture (have 'x86_64', need 'arm64')");
+    final UnsatisfiedLinkError wrongArchitecture = new UnsatisfiedLinkError("incompatible architecture (have 'x86_64', need 'arm64')!");
     final List<SearchProvider> providers = List.of();
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {
       throw wrongArchitecture;
@@ -192,7 +192,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldPublishThePluginsBelowTheInstallationDirectoryOnWindows() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Windows plugin paths use backslashes");
+    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Windows plugin paths use backslashes!");
     final Path directory = createFiles(this.temp, "VLC", "libvlc.dll", "libvlccore.dll");
     final Path plugins = directory.resolve("plugins");
     Files.createDirectories(plugins);
@@ -332,7 +332,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldReportVariablesAsNotSetWhenTheCLibraryCannotBeLoaded() {
-    final UnsatisfiedLinkError missingJna = new UnsatisfiedLinkError("Unable to load library 'jnidispatch'");
+    final UnsatisfiedLinkError missingJna = new UnsatisfiedLinkError("Unable to load library 'jnidispatch'!");
     final EnvironmentVariables variables = new EnvironmentVariables(() -> {
       throw missingJna;
     });
@@ -345,7 +345,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldPreloadTheCoreLibraryFromTheGivenDirectory() {
     final Path systemDirectory = findSystemInstallation();
-    Assumptions.assumeTrue(systemDirectory != null, "VLC is not installed on this machine");
+    Assumptions.assumeTrue(systemDirectory != null, "VLC is not installed on this machine!");
     final String rawDirectory = systemDirectory.toString();
     OsxNativeDiscoveryStrategy.preloadCoreLibrary(rawDirectory);
     final String coreLibraryName = RuntimeUtil.getLibVlcCoreLibraryName();

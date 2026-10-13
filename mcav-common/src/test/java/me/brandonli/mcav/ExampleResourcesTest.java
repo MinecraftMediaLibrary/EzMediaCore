@@ -68,8 +68,8 @@ final class ExampleResourcesTest {
   @Test
   void shouldCloseOtherResourcesDespiteOneCleanupFailure() {
     final List<String> closed = new ArrayList<>();
-    final IllegalStateException first = new IllegalStateException("player");
-    final AssertionError second = new AssertionError("speakers");
+    final IllegalStateException first = new IllegalStateException("player!");
+    final AssertionError second = new AssertionError("speakers!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add("api"));
     resources.add(() -> {
@@ -93,7 +93,7 @@ final class ExampleResourcesTest {
   @Test
   void shouldRetainTheIdentityOfCleanupErrorsAndNotSkipTheApi() {
     final List<String> closed = new ArrayList<>();
-    final AssertionError failure = new AssertionError("native cleanup");
+    final AssertionError failure = new AssertionError("native cleanup!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add("api"));
     resources.add(() -> {
@@ -156,7 +156,7 @@ final class ExampleResourcesTest {
   @Test
   void shouldStopImmediatelyOnAFatalCleanupWithoutReclassifyingIt() {
     final List<String> closed = new ArrayList<>();
-    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic cleanup failure");
+    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic cleanup failure!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add("api"));
     resources.add(() -> {
@@ -170,8 +170,8 @@ final class ExampleResourcesTest {
 
   @Test
   void shouldNotSuppressAFatalWindowCleanupOntoAnOrdinaryConstructionFailure() {
-    final IllegalStateException primary = new IllegalStateException("window setup");
-    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic dispose failure");
+    final IllegalStateException primary = new IllegalStateException("window setup!");
+    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic dispose failure!");
     try (
       final MockedConstruction<JFrame> frames = mockConstruction(JFrame.class, (frame, context) -> {
         doThrow(primary).when(frame).setDefaultCloseOperation(anyInt());
@@ -188,7 +188,7 @@ final class ExampleResourcesTest {
 
   @Test
   void shouldLetAFatalWindowCreationReachTheWaitingCallerWithoutStrandingIt() throws Exception {
-    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic window failure");
+    final OutOfMemoryError fatal = new OutOfMemoryError("synthetic window failure!");
     // the first static and construction mocks of a class instrument it, which takes seconds on a busy machine: done
     // here, outside the waits below, which then measure only the hand-over of the failure
     try (
@@ -215,7 +215,7 @@ final class ExampleResourcesTest {
               ) {
                 try {
                   create.run();
-                  dispatchFailure.complete(new AssertionError("fatal creation unexpectedly returned"));
+                  dispatchFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
                 } finally {
                   final List<JFrame> constructed = frames.constructed();
                   final int constructedCount = constructed.size();
@@ -231,7 +231,7 @@ final class ExampleResourcesTest {
             return null;
           });
         SwingVideoWindow.open("test", 1, 1);
-        callerFailure.complete(new AssertionError("fatal creation unexpectedly returned"));
+        callerFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
       } catch (final Throwable failure) {
         callerFailure.complete(failure);
       }
@@ -254,7 +254,7 @@ final class ExampleResourcesTest {
   @ValueSource(strings = { "ffmpeg", "vlc", "multiplexer" })
   void shouldMakeEveryVideoExampleOwnTheApiBeforeInstallationCanFail(final String example) {
     final MCAVApi api = mock(MCAVApi.class);
-    final IllegalStateException failure = new IllegalStateException("install");
+    final IllegalStateException failure = new IllegalStateException("install!");
     Mockito.doThrow(failure).when(api).install();
     try (final MockedStatic<MCAV> entry = mockStatic(MCAV.class)) {
       entry.when(MCAV::api).thenReturn(api);

@@ -45,6 +45,9 @@ import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
  */
 public class FaceDetectionFilter extends MatVideoFilter {
 
+  private static final String CASCADE_FILE_NULL_MESSAGE = "Cascade file must not be null!";
+  private static final String UNLOADABLE_CASCADE_MESSAGE = "Cascade file %s could not be loaded!";
+
   private final CascadeClassifier classifier;
   private final Scalar color;
   private final Mat gray;
@@ -61,7 +64,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code cascadeFile} or {@code color} is null
    */
   public FaceDetectionFilter(final Path cascadeFile, final double[] color) {
-    Preconditions.checkNotNull(cascadeFile, "Cascade file must not be null");
+    Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
     this.classifier = createClassifier(cascadeFile);
     this.color = ImageUtils.toScalar(color);
     this.gray = new Mat();
@@ -80,7 +83,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @throws java.nio.file.InvalidPathException if the path string is invalid
    */
   public FaceDetectionFilter(final String cascadeFile, final double[] color) {
-    Preconditions.checkNotNull(cascadeFile, "Cascade file must not be null");
+    Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
     final Path path = Path.of(cascadeFile);
     this.classifier = createClassifier(path);
     this.color = ImageUtils.toScalar(color);
@@ -90,7 +93,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
 
   private static CascadeClassifier createClassifier(final Path cascadeFile) {
     final boolean exists = Files.isRegularFile(cascadeFile);
-    Preconditions.checkArgument(exists, "Cascade file does not exist: %s", cascadeFile);
+    Preconditions.checkArgument(exists, "Cascade file %s does not exist!", cascadeFile);
     return loadClassifier(cascadeFile, CascadeClassifier::new);
   }
 
@@ -111,17 +114,18 @@ public class FaceDetectionFilter extends MatVideoFilter {
       classifier = factory.apply(cascadePath);
     } catch (final LinkageError error) {
       final String reason = error.getMessage();
-      throw new IllegalStateException(
-        "Face detection is not available, because the OpenCV object detection natives cannot be loaded: " + reason,
-        error
-      );
+      final String message =
+        "Face detection is not available, because the error %s stopped the OpenCV object detection natives from loading!".formatted(reason);
+      throw new IllegalStateException(message, error);
     } catch (final RuntimeException exception) {
-      throw new IllegalArgumentException("Cascade file could not be loaded: " + cascadeFile, exception);
+      final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
+      throw new IllegalArgumentException(message, exception);
     }
     final boolean empty = classifier.empty();
     if (empty) {
       classifier.close();
-      throw new IllegalArgumentException("Cascade file could not be loaded: " + cascadeFile);
+      final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
+      throw new IllegalArgumentException(message);
     }
     return classifier;
   }

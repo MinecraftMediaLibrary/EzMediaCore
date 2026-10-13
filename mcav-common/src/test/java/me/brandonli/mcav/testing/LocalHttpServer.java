@@ -173,7 +173,8 @@ public final class LocalHttpServer implements AutoCloseable {
     try {
       return new URI("http", null, hostAddress, port, path, null, null);
     } catch (final URISyntaxException exception) {
-      throw new IllegalArgumentException("Not a valid path: " + path, exception);
+      final String message = "Path %s is not valid!".formatted(path);
+      throw new IllegalArgumentException(message, exception);
     }
   }
 
@@ -265,7 +266,8 @@ public final class LocalHttpServer implements AutoCloseable {
     final boolean closed = this.awaitClose();
     exchange.close();
     if (!closed) {
-      throw new IOException("The stalling response gave up because the server was not closed within " + MAX_WAIT_SECONDS + " s");
+      final String message = "The stalling response gave up because the server was not closed within %s s!".formatted(MAX_WAIT_SECONDS);
+      throw new IOException(message);
     }
   }
 

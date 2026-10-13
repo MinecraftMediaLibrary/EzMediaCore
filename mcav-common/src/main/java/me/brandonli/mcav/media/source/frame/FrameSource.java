@@ -44,7 +44,7 @@ public interface FrameSource extends DynamicSource {
    * @throws NullPointerException if {@code images} is null
    */
   static FrameSource image(final ImageSupplier images, final int width, final int height) {
-    Preconditions.checkNotNull(images, "Image supplier must not be null");
+    Preconditions.checkNotNull(images, "Image supplier must not be null!");
     final SampleSupplier samples = images.toSampleSupplier();
     return supplier(samples, width, height, DEFAULT_FRAME_RATE);
   }
@@ -75,9 +75,9 @@ public interface FrameSource extends DynamicSource {
    * @throws NullPointerException if {@code supplier} is null
    */
   static FrameSource supplier(final SampleSupplier supplier, final int width, final int height, final float frameRate) {
-    Preconditions.checkNotNull(supplier, "Sample supplier must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive");
-    Preconditions.checkArgument(frameRate > 0 && Float.isFinite(frameRate), "Frame rate must be positive");
+    Preconditions.checkNotNull(supplier, "Sample supplier must not be null!");
+    Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive!");
+    Preconditions.checkArgument(frameRate > 0 && Float.isFinite(frameRate), "Frame rate must be positive!");
     return new FrameSourceImpl(supplier, width, height, frameRate);
   }
 

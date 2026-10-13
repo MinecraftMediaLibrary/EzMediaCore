@@ -71,7 +71,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    */
   @VisibleForTesting
   DirectAudioOutput(final LineOpener lineOpener) {
-    Preconditions.checkNotNull(lineOpener, "Line opener must not be null");
+    Preconditions.checkNotNull(lineOpener, "Line opener must not be null!");
     this.lineOpener = lineOpener;
   }
 
@@ -93,7 +93,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
     final SourceDataLine currentLine = this.line;
     if (currentLine == null) {
       return false;
@@ -150,8 +150,9 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
       }
       this.line = opened;
     } catch (final LineUnavailableException | IllegalArgumentException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Could not open the default audio device: " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Default audio device could not be opened because of \"%s\"!".formatted(reason);
+      throw new PlayerException(message, exception);
     }
   }
 

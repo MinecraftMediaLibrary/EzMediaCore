@@ -50,7 +50,7 @@ public class ResizeFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if either target dimension is nonpositive
    */
   public ResizeFilter(final int width, final int height) {
-    Preconditions.checkArgument(width > 0 && height > 0, "Target size must be positive but was %sx%s", width, height);
+    Preconditions.checkArgument(width > 0 && height > 0, "Target size %sx%s must be positive!", width, height);
     this.width = width;
     this.height = height;
     this.size = new Size(width, height);
@@ -99,6 +99,6 @@ public class ResizeFilter extends MatVideoFilter {
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    throw new UnsupportedOperationException("Resizing cannot be done in place");
+    throw new UnsupportedOperationException("Resizing cannot be done in place!");
   }
 }

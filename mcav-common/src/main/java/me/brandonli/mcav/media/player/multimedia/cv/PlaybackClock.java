@@ -101,7 +101,7 @@ final class PlaybackClock {
    * @param newSpeed the media time that passes per unit of wall time, positive
    */
   void setSpeed(final double newSpeed) {
-    Preconditions.checkArgument(newSpeed > 0 && Double.isFinite(newSpeed), "Speed must be positive: %s", newSpeed);
+    Preconditions.checkArgument(newSpeed > 0 && Double.isFinite(newSpeed), "Speed %s must be positive!", newSpeed);
     synchronized (this.lock) {
       if (this.anchored) {
         final long now = this.paused ? this.pausedAtNanos : this.nanoClock.getAsLong();

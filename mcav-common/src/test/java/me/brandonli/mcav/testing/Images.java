@@ -45,7 +45,7 @@ public final class Images {
   private static final int RGB_RANGE = 0x1000000;
 
   private Images() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -121,11 +121,11 @@ public final class Images {
    * @throws IllegalArgumentException if ImageIO has no writer for the format
    */
   public static byte[] encode(final BufferedImage image, final String format) {
-    Preconditions.checkNotNull(image, "Image must not be null");
-    Preconditions.checkNotNull(format, "Format must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
+    Preconditions.checkNotNull(format, "Format must not be null!");
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       final boolean written = ImageIO.write(image, format, output);
-      Preconditions.checkArgument(written, "ImageIO cannot write the format %s", format);
+      Preconditions.checkArgument(written, "Format %s cannot be written by ImageIO!", format);
       return output.toByteArray();
     } catch (final IOException exception) {
       throw new UncheckedIOException(exception);
@@ -143,7 +143,7 @@ public final class Images {
    */
   public static byte[] animatedGif(final int width, final int height, final int delayInHundredths, final int... colors) {
     checkDimensions(width, height);
-    Preconditions.checkNotNull(colors, "Colors must not be null");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
     final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("gif");
     final ImageWriter writer = writers.next();
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
@@ -164,8 +164,8 @@ public final class Images {
   }
 
   private static void checkDimensions(final int width, final int height) {
-    Preconditions.checkArgument(width > 0, "Width must be positive but was %s", width);
-    Preconditions.checkArgument(height > 0, "Height must be positive but was %s", height);
+    Preconditions.checkArgument(width > 0, "Width %s must be positive!", width);
+    Preconditions.checkArgument(height > 0, "Height %s must be positive!", height);
   }
 
   private static void writeGifFrame(final ImageWriter writer, final int width, final int height, final int delay, final int color)

@@ -335,7 +335,7 @@ final class IOUtilsTest {
     final Path destination = this.directory.resolve("extracted");
     final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IOUtils.unzip(archive, destination));
     final String message = refused.getMessage();
-    assertEquals("Zip directory entry carries data: folder/", message);
+    assertEquals("Zip directory entry folder/ must not carry data!", message);
   }
 
   @Test
@@ -378,7 +378,8 @@ final class IOUtilsTest {
     try {
       Files.createSymbolicLink(link, target);
     } catch (final IOException | UnsupportedOperationException exception) {
-      Assumptions.abort("Symbolic links cannot be created here: " + exception);
+      final String message = "Symbolic links cannot be created here because of \"%s\"!".formatted(exception);
+      Assumptions.abort(message);
     }
   }
 
@@ -487,8 +488,8 @@ final class IOUtilsTest {
     );
     final String entryMessage = entryFailure.getMessage();
     final String totalMessage = totalFailure.getMessage();
-    assertEquals("Zip entry exceeds the maximum size: one.txt", entryMessage);
-    assertEquals("Total extracted size exceeds the limit", totalMessage);
+    assertEquals("Zip entry one.txt exceeds the maximum size!", entryMessage);
+    assertEquals("Total extracted size exceeds the limit!", totalMessage);
   }
 
   @Test
@@ -511,7 +512,7 @@ final class IOUtilsTest {
     assertEquals(20_000, firstSize);
     final boolean withinTotal = written <= totalLimit;
     assertTrue(withinTotal, "bytes written across entries: " + written);
-    assertEquals("Total extracted size exceeds the limit", message);
+    assertEquals("Total extracted size exceeds the limit!", message);
   }
 
   @Test
@@ -527,7 +528,7 @@ final class IOUtilsTest {
     final String message = failure.getMessage();
     final boolean withinEntryLimit = written <= 100_000;
     assertTrue(withinEntryLimit, "the cumulative entry limit applies before writing each chunk");
-    assertEquals("Zip entry exceeds the maximum size: large.txt", message);
+    assertEquals("Zip entry large.txt exceeds the maximum size!", message);
   }
 
   @Test
@@ -599,7 +600,7 @@ final class IOUtilsTest {
         final Throwable cause = failure.getCause();
         assertInstanceOf(ZipException.class, cause);
         final String message = failure.getMessage();
-        assertEquals("Truncated zip archive: " + truncated, message);
+        assertEquals("Zip archive %s is truncated!".formatted(truncated), message);
       }
     }
   }
@@ -619,7 +620,7 @@ final class IOUtilsTest {
     final Throwable cause = failure.getCause();
     assertInstanceOf(ZipException.class, cause);
     final String message = failure.getMessage();
-    assertEquals("Truncated zip archive: " + truncated, message);
+    assertEquals("Zip archive %s is truncated!".formatted(truncated), message);
   }
 
   @Test
@@ -665,7 +666,7 @@ final class IOUtilsTest {
         if (optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
           final String rawFrom = from.toString();
           final String rawTo = to.toString();
-          throw new AtomicMoveNotSupportedException(rawFrom, rawTo, "not supported by this file system");
+          throw new AtomicMoveNotSupportedException(rawFrom, rawTo, "not supported by this file system!");
         }
       },
       SHORT_RETRY_DELAY
@@ -680,7 +681,7 @@ final class IOUtilsTest {
   void shouldReportOtherMoveFailuresWithoutFallingBack() {
     final Path source = this.directory.resolve("source");
     final Path target = this.directory.resolve("target");
-    final IOException failure = new IOException("disk full");
+    final IOException failure = new IOException("disk full!");
     final AtomicInteger attempts = new AtomicInteger();
     final IOException thrown = assertThrows(IOException.class, () ->
       IOUtils.moveReplacing(

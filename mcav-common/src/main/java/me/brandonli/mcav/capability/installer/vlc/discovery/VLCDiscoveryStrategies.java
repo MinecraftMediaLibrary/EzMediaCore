@@ -34,7 +34,7 @@ public final class VLCDiscoveryStrategies {
   private static final int DIRECT_DEPTH = 0;
 
   private VLCDiscoveryStrategies() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -58,7 +58,7 @@ public final class VLCDiscoveryStrategies {
    * @throws NullPointerException if {@code libraryDirectory} is null
    */
   public static NativeDiscoveryStrategy[] createDirectoryStrategies(final Path libraryDirectory) {
-    Preconditions.checkNotNull(libraryDirectory, "Library directory must not be null");
+    Preconditions.checkNotNull(libraryDirectory, "Library directory must not be null!");
     final FixedDirectoryProvider directoryProvider = new FixedDirectoryProvider(libraryDirectory);
     final SearchProvider searchProvider = new SearchProvider(directoryProvider, DIRECT_DEPTH);
     final List<SearchProvider> searchProviders = List.of(searchProvider);

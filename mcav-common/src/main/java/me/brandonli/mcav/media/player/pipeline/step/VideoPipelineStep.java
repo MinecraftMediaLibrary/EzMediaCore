@@ -43,7 +43,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @throws NullPointerException if {@code filter} is null
    */
   static VideoPipelineStep of(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
     return new VideoPipelineStepImpl(next, filter);
   }
 
@@ -55,7 +55,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @throws NullPointerException if {@code filter} is null
    */
   static VideoPipelineStep of(final VideoFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
     return new VideoPipelineStepImpl(null, filter);
   }
 
@@ -114,8 +114,8 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      */
     @Override
     public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
-      Preconditions.checkNotNull(buffer, "Buffer must not be null");
-      Preconditions.checkNotNull(metadata, "Metadata must not be null");
+      Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+      Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     }
 
     /**

@@ -132,7 +132,7 @@ final class CommandTaskDeadlineTest {
     when(errors.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> {
       final long nanos = invocation.getArgument(0);
       secondBudget.set(nanos);
-      throw new TimeoutException("still reading error output");
+      throw new TimeoutException("still reading error output!");
     });
     final CommandTask task = new CommandTask("already-finished");
     final Duration timeout = Duration.ofSeconds(2);

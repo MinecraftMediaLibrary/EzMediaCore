@@ -267,9 +267,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldDecideWhichFailuresAreWorthRetrying() {
     final URI uri = URI.create("http://example.com/");
-    final IOException network = new IOException("connection reset");
-    final IOException checksum = new ChecksumMismatchException("bad hash");
-    final IOException tooLarge = new DownloadTooLargeException("too large");
+    final IOException network = new IOException("connection reset!");
+    final IOException checksum = new ChecksumMismatchException("bad hash!");
+    final IOException tooLarge = new DownloadTooLargeException("too large!");
     final boolean networkRetryable = HttpDownloader.isRetryable(network);
     final boolean checksumRetryable = HttpDownloader.isRetryable(checksum);
     final boolean tooLargeRetryable = HttpDownloader.isRetryable(tooLarge);
@@ -277,8 +277,8 @@ final class HttpDownloaderTest {
     final boolean timeoutRetryable = HttpDownloader.isRetryable(new HttpStatusException(408, uri));
     final boolean throttledRetryable = HttpDownloader.isRetryable(new HttpStatusException(429, uri));
     final boolean notFoundRetryable = HttpDownloader.isRetryable(new HttpStatusException(404, uri));
-    final boolean redirectRetryable = HttpDownloader.isRetryable(new RedirectRefusedException("elsewhere"));
-    final boolean slowRetryable = HttpDownloader.isRetryable(new DownloadTooSlowException("trickling"));
+    final boolean redirectRetryable = HttpDownloader.isRetryable(new RedirectRefusedException("elsewhere!"));
+    final boolean slowRetryable = HttpDownloader.isRetryable(new DownloadTooSlowException("trickling!"));
     assertTrue(networkRetryable);
     assertFalse(checksumRetryable);
     assertFalse(tooLargeRetryable, "the same bytes would arrive again");

@@ -65,8 +65,8 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @throws NullPointerException if {@code installer} or {@code processRunner} is null
    */
   protected ManualInstallationStrategy(final VLCInstaller installer, final ProcessRunner processRunner) {
-    Preconditions.checkNotNull(installer, "Installer must not be null");
-    Preconditions.checkNotNull(processRunner, "Process runner must not be null");
+    Preconditions.checkNotNull(installer, "Installer must not be null!");
+    Preconditions.checkNotNull(processRunner, "Process runner must not be null!");
     this.installer = installer;
     this.processRunner = processRunner;
   }
@@ -116,11 +116,11 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    */
   protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern, final Pattern... companions)
     throws IOException {
-    Preconditions.checkNotNull(root, "Root must not be null");
-    Preconditions.checkNotNull(pattern, "Pattern must not be null");
-    Preconditions.checkNotNull(companions, "Companion patterns must not be null");
+    Preconditions.checkNotNull(root, "Root must not be null!");
+    Preconditions.checkNotNull(pattern, "Pattern must not be null!");
+    Preconditions.checkNotNull(companions, "Companion patterns must not be null!");
     for (final Pattern companion : companions) {
-      Preconditions.checkNotNull(companion, "Companion patterns must not contain null");
+      Preconditions.checkNotNull(companion, "Companion patterns must not contain null!");
     }
     if (!Files.isDirectory(root)) {
       return Optional.empty();
@@ -132,7 +132,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
       while (candidates.hasNext()) {
         final Path library = candidates.next();
         final Path parentOrNull = library.getParent();
-        final Path parent = Objects.requireNonNull(parentOrNull, "A file found below a directory has a parent");
+        final Path parent = Objects.requireNonNull(parentOrNull, "A file found below a directory has a parent!");
         if (Files.size(library) > 0 && containsCompanions(parent, companions)) {
           found = Optional.of(parent);
           break;
@@ -207,7 +207,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @throws NullPointerException if {@code path} is null
    */
   public static void deleteRecursively(final Path path) throws IOException {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     IOUtils.deleteRecursively(path);
   }
 
@@ -219,7 +219,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @throws NullPointerException if {@code file} is null
    */
   public void deleteFile(final Path file) throws IOException {
-    Preconditions.checkNotNull(file, "File must not be null");
+    Preconditions.checkNotNull(file, "File must not be null!");
     Files.deleteIfExists(file);
   }
 

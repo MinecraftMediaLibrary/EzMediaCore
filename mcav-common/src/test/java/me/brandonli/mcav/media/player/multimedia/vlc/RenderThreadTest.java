@@ -87,7 +87,7 @@ final class RenderThreadTest {
     final RenderThread thread = new RenderThread(THREAD_NAME, failures::add);
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch third = new CountDownLatch(1);
-    final IllegalStateException failure = new IllegalStateException("broken frame");
+    final IllegalStateException failure = new IllegalStateException("broken frame!");
     final RenderThread.Step step = failFirstThenCount(steps, failure, third);
     thread.start(step, () -> {});
     try {
@@ -203,7 +203,7 @@ final class RenderThreadTest {
           // Simulate a renderer that does not stop when interrupted.
         }
       }
-      throw new InterruptedException("released");
+      throw new InterruptedException("released!");
     };
   }
 

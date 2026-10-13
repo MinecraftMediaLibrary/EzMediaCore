@@ -37,7 +37,7 @@ public interface Writable {
    * @throws NullPointerException if {@code path} is null
    */
   static Writable path(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     return new WritableImpl(path);
   }
 
@@ -58,7 +58,7 @@ public interface Writable {
    * @throws NullPointerException if {@code options} is null
    */
   default InputStream newInputStream(final OpenOption... options) throws IOException {
-    Preconditions.checkNotNull(options, "Options must not be null");
+    Preconditions.checkNotNull(options, "Options must not be null!");
     final Path path = this.getPath();
     return Files.newInputStream(path, options);
   }
@@ -73,7 +73,7 @@ public interface Writable {
    * @throws NullPointerException if {@code options} is null
    */
   default OutputStream newOutputStream(final OpenOption... options) throws IOException {
-    Preconditions.checkNotNull(options, "Options must not be null");
+    Preconditions.checkNotNull(options, "Options must not be null!");
     final Path path = this.getPath();
     return Files.newOutputStream(path, options);
   }

@@ -50,10 +50,10 @@ public class ColorPalette implements DitherPalette {
    * @throws IllegalArgumentException if the palette has more than 256 colors or no matchable color
    */
   ColorPalette(final int[] colors, final int reservedIndices) {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
-    Preconditions.checkArgument(colors.length <= MAX_COLORS, "A palette may hold at most %s colors", MAX_COLORS);
-    Preconditions.checkArgument(reservedIndices >= 0, "Reserved indices must not be negative");
-    Preconditions.checkArgument(colors.length > reservedIndices, "Palette must contain at least one color");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
+    Preconditions.checkArgument(colors.length <= MAX_COLORS, "A palette may hold at most %s colors!", MAX_COLORS);
+    Preconditions.checkArgument(reservedIndices >= 0, "Reserved indices must not be negative!");
+    Preconditions.checkArgument(colors.length > reservedIndices, "Palette must contain at least one color!");
     this.palette = new int[colors.length];
     for (int index = reservedIndices; index < colors.length; index++) {
       this.palette[index] = OPAQUE | (colors[index] & RGB_MASK);

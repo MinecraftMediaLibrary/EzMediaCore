@@ -38,7 +38,7 @@ public abstract class AbstractAttachableCallback<T> implements AttachableCallbac
    * @throws NullPointerException if {@code fallback} is null
    */
   protected AbstractAttachableCallback(final T fallback) {
-    Preconditions.checkNotNull(fallback, "Fallback must not be null");
+    Preconditions.checkNotNull(fallback, "Fallback must not be null!");
     this.fallback = fallback;
     this.attached = new AtomicReference<>();
   }
@@ -49,7 +49,7 @@ public abstract class AbstractAttachableCallback<T> implements AttachableCallbac
    */
   @Override
   public void attach(final T value) {
-    Preconditions.checkNotNull(value, "Attached value must not be null");
+    Preconditions.checkNotNull(value, "Attached value must not be null!");
     this.attached.set(value);
   }
 

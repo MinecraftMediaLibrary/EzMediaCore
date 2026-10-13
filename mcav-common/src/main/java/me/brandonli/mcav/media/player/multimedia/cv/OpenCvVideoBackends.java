@@ -40,8 +40,6 @@ import org.slf4j.LoggerFactory;
 final class OpenCvVideoBackends {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OpenCvVideoBackends.class);
-  private static final String NO_FILE_BACKEND =
-    "The OpenCV build of this platform has no video file backend, so files are read with the FFmpeg reader of JavaCV instead";
   private static final String VIDEO_SECTION = "Video I/O:";
   private static final String SECTION_END = "\n\n";
   private static final String ENABLED = "YES";
@@ -49,7 +47,7 @@ final class OpenCvVideoBackends {
   private static final Supplier<Boolean> FILE_BACKEND = Suppliers.memoize(OpenCvVideoBackends::detectFileBackend);
 
   private OpenCvVideoBackends() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -78,7 +76,9 @@ final class OpenCvVideoBackends {
   static boolean decideFromBuildInformation(final String information) {
     final boolean backend = listsEnabledFileBackend(information);
     if (!backend) {
-      LOGGER.info(NO_FILE_BACKEND);
+      LOGGER.info(
+        "The OpenCV build of this platform has no video file backend, so files are read with the FFmpeg reader of JavaCV instead."
+      );
     }
     return backend;
   }
@@ -91,7 +91,7 @@ final class OpenCvVideoBackends {
    */
   @VisibleForTesting
   static boolean listsEnabledFileBackend(final String information) {
-    Preconditions.checkNotNull(information, "Build information must not be null");
+    Preconditions.checkNotNull(information, "Build information must not be null!");
     final int start = information.indexOf(VIDEO_SECTION);
     if (start < 0) {
       return false;

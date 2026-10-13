@@ -31,26 +31,26 @@ final class NativeLoadingExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final NativeLoadingException exception = new NativeLoadingException("no natives for this platform");
+    final NativeLoadingException exception = new NativeLoadingException("no natives for this platform!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("no natives for this platform", message);
+    assertEquals("no natives for this platform!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniavcodec");
-    final NativeLoadingException exception = new NativeLoadingException("FFmpeg could not be loaded", linkError);
+    final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniavcodec!");
+    final NativeLoadingException exception = new NativeLoadingException("FFmpeg could not be loaded!", linkError);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("FFmpeg could not be loaded", message);
+    assertEquals("FFmpeg could not be loaded!", message);
     assertSame(linkError, cause);
   }
 
   @Test
   void shouldBeAnIllegalStateException() {
-    final NativeLoadingException exception = new NativeLoadingException("failure");
+    final NativeLoadingException exception = new NativeLoadingException("failure!");
     assertInstanceOf(IllegalStateException.class, exception, "missing natives are an environment state, not an Error");
   }
 }

@@ -49,9 +49,6 @@ import org.slf4j.LoggerFactory;
 public final class VLCInstallationKit {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VLCInstallationKit.class);
-  private static final String USING_LIBRARY_INSTALLATION = "Using the VLC installation of the library at {}";
-  private static final String USING_LOADED_LIBRARIES = "Using the VLC libraries vlcj loaded earlier in this JVM";
-  private static final String USING_SYSTEM_INSTALLATION = "Using the VLC installation of the system at {}";
   private static final VLCLoadState SHARED_LOAD_STATE = new VLCLoadState();
 
   private final Installer installer;
@@ -91,7 +88,7 @@ public final class VLCInstallationKit {
    * @throws NullPointerException if {@code installer} is null
    */
   public static VLCInstallationKit create(final VLCInstaller installer) {
-    Preconditions.checkNotNull(installer, "Installer must not be null");
+    Preconditions.checkNotNull(installer, "Installer must not be null!");
     final NativeVLCDiscovery discovery = new NativeVLCDiscovery();
     return new VLCInstallationKit(installer, discovery, SHARED_LOAD_STATE);
   }
@@ -147,7 +144,7 @@ public final class VLCInstallationKit {
     }
     final boolean supported = this.installer.isSupported();
     if (!supported) {
-      throw new UnsupportedOperatingSystemException("VLC is not installed and cannot be installed automatically on this system");
+      throw new UnsupportedOperatingSystemException("VLC is not installed and cannot be installed automatically on this system!");
     }
     final Path libraryDirectory = this.installer.download(true);
     return this.loadPrivateInstallation(libraryDirectory);
@@ -156,17 +153,18 @@ public final class VLCInstallationKit {
   private Optional<Path> loadPrivateInstallation(final Path libraryDirectory) {
     final boolean loaded = this.discovery.loadInstalledLibraries(libraryDirectory);
     if (!loaded) {
-      throw new UnsupportedOperatingSystemException("VLC was installed to " + libraryDirectory + " but its libraries could not be loaded");
+      final String message = "VLC was installed to %s but its libraries could not be loaded!".formatted(libraryDirectory);
+      throw new UnsupportedOperatingSystemException(message);
     }
-    LOGGER.info(USING_LIBRARY_INSTALLATION, libraryDirectory);
+    LOGGER.info("The VLC installation of the library at {} is used.", libraryDirectory);
     return Optional.of(libraryDirectory);
   }
 
   private static void logSystemInstallation(final @Nullable Path systemPath) {
     if (systemPath == null) {
-      LOGGER.info(USING_LOADED_LIBRARIES);
+      LOGGER.info("Using the VLC libraries vlcj loaded earlier in this JVM.");
       return;
     }
-    LOGGER.info(USING_SYSTEM_INSTALLATION, systemPath);
+    LOGGER.info("The VLC installation of the system at {} is used.", systemPath);
   }
 }

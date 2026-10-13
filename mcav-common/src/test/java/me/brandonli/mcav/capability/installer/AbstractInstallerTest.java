@@ -375,8 +375,8 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldReportAProgramThatCannotBeMarkedExecutableAsAnInstallationFailure() throws IOException {
-    final IOException permissionDenied = new IOException("Operation not permitted");
-    final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted", permissionDenied);
+    final IOException permissionDenied = new IOException("Operation not permitted!");
+    final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted!", permissionDenied);
     try (
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IOUtils> ioUtils = Mockito.mockStatic(IOUtils.class, Mockito.CALLS_REAL_METHODS)
@@ -399,7 +399,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldPreserveThePermissionFailureWhenRemovingTheFailedDownloadAlsoFails() throws IOException {
-    final UncheckedIOException permissionFailure = new UncheckedIOException(new IOException("permission denied"));
+    final UncheckedIOException permissionFailure = new UncheckedIOException(new IOException("permission denied!"));
     try (
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IOUtils> ioUtils = Mockito.mockStatic(IOUtils.class, Mockito.CALLS_REAL_METHODS)
@@ -420,7 +420,9 @@ final class AbstractInstallerTest {
       final Throwable cause = failure.getCause();
       assertSame(permissionFailure, cause);
       final String message = failure.getMessage();
-      assertEquals("Cannot mark " + destination + " as executable: " + permissionFailure.getMessage(), message);
+      final String reason = permissionFailure.getMessage();
+      final String expected = "Failed with \"%s\" while marking %s as executable!".formatted(reason, destination);
+      assertEquals(expected, message);
       final Throwable[] suppressed = failure.getSuppressed();
       assertEquals(1, suppressed.length, "cleanup must not hide either failure");
       final Class<?> suppressedType = suppressed[0].getClass();
@@ -451,7 +453,7 @@ final class AbstractInstallerTest {
         .when(() -> IOUtils.markExecutable(ArgumentMatchers.any(Path.class)))
         .thenAnswer(invocation -> {
           if (permissionAttempts.getAndIncrement() == 0) {
-            throw new UncheckedIOException(new IOException("temporary permission failure"));
+            throw new UncheckedIOException(new IOException("temporary permission failure!"));
           }
           return invocation.callRealMethod();
         });
@@ -488,7 +490,7 @@ final class AbstractInstallerTest {
   @Test
   void shouldFindAnEarlierInstallationWithoutDownloadingAnything() throws IOException {
     final Supplier<Download[]> noDownloads = () -> {
-      throw new AssertionError("The downloads must not be resolved");
+      throw new AssertionError("The downloads must not be resolved!");
     };
     final TestInstaller installer = new TestInstaller(this.folder, NAME, noDownloads);
     final Optional<Path> before = installer.findInstallation();

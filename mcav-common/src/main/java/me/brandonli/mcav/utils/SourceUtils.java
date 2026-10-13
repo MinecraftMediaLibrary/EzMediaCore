@@ -92,7 +92,7 @@ public final class SourceUtils {
   );
 
   private SourceUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -103,7 +103,7 @@ public final class SourceUtils {
    * @throws NullPointerException if {@code source} is null
    */
   public static boolean isImageGif(final Source source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final String resource;
     if (source instanceof final FileSource fileSource) {
       final Path path = fileSource.getPath();
@@ -129,7 +129,7 @@ public final class SourceUtils {
    * @throws NullPointerException if {@code raw} is null
    */
   public static boolean isUri(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     try {
       final URI uri = URI.create(raw);
       final String scheme = uri.getScheme();
@@ -175,7 +175,7 @@ public final class SourceUtils {
    * @throws NullPointerException if {@code raw} is null
    */
   public static boolean isPath(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     try {
       final Path path = Path.of(raw);
       return Files.exists(path);
@@ -194,7 +194,7 @@ public final class SourceUtils {
    * @throws NullPointerException if {@code url} is null
    */
   public static boolean isDynamicStream(final String url) {
-    Preconditions.checkNotNull(url, "URL must not be null");
+    Preconditions.checkNotNull(url, "URL must not be null!");
     final YTDLPParser parser = YTDLPParser.simple();
     return isDynamicStream(url, parser);
   }

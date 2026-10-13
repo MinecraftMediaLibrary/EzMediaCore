@@ -28,14 +28,16 @@ import com.google.common.base.Preconditions;
  */
 public final class OrderedPixelMapper implements PixelMapper {
 
+  private static final String ROW_NULL_MESSAGE = "Threshold matrix rows must not be null!";
+
   private final float[][] matrix;
   private final float strength;
 
   OrderedPixelMapper(final int[][] thresholds, final float strength) {
-    Preconditions.checkNotNull(thresholds, "Thresholds must not be null");
-    Preconditions.checkArgument(thresholds.length > 0, "Threshold matrix must have at least one row");
+    Preconditions.checkNotNull(thresholds, "Thresholds must not be null!");
+    Preconditions.checkArgument(thresholds.length > 0, "Threshold matrix must have at least one row!");
     final boolean finite = Float.isFinite(strength);
-    Preconditions.checkArgument(finite && strength >= 0, "Strength must be finite and not negative");
+    Preconditions.checkArgument(finite && strength >= 0, "Strength must be finite and not negative!");
     this.strength = strength;
     this.matrix = normalize(thresholds, strength);
   }
@@ -65,12 +67,12 @@ public final class OrderedPixelMapper implements PixelMapper {
    */
   private static int checkRectangular(final int[][] thresholds) {
     final int[] firstRow = thresholds[0];
-    Preconditions.checkNotNull(firstRow, "Threshold matrix rows must not be null");
+    Preconditions.checkNotNull(firstRow, ROW_NULL_MESSAGE);
     final int columns = firstRow.length;
-    Preconditions.checkArgument(columns > 0, "Threshold matrix must have at least one column");
+    Preconditions.checkArgument(columns > 0, "Threshold matrix must have at least one column!");
     for (final int[] row : thresholds) {
-      Preconditions.checkNotNull(row, "Threshold matrix rows must not be null");
-      Preconditions.checkArgument(row.length == columns, "Threshold matrix rows must have the same length");
+      Preconditions.checkNotNull(row, ROW_NULL_MESSAGE);
+      Preconditions.checkArgument(row.length == columns, "Threshold matrix rows must have the same length!");
     }
     return columns;
   }

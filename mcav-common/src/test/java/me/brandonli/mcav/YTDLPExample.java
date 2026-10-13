@@ -42,7 +42,7 @@ public final class YTDLPExample {
       final CompletableFuture<Boolean> ready = api.whenCapabilityReady(Capability.YT_DLP);
       final boolean available = ready.join();
       if (!available) {
-        throw new IllegalStateException("yt-dlp is unavailable");
+        throw new IllegalStateException("yt-dlp is unavailable!");
       }
 
       final URI uri = URI.create("https://www.youtube.com/watch?v=47dtFZ8CFo8");

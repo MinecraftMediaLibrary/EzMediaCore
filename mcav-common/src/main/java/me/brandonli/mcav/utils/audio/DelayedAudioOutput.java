@@ -172,19 +172,19 @@ public final class DelayedAudioOutput implements AutoCloseable {
     final long joinTimeoutMillis,
     final int silenceMillis
   ) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(pipeline, "Pipeline must not be null");
-    Preconditions.checkNotNull(failures, "Failure handler must not be null");
-    Preconditions.checkArgument(delayMillis >= 0, "The delay must not be negative but was %s", delayMillis);
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(pipeline, "Pipeline must not be null!");
+    Preconditions.checkNotNull(failures, "Failure handler must not be null!");
+    Preconditions.checkArgument(delayMillis >= 0, "Delay %s must not be negative!", delayMillis);
     Preconditions.checkArgument(
       maxQueuedMillis > delayMillis,
-      "At most %s ms may wait, which leaves no room past the delay of %s ms",
+      "At most %s ms may wait, which leaves no room past the delay of %s ms!",
       maxQueuedMillis,
       delayMillis
     );
     Preconditions.checkArgument(
       maxQueuedMillis <= MAX_QUEUED_MILLIS,
-      "At most %s ms of sound may wait, but %s ms were asked for",
+      "At most %s ms of sound may wait, but %s ms were asked for!",
       MAX_QUEUED_MILLIS,
       maxQueuedMillis
     );

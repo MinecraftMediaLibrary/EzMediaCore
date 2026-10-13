@@ -81,8 +81,6 @@ import org.slf4j.LoggerFactory;
 final class PlaybackSession {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PlaybackSession.class);
-  private static final String FALLING_BEHIND =
-    "Playback falls behind: {} of the last {} frames came too late to show; decoding or the video pipeline is slower than the video";
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
   private static final long END_OFFER_TIMEOUT_MILLIS = 50L;
 
@@ -325,7 +323,7 @@ final class PlaybackSession {
   void startThreads() {
     final FrameGrabber grabber = this.videoGrabber;
     if (grabber == null) {
-      throw new IllegalStateException("The session must be opened first");
+      throw new IllegalStateException("The session must be opened first!");
     }
     final GrabberFactory audioFactory = this.audioGrabberFactory;
     final boolean hasSeparateAudio = audioFactory != null;
@@ -683,7 +681,11 @@ final class PlaybackSession {
    */
   @VisibleForTesting
   static void logFallingBehind(final int droppedFrames, final int frames) {
-    LOGGER.warn(FALLING_BEHIND, droppedFrames, frames);
+    LOGGER.warn(
+      "Playback falls behind: {} of the last {} frames came too late to show; decoding or the video pipeline is slower than the video.",
+      droppedFrames,
+      frames
+    );
   }
 
   private static void releaseImage(final DecodedVideoFrame frame) {
@@ -762,7 +764,7 @@ final class PlaybackSession {
       final long sleep = Math.min(remaining, MAX_SLEEP_NANOS);
       LockSupport.parkNanos(sleep);
       if (Thread.interrupted()) {
-        throw new InterruptedException("Interrupted while waiting for media to be due");
+        throw new InterruptedException("Interrupted while waiting for media to be due!");
       }
     }
   }

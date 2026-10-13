@@ -88,7 +88,7 @@ final class IdleTimeoutInputStreamTest {
 
   @Test
   void shouldReportFailuresOfTheSource() throws IOException {
-    final IOException failure = new IOException("connection reset");
+    final IOException failure = new IOException("connection reset!");
     final InputStream broken = new InputStream() {
       @Override
       public int read() throws IOException {
@@ -129,7 +129,7 @@ final class IdleTimeoutInputStreamTest {
     final InputStream unused = new InputStream() {
       @Override
       public int read() {
-        throw new AssertionError("An empty or invalid read must not access the source");
+        throw new AssertionError("An empty or invalid read must not access the source!");
       }
 
       @Override
@@ -151,9 +151,9 @@ final class IdleTimeoutInputStreamTest {
 
   static Stream<Throwable> uncheckedReadFailures() {
     return Stream.of(
-      new IllegalStateException("source closed"),
-      new AssertionError("source invariant"),
-      new OutOfMemoryError("source allocation")
+      new IllegalStateException("source closed!"),
+      new AssertionError("source invariant!"),
+      new OutOfMemoryError("source allocation!")
     );
   }
 
@@ -217,10 +217,10 @@ final class IdleTimeoutInputStreamTest {
       } catch (final InterruptedException exception) {
         final Thread currentThread = Thread.currentThread();
         currentThread.interrupt();
-        throw new InterruptedIOException("interrupted");
+        throw new InterruptedIOException("interrupted!");
       }
       if (!closedInTime) {
-        throw new IOException("the source was never closed");
+        throw new IOException("the source was never closed!");
       }
       return -1;
     }

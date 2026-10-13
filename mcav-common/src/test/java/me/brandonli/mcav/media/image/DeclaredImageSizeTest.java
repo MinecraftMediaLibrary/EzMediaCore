@@ -728,7 +728,7 @@ final class DeclaredImageSizeTest {
       DeclaredImageSize.checkBytes(encoded, 1L << 40)
     );
     final String message = refused.getMessage();
-    assertEquals("Bytes are not a supported image format", message, name);
+    assertEquals("Bytes are not a supported image format!", message, name);
   }
 
   @Test
@@ -755,7 +755,7 @@ final class DeclaredImageSizeTest {
     );
     final String message = refused.getMessage();
     assertEquals(
-      "Image declares 30000x20000 pixels, more than the 599999999 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)",
+      "Image size 30000x20000 exceeds the limit of 599999999 pixels that the system property mcav.image.maxPixels sets!",
       message
     );
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(header, 600_000_000));
@@ -779,20 +779,20 @@ final class DeclaredImageSizeTest {
     Files.write(file, png);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(file, 256));
     final IllegalArgumentException tooLarge = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(file, 255));
-    final boolean namesTheSize = tooLarge.getMessage().startsWith("Image declares 16x16 pixels");
+    final boolean namesTheSize = tooLarge.getMessage().startsWith("Image size 16x16 exceeds");
     assertTrue(namesTheSize, tooLarge.getMessage());
     final Path text = this.directory.resolve("text.png");
     Files.writeString(text, "not an image");
     final IllegalArgumentException unsupported = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(text, 256));
     final String unsupportedMessage = unsupported.getMessage();
-    assertEquals("File is not a supported image: " + text, unsupportedMessage);
+    assertEquals("File " + text + " is not a supported image!", unsupportedMessage);
     final Path empty = this.directory.resolve("empty.png");
     Files.write(empty, new byte[0]);
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(empty, 256));
     final Path missing = this.directory.resolve("missing.png");
     final IllegalArgumentException absent = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(missing, 256));
     final String absentMessage = absent.getMessage();
-    assertEquals("File is not a supported image: " + missing, absentMessage);
+    assertEquals("File " + missing + " is not a supported image!", absentMessage);
     final Throwable absentCause = absent.getCause();
     assertInstanceOf(NoSuchFileException.class, absentCause);
     final IllegalArgumentException folder = assertThrows(IllegalArgumentException.class, () ->

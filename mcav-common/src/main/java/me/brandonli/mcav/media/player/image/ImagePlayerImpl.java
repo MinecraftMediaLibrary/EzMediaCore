@@ -79,10 +79,10 @@ public final class ImagePlayerImpl implements ImagePlayer {
    */
   @Override
   public boolean start(final FrameSource source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final float frameRate = source.getFrameRate();
     final boolean finite = Float.isFinite(frameRate);
-    Preconditions.checkArgument(frameRate > 0 && finite, "Frame rate must be positive and finite but was %s", frameRate);
+    Preconditions.checkArgument(frameRate > 0 && finite, "Frame rate %s must be positive and finite!", frameRate);
     this.lock.lock();
     try {
       final boolean gone = this.released.get();
@@ -206,7 +206,7 @@ public final class ImagePlayerImpl implements ImagePlayer {
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.exceptionHandler.setExceptionHandler(exceptionHandler);
   }
 

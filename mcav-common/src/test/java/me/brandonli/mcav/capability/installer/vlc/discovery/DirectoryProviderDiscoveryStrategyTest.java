@@ -460,7 +460,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
       Files.createSymbolicLink(link, target);
     } catch (final IOException | UnsupportedOperationException exception) {
       final String reason = exception.getMessage();
-      Assumptions.abort("Symbolic links cannot be created here: " + reason);
+      final String message = "Creating symbolic links failed with \"%s\" here!".formatted(reason);
+      Assumptions.abort(message);
     }
   }
 

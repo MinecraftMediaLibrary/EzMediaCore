@@ -71,8 +71,6 @@ import org.slf4j.LoggerFactory;
 public final class HttpDownloader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpDownloader.class);
-  private static final String ATTEMPT_FAILED = "Download attempt {}/{} of {} failed: {}";
-  private static final String UNEXPECTED_STATUS = "Server answered with status {} for {}";
   private static final String USER_AGENT = "mcav (+https://github.com/PulseBeat02/mcav)";
   private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(20);
   private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(30);
@@ -95,8 +93,10 @@ public final class HttpDownloader {
   private static final int TARGET_LOCK_STRIPES = 64;
   private static final Striped<Lock> TARGET_LOCKS = Striped.lock(TARGET_LOCK_STRIPES);
 
+  private static final String SIZE_LIMIT_MESSAGE = "Size limit %s must be positive!";
+
   private HttpDownloader() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -125,7 +125,7 @@ public final class HttpDownloader {
    * @throws NullPointerException if {@code uri} is null
    */
   public static HttpRequest createRequest(final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
     final HttpRequest.Builder builder = HttpRequest.newBuilder(uri);
     builder.timeout(REQUEST_TIMEOUT);
     builder.header("User-Agent", USER_AGENT);
@@ -146,7 +146,7 @@ public final class HttpDownloader {
    * @throws NullPointerException if {@code uri} is null
    */
   public static InputStream openStream(final URI uri) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
     final HttpRequest request = createRequest(uri);
     final HttpClient client = createClient();
     final HttpResponse<InputStream> response = send(client, request, uri);
@@ -178,10 +178,12 @@ public final class HttpDownloader {
       client.close();
       final URI next = current.resolve(location.get());
       if (!isSameOrigin(uri, next)) {
-        throw new RedirectRefusedException("The pinned download of " + uri + " was redirected to another host: " + next);
+        final String message = "Pinned download %s may not redirect to %s on another host!".formatted(uri, next);
+        throw new RedirectRefusedException(message);
       }
       if (redirects == MAX_REDIRECTS) {
-        throw new RedirectRefusedException("The pinned download of " + uri + " was redirected more than " + MAX_REDIRECTS + " times");
+        final String message = "Pinned download %s was redirected more than %s times!".formatted(uri, MAX_REDIRECTS);
+        throw new RedirectRefusedException(message);
       }
       current = next;
     }
@@ -221,7 +223,8 @@ public final class HttpDownloader {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       client.close();
-      throw new IOException("Interrupted while downloading " + uri, exception);
+      final String message = "Download of %s was interrupted!".formatted(uri);
+      throw new IOException(message, exception);
     } catch (final IOException exception) {
       client.close();
       throw exception;
@@ -285,7 +288,7 @@ public final class HttpDownloader {
    *                                  the destination has no file name, or {@code maxBytes} is nonpositive
    */
   public static void download(final URI uri, final Path destination, final long maxBytes) throws IOException {
-    Preconditions.checkArgument(maxBytes > 0, "The size limit must be positive but was %s", maxBytes);
+    Preconditions.checkArgument(maxBytes > 0, SIZE_LIMIT_MESSAGE, maxBytes);
     download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maxBytes);
   }
 
@@ -306,8 +309,8 @@ public final class HttpDownloader {
    *                                  the destination has no file name, or {@code maxBytes} is nonpositive
    */
   public static void download(final URI uri, final Path destination, final String expectedSha256, final long maxBytes) throws IOException {
-    Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null");
-    Preconditions.checkArgument(maxBytes > 0, "The size limit must be positive but was %s", maxBytes);
+    Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null!");
+    Preconditions.checkArgument(maxBytes > 0, SIZE_LIMIT_MESSAGE, maxBytes);
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maxBytes, pinnedDeadline(maxBytes));
   }
 
@@ -372,13 +375,13 @@ public final class HttpDownloader {
     final long maxBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
-    Preconditions.checkNotNull(destination, "Destination must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+    Preconditions.checkNotNull(destination, "Destination must not be null!");
     final Path target = destination.toAbsolutePath();
     final Path fileName = target.getFileName();
-    Preconditions.checkArgument(fileName != null, "Destination must name a file but was %s", destination);
+    Preconditions.checkArgument(fileName != null, "Destination %s must name a file!", destination);
     final Path parentOrNull = target.getParent();
-    final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory");
+    final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory!");
     Files.createDirectories(parent);
     final String partPrefix = fileName + ".";
     final Path partFile = Files.createTempFile(parent, partPrefix, PART_SUFFIX);
@@ -435,7 +438,7 @@ public final class HttpDownloader {
       } catch (final IOException exception) {
         lastFailure = exception;
         final String reason = exception.getMessage();
-        LOGGER.warn(ATTEMPT_FAILED, attempt, MAX_ATTEMPTS, uri, reason);
+        LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAX_ATTEMPTS);
         final boolean retryable = isRetryable(exception);
         if (!retryable) {
           throw exception;
@@ -445,7 +448,8 @@ public final class HttpDownloader {
         }
       }
     }
-    throw new IOException("Failed to download " + uri + " after " + MAX_ATTEMPTS + " attempts", lastFailure);
+    final String message = "Download of %s failed after %s attempts!".formatted(uri, MAX_ATTEMPTS);
+    throw new IOException(message, lastFailure);
   }
 
   /**
@@ -510,12 +514,12 @@ public final class HttpDownloader {
     while (read != -1) {
       written += read;
       if (written > maxBytes) {
-        final String message = "The download of %s is larger than the %s bytes it may have".formatted(uri, maxBytes);
+        final String message = "The download of %s is larger than the %s bytes it may have!".formatted(uri, maxBytes);
         throw new DownloadTooLargeException(message);
       }
       // compared as durations: the deadline of the largest pinned size does not fit a long of nanoseconds
       if (deadline != null && Duration.ofNanos(System.nanoTime() - started).compareTo(deadline) > 0) {
-        final String message = "The download of %s took longer than the %s it may take".formatted(uri, deadline);
+        final String message = "The download of %s took longer than the %s it may take!".formatted(uri, deadline);
         throw new DownloadTooSlowException(message);
       }
       partOutput.write(chunk, 0, read);
@@ -533,7 +537,7 @@ public final class HttpDownloader {
     final String actualSha256 = hexFormat.formatHex(hash);
     final boolean matches = actualSha256.equalsIgnoreCase(expectedSha256);
     if (!matches) {
-      final String message = "SHA-256 mismatch for %s: expected %s but got %s".formatted(uri, expectedSha256, actualSha256);
+      final String message = "Download %s has the SHA-256 hash %s, but %s was expected!".formatted(uri, actualSha256, expectedSha256);
       throw new ChecksumMismatchException(message);
     }
   }
@@ -543,7 +547,8 @@ public final class HttpDownloader {
     try {
       return MessageDigest.getInstance(algorithm);
     } catch (final NoSuchAlgorithmException exception) {
-      throw new IOException(algorithm + " is not available", exception);
+      final String message = "Digest algorithm %s is not available!".formatted(algorithm);
+      throw new IOException(message, exception);
     }
   }
 
@@ -554,7 +559,7 @@ public final class HttpDownloader {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Interrupted while waiting to retry a download", exception);
+      throw new IOException("Interrupted while waiting to retry a download!", exception);
     }
   }
 
@@ -569,7 +574,7 @@ public final class HttpDownloader {
    * @throws NullPointerException if {@code uri} is null
    */
   public static Optional<String> fetchText(final URI uri) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
     final HttpRequest request = createRequest(uri);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
     try (final HttpClient client = createClient()) {
@@ -578,7 +583,8 @@ public final class HttpDownloader {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Interrupted while fetching " + uri, exception);
+      final String message = "Fetch of %s was interrupted!".formatted(uri);
+      throw new IOException(message, exception);
     }
   }
 
@@ -586,7 +592,7 @@ public final class HttpDownloader {
     final int status = response.statusCode();
     final boolean successful = status / 100 == 2;
     if (!successful) {
-      LOGGER.warn(UNEXPECTED_STATUS, status, uri);
+      LOGGER.warn("Server answered with status {} for {}, which is not a success.", status, uri);
       return Optional.empty();
     }
     final String body = response.body();

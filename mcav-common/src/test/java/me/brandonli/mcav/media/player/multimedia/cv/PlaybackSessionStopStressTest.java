@@ -340,7 +340,10 @@ final class PlaybackSessionStopStressTest {
           this.stopFromTwoThreads();
         }
         case FROM_ITS_FILTER_AND_OUTSIDE -> this.stopFromOutsideAsTheFilterDoes();
-        default -> throw new IllegalStateException("not a stop after the start: " + this.point);
+        default -> {
+          final String message = "Point %s is not a stop after the start!".formatted(this.point);
+          throw new IllegalStateException(message);
+        }
       }
       this.assertEnded();
     }

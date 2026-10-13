@@ -50,9 +50,6 @@ import org.slf4j.LoggerFactory;
 final class BackgroundInstallation {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundInstallation.class);
-  private static final String PREPARATION_FAILED = "{} could not be prepared because of an unexpected failure";
-  private static final String THREAD_FAILED = "{} ended with an error";
-  private static final String NOT_STOPPED = "{} did not stop within {} ms after it was cancelled";
   private static final Duration CANCEL_TIMEOUT = Duration.ofSeconds(10);
   private static final String THREAD_NAME_PREFIX = "MCAV Installer ";
 
@@ -158,14 +155,14 @@ final class BackgroundInstallation {
       return true;
     } catch (final RuntimeException exception) {
       final String name = capability.getDisplayName();
-      this.logger.warn(PREPARATION_FAILED, name, exception);
+      this.logger.warn("{} could not be prepared because of an unexpected failure.", name, exception);
       return false;
     }
   }
 
   private void reportUncaughtError(final Thread thread, final Throwable error) {
     final String threadName = thread.getName();
-    this.logger.error(THREAD_FAILED, threadName, error);
+    this.logger.error("{} ended with an error.", threadName, error);
   }
 
   /**
@@ -256,7 +253,7 @@ final class BackgroundInstallation {
       if (!ended) {
         final String threadName = thread.getName();
         final long timeoutMillis = this.cancelTimeout.toMillis();
-        this.logger.warn(NOT_STOPPED, threadName, timeoutMillis);
+        this.logger.warn("{} did not stop within {} ms after it was cancelled.", threadName, timeoutMillis);
       }
     }
   }
@@ -283,6 +280,6 @@ final class BackgroundInstallation {
 
   private CompletableFuture<Boolean> getPreparation(final Capability capability) {
     final CompletableFuture<Boolean> preparation = this.preparations.get(capability);
-    return Preconditions.checkNotNull(preparation, "Every prepared capability has a future");
+    return Preconditions.checkNotNull(preparation, "Every prepared capability has a future!");
   }
 }

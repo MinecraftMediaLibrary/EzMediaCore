@@ -182,10 +182,10 @@ final class SourceUtilsTest {
   @Test
   void shouldReportNoLiveStreamWhenTheParserFails() {
     final YTDLPParser offlineParser = (_, _) -> {
-      throw new IOException("offline");
+      throw new IOException("offline!");
     };
     final YTDLPParser rejectingParser = (_, _) -> {
-      throw new IllegalArgumentException("not a web URL");
+      throw new IllegalArgumentException("not a web URL!");
     };
 
     final boolean offlineResult = SourceUtils.isDynamicStream("https://example.com/live", offlineParser);
@@ -203,7 +203,7 @@ final class SourceUtilsTest {
   @Test
   void shouldAskTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
     final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
-    final IOException offline = new IOException("offline");
+    final IOException offline = new IOException("offline!");
     Mockito.when(installer.download(true)).thenThrow(offline);
     try (final MockedStatic<YTDLPInstaller> installers = Mockito.mockStatic(YTDLPInstaller.class)) {
       installers.when(YTDLPInstaller::shared).thenReturn(installer);

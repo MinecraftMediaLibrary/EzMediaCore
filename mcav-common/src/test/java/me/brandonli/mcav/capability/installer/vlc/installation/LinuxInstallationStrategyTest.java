@@ -120,7 +120,7 @@ final class LinuxInstallationStrategyTest {
   @Test
   void shouldPropagateExtractionFailures() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
-    final IOException failure = new IOException("not an AppImage");
+    final IOException failure = new IOException("not an AppImage!");
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {
       throw failure;
     });

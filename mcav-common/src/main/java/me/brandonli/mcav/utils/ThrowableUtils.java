@@ -26,7 +26,7 @@ import com.google.common.base.Preconditions;
 public final class ThrowableUtils {
 
   private ThrowableUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -41,7 +41,7 @@ public final class ThrowableUtils {
    * @throws NullPointerException if the failure is null
    */
   public static void throwIfFatal(final Throwable failure) {
-    Preconditions.checkNotNull(failure, "Failure must not be null");
+    Preconditions.checkNotNull(failure, "Failure must not be null!");
     if (failure instanceof final VirtualMachineError fatal) {
       throw fatal;
     }

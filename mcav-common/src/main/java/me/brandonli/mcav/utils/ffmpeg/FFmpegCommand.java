@@ -134,7 +134,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code input} is null
      */
     public Builder addInput(final String input) {
-      Preconditions.checkNotNull(input, "Input must not be null");
+      Preconditions.checkNotNull(input, "Input must not be null!");
       this.arguments.add("-i");
       this.arguments.add(input);
       return this;
@@ -148,7 +148,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code output} is null
      */
     public Builder addOutput(final String output) {
-      Preconditions.checkNotNull(output, "Output must not be null");
+      Preconditions.checkNotNull(output, "Output must not be null!");
       this.arguments.add(output);
       return this;
     }
@@ -161,7 +161,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code codec} is null
      */
     public Builder addVideoCodec(final String codec) {
-      Preconditions.checkNotNull(codec, "Codec must not be null");
+      Preconditions.checkNotNull(codec, "Codec must not be null!");
       this.arguments.add("-c:v");
       this.arguments.add(codec);
       return this;
@@ -175,7 +175,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code codec} is null
      */
     public Builder addAudioCodec(final String codec) {
-      Preconditions.checkNotNull(codec, "Codec must not be null");
+      Preconditions.checkNotNull(codec, "Codec must not be null!");
       this.arguments.add("-c:a");
       this.arguments.add(codec);
       return this;
@@ -189,7 +189,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code bitrate} is null
      */
     public Builder addBitrate(final String bitrate) {
-      Preconditions.checkNotNull(bitrate, "Bitrate must not be null");
+      Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
       this.arguments.add("-b:v");
       this.arguments.add(bitrate);
       return this;
@@ -203,7 +203,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code bitrate} is null
      */
     public Builder addAudioBitrate(final String bitrate) {
-      Preconditions.checkNotNull(bitrate, "Bitrate must not be null");
+      Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
       this.arguments.add("-b:a");
       this.arguments.add(bitrate);
       return this;
@@ -217,7 +217,7 @@ public final class FFmpegCommand {
      * @throws IllegalArgumentException if the frame rate is nonpositive
      */
     public Builder addFramerate(final int framerate) {
-      Preconditions.checkArgument(framerate > 0, "Frame rate must be positive but was %s", framerate);
+      Preconditions.checkArgument(framerate > 0, "Frame rate %s must be positive!", framerate);
       this.arguments.add("-r");
       final String value = String.valueOf(framerate);
       this.arguments.add(value);
@@ -233,7 +233,7 @@ public final class FFmpegCommand {
      * @throws IllegalArgumentException if either dimension is nonpositive
      */
     public Builder addResolution(final int width, final int height) {
-      Preconditions.checkArgument(width > 0 && height > 0, "Resolution must be positive but was %sx%s", width, height);
+      Preconditions.checkArgument(width > 0 && height > 0, "Resolution %sx%s must be positive!", width, height);
       this.arguments.add("-s");
       final String size = width + "x" + height;
       this.arguments.add(size);
@@ -258,7 +258,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code filter} is null
      */
     public Builder addFilter(final String filter) {
-      Preconditions.checkNotNull(filter, "Filter must not be null");
+      Preconditions.checkNotNull(filter, "Filter must not be null!");
       this.arguments.add("-filter_complex");
       this.arguments.add(filter);
       return this;
@@ -272,7 +272,7 @@ public final class FFmpegCommand {
      * @throws NullPointerException if {@code argument} is null
      */
     public Builder addArgument(final String argument) {
-      Preconditions.checkNotNull(argument, "Argument must not be null");
+      Preconditions.checkNotNull(argument, "Argument must not be null!");
       this.arguments.add(argument);
       return this;
     }
@@ -286,9 +286,9 @@ public final class FFmpegCommand {
      * @throws NullPointerException if the array or any argument is null
      */
     public Builder addArguments(final String... rawArguments) {
-      Preconditions.checkNotNull(rawArguments, "Arguments must not be null");
+      Preconditions.checkNotNull(rawArguments, "Arguments must not be null!");
       for (final String argument : rawArguments) {
-        Preconditions.checkNotNull(argument, "Argument must not be null");
+        Preconditions.checkNotNull(argument, "Argument must not be null!");
         this.arguments.add(argument);
       }
       return this;

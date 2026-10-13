@@ -106,7 +106,7 @@ public interface FormatStrategy {
    * @throws NullPointerException if {@code format} is null
    */
   static boolean hasAudio(final Format format) {
-    Preconditions.checkNotNull(format, "Format must not be null");
+    Preconditions.checkNotNull(format, "Format must not be null!");
     final String audioExtension = format.audio_ext;
     return audioExtension != null && !audioExtension.equals("none");
   }
@@ -119,7 +119,7 @@ public interface FormatStrategy {
    * @throws NullPointerException if {@code format} is null
    */
   static boolean hasVideo(final Format format) {
-    Preconditions.checkNotNull(format, "Format must not be null");
+    Preconditions.checkNotNull(format, "Format must not be null!");
     final String videoExtension = format.video_ext;
     return videoExtension != null && !videoExtension.equals("none");
   }
@@ -132,12 +132,12 @@ public interface FormatStrategy {
    * @throws NullPointerException if {@code format} is null
    */
   static boolean isHttps(final Format format) {
-    Preconditions.checkNotNull(format, "Format must not be null");
+    Preconditions.checkNotNull(format, "Format must not be null!");
     return "https".equals(format.protocol);
   }
 
   private static List<Format> formats(final URLParseDump dump) {
-    Preconditions.checkNotNull(dump, "Dump must not be null");
+    Preconditions.checkNotNull(dump, "Dump must not be null!");
     final List<Format> formats = dump.formats;
     if (formats == null) {
       return List.of();

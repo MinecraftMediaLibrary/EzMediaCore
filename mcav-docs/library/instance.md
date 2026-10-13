@@ -29,7 +29,7 @@ VLC and yt-dlp are external programs, so they are prepared **in the background**
 taken from the system if it is installed there; both are taken from the MCAV cache folder (`~/.mcav/cache`) if an
 earlier run downloaded them, or downloaded into that folder otherwise. A yt-dlp installed on the system is not used. No administrator rights or system packages are needed. The
 first download can take several minutes on a slow connection, and nothing waits for it: each capability simply turns
-on once its program is ready. The log shows `VLC ready in <n> ms` when VLC is ready, or a warning that says why VLC
+on once its program is ready. The log shows `VLC ready in <n> ms.` when VLC is ready, or a warning that says why VLC
 is not available.
 
 Until a program is ready:

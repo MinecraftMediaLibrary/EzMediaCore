@@ -37,7 +37,7 @@ public final class ByteUtils {
   private static final boolean BIG_ENDIAN = NATIVE_ORDER.equals(ByteOrder.BIG_ENDIAN);
 
   private ByteUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -69,14 +69,15 @@ public final class ByteUtils {
    * @throws NullPointerException if {@code buffer} is null
    */
   public static ByteBuffer toLittleEndian(final Buffer buffer) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     return switch (buffer) {
       case final ShortBuffer shorts -> shortsToLittleEndian(shorts);
       case final FloatBuffer floats -> floatsToLittleEndian(floats);
       case final ByteBuffer bytes -> swapSamples(bytes, ByteOrder.LITTLE_ENDIAN);
       default -> {
         final Class<? extends Buffer> type = buffer.getClass();
-        throw new PlayerException("Unsupported sample buffer type " + type);
+        final String message = "Sample buffer type %s is not supported!".formatted(type);
+        throw new PlayerException(message);
       }
     };
   }
@@ -114,7 +115,7 @@ public final class ByteUtils {
    * @throws NullPointerException if {@code samples} is null
    */
   public static ByteBuffer toBigEndian(final ByteBuffer samples) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
     return swapSamples(samples, ByteOrder.BIG_ENDIAN);
   }
 

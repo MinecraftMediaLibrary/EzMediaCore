@@ -53,11 +53,11 @@ final class BackgroundInstallationTest {
   private static final Duration SHORT_CANCEL_TIMEOUT = Duration.ofMillis(50);
   private static final String VLC_THREAD = "MCAV Installer VLC";
   private static final String YTDLP_THREAD = "MCAV Installer yt-dlp";
-  private static final String NOT_STOPPED = "{} did not stop within {} ms after it was cancelled";
+  private static final String NOT_STOPPED = "{} did not stop within {} ms after it was cancelled.";
 
-  private static final String PREPARATION_FAILED = "{} could not be prepared because of an unexpected failure";
+  private static final String PREPARATION_FAILED = "{} could not be prepared because of an unexpected failure.";
 
-  private static final String THREAD_FAILED = "{} ended with an error";
+  private static final String THREAD_FAILED = "{} ended with an error.";
 
   private final DependencyLoader dependencies = Mockito.mock(DependencyLoader.class);
   private final CapabilityGuard guard = new CapabilityGuard();
@@ -112,7 +112,7 @@ final class BackgroundInstallationTest {
 
   @Test
   void shouldReportAnUnexpectedFailureOfAStepAndOnlyDisablesItsProgram() throws Exception {
-    final IllegalStateException failure = new IllegalStateException("broken plugin cache");
+    final IllegalStateException failure = new IllegalStateException("broken plugin cache!");
     final Stubber failingVlc = Mockito.doThrow(failure);
     final DependencyLoader stubbed = failingVlc.when(this.dependencies);
     stubbed.installVLC();
@@ -126,14 +126,14 @@ final class BackgroundInstallationTest {
     final String refusalMessage = refusal.getMessage();
     assertFalse(hasVlc, "a step that failed unexpectedly does not provide its program");
     assertTrue(hasYtdlp);
-    assertEquals("VLC is not available on this system", refusalMessage);
+    assertEquals("VLC is not available on this system!", refusalMessage);
     final Logger verifiedLogger = Mockito.verify(this.logger);
     verifiedLogger.warn(PREPARATION_FAILED, "VLC", failure);
   }
 
   @Test
   void shouldEndThePreparationAndLogAnErrorThatEndsItsThread() throws Exception {
-    final OutOfMemoryError error = new OutOfMemoryError("heap is full");
+    final OutOfMemoryError error = new OutOfMemoryError("heap is full!");
     final Stubber failingYtdlp = Mockito.doThrow(error);
     final DependencyLoader stubbed = failingYtdlp.when(this.dependencies);
     stubbed.installYTDLP();
@@ -280,12 +280,12 @@ final class BackgroundInstallationTest {
       return null;
     })
       .when(progress)
-      .info(ArgumentMatchers.eq("VLC ready in {} ms"), ArgumentMatchers.anyLong());
+      .info(ArgumentMatchers.eq("VLC ready in {} ms."), ArgumentMatchers.anyLong());
     final DependencyLoader loader = LoaderPreparationProbe.vlc(progress, () -> {
       if (attempts.incrementAndGet() == 1) {
         oldStarted.countDown();
         Uninterruptibles.awaitUninterruptibly(oldFinish);
-        throw new IllegalStateException("cancelled preparation ended late");
+        throw new IllegalStateException("cancelled preparation ended late!");
       }
     });
     final BackgroundInstallation oldInstallation = new BackgroundInstallation(loader, this.guard, this.logger, SHORT_CANCEL_TIMEOUT);

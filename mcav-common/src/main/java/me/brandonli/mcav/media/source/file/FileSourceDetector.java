@@ -38,7 +38,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     return SourceUtils.isPath(raw);
   }
 
@@ -50,7 +50,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    */
   @Override
   public FileSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final Path path = Path.of(raw);
     return FileSource.path(path);
   }

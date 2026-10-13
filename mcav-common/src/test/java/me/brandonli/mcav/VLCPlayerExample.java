@@ -59,7 +59,7 @@ public final class VLCPlayerExample {
       final CompletableFuture<Boolean> ready = api.whenCapabilityReady(Capability.VLC);
       final boolean available = ready.join();
       if (!available) {
-        throw new IllegalStateException("VLC is unavailable");
+        throw new IllegalStateException("VLC is unavailable!");
       }
 
       final SwingVideoWindow window = SwingVideoWindow.open("VLC Player", 960, 540);
@@ -98,7 +98,7 @@ public final class VLCPlayerExample {
       final UriSource source = UriSource.uri(uri);
       final boolean started = player.start(source);
       if (!started) {
-        throw new IllegalStateException("Playback could not start");
+        throw new IllegalStateException("Playback could not start!");
       }
 
       window.awaitClosed();

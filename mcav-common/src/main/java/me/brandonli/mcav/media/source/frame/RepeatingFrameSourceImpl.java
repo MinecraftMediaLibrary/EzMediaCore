@@ -45,7 +45,7 @@ public final class RepeatingFrameSourceImpl implements RepeatingFrameSource {
   RepeatingFrameSourceImpl(final DynamicImageBuffer animation, final int repeatCount) {
     final List<ImageBuffer> animationFrames = animation.getFrames();
     final boolean empty = animationFrames.isEmpty();
-    Preconditions.checkArgument(!empty, "Animation has no frames");
+    Preconditions.checkArgument(!empty, "Animation has no frames!");
     final ImageBuffer first = animationFrames.getFirst();
     this.frames = animationFrames;
     this.repeatCount = repeatCount;

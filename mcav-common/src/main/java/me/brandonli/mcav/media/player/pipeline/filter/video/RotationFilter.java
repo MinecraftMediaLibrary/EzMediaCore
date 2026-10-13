@@ -41,7 +41,7 @@ public class RotationFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code rotation} is null
    */
   public RotationFilter(final Rotation rotation) {
-    Preconditions.checkNotNull(rotation, "Rotation must not be null");
+    Preconditions.checkNotNull(rotation, "Rotation must not be null!");
     this.rotateCode = rotation.getCode();
   }
 
@@ -71,7 +71,7 @@ public class RotationFilter extends MatVideoFilter {
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    throw new UnsupportedOperationException("Rotation cannot be done in place");
+    throw new UnsupportedOperationException("Rotation cannot be done in place!");
   }
 
   /**

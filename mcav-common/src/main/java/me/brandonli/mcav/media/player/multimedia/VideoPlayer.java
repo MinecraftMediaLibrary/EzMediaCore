@@ -68,7 +68,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @throws NullPointerException if the options array or any option is null
    */
   static VideoPlayerMultiplexer vlc(final String... args) {
-    Preconditions.checkNotNull(args, "Arguments must not be null");
+    Preconditions.checkNotNull(args, "Arguments must not be null!");
     return new VLCPlayer(args);
   }
 
@@ -130,8 +130,8 @@ public interface VideoPlayer extends ExceptionHandler {
    * @throws NullPointerException if {@code combined} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final Source combined, final ExecutorService executor) {
-    Preconditions.checkNotNull(combined, "Source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(combined, "Source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(combined), executor);
   }
 

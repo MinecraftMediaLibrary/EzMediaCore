@@ -41,8 +41,8 @@ public final class Dimension {
    * @throws IllegalArgumentException if either dimension is negative
    */
   public Dimension(final int width, final int height) {
-    Preconditions.checkArgument(width >= 0, "Width must not be negative but was %s", width);
-    Preconditions.checkArgument(height >= 0, "Height must not be negative but was %s", height);
+    Preconditions.checkArgument(width >= 0, "Width %s must not be negative!", width);
+    Preconditions.checkArgument(height >= 0, "Height %s must not be negative!", height);
     this.width = width;
     this.height = height;
   }

@@ -34,7 +34,7 @@ public final class MetadataUtils {
   private static final int PROBE_FRAMES = 30;
 
   private MetadataUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -47,15 +47,16 @@ public final class MetadataUtils {
    * @throws NullPointerException   if the source is null
    */
   public static OriginalVideoMetadata parseVideoMetadata(final Source source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
 
     final String resource = source.getResource();
     try (final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource)) {
       grabber.start();
       return readVideoMetadata(grabber, resource);
     } catch (final FrameGrabber.Exception exception) {
-      final String message = exception.getMessage();
-      throw new InputMetadataException("Failed to read video metadata of " + resource + ": " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Video metadata of %s could not be read because of \"%s\"!".formatted(resource, reason);
+      throw new InputMetadataException(message, exception);
     }
   }
 
@@ -74,7 +75,8 @@ public final class MetadataUtils {
     final double frameRate = grabber.getFrameRate();
     final boolean hasVideo = bothPositive(width, height);
     if (!hasVideo) {
-      throw new InputMetadataException("Source " + resource + " has no video track");
+      final String message = "Source %s has no video track!".formatted(resource);
+      throw new InputMetadataException(message);
     }
     return OriginalVideoMetadata.of(width, height, bitrate, (float) frameRate);
   }
@@ -88,15 +90,16 @@ public final class MetadataUtils {
    * @throws NullPointerException   if the source is null
    */
   public static OriginalAudioMetadata parseAudioMetadata(final Source source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
 
     final String resource = source.getResource();
     try (final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(resource)) {
       grabber.start();
       return readAudioMetadata(grabber, resource);
     } catch (final FrameGrabber.Exception exception) {
-      final String message = exception.getMessage();
-      throw new InputMetadataException("Failed to read audio metadata of " + resource + ": " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Audio metadata of %s could not be read because of \"%s\"!".formatted(resource, reason);
+      throw new InputMetadataException(message, exception);
     }
   }
 
@@ -116,7 +119,8 @@ public final class MetadataUtils {
     final int format = grabber.getSampleFormat();
     final boolean hasAudio = bothPositive(sampleRate, channels);
     if (!hasAudio) {
-      throw new InputMetadataException("Source " + resource + " has no audio track");
+      final String message = "Source %s has no audio track!".formatted(resource);
+      throw new InputMetadataException(message);
     }
     final String codecName = Objects.requireNonNullElse(codec, "unknown");
     return OriginalAudioMetadata.of(codecName, bitrate, sampleRate, channels, format);

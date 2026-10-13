@@ -406,7 +406,7 @@ public interface BayerDither extends DitherAlgorithm {
    * @throws IllegalArgumentException if {@code size} is not a positive power of two
    */
   static int[][] createBayerMatrix(final int size) {
-    Preconditions.checkArgument(size > 0 && (size & (size - 1)) == 0, "Size must be a power of two");
+    Preconditions.checkArgument(size > 0 && (size & (size - 1)) == 0, "Size must be a power of two!");
 
     int[][] matrix = { { 0 } };
     while (matrix.length < size) {

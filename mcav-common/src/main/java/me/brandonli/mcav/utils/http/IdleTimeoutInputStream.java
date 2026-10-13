@@ -87,14 +87,15 @@ final class IdleTimeoutInputStream extends InputStream {
       pending.cancel(true);
       this.delegate.close();
       final long timeoutMillis = this.idleTimeout.toMillis();
-      final HttpTimeoutException timedOut = new HttpTimeoutException("No data was received for " + timeoutMillis + " ms");
+      final String message = "No data was received for %s ms!".formatted(timeoutMillis);
+      final HttpTimeoutException timedOut = new HttpTimeoutException(message);
       timedOut.initCause(exception);
       throw timedOut;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       pending.cancel(true);
-      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting for data");
+      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting for data!");
       interrupted.initCause(exception);
       throw interrupted;
     } catch (final ExecutionException exception) {
@@ -106,7 +107,8 @@ final class IdleTimeoutInputStream extends InputStream {
         throw error;
       }
       final String reason = exception.getMessage();
-      throw new IOException("Reading the response failed: " + reason, cause);
+      final String message = "Reading the response failed because of \"%s\"!".formatted(reason);
+      throw new IOException(message, cause);
     }
   }
 

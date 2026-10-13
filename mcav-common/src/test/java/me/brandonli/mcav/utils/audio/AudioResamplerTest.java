@@ -511,7 +511,7 @@ final class AudioResamplerTest {
       AudioResampler.create(48_000_000, 1, SampleFormat.SIGNED_16_BIT, 1, 1, SampleFormat.SIGNED_16_BIT)
     );
     final String message = exception.getMessage();
-    assertEquals("Could not initialize the resampler: Cannot allocate memory (FFmpeg error -12)", message);
+    assertEquals("FFmpeg error -12 (Cannot allocate memory) occurred while trying to initialize the resampler!", message);
   }
 
   @Test
@@ -570,7 +570,7 @@ final class AudioResamplerTest {
       AudioResampler.checkResult(EINVAL, "convert the samples")
     );
     final String message = exception.getMessage();
-    assertEquals("Could not convert the samples: Invalid argument (FFmpeg error -22)", message);
+    assertEquals("FFmpeg error -22 (Invalid argument) occurred while trying to convert the samples!", message);
   }
 
   @Test
@@ -591,6 +591,6 @@ final class AudioResamplerTest {
     final String message = exception.getMessage();
     final boolean closed = resampler.isClosed();
     assertTrue(closed);
-    assertEquals("Could not initialize the resampler: Invalid argument (FFmpeg error -22)", message);
+    assertEquals("FFmpeg error -22 (Invalid argument) occurred while trying to initialize the resampler!", message);
   }
 }

@@ -45,7 +45,7 @@ public class TintFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code color} is null
    */
   public TintFilter(final double[] color, final double strength) {
-    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1");
+    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1!");
     this.color = ImageUtils.toScalar(color);
     this.strength = strength;
     this.tint = new ReusableMat();

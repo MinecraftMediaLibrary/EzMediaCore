@@ -32,8 +32,10 @@ public final class DitherUtils {
 
   private static final int CHANNEL_MASK = 0xFF;
 
+  private static final String PALETTE_NULL_MESSAGE = "Palette must not be null!";
+
   private DitherUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -61,7 +63,7 @@ public final class DitherUtils {
    * @throws NullPointerException if {@code palette} is null
    */
   public static byte getBestColor(final DitherPalette palette, final int red, final int green, final int blue) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
     checkChannels(red, green, blue);
 
     final byte[] colorMap = palette.getColorMap();
@@ -81,7 +83,7 @@ public final class DitherUtils {
    * @throws NullPointerException if {@code palette} is null
    */
   public static int getBestFullColor(final DitherPalette palette, final int red, final int green, final int blue) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
     checkChannels(red, green, blue);
 
     final int[] fullColorMap = palette.getFullColorMap();
@@ -92,7 +94,7 @@ public final class DitherUtils {
   private static void checkChannels(final int red, final int green, final int blue) {
     final int combined = red | green | blue;
     final boolean inRange = (combined & ~CHANNEL_MASK) == 0;
-    Preconditions.checkArgument(inRange, "Color components must be between 0 and 255, got %s, %s and %s", red, green, blue);
+    Preconditions.checkArgument(inRange, "Color components %s, %s and %s must be between 0 and 255!", red, green, blue);
   }
 
   /**
@@ -121,7 +123,7 @@ public final class DitherUtils {
    * @throws NullPointerException if {@code palette} is null
    */
   public static int getColorFromMinecraftPalette(final DitherPalette palette, final byte index) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
     final int[] colors = palette.getPalette();
     final int unsigned = index & CHANNEL_MASK;
     Preconditions.checkElementIndex(unsigned, colors.length, "Palette index");
@@ -138,7 +140,7 @@ public final class DitherUtils {
    * @throws NullPointerException if {@code palette} is null
    */
   public static byte getBestColorIncludingTransparent(final DitherPalette palette, final int argb) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
     final int alpha = argb >>> 24;
     if (alpha == 0) {
       return 0;
@@ -160,8 +162,8 @@ public final class DitherUtils {
    * @throws NullPointerException if {@code palette} or {@code pixels} is null
    */
   public static byte[] simplify(final DitherPalette palette, final int[] pixels) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
-    Preconditions.checkNotNull(pixels, "Pixels must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+    Preconditions.checkNotNull(pixels, "Pixels must not be null!");
 
     final byte[] colorMap = palette.getColorMap();
     final byte[] indices = new byte[pixels.length];

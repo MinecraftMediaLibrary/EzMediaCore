@@ -123,7 +123,7 @@ final class VLCInstallationKitTest {
   void shouldPropagateDownloadFailuresAndRetryOnTheNextStart() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
-    final IOException failure = new IOException("offline");
+    final IOException failure = new IOException("offline!");
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenThrow(failure).thenReturn(INSTALLED_DIRECTORY);

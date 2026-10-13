@@ -41,8 +41,8 @@ public class BlendFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code other} is null
    */
   public BlendFilter(final ImageBuffer other, final double alpha) {
-    Preconditions.checkNotNull(other, "Other image must not be null");
-    Preconditions.checkArgument(alpha >= 0 && alpha <= 1, "Alpha must be between 0 and 1");
+    Preconditions.checkNotNull(other, "Other image must not be null!");
+    Preconditions.checkArgument(alpha >= 0 && alpha <= 1, "Alpha must be between 0 and 1!");
     this.alpha = alpha;
     this.other = copyToMat(other);
   }

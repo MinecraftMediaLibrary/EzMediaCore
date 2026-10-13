@@ -37,7 +37,7 @@ public class DilationFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if {@code kernelSize} is nonpositive
    */
   public DilationFilter(final int kernelSize) {
-    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive");
+    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive!");
     final Size size = new Size(kernelSize, kernelSize);
     this.kernel = opencv_imgproc.getStructuringElement(opencv_imgproc.MORPH_RECT, size);
   }

@@ -113,7 +113,7 @@ final class DirectAudioOutputTest {
   @Test
   void shouldCloseAnAcquiredLineWhenStartingItFails() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final IllegalStateException failure = new IllegalStateException("start failed");
+    final IllegalStateException failure = new IllegalStateException("Start failed!");
     doThrow(failure).when(line).start();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, output::start);
@@ -126,8 +126,8 @@ final class DirectAudioOutputTest {
   @Test
   void shouldPreserveStartFailureWhenClosingTheLineAlsoFails() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final IllegalArgumentException failure = new IllegalArgumentException("start failed");
-    final AssertionError cleanup = new AssertionError("close failed");
+    final IllegalArgumentException failure = new IllegalArgumentException("Start failed!");
+    final AssertionError cleanup = new AssertionError("Close failed!");
     doThrow(failure).when(line).start();
     doThrow(cleanup).when(line).close();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
@@ -142,9 +142,9 @@ final class DirectAudioOutputTest {
   @Test
   void shouldAttemptEveryReleaseStageAndPreserveTheFirstFailure() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final IllegalStateException failure = new IllegalStateException("stop failed");
-    final AssertionError flush = new AssertionError("flush failed");
-    final IllegalArgumentException close = new IllegalArgumentException("close failed");
+    final IllegalStateException failure = new IllegalStateException("Stop failed!");
+    final AssertionError flush = new AssertionError("Flush failed!");
+    final IllegalArgumentException close = new IllegalArgumentException("Close failed!");
     doThrow(failure).when(line).stop();
     doThrow(flush).when(line).flush();
     doThrow(close).when(line).close();
@@ -165,7 +165,7 @@ final class DirectAudioOutputTest {
   @Test
   void shouldRethrowAnOrdinaryErrorAfterClosingTheLineWithoutSelfSuppression() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final AssertionError failure = new AssertionError("shared failure");
+    final AssertionError failure = new AssertionError("Shared failure!");
     doThrow(failure).when(line).flush();
     doThrow(failure).when(line).close();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
@@ -180,7 +180,7 @@ final class DirectAudioOutputTest {
   @Test
   void shouldPropagateFatalStartFailuresImmediately() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final InternalError failure = new InternalError("fatal start");
+    final InternalError failure = new InternalError("Fatal start!");
     doThrow(failure).when(line).start();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     final InternalError thrown = assertThrows(InternalError.class, output::start);
@@ -191,8 +191,8 @@ final class DirectAudioOutputTest {
   @Test
   void shouldPropagateFatalCleanupAfterAStartFailure() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final IllegalStateException failure = new IllegalStateException("start failed");
-    final InternalError fatal = new InternalError("fatal close");
+    final IllegalStateException failure = new IllegalStateException("Start failed!");
+    final InternalError fatal = new InternalError("Fatal close!");
     doThrow(failure).when(line).start();
     doThrow(fatal).when(line).close();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
@@ -203,7 +203,7 @@ final class DirectAudioOutputTest {
   @Test
   void shouldPropagateFatalReleaseFailuresImmediately() {
     final SourceDataLine line = mock(SourceDataLine.class);
-    final InternalError fatal = new InternalError("fatal stop");
+    final InternalError fatal = new InternalError("Fatal stop!");
     doThrow(fatal).when(line).stop();
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     output.start();
@@ -216,10 +216,10 @@ final class DirectAudioOutputTest {
   @Test
   void shouldReportLinesThatCannotBeOpened() {
     final DirectAudioOutput unavailable = new DirectAudioOutput((_, _) -> {
-      throw new LineUnavailableException("busy");
+      throw new LineUnavailableException("Busy!");
     });
     final DirectAudioOutput unsupported = new DirectAudioOutput((_, _) -> {
-      throw new IllegalArgumentException("no line matches");
+      throw new IllegalArgumentException("No line matches!");
     });
     final PlayerException unavailableException = assertThrows(PlayerException.class, unavailable::start);
     final PlayerException unsupportedException = assertThrows(PlayerException.class, unsupported::start);
@@ -250,7 +250,7 @@ final class DirectAudioOutputTest {
   void shouldUseTheDefaultAudioDeviceWhenOneExists() {
     final DataLine.Info info = new DataLine.Info(SourceDataLine.class, DirectAudioOutput.FORMAT);
     final boolean hasDevice = AudioSystem.isLineSupported(info);
-    Assumptions.assumeTrue(hasDevice, "this machine has no sound device, see shouldReportLinesThatCannotBeOpened for that case");
+    Assumptions.assumeTrue(hasDevice, "This machine has no sound device, see shouldReportLinesThatCannotBeOpened for that case!");
     final DirectAudioOutput output = new DirectAudioOutput();
     try {
       output.start();

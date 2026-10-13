@@ -83,10 +83,10 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
    */
   @Override
   public Path execute(final Path archive) throws IOException {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
     final Path installDirectory = this.getInstallDirectory();
     final Path parentOrNull = installDirectory.getParent();
-    final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder");
+    final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
     final Path mountPoint = parent.resolve(MOUNT_DIRECTORY);
     deleteRecursively(installDirectory);
     Files.createDirectories(installDirectory);
@@ -95,7 +95,7 @@ public final class OSXInstallationStrategy extends ManualInstallationStrategy {
     Files.deleteIfExists(archive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
     if (libraryDirectory.isEmpty()) {
-      throw new IOException("The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory");
+      throw new IOException("The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory!");
     }
     return libraryDirectory.get();
   }

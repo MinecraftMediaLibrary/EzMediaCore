@@ -34,7 +34,7 @@ final class FaceDetectionAvailabilityTest {
 
   @Test
   void shouldExplainThatFaceDetectionIsUnavailableWhenTheNativesCannotBeLinked() {
-    final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file");
+    final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file!");
     final IllegalStateException exception = assertThrowsWhileOpening(IllegalStateException.class, () ->
       FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
         throw missingGtk;
@@ -51,7 +51,7 @@ final class FaceDetectionAvailabilityTest {
 
   @Test
   void shouldReportFilesThatAreNotCascades() {
-    final RuntimeException openCvError = new RuntimeException("Can't open file");
+    final RuntimeException openCvError = new RuntimeException("Can't open file!");
     final IllegalArgumentException exception = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
       FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
         throw openCvError;

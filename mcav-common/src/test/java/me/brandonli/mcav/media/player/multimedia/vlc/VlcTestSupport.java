@@ -37,7 +37,7 @@ final class VlcTestSupport {
   private static final String UNAVAILABLE = loadVlc();
 
   private VlcTestSupport() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

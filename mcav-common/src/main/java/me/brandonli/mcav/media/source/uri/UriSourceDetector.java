@@ -38,7 +38,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     return SourceUtils.isUri(raw);
   }
 
@@ -50,7 +50,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    */
   @Override
   public UriSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final URI uri = URI.create(raw);
     return UriSource.uri(uri);
   }

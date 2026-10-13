@@ -39,7 +39,7 @@ public class FFmpegDirectSourceDetector implements SourceDetector<FFmpegDirectSo
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final String[] parts = SEPARATOR.split(raw, -1);
     if (parts.length != 2) {
       return false;
@@ -60,9 +60,9 @@ public class FFmpegDirectSourceDetector implements SourceDetector<FFmpegDirectSo
    */
   @Override
   public FFmpegDirectSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final String[] parts = SEPARATOR.split(raw, -1);
-    Preconditions.checkArgument(parts.length == 2, "Expected format||input but got %s", raw);
+    Preconditions.checkArgument(parts.length == 2, "Raw source %s must have the form format||input!", raw);
     final String format = parts[0];
     final String mrl = parts[1];
     return FFmpegDirectSource.mrl(mrl, format);

@@ -35,7 +35,7 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    * @throws NullPointerException if {@code palette} is null
    */
   protected AbstractDitherAlgorithm(final DitherPalette palette) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
   }
 
@@ -65,9 +65,14 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    * @throws NullPointerException if {@code buffer} is null
    */
   protected static void checkBuffer(final int[] buffer, final int width) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
-    Preconditions.checkArgument(width > 0, "Width must be positive");
-    Preconditions.checkArgument(buffer.length % width == 0, "Buffer length %s is not a multiple of width %s", buffer.length, width);
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+    Preconditions.checkArgument(width > 0, "Width must be positive!");
+    Preconditions.checkArgument(
+      buffer.length % width == 0,
+      "Buffer length %s must be a multiple of the width %s of a row!",
+      buffer.length,
+      width
+    );
   }
 
   /**
@@ -77,6 +82,6 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    * @throws NullPointerException if {@code image} is null
    */
   protected static void checkImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
   }
 }

@@ -33,9 +33,9 @@ import org.junit.jupiter.api.Test;
 final class CapabilityGuardTest {
 
   private static final String VLC_PREPARING =
-    "VLC is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.VLC) or try again shortly";
+    "VLC is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.VLC) or try again shortly!";
   private static final String YTDLP_PREPARING =
-    "yt-dlp is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.YT_DLP) or try again shortly";
+    "yt-dlp is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.YT_DLP) or try again shortly!";
 
   private final CapabilityGuard guard = new CapabilityGuard();
 
@@ -101,7 +101,7 @@ final class CapabilityGuardTest {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> this.guard.checkUsable(Capability.VLC));
     final String message = exception.getMessage();
     assertFalse(preparing);
-    assertEquals("VLC is not available on this system", message, "a missing program is told apart from one being prepared");
+    assertEquals("VLC is not available on this system!", message, "a missing program is told apart from one being prepared");
     assertDoesNotThrow(() -> this.guard.checkNotPreparing(Capability.VLC), "a failed program may still be tried by features");
   }
 

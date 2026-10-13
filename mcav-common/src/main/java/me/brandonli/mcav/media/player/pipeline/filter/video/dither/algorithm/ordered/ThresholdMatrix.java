@@ -44,8 +44,8 @@ public final class ThresholdMatrix {
    * @throws IllegalArgumentException if there are no rows, or the rows are empty or differ in length
    */
   public static ThresholdMatrix of(final int[]... rows) {
-    Preconditions.checkNotNull(rows, "Rows must not be null");
-    Preconditions.checkArgument(rows.length > 0, "A matrix needs at least one row");
+    Preconditions.checkNotNull(rows, "Rows must not be null!");
+    Preconditions.checkArgument(rows.length > 0, "A matrix needs at least one row!");
     final int[][] copy = copyRows(rows);
     checkRectangular(copy);
     return new ThresholdMatrix(copy);
@@ -55,7 +55,7 @@ public final class ThresholdMatrix {
     final int[][] copy = new int[rows.length][];
     for (int index = 0; index < rows.length; index++) {
       final int[] row = rows[index];
-      Preconditions.checkNotNull(row, "Row %s must not be null", index);
+      Preconditions.checkNotNull(row, "Row %s must not be null!", index);
       copy[index] = row.clone();
     }
     return copy;
@@ -63,9 +63,9 @@ public final class ThresholdMatrix {
 
   private static void checkRectangular(final int[][] rows) {
     final int columns = rows[0].length;
-    Preconditions.checkArgument(columns > 0, "The rows of a matrix must not be empty");
+    Preconditions.checkArgument(columns > 0, "The rows of a matrix must not be empty!");
     for (final int[] row : rows) {
-      Preconditions.checkArgument(row.length == columns, "Every row of a matrix must have %s entries", columns);
+      Preconditions.checkArgument(row.length == columns, "Every row of a matrix must have %s entries!", columns);
     }
   }
 

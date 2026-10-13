@@ -51,7 +51,7 @@ public final class VolumeFilter implements AudioFilter {
    * @throws IllegalArgumentException if the volume is outside that range or not a number
    */
   public void setVolume(final double volume) {
-    Preconditions.checkArgument(volume >= 0 && volume <= MAX_VOLUME, "Volume must be between 0 and %s: %s", MAX_VOLUME, volume);
+    Preconditions.checkArgument(volume >= 0 && volume <= MAX_VOLUME, "Volume %s must be between 0 and %s!", volume, MAX_VOLUME);
     this.volume = volume;
   }
 
@@ -76,7 +76,7 @@ public final class VolumeFilter implements AudioFilter {
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
     final double factor = this.volume;
     if (factor == UNCHANGED) {
       return false;

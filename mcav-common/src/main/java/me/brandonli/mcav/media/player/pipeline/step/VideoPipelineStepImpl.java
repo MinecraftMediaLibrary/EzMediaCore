@@ -65,8 +65,8 @@ public final class VideoPipelineStepImpl implements VideoPipelineStep {
    */
   @Override
   public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     this.filter.applyFilter(buffer, metadata);
   }
 }

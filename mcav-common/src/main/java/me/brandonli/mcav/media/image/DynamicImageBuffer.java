@@ -72,7 +72,7 @@ public interface DynamicImageBuffer extends Image {
    * @throws NullPointerException if {@code source} is null
    */
   static DynamicImageBuffer path(final FileSource source) throws IOException {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     return new DynamicImageBufferImpl(source);
   }
 
@@ -87,7 +87,7 @@ public interface DynamicImageBuffer extends Image {
    * @throws NullPointerException if {@code source} is null
    */
   static DynamicImageBuffer uri(final UriSource source) throws IOException {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     return new DynamicImageBufferImpl(source);
   }
 }

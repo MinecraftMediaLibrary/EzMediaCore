@@ -32,26 +32,26 @@ final class PaletteLoadingExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is empty");
+    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is empty!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Map palette resource is empty", message);
+    assertEquals("Map palette resource is empty!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated array");
-    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is malformed", parseFailure);
+    final JsonSyntaxException parseFailure = new JsonSyntaxException("Unterminated array!");
+    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is malformed!", parseFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Map palette resource is malformed", message);
+    assertEquals("Map palette resource is malformed!", message);
     assertSame(parseFailure, cause);
   }
 
   @Test
   void shouldBeAnIllegalStateException() {
-    final PaletteLoadingException exception = new PaletteLoadingException("failure");
+    final PaletteLoadingException exception = new PaletteLoadingException("Failure!");
     assertInstanceOf(IllegalStateException.class, exception, "a broken bundled palette is a broken library state, not an Error");
   }
 }

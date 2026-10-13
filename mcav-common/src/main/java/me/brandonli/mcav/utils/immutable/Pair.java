@@ -48,8 +48,8 @@ public final class Pair<A, B> {
    * @throws NullPointerException if {@code first} or {@code second} is null
    */
   public static <C, D> Pair<C, D> pair(final C first, final D second) {
-    Preconditions.checkNotNull(first, "First value must not be null");
-    Preconditions.checkNotNull(second, "Second value must not be null");
+    Preconditions.checkNotNull(first, "First value must not be null!");
+    Preconditions.checkNotNull(second, "Second value must not be null!");
     return new Pair<>(first, second);
   }
 

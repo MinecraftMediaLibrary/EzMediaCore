@@ -105,9 +105,9 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final float errorStrength
   ) {
     super(palette, kernel);
-    Preconditions.checkArgument(temporalThreshold >= 0 && temporalThreshold <= 255, "Temporal threshold must be between 0 and 255");
-    Preconditions.checkArgument(errorThreshold >= 0, "Error threshold must not be negative");
-    Preconditions.checkArgument(errorStrength >= 0 && errorStrength <= 1, "Error strength must be between 0 and 1");
+    Preconditions.checkArgument(temporalThreshold >= 0 && temporalThreshold <= 255, "Temporal threshold must be between 0 and 255!");
+    Preconditions.checkArgument(errorThreshold >= 0, "Error threshold must not be negative!");
+    Preconditions.checkArgument(errorStrength >= 0 && errorStrength <= 1, "Error strength must be between 0 and 1!");
     this.temporalThreshold = temporalThreshold;
     this.errorThreshold = errorThreshold;
     this.errorStrength = Math.round(errorStrength * STRENGTH_SCALE);
@@ -207,7 +207,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
     checkImage(image);
-    Preconditions.checkNotNull(pool, "Pool must not be null");
+    Preconditions.checkNotNull(pool, "Pool must not be null!");
 
     final int width = image.getWidth();
     final int[] pixels = image.getPixels();

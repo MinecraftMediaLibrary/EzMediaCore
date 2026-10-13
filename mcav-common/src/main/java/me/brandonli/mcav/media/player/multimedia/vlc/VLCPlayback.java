@@ -205,7 +205,7 @@ final class VLCPlayback {
   }
 
   private boolean startSeparate(final EmbeddedMediaPlayer separateAudio) {
-    final Source audioSource = Objects.requireNonNull(this.audio, "A separate audio player always has an audio source");
+    final Source audioSource = Objects.requireNonNull(this.audio, "A separate audio player always has an audio source!");
     final long deadlineNanos = this.createOpenDeadline();
     final PlaybackEventListener videoListener = this.listen(this.videoPlayer, this.video);
     final PlaybackEventListener audioListener = this.listen(separateAudio, audioSource);
@@ -248,7 +248,8 @@ final class VLCPlayback {
     final boolean playing = media.play(resource, options);
     if (!playing) {
       final BiConsumer<String, Throwable> handler = this.owner.getExceptionHandler();
-      final PlayerException exception = new PlayerException("VLC could not open " + resource);
+      final String message = "Media %s could not be opened by VLC!".formatted(resource);
+      final PlayerException exception = new PlayerException(message);
       handler.accept("Failed to start VLC playback of " + resource, exception);
     }
     return playing;

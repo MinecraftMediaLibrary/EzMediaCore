@@ -59,7 +59,7 @@ public interface SeekablePlayer {
    * @throws NullPointerException if {@code executor} is null
    */
   default CompletableFuture<Boolean> seekAsync(final ExecutorService executor, final long time) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.seek(time), executor);
   }
 }

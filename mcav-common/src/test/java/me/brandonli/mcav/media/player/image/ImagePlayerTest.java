@@ -137,7 +137,7 @@ final class ImagePlayerTest {
       times.add(now);
       final int count = consumed.incrementAndGet();
       if (count == 5) {
-        throw new IllegalStateException("a failing filter is reported, not fatal");
+        throw new IllegalStateException("a failing filter is reported, not fatal!");
       }
       return true;
     };
@@ -387,7 +387,7 @@ final class ImagePlayerTest {
   void shouldReportSourcesThatFailToStartAndCanBeStartedAgain() throws Exception {
     final FrameSource working = solidFrames(2, 2, 30.0f);
     final SampleSupplier supplier = working.supplyFrameSamples();
-    final IllegalStateException failure = new IllegalStateException("the source is gone");
+    final IllegalStateException failure = new IllegalStateException("the source is gone!");
     final FrameSource source = mock(FrameSource.class);
     when(source.getFrameWidth()).thenReturn(2);
     when(source.getFrameHeight()).thenReturn(2);

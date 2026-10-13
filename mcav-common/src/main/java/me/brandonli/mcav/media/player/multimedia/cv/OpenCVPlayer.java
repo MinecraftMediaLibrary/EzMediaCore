@@ -49,7 +49,7 @@ public final class OpenCVPlayer extends AbstractVideoPlayerCV {
    */
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
     final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
     return createFrameGrabber(resource, openCvReadsFiles);
   }

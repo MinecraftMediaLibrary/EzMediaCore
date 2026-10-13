@@ -44,7 +44,7 @@ public class CircleFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code color} is null
    */
   public CircleFilter(final int centerX, final int centerY, final int radius, final double[] color) {
-    Preconditions.checkArgument(radius >= 0, "Radius must not be negative but was %s", radius);
+    Preconditions.checkArgument(radius >= 0, "Radius %s must not be negative!", radius);
     this.center = new Point(centerX, centerY);
     this.radius = radius;
     this.color = ImageUtils.toScalar(color);

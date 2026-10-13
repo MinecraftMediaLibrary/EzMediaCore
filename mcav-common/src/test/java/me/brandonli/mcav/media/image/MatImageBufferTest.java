@@ -153,7 +153,7 @@ final class MatImageBufferTest {
     }
     final IllegalArgumentException empty = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(new byte[0]));
     final String emptyMessage = empty.getMessage();
-    assertEquals("Encoded image must not be empty", emptyMessage);
+    assertEquals("Encoded image must not be empty!", emptyMessage);
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(new byte[] { 1, 2, 3 }));
     assertThrowsWhileOpening(NullPointerException.class, () -> ImageBuffer.bytes(null));
   }
@@ -198,8 +198,7 @@ final class MatImageBufferTest {
     final Path file = this.directory.resolve("sixteen.png");
     Files.write(file, png);
     final FileSource path = FileSource.path(file);
-    final String expected =
-      "Image declares 16x16 pixels, more than the 255 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)";
+    final String expected = "Image size 16x16 exceeds the limit of 255 pixels that the system property mcav.image.maxPixels sets!";
     final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
     System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "255");
     try {
@@ -260,7 +259,7 @@ final class MatImageBufferTest {
       final IllegalArgumentException refused = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(header));
       final String message = refused.getMessage();
       assertEquals(
-        "Image declares 65535x65535 pixels, more than the 67108864 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)",
+        "Image size 65535x65535 exceeds the limit of 67108864 pixels that the system property mcav.image.maxPixels sets!",
         message
       );
     } finally {
@@ -275,13 +274,13 @@ final class MatImageBufferTest {
       ImageBuffer.bytes(headerOnly)
     );
     final String bytesMessage = fromBytes.getMessage();
-    assertEquals("Bytes are not a supported image format", bytesMessage);
+    assertEquals("Bytes are not a supported image format!", bytesMessage);
     final Path file = this.directory.resolve("header-only.ppm");
     Files.write(file, headerOnly);
     final FileSource path = FileSource.path(file);
     final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
     final String fileMessage = fromFile.getMessage();
-    assertEquals("File is not a supported image: " + file, fileMessage);
+    assertEquals("File " + file + " is not a supported image!", fileMessage);
   }
 
   private static void restoreMaxPixels(final @Nullable String previous) {
@@ -668,8 +667,8 @@ final class MatImageBufferTest {
       final IllegalArgumentException vertical = assertThrows(IllegalArgumentException.class, () -> image.getPixel(0, 4));
       final String horizontalMessage = horizontal.getMessage();
       final String verticalMessage = vertical.getMessage();
-      assertEquals("x must be between 0 and 2 but was 3", horizontalMessage);
-      assertEquals("y must be between 0 and 3 but was 4", verticalMessage);
+      assertEquals("x 3 must be between 0 and 2!", horizontalMessage);
+      assertEquals("y 4 must be between 0 and 3!", verticalMessage);
     }
   }
 
@@ -946,7 +945,7 @@ final class MatImageBufferTest {
   }
 
   private static void failTransformation() {
-    throw new IllegalStateException("The transformation failed");
+    throw new IllegalStateException("The transformation failed!");
   }
 
   private static void leaveTargetEmpty() {}
@@ -1024,9 +1023,9 @@ final class MatImageBufferTest {
 
   @ParameterizedTest
   @CsvSource({
-    "715827883, 1, Image dimensions exceed the maximum BGR buffer size: 715827883x1",
-    "65536, 65536, Image dimensions exceed the maximum BGR buffer size: 65536x65536",
-    "2147483647, 2147483647, Image dimensions exceed the maximum BGR buffer size: 2147483647x2147483647",
+    "715827883, 1, Image dimensions 715827883x1 exceed the maximum BGR buffer size!",
+    "65536, 65536, Image dimensions 65536x65536 exceed the maximum BGR buffer size!",
+    "2147483647, 2147483647, Image dimensions 2147483647x2147483647 exceed the maximum BGR buffer size!",
   })
   void shouldRejectUnrepresentableDimensionsBeforeNativeAllocation(final int width, final int height, final String expectedMessage) {
     // two elements differ from both wrapped counts of every row (pixels 715827883, 0 and 1, BGR -2147483647, 0 and 3),
@@ -1077,14 +1076,14 @@ final class MatImageBufferTest {
     // matrices are intercepted too, so that without the length guard nothing allocates 2 GiB of native memory
     try (
       final MockedConstruction<Mat> allocations = Mockito.mockConstruction(Mat.class, (_, _) -> {
-        throw new AssertionError("The length guard must reject before constructing a native matrix");
+        throw new AssertionError("The length guard must reject before constructing a native matrix!");
       })
     ) {
       final IllegalArgumentException failure = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
         ImageBuffer.bytes(shortInput, 715827882, 1)
       );
       final String message = failure.getMessage();
-      assertEquals("Expected 2147483646 bytes but got 2", message);
+      assertEquals("Byte count 2 must be 2147483646!", message);
       final List<Mat> constructed = allocations.constructed();
       final int count = constructed.size();
       assertEquals(0, count);

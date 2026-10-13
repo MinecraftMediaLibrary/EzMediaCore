@@ -33,7 +33,7 @@ public final class KeyUtils {
   private static final char CLOSE = '}';
 
   private KeyUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -45,7 +45,7 @@ public final class KeyUtils {
    * @throws NullPointerException if {@code input} is null
    */
   public static String replaceKeysWithKeyCodes(final String input) {
-    Preconditions.checkNotNull(input, "Input must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
     final int length = input.length();
     final StringBuilder output = new StringBuilder(length);
     int index = 0;

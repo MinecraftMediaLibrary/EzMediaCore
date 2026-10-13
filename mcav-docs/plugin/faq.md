@@ -119,7 +119,7 @@ the server's password in that list, never in the command, and restart the server
 On the first start of a server that has no VLC, the plugin downloads VLC in the background into the MCAV cache folder
 of the user running the server, without `sudo` or administrator rights. The server does not wait for it, so players
 can join right away. Until the download is finished and VLC is loaded, video commands with the `VLC` player answer
-that VLC is still being prepared; try again once the console logs `VLC ready in <n> ms`, or use the bundled `FFMPEG`
+that VLC is still being prepared; try again once the console logs `VLC ready in <n> ms.`, or use the bundled `FFMPEG`
 player on a supported platform. Commands given a web page, such as a YouTube video, answer the same way while
 yt-dlp is being downloaded. Later starts use the downloaded copies at once.
 

@@ -41,7 +41,7 @@ final class VlcTestFrames {
   private static final int RGB_MASK = 0xFFFFFF;
 
   private VlcTestFrames() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

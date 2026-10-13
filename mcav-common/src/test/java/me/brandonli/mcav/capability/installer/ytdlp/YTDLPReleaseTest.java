@@ -58,7 +58,7 @@ final class YTDLPReleaseTest {
   @BeforeAll
   static void requireNetworkTests() {
     final boolean enabled = Boolean.getBoolean("mcav.networkTests");
-    Assumptions.assumeTrue(enabled, "Network tests run only with -Pmcav.networkTests=true");
+    Assumptions.assumeTrue(enabled, "Network tests run only with -Pmcav.networkTests=true!");
   }
 
   @Test
@@ -113,7 +113,7 @@ final class YTDLPReleaseTest {
   void shouldInstallTheBuildOfThisMachineAndRunIt(@TempDir final Path folder) throws IOException, InterruptedException {
     final YTDLPInstaller installer = YTDLPInstaller.create(folder);
     final boolean supported = installer.isSupported();
-    Assumptions.assumeTrue(supported, "yt-dlp has no build for this platform");
+    Assumptions.assumeTrue(supported, "yt-dlp has no build for this platform!");
     final Path executable = installer.download(true);
     final String version = runVersion(executable);
     assertEquals(RELEASE, version);
@@ -150,7 +150,7 @@ final class YTDLPReleaseTest {
       assertEquals(0, exitCode, printed);
       return printed.strip();
     } catch (final ExecutionException | TimeoutException failure) {
-      throw new IOException("Could not read yt-dlp --version output", failure);
+      throw new IOException("The yt-dlp --version output could not be read!", failure);
     } finally {
       process.destroyForcibly();
       try {

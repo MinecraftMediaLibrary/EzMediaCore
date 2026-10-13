@@ -58,7 +58,7 @@ final class FaceDetectionFilterTest {
   @BeforeEach
   void requireObjectDetection() {
     final boolean available = OpenCvModules.canLoad(opencv_objdetect.class);
-    Assumptions.assumeTrue(available, "The OpenCV object detection natives cannot be loaded here (GTK 2 is missing)");
+    Assumptions.assumeTrue(available, "The OpenCV object detection natives cannot be loaded here, because GTK 2 is missing!");
   }
 
   private Path copyCascade(final String name) throws IOException {
@@ -149,7 +149,7 @@ final class FaceDetectionFilterTest {
       new FaceDetectionFilter(missing, RED)
     );
     final String missingMessage = missingFailure.getMessage();
-    assertEquals("Cascade file does not exist: " + missing, missingMessage);
+    assertEquals("Cascade file " + missing + " does not exist!", missingMessage);
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(unparsable, RED));
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(withoutCascade, RED));
     assertThrows(NullPointerException.class, () -> new FaceDetectionFilter((Path) null, RED));

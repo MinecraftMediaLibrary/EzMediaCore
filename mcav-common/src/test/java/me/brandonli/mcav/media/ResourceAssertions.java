@@ -30,7 +30,7 @@ import org.junit.jupiter.api.function.ThrowingSupplier;
 public final class ResourceAssertions {
 
   private ResourceAssertions() {
-    throw new UnsupportedOperationException("utility class");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -47,7 +47,8 @@ public final class ResourceAssertions {
   ) {
     final Executable openAndClose = () -> {
       try (final AutoCloseable opened = opening.get()) {
-        fail("expected " + expected + " but the factory opened " + opened);
+        final String message = "Factory opened %s, but %s was expected!".formatted(opened, expected);
+        fail(message);
       }
     };
     return assertThrows(expected, openAndClose);

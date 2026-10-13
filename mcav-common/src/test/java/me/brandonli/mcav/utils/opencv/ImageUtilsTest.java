@@ -78,7 +78,7 @@ final class ImageUtilsTest {
       ImageUtils.resizeIntArrayImage(pixels, width, height, 1, 1)
     );
     final String message = rejected.getMessage();
-    assertEquals("Original size must be positive", message);
+    assertEquals("Original size must be positive!", message);
   }
 
   /**
@@ -89,7 +89,7 @@ final class ImageUtilsTest {
       ImageUtils.resizeIntArrayImage(pixels, 2, 2, width, height)
     );
     final String message = rejected.getMessage();
-    assertEquals("New size must be positive", message);
+    assertEquals("New size must be positive!", message);
   }
 
   @Test
@@ -109,7 +109,7 @@ final class ImageUtilsTest {
       ImageUtils.resizeIntArrayImage(pixels, 3, 3, 1, 1)
     );
     final String mismatchedMessage = mismatched.getMessage();
-    assertEquals("Pixel count does not match the original size", mismatchedMessage);
+    assertEquals("Pixel count does not match the original size!", mismatchedMessage);
   }
 
   @Test

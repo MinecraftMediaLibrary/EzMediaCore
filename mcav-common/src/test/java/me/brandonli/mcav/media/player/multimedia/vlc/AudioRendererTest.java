@@ -281,7 +281,7 @@ final class AudioRendererTest {
 
   @Test
   void shouldLetFatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
-    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory");
+    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
     this.attach((_, _) -> {
@@ -306,8 +306,8 @@ final class AudioRendererTest {
   @Test
   void shouldReportPipelineFailuresAndKeepPlaying() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
-    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
-    final AssertionError errorFailure = new AssertionError("filter assertion");
+    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug!");
+    final AssertionError errorFailure = new AssertionError("filter assertion!");
     final CountDownLatch third = new CountDownLatch(1);
     this.attach((_, _) -> {
       final int call = calls.incrementAndGet();
@@ -394,7 +394,7 @@ final class AudioRendererTest {
     final AudioPipelineStep recording = AudioPipelineStep.of(recorder);
     final AudioAttachableCallback callback = AudioAttachableCallback.create();
     callback.attach(recording);
-    final IllegalStateException failure = new IllegalStateException("native failure");
+    final IllegalStateException failure = new IllegalStateException("native failure!");
     final VideoPlayerMultiplexer failingOwner = ownerFailingOnce(callback, failure, reported);
     final AudioRenderer failing = new AudioRenderer(failingOwner);
     failing.start();
@@ -405,7 +405,7 @@ final class AudioRendererTest {
       final Memory second = samples((short) 2, (short) 2);
       failing.play(this.mediaPlayer, second, 1, 0L);
       final Short received = firstSamples.poll(5, TimeUnit.SECONDS);
-      final List<String> expectedReports = List.of("Audio rendering failed: native failure");
+      final List<String> expectedReports = List.of("Audio rendering failed: native failure!");
       final Short expectedSample = 2;
       assertEquals(expectedReports, reported);
       assertEquals(expectedSample, received, "the render thread survived the failure");

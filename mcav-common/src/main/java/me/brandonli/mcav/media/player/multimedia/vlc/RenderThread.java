@@ -73,7 +73,7 @@ final class RenderThread {
    * @param cleanup the action that is run on the thread once the loop exits
    */
   void start(final Step step, final Runnable cleanup) {
-    Preconditions.checkState(this.thread == null, "Render thread %s was already started", this.name);
+    Preconditions.checkState(this.thread == null, "Render thread %s was already started!", this.name);
     this.running.set(true);
     final AtomicBoolean flag = this.running;
     final Consumer<RuntimeException> failures = this.failureHandler;

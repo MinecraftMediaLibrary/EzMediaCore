@@ -54,9 +54,9 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
    * @throws NullPointerException if {@code video}, {@code audio} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final Source video, final Source audio, final ExecutorService executor) {
-    Preconditions.checkNotNull(video, "Video source must not be null");
-    Preconditions.checkNotNull(audio, "Audio source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(video, "Video source must not be null!");
+    Preconditions.checkNotNull(audio, "Audio source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(video, audio), executor);
   }
 

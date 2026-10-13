@@ -61,7 +61,7 @@ final class VLCReleaseTest {
   @BeforeAll
   static void requireNetworkTests() {
     final boolean enabled = Boolean.getBoolean("mcav.networkTests");
-    Assumptions.assumeTrue(enabled, "Network tests run only with -Pmcav.networkTests=true");
+    Assumptions.assumeTrue(enabled, "Network tests run only with -Pmcav.networkTests=true!");
   }
 
   @Test
@@ -90,7 +90,7 @@ final class VLCReleaseTest {
   void shouldInstallTheBuildOfThisMachineAndPlayAVideoThroughIt(@TempDir final Path folder) throws IOException, InterruptedException {
     final VLCInstaller installer = VLCInstaller.create(folder);
     final boolean supported = installer.isSupported();
-    Assumptions.assumeTrue(supported, "VLC has no build for this platform");
+    Assumptions.assumeTrue(supported, "VLC has no build for this platform!");
     final Path libraries = installer.download(true);
     System.out.println("VLC installed from " + installer.getUrl() + " into " + libraries);
     final String output = runProbe(folder, TestMedia.video());

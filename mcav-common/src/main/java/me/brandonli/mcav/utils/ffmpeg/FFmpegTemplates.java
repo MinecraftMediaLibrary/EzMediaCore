@@ -25,7 +25,7 @@ import com.google.common.base.Preconditions;
 public final class FFmpegTemplates {
 
   private FFmpegTemplates() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -39,9 +39,9 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input}, {@code codec} or {@code output} is null
    */
   public static FFmpegCommand extractAudio(final String input, final String codec, final String output) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(codec, "Codec must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(codec, "Codec must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument("-vn");
@@ -63,8 +63,8 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input} or {@code output} is null
    */
   public static FFmpegCommand extractOggVorbis(final String input, final String output) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument("-vn");
@@ -87,10 +87,10 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input}, {@code output}, {@code videoBitrate} or {@code audioBitrate} is null
    */
   public static FFmpegCommand compressVideo(final String input, final String output, final String videoBitrate, final String audioBitrate) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
-    Preconditions.checkNotNull(videoBitrate, "Video bitrate must not be null");
-    Preconditions.checkNotNull(audioBitrate, "Audio bitrate must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
+    Preconditions.checkNotNull(videoBitrate, "Video bitrate must not be null!");
+    Preconditions.checkNotNull(audioBitrate, "Audio bitrate must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec("libx264");
@@ -113,10 +113,10 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input}, {@code output}, {@code startTime} or {@code duration} is null
    */
   public static FFmpegCommand extractClip(final String input, final String output, final String startTime, final String duration) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
-    Preconditions.checkNotNull(startTime, "Start time must not be null");
-    Preconditions.checkNotNull(duration, "Duration must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
+    Preconditions.checkNotNull(startTime, "Start time must not be null!");
+    Preconditions.checkNotNull(duration, "Duration must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addArguments("-ss", startTime);
     builder.addInput(input);
@@ -138,9 +138,9 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input}, {@code output} or {@code timePosition} is null
    */
   public static FFmpegCommand createThumbnail(final String input, final String output, final String timePosition) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
-    Preconditions.checkNotNull(timePosition, "Time position must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
+    Preconditions.checkNotNull(timePosition, "Time position must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addArguments("-ss", timePosition);
     builder.addInput(input);
@@ -159,8 +159,8 @@ public final class FFmpegTemplates {
    * @throws NullPointerException if {@code input} or {@code output} is null
    */
   public static FFmpegCommand remuxVideo(final String input, final String output) {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec("copy");

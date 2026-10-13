@@ -182,7 +182,7 @@ final class PlaybackEventListenerTest {
     final boolean quick = elapsed < 1_000L;
     assertTrue(quick, "no waiting after an error, took " + elapsed);
     assertEquals(expectedMessages, this.messages);
-    assertEquals("VLC could not play movie.mkv", reason);
+    assertEquals("Media movie.mkv could not be played by VLC!", reason);
   }
 
   @Test

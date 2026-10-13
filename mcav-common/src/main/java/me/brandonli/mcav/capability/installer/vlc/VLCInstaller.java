@@ -59,10 +59,6 @@ public final class VLCInstaller extends AbstractInstaller {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VLCInstaller.class);
 
-  private static final String OLD_INSTALLATION_DELETED = "Deleted the old VLC installation at {}";
-
-  private static final String OLD_INSTALLATION_NOT_DELETED = "Could not delete the old VLC installation at {}: {}";
-
   private static final String NAME = "vlc";
 
   private static final String DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";
@@ -101,7 +97,7 @@ public final class VLCInstaller extends AbstractInstaller {
    * @throws NullPointerException if {@code folder} is null
    */
   public static VLCInstaller create(final Path folder) {
-    Preconditions.checkNotNull(folder, "Folder must not be null");
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
     return new VLCInstaller(folder);
   }
 
@@ -234,10 +230,10 @@ public final class VLCInstaller extends AbstractInstaller {
   private static void deleteLegacyInstallation(final Path legacy) {
     try {
       ManualInstallationStrategy.deleteRecursively(legacy);
-      LOGGER.info(OLD_INSTALLATION_DELETED, legacy);
+      LOGGER.info("The old VLC installation at {} was deleted.", legacy);
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
-      LOGGER.warn(OLD_INSTALLATION_NOT_DELETED, legacy, reason);
+      LOGGER.warn("Deleting the old VLC installation at {} failed with \"{}\", so it stays in place.", legacy, reason);
     }
   }
 
@@ -283,7 +279,10 @@ public final class VLCInstaller extends AbstractInstaller {
       case MAC -> new OSXInstallationStrategy(installer);
       case WINDOWS -> new WinInstallationStrategy(installer);
       case LINUX -> new LinuxInstallationStrategy(installer);
-      case FREEBSD, OTHER -> throw new UnsupportedOperatingSystemException("VLC cannot be installed automatically on " + operatingSystem);
+      case FREEBSD, OTHER -> {
+        final String message = "Operating system %s does not support installing VLC automatically!".formatted(operatingSystem);
+        throw new UnsupportedOperatingSystemException(message);
+      }
     };
   }
 }

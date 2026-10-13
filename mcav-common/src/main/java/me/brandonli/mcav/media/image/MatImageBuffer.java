@@ -69,6 +69,10 @@ public final class MatImageBuffer implements ImageBuffer {
   private static final double FLOATING_POINT_SCALE = 255.0;
   private static final double SIGNED_SHIFT = 128.0;
 
+  private static final String EMPTY_MAT_MESSAGE = "Mat must not be empty!";
+  private static final String BYTE_COUNT_MESSAGE = "Byte count %s must be %s!";
+  private static final String PIXEL_COUNT_MESSAGE = "Pixel count %s must be %s!";
+
   private Mat mat;
   private @Nullable Mat spare;
   private int @Nullable [] cachedPixels;
@@ -78,14 +82,14 @@ public final class MatImageBuffer implements ImageBuffer {
 
   MatImageBuffer(final Mat mat) {
     final boolean empty = mat.empty();
-    Preconditions.checkArgument(!empty, "Mat must not be empty");
+    Preconditions.checkArgument(!empty, EMPTY_MAT_MESSAGE);
     this.mat = toContinuousBgr(mat);
   }
 
   MatImageBuffer(final byte[] bytes, final int width, final int height) {
     checkDimensions(width, height);
     final int expected = width * height * CHANNELS;
-    Preconditions.checkArgument(bytes.length == expected, "Expected %s bytes but got %s", expected, bytes.length);
+    Preconditions.checkArgument(bytes.length == expected, BYTE_COUNT_MESSAGE, bytes.length, expected);
     this.mat = new Mat(height, width, opencv_core.CV_8UC3);
     final ByteBuffer target = this.mat.createBuffer();
     target.put(bytes);
@@ -95,7 +99,7 @@ public final class MatImageBuffer implements ImageBuffer {
     checkDimensions(width, height);
     final int expected = width * height * CHANNELS;
     final int remaining = bytes.remaining();
-    Preconditions.checkArgument(remaining == expected, "Expected %s bytes but got %s", expected, remaining);
+    Preconditions.checkArgument(remaining == expected, BYTE_COUNT_MESSAGE, remaining, expected);
     this.mat = new Mat(height, width, opencv_core.CV_8UC3);
     final ByteBuffer source = bytes.duplicate();
     final ByteBuffer target = this.mat.createBuffer();
@@ -103,14 +107,14 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   MatImageBuffer(final byte[] encoded) {
-    Preconditions.checkArgument(encoded.length > 0, "Encoded image must not be empty");
+    Preconditions.checkArgument(encoded.length > 0, "Encoded image must not be empty!");
     // OpenCV allocates the whole picture once it has read the header, so a small file declaring a huge size is
     // refused before it gets there
     DeclaredImageSize.checkBytes(encoded);
     try (final BytePointer pointer = new BytePointer(encoded); final Mat wrapper = new Mat(pointer)) {
       final Mat decoded = opencv_imgcodecs.imdecode(wrapper, opencv_imgcodecs.IMREAD_COLOR);
       final boolean empty = decoded.empty();
-      Preconditions.checkArgument(!empty, "Bytes are not a supported image format");
+      Preconditions.checkArgument(!empty, "Bytes are not a supported image format!");
       this.mat = toContinuousBgr(decoded);
     }
   }
@@ -120,7 +124,7 @@ public final class MatImageBuffer implements ImageBuffer {
     // null for frames without an image, such as audio frames
     try (final OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
       final Mat converted = converter.convert(frame);
-      Preconditions.checkArgument(converted != null, "Frame does not contain an image");
+      Preconditions.checkArgument(converted != null, "Frame does not contain an image!");
       this.mat = copyToBgr(converted);
     }
   }
@@ -139,7 +143,7 @@ public final class MatImageBuffer implements ImageBuffer {
   MatImageBuffer(final int[] argb, final int width, final int height) {
     checkDimensions(width, height);
     final int expected = width * height;
-    Preconditions.checkArgument(argb.length == expected, "Expected %s pixels but got %s", expected, argb.length);
+    Preconditions.checkArgument(argb.length == expected, PIXEL_COUNT_MESSAGE, argb.length, expected);
     final byte[] bytes = new byte[expected * CHANNELS];
     this.mat = new Mat(height, width, opencv_core.CV_8UC3);
     this.scratch = bytes;
@@ -159,7 +163,7 @@ public final class MatImageBuffer implements ImageBuffer {
     final String raw = path.toString();
     final Mat decoded = opencv_imgcodecs.imread(raw, opencv_imgcodecs.IMREAD_COLOR);
     final boolean empty = decoded.empty();
-    Preconditions.checkArgument(!empty, "File is not a supported image: %s", path);
+    Preconditions.checkArgument(!empty, "File %s is not a supported image!", path);
     return toContinuousBgr(decoded);
   }
 
@@ -169,13 +173,13 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   private static void checkDimensions(final int width, final int height) {
-    Preconditions.checkArgument(width > 0 && height > 0, "Image dimensions must be positive but were %sx%s", width, height);
+    Preconditions.checkArgument(width > 0 && height > 0, "Image dimensions %sx%s must be positive!", width, height);
     // BGR arrays and ByteBuffer capacities are indexed by int; the pixels are compared with the limit divided by the
     // channels, as multiplying two int dimensions and the channel count can overflow even a long
     final long pixels = (long) width * height;
     Preconditions.checkArgument(
       pixels <= Integer.MAX_VALUE / CHANNELS,
-      "Image dimensions exceed the maximum BGR buffer size: %sx%s",
+      "Image dimensions %sx%s exceed the maximum BGR buffer size!",
       width,
       height
     );
@@ -212,7 +216,10 @@ public final class MatImageBuffer implements ImageBuffer {
       case 1 -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_GRAY2BGR);
       case 3 -> eightBit.copyTo(bgr);
       case 4 -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_BGRA2BGR);
-      default -> throw new IllegalArgumentException("Unsupported number of channels: " + channels);
+      default -> {
+        final String message = "Channel count %s is not supported!".formatted(channels);
+        throw new IllegalArgumentException(message);
+      }
     }
     if (converted) {
       eightBit.release();
@@ -369,9 +376,9 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws IllegalStateException    if the image was released
    */
   public void setMat(final Mat replacement) {
-    Preconditions.checkNotNull(replacement, "Mat must not be null");
+    Preconditions.checkNotNull(replacement, "Mat must not be null!");
     final boolean empty = replacement.empty();
-    Preconditions.checkArgument(!empty, "Mat must not be empty");
+    Preconditions.checkArgument(!empty, EMPTY_MAT_MESSAGE);
     this.checkNotReleased();
     // matrices compare by the address of their native header, so a second wrapper of the current matrix is never
     // mistaken for a new one and released along with the current matrix
@@ -406,14 +413,14 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws IllegalStateException    if the image was released
    */
   public void transformMat(final BiConsumer<Mat, Mat> operation) {
-    Preconditions.checkNotNull(operation, "Operation must not be null");
+    Preconditions.checkNotNull(operation, "Operation must not be null!");
     this.checkNotReleased();
     final Mat target = this.takeSpare();
     final Mat result;
     try {
       operation.accept(this.mat, target);
       final boolean empty = target.empty();
-      Preconditions.checkArgument(!empty, "The operation must write its result into the target matrix");
+      Preconditions.checkArgument(!empty, "The operation must write its result into the target matrix!");
       result = toContinuousBgr(target);
     } catch (final RuntimeException failure) {
       target.close();
@@ -500,7 +507,7 @@ public final class MatImageBuffer implements ImageBuffer {
    */
   @Override
   public void setAsBufferedImage(final BufferedImage image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     this.checkNotReleased();
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -554,7 +561,7 @@ public final class MatImageBuffer implements ImageBuffer {
    */
   @Override
   public void setPixel(final int column, final int row, final double[] value) {
-    Preconditions.checkNotNull(value, "Value must not be null");
+    Preconditions.checkNotNull(value, "Value must not be null!");
     this.checkNotReleased();
     this.checkCoordinates(column, row);
     final ByteBuffer bytes = this.mat.createBuffer();
@@ -586,8 +593,8 @@ public final class MatImageBuffer implements ImageBuffer {
   private void checkCoordinates(final int column, final int row) {
     final int width = this.mat.cols();
     final int height = this.mat.rows();
-    Preconditions.checkArgument(column >= 0 && column < width, "x must be between 0 and %s but was %s", width - 1, column);
-    Preconditions.checkArgument(row >= 0 && row < height, "y must be between 0 and %s but was %s", height - 1, row);
+    Preconditions.checkArgument(column >= 0 && column < width, "x %s must be between 0 and %s!", column, width - 1);
+    Preconditions.checkArgument(row >= 0 && row < height, "y %s must be between 0 and %s!", row, height - 1);
   }
 
   @Override
@@ -668,12 +675,12 @@ public final class MatImageBuffer implements ImageBuffer {
    */
   @Override
   public void updateData(final ByteBuffer data, final int width, final int height) {
-    Preconditions.checkNotNull(data, "Data must not be null");
+    Preconditions.checkNotNull(data, "Data must not be null!");
     checkDimensions(width, height);
     this.checkNotReleased();
     final int expected = width * height * CHANNELS;
     final int remaining = data.remaining();
-    Preconditions.checkArgument(remaining == expected, "Expected %s bytes but got %s", expected, remaining);
+    Preconditions.checkArgument(remaining == expected, BYTE_COUNT_MESSAGE, remaining, expected);
     this.ensureSize(width, height);
     final ByteBuffer source = data.duplicate();
     final ByteBuffer target = this.mat.createBuffer();
@@ -687,11 +694,11 @@ public final class MatImageBuffer implements ImageBuffer {
    */
   @Override
   public void updateArgb(final int[] pixels, final int width, final int height) {
-    Preconditions.checkNotNull(pixels, "Pixels must not be null");
+    Preconditions.checkNotNull(pixels, "Pixels must not be null!");
     checkDimensions(width, height);
     this.checkNotReleased();
     final int expected = width * height;
-    Preconditions.checkArgument(pixels.length == expected, "Expected %s pixels but got %s", expected, pixels.length);
+    Preconditions.checkArgument(pixels.length == expected, PIXEL_COUNT_MESSAGE, pixels.length, expected);
     this.ensureSize(width, height);
     final byte[] bytes = this.getScratch(expected * CHANNELS);
     writeArgb(this.mat, pixels, bytes);
@@ -728,7 +735,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
   private void checkNotReleased() {
     if (this.released) {
-      throw new IllegalStateException("Image buffer has been released");
+      throw new IllegalStateException("Image buffer has been released!");
     }
   }
 }

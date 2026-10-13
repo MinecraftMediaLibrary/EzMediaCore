@@ -308,6 +308,6 @@ final class FormatModelTest {
     final Format format = format("{\"format_id\": \"sb0\"}");
     final IllegalStateException exception = assertThrows(IllegalStateException.class, format::toUriSource);
     final String message = exception.getMessage();
-    assertEquals("Stream has no URL", message);
+    assertEquals("Stream has no URL!", message);
   }
 }

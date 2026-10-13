@@ -34,7 +34,7 @@ import me.brandonli.mcav.utils.IOUtils;
 public final class ReleasePackageManager {
 
   private ReleasePackageManager() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -45,7 +45,7 @@ public final class ReleasePackageManager {
    * @throws NullPointerException if {@code resourcePath} is null
    */
   public static Download[] readVLCDownloadsFromJsonResource(final String resourcePath) {
-    Preconditions.checkNotNull(resourcePath, "Resource path must not be null");
+    Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
     return IOUtils.readDownloadsFromJsonResource(resourcePath);
   }
 }

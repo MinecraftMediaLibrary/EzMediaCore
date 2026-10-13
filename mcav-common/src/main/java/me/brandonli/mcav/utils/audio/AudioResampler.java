@@ -129,10 +129,10 @@ public final class AudioResampler implements AutoCloseable {
   ) {
     checkSampleRate(inputSampleRate, "Input");
     checkChannels(inputChannels, "Input");
-    Preconditions.checkNotNull(inputFormat, "Input format must not be null");
+    Preconditions.checkNotNull(inputFormat, "Input format must not be null!");
     checkSampleRate(outputSampleRate, "Output");
     checkChannels(outputChannels, "Output");
-    Preconditions.checkNotNull(outputFormat, "Output format must not be null");
+    Preconditions.checkNotNull(outputFormat, "Output format must not be null!");
 
     final AudioResampler resampler = new AudioResampler(
       inputSampleRate,
@@ -170,12 +170,12 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   private static void checkSampleRate(final int sampleRate, final String side) {
-    Preconditions.checkArgument(sampleRate > 0, "%s sample rate must be positive, was %s", side, sampleRate);
+    Preconditions.checkArgument(sampleRate > 0, "%s sample rate %s must be positive!", side, sampleRate);
   }
 
   private static void checkChannels(final int channels, final String side) {
     final boolean inRange = channels >= 1 && channels <= MAX_CHANNELS;
-    Preconditions.checkArgument(inRange, "%s channels must be between 1 and %s, was %s", side, MAX_CHANNELS, channels);
+    Preconditions.checkArgument(inRange, "%s channel count %s must be between 1 and %s!", side, channels, MAX_CHANNELS);
   }
 
   private void configure() {
@@ -214,7 +214,7 @@ public final class AudioResampler implements AutoCloseable {
    * @throws NullPointerException if {@code input} is null
    */
   public byte[] resample(final ByteBuffer input) {
-    Preconditions.checkNotNull(input, "Input must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
     this.ensureOpen();
 
     final ByteBuffer source = input.duplicate();
@@ -269,7 +269,7 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   private void ensureOpen() {
-    Preconditions.checkState(!this.closed, "The resampler has been closed");
+    Preconditions.checkState(!this.closed, "The resampler has been closed!");
   }
 
   /**
@@ -308,7 +308,7 @@ public final class AudioResampler implements AutoCloseable {
       // without a limit JavaCPP reads up to the terminating zero instead of the whole buffer
       description.limit(0);
       final String text = description.getString();
-      return "Could not " + action + ": " + text + " (FFmpeg error " + code + ")";
+      return "FFmpeg error %s (%s) occurred while trying to %s!".formatted(code, text, action);
     }
   }
 

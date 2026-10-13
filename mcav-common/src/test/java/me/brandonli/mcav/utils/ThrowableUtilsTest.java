@@ -32,8 +32,8 @@ final class ThrowableUtilsTest {
 
   @Test
   void shouldRethrowVirtualMachineErrors() {
-    final StackOverflowError stackOverflow = new StackOverflowError("too deep");
-    final OutOfMemoryError outOfMemory = new OutOfMemoryError("heap is full");
+    final StackOverflowError stackOverflow = new StackOverflowError("too deep!");
+    final OutOfMemoryError outOfMemory = new OutOfMemoryError("heap is full!");
     final StackOverflowError thrownStackOverflow = assertThrows(StackOverflowError.class, () -> ThrowableUtils.throwIfFatal(stackOverflow));
     final OutOfMemoryError thrownOutOfMemory = assertThrows(OutOfMemoryError.class, () -> ThrowableUtils.throwIfFatal(outOfMemory));
     assertSame(stackOverflow, thrownStackOverflow, "the original error is rethrown, not a copy");
@@ -42,10 +42,10 @@ final class ThrowableUtilsTest {
 
   @Test
   void shouldReturnNormallyForRecoverableFailures() {
-    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
-    final AssertionError assertionFailure = new AssertionError("filter assertion");
-    final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("no jniopencv_core");
-    final IOException checkedFailure = new IOException("offline");
+    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug!");
+    final AssertionError assertionFailure = new AssertionError("filter assertion!");
+    final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("no jniopencv_core!");
+    final IOException checkedFailure = new IOException("offline!");
     assertDoesNotThrow(() -> ThrowableUtils.throwIfFatal(runtimeFailure));
     assertDoesNotThrow(() -> ThrowableUtils.throwIfFatal(assertionFailure));
     assertDoesNotThrow(() -> ThrowableUtils.throwIfFatal(linkFailure));

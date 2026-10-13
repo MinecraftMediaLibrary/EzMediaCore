@@ -47,9 +47,9 @@ public final class Download {
    * @throws NullPointerException if {@code platform} or {@code url} is null
    */
   public Download(final Platform platform, final String url, final @Nullable String hash) {
-    Preconditions.checkNotNull(platform, "Platform must not be null");
-    Preconditions.checkNotNull(url, "URL must not be null");
-    Preconditions.checkArgument(!url.isBlank(), "URL must not be blank");
+    Preconditions.checkNotNull(platform, "Platform must not be null!");
+    Preconditions.checkNotNull(url, "URL must not be null!");
+    Preconditions.checkArgument(!url.isBlank(), "URL must not be blank!");
     this.platform = platform;
     this.url = url;
     this.hash = hash;

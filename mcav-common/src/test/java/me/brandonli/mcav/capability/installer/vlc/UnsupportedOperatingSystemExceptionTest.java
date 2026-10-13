@@ -31,17 +31,17 @@ final class UnsupportedOperatingSystemExceptionTest {
   @Test
   void shouldKeepTheMessage() {
     final UnsupportedOperatingSystemException exception = new UnsupportedOperatingSystemException(
-      "VLC cannot be installed automatically on FREEBSD"
+      "Operating system FREEBSD does not support installing VLC automatically!"
     );
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("VLC cannot be installed automatically on FREEBSD", message);
+    assertEquals("Operating system FREEBSD does not support installing VLC automatically!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldBeAnUnsupportedOperationException() {
-    final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("failure");
+    final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("Failure!");
     assertInstanceOf(UnsupportedOperationException.class, exception, "an unsupported system is recoverable, so it is no Error");
   }
 }

@@ -82,7 +82,7 @@ final class VLCLoadStateTest {
   @Test
   void shouldRetryAfterAFailedLoad() throws IOException {
     final VLCLoadState state = new VLCLoadState();
-    final IOException failure = new IOException("offline");
+    final IOException failure = new IOException("offline!");
     final IOException thrown = assertThrows(IOException.class, () ->
       state.loadOnce(() -> {
         throw failure;
@@ -97,7 +97,7 @@ final class VLCLoadStateTest {
   @Test
   void shouldRetryAfterAnUnsupportedSystem() throws IOException {
     final VLCLoadState state = new VLCLoadState();
-    final UnsupportedOperatingSystemException failure = new UnsupportedOperatingSystemException("no VLC");
+    final UnsupportedOperatingSystemException failure = new UnsupportedOperatingSystemException("no VLC!");
     assertThrows(UnsupportedOperatingSystemException.class, () ->
       state.loadOnce(() -> {
         throw failure;
@@ -200,7 +200,7 @@ final class VLCLoadStateTest {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Interrupted while waiting", exception);
+      throw new IOException("Waiting was interrupted!", exception);
     }
   }
 }

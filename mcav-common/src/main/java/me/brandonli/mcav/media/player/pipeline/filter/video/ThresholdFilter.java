@@ -42,8 +42,8 @@ public class ThresholdFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if the threshold or maximum is outside 0 through 255 or is NaN
    */
   public ThresholdFilter(final double threshold, final double maxValue, final int type) {
-    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Threshold must be between 0 and 255");
-    Preconditions.checkArgument(maxValue >= 0 && maxValue <= 255, "Max value must be between 0 and 255");
+    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Threshold must be between 0 and 255!");
+    Preconditions.checkArgument(maxValue >= 0 && maxValue <= 255, "Max value must be between 0 and 255!");
     this.threshold = threshold;
     this.maxValue = maxValue;
     this.type = type;

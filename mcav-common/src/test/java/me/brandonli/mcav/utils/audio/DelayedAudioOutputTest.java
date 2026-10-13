@@ -94,7 +94,7 @@ class DelayedAudioOutputTest {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
     while (!condition.getAsBoolean()) {
       if (System.nanoTime() > deadline) {
-        throw new AssertionError("timed out");
+        throw new AssertionError("timed out!");
       }
       Thread.onSpinWait();
     }
@@ -157,7 +157,7 @@ class DelayedAudioOutputTest {
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
           if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter broke");
+            throw new IllegalStateException("filter broke!");
           }
           final byte[] copy = new byte[samples.remaining()];
           samples.get(copy);
@@ -165,7 +165,7 @@ class DelayedAudioOutputTest {
           return true;
         }),
       (message, failure) -> {
-        throw new IllegalStateException("handler broke too");
+        throw new IllegalStateException("handler broke too!");
       }
     );
     try {
@@ -185,12 +185,12 @@ class DelayedAudioOutputTest {
     final AtomicReference<byte[]> heard = new AtomicReference<>();
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
     final CountDownLatch settled = new CountDownLatch(1);
-    final Error reportFailure = linkage ? new NoClassDefFoundError("reporter unavailable") : new AssertionError("reporter failed");
+    final Error reportFailure = linkage ? new NoClassDefFoundError("reporter unavailable!") : new AssertionError("reporter failed!");
     final DelayedAudioOutput failing = start(
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
           if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter failed");
+            throw new IllegalStateException("filter failed!");
           }
           final byte[] copy = new byte[samples.remaining()];
           samples.get(copy);
@@ -229,12 +229,12 @@ class DelayedAudioOutputTest {
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
     final AtomicBoolean continued = new AtomicBoolean();
     final CountDownLatch settled = new CountDownLatch(1);
-    final OutOfMemoryError reportFailure = new OutOfMemoryError("synthetic reporter failure");
+    final OutOfMemoryError reportFailure = new OutOfMemoryError("synthetic reporter failure!");
     final DelayedAudioOutput failing = start(
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
           if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter failed");
+            throw new IllegalStateException("filter failed!");
           }
           continued.set(true);
           settled.countDown();
@@ -583,18 +583,18 @@ class DelayedAudioOutputTest {
     final DelayedAudioOutput failing = start(
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
-          throw new IllegalStateException("filter broke");
+          throw new IllegalStateException("filter broke!");
         }),
       (message, failure) -> this.failures.add(message + ": " + failure.getMessage())
     );
     failing.accept(new byte[4], 4);
     waitUntil(() -> !this.failures.isEmpty());
     failing.close();
-    assertEquals(List.of("Failed to process the audio of the virtual machine: filter broke"), this.failures);
+    assertEquals(List.of("Failed to process the audio of the virtual machine: filter broke!"), this.failures);
     final DelayedAudioOutput fatal = start(
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
-          throw new OutOfMemoryError("fatal");
+          throw new OutOfMemoryError("fatal!");
         }),
       (message, failure) -> this.failures.add(message)
     );
@@ -679,7 +679,7 @@ class DelayedAudioOutputTest {
       DelayedAudioOutput.start("a source", 0, 11_184_811, pipeline, ignored)
     );
     final String tooLongMessage = tooLong.getMessage();
-    assertEquals("At most 11184810 ms of sound may wait, but 11184811 ms were asked for", tooLongMessage);
+    assertEquals("At most 11184810 ms of sound may wait, but 11184811 ms were asked for!", tooLongMessage);
     final DelayedAudioOutput longest = DelayedAudioOutput.start("a source", 0, 11_184_810, pipeline, ignored);
     try {
       longest.accept(new byte[] { 7, 0, 7, 0 }, 4);
@@ -697,12 +697,12 @@ class DelayedAudioOutputTest {
       DelayedAudioOutput.start("a source", -1, 10, pipeline, ignored)
     );
     final String negativeMessage = negative.getMessage();
-    assertEquals("The delay must not be negative but was -1", negativeMessage);
+    assertEquals("Delay -1 must not be negative!", negativeMessage);
     final IllegalArgumentException full = assertThrows(IllegalArgumentException.class, () ->
       DelayedAudioOutput.start("a source", 10, 10, pipeline, ignored)
     );
     final String fullMessage = full.getMessage();
-    assertEquals("At most 10 ms may wait, which leaves no room past the delay of 10 ms", fullMessage);
+    assertEquals("At most 10 ms may wait, which leaves no room past the delay of 10 ms!", fullMessage);
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start(null, 0, 1, pipeline, ignored));
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start("a source", 0, 1, null, ignored));
     assertThrows(NullPointerException.class, () -> DelayedAudioOutput.start("a source", 0, 1, pipeline, null));

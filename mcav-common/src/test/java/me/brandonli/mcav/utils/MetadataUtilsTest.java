@@ -130,7 +130,7 @@ final class MetadataUtilsTest {
         }
       });
       final String message = failure.getMessage();
-      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track", message);
+      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track!", message);
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber).grabFrame();
       verify(grabber).close();

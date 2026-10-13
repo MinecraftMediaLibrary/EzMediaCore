@@ -32,26 +32,26 @@ final class ProcessExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final ProcessException exception = new ProcessException("ffmpeg exited with code 1");
+    final ProcessException exception = new ProcessException("ffmpeg exited with code 1!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("ffmpeg exited with code 1", message);
+    assertEquals("ffmpeg exited with code 1!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final IOException readFailure = new IOException("stream closed");
-    final ProcessException exception = new ProcessException("The output of ffmpeg cannot be read", readFailure);
+    final IOException readFailure = new IOException("stream closed!");
+    final ProcessException exception = new ProcessException("The output of ffmpeg cannot be read!", readFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("The output of ffmpeg cannot be read", message);
+    assertEquals("The output of ffmpeg cannot be read!", message);
     assertSame(readFailure, cause);
   }
 
   @Test
   void shouldBeARuntimeException() {
-    final ProcessException exception = new ProcessException("failure");
+    final ProcessException exception = new ProcessException("Failure!");
     assertInstanceOf(RuntimeException.class, exception, "a failing program is recoverable, so it is no Error");
   }
 }

@@ -141,7 +141,8 @@ final class YTDLPInstallerTest {
         return download;
       }
     }
-    throw new AssertionError("No yt-dlp download is bundled for " + platform);
+    final String message = "Platform %s has no bundled yt-dlp download!".formatted(platform);
+    throw new AssertionError(message);
   }
 
   @Test
@@ -272,7 +273,7 @@ final class YTDLPInstallerTest {
       final Path unpacking = this.folder.resolve("yt-dlp-unpacking");
       final boolean unpackedLeft = Files.exists(unpacked);
       final boolean unpackingLeft = Files.exists(unpacking);
-      assertEquals("The yt-dlp zip does not contain yt-dlp_test at its top level", message);
+      assertEquals("The yt-dlp zip does not contain yt-dlp_test at its top level!", message);
       assertFalse(unpackedLeft);
       assertFalse(unpackingLeft);
     }
@@ -286,7 +287,7 @@ final class YTDLPInstallerTest {
       final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
-      final boolean explained = message.startsWith("The yt-dlp zip cannot be extracted: ");
+      final boolean explained = message.endsWith("\" while extracting the yt-dlp zip!");
       assertTrue(explained, message);
       assertInstanceOf(UncheckedIOException.class, cause);
     }
@@ -380,7 +381,7 @@ final class YTDLPInstallerTest {
     try {
       return MessageDigest.getInstance("SHA-256");
     } catch (final NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("Every Java runtime supports SHA-256", exception);
+      throw new IllegalStateException("Every Java runtime supports SHA-256!", exception);
     }
   }
 
@@ -458,7 +459,7 @@ final class YTDLPInstallerTest {
     final Platform current = Platform.getCurrentPlatform();
     final Arch architecture = current.getArch();
     final Bits bits = current.getBits();
-    Assumptions.assumeTrue(architecture == Arch.X86 && bits == Bits.BITS_64, "The bundled list is only checked on 64-bit x86");
+    Assumptions.assumeTrue(architecture == Arch.X86 && bits == Bits.BITS_64, "The bundled list is only checked on 64-bit x86!");
     final YTDLPInstaller installer = YTDLPInstaller.create(this.folder);
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();

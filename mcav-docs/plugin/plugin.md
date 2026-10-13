@@ -43,7 +43,7 @@ the background into the MCAV cache folder of the user running the server (`~/.mc
 downloaded the same way. Players can join and use every other command, including the video commands with the
 `FFMPEG` player, in the meantime. Until VLC is ready, video commands with the `VLC` player answer
 "VLC is still being prepared, try again shortly or use FFMPEG", and commands given a web page such as a YouTube video
-answer that yt-dlp is still being prepared. The console logs `VLC ready in <n> ms` once VLC can be used, or a warning
+answer that yt-dlp is still being prepared. The console logs `VLC ready in <n> ms.` once VLC can be used, or a warning
 if it cannot be installed, after which VLC commands answer that VLC is not supported. Later starts find the downloaded
 copies at once.
 

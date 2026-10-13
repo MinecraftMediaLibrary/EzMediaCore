@@ -52,7 +52,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
    */
   public OrderedDither(final DitherPalette palette, final PixelMapper mapper) {
     super(palette);
-    Preconditions.checkNotNull(mapper, "Pixel mapper must not be null");
+    Preconditions.checkNotNull(mapper, "Pixel mapper must not be null!");
 
     final float[][] matrix = mapper.getMatrix();
     final int size = palette.getSize();
@@ -106,7 +106,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
     checkImage(image);
-    Preconditions.checkNotNull(pool, "Pool must not be null");
+    Preconditions.checkNotNull(pool, "Pool must not be null!");
 
     final int width = image.getWidth();
     final int[] pixels = image.getPixels();

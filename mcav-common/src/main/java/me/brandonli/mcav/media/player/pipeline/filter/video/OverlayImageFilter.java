@@ -43,8 +43,8 @@ public class OverlayImageFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code overlay} is null
    */
   public OverlayImageFilter(final ImageBuffer overlay, final int left, final int top) {
-    Preconditions.checkNotNull(overlay, "Overlay must not be null");
-    Preconditions.checkArgument(left >= 0 && top >= 0, "Overlay position must not be negative");
+    Preconditions.checkNotNull(overlay, "Overlay must not be null!");
+    Preconditions.checkArgument(left >= 0 && top >= 0, "Overlay position must not be negative!");
     this.overlay = copyToMat(overlay);
     this.left = left;
     this.top = top;

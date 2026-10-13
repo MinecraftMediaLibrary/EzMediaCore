@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
-import java.util.Locale;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.utils.IOUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -44,7 +43,7 @@ public final class MapPaletteLoader {
   private static final int[] COLORS = loadColors(PALETTE_RESOURCE);
 
   private MapPaletteLoader() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -59,7 +58,7 @@ public final class MapPaletteLoader {
     try (final Reader reader = IOUtils.getResourceAsStreamReader(resource)) {
       return parseColors(reader);
     } catch (final IOException | UncheckedIOException exception) {
-      final String message = exception.getMessage();
+      final String message = "Map palette resource %s could not be read!".formatted(resource);
       throw new PaletteLoadingException(message, exception);
     }
   }
@@ -81,11 +80,10 @@ public final class MapPaletteLoader {
     try {
       components = gson.fromJson(reader, type);
     } catch (final JsonSyntaxException exception) {
-      final String message = exception.getMessage();
-      throw new PaletteLoadingException(message, exception);
+      throw new PaletteLoadingException("Map palette resource is malformed!", exception);
     }
     if (components == null || components.length == 0) {
-      throw new PaletteLoadingException("Map palette resource is empty");
+      throw new PaletteLoadingException("Map palette resource is empty!");
     }
     final int[] colors = new int[components.length];
     for (int index = 0; index < components.length; index++) {
@@ -97,7 +95,7 @@ public final class MapPaletteLoader {
 
   private static int toColor(final int @Nullable [] rgb, final int index) {
     if (rgb == null || rgb.length != 3) {
-      final String message = String.format(Locale.getDefault(Locale.Category.FORMAT), "Map color %d does not have three components", index);
+      final String message = "Map color %s does not have three components!".formatted(index);
       throw new PaletteLoadingException(message);
     }
     final int red = checkComponent(rgb[0], index);
@@ -108,12 +106,7 @@ public final class MapPaletteLoader {
 
   private static int checkComponent(final int component, final int index) {
     if (component < 0 || component > 255) {
-      final String message = String.format(
-        Locale.getDefault(Locale.Category.FORMAT),
-        "Map color %d has the component %d, which is outside of 0 to 255",
-        index,
-        component
-      );
+      final String message = "Component %s of map color %s must be between 0 and 255!".formatted(component, index);
       throw new PaletteLoadingException(message);
     }
     return component;
@@ -146,7 +139,7 @@ public final class MapPaletteLoader {
    */
   public static Color getColor(final byte index) {
     final int unsigned = index & 0xFF;
-    Preconditions.checkArgument(unsigned < COLORS.length, "Map color %s does not exist", unsigned);
+    Preconditions.checkArgument(unsigned < COLORS.length, "Map color %s does not exist!", unsigned);
     final int argb = COLORS[unsigned];
     return new Color(argb, true);
   }

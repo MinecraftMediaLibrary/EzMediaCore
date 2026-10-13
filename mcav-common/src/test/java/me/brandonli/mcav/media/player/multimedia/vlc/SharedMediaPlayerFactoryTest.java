@@ -108,7 +108,7 @@ final class SharedMediaPlayerFactoryTest {
     final AtomicInteger attempts = new AtomicInteger();
     final Supplier<MediaPlayerFactory> failing = () -> {
       attempts.incrementAndGet();
-      throw new IllegalStateException("libvlc not found");
+      throw new IllegalStateException("libvlc not found!");
     };
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(failing);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, shared::acquire);
@@ -116,7 +116,7 @@ final class SharedMediaPlayerFactoryTest {
     final int references = shared.getReferences();
     assertThrows(IllegalStateException.class, shared::acquire);
     final int attemptCount = attempts.get();
-    assertEquals("libvlc not found", message);
+    assertEquals("libvlc not found!", message);
     assertEquals(0, references);
     assertEquals(2, attemptCount, "every acquisition tries again");
   }

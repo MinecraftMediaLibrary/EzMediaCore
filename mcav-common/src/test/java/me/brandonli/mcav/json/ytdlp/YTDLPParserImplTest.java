@@ -213,7 +213,7 @@ final class YTDLPParserImplTest {
     final YTDLPParseException empty = assertParseFails("");
     final YTDLPParseException blank = assertParseFails(" \r\n\t\n");
     final YTDLPParseException jsonNull = assertParseFails("null\n");
-    final String expected = "yt-dlp printed no metadata for " + URL;
+    final String expected = "URL %s got no metadata from yt-dlp!".formatted(URL);
     final String emptyMessage = empty.getMessage();
     final String blankMessage = blank.getMessage();
     final String jsonNullMessage = jsonNull.getMessage();
@@ -229,7 +229,7 @@ final class YTDLPParserImplTest {
     final YTDLPParseException truncated = assertParseFails("{\"id\": \"abc\", \"title\": ");
     final YTDLPParseException array = assertParseFails("[1, 2, 3]");
     final YTDLPParseException wrongType = assertParseFails("{\"formats\": \"not a list\"}");
-    final String expected = "yt-dlp printed invalid metadata for " + URL;
+    final String expected = "URL %s got invalid metadata from yt-dlp!".formatted(URL);
     final String truncatedMessage = truncated.getMessage();
     final String arrayMessage = array.getMessage();
     final String wrongTypeMessage = wrongType.getMessage();
@@ -248,7 +248,7 @@ final class YTDLPParserImplTest {
   void shouldReportMetadataWhoseDecimalFieldHoldsText() throws IOException {
     final YTDLPParseException duration = assertParseFails("{\"id\": \"abc\", \"duration\": \"long\"}");
     final YTDLPParseException quality = assertParseFails("{\"id\": \"abc\", \"formats\": [{\"quality\": \"high\"}]}");
-    final String expected = "yt-dlp printed invalid metadata for " + URL;
+    final String expected = "URL %s got invalid metadata from yt-dlp!".formatted(URL);
     final String durationMessage = duration.getMessage();
     final String qualityMessage = quality.getMessage();
     final Throwable durationCause = duration.getCause();
@@ -263,7 +263,7 @@ final class YTDLPParserImplTest {
   void shouldRejectTextAfterTheDocumentInsteadOfIgnoringIt() throws IOException {
     final YTDLPParseException trailingText = assertParseFails("{\"id\": \"abc\"} unexpected trailing text");
     final YTDLPParseException secondDocument = assertParseFails("{\"id\": \"abc\"} {\"id\": \"def\"}");
-    final String expected = "yt-dlp printed invalid metadata for " + URL;
+    final String expected = "URL %s got invalid metadata from yt-dlp!".formatted(URL);
     final String trailingTextMessage = trailingText.getMessage();
     final String secondDocumentMessage = secondDocument.getMessage();
     final Throwable trailingTextCause = trailingText.getCause();
@@ -282,7 +282,10 @@ final class YTDLPParserImplTest {
     final UriSource source = source();
     final YTDLPParseException exception = assertThrows(YTDLPParseException.class, () -> parser.parse(source));
     final String message = exception.getMessage();
-    assertEquals("yt-dlp failed for " + URL + ": ERROR: [youtube] dQw4w9WgXcQ: Private video", message);
+    final String expected = "yt-dlp failed with \"ERROR: [youtube] dQw4w9WgXcQ: Private video\" while URL %s was being resolved!".formatted(
+      URL
+    );
+    assertEquals(expected, message);
   }
 
   @Test
@@ -293,12 +296,13 @@ final class YTDLPParserImplTest {
     final UriSource source = source();
     final YTDLPParseException exception = assertThrows(YTDLPParseException.class, () -> parser.parse(source));
     final String message = exception.getMessage();
-    assertEquals("yt-dlp failed for " + URL + ": Usage: yt-dlp [OPTIONS] URL", message);
+    final String expected = "yt-dlp failed with \"Usage: yt-dlp [OPTIONS] URL\" while URL %s was being resolved!".formatted(URL);
+    assertEquals(expected, message);
   }
 
   @Test
   void shouldPropagateInstallationFailuresWithoutRunningAnything() {
-    final IOException failure = new IOException("no network");
+    final IOException failure = new IOException("no network!");
     final AtomicBoolean created = new AtomicBoolean();
     final YTDLPParserImpl parser = new YTDLPParserImpl(
       () -> {
@@ -318,7 +322,7 @@ final class YTDLPParserImplTest {
 
   @Test
   void shouldPropagateFailuresToStartTheProcess() throws IOException {
-    final IOException failure = new IOException("cannot start");
+    final IOException failure = new IOException("cannot start!");
     final CommandTask task = Mockito.mock(CommandTask.class);
     Mockito.when(task.run(ArgumentMatchers.any(Duration.class))).thenThrow(failure);
     final AtomicReference<String[]> command = new AtomicReference<>();
@@ -410,9 +414,9 @@ final class YTDLPParserImplTest {
       installers.when(YTDLPInstaller::shared).thenReturn(installer);
       final YTDLPParseException exception = assertThrows(YTDLPParseException.class, () -> parser.parse(source));
       final String message = exception.getMessage();
-      final boolean startsWithUrl = message.startsWith("yt-dlp failed for " + URL + ": ");
+      final boolean namesTheUrl = message.endsWith("\" while URL " + URL + " was being resolved!");
       final boolean namesTheOption = message.contains("--dump-json");
-      assertTrue(startsWithUrl, message);
+      assertTrue(namesTheUrl, message);
       assertTrue(namesTheOption, message);
     }
     final YTDLPInstaller verifiedInstaller = Mockito.verify(installer);
@@ -431,7 +435,7 @@ final class YTDLPParserImplTest {
       final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> parser.parse(source));
       final String message = exception.getMessage();
       assertEquals(
-        "yt-dlp is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.YT_DLP) or try again shortly",
+        "yt-dlp is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.YT_DLP) or try again shortly!",
         message
       );
     } finally {

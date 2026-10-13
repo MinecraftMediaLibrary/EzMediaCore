@@ -49,7 +49,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    */
   protected ErrorDiffusionDither(final DitherPalette palette, final DiffusionKernel kernel) {
     super(palette);
-    Preconditions.checkNotNull(kernel, "Kernel must not be null");
+    Preconditions.checkNotNull(kernel, "Kernel must not be null!");
     this.kernel = kernel;
   }
 

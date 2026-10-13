@@ -80,7 +80,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
    * @throws NullPointerException if {@code folder} is null
    */
   public static YTDLPInstaller create(final Path folder) {
-    Preconditions.checkNotNull(folder, "Folder must not be null");
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
     return new YTDLPInstaller(folder);
   }
 
@@ -175,7 +175,7 @@ public final class YTDLPInstaller extends AbstractInstaller {
     final Path executable = destination.resolve(executableName);
     final boolean present = Files.isRegularFile(executable, LinkOption.NOFOLLOW_LINKS);
     if (!present) {
-      final String message = "The yt-dlp zip does not contain %s at its top level".formatted(executableName);
+      final String message = "The yt-dlp zip does not contain %s at its top level!".formatted(executableName);
       throw new IOException(message);
     }
     markExecutable(executable);
@@ -191,7 +191,8 @@ public final class YTDLPInstaller extends AbstractInstaller {
       IOUtils.unzip(archive, destination);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
-      throw new IOException("The yt-dlp zip cannot be extracted: " + reason, exception);
+      final String message = "Failed with \"%s\" while extracting the yt-dlp zip!".formatted(reason);
+      throw new IOException(message, exception);
     }
   }
 

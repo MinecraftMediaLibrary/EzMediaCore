@@ -509,7 +509,7 @@ final class CVPlayerTransitionTest {
 
     @Override
     protected FrameGrabber createFrameGrabber(final String resource) {
-      throw new AssertionError("Sessions are replaced at the boundary in this fixture");
+      throw new AssertionError("Sessions are replaced at the boundary in this fixture!");
     }
   }
 }

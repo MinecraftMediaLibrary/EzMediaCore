@@ -32,26 +32,26 @@ final class YTDLPParseExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final YTDLPParseException exception = new YTDLPParseException("yt-dlp printed no metadata for https://example.com");
+    final YTDLPParseException exception = new YTDLPParseException("URL https://example.com got no metadata from yt-dlp!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("yt-dlp printed no metadata for https://example.com", message);
+    assertEquals("URL https://example.com got no metadata from yt-dlp!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated object");
-    final YTDLPParseException exception = new YTDLPParseException("yt-dlp printed invalid metadata", parseFailure);
+    final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated object!");
+    final YTDLPParseException exception = new YTDLPParseException("yt-dlp printed invalid metadata!", parseFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("yt-dlp printed invalid metadata", message);
+    assertEquals("yt-dlp printed invalid metadata!", message);
     assertSame(parseFailure, cause);
   }
 
   @Test
   void shouldBeARuntimeExceptionApartFromIllegalArguments() {
-    final YTDLPParseException exception = new YTDLPParseException("failure");
+    final YTDLPParseException exception = new YTDLPParseException("Failure!");
     final Class<?> superclass = YTDLPParseException.class.getSuperclass();
     assertInstanceOf(RuntimeException.class, exception, "a failing URL is recoverable, so it is no Error");
     assertEquals(RuntimeException.class, superclass);

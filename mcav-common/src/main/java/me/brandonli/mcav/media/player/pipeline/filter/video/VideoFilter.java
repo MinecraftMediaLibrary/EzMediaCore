@@ -54,7 +54,7 @@ public interface VideoFilter extends Filter<ImageBuffer, OriginalVideoMetadata> 
    * @throws NullPointerException if {@code samples} is null
    */
   default boolean applyFilter(final ImageBuffer samples) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
     return this.applyFilter(samples, OriginalVideoMetadata.EMPTY);
   }
 }

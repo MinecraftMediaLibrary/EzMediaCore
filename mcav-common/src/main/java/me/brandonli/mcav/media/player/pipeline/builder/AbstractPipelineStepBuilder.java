@@ -58,7 +58,7 @@ public abstract class AbstractPipelineStepBuilder<
    * @throws NullPointerException if {@code filter} is null
    */
   public B then(final F filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
     this.filters.add(filter);
     return this.self();
   }

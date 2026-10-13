@@ -49,7 +49,7 @@ final class SharedMediaPlayerFactory {
    */
   @VisibleForTesting
   SharedMediaPlayerFactory(final Supplier<MediaPlayerFactory> creator) {
-    Preconditions.checkNotNull(creator, "Creator must not be null");
+    Preconditions.checkNotNull(creator, "Creator must not be null!");
     this.creator = creator;
     this.lock = new Object();
   }
@@ -99,7 +99,7 @@ final class SharedMediaPlayerFactory {
       if (this.references > 0) {
         return;
       }
-      final MediaPlayerFactory current = Preconditions.checkNotNull(this.factory, "A referenced instance always exists");
+      final MediaPlayerFactory current = Preconditions.checkNotNull(this.factory, "A referenced instance always exists!");
       this.factory = null;
       current.release();
     }

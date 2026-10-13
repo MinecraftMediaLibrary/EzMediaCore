@@ -54,8 +54,6 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OsxNativeDiscoveryStrategy.class);
-  private static final String CORE_LIBRARY_NOT_LOADED =
-    "The VLC core library in {} cannot be loaded, for example because it was built for another processor: {}";
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.dylib", "libvlccore\\.dylib" };
   private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s/../plugins" };
 
@@ -85,7 +83,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     final Consumer<String> corePreloader
   ) {
     super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
-    Preconditions.checkNotNull(corePreloader, "Core preloader must not be null");
+    Preconditions.checkNotNull(corePreloader, "Core preloader must not be null!");
     this.corePreloader = corePreloader;
   }
 
@@ -111,13 +109,17 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
    */
   @Override
   public boolean onFound(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     try {
       this.corePreloader.accept(path);
       return true;
     } catch (final UnsatisfiedLinkError error) {
       final String reason = error.getMessage();
-      LOGGER.warn(CORE_LIBRARY_NOT_LOADED, path, reason);
+      LOGGER.warn(
+        "The VLC core library in {} failed with \"{}\" while loading, for example because it was built for another processor.",
+        path,
+        reason
+      );
       return false;
     }
   }

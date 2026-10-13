@@ -77,7 +77,7 @@ final class DynamicImageBufferImpl implements DynamicImageBuffer {
       throw exception;
     }
     final boolean empty = decoded.isEmpty();
-    Preconditions.checkArgument(!empty, "Image contains no frames: %s", path);
+    Preconditions.checkArgument(!empty, "Image %s contains no frames!", path);
     final List<ImageBuffer> frames = List.copyOf(decoded);
     return new Animation(frames, frameRate);
   }

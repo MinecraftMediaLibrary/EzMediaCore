@@ -37,7 +37,7 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final Integer parsed = Ints.tryParse(raw);
     return parsed != null && parsed >= 0;
   }
@@ -51,7 +51,7 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
    */
   @Override
   public DeviceSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
     final int deviceId = Integer.parseInt(raw);
     return DeviceSource.device(deviceId);
   }

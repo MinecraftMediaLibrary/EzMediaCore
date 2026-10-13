@@ -43,7 +43,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    * @throws NullPointerException if {@code filter} is null
    */
   static AudioPipelineStep of(final @Nullable AudioPipelineStep next, final AudioFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
     return new AudioPipelineStepImpl(next, filter);
   }
 
@@ -55,7 +55,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    * @throws NullPointerException if {@code filter} is null
    */
   static AudioPipelineStep of(final AudioFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
     return new AudioPipelineStepImpl(null, filter);
   }
 
@@ -88,8 +88,8 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    */
   @Override
   default void processAll(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     AudioPipelineStep step = this;
     while (step != null) {
       buffer.rewind();
@@ -136,8 +136,8 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
      */
     @Override
     public void process(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
-      Preconditions.checkNotNull(buffer, "Buffer must not be null");
-      Preconditions.checkNotNull(metadata, "Metadata must not be null");
+      Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+      Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     }
 
     /**

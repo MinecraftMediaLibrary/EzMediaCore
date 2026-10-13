@@ -37,10 +37,10 @@ public interface FFmpegDirectSource extends DynamicSource {
    * @throws NullPointerException if {@code mrl} or {@code format} is null
    */
   static FFmpegDirectSource mrl(final String mrl, final String format) {
-    Preconditions.checkNotNull(mrl, "MRL must not be null");
-    Preconditions.checkNotNull(format, "Format must not be null");
+    Preconditions.checkNotNull(mrl, "MRL must not be null!");
+    Preconditions.checkNotNull(format, "Format must not be null!");
     final boolean blank = format.isBlank();
-    Preconditions.checkArgument(!blank, "Format must not be blank");
+    Preconditions.checkArgument(!blank, "Format must not be blank!");
     return new FFmpegDirectSourceImpl(mrl, format);
   }
 

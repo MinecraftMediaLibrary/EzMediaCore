@@ -33,7 +33,7 @@ public interface FileSource extends StaticSource {
    * @throws NullPointerException if {@code path} is null
    */
   static FileSource path(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     return new FileSourceImpl(path);
   }
 

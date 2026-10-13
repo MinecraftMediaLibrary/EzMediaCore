@@ -52,10 +52,6 @@ public final class MCAV implements MCAVApi {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MCAV.class);
 
-  private static final String BUILDING_PALETTE = "Building the map color lookup table...";
-
-  private static final String PALETTE_BUILT = "Map color lookup table built in {} ms";
-
   private final DependencyLoader dependencyLoader;
   private final ModuleLoader moduleLoader;
   private final CapabilityGuard guard;
@@ -104,7 +100,7 @@ public final class MCAV implements MCAVApi {
    */
   @Override
   public boolean hasCapability(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.isAvailable(capability);
   }
@@ -115,7 +111,7 @@ public final class MCAV implements MCAVApi {
    */
   @Override
   public CompletableFuture<Boolean> whenCapabilityReady(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.whenReady(capability);
   }
@@ -123,7 +119,7 @@ public final class MCAV implements MCAVApi {
   private BackgroundInstallation requireInstalled() {
     final BackgroundInstallation installation = this.background;
     if (installation == null) {
-      throw new MCAVLoadingException("MCAV has not been installed yet, call install() first");
+      throw new MCAVLoadingException("MCAV has not been installed yet, call install() first!");
     }
     return installation;
   }
@@ -134,10 +130,10 @@ public final class MCAV implements MCAVApi {
    */
   @Override
   public void install(final Class<?>... modules) {
-    Preconditions.checkNotNull(modules, "Modules must not be null");
+    Preconditions.checkNotNull(modules, "Modules must not be null!");
     final boolean claimed = this.installing.compareAndSet(false, true);
     if (!claimed) {
-      throw new MCAVLoadingException("MCAV has already been installed");
+      throw new MCAVLoadingException("MCAV has already been installed!");
     }
     // release() takes this lock and must wait for startup or installation failure.
     synchronized (this.lifecycleLock) {
@@ -160,8 +156,9 @@ public final class MCAV implements MCAVApi {
       this.installing.set(false);
       final Throwable cause = exception.getCause();
       final Throwable failure = cause == null ? exception : cause;
-      final String message = failure.getMessage();
-      throw new MCAVLoadingException("MCAV failed to install: " + message, failure);
+      final String reason = failure.getMessage();
+      final String message = "MCAV failed to install because of \"%s\"!".formatted(reason);
+      throw new MCAVLoadingException(message, failure);
     }
   }
 
@@ -172,11 +169,11 @@ public final class MCAV implements MCAVApi {
   }
 
   private static void loadPalette() {
-    LOGGER.info(BUILDING_PALETTE);
+    LOGGER.info("Building the map color lookup table.");
     final long start = System.currentTimeMillis();
     DitherPalette.init();
     final long end = System.currentTimeMillis();
-    LOGGER.info(PALETTE_BUILT, end - start);
+    LOGGER.info("Map color lookup table built in {} ms.", end - start);
   }
 
   @Override
@@ -211,7 +208,7 @@ public final class MCAV implements MCAVApi {
    */
   @Override
   public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
-    Preconditions.checkNotNull(moduleClass, "Module class must not be null");
+    Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
     return this.moduleLoader.getModule(moduleClass);
   }
 }

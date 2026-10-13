@@ -37,8 +37,8 @@ public class LuminanceFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if contrast is negative or NaN, or brightness is outside -255 through 255 or NaN
    */
   public LuminanceFilter(final double contrast, final double brightness) {
-    Preconditions.checkArgument(contrast >= 0, "Contrast must not be negative");
-    Preconditions.checkArgument(brightness >= -255 && brightness <= 255, "Brightness must be between -255 and 255 but was %s", brightness);
+    Preconditions.checkArgument(contrast >= 0, "Contrast must not be negative!");
+    Preconditions.checkArgument(brightness >= -255 && brightness <= 255, "Brightness %s must be between -255 and 255!", brightness);
     this.contrast = contrast;
     this.brightness = brightness;
   }

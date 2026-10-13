@@ -72,7 +72,7 @@ final class AsyncPlayerDefaultsTest {
   void shouldPreserveTheOriginalFailureForVideos() {
     final VideoPlayer player = mock(VideoPlayer.class, CALLS_REAL_METHODS);
     final Source source = mock(Source.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
@@ -104,7 +104,7 @@ final class AsyncPlayerDefaultsTest {
     final VideoPlayerMultiplexer player = mock(VideoPlayerMultiplexer.class, CALLS_REAL_METHODS);
     final Source video = mock(Source.class);
     final Source audio = mock(Source.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(video, audio);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(video, audio, executor);
@@ -134,7 +134,7 @@ final class AsyncPlayerDefaultsTest {
   void shouldPreserveTheOriginalFailureOnSeek() {
     final SeekablePlayer player = mock(SeekablePlayer.class, CALLS_REAL_METHODS);
     final long position = 1234L;
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).seek(position);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.seekAsync(executor, position);
@@ -164,7 +164,7 @@ final class AsyncPlayerDefaultsTest {
   void shouldPreserveTheOriginalFailureForImages() {
     final ImagePlayer player = mock(ImagePlayer.class, CALLS_REAL_METHODS);
     final FrameSource source = mock(FrameSource.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);

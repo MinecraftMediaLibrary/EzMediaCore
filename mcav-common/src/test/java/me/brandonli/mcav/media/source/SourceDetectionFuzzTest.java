@@ -75,7 +75,10 @@ final class SourceDetectionFuzzTest {
         final boolean complete = address.getScheme() != null && address.getHost() != null;
         assertTrue(complete, () -> "a URL without a scheme or a host from '" + resource + "'");
       }
-      default -> throw new AssertionError("an unknown kind of source from '" + resource + "': " + source);
+      default -> {
+        final String message = "Source %s from '%s' is of an unknown kind!".formatted(source, resource);
+        throw new AssertionError(message);
+      }
     }
   }
 }

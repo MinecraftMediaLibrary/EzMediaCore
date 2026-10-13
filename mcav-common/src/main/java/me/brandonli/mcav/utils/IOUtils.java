@@ -54,7 +54,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -94,8 +93,10 @@ public final class IOUtils {
   private static final byte[] ZIP_LOCAL_FILE_HEADER = { 0x50, 0x4B, 0x03, 0x04 };
   private static final byte[] ZIP_END_OF_CENTRAL_DIRECTORY = { 0x50, 0x4B, 0x05, 0x06 };
 
+  private static final String TRUNCATED_ARCHIVE_MESSAGE = "Zip archive %s is truncated!";
+
   private IOUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -107,7 +108,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code url} is null
    */
   public static String getFileNameFromUrl(final String url) {
-    Preconditions.checkNotNull(url, "URL must not be null");
+    Preconditions.checkNotNull(url, "URL must not be null!");
     final URI uri = URI.create(url);
     final String uriPath = uri.getPath();
     if (uriPath == null || uriPath.isEmpty()) {
@@ -145,12 +146,7 @@ public final class IOUtils {
         // the port is in use, try the next one
       }
     }
-    final String message = String.format(
-      Locale.getDefault(Locale.Category.FORMAT),
-      "No free port available in range %d-%d",
-      firstPort,
-      lastPort
-    );
+    final String message = "Port range %s-%s has no free port!".formatted(firstPort, lastPort);
     final BindException noFreePort = new BindException(message);
     throw new UncheckedIOException(message, noFreePort);
   }
@@ -165,7 +161,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static boolean createDirectoryIfNotExists(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     final boolean exists = Files.isDirectory(path);
     if (exists) {
       return false;
@@ -188,7 +184,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static boolean createFileIfNotExists(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     final boolean exists = Files.exists(path);
     if (exists) {
       return false;
@@ -215,7 +211,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code file} is null
    */
   public static void markExecutable(final Path file) {
-    Preconditions.checkNotNull(file, "File must not be null");
+    Preconditions.checkNotNull(file, "File must not be null!");
     final FileSystem fileSystem = file.getFileSystem();
     final Set<String> views = fileSystem.supportedFileAttributeViews();
     final boolean supportsPosix = views.contains("posix");
@@ -240,7 +236,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static void deleteRecursively(final Path path) throws IOException {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     // a link whose target is gone does not exist when followed, but still has to be deleted
     final boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
     if (!exists) {
@@ -274,8 +270,8 @@ public final class IOUtils {
    * @throws NullPointerException if {@code source} or {@code target} is null
    */
   public static void moveReplacing(final Path source, final Path target) throws IOException {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(target, "Target must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(target, "Target must not be null!");
     moveReplacing(source, target, Files::move, MOVE_RETRY_DELAY);
   }
 
@@ -320,7 +316,7 @@ public final class IOUtils {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting to retry a denied move");
+      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting to retry a denied move!");
       interrupted.initCause(failure);
       throw interrupted;
     }
@@ -352,7 +348,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static String getSHA256Hash(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     return hashFile(path, "SHA-256");
   }
 
@@ -366,7 +362,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static String getSHA1Hash(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     return hashFile(path, "SHA-1");
   }
 
@@ -393,7 +389,8 @@ public final class IOUtils {
     try {
       return MessageDigest.getInstance(algorithm);
     } catch (final NoSuchAlgorithmException exception) {
-      throw new IllegalStateException("The Java runtime does not provide " + algorithm, exception);
+      final String message = "Digest algorithm %s is not provided by the Java runtime!".formatted(algorithm);
+      throw new IllegalStateException(message, exception);
     }
   }
 
@@ -405,7 +402,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code bytes} is null
    */
   public static String bytesToHex(final byte[] bytes) {
-    Preconditions.checkNotNull(bytes, "Bytes must not be null");
+    Preconditions.checkNotNull(bytes, "Bytes must not be null!");
     final StringBuilder hex = new StringBuilder(bytes.length * 2);
     for (final byte value : bytes) {
       final int unsigned = value & 0xFF;
@@ -427,10 +424,11 @@ public final class IOUtils {
    * @throws NullPointerException if {@code path} is null
    */
   public static String getName(final Path path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     final Path fileName = path.getFileName();
     if (fileName == null) {
-      throw new IllegalArgumentException("Path has no file name: " + path);
+      final String message = "Path %s has no file name!".formatted(path);
+      throw new IllegalArgumentException(message);
     }
     return fileName.toString();
   }
@@ -450,7 +448,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code source} is null
    */
   public static Path downloadImage(final UriSource source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final String url = source.getResource();
     final byte[] urlBytes = url.getBytes(StandardCharsets.UTF_8);
     final UUID id = UUID.nameUUIDFromBytes(urlBytes);
@@ -490,7 +488,7 @@ public final class IOUtils {
    * @throws NullPointerException if {@code resourcePath} is null
    */
   public static Download[] readDownloadsFromJsonResource(final String resourcePath) {
-    Preconditions.checkNotNull(resourcePath, "Resource path must not be null");
+    Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
     final Download[] downloads;
     try (final Reader reader = getResourceAsStreamReader(resourcePath)) {
       downloads = parseDownloads(reader);
@@ -529,7 +527,7 @@ public final class IOUtils {
    * @throws NullPointerException if the resource is null
    */
   public static Reader getResourceAsStreamReader(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
     final InputStream stream = getResourceAsInputStream(resource);
     return new InputStreamReader(stream, StandardCharsets.UTF_8);
   }
@@ -543,7 +541,7 @@ public final class IOUtils {
    * @throws NullPointerException if the resource is null
    */
   public static InputStream getResourceAsInputStream(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
     return getResourceAsInputStream(resource, IOUtils.class);
   }
 
@@ -557,8 +555,8 @@ public final class IOUtils {
    * @throws NullPointerException if the resource or the class is null
    */
   public static InputStream getResourceAsInputStream(final String resource, final Class<?> loaderClass) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
-    Preconditions.checkNotNull(loaderClass, "Class must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
+    Preconditions.checkNotNull(loaderClass, "Class must not be null!");
     final ClassLoader classLoader = loaderClass.getClassLoader();
     final InputStream stream = classLoader == null ? null : classLoader.getResourceAsStream(resource);
     if (stream == null) {
@@ -586,8 +584,8 @@ public final class IOUtils {
    * @throws NullPointerException        if the archive or the destination is null
    */
   public static void unzip(final Path archive, final Path destination) {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
-    Preconditions.checkNotNull(destination, "Destination must not be null");
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
+    Preconditions.checkNotNull(destination, "Destination must not be null!");
     unzip(archive, destination, MAX_ZIP_ENTRY_SIZE, MAX_ZIP_TOTAL_SIZE);
   }
 
@@ -601,10 +599,10 @@ public final class IOUtils {
    */
   @VisibleForTesting
   static void unzip(final Path archive, final Path destination, final long maxEntrySize, final long maxTotalSize) {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
-    Preconditions.checkNotNull(destination, "Destination must not be null");
-    Preconditions.checkArgument(maxEntrySize >= 0, "Entry size limit must not be negative");
-    Preconditions.checkArgument(maxTotalSize >= 0, "Total size limit must not be negative");
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
+    Preconditions.checkNotNull(destination, "Destination must not be null!");
+    Preconditions.checkArgument(maxEntrySize >= 0, "Entry size limit must not be negative!");
+    Preconditions.checkArgument(maxTotalSize >= 0, "Total size limit must not be negative!");
 
     final Path absoluteDestination = destination.toAbsolutePath();
     final Path normalizedDestination = absoluteDestination.normalize();
@@ -628,18 +626,21 @@ public final class IOUtils {
       final boolean hasEntries = Arrays.equals(signature, ZIP_LOCAL_FILE_HEADER);
       final boolean empty = Arrays.equals(signature, ZIP_END_OF_CENTRAL_DIRECTORY);
       if (!hasEntries && !empty) {
-        throw new ZipException("Not a zip archive: " + archive);
+        final String message = "File %s is not a zip archive!".formatted(archive);
+        throw new ZipException(message);
       }
       final int remainingHeaderSize = empty ? 18 : 26;
       final byte[] header = stream.readNBytes(remainingHeaderSize);
       if (header.length != remainingHeaderSize) {
-        throw new ZipException("Truncated zip archive: " + archive);
+        final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
+        throw new ZipException(message);
       }
       if (empty) {
         final int commentLength = (header[16] & 0xFF) | ((header[17] & 0xFF) << 8);
         final byte[] comment = stream.readNBytes(commentLength);
         if (comment.length != commentLength) {
-          throw new ZipException("Truncated zip archive: " + archive);
+          final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
+          throw new ZipException(message);
         }
       }
     }
@@ -677,13 +678,14 @@ public final class IOUtils {
     if (entry.isDirectory()) {
       // a directory has no data; closing the entry would inflate whatever it carries, outside every size budget
       if (zip.read() != -1) {
-        throw new ZipEntryIntegrityException("Zip directory entry carries data: %s".formatted(name));
+        final String message = "Zip directory entry %s must not carry data!".formatted(name);
+        throw new ZipEntryIntegrityException(message);
       }
       Files.createDirectories(target);
       return 0;
     }
     final Path parentOrNull = target.getParent();
-    final Path parent = Objects.requireNonNull(parentOrNull, "An entry inside the destination always has a parent");
+    final Path parent = Objects.requireNonNull(parentOrNull, "An entry inside the destination always has a parent!");
     Files.createDirectories(parent);
     return writeZipEntry(zip, target, name, maxEntrySize, remainingTotalSize);
   }
@@ -693,7 +695,7 @@ public final class IOUtils {
     try {
       resolved = destination.resolve(name);
     } catch (final InvalidPathException exception) {
-      final String message = "Zip entry has a name that is not a path of this system: %s".formatted(name);
+      final String message = "Zip entry name %s is not a path of this system!".formatted(name);
       final ZipEntryIntegrityException refused = new ZipEntryIntegrityException(message);
       refused.initCause(exception);
       throw refused;
@@ -701,7 +703,7 @@ public final class IOUtils {
     final Path target = resolved.normalize();
     final boolean insideDestination = target.startsWith(destination);
     if (!insideDestination) {
-      final String message = "Zip entry escapes the destination directory: %s".formatted(name);
+      final String message = "Zip entry %s escapes the destination directory!".formatted(name);
       throw new ZipEntryIntegrityException(message);
     }
     rejectSymbolicLinks(destination, target, name);
@@ -718,7 +720,7 @@ public final class IOUtils {
       current = current.resolve(component);
       final boolean symbolicLink = Files.isSymbolicLink(current);
       if (symbolicLink) {
-        final String message = "Zip entry uses a symbolic link in the destination: %s".formatted(name);
+        final String message = "Zip entry %s uses a symbolic link in the destination!".formatted(name);
         throw new ZipEntryIntegrityException(message);
       }
     }
@@ -745,11 +747,11 @@ public final class IOUtils {
       int read = zip.read(buffer);
       while (read != -1) {
         if (read > maxEntrySize - entrySize) {
-          final String message = "Zip entry exceeds the maximum size: %s".formatted(name);
+          final String message = "Zip entry %s exceeds the maximum size!".formatted(name);
           throw new ZipEntryIntegrityException(message);
         }
         if (read > remainingTotalSize - entrySize) {
-          throw new ZipEntryIntegrityException("Total extracted size exceeds the limit");
+          throw new ZipEntryIntegrityException("Total extracted size exceeds the limit!");
         }
         output.write(buffer, 0, read);
         entrySize += read;

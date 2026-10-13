@@ -59,7 +59,7 @@ public final class MultiplexerInputExample {
       final CompletableFuture<Boolean> ready = api.whenCapabilityReady(Capability.YT_DLP);
       final boolean available = ready.join();
       if (!available) {
-        throw new IllegalStateException("yt-dlp is unavailable");
+        throw new IllegalStateException("yt-dlp is unavailable!");
       }
 
       final URI uri = URI.create("https://www.youtube.com/watch?v=47dtFZ8CFo8");
@@ -95,7 +95,7 @@ public final class MultiplexerInputExample {
 
       final boolean started = player.start(videoSource, audioSource);
       if (!started) {
-        throw new IllegalStateException("Playback could not start");
+        throw new IllegalStateException("Playback could not start!");
       }
 
       window.awaitClosed();

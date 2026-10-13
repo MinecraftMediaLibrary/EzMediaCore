@@ -43,7 +43,7 @@ public class FFmpegPlayer extends AbstractVideoPlayerCV {
    */
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
     return new FFmpegFrameGrabber(resource);
   }
 }

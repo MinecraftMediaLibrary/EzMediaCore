@@ -45,9 +45,9 @@ public class BilateralFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if the diameter is nonpositive, or a sigma is nonpositive or NaN
    */
   public BilateralFilter(final int diameter, final double sigmaColor, final double sigmaSpace) {
-    Preconditions.checkArgument(diameter > 0, "Diameter must be positive");
-    Preconditions.checkArgument(sigmaColor > 0, "Sigma color must be positive");
-    Preconditions.checkArgument(sigmaSpace > 0, "Sigma space must be positive");
+    Preconditions.checkArgument(diameter > 0, "Diameter must be positive!");
+    Preconditions.checkArgument(sigmaColor > 0, "Sigma color must be positive!");
+    Preconditions.checkArgument(sigmaSpace > 0, "Sigma space must be positive!");
     this.diameter = diameter;
     this.sigmaColor = sigmaColor;
     this.sigmaSpace = sigmaSpace;

@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -61,8 +60,6 @@ import org.slf4j.LoggerFactory;
 public final class CommandTask {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CommandTask.class);
-  private static final String EXITED = "Command {} exited with code {}";
-  private static final String RUNNING = "Running command {}";
   private static final int NOT_RUN = Integer.MIN_VALUE;
   private static final long PROCESS_POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(20L);
 
@@ -95,8 +92,8 @@ public final class CommandTask {
    * @throws IllegalArgumentException if the command array is empty
    */
   public CommandTask(final @Nullable Path workingDirectory, final String... command) {
-    Preconditions.checkNotNull(command, "Command must not be null");
-    Preconditions.checkArgument(command.length > 0, "Command must not be empty");
+    Preconditions.checkNotNull(command, "Command must not be null!");
+    Preconditions.checkArgument(command.length > 0, "Command must not be empty!");
     this.command = List.of(command);
     this.workingDirectory = workingDirectory;
     this.descendants = new HashSet<>();
@@ -151,13 +148,13 @@ public final class CommandTask {
   }
 
   private static void checkTimeout(final Duration timeout) {
-    Preconditions.checkNotNull(timeout, "Timeout must not be null");
+    Preconditions.checkNotNull(timeout, "Timeout must not be null!");
     final boolean positive = !timeout.isNegative() && !timeout.isZero();
-    Preconditions.checkArgument(positive, "Timeout must be positive but was %s", timeout);
+    Preconditions.checkArgument(positive, "Timeout %s must be positive!", timeout);
   }
 
   private int runWithTimeout(final @Nullable Duration timeout) throws IOException {
-    Preconditions.checkState(this.process == null, "Command has already been run");
+    Preconditions.checkState(this.process == null, "Command has already been run!");
     final long startNanos = System.nanoTime();
     final Process started = this.startProcess();
     this.process = started;
@@ -174,7 +171,7 @@ public final class CommandTask {
       // close() waits indefinitely for blocked pipe readers. Cancellation must not extend the caller's deadline.
       readers.shutdownNow();
     }
-    LOGGER.debug(EXITED, this.command, this.exitCode);
+    LOGGER.debug("Command {} exited with code {}.", this.command, this.exitCode);
     return this.exitCode;
   }
 
@@ -212,9 +209,7 @@ public final class CommandTask {
       return;
     }
     final String strippedError = this.errorOutput.strip();
-    final String message = String.format(
-      Locale.getDefault(Locale.Category.FORMAT),
-      "Command %s exited with code %d: %s",
+    final String message = "Command %s exited with code %s, printing \"%s\" to its error stream!".formatted(
       this.command,
       code,
       strippedError
@@ -229,7 +224,7 @@ public final class CommandTask {
       final File directoryFile = directory.toFile();
       builder.directory(directoryFile);
     }
-    LOGGER.debug(RUNNING, this.command);
+    LOGGER.debug("Command {} is running.", this.command);
     return builder.start();
   }
 
@@ -259,15 +254,17 @@ public final class CommandTask {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       this.destroyProcessTree(started);
-      throw new IOException("Interrupted while waiting for command " + this.command, exception);
+      final String message = "Waiting for command %s was interrupted!".formatted(this.command);
+      throw new IOException(message, exception);
     } catch (final TimeoutException exception) {
       this.destroyProcessTree(started);
-      final String message = "Command %s did not finish within %s; termination was requested".formatted(this.command, timeout);
+      final String message = "Command %s did not finish within %s; termination was requested!".formatted(this.command, timeout);
       throw new IOException(message, exception);
     } catch (final ExecutionException exception) {
       this.destroyProcessTree(started);
       final Throwable cause = exception.getCause();
-      throw new IOException("Failed to read the output of command " + this.command, cause);
+      final String message = "Output of command %s could not be read!".formatted(this.command);
+      throw new IOException(message, cause);
     } finally {
       outputFuture.cancel(true);
       errorFuture.cancel(true);
@@ -288,7 +285,7 @@ public final class CommandTask {
     final long elapsed = System.nanoTime() - startNanos;
     final long remaining = budget - elapsed;
     if (remaining <= 0) {
-      throw new TimeoutException("The command and output deadline expired");
+      throw new TimeoutException("The command and output deadline expired!");
     }
     return remaining;
   }
@@ -355,7 +352,7 @@ public final class CommandTask {
    * @throws IllegalStateException if no exit code was recorded, including after a launch or wait failure
    */
   public int getExitCode() {
-    Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run");
+    Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run!");
     return this.exitCode;
   }
 

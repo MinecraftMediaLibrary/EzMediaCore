@@ -83,10 +83,10 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    */
   @Override
   public Path execute(final Path archive) throws IOException {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
     final Path absoluteArchive = archive.toAbsolutePath();
     final Path parentOrNull = absoluteArchive.getParent();
-    final Path workingDirectory = Objects.requireNonNull(parentOrNull, "A downloaded file lies in a directory");
+    final Path workingDirectory = Objects.requireNonNull(parentOrNull, "A downloaded file lies in a directory!");
     final Path extracted = workingDirectory.resolve(EXTRACTED_DIRECTORY);
     final Path installDirectory = this.getInstallDirectory();
     deleteRecursively(extracted);
@@ -96,7 +96,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
     Files.deleteIfExists(absoluteArchive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
     if (libraryDirectory.isEmpty()) {
-      throw new IOException("The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory");
+      throw new IOException("The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory!");
     }
     return libraryDirectory.get();
   }
@@ -107,7 +107,8 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
     this.runProcess(workingDirectory, rawArchive, EXTRACT_OPTION);
     final boolean extractedExists = Files.isDirectory(extracted);
     if (!extractedExists) {
-      throw new IOException("Extracting the VLC AppImage did not produce " + extracted);
+      final String message = "Directory %s was not produced by extracting the VLC AppImage!".formatted(extracted);
+      throw new IOException(message);
     }
   }
 }

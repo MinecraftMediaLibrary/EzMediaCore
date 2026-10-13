@@ -75,10 +75,10 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
    */
   @Override
   public Path execute(final Path archive) throws IOException {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
     final Path installDirectory = this.getInstallDirectory();
     final Path parentOrNull = installDirectory.getParent();
-    final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder");
+    final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
     final Path temporary = parent.resolve(TEMP_DIRECTORY);
     deleteRecursively(temporary);
     deleteRecursively(installDirectory);
@@ -95,7 +95,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
     unzip(archive, temporary);
     final Optional<Path> extractedLibraryDirectory = findLibraryDirectory(temporary, LIBRARY, CORE_LIBRARY);
     if (extractedLibraryDirectory.isEmpty()) {
-      throw new IOException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory");
+      throw new IOException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory!");
     }
     final Path extractedRoot = extractedLibraryDirectory.get();
     Files.move(extractedRoot, installDirectory);
@@ -111,7 +111,8 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
       IOUtils.unzip(archive, temporary);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
-      throw new IOException("The VLC zip cannot be extracted: " + reason, exception);
+      final String message = "Failed with \"%s\" while extracting the VLC zip!".formatted(reason);
+      throw new IOException(message, exception);
     }
   }
 }

@@ -108,7 +108,7 @@ final class YTDLPReleaseProcessTest {
     when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
     when(process.waitFor()).thenAnswer(invocation -> {
-      throw new AssertionError("forced-exit cleanup must not wait without a deadline");
+      throw new AssertionError("Forced-exit cleanup must not wait without a deadline!");
     });
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
       YTDLPReleaseTest.runVersion(process, Duration.ofMillis(250))

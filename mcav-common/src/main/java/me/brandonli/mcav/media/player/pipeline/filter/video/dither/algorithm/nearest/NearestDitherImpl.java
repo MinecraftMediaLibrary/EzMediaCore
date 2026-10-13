@@ -74,7 +74,7 @@ public final class NearestDitherImpl extends AbstractDitherAlgorithm implements 
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
     checkImage(image);
-    Preconditions.checkNotNull(pool, "Pool must not be null");
+    Preconditions.checkNotNull(pool, "Pool must not be null!");
 
     final int[] pixels = image.getPixels();
     final byte[] indices = new byte[pixels.length];

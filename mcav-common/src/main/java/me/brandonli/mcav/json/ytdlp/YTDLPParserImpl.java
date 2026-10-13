@@ -63,6 +63,8 @@ public final class YTDLPParserImpl implements YTDLPParser {
   private static final Set<String> WEB_SCHEMES = Set.of("http", "https");
   private static final Duration TIMEOUT = Duration.ofMinutes(2);
 
+  private static final String NO_METADATA_MESSAGE = "URL %s got no metadata from yt-dlp!";
+
   private final ExecutableLocator locator;
   private final Function<String[], CommandTask> taskFactory;
 
@@ -117,10 +119,10 @@ public final class YTDLPParserImpl implements YTDLPParser {
    */
   @Override
   public URLParseDump parse(final UriSource input, final String... arguments) throws IOException {
-    Preconditions.checkNotNull(input, "Input must not be null");
-    Preconditions.checkNotNull(arguments, "Arguments must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+    Preconditions.checkNotNull(arguments, "Arguments must not be null!");
     for (final String argument : arguments) {
-      Preconditions.checkNotNull(argument, "Arguments must not contain null");
+      Preconditions.checkNotNull(argument, "Arguments must not contain null!");
     }
     final URI uri = input.getUri();
     requireWebUri(uri);
@@ -128,7 +130,8 @@ public final class YTDLPParserImpl implements YTDLPParser {
     final String output = this.runYtdlp(url, arguments);
     final String json = firstLine(output);
     if (json.isEmpty()) {
-      throw new YTDLPParseException("yt-dlp printed no metadata for " + url);
+      final String message = NO_METADATA_MESSAGE.formatted(url);
+      throw new YTDLPParseException(message);
     }
     return parseDump(json, url);
   }
@@ -137,7 +140,7 @@ public final class YTDLPParserImpl implements YTDLPParser {
     final String scheme = uri.getScheme();
     final String lowerScheme = scheme == null ? "" : scheme.toLowerCase(Locale.ROOT);
     final boolean isWebUri = uri.isAbsolute() && WEB_SCHEMES.contains(lowerScheme);
-    Preconditions.checkArgument(isWebUri, "yt-dlp only resolves absolute http and https URLs, but got %s", uri);
+    Preconditions.checkArgument(isWebUri, "URI %s must be an absolute http or https URL for yt-dlp!", uri);
   }
 
   /**
@@ -157,7 +160,8 @@ public final class YTDLPParserImpl implements YTDLPParser {
       final String errorOutput = task.getErrorOutput();
       final String reason = errorOutput.isBlank() ? output : errorOutput;
       final String strippedReason = reason.strip();
-      throw new YTDLPParseException("yt-dlp failed for %s: %s".formatted(url, strippedReason));
+      final String message = "yt-dlp failed with \"%s\" while URL %s was being resolved!".formatted(strippedReason, url);
+      throw new YTDLPParseException(message);
     }
     return output;
   }
@@ -168,10 +172,12 @@ public final class YTDLPParserImpl implements YTDLPParser {
     try {
       dump = gson.fromJson(json, URLParseDump.class);
     } catch (final JsonSyntaxException | NumberFormatException exception) {
-      throw new YTDLPParseException("yt-dlp printed invalid metadata for " + url, exception);
+      final String message = "URL %s got invalid metadata from yt-dlp!".formatted(url);
+      throw new YTDLPParseException(message, exception);
     }
     if (dump == null) {
-      throw new YTDLPParseException("yt-dlp printed no metadata for " + url);
+      final String message = NO_METADATA_MESSAGE.formatted(url);
+      throw new YTDLPParseException(message);
     }
     return dump;
   }

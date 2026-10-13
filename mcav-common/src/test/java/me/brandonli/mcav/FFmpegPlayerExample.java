@@ -75,7 +75,7 @@ public final class FFmpegPlayerExample {
       final UriSource source = UriSource.uri(uri);
       final boolean started = player.start(source);
       if (!started) {
-        throw new IllegalStateException("Playback could not start");
+        throw new IllegalStateException("Playback could not start!");
       }
 
       TimeUnit.SECONDS.sleep(5);

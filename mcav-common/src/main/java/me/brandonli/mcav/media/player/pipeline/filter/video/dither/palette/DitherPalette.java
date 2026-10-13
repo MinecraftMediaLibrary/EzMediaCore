@@ -47,7 +47,7 @@ public interface DitherPalette {
    * Builds the default map palette ahead of time, so the first dithering operation does not pay for it.
    */
   static void init() {
-    Objects.requireNonNull(DEFAULT_MAP_PALETTE, "Map palette");
+    Objects.requireNonNull(DEFAULT_MAP_PALETTE, "Map palette must not be null!");
   }
 
   /**
@@ -60,7 +60,7 @@ public interface DitherPalette {
    * @throws NullPointerException if {@code colors} is null
    */
   static DitherPalette colors(final int... colors) {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
     return new ColorPalette(colors, 0);
   }
 
@@ -74,13 +74,13 @@ public interface DitherPalette {
    * @throws NullPointerException if the list or any color is null
    */
   static DitherPalette colors(final List<Integer> colors) {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
 
     final int size = colors.size();
     final int[] array = new int[size];
     for (int index = 0; index < size; index++) {
       final Integer color = colors.get(index);
-      Preconditions.checkNotNull(color, "Color %s must not be null", index);
+      Preconditions.checkNotNull(color, "Color %s must not be null!", index);
       array[index] = color;
     }
     return new ColorPalette(array, 0);

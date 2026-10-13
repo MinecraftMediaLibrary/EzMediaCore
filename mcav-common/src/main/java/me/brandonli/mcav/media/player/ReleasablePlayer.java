@@ -56,7 +56,7 @@ public interface ReleasablePlayer {
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
    */
   default CompletableFuture<Boolean> releaseAsync(final ExecutorService executor) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(this::release, executor);
   }
 }

@@ -52,7 +52,7 @@ final class ExampleResources implements AutoCloseable {
     }
     // Shutdown may race a just-completed acquisition; never leave that new resource without an owner.
     release.run();
-    throw new IllegalStateException("The example has already closed");
+    throw new IllegalStateException("The example has already closed!");
   }
 
   @Override

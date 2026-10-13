@@ -72,7 +72,7 @@ final class VLCInstallerTest {
   private Path folder;
 
   private static Download[] noDownloadExpected() {
-    throw new AssertionError("The downloads must not be resolved");
+    throw new AssertionError("The downloads must not be resolved!");
   }
 
   private static Download[] noDownloads() {
@@ -209,7 +209,7 @@ final class VLCInstallerTest {
   void shouldTreatAnInstallationThatCannotBeSearchedAsMissing() throws IOException {
     final VLCInstaller real = new VLCInstaller(this.folder, VLCInstallerTest::noDownloads);
     final VLCInstaller installer = Mockito.spy(real);
-    final IOException failure = new IOException("permission denied");
+    final IOException failure = new IOException("permission denied!");
     final Stubber stubber = Mockito.doThrow(failure);
     final VLCInstaller stubbed = stubber.when(installer);
     stubbed.findExistingInstallation();
@@ -257,7 +257,7 @@ final class VLCInstallerTest {
     final Path junest = createTree(this.folder, "vlc-junest");
     final Path innerLink = junest.resolve("link-to-outside");
     final boolean linksCreated = tryCreateLink(appLink, outside) && tryCreateLink(innerLink, outside);
-    Assumptions.assumeTrue(linksCreated, "Symbolic links cannot be created here");
+    Assumptions.assumeTrue(linksCreated, "Symbolic links cannot be created here!");
 
     VLCInstaller.removeLegacyInstallations(this.folder);
     final boolean keptExists = Files.exists(kept);
@@ -271,7 +271,7 @@ final class VLCInstallerTest {
   @Test
   void shouldKeepGoingWhenAnOldInstallationCannotBeDeleted() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Only Windows refuses to delete a file that is open");
+    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Only Windows refuses to delete a file that is open!");
     final Path app = createTree(this.folder, "VLC.app");
     final Path locked = app.resolve("file.txt");
     final File lockedFile = locked.toFile();
@@ -298,7 +298,7 @@ final class VLCInstallerTest {
   @Test
   void shouldDownloadAndExtractTheWindowsZip() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Only the Windows installation can run without external tools");
+    Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Only the Windows installation can run without external tools!");
     final Path vlcDirectory = this.folder.resolve("vlc");
     final Path leftover = vlcDirectory.resolve("half-extracted");
     Files.createDirectories(leftover);
@@ -317,7 +317,7 @@ final class VLCInstallerTest {
   @Test
   void shouldInstallALinuxArchiveThroughItsExecutableExtractionProtocol() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.LINUX, "The executable fixture uses a POSIX shell");
+    Assumptions.assumeTrue(operatingSystem == OS.LINUX, "The executable fixture uses a POSIX shell!");
     final Path archive = this.folder.resolve("fixture.AppImage");
     // Model the AppImage extraction protocol, not the VLC binary: the returned library must never be loaded.
     final String script = """
@@ -345,14 +345,14 @@ final class VLCInstallerTest {
   @Test
   void shouldKeepGoingWhenPosixPermissionsPreventLegacyDeletion() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
-    Assumptions.assumeTrue(operatingSystem == OS.LINUX, "This fixture exercises POSIX directory permissions");
+    Assumptions.assumeTrue(operatingSystem == OS.LINUX, "This fixture exercises POSIX directory permissions!");
     final Path legacy = createTree(this.folder, "VLC.app");
     final Set<PosixFilePermission> original = Files.getPosixFilePermissions(legacy);
     final Set<PosixFilePermission> readOnly = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE);
     try {
       Files.setPosixFilePermissions(legacy, readOnly);
       final boolean writable = Files.isWritable(legacy);
-      Assumptions.assumeFalse(writable, "A privileged process can bypass the fixture's directory permissions");
+      Assumptions.assumeFalse(writable, "A privileged process can bypass the fixture's directory permissions!");
       VLCInstaller.removeLegacyInstallations(this.folder);
       final boolean legacyRemains = Files.isDirectory(legacy);
       assertTrue(legacyRemains, "failed cleanup is reported and leaves the undeletable directory in place");
@@ -368,9 +368,9 @@ final class VLCInstallerTest {
     final Arch architecture = current.getArch();
     Assumptions.assumeTrue(
       operatingSystem == OS.WINDOWS || operatingSystem == OS.MAC,
-      "Only Windows and macOS use the bundled download list"
+      "Only Windows and macOS use the bundled download list!"
     );
-    Assumptions.assumeTrue(architecture == Arch.X86, "The bundled list is only checked on x86");
+    Assumptions.assumeTrue(architecture == Arch.X86, "The bundled list is only checked on x86!");
 
     final VLCInstaller installer = VLCInstaller.create(this.folder);
     final boolean supported = installer.isSupported();
@@ -453,7 +453,8 @@ final class VLCInstallerTest {
   private Path createInstalledLibrary() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
     final boolean installable = VLCInstaller.hasStrategy(operatingSystem);
-    Assumptions.assumeTrue(installable, "VLC cannot be installed automatically on " + operatingSystem);
+    final String message = "Operating system %s does not support installing VLC automatically!".formatted(operatingSystem);
+    Assumptions.assumeTrue(installable, message);
     final Path installDirectory = this.folder.resolve("vlc");
     final Path relativeLibraryDirectory = relativeLibraryDirectory(operatingSystem);
     final Path libraryDirectory = installDirectory.resolve(relativeLibraryDirectory);

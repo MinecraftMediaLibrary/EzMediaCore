@@ -45,7 +45,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @throws IllegalArgumentException if either dimension is nonpositive
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
-    Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size must be positive but was %sx%s", videoWidth, videoHeight);
+    Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size %sx%s must be positive!", videoWidth, videoHeight);
     return new OriginalVideoMetadataImpl(videoWidth, videoHeight, videoBitrate, videoFrameRate);
   }
 

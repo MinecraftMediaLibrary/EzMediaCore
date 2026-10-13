@@ -116,7 +116,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    */
   @Override
   public boolean start(final Source combined) {
-    Preconditions.checkNotNull(combined, "Source must not be null");
+    Preconditions.checkNotNull(combined, "Source must not be null!");
     return this.startSources(combined, null, 0L, false);
   }
 
@@ -132,8 +132,8 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    */
   @Override
   public boolean start(final Source video, final Source audio) {
-    Preconditions.checkNotNull(video, "Video source must not be null");
-    Preconditions.checkNotNull(audio, "Audio source must not be null");
+    Preconditions.checkNotNull(video, "Video source must not be null!");
+    Preconditions.checkNotNull(audio, "Audio source must not be null!");
     final boolean sameSource = video.equals(audio);
     if (sameSource) {
       return this.startSources(video, null, 0L, false);
@@ -317,8 +317,8 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    * @throws NullPointerException if the grabber or the source is null
    */
   protected void configureGrabber(final FrameGrabber grabber, final Source source) {
-    Preconditions.checkNotNull(grabber, "Grabber must not be null");
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(grabber, "Grabber must not be null!");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     grabber.setPixelFormat(avutil.AV_PIX_FMT_BGR24);
     grabber.setSampleMode(FrameGrabber.SampleMode.SHORT);
     grabber.setSampleFormat(avutil.AV_SAMPLE_FMT_S16);
@@ -410,7 +410,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    */
   @Override
   public boolean seek(final long time) {
-    Preconditions.checkArgument(time >= 0, "Seek time must not be negative");
+    Preconditions.checkArgument(time >= 0, "Seek time must not be negative!");
     final PlaybackSession current;
     final Source video;
     @Nullable Source audio;
@@ -421,7 +421,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
       if (current == null || !current.isSeekable()) {
         return false;
       }
-      video = Objects.requireNonNull(this.videoSource, "A session always has a video source");
+      video = Objects.requireNonNull(this.videoSource, "A session always has a video source!");
       audio = this.audioSource;
       paused = current.isPaused();
     } finally {
@@ -443,10 +443,10 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   public boolean setSpeed(final double speed) {
     Preconditions.checkArgument(
       speed >= MIN_SPEED && speed <= MAX_SPEED,
-      "Speed must be between %s and %s: %s",
+      "Speed %s must be between %s and %s!",
+      speed,
       MIN_SPEED,
-      MAX_SPEED,
-      speed
+      MAX_SPEED
     );
     this.lock.lock();
     try {
@@ -578,7 +578,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.exceptionHandler = exceptionHandler;
   }
 }

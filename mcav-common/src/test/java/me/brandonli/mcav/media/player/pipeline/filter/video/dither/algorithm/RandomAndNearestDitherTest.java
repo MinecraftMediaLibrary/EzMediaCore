@@ -134,7 +134,7 @@ final class RandomAndNearestDitherTest {
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 0);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> random.ditherIntoBytes(null));
     final String message = missingImage.getMessage();
-    assertEquals("Image must not be null", message);
+    assertEquals("Image must not be null!", message);
   }
 
   @Test
@@ -269,9 +269,9 @@ final class RandomAndNearestDitherTest {
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null));
     final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null, pool));
     final String message = missingImage.getMessage();
-    assertEquals("Image must not be null", message);
+    assertEquals("Image must not be null!", message);
     final String parallelMessage = missingParallelImage.getMessage();
-    assertEquals("Image must not be null", parallelMessage);
+    assertEquals("Image must not be null!", parallelMessage);
   }
 
   @Test

@@ -103,8 +103,8 @@ final class StrategySelectorTest {
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
     final String audioMessage = audio.getMessage();
     final String videoMessage = video.getMessage();
-    assertEquals("No audio stream matches the strategy for Example Video", audioMessage);
-    assertEquals("No video stream matches the strategy for Example Video", videoMessage);
+    assertEquals("No audio stream of Example Video matches the strategy!", audioMessage);
+    assertEquals("No video stream of Example Video matches the strategy!", videoMessage);
   }
 
   @Test
@@ -115,8 +115,8 @@ final class StrategySelectorTest {
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
     final String audioMessage = audio.getMessage();
     final String videoMessage = video.getMessage();
-    assertEquals("No audio stream matches the strategy for https://example.com/watch", audioMessage);
-    assertEquals("No video stream matches the strategy for https://example.com/watch", videoMessage);
+    assertEquals("No audio stream of https://example.com/watch matches the strategy!", audioMessage);
+    assertEquals("No video stream of https://example.com/watch matches the strategy!", videoMessage);
   }
 
   @Test
@@ -127,7 +127,7 @@ final class StrategySelectorTest {
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
     final String audioMessage = audio.getMessage();
     final String videoMessage = video.getMessage();
-    assertEquals("No audio stream matches the strategy for the media", audioMessage);
-    assertEquals("No video stream matches the strategy for the media", videoMessage);
+    assertEquals("No audio stream of the media matches the strategy!", audioMessage);
+    assertEquals("No video stream of the media matches the strategy!", videoMessage);
   }
 }

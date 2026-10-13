@@ -85,8 +85,6 @@ final class NativeHeapTrimmer implements AutoCloseable {
   static final int TRIM_THRESHOLD_BYTES = 128 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NativeHeapTrimmer.class);
-  private static final String TRIM_FAILED = "Could not trim the native heap";
-  private static final String THRESHOLD_FAILED = "Could not fix the trim threshold of the native heap";
   // mallopt's parameter for the trim threshold, from glibc's malloc.h
   private static final int M_TRIM_THRESHOLD = -1;
   private static final String GLIBC_SYMBOL = "gnu_get_libc_version";
@@ -163,7 +161,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
     try {
       this.fixThreshold.run();
     } catch (final RuntimeException exception) {
-      LOGGER.warn(THRESHOLD_FAILED, exception);
+      LOGGER.warn("Could not fix the trim threshold of the native heap.", exception);
     }
     this.thread = Thread.ofPlatform().name(THREAD_NAME).daemon().start(this::trimUntilInterrupted);
   }
@@ -187,7 +185,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       try {
         this.trim.run();
       } catch (final RuntimeException exception) {
-        LOGGER.warn(TRIM_FAILED, exception);
+        LOGGER.warn("Could not trim the native heap.", exception);
       }
     }
   }
@@ -289,7 +287,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       return (int) mallopt.invokeExact(M_TRIM_THRESHOLD, TRIM_THRESHOLD_BYTES) == 1;
     } catch (final Throwable failure) {
       ThrowableUtils.throwIfFatal(failure);
-      throw new IllegalStateException(THRESHOLD_FAILED, failure);
+      throw new IllegalStateException("Could not fix the trim threshold of the native heap!", failure);
     }
   }
 
@@ -310,7 +308,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       final Object answer = server.invoke(commands, TRIM_OPERATION, arguments, signature);
       return String.valueOf(answer);
     } catch (final JMException exception) {
-      throw new IllegalStateException(TRIM_FAILED, exception);
+      throw new IllegalStateException("Could not trim the native heap!", exception);
     }
   }
 }

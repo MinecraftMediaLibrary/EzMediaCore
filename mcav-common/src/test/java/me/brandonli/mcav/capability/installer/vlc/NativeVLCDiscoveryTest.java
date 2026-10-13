@@ -113,10 +113,10 @@ final class NativeVLCDiscoveryTest {
     }
 
     final String reason = librariesWithoutPlugins
-      ? "the VLC libraries of this machine have no plugin directory, so libvlc cannot start"
-      : "VLC is not installed on this machine";
+      ? "The VLC libraries of this machine have no plugin directory, so libvlc cannot start!"
+      : "VLC is not installed on this machine!";
     Assumptions.abort(reason);
-    throw new AssertionError("unreachable");
+    throw new AssertionError("Unreachable!");
   }
 
   private static Field alreadyFoundField() throws ReflectiveOperationException {

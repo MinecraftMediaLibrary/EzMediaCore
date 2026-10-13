@@ -37,9 +37,9 @@ public final class DimensionAttachableCallbackImpl extends AbstractAttachableCal
    */
   @Override
   public void attach(final Dimension value) {
-    Preconditions.checkNotNull(value, "Dimension must not be null");
+    Preconditions.checkNotNull(value, "Dimension must not be null!");
     final boolean empty = value.isEmpty();
-    Preconditions.checkArgument(!empty, "Dimension must not be empty but was %s", value);
+    Preconditions.checkArgument(!empty, "Dimension %s must not be empty!", value);
     super.attach(value);
   }
 }

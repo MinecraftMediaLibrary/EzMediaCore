@@ -61,7 +61,7 @@ public class EllipseFilter extends MatVideoFilter {
     final int endAngle,
     final double[] color
   ) {
-    Preconditions.checkArgument(axisX > 0 && axisY > 0, "Axes must be positive");
+    Preconditions.checkArgument(axisX > 0 && axisY > 0, "Axes must be positive!");
     this.center = new Point(centerX, centerY);
     this.axes = new Size(axisX, axisY);
     this.angle = angle;

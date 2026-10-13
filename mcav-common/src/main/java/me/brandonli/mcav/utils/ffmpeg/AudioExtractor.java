@@ -47,7 +47,7 @@ public final class AudioExtractor {
   private static final String OGG_EXTENSION = ".ogg";
 
   private AudioExtractor() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -71,7 +71,7 @@ public final class AudioExtractor {
    * @throws UnsatisfiedLinkError  if the bundled FFmpeg is not available for this platform
    */
   public static Path extractOggVorbis(final Source source) throws IOException {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final String input = source.getResource();
     final Path outputDirectory = IOUtils.getCachedFolder();
     final UUID id = UUID.randomUUID();

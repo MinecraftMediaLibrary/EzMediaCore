@@ -329,7 +329,7 @@ final class MockVlc {
           yield true;
         }
         case REJECTED -> false;
-        case THROWS -> throw new IllegalStateException("VLC crashed");
+        case THROWS -> throw new IllegalStateException("VLC crashed!");
       };
     }
 

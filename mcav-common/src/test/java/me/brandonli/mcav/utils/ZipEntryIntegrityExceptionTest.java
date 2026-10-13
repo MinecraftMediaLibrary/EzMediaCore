@@ -29,10 +29,10 @@ final class ZipEntryIntegrityExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final ZipEntryIntegrityException exception = new ZipEntryIntegrityException("Total extracted size exceeds the limit");
+    final ZipEntryIntegrityException exception = new ZipEntryIntegrityException("Total extracted size exceeds the limit!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Total extracted size exceeds the limit", message);
+    assertEquals("Total extracted size exceeds the limit!", message);
     assertNull(cause);
   }
 

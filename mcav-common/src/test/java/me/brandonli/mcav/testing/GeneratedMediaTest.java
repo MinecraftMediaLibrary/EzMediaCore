@@ -56,7 +56,7 @@ final class GeneratedMediaTest {
       class FixtureWriter {
         public static void main(String[] args) throws Exception {
           Path output = Path.of(args[1]);
-          if (!output.toString().endsWith(".mp4")) throw new AssertionError("format extension was lost");
+          if (!output.toString().endsWith(".mp4")) throw new AssertionError("format extension was lost!");
           Files.writeString(output, args[0].equals("success") ? "completed media" : "partial media");
           if (args[0].equals("failure")) { System.err.println("fixture encoder diagnostic"); System.exit(7); }
           if (args[0].equals("timeout")) { Thread.sleep(30_000L); }
@@ -106,7 +106,7 @@ final class GeneratedMediaTest {
     final boolean stagedAtOutput = staged.equals(output);
     assertFalse(stagedAtOutput, "the encoder writes into a temporary sibling");
     final Path cached = GeneratedMedia.generate(output, _ -> {
-      throw new AssertionError("successfully generated media must be reused");
+      throw new AssertionError("successfully generated media must be reused!");
     });
     final int commands = invocations.get();
     assertEquals(generated, cached);

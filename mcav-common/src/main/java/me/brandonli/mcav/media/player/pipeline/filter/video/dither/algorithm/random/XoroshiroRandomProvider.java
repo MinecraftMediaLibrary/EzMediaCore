@@ -101,7 +101,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    */
   @Override
   public int nextInt(final int min, final int max) {
-    Preconditions.checkArgument(max > min, "Max must be greater than min");
+    Preconditions.checkArgument(max > min, "Max must be greater than min!");
     final long range = (long) max - min;
     final long nextBits = this.nextLong();
     final long offset = Math.unsignedMultiplyHigh(nextBits, range);
@@ -120,7 +120,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   public double nextDouble(final double min, final double max) {
     Preconditions.checkArgument(
       Double.isFinite(min) && Double.isFinite(max) && max > min,
-      "Bounds must be finite and max greater than min"
+      "Bounds must be finite and max greater than min!"
     );
     final long nextBits = this.nextLong();
     final double unit = (nextBits >>> 11) * DOUBLE_UNIT;

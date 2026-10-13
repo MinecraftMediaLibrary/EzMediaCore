@@ -38,7 +38,7 @@ public final class FramePixels {
   public static final int BGR_CHANNELS = 3;
 
   private FramePixels() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -51,7 +51,7 @@ public final class FramePixels {
    * @throws NullPointerException if {@code frame} is null
    */
   public static ByteBuffer copyBgr(final Frame frame) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
     final int size = checkedSize(frame);
     final ByteBuffer pixels = ByteBuffer.allocateDirect(size);
     copyBgr(frame, pixels);
@@ -74,8 +74,8 @@ public final class FramePixels {
    * @throws NullPointerException if {@code frame} or {@code target} is null
    */
   public static void copyBgr(final Frame frame, final ByteBuffer target) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
-    Preconditions.checkNotNull(target, "Target must not be null");
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
+    Preconditions.checkNotNull(target, "Target must not be null!");
     final ByteBuffer source = getPlane(frame);
     final int size = checkedSize(frame);
     final int width = frame.imageWidth;
@@ -83,27 +83,27 @@ public final class FramePixels {
     final int stride = frame.imageStride;
     final int rowBytes = width * BGR_CHANNELS;
     final int capacity = target.capacity();
-    Preconditions.checkArgument(capacity >= size, "Target holds %s bytes but the frame needs %s", capacity, size);
+    Preconditions.checkArgument(capacity >= size, "Target capacity of %s bytes must hold the %s bytes of the frame!", capacity, size);
     copyRows(source, target, rowBytes, height, stride);
   }
 
   private static int checkedSize(final Frame frame) {
     final int width = frame.imageWidth;
     final int height = frame.imageHeight;
-    Preconditions.checkArgument(width >= 0 && height >= 0, "Frame dimensions must not be negative: %sx%s", width, height);
+    Preconditions.checkArgument(width >= 0 && height >= 0, "Frame dimensions %sx%s must not be negative!", width, height);
     final long rowBytes = (long) width * BGR_CHANNELS;
     final int stride = frame.imageStride;
-    Preconditions.checkArgument(stride >= rowBytes, "Row stride %s is shorter than a row of %s pixels", stride, width);
+    Preconditions.checkArgument(stride >= rowBytes, "Row stride %s is shorter than a row of %s pixels!", stride, width);
     final long size = rowBytes * height;
-    Preconditions.checkArgument(size <= Integer.MAX_VALUE, "Frame needs more bytes than a buffer can hold: %s", size);
+    Preconditions.checkArgument(size <= Integer.MAX_VALUE, "Frame size of %s bytes must fit in a buffer!", size);
     return (int) size;
   }
 
   private static ByteBuffer getPlane(final Frame frame) {
     final Buffer[] image = frame.image;
-    Preconditions.checkArgument(image != null && image.length > 0, "Frame does not contain an image");
+    Preconditions.checkArgument(image != null && image.length > 0, "Frame does not contain an image!");
     final Buffer plane = image[0];
-    Preconditions.checkArgument(plane instanceof ByteBuffer, "Frame does not contain 8-bit pixels");
+    Preconditions.checkArgument(plane instanceof ByteBuffer, "Frame does not contain 8-bit pixels!");
     return (ByteBuffer) plane;
   }
 

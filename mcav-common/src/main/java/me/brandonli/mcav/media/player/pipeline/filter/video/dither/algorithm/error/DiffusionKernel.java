@@ -160,10 +160,10 @@ public final class DiffusionKernel {
    * @throws NullPointerException     if the name, the taps or one of the taps is null
    */
   public DiffusionKernel(final String name, final int divisor, final int[][] taps) {
-    Preconditions.checkNotNull(name, "Name must not be null");
-    Preconditions.checkNotNull(taps, "Taps must not be null");
-    Preconditions.checkArgument(divisor > 0, "Divisor must be positive");
-    Preconditions.checkArgument(taps.length > 0, "Kernel must have at least one tap");
+    Preconditions.checkNotNull(name, "Name must not be null!");
+    Preconditions.checkNotNull(taps, "Taps must not be null!");
+    Preconditions.checkArgument(divisor > 0, "Divisor must be positive!");
+    Preconditions.checkArgument(taps.length > 0, "Kernel must have at least one tap!");
 
     this.name = name;
     this.divisor = divisor;
@@ -185,18 +185,18 @@ public final class DiffusionKernel {
    * Checks that a tap has an offset and a weight, and only points to pixels that are processed later.
    */
   private static void checkTap(final int[] tap, final int tapIndex) {
-    Preconditions.checkNotNull(tap, "Tap %s must not be null", tapIndex);
-    Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values", tapIndex);
+    Preconditions.checkNotNull(tap, "Tap %s must not be null!", tapIndex);
+    Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values!", tapIndex);
     final int offsetX = tap[0];
     final int offsetY = tap[1];
     final int weight = tap[2];
-    Preconditions.checkArgument(offsetY >= 0, "Tap %s points to a previous row", tapIndex);
-    Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel", tapIndex);
+    Preconditions.checkArgument(offsetY >= 0, "Tap %s points to a previous row!", tapIndex);
+    Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel!", tapIndex);
     // widened, because the magnitude of Integer.MIN_VALUE does not fit an int
     final long reachX = Math.abs((long) offsetX);
     final boolean withinReach = reachX <= MAX_OFFSET && offsetY <= MAX_OFFSET;
-    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels", tapIndex, MAX_OFFSET);
-    Preconditions.checkArgument(weight > 0, "Tap %s must have a positive weight", tapIndex);
+    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels!", tapIndex, MAX_OFFSET);
+    Preconditions.checkArgument(weight > 0, "Tap %s must have a positive weight!", tapIndex);
   }
 
   private static int getLargestMagnitude(final int[] values) {

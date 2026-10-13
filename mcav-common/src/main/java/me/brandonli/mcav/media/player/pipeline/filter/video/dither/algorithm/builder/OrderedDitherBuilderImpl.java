@@ -58,7 +58,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
    */
   @Override
   public OrderedDitherBuilderImpl withPalette(final DitherPalette palette) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
   }
@@ -72,7 +72,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
    */
   @Override
   public OrderedDitherBuilderImpl withDitherMatrix(final PixelMapper mapper) {
-    Preconditions.checkNotNull(mapper, "Pixel mapper must not be null");
+    Preconditions.checkNotNull(mapper, "Pixel mapper must not be null!");
     this.mapper = mapper;
     return this;
   }

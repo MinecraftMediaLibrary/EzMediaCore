@@ -32,26 +32,26 @@ final class PlayerExceptionTest {
 
   @Test
   void shouldKeepTheMessage() {
-    final PlayerException exception = new PlayerException("VLC could not open video.mp4");
+    final PlayerException exception = new PlayerException("Media video.mp4 could not be opened by VLC!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("VLC could not open video.mp4", message);
+    assertEquals("Media video.mp4 could not be opened by VLC!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCause() {
-    final IOException connectFailure = new IOException("connection refused");
-    final PlayerException exception = new PlayerException("The VNC server cannot be reached", connectFailure);
+    final IOException connectFailure = new IOException("connection refused!");
+    final PlayerException exception = new PlayerException("The VNC server cannot be reached!", connectFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("The VNC server cannot be reached", message);
+    assertEquals("The VNC server cannot be reached!", message);
     assertSame(connectFailure, cause);
   }
 
   @Test
   void shouldBeARuntimeException() {
-    final PlayerException exception = new PlayerException("failure");
+    final PlayerException exception = new PlayerException("failure!");
     assertInstanceOf(RuntimeException.class, exception, "a player failure is recoverable, so it is no Error");
   }
 }

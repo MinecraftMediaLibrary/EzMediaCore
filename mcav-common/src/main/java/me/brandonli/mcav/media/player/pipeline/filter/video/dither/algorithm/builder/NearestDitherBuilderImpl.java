@@ -55,7 +55,7 @@ public class NearestDitherBuilderImpl implements NearestDitherBuilder<NearestDit
    */
   @Override
   public NearestDitherBuilderImpl withPalette(final DitherPalette palette) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, "Palette must not be null!");
     this.palette = palette;
     return this;
   }

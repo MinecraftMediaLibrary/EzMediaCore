@@ -165,8 +165,8 @@ final class AudioExtractorTest {
     final AtomicReference<Path> partial = new AtomicReference<>();
     final FFmpegCommand command = mock(FFmpegCommand.class);
     final CommandTask task = mock(CommandTask.class);
-    final IOException failure = new IOException("output failed after writing bytes");
-    final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted");
+    final IOException failure = new IOException("output failed after writing bytes!");
+    final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
     when(command.createTask()).thenReturn(task);
     doAnswer(_ -> {
       Files.writeString(partial.get(), "partial audio");

@@ -72,8 +72,8 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
    */
   default CompletableFuture<Boolean> startAsync(final FrameSource source, final ExecutorService executor) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(source), executor);
   }
 

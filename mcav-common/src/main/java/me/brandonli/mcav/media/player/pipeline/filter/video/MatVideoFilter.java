@@ -57,7 +57,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
     if (samples instanceof final MatImageBuffer matBuffer) {
       return this.modifyImage(matBuffer);
     }

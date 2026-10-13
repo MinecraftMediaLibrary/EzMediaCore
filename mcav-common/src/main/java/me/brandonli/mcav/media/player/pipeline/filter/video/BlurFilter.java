@@ -51,11 +51,11 @@ public class BlurFilter extends MatVideoFilter {
    * @throws NullPointerException if {@code type} is null
    */
   public BlurFilter(final BlurType type, final int kernelSize, final double sigmaX, final double sigmaY) {
-    Preconditions.checkNotNull(type, "Blur type must not be null");
-    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive but was %s", kernelSize);
+    Preconditions.checkNotNull(type, "Blur type must not be null!");
+    Preconditions.checkArgument(kernelSize > 0, "Kernel size %s must be positive!", kernelSize);
     final boolean odd = kernelSize % 2 == 1;
-    Preconditions.checkArgument(odd || type == BlurType.NORMAL, "Kernel size of a %s blur must be odd but was %s", type, kernelSize);
-    Preconditions.checkArgument(sigmaX >= 0 && sigmaY >= 0, "Sigma values must not be negative");
+    Preconditions.checkArgument(odd || type == BlurType.NORMAL, "Kernel size %s of a %s blur must be odd!", kernelSize, type);
+    Preconditions.checkArgument(sigmaX >= 0 && sigmaY >= 0, "Sigma values must not be negative!");
     this.type = type;
     this.size = new Size(kernelSize, kernelSize);
     this.kernelSize = kernelSize;

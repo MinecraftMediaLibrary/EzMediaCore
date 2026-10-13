@@ -118,11 +118,11 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter
   ) {
-    Preconditions.checkNotNull(filenamePatterns, "Filename patterns must not be null");
-    Preconditions.checkNotNull(pluginPathFormats, "Plugin path formats must not be null");
-    Preconditions.checkNotNull(searchProviders, "Search providers must not be null");
-    Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null");
-    Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required");
+    Preconditions.checkNotNull(filenamePatterns, "Filename patterns must not be null!");
+    Preconditions.checkNotNull(pluginPathFormats, "Plugin path formats must not be null!");
+    Preconditions.checkNotNull(searchProviders, "Search providers must not be null!");
+    Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null!");
+    Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required!");
     this.filenamePatterns = compilePatterns(filenamePatterns);
     this.pluginPathFormats = pluginPathFormats.clone();
     this.searchProviders = List.copyOf(searchProviders);
@@ -344,7 +344,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    */
   @Override
   public boolean onFound(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     return true;
   }
 
@@ -359,7 +359,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    */
   @Override
   public final boolean onSetPluginPath(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
     for (final String pathFormat : this.pluginPathFormats) {
       final String pluginPath = pathFormat.formatted(path);
       final File pluginDirectory = new File(pluginPath);

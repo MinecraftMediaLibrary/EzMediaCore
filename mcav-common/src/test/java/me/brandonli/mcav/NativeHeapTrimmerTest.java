@@ -113,7 +113,7 @@ final class NativeHeapTrimmerTest {
       SHORT,
       () -> {
         if (attempts.incrementAndGet() == 1) {
-          throw new IllegalStateException("the first trim fails on purpose");
+          throw new IllegalStateException("the first trim fails on purpose!");
         }
         trims.countDown();
       },
@@ -191,7 +191,7 @@ final class NativeHeapTrimmerTest {
       SHORT,
       () -> {},
       () -> {
-        throw new IllegalStateException("the threshold fails on purpose");
+        throw new IllegalStateException("the threshold fails on purpose!");
       }
     );
     final PrintStream standardError = System.err;
@@ -296,18 +296,18 @@ final class NativeHeapTrimmerTest {
 
   @Test
   void shouldTreatAMalloptThatCannotBeCalledAsAnIllegalState() {
-    final IllegalCallerException refused = new IllegalCallerException("native access is not enabled");
+    final IllegalCallerException refused = new IllegalCallerException("native access is not enabled!");
     final MethodHandle mallopt = malloptThatThrows(refused);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt));
     final String message = failure.getMessage();
-    assertEquals("Could not fix the trim threshold of the native heap", message);
+    assertEquals("Could not fix the trim threshold of the native heap!", message);
     final Throwable cause = failure.getCause();
     assertSame(refused, cause);
   }
 
   @Test
   void shouldPropagateAVirtualMachineErrorOfMalloptAsItIs() {
-    final OutOfMemoryError exhausted = new OutOfMemoryError("no memory for the call");
+    final OutOfMemoryError exhausted = new OutOfMemoryError("no memory for the call!");
     final MethodHandle mallopt = malloptThatThrows(exhausted);
     assertSame(exhausted, assertThrows(OutOfMemoryError.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt)));
   }
@@ -396,7 +396,7 @@ final class NativeHeapTrimmerTest {
   void shouldGiveTheTopOfAThreadArenaBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
     final Linker linker = Linker.nativeLinker();
     final SymbolLookup library = linker.defaultLookup();
-    assumeTrue(OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas");
+    assumeTrue(OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas!");
     final MethodHandle malloc = linker.downcallHandle(
       library.find("malloc").orElseThrow(),
       FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG)
@@ -448,7 +448,7 @@ final class NativeHeapTrimmerTest {
         return Long.parseLong(line.substring(RESIDENT_PREFIX.length()).replace("kB", "").strip());
       }
     }
-    throw new IllegalStateException("no resident size in /proc/self/status");
+    throw new IllegalStateException("no resident size in /proc/self/status!");
   }
 
   @Test
@@ -477,9 +477,9 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldNotTrimAJvmOtherThanHotSpot() {
     final HotSpotDiagnosticMXBean withoutTheOption = mock(HotSpotDiagnosticMXBean.class);
-    final IllegalArgumentException noOption = new IllegalArgumentException("VM option \"TrimNativeHeapInterval\" does not exist");
+    final IllegalArgumentException noOption = new IllegalArgumentException("VM option \"TrimNativeHeapInterval\" does not exist!");
     when(withoutTheOption.getVMOption(any())).thenThrow(noOption);
-    final IllegalArgumentException noBean = new IllegalArgumentException("not a platform management interface");
+    final IllegalArgumentException noBean = new IllegalArgumentException("not a platform management interface!");
     try (final MockedStatic<ManagementFactory> factory = mockStatic(ManagementFactory.class, CALLS_REAL_METHODS)) {
       factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenReturn(null);
       assertNeverTrims(NativeHeapTrimmer.forThisJvm(), "a JVM without HotSpot's diagnostic bean");
@@ -506,7 +506,7 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldFailACommandThatCannotRunWithItsCause() throws Exception {
     final MBeanServer server = mock(MBeanServer.class);
-    final InstanceNotFoundException missing = new InstanceNotFoundException("no diagnostic commands");
+    final InstanceNotFoundException missing = new InstanceNotFoundException("no diagnostic commands!");
     when(server.invoke(any(ObjectName.class), any(), any(), any())).thenThrow(missing);
 
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.trimWithJdk(server));

@@ -39,7 +39,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 public final class MonoDownmixer {
 
   private MonoDownmixer() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -51,7 +51,7 @@ public final class MonoDownmixer {
    * @throws NullPointerException if {@code stereo} is null
    */
   public static short[] downmix(final ByteBuffer stereo) {
-    Preconditions.checkNotNull(stereo, "Samples must not be null");
+    Preconditions.checkNotNull(stereo, "Samples must not be null!");
     final ByteBuffer source = stereo.duplicate();
     source.order(ByteOrder.LITTLE_ENDIAN);
     final int frames = source.remaining() / AudioFilter.FRAME_SIZE;

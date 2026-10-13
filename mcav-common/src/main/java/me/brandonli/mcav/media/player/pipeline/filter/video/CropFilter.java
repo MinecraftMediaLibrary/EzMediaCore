@@ -48,8 +48,8 @@ public class CropFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if the origin is negative or either size is nonpositive
    */
   public CropFilter(final int left, final int top, final int width, final int height) {
-    Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative");
-    Preconditions.checkArgument(width > 0 && height > 0, "Crop size must be positive");
+    Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative!");
+    Preconditions.checkArgument(width > 0 && height > 0, "Crop size must be positive!");
     this.left = left;
     this.top = top;
     this.width = width;
@@ -99,6 +99,6 @@ public class CropFilter extends MatVideoFilter {
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    throw new UnsupportedOperationException("Cropping cannot be done in place");
+    throw new UnsupportedOperationException("Cropping cannot be done in place!");
   }
 }

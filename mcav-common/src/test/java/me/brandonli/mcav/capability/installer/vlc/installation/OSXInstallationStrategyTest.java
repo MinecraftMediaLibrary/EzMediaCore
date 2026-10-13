@@ -100,7 +100,7 @@ final class OSXInstallationStrategyTest {
     final String lastCommand = commands.getLast();
     final boolean archiveExists = Files.exists(archive);
     final boolean mountPointExists = this.mountPointExists();
-    final boolean copyFailed = message.startsWith("failed: cp -R");
+    final boolean copyFailed = message.startsWith("Command cp -R");
     final boolean detachedLast = lastCommand.startsWith("hdiutil detach");
     assertTrue(copyFailed, message);
     assertEquals(0, suppressed.length);
@@ -121,7 +121,7 @@ final class OSXInstallationStrategyTest {
     final String message = thrown.getMessage();
     final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
     final boolean mountPointExists = Files.exists(mountPoint);
-    final boolean copyFailed = message.startsWith("failed: cp -R");
+    final boolean copyFailed = message.startsWith("Command cp -R");
     final boolean forcedDetachTried = commands.contains("hdiutil detach -force " + mountPoint);
     assertTrue(copyFailed, "the copy failure is reported, not the detach failure: " + message);
     assertSuppressedDetachFailure(thrown, mountPoint);
@@ -168,7 +168,8 @@ final class OSXInstallationStrategyTest {
     final String message = thrown.getMessage();
     final Throwable[] suppressed = thrown.getSuppressed();
     final boolean mountPointExists = Files.exists(mountPoint);
-    assertEquals("failed: hdiutil detach " + mountPoint, message);
+    final String expected = "Command hdiutil detach %s failed!".formatted(mountPoint);
+    assertEquals(expected, message);
     assertEquals(1, suppressed.length, "the failure of the forced detach is attached");
     assertTrue(mountPointExists, "A mount point that may still be mounted must not be deleted");
   }
@@ -264,7 +265,8 @@ final class OSXInstallationStrategyTest {
     final Throwable detachFailure = suppressed[0];
     final String detachMessage = detachFailure.getMessage();
     final Throwable[] forcedFailures = detachFailure.getSuppressed();
-    assertEquals("failed: hdiutil detach " + mountPoint, detachMessage);
+    final String expectedDetachMessage = "Command hdiutil detach %s failed!".formatted(mountPoint);
+    assertEquals(expectedDetachMessage, detachMessage);
     assertEquals(1, forcedFailures.length, "the forced detach was tried as well");
   }
 
@@ -287,7 +289,7 @@ final class OSXInstallationStrategyTest {
    * Simulates {@code hdiutil} and {@code cp}: {@code cp} creates an application bundle with the library.
    *
    * @param commands receives every command line
-   * @param failing  decides which command lines fail; a failure reads {@code failed: <command line>}
+   * @param failing  decides which command lines fail; a failure reads {@code Command <command line> failed!}
    * @return the runner
    */
   private static ProcessRunner simulatedTools(final List<String> commands, final Predicate<String> failing) {
@@ -296,7 +298,8 @@ final class OSXInstallationStrategyTest {
       commands.add(commandLine);
       final boolean fails = failing.test(commandLine);
       if (fails) {
-        throw new IOException("failed: " + commandLine);
+        final String message = "Command %s failed!".formatted(commandLine);
+        throw new IOException(message);
       }
       final String tool = arguments[0];
       final boolean copy = tool.equals("cp");

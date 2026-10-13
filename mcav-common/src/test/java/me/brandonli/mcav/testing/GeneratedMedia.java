@@ -45,7 +45,7 @@ public final class GeneratedMedia {
   private static final Set<Path> COMPLETED = new HashSet<>();
 
   private GeneratedMedia() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /** Locates the bundled executable directly, without production FFmpeg provider mutations affecting fixtures. */
@@ -74,7 +74,7 @@ public final class GeneratedMedia {
     } catch (final InterruptedException failure) {
       final Thread current = Thread.currentThread();
       current.interrupt();
-      throw new IllegalStateException("Interrupted while generating test media", failure);
+      throw new IllegalStateException("Interrupted while generating test media!", failure);
     }
   }
 
@@ -85,7 +85,7 @@ public final class GeneratedMedia {
       return destination;
     }
     COMPLETED.remove(destination);
-    final Path parent = Objects.requireNonNull(destination.getParent(), "A media file must have a directory");
+    final Path parent = Objects.requireNonNull(destination.getParent(), "A media file must have a directory!");
     Files.createDirectories(parent);
     final String name = destination.getFileName().toString();
     final int dot = name.lastIndexOf('.');
@@ -98,7 +98,8 @@ public final class GeneratedMedia {
       final List<String> arguments = command.apply(temporary);
       runProcess(arguments, log, timeout);
       if (!Files.isRegularFile(temporary) || Files.size(temporary) == 0) {
-        throw new IOException("The fixture command succeeded without producing nonempty media: " + arguments);
+        final String message = "Fixture command %s succeeded without producing nonempty media!".formatted(arguments);
+        throw new IOException(message);
       }
       publish(temporary, destination);
       COMPLETED.add(destination);
@@ -136,7 +137,8 @@ public final class GeneratedMedia {
         }
         final long remaining = budget - (System.nanoTime() - startedAt);
         if (remaining <= 0) {
-          throw new IOException("Fixture command exceeded " + timeout + ": " + command);
+          final String message = "Fixture command %s exceeded its timeout of %s!".formatted(command, timeout);
+          throw new IOException(message);
         }
         final long poll = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20));
         if (process.waitFor(poll, TimeUnit.NANOSECONDS)) {
@@ -146,7 +148,8 @@ public final class GeneratedMedia {
       final int code = process.exitValue();
       if (code != 0) {
         final String diagnostic = readLog(log);
-        throw new IOException("Fixture command failed with exit code " + code + ": " + diagnostic);
+        final String message = "Fixture command failed with exit code %s and the diagnostic \"%s\"!".formatted(code, diagnostic);
+        throw new IOException(message);
       }
       successful = true;
     } finally {

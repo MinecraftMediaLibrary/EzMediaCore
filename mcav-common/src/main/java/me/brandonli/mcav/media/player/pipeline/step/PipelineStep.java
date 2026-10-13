@@ -77,8 +77,8 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @throws RuntimeException if a step or filter fails; subsequent steps are not invoked
    */
   default void processAll(final T buffer, final M metadata) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     S step = this.self();
     while (step != null) {
       step.process(buffer, metadata);

@@ -46,12 +46,6 @@ public final class ModuleLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ModuleLoader.class);
 
-  private static final String STARTING_MODULE = "Starting module {}";
-
-  private static final String STOP_AFTER_FAILED_START_FAILED = "Module {} failed to stop after it failed to start";
-
-  private static final String STOP_FAILED = "Module {} failed to stop";
-
   private final Map<Class<?>, MCAVModule> modules;
   private final List<MCAVModule> startOrder;
 
@@ -73,11 +67,11 @@ public final class ModuleLoader {
    * @throws NullPointerException if {@code moduleClass} is null
    */
   public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
-    Preconditions.checkNotNull(moduleClass, "Module class must not be null");
+    Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
     final MCAVModule module = this.modules.get(moduleClass);
     if (module == null) {
       final String name = moduleClass.getSimpleName();
-      final String message = "Module %s is not installed".formatted(name);
+      final String message = "Module %s is not installed!".formatted(name);
       throw new ModuleException(message);
     }
     return moduleClass.cast(module);
@@ -97,13 +91,13 @@ public final class ModuleLoader {
    * @throws NullPointerException if the array or a module class is null
    */
   public synchronized void loadModules(final Class<?>... moduleClasses) {
-    Preconditions.checkNotNull(moduleClasses, "Module classes must not be null");
+    Preconditions.checkNotNull(moduleClasses, "Module classes must not be null!");
     for (final Class<?> moduleClass : moduleClasses) {
-      Preconditions.checkNotNull(moduleClass, "Module class must not be null");
+      Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
       final boolean isModule = MCAVModule.class.isAssignableFrom(moduleClass);
       if (!isModule) {
         final String name = moduleClass.getSimpleName();
-        final String message = "%s does not implement MCAVModule".formatted(name);
+        final String message = "%s does not implement MCAVModule!".formatted(name);
         throw new ModuleException(message);
       }
     }
@@ -123,7 +117,7 @@ public final class ModuleLoader {
 
   private static void startModule(final MCAVModule module) {
     final String moduleName = module.getModuleName();
-    LOGGER.info(STARTING_MODULE, moduleName);
+    LOGGER.info("Module {} is starting.", moduleName);
     try {
       module.start();
     } catch (final ModuleException exception) {
@@ -132,7 +126,7 @@ public final class ModuleLoader {
     } catch (final RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);
       final String reason = exception.getMessage();
-      final String message = "Module %s failed to start: %s".formatted(moduleName, reason);
+      final String message = "Module %s failed with \"%s\" while starting!".formatted(moduleName, reason);
       final ModuleException failure = new ModuleException(message, exception);
       stopAfterFailedStart(module, moduleName, failure);
       throw failure;
@@ -148,7 +142,7 @@ public final class ModuleLoader {
       module.stop();
     } catch (final RuntimeException | Error stopFailure) {
       ThrowableUtils.throwIfFatal(stopFailure);
-      LOGGER.error(STOP_AFTER_FAILED_START_FAILED, moduleName, stopFailure);
+      LOGGER.error("Module {} failed to stop after it failed to start.", moduleName, stopFailure);
       final Equivalence<Object> identity = Equivalence.identity();
       if (!identity.equivalent(stopFailure, startFailure)) {
         startFailure.addSuppressed(stopFailure);
@@ -166,7 +160,7 @@ public final class ModuleLoader {
       ThrowableUtils.throwIfFatal(throwable);
       final String name = moduleClass.getSimpleName();
       final String reason = throwable.getMessage();
-      final String message = "Module %s could not be created: %s".formatted(name, reason);
+      final String message = "Module %s failed with \"%s\" while being created!".formatted(name, reason);
       throw new ModuleException(message, throwable);
     }
   }
@@ -185,7 +179,7 @@ public final class ModuleLoader {
         module.stop();
       } catch (final RuntimeException | Error exception) {
         ThrowableUtils.throwIfFatal(exception);
-        LOGGER.error(STOP_FAILED, moduleName, exception);
+        LOGGER.error("Module {} failed to stop.", moduleName, exception);
       }
     }
     this.startOrder.clear();

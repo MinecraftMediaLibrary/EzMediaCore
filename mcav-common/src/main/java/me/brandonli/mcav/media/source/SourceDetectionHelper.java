@@ -56,7 +56,7 @@ public class SourceDetectionHelper {
    * @throws NullPointerException if the collection or any detector is null
    */
   public SourceDetectionHelper(final Collection<SourceDetector<? extends Source>> detectors) {
-    Preconditions.checkNotNull(detectors, "Detectors must not be null");
+    Preconditions.checkNotNull(detectors, "Detectors must not be null!");
     this.detectors = List.copyOf(detectors);
   }
 
@@ -78,7 +78,7 @@ public class SourceDetectionHelper {
    * @throws NullPointerException if {@code resource} is null
    */
   public Optional<Source> detectSource(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
     SourceDetector<? extends Source> best = null;
     int bestPriority = Integer.MIN_VALUE;
     for (final SourceDetector<? extends Source> detector : this.detectors) {

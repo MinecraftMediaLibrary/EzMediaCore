@@ -35,7 +35,7 @@ final class HttpStatusExceptionTest {
     final int statusCode = exception.getStatusCode();
     final String message = exception.getMessage();
     assertEquals(503, statusCode);
-    assertEquals("Server answered with status 503 for https://example.com/file", message);
+    assertEquals("Request for https://example.com/file got status 503, which is not a success!", message);
     assertThrows(NullPointerException.class, () -> {
       throw new HttpStatusException(500, null);
     });
@@ -43,8 +43,8 @@ final class HttpStatusExceptionTest {
 
   @Test
   void shouldKeepTheMessageOfAChecksumMismatch() {
-    final ChecksumMismatchException exception = new ChecksumMismatchException("expected a but got b");
+    final ChecksumMismatchException exception = new ChecksumMismatchException("expected a but got b!");
     final String message = exception.getMessage();
-    assertEquals("expected a but got b", message);
+    assertEquals("expected a but got b!", message);
   }
 }

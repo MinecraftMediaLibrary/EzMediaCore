@@ -31,11 +31,10 @@ import org.slf4j.LoggerFactory;
 public final class ExecutorUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorUtils.class);
-  private static final String EXECUTOR_NOT_FINISHED = "Executor did not finish in {} ms, interrupted {} pending tasks";
   private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
 
   private ExecutorUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -47,7 +46,7 @@ public final class ExecutorUtils {
    * @throws NullPointerException if the executor is null
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service) {
-    Preconditions.checkNotNull(service, "Executor must not be null");
+    Preconditions.checkNotNull(service, "Executor must not be null!");
     return shutdownExecutorGracefully(service, DEFAULT_TIMEOUT);
   }
 
@@ -63,8 +62,8 @@ public final class ExecutorUtils {
    * @throws ArithmeticException if the timeout cannot be represented as a {@code long} number of milliseconds
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service, final Duration timeout) {
-    Preconditions.checkNotNull(service, "Executor must not be null");
-    Preconditions.checkNotNull(timeout, "Timeout must not be null");
+    Preconditions.checkNotNull(service, "Executor must not be null!");
+    Preconditions.checkNotNull(timeout, "Timeout must not be null!");
 
     service.shutdown();
     try {
@@ -75,7 +74,7 @@ public final class ExecutorUtils {
       }
       final List<Runnable> unfinished = service.shutdownNow();
       final int unfinishedCount = unfinished.size();
-      LOGGER.warn(EXECUTOR_NOT_FINISHED, millis, unfinishedCount);
+      LOGGER.warn("Executor did not finish in {} ms, interrupted {} pending tasks.", millis, unfinishedCount);
       return false;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
