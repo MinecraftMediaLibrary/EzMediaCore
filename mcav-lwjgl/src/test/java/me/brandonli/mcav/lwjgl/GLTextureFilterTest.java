@@ -142,7 +142,7 @@ final class GLTextureFilterTest {
     this.filter.start();
     final int callerTexture = GL11.glGenTextures();
     final ByteBuffer pixels = ByteBuffer.allocateDirect(3);
-    final IllegalArgumentException failure = new IllegalArgumentException("native upload rejected");
+    final IllegalArgumentException failure = new IllegalArgumentException("Native upload was rejected!");
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, callerTexture);
     GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 8);
     GL11.glPixelStorei(GL11.GL_UNPACK_ROW_LENGTH, 7);

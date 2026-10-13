@@ -98,7 +98,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
    * @throws IllegalArgumentException if {@code textureId} is zero or negative
    */
   public GLTextureFilter(final int textureId) {
-    Preconditions.checkArgument(textureId > 0, "Texture id must be positive but was %s", textureId);
+    Preconditions.checkArgument(textureId > 0, "Texture id %s must be positive!", textureId);
     this.lock = new Object();
     this.ownsTexture = false;
     this.textureId = textureId;
@@ -166,8 +166,8 @@ public class GLTextureFilter implements FunctionalVideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(samples, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
 
     final int width = samples.getWidth();
     final int height = samples.getHeight();
@@ -218,9 +218,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
    *                               capabilities are missing on the calling thread
    */
   public boolean upload() {
-    if (this.textureId == NO_TEXTURE) {
-      throw new IllegalStateException("The texture was not created; call start() on the render thread first");
-    }
+    Preconditions.checkState(this.textureId != NO_TEXTURE, "The texture was not created; call start() on the render thread first!");
     requireContext();
 
     final ByteBuffer pixels;
@@ -308,13 +306,11 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   private static void requireContext() {
     try {
       final GLCapabilities capabilities = GL.getCapabilities();
-      Preconditions.checkNotNull(capabilities, "OpenGL capabilities must be set");
+      Preconditions.checkNotNull(capabilities, "OpenGL capabilities must be set!");
     } catch (final IllegalStateException exception) {
-      throw new IllegalStateException(
-        "No OpenGL context is current on this thread; call start(), upload() and release() on the render thread " +
-          "after making the context current and calling GL.createCapabilities()",
-        exception
-      );
+      final String message =
+        "No OpenGL context is current on this thread; call start(), upload() and release() on the render thread after making the context current and calling GL.createCapabilities()!";
+      throw new IllegalStateException(message, exception);
     }
   }
 
