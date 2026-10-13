@@ -76,7 +76,11 @@ final class OrderedDitherTest {
   }
 
   private static OrderedDither blackWhite4x4() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_4X4, BayerDither.NORMAL_4X4_MAX, PixelMapper.NORMAL_STRENGTH);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(
+      BayerDither.NORMAL_4X4,
+      BayerDither.NORMAL_4X4_MAXIMUM,
+      PixelMapper.NORMAL_STRENGTH
+    );
     final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
     final OrderedDitherBuilderImpl blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
     final OrderedDitherBuilderImpl configured = blackWhite.withDitherMatrix(mapper);
@@ -181,7 +185,7 @@ final class OrderedDitherTest {
   @Test
   void shouldReturnTheBuilderFromBuilderMethodsForChaining() {
     final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, PixelMapper.MIN_STRENGTH);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, PixelMapper.MINIMUM_STRENGTH);
     final OrderedDitherBuilderImpl withPalette = builder.withPalette(DitherTestImages.BLACK_WHITE);
     final OrderedDitherBuilderImpl withMatrix = builder.withDitherMatrix(mapper);
     assertSame(builder, withPalette);
@@ -215,7 +219,7 @@ final class OrderedDitherTest {
 
   @Test
   void shouldNormalizThresholdMatricesAroundZero() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAX, 1.0f);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, 1.0f);
     final PixelMapper doubled = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 2.0f);
     final float[][] matrix = mapper.getMatrix();
     final float[][] doubledMatrix = doubled.getMatrix();
@@ -332,9 +336,9 @@ final class OrderedDitherTest {
 
   @Test
   void shouldGiveBayerMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("NORMAL_2X2", BayerDither.NORMAL_2X2, 2, 2, BayerDither.NORMAL_2X2_MAX);
-    assertEvenRanking("NORMAL_4X4", BayerDither.NORMAL_4X4, 4, 4, BayerDither.NORMAL_4X4_MAX);
-    assertEvenRanking("NORMAL_8X8", BayerDither.NORMAL_8X8, 8, 8, BayerDither.NORMAL_8X8_MAX);
+    assertEvenRanking("NORMAL_2X2", BayerDither.NORMAL_2X2, 2, 2, BayerDither.NORMAL_2X2_MAXIMUM);
+    assertEvenRanking("NORMAL_4X4", BayerDither.NORMAL_4X4, 4, 4, BayerDither.NORMAL_4X4_MAXIMUM);
+    assertEvenRanking("NORMAL_8X8", BayerDither.NORMAL_8X8, 8, 8, BayerDither.NORMAL_8X8_MAXIMUM);
   }
 
   @Test
@@ -380,31 +384,31 @@ final class OrderedDitherTest {
 
   @Test
   void shouldGiveClusteredDotMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("CLUSTERED_DOT_4X4", BayerDither.CLUSTERED_DOT_4X4, 4, 4, BayerDither.CLUSTERED_DOT_4X4_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6", BayerDither.CLUSTERED_DOT_6X6, 6, 6, BayerDither.CLUSTERED_DOT_6X6_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6_2", BayerDither.CLUSTERED_DOT_6X6_2, 6, 6, BayerDither.CLUSTERED_DOT_6X6_2_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6_3", BayerDither.CLUSTERED_DOT_6X6_3, 6, 6, BayerDither.CLUSTERED_DOT_6X6_3_MAX);
-    assertEvenRanking("CLUSTERED_DOT_SPIRAL_5X5", BayerDither.CLUSTERED_DOT_SPIRAL_5X5, 5, 5, BayerDither.CLUSTERED_DOT_SPIRAL_5X5_MAX);
-    assertEvenRanking("CLUSTERED_DOT_8X8", BayerDither.CLUSTERED_DOT_8X8, 8, 8, BayerDither.CLUSTERED_DOT_8X8_MAX);
+    assertEvenRanking("CLUSTERED_DOT_4X4", BayerDither.CLUSTERED_DOT_4X4, 4, 4, BayerDither.CLUSTERED_DOT_4X4_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6", BayerDither.CLUSTERED_DOT_6X6, 6, 6, BayerDither.CLUSTERED_DOT_6X6_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6_2", BayerDither.CLUSTERED_DOT_6X6_2, 6, 6, BayerDither.CLUSTERED_DOT_6X6_2_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6_3", BayerDither.CLUSTERED_DOT_6X6_3, 6, 6, BayerDither.CLUSTERED_DOT_6X6_3_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_SPIRAL_5X5", BayerDither.CLUSTERED_DOT_SPIRAL_5X5, 5, 5, BayerDither.CLUSTERED_DOT_SPIRAL_5X5_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_8X8", BayerDither.CLUSTERED_DOT_8X8, 8, 8, BayerDither.CLUSTERED_DOT_8X8_MAXIMUM);
   }
 
   @Test
   void shouldGiveLineMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("VERTICAL_5X3", BayerDither.VERTICAL_5X3, 3, 5, BayerDither.VERTICAL_5X3_MAX);
-    assertEvenRanking("HORIZONTAL_3X5", BayerDither.HORIZONTAL_3X5, 5, 3, BayerDither.HORIZONTAL_3X5_MAX);
+    assertEvenRanking("VERTICAL_5X3", BayerDither.VERTICAL_5X3, 3, 5, BayerDither.VERTICAL_5X3_MAXIMUM);
+    assertEvenRanking("HORIZONTAL_3X5", BayerDither.HORIZONTAL_3X5, 5, 3, BayerDither.HORIZONTAL_3X5_MAXIMUM);
     assertEvenRanking(
       "CLUSTERED_DOT_HORIZONTAL_LINE",
       BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE_MAX
+      BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_VERTICAL_LINE",
       BayerDither.CLUSTERED_DOT_VERTICAL_LINE,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_VERTICAL_LINE_MAX
+      BayerDither.CLUSTERED_DOT_VERTICAL_LINE_MAXIMUM
     );
   }
 
@@ -415,21 +419,21 @@ final class OrderedDitherTest {
       BayerDither.CLUSTERED_DOT_DIAGONAL_6X6,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_6X6_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_6X6_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_8X8",
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_8X8_2",
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2_MAXIMUM
     );
   }
 
@@ -440,14 +444,14 @@ final class OrderedDitherTest {
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_16X16",
       BayerDither.CLUSTERED_DOT_DIAGONAL_16X16,
       16,
       16,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_16X16_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_16X16_MAXIMUM
     );
   }
 }

@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Tag;
 final class AbstractInstallerFuzzTest {
 
   private static final String FOLDER = "/installations";
-  private static final String CONFIG_FILE_NAME = "config.properties";
+  private static final String CONFIGURATION_FILE_NAME = "config.properties";
   private static final String INSTALLED_FILE_NAME = "installed";
 
   private static final String NAME = "tool";
@@ -45,8 +45,8 @@ final class AbstractInstallerFuzzTest {
     try (final FileSystem fileSystem = Jimfs.newFileSystem(unix)) {
       final Path folder = fileSystem.getPath(FOLDER);
       Files.createDirectories(folder);
-      final Path configFile = folder.resolve(CONFIG_FILE_NAME);
-      Files.write(configFile, configuration);
+      final Path configurationFile = folder.resolve(CONFIGURATION_FILE_NAME);
+      Files.write(configurationFile, configuration);
       final ConfiguredInstaller installer = new ConfiguredInstaller(folder);
 
       final Optional<Path> existing = installer.findExistingInstallation();
@@ -56,7 +56,7 @@ final class AbstractInstallerFuzzTest {
 
       final Path installedFile = folder.resolve(INSTALLED_FILE_NAME);
       final Path installed = Files.createFile(installedFile);
-      installer.writePathToConfig(installed);
+      installer.writePathToConfiguration(installed);
       final Optional<Path> remembered = installer.findExistingInstallation();
       final Optional<Path> expected = Optional.of(installed);
       assertEquals(expected, remembered, "the configuration remembers a new installation whatever it held before");

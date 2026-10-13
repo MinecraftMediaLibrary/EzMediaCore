@@ -70,20 +70,20 @@ final class DiffusionKernelTest {
     final int firstX = kernel.getOffsetX(0);
     final int firstY = kernel.getOffsetY(0);
     final int secondX = kernel.getOffsetX(1);
-    final int maxX = kernel.getMaxOffsetX();
-    final int maxY = kernel.getMaxOffsetY();
-    final int wideMaxX = DiffusionKernel.STEVENSON_ARCE.getMaxOffsetX();
-    final int wideMaxY = DiffusionKernel.STEVENSON_ARCE.getMaxOffsetY();
+    final int maximumX = kernel.getMaximumOffsetX();
+    final int maximumY = kernel.getMaximumOffsetY();
+    final int wideMaximumX = DiffusionKernel.STEVENSON_ARCE.getMaximumOffsetX();
+    final int wideMaximumY = DiffusionKernel.STEVENSON_ARCE.getMaximumOffsetY();
     final String name = kernel.getName();
     final String text = kernel.toString();
     assertEquals(4, taps);
     assertEquals(1, firstX);
     assertEquals(0, firstY);
     assertEquals(-1, secondX);
-    assertEquals(1, maxX);
-    assertEquals(1, maxY);
-    assertEquals(3, wideMaxX);
-    assertEquals(3, wideMaxY);
+    assertEquals(1, maximumX);
+    assertEquals(1, maximumY);
+    assertEquals(3, wideMaximumX);
+    assertEquals(3, wideMaximumY);
     assertEquals("Floyd-Steinberg", name);
     assertEquals(name, text);
   }
@@ -92,9 +92,9 @@ final class DiffusionKernelTest {
   void shouldAcceptCustomKernels() {
     final DiffusionKernel kernel = new DiffusionKernel("Right", 2, new int[][] { { 1, 0, 1 }, { 0, 1, 1 } });
     final int taps = kernel.getTapCount();
-    final int maxX = kernel.getMaxOffsetX();
+    final int maximumX = kernel.getMaximumOffsetX();
     assertEquals(2, taps);
-    assertEquals(1, maxX);
+    assertEquals(1, maximumX);
   }
 
   @Test
@@ -116,18 +116,18 @@ final class DiffusionKernelTest {
   /**
    * Found by {@code DitherFuzzTest}: a kernel accepted taps of any reach, and the error rows of a pass are as wide and
    * as many as the kernel reaches, so a tap far away made dithering allocate until the heap ran out, and one at
-   * {@link Integer#MIN_VALUE} made the reach negative. A tap may reach at most {@value DiffusionKernel#MAX_OFFSET} pixels.
+   * {@link Integer#MIN_VALUE} made the reach negative. A tap may reach at most {@value DiffusionKernel#MAXIMUM_OFFSET} pixels.
    */
   @Test
   void shouldRefuseTapsThatReachFartherThanAnyNeighbourhood() {
-    final int limit = DiffusionKernel.MAX_OFFSET;
+    final int limit = DiffusionKernel.MAXIMUM_OFFSET;
     final int[][] widest = { { limit, 0, 1 }, { -limit, limit, 1 } };
     final DiffusionKernel kernel = new DiffusionKernel("widest", 2, widest);
-    final int maxX = kernel.getMaxOffsetX();
-    final int maxY = kernel.getMaxOffsetY();
+    final int maximumX = kernel.getMaximumOffsetX();
+    final int maximumY = kernel.getMaximumOffsetY();
 
-    assertEquals(limit, maxX);
-    assertEquals(limit, maxY);
+    assertEquals(limit, maximumX);
+    assertEquals(limit, maximumY);
     assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { limit + 1, 0, 1 } }));
     assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { -limit - 1, 1, 1 } }));
     assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, limit + 1, 1 } }));

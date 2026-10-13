@@ -33,7 +33,7 @@ import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.DirectAudioOutput;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.media.source.uri.UriSource;
@@ -75,9 +75,9 @@ public final class YouTubeExample {
 
       speakers.start();
       final AudioPipelineStep audioPipeline = AudioPipelineStep.of(speakers);
-      final FPSFilter fpsFilter = new FPSFilter();
+      final FramesPerSecondFilter framesPerSecondFilter = new FramesPerSecondFilter();
       final VideoPipelineStepBuilder videoBuilder = PipelineBuilder.video();
-      videoBuilder.then(fpsFilter);
+      videoBuilder.then(framesPerSecondFilter);
       videoBuilder.then((image, metadata) -> {
         final BufferedImage frameImage = image.toBufferedImage();
         final ImageIcon icon = new ImageIcon(frameImage);

@@ -834,27 +834,27 @@ final class DeclaredImageSizeTest {
 
   @Test
   void shouldReadTheLimitFromItsSystemProperty() {
-    final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+    final String previous = System.getProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
     try {
-      System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+      System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
       final long defaultLimit = DeclaredImageSize.limit();
       assertEquals(67_108_864L, defaultLimit);
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "123");
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "123");
       final long raisedLimit = DeclaredImageSize.limit();
       assertEquals(123L, raisedLimit);
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "a lot");
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "a lot");
       final long fallbackLimit = DeclaredImageSize.limit();
       assertEquals(67_108_864L, fallbackLimit);
       final byte[] unknown = bytes("not an image");
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "0");
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "0");
       assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown));
       final Path missing = this.directory.resolve("missing.png");
       assertDoesNotThrow(() -> DeclaredImageSize.checkFile(missing));
     } finally {
       if (previous == null) {
-        System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+        System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
       } else {
-        System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, previous);
+        System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, previous);
       }
     }
   }

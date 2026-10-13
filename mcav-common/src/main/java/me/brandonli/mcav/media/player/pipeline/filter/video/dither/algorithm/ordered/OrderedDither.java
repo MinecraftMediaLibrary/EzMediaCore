@@ -37,7 +37,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public final class OrderedDither extends AbstractDitherAlgorithm implements BayerDither, ParallelDitherAlgorithm {
 
-  private static final int MIN_ROWS_PER_TASK = 16;
+  private static final int MINIMUM_ROWS_PER_TASK = 16;
 
   private final int[][] offsets;
   private final int patternWidth;
@@ -113,7 +113,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
     final int height = pixels.length / width;
     final byte[] indices = new byte[pixels.length];
     final int parallelism = pool.getParallelism();
-    final int rowLimitedTasks = height / MIN_ROWS_PER_TASK;
+    final int rowLimitedTasks = height / MINIMUM_ROWS_PER_TASK;
     final int taskCount = Math.clamp(rowLimitedTasks, 1, parallelism * 2);
     this.ditherInParallel(pixels, width, indices, pool, taskCount);
     return indices;

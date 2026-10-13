@@ -33,7 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 final class RenderThread {
 
-  private static final long JOIN_TIMEOUT_MILLIS = 5_000L;
+  private static final long JOIN_TIMEOUT_MILLISECONDS = 5_000L;
 
   /**
    * One step of a rendering loop.
@@ -114,7 +114,7 @@ final class RenderThread {
       return;
     }
     try {
-      target.join(JOIN_TIMEOUT_MILLIS);
+      target.join(JOIN_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
       caller.interrupt();
     }

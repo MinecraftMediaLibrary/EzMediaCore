@@ -54,7 +54,7 @@ public final class NetworkUtils {
   public static final URI DEFAULT_ADDRESS_SERVICE = URI.create("https://ipv4.icanhazip.com/");
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
-  private static final long MAX_ADDRESS_ANSWER_BYTES = 256;
+  private static final long MAXIMUM_ADDRESS_ANSWER_BYTES = 256;
   private static final int HTTP_OK = 200;
 
   private NetworkUtils() {
@@ -117,7 +117,7 @@ public final class NetworkUtils {
     final HttpRequest request = createRequest(addressService, "GET");
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.limiting(
       HttpResponse.BodyHandlers.ofString(),
-      MAX_ADDRESS_ANSWER_BYTES
+      MAXIMUM_ADDRESS_ANSWER_BYTES
     );
 
     try (final HttpClient client = createClient(HttpClient.Redirect.NEVER)) {

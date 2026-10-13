@@ -60,11 +60,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class VLCPlayer implements VideoPlayerMultiplexer {
 
-  private static final long OPEN_TIMEOUT_MILLIS = 5_000L;
+  private static final long OPEN_TIMEOUT_MILLISECONDS = 5_000L;
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
 
   private final SharedMediaPlayerFactory sharedFactory;
-  private final long openTimeoutMillis;
+  private final long openTimeoutMilliseconds;
   private final VideoAttachableCallback videoCallback;
   private final AudioAttachableCallback audioCallback;
   private final DimensionAttachableCallback dimensionCallback;
@@ -108,27 +108,27 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.checkUsable(Capability.VLC);
     final SharedMediaPlayerFactory sharedFactory = SharedMediaPlayerFactory.getInstance();
-    this(sharedFactory, OPEN_TIMEOUT_MILLIS, mediaOptions);
+    this(sharedFactory, OPEN_TIMEOUT_MILLISECONDS, mediaOptions);
   }
 
   /**
    * Constructs a new VLC player with its own VLC instance and open timeout.
    *
-   * @param sharedFactory     provides the VLC instance
-   * @param openTimeoutMillis how long starting waits at most for VLC to open the media, in milliseconds
-   * @param mediaOptions      VLC media options applied to every source
+   * @param sharedFactory           provides the VLC instance
+   * @param openTimeoutMilliseconds how long starting waits at most for VLC to open the media, in milliseconds
+   * @param mediaOptions            VLC media options applied to every source
    */
   @VisibleForTesting
-  VLCPlayer(final SharedMediaPlayerFactory sharedFactory, final long openTimeoutMillis, final String... mediaOptions) {
+  VLCPlayer(final SharedMediaPlayerFactory sharedFactory, final long openTimeoutMilliseconds, final String... mediaOptions) {
     Preconditions.checkNotNull(sharedFactory, "Shared factory must not be null!");
-    Preconditions.checkArgument(openTimeoutMillis >= 0, "Open timeout %s must not be negative!", openTimeoutMillis);
+    Preconditions.checkArgument(openTimeoutMilliseconds >= 0, "Open timeout %s must not be negative!", openTimeoutMilliseconds);
     Preconditions.checkNotNull(mediaOptions, "Media options must not be null!");
     for (final String option : mediaOptions) {
       Preconditions.checkNotNull(option, "Media options must not contain null!");
     }
     final ExceptionHandler defaultHandler = ExceptionHandler.createDefault();
     this.sharedFactory = sharedFactory;
-    this.openTimeoutMillis = openTimeoutMillis;
+    this.openTimeoutMilliseconds = openTimeoutMilliseconds;
     this.videoCallback = VideoAttachableCallback.create();
     this.audioCallback = AudioAttachableCallback.create();
     this.dimensionCallback = DimensionAttachableCallback.create();
@@ -505,8 +505,8 @@ public final class VLCPlayer implements VideoPlayerMultiplexer {
    *
    * @return the timeout in milliseconds
    */
-  long getOpenTimeoutMillis() {
-    return this.openTimeoutMillis;
+  long getOpenTimeoutMilliseconds() {
+    return this.openTimeoutMilliseconds;
   }
 
   /**

@@ -62,12 +62,12 @@ final class PlaybackEventListenerTest {
     });
   }
 
-  private long awaitMillis(final long timeoutMillis) throws InterruptedException {
+  private long awaitMilliseconds(final long timeoutMilliseconds) throws InterruptedException {
     final long start = System.nanoTime();
-    this.listener.awaitOpened(timeoutMillis);
+    this.listener.awaitOpened(timeoutMilliseconds);
     final long end = System.nanoTime();
-    final long elapsedNanos = end - start;
-    return TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+    final long elapsedNanoseconds = end - start;
+    return TimeUnit.NANOSECONDS.toMillis(elapsedNanoseconds);
   }
 
   private static Thread startWaiter(final PlaybackEventListener waitedOn, final CountDownLatch waiting, final AtomicBoolean returned) {
@@ -153,7 +153,7 @@ final class PlaybackEventListenerTest {
   @Test
   void shouldOpenWhenVlcStartsPlaying() throws Exception {
     this.listener.playing(this.mediaPlayer);
-    final long elapsed = this.awaitMillis(10_000L);
+    final long elapsed = this.awaitMilliseconds(10_000L);
     final boolean opened = this.listener.awaitOpened(10_000L);
     final boolean noErrors = this.errors.isEmpty();
     assertTrue(opened);
@@ -172,7 +172,7 @@ final class PlaybackEventListenerTest {
   @Test
   void shouldFailAndReportWhenVlcCannotPlayTheMedia() throws Exception {
     this.listener.error(this.mediaPlayer);
-    final long elapsed = this.awaitMillis(10_000L);
+    final long elapsed = this.awaitMilliseconds(10_000L);
     final boolean opened = this.listener.awaitOpened(10_000L);
     final List<String> expectedMessages = List.of("VLC playback of movie.mkv failed");
     final Throwable error = this.errors.getFirst();
@@ -206,7 +206,7 @@ final class PlaybackEventListenerTest {
 
   @Test
   void shouldTreatMediaThatIsStillOpeningAsStartedAfterTheTimeout() throws Exception {
-    final long elapsed = this.awaitMillis(100L);
+    final long elapsed = this.awaitMilliseconds(100L);
     final boolean opened = this.listener.awaitOpened(10L);
     assertTrue(opened, "VLC may still open slow streams; later failures are reported");
     final boolean waitedTheTimeout = elapsed >= 90L;

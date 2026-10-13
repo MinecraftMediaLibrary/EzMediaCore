@@ -62,8 +62,8 @@ import net.jqwik.api.arbitraries.ListArbitrary;
 final class DitherPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_WIDTH = 48;
-  private static final int MAX_HEIGHT = 32;
+  private static final int MAXIMUM_WIDTH = 48;
+  private static final int MAXIMUM_HEIGHT = 32;
 
   private static final List<DitherPalette> PALETTES = List.of(
     DitherPalette.DEFAULT_MAP_PALETTE,
@@ -92,7 +92,11 @@ final class DitherPropertyTest {
   );
 
   private static DitherAlgorithm createOrdered(final DitherPalette palette) {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, BayerDither.NORMAL_8X8_MAX, PixelMapper.NORMAL_STRENGTH);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(
+      BayerDither.NORMAL_8X8,
+      BayerDither.NORMAL_8X8_MAXIMUM,
+      PixelMapper.NORMAL_STRENGTH
+    );
     return new OrderedDither(palette, mapper);
   }
 
@@ -142,13 +146,13 @@ final class DitherPropertyTest {
   Arbitrary<DitherCase> cases() {
     final Arbitrary<NamedAlgorithm> algorithms = Arbitraries.of(ALGORITHMS);
     final Arbitrary<DitherPalette> palettes = Arbitraries.of(PALETTES);
-    final Arbitrary<Integer> widths = between(1, MAX_WIDTH);
-    final Arbitrary<Integer> heights = between(1, MAX_HEIGHT);
+    final Arbitrary<Integer> widths = between(1, MAXIMUM_WIDTH);
+    final Arbitrary<Integer> heights = between(1, MAXIMUM_HEIGHT);
     final IntegerArbitrary colors = Arbitraries.integers();
     final Arbitrary<Integer> extremes = Arbitraries.of(0, -1, 0xFF000000, 0x00FFFFFF, 0xFFFFFFFF, 0x80FF00FF);
     final Arbitrary<Integer> pixel = Arbitraries.oneOf(colors, extremes);
     final ListArbitrary<Integer> pixelList = pixel.list();
-    final ListArbitrary<Integer> pixels = pixelList.ofSize(MAX_WIDTH * MAX_HEIGHT);
+    final ListArbitrary<Integer> pixels = pixelList.ofSize(MAXIMUM_WIDTH * MAXIMUM_HEIGHT);
     final Combinators.Combinator5<NamedAlgorithm, DitherPalette, Integer, Integer, List<Integer>> cases = Combinators.combine(
       algorithms,
       palettes,
@@ -163,9 +167,9 @@ final class DitherPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Property(seed = SEED)

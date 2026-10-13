@@ -222,15 +222,15 @@ final class RenderThreadTest {
     final long start = System.nanoTime();
     thread.stop();
     final long end = System.nanoTime();
-    final long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(end - start);
+    final long elapsedMilliseconds = TimeUnit.NANOSECONDS.toMillis(end - start);
     final boolean callerInterrupted = Thread.interrupted();
 
     release.countDown();
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(stepStarted);
     assertTrue(callerInterrupted, "the interrupt of the caller is kept");
-    final boolean returnedQuickly = elapsedMillis < 1_000L;
-    assertTrue(returnedQuickly, "an interrupted caller does not wait, took " + elapsedMillis);
+    final boolean returnedQuickly = elapsedMilliseconds < 1_000L;
+    assertTrue(returnedQuickly, "an interrupted caller does not wait, took " + elapsedMilliseconds);
     assertTrue(cleaned);
   }
 

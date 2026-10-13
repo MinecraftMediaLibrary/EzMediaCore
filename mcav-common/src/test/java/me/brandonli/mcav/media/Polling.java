@@ -29,7 +29,7 @@ import java.util.function.BooleanSupplier;
  */
 public final class Polling {
 
-  private static final long POLL_INTERVAL_NANOS = 5_000_000L;
+  private static final long POLL_INTERVAL_NANOSECONDS = 5_000_000L;
 
   private Polling() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
@@ -44,14 +44,14 @@ public final class Polling {
    * @throws InterruptedException if the waiting thread is interrupted
    */
   public static boolean pollUntil(final Duration timeout, final BooleanSupplier condition) throws InterruptedException {
-    final long timeoutNanos = timeout.toNanos();
-    final long deadline = System.nanoTime() + timeoutNanos;
+    final long timeoutNanoseconds = timeout.toNanos();
+    final long deadline = System.nanoTime() + timeoutNanoseconds;
     while (!condition.getAsBoolean()) {
       final long now = System.nanoTime();
       if (now - deadline >= 0) {
         return false;
       }
-      LockSupport.parkNanos(POLL_INTERVAL_NANOS);
+      LockSupport.parkNanos(POLL_INTERVAL_NANOSECONDS);
       if (Thread.interrupted()) {
         throw new InterruptedException("interrupted while polling!");
       }

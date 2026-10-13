@@ -40,7 +40,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
 
   private static final Pattern LIBRARY = Pattern.compile("libvlc\\.dll");
   private static final Pattern CORE_LIBRARY = Pattern.compile("libvlccore\\.dll");
-  private static final String TEMP_DIRECTORY = "vlc-extract";
+  private static final String TEMPORARY_DIRECTORY = "vlc-extract";
 
   /**
    * Constructs a new strategy for the installer.
@@ -79,7 +79,7 @@ public final class WinInstallationStrategy extends ManualInstallationStrategy {
     final Path installDirectory = this.getInstallDirectory();
     final Path parentOrNull = installDirectory.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
-    final Path temporary = parent.resolve(TEMP_DIRECTORY);
+    final Path temporary = parent.resolve(TEMPORARY_DIRECTORY);
     deleteRecursively(temporary);
     deleteRecursively(installDirectory);
     try {

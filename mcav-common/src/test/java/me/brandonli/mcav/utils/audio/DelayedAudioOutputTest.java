@@ -53,10 +53,10 @@ import org.mockito.Mockito;
 
 class DelayedAudioOutputTest {
 
-  private static final int DELAY_MILLIS = 70;
-  private static final int MAX_QUEUED_MILLIS = DELAY_MILLIS + 60;
-  private static final long FRAME_NANOS = 20_833;
-  private static final int MAX_BYTES = (AudioFilter.SAMPLE_RATE / 1000) * MAX_QUEUED_MILLIS * AudioFilter.FRAME_SIZE;
+  private static final int DELAY_MILLISECONDS = 70;
+  private static final int MAXIMUM_QUEUED_MILLISECONDS = DELAY_MILLISECONDS + 60;
+  private static final long FRAME_NANOSECONDS = 20_833;
+  private static final int MAXIMUM_BYTES = (AudioFilter.SAMPLE_RATE / 1000) * MAXIMUM_QUEUED_MILLISECONDS * AudioFilter.FRAME_SIZE;
 
   private final List<byte[]> processed = new CopyOnWriteArrayList<>();
   private final List<OriginalAudioMetadata> formats = new CopyOnWriteArrayList<>();
@@ -125,28 +125,28 @@ class DelayedAudioOutputTest {
     this.blocking = true;
     this.output.accept(new byte[4], 4);
     waitUntil(() -> this.output.getQueuedBytes() == 0);
-    final byte[] chunk = new byte[MAX_BYTES / 2];
+    final byte[] chunk = new byte[MAXIMUM_BYTES / 2];
     for (int count = 0; count < 5; count++) {
       chunk[0] = (byte) count;
       this.output.accept(chunk, chunk.length);
     }
     final int queuedBytes = this.output.getQueuedBytes();
-    assertEquals(MAX_BYTES, queuedBytes, "at most the limit waits");
-    final byte[] huge = new byte[MAX_BYTES * 3];
-    huge[huge.length - MAX_BYTES] = 41;
-    huge[huge.length - MAX_BYTES - 4] = 40;
+    assertEquals(MAXIMUM_BYTES, queuedBytes, "at most the limit waits");
+    final byte[] huge = new byte[MAXIMUM_BYTES * 3];
+    huge[huge.length - MAXIMUM_BYTES] = 41;
+    huge[huge.length - MAXIMUM_BYTES - 4] = 40;
     huge[huge.length - 1] = 42;
     this.output.accept(huge, huge.length);
     final int queuedAfterHuge = this.output.getQueuedBytes();
-    assertEquals(MAX_BYTES, queuedAfterHuge, "a chunk longer than the limit keeps its newest samples");
+    assertEquals(MAXIMUM_BYTES, queuedAfterHuge, "a chunk longer than the limit keeps its newest samples");
     this.blocking = false;
     this.gate.countDown();
     waitUntil(() -> this.processed.size() == 2);
     final byte[] kept = this.processed.get(1);
-    assertEquals(MAX_BYTES, kept.length);
+    assertEquals(MAXIMUM_BYTES, kept.length);
     final byte firstKept = kept[0];
     assertEquals(41, firstKept, "the kept samples start a whole frame into the newest limit");
-    final byte lastKept = kept[MAX_BYTES - 1];
+    final byte lastKept = kept[MAXIMUM_BYTES - 1];
     assertEquals(42, lastKept);
   }
 
@@ -268,21 +268,21 @@ class DelayedAudioOutputTest {
   @Test
   void shouldNotMakeAFilterThatClosesTheOutputWaitForItself() {
     final AtomicReference<DelayedAudioOutput> self = new AtomicReference<>();
-    final AtomicLong closeNanos = new AtomicLong(-1);
+    final AtomicLong closeNanoseconds = new AtomicLong(-1);
     final DelayedAudioOutput closing = start(
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
           final long start = System.nanoTime();
           self.get().close();
-          closeNanos.set(System.nanoTime() - start);
+          closeNanoseconds.set(System.nanoTime() - start);
           return true;
         }),
       (message, failure) -> this.failures.add(message)
     );
     self.set(closing);
     closing.accept(new byte[4], 4);
-    waitUntil(() -> closeNanos.get() >= 0);
-    final boolean closedQuickly = closeNanos.get() < TimeUnit.SECONDS.toNanos(1);
+    waitUntil(() -> closeNanoseconds.get() >= 0);
+    final boolean closedQuickly = closeNanoseconds.get() < TimeUnit.SECONDS.toNanos(1);
     assertTrue(closedQuickly, "closed without waiting for its own thread");
     assertEquals(List.of(), this.failures);
   }
@@ -318,8 +318,8 @@ class DelayedAudioOutputTest {
     final AtomicBoolean interrupted = new AtomicBoolean();
     final DelayedAudioOutput stuck = DelayedAudioOutput.start(
       "the browser",
-      DELAY_MILLIS,
-      MAX_QUEUED_MILLIS,
+      DELAY_MILLISECONDS,
+      MAXIMUM_QUEUED_MILLISECONDS,
       () ->
         AudioPipelineStep.of((samples, metadata) -> {
           entered.countDown();
@@ -333,7 +333,7 @@ class DelayedAudioOutputTest {
       (message, failure) -> this.failures.add(message),
       System::nanoTime,
       100,
-      DelayedAudioOutput.SILENCE_MILLIS
+      DelayedAudioOutput.SILENCE_MILLISECONDS
     );
     stuck.accept(new byte[4], 4);
     final boolean pipelineEntered = entered.await(10, TimeUnit.SECONDS);
@@ -351,38 +351,38 @@ class DelayedAudioOutputTest {
     this.output.close();
     this.output = DelayedAudioOutput.start(
       "the virtual machine",
-      DELAY_MILLIS,
-      MAX_QUEUED_MILLIS,
+      DELAY_MILLISECONDS,
+      MAXIMUM_QUEUED_MILLISECONDS,
       () -> this.step,
       (message, failure) -> this.failures.add(message),
       now::get,
-      DelayedAudioOutput.JOIN_TIMEOUT_MILLIS,
-      DelayedAudioOutput.SILENCE_MILLIS
+      DelayedAudioOutput.JOIN_TIMEOUT_MILLISECONDS,
+      DelayedAudioOutput.SILENCE_MILLISECONDS
     );
     this.output.accept(new byte[4], 4);
-    Thread.sleep(3L * DELAY_MILLIS);
+    Thread.sleep(3L * DELAY_MILLISECONDS);
     final int processedCount = this.processed.size();
     assertEquals(0, processedCount, "not due before the clock passed the delay");
-    now.set(TimeUnit.MILLISECONDS.toNanos(DELAY_MILLIS));
+    now.set(TimeUnit.MILLISECONDS.toNanos(DELAY_MILLISECONDS));
     waitUntil(() -> this.processed.size() == 1);
   }
 
-  /** An output whose clock the test moves, with at most {@code silenceMillis} of silence after {@link DelayedAudioOutput#quiet()}. */
-  private DelayedAudioOutput quietOutput(final AtomicLong now, final int silenceMillis) {
-    return this.quietOutput((LongSupplier) now::get, silenceMillis);
+  /** An output whose clock the test moves, with at most {@code silenceMilliseconds} of silence after {@link DelayedAudioOutput#quiet()}. */
+  private DelayedAudioOutput quietOutput(final AtomicLong now, final int silenceMilliseconds) {
+    return this.quietOutput((LongSupplier) now::get, silenceMilliseconds);
   }
 
-  private DelayedAudioOutput quietOutput(final LongSupplier clock, final int silenceMillis) {
+  private DelayedAudioOutput quietOutput(final LongSupplier clock, final int silenceMilliseconds) {
     this.output.close();
     this.output = DelayedAudioOutput.start(
       "the virtual machine",
-      DELAY_MILLIS,
-      MAX_QUEUED_MILLIS,
+      DELAY_MILLISECONDS,
+      MAXIMUM_QUEUED_MILLISECONDS,
       () -> this.step,
       (message, failure) -> this.failures.add(message),
       clock,
-      DelayedAudioOutput.JOIN_TIMEOUT_MILLIS,
-      silenceMillis
+      DelayedAudioOutput.JOIN_TIMEOUT_MILLISECONDS,
+      silenceMilliseconds
     );
     return this.output;
   }
@@ -407,8 +407,8 @@ class DelayedAudioOutputTest {
   }
 
   /** Moves the clock to a time and waits until the pipeline has seen a number of chunks. */
-  private void at(final AtomicLong now, final int millis, final int chunks) {
-    now.set(TimeUnit.MILLISECONDS.toNanos(millis));
+  private void at(final AtomicLong now, final int milliseconds, final int chunks) {
+    now.set(TimeUnit.MILLISECONDS.toNanos(milliseconds));
     waitUntil(() -> this.processed.size() >= chunks);
   }
 
@@ -419,7 +419,7 @@ class DelayedAudioOutputTest {
     final byte[] sound = new byte[1920];
     sound[0] = 7;
     quiet.accept(sound, sound.length);
-    this.at(now, DELAY_MILLIS, 1);
+    this.at(now, DELAY_MILLISECONDS, 1);
     final byte firstSample = this.processed.getFirst()[0];
     assertEquals(7, firstSample, "the sound comes first");
     quiet.quiet();
@@ -448,7 +448,7 @@ class DelayedAudioOutputTest {
       return now.get();
     }, 60);
     quiet.accept(new byte[1920], 1920);
-    this.at(now, DELAY_MILLIS, 1);
+    this.at(now, DELAY_MILLISECONDS, 1);
     quiet.quiet();
     final int seen = reads.get();
     waitUntil(() -> reads.get() >= seen + 2);
@@ -464,7 +464,7 @@ class DelayedAudioOutputTest {
     quiet.quiet();
     quiet.accept(new byte[] { 3, 0, 3, 0 }, 4);
     this.at(now, 0, 1);
-    this.at(now, DELAY_MILLIS, 2);
+    this.at(now, DELAY_MILLISECONDS, 2);
     final byte soundSample = this.processed.get(1)[0];
     assertEquals(3, soundSample);
 
@@ -504,8 +504,8 @@ class DelayedAudioOutputTest {
     final AtomicLong now = new AtomicLong(start);
     final DelayedAudioOutput quiet = this.quietOutput(now, 60);
     quiet.accept(new byte[] { 5, 0, 5, 0 }, 4);
-    final long due = start + TimeUnit.MILLISECONDS.toNanos(DELAY_MILLIS);
-    now.set(due - FRAME_NANOS - 1);
+    final long due = start + TimeUnit.MILLISECONDS.toNanos(DELAY_MILLISECONDS);
+    now.set(due - FRAME_NANOSECONDS - 1);
     quiet.quiet();
     waitUntil(() -> this.processed.size() == 1);
     final byte[] firstChunk = this.processed.getFirst();
@@ -514,7 +514,7 @@ class DelayedAudioOutputTest {
     waitUntil(() -> this.processed.size() == 2);
     final byte secondChunkStart = this.processed.get(1)[0];
     assertEquals(5, secondChunkStart, "the samples, then the rest of the silence");
-    now.set(due + FRAME_NANOS);
+    now.set(due + FRAME_NANOSECONDS);
     waitUntil(() -> this.processed.size() == 3);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 4);
@@ -540,7 +540,7 @@ class DelayedAudioOutputTest {
       return now.get();
     }, 60);
     quiet.accept(new byte[] { 6, 0, 6, 0 }, 4);
-    final long due = start + TimeUnit.MILLISECONDS.toNanos(DELAY_MILLIS);
+    final long due = start + TimeUnit.MILLISECONDS.toNanos(DELAY_MILLISECONDS);
     now.set(due - 10);
     quiet.quiet();
     final int seen = reads.get();
@@ -551,7 +551,7 @@ class DelayedAudioOutputTest {
     waitUntil(() -> this.processed.size() == 1);
     final byte firstSample = this.processed.getFirst()[0];
     assertEquals(6, firstSample);
-    now.set(due + FRAME_NANOS);
+    now.set(due + FRAME_NANOSECONDS);
     waitUntil(() -> this.processed.size() == 2);
     now.addAndGet(TimeUnit.MILLISECONDS.toNanos(20));
     waitUntil(() -> this.processed.size() == 3);
@@ -673,14 +673,14 @@ class DelayedAudioOutputTest {
     this.output = DelayedAudioOutput.start(
       "queue probe",
       1,
-      DelayedAudioOutput.MAX_QUEUED_MILLIS,
+      DelayedAudioOutput.MAXIMUM_QUEUED_MILLISECONDS,
       () -> this.step,
       (message, failure) -> this.failures.add(message),
       () -> 0L,
-      DelayedAudioOutput.JOIN_TIMEOUT_MILLIS,
-      DelayedAudioOutput.SILENCE_MILLIS
+      DelayedAudioOutput.JOIN_TIMEOUT_MILLISECONDS,
+      DelayedAudioOutput.SILENCE_MILLISECONDS
     );
-    final int capacity = DelayedAudioOutput.MAX_QUEUED_MILLIS * 192;
+    final int capacity = DelayedAudioOutput.MAXIMUM_QUEUED_MILLISECONDS * 192;
     final ByteBuffer samples = Mockito.mock(ByteBuffer.allocate(1).getClass());
     Mockito.when(samples.remaining()).thenReturn(capacity);
     final Class<?> chunkType = Class.forName(DelayedAudioOutput.class.getName() + "$Chunk");
@@ -756,6 +756,6 @@ class DelayedAudioOutputTest {
   }
 
   private static DelayedAudioOutput start(final Supplier<AudioPipelineStep> pipeline, final BiConsumer<String, Throwable> failures) {
-    return DelayedAudioOutput.start("the virtual machine", DELAY_MILLIS, MAX_QUEUED_MILLIS, pipeline, failures);
+    return DelayedAudioOutput.start("the virtual machine", DELAY_MILLISECONDS, MAXIMUM_QUEUED_MILLISECONDS, pipeline, failures);
   }
 }

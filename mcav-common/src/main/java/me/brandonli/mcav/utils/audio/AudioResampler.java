@@ -65,7 +65,7 @@ public final class AudioResampler implements AutoCloseable {
   /**
    * The largest channel count a resampler accepts, the number of channels of a 7.1 layout.
    */
-  public static final int MAX_CHANNELS = 8;
+  public static final int MAXIMUM_CHANNELS = 8;
 
   private final int inputSampleRate;
   private final int inputChannels;
@@ -109,10 +109,10 @@ public final class AudioResampler implements AutoCloseable {
    * Creates a resampler between two arbitrary interleaved PCM formats.
    *
    * @param inputSampleRate  the sample rate of the samples passed to {@link #resample(ByteBuffer)}, in hertz
-   * @param inputChannels    the number of interleaved input channels, from 1 to {@value #MAX_CHANNELS}
+   * @param inputChannels    the number of interleaved input channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param inputFormat      the encoding of the input samples
    * @param outputSampleRate the sample rate of the returned samples, in hertz
-   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAX_CHANNELS}
+   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param outputFormat     the encoding of the returned samples
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if a sample rate is not positive or a channel count is out of range
@@ -151,7 +151,7 @@ public final class AudioResampler implements AutoCloseable {
    * samples at {@value AudioFilter#SAMPLE_RATE} Hz.
    *
    * @param outputSampleRate the sample rate of the returned samples, in hertz
-   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAX_CHANNELS}
+   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param outputFormat     the encoding of the returned samples
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if the sample rate is not positive or the channel count is out of range
@@ -174,8 +174,8 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   private static void checkChannels(final int channels, final String side) {
-    final boolean inRange = channels >= 1 && channels <= MAX_CHANNELS;
-    Preconditions.checkArgument(inRange, "%s channel count %s must be between 1 and %s!", side, channels, MAX_CHANNELS);
+    final boolean inRange = channels >= 1 && channels <= MAXIMUM_CHANNELS;
+    Preconditions.checkArgument(inRange, "%s channel count %s must be between 1 and %s!", side, channels, MAXIMUM_CHANNELS);
   }
 
   private void configure() {

@@ -33,7 +33,7 @@ public final class VolumeFilter implements AudioFilter {
   public static final double UNCHANGED = 1.0;
 
   /** The largest amplitude multiplier, 2.0; this doubles sample values before clipping, not perceived loudness. */
-  public static final double MAX_VOLUME = 2.0;
+  public static final double MAXIMUM_VOLUME = 2.0;
 
   private volatile double volume;
 
@@ -47,11 +47,11 @@ public final class VolumeFilter implements AudioFilter {
   /**
    * Sets the volume.
    *
-   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAX_VOLUME}
+   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAXIMUM_VOLUME}
    * @throws IllegalArgumentException if the volume is outside that range or not a number
    */
   public void setVolume(final double volume) {
-    Preconditions.checkArgument(volume >= 0 && volume <= MAX_VOLUME, "Volume %s must be between 0 and %s!", volume, MAX_VOLUME);
+    Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
     this.volume = volume;
   }
 

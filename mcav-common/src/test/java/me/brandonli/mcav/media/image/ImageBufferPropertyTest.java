@@ -42,18 +42,18 @@ import net.jqwik.api.arbitraries.ListArbitrary;
 final class ImageBufferPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_SIDE = 24;
+  private static final int MAXIMUM_SIDE = 24;
   private static final int CHANNELS = 3;
 
   @Provide
   Arbitrary<ImageCase> images() {
-    final Arbitrary<Integer> sides = between(1, MAX_SIDE);
+    final Arbitrary<Integer> sides = between(1, MAXIMUM_SIDE);
     final Arbitrary<Integer> margins = between(0, 9);
     final Arbitrary<Boolean> direct = Arbitraries.of(true, false);
     final Arbitrary<ByteOrder> orders = Arbitraries.of(ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN);
     final IntegerArbitrary colors = Arbitraries.integers();
     final ListArbitrary<Integer> colorList = colors.list();
-    final ListArbitrary<Integer> pixels = colorList.ofSize(MAX_SIDE * MAX_SIDE);
+    final ListArbitrary<Integer> pixels = colorList.ofSize(MAXIMUM_SIDE * MAXIMUM_SIDE);
     final Combinators.Combinator7<Integer, Integer, Integer, Integer, Boolean, ByteOrder, List<Integer>> images = Combinators.combine(
       sides,
       sides,
@@ -70,9 +70,9 @@ final class ImageBufferPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Property(seed = SEED, tries = 100)

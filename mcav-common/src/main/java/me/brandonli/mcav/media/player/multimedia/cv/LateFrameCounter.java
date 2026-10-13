@@ -32,26 +32,26 @@ final class LateFrameCounter {
   /**
    * How much video one count covers, in microseconds.
    */
-  private static final long WINDOW_MICROS = 10_000_000L;
+  private static final long WINDOW_MICROSECONDS = 10_000_000L;
 
   /**
    * How many frames of a stretch must have been dropped at least to report it.
    */
-  private static final int MIN_DROPPED = 10;
+  private static final int MINIMUM_DROPPED = 10;
 
   /**
    * How much video passes at least between two reports, in microseconds.
    */
-  private static final long REPORT_INTERVAL_MICROS = 60_000_000L;
+  private static final long REPORT_INTERVAL_MICROSECONDS = 60_000_000L;
 
   private final PlaybackSession.LagListener listener;
 
   private boolean counting;
-  private long windowStartMicros;
+  private long windowStartMicroseconds;
   private int shown;
   private int dropped;
   private boolean reported;
-  private long lastReportMicros;
+  private long lastReportMicroseconds;
 
   /**
    * Creates a counter.
@@ -65,36 +65,36 @@ final class LateFrameCounter {
   /**
    * Counts a frame the renderer showed or dropped.
    *
-   * @param timestampMicros the timestamp of the frame
-   * @param late            whether the frame came too late and was dropped
+   * @param timestampMicroseconds the timestamp of the frame
+   * @param late                  whether the frame came too late and was dropped
    */
-  void count(final long timestampMicros, final boolean late) {
-    if (!this.counting || timestampMicros < this.windowStartMicros) {
+  void count(final long timestampMicroseconds, final boolean late) {
+    if (!this.counting || timestampMicroseconds < this.windowStartMicroseconds) {
       this.counting = true;
       this.reported = false;
-      this.begin(timestampMicros);
+      this.begin(timestampMicroseconds);
     }
     if (late) {
       this.dropped++;
     } else {
       this.shown++;
     }
-    if (timestampMicros - this.windowStartMicros < WINDOW_MICROS) {
+    if (timestampMicroseconds - this.windowStartMicroseconds < WINDOW_MICROSECONDS) {
       return;
     }
-    final boolean behind = this.dropped >= MIN_DROPPED && this.dropped > this.shown;
-    final boolean quiet = !this.reported || timestampMicros - this.lastReportMicros >= REPORT_INTERVAL_MICROS;
+    final boolean behind = this.dropped >= MINIMUM_DROPPED && this.dropped > this.shown;
+    final boolean quiet = !this.reported || timestampMicroseconds - this.lastReportMicroseconds >= REPORT_INTERVAL_MICROSECONDS;
     if (behind && quiet) {
       this.reported = true;
-      this.lastReportMicros = timestampMicros;
+      this.lastReportMicroseconds = timestampMicroseconds;
       final int frames = this.shown + this.dropped;
       this.listener.fellBehind(this.dropped, frames);
     }
-    this.begin(timestampMicros);
+    this.begin(timestampMicroseconds);
   }
 
-  private void begin(final long timestampMicros) {
-    this.windowStartMicros = timestampMicros;
+  private void begin(final long timestampMicroseconds) {
+    this.windowStartMicroseconds = timestampMicroseconds;
     this.shown = 0;
     this.dropped = 0;
   }

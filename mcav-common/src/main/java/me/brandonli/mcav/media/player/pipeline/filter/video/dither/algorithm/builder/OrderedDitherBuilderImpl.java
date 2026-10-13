@@ -36,7 +36,7 @@ public class OrderedDitherBuilderImpl implements OrderedDitherBuilder<BayerDithe
    */
   public OrderedDitherBuilderImpl() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
-    this.mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAX, PixelMapper.NORMAL_STRENGTH);
+    this.mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, PixelMapper.NORMAL_STRENGTH);
   }
 
   /**

@@ -29,23 +29,23 @@ import org.bytedeco.opencv.opencv_core.Mat;
 public class ThresholdFilter extends MatVideoFilter {
 
   private final double threshold;
-  private final double maxValue;
+  private final double maximumValue;
   private final int type;
 
   /**
    * Constructs a new threshold filter.
    *
-   * @param threshold the threshold value, from 0 to 255
-   * @param maxValue  the value assigned to channels that pass the threshold, from 0 to 255
-   * @param type      a fixed threshold mode from {@link opencv_imgproc}; automatic Otsu and triangle modes
-   *                  require a single-channel input and are not suitable for this three-channel BGR filter
+   * @param threshold    the threshold value, from 0 to 255
+   * @param maximumValue the value assigned to channels that pass the threshold, from 0 to 255
+   * @param type         a fixed threshold mode from {@link opencv_imgproc}; automatic Otsu and triangle modes
+   *                     require a single-channel input and are not suitable for this three-channel BGR filter
    * @throws IllegalArgumentException if the threshold or maximum is outside 0 through 255 or is NaN
    */
-  public ThresholdFilter(final double threshold, final double maxValue, final int type) {
+  public ThresholdFilter(final double threshold, final double maximumValue, final int type) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Threshold must be between 0 and 255!");
-    Preconditions.checkArgument(maxValue >= 0 && maxValue <= 255, "Max value must be between 0 and 255!");
+    Preconditions.checkArgument(maximumValue >= 0 && maximumValue <= 255, "Max value must be between 0 and 255!");
     this.threshold = threshold;
-    this.maxValue = maxValue;
+    this.maximumValue = maximumValue;
     this.type = type;
   }
 
@@ -57,7 +57,7 @@ public class ThresholdFilter extends MatVideoFilter {
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    opencv_imgproc.threshold(mat, mat, this.threshold, this.maxValue, this.type);
+    opencv_imgproc.threshold(mat, mat, this.threshold, this.maximumValue, this.type);
     return true;
   }
 }

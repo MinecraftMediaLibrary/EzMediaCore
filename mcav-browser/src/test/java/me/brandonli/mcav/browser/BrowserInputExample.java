@@ -35,7 +35,7 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 
@@ -82,8 +82,8 @@ public final class BrowserInputExample {
 
   private static VideoPipelineStep createPipeline(final JLabel label) {
     final VideoPipelineStepBuilder builder = PipelineBuilder.video();
-    final FPSFilter fpsFilter = new FPSFilter();
-    builder.then(fpsFilter);
+    final FramesPerSecondFilter framesPerSecondFilter = new FramesPerSecondFilter();
+    builder.then(framesPerSecondFilter);
     builder.then((samples, _) -> {
       show(label, samples);
       return false;

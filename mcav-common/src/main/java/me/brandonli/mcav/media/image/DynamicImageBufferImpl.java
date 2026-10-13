@@ -40,7 +40,7 @@ import org.bytedeco.opencv.opencv_core.Mat;
 final class DynamicImageBufferImpl implements DynamicImageBuffer {
 
   private static final float DEFAULT_FRAME_RATE = 10.0f;
-  private static final double MICROS_PER_SECOND = 1_000_000.0;
+  private static final double MICROSECONDS_PER_SECOND = 1_000_000.0;
 
   private final List<ImageBuffer> frames;
   private final float frameRate;
@@ -131,7 +131,7 @@ final class DynamicImageBufferImpl implements DynamicImageBuffer {
     }
     final long span = lastTimestamp - firstTimestamp;
     if (frameCount > 1 && span > 0) {
-      final double seconds = span / MICROS_PER_SECOND;
+      final double seconds = span / MICROSECONDS_PER_SECOND;
       final double derived = (frameCount - 1) / seconds;
       return (float) derived;
     }

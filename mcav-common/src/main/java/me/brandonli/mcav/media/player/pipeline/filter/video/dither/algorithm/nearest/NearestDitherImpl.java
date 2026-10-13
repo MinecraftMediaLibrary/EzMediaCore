@@ -33,7 +33,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public final class NearestDitherImpl extends AbstractDitherAlgorithm implements NearestDither, ParallelDitherAlgorithm {
 
-  private static final int MIN_PIXELS_PER_TASK = 4096;
+  private static final int MINIMUM_PIXELS_PER_TASK = 4096;
 
   /**
    * Constructs a new nearest color algorithm.
@@ -79,7 +79,7 @@ public final class NearestDitherImpl extends AbstractDitherAlgorithm implements 
     final int[] pixels = image.getPixels();
     final byte[] indices = new byte[pixels.length];
     final int parallelism = pool.getParallelism();
-    final int sizeLimitedTasks = pixels.length / MIN_PIXELS_PER_TASK;
+    final int sizeLimitedTasks = pixels.length / MINIMUM_PIXELS_PER_TASK;
     final int taskCount = Math.clamp(sizeLimitedTasks, 1, parallelism * 2);
     this.mapInParallel(pixels, indices, pool, taskCount);
     return indices;

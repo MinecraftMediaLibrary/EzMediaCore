@@ -108,13 +108,13 @@ final class PlaybackEventListener extends MediaPlayerEventAdapter {
   /**
    * Waits until VLC has started playing the media, has finished it, or has failed.
    *
-   * @param timeoutMillis how long to wait at most in milliseconds
+   * @param timeoutMilliseconds how long to wait at most in milliseconds
    * @return false if VLC reported an error, true otherwise, including when VLC is still opening the media when the
    * timeout elapses; later failures are still reported to the exception handler
    * @throws InterruptedException if the calling thread is interrupted while waiting
    */
-  boolean awaitOpened(final long timeoutMillis) throws InterruptedException {
-    this.settled.await(timeoutMillis, TimeUnit.MILLISECONDS);
+  boolean awaitOpened(final long timeoutMilliseconds) throws InterruptedException {
+    this.settled.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
 
     final boolean failedToOpen = this.failed.get();
     return !failedToOpen;

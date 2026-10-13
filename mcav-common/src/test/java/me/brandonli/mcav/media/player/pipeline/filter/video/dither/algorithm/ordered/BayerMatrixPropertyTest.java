@@ -97,15 +97,15 @@ final class BayerMatrixPropertyTest {
       case 4 -> BayerDither.NORMAL_4X4;
       default -> BayerDither.NORMAL_8X8;
     };
-    final int max = switch (size) {
-      case 2 -> BayerDither.NORMAL_2X2_MAX;
-      case 4 -> BayerDither.NORMAL_4X4_MAX;
-      default -> BayerDither.NORMAL_8X8_MAX;
+    final int maximum = switch (size) {
+      case 2 -> BayerDither.NORMAL_2X2_MAXIMUM;
+      case 4 -> BayerDither.NORMAL_4X4_MAXIMUM;
+      default -> BayerDither.NORMAL_8X8_MAXIMUM;
     };
     final int[][] generated = BayerDither.createBayerMatrix(size);
     final int[][] entries = constant.toArray();
 
-    assertEquals(size * size, max, "the level count of the constant");
+    assertEquals(size * size, maximum, "the level count of the constant");
     for (int row = 0; row < size; row++) {
       final int[] expected = new int[size];
       for (int column = 0; column < size; column++) {

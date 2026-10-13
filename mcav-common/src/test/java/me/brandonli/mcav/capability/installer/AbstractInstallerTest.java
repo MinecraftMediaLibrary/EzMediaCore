@@ -239,10 +239,10 @@ final class AbstractInstallerTest {
       final byte[] content = Files.readAllBytes(installed);
       final Path path = installer.getPath();
 
-      final Properties config = this.readConfig();
+      final Properties configuration = this.readConfiguration();
       final Path absolute = installed.toAbsolutePath();
       final String expectedEntry = absolute.toString();
-      final String entry = config.getProperty(NAME);
+      final String entry = configuration.getProperty(NAME);
       assertEquals(expected, installed);
       assertArrayEquals(PROGRAM, content);
       assertEquals(installed, path);
@@ -270,7 +270,7 @@ final class AbstractInstallerTest {
   void shouldFindAnInstallationRememberedInTheConfiguration() throws IOException {
     final Path elsewhere = this.createFileInFolder("installed-elsewhere");
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
-    writer.writePathToConfig(elsewhere);
+    writer.writePathToConfiguration(elsewhere);
 
     final Download unreachable = new Download(CURRENT_PLATFORM, "http://127.0.0.1:1/unreachable", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { unreachable });
@@ -283,7 +283,7 @@ final class AbstractInstallerTest {
   void shouldDownloadAgainWhenTheRememberedInstallationIsGone() throws IOException {
     final Path gone = this.folder.resolve("gone");
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
-    writer.writePathToConfig(gone);
+    writer.writePathToConfiguration(gone);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
@@ -298,9 +298,9 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldIgnoreARememberedPathThatIsNotAValidPath() throws IOException {
-    final Properties config = new Properties();
-    config.setProperty(NAME, "bad\0path");
-    this.writeConfig(config);
+    final Properties configuration = new Properties();
+    configuration.setProperty(NAME, "bad\0path");
+    this.writeConfiguration(configuration);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
@@ -313,8 +313,8 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldIgnoreAConfigurationWithAMalformedEscapeAndRememberTheNewInstallation() throws IOException {
-    final Path configFile = this.folder.resolve("config.properties");
-    Files.writeString(configFile, "tool=\\uZZZZ\n", StandardCharsets.ISO_8859_1);
+    final Path configurationFile = this.folder.resolve("config.properties");
+    Files.writeString(configurationFile, "tool=\\uZZZZ\n", StandardCharsets.ISO_8859_1);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
@@ -323,8 +323,8 @@ final class AbstractInstallerTest {
       final Path expected = installer.getDefaultPath();
       assertEquals(expected, installed);
 
-      final Properties config = this.readConfig();
-      final String remembered = config.getProperty(NAME);
+      final Properties configuration = this.readConfiguration();
+      final String remembered = configuration.getProperty(NAME);
       final Path absolute = installed.toAbsolutePath();
       final String expectedRemembered = absolute.toString();
       assertEquals(expectedRemembered, remembered);
@@ -342,8 +342,8 @@ final class AbstractInstallerTest {
 
       final Path defaultPath = installer.getDefaultPath();
       final boolean exists = Files.exists(defaultPath);
-      final Properties config = this.readConfig();
-      final boolean nothingRemembered = config.isEmpty();
+      final Properties configuration = this.readConfiguration();
+      final boolean nothingRemembered = configuration.isEmpty();
       assertFalse(exists);
       assertTrue(nothingRemembered);
     }
@@ -408,9 +408,9 @@ final class AbstractInstallerTest {
 
       final Throwable cause = thrown.getCause();
       final String message = thrown.getMessage();
-      final Properties config = this.readConfig();
+      final Properties configuration = this.readConfiguration();
       final boolean namesTheProblem = message.contains("executable");
-      final boolean nothingRemembered = config.isEmpty();
+      final boolean nothingRemembered = configuration.isEmpty();
       assertSame(chmodFailure, cause);
       assertTrue(namesTheProblem, message);
       assertTrue(nothingRemembered, "a failed installation is not remembered");
@@ -449,8 +449,8 @@ final class AbstractInstallerTest {
       assertEquals(DirectoryNotEmptyException.class, suppressedType);
       final String suppressedFile = ((DirectoryNotEmptyException) suppressed[0]).getFile();
       assertEquals(destination.toString(), suppressedFile);
-      final Properties config = this.readConfig();
-      assertEquals(new Properties(), config, "a failed installation is not remembered");
+      final Properties configuration = this.readConfiguration();
+      assertEquals(new Properties(), configuration, "a failed installation is not remembered");
       final String retained = Files.readString(destination.resolve("busy"));
       assertEquals("retained", retained);
     }
@@ -515,7 +515,7 @@ final class AbstractInstallerTest {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, noDownloads);
     final Optional<Path> before = installer.findInstallation();
     final Path elsewhere = this.createFileInFolder("installed-elsewhere");
-    installer.writePathToConfig(elsewhere);
+    installer.writePathToConfiguration(elsewhere);
 
     final Optional<Path> after = installer.findInstallation();
     final Path path = installer.getPath();
@@ -549,20 +549,20 @@ final class AbstractInstallerTest {
     final Path second = this.createFileInFolder("second");
     final TestInstaller firstInstaller = new TestInstaller(this.folder, "first-program", new Download[0]);
     final TestInstaller secondInstaller = new TestInstaller(this.folder, "second-program", new Download[0]);
-    firstInstaller.writePathToConfig(first);
-    secondInstaller.writePathToConfig(second);
+    firstInstaller.writePathToConfiguration(first);
+    secondInstaller.writePathToConfiguration(second);
 
-    final Properties config = this.readConfig();
+    final Properties configuration = this.readConfiguration();
     final Path firstAbsolute = first.toAbsolutePath();
     final Path secondAbsolute = second.toAbsolutePath();
     final String expectedFirst = firstAbsolute.toString();
     final String expectedSecond = secondAbsolute.toString();
-    final String firstEntry = config.getProperty("first-program");
-    final String secondEntry = config.getProperty("second-program");
+    final String firstEntry = configuration.getProperty("first-program");
+    final String secondEntry = configuration.getProperty("second-program");
     assertEquals(expectedFirst, firstEntry);
     assertEquals(expectedSecond, secondEntry);
     this.assertNoTemporaryFiles();
-    assertThrows(NullPointerException.class, () -> firstInstaller.writePathToConfig(null));
+    assertThrows(NullPointerException.class, () -> firstInstaller.writePathToConfiguration(null));
   }
 
   @Test
@@ -679,23 +679,23 @@ final class AbstractInstallerTest {
     return Files.createFile(file);
   }
 
-  private Properties readConfig() throws IOException {
+  private Properties readConfiguration() throws IOException {
     final Properties properties = new Properties();
-    final Path configFile = this.folder.resolve("config.properties");
-    final boolean exists = Files.exists(configFile);
+    final Path configurationFile = this.folder.resolve("config.properties");
+    final boolean exists = Files.exists(configurationFile);
     if (!exists) {
       return properties;
     }
-    try (final InputStream configInput = Files.newInputStream(configFile)) {
-      properties.load(configInput);
+    try (final InputStream configurationInput = Files.newInputStream(configurationFile)) {
+      properties.load(configurationInput);
     }
     return properties;
   }
 
-  private void writeConfig(final Properties properties) throws IOException {
-    final Path configFile = this.folder.resolve("config.properties");
-    try (final OutputStream configOutput = Files.newOutputStream(configFile)) {
-      properties.store(configOutput, null);
+  private void writeConfiguration(final Properties properties) throws IOException {
+    final Path configurationFile = this.folder.resolve("config.properties");
+    try (final OutputStream configurationOutput = Files.newOutputStream(configurationFile)) {
+      properties.store(configurationOutput, null);
     }
   }
 

@@ -31,7 +31,7 @@ final class DecodedAudioChunkTest {
   void shouldRetainThePresentationTimestamp(final long timestamp) {
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final DecodedAudioChunk chunk = new DecodedAudioChunk(samples, timestamp);
-    final long actual = chunk.getTimestampMicros();
+    final long actual = chunk.getTimestampMicroseconds();
     assertEquals(timestamp, actual);
   }
 }

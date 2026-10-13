@@ -124,14 +124,14 @@ final class CommandTaskDeadlineTest {
     final AtomicLong firstBudget = new AtomicLong();
     final AtomicLong secondBudget = new AtomicLong();
     when(output.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> {
-      final long nanos = invocation.getArgument(0);
-      firstBudget.set(nanos);
+      final long nanoseconds = invocation.getArgument(0);
+      firstBudget.set(nanoseconds);
       Thread.sleep(30L);
       return "output";
     });
     when(errors.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> {
-      final long nanos = invocation.getArgument(0);
-      secondBudget.set(nanos);
+      final long nanoseconds = invocation.getArgument(0);
+      secondBudget.set(nanoseconds);
       throw new TimeoutException("still reading error output!");
     });
     final CommandTask task = new CommandTask("already-finished");

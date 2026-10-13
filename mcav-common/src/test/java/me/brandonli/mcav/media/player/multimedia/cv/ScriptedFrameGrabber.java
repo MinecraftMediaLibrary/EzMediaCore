@@ -75,18 +75,18 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     return grabber;
   }
 
-  static Frame video(final long timestampMicros) {
+  static Frame video(final long timestampMicroseconds) {
     final Frame frame = new Frame(4, 2, Frame.DEPTH_UBYTE, 3);
-    frame.timestamp = timestampMicros;
+    frame.timestamp = timestampMicroseconds;
     return frame;
   }
 
-  static Frame audio(final long timestampMicros) {
+  static Frame audio(final long timestampMicroseconds) {
     final Frame frame = new Frame();
     frame.samples = new Buffer[] { ShortBuffer.allocate(960) };
     frame.sampleRate = 48_000;
     frame.audioChannels = 2;
-    frame.timestamp = timestampMicros;
+    frame.timestamp = timestampMicroseconds;
     return frame;
   }
 
@@ -112,10 +112,10 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   /**
    * Gives the media a known length, which makes it seekable.
    *
-   * @param lengthMicros the length in microseconds
+   * @param lengthMicroseconds the length in microseconds
    */
-  void setLength(final long lengthMicros) {
-    this.length = lengthMicros;
+  void setLength(final long lengthMicroseconds) {
+    this.length = lengthMicroseconds;
   }
 
   /**
@@ -199,12 +199,12 @@ final class ScriptedFrameGrabber extends FrameGrabber {
    */
   static final class Delay {
 
-    private static final long NANOS_PER_MILLI = 1_000_000L;
+    private static final long NANOSECONDS_PER_MILLISECOND = 1_000_000L;
 
-    private final long millis;
+    private final long milliseconds;
 
-    Delay(final long millis) {
-      this.millis = millis;
+    Delay(final long milliseconds) {
+      this.milliseconds = milliseconds;
     }
 
     /**
@@ -212,10 +212,10 @@ final class ScriptedFrameGrabber extends FrameGrabber {
      * sleep for the rest of the delay, and the interrupt is restored at the end.
      */
     void block() {
-      final long delayNanos = this.millis * NANOS_PER_MILLI;
-      final long end = System.nanoTime() + delayNanos;
+      final long delayNanoseconds = this.milliseconds * NANOSECONDS_PER_MILLISECOND;
+      final long end = System.nanoTime() + delayNanoseconds;
       boolean interrupted = false;
-      long remaining = delayNanos;
+      long remaining = delayNanoseconds;
       while (remaining > 0) {
         LockSupport.parkNanos(remaining);
         interrupted |= Thread.interrupted();

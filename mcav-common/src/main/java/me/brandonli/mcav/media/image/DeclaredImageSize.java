@@ -36,16 +36,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * OpenCV decodes. Bytes in any other format are refused as unsupported, as OpenCV refuses them too: JPEG 2000 and
  * OpenEXR, which OpenCV disables unless an environment variable turns them on, are refused as well.
  *
- * <p>The limit is the system property {@value #MAX_PIXELS_PROPERTY}, {@value #DEFAULT_MAX_PIXELS} pixels (8192 by 8192)
+ * <p>The limit is the system property {@value #MAXIMUM_PIXELS_PROPERTY}, {@value #DEFAULT_MAXIMUM_PIXELS} pixels (8192 by 8192)
  * if it is not set. A value of 0 or less turns the check off and leaves every image to OpenCV, as before the check.
  */
 final class DeclaredImageSize {
 
   /** The system property that sets the most pixels an encoded image may declare; 0 or less turns the check off. */
-  static final String MAX_PIXELS_PROPERTY = "mcav.image.maxPixels";
+  static final String MAXIMUM_PIXELS_PROPERTY = "mcav.image.maxPixels";
 
   /** The limit when the property is not set: 8192 by 8192 pixels, 192 MiB of decoded BGR. */
-  private static final long DEFAULT_MAX_PIXELS = 1L << 26;
+  private static final long DEFAULT_MAXIMUM_PIXELS = 1L << 26;
 
   private static final String UNSUPPORTED_FILE = "File %s is not a supported image!";
 
@@ -115,7 +115,7 @@ final class DeclaredImageSize {
   }
 
   static long limit() {
-    return Long.getLong(MAX_PIXELS_PROPERTY, DEFAULT_MAX_PIXELS);
+    return Long.getLong(MAXIMUM_PIXELS_PROPERTY, DEFAULT_MAXIMUM_PIXELS);
   }
 
   private static void checkLimit(final Size size, final long limit) {
@@ -128,7 +128,7 @@ final class DeclaredImageSize {
         width,
         height,
         limit,
-        MAX_PIXELS_PROPERTY
+        MAXIMUM_PIXELS_PROPERTY
       );
       throw new IllegalArgumentException(message);
     }
@@ -185,11 +185,11 @@ final class DeclaredImageSize {
    * top-down picture) or, in the 12-byte OS/2 header, as 16-bit values.
    */
   private static @Nullable Size bmp(final Header header) {
-    final long infoSize = header.signedLittleEndian32(14);
-    if (infoSize >= 36) {
+    final long informationSize = header.signedLittleEndian32(14);
+    if (informationSize >= 36) {
       return of(header.signedLittleEndian32(18), Math.abs(header.signedLittleEndian32(22)));
     }
-    if (infoSize == 12) {
+    if (informationSize == 12) {
       return of(header.littleEndian(18, 2), header.littleEndian(20, 2));
     }
     return null;

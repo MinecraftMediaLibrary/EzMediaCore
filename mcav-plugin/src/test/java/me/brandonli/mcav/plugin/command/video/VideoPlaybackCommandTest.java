@@ -94,7 +94,7 @@ final class VideoPlaybackCommandTest {
   @Test
   void jumpsFromWhereADecodedVideoPlays() {
     when(this.manager.getPlayer()).thenReturn(this.decoded);
-    when(this.decoded.getPositionMillis()).thenReturn(5_000L);
+    when(this.decoded.getPositionMilliseconds()).thenReturn(5_000L);
     when(this.decoded.seek(anyLong())).thenReturn(true);
     this.command.seekVideo(this.sender, "+10");
     this.command.seekVideo(this.sender, "-1:00");
@@ -133,7 +133,7 @@ final class VideoPlaybackCommandTest {
     this.command.setVolume(this.sender, 80);
     assertEquals(0.8, this.volume.getVolume());
     this.command.setVolume(this.sender, 200);
-    assertEquals(VolumeFilter.MAX_VOLUME, this.volume.getVolume());
+    assertEquals(VolumeFilter.MAXIMUM_VOLUME, this.volume.getVolume());
     this.assertReceived(Message.VOLUME_SET.build(80), Message.VOLUME_SET.build(200));
   }
 

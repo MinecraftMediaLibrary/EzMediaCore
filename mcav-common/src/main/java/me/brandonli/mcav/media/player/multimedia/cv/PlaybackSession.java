@@ -82,24 +82,24 @@ final class PlaybackSession {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PlaybackSession.class);
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
-  private static final long END_OFFER_TIMEOUT_MILLIS = 50L;
+  private static final long END_OFFER_TIMEOUT_MILLISECONDS = 50L;
 
   private static final int VIDEO_QUEUE_CAPACITY = 4;
   private static final int IMAGE_POOL_CAPACITY = VIDEO_QUEUE_CAPACITY + 2;
   private static final int AUDIO_QUEUE_CAPACITY = 64;
-  private static final long PAUSE_POLL_MILLIS = 50L;
+  private static final long PAUSE_POLL_MILLISECONDS = 50L;
   /**
    * How late a frame may be before players drop it instead of showing it, in nanoseconds.
    */
-  static final long MAX_VIDEO_LAG_NANOS = 100_000_000L;
+  static final long MAXIMUM_VIDEO_LAG_NANOSECONDS = 100_000_000L;
 
   /**
    * How long before its timestamp players hand an audio chunk to the pipeline, in nanoseconds.
    */
-  static final long AUDIO_LEAD_NANOS = 50_000_000L;
+  static final long AUDIO_LEAD_NANOSECONDS = 50_000_000L;
 
-  private static final long MAX_SLEEP_NANOS = 500_000_000L;
-  private static final long JOIN_TIMEOUT_MILLIS = 5_000L;
+  private static final long MAXIMUM_SLEEP_NANOSECONDS = 500_000_000L;
+  private static final long JOIN_TIMEOUT_MILLISECONDS = 5_000L;
   private static final OriginalAudioMetadata DEFAULT_AUDIO_METADATA = OriginalAudioMetadata.of(
     "",
     OriginalAudioMetadata.UNKNOWN,
@@ -117,10 +117,10 @@ final class PlaybackSession {
   private final AudioAttachableCallback audioCallback;
   private final BiConsumer<String, Throwable> exceptionHandler;
   private final PlaybackClock clock;
-  private final long startMicros;
-  private final long audioLeadNanos;
-  private final long maxVideoLagNanos;
-  private final LongSupplier nanoClock;
+  private final long startMicroseconds;
+  private final long audioLeadNanoseconds;
+  private final long maximumVideoLagNanoseconds;
+  private final LongSupplier nanosecondClock;
   private final BlockingQueue<DecodedVideoFrame> videoQueue;
   private final BlockingQueue<DecodedAudioChunk> audioQueue;
   private final ImagePool imagePool;
@@ -130,7 +130,7 @@ final class PlaybackSession {
   private final AtomicBoolean running;
   private final List<Thread> threads;
 
-  private volatile long positionMicros;
+  private volatile long positionMicroseconds;
   private volatile OriginalVideoMetadata videoMetadata;
   private volatile OriginalAudioMetadata audioMetadata;
   private volatile boolean seekable;
@@ -167,21 +167,21 @@ final class PlaybackSession {
   /**
    * Constructs a new session. Nothing is opened until {@link #open()} or {@link #start()} is called.
    *
-   * @param videoGrabberFactory creates the grabber of the video source, which also provides the audio when there is
-   *                            no separate audio source
-   * @param audioGrabberFactory creates the grabber of a separate audio source, or {@code null} if there is none
-   * @param videoCallback       provides the video pipeline
-   * @param audioCallback       provides the audio pipeline
-   * @param dimensionCallback   provides the size frames are scaled to, if attached
-   * @param exceptionHandler    receives decoding and pipeline failures
-   * @param startMicros         the position to start at in microseconds
-   * @param startPaused         whether the session starts paused
-   * @param audioLeadNanos      how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds;
-   *                            players pass {@link #AUDIO_LEAD_NANOS}
-   * @param maxVideoLagNanos    how late a frame may be before it is dropped, in nanoseconds; players pass
-   *                            {@link #MAX_VIDEO_LAG_NANOS}, and {@link Long#MAX_VALUE} never drops a frame
-   * @param nanoClock           the clock media is scheduled with, in nanoseconds; players pass
-   *                            {@link System#nanoTime()}, and tests pass a clock they control
+   * @param videoGrabberFactory        creates the grabber of the video source, which also provides the audio when there is
+   *                                   no separate audio source
+   * @param audioGrabberFactory        creates the grabber of a separate audio source, or {@code null} if there is none
+   * @param videoCallback              provides the video pipeline
+   * @param audioCallback              provides the audio pipeline
+   * @param dimensionCallback          provides the size frames are scaled to, if attached
+   * @param exceptionHandler           receives decoding and pipeline failures
+   * @param startMicroseconds          the position to start at in microseconds
+   * @param startPaused                whether the session starts paused
+   * @param audioLeadNanoseconds       how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds;
+   *                                   players pass {@link #AUDIO_LEAD_NANOSECONDS}
+   * @param maximumVideoLagNanoseconds how late a frame may be before it is dropped, in nanoseconds; players pass
+   *                                   {@link #MAXIMUM_VIDEO_LAG_NANOSECONDS}, and {@link Long#MAX_VALUE} never drops a frame
+   * @param nanosecondClock            the clock media is scheduled with, in nanoseconds; players pass
+   *                                   {@link System#nanoTime()}, and tests pass a clock they control
    */
   PlaybackSession(
     final GrabberFactory videoGrabberFactory,
@@ -190,11 +190,11 @@ final class PlaybackSession {
     final AudioAttachableCallback audioCallback,
     final DimensionAttachableCallback dimensionCallback,
     final BiConsumer<String, Throwable> exceptionHandler,
-    final long startMicros,
+    final long startMicroseconds,
     final boolean startPaused,
-    final long audioLeadNanos,
-    final long maxVideoLagNanos,
-    final LongSupplier nanoClock
+    final long audioLeadNanoseconds,
+    final long maximumVideoLagNanoseconds,
+    final LongSupplier nanosecondClock
   ) {
     this(
       videoGrabberFactory,
@@ -203,11 +203,11 @@ final class PlaybackSession {
       audioCallback,
       dimensionCallback,
       exceptionHandler,
-      startMicros,
+      startMicroseconds,
       startPaused,
-      audioLeadNanos,
-      maxVideoLagNanos,
-      nanoClock,
+      audioLeadNanoseconds,
+      maximumVideoLagNanoseconds,
+      nanosecondClock,
       PlaybackSession::logFallingBehind
     );
   }
@@ -216,19 +216,19 @@ final class PlaybackSession {
    * Constructs a new session that tells a listener when playback falls behind, where the other constructor logs a
    * warning.
    *
-   * @param videoGrabberFactory creates the grabber of the video source
-   * @param audioGrabberFactory creates the grabber of a separate audio source, or {@code null} if there is none
-   * @param videoCallback       provides the video pipeline
-   * @param audioCallback       provides the audio pipeline
-   * @param dimensionCallback   provides the size frames are scaled to, if attached
-   * @param exceptionHandler    receives decoding and pipeline failures
-   * @param startMicros         the position to start at in microseconds
-   * @param startPaused         whether the session starts paused
-   * @param audioLeadNanos      how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds
-   * @param maxVideoLagNanos    how late a frame may be before it is dropped, in nanoseconds
-   * @param nanoClock           the clock media is scheduled with, in nanoseconds
-   * @param lagListener         hears of stretches of video in which most frames came too late, see
-   *                            {@link LateFrameCounter}
+   * @param videoGrabberFactory        creates the grabber of the video source
+   * @param audioGrabberFactory        creates the grabber of a separate audio source, or {@code null} if there is none
+   * @param videoCallback              provides the video pipeline
+   * @param audioCallback              provides the audio pipeline
+   * @param dimensionCallback          provides the size frames are scaled to, if attached
+   * @param exceptionHandler           receives decoding and pipeline failures
+   * @param startMicroseconds          the position to start at in microseconds
+   * @param startPaused                whether the session starts paused
+   * @param audioLeadNanoseconds       how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds
+   * @param maximumVideoLagNanoseconds how late a frame may be before it is dropped, in nanoseconds
+   * @param nanosecondClock            the clock media is scheduled with, in nanoseconds
+   * @param lagListener                hears of stretches of video in which most frames came too late, see
+   *                                   {@link LateFrameCounter}
    */
   PlaybackSession(
     final GrabberFactory videoGrabberFactory,
@@ -237,11 +237,11 @@ final class PlaybackSession {
     final AudioAttachableCallback audioCallback,
     final DimensionAttachableCallback dimensionCallback,
     final BiConsumer<String, Throwable> exceptionHandler,
-    final long startMicros,
+    final long startMicroseconds,
     final boolean startPaused,
-    final long audioLeadNanos,
-    final long maxVideoLagNanos,
-    final LongSupplier nanoClock,
+    final long audioLeadNanoseconds,
+    final long maximumVideoLagNanoseconds,
+    final LongSupplier nanosecondClock,
     final LagListener lagListener
   ) {
     this.videoGrabberFactory = videoGrabberFactory;
@@ -249,11 +249,11 @@ final class PlaybackSession {
     this.videoCallback = videoCallback;
     this.audioCallback = audioCallback;
     this.exceptionHandler = exceptionHandler;
-    this.clock = new PlaybackClock(nanoClock);
-    this.startMicros = startMicros;
-    this.audioLeadNanos = audioLeadNanos;
-    this.maxVideoLagNanos = maxVideoLagNanos;
-    this.nanoClock = nanoClock;
+    this.clock = new PlaybackClock(nanosecondClock);
+    this.startMicroseconds = startMicroseconds;
+    this.audioLeadNanoseconds = audioLeadNanoseconds;
+    this.maximumVideoLagNanoseconds = maximumVideoLagNanoseconds;
+    this.nanosecondClock = nanosecondClock;
     this.videoQueue = new ArrayBlockingQueue<>(VIDEO_QUEUE_CAPACITY);
     this.audioQueue = new ArrayBlockingQueue<>(AUDIO_QUEUE_CAPACITY);
     this.imagePool = new ImagePool(IMAGE_POOL_CAPACITY);
@@ -262,7 +262,7 @@ final class PlaybackSession {
     this.resampler = new SpeedResampler();
     this.running = new AtomicBoolean(true);
     this.threads = new ArrayList<>();
-    this.positionMicros = startMicros;
+    this.positionMicroseconds = startMicroseconds;
     this.videoMetadata = OriginalVideoMetadata.EMPTY;
     this.audioMetadata = DEFAULT_AUDIO_METADATA;
     if (startPaused) {
@@ -419,7 +419,7 @@ final class PlaybackSession {
     final OriginalVideoMetadata decodedVideoMetadata = createVideoMetadata(grabber);
     final double frameRate = grabber.getFrameRate();
     final long length = grabber.getLengthInTime();
-    final VideoTimestamps timestamps = new VideoTimestamps(frameRate, length <= 0, this.nanoClock);
+    final VideoTimestamps timestamps = new VideoTimestamps(frameRate, length <= 0, this.nanosecondClock);
     final OriginalAudioMetadata decodedAudioMetadata = createAudioMetadata(grabber);
     Frame frame = grab(grabber, wantsVideo, wantsAudio);
     while (frame != null && this.running.get()) {
@@ -438,11 +438,11 @@ final class PlaybackSession {
    * is, which is better than not playing it at all; the failure is reported.
    */
   private void seekToStart(final FrameGrabber grabber) {
-    if (this.startMicros <= 0) {
+    if (this.startMicroseconds <= 0) {
       return;
     }
     try {
-      grabber.setTimestamp(this.startMicros);
+      grabber.setTimestamp(this.startMicroseconds);
     } catch (final FrameGrabber.Exception exception) {
       this.report("Failed to seek, playing from the current position instead", exception);
     }
@@ -582,7 +582,7 @@ final class PlaybackSession {
     try {
       while (this.running.get()) {
         try {
-          final boolean offered = queue.offer(marker, END_OFFER_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+          final boolean offered = queue.offer(marker, END_OFFER_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
           if (offered) {
             return;
           }
@@ -640,14 +640,14 @@ final class PlaybackSession {
    * Waits until the frame is due and runs it through the pipeline, unless it is too late or nobody watches.
    */
   private void presentVideoFrame(final DecodedVideoFrame frame, final @Nullable MatImageBuffer image) throws InterruptedException {
-    final long timestamp = frame.getTimestampMicros();
-    final long lateNanos = this.awaitDue(timestamp, 0L);
-    final boolean late = lateNanos > this.maxVideoLagNanos;
+    final long timestamp = frame.getTimestampMicroseconds();
+    final long lateNanoseconds = this.awaitDue(timestamp, 0L);
+    final boolean late = lateNanoseconds > this.maximumVideoLagNanoseconds;
     this.lateFrames.count(timestamp, late);
     if (late) {
       return;
     }
-    this.positionMicros = timestamp;
+    this.positionMicroseconds = timestamp;
     final VideoPipelineStep step = this.videoCallback.retrieve();
     final boolean empty = step.isNoOp();
     if (image == null || empty) {
@@ -714,8 +714,8 @@ final class PlaybackSession {
   }
 
   private void renderAudioChunk(final DecodedAudioChunk chunk) throws InterruptedException {
-    final long timestamp = chunk.getTimestampMicros();
-    this.awaitDue(timestamp, this.audioLeadNanos);
+    final long timestamp = chunk.getTimestampMicroseconds();
+    this.awaitDue(timestamp, this.audioLeadNanoseconds);
     final AudioPipelineStep step = this.audioCallback.retrieve();
     final boolean empty = step.isNoOp();
     if (empty) {
@@ -748,20 +748,20 @@ final class PlaybackSession {
    * @return how late the media is in nanoseconds, zero if it is on time
    * @throws InterruptedException if the session stops while waiting
    */
-  private long awaitDue(final long timestampMicros, final long leadNanos) throws InterruptedException {
+  private long awaitDue(final long timestampMicroseconds, final long leadNanoseconds) throws InterruptedException {
     while (true) {
       if (this.clock.isPaused()) {
-        this.clock.awaitResume(PAUSE_POLL_MILLIS);
+        this.clock.awaitResume(PAUSE_POLL_MILLISECONDS);
         continue;
       }
-      final long dueNanos = this.clock.dueAt(timestampMicros);
-      final long startNanos = dueNanos - leadNanos;
-      final long now = this.nanoClock.getAsLong();
-      final long remaining = startNanos - now;
+      final long dueNanoseconds = this.clock.dueAt(timestampMicroseconds);
+      final long startNanoseconds = dueNanoseconds - leadNanoseconds;
+      final long now = this.nanosecondClock.getAsLong();
+      final long remaining = startNanoseconds - now;
       if (remaining <= 0) {
         return -remaining;
       }
-      final long sleep = Math.min(remaining, MAX_SLEEP_NANOS);
+      final long sleep = Math.min(remaining, MAXIMUM_SLEEP_NANOSECONDS);
       LockSupport.parkNanos(sleep);
       if (Thread.interrupted()) {
         throw new InterruptedException("Interrupted while waiting for media to be due!");
@@ -815,8 +815,8 @@ final class PlaybackSession {
    *
    * @return the position in microseconds
    */
-  long getPositionMicros() {
-    return this.positionMicros;
+  long getPositionMicroseconds() {
+    return this.positionMicroseconds;
   }
 
   /**
@@ -918,7 +918,7 @@ final class PlaybackSession {
         continue;
       }
       try {
-        thread.join(JOIN_TIMEOUT_MILLIS);
+        thread.join(JOIN_TIMEOUT_MILLISECONDS);
       } catch (final InterruptedException exception) {
         final Thread waiting = Thread.currentThread();
         waiting.interrupt();

@@ -28,7 +28,7 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * tuning a pipeline. The count is refreshed after an elapsed window of at least one second. A filter shared by several pipelines
  * counts their combined calls, so use a separate instance when measuring each pipeline.
  */
-public class FPSFilter extends MatVideoFilter {
+public class FramesPerSecondFilter extends MatVideoFilter {
 
   private static final Scalar WHITE = new Scalar(255, 255, 255, 0);
   private static final Scalar BLACK = new Scalar(0, 0, 0, 0);
@@ -36,7 +36,7 @@ public class FPSFilter extends MatVideoFilter {
   private static final double FONT_SCALE = 0.6;
   private static final int OUTLINE_THICKNESS = 3;
   private static final int TEXT_THICKNESS = 1;
-  private static final long WINDOW_NANOS = 1_000_000_000L;
+  private static final long WINDOW_NANOSECONDS = 1_000_000_000L;
 
   private final LongSupplier clock;
 
@@ -47,11 +47,11 @@ public class FPSFilter extends MatVideoFilter {
   /**
    * Constructs a new frame rate filter.
    */
-  public FPSFilter() {
+  public FramesPerSecondFilter() {
     this(System::nanoTime);
   }
 
-  FPSFilter(final LongSupplier clock) {
+  FramesPerSecondFilter(final LongSupplier clock) {
     this.clock = clock;
     this.windowStart = clock.getAsLong();
   }
@@ -78,10 +78,10 @@ public class FPSFilter extends MatVideoFilter {
     final long now = this.clock.getAsLong();
     this.framesInWindow++;
     final long elapsed = now - this.windowStart;
-    if (elapsed < WINDOW_NANOS) {
+    if (elapsed < WINDOW_NANOSECONDS) {
       return;
     }
-    final double seconds = elapsed / (double) WINDOW_NANOS;
+    final double seconds = elapsed / (double) WINDOW_NANOSECONDS;
     this.displayedFrameRate = (int) Math.round(this.framesInWindow / seconds);
     this.framesInWindow = 0;
     this.windowStart = now;

@@ -30,17 +30,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 final class DecodedVideoFrame {
 
   private final @Nullable MatImageBuffer image;
-  private final long timestampMicros;
+  private final long timestampMicroseconds;
 
   /**
    * Constructs a new frame.
    *
-   * @param image           the picture, owned by the frame until it is rendered, or {@code null} if nobody watches
-   * @param timestampMicros the presentation time of the frame in microseconds
+   * @param image                 the picture, owned by the frame until it is rendered, or {@code null} if nobody watches
+   * @param timestampMicroseconds the presentation time of the frame in microseconds
    */
-  DecodedVideoFrame(final @Nullable MatImageBuffer image, final long timestampMicros) {
+  DecodedVideoFrame(final @Nullable MatImageBuffer image, final long timestampMicroseconds) {
     this.image = image;
-    this.timestampMicros = timestampMicros;
+    this.timestampMicroseconds = timestampMicroseconds;
   }
 
   /**
@@ -57,7 +57,7 @@ final class DecodedVideoFrame {
    *
    * @return the timestamp in microseconds
    */
-  long getTimestampMicros() {
-    return this.timestampMicros;
+  long getTimestampMicroseconds() {
+    return this.timestampMicroseconds;
   }
 }

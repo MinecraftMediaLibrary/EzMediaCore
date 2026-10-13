@@ -243,17 +243,17 @@ final class BackgroundInstallation {
   }
 
   private void awaitThreads() {
-    final long timeoutNanos = this.cancelTimeout.toNanos();
-    final long deadline = System.nanoTime() + timeoutNanos;
+    final long timeoutNanoseconds = this.cancelTimeout.toNanos();
+    final long deadline = System.nanoTime() + timeoutNanoseconds;
     for (final Thread thread : this.threads) {
       final long now = System.nanoTime();
-      final long remainingNanos = Math.max(0L, deadline - now);
-      final Duration remaining = Duration.ofNanos(remainingNanos);
+      final long remainingNanoseconds = Math.max(0L, deadline - now);
+      final Duration remaining = Duration.ofNanos(remainingNanoseconds);
       final boolean ended = join(thread, remaining);
       if (!ended) {
         final String threadName = thread.getName();
-        final long timeoutMillis = this.cancelTimeout.toMillis();
-        this.logger.warn("{} did not stop within {} ms after it was cancelled.", threadName, timeoutMillis);
+        final long timeoutMilliseconds = this.cancelTimeout.toMillis();
+        this.logger.warn("{} did not stop within {} ms after it was cancelled.", threadName, timeoutMilliseconds);
       }
     }
   }

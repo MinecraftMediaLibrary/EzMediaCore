@@ -61,7 +61,7 @@ public final class CommandTask {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CommandTask.class);
   private static final int NOT_RUN = Integer.MIN_VALUE;
-  private static final long PROCESS_POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(20L);
+  private static final long PROCESS_POLL_NANOSECONDS = TimeUnit.MILLISECONDS.toNanos(20L);
 
   private final List<String> command;
   private final @Nullable Path workingDirectory;
@@ -155,7 +155,7 @@ public final class CommandTask {
 
   private int runWithTimeout(final @Nullable Duration timeout) throws IOException {
     Preconditions.checkState(this.process == null, "Command has already been run!");
-    final long startNanos = System.nanoTime();
+    final long startNanoseconds = System.nanoTime();
     final Process started = this.startProcess();
     this.process = started;
     final InputStream standardOutput = started.getInputStream();
@@ -166,7 +166,7 @@ public final class CommandTask {
     try {
       final Future<String> outputFuture = readers.submit(() -> readFully(standardOutput));
       final Future<String> errorFuture = readers.submit(() -> readFully(standardError));
-      this.awaitCompletion(started, outputFuture, errorFuture, timeout, startNanos);
+      this.awaitCompletion(started, outputFuture, errorFuture, timeout, startNanoseconds);
     } finally {
       // close() waits indefinitely for blocked pipe readers. Cancellation must not extend the caller's deadline.
       readers.shutdownNow();
@@ -235,8 +235,8 @@ public final class CommandTask {
     final Future<String> errorFuture,
     final @Nullable Duration timeout
   ) throws IOException {
-    final long startNanos = System.nanoTime();
-    this.awaitCompletion(started, outputFuture, errorFuture, timeout, startNanos);
+    final long startNanoseconds = System.nanoTime();
+    this.awaitCompletion(started, outputFuture, errorFuture, timeout, startNanoseconds);
   }
 
   private void awaitCompletion(
@@ -244,12 +244,12 @@ public final class CommandTask {
     final Future<String> outputFuture,
     final Future<String> errorFuture,
     final @Nullable Duration timeout,
-    final long startNanos
+    final long startNanoseconds
   ) throws IOException {
     try {
-      this.exitCode = this.waitForExit(started, timeout, startNanos);
-      this.output = awaitOutput(outputFuture, timeout, startNanos);
-      this.errorOutput = awaitOutput(errorFuture, timeout, startNanos);
+      this.exitCode = this.waitForExit(started, timeout, startNanoseconds);
+      this.output = awaitOutput(outputFuture, timeout, startNanoseconds);
+      this.errorOutput = awaitOutput(errorFuture, timeout, startNanoseconds);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
@@ -271,18 +271,18 @@ public final class CommandTask {
     }
   }
 
-  private static String awaitOutput(final Future<String> output, final @Nullable Duration timeout, final long startNanos)
+  private static String awaitOutput(final Future<String> output, final @Nullable Duration timeout, final long startNanoseconds)
     throws ExecutionException, InterruptedException, TimeoutException {
     if (timeout == null) {
       return output.get();
     }
-    final long remaining = remainingNanos(timeout, startNanos);
+    final long remaining = remainingNanoseconds(timeout, startNanoseconds);
     return output.get(remaining, TimeUnit.NANOSECONDS);
   }
 
-  private static long remainingNanos(final Duration timeout, final long startNanos) throws TimeoutException {
+  private static long remainingNanoseconds(final Duration timeout, final long startNanoseconds) throws TimeoutException {
     final long budget = TimeUnit.NANOSECONDS.convert(timeout);
-    final long elapsed = System.nanoTime() - startNanos;
+    final long elapsed = System.nanoTime() - startNanoseconds;
     final long remaining = budget - elapsed;
     if (remaining <= 0) {
       throw new TimeoutException("The command and output deadline expired!");
@@ -290,14 +290,14 @@ public final class CommandTask {
     return remaining;
   }
 
-  private int waitForExit(final Process started, final @Nullable Duration timeout, final long startNanos)
+  private int waitForExit(final Process started, final @Nullable Duration timeout, final long startNanoseconds)
     throws InterruptedException, TimeoutException {
     while (true) {
       // Keep handles while the parent exists: after it exits, inherited-pipe children may already be reparented.
       this.rememberDescendants(started);
-      final long remaining = timeout == null ? PROCESS_POLL_NANOS : remainingNanos(timeout, startNanos);
-      final long waitNanos = Math.min(remaining, PROCESS_POLL_NANOS);
-      final boolean exited = started.waitFor(waitNanos, TimeUnit.NANOSECONDS);
+      final long remaining = timeout == null ? PROCESS_POLL_NANOSECONDS : remainingNanoseconds(timeout, startNanoseconds);
+      final long waitNanoseconds = Math.min(remaining, PROCESS_POLL_NANOSECONDS);
+      final boolean exited = started.waitFor(waitNanoseconds, TimeUnit.NANOSECONDS);
       if (exited) {
         return started.exitValue();
       }

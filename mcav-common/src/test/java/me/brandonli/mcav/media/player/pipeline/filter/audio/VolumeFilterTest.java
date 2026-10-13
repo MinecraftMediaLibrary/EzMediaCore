@@ -82,7 +82,7 @@ final class VolumeFilterTest {
   @Test
   void shouldClipLoudSamplesToTheirRange() {
     final VolumeFilter filter = new VolumeFilter();
-    filter.setVolume(VolumeFilter.MAX_VOLUME);
+    filter.setVolume(VolumeFilter.MAXIMUM_VOLUME);
     final ByteBuffer buffer = samples(Short.MAX_VALUE, Short.MIN_VALUE, (short) 20_000, (short) -16_384);
     filter.applyFilter(buffer, METADATA);
     final short[] values = read(buffer);
@@ -117,11 +117,11 @@ final class VolumeFilterTest {
   void shouldRefuseAVolumeOutsideItsRange() {
     final VolumeFilter filter = new VolumeFilter();
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(-0.01));
-    assertThrows(IllegalArgumentException.class, () -> filter.setVolume(VolumeFilter.MAX_VOLUME + 0.01));
+    assertThrows(IllegalArgumentException.class, () -> filter.setVolume(VolumeFilter.MAXIMUM_VOLUME + 0.01));
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(Double.NaN));
-    filter.setVolume(VolumeFilter.MAX_VOLUME);
+    filter.setVolume(VolumeFilter.MAXIMUM_VOLUME);
     final double volume = filter.getVolume();
-    assertEquals(VolumeFilter.MAX_VOLUME, volume);
+    assertEquals(VolumeFilter.MAXIMUM_VOLUME, volume);
     assertThrows(NullPointerException.class, () -> filter.applyFilter(null, METADATA));
   }
 }

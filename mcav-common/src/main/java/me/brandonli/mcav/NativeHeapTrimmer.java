@@ -121,32 +121,32 @@ final class NativeHeapTrimmer implements AutoCloseable {
    */
   static NativeHeapTrimmer forThisJvm() {
     final OS os = OSUtils.getOS();
-    final long jvmIntervalMillis = readJvmIntervalMillis();
+    final long jvmIntervalMilliseconds = readJvmIntervalMilliseconds();
     final long seconds = Long.getLong(INTERVAL_PROPERTY, DEFAULT_INTERVAL_SECONDS);
-    return create(os, jvmIntervalMillis, seconds, NativeHeapTrimmer::trimThisJvm, NativeHeapTrimmer::fixGlibcTrimThreshold);
+    return create(os, jvmIntervalMilliseconds, seconds, NativeHeapTrimmer::trimThisJvm, NativeHeapTrimmer::fixGlibcTrimThreshold);
   }
 
   /**
    * Creates a trimmer that trims at the interval, unless the system is no Linux or the JVM trims itself or is no HotSpot
    * JVM.
    *
-   * @param os                the operating system
-   * @param jvmIntervalMillis the interval of the JVM's own trims, in milliseconds, zero if it trims never, or
-   *                          {@link #NO_JVM_INTERVAL} if it has no such option
-   * @param seconds           the interval of the trims, in seconds; zero or less trims never
-   * @param trim              trims the native heap once
-   * @param fixThreshold      fixes the trim threshold of the native heap, once when trimming starts
+   * @param os                      the operating system
+   * @param jvmIntervalMilliseconds the interval of the JVM's own trims, in milliseconds, zero if it trims never, or
+   *                                {@link #NO_JVM_INTERVAL} if it has no such option
+   * @param seconds                 the interval of the trims, in seconds; zero or less trims never
+   * @param trim                    trims the native heap once
+   * @param fixThreshold            fixes the trim threshold of the native heap, once when trimming starts
    * @return the trimmer
    */
   @VisibleForTesting
   static NativeHeapTrimmer create(
     final OS os,
-    final long jvmIntervalMillis,
+    final long jvmIntervalMilliseconds,
     final long seconds,
     final Runnable trim,
     final Runnable fixThreshold
   ) {
-    final boolean trims = os == OS.LINUX && jvmIntervalMillis == 0;
+    final boolean trims = os == OS.LINUX && jvmIntervalMilliseconds == 0;
     final Duration interval = trims ? Duration.ofSeconds(seconds) : Duration.ZERO;
     return new NativeHeapTrimmer(interval, trim, fixThreshold);
   }
@@ -216,7 +216,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
    *         such option
    */
   @VisibleForTesting
-  static long readJvmIntervalMillis() {
+  static long readJvmIntervalMilliseconds() {
     try {
       final @Nullable HotSpotDiagnosticMXBean hotspot = ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
       if (hotspot == null) {

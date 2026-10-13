@@ -48,7 +48,7 @@ import org.junit.jupiter.api.Tag;
 final class DitherFuzzTest {
 
   private static final DitherPalette PALETTE = DitherPalette.EIGHT_BIT_PALETTE;
-  private static final int MAX_SIDE = 24;
+  private static final int MAXIMUM_SIDE = 24;
 
   @FuzzTest(maxDuration = "30s")
   void shouldDitherIntoThePaletteWithEveryAcceptedAlgorithm(final FuzzedDataProvider data) {
@@ -63,8 +63,8 @@ final class DitherFuzzTest {
     } catch (final IllegalArgumentException exception) {
       return;
     }
-    final int width = data.consumeInt(1, MAX_SIDE);
-    final int height = data.consumeInt(1, MAX_SIDE);
+    final int width = data.consumeInt(1, MAXIMUM_SIDE);
+    final int height = data.consumeInt(1, MAXIMUM_SIDE);
     final int[] image = new int[width * height];
     for (int pixel = 0; pixel < image.length; pixel++) {
       image[pixel] = data.consumeInt();

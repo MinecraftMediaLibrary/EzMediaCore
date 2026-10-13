@@ -25,20 +25,20 @@ public interface RandomNumberProvider {
   /**
    * Returns a random integer in a range.
    *
-   * @param min the smallest value, inclusive
-   * @param max the largest value, exclusive
-   * @return a random value from {@code min} to {@code max - 1}
+   * @param minimum the smallest value, inclusive
+   * @param maximum the largest value, exclusive
+   * @return a random value from {@code minimum} to {@code maximum - 1}
    */
-  int nextInt(final int min, final int max);
+  int nextInt(final int minimum, final int maximum);
 
   /**
    * Returns a random floating point number in a range.
    *
-   * @param min the smallest value, inclusive
-   * @param max the largest value, exclusive
-   * @return a random value greater than or equal to {@code min} and strictly less than {@code max}
+   * @param minimum the smallest value, inclusive
+   * @param maximum the largest value, exclusive
+   * @return a random value greater than or equal to {@code minimum} and strictly less than {@code maximum}
    */
-  double nextDouble(final double min, final double max);
+  double nextDouble(final double minimum, final double maximum);
 
   /**
    * Returns a random boolean.

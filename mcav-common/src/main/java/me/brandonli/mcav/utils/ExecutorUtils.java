@@ -67,14 +67,14 @@ public final class ExecutorUtils {
 
     service.shutdown();
     try {
-      final long millis = timeout.toMillis();
-      final boolean terminated = service.awaitTermination(millis, TimeUnit.MILLISECONDS);
+      final long milliseconds = timeout.toMillis();
+      final boolean terminated = service.awaitTermination(milliseconds, TimeUnit.MILLISECONDS);
       if (terminated) {
         return true;
       }
       final List<Runnable> unfinished = service.shutdownNow();
       final int unfinishedCount = unfinished.size();
-      LOGGER.warn("Executor did not finish in {} ms, interrupted {} pending tasks.", millis, unfinishedCount);
+      LOGGER.warn("Executor did not finish in {} ms, interrupted {} pending tasks.", milliseconds, unfinishedCount);
       return false;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();

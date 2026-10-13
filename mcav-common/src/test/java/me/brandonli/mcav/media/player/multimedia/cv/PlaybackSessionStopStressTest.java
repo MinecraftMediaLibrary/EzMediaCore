@@ -69,15 +69,15 @@ final class PlaybackSessionStopStressTest {
 
   private static final long SEED = 20_260_925L;
   private static final int ROUNDS = 150;
-  private static final long FRAME_MICROS = 1_000L;
-  private static final long TIMEOUT_MILLIS = 10_000L;
-  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLIS);
+  private static final long FRAME_MICROSECONDS = 1_000L;
+  private static final long TIMEOUT_MILLISECONDS = 10_000L;
+  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLISECONDS);
   private static final String DECODER_PREFIX = "mcav-decode-";
   private static final String RENDERER_PREFIX = "mcav-render-";
   private static final int WAITING_DECODER_STOPS = 300;
   private static final int WAITING_DECODER_FRAMES = 21;
-  private static final long WAITING_DECODER_FRAME_MICROS = 33_333L;
-  private static final long WAITING_DECODER_SETTLE_NANOS = 200_000L;
+  private static final long WAITING_DECODER_FRAME_MICROSECONDS = 33_333L;
+  private static final long WAITING_DECODER_SETTLE_NANOSECONDS = 200_000L;
 
   /**
    * Where a round stops its session.
@@ -128,7 +128,7 @@ final class PlaybackSessionStopStressTest {
     for (int stop = 0; stop < WAITING_DECODER_STOPS; stop++) {
       final List<Object> script = new ArrayList<>();
       for (int index = 0; index < WAITING_DECODER_FRAMES; index++) {
-        final Frame picture = ScriptedFrameGrabber.video(index * WAITING_DECODER_FRAME_MICROS);
+        final Frame picture = ScriptedFrameGrabber.video(index * WAITING_DECODER_FRAME_MICROSECONDS);
         script.add(picture);
       }
       final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
@@ -144,14 +144,14 @@ final class PlaybackSessionStopStressTest {
         (_, _) -> {},
         0L,
         false,
-        PlaybackSession.AUDIO_LEAD_NANOS,
+        PlaybackSession.AUDIO_LEAD_NANOSECONDS,
         Long.MAX_VALUE,
         System::nanoTime
       );
       session.start();
       final int remainingSteps = WAITING_DECODER_FRAMES - 6;
       Polling.awaitCondition("the decoder waits for room", TIMEOUT, () -> grabber.getRemainingSteps() == remainingSteps);
-      LockSupport.parkNanos(WAITING_DECODER_SETTLE_NANOS);
+      LockSupport.parkNanos(WAITING_DECODER_SETTLE_NANOSECONDS);
       final long waitingPictures = session.getQueuedPictureCount();
       assertTrue(waitingPictures > 0, "the decoder waits because the queue is full");
 
@@ -202,7 +202,7 @@ final class PlaybackSessionStopStressTest {
     private final String description;
     private final StopPoint point;
     private final int stopAfterFrames;
-    private final long waitBeforeStopNanos;
+    private final long waitBeforeStopNanoseconds;
     private final ScriptedFrameGrabber videoGrabber;
     private final @Nullable ScriptedFrameGrabber audioGrabber;
     private final AtomicBoolean audioOpened;
@@ -220,7 +220,7 @@ final class PlaybackSessionStopStressTest {
       final boolean stuckDecoder = random.nextInt(4) == 0;
       this.point = point;
       this.stopAfterFrames = random.nextInt(1, frameCount + 1);
-      this.waitBeforeStopNanos = random.nextLong(0L, 2_000_000L);
+      this.waitBeforeStopNanoseconds = random.nextLong(0L, 2_000_000L);
       this.description = String.format(
         Locale.ROOT,
         "round %d of seed %d: stop %s, %d frames, stop after %d frames or %d ns, %s audio%s",
@@ -229,14 +229,14 @@ final class PlaybackSessionStopStressTest {
         point,
         frameCount,
         this.stopAfterFrames,
-        this.waitBeforeStopNanos,
+        this.waitBeforeStopNanoseconds,
         hasSeparateAudio ? "separate" : "interleaved",
         stuckDecoder ? ", decoder stuck for a moment" : ""
       );
       final List<Object> video = new ArrayList<>();
       final List<Object> audio = new ArrayList<>();
       for (int index = 0; index < frameCount; index++) {
-        final long timestamp = index * FRAME_MICROS;
+        final long timestamp = index * FRAME_MICROSECONDS;
         final Frame picture = ScriptedFrameGrabber.video(timestamp);
         final Frame sound = ScriptedFrameGrabber.audio(timestamp);
         video.add(picture);
@@ -287,7 +287,7 @@ final class PlaybackSessionStopStressTest {
         (message, _) -> this.reports.add(message),
         0L,
         paused,
-        PlaybackSession.AUDIO_LEAD_NANOS,
+        PlaybackSession.AUDIO_LEAD_NANOSECONDS,
         Long.MAX_VALUE,
         System::nanoTime
       );
@@ -321,7 +321,7 @@ final class PlaybackSessionStopStressTest {
       this.session.start();
       switch (this.point) {
         case RIGHT_AFTER_THE_START, WHILE_PAUSED -> {
-          LockSupport.parkNanos(this.waitBeforeStopNanos);
+          LockSupport.parkNanos(this.waitBeforeStopNanoseconds);
           this.stopFromOutside();
         }
         case AFTER_SOME_FRAMES -> {
@@ -382,7 +382,7 @@ final class PlaybackSessionStopStressTest {
       }
       gate.countDown();
       for (final Thread stopper : stoppers) {
-        stopper.join(TIMEOUT_MILLIS);
+        stopper.join(TIMEOUT_MILLISECONDS);
         final boolean alive = stopper.isAlive();
         assertFalse(alive, () -> this.description + ", a stopping thread hangs");
       }
@@ -404,7 +404,7 @@ final class PlaybackSessionStopStressTest {
      * polling so the two stops overlap.
      */
     private void stopFromOutsideAsTheFilterDoes() throws InterruptedException {
-      final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLIS);
+      final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLISECONDS);
       while (this.session.isActive()) {
         final long now = System.nanoTime();
         final boolean beforeDeadline = now - deadline < 0;
@@ -420,11 +420,11 @@ final class PlaybackSessionStopStressTest {
      * cannot wait for, being called on that thread.
      */
     private void awaitOwnStop() throws InterruptedException {
-      final boolean returned = this.ownStopReturned.await(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+      final boolean returned = this.ownStopReturned.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(returned, () -> this.description + ", the filter did not return from stopping its own session");
       final Thread renderer = this.videoRenderer.get();
       if (renderer != null) {
-        renderer.join(TIMEOUT_MILLIS);
+        renderer.join(TIMEOUT_MILLISECONDS);
       }
       this.assertStoppedForItsCaller(this.description);
     }

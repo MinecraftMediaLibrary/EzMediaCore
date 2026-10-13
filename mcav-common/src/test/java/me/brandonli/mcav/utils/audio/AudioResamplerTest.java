@@ -282,7 +282,7 @@ final class AudioResamplerTest {
   @Test
   void shouldAcceptEveryChannelCountUpToTheMaximumWithoutRaisingTheVolume() {
     final ByteBuffer stereo = samples16((short) 8_000, (short) -8_000, (short) 8_000, (short) -8_000);
-    for (int channels = 1; channels <= AudioResampler.MAX_CHANNELS; channels++) {
+    for (int channels = 1; channels <= AudioResampler.MAXIMUM_CHANNELS; channels++) {
       try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(PIPELINE_RATE, channels, SampleFormat.SIGNED_16_BIT)) {
         final byte[] converted = resampler.resample(stereo);
         final short[] samples = toShorts(converted);
@@ -536,7 +536,7 @@ final class AudioResamplerTest {
   @Test
   void shouldRejectInvalidChannelCounts() {
     final SampleFormat format = SampleFormat.SIGNED_16_BIT;
-    final int tooMany = AudioResampler.MAX_CHANNELS + 1;
+    final int tooMany = AudioResampler.MAXIMUM_CHANNELS + 1;
     assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 0, format, PIPELINE_RATE, 2, format));
     assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, tooMany, format, PIPELINE_RATE, 2, format));
     assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 2, format, PIPELINE_RATE, 0, format));

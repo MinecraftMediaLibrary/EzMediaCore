@@ -80,7 +80,7 @@ There are two factories. Both return a new resampler that the caller must close:
 | `AudioResampler.create(inputSampleRate, inputChannels, inputFormat, outputSampleRate, outputChannels, outputFormat)` | Any interleaved PCM format                              |
 
 Sample rates are in hertz and must be positive, and channel counts must be between 1 and
-`AudioResampler.MAX_CHANNELS`, which is 8, the number of channels of a 7.1 layout. Otherwise the factories throw an
+`AudioResampler.MAXIMUM_CHANNELS`, which is 8, the number of channels of a 7.1 layout. Otherwise the factories throw an
 `IllegalArgumentException`; a `null` format throws a `NullPointerException`, and an `IllegalStateException` is thrown
 if FFmpeg cannot set up the conversion. Channel counts map to FFmpeg's default layouts (mono, stereo, 2.1, quad, 5.0,
 5.1, 6.1, and 7.1). FFmpeg rematrixes channels according to their speaker positions; surround downmixing uses

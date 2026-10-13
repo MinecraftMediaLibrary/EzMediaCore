@@ -78,11 +78,12 @@ also how to loop a video.
 
 The FFmpeg, OpenCV and device players extend `AbstractVideoPlayerCV`, which adds a playback speed and the position:
 
-- `setSpeed(double)` plays media of a known length faster or slower, from `AbstractVideoPlayerCV.MIN_SPEED` (0.5) to
-  `MAX_SPEED` (2), with its sound resampled to match, so faster sound is higher. It returns `false` for a live stream
-  or a camera, which cannot be played ahead of itself, and when nothing plays. A seek keeps the speed; new media starts
-  at normal speed. `getSpeed()` returns it.
-- `getPositionMillis()` returns the timestamp of the last rendered frame, which is where a relative seek starts from.
+- `setSpeed(double)` plays media of a known length faster or slower, from `AbstractVideoPlayerCV.MINIMUM_SPEED` (0.5)
+  to `MAXIMUM_SPEED` (2), with its sound resampled to match, so faster sound is higher. It returns `false` for a live
+  stream or a camera, which cannot be played ahead of itself, and when nothing plays. A seek keeps the speed; new media
+  starts at normal speed. `getSpeed()` returns it.
+- `getPositionMilliseconds()` returns the timestamp of the last rendered frame, which is where a relative seek starts
+  from.
 
 The VLC player keeps its own rate, which it uses to keep picture and sound together, so it does not change speed. The
 volume is a filter of the audio pipeline, `VolumeFilter` (see [filters](filters.md#audio-filters)), so it applies to
@@ -91,7 +92,7 @@ every player and every audio output behind it.
 ```java
   public static boolean playFaster(final VideoPlayerMultiplexer player) {
     if (player instanceof final AbstractVideoPlayerCV decoded) {
-      final long position = decoded.getPositionMillis();
+      final long position = decoded.getPositionMilliseconds();
       System.out.println("Speeding up at " + position + " ms");
       return decoded.setSpeed(1.5); // false for a live stream or a camera
     }

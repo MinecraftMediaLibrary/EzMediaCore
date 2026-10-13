@@ -30,29 +30,29 @@ import java.util.function.LongSupplier;
  */
 final class VideoTimestamps {
 
-  private static final double MICROS_PER_SECOND = 1_000_000.0;
-  private static final long NANOS_PER_MICRO = 1_000L;
+  private static final double MICROSECONDS_PER_SECOND = 1_000_000.0;
+  private static final long NANOSECONDS_PER_MICROSECOND = 1_000L;
 
-  private final long frameMicros;
-  private final LongSupplier nanoClock;
+  private final long frameMicroseconds;
+  private final LongSupplier nanosecondClock;
 
   private boolean started;
   private long firstTimestamp;
-  private long firstNanos;
+  private long firstNanoseconds;
   private long lastTimestamp;
 
   /**
    * Constructs a new timeline.
    *
-   * @param frameRate the frame rate the decoder reports, or zero or less if it reports none
-   * @param live      whether the source delivers frames in real time, such as a camera or a stream without length
-   * @param nanoClock the clock the time between frames of live sources is measured with, usually
-   *                  {@link System#nanoTime()}
+   * @param frameRate       the frame rate the decoder reports, or zero or less if it reports none
+   * @param live            whether the source delivers frames in real time, such as a camera or a stream without length
+   * @param nanosecondClock the clock the time between frames of live sources is measured with, usually
+   *                        {@link System#nanoTime()}
    */
-  VideoTimestamps(final double frameRate, final boolean live, final LongSupplier nanoClock) {
+  VideoTimestamps(final double frameRate, final boolean live, final LongSupplier nanosecondClock) {
     final boolean usableRate = !live && frameRate > 0 && Double.isFinite(frameRate);
-    this.frameMicros = usableRate ? Math.round(MICROS_PER_SECOND / frameRate) : 0L;
-    this.nanoClock = nanoClock;
+    this.frameMicroseconds = usableRate ? Math.round(MICROSECONDS_PER_SECOND / frameRate) : 0L;
+    this.nanosecondClock = nanosecondClock;
   }
 
   /**
@@ -62,11 +62,11 @@ final class VideoTimestamps {
    * @return the reported timestamp if it comes after the previous frame, a derived one otherwise
    */
   long next(final long reported) {
-    final long now = this.nanoClock.getAsLong();
+    final long now = this.nanosecondClock.getAsLong();
     if (!this.started) {
       this.started = true;
       this.firstTimestamp = reported;
-      this.firstNanos = now;
+      this.firstNanoseconds = now;
       this.lastTimestamp = reported;
       return reported;
     }
@@ -76,11 +76,11 @@ final class VideoTimestamps {
   }
 
   private long derive(final long now) {
-    if (this.frameMicros > 0) {
-      return this.lastTimestamp + this.frameMicros;
+    if (this.frameMicroseconds > 0) {
+      return this.lastTimestamp + this.frameMicroseconds;
     }
-    final long elapsedMicros = (now - this.firstNanos) / NANOS_PER_MICRO;
-    final long arrival = this.firstTimestamp + elapsedMicros;
+    final long elapsedMicroseconds = (now - this.firstNanoseconds) / NANOSECONDS_PER_MICROSECOND;
+    final long arrival = this.firstTimestamp + elapsedMicroseconds;
     // two frames of a live source can arrive within the same microsecond, and time must still move forward
     return Math.max(arrival, this.lastTimestamp + 1);
   }

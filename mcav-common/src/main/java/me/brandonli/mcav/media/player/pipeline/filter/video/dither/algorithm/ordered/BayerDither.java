@@ -39,7 +39,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #NORMAL_2X2}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
    */
-  int NORMAL_2X2_MAX = 4;
+  int NORMAL_2X2_MAXIMUM = 4;
 
   /**
    * The 2x2 Bayer matrix, the smallest ordered dither pattern.
@@ -53,7 +53,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #NORMAL_4X4}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
    */
-  int NORMAL_4X4_MAX = 16;
+  int NORMAL_4X4_MAXIMUM = 16;
 
   /**
    * The 4x4 Bayer matrix, which produces 17 gray levels with a regular crosshatch.
@@ -66,7 +66,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #NORMAL_8X8}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
    */
-  int NORMAL_8X8_MAX = 64;
+  int NORMAL_8X8_MAXIMUM = 64;
 
   /**
    * The 8x8 Bayer matrix, which produces 65 gray levels.
@@ -88,7 +88,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_4X4}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_4X4_MAX = 16;
+  int CLUSTERED_DOT_4X4_MAXIMUM = 16;
 
   /**
    * A 4x4 clustered dot matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a>, which grows
@@ -108,7 +108,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_MAX = 64;
+  int CLUSTERED_DOT_DIAGONAL_8X8_MAXIMUM = 64;
 
   /**
    * An 8x8 diagonal clustered dot matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a>,
@@ -132,7 +132,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #VERTICAL_5X3}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
    */
-  int VERTICAL_5X3_MAX = 15;
+  int VERTICAL_5X3_MAXIMUM = 15;
 
   /**
    * A 5x3 matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a> that orders its
@@ -146,7 +146,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #HORIZONTAL_3X5}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
    */
-  int HORIZONTAL_3X5_MAX = 15;
+  int HORIZONTAL_3X5_MAXIMUM = 15;
 
   /**
    * A 3x5 matrix that orders its thresholds in horizontal lines, the rotated version of {@link #VERTICAL_5X3}.
@@ -159,7 +159,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_6X6}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_DIAGONAL_6X6_MAX = 18;
+  int CLUSTERED_DOT_DIAGONAL_6X6_MAXIMUM = 18;
 
   /**
    * A 6x6 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 3 there.
@@ -179,7 +179,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8_2}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_2_MAX = 32;
+  int CLUSTERED_DOT_DIAGONAL_8X8_2_MAXIMUM = 32;
 
   /**
    * An 8x8 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 4 there.
@@ -201,7 +201,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_16X16}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_DIAGONAL_16X16_MAX = 128;
+  int CLUSTERED_DOT_DIAGONAL_16X16_MAXIMUM = 128;
 
   /**
    * A 16x16 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 8 there.
@@ -231,7 +231,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_6X6_MAX = 36;
+  int CLUSTERED_DOT_6X6_MAXIMUM = 36;
 
   /**
    * A 6x6 clustered dot matrix from figure 5.9 of Digital Halftoning by Robert Ulichney.
@@ -251,7 +251,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_SPIRAL_5X5}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_SPIRAL_5X5_MAX = 25;
+  int CLUSTERED_DOT_SPIRAL_5X5_MAXIMUM = 25;
 
   /**
    * A 5x5 spiral matrix from figure 5.13 of Digital Halftoning by Robert Ulichney.
@@ -271,7 +271,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_HORIZONTAL_LINE}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_HORIZONTAL_LINE_MAX = 36;
+  int CLUSTERED_DOT_HORIZONTAL_LINE_MAXIMUM = 36;
 
   /**
    * A 6x6 matrix from figure 5.13 of Digital Halftoning by Robert Ulichney that clusters pixels about horizontal lines.
@@ -291,7 +291,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_VERTICAL_LINE}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_VERTICAL_LINE_MAX = 36;
+  int CLUSTERED_DOT_VERTICAL_LINE_MAXIMUM = 36;
 
   /**
    * A 6x6 matrix that clusters pixels about vertical lines, the rotated version of {@link
@@ -312,7 +312,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_8X8}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_8X8_MAX = 64;
+  int CLUSTERED_DOT_8X8_MAXIMUM = 64;
 
   /**
    * An 8x8 clustered dot matrix from figure 1.5 of Modern Digital Halftoning by Daniel L. Lau and Gonzalo R. Arce.
@@ -336,7 +336,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6_2}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_6X6_2_MAX = 36;
+  int CLUSTERED_DOT_6X6_2_MAXIMUM = 36;
 
   /**
    * A variant of {@link #CLUSTERED_DOT_6X6} from <a href="https://archive.is/71e9G">a halftoning article</a>, called
@@ -357,7 +357,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6_3}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_6X6_3_MAX = 36;
+  int CLUSTERED_DOT_6X6_3_MAXIMUM = 36;
 
   /**
    * A variant of {@link #CLUSTERED_DOT_6X6} from <a href="https://archive.is/71e9G">a halftoning article</a>, called
@@ -378,7 +378,7 @@ public interface BayerDither extends DitherAlgorithm {
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8_3}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_3_MAX = 32;
+  int CLUSTERED_DOT_DIAGONAL_8X8_3_MAXIMUM = 32;
 
   /**
    * A diagonal 8x8 clustered dot matrix from <a href="https://archive.is/71e9G">a halftoning article</a>, called

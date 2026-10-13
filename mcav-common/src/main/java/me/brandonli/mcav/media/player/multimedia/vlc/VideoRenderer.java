@@ -56,7 +56,7 @@ final class VideoRenderer implements RenderCallback {
 
   private static final int BYTES_PER_PIXEL = 4;
   private static final int SPARE_PIXEL_ARRAYS = 2;
-  private static final long QUEUE_POLL_MILLIS = 50L;
+  private static final long QUEUE_POLL_MILLISECONDS = 50L;
 
   private final VideoPlayerMultiplexer owner;
   private final BlockingQueue<DecodedFrame> pendingFrame;
@@ -289,7 +289,7 @@ final class VideoRenderer implements RenderCallback {
   }
 
   private void renderNext() throws InterruptedException {
-    final DecodedFrame frame = this.pendingFrame.poll(QUEUE_POLL_MILLIS, TimeUnit.MILLISECONDS);
+    final DecodedFrame frame = this.pendingFrame.poll(QUEUE_POLL_MILLISECONDS, TimeUnit.MILLISECONDS);
     if (frame != null) {
       this.render(frame);
     }

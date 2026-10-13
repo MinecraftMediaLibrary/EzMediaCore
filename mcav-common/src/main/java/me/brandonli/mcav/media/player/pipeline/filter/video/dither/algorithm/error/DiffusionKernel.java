@@ -40,7 +40,7 @@ public final class DiffusionKernel {
    * pending errors as the kernel reaches down, each padded by its horizontal reach on both sides, so the reach is
    * bounded; the kernels of the common algorithms reach at most 3 pixels.
    */
-  public static final int MAX_OFFSET = 64;
+  public static final int MAXIMUM_OFFSET = 64;
 
   /**
    * Floyd-Steinberg, the classic four-tap kernel.
@@ -145,8 +145,8 @@ public final class DiffusionKernel {
   private final int[] offsetsX;
   private final int[] offsetsY;
   private final int[] weights;
-  private final int maxOffsetX;
-  private final int maxOffsetY;
+  private final int maximumOffsetX;
+  private final int maximumOffsetY;
 
   /**
    * Constructs a new kernel.
@@ -156,7 +156,7 @@ public final class DiffusionKernel {
    * @param taps    the nonempty array of non-null {@code {dx, dy, weight}} triples, copied by this constructor
    * @throws IllegalArgumentException if the divisor is nonpositive, there are no taps, a tap has other than
    *                                  three elements, or a tap points to an already processed pixel, reaches farther than
-   *                                  {@link #MAX_OFFSET} pixels, or has a non-positive weight
+   *                                  {@link #MAXIMUM_OFFSET} pixels, or has a non-positive weight
    * @throws NullPointerException     if the name, the taps or one of the taps is null
    */
   public DiffusionKernel(final String name, final int divisor, final int[][] taps) {
@@ -177,8 +177,8 @@ public final class DiffusionKernel {
       this.offsetsY[tapIndex] = tap[1];
       this.weights[tapIndex] = tap[2];
     }
-    this.maxOffsetX = getLargestMagnitude(this.offsetsX);
-    this.maxOffsetY = getLargestMagnitude(this.offsetsY);
+    this.maximumOffsetX = getLargestMagnitude(this.offsetsX);
+    this.maximumOffsetY = getLargestMagnitude(this.offsetsY);
   }
 
   /**
@@ -194,8 +194,8 @@ public final class DiffusionKernel {
     Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel!", tapIndex);
     // widened, because the magnitude of Integer.MIN_VALUE does not fit an int
     final long reachX = Math.abs((long) offsetX);
-    final boolean withinReach = reachX <= MAX_OFFSET && offsetY <= MAX_OFFSET;
-    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels!", tapIndex, MAX_OFFSET);
+    final boolean withinReach = reachX <= MAXIMUM_OFFSET && offsetY <= MAXIMUM_OFFSET;
+    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels!", tapIndex, MAXIMUM_OFFSET);
     Preconditions.checkArgument(weight > 0, "Tap %s must have a positive weight!", tapIndex);
   }
 
@@ -273,8 +273,8 @@ public final class DiffusionKernel {
    *
    * @return the maximum horizontal offset
    */
-  public int getMaxOffsetX() {
-    return this.maxOffsetX;
+  public int getMaximumOffsetX() {
+    return this.maximumOffsetX;
   }
 
   /**
@@ -282,8 +282,8 @@ public final class DiffusionKernel {
    *
    * @return the maximum vertical offset
    */
-  public int getMaxOffsetY() {
-    return this.maxOffsetY;
+  public int getMaximumOffsetY() {
+    return this.maximumOffsetY;
   }
 
   /**

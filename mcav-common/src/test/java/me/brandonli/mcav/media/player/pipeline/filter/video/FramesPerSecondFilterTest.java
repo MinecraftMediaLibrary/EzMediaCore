@@ -32,13 +32,13 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
 /** Verifies the measured rate and its visible label against controlled time windows. */
-final class FPSFilterTest {
+final class FramesPerSecondFilterTest {
 
   @Test
   void shouldUseTheMonotonicNanosecondClockInTheDefaultConstructor() throws ReflectiveOperationException {
     final long before = System.nanoTime();
-    final FPSFilter filter = new FPSFilter();
-    final Field clockField = FPSFilter.class.getDeclaredField("clock");
+    final FramesPerSecondFilter filter = new FramesPerSecondFilter();
+    final Field clockField = FramesPerSecondFilter.class.getDeclaredField("clock");
     clockField.setAccessible(true);
     final LongSupplier clock = (LongSupplier) clockField.get(filter);
     final long observed = clock.getAsLong();
@@ -52,7 +52,7 @@ final class FPSFilterTest {
   @Test
   void shouldUpdateAtOneSecondAndDivideByTheActualElapsedTime() {
     final AtomicLong clock = new AtomicLong(0L);
-    final FPSFilter filter = new FPSFilter(clock::get);
+    final FramesPerSecondFilter filter = new FramesPerSecondFilter(clock::get);
     clock.set(999_999_999L);
     assertLabel(filter, "0 fps");
     clock.set(1_000_000_000L);
@@ -63,7 +63,7 @@ final class FPSFilterTest {
     assertLabel(filter, "1 fps");
   }
 
-  private static void assertLabel(final FPSFilter filter, final String expectedLabel) {
+  private static void assertLabel(final FramesPerSecondFilter filter, final String expectedLabel) {
     try (
       final Scalar background = new Scalar(80.0, 80.0, 80.0, 0.0);
       final Scalar black = new Scalar(0.0);

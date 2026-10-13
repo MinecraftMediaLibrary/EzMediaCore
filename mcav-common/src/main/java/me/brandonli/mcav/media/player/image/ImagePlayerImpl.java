@@ -43,7 +43,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class ImagePlayerImpl implements ImagePlayer {
 
-  private static final long STOP_TIMEOUT_MILLIS = 2_000L;
+  private static final long STOP_TIMEOUT_MILLISECONDS = 2_000L;
 
   private final LongSupplier clock;
   private final LongConsumer park;
@@ -121,12 +121,12 @@ public final class ImagePlayerImpl implements ImagePlayer {
     final int width = source.getFrameWidth();
     final int height = source.getFrameHeight();
     final float frameRate = source.getFrameRate();
-    final long secondNanos = TimeUnit.SECONDS.toNanos(1);
-    final long periodNanos = (long) (secondNanos / frameRate);
+    final long secondNanoseconds = TimeUnit.SECONDS.toNanos(1);
+    final long periodNanoseconds = (long) (secondNanoseconds / frameRate);
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(width, height, frameRate);
     final SampleSupplier supplier = source.supplyFrameSamples();
     final FrameLoop loop = new FrameLoop(supplier, width, height, metadata);
-    loop.run(periodNanos);
+    loop.run(periodNanoseconds);
   }
 
   private void report(final String message, final Throwable failure) {
@@ -170,7 +170,7 @@ public final class ImagePlayerImpl implements ImagePlayer {
 
   private static void join(final Thread worker) {
     try {
-      worker.join(STOP_TIMEOUT_MILLIS);
+      worker.join(STOP_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
@@ -229,11 +229,11 @@ public final class ImagePlayerImpl implements ImagePlayer {
       this.metadata = metadata;
     }
 
-    void run(final long periodNanos) {
+    void run(final long periodNanoseconds) {
       long deadline = ImagePlayerImpl.this.clock.getAsLong();
       try {
         while (ImagePlayerImpl.this.playing.get()) {
-          deadline += periodNanos;
+          deadline += periodNanoseconds;
           this.renderFrame();
           final long remaining = deadline - ImagePlayerImpl.this.clock.getAsLong();
           if (remaining > 0) {

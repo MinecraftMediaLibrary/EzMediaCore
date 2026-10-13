@@ -94,47 +94,47 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    * which depends on the lowest bits, would carry that weakness straight into the dithering noise. Scaling also
    * leaves a bias below one part in 2^32 of the range, where a modulo reduction leaves one part in the range.
    *
-   * @param min the smallest value, inclusive
-   * @param max the largest value, exclusive
-   * @return a random value from {@code min} to {@code max - 1}
-   * @throws IllegalArgumentException if {@code max} is not greater than {@code min}
+   * @param minimum the smallest value, inclusive
+   * @param maximum the largest value, exclusive
+   * @return a random value from {@code minimum} to {@code maximum - 1}
+   * @throws IllegalArgumentException if {@code maximum} is not greater than {@code minimum}
    */
   @Override
-  public int nextInt(final int min, final int max) {
-    Preconditions.checkArgument(max > min, "Max must be greater than min!");
-    final long range = (long) max - min;
+  public int nextInt(final int minimum, final int maximum) {
+    Preconditions.checkArgument(maximum > minimum, "Max must be greater than min!");
+    final long range = (long) maximum - minimum;
     final long nextBits = this.nextLong();
     final long offset = Math.unsignedMultiplyHigh(nextBits, range);
-    return (int) (min + offset);
+    return (int) (minimum + offset);
   }
 
   /**
    * Returns a random floating point number in a range, drawn from the top 53 bits of the next output.
    *
-   * @param min the finite smallest value, inclusive
-   * @param max the finite largest value, exclusive
-   * @return a random value greater than or equal to {@code min} and less than {@code max}
-   * @throws IllegalArgumentException if either bound is not finite or {@code max} is not greater than {@code min}
+   * @param minimum the finite smallest value, inclusive
+   * @param maximum the finite largest value, exclusive
+   * @return a random value greater than or equal to {@code minimum} and less than {@code maximum}
+   * @throws IllegalArgumentException if either bound is not finite or {@code maximum} is not greater than {@code minimum}
    */
   @Override
-  public double nextDouble(final double min, final double max) {
+  public double nextDouble(final double minimum, final double maximum) {
     Preconditions.checkArgument(
-      Double.isFinite(min) && Double.isFinite(max) && max > min,
+      Double.isFinite(minimum) && Double.isFinite(maximum) && maximum > minimum,
       "Bounds must be finite and max greater than min!"
     );
     final long nextBits = this.nextLong();
     final double unit = (nextBits >>> 11) * DOUBLE_UNIT;
-    final double range = max - min;
+    final double range = maximum - minimum;
     final double result;
     if (Double.isInfinite(range)) {
       // Scale before subtracting, as in JDK RandomSupport.boundedNextDouble, to avoid an infinite range.
-      final double halfMin = min * 0.5;
-      result = (unit * (max * 0.5 - halfMin) + halfMin) * 2.0;
+      final double halfMinimum = minimum * 0.5;
+      result = (unit * (maximum * 0.5 - halfMinimum) + halfMinimum) * 2.0;
     } else {
-      result = min + unit * range;
+      result = minimum + unit * range;
     }
     // Floating-point rounding can reach the exclusive bound, especially when the bounds are adjacent doubles.
-    return result >= max ? Math.nextDown(max) : result;
+    return result >= maximum ? Math.nextDown(maximum) : result;
   }
 
   /**

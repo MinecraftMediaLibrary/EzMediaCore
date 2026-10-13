@@ -181,7 +181,7 @@ final class DrawingFiltersTest {
   @Test
   void shouldDrawTheMeasuredFrameRate() {
     final AtomicLong clock = new AtomicLong();
-    final FPSFilter filter = new FPSFilter(clock::get);
+    final FramesPerSecondFilter filter = new FramesPerSecondFilter(clock::get);
     try (final ImageBuffer first = Images.solid(120, 40, BLACK_ARGB); final ImageBuffer second = Images.solid(120, 40, BLACK_ARGB)) {
       final boolean firstModified = filter.applyFilter(first);
       clock.set(1_000_000_000L);

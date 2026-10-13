@@ -40,7 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public abstract class ManualInstallationStrategy implements InstallationStrategy {
 
-  private static final int MAX_SEARCH_DEPTH = 8;
+  private static final int MAXIMUM_SEARCH_DEPTH = 8;
   private static final Duration TOOL_TIMEOUT = Duration.ofMinutes(10);
   private static final ProcessRunner COMMAND_RUNNER = ManualInstallationStrategy::runCommand;
 
@@ -126,7 +126,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
       return Optional.empty();
     }
     Optional<Path> found = Optional.empty();
-    try (final Stream<Path> files = Files.walk(root, MAX_SEARCH_DEPTH)) {
+    try (final Stream<Path> files = Files.walk(root, MAXIMUM_SEARCH_DEPTH)) {
       final Stream<Path> matching = files.filter(file -> matchesFileName(file, pattern));
       final Iterator<Path> candidates = matching.iterator();
       while (candidates.hasNext()) {

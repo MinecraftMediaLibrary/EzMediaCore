@@ -37,7 +37,7 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 final class VlcTestFrames {
 
   private static final long FRAME_TIMEOUT_SECONDS = 5L;
-  private static final long NO_FRAME_MILLIS = 200L;
+  private static final long NO_FRAME_MILLISECONDS = 200L;
   private static final int RGB_MASK = 0xFFFFFF;
 
   private VlcTestFrames() {
@@ -123,7 +123,7 @@ final class VlcTestFrames {
    * @throws InterruptedException if interrupted while waiting
    */
   static void assertNoFrame(final BlockingQueue<RecordedFrame> frames) throws InterruptedException {
-    final RecordedFrame frame = frames.poll(NO_FRAME_MILLIS, TimeUnit.MILLISECONDS);
+    final RecordedFrame frame = frames.poll(NO_FRAME_MILLISECONDS, TimeUnit.MILLISECONDS);
     assertNull(frame, "a frame reached the pipeline");
   }
 

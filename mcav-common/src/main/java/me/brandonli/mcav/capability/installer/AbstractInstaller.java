@@ -64,12 +64,12 @@ public abstract class AbstractInstaller implements Installer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractInstaller.class);
 
-  private static final String CONFIG_FILE_NAME = "config.properties";
-  private static final String CONFIG_TEMPORARY_SUFFIX = ".tmp";
-  private static final String CONFIG_COMMENT = "Paths of programs installed by MCAV";
+  private static final String CONFIGURATION_FILE_NAME = "config.properties";
+  private static final String CONFIGURATION_TEMPORARY_SUFFIX = ".tmp";
+  private static final String CONFIGURATION_COMMENT = "Paths of programs installed by MCAV";
   private static final String WINDOWS_EXECUTABLE_SUFFIX = ".exe";
   private static final String ARCHIVE_SUFFIX = ".archive";
-  private static final Object CONFIG_LOCK = new Object();
+  private static final Object CONFIGURATION_LOCK = new Object();
 
   private final Path folder;
   private final String name;
@@ -209,7 +209,7 @@ public abstract class AbstractInstaller implements Installer {
       }
     }
     final Path installed = this.install(destination);
-    this.writePathToConfig(installed);
+    this.writePathToConfiguration(installed);
     return installed;
   }
 
@@ -481,7 +481,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   private Optional<Path> findConfiguredInstallation() throws IOException {
-    final Properties properties = this.readConfig();
+    final Properties properties = this.readConfiguration();
     final String savedPath = properties.getProperty(this.name);
     if (savedPath == null) {
       return Optional.empty();
@@ -504,49 +504,49 @@ public abstract class AbstractInstaller implements Installer {
    * @throws IOException          if the configuration file cannot be written
    * @throws NullPointerException if {@code installedPath} is null
    */
-  public void writePathToConfig(final Path installedPath) throws IOException {
+  public void writePathToConfiguration(final Path installedPath) throws IOException {
     Preconditions.checkNotNull(installedPath, "Path must not be null!");
-    synchronized (CONFIG_LOCK) {
-      final Properties properties = this.readConfig();
+    synchronized (CONFIGURATION_LOCK) {
+      final Properties properties = this.readConfiguration();
       final Path absolute = installedPath.toAbsolutePath();
       final String raw = absolute.toString();
       properties.setProperty(this.name, raw);
-      this.storeConfig(properties);
+      this.storeConfiguration(properties);
     }
   }
 
-  private void storeConfig(final Properties properties) throws IOException {
+  private void storeConfiguration(final Properties properties) throws IOException {
     Files.createDirectories(this.folder);
-    final Path configFile = this.getConfigFile();
-    final Path temporary = Files.createTempFile(this.folder, CONFIG_FILE_NAME, CONFIG_TEMPORARY_SUFFIX);
+    final Path configurationFile = this.getConfigurationFile();
+    final Path temporary = Files.createTempFile(this.folder, CONFIGURATION_FILE_NAME, CONFIGURATION_TEMPORARY_SUFFIX);
     try {
-      try (final OutputStream configOutput = Files.newOutputStream(temporary)) {
-        properties.store(configOutput, CONFIG_COMMENT);
+      try (final OutputStream configurationOutput = Files.newOutputStream(temporary)) {
+        properties.store(configurationOutput, CONFIGURATION_COMMENT);
       }
-      IOUtils.moveReplacing(temporary, configFile);
+      IOUtils.moveReplacing(temporary, configurationFile);
     } finally {
       Files.deleteIfExists(temporary);
     }
   }
 
-  private Properties readConfig() throws IOException {
+  private Properties readConfiguration() throws IOException {
     final Properties properties = new Properties();
-    final Path configFile = this.getConfigFile();
-    final boolean exists = Files.isRegularFile(configFile);
+    final Path configurationFile = this.getConfigurationFile();
+    final boolean exists = Files.isRegularFile(configurationFile);
     if (!exists) {
       return properties;
     }
-    try (final InputStream configInput = Files.newInputStream(configFile)) {
-      properties.load(configInput);
+    try (final InputStream configurationInput = Files.newInputStream(configurationFile)) {
+      properties.load(configurationInput);
     } catch (final IllegalArgumentException exception) {
       // Properties refuses a malformed unicode escape this way; only remembered paths are lost, so they are forgotten
-      LOGGER.warn("Configuration {} is malformed and is ignored.", configFile, exception);
+      LOGGER.warn("Configuration {} is malformed and is ignored.", configurationFile, exception);
       return new Properties();
     }
     return properties;
   }
 
-  private Path getConfigFile() {
-    return this.folder.resolve(CONFIG_FILE_NAME);
+  private Path getConfigurationFile() {
+    return this.folder.resolve(CONFIGURATION_FILE_NAME);
   }
 }

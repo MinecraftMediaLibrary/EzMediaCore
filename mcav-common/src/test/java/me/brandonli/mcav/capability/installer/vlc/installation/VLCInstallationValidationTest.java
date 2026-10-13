@@ -42,7 +42,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 final class VLCInstallationValidationTest {
 
   @TempDir
-  private Path temp;
+  private Path temporaryDirectory;
 
   private enum Platform {
     WINDOWS,
@@ -128,7 +128,7 @@ final class VLCInstallationValidationTest {
   @EnumSource(Platform.class)
   void shouldNeedBothNonemptyFilesInTheSameDirectoryForCachedInstallations(final Platform platform) throws IOException {
     for (final Defect defect : Defect.values()) {
-      final Path folder = this.temp.resolve(defect.name());
+      final Path folder = this.temporaryDirectory.resolve(defect.name());
       final VLCInstaller installer = VLCInstaller.create(folder);
       final InstallationStrategy strategy = platform.strategy(installer, (_, _) -> {});
       final Path directory = installer.getInstallDirectory().resolve(platform.relativeDirectory());
@@ -143,7 +143,7 @@ final class VLCInstallationValidationTest {
   @ParameterizedTest
   @EnumSource(Platform.class)
   void shouldFindACompletePairBeyondAnIncompleteCandidate(final Platform platform) throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final Path install = installer.getInstallDirectory();
     final Path main = install.resolve(platform.mainLibrary());
     Files.createDirectories(install);
@@ -160,7 +160,7 @@ final class VLCInstallationValidationTest {
   @EnumSource(Platform.class)
   void shouldRejectMissingOrEmptyCounterpartsOfExtractedInstallations(final Platform platform) throws IOException {
     for (final Defect defect : Defect.values()) {
-      final Path folder = this.temp.resolve(defect.name());
+      final Path folder = this.temporaryDirectory.resolve(defect.name());
       Files.createDirectories(folder);
       final VLCInstaller installer = VLCInstaller.create(folder);
       final ProcessRunner tools = (workingDirectory, arguments) -> {
@@ -214,7 +214,7 @@ final class VLCInstallationValidationTest {
 
   @Test
   void shouldFollowLibrarySymlinksAndRejectBrokenOrEmptyTargets() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final Path directory = installer.getInstallDirectory();
     Files.createDirectories(directory);
     final Path mainTarget = directory.resolve("libvlc.5.dylib");

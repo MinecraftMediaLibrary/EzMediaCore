@@ -49,7 +49,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class LocalHttpServer implements AutoCloseable {
 
-  private static final long MAX_WAIT_SECONDS = 60;
+  private static final long MAXIMUM_WAIT_SECONDS = 60;
 
   private final HttpServer server;
   private final ExecutorService executor;
@@ -166,10 +166,10 @@ public final class LocalHttpServer implements AutoCloseable {
    * @param path           the path, starting with a slash
    * @param status         the status code
    * @param body           the body
-   * @param intervalMillis the time between two bytes, in milliseconds
+   * @param intervalMilliseconds the time between two bytes, in milliseconds
    */
-  public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMillis) {
-    final Response response = new Response(status, body, null, -1, null, intervalMillis);
+  public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMilliseconds) {
+    final Response response = new Response(status, body, null, -1, null, intervalMilliseconds);
     this.addResponse(path, response);
   }
 
@@ -237,8 +237,8 @@ public final class LocalHttpServer implements AutoCloseable {
    */
   public boolean awaitRequests(final String path, final int count, final Duration timeout) throws InterruptedException {
     final long start = System.nanoTime();
-    final long timeoutNanos = timeout.toNanos();
-    final long deadline = start + timeoutNanos;
+    final long timeoutNanoseconds = timeout.toNanos();
+    final long deadline = start + timeoutNanoseconds;
     synchronized (this.requestSignal) {
       int received = this.getRequestCount(path);
       while (received < count) {
@@ -278,7 +278,7 @@ public final class LocalHttpServer implements AutoCloseable {
       this.stall(exchange, response);
       return;
     }
-    if (response.trickleMillis > 0) {
+    if (response.trickleMilliseconds > 0) {
       this.trickle(exchange, response);
       return;
     }
@@ -302,7 +302,7 @@ public final class LocalHttpServer implements AutoCloseable {
     final boolean closed = this.awaitClose();
     exchange.close();
     if (!closed) {
-      final String message = "The stalling response gave up because the server was not closed within %s s!".formatted(MAX_WAIT_SECONDS);
+      final String message = "The stalling response gave up because the server was not closed within %s s!".formatted(MAXIMUM_WAIT_SECONDS);
       throw new IOException(message);
     }
   }
@@ -313,7 +313,7 @@ public final class LocalHttpServer implements AutoCloseable {
       for (final byte value : response.body) {
         output.write(value);
         output.flush();
-        if (this.closing.await(response.trickleMillis, TimeUnit.MILLISECONDS)) {
+        if (this.closing.await(response.trickleMilliseconds, TimeUnit.MILLISECONDS)) {
           return;
         }
       }
@@ -329,7 +329,7 @@ public final class LocalHttpServer implements AutoCloseable {
    */
   private void awaitGateOrClose(final CountDownLatch gate) {
     final long start = System.nanoTime();
-    final long maximumWait = TimeUnit.SECONDS.toNanos(MAX_WAIT_SECONDS);
+    final long maximumWait = TimeUnit.SECONDS.toNanos(MAXIMUM_WAIT_SECONDS);
     final long deadline = start + maximumWait;
     boolean opened = false;
     while (!opened && this.closing.getCount() > 0) {
@@ -355,7 +355,7 @@ public final class LocalHttpServer implements AutoCloseable {
    */
   private boolean awaitClose() {
     try {
-      return this.closing.await(MAX_WAIT_SECONDS, TimeUnit.SECONDS);
+      return this.closing.await(MAXIMUM_WAIT_SECONDS, TimeUnit.SECONDS);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
@@ -397,7 +397,7 @@ public final class LocalHttpServer implements AutoCloseable {
     private final CountDownLatch gate;
     private final long announcedLength;
     private final @Nullable String location;
-    private final long trickleMillis;
+    private final long trickleMilliseconds;
 
     Response(final int status, final byte[] body, final CountDownLatch gate, final long announcedLength) {
       this(status, body, gate, announcedLength, null, 0);
@@ -409,14 +409,14 @@ public final class LocalHttpServer implements AutoCloseable {
       final CountDownLatch gate,
       final long announcedLength,
       final @Nullable String location,
-      final long trickleMillis
+      final long trickleMilliseconds
     ) {
       this.status = status;
       this.body = body.clone();
       this.gate = gate;
       this.announcedLength = announcedLength;
       this.location = location;
-      this.trickleMillis = trickleMillis;
+      this.trickleMilliseconds = trickleMilliseconds;
     }
   }
 }

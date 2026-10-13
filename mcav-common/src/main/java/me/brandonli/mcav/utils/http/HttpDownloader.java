@@ -75,13 +75,13 @@ public final class HttpDownloader {
   private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(20);
   private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(30);
   private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(1);
-  private static final int MAX_ATTEMPTS = 3;
+  private static final int MAXIMUM_ATTEMPTS = 3;
   private static final Duration RETRY_DELAY = Duration.ofSeconds(2);
   private static final int BUFFER_SIZE = 64 * 1024;
   private static final String PART_SUFFIX = ".part";
-  private static final int MAX_REDIRECTS = 5;
+  private static final int MAXIMUM_REDIRECTS = 5;
   private static final Duration PINNED_GRACE = Duration.ofMinutes(1);
-  private static final long PINNED_MIN_BYTES_PER_SECOND = 64L * 1024;
+  private static final long PINNED_MINIMUM_BYTES_PER_SECOND = 64L * 1024;
   /**
    * The limit of a download that names no limit of its own, which is none.
    */
@@ -155,7 +155,7 @@ public final class HttpDownloader {
 
   /**
    * Opens the body of a pinned download: a redirect is followed only to the host, port and scheme of the URI, and at
-   * most {@value #MAX_REDIRECTS} times, so a mirror cannot make the server request what it chooses.
+   * most {@value #MAXIMUM_REDIRECTS} times, so a mirror cannot make the server request what it chooses.
    *
    * @param uri the URI to download
    * @return the body of the response, which closes its client
@@ -181,8 +181,8 @@ public final class HttpDownloader {
         final String message = "Pinned download %s may not redirect to %s on another host!".formatted(uri, next);
         throw new RedirectRefusedException(message);
       }
-      if (redirects == MAX_REDIRECTS) {
-        final String message = "Pinned download %s was redirected more than %s times!".formatted(uri, MAX_REDIRECTS);
+      if (redirects == MAXIMUM_REDIRECTS) {
+        final String message = "Pinned download %s was redirected more than %s times!".formatted(uri, MAXIMUM_REDIRECTS);
         throw new RedirectRefusedException(message);
       }
       current = next;
@@ -287,18 +287,18 @@ public final class HttpDownloader {
    * remote server chooses, such as a picture behind a URL a player named: a server that never stops sending would
    * otherwise fill the disk of its client.
    *
-   * @param uri         the URL to download
-   * @param destination the file to write, which is replaced only after a complete download
-   * @param maxBytes    the largest number of bytes the download may have, at least 1
+   * @param uri          the URL to download
+   * @param destination  the file to write, which is replaced only after a complete download
+   * @param maximumBytes the largest number of bytes the download may have, at least 1
    * @throws DownloadTooLargeException if the download is larger than the limit
    * @throws IOException               if the download fails
    * @throws NullPointerException      if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                   the destination has no file name, or {@code maxBytes} is nonpositive
+   *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
    */
-  public static void download(final URI uri, final Path destination, final long maxBytes) throws IOException {
-    Preconditions.checkArgument(maxBytes > 0, SIZE_LIMIT_MESSAGE, maxBytes);
-    download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maxBytes);
+  public static void download(final URI uri, final Path destination, final long maximumBytes) throws IOException {
+    Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+    download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes);
   }
 
   /**
@@ -309,18 +309,19 @@ public final class HttpDownloader {
    * @param uri            the URL to download
    * @param destination    the file to write, which is replaced only after a complete download
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal
-   * @param maxBytes       the largest number of bytes the download may have, at least 1
+   * @param maximumBytes   the largest number of bytes the download may have, at least 1
    * @throws DownloadTooLargeException if the download is larger than the limit
    * @throws ChecksumMismatchException if the hash does not match
    * @throws IOException               if the download fails
    * @throws NullPointerException      if {@code uri}, {@code destination}, {@code expectedSha256} is null
    * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                   the destination has no file name, or {@code maxBytes} is nonpositive
+   *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
    */
-  public static void download(final URI uri, final Path destination, final String expectedSha256, final long maxBytes) throws IOException {
+  public static void download(final URI uri, final Path destination, final String expectedSha256, final long maximumBytes)
+    throws IOException {
     Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null!");
-    Preconditions.checkArgument(maxBytes > 0, SIZE_LIMIT_MESSAGE, maxBytes);
-    download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maxBytes, pinnedDeadline(maxBytes));
+    Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+    download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes, pinnedDeadline(maximumBytes));
   }
 
   /**
@@ -346,7 +347,7 @@ public final class HttpDownloader {
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
    * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
    * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maxBytes       the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
+   * @param maximumBytes   the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
    * @throws IOException if every attempt fails or the file cannot be moved into place
    */
   @VisibleForTesting
@@ -356,9 +357,9 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes
+    final long maximumBytes
   ) throws IOException {
-    download(uri, destination, expectedSha256, retryDelay, idleTimeout, maxBytes, null);
+    download(uri, destination, expectedSha256, retryDelay, idleTimeout, maximumBytes, null);
   }
 
   /**
@@ -369,7 +370,7 @@ public final class HttpDownloader {
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
    * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
    * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maxBytes       the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
+   * @param maximumBytes   the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
    * @param pinnedDeadline how long an attempt of a pinned download may take, which also follows a redirect only to
    *                       its own host, or null for a download that is not pinned
    * @throws IOException if every attempt fails or the file cannot be moved into place
@@ -381,7 +382,7 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -395,7 +396,7 @@ public final class HttpDownloader {
     final String partPrefix = fileName + ".";
     final Path partFile = Files.createTempFile(parent, partPrefix, PART_SUFFIX);
     try {
-      downloadWithRetries(uri, partFile, expectedSha256, retryDelay, idleTimeout, maxBytes, pinnedDeadline);
+      downloadWithRetries(uri, partFile, expectedSha256, retryDelay, idleTimeout, maximumBytes, pinnedDeadline);
       moveIntoPlace(partFile, target);
     } finally {
       Files.deleteIfExists(partFile);
@@ -405,12 +406,12 @@ public final class HttpDownloader {
   /**
    * Returns how long a pinned download may take: a minute, and a second for every 64 KiB of its size.
    *
-   * @param maxBytes the pinned size
+   * @param maximumBytes the pinned size
    * @return the time it may take
    */
   @VisibleForTesting
-  static Duration pinnedDeadline(final long maxBytes) {
-    return PINNED_GRACE.plusSeconds(maxBytes / PINNED_MIN_BYTES_PER_SECOND);
+  static Duration pinnedDeadline(final long maximumBytes) {
+    return PINNED_GRACE.plusSeconds(maximumBytes / PINNED_MINIMUM_BYTES_PER_SECOND);
   }
 
   /**
@@ -436,28 +437,28 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
     IOException lastFailure = null;
-    for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    for (int attempt = 1; attempt <= MAXIMUM_ATTEMPTS; attempt++) {
       try {
-        downloadOnce(uri, partFile, expectedSha256, idleTimeout, maxBytes, pinnedDeadline);
+        downloadOnce(uri, partFile, expectedSha256, idleTimeout, maximumBytes, pinnedDeadline);
         return;
       } catch (final IOException exception) {
         lastFailure = exception;
         final String reason = exception.getMessage();
-        LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAX_ATTEMPTS);
+        LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAXIMUM_ATTEMPTS);
         final boolean retryable = isRetryable(exception);
         if (!retryable) {
           throw exception;
         }
-        if (attempt < MAX_ATTEMPTS) {
+        if (attempt < MAXIMUM_ATTEMPTS) {
           sleepBeforeRetry(retryDelay, attempt);
         }
       }
     }
-    final String message = "Download of %s failed after %s attempts!".formatted(uri, MAX_ATTEMPTS);
+    final String message = "Download of %s failed after %s attempts!".formatted(uri, MAXIMUM_ATTEMPTS);
     throw new IOException(message, lastFailure);
   }
 
@@ -488,7 +489,7 @@ public final class HttpDownloader {
     final Path partFile,
     final @Nullable String expectedSha256,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
     final MessageDigest digest = createDigest("SHA-256");
@@ -498,7 +499,7 @@ public final class HttpDownloader {
       final InputStream body = new IdleTimeoutInputStream(response, idleTimeout);
       final OutputStream partOutput = Files.newOutputStream(partFile)
     ) {
-      copy(body, partOutput, digest, uri, maxBytes, started, pinnedDeadline);
+      copy(body, partOutput, digest, uri, maximumBytes, started, pinnedDeadline);
     }
     verifyChecksum(uri, digest, expectedSha256);
   }
@@ -513,7 +514,7 @@ public final class HttpDownloader {
     final OutputStream partOutput,
     final MessageDigest digest,
     final URI uri,
-    final long maxBytes,
+    final long maximumBytes,
     final long started,
     final @Nullable Duration deadline
   ) throws IOException {
@@ -522,8 +523,8 @@ public final class HttpDownloader {
     int read = body.read(chunk);
     while (read != -1) {
       written += read;
-      if (written > maxBytes) {
-        final String message = "The download of %s is larger than the %s bytes it may have!".formatted(uri, maxBytes);
+      if (written > maximumBytes) {
+        final String message = "The download of %s is larger than the %s bytes it may have!".formatted(uri, maximumBytes);
         throw new DownloadTooLargeException(message);
       }
       // compared as durations: the deadline of the largest pinned size does not fit a long of nanoseconds

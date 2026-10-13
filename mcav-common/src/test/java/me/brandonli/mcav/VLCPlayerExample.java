@@ -29,8 +29,8 @@ import me.brandonli.mcav.media.player.pipeline.builder.AudioPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.DirectAudioOutput;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FlipFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.InvertFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
@@ -74,7 +74,7 @@ public final class VLCPlayerExample {
 
       final VideoFilter display = window.asFilter();
       final VideoPipelineStepBuilder videoBuilder = PipelineBuilder.video();
-      final FPSFilter frameRate = new FPSFilter();
+      final FramesPerSecondFilter frameRate = new FramesPerSecondFilter();
       videoBuilder.then(frameRate);
       final InvertFilter invert = new InvertFilter();
       videoBuilder.then(invert);

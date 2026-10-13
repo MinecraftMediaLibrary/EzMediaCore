@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
  */
 final class LateFrameCounterTest {
 
-  private static final long SECOND_MICROS = 1_000_000L;
+  private static final long SECOND_MICROSECONDS = 1_000_000L;
 
   private final List<String> reports = new ArrayList<>();
   private final LateFrameCounter counter = new LateFrameCounter((dropped, frames) -> this.reports.add(dropped + " of " + frames));
@@ -42,7 +42,7 @@ final class LateFrameCounterTest {
    */
   private void everySecond(final int firstSecond, final int lastSecond, final boolean late) {
     for (int second = firstSecond; second <= lastSecond; second++) {
-      this.counter.count(second * SECOND_MICROS, late);
+      this.counter.count(second * SECOND_MICROSECONDS, late);
     }
   }
 
@@ -57,9 +57,9 @@ final class LateFrameCounterTest {
   @Test
   void shouldEndAStretchOnlyOnceItsTenSecondsArePast() {
     this.everySecond(0, 9, true);
-    this.counter.count(10 * SECOND_MICROS - 1, true);
+    this.counter.count(10 * SECOND_MICROSECONDS - 1, true);
     final List<String> beforeTheEnd = List.copyOf(this.reports);
-    this.counter.count(10 * SECOND_MICROS, true);
+    this.counter.count(10 * SECOND_MICROSECONDS, true);
 
     assertEquals(List.of(), beforeTheEnd);
     assertEquals(List.of("12 of 12"), this.reports);
@@ -68,7 +68,7 @@ final class LateFrameCounterTest {
   @Test
   void shouldNotReportFewerThanTenDroppedFramesAsAReason() {
     this.counter.count(0L, false);
-    this.counter.count(SECOND_MICROS, false);
+    this.counter.count(SECOND_MICROSECONDS, false);
     this.everySecond(2, 10, true);
 
     assertEquals(List.of(), this.reports, "nine frames were dropped");
@@ -78,7 +78,7 @@ final class LateFrameCounterTest {
   void shouldDropOfHalfTheFramesAreNoReason() {
     for (int frame = 0; frame <= 21; frame++) {
       final boolean late = frame % 2 == 0;
-      this.counter.count((frame * 10 * SECOND_MICROS) / 21, late);
+      this.counter.count((frame * 10 * SECOND_MICROSECONDS) / 21, late);
     }
 
     assertEquals(List.of(), this.reports, "eleven of twenty-two frames were dropped");
@@ -103,7 +103,7 @@ final class LateFrameCounterTest {
   void shouldReportAtMostOnceAMinuteOfVideo() {
     this.everySecond(0, 69, true);
     final List<String> withinTheMinute = List.copyOf(this.reports);
-    this.counter.count(70 * SECOND_MICROS, true);
+    this.counter.count(70 * SECOND_MICROSECONDS, true);
 
     assertEquals(List.of("11 of 11"), withinTheMinute, "the stretches up to seventy seconds come within a minute of the first report");
     assertEquals(List.of("11 of 11", "10 of 10"), this.reports, "a minute after the first report, the next stretch is reported");
@@ -122,7 +122,7 @@ final class LateFrameCounterTest {
     for (int frame = 0; frame < 11; frame++) {
       this.counter.count(0L, true);
     }
-    this.counter.count(10 * SECOND_MICROS, true);
+    this.counter.count(10 * SECOND_MICROSECONDS, true);
 
     assertEquals(List.of("12 of 12"), this.reports);
   }

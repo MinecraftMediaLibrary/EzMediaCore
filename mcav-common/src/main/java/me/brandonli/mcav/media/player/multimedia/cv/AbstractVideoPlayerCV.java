@@ -60,14 +60,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
 
   /** The slowest speed media plays at: half as fast. */
-  public static final double MIN_SPEED = 0.5;
+  public static final double MINIMUM_SPEED = 0.5;
 
   /** The fastest speed media plays at: twice as fast, which the decoder must keep up with. */
-  public static final double MAX_SPEED = 2.0;
+  public static final double MAXIMUM_SPEED = 2.0;
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
-  private static final long MICROS_PER_MILLI = 1_000L;
-  private static final String NETWORK_TIMEOUT_MICROS = "15000000";
+  private static final long MICROSECONDS_PER_MILLISECOND = 1_000L;
+  private static final String NETWORK_TIMEOUT_MICROSECONDS = "15000000";
 
   private final VideoAttachableCallback videoCallback;
   private final AudioAttachableCallback audioCallback;
@@ -75,7 +75,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   private final Lock lock;
 
   private volatile BiConsumer<String, Throwable> exceptionHandler;
-  private volatile long maxVideoLagNanos;
+  private volatile long maximumVideoLagNanoseconds;
   private volatile @Nullable PlaybackSession session;
   private volatile double speed;
   private @Nullable Source videoSource;
@@ -93,7 +93,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
     this.dimensionCallback = DimensionAttachableCallback.create();
     this.lock = new ReentrantLock();
     this.exceptionHandler = defaultHandler.getExceptionHandler();
-    this.maxVideoLagNanos = PlaybackSession.MAX_VIDEO_LAG_NANOS;
+    this.maximumVideoLagNanoseconds = PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS;
     this.speed = PlaybackClock.NORMAL_SPEED;
   }
 
@@ -141,7 +141,12 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
     return this.startSources(video, audio, 0L, false);
   }
 
-  private PlaybackSession createSession(final Source video, final @Nullable Source audio, final long positionMicros, final boolean paused) {
+  private PlaybackSession createSession(
+    final Source video,
+    final @Nullable Source audio,
+    final long positionMicroseconds,
+    final boolean paused
+  ) {
     final PlaybackSession.GrabberFactory videoFactory = () -> this.createStartedGrabber(video);
     final PlaybackSession.GrabberFactory audioFactory = audio == null ? null : () -> this.createStartedGrabber(audio);
     return new PlaybackSession(
@@ -151,37 +156,37 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
       this.audioCallback,
       this.dimensionCallback,
       this.exceptionHandler,
-      positionMicros,
+      positionMicroseconds,
       paused,
-      PlaybackSession.AUDIO_LEAD_NANOS,
-      this.maxVideoLagNanos,
+      PlaybackSession.AUDIO_LEAD_NANOSECONDS,
+      this.maximumVideoLagNanoseconds,
       System::nanoTime
     );
   }
 
   /**
    * Makes the sessions started afterward show every frame however late it is, for tests whose frame counts must not
-   * depend on the load of the machine. Players drop frames more than {@link PlaybackSession#MAX_VIDEO_LAG_NANOS} late
+   * depend on the load of the machine. Players drop frames more than {@link PlaybackSession#MAXIMUM_VIDEO_LAG_NANOSECONDS} late
    * otherwise.
    */
   @VisibleForTesting
   void neverDropLateFrames() {
-    this.maxVideoLagNanos = Long.MAX_VALUE;
+    this.maximumVideoLagNanoseconds = Long.MAX_VALUE;
   }
 
   /**
    * Opens the sources in a new session and only then replaces the current session with it, so a source that cannot
    * be opened leaves the current playback alone.
    */
-  private boolean startSources(final Source video, final @Nullable Source audio, final long positionMicros, final boolean paused) {
-    return this.startSources(video, audio, positionMicros, paused, null);
+  private boolean startSources(final Source video, final @Nullable Source audio, final long positionMicroseconds, final boolean paused) {
+    return this.startSources(video, audio, positionMicroseconds, paused, null);
   }
 
   /** A reservation keeps competing starts from overtaking acquisition or shutdown, without holding the player lock. */
   private boolean startSources(
     final Source video,
     final @Nullable Source audio,
-    final long positionMicros,
+    final long positionMicroseconds,
     final boolean paused,
     final @Nullable PlaybackSession expected
   ) {
@@ -191,7 +196,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
       if (this.released || this.starting || (expected != null && !IDENTITY.equivalent(expected, this.session))) {
         return false;
       }
-      created = this.createSession(video, audio, positionMicros, paused);
+      created = this.createSession(video, audio, positionMicroseconds, paused);
       this.starting = true;
     } finally {
       this.lock.unlock();
@@ -343,7 +348,7 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
   private static void configureFFmpeg(final FFmpegFrameGrabber grabber, final Source source) {
     grabber.setVideoOption("threads", "auto");
     grabber.setVideoOption("flags", "low_delay");
-    grabber.setOption("rw_timeout", NETWORK_TIMEOUT_MICROS);
+    grabber.setOption("rw_timeout", NETWORK_TIMEOUT_MICROSECONDS);
     grabber.setOption("reconnect", "1");
     grabber.setOption("reconnect_streamed", "1");
     grabber.setOption("reconnect_delay_max", "5");
@@ -427,8 +432,8 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
     } finally {
       this.lock.unlock();
     }
-    final long positionMicros = Math.min(time, Long.MAX_VALUE / MICROS_PER_MILLI) * MICROS_PER_MILLI;
-    return this.startSources(video, audio, positionMicros, paused, current);
+    final long positionMicroseconds = Math.min(time, Long.MAX_VALUE / MICROSECONDS_PER_MILLISECOND) * MICROSECONDS_PER_MILLISECOND;
+    return this.startSources(video, audio, positionMicroseconds, paused, current);
   }
 
   /**
@@ -436,17 +441,17 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    * known length changes speed: a live stream or a camera cannot be played ahead of itself, and played slower it
    * would fall ever further behind. Seeking keeps the speed; new media starts at normal speed.
    *
-   * @param speed from {@link #MIN_SPEED} to {@link #MAX_SPEED}, 1 for normal speed
+   * @param speed from {@link #MINIMUM_SPEED} to {@link #MAXIMUM_SPEED}, 1 for normal speed
    * @return true if the speed changed, false if nothing is playing or the media is live
    * @throws IllegalArgumentException if the speed is outside that range or not a number
    */
   public boolean setSpeed(final double speed) {
     Preconditions.checkArgument(
-      speed >= MIN_SPEED && speed <= MAX_SPEED,
+      speed >= MINIMUM_SPEED && speed <= MAXIMUM_SPEED,
       "Speed %s must be between %s and %s!",
       speed,
-      MIN_SPEED,
-      MAX_SPEED
+      MINIMUM_SPEED,
+      MAXIMUM_SPEED
     );
     this.lock.lock();
     try {
@@ -476,13 +481,13 @@ public abstract class AbstractVideoPlayerCV implements VideoPlayerMultiplexer {
    *
    * @return the position in milliseconds, or 0 if nothing has been played
    */
-  public long getPositionMillis() {
+  public long getPositionMilliseconds() {
     final PlaybackSession current = this.session;
     if (current == null) {
       return 0L;
     }
-    final long micros = current.getPositionMicros();
-    return micros / MICROS_PER_MILLI;
+    final long microseconds = current.getPositionMicroseconds();
+    return microseconds / MICROSECONDS_PER_MILLISECOND;
   }
 
   /**

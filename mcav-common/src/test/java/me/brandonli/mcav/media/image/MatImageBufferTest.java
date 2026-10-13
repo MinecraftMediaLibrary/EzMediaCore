@@ -199,8 +199,8 @@ final class MatImageBufferTest {
     Files.write(file, png);
     final FileSource path = FileSource.path(file);
     final String expected = "Image size 16x16 exceeds the limit of 255 pixels that the system property mcav.image.maxPixels sets!";
-    final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
-    System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "255");
+    final String previous = System.getProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
+    System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "255");
     try {
       final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(png));
       final String bytesMessage = fromBytes.getMessage();
@@ -208,7 +208,7 @@ final class MatImageBufferTest {
       final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
       final String fileMessage = fromFile.getMessage();
       assertEquals(expected, fileMessage);
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "256");
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "256");
       try (final ImageBuffer atTheLimit = ImageBuffer.bytes(png); final ImageBuffer fileAtTheLimit = ImageBuffer.path(path)) {
         final int width = atTheLimit.getWidth();
         final int height = fileAtTheLimit.getHeight();
@@ -216,7 +216,7 @@ final class MatImageBufferTest {
         assertEquals(16, height);
       }
     } finally {
-      restoreMaxPixels(previous);
+      restoreMaximumPixels(previous);
     }
   }
 
@@ -253,8 +253,8 @@ final class MatImageBufferTest {
       0,
       0,
     };
-    final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
-    System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+    final String previous = System.getProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
+    System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
     try {
       final IllegalArgumentException refused = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(header));
       final String message = refused.getMessage();
@@ -263,7 +263,7 @@ final class MatImageBufferTest {
         message
       );
     } finally {
-      restoreMaxPixels(previous);
+      restoreMaximumPixels(previous);
     }
   }
 
@@ -302,11 +302,11 @@ final class MatImageBufferTest {
     assertEquals("File " + file + " is not a supported image!", fileMessage);
   }
 
-  private static void restoreMaxPixels(final @Nullable String previous) {
+  private static void restoreMaximumPixels(final @Nullable String previous) {
     if (previous == null) {
-      System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+      System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
     } else {
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, previous);
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, previous);
     }
   }
 

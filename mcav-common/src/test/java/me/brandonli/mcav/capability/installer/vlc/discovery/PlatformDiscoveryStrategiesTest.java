@@ -72,7 +72,7 @@ final class PlatformDiscoveryStrategiesTest {
   };
 
   @TempDir
-  private Path temp;
+  private Path temporaryDirectory;
 
   @Test
   void shouldSupportExactlyTheStrategyOfTheRunningSystem() {
@@ -101,7 +101,7 @@ final class PlatformDiscoveryStrategiesTest {
   })
   void shouldRecognizeVersionedSharedLibrariesOnLinux(final String library, final String coreLibrary, final boolean expected)
     throws IOException {
-    final Path directory = createFiles(this.temp, "lib", library, coreLibrary);
+    final Path directory = createFiles(this.temporaryDirectory, "lib", library, coreLibrary);
     final List<SearchProvider> providers = providersFor(directory);
     final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, IGNORING_SETTER);
     final String found = strategy.discover();
@@ -111,7 +111,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldPublishThePluginsBelowTheLibraryDirectoryOnLinux() throws IOException {
-    final Path directory = createFiles(this.temp, "lib", "libvlc.so.5", "libvlccore.so.9");
+    final Path directory = createFiles(this.temporaryDirectory, "lib", "libvlc.so.5", "libvlccore.so.9");
     final Path relativePlugins = Path.of("vlc", "plugins");
     final Path plugins = directory.resolve(relativePlugins);
     Files.createDirectories(plugins);
@@ -128,7 +128,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldFindTheDynamicLibrariesAndPreloadTheCoreLibraryOnOsx() throws IOException {
-    final Path directory = createFiles(this.temp, "lib", "libvlc.dylib", "libvlccore.dylib");
+    final Path directory = createFiles(this.temporaryDirectory, "lib", "libvlc.dylib", "libvlccore.dylib");
     final List<String> preloaded = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, preloaded::add);
@@ -144,7 +144,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldPublishThePluginsNextToTheLibraryDirectoryOnOsx() throws IOException {
     final Path relativeContents = Path.of("VLC.app", "Contents", "MacOS");
-    final Path contents = this.temp.resolve(relativeContents);
+    final Path contents = this.temporaryDirectory.resolve(relativeContents);
     final Path directory = createFiles(contents, "lib", "libvlc.dylib", "libvlccore.dylib");
     final Path plugins = contents.resolve("plugins");
     Files.createDirectories(plugins);
@@ -181,7 +181,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldFindTheDynamicLinkLibrariesOnWindows() throws IOException {
-    final Path directory = createFiles(this.temp, "VLC", "libvlc.dll", "libvlccore.dll", "vlc.exe");
+    final Path directory = createFiles(this.temporaryDirectory, "VLC", "libvlc.dll", "libvlccore.dll", "vlc.exe");
     final List<SearchProvider> providers = providersFor(directory);
     final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, IGNORING_SETTER);
     final String found = strategy.discover();
@@ -193,7 +193,7 @@ final class PlatformDiscoveryStrategiesTest {
   void shouldPublishThePluginsBelowTheInstallationDirectoryOnWindows() throws IOException {
     final OS operatingSystem = OSUtils.getOS();
     Assumptions.assumeTrue(operatingSystem == OS.WINDOWS, "Windows plugin paths use backslashes!");
-    final Path directory = createFiles(this.temp, "VLC", "libvlc.dll", "libvlccore.dll");
+    final Path directory = createFiles(this.temporaryDirectory, "VLC", "libvlc.dll", "libvlccore.dll");
     final Path plugins = directory.resolve("plugins");
     Files.createDirectories(plugins);
     final List<String> published = new ArrayList<>();
@@ -221,7 +221,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldFindTheLibrariesOfEveryPlatformInTheGivenDirectoryWithDirectoryStrategies() throws IOException {
-    final Path directory = createFiles(this.temp, "vlc", EVERY_LIBRARY);
+    final Path directory = createFiles(this.temporaryDirectory, "vlc", EVERY_LIBRARY);
     final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createDirectoryStrategies(directory);
     assertEquals(3, strategies.length);
     final String rawDirectory = directory.toString();
@@ -237,7 +237,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldNotLookAnywhereElseWithDirectoryStrategies() throws IOException {
-    final Path empty = this.temp.resolve("empty");
+    final Path empty = this.temporaryDirectory.resolve("empty");
     Files.createDirectories(empty);
     createFiles(empty, "child", EVERY_LIBRARY);
     final NativeDiscoveryStrategy[] strategies = VLCDiscoveryStrategies.createDirectoryStrategies(empty);

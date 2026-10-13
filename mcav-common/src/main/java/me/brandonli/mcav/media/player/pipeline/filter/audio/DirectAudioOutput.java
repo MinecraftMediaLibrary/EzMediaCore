@@ -51,7 +51,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
   static final AudioFormat FORMAT = new AudioFormat(SAMPLE_RATE, BYTES_PER_SAMPLE * 8, CHANNELS, true, false);
 
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
-  private static final int BUFFER_MILLIS = 200;
+  private static final int BUFFER_MILLISECONDS = 200;
 
   private final LineOpener lineOpener;
   private volatile @Nullable SourceDataLine line;
@@ -76,8 +76,8 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
   }
 
   private static SourceDataLine openDefaultLine(final AudioFormat format, final int bufferSize) throws LineUnavailableException {
-    final DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
-    final SourceDataLine opened = (SourceDataLine) AudioSystem.getLine(info);
+    final DataLine.Info lineInformation = new DataLine.Info(SourceDataLine.class, format);
+    final SourceDataLine opened = (SourceDataLine) AudioSystem.getLine(lineInformation);
     opened.open(format, bufferSize);
     return opened;
   }
@@ -135,7 +135,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
       return;
     }
     try {
-      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLIS) / 1000;
+      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / 1000;
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
       try {
         opened.start();

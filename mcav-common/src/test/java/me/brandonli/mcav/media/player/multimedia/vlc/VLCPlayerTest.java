@@ -175,9 +175,9 @@ final class VLCPlayerTest {
     VLCPlaybackTest.awaitNoPlaybackThreads();
   }
 
-  private static long elapsedMillisSince(final long startNanos) {
+  private static long elapsedMillisecondsSince(final long startNanoseconds) {
     final long now = System.nanoTime();
-    return TimeUnit.NANOSECONDS.toMillis(now - startNanos);
+    return TimeUnit.NANOSECONDS.toMillis(now - startNanoseconds);
   }
 
   @Test
@@ -311,12 +311,12 @@ final class VLCPlayerTest {
     try {
       final long start = System.nanoTime();
       final boolean started = slow.start(this.video);
-      final long elapsedMillis = elapsedMillisSince(start);
+      final long elapsedMilliseconds = elapsedMillisecondsSince(start);
       final MockVlc.Player only = this.vlc.player(0);
       final boolean noErrorsYet = slowErrors.isEmpty();
       assertTrue(started, "a stream that is still opening counts as started");
-      final boolean waitedForTimeout = elapsedMillis >= 90L;
-      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMillis);
+      final boolean waitedForTimeout = elapsedMilliseconds >= 90L;
+      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMilliseconds);
       assertTrue(noErrorsYet);
 
       only.fireError();
@@ -339,12 +339,12 @@ final class VLCPlayerTest {
     try {
       final long start = System.nanoTime();
       final boolean started = slow.start(this.video, this.audio);
-      final long elapsedMillis = elapsedMillisSince(start);
+      final long elapsedMilliseconds = elapsedMillisecondsSince(start);
       assertTrue(started, "sources that are still opening count as started");
-      final boolean waitedForTimeout = elapsedMillis >= 350L;
-      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMillis);
-      final boolean waitedOnce = elapsedMillis < 700L;
-      assertTrue(waitedOnce, "both sources open at the same time, so start waits the timeout once, took " + elapsedMillis);
+      final boolean waitedForTimeout = elapsedMilliseconds >= 350L;
+      assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMilliseconds);
+      final boolean waitedOnce = elapsedMilliseconds < 700L;
+      assertTrue(waitedOnce, "both sources open at the same time, so start waits the timeout once, took " + elapsedMilliseconds);
     } finally {
       slow.release();
     }
@@ -358,12 +358,12 @@ final class VLCPlayerTest {
     current.interrupt();
     final long start = System.nanoTime();
     final boolean started = slow.start(this.video);
-    final long elapsedMillis = elapsedMillisSince(start);
+    final long elapsedMilliseconds = elapsedMillisecondsSince(start);
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(started);
     assertTrue(stillInterrupted, "the interrupt is kept");
-    final boolean gaveUpPromptly = elapsedMillis < 5_000L;
-    assertTrue(gaveUpPromptly, "took " + elapsedMillis);
+    final boolean gaveUpPromptly = elapsedMilliseconds < 5_000L;
+    assertTrue(gaveUpPromptly, "took " + elapsedMilliseconds);
 
     final MockVlc.Player only = this.vlc.player(0);
     final EmbeddedMediaPlayer mediaPlayer = only.getPlayer();
@@ -1290,8 +1290,8 @@ final class VLCPlayerTest {
     final SharedMediaPlayerFactory factory = mock(SharedMediaPlayerFactory.class);
     final VLCPlayer player = new VLCPlayer(factory, 0L);
     try {
-      final long timeoutMillis = player.getOpenTimeoutMillis();
-      assertEquals(0L, timeoutMillis);
+      final long timeoutMilliseconds = player.getOpenTimeoutMilliseconds();
+      assertEquals(0L, timeoutMilliseconds);
     } finally {
       player.release();
     }
@@ -1302,7 +1302,7 @@ final class VLCPlayerTest {
     final VLCPlayer shared = new VLCPlayer("--x");
     final SharedMediaPlayerFactory factory = shared.getSharedFactory();
     final SharedMediaPlayerFactory instance = SharedMediaPlayerFactory.getInstance();
-    final long timeout = shared.getOpenTimeoutMillis();
+    final long timeout = shared.getOpenTimeoutMilliseconds();
     final String[] options = shared.createMediaOptions(null);
     final boolean released = shared.release();
     assertSame(instance, factory);

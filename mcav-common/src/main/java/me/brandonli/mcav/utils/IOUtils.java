@@ -79,10 +79,10 @@ public final class IOUtils {
    * megabytes as a PNG, so this leaves room for an unusually large picture while a server that never stops sending
    * cannot fill the disk.
    */
-  public static final long MAX_IMAGE_BYTES = 64L * 1024L * 1024L;
+  public static final long MAXIMUM_IMAGE_BYTES = 64L * 1024L * 1024L;
 
-  private static final long MAX_ZIP_ENTRY_SIZE = 512L * 1024L * 1024L;
-  private static final long MAX_ZIP_TOTAL_SIZE = 2L * 1024L * 1024L * 1024L;
+  private static final long MAXIMUM_ZIP_ENTRY_SIZE = 512L * 1024L * 1024L;
+  private static final long MAXIMUM_ZIP_TOTAL_SIZE = 2L * 1024L * 1024L * 1024L;
   private static final int COPY_BUFFER_SIZE = 64 * 1024;
   private static final int FIRST_VNC_PORT = 5900;
   private static final int LAST_PORT = 65535;
@@ -439,13 +439,13 @@ public final class IOUtils {
    * Downloads an image into the cache folder. The file name is derived from the URL, so downloading the same URL
    * again overwrites the cached copy.
    *
-   * <p>The download stops as soon as it passes {@link #MAX_IMAGE_BYTES}, because the server behind the URL chooses
+   * <p>The download stops as soon as it passes {@link #MAXIMUM_IMAGE_BYTES}, because the server behind the URL chooses
    * how much it sends and a picture of a map screen is far smaller than that.
    *
    * @param source the URL of the image
    * @return the cached file path; releasing a decoded image does not remove this file
    * @throws UncheckedIOException     if the image cannot be downloaded, including when it is larger than
-   *                                  {@link #MAX_IMAGE_BYTES}
+   *                                  {@link #MAXIMUM_IMAGE_BYTES}
    * @throws IllegalArgumentException if the source does not describe an absolute HTTP or HTTPS URI with a host
    * @throws NullPointerException     if {@code source} is null
    */
@@ -459,7 +459,7 @@ public final class IOUtils {
     final Path destination = cache.resolve(fileName);
     final URI uri = URI.create(url);
     try {
-      HttpDownloader.download(uri, destination, MAX_IMAGE_BYTES);
+      HttpDownloader.download(uri, destination, MAXIMUM_IMAGE_BYTES);
     } catch (final IOException exception) {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
@@ -588,23 +588,23 @@ public final class IOUtils {
   public static void unzip(final Path archive, final Path destination) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
     Preconditions.checkNotNull(destination, "Destination must not be null!");
-    unzip(archive, destination, MAX_ZIP_ENTRY_SIZE, MAX_ZIP_TOTAL_SIZE);
+    unzip(archive, destination, MAXIMUM_ZIP_ENTRY_SIZE, MAXIMUM_ZIP_TOTAL_SIZE);
   }
 
   /**
    * Extracts a zip archive into a directory with custom size limits.
    *
-   * @param archive      the zip archive
-   * @param destination  the directory to extract into, which is created if it does not exist
-   * @param maxEntrySize the largest number of bytes a single entry may extract to
-   * @param maxTotalSize the largest number of bytes the whole archive may extract to
+   * @param archive          the zip archive
+   * @param destination      the directory to extract into, which is created if it does not exist
+   * @param maximumEntrySize the largest number of bytes a single entry may extract to
+   * @param maximumTotalSize the largest number of bytes the whole archive may extract to
    */
   @VisibleForTesting
-  static void unzip(final Path archive, final Path destination, final long maxEntrySize, final long maxTotalSize) {
+  static void unzip(final Path archive, final Path destination, final long maximumEntrySize, final long maximumTotalSize) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
     Preconditions.checkNotNull(destination, "Destination must not be null!");
-    Preconditions.checkArgument(maxEntrySize >= 0, "Entry size limit must not be negative!");
-    Preconditions.checkArgument(maxTotalSize >= 0, "Total size limit must not be negative!");
+    Preconditions.checkArgument(maximumEntrySize >= 0, "Entry size limit must not be negative!");
+    Preconditions.checkArgument(maximumTotalSize >= 0, "Total size limit must not be negative!");
 
     final Path absoluteDestination = destination.toAbsolutePath();
     final Path normalizedDestination = absoluteDestination.normalize();
@@ -612,7 +612,7 @@ public final class IOUtils {
     try {
       requireZipArchive(archive);
       final Path realDestination = normalizedDestination.toRealPath();
-      extractArchive(archive, realDestination, maxEntrySize, maxTotalSize);
+      extractArchive(archive, realDestination, maximumEntrySize, maximumTotalSize);
     } catch (final IOException exception) {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
@@ -648,20 +648,24 @@ public final class IOUtils {
     }
   }
 
-  private static void extractArchive(final Path archive, final Path destination, final long maxEntrySize, final long maxTotalSize)
+  private static void extractArchive(final Path archive, final Path destination, final long maximumEntrySize, final long maximumTotalSize)
     throws IOException {
     try (final InputStream fileStream = Files.newInputStream(archive); final ZipInputStream zip = new ZipInputStream(fileStream)) {
-      extractEntries(zip, destination, maxEntrySize, maxTotalSize);
+      extractEntries(zip, destination, maximumEntrySize, maximumTotalSize);
     }
   }
 
-  private static void extractEntries(final ZipInputStream zip, final Path destination, final long maxEntrySize, final long maxTotalSize)
-    throws IOException {
+  private static void extractEntries(
+    final ZipInputStream zip,
+    final Path destination,
+    final long maximumEntrySize,
+    final long maximumTotalSize
+  ) throws IOException {
     long totalSize = 0;
     ZipEntry entry = zip.getNextEntry();
     while (entry != null) {
-      final long remainingTotalSize = maxTotalSize - totalSize;
-      final long written = extractEntry(zip, entry, destination, maxEntrySize, remainingTotalSize);
+      final long remainingTotalSize = maximumTotalSize - totalSize;
+      final long written = extractEntry(zip, entry, destination, maximumEntrySize, remainingTotalSize);
       totalSize += written;
       zip.closeEntry();
       entry = zip.getNextEntry();
@@ -672,7 +676,7 @@ public final class IOUtils {
     final ZipInputStream zip,
     final ZipEntry entry,
     final Path destination,
-    final long maxEntrySize,
+    final long maximumEntrySize,
     final long remainingTotalSize
   ) throws IOException {
     final String name = entry.getName();
@@ -689,7 +693,7 @@ public final class IOUtils {
     final Path parentOrNull = target.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "An entry inside the destination always has a parent!");
     Files.createDirectories(parent);
-    return writeZipEntry(zip, target, name, maxEntrySize, remainingTotalSize);
+    return writeZipEntry(zip, target, name, maximumEntrySize, remainingTotalSize);
   }
 
   private static Path resolveInside(final Path destination, final String name) {
@@ -764,7 +768,7 @@ public final class IOUtils {
     final ZipInputStream zip,
     final Path target,
     final String name,
-    final long maxEntrySize,
+    final long maximumEntrySize,
     final long remainingTotalSize
   ) throws IOException {
     long entrySize = 0;
@@ -780,7 +784,7 @@ public final class IOUtils {
       final byte[] buffer = new byte[COPY_BUFFER_SIZE];
       int read = zip.read(buffer);
       while (read != -1) {
-        if (read > maxEntrySize - entrySize) {
+        if (read > maximumEntrySize - entrySize) {
           final String message = "Zip entry %s exceeds the maximum size!".formatted(name);
           throw new ZipEntryIntegrityException(message);
         }

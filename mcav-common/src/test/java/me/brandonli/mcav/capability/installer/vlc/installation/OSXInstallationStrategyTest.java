@@ -44,7 +44,7 @@ final class OSXInstallationStrategyTest {
   private static final String MOUNT_DIRECTORY = "vlc-mount";
 
   @TempDir
-  private Path temp;
+  private Path temporaryDirectory;
 
   private static boolean nothingFails(final String commandLine) {
     return false;
@@ -66,7 +66,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldCopyTheApplicationOutOfTheDiskImage() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::nothingFails);
     final Path archive = this.createDiskImage("vlc-3.0.24.dmg");
@@ -74,7 +74,7 @@ final class OSXInstallationStrategyTest {
 
     final Path installDirectory = installer.getInstallDirectory();
     final Path expected = libraryDirectoryOf(installDirectory);
-    final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     final List<String> expectedCommands = expectedCommands(mountPoint, archive, installDirectory);
     final boolean archiveExists = Files.exists(archive);
     final boolean mountPointExists = Files.exists(mountPoint);
@@ -89,7 +89,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldDetachTheDiskImageWhenCopyingFails() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, COPY_FAILS);
     final Path archive = this.createDiskImage("vlc.dmg");
@@ -111,7 +111,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldKeepTheCopyFailureWhenTheDiskImageCannotBeDetachedEither() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final Predicate<String> copyAndDetachFail = COPY_FAILS.or(OSXInstallationStrategyTest::everyDetachFails);
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, copyAndDetachFail);
@@ -119,7 +119,7 @@ final class OSXInstallationStrategyTest {
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
 
     final String message = thrown.getMessage();
-    final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     final boolean mountPointExists = Files.exists(mountPoint);
     final boolean copyFailed = message.startsWith("Command cp -R");
     final boolean forcedDetachTried = commands.contains("hdiutil detach -force " + mountPoint);
@@ -131,14 +131,14 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldForceTheDetachWhenARegularDetachFails() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::regularDetachFails);
     final Path archive = this.createDiskImage("vlc.dmg");
     final Path libraryDirectory = strategy.execute(archive);
     final Path installDirectory = installer.getInstallDirectory();
     final Path expected = libraryDirectoryOf(installDirectory);
-    final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     final String lastCommand = commands.getLast();
     final boolean mountPointExists = Files.exists(mountPoint);
     assertEquals(expected, libraryDirectory);
@@ -148,7 +148,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldNeitherCopyNorDetachWhenAttachingFails() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::attachFails);
     final Path archive = this.createDiskImage("vlc.dmg");
@@ -159,12 +159,12 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldKeepTheMountPointWhenDetachingFails() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::everyDetachFails);
     final Path archive = this.createDiskImage("vlc.dmg");
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
-    final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     final String message = thrown.getMessage();
     final Throwable[] suppressed = thrown.getSuppressed();
     final boolean mountPointExists = Files.exists(mountPoint);
@@ -176,7 +176,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldFailWhenTheApplicationHasNoLibrary() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final ProcessRunner emptyTools = (_, _) -> {};
     final OSXInstallationStrategy strategy = new OSXInstallationStrategy(installer, emptyTools);
     final Path archive = this.createDiskImage("vlc.dmg");
@@ -188,7 +188,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldReplaceAnEarlierInstallation() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final Path installDirectory = installer.getInstallDirectory();
     Files.createDirectories(installDirectory);
     final Path stale = installDirectory.resolve("stale");
@@ -203,7 +203,7 @@ final class OSXInstallationStrategyTest {
 
   @Test
   void shouldUseChildProcessesByDefault() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+    final VLCInstaller installer = VLCInstaller.create(this.temporaryDirectory);
     final OSXInstallationStrategy strategy = new OSXInstallationStrategy(installer);
     final VLCInstaller strategyInstaller = strategy.getInstaller();
     assertSame(installer, strategyInstaller);
@@ -211,9 +211,9 @@ final class OSXInstallationStrategyTest {
     final Path javaFolder = Path.of(System.getProperty("java.home"), "bin");
     final Path windowsJava = javaFolder.resolve("java.exe");
     final Path java = Files.isRegularFile(windowsJava) ? windowsJava : javaFolder.resolve("java");
-    final Path marker = this.temp.resolve("child.txt");
+    final Path marker = this.temporaryDirectory.resolve("child.txt");
     strategy.runProcess(
-      this.temp,
+      this.temporaryDirectory,
       java.toString(),
       "-cp",
       System.getProperty("java.class.path"),
@@ -271,12 +271,12 @@ final class OSXInstallationStrategyTest {
   }
 
   private boolean mountPointExists() {
-    final Path mountPoint = this.temp.resolve(MOUNT_DIRECTORY);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     return Files.exists(mountPoint);
   }
 
   private Path createDiskImage(final String name) throws IOException {
-    final Path diskImage = this.temp.resolve(name);
+    final Path diskImage = this.temporaryDirectory.resolve(name);
     return Files.createFile(diskImage);
   }
 

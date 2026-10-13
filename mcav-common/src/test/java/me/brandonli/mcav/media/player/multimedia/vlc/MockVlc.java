@@ -157,12 +157,12 @@ final class MockVlc {
   /**
    * Creates a player that uses this engine.
    *
-   * @param openTimeoutMillis how long starting waits for the media to open
+   * @param openTimeoutMilliseconds how long starting waits for the media to open
    * @param options           the media options of the player
    * @return the player
    */
-  VLCPlayer newPlayer(final long openTimeoutMillis, final String... options) {
-    return new VLCPlayer(this.sharedFactory, openTimeoutMillis, options);
+  VLCPlayer newPlayer(final long openTimeoutMilliseconds, final String... options) {
+    return new VLCPlayer(this.sharedFactory, openTimeoutMilliseconds, options);
   }
 
   /**

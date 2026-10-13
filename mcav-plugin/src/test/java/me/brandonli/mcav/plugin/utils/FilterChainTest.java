@@ -41,8 +41,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.BlurFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.ColorMapFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.DilationFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.ErosionFilter;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FlipFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.GrayscaleFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.InvertFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.LuminanceFilter;
@@ -132,7 +132,7 @@ final class FilterChainTest {
     ).create();
     assertInstanceOf(ErosionFilter.class, rest.get(0));
     assertInstanceOf(TextFilter.class, rest.get(1));
-    assertInstanceOf(FPSFilter.class, rest.get(2));
+    assertInstanceOf(FramesPerSecondFilter.class, rest.get(2));
     assertInstanceOf(OverlayImageFilter.class, rest.get(3));
     assertEquals(6, rest.size());
     assertNotEquals(filters.getFirst(), chain.create().getFirst(), "every video gets filters of its own");

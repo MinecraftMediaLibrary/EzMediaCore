@@ -80,14 +80,14 @@ final class IdleTimeoutInputStream extends InputStream {
   }
 
   private int await(final Future<Integer> pending) throws IOException {
-    final long timeoutNanos = this.idleTimeout.toNanos();
+    final long timeoutNanoseconds = this.idleTimeout.toNanos();
     try {
-      return pending.get(timeoutNanos, TimeUnit.NANOSECONDS);
+      return pending.get(timeoutNanoseconds, TimeUnit.NANOSECONDS);
     } catch (final TimeoutException exception) {
       pending.cancel(true);
       this.delegate.close();
-      final long timeoutMillis = this.idleTimeout.toMillis();
-      final String message = "No data was received for %s ms!".formatted(timeoutMillis);
+      final long timeoutMilliseconds = this.idleTimeout.toMillis();
+      final String message = "No data was received for %s ms!".formatted(timeoutMilliseconds);
       final HttpTimeoutException timedOut = new HttpTimeoutException(message);
       timedOut.initCause(exception);
       throw timedOut;

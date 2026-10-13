@@ -55,7 +55,7 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
  * directly, such as the configured native directory, {@code jna.library.path}, {@code PATH} and the VLC installation
  * directory on Windows, are only checked themselves, and the well-known system library directories are searched one
  * level deep. A directory is searched again only when a provider allows a deeper search of it than before, which
- * also ends symbolic link loops, and one discovery looks into at most {@value #MAX_VISITED_DIRECTORIES} directories.
+ * also ends symbolic link loops, and one discovery looks into at most {@value #MAXIMUM_VISITED_DIRECTORIES} directories.
  *
  * <p>Subclasses describe the platform: the file name patterns of the libraries, where the plugins live relative to
  * them, and how the plugin path is published to libvlc.
@@ -65,12 +65,12 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   /**
    * The largest number of directories one discovery looks into before it gives up.
    */
-  public static final int MAX_VISITED_DIRECTORIES = 1_024;
+  public static final int MAXIMUM_VISITED_DIRECTORIES = 1_024;
 
   /**
    * The environment variable libvlc reads its plugin directory from.
    */
-  protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
+  protected static final String PLUGIN_ENVIRONMENT_NAME = "VLC_PLUGIN_PATH";
 
   private static final int DIRECT_DEPTH = 0;
   private static final int WELL_KNOWN_DEPTH = 1;
@@ -140,8 +140,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
 
   private static List<SearchProvider> createSearchProviders() {
     final List<SearchProvider> providers = new ArrayList<>();
-    final DiscoveryDirectoryProvider configDirectory = new ConfigDirConfigFileDiscoveryDirectoryProvider();
-    addSearchProvider(providers, configDirectory, DIRECT_DEPTH);
+    final DiscoveryDirectoryProvider configurationDirectory = new ConfigDirConfigFileDiscoveryDirectoryProvider();
+    addSearchProvider(providers, configurationDirectory, DIRECT_DEPTH);
     final DiscoveryDirectoryProvider jnaLibraryPath = new JnaLibraryPathDirectoryProvider();
     addSearchProvider(providers, jnaLibraryPath, DIRECT_DEPTH);
     final DiscoveryDirectoryProvider linuxWellKnown = new LinuxWellKnownDirectoryProvider();
@@ -162,9 +162,9 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   private static void addSearchProvider(
     final List<SearchProvider> providers,
     final DiscoveryDirectoryProvider directoryProvider,
-    final int maxDepth
+    final int maximumDepth
   ) {
-    final SearchProvider searchProvider = new SearchProvider(directoryProvider, maxDepth);
+    final SearchProvider searchProvider = new SearchProvider(directoryProvider, maximumDepth);
     providers.add(searchProvider);
   }
 
@@ -207,13 +207,13 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   private @Nullable File searchProvider(final SearchProvider provider, final Map<Path, Integer> searchedDepths) {
     final DiscoveryDirectoryProvider directoryProvider = provider.getDirectoryProvider();
     final String[] directories = directoryProvider.directories();
-    final int maxDepth = provider.getMaxDepth();
+    final int maximumDepth = provider.getMaximumDepth();
     for (final String directory : directories) {
       if (directory == null || directory.isBlank()) {
         continue;
       }
       final File root = new File(directory);
-      final File found = this.searchTree(root, maxDepth, searchedDepths);
+      final File found = this.searchTree(root, maximumDepth, searchedDepths);
       if (found != null) {
         return found;
       }
@@ -221,15 +221,15 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     return null;
   }
 
-  private @Nullable File searchTree(final File root, final int maxDepth, final Map<Path, Integer> searchedDepths) {
+  private @Nullable File searchTree(final File root, final int maximumDepth, final Map<Path, Integer> searchedDepths) {
     final Deque<SearchEntry> pending = new ArrayDeque<>();
     final SearchEntry rootEntry = new SearchEntry(root, 0);
     pending.add(rootEntry);
-    while (!pending.isEmpty() && searchedDepths.size() < MAX_VISITED_DIRECTORIES) {
+    while (!pending.isEmpty() && searchedDepths.size() < MAXIMUM_VISITED_DIRECTORIES) {
       final SearchEntry entry = pending.removeFirst();
       final File directory = entry.getDirectory();
       final int depth = entry.getDepth();
-      final int remainingDepth = maxDepth - depth;
+      final int remainingDepth = maximumDepth - depth;
       final File[] children = listUnsearched(directory, remainingDepth, searchedDepths);
       if (children == null) {
         continue;
@@ -365,7 +365,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       final File pluginDirectory = new File(pluginPath);
       final boolean exists = pluginDirectory.isDirectory();
       if (exists) {
-        return this.environmentSetter.set(PLUGIN_ENV_NAME, pluginPath);
+        return this.environmentSetter.set(PLUGIN_ENVIRONMENT_NAME, pluginPath);
       }
     }
     return false;
@@ -392,25 +392,25 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   static final class SearchProvider {
 
     private final DiscoveryDirectoryProvider directoryProvider;
-    private final int maxDepth;
+    private final int maximumDepth;
 
     /**
      * Constructs a new search provider.
      *
      * @param directoryProvider the provider of the directories to search
-     * @param maxDepth          how many levels below each directory are searched
+     * @param maximumDepth      how many levels below each directory are searched
      */
-    SearchProvider(final DiscoveryDirectoryProvider directoryProvider, final int maxDepth) {
+    SearchProvider(final DiscoveryDirectoryProvider directoryProvider, final int maximumDepth) {
       this.directoryProvider = directoryProvider;
-      this.maxDepth = maxDepth;
+      this.maximumDepth = maximumDepth;
     }
 
     DiscoveryDirectoryProvider getDirectoryProvider() {
       return this.directoryProvider;
     }
 
-    int getMaxDepth() {
-      return this.maxDepth;
+    int getMaximumDepth() {
+      return this.maximumDepth;
     }
 
     private int getPriority() {

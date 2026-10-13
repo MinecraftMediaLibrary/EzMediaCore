@@ -26,18 +26,18 @@ import java.nio.ByteBuffer;
 final class DecodedAudioChunk {
 
   private final ByteBuffer samples;
-  private final long timestampMicros;
+  private final long timestampMicroseconds;
 
-  DecodedAudioChunk(final ByteBuffer samples, final long timestampMicros) {
+  DecodedAudioChunk(final ByteBuffer samples, final long timestampMicroseconds) {
     this.samples = samples;
-    this.timestampMicros = timestampMicros;
+    this.timestampMicroseconds = timestampMicroseconds;
   }
 
   ByteBuffer getSamples() {
     return this.samples;
   }
 
-  long getTimestampMicros() {
-    return this.timestampMicros;
+  long getTimestampMicroseconds() {
+    return this.timestampMicroseconds;
   }
 }

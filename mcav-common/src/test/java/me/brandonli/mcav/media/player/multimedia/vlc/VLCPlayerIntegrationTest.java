@@ -275,12 +275,12 @@ final class VLCPlayerIntegrationTest {
     final QuietPeriod quiet = new QuietPeriod(this.frames::get, 700L);
     Polling.awaitCondition("frames stopped arriving after the seek", TIMEOUT, quiet::hasElapsed);
 
-    final long lastFrameAt = quiet.getLastChangeNanos();
-    final long playedMillis = TimeUnit.NANOSECONDS.toMillis(lastFrameAt - seekedAt);
+    final long lastFrameAt = quiet.getLastChangeNanoseconds();
+    final long playedMilliseconds = TimeUnit.NANOSECONDS.toMillis(lastFrameAt - seekedAt);
     final boolean pausedAfterTheEnd = this.player.pause();
     final boolean seekedAfterTheEnd = this.player.seek(0L);
-    final boolean stoppedPromptly = playedMillis < 2_500L;
-    assertTrue(stoppedPromptly, "played " + playedMillis + " ms after seeking to 4 of 5 seconds");
+    final boolean stoppedPromptly = playedMilliseconds < 2_500L;
+    assertTrue(stoppedPromptly, "played " + playedMilliseconds + " ms after seeking to 4 of 5 seconds");
     final boolean deliveredAfterSeek = this.frames.get() > framesBeforeSeek;
     assertTrue(deliveredAfterSeek, "seeking still delivers a frame from the requested position");
     final int[] finalPixels = this.lastFrame.get();
@@ -389,16 +389,16 @@ final class VLCPlayerIntegrationTest {
   private static final class QuietPeriod {
 
     private final LongSupplier activity;
-    private final long quietNanos;
+    private final long quietNanoseconds;
 
     private long lastActivity;
-    private long lastChangeNanos;
+    private long lastChangeNanoseconds;
 
-    QuietPeriod(final LongSupplier activity, final long quietMillis) {
+    QuietPeriod(final LongSupplier activity, final long quietMilliseconds) {
       this.activity = activity;
-      this.quietNanos = TimeUnit.MILLISECONDS.toNanos(quietMillis);
+      this.quietNanoseconds = TimeUnit.MILLISECONDS.toNanos(quietMilliseconds);
       this.lastActivity = activity.getAsLong();
-      this.lastChangeNanos = System.nanoTime();
+      this.lastChangeNanoseconds = System.nanoTime();
     }
 
     private boolean hasElapsed() {
@@ -406,13 +406,13 @@ final class VLCPlayerIntegrationTest {
       final long now = System.nanoTime();
       if (current != this.lastActivity) {
         this.lastActivity = current;
-        this.lastChangeNanos = now;
+        this.lastChangeNanoseconds = now;
       }
-      return now - this.lastChangeNanos >= this.quietNanos;
+      return now - this.lastChangeNanoseconds >= this.quietNanoseconds;
     }
 
-    private long getLastChangeNanos() {
-      return this.lastChangeNanos;
+    private long getLastChangeNanoseconds() {
+      return this.lastChangeNanoseconds;
     }
   }
 }

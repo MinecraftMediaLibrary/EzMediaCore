@@ -453,8 +453,8 @@ final class NativeHeapTrimmerTest {
 
   @Test
   void shouldReadTheIntervalOfTheJvmsOwnTrims() {
-    final long intervalMillis = NativeHeapTrimmer.readJvmIntervalMillis();
-    assertEquals(0L, intervalMillis, "the JVM of the tests does not trim itself");
+    final long intervalMilliseconds = NativeHeapTrimmer.readJvmIntervalMilliseconds();
+    assertEquals(0L, intervalMilliseconds, "the JVM of the tests does not trim itself");
   }
 
   @Test
@@ -466,7 +466,7 @@ final class NativeHeapTrimmerTest {
     final NativeHeapTrimmer trimmer;
     try (final MockedStatic<ManagementFactory> factory = mockStatic(ManagementFactory.class, CALLS_REAL_METHODS)) {
       factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenReturn(trimmingItself);
-      interval = NativeHeapTrimmer.readJvmIntervalMillis();
+      interval = NativeHeapTrimmer.readJvmIntervalMilliseconds();
       trimmer = NativeHeapTrimmer.forThisJvm();
     }
 

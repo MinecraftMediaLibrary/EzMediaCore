@@ -53,7 +53,7 @@ import org.junit.jupiter.api.io.TempDir;
 final class FFmpegPlayerTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(15L);
-  private static final double NANOS_PER_SECOND = 1e9;
+  private static final double NANOSECONDS_PER_SECOND = 1e9;
 
   @TempDir
   private Path directory;
@@ -79,8 +79,8 @@ final class FFmpegPlayerTest {
     return FileSource.path(path);
   }
 
-  private static double secondsBetween(final long startNanos, final long endNanos) {
-    return (endNanos - startNanos) / NANOS_PER_SECOND;
+  private static double secondsBetween(final long startNanoseconds, final long endNanoseconds) {
+    return (endNanoseconds - startNanoseconds) / NANOSECONDS_PER_SECOND;
   }
 
   /**
@@ -273,7 +273,7 @@ final class FFmpegPlayerTest {
 
     final boolean seeked = player.seek(4_000L);
     assertTrue(seeked);
-    await("the position jumped near the end", () -> player.getPositionMillis() >= 3_900L);
+    await("the position jumped near the end", () -> player.getPositionMilliseconds() >= 3_900L);
   }
 
   @Test

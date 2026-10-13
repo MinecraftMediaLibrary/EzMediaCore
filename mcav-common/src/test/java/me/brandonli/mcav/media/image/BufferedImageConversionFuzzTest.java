@@ -49,13 +49,13 @@ final class BufferedImageConversionFuzzTest {
     BufferedImage.TYPE_BYTE_BINARY,
     BufferedImage.TYPE_BYTE_INDEXED,
   };
-  private static final int MAX_SIDE = 48;
+  private static final int MAXIMUM_SIDE = 48;
 
   @FuzzTest(maxDuration = "30s")
   void shouldMakeEveryPixelTheColorTheImageReports(final FuzzedDataProvider data) {
     final int type = data.pickValue(TYPES);
-    final int width = data.consumeInt(1, MAX_SIDE);
-    final int height = data.consumeInt(1, MAX_SIDE);
+    final int width = data.consumeInt(1, MAXIMUM_SIDE);
+    final int height = data.consumeInt(1, MAXIMUM_SIDE);
     final BufferedImage whole = new BufferedImage(width, height, type);
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {

@@ -24,7 +24,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.DitherUtils;
  * The pending errors of an error diffusion pass, together with the serpentine scan order the pass uses.
  *
  * <p>Only the rows a kernel can reach are kept, in a ring of padded rows: the row being dithered and the
- * {@link DiffusionKernel#getMaxOffsetY()} rows below it. The padding on both sides is as wide as the kernel reaches
+ * {@link DiffusionKernel#getMaximumOffsetY()} rows below it. The padding on both sides is as wide as the kernel reaches
  * sideways, so errors that fall outside the image land in the padding and no bounds checks are needed. Colors are
  * passed around as packed {@code 0xRRGGBB} values.
  *
@@ -55,8 +55,8 @@ final class ErrorRows {
    */
   ErrorRows(final DiffusionKernel kernel, final int width) {
     this.kernel = kernel;
-    this.padding = kernel.getMaxOffsetX();
-    this.rowCount = kernel.getMaxOffsetY() + 1;
+    this.padding = kernel.getMaximumOffsetX();
+    this.rowCount = kernel.getMaximumOffsetY() + 1;
     this.weightSum = sumWeights(kernel);
     this.largestTap = findLargestTap(kernel);
     final int paddedWidth = width + 2 * this.padding;
@@ -236,7 +236,7 @@ final class ErrorRows {
   }
 
   /**
-   * Clears a finished row, so its slot can be reused for the row {@link DiffusionKernel#getMaxOffsetY()} rows
+   * Clears a finished row, so its slot can be reused for the row {@link DiffusionKernel#getMaximumOffsetY()} rows
    * further down.
    *
    * @param row the row that was finished

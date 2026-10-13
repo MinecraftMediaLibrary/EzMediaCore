@@ -60,8 +60,8 @@ final class ScriptedPlayerTest {
 
   private static final Source VIDEO = file("video.mp4");
   private static final Source AUDIO = file("audio.m4a");
-  private static final long TIMEOUT_MILLIS = 10_000L;
-  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLIS);
+  private static final long TIMEOUT_MILLISECONDS = 10_000L;
+  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLISECONDS);
   private static final long FUTURE_TIMEOUT_SECONDS = 5L;
   private static final String EXECUTOR_THREAD = "the-given-executor";
 
@@ -125,9 +125,9 @@ final class ScriptedPlayerTest {
 
     final boolean started = player.start(VIDEO);
     awaitEnd(player);
-    final long position = player.getPositionMillis();
+    final long position = player.getPositionMilliseconds();
     final boolean released = player.release();
-    final long positionAfterRelease = player.getPositionMillis();
+    final long positionAfterRelease = player.getPositionMilliseconds();
     final List<String> opened = player.getOpenedResources();
     final List<String> expected = List.of("video.mp4");
     assertTrue(started);
@@ -345,8 +345,8 @@ final class ScriptedPlayerTest {
       assertEquals(2, afterSeek, "a seek keeps the speed");
       assertTrue(allFaster, "and the new session plays at it: " + chunks);
       assertEquals(1, newMedia, "new media plays at normal speed");
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MIN_SPEED - 0.01));
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MAX_SPEED + 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MINIMUM_SPEED - 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MAXIMUM_SPEED + 0.01));
       assertThrows(IllegalArgumentException.class, () -> player.setSpeed(Double.NaN));
     } finally {
       player.release();
@@ -363,7 +363,7 @@ final class ScriptedPlayerTest {
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
-      final boolean changed = player.setSpeed(AbstractVideoPlayerCV.MAX_SPEED);
+      final boolean changed = player.setSpeed(AbstractVideoPlayerCV.MAXIMUM_SPEED);
       assertFalse(changed, "a live stream cannot be played ahead of itself");
       final double speed = player.getSpeed();
       assertEquals(1, speed);
@@ -585,16 +585,16 @@ final class ScriptedPlayerTest {
     final long pauseStart = System.nanoTime();
     final boolean paused = player.pause();
     final long pauseEnd = System.nanoTime();
-    releasing.join(TIMEOUT_MILLIS);
+    releasing.join(TIMEOUT_MILLISECONDS);
 
     final long releasedAt = releaseEnd.get();
-    final long releaseNanos = releasedAt - releaseStart;
-    final long pauseNanos = pauseEnd - pauseStart;
+    final long releaseNanoseconds = releasedAt - releaseStart;
+    final long pauseNanoseconds = pauseEnd - pauseStart;
     assertFalse(paused);
-    final boolean releaseWaited = releaseNanos > 1_000_000_000L;
-    assertTrue(releaseWaited, "release waits for the stuck decoder, took " + releaseNanos);
-    final boolean pauseWasQuick = pauseNanos < 500_000_000L;
-    assertTrue(pauseWasQuick, "other calls do not wait for the release, pause took " + pauseNanos);
+    final boolean releaseWaited = releaseNanoseconds > 1_000_000_000L;
+    assertTrue(releaseWaited, "release waits for the stuck decoder, took " + releaseNanoseconds);
+    final boolean pauseWasQuick = pauseNanoseconds < 500_000_000L;
+    assertTrue(pauseWasQuick, "other calls do not wait for the release, pause took " + pauseNanoseconds);
     final boolean pausedDuringRelease = pauseEnd < releasedAt;
     assertTrue(pausedDuringRelease, "the pause ran while the release was still waiting");
   }

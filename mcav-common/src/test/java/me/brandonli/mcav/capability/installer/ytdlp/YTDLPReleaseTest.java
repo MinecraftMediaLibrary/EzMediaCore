@@ -139,11 +139,11 @@ final class YTDLPReleaseTest {
     });
     final Thread reader = Thread.ofVirtual().start(drain);
     final long started = System.nanoTime();
-    final long timeoutNanos = timeout.toNanos();
+    final long timeoutNanoseconds = timeout.toNanos();
     try {
-      final boolean finished = process.waitFor(timeoutNanos, TimeUnit.NANOSECONDS);
+      final boolean finished = process.waitFor(timeoutNanoseconds, TimeUnit.NANOSECONDS);
       assertTrue(finished, "yt-dlp --version did not finish");
-      final long remaining = Math.max(1, timeoutNanos - (System.nanoTime() - started));
+      final long remaining = Math.max(1, timeoutNanoseconds - (System.nanoTime() - started));
       final byte[] output = drain.get(remaining, TimeUnit.NANOSECONDS);
       final int exitCode = process.exitValue();
       final String printed = new String(output, StandardCharsets.UTF_8);

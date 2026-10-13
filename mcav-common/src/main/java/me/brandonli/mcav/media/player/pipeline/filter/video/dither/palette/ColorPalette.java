@@ -30,7 +30,7 @@ import java.util.stream.IntStream;
  */
 public class ColorPalette implements DitherPalette {
 
-  private static final int MAX_COLORS = 256;
+  private static final int MAXIMUM_COLORS = 256;
   private static final int LEVELS = 128;
   private static final int TABLE_SIZE = LEVELS * LEVELS * LEVELS;
   private static final int RGB_MASK = 0xFFFFFF;
@@ -51,7 +51,7 @@ public class ColorPalette implements DitherPalette {
    */
   ColorPalette(final int[] colors, final int reservedIndices) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
-    Preconditions.checkArgument(colors.length <= MAX_COLORS, "A palette may hold at most %s colors!", MAX_COLORS);
+    Preconditions.checkArgument(colors.length <= MAXIMUM_COLORS, "A palette may hold at most %s colors!", MAXIMUM_COLORS);
     Preconditions.checkArgument(reservedIndices >= 0, "Reserved indices must not be negative!");
     Preconditions.checkArgument(colors.length > reservedIndices, "Palette must contain at least one color!");
     this.palette = new int[colors.length];

@@ -65,9 +65,9 @@ final class VLCPlayback {
   private static final String NO_AUDIO_OPTION = ":no-audio";
   private static final String NO_VIDEO_OPTION = ":no-video";
   private static final String AUDIO_FORMAT = "S16N";
-  private static final long DRIFT_NUDGE_MILLIS = 100L;
-  private static final long DRIFT_SEEK_MILLIS = 2_000L;
-  private static final long SYNC_INTERVAL_MILLIS = 250L;
+  private static final long DRIFT_NUDGE_MILLISECONDS = 100L;
+  private static final long DRIFT_SEEK_MILLISECONDS = 2_000L;
+  private static final long SYNC_INTERVAL_MILLISECONDS = 250L;
   private static final float RATE_NORMAL = 1.0f;
   private static final float RATE_SLOWER = 0.97f;
   private static final float RATE_FASTER = 1.03f;
@@ -198,21 +198,22 @@ final class VLCPlayback {
   }
 
   private boolean startCombined() {
-    final long deadlineNanos = this.createOpenDeadline();
+    final long deadlineNanoseconds = this.createOpenDeadline();
     final PlaybackEventListener listener = this.listen(this.videoPlayer, this.video);
     final boolean playing = this.play(this.videoPlayer, this.video, null);
-    return playing && awaitOpened(listener, deadlineNanos);
+    return playing && awaitOpened(listener, deadlineNanoseconds);
   }
 
   private boolean startSeparate(final EmbeddedMediaPlayer separateAudio) {
     final Source audioSource = Objects.requireNonNull(this.audio, "A separate audio player always has an audio source!");
-    final long deadlineNanos = this.createOpenDeadline();
+    final long deadlineNanoseconds = this.createOpenDeadline();
     final PlaybackEventListener videoListener = this.listen(this.videoPlayer, this.video);
     final PlaybackEventListener audioListener = this.listen(separateAudio, audioSource);
     final boolean videoPlaying = this.play(this.videoPlayer, this.video, NO_AUDIO_OPTION);
     final boolean audioPlaying = this.play(separateAudio, audioSource, NO_VIDEO_OPTION);
     final boolean bothPlaying = videoPlaying && audioPlaying;
-    final boolean opened = bothPlaying && awaitOpened(videoListener, deadlineNanos) && awaitOpened(audioListener, deadlineNanos);
+    final boolean opened =
+      bothPlaying && awaitOpened(videoListener, deadlineNanoseconds) && awaitOpened(audioListener, deadlineNanoseconds);
     if (opened) {
       this.startSynchronizer(separateAudio);
     }
@@ -256,25 +257,25 @@ final class VLCPlayback {
   }
 
   private long createOpenDeadline() {
-    final long timeoutMillis = this.owner.getOpenTimeoutMillis();
-    final long timeoutNanos = TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+    final long timeoutMilliseconds = this.owner.getOpenTimeoutMilliseconds();
+    final long timeoutNanoseconds = TimeUnit.MILLISECONDS.toNanos(timeoutMilliseconds);
     final long now = System.nanoTime();
-    return now + timeoutNanos;
+    return now + timeoutNanoseconds;
   }
 
   /**
    * Waits until VLC has opened the media of a listener or the deadline has passed.
    *
-   * @param listener      the listener of the player that opens the media
-   * @param deadlineNanos the {@link System#nanoTime()} at which waiting ends
+   * @param listener            the listener of the player that opens the media
+   * @param deadlineNanoseconds the {@link System#nanoTime()} at which waiting ends
    * @return false if VLC reported an error or the calling thread was interrupted, true otherwise
    */
-  private static boolean awaitOpened(final PlaybackEventListener listener, final long deadlineNanos) {
+  private static boolean awaitOpened(final PlaybackEventListener listener, final long deadlineNanoseconds) {
     final long now = System.nanoTime();
-    final long remainingNanos = deadlineNanos - now;
-    final long remainingMillis = TimeUnit.NANOSECONDS.toMillis(remainingNanos);
+    final long remainingNanoseconds = deadlineNanoseconds - now;
+    final long remainingMilliseconds = TimeUnit.NANOSECONDS.toMillis(remainingNanoseconds);
     try {
-      return listener.awaitOpened(remainingMillis);
+      return listener.awaitOpened(remainingMilliseconds);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
@@ -287,8 +288,8 @@ final class VLCPlayback {
     final Runnable task = () -> this.synchronizeVideoToAudio(audioMaster);
     final ScheduledFuture<?> schedule = executor.scheduleAtFixedRate(
       task,
-      SYNC_INTERVAL_MILLIS,
-      SYNC_INTERVAL_MILLIS,
+      SYNC_INTERVAL_MILLISECONDS,
+      SYNC_INTERVAL_MILLISECONDS,
       TimeUnit.MILLISECONDS
     );
     this.synchronizer = new Synchronizer(executor, schedule);
@@ -340,7 +341,7 @@ final class VLCPlayback {
   @VisibleForTesting
   static void correctDrift(final ControlsApi videoControls, final long drift, final long audioTime) {
     final long absoluteDrift = Math.abs(drift);
-    if (absoluteDrift > DRIFT_SEEK_MILLIS) {
+    if (absoluteDrift > DRIFT_SEEK_MILLISECONDS) {
       videoControls.setTime(audioTime);
       videoControls.setRate(RATE_NORMAL);
       return;
@@ -358,10 +359,10 @@ final class VLCPlayback {
    */
   @VisibleForTesting
   static float chooseRate(final long drift) {
-    if (drift > DRIFT_NUDGE_MILLIS) {
+    if (drift > DRIFT_NUDGE_MILLISECONDS) {
       return RATE_SLOWER;
     }
-    if (drift < -DRIFT_NUDGE_MILLIS) {
+    if (drift < -DRIFT_NUDGE_MILLISECONDS) {
       return RATE_FASTER;
     }
     return RATE_NORMAL;
@@ -410,11 +411,11 @@ final class VLCPlayback {
   /**
    * Jumps to a position in every player.
    *
-   * @param timeMillis the position in milliseconds
+   * @param timeMilliseconds the position in milliseconds
    * @return true if the players seeked, false if one of them has no open media or its media cannot be seeked, such
    * as a live stream or media that has ended
    */
-  boolean seek(final long timeMillis) {
+  boolean seek(final long timeMilliseconds) {
     for (final EmbeddedMediaPlayer player : this.players) {
       final boolean seekable = isSeekable(player);
       if (!seekable) {
@@ -423,7 +424,7 @@ final class VLCPlayback {
     }
     for (final EmbeddedMediaPlayer player : this.players) {
       final ControlsApi controls = player.controls();
-      controls.setTime(timeMillis);
+      controls.setTime(timeMilliseconds);
     }
     return true;
   }
