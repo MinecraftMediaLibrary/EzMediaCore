@@ -32,31 +32,35 @@ import org.mockito.Mockito;
 final class LWJGLModuleTest {
 
   @Test
-  void isNamedLwjgl() {
+  void shouldBeNamedLwjgl() {
     final LWJGLModule module = new LWJGLModule();
     final String name = module.getModuleName();
     assertEquals("lwjgl", name);
   }
 
   @Test
-  void startsAndStopsWithoutPreparingAnything() {
+  void shouldStartAndStopWithoutPreparingAnything() {
     final MCAVModule module = new LWJGLModule();
     try (final MockedConstruction<GLTextureFilter> filters = Mockito.mockConstruction(GLTextureFilter.class)) {
       module.start();
-      assertEquals(List.of(), filters.constructed());
+      final List<GLTextureFilter> afterFirstStart = filters.constructed();
+      assertEquals(List.of(), afterFirstStart);
       module.stop();
-      assertEquals(List.of(), filters.constructed());
+      final List<GLTextureFilter> afterFirstStop = filters.constructed();
+      assertEquals(List.of(), afterFirstStop);
       module.start();
-      assertEquals(List.of(), filters.constructed());
+      final List<GLTextureFilter> afterSecondStart = filters.constructed();
+      assertEquals(List.of(), afterSecondStart);
       module.stop();
-      assertEquals(List.of(), filters.constructed());
+      final List<GLTextureFilter> afterSecondStop = filters.constructed();
+      assertEquals(List.of(), afterSecondStop);
     }
     final String name = module.getModuleName();
     assertEquals("lwjgl", name);
   }
 
   @Test
-  void canBeCreatedByTheModuleLoader() throws ReflectiveOperationException {
+  void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
     final Constructor<LWJGLModule> constructor = LWJGLModule.class.getConstructor();
     final LWJGLModule module = constructor.newInstance();
     final String name = module.getModuleName();

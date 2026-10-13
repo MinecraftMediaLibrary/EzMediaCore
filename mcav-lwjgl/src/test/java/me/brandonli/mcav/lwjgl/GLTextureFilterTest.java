@@ -128,7 +128,8 @@ final class GLTextureFilterTest {
     try {
       for (final Thread worker : this.workers) {
         worker.join(10_000L);
-        assertFalse(worker.isAlive(), "the frame worker finished");
+        final boolean alive = worker.isAlive();
+        assertFalse(alive, "the frame worker finished");
       }
       assertEquals(List.of(), this.workerFailures, "frame worker assertions reach the test thread");
     } finally {
@@ -137,7 +138,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void restoresCallerStateWhenNativeUploadThrows() {
+  void shouldRestoreCallerStateWhenNativeUploadThrows() {
     this.filter.start();
     final int callerTexture = GL11.glGenTextures();
     final ByteBuffer pixels = ByteBuffer.allocateDirect(3);
@@ -302,7 +303,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void createsATextureWithLinearFilteringAndClampedEdges() {
+  void shouldCreateATextureWithLinearFilteringAndClampedEdges() {
     final int before = this.filter.getTextureId();
     this.filter.start();
     final int texture = this.filter.getTextureId();
@@ -323,7 +324,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void replacesNonlinearFilteringOnABorrowedTexture() {
+  void shouldReplaceNonlinearFilteringOnABorrowedTexture() {
     final int texture = GL11.glGenTextures();
     final GLTextureFilter borrowing = new GLTextureFilter(texture);
     try {
@@ -350,7 +351,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void reusesTheTwoStagingBuffersForFixedSizePlayback() {
+  void shouldReuseTheTwoStagingBuffersForFixedSizePlayback() {
     final List<ByteBuffer> transferred = new ArrayList<>();
     final GLTextureFilter recording = recordingFilter(transferred);
     try {
@@ -389,7 +390,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void uploadsTheNewestFrameWithItsColors() {
+  void shouldUploadTheNewestFrameWithItsColors() {
     this.filter.start();
     final boolean nothingYet = this.filter.upload();
     stage(this.filter, 3, 2, 0xFFFF0000);
@@ -414,7 +415,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void updatesFramesOfTheSameSizeInPlaceAndResizesForNewSizes() {
+  void shouldUpdateFramesOfTheSameSizeInPlaceAndResizeForNewSizes() {
     this.filter.start();
     stageAndUpload(this.filter, 5, 3, 0xFF00FF00);
     stageAndUpload(this.filter, 5, 3, 0xFFFFFFFF);
@@ -434,7 +435,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void resizesTheTextureWhenOnlyTheHeightChanges() {
+  void shouldResizeTheTextureWhenOnlyTheHeightChanges() {
     this.filter.start();
     stageAndUpload(this.filter, 5, 3, 0xFF00FF00);
     final boolean uploaded = stageAndUpload(this.filter, 5, 6, 0xFFFF0000);
@@ -449,7 +450,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void resizesTheTextureWhenOnlyTheWidthChanges() {
+  void shouldResizeTheTextureWhenOnlyTheWidthChanges() {
     this.filter.start();
     stageAndUpload(this.filter, 5, 3, 0xFF00FF00);
     final boolean uploaded = stageAndUpload(this.filter, 7, 3, 0xFF0000FF);
@@ -464,7 +465,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void leavesTheOpenGlStateOfTheCallerAsItWas() {
+  void shouldLeaveTheOpenGlStateOfTheCallerAsItWas() {
     final int callerTexture = GL11.glGenTextures();
     this.filter.start();
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, callerTexture);
@@ -489,7 +490,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void acceptsTheNextFrameWhileAFrameIsUploaded() {
+  void shouldAcceptTheNextFrameWhileAFrameIsUploaded() {
     final CountDownLatch uploading = new CountDownLatch(1);
     final CountDownLatch finishUpload = new CountDownLatch(1);
     final CountDownLatch applied = new CountDownLatch(1);
@@ -509,9 +510,10 @@ final class GLTextureFilterTest {
     final int texture = slow.getTextureId();
     final byte[] pixels = readTexture(texture, 2, 2);
     slow.release();
+    final boolean uploadFinishedInTime = elapsedMillis < 4_000L;
     assertTrue(firstUploaded);
     assertTrue(appliedInTime);
-    assertTrue(elapsedMillis < 4_000L, () -> "the player was blocked by the upload for " + elapsedMillis + " ms");
+    assertTrue(uploadFinishedInTime, () -> "the player was blocked by the upload for " + elapsedMillis + " ms");
     assertTrue(pending);
     assertTrue(secondUploaded);
     assertAllPixels(pixels, new byte[] { 0, 0, (byte) 0xFF });
@@ -543,7 +545,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void refusesOpenGlCallsWithoutACurrentContext() throws InterruptedException {
+  void shouldRefuseOpenGlCallsWithoutACurrentContext() throws InterruptedException {
     final int borrowedTexture = GL11.glGenTextures();
     final GLTextureFilter borrowing = new GLTextureFilter(borrowedTexture);
     this.filter.start();
@@ -562,7 +564,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void ignoresFramesWithTooLittleData() {
+  void shouldIgnoreFramesWithTooLittleData() {
     this.filter.start();
     final ImageBuffer truncated = mock(ImageBuffer.class);
     final Stubber widthStubbing = doReturn(4);
@@ -582,7 +584,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void acceptsFramesFromAnotherThread() throws InterruptedException {
+  void shouldAcceptFramesFromAnotherThread() throws InterruptedException {
     this.filter.start();
     final Thread player = this.startThread(() -> stage(this.filter, 2, 2, 0xFF0000FF));
     Await.until("the frame of the player thread is staged", this.filter::hasPendingFrame);
@@ -592,7 +594,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void refusesToUploadBeforeStartAndAfterRelease() {
+  void shouldRefuseToUploadBeforeStartAndAfterRelease() {
     stage(this.filter, 2, 2, 0xFF0000FF);
     assertThrows(IllegalStateException.class, this.filter::upload);
     this.filter.start();
@@ -605,7 +607,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void deletesOnlyTexturesItCreated() {
+  void shouldDeleteOnlyTexturesItCreated() {
     this.filter.start();
     final int created = this.filter.getTextureId();
     this.filter.release();
@@ -629,7 +631,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void keepsItsTextureAndDimensionsWhenStartedAgain() {
+  void shouldKeepItsTextureAndDimensionsWhenStartedAgain() {
     this.filter.start();
     final int firstTexture = this.filter.getTextureId();
     stageAndUpload(this.filter, 2, 3, 0xFF00FF00);
@@ -645,7 +647,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void allocatesStorageAgainAfterAnOwnedTextureIsRecreated() {
+  void shouldAllocateStorageAgainAfterAnOwnedTextureIsRecreated() {
     this.filter.start();
     stageAndUpload(this.filter, 2, 3, 0xFF00FF00);
     this.filter.release();
@@ -666,7 +668,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void keepsBorrowedTextureDimensionsAcrossReleaseAndStart() {
+  void shouldKeepBorrowedTextureDimensionsAcrossReleaseAndStart() {
     final int texture = GL11.glGenTextures();
     final GLTextureFilter borrowing = new GLTextureFilter(texture);
     try {
@@ -692,7 +694,7 @@ final class GLTextureFilterTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> new GLTextureFilter(0));
     assertThrows(IllegalArgumentException.class, () -> new GLTextureFilter(-3));
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(1, 1);
