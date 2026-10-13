@@ -10,14 +10,14 @@ dependencies {
 ```
 
 OpenGL may only be called from the thread that owns the context, but filters run on the thread of the player. The
-`GLTextureFilter` therefore only copies each frame into a staging buffer, and the render thread uploads the newest
+`GlTextureFilter` therefore only copies each frame into a staging buffer, and the render thread uploads the newest
 frame by calling `upload()` once per rendered frame. `start()` and `release()` must be called on the render thread as
 well.
 
 ```java
   // call on the render thread, with the OpenGL context current
   public static void renderVideo(final Source source, final BooleanSupplier keepRendering) {
-    final GLTextureFilter texture = new GLTextureFilter();
+    final GlTextureFilter texture = new GlTextureFilter();
     texture.start();
 
     final VideoPipelineStep videoPipelineStep = VideoPipelineStep.of(texture);
@@ -39,5 +39,5 @@ well.
 ```
 
 Frames are uploaded in `GL_BGR` order, the pixel layout of the pipeline, so no conversion is needed. To stream into a
-texture you created yourself, pass its name to `new GLTextureFilter(textureId)`; the filter then leaves deleting it to
+texture you created yourself, pass its name to `new GlTextureFilter(textureId)`; the filter then leaves deleting it to
 you.

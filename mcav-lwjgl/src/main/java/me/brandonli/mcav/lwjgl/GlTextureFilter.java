@@ -45,7 +45,7 @@ import org.lwjgl.opengl.GLCapabilities;
  *
  * <pre><code>
  *   // render thread, context current
- *   final GLTextureFilter texture = new GLTextureFilter();
+ *   final GlTextureFilter texture = new GlTextureFilter();
  *   texture.start();
  *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
  *   video.attach(VideoPipelineStep.of(texture));
@@ -63,7 +63,7 @@ import org.lwjgl.opengl.GLCapabilities;
  * itself, so a row length or skip set by the caller never distorts a frame. A pixel unpack buffer must not be bound
  * while {@link #upload()} runs.
  */
-public class GLTextureFilter implements FunctionalVideoFilter {
+public class GlTextureFilter implements FunctionalVideoFilter {
 
   private static final int NO_TEXTURE = 0;
   private static final int CHANNELS = 3;
@@ -83,7 +83,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   /**
    * Constructs a filter that creates its own texture in {@link #start()}.
    */
-  public GLTextureFilter() {
+  public GlTextureFilter() {
     this.lock = new Object();
     this.ownsTexture = true;
     this.textureId = NO_TEXTURE;
@@ -97,7 +97,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
    * @param textureId the positive name of a texture in the caller's context, created with {@code glGenTextures}
    * @throws IllegalArgumentException if {@code textureId} is zero or negative
    */
-  public GLTextureFilter(final int textureId) {
+  public GlTextureFilter(final int textureId) {
     Preconditions.checkArgument(textureId > 0, "Texture id %s must be positive!", textureId);
     this.lock = new Object();
     this.ownsTexture = false;

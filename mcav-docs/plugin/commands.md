@@ -538,7 +538,7 @@ a player types, and a link in the folder is not followed. The file may be at mos
 The library has more filters than the plugin offers. Left out: face detection (it needs an OpenCV classifier model
 the plugin does not ship, and runs a classifier over every frame); resize and transpose (the command's resolution
 already sets the size, and `rotate` covers transposing); blend (it needs a second picture); circle, ellipse, line and
-region fill (`rectangle` marks a region); zero (a black picture); and the LWJGL texture filter (`GLTextureFilter`),
+region fill (`rectangle` marks a region); zero (a black picture); and the LWJGL texture filter (`GlTextureFilter`),
 which needs an OpenGL context that a server does not have. Dithering is not a filter here: it is how every wall of maps
 without MCV2 shows its picture.
 
