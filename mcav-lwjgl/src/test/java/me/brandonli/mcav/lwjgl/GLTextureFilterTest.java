@@ -308,16 +308,16 @@ final class GLTextureFilterTest {
     this.filter.start();
     final int texture = this.filter.getTextureId();
     final boolean isTexture = GL11.glIsTexture(texture);
-    final int minFilter = parameter(texture, GL11.GL_TEXTURE_MIN_FILTER);
-    final int magFilter = parameter(texture, GL11.GL_TEXTURE_MAG_FILTER);
+    final int minificationFilter = parameter(texture, GL11.GL_TEXTURE_MIN_FILTER);
+    final int magnificationFilter = parameter(texture, GL11.GL_TEXTURE_MAG_FILTER);
     final int wrapS = parameter(texture, GL11.GL_TEXTURE_WRAP_S);
     final int wrapT = parameter(texture, GL11.GL_TEXTURE_WRAP_T);
     final int width = this.filter.getWidth();
     assertEquals(0, before);
     assertNotEquals(0, texture);
     assertTrue(isTexture);
-    assertEquals(GL11.GL_LINEAR, minFilter);
-    assertEquals(GL11.GL_LINEAR, magFilter);
+    assertEquals(GL11.GL_LINEAR, minificationFilter);
+    assertEquals(GL11.GL_LINEAR, magnificationFilter);
     assertEquals(GL12.GL_CLAMP_TO_EDGE, wrapS);
     assertEquals(GL12.GL_CLAMP_TO_EDGE, wrapT);
     assertEquals(0, width);
@@ -336,12 +336,12 @@ final class GLTextureFilterTest {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
       borrowing.start();
-      final int minFilter = parameter(texture, GL11.GL_TEXTURE_MIN_FILTER);
-      final int magFilter = parameter(texture, GL11.GL_TEXTURE_MAG_FILTER);
+      final int minificationFilter = parameter(texture, GL11.GL_TEXTURE_MIN_FILTER);
+      final int magnificationFilter = parameter(texture, GL11.GL_TEXTURE_MAG_FILTER);
       final int wrapS = parameter(texture, GL11.GL_TEXTURE_WRAP_S);
       final int wrapT = parameter(texture, GL11.GL_TEXTURE_WRAP_T);
-      assertEquals(GL11.GL_LINEAR, minFilter);
-      assertEquals(GL11.GL_LINEAR, magFilter);
+      assertEquals(GL11.GL_LINEAR, minificationFilter);
+      assertEquals(GL11.GL_LINEAR, magnificationFilter);
       assertEquals(GL12.GL_CLAMP_TO_EDGE, wrapS);
       assertEquals(GL12.GL_CLAMP_TO_EDGE, wrapT);
     } finally {
@@ -502,18 +502,18 @@ final class GLTextureFilterTest {
 
     final long before = System.nanoTime();
     final boolean firstUploaded = slow.upload();
-    final long elapsedNanos = System.nanoTime() - before;
-    final long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+    final long elapsedNanoseconds = System.nanoTime() - before;
+    final long elapsedMilliseconds = TimeUnit.NANOSECONDS.toMillis(elapsedNanoseconds);
     final boolean appliedInTime = await(applied, 10);
     final boolean pending = slow.hasPendingFrame();
     final boolean secondUploaded = slow.upload();
     final int texture = slow.getTextureId();
     final byte[] pixels = readTexture(texture, 2, 2);
     slow.release();
-    final boolean uploadFinishedInTime = elapsedMillis < 4_000L;
+    final boolean uploadFinishedInTime = elapsedMilliseconds < 4_000L;
     assertTrue(firstUploaded);
     assertTrue(appliedInTime);
-    assertTrue(uploadFinishedInTime, () -> "the player was blocked by the upload for " + elapsedMillis + " ms");
+    assertTrue(uploadFinishedInTime, () -> "the player was blocked by the upload for " + elapsedMilliseconds + " ms");
     assertTrue(pending);
     assertTrue(secondUploaded);
     assertAllPixels(pixels, new byte[] { 0, 0, (byte) 0xFF });
