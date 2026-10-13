@@ -58,7 +58,7 @@ import org.mockito.stubbing.Stubber;
 
 /**
  * Tests {@link GLTextureFilter} against a real OpenGL context of a hidden GLFW window, and reads the textures back
- * to check what was uploaded. The tests are skipped on machines without a display, an OpenGL driver, or LWJGL natives
+ * to check what was uploaded. The tests are skipped on machines without an OpenGL driver or LWJGL natives
  * for the platform, and on macOS when the tests do not run on the first thread.
  */
 final class GLTextureFilterTest {
@@ -74,17 +74,33 @@ final class GLTextureFilterTest {
   @BeforeAll
   static void createContext() {
     try {
-      initialized = GLFW.glfwInit();
-      assumeTrue(initialized, "GLFW cannot be initialized on this machine");
-      GLFW.glfwDefaultWindowHints();
-      GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-      window = GLFW.glfwCreateWindow(16, 16, "mcav-test", MemoryUtil.NULL, MemoryUtil.NULL);
-      assumeTrue(window != MemoryUtil.NULL, "no OpenGL window can be created on this machine");
+      window = createWindow(GLFW.GLFW_NATIVE_CONTEXT_API);
+      if (window == MemoryUtil.NULL) {
+        GLFW.glfwInitHint(GLFW.GLFW_PLATFORM, GLFW.GLFW_PLATFORM_NULL);
+        window = createWindow(GLFW.GLFW_EGL_CONTEXT_API);
+      }
+      assumeTrue(window != MemoryUtil.NULL, "no OpenGL context can be created on this machine");
       GLFW.glfwMakeContextCurrent(window);
       GL.createCapabilities();
     } catch (final IllegalStateException | LinkageError exception) {
       abort("OpenGL is not available on this machine: " + exception);
     }
+  }
+
+  private static long createWindow(final int contextApi) {
+    initialized = GLFW.glfwInit();
+    if (!initialized) {
+      return MemoryUtil.NULL;
+    }
+    GLFW.glfwDefaultWindowHints();
+    GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+    GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_CREATION_API, contextApi);
+    final long created = GLFW.glfwCreateWindow(16, 16, "mcav-test", MemoryUtil.NULL, MemoryUtil.NULL);
+    if (created == MemoryUtil.NULL) {
+      GLFW.glfwTerminate();
+      initialized = false;
+    }
+    return created;
   }
 
   @AfterAll
@@ -99,6 +115,7 @@ final class GLTextureFilterTest {
       GLFW.glfwTerminate();
       initialized = false;
     }
+    GLFW.glfwInitHint(GLFW.GLFW_PLATFORM, GLFW.GLFW_ANY_PLATFORM);
   }
 
   @BeforeEach
