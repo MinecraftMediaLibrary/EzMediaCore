@@ -30,6 +30,8 @@ public final class OrderedPixelMapper implements PixelMapper {
 
   private static final String ROW_NULL_MESSAGE = "Threshold matrix rows must not be null!";
 
+  private static final double CENTER_OFFSET = 0.5;
+
   private final float[][] matrix;
   private final float strength;
 
@@ -52,7 +54,7 @@ public final class OrderedPixelMapper implements PixelMapper {
     for (int row = 0; row < thresholds.length; row++) {
       for (int column = 0; column < columns; column++) {
         final long rank = (long) thresholds[row][column] - minimum;
-        final float centered = (float) ((rank + 0.5) / levels - 0.5);
+        final float centered = (float) ((rank + CENTER_OFFSET) / levels - CENTER_OFFSET);
         normalized[row][column] = centered * strength;
       }
     }

@@ -67,6 +67,9 @@ public final class AudioResampler implements AutoCloseable {
    */
   public static final int MAXIMUM_CHANNELS = 8;
 
+  private static final String INPUT_LABEL = "Input";
+  private static final String OUTPUT_LABEL = "Output";
+
   private final int inputSampleRate;
   private final int inputChannels;
   private final SampleFormat inputFormat;
@@ -127,11 +130,11 @@ public final class AudioResampler implements AutoCloseable {
     final int outputChannels,
     final SampleFormat outputFormat
   ) {
-    checkSampleRate(inputSampleRate, "Input");
-    checkChannels(inputChannels, "Input");
+    checkSampleRate(inputSampleRate, INPUT_LABEL);
+    checkChannels(inputChannels, INPUT_LABEL);
     Preconditions.checkNotNull(inputFormat, "Input format must not be null!");
-    checkSampleRate(outputSampleRate, "Output");
-    checkChannels(outputChannels, "Output");
+    checkSampleRate(outputSampleRate, OUTPUT_LABEL);
+    checkChannels(outputChannels, OUTPUT_LABEL);
     Preconditions.checkNotNull(outputFormat, "Output format must not be null!");
 
     final AudioResampler resampler = new AudioResampler(

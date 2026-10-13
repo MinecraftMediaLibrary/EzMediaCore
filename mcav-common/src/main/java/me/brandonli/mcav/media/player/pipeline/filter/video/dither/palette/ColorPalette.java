@@ -36,6 +36,20 @@ public class ColorPalette implements DitherPalette {
   private static final int RGB_MASK = 0xFFFFFF;
   private static final int OPAQUE = 0xFF << 24;
 
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int LEVEL_SHIFT = 1;
+  private static final int RED_LEVEL_SHIFT = 14;
+  private static final int GREEN_LEVEL_SHIFT = 7;
+
+  private static final float MEAN_FACTOR = 0.5f;
+  private static final float BASE_WEIGHT = 2.0f;
+  private static final float GREEN_WEIGHT = 4.0f;
+  private static final float CHANNEL_MAXIMUM = 255.0f;
+  private static final float RED_MEAN_SCALE = 256.0f;
+
   private final int[] palette;
   private final int reservedIndices;
   private final byte[] colorMap;
@@ -77,13 +91,13 @@ public class ColorPalette implements DitherPalette {
     final byte[] colorMap,
     final int[] fullColorMap
   ) {
-    final int red = redLevel << 1;
-    final int sliceStart = redLevel << 14;
+    final int red = redLevel << LEVEL_SHIFT;
+    final int sliceStart = redLevel << RED_LEVEL_SHIFT;
     for (int greenLevel = 0; greenLevel < LEVELS; greenLevel++) {
-      final int green = greenLevel << 1;
-      final int rowStart = sliceStart | (greenLevel << 7);
+      final int green = greenLevel << LEVEL_SHIFT;
+      final int rowStart = sliceStart | (greenLevel << GREEN_LEVEL_SHIFT);
       for (int blueLevel = 0; blueLevel < LEVELS; blueLevel++) {
-        final int blue = blueLevel << 1;
+        final int blue = blueLevel << LEVEL_SHIFT;
         final int index = findClosestIndex(palette, reservedIndices, red, green, blue);
         final int tableIndex = rowStart | blueLevel;
         colorMap[tableIndex] = (byte) index;
@@ -122,17 +136,16 @@ public class ColorPalette implements DitherPalette {
    */
   @VisibleForTesting
   static float perceptualDistance(final int red, final int green, final int blue, final int color) {
-    final int otherRed = (color >> 16) & 0xFF;
-    final int otherGreen = (color >> 8) & 0xFF;
-    final int otherBlue = color & 0xFF;
-    final float redMean = (red + otherRed) * 0.5f;
+    final int otherRed = (color >> RED_SHIFT) & CHANNEL_MASK;
+    final int otherGreen = (color >> GREEN_SHIFT) & CHANNEL_MASK;
+    final int otherBlue = color & CHANNEL_MASK;
+    final float redMean = (red + otherRed) * MEAN_FACTOR;
     final int deltaRed = red - otherRed;
     final int deltaGreen = green - otherGreen;
     final int deltaBlue = blue - otherBlue;
-    final float redWeight = 2.0f + redMean / 256.0f;
-    final float greenWeight = 4.0f;
-    final float blueWeight = 2.0f + (255.0f - redMean) / 256.0f;
-    return redWeight * deltaRed * deltaRed + greenWeight * deltaGreen * deltaGreen + blueWeight * deltaBlue * deltaBlue;
+    final float redWeight = BASE_WEIGHT + redMean / RED_MEAN_SCALE;
+    final float blueWeight = BASE_WEIGHT + (CHANNEL_MAXIMUM - redMean) / RED_MEAN_SCALE;
+    return redWeight * deltaRed * deltaRed + GREEN_WEIGHT * deltaGreen * deltaGreen + blueWeight * deltaBlue * deltaBlue;
   }
 
   /**

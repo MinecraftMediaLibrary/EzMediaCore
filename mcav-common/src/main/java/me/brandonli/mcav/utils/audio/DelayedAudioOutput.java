@@ -53,11 +53,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class DelayedAudioOutput implements AutoCloseable {
 
+  private static final String PCM_CODEC = "pcm_s16le";
+
+  private static final String UNSTARTED_THREAD_NAME = "mcav-audio-output-not-started";
+
+  private static final int MILLISECONDS_PER_SECOND = 1000;
+
   /**
    * The format of the samples: 16-bit little-endian PCM in the rate and the channels of the audio pipeline.
    */
   public static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of(
-    "pcm_s16le",
+    PCM_CODEC,
     AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * Byte.SIZE,
     AudioFilter.SAMPLE_RATE,
     AudioFilter.CHANNELS,
@@ -80,10 +86,10 @@ public final class DelayedAudioOutput implements AutoCloseable {
   /** How long each chunk of silence is, in milliseconds. */
   private static final int SILENCE_CHUNK_MILLISECONDS = 20;
 
-  private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / 1000) * AudioFilter.FRAME_SIZE;
+  private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / MILLISECONDS_PER_SECOND) * AudioFilter.FRAME_SIZE;
 
   /** The longest queue whose size in bytes, 192 to a millisecond of 48 kHz stereo, still fits in an {@code int}. */
-  public static final int MAXIMUM_QUEUED_MILLISECONDS = Integer.MAX_VALUE / ((AudioFilter.SAMPLE_RATE / 1000) * AudioFilter.FRAME_SIZE);
+  public static final int MAXIMUM_QUEUED_MILLISECONDS = Integer.MAX_VALUE / BYTES_PER_MILLISECOND;
 
   private final String source;
   private final long joinTimeoutMilliseconds;
@@ -114,13 +120,13 @@ public final class DelayedAudioOutput implements AutoCloseable {
     this.source = source;
     this.joinTimeoutMilliseconds = joinTimeoutMilliseconds;
     this.delayNanoseconds = TimeUnit.MILLISECONDS.toNanos(delayMilliseconds);
-    this.maximumQueuedBytes = (AudioFilter.SAMPLE_RATE / 1000) * maximumQueuedMilliseconds * AudioFilter.FRAME_SIZE;
+    this.maximumQueuedBytes = BYTES_PER_MILLISECOND * maximumQueuedMilliseconds;
     this.pipeline = pipeline;
     this.failures = failures;
     this.clock = clock;
     this.silenceNanoseconds = TimeUnit.MILLISECONDS.toNanos(silenceMilliseconds);
     this.queue = new ArrayDeque<>();
-    this.thread = new Thread("mcav-audio-output-not-started");
+    this.thread = new Thread(UNSTARTED_THREAD_NAME);
   }
 
   /**

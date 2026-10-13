@@ -68,6 +68,11 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
   private static final long MICROSECONDS_PER_MILLISECOND = 1_000L;
   private static final String NETWORK_TIMEOUT_MICROSECONDS = "15000000";
+  private static final String RECONNECT_DELAY_MAXIMUM_SECONDS = "5";
+  private static final String DIRECT_PROBE_SIZE_BYTES = "32";
+  private static final String DIRECT_ANALYZE_DURATION_MICROSECONDS = "0";
+  private static final String OPTION_ENABLED = "1";
+  private static final String OPTION_AUTOMATIC = "auto";
 
   private final VideoAttachableCallback videoCallback;
   private final AudioAttachableCallback audioCallback;
@@ -346,19 +351,19 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   }
 
   private static void configureFfmpeg(final FFmpegFrameGrabber grabber, final Source source) {
-    grabber.setVideoOption("threads", "auto");
+    grabber.setVideoOption("threads", OPTION_AUTOMATIC);
     grabber.setVideoOption("flags", "low_delay");
     grabber.setOption("rw_timeout", NETWORK_TIMEOUT_MICROSECONDS);
-    grabber.setOption("reconnect", "1");
-    grabber.setOption("reconnect_streamed", "1");
-    grabber.setOption("reconnect_delay_max", "5");
+    grabber.setOption("reconnect", OPTION_ENABLED);
+    grabber.setOption("reconnect_streamed", OPTION_ENABLED);
+    grabber.setOption("reconnect_delay_max", RECONNECT_DELAY_MAXIMUM_SECONDS);
     grabber.setOption("fflags", "discardcorrupt+genpts");
-    grabber.setOption("hwaccel", "auto");
+    grabber.setOption("hwaccel", OPTION_AUTOMATIC);
     if (source instanceof final FfmpegDirectSource direct) {
       final String format = direct.getFormat();
       grabber.setFormat(format);
-      grabber.setOption("probesize", "32");
-      grabber.setOption("analyzeduration", "0");
+      grabber.setOption("probesize", DIRECT_PROBE_SIZE_BYTES);
+      grabber.setOption("analyzeduration", DIRECT_ANALYZE_DURATION_MICROSECONDS);
     }
   }
 

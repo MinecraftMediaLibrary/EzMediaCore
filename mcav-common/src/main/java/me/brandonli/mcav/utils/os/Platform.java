@@ -30,6 +30,10 @@ public final class Platform {
 
   private static final Platform CURRENT_PLATFORM = detectCurrentPlatform();
 
+  private static final String PART_SEPARATOR = "-";
+  private static final String SIXTY_FOUR_BITS = "64";
+  private static final String THIRTY_TWO_BITS = "32";
+
   private final Os os;
   private final Arch arch;
   private final Bits bits;
@@ -136,7 +140,7 @@ public final class Platform {
     final String lowerOsName = osName.toLowerCase(Locale.ROOT);
     final String archName = this.arch.name();
     final String lowerArchName = archName.toLowerCase(Locale.ROOT);
-    final String bitsName = this.bits == Bits.BITS_64 ? "64" : "32";
-    return lowerOsName + "-" + lowerArchName + "-" + bitsName;
+    final String bitsName = this.bits == Bits.BITS_64 ? SIXTY_FOUR_BITS : THIRTY_TWO_BITS;
+    return lowerOsName + PART_SEPARATOR + lowerArchName + PART_SEPARATOR + bitsName;
   }
 }

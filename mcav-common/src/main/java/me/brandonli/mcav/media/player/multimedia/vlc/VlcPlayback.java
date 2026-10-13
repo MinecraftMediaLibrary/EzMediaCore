@@ -68,6 +68,7 @@ final class VlcPlayback {
   private static final long DRIFT_NUDGE_MILLISECONDS = 100L;
   private static final long DRIFT_SEEK_MILLISECONDS = 2_000L;
   private static final long SYNC_INTERVAL_MILLISECONDS = 250L;
+  private static final String SYNC_THREAD_NAME = "mcav-vlc-sync";
   private static final float RATE_NORMAL = 1.0f;
   private static final float RATE_SLOWER = 0.97f;
   private static final float RATE_FASTER = 1.03f;
@@ -296,7 +297,7 @@ final class VlcPlayback {
   }
 
   private static Thread createSyncThread(final Runnable task) {
-    final Thread thread = new Thread(task, "mcav-vlc-sync");
+    final Thread thread = new Thread(task, SYNC_THREAD_NAME);
     thread.setDaemon(true);
     return thread;
   }

@@ -28,6 +28,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 final class PixelCacheKey {
 
+  private static final int HASH_MULTIPLIER = 31;
+
   private final long address;
   private final int width;
   private final int height;
@@ -77,7 +79,7 @@ final class PixelCacheKey {
   @Override
   public int hashCode() {
     final int addressHash = Long.hashCode(this.address);
-    return (addressHash * 31 + this.width) * 31 + this.height;
+    return (addressHash * HASH_MULTIPLIER + this.width) * HASH_MULTIPLIER + this.height;
   }
 
   @Override

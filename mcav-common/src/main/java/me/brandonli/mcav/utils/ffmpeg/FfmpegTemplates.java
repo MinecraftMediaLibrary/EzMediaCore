@@ -24,6 +24,19 @@ import com.google.common.base.Preconditions;
  */
 public final class FfmpegTemplates {
 
+  private static final String NO_VIDEO_FLAG = "-vn";
+  private static final String SEEK_FLAG = "-ss";
+  private static final String STRICTNESS_FLAG = "-strict";
+  private static final String EXPERIMENTAL_STRICTNESS = "-2";
+
+  private static final String VORBIS_CODEC = "vorbis";
+  private static final String H264_CODEC = "libx264";
+  private static final String AAC_CODEC = "aac";
+  private static final String COPY_CODEC = "copy";
+
+  private static final String STEREO_CHANNELS = "2";
+  private static final String SINGLE_FRAME = "1";
+
   private FfmpegTemplates() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -44,8 +57,8 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
-    builder.addArgument("-vn");
-    builder.addArguments("-strict", "-2");
+    builder.addArgument(NO_VIDEO_FLAG);
+    builder.addArguments(STRICTNESS_FLAG, EXPERIMENTAL_STRICTNESS);
     builder.addAudioCodec(codec);
     builder.addOverwrite();
     builder.addOutput(output);
@@ -67,10 +80,10 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
-    builder.addArgument("-vn");
-    builder.addArguments("-strict", "-2");
-    builder.addAudioCodec("vorbis");
-    builder.addArguments("-ac", "2");
+    builder.addArgument(NO_VIDEO_FLAG);
+    builder.addArguments(STRICTNESS_FLAG, EXPERIMENTAL_STRICTNESS);
+    builder.addAudioCodec(VORBIS_CODEC);
+    builder.addArguments("-ac", STEREO_CHANNELS);
     builder.addOverwrite();
     builder.addOutput(output);
     return builder.build();
@@ -93,9 +106,9 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(audioBitrate, "Audio bitrate must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
-    builder.addVideoCodec("libx264");
+    builder.addVideoCodec(H264_CODEC);
     builder.addBitrate(videoBitrate);
-    builder.addAudioCodec("aac");
+    builder.addAudioCodec(AAC_CODEC);
     builder.addAudioBitrate(audioBitrate);
     builder.addOverwrite();
     builder.addOutput(output);
@@ -118,11 +131,11 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(startTime, "Start time must not be null!");
     Preconditions.checkNotNull(duration, "Duration must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    builder.addArguments("-ss", startTime);
+    builder.addArguments(SEEK_FLAG, startTime);
     builder.addInput(input);
     builder.addArguments("-t", duration);
-    builder.addVideoCodec("copy");
-    builder.addAudioCodec("copy");
+    builder.addVideoCodec(COPY_CODEC);
+    builder.addAudioCodec(COPY_CODEC);
     builder.addOverwrite();
     builder.addOutput(output);
     return builder.build();
@@ -142,9 +155,9 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(timePosition, "Time position must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    builder.addArguments("-ss", timePosition);
+    builder.addArguments(SEEK_FLAG, timePosition);
     builder.addInput(input);
-    builder.addArguments("-frames:v", "1");
+    builder.addArguments("-frames:v", SINGLE_FRAME);
     builder.addOverwrite();
     builder.addOutput(output);
     return builder.build();
@@ -163,8 +176,8 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
-    builder.addVideoCodec("copy");
-    builder.addAudioCodec("copy");
+    builder.addVideoCodec(COPY_CODEC);
+    builder.addAudioCodec(COPY_CODEC);
     builder.addOverwrite();
     builder.addOutput(output);
     return builder.build();

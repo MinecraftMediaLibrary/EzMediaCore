@@ -32,6 +32,20 @@ public final class OsUtils {
   private static final String OS_ARCH_PROPERTY = "os.arch";
   private static final String DATA_MODEL_PROPERTY = "sun.arch.data.model";
 
+  private static final String MAC_NAME = "mac";
+  private static final String DARWIN_NAME = "darwin";
+  private static final String WINDOWS_NAME = "win";
+  private static final String FREEBSD_NAME = "freebsd";
+  private static final String LINUX_NAME = "linux";
+
+  private static final String ARM_NAME = "arm";
+  private static final String AARCH_NAME = "aarch";
+  private static final String X86_NAME = "86";
+  private static final String AMD64_NAME = "amd64";
+
+  private static final String SIXTY_FOUR_BITS = "64";
+  private static final String THIRTY_TWO_BITS = "32";
+
   private static final Os CURRENT_OS;
   private static final Arch CURRENT_ARCH;
   private static final Bits CURRENT_BITS;
@@ -60,27 +74,27 @@ public final class OsUtils {
 
   static Os detectOs(final String osName) {
     // "darwin" contains "win", so macOS has to be recognized before Windows
-    if (osName.contains("mac") || osName.contains("darwin")) {
+    if (osName.contains(MAC_NAME) || osName.contains(DARWIN_NAME)) {
       return Os.MAC;
     }
-    if (osName.contains("win")) {
+    if (osName.contains(WINDOWS_NAME)) {
       return Os.WINDOWS;
     }
-    if (osName.contains("freebsd")) {
+    if (osName.contains(FREEBSD_NAME)) {
       return Os.FREEBSD;
     }
-    if (osName.contains("linux")) {
+    if (osName.contains(LINUX_NAME)) {
       return Os.LINUX;
     }
     return Os.OTHER;
   }
 
   static Arch detectArch(final String osArch) {
-    final boolean isArm = osArch.contains("arm") || osArch.contains("aarch");
+    final boolean isArm = osArch.contains(ARM_NAME) || osArch.contains(AARCH_NAME);
     if (isArm) {
       return Arch.ARM;
     }
-    final boolean isX86 = osArch.contains("86") || osArch.equals("amd64");
+    final boolean isX86 = osArch.contains(X86_NAME) || osArch.equals(AMD64_NAME);
     if (isX86) {
       return Arch.X86;
     }
@@ -88,13 +102,13 @@ public final class OsUtils {
   }
 
   static Bits detectBits(final String osArch, final String dataModel) {
-    if (dataModel.equals("64")) {
+    if (dataModel.equals(SIXTY_FOUR_BITS)) {
       return Bits.BITS_64;
     }
-    if (dataModel.equals("32")) {
+    if (dataModel.equals(THIRTY_TWO_BITS)) {
       return Bits.BITS_32;
     }
-    final boolean isSixtyFourBit = osArch.contains("64");
+    final boolean isSixtyFourBit = osArch.contains(SIXTY_FOUR_BITS);
     if (isSixtyFourBit) {
       return Bits.BITS_64;
     }

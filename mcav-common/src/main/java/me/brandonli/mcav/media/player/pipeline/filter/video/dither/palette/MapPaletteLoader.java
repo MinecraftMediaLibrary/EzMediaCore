@@ -40,6 +40,16 @@ public final class MapPaletteLoader {
 
   private static final String PALETTE_RESOURCE = "mcav/common/palette.json";
   private static final int OPAQUE = 0xFF << 24;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int COMPONENTS = 3;
+  private static final int RED_COMPONENT = 0;
+  private static final int GREEN_COMPONENT = 1;
+  private static final int BLUE_COMPONENT = 2;
+  private static final int COMPONENT_MAXIMUM = 255;
+
+  private static final int UNSIGNED_BYTE_MASK = 0xFF;
   private static final int[] COLORS = loadColors(PALETTE_RESOURCE);
 
   private MapPaletteLoader() {
@@ -95,18 +105,18 @@ public final class MapPaletteLoader {
   }
 
   private static int toColor(final int @Nullable [] rgb, final int index) {
-    if (rgb == null || rgb.length != 3) {
+    if (rgb == null || rgb.length != COMPONENTS) {
       final String message = "Map color %s does not have three components!".formatted(index);
       throw new PaletteLoadingException(message);
     }
-    final int red = checkComponent(rgb[0], index);
-    final int green = checkComponent(rgb[1], index);
-    final int blue = checkComponent(rgb[2], index);
-    return OPAQUE | (red << 16) | (green << 8) | blue;
+    final int red = checkComponent(rgb[RED_COMPONENT], index);
+    final int green = checkComponent(rgb[GREEN_COMPONENT], index);
+    final int blue = checkComponent(rgb[BLUE_COMPONENT], index);
+    return OPAQUE | (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
   }
 
   private static int checkComponent(final int component, final int index) {
-    if (component < 0 || component > 255) {
+    if (component < 0 || component > COMPONENT_MAXIMUM) {
       final String message = "Component %s of map color %s must be between 0 and 255!".formatted(component, index);
       throw new PaletteLoadingException(message);
     }
@@ -139,7 +149,7 @@ public final class MapPaletteLoader {
    * @throws IllegalArgumentException if the index does not exist
    */
   public static Color getColor(final byte index) {
-    final int unsigned = index & 0xFF;
+    final int unsigned = index & UNSIGNED_BYTE_MASK;
     Preconditions.checkArgument(unsigned < COLORS.length, "Map color %s does not exist!", unsigned);
     final int argb = COLORS[unsigned];
     return new Color(argb, true);

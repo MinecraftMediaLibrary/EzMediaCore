@@ -84,6 +84,11 @@ final class PlaybackSession {
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
   private static final long END_OFFER_TIMEOUT_MILLISECONDS = 50L;
 
+  private static final String VIDEO_DECODER_THREAD_NAME = "mcav-decode-video";
+  private static final String AUDIO_DECODER_THREAD_NAME = "mcav-decode-audio";
+  private static final String VIDEO_RENDERER_THREAD_NAME = "mcav-render-video";
+  private static final String AUDIO_RENDERER_THREAD_NAME = "mcav-render-audio";
+
   private static final int VIDEO_QUEUE_CAPACITY = 4;
   private static final int IMAGE_POOL_CAPACITY = VIDEO_QUEUE_CAPACITY + 2;
   private static final int AUDIO_QUEUE_CAPACITY = 64;
@@ -327,14 +332,14 @@ final class PlaybackSession {
     }
     final GrabberFactory audioFactory = this.audioGrabberFactory;
     final boolean hasSeparateAudio = audioFactory != null;
-    final Thread videoDecoder = createThread("mcav-decode-video", () -> this.decode(grabber, true, !hasSeparateAudio));
+    final Thread videoDecoder = createThread(VIDEO_DECODER_THREAD_NAME, () -> this.decode(grabber, true, !hasSeparateAudio));
     this.threads.add(videoDecoder);
     if (audioFactory != null) {
-      final Thread audioDecoder = createThread("mcav-decode-audio", () -> this.decodeSeparateAudio(audioFactory));
+      final Thread audioDecoder = createThread(AUDIO_DECODER_THREAD_NAME, () -> this.decodeSeparateAudio(audioFactory));
       this.threads.add(audioDecoder);
     }
-    final Thread videoRenderer = createThread("mcav-render-video", this::renderVideo);
-    final Thread audioRenderer = createThread("mcav-render-audio", this::renderAudio);
+    final Thread videoRenderer = createThread(VIDEO_RENDERER_THREAD_NAME, this::renderVideo);
+    final Thread audioRenderer = createThread(AUDIO_RENDERER_THREAD_NAME, this::renderAudio);
     this.threads.add(videoRenderer);
     this.threads.add(audioRenderer);
     for (final Thread thread : this.threads) {

@@ -37,6 +37,8 @@ public class DefaultErrorDiffusionDitherBuilder
   implements ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder>
 {
 
+  private static final int MAXIMUM_TEMPORAL_THRESHOLD = 255;
+
   private DitherPalette palette;
   private Algorithm algorithm;
   private int temporalThreshold;
@@ -117,7 +119,7 @@ public class DefaultErrorDiffusionDitherBuilder
    */
   @Override
   public DefaultErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold) {
-    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Temporal threshold must be between 0 and 255!");
+    Preconditions.checkArgument(threshold >= 0 && threshold <= MAXIMUM_TEMPORAL_THRESHOLD, "Temporal threshold must be between 0 and 255!");
     this.temporalThreshold = threshold;
     return this;
   }

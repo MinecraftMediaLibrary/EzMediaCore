@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  */
 public class LuminanceFilter extends MatVideoFilter {
 
+  private static final double MAXIMUM_BRIGHTNESS = 255.0;
+
   private final double contrast;
   private final double brightness;
 
@@ -38,7 +40,11 @@ public class LuminanceFilter extends MatVideoFilter {
    */
   public LuminanceFilter(final double contrast, final double brightness) {
     Preconditions.checkArgument(contrast >= 0, "Contrast must not be negative!");
-    Preconditions.checkArgument(brightness >= -255 && brightness <= 255, "Brightness %s must be between -255 and 255!", brightness);
+    Preconditions.checkArgument(
+      brightness >= -MAXIMUM_BRIGHTNESS && brightness <= MAXIMUM_BRIGHTNESS,
+      "Brightness %s must be between -255 and 255!",
+      brightness
+    );
     this.contrast = contrast;
     this.brightness = brightness;
   }

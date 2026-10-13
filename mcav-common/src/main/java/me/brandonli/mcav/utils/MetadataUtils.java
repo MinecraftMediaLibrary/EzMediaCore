@@ -33,6 +33,8 @@ public final class MetadataUtils {
 
   private static final int PROBE_FRAMES = 30;
 
+  private static final String UNKNOWN_CODEC = "unknown";
+
   private MetadataUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -122,7 +124,7 @@ public final class MetadataUtils {
       final String message = "Source %s has no audio track!".formatted(resource);
       throw new InputMetadataException(message);
     }
-    final String codecName = Objects.requireNonNullElse(codec, "unknown");
+    final String codecName = Objects.requireNonNullElse(codec, UNKNOWN_CODEC);
     return OriginalAudioMetadata.of(codecName, bitrate, sampleRate, channels, format);
   }
 

@@ -43,6 +43,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class ThreadedImagePlayer implements ImagePlayer {
 
+  private static final String THREAD_NAME = "mcav-image-player";
+
   private static final long STOP_TIMEOUT_MILLISECONDS = 2_000L;
 
   private final LongSupplier clock;
@@ -94,7 +96,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
         return false;
       }
       final Runnable loop = () -> this.run(source);
-      final Thread worker = new Thread(loop, "mcav-image-player");
+      final Thread worker = new Thread(loop, THREAD_NAME);
       worker.setDaemon(true);
       this.thread = worker;
       worker.start();

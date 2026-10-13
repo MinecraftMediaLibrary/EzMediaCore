@@ -28,6 +28,10 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 public final class ImageUtils {
 
   private static final int SCALAR_COMPONENTS = 4;
+  private static final int BLUE_INDEX = 0;
+  private static final int GREEN_INDEX = 1;
+  private static final int RED_INDEX = 2;
+  private static final int ALPHA_INDEX = 3;
 
   private ImageUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
@@ -46,7 +50,7 @@ public final class ImageUtils {
     final double[] values = new double[SCALAR_COMPONENTS];
     final int count = Math.min(components.length, SCALAR_COMPONENTS);
     System.arraycopy(components, 0, values, 0, count);
-    return new Scalar(values[0], values[1], values[2], values[3]);
+    return new Scalar(values[BLUE_INDEX], values[GREEN_INDEX], values[RED_INDEX], values[ALPHA_INDEX]);
   }
 
   /**

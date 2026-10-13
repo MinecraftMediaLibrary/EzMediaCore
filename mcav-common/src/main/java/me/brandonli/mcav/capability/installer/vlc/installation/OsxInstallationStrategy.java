@@ -41,6 +41,9 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
   private static final String VLC_APP = "VLC.app";
   private static final String MOUNT_DIRECTORY = "vlc-mount";
 
+  private static final String DISK_IMAGE_TOOL = "hdiutil";
+  private static final String DETACH_COMMAND = "detach";
+
   /**
    * Constructs a new strategy for the installer.
    *
@@ -108,7 +111,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     final String rawArchive = archive.toString();
     final String rawMountPoint = mountPoint.toString();
     final String rawInstallDirectory = installDirectory.toString();
-    this.runProcess(null, "hdiutil", "attach", "-nobrowse", "-readonly", "-mountpoint", rawMountPoint, rawArchive);
+    this.runProcess(null, DISK_IMAGE_TOOL, "attach", "-nobrowse", "-readonly", "-mountpoint", rawMountPoint, rawArchive);
     try {
       final Path mountedApp = mountPoint.resolve(VLC_APP);
       final String rawMountedApp = mountedApp.toString();
@@ -136,7 +139,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
   private void detach(final Path mountPoint) throws IOException {
     final String rawMountPoint = mountPoint.toString();
     try {
-      this.runProcess(null, "hdiutil", "detach", rawMountPoint);
+      this.runProcess(null, DISK_IMAGE_TOOL, DETACH_COMMAND, rawMountPoint);
     } catch (final IOException exception) {
       this.forceDetach(rawMountPoint, exception);
     }
@@ -145,7 +148,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
 
   private void forceDetach(final String rawMountPoint, final IOException detachFailure) throws IOException {
     try {
-      this.runProcess(null, "hdiutil", "detach", "-force", rawMountPoint);
+      this.runProcess(null, DISK_IMAGE_TOOL, DETACH_COMMAND, "-force", rawMountPoint);
     } catch (final IOException exception) {
       detachFailure.addSuppressed(exception);
       throw detachFailure;

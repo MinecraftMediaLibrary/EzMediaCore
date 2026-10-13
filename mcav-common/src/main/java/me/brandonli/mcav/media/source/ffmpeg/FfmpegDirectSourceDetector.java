@@ -27,6 +27,7 @@ import me.brandonli.mcav.media.source.SourceDetector;
 public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSource> {
 
   private static final Pattern SEPARATOR = Pattern.compile(Pattern.quote("||"));
+  private static final int PARTS = 2;
 
   /**
    * Constructs a new detector.
@@ -41,7 +42,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   public boolean isDetectedSource(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
     final String[] parts = SEPARATOR.split(raw, -1);
-    if (parts.length != 2) {
+    if (parts.length != PARTS) {
       return false;
     }
 
@@ -62,7 +63,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   public FfmpegDirectSource createSource(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
     final String[] parts = SEPARATOR.split(raw, -1);
-    Preconditions.checkArgument(parts.length == 2, "Raw source %s must have the form format||input!", raw);
+    Preconditions.checkArgument(parts.length == PARTS, "Raw source %s must have the form format||input!", raw);
     final String format = parts[0];
     final String mrl = parts[1];
     return FfmpegDirectSource.mrl(mrl, format);

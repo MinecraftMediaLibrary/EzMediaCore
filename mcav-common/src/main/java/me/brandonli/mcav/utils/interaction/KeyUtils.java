@@ -70,7 +70,7 @@ public final class KeyUtils {
     final boolean escaped = next < input.length() && input.charAt(next) == OPEN;
     if (escaped) {
       output.append(OPEN);
-      return index + 2;
+      return next + 1;
     }
     return appendKey(input, index, output);
   }

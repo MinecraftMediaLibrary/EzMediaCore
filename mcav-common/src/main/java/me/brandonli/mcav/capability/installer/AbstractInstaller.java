@@ -69,6 +69,8 @@ public abstract class AbstractInstaller implements Installer {
   private static final String CONFIGURATION_COMMENT = "Paths of programs installed by MCAV";
   private static final String WINDOWS_EXECUTABLE_SUFFIX = ".exe";
   private static final String ARCHIVE_SUFFIX = ".archive";
+  private static final String CURRENT_DIRECTORY = ".";
+  private static final String PARENT_DIRECTORY = "..";
   private static final Object CONFIGURATION_LOCK = new Object();
 
   private final Path folder;
@@ -381,7 +383,7 @@ public abstract class AbstractInstaller implements Installer {
 
   private static boolean isPlainFileName(final String fileName) {
     final boolean empty = fileName.isEmpty();
-    final boolean relativeDirectory = fileName.equals(".") || fileName.equals("..");
+    final boolean relativeDirectory = fileName.equals(CURRENT_DIRECTORY) || fileName.equals(PARENT_DIRECTORY);
     return !empty && !relativeDirectory;
   }
 

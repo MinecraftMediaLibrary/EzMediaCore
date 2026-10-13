@@ -30,6 +30,8 @@ public final class Dimension {
    */
   public static final Dimension NONE = new Dimension(0, 0);
 
+  private static final int HASH_MULTIPLIER = 31;
+
   private final int width;
   private final int height;
 
@@ -99,7 +101,7 @@ public final class Dimension {
 
   @Override
   public int hashCode() {
-    return this.width * 31 + this.height;
+    return this.width * HASH_MULTIPLIER + this.height;
   }
 
   @Override

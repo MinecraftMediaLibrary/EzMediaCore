@@ -33,7 +33,12 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public final class ColorMapNearestDither extends AbstractDitherAlgorithm implements NearestDither, ParallelDitherAlgorithm {
 
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   private static final int MINIMUM_PIXELS_PER_TASK = 4096;
+  private static final int TASKS_PER_THREAD = 2;
 
   /**
    * Constructs a new nearest color algorithm.
@@ -80,7 +85,7 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
     final byte[] indices = new byte[pixels.length];
     final int parallelism = pool.getParallelism();
     final int sizeLimitedTasks = pixels.length / MINIMUM_PIXELS_PER_TASK;
-    final int taskCount = Math.clamp(sizeLimitedTasks, 1, parallelism * 2);
+    final int taskCount = Math.clamp(sizeLimitedTasks, 1, parallelism * TASKS_PER_THREAD);
     this.mapInParallel(pixels, indices, pool, taskCount);
     return indices;
   }
@@ -104,9 +109,9 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
     final byte[] colorMap = palette.getColorMap();
     for (int index = start; index < end; index++) {
       final int argb = pixels[index];
-      final int red = (argb >> 16) & 0xFF;
-      final int green = (argb >> 8) & 0xFF;
-      final int blue = argb & 0xFF;
+      final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+      final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
+      final int blue = argb & CHANNEL_MASK;
       final int lookup = DitherUtils.getLookupIndex(red, green, blue);
       indices[index] = colorMap[lookup];
     }
@@ -126,9 +131,9 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
     final int[] fullColorMap = palette.getFullColorMap();
     for (int index = 0; index < buffer.length; index++) {
       final int argb = buffer[index];
-      final int red = (argb >> 16) & 0xFF;
-      final int green = (argb >> 8) & 0xFF;
-      final int blue = argb & 0xFF;
+      final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+      final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
+      final int blue = argb & CHANNEL_MASK;
       final int lookup = DitherUtils.getLookupIndex(red, green, blue);
       buffer[index] = fullColorMap[lookup];
     }

@@ -42,6 +42,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 final class IdleTimeoutInputStream extends InputStream {
 
+  private static final int UNSIGNED_BYTE_MASK = 0xFF;
+
   private final InputStream delegate;
   private final Duration idleTimeout;
   private final ExecutorService reader;
@@ -65,7 +67,7 @@ final class IdleTimeoutInputStream extends InputStream {
     if (count == -1) {
       return -1;
     }
-    return single[0] & 0xFF;
+    return single[0] & UNSIGNED_BYTE_MASK;
   }
 
   @Override

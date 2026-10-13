@@ -24,6 +24,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class Point {
 
+  private static final int HASH_MULTIPLIER = 31;
+
   private final double xCoordinate;
   private final double yCoordinate;
 
@@ -79,7 +81,7 @@ public final class Point {
   public int hashCode() {
     final long xBits = Double.doubleToLongBits(this.xCoordinate);
     final long yBits = Double.doubleToLongBits(this.yCoordinate);
-    return Long.hashCode(xBits) * 31 + Long.hashCode(yBits);
+    return Long.hashCode(xBits) * HASH_MULTIPLIER + Long.hashCode(yBits);
   }
 
   @Override

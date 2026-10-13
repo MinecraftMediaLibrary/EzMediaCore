@@ -27,6 +27,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> {
 
+  private static final int MAXIMUM_WEIGHT = 255;
+
   private DitherPalette palette;
   private int weight;
 
@@ -73,7 +75,7 @@ public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDit
    */
   @Override
   public DefaultRandomDitherBuilder withWeight(final int weight) {
-    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255!");
+    Preconditions.checkArgument(weight >= 0 && weight <= MAXIMUM_WEIGHT, "Weight must be between 0 and 255!");
     this.weight = weight;
     return this;
   }

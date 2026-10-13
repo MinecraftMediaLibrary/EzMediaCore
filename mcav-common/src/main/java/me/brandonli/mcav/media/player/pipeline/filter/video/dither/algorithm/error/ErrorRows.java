@@ -39,6 +39,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.DitherUtils;
 final class ErrorRows {
 
   private static final int CHANNELS = 3;
+  private static final int GREEN_OFFSET = 1;
+  private static final int BLUE_OFFSET = 2;
+
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int CHANNEL_MAXIMUM = 255;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int PADDED_SIDES = 2;
 
   private final DiffusionKernel kernel;
   private final int padding;
@@ -59,7 +68,7 @@ final class ErrorRows {
     this.rowCount = kernel.getMaximumOffsetY() + 1;
     this.weightSum = sumWeights(kernel);
     this.largestTap = findLargestTap(kernel);
-    final int paddedWidth = width + 2 * this.padding;
+    final int paddedWidth = width + PADDED_SIDES * this.padding;
     this.rows = new long[this.rowCount][paddedWidth * CHANNELS];
   }
 
@@ -131,7 +140,7 @@ final class ErrorRows {
    * @return the red channel from 0 to 255
    */
   static int red(final int color) {
-    return (color >> 16) & 0xFF;
+    return (color >> RED_SHIFT) & CHANNEL_MASK;
   }
 
   /**
@@ -141,7 +150,7 @@ final class ErrorRows {
    * @return the green channel from 0 to 255
    */
   static int green(final int color) {
-    return (color >> 8) & 0xFF;
+    return (color >> GREEN_SHIFT) & CHANNEL_MASK;
   }
 
   /**
@@ -151,7 +160,7 @@ final class ErrorRows {
    * @return the blue channel from 0 to 255
    */
   static int blue(final int color) {
-    return color & 0xFF;
+    return color & CHANNEL_MASK;
   }
 
   /**
@@ -181,10 +190,10 @@ final class ErrorRows {
     final int sourceRed = red(argb);
     final int sourceGreen = green(argb);
     final int sourceBlue = blue(argb);
-    final int red = sourceRed + Math.clamp(errorRow[index], -sourceRed, 255 - sourceRed);
-    final int green = sourceGreen + Math.clamp(errorRow[index + 1], -sourceGreen, 255 - sourceGreen);
-    final int blue = sourceBlue + Math.clamp(errorRow[index + 2], -sourceBlue, 255 - sourceBlue);
-    return (red << 16) | (green << 8) | blue;
+    final int red = sourceRed + Math.clamp(errorRow[index], -sourceRed, CHANNEL_MAXIMUM - sourceRed);
+    final int green = sourceGreen + Math.clamp(errorRow[index + GREEN_OFFSET], -sourceGreen, CHANNEL_MAXIMUM - sourceGreen);
+    final int blue = sourceBlue + Math.clamp(errorRow[index + BLUE_OFFSET], -sourceBlue, CHANNEL_MAXIMUM - sourceBlue);
+    return (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
   }
 
   /**
@@ -231,8 +240,8 @@ final class ErrorRows {
     final long[] targetRow = this.rows[(row + offsetY) % this.rowCount];
     final int targetIndex = (column + offsetX + this.padding) * CHANNELS;
     targetRow[targetIndex] = Math.addExact(targetRow[targetIndex], red);
-    targetRow[targetIndex + 1] = Math.addExact(targetRow[targetIndex + 1], green);
-    targetRow[targetIndex + 2] = Math.addExact(targetRow[targetIndex + 2], blue);
+    targetRow[targetIndex + GREEN_OFFSET] = Math.addExact(targetRow[targetIndex + GREEN_OFFSET], green);
+    targetRow[targetIndex + BLUE_OFFSET] = Math.addExact(targetRow[targetIndex + BLUE_OFFSET], blue);
   }
 
   /**

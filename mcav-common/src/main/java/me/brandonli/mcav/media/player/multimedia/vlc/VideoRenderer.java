@@ -54,6 +54,8 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32Buffe
  */
 final class VideoRenderer implements RenderCallback {
 
+  private static final String THREAD_NAME = "mcav-vlc-render-video";
+
   private static final int BYTES_PER_PIXEL = 4;
   private static final int SPARE_PIXEL_ARRAYS = 2;
   private static final long QUEUE_POLL_MILLISECONDS = 50L;
@@ -81,7 +83,7 @@ final class VideoRenderer implements RenderCallback {
     this.pendingFrame = new ArrayBlockingQueue<>(1);
     this.sparePixels = new ArrayBlockingQueue<>(SPARE_PIXEL_ARRAYS);
     this.replacedFrames = new ArrayList<>(1);
-    this.thread = new RenderThread("mcav-vlc-render-video", failure -> reportFailure(owner, "Video rendering failed", failure));
+    this.thread = new RenderThread(THREAD_NAME, failure -> reportFailure(owner, "Video rendering failed", failure));
     this.metadata = OriginalVideoMetadata.EMPTY;
   }
 

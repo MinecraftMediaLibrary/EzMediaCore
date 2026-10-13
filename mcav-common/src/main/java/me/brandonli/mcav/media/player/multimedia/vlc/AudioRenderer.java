@@ -48,11 +48,14 @@ import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
  */
 final class AudioRenderer extends AudioCallbackAdapter {
 
+  private static final String THREAD_NAME = "mcav-vlc-render-audio";
+
   private static final int QUEUE_CAPACITY = 64;
   private static final long QUEUE_POLL_MILLISECONDS = 50L;
+  private static final String PCM_CODEC = "pcm_s16le";
   private static final int PCM_BITRATE = AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * Byte.SIZE;
   private static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of(
-    "pcm_s16le",
+    PCM_CODEC,
     PCM_BITRATE,
     AudioFilter.SAMPLE_RATE,
     AudioFilter.CHANNELS,
@@ -71,7 +74,7 @@ final class AudioRenderer extends AudioCallbackAdapter {
   AudioRenderer(final VideoPlayerMultiplexer owner) {
     this.owner = owner;
     this.queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
-    this.thread = new RenderThread("mcav-vlc-render-audio", failure -> reportFailure(owner, "Audio rendering failed", failure));
+    this.thread = new RenderThread(THREAD_NAME, failure -> reportFailure(owner, "Audio rendering failed", failure));
   }
 
   private static void reportFailure(final VideoPlayerMultiplexer owner, final String message, final Throwable failure) {

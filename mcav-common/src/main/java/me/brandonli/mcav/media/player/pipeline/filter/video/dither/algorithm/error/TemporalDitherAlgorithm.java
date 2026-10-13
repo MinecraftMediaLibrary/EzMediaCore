@@ -67,6 +67,9 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   private static final int WARMUP_ROWS = 4;
   private static final int STRENGTH_SCALE = 256;
 
+  private static final int MAXIMUM_TEMPORAL_THRESHOLD = 255;
+  private static final int UNSIGNED_BYTE_MASK = 0xFF;
+
   private final int temporalThreshold;
   private final int errorThreshold;
   private final int errorStrength;
@@ -105,7 +108,10 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final float errorStrength
   ) {
     super(palette, kernel);
-    Preconditions.checkArgument(temporalThreshold >= 0 && temporalThreshold <= 255, "Temporal threshold must be between 0 and 255!");
+    Preconditions.checkArgument(
+      temporalThreshold >= 0 && temporalThreshold <= MAXIMUM_TEMPORAL_THRESHOLD,
+      "Temporal threshold must be between 0 and 255!"
+    );
     Preconditions.checkArgument(errorThreshold >= 0, "Error threshold must not be negative!");
     Preconditions.checkArgument(errorStrength >= 0 && errorStrength <= 1, "Error strength must be between 0 and 1!");
     this.temporalThreshold = temporalThreshold;
@@ -168,7 +174,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final DitherPalette palette = this.getPalette();
     final int[] colors = palette.getPalette();
     for (int pixel = 0; pixel < buffer.length; pixel++) {
-      final int index = indices[pixel] & 0xFF;
+      final int index = indices[pixel] & UNSIGNED_BYTE_MASK;
       buffer[pixel] = colors[index];
     }
   }
@@ -372,7 +378,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       if (previousFrame == null) {
         return -1;
       }
-      final int previousIndex = previousFrame[pixelIndex] & 0xFF;
+      final int previousIndex = previousFrame[pixelIndex] & UNSIGNED_BYTE_MASK;
       final int previousColor = this.paletteColors[previousIndex];
       final boolean close = TemporalDitherAlgorithm.this.isWithinThreshold(wanted, previousColor);
       return close ? previousIndex : -1;

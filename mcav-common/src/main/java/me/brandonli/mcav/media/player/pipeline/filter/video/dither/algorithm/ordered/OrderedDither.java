@@ -37,7 +37,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public final class OrderedDither extends AbstractDitherAlgorithm implements BayerDither, ParallelDitherAlgorithm {
 
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   private static final int MINIMUM_ROWS_PER_TASK = 16;
+  private static final int TASKS_PER_THREAD = 2;
+
+  private static final int MAXIMUM_OFFSET = 255;
+  private static final double COLOR_RANGE = 256.0;
 
   private final int[][] offsets;
   private final int patternWidth;
@@ -64,7 +72,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
     this.offsets = new int[this.patternHeight][this.patternWidth];
     for (int row = 0; row < this.patternHeight; row++) {
       for (int column = 0; column < this.patternWidth; column++) {
-        this.offsets[row][column] = Math.clamp(Math.round(matrix[row][column] * spread), -255, 255);
+        this.offsets[row][column] = Math.clamp(Math.round(matrix[row][column] * spread), -MAXIMUM_OFFSET, MAXIMUM_OFFSET);
       }
     }
   }
@@ -72,7 +80,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
   private static float computeSpread(final int levels) {
     final int usableLevels = Math.max(1, levels);
     final double colorsPerAxis = Math.cbrt(usableLevels);
-    return (float) (256.0 / colorsPerAxis);
+    return (float) (COLOR_RANGE / colorsPerAxis);
   }
 
   /**
@@ -114,7 +122,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
     final byte[] indices = new byte[pixels.length];
     final int parallelism = pool.getParallelism();
     final int rowLimitedTasks = height / MINIMUM_ROWS_PER_TASK;
-    final int taskCount = Math.clamp(rowLimitedTasks, 1, parallelism * 2);
+    final int taskCount = Math.clamp(rowLimitedTasks, 1, parallelism * TASKS_PER_THREAD);
     this.ditherInParallel(pixels, width, indices, pool, taskCount);
     return indices;
   }
@@ -144,9 +152,9 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
         final int index = rowStart + column;
         final int offset = patternRow[column % this.patternWidth];
         final int argb = pixels[index];
-        final int red = DitherUtils.clamp(((argb >> 16) & 0xFF) + offset);
-        final int green = DitherUtils.clamp(((argb >> 8) & 0xFF) + offset);
-        final int blue = DitherUtils.clamp((argb & 0xFF) + offset);
+        final int red = DitherUtils.clamp(((argb >> RED_SHIFT) & CHANNEL_MASK) + offset);
+        final int green = DitherUtils.clamp(((argb >> GREEN_SHIFT) & CHANNEL_MASK) + offset);
+        final int blue = DitherUtils.clamp((argb & CHANNEL_MASK) + offset);
         final int lookup = DitherUtils.getLookupIndex(red, green, blue);
         indices[index] = colorMap[lookup];
       }
@@ -174,9 +182,9 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
         final int index = rowStart + column;
         final int offset = patternRow[column % this.patternWidth];
         final int argb = buffer[index];
-        final int red = DitherUtils.clamp(((argb >> 16) & 0xFF) + offset);
-        final int green = DitherUtils.clamp(((argb >> 8) & 0xFF) + offset);
-        final int blue = DitherUtils.clamp((argb & 0xFF) + offset);
+        final int red = DitherUtils.clamp(((argb >> RED_SHIFT) & CHANNEL_MASK) + offset);
+        final int green = DitherUtils.clamp(((argb >> GREEN_SHIFT) & CHANNEL_MASK) + offset);
+        final int blue = DitherUtils.clamp((argb & CHANNEL_MASK) + offset);
         final int lookup = DitherUtils.getLookupIndex(red, green, blue);
         buffer[index] = fullColorMap[lookup];
       }

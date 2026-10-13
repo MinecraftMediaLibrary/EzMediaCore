@@ -57,6 +57,17 @@ public final class NetworkUtils {
   private static final long MAXIMUM_ADDRESS_ANSWER_BYTES = 256;
   private static final int HTTP_OK = 200;
 
+  private static final String GET_METHOD = "GET";
+  private static final String HEAD_METHOD = "HEAD";
+  private static final String HTTP_SCHEME = "http";
+  private static final String HTTPS_SCHEME = "https";
+
+  private static final String IPV6_SEPARATOR = ":";
+  private static final String ZONE_SEPARATOR = "%";
+  private static final String ESCAPED_ZONE_SEPARATOR = "%25";
+  private static final String IPV6_HOST_START = "[";
+  private static final String IPV6_HOST_END = "]";
+
   private NetworkUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -76,12 +87,12 @@ public final class NetworkUtils {
   public static String formatHostForUrl(final String address) {
     Preconditions.checkNotNull(address, "Address must not be null!");
     final boolean ipAddress = InetAddresses.isInetAddress(address);
-    final boolean isIpv6 = ipAddress && address.contains(":");
+    final boolean isIpv6 = ipAddress && address.contains(IPV6_SEPARATOR);
     if (!isIpv6) {
       return address;
     }
-    final String escaped = address.replace("%", "%25");
-    return "[" + escaped + "]";
+    final String escaped = address.replace(ZONE_SEPARATOR, ESCAPED_ZONE_SEPARATOR);
+    return IPV6_HOST_START + escaped + IPV6_HOST_END;
   }
 
   /**
@@ -114,7 +125,7 @@ public final class NetworkUtils {
    */
   public static Optional<String> lookUpPublicAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");
-    final HttpRequest request = createRequest(addressService, "GET");
+    final HttpRequest request = createRequest(addressService, GET_METHOD);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.limiting(
       HttpResponse.BodyHandlers.ofString(),
       MAXIMUM_ADDRESS_ANSWER_BYTES
@@ -161,7 +172,7 @@ public final class NetworkUtils {
 
     final HttpResponse.BodyHandler<Void> bodyHandler = HttpResponse.BodyHandlers.discarding();
     try (final HttpClient client = createClient(HttpClient.Redirect.NORMAL)) {
-      final HttpRequest request = createRequest(uri, "HEAD");
+      final HttpRequest request = createRequest(uri, HEAD_METHOD);
       final HttpResponse<Void> response = client.send(request, bodyHandler);
       final int status = response.statusCode();
       return status == HTTP_OK;
@@ -189,7 +200,7 @@ public final class NetworkUtils {
     if (scheme == null) {
       return false;
     }
-    return scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https");
+    return scheme.equalsIgnoreCase(HTTP_SCHEME) || scheme.equalsIgnoreCase(HTTPS_SCHEME);
   }
 
   private static HttpClient createClient(final HttpClient.Redirect redirectPolicy) {

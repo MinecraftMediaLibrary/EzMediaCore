@@ -29,6 +29,20 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   private static final AtomicLong SEED_SEQUENCE = new AtomicLong(System.nanoTime());
   private static final long SEED_INCREMENT = 0x9E3779B97F4A7C15L;
   private static final double DOUBLE_UNIT = 0x1.0p-53;
+  private static final int DOUBLE_DISCARDED_BITS = 11;
+
+  private static final int SPLIT_MIX_FIRST_SHIFT = 30;
+  private static final long SPLIT_MIX_FIRST_MULTIPLIER = 0xBF58476D1CE4E5B9L;
+  private static final int SPLIT_MIX_SECOND_SHIFT = 27;
+  private static final long SPLIT_MIX_SECOND_MULTIPLIER = 0x94D049BB133111EBL;
+  private static final int SPLIT_MIX_FINAL_SHIFT = 31;
+
+  private static final int FIRST_ROTATION = 24;
+  private static final int STATE_SHIFT = 16;
+  private static final int SECOND_ROTATION = 37;
+
+  private static final double HALF = 0.5;
+  private static final double DOUBLE = 2.0;
 
   private long state0;
   private long state1;
@@ -70,9 +84,9 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
 
   private static long splitMix64(final long input) {
     long value = input + SEED_INCREMENT;
-    value = (value ^ (value >>> 30)) * 0xBF58476D1CE4E5B9L;
-    value = (value ^ (value >>> 27)) * 0x94D049BB133111EBL;
-    return value ^ (value >>> 31);
+    value = (value ^ (value >>> SPLIT_MIX_FIRST_SHIFT)) * SPLIT_MIX_FIRST_MULTIPLIER;
+    value = (value ^ (value >>> SPLIT_MIX_SECOND_SHIFT)) * SPLIT_MIX_SECOND_MULTIPLIER;
+    return value ^ (value >>> SPLIT_MIX_FINAL_SHIFT);
   }
 
   private long nextLong() {
@@ -80,8 +94,8 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
     long second = this.state1;
     final long result = first + second;
     second ^= first;
-    this.state0 = Long.rotateLeft(first, 24) ^ second ^ (second << 16);
-    this.state1 = Long.rotateLeft(second, 37);
+    this.state0 = Long.rotateLeft(first, FIRST_ROTATION) ^ second ^ (second << STATE_SHIFT);
+    this.state1 = Long.rotateLeft(second, SECOND_ROTATION);
     return result;
   }
 
@@ -123,13 +137,13 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
       "Bounds must be finite and max greater than min!"
     );
     final long nextBits = this.nextLong();
-    final double unit = (nextBits >>> 11) * DOUBLE_UNIT;
+    final double unit = (nextBits >>> DOUBLE_DISCARDED_BITS) * DOUBLE_UNIT;
     final double range = maximum - minimum;
     final double result;
     if (Double.isInfinite(range)) {
       // Scale before subtracting, as in JDK RandomSupport.boundedNextDouble, to avoid an infinite range.
-      final double halfMinimum = minimum * 0.5;
-      result = (unit * (maximum * 0.5 - halfMinimum) + halfMinimum) * 2.0;
+      final double halfMinimum = minimum * HALF;
+      result = (unit * (maximum * HALF - halfMinimum) + halfMinimum) * DOUBLE;
     } else {
       result = minimum + unit * range;
     }

@@ -35,6 +35,8 @@ final class EnvironmentVariables {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(EnvironmentVariables.class);
 
+  private static final String ASSIGNMENT_SEPARATOR = "=";
+
   private final Supplier<LibC> libc;
 
   /**
@@ -100,7 +102,7 @@ final class EnvironmentVariables {
       return false;
     }
     final LibC loaded = library.get();
-    final String assignment = name + "=" + value;
+    final String assignment = name + ASSIGNMENT_SEPARATOR + value;
     final int result = loaded._putenv(assignment);
     return result == 0;
   }

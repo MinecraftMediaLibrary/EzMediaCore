@@ -63,7 +63,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public final class MatImageBuffer implements ImageBuffer {
 
   private static final int CHANNELS = 3;
+  private static final int GRAY_CHANNELS = 1;
+  private static final int BGRA_CHANNELS = 4;
+  private static final int GREEN_OFFSET = 1;
+  private static final int RED_OFFSET = 2;
+
   private static final int ALPHA_OPAQUE = 0xFF << 24;
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int CHANNEL_MAXIMUM = 255;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   private static final double SIXTEEN_BIT_SCALE = 1.0 / 257.0;
   private static final double THIRTY_TWO_BIT_SCALE = 1.0 / 16_843_009.0;
   private static final double FLOATING_POINT_SCALE = 255.0;
@@ -234,9 +244,9 @@ public final class MatImageBuffer implements ImageBuffer {
     }
     final Mat bgr = new Mat();
     switch (channels) {
-      case 1 -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_GRAY2BGR);
-      case 3 -> eightBit.copyTo(bgr);
-      case 4 -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_BGRA2BGR);
+      case GRAY_CHANNELS -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_GRAY2BGR);
+      case CHANNELS -> eightBit.copyTo(bgr);
+      case BGRA_CHANNELS -> opencv_imgproc.cvtColor(eightBit, bgr, opencv_imgproc.COLOR_BGRA2BGR);
       default -> {
         final String message = "Channel count %s is not supported!".formatted(channels);
         throw new IllegalArgumentException(message);
@@ -283,8 +293,8 @@ public final class MatImageBuffer implements ImageBuffer {
     int index = 0;
     for (final int pixel : argb) {
       bytes[index] = (byte) pixel;
-      bytes[index + 1] = (byte) (pixel >> 8);
-      bytes[index + 2] = (byte) (pixel >> 16);
+      bytes[index + GREEN_OFFSET] = (byte) (pixel >> GREEN_SHIFT);
+      bytes[index + RED_OFFSET] = (byte) (pixel >> RED_SHIFT);
       index += CHANNELS;
     }
     final ByteBuffer buffer = target.createBuffer();
@@ -591,7 +601,7 @@ public final class MatImageBuffer implements ImageBuffer {
     final int count = Math.min(value.length, CHANNELS);
     for (int channel = 0; channel < count; channel++) {
       final long rounded = Math.round(value[channel]);
-      final int clamped = Math.clamp(rounded, 0, 255);
+      final int clamped = Math.clamp(rounded, 0, CHANNEL_MAXIMUM);
       bytes.put(base + channel, (byte) clamped);
     }
     this.invalidateCache();
@@ -606,7 +616,7 @@ public final class MatImageBuffer implements ImageBuffer {
     final int base = (row * width + column) * CHANNELS;
     final double[] values = new double[CHANNELS];
     for (int channel = 0; channel < CHANNELS; channel++) {
-      values[channel] = bytes.get(base + channel) & 0xFF;
+      values[channel] = bytes.get(base + channel) & CHANNEL_MASK;
     }
     return values;
   }
@@ -675,10 +685,10 @@ public final class MatImageBuffer implements ImageBuffer {
     bytes.get(raw, 0, length);
     int byteIndex = 0;
     for (int pixelIndex = 0; pixelIndex < count; pixelIndex++) {
-      final int blue = raw[byteIndex] & 0xFF;
-      final int green = raw[byteIndex + 1] & 0xFF;
-      final int red = raw[byteIndex + 2] & 0xFF;
-      pixels[pixelIndex] = ALPHA_OPAQUE | (red << 16) | (green << 8) | blue;
+      final int blue = raw[byteIndex] & CHANNEL_MASK;
+      final int green = raw[byteIndex + GREEN_OFFSET] & CHANNEL_MASK;
+      final int red = raw[byteIndex + RED_OFFSET] & CHANNEL_MASK;
+      pixels[pixelIndex] = ALPHA_OPAQUE | (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
       byteIndex += CHANNELS;
     }
     return pixels;

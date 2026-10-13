@@ -24,6 +24,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata {
 
+  private static final int HASH_MULTIPLIER = 31;
+
   private final int videoWidth;
   private final int videoHeight;
   private final int videoBitrate;
@@ -77,9 +79,9 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
   public int hashCode() {
     final int frameRateHash = Float.hashCode(this.videoFrameRate);
     int result = this.videoWidth;
-    result = result * 31 + this.videoHeight;
-    result = result * 31 + this.videoBitrate;
-    result = result * 31 + frameRateHash;
+    result = result * HASH_MULTIPLIER + this.videoHeight;
+    result = result * HASH_MULTIPLIER + this.videoBitrate;
+    result = result * HASH_MULTIPLIER + frameRateHash;
     return result;
   }
 

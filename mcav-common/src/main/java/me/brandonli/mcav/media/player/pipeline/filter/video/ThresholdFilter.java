@@ -28,6 +28,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  */
 public class ThresholdFilter extends MatVideoFilter {
 
+  private static final double CHANNEL_MAXIMUM = 255.0;
+
   private final double threshold;
   private final double maximumValue;
   private final int type;
@@ -42,8 +44,8 @@ public class ThresholdFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if the threshold or maximum is outside 0 through 255 or is NaN
    */
   public ThresholdFilter(final double threshold, final double maximumValue, final int type) {
-    Preconditions.checkArgument(threshold >= 0 && threshold <= 255, "Threshold must be between 0 and 255!");
-    Preconditions.checkArgument(maximumValue >= 0 && maximumValue <= 255, "Max value must be between 0 and 255!");
+    Preconditions.checkArgument(threshold >= 0 && threshold <= CHANNEL_MAXIMUM, "Threshold must be between 0 and 255!");
+    Preconditions.checkArgument(maximumValue >= 0 && maximumValue <= CHANNEL_MAXIMUM, "Max value must be between 0 and 255!");
     this.threshold = threshold;
     this.maximumValue = maximumValue;
     this.type = type;

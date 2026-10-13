@@ -31,6 +31,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 public final class DitherUtils {
 
   private static final int CHANNEL_MASK = 0xFF;
+  private static final int CHANNEL_MAXIMUM = 255;
+
+  private static final int ALPHA_SHIFT = 24;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int LEVEL_SHIFT = 1;
+  private static final int RED_LEVEL_SHIFT = 14;
+  private static final int GREEN_LEVEL_SHIFT = 7;
 
   private static final String PALETTE_NULL_MESSAGE = "Palette must not be null!";
 
@@ -48,7 +57,10 @@ public final class DitherUtils {
    * @return the table index
    */
   public static int getLookupIndex(final int red, final int green, final int blue) {
-    return ((red >> 1) << 14) | ((green >> 1) << 7) | (blue >> 1);
+    final int redLevel = red >> LEVEL_SHIFT;
+    final int greenLevel = green >> LEVEL_SHIFT;
+    final int blueLevel = blue >> LEVEL_SHIFT;
+    return (redLevel << RED_LEVEL_SHIFT) | (greenLevel << GREEN_LEVEL_SHIFT) | blueLevel;
   }
 
   /**
@@ -141,13 +153,13 @@ public final class DitherUtils {
    */
   public static byte getBestColorIncludingTransparent(final DitherPalette palette, final int argb) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
-    final int alpha = argb >>> 24;
+    final int alpha = argb >>> ALPHA_SHIFT;
     if (alpha == 0) {
       return 0;
     }
 
-    final int red = (argb >> 16) & CHANNEL_MASK;
-    final int green = (argb >> 8) & CHANNEL_MASK;
+    final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+    final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
     final int blue = argb & CHANNEL_MASK;
     return getBestColor(palette, red, green, blue);
   }
@@ -169,8 +181,8 @@ public final class DitherUtils {
     final byte[] indices = new byte[pixels.length];
     for (int pixelIndex = 0; pixelIndex < pixels.length; pixelIndex++) {
       final int argb = pixels[pixelIndex];
-      final int red = (argb >> 16) & CHANNEL_MASK;
-      final int green = (argb >> 8) & CHANNEL_MASK;
+      final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+      final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
       final int blue = argb & CHANNEL_MASK;
       final int lookup = getLookupIndex(red, green, blue);
       indices[pixelIndex] = colorMap[lookup];
@@ -186,9 +198,9 @@ public final class DitherUtils {
    * @return the clamped value
    */
   public static int clamp(final int value) {
-    if ((value & ~0xFF) == 0) {
+    if ((value & ~CHANNEL_MASK) == 0) {
       return value;
     }
-    return value < 0 ? 0 : 255;
+    return value < 0 ? 0 : CHANNEL_MAXIMUM;
   }
 }

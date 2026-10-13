@@ -40,6 +40,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class SourceUtils {
 
+  private static final String GIF_EXTENSION = "gif";
+
   private static final Set<String> MEDIA_EXTENSIONS = Set.of(
     "mp4",
     "m4v",
@@ -79,7 +81,7 @@ public final class SourceUtils {
     "opus",
     "wma",
     "amr",
-    "gif",
+    GIF_EXTENSION,
     "png",
     "apng",
     "jpg",
@@ -118,7 +120,7 @@ public final class SourceUtils {
       return false;
     }
     final String extension = getExtension(resource);
-    return "gif".equals(extension);
+    return GIF_EXTENSION.equals(extension);
   }
 
   /**

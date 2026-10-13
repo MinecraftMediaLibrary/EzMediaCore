@@ -84,14 +84,34 @@ public final class IoUtils {
   private static final long MAXIMUM_ZIP_ENTRY_SIZE = 512L * 1024L * 1024L;
   private static final long MAXIMUM_ZIP_TOTAL_SIZE = 2L * 1024L * 1024L * 1024L;
   private static final int COPY_BUFFER_SIZE = 64 * 1024;
+
   private static final int FIRST_VNC_PORT = 5900;
   private static final int LAST_PORT = 65535;
+
   private static final Set<PosixFilePermission> EXECUTABLE_PERMISSIONS = PosixFilePermissions.fromString("rwxr-xr-x");
+  private static final String POSIX_ATTRIBUTE_VIEW = "posix";
+
   private static final int MOVE_ATTEMPTS = 3;
   private static final Duration MOVE_RETRY_DELAY = Duration.ofMillis(100);
+
   private static final int ZIP_SIGNATURE_LENGTH = 4;
   private static final byte[] ZIP_LOCAL_FILE_HEADER = { 0x50, 0x4B, 0x03, 0x04 };
   private static final byte[] ZIP_END_OF_CENTRAL_DIRECTORY = { 0x50, 0x4B, 0x05, 0x06 };
+  private static final int ZIP_LOCAL_FILE_HEADER_REMAINDER = 26;
+  private static final int ZIP_END_OF_CENTRAL_DIRECTORY_REMAINDER = 18;
+  private static final int ZIP_COMMENT_LENGTH_LOW = 16;
+  private static final int ZIP_COMMENT_LENGTH_HIGH = 17;
+
+  private static final String SHA_256 = "SHA-256";
+  private static final String SHA_1 = "SHA-1";
+  private static final int HEX_DIGITS_PER_BYTE = 2;
+
+  private static final int UNSIGNED_BYTE_MASK = 0xFF;
+  private static final int BITS_PER_BYTE = 8;
+
+  private static final String USER_HOME_PROPERTY = "user.home";
+  private static final String CACHE_ROOT = ".mcav";
+  private static final String CACHE_DIRECTORY = "cache";
 
   private static final String TRUNCATED_ARCHIVE_MESSAGE = "Zip archive %s is truncated!";
 
@@ -216,7 +236,7 @@ public final class IoUtils {
     Preconditions.checkNotNull(file, "File must not be null!");
     final FileSystem fileSystem = file.getFileSystem();
     final Set<String> views = fileSystem.supportedFileAttributeViews();
-    final boolean supportsPosix = views.contains("posix");
+    final boolean supportsPosix = views.contains(POSIX_ATTRIBUTE_VIEW);
     if (!supportsPosix) {
       return;
     }
@@ -351,7 +371,7 @@ public final class IoUtils {
    */
   public static String getSha256Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
-    return hashFile(path, "SHA-256");
+    return hashFile(path, SHA_256);
   }
 
   /**
@@ -365,7 +385,7 @@ public final class IoUtils {
    */
   public static String getSha1Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
-    return hashFile(path, "SHA-1");
+    return hashFile(path, SHA_1);
   }
 
   private static String hashFile(final Path path, final String algorithm) {
@@ -405,9 +425,9 @@ public final class IoUtils {
    */
   public static String bytesToHex(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Bytes must not be null!");
-    final StringBuilder hex = new StringBuilder(bytes.length * 2);
+    final StringBuilder hex = new StringBuilder(bytes.length * HEX_DIGITS_PER_BYTE);
     for (final byte value : bytes) {
-      final int unsigned = value & 0xFF;
+      final int unsigned = value & UNSIGNED_BYTE_MASK;
       final String digits = Integer.toHexString(unsigned);
       if (digits.length() == 1) {
         hex.append('0');
@@ -475,8 +495,9 @@ public final class IoUtils {
    * @throws UncheckedIOException if the folder cannot be created
    */
   public static Path getCachedFolder() {
-    final String home = System.getProperty("user.home");
-    final Path cacheDirectory = Path.of(home, ".mcav", "cache");
+    final @Nullable String homeOrNull = System.getProperty(USER_HOME_PROPERTY);
+    final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
+    final Path cacheDirectory = Path.of(home, CACHE_ROOT, CACHE_DIRECTORY);
     createDirectoryIfNotExists(cacheDirectory);
     return cacheDirectory.toAbsolutePath();
   }
@@ -631,14 +652,16 @@ public final class IoUtils {
         final String message = "File %s is not a zip archive!".formatted(archive);
         throw new ZipException(message);
       }
-      final int remainingHeaderSize = empty ? 18 : 26;
+      final int remainingHeaderSize = empty ? ZIP_END_OF_CENTRAL_DIRECTORY_REMAINDER : ZIP_LOCAL_FILE_HEADER_REMAINDER;
       final byte[] header = stream.readNBytes(remainingHeaderSize);
       if (header.length != remainingHeaderSize) {
         final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
         throw new ZipException(message);
       }
       if (empty) {
-        final int commentLength = (header[16] & 0xFF) | ((header[17] & 0xFF) << 8);
+        final int commentLow = header[ZIP_COMMENT_LENGTH_LOW] & UNSIGNED_BYTE_MASK;
+        final int commentHigh = header[ZIP_COMMENT_LENGTH_HIGH] & UNSIGNED_BYTE_MASK;
+        final int commentLength = commentLow | (commentHigh << BITS_PER_BYTE);
         final byte[] comment = stream.readNBytes(commentLength);
         if (comment.length != commentLength) {
           final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);

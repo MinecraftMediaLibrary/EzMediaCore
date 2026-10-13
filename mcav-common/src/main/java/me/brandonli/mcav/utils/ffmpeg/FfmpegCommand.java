@@ -39,6 +39,9 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  */
 public final class FfmpegCommand {
 
+  private static final String ARGUMENT_SEPARATOR = " ";
+  private static final String RESOLUTION_SEPARATOR = "x";
+
   private final List<String> arguments;
 
   FfmpegCommand(final List<String> arguments) {
@@ -111,7 +114,7 @@ public final class FfmpegCommand {
   @Override
   public String toString() {
     final String[] command = this.toCommandArray();
-    return String.join(" ", command);
+    return String.join(ARGUMENT_SEPARATOR, command);
   }
 
   /**
@@ -235,7 +238,7 @@ public final class FfmpegCommand {
     public Builder addResolution(final int width, final int height) {
       Preconditions.checkArgument(width > 0 && height > 0, "Resolution %sx%s must be positive!", width, height);
       this.arguments.add("-s");
-      final String size = width + "x" + height;
+      final String size = width + RESOLUTION_SEPARATOR + height;
       this.arguments.add(size);
       return this;
     }

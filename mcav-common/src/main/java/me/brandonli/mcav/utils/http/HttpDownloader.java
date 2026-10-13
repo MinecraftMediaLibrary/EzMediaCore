@@ -35,6 +35,7 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -71,14 +72,28 @@ import org.slf4j.LoggerFactory;
 public final class HttpDownloader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpDownloader.class);
+
   private static final String USER_AGENT = "mcav (+https://github.com/PulseBeat02/mcav)";
+  private static final String USER_AGENT_HEADER = "User-Agent";
+  private static final String ACCEPT_HEADER = "Accept";
+  private static final String ANY_MEDIA_TYPE = "*/*";
+  private static final String LOCATION_HEADER = "Location";
+
+  private static final String HTTPS_SCHEME = "https";
+  private static final int HTTPS_PORT = 443;
+  private static final int HTTP_PORT = 80;
+
   private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(20);
   private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(30);
   private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(1);
   private static final int MAXIMUM_ATTEMPTS = 3;
   private static final Duration RETRY_DELAY = Duration.ofSeconds(2);
+
   private static final int BUFFER_SIZE = 64 * 1024;
   private static final String PART_SUFFIX = ".part";
+  private static final String PART_PREFIX_SEPARATOR = ".";
+  private static final String DIGEST_ALGORITHM = "SHA-256";
+
   private static final int MAXIMUM_REDIRECTS = 5;
   private static final Duration PINNED_GRACE = Duration.ofMinutes(1);
   private static final long PINNED_MINIMUM_BYTES_PER_SECOND = 64L * 1024;
@@ -90,6 +105,10 @@ public final class HttpDownloader {
   private static final int HTTP_REQUEST_TIMEOUT = 408;
   private static final int HTTP_TOO_MANY_REQUESTS = 429;
   private static final int HTTP_SERVER_ERROR = 500;
+  private static final int HTTP_STATUS_CLASS_SIZE = 100;
+  private static final int HTTP_SUCCESS_CLASS = 2;
+  private static final Set<Integer> HTTP_REDIRECTS = Set.of(301, 302, 303, 307, 308);
+
   private static final int TARGET_LOCK_STRIPES = 64;
   private static final Striped<Lock> TARGET_LOCKS = Striped.lock(TARGET_LOCK_STRIPES);
 
@@ -128,8 +147,8 @@ public final class HttpDownloader {
     Preconditions.checkNotNull(uri, "URI must not be null!");
     final HttpRequest.Builder builder = HttpRequest.newBuilder(uri);
     builder.timeout(REQUEST_TIMEOUT);
-    builder.header("User-Agent", USER_AGENT);
-    builder.header("Accept", "*/*");
+    builder.header(USER_AGENT_HEADER, USER_AGENT);
+    builder.header(ACCEPT_HEADER, ANY_MEDIA_TYPE);
     builder.GET();
     return builder.build();
   }
@@ -170,7 +189,7 @@ public final class HttpDownloader {
       final HttpClient client = createClient(HttpClient.Redirect.NEVER);
       final HttpResponse<InputStream> response = send(client, request, current);
       final int status = response.statusCode();
-      final Optional<String> location = response.headers().firstValue("Location");
+      final Optional<String> location = response.headers().firstValue(LOCATION_HEADER);
       if (!isRedirect(status) || location.isEmpty()) {
         return bodyOf(response, client, current);
       }
@@ -199,7 +218,7 @@ public final class HttpDownloader {
   }
 
   private static boolean isRedirect(final int status) {
-    return status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
+    return HTTP_REDIRECTS.contains(status);
   }
 
   /**
@@ -221,7 +240,7 @@ public final class HttpDownloader {
     if (port >= 0) {
       return port;
     }
-    return "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
+    return HTTPS_SCHEME.equalsIgnoreCase(uri.getScheme()) ? HTTPS_PORT : HTTP_PORT;
   }
 
   private static HttpResponse<InputStream> send(final HttpClient client, final HttpRequest request, final URI uri) throws IOException {
@@ -243,7 +262,7 @@ public final class HttpDownloader {
   private static InputStream bodyOf(final HttpResponse<InputStream> response, final HttpClient client, final URI uri) throws IOException {
     final int status = response.statusCode();
     final InputStream body = response.body();
-    final boolean successful = status / 100 == 2;
+    final boolean successful = status / HTTP_STATUS_CLASS_SIZE == HTTP_SUCCESS_CLASS;
     if (!successful) {
       body.close();
       client.close();
@@ -393,7 +412,7 @@ public final class HttpDownloader {
     final Path parentOrNull = target.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory!");
     Files.createDirectories(parent);
-    final String partPrefix = fileName + ".";
+    final String partPrefix = fileName + PART_PREFIX_SEPARATOR;
     final Path partFile = Files.createTempFile(parent, partPrefix, PART_SUFFIX);
     try {
       downloadWithRetries(uri, partFile, expectedSha256, retryDelay, idleTimeout, maximumBytes, pinnedDeadline);
@@ -492,7 +511,7 @@ public final class HttpDownloader {
     final long maximumBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
-    final MessageDigest digest = createDigest("SHA-256");
+    final MessageDigest digest = createDigest(DIGEST_ALGORITHM);
     final long started = System.nanoTime();
     try (
       final InputStream response = pinnedDeadline == null ? openStream(uri) : openPinnedStream(uri);
@@ -600,7 +619,7 @@ public final class HttpDownloader {
 
   private static Optional<String> readSuccessfulBody(final HttpResponse<String> response, final URI uri) {
     final int status = response.statusCode();
-    final boolean successful = status / 100 == 2;
+    final boolean successful = status / HTTP_STATUS_CLASS_SIZE == HTTP_SUCCESS_CLASS;
     if (!successful) {
       LOGGER.warn("Server answered with status {} for {}, which is not a success.", status, uri);
       return Optional.empty();

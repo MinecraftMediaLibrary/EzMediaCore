@@ -52,6 +52,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
 
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
   private static final int BUFFER_MILLISECONDS = 200;
+  private static final int MILLISECONDS_PER_SECOND = 1000;
 
   private final LineOpener lineOpener;
   private volatile @Nullable SourceDataLine line;
@@ -135,7 +136,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
       return;
     }
     try {
-      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / 1000;
+      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / MILLISECONDS_PER_SECOND;
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
       try {
         opened.start();

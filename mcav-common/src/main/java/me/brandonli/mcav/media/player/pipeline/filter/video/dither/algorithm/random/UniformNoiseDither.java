@@ -36,6 +36,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class UniformNoiseDither extends AbstractDitherAlgorithm implements RandomDither {
 
+  private static final int CHANNEL_MASK = 0xFF;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int MAXIMUM_WEIGHT = 255;
+
   private final int weight;
   private final ThreadLocal<@Nullable RandomNumberProvider> providers;
 
@@ -74,7 +80,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
   }
 
   private static void checkWeight(final int weight) {
-    Preconditions.checkArgument(weight >= 0 && weight <= 255, "Weight must be between 0 and 255!");
+    Preconditions.checkArgument(weight >= 0 && weight <= MAXIMUM_WEIGHT, "Weight must be between 0 and 255!");
   }
 
   /**
@@ -144,9 +150,9 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
     final int redNoise = this.nextNoise(random);
     final int greenNoise = this.nextNoise(random);
     final int blueNoise = this.nextNoise(random);
-    final int red = DitherUtils.clamp(((argb >> 16) & 0xFF) + redNoise);
-    final int green = DitherUtils.clamp(((argb >> 8) & 0xFF) + greenNoise);
-    final int blue = DitherUtils.clamp((argb & 0xFF) + blueNoise);
+    final int red = DitherUtils.clamp(((argb >> RED_SHIFT) & CHANNEL_MASK) + redNoise);
+    final int green = DitherUtils.clamp(((argb >> GREEN_SHIFT) & CHANNEL_MASK) + greenNoise);
+    final int blue = DitherUtils.clamp((argb & CHANNEL_MASK) + blueNoise);
     return DitherUtils.getLookupIndex(red, green, blue);
   }
 

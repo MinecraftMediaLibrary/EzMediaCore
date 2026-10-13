@@ -83,9 +83,10 @@ public abstract class AbstractPipelineStepBuilder<
     if (count == 0) {
       return this.createEmptyStep();
     }
-    final FilterType last = this.filters.get(count - 1);
+    final int lastIndex = count - 1;
+    final FilterType last = this.filters.get(lastIndex);
     StepType chain = this.createStep(null, last);
-    for (int filterIndex = count - 2; filterIndex >= 0; filterIndex--) {
+    for (int filterIndex = lastIndex - 1; filterIndex >= 0; filterIndex--) {
       final FilterType filter = this.filters.get(filterIndex);
       chain = this.createStep(chain, filter);
     }
