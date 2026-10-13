@@ -108,6 +108,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
    */
   public GlTextureFilter(final int textureId) {
     Preconditions.checkArgument(textureId > 0, "Texture id %s must be positive!", textureId);
+
     this.lock = new Object();
     this.ownsTexture = false;
     this.textureId = textureId;
@@ -126,6 +127,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   @Override
   public void start() {
     requireContext();
+
     if (this.ownsTexture && this.textureId == NO_TEXTURE) {
       this.createTexture();
     }
@@ -162,11 +164,13 @@ public class GlTextureFilter implements FunctionalVideoFilter {
     if (this.ownsTexture && this.textureId != NO_TEXTURE) {
       this.deleteTexture();
     }
+
     this.dropStagingBuffers();
   }
 
   private void deleteTexture() {
     requireContext();
+
     GL11.glDeleteTextures(this.textureId);
     this.textureId = NO_TEXTURE;
   }
@@ -207,6 +211,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
     final int end = start + size;
     source.limit(end);
     this.stage(source, width, height);
+
     return false;
   }
 
@@ -224,9 +229,11 @@ public class GlTextureFilter implements FunctionalVideoFilter {
       if (this.backBuffer.capacity() < size) {
         this.backBuffer = ByteBuffer.allocateDirect(size);
       }
+
       this.backBuffer.clear();
       this.backBuffer.put(source);
       this.backBuffer.flip();
+
       this.stagedWidth = width;
       this.stagedHeight = height;
       this.dirty = true;
@@ -250,7 +257,9 @@ public class GlTextureFilter implements FunctionalVideoFilter {
     if (frame == null) {
       return false;
     }
+
     this.transfer(frame.pixels(), frame.width(), frame.height());
+
     return true;
   }
 
@@ -259,10 +268,12 @@ public class GlTextureFilter implements FunctionalVideoFilter {
       if (!this.dirty) {
         return null;
       }
+
       final ByteBuffer pixels = this.backBuffer;
       this.backBuffer = this.frontBuffer;
       this.frontBuffer = pixels;
       this.dirty = false;
+
       return new StagedFrame(pixels, this.stagedWidth, this.stagedHeight);
     }
   }

@@ -45,18 +45,26 @@ final class LwjglModuleTest {
     final MCAVModule module = new LwjglModule();
     try (final MockedConstruction<GlTextureFilter> filters = Mockito.mockConstruction(GlTextureFilter.class)) {
       module.start();
+
       final List<GlTextureFilter> afterFirstStart = filters.constructed();
       assertEquals(List.of(), afterFirstStart);
+
       module.stop();
+
       final List<GlTextureFilter> afterFirstStop = filters.constructed();
       assertEquals(List.of(), afterFirstStop);
+
       module.start();
+
       final List<GlTextureFilter> afterSecondStart = filters.constructed();
       assertEquals(List.of(), afterSecondStart);
+
       module.stop();
+
       final List<GlTextureFilter> afterSecondStop = filters.constructed();
       assertEquals(List.of(), afterSecondStop);
     }
+
     final String name = module.getModuleName();
     assertEquals(MODULE_NAME, name);
   }
