@@ -54,6 +54,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.system.MemoryUtil;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Stubber;
 
 /**
@@ -213,33 +214,12 @@ final class GlTextureFilterTest {
     GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_ROWS, CALLER_SKIP_ROWS);
     GL11.glPixelStorei(GL11.GL_UNPACK_SKIP_PIXELS, CALLER_SKIP_PIXELS);
     try {
-      try (
-        final MockedStatic<GL11> calls = mockStatic(GL11.class, invocation -> {
-          final Method method = invocation.getMethod();
-          final String name = method.getName();
-          if (name.equals(TEXTURE_IMAGE_METHOD)) {
-            throw failure;
-          }
-          return invocation.callRealMethod();
-        })
-      ) {
+      try (final MockedStatic<GL11> calls = mockStatic(GL11.class, invocation -> failTextureImage(invocation, failure))) {
         final IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () ->
           this.filter.transfer(pixels, SINGLE_PIXEL, SINGLE_PIXEL)
         );
         assertSame(failure, thrown);
-        calls.verify(() ->
-          GL11.glTexImage2D(
-            GL11.GL_TEXTURE_2D,
-            BASE_LEVEL,
-            GL11.GL_RGB8,
-            SINGLE_PIXEL,
-            SINGLE_PIXEL,
-            NO_BORDER,
-            GL12.GL_BGR,
-            GL11.GL_UNSIGNED_BYTE,
-            pixels
-          )
-        );
+        calls.verify(() -> uploadSinglePixel(pixels));
       }
       final int binding = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
       final int alignment = GL11.glGetInteger(GL11.GL_UNPACK_ALIGNMENT);
@@ -259,6 +239,29 @@ final class GlTextureFilterTest {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, NO_TEXTURE);
       GL11.glDeleteTextures(callerTexture);
     }
+  }
+
+  private static Object failTextureImage(final InvocationOnMock invocation, final RuntimeException failure) throws Throwable {
+    final Method method = invocation.getMethod();
+    final String name = method.getName();
+    if (name.equals(TEXTURE_IMAGE_METHOD)) {
+      throw failure;
+    }
+    return invocation.callRealMethod();
+  }
+
+  private static void uploadSinglePixel(final ByteBuffer pixels) {
+    GL11.glTexImage2D(
+      GL11.GL_TEXTURE_2D,
+      BASE_LEVEL,
+      GL11.GL_RGB8,
+      SINGLE_PIXEL,
+      SINGLE_PIXEL,
+      NO_BORDER,
+      GL12.GL_BGR,
+      GL11.GL_UNSIGNED_BYTE,
+      pixels
+    );
   }
 
   @Test
@@ -622,25 +625,27 @@ final class GlTextureFilterTest {
 
   private static Throwable failureOnAnotherThread(final Runnable action) throws InterruptedException {
     final List<Throwable> failures = new CopyOnWriteArrayList<>();
-    final Thread other = new Thread(() -> {
-      // A removed context guard must fail an assertion instead of dispatching into a native driver without
-      // a current context. The mock is confined to this worker; real GL remains active on the render thread.
-      try (final MockedStatic<GL11> calls = mockStatic(GL11.class)) {
-        try {
-          action.run();
-        } catch (final RuntimeException actionException) {
-          failures.add(actionException);
-        }
-        calls.verifyNoInteractions();
-      } catch (final AssertionError exception) {
-        failures.add(exception);
-      }
-    });
+    final Thread other = new Thread(() -> runWithMockedOpenGl(action, failures));
     other.start();
     other.join(JOIN_TIMEOUT_MILLISECONDS);
     final int failureCount = failures.size();
     assertEquals(1, failureCount, failures::toString);
     return failures.getFirst();
+  }
+
+  private static void runWithMockedOpenGl(final Runnable action, final List<Throwable> failures) {
+    // A removed context guard must fail an assertion instead of dispatching into a native driver without
+    // a current context. The mock is confined to this worker; real GL remains active on the render thread.
+    try (final MockedStatic<GL11> calls = mockStatic(GL11.class)) {
+      try {
+        action.run();
+      } catch (final RuntimeException actionException) {
+        failures.add(actionException);
+      }
+      calls.verifyNoInteractions();
+    } catch (final AssertionError exception) {
+      failures.add(exception);
+    }
   }
 
   @Test

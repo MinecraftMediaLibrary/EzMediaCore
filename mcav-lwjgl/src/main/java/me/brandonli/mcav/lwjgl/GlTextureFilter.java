@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -126,11 +127,19 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   public void start() {
     requireContext();
     if (this.ownsTexture && this.textureId == NO_TEXTURE) {
-      this.textureId = GL11.glGenTextures();
-      this.textureWidth = 0;
-      this.textureHeight = 0;
+      this.createTexture();
     }
 
+    this.setSamplingParameters();
+  }
+
+  private void createTexture() {
+    this.textureId = GL11.glGenTextures();
+    this.textureWidth = 0;
+    this.textureHeight = 0;
+  }
+
+  private void setSamplingParameters() {
     final int previousTexture = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureId);
     GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
@@ -151,10 +160,18 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   @Override
   public void release() {
     if (this.ownsTexture && this.textureId != NO_TEXTURE) {
-      requireContext();
-      GL11.glDeleteTextures(this.textureId);
-      this.textureId = NO_TEXTURE;
+      this.deleteTexture();
     }
+    this.dropStagingBuffers();
+  }
+
+  private void deleteTexture() {
+    requireContext();
+    GL11.glDeleteTextures(this.textureId);
+    this.textureId = NO_TEXTURE;
+  }
+
+  private void dropStagingBuffers() {
     synchronized (this.lock) {
       this.dirty = false;
       this.backBuffer = ByteBuffer.allocateDirect(0);
@@ -229,22 +246,25 @@ public class GlTextureFilter implements FunctionalVideoFilter {
     Preconditions.checkState(this.textureId != NO_TEXTURE, "The texture was not created; call start() on the render thread first!");
     requireContext();
 
-    final ByteBuffer pixels;
-    final int width;
-    final int height;
+    final @Nullable StagedFrame frame = this.swapStagedFrame();
+    if (frame == null) {
+      return false;
+    }
+    this.transfer(frame.pixels(), frame.width(), frame.height());
+    return true;
+  }
+
+  private @Nullable StagedFrame swapStagedFrame() {
     synchronized (this.lock) {
       if (!this.dirty) {
-        return false;
+        return null;
       }
-      pixels = this.backBuffer;
+      final ByteBuffer pixels = this.backBuffer;
       this.backBuffer = this.frontBuffer;
       this.frontBuffer = pixels;
-      width = this.stagedWidth;
-      height = this.stagedHeight;
       this.dirty = false;
+      return new StagedFrame(pixels, this.stagedWidth, this.stagedHeight);
     }
-    this.transfer(pixels, width, height);
-    return true;
   }
 
   /**
@@ -363,4 +383,6 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   public int getHeight() {
     return this.textureHeight;
   }
+
+  private record StagedFrame(ByteBuffer pixels, int width, int height) {}
 }
