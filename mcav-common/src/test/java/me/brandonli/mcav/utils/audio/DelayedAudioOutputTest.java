@@ -101,7 +101,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void samplesReachThePipelineAsCopiesInThePipelinesFormat() {
+  void shouldDeliverSamplesToThePipelineAsCopiesInThePipelinesFormat() {
     final byte[] samples = { 1, 0, 2, 0, 3, 0, 4, 0 };
     this.output.accept(samples, 8);
     samples[0] = 99;
@@ -116,7 +116,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aSlowPipelineMakesTheOldestSamplesGoAway() {
+  void shouldDropTheOldestSamplesForASlowPipeline() {
     this.blocking = true;
     this.output.accept(new byte[4], 4);
     waitUntil(() -> this.output.getQueuedBytes() == 0);
@@ -142,7 +142,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void anExceptionHandlerThatFailsDoesNotStopTheSound() {
+  void shouldNotStopTheSoundWhenTheExceptionHandlerFails() {
     final List<byte[]> heard = new CopyOnWriteArrayList<>();
     final DelayedAudioOutput failing = start(
       () ->
@@ -171,7 +171,7 @@ class DelayedAudioOutputTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void aNonfatalErrorInTheExceptionHandlerDoesNotStopTheSound(final boolean linkage) throws InterruptedException {
+  void shouldNotStopTheSoundOnANonfatalErrorInTheExceptionHandler(final boolean linkage) throws InterruptedException {
     final AtomicReference<byte[]> heard = new AtomicReference<>();
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
     final CountDownLatch settled = new CountDownLatch(1);
@@ -210,7 +210,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aFatalErrorInTheExceptionHandlerEndsTheOutputBeforeTheNextChunk() throws InterruptedException {
+  void shouldEndTheOutputBeforeTheNextChunkOnAFatalErrorInTheExceptionHandler() throws InterruptedException {
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
     final AtomicBoolean continued = new AtomicBoolean();
     final CountDownLatch settled = new CountDownLatch(1);
@@ -247,7 +247,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aFilterThatClosesTheOutputDoesNotWaitForItself() {
+  void shouldNotMakeAFilterThatClosesTheOutputWaitForItself() {
     final AtomicReference<DelayedAudioOutput> self = new AtomicReference<>();
     final AtomicLong closeNanos = new AtomicLong(-1);
     final DelayedAudioOutput closing = start(
@@ -268,7 +268,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void theOutputRunsAsADaemonAndClosingDropsWhatWaits() {
+  void shouldRunTheOutputAsADaemonAndDropWhatWaitsWhenClosing() {
     assertTrue(this.output.getThread().isDaemon(), "the sound never keeps the JVM alive");
     assertEquals(DelayedAudioOutput.THREAD_NAME, this.output.getThread().getName());
     this.blocking = true;
@@ -287,7 +287,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aPipelineThatStillHoldsTheThreadAfterTheWaitIsInterrupted() throws InterruptedException {
+  void shouldInterruptAPipelineThatStillHoldsTheThreadAfterTheWait() throws InterruptedException {
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch never = new CountDownLatch(1);
     final AtomicBoolean interrupted = new AtomicBoolean();
@@ -319,7 +319,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void samplesAreHeldUntilTheyAreDue() throws InterruptedException {
+  void shouldHoldSamplesUntilTheyAreDue() throws InterruptedException {
     final AtomicLong now = new AtomicLong();
     this.output.close();
     this.output = DelayedAudioOutput.start(
@@ -385,7 +385,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aQuietSourceIsFollowedBySilenceInRealTimeUpToItsLimit() {
+  void shouldFollowAQuietSourceBySilenceInRealTimeUpToItsLimit() {
     final AtomicLong now = new AtomicLong();
     final DelayedAudioOutput quiet = this.quietOutput(now, 60);
     final byte[] sound = new byte[1920];
@@ -407,7 +407,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void theSilenceEndsWhereTheNextSoundIsDue() {
+  void shouldEndTheSilenceWhereTheNextSoundIsDue() {
     final AtomicLong now = new AtomicLong();
     final DelayedAudioOutput quiet = this.quietOutput(now, 2000);
     quiet.quiet();
@@ -428,7 +428,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aSilenceCutBetweenTwoFramesStillAddsUpToItsLimitAndThenTheOutputWaits() {
+  void shouldAddUpASilenceCutBetweenTwoFramesToItsLimitAndThenWait() {
     final long start = TimeUnit.SECONDS.toNanos(1);
     final AtomicLong now = new AtomicLong(start);
     final DelayedAudioOutput quiet = this.quietOutput(now, 60);
@@ -455,7 +455,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void samplesDueWithinAFrameOfTheQuietMomentAreFollowedByTheSilence() {
+  void shouldFollowSamplesDueWithinAFrameOfTheQuietMomentByTheSilence() {
     final long start = TimeUnit.SECONDS.toNanos(1);
     final AtomicLong now = new AtomicLong(start);
     final AtomicInteger reads = new AtomicInteger();
@@ -483,7 +483,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aPausedOrClosedOutputFillsNoSilence() {
+  void shouldFillNoSilenceInAPausedOrClosedOutput() {
     final AtomicLong now = new AtomicLong();
     final DelayedAudioOutput quiet = this.quietOutput(now, 2000);
     quiet.pause();
@@ -506,7 +506,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aPausedOutputDropsSamples() {
+  void shouldDropSamplesInAPausedOutput() {
     this.blocking = true;
     this.output.accept(new byte[4], 4);
     waitUntil(() -> this.output.getQueuedBytes() == 0);
@@ -524,7 +524,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aFailingPipelineIsReportedAndAnEmptyOneSkipped() {
+  void shouldReportAFailingPipelineAndSkipAnEmptyOne() {
     final DelayedAudioOutput empty = start(() -> AudioPipelineStep.NO_OP, (message, failure) -> this.failures.add(message));
     empty.accept(new byte[4], 4);
     waitUntil(() -> empty.getQueuedBytes() == 0);
@@ -553,7 +553,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void aClosedOrInterruptedOutputEnds() throws InterruptedException {
+  void shouldEndAClosedOrInterruptedOutput() throws InterruptedException {
     this.output.close();
     assertFalse(this.output.getThread().isAlive());
     this.output.accept(new byte[4], 4);
@@ -576,7 +576,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void trimsBeforeTheQueuedByteSumCanOverflow() throws ReflectiveOperationException {
+  void shouldTrimBeforeTheQueuedByteSumCanOverflow() throws ReflectiveOperationException {
     this.output.close();
     this.output = DelayedAudioOutput.start(
       "queue probe",
@@ -612,7 +612,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void refusesAQueueTooLongForItsSizeInBytes() {
+  void shouldRefuseAQueueTooLongForItsSizeInBytes() {
     final Supplier<AudioPipelineStep> pipeline = () -> this.step;
     final BiConsumer<String, Throwable> ignored = (message, failure) -> {};
     final IllegalArgumentException tooLong = assertThrows(IllegalArgumentException.class, () ->
@@ -629,7 +629,7 @@ class DelayedAudioOutputTest {
   }
 
   @Test
-  void anOutputNeedsADelayAndRoomPastIt() {
+  void shouldNeedADelayAndRoomPastItForAnOutput() {
     final Supplier<AudioPipelineStep> pipeline = () -> this.step;
     final BiConsumer<String, Throwable> ignored = (message, failure) -> {};
     final IllegalArgumentException negative = assertThrows(IllegalArgumentException.class, () ->

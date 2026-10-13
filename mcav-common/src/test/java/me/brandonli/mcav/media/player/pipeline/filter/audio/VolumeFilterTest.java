@@ -50,7 +50,7 @@ final class VolumeFilterTest {
   }
 
   @Test
-  void leavesTheAudioAsItIsUntilTheVolumeChanges() {
+  void shouldLeaveTheAudioAsItIsUntilTheVolumeChanges() {
     final VolumeFilter filter = new VolumeFilter();
     assertEquals(VolumeFilter.UNCHANGED, filter.getVolume());
     final ByteBuffer buffer = samples((short) 100, (short) -7);
@@ -59,7 +59,7 @@ final class VolumeFilterTest {
   }
 
   @Test
-  void scalesEverySampleAndRounds() {
+  void shouldScaleEverySampleAndRound() {
     final VolumeFilter filter = new VolumeFilter();
     filter.setVolume(0.5);
     final ByteBuffer buffer = samples((short) 100, (short) -7, (short) 3, (short) 0);
@@ -72,7 +72,7 @@ final class VolumeFilterTest {
   }
 
   @Test
-  void clipsLoudSamplesToTheirRange() {
+  void shouldClipLoudSamplesToTheirRange() {
     final VolumeFilter filter = new VolumeFilter();
     filter.setVolume(VolumeFilter.MAX_VOLUME);
     final ByteBuffer buffer = samples(Short.MAX_VALUE, Short.MIN_VALUE, (short) 20_000, (short) -16_384);
@@ -81,7 +81,7 @@ final class VolumeFilterTest {
   }
 
   @Test
-  void scalesOnlyFromThePositionToTheLimitAndLeavesAnOddByte() {
+  void shouldScaleOnlyFromThePositionToTheLimitAndLeaveAnOddByte() {
     final VolumeFilter filter = new VolumeFilter();
     filter.setVolume(2);
     final ByteBuffer buffer = ByteBuffer.allocate(7).order(ByteOrder.LITTLE_ENDIAN);
@@ -100,7 +100,7 @@ final class VolumeFilterTest {
   }
 
   @Test
-  void refusesAVolumeOutsideItsRange() {
+  void shouldRefuseAVolumeOutsideItsRange() {
     final VolumeFilter filter = new VolumeFilter();
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(-0.01));
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(VolumeFilter.MAX_VOLUME + 0.01));

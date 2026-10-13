@@ -45,7 +45,7 @@ final class VideoFrameCopierResizeStressTest {
   private static final Set<String> ALLOWED = Set.of("4x2", "2x1", "8x6");
 
   @Test
-  void everyCopyHasTheSizeOfTheFrameOrOfOneAttachedSize() throws InterruptedException {
+  void shouldGiveEveryCopyTheSizeOfTheFrameOrOfOneAttachedSize() throws InterruptedException {
     final ImagePool pool = new ImagePool(4);
     final DimensionAttachableCallback dimensionCallback = DimensionAttachableCallback.create();
     final VideoFrameCopier copier = new VideoFrameCopier(pool, dimensionCallback);

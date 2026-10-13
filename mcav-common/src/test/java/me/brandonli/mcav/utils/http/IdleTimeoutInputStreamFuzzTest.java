@@ -40,7 +40,7 @@ final class IdleTimeoutInputStreamFuzzTest {
   private static final Duration GENEROUS = Duration.ofSeconds(30);
 
   @FuzzTest(maxDuration = "30s")
-  void deliversEveryByteOfTheSourceInOrder(final FuzzedDataProvider data) throws IOException {
+  void shouldDeliverEveryByteOfTheSourceInOrder(final FuzzedDataProvider data) throws IOException {
     final byte[] content = data.consumeBytes(data.consumeInt(0, 4096));
     final int[] pieces = data.consumeInts(16);
     final PiecewiseStream source = new PiecewiseStream(content, pieces);

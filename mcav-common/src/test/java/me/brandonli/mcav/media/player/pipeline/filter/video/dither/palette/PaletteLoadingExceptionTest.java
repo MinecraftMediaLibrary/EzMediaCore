@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class PaletteLoadingExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is empty");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -40,7 +40,7 @@ final class PaletteLoadingExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated array");
     final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is malformed", parseFailure);
     final String message = exception.getMessage();
@@ -50,7 +50,7 @@ final class PaletteLoadingExceptionTest {
   }
 
   @Test
-  void isAnIllegalStateException() {
+  void shouldBeAnIllegalStateException() {
     final PaletteLoadingException exception = new PaletteLoadingException("failure");
     assertInstanceOf(IllegalStateException.class, exception, "a broken bundled palette is a broken library state, not an Error");
   }

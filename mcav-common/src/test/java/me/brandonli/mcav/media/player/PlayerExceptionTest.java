@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class PlayerExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final PlayerException exception = new PlayerException("VLC could not open video.mp4");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -40,7 +40,7 @@ final class PlayerExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final IOException connectFailure = new IOException("connection refused");
     final PlayerException exception = new PlayerException("The VNC server cannot be reached", connectFailure);
     final String message = exception.getMessage();
@@ -50,7 +50,7 @@ final class PlayerExceptionTest {
   }
 
   @Test
-  void isARuntimeException() {
+  void shouldBeARuntimeException() {
     final PlayerException exception = new PlayerException("failure");
     assertInstanceOf(RuntimeException.class, exception, "a player failure is recoverable, so it is no Error");
   }

@@ -111,7 +111,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void playsAndStopsAtTheEndOfTheMedia() throws Exception {
+  void shouldPlayAndStopAtTheEndOfTheMedia() throws Exception {
     final Supplier<ScriptedFrameGrabber> twoFrames = () -> {
       final Object first = ScriptedFrameGrabber.video(0L);
       final Object second = ScriptedFrameGrabber.video(33_333L);
@@ -138,7 +138,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void reportsSourcesThatCannotBeOpenedAndClosesTheirGrabbers() {
+  void shouldReportSourcesThatCannotBeOpenedAndCloseTheirGrabbers() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber::failingToStart);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((message, _) -> reports.add(message));
@@ -155,7 +155,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void reportsTheStartFailureEvenWhenTheGrabberCannotBeClosed() {
+  void shouldReportTheStartFailureEvenWhenTheGrabberCannotBeClosed() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber::failingToStartAndStop);
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((_, error) -> errors.add(error));
@@ -172,7 +172,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void closesGrabbersThatCannotBeConfigured() {
+  void shouldCloseGrabbersThatCannotBeConfigured() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((_, error) -> errors.add(error));
@@ -189,7 +189,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void keepsPlayingTheCurrentSourceWhenTheNewOneCannotBeOpened() {
+  void shouldKeepPlayingTheCurrentSourceWhenTheNewOneCannotBeOpened() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((message, _) -> reports.add(message));
@@ -216,7 +216,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void opensSeparateAudioOnlyForDifferentSources() throws Exception {
+  void shouldOpenSeparateAudioOnlyForDifferentSources() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     player.start(VIDEO, VIDEO);
     awaitEnd(player);
@@ -235,7 +235,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void pausesAndResumesOnlyWhenThatChangesSomething() {
+  void shouldPauseAndResumeOnlyWhenThatChangesSomething() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final boolean pauseWithoutSession = player.pause();
     final boolean resumeWithoutSession = player.resume();
@@ -258,7 +258,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void neitherResumesNorPausesPlaybackThatHasEnded() throws Exception {
+  void shouldNeitherResumeNorPausePlaybackThatHasEnded() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     player.start(VIDEO);
     awaitEnd(player);
@@ -277,7 +277,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void seeksByRestartingAtThePositionAndKeepsThePausedState() throws Exception {
+  void shouldSeekByRestartingAtThePositionAndKeepThePausedState() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     player.start(VIDEO);
     player.pause();
@@ -295,7 +295,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void refusesToSeekMediaWithoutALength() {
+  void shouldRefuseToSeekMediaWithoutALength() {
     final Supplier<ScriptedFrameGrabber> endless = ScriptedPlayerTest::endlessVideo;
     final Supplier<ScriptedFrameGrabber> live = () -> {
       final ScriptedFrameGrabber grabber = endless.get();
@@ -318,7 +318,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void playsFasterWithItsSoundResampledAndKeepsTheSpeedWhenSeeking() throws Exception {
+  void shouldPlayFasterWithItsSoundResampledAndKeepTheSpeedWhenSeeking() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::sound);
     final List<Integer> chunks = new CopyOnWriteArrayList<>();
     final AudioFilter sizes = (samples, _) -> chunks.add(samples.remaining());
@@ -354,7 +354,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void refusesToChangeTheSpeedOfMediaWithoutALength() {
+  void shouldRefuseToChangeTheSpeedOfMediaWithoutALength() {
     final Supplier<ScriptedFrameGrabber> live = () -> {
       final ScriptedFrameGrabber grabber = endlessVideo();
       grabber.setLength(0L);
@@ -372,7 +372,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void scalesTheDecodedPicture() throws Exception {
+  void shouldScaleTheDecodedPicture() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     final Dimension size = Dimension.of(160, 90);
     final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
@@ -400,7 +400,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void exposesItsCallbacksAndExceptionHandler() {
+  void shouldExposeItsCallbacksAndExceptionHandler() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     final BiConsumer<String, Throwable> defaultHandler = player.getExceptionHandler();
@@ -437,7 +437,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsRunOnTheGivenExecutor() throws Exception {
+  void shouldRunAsynchronousVariantsOnTheGivenExecutor() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final ExecutorService executor = Executors.newSingleThreadExecutor(task -> new Thread(task, EXECUTOR_THREAD));
     try {
@@ -484,7 +484,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsWithoutAnExecutorRunOnTheCommonPool() throws Exception {
+  void shouldRunAsynchronousVariantsWithoutAnExecutorOnTheCommonPool() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       player.start(VIDEO);
@@ -506,7 +506,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void equalSourcesPreserveBothSuccessfulAndRejectedStarts() {
+  void shouldPreserveBothSuccessfulAndRejectedStartsOfEqualSources() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       final boolean started = player.start(VIDEO, VIDEO);
@@ -520,7 +520,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void completedStartAllowsControlFromAnotherThread() throws Exception {
+  void shouldAllowControlFromAnotherThreadAfterACompletedStart() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       final boolean started = player.start(VIDEO);
@@ -534,7 +534,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsRejectNullArguments() {
+  void shouldRejectNullArgumentsOfAsynchronousVariants() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor(task -> new Thread(task, EXECUTOR_THREAD))) {
       assertThrows(NullPointerException.class, () -> player.startAsync(null, executor));
@@ -571,7 +571,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void releaseWaitsForTheThreadsWithoutBlockingOtherCalls() throws Exception {
+  void shouldWaitForTheThreadsWithoutBlockingOtherCallsOnRelease() throws Exception {
     final Supplier<ScriptedFrameGrabber> stuck = ScriptedPlayerTest::stuckDecoder;
     final ScriptedPlayer player = new ScriptedPlayer(stuck);
     player.start(VIDEO);
@@ -596,7 +596,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void cannotBeStartedAgainOnceReleased() {
+  void shouldNotBeStartedAgainOnceReleased() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final boolean firstRelease = player.release();
     final boolean secondRelease = player.release();

@@ -33,7 +33,7 @@ final class KeyCodeTest {
   private static final char PRIVATE_USE_END = (char) 0xF8FF;
 
   @Test
-  void findsKeysByNameIgnoringCase() {
+  void shouldFindKeysByNameIgnoringCase() {
     final Optional<KeyCode> lower = KeyCode.fromName("enter");
     final Optional<KeyCode> upper = KeyCode.fromName("ARROW_LEFT");
     final Optional<KeyCode> mixed = KeyCode.fromName("Page_Down");
@@ -46,7 +46,7 @@ final class KeyCodeTest {
   }
 
   @Test
-  void findsNothingForUnknownNames() {
+  void shouldFindNothingForUnknownNames() {
     final Optional<KeyCode> unknown = KeyCode.fromName("no-such-key");
     final Optional<KeyCode> empty = KeyCode.fromName("");
     final boolean noKeyForUnknown = unknown.isEmpty();
@@ -56,12 +56,12 @@ final class KeyCodeTest {
   }
 
   @Test
-  void rejectsNullNames() {
+  void shouldRejectNullNames() {
     assertThrows(NullPointerException.class, () -> KeyCode.fromName(null));
   }
 
   @Test
-  void aliasesShareTheCharacterOfTheirKey() {
+  void shouldGiveAliasesTheCharacterOfTheirKey() {
     final char shift = KeyCode.SHIFT.getKeyChar();
     final char leftShift = KeyCode.LEFT_SHIFT.getKeyChar();
     final char meta = KeyCode.META.getKeyChar();
@@ -71,7 +71,7 @@ final class KeyCodeTest {
   }
 
   @Test
-  void usesThePrivateUseAreaForEveryKey() {
+  void shouldUseThePrivateUseAreaForEveryKey() {
     for (final KeyCode key : KeyCode.values()) {
       final char character = key.getKeyChar();
       final boolean isPrivateUse = character >= PRIVATE_USE_START && character <= PRIVATE_USE_END;
@@ -81,7 +81,7 @@ final class KeyCodeTest {
   }
 
   @Test
-  void exposesTheCharacterInEveryForm() {
+  void shouldExposeTheCharacterInEveryForm() {
     final char character = KeyCode.ENTER.getKeyChar();
     final int codePoint = KeyCode.ENTER.getCodePoint();
     final String text = KeyCode.ENTER.asString();

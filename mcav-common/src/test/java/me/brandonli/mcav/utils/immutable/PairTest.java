@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class PairTest {
 
   @Test
-  void storesBothValues() {
+  void shouldStoreBothValues() {
     final Pair<String, Integer> pair = Pair.pair("width", 42);
     final String first = pair.getFirst();
     final Integer second = pair.getSecond();
@@ -38,7 +38,7 @@ final class PairTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Pair<String, Integer> pair = Pair.pair("a", 1);
     final Pair<String, Integer> equalPair = Pair.pair("a", 1);
     final Pair<String, Integer> otherFirst = Pair.pair("b", 1);
@@ -47,13 +47,13 @@ final class PairTest {
   }
 
   @Test
-  void rejectsNullValues() {
+  void shouldRejectNullValues() {
     assertThrows(NullPointerException.class, () -> Pair.pair(null, 1));
     assertThrows(NullPointerException.class, () -> Pair.pair(1, null));
   }
 
   @Test
-  void rendersBothValues() {
+  void shouldRenderBothValues() {
     final Pair<String, Integer> pair = Pair.pair("x", 7);
     final String text = pair.toString();
     assertEquals("Pair[x, 7]", text);

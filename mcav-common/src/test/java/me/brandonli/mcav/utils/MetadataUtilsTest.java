@@ -51,7 +51,7 @@ final class MetadataUtilsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void readsMetadataThatAppearsOnTheLastAllowedProbeFrame(final boolean audio) throws FrameGrabber.Exception {
+  void shouldReadMetadataThatAppearsOnTheLastAllowedProbeFrame(final boolean audio) throws FrameGrabber.Exception {
     final AtomicInteger frames = new AtomicInteger();
     final FileSource source = FileSource.path(Path.of("metadata-fixture"));
     try (
@@ -88,7 +88,7 @@ final class MetadataUtilsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void declaredMetadataDoesNotConsumeAnyFrames(final boolean audio) throws FrameGrabber.Exception {
+  void shouldNotConsumeAnyFramesForDeclaredMetadata(final boolean audio) throws FrameGrabber.Exception {
     final FileSource source = FileSource.path(Path.of("metadata-fixture"));
     try (
       final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) -> {
@@ -116,7 +116,7 @@ final class MetadataUtilsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void probingStopsImmediatelyAtTheEndOfTheSource(final boolean audio) throws FrameGrabber.Exception {
+  void shouldStopProbingImmediatelyAtTheEndOfTheSource(final boolean audio) throws FrameGrabber.Exception {
     final FileSource source = FileSource.path(Path.of("metadata-fixture"));
     try (final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class)) {
       final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> {
@@ -134,7 +134,7 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void readsTheVideoTrack() {
+  void shouldReadTheVideoTrack() {
     final Path video = TestMedia.video();
     final FileSource source = FileSource.path(video);
     final OriginalVideoMetadata metadata = MetadataUtils.parseVideoMetadata(source);
@@ -147,7 +147,7 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void readsTheAudioTrack() {
+  void shouldReadTheAudioTrack() {
     final Path video = TestMedia.video();
     final FileSource source = FileSource.path(video);
     final OriginalAudioMetadata metadata = MetadataUtils.parseAudioMetadata(source);
@@ -160,7 +160,7 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void reportsMissingVideoTracksAfterProbing() {
+  void shouldReportMissingVideoTracksAfterProbing() {
     final Path shortAudio = TestMedia.audio(0.5);
     final Path longAudio = TestMedia.audio(2.0);
     final FileSource shortSource = FileSource.path(shortAudio);
@@ -170,14 +170,14 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void reportsMissingAudioTracksAfterProbing() {
+  void shouldReportMissingAudioTracksAfterProbing() {
     final Path silentVideo = TestMedia.silentVideo();
     final FileSource source = FileSource.path(silentVideo);
     assertThrows(InputMetadataException.class, () -> MetadataUtils.parseAudioMetadata(source));
   }
 
   @Test
-  void reportsFilesThatCannotBeOpened() {
+  void shouldReportFilesThatCannotBeOpened() {
     final Path missing = this.directory.resolve("missing.mp4");
     final FileSource source = FileSource.path(missing);
     assertThrows(InputMetadataException.class, () -> MetadataUtils.parseVideoMetadata(source));
@@ -185,13 +185,13 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void rejectsMissingSources() {
+  void shouldRejectMissingSources() {
     assertThrows(NullPointerException.class, () -> MetadataUtils.parseVideoMetadata(null));
     assertThrows(NullPointerException.class, () -> MetadataUtils.parseAudioMetadata(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MetadataUtils.class);
   }
 }

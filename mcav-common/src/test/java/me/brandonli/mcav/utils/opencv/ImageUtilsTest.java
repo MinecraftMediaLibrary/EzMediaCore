@@ -45,21 +45,21 @@ final class ImageUtilsTest {
   }
 
   @Test
-  void padsShortComponentArraysWithZeros() {
+  void shouldPadShortComponentArraysWithZeros() {
     final double[] components = { 1.0, 2.0, 3.0 };
     final double[] values = convert(components);
     assertArrayEquals(new double[] { 1.0, 2.0, 3.0, 0.0 }, values);
   }
 
   @Test
-  void ignoresComponentsBeyondTheFourth() {
+  void shouldIgnoreComponentsBeyondTheFourth() {
     final double[] components = { 1.0, 2.0, 3.0, 4.0, 5.0 };
     final double[] values = convert(components);
     assertArrayEquals(new double[] { 1.0, 2.0, 3.0, 4.0 }, values);
   }
 
   @Test
-  void resizesPackedPixels() {
+  void shouldResizPackedPixels() {
     final int[] pixels = new int[4 * 4];
     Arrays.fill(pixels, 0xFF123456);
     final int[] resized = ImageUtils.resizeIntArrayImage(pixels, 4, 4, 2, 2);
@@ -93,7 +93,7 @@ final class ImageUtilsTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final int[] pixels = new int[4];
     assertThrows(NullPointerException.class, () -> convert(null));
     assertThrows(NullPointerException.class, () -> ImageUtils.resizeIntArrayImage(null, 2, 2, 1, 1));
@@ -113,12 +113,12 @@ final class ImageUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ImageUtils.class);
   }
 
   @Test
-  void resizesPackedPixelsKeepingTheirLayout() {
+  void shouldResizPackedPixelsKeepingTheirLayout() {
     final int red = 0xFFFF0000;
     final int blue = 0xFF0000FF;
     final int[] pixels = { red, red, blue, blue, red, red, blue, blue };

@@ -170,7 +170,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void releaseInvalidatesTheLastDeliveredFrame() throws Exception {
+  void shouldInvalidateTheLastDeliveredFrameOnRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
     final BlockingQueue<ImageBuffer> delivered = new LinkedBlockingQueue<>();
     attach(player, (image, _) -> {
@@ -191,7 +191,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void deliversFramesAtTheFrameRateOfTheSource() throws InterruptedException {
+  void shouldDeliverFramesAtTheFrameRateOfTheSource() throws InterruptedException {
     final AtomicInteger consumed = new AtomicInteger();
     final List<String> failures = Collections.synchronizedList(new ArrayList<>());
     final FrameSource source = framesWithOneOfTheWrongSize();
@@ -219,7 +219,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void catchesUpWhenFiltersAreSlowerThanTheFrameRate() throws InterruptedException {
+  void shouldCatchUpWhenFiltersAreSlowerThanTheFrameRate() throws InterruptedException {
     final AtomicInteger consumed = new AtomicInteger();
     final List<Long> times = Collections.synchronizedList(new ArrayList<>());
     final ImagePlayer player = ImagePlayer.player();
@@ -241,7 +241,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void oneSlowFrameResetsTheDeadlineBeforeTheNextFastFrame() throws InterruptedException {
+  void shouldResetTheDeadlineBeforeTheNextFastFrameAfterOneSlowFrame() throws InterruptedException {
     final AtomicLong clock = new AtomicLong();
     final List<Long> starts = new ArrayList<>();
     final CountDownLatch finished = new CountDownLatch(1);
@@ -266,7 +266,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void keepsTheInterruptWhenReleasedFromAnInterruptedThread() throws InterruptedException {
+  void shouldKeepTheInterruptWhenReleasedFromAnInterruptedThread() throws InterruptedException {
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> {
       final long end = System.nanoTime() + 200_000_000L;
@@ -325,7 +325,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void asynchronousStartsRunOnTheGivenExecutor() throws Exception {
+  void shouldRunAsynchronousStartsOnTheGivenExecutor() throws Exception {
     final ImagePlayer first = ImagePlayer.player();
     final ImagePlayer second = ImagePlayer.player();
     final ExecutorService executor = Executors.newSingleThreadExecutor(task -> new Thread(task, "the-given-executor"));
@@ -351,7 +351,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void exposesItsExceptionHandler() {
+  void shouldExposeItsExceptionHandler() {
     final ImagePlayer player = ImagePlayer.player();
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     player.setExceptionHandler(handler);
@@ -365,7 +365,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void rejectsSourcesWithoutAPositiveFiniteFrameRate() {
+  void shouldRejectSourcesWithoutAPositiveFiniteFrameRate() {
     final ImagePlayer player = ImagePlayer.player();
     for (final float frameRate : new float[] { 0.0f, -1.0f, Float.NaN, Float.POSITIVE_INFINITY }) {
       final FrameSource source = mock(FrameSource.class);
@@ -378,7 +378,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void reportsSourcesThatFailToStartAndCanBeStartedAgain() throws Exception {
+  void shouldReportSourcesThatFailToStartAndCanBeStartedAgain() throws Exception {
     final FrameSource working = solidFrames(2, 2, 30.0f);
     final SampleSupplier supplier = working.supplyFrameSamples();
     final IllegalStateException failure = new IllegalStateException("the source is gone");
@@ -437,7 +437,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void playsOnADaemonThreadSoItNeverKeepsTheJvmAlive() throws InterruptedException {
+  void shouldPlayOnADaemonThreadSoItNeverKeepsTheJvmAlive() throws InterruptedException {
     final AtomicInteger consumed = new AtomicInteger();
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> consumed.incrementAndGet() > 0);
@@ -456,7 +456,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void releaseWakesTheFrameThreadWaitsForItAndLeavesTheLockFree() throws InterruptedException {
+  void shouldWakeTheFrameThreadWaitForItAndLeaveTheLockFreeOnRelease() throws InterruptedException {
     final AtomicInteger consumed = new AtomicInteger();
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> consumed.incrementAndGet() > 0);
@@ -476,7 +476,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void refreshesThePixelsOfTheBufferItReuses() throws InterruptedException {
+  void shouldRefreshThePixelsOfTheBufferItReuses() throws InterruptedException {
     final int firstColor = 0xFF102030;
     final int secondColor = 0xFF405060;
     final AtomicInteger produced = new AtomicInteger();
@@ -515,7 +515,7 @@ final class ImagePlayerTest {
   }
 
   @Test
-  void skipsFramesOfTheWrongSizeWithoutDeliveringAnything() throws InterruptedException {
+  void shouldSkipFramesOfTheWrongSizeWithoutDeliveringAnything() throws InterruptedException {
     final CountDownLatch requestedTwice = new CountDownLatch(2);
     final AtomicInteger delivered = new AtomicInteger();
     final FrameSource source = FrameSource.supplier(

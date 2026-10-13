@@ -83,7 +83,7 @@ final class CommandTaskDeadlineTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void anExitedParentDoesNotAllowAnOutputStreamToWaitForever(final boolean standardError) throws Exception {
+  void shouldNotLetAnOutputStreamWaitForeverAfterItsParentExited(final boolean standardError) throws Exception {
     final Process finished = finishedProcess();
     final CompletableFuture<String> pending = new CompletableFuture<>();
     final CompletableFuture<String> complete = CompletableFuture.completedFuture("");
@@ -102,7 +102,7 @@ final class CommandTaskDeadlineTest {
   }
 
   @Test
-  void completedStreamsPreserveSeparateOutputWithinTheDeadline() throws Exception {
+  void shouldPreserveTheSeparateOutputOfCompletedStreamsWithinTheDeadline() throws Exception {
     final Process finished = finishedProcess();
     final Future<String> output = CompletableFuture.completedFuture("standard output");
     final Future<String> errors = CompletableFuture.completedFuture("standard error");
@@ -116,7 +116,7 @@ final class CommandTaskDeadlineTest {
   }
 
   @Test
-  void bothOutputStreamsShareTheSameRemainingBudget() throws Exception {
+  void shouldShareTheSameRemainingBudgetBetweenBothOutputStreams() throws Exception {
     final Process finished = finishedProcess();
     final Future<String> output = mock(StringFuture.class);
     final Future<String> errors = mock(StringFuture.class);
@@ -152,7 +152,7 @@ final class CommandTaskDeadlineTest {
 
   @Test
   @Timeout(15)
-  void inheritedChildPipesCannotExtendTheTimeoutOrTheReaderExecutorClose() throws Exception {
+  void shouldNotLetInheritedChildPipesExtendTheTimeoutOrTheReaderExecutorClose() throws Exception {
     final Path childPid = this.directory.resolve("child.pid");
     final String java = javaExecutable();
     // the compiled class: launching a source file compiles it first, which took most of the budget on a busy machine

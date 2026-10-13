@@ -164,7 +164,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void copiesTheSamplesVlcDecodedIntoThePipeline() throws Exception {
+  void shouldCopyTheSamplesVlcDecodedIntoThePipeline() throws Exception {
     final AtomicReference<ByteBuffer> received = new AtomicReference<>();
     final AtomicReference<OriginalAudioMetadata> receivedMetadata = new AtomicReference<>();
     final CountDownLatch done = new CountDownLatch(1);
@@ -193,7 +193,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsSamplesBeforeItIsStartedAndAfterItIsStopped() throws Exception {
+  void shouldDropSamplesBeforeItIsStartedAndAfterItIsStopped() throws Exception {
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);
     this.attach(recorder);
@@ -212,7 +212,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsSamplesWithoutAPipeline() throws Exception {
+  void shouldDropSamplesWithoutAPipeline() throws Exception {
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);
     final AudioPipelineStep recording = AudioPipelineStep.of(recorder);
@@ -234,7 +234,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsTheOldestChunksWhenThePipelineFallsBehind() throws Exception {
+  void shouldDropTheOldestChunksWhenThePipelineFallsBehind() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
@@ -259,7 +259,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void flushingDropsTheQueuedChunks() throws Exception {
+  void shouldDropTheQueuedChunksWhenFlushing() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
@@ -280,7 +280,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void fatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
+  void shouldLetFatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
     final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
@@ -304,7 +304,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void reportsPipelineFailuresAndKeepsPlaying() throws Exception {
+  void shouldReportPipelineFailuresAndKeepPlaying() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
     final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
     final AssertionError errorFailure = new AssertionError("filter assertion");
@@ -333,7 +333,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void pausingDropsTheQueuedChunks() throws Exception {
+  void shouldDropTheQueuedChunksWhenPausing() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
@@ -354,7 +354,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void copiesSamplesOfEitherByteOrderIntoLittleEndianOrder() {
+  void shouldCopySamplesOfEitherByteOrderIntoLittleEndianOrder() {
     final ByteBuffer bigEndian = ByteBuffer.wrap(new byte[] { 0x01, 0x02, (byte) 0xFF, (byte) 0xFE });
     final ByteBuffer littleEndian = ByteBuffer.wrap(new byte[] { 0x02, 0x01, (byte) 0xFE, (byte) 0xFF });
     final ByteBuffer fromBigEndian = AudioRenderer.copySamples(bigEndian, ByteOrder.BIG_ENDIAN);
@@ -387,7 +387,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void reportsRenderingFailuresAndKeepsRendering() throws Exception {
+  void shouldReportRenderingFailuresAndKeepRendering() throws Exception {
     final List<String> reported = Collections.synchronizedList(new ArrayList<>());
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);

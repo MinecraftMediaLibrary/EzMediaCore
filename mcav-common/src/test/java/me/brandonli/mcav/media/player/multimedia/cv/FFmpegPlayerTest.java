@@ -138,7 +138,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void playsTheWholeFileInRealTimeWithAudio() throws Exception {
+  void shouldPlayTheWholeFileInRealTimeWithAudio() throws Exception {
     final PlaybackRecording recording = new PlaybackRecording();
     final FFmpegPlayer player = neverDroppingPlayer();
     recording.attachTo(player);
@@ -204,7 +204,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void pausesResumesSeeksAndScales() throws Exception {
+  void shouldPauseResumeSeekAndScale() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger width = new AtomicInteger();
     final FFmpegPlayer player = neverDroppingPlayer();
@@ -274,7 +274,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void takesTheAudioFromASeparateSource() throws Exception {
+  void shouldTakeTheAudioFromASeparateSource() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicLong audioBytes = new AtomicLong();
     final FFmpegPlayer player = neverDroppingPlayer();
@@ -296,7 +296,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void playsAudioFilesWithoutAPicture() throws Exception {
+  void shouldPlayAudioFilesWithoutAPicture() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicLong audioBytes = new AtomicLong();
     final List<String> errors = Collections.synchronizedList(new ArrayList<>());
@@ -323,7 +323,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void playsFfmpegInputsWithTheirFormat() throws Exception {
+  void shouldPlayFfmpegInputsWithTheirFormat() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger width = new AtomicInteger();
     final FFmpegPlayer player = neverDroppingPlayer();
@@ -345,7 +345,7 @@ final class FFmpegPlayerTest {
   }
 
   @Test
-  void reportsFilesThatCannotBeOpened() {
+  void shouldReportFilesThatCannotBeOpened() {
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     final FFmpegPlayer player = neverDroppingPlayer();
     player.setExceptionHandler((_, error) -> errors.add(error));

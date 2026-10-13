@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 final class PipelineBuilderTest {
 
   @Test
-  void videoBuilderChainsFiltersInTheOrderTheyWereAdded() {
+  void shouldChainVideoFiltersInTheOrderTheyWereAdded() {
     final List<Integer> calls = new ArrayList<>();
     final VideoFilter first = (_, _) -> calls.add(1);
     final VideoFilter second = (_, _) -> calls.add(2);
@@ -60,7 +60,7 @@ final class PipelineBuilderTest {
   }
 
   @Test
-  void audioBuilderChainsFiltersInTheOrderTheyWereAdded() {
+  void shouldChainAudioFiltersInTheOrderTheyWereAdded() {
     final List<Integer> calls = new ArrayList<>();
     final AudioFilter first = (_, _) -> calls.add(1);
     final AudioFilter second = (_, _) -> calls.add(2);
@@ -77,7 +77,7 @@ final class PipelineBuilderTest {
   }
 
   @Test
-  void emptyBuildersBuildTheEmptyPipelines() {
+  void shouldBuildTheEmptyPipelinesFromEmptyBuilders() {
     final VideoPipelineStepBuilder video = PipelineBuilder.video();
     final AudioPipelineStepBuilder audio = PipelineBuilder.audio();
     final VideoPipelineStep videoStep = video.build();
@@ -89,7 +89,7 @@ final class PipelineBuilderTest {
   }
 
   @Test
-  void rejectsMissingFilters() {
+  void shouldRejectMissingFilters() {
     final VideoPipelineStepBuilder video = PipelineBuilder.video();
     final AudioPipelineStepBuilder audio = PipelineBuilder.audio();
     assertThrows(NullPointerException.class, () -> video.then(null));

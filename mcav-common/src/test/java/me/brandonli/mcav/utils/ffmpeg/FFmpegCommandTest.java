@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 final class FFmpegCommandTest {
 
   @Test
-  void anEmptyBuilderStillEmitsTheExecutable() {
+  void shouldEmitTheExecutableFromAnEmptyBuilder() {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     final FFmpegCommand command = builder.build();
     final Path executable = command.getExecutable();
@@ -47,7 +47,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void builderAddsEveryArgumentInOrder() {
+  void shouldAddEveryArgumentInOrderInTheBuilder() {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     final FFmpegCommand.Builder returned = builder.addInput("in.mp4");
     builder.addVideoCodec("libx264");
@@ -91,7 +91,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void everyBuilderMethodReturnsTheSameBuilder() {
+  void shouldReturnTheSameBuilderFromEveryBuilderMethod() {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     final FFmpegCommand.Builder afterInput = builder.addInput("in.mp4");
     final FFmpegCommand.Builder afterOutput = builder.addOutput("out.mp4");
@@ -120,7 +120,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void commandStartsWithTheBundledExecutable() throws IOException {
+  void shouldStartTheCommandWithTheBundledExecutable() throws IOException {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addArgument("-version");
     final FFmpegCommand command = builder.build();
@@ -142,7 +142,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void commandsAreImmutable() {
+  void shouldCommandAreImmutable() {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     builder.addArgument("-version");
     final FFmpegCommand command = builder.build();
@@ -154,7 +154,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void builderRejectsInvalidArguments() {
+  void shouldRejectInvalidArgumentsInTheBuilder() {
     final FFmpegCommand.Builder builder = FFmpegCommand.builder();
     assertThrows(IllegalArgumentException.class, () -> builder.addFramerate(0));
     assertThrows(IllegalArgumentException.class, () -> builder.addResolution(0, 10));
@@ -172,7 +172,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void providesAnExistingExecutableOnce() throws ReflectiveOperationException {
+  void shouldProvideAnExistingExecutableOnce() throws ReflectiveOperationException {
     final Path first = FFmpegExecutableProvider.getFFmpegPath();
     final Path second = FFmpegExecutableProvider.getFFmpegPath();
     final boolean exists = Files.isRegularFile(first);
@@ -182,7 +182,7 @@ final class FFmpegCommandTest {
   }
 
   @Test
-  void holderCannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotInstantiateTheHolder() throws ReflectiveOperationException {
     final Class<?>[] nestedClasses = FFmpegExecutableProvider.class.getDeclaredClasses();
     assertEquals(1, nestedClasses.length);
     UtilityClassAssertions.assertNotInstantiable(nestedClasses[0]);

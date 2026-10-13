@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 final class FFmpegDirectSourceTest {
 
   @Test
-  void describesTheInput() {
+  void shouldDescribeTheInput() {
     final FFmpegDirectSource source = FFmpegDirectSource.mrl("desktop", "gdigrab");
     final String mrl = source.getMrl();
     final String format = source.getFormat();
@@ -53,7 +53,7 @@ final class FFmpegDirectSourceTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final FFmpegDirectSource source = FFmpegDirectSource.mrl("desktop", "gdigrab");
     final FFmpegDirectSource equalSource = FFmpegDirectSource.mrl("desktop", "gdigrab");
     final FFmpegDirectSource otherMrl = FFmpegDirectSource.mrl("title=Game", "gdigrab");
@@ -62,14 +62,14 @@ final class FFmpegDirectSourceTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> FFmpegDirectSource.mrl("desktop", " "));
     assertThrows(NullPointerException.class, () -> FFmpegDirectSource.mrl(null, "gdigrab"));
     assertThrows(NullPointerException.class, () -> FFmpegDirectSource.mrl("desktop", null));
   }
 
   @Test
-  void detectsFormatAndInputPairs() {
+  void shouldDetectFormatAndInputPairs() {
     final FFmpegDirectSourceDetector detector = new FFmpegDirectSourceDetector();
     final boolean detected = detector.isDetectedSource("dshow||video=Camera");
     final FFmpegDirectSource created = detector.createSource("dshow||video=Camera");
@@ -82,14 +82,14 @@ final class FFmpegDirectSourceTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "plain", "format||", "||input", " ||input", "a||b||c" })
-  void ignoresTextThatIsNotAPair(final String raw) {
+  void shouldIgnoreTextThatIsNotAPair(final String raw) {
     final FFmpegDirectSourceDetector detector = new FFmpegDirectSourceDetector();
     final boolean detected = detector.isDetectedSource(raw);
     assertFalse(detected);
   }
 
   @Test
-  void detectorRejectsInvalidInput() {
+  void shouldRejectInvalidInputInTheDetector() {
     final FFmpegDirectSourceDetector detector = new FFmpegDirectSourceDetector();
     assertThrows(IllegalArgumentException.class, () -> detector.createSource("no separator"));
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));

@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class ThresholdMatrixTest {
 
   @Test
-  void keepsItsOwnCopyOfTheRows() {
+  void shouldKeepItsOwnCopyOfTheRows() {
     final int[][] rows = { { 1, 2, 3 }, { 4, 5, 6 } };
     final ThresholdMatrix matrix = ThresholdMatrix.of(rows);
     rows[0][0] = 99;
@@ -41,7 +41,7 @@ final class ThresholdMatrixTest {
   }
 
   @Test
-  void handsOutCopiesOfItsEntries() {
+  void shouldHandOutCopiesOfItsEntries() {
     final int[][] first = BayerDither.NORMAL_2X2.toArray();
     first[0][0] = 99;
     final int[][] second = BayerDither.NORMAL_2X2.toArray();
@@ -50,7 +50,7 @@ final class ThresholdMatrixTest {
   }
 
   @Test
-  void reportsItsSize() {
+  void shouldReportItsSize() {
     final ThresholdMatrix matrix = ThresholdMatrix.of(new int[] { 0, 1, 2 }, new int[] { 3, 4, 5 });
     final int rows = matrix.getRowCount();
     final int columns = matrix.getColumnCount();
@@ -59,14 +59,14 @@ final class ThresholdMatrixTest {
   }
 
   @Test
-  void rejectsMissingRows() {
+  void shouldRejectMissingRows() {
     final int[] row = { 1 };
     assertThrows(NullPointerException.class, () -> ThresholdMatrix.of((int[][]) null));
     assertThrows(NullPointerException.class, () -> ThresholdMatrix.of(row, null));
   }
 
   @Test
-  void rejectsMatricesThatAreNotRectangular() {
+  void shouldRejectMatricesThatAreNotRectangular() {
     final int[] empty = {};
     final int[] shortRow = { 1 };
     final int[] longRow = { 1, 2 };

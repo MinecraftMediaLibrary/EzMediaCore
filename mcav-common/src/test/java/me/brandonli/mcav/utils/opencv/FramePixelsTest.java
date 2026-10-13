@@ -55,7 +55,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void copiesCompactFramesAsTheyAre() {
+  void shouldCopyCompactFramesAsTheyAre() {
     final byte[] data = { 1, 2, 3, 4, 5, 6 };
     final Frame compact = frame(2, 1, 6, data);
     final ByteBuffer pixels = FramePixels.copyBgr(compact);
@@ -66,7 +66,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void copiesEveryRowOfACompactFrameAndChecksTheWholeTargetSize() {
+  void shouldCopyEveryRowOfACompactFrameAndCheckTheWholeTargetSize() {
     final byte[] data = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
     try (final Frame compact = frame(2, 2, 6, data)) {
       final ByteBuffer actual = FramePixels.copyBgr(compact);
@@ -78,7 +78,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void dropsTheRowPaddingOfNarrowFrames() {
+  void shouldDropTheRowPaddingOfNarrowFrames() {
     final byte[] data = { 1, 2, 3, 0, 0, 0, 0, 0, 4, 5, 6, 0, 0, 0, 0, 0 };
     final Frame padded = frame(1, 2, 8, data);
     final ByteBuffer pixels = FramePixels.copyBgr(padded);
@@ -88,7 +88,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void copiesIntoAReusedBufferFromItsStart() {
+  void shouldCopyIntoAReusedBufferFromItsStart() {
     final Frame padded = frame(1, 2, 8, new byte[] { 1, 2, 3, 0, 0, 0, 0, 0, 4, 5, 6, 0, 0, 0, 0, 0 });
     final Frame compact = frame(2, 1, 6, new byte[] { 7, 8, 9, 10, 11, 12 });
     final ByteBuffer target = ByteBuffer.allocate(8);
@@ -108,7 +108,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void rejectsTargetsThatAreTooSmall() {
+  void shouldRejectTargetsThatAreTooSmall() {
     final ByteBuffer small = ByteBuffer.allocate(5);
     try (final Frame compact = frame(2, 1, 6, new byte[6])) {
       assertThrows(IllegalArgumentException.class, () -> FramePixels.copyBgr(compact, small));
@@ -118,7 +118,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void rejectsFramesWithoutUsablePixels() {
+  void shouldRejectFramesWithoutUsablePixels() {
     try (
       final Frame audio = new Frame();
       final Frame noPlanes = frame(1, 1, 3, new byte[3]);
@@ -137,7 +137,7 @@ final class FramePixelsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(FramePixels.class);
   }
 }

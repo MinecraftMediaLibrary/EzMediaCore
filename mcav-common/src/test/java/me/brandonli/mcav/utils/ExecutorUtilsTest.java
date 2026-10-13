@@ -43,7 +43,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void returnsTrueWhenTheTasksFinishInTime() {
+  void shouldReturnTrueWhenTheTasksFinishInTime() {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch ran = new CountDownLatch(1);
     executor.execute(ran::countDown);
@@ -56,7 +56,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void interruptsTasksThatDoNotFinishInTime() throws InterruptedException {
+  void shouldInterruptTasksThatDoNotFinishInTime() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final AtomicBoolean release = new AtomicBoolean();
@@ -78,7 +78,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void keepsTheInterruptWhenInterruptedWhileWaiting() throws InterruptedException {
+  void shouldKeepTheInterruptWhenInterruptedWhileWaiting() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch blocker = new CountDownLatch(1);
@@ -103,7 +103,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final Duration timeout = Duration.ofSeconds(1);
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null));
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null, timeout));
@@ -113,7 +113,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ExecutorUtils.class);
   }
 }

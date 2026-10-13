@@ -65,7 +65,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void copiesTheApplicationOutOfTheDiskImage() throws IOException {
+  void shouldCopyTheApplicationOutOfTheDiskImage() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::nothingFails);
@@ -88,7 +88,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void detachesTheDiskImageWhenCopyingFails() throws IOException {
+  void shouldDetachTheDiskImageWhenCopyingFails() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, COPY_FAILS);
@@ -110,7 +110,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void keepsTheCopyFailureWhenTheDiskImageCannotBeDetachedEither() throws IOException {
+  void shouldKeepTheCopyFailureWhenTheDiskImageCannotBeDetachedEither() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final Predicate<String> copyAndDetachFail = COPY_FAILS.or(OSXInstallationStrategyTest::everyDetachFails);
@@ -130,7 +130,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void forcesTheDetachWhenARegularDetachFails() throws IOException {
+  void shouldForceTheDetachWhenARegularDetachFails() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::regularDetachFails);
@@ -147,7 +147,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void neitherCopiesNorDetachesWhenAttachingFails() throws IOException {
+  void shouldNeitherCopyNorDetachWhenAttachingFails() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::attachFails);
@@ -158,7 +158,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void keepsTheMountPointWhenDetachingFails() throws IOException {
+  void shouldKeepTheMountPointWhenDetachingFails() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final OSXInstallationStrategy strategy = strategyWith(installer, commands, OSXInstallationStrategyTest::everyDetachFails);
@@ -174,7 +174,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void failsWhenTheApplicationHasNoLibrary() throws IOException {
+  void shouldFailWhenTheApplicationHasNoLibrary() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final ProcessRunner emptyTools = (_, _) -> {};
     final OSXInstallationStrategy strategy = new OSXInstallationStrategy(installer, emptyTools);
@@ -186,7 +186,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void replacesAnEarlierInstallation() throws IOException {
+  void shouldReplaceAnEarlierInstallation() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final Path installDirectory = installer.getInstallDirectory();
     Files.createDirectories(installDirectory);
@@ -201,7 +201,7 @@ final class OSXInstallationStrategyTest {
   }
 
   @Test
-  void usesChildProcessesByDefault() throws IOException {
+  void shouldUseChildProcessesByDefault() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final OSXInstallationStrategy strategy = new OSXInstallationStrategy(installer);
     final VLCInstaller strategyInstaller = strategy.getInstaller();

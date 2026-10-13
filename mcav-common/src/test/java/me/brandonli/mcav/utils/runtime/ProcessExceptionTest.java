@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class ProcessExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final ProcessException exception = new ProcessException("ffmpeg exited with code 1");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -40,7 +40,7 @@ final class ProcessExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final IOException readFailure = new IOException("stream closed");
     final ProcessException exception = new ProcessException("The output of ffmpeg cannot be read", readFailure);
     final String message = exception.getMessage();
@@ -50,7 +50,7 @@ final class ProcessExceptionTest {
   }
 
   @Test
-  void isARuntimeException() {
+  void shouldBeARuntimeException() {
     final ProcessException exception = new ProcessException("failure");
     assertInstanceOf(RuntimeException.class, exception, "a failing program is recoverable, so it is no Error");
   }

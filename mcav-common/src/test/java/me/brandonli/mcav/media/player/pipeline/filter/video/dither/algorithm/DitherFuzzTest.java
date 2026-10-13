@@ -51,7 +51,7 @@ final class DitherFuzzTest {
   private static final int MAX_SIDE = 24;
 
   @FuzzTest(maxDuration = "30s")
-  void everyAcceptedAlgorithmDithersIntoThePalette(final FuzzedDataProvider data) {
+  void shouldDitherIntoThePaletteWithEveryAcceptedAlgorithm(final FuzzedDataProvider data) {
     final int kind = data.consumeInt(0, 3);
     final DitherAlgorithm forColors;
     final DitherAlgorithm forIndices;

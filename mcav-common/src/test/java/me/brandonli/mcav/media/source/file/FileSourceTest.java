@@ -42,7 +42,7 @@ final class FileSourceTest {
   private Path directory;
 
   @Test
-  void describesTheFile() {
+  void shouldDescribeTheFile() {
     final Path path = Path.of("media", "clip.mp4");
     final FileSource source = FileSource.path(path);
     final Path storedPath = source.getPath();
@@ -61,7 +61,7 @@ final class FileSourceTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Path path = Path.of("a.mp4");
     final Path otherPath = Path.of("b.mp4");
     final FileSource source = FileSource.path(path);
@@ -71,7 +71,7 @@ final class FileSourceTest {
   }
 
   @Test
-  void writesAndReadsThroughItsWritable() throws IOException {
+  void shouldWriteAndReadThroughItsWritable() throws IOException {
     final Path path = this.directory.resolve("data.bin");
     final FileSource source = FileSource.path(path);
     final Writable writable = source.createWritable();
@@ -89,7 +89,7 @@ final class FileSourceTest {
   }
 
   @Test
-  void createsWritablesForPaths() {
+  void shouldCreateWritablesForPaths() {
     final Path path = this.directory.resolve("out.txt");
     final Writable writable = Writable.path(path);
     final Path writablePath = writable.getPath();
@@ -98,7 +98,7 @@ final class FileSourceTest {
   }
 
   @Test
-  void detectsOnlyExistingPaths() throws IOException {
+  void shouldDetectOnlyExistingPaths() throws IOException {
     final Path existing = this.directory.resolve("exists.mp4");
     Files.createFile(existing);
     final Path missing = this.directory.resolve("missing.mp4");
@@ -119,7 +119,7 @@ final class FileSourceTest {
   }
 
   @Test
-  void rejectsNullInput() {
+  void shouldRejectNullInput() {
     final FileSourceDetector detector = new FileSourceDetector();
     assertThrows(NullPointerException.class, () -> FileSource.path(null));
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));

@@ -48,7 +48,7 @@ final class SpeedResamplerTest {
   }
 
   @Test
-  void passesChunksThroughAtNormalSpeed() {
+  void shouldPassChunksThroughAtNormalSpeed() {
     final SpeedResampler resampler = new SpeedResampler();
     final ByteBuffer chunk = frames(0, 4);
     assertSame(chunk, resampler.resample(chunk, PlaybackClock.NORMAL_SPEED));
@@ -57,21 +57,21 @@ final class SpeedResamplerTest {
   }
 
   @Test
-  void halvesAChunkAtTwiceTheSpeed() {
+  void shouldHalveAChunkAtTwiceTheSpeed() {
     final SpeedResampler resampler = new SpeedResampler();
     assertArrayEquals(new short[] { 0, 20, 40, 60 }, left(resampler.resample(frames(0, 8), 2)));
     assertArrayEquals(new short[] { 80, 100, 120, 140 }, left(resampler.resample(frames(8, 8), 2)));
   }
 
   @Test
-  void interpolatesAtHalfTheSpeedAcrossChunks() {
+  void shouldInterpolateAtHalfTheSpeedAcrossChunks() {
     final SpeedResampler resampler = new SpeedResampler();
     assertArrayEquals(new short[] { 0, 5, 10, 15 }, left(resampler.resample(frames(0, 3), 0.5)));
     assertArrayEquals(new short[] { 20, 25, 30, 35 }, left(resampler.resample(frames(3, 2), 0.5)));
   }
 
   @Test
-  void startsAfterTheLastFrameOfAChunkPlayedAtNormalSpeed() {
+  void shouldStartAfterTheLastFrameOfAChunkPlayedAtNormalSpeed() {
     final SpeedResampler resampler = new SpeedResampler();
     resampler.resample(frames(0, 2), 0.5);
     resampler.resample(frames(2, 2), PlaybackClock.NORMAL_SPEED);
@@ -80,7 +80,7 @@ final class SpeedResamplerTest {
   }
 
   @Test
-  void resamplesFromThePositionAndLeavesATrailingPartialFrame() {
+  void shouldResampleFromThePositionAndLeaveATrailingPartialFrame() {
     final SpeedResampler resampler = new SpeedResampler();
     final ByteBuffer chunk = ByteBuffer.allocate(4 + 4 * 4 + 3).order(ByteOrder.LITTLE_ENDIAN);
     chunk.putInt(0x7fff7fff);

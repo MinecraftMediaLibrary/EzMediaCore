@@ -65,7 +65,7 @@ final class VLCReleaseTest {
   }
 
   @Test
-  void bundledHashesMatchTheChecksumsVideoLanPublishesNextToEveryDownload() throws IOException, InterruptedException {
+  void shouldBundleHashesThatMatchTheChecksumsVideoLanPublishesNextToEveryDownload() throws IOException, InterruptedException {
     final Download[] downloads = IOUtils.readDownloadsFromJsonResource("mcav/common/installers/vlc.json");
     try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
       for (final Download download : downloads) {
@@ -86,7 +86,7 @@ final class VLCReleaseTest {
   }
 
   @Test
-  void installsTheBuildOfThisMachineAndPlaysAVideoThroughIt(@TempDir final Path folder) throws IOException, InterruptedException {
+  void shouldInstallTheBuildOfThisMachineAndPlayAVideoThroughIt(@TempDir final Path folder) throws IOException, InterruptedException {
     final VLCInstaller installer = VLCInstaller.create(folder);
     final boolean supported = installer.isSupported();
     Assumptions.assumeTrue(supported, "VLC has no build for this platform");

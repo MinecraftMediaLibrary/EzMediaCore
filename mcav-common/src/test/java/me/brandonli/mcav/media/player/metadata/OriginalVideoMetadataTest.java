@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class OriginalVideoMetadataTest {
 
   @Test
-  void storesEveryProperty() {
+  void shouldStoreEveryProperty() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(1920, 1080, 4_000_000, 29.97f);
     final int width = metadata.getVideoWidth();
     final int height = metadata.getVideoHeight();
@@ -42,7 +42,7 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void marksOmittedPropertiesAsUnknown() {
+  void shouldMarkOmittedPropertiesAsUnknown() {
     final OriginalVideoMetadata withFrameRate = OriginalVideoMetadata.of(640, 480, 25.0f);
     final OriginalVideoMetadata sizeOnly = OriginalVideoMetadata.of(640, 480);
     final int bitrate = withFrameRate.getVideoBitrate();
@@ -54,7 +54,7 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void emptyMetadataIsUnknownEverywhere() {
+  void shouldMakeEmptyMetadataUnknownEverywhere() {
     final OriginalVideoMetadata empty = OriginalVideoMetadata.EMPTY;
     final int width = empty.getVideoWidth();
     final int height = empty.getVideoHeight();
@@ -63,7 +63,7 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
     final OriginalVideoMetadata equalMetadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
     final OriginalVideoMetadata otherWidth = OriginalVideoMetadata.of(5, 3, 100, 30.0f);
@@ -74,13 +74,13 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void rejectsNonPositiveSizes() {
+  void shouldRejectNonPositiveSizes() {
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(0, 10));
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(10, 0));
   }
 
   @Test
-  void rendersEveryProperty() {
+  void shouldRenderEveryProperty() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, 30.0f);
     final String text = metadata.toString();
     assertEquals("VideoMetadata[320x240, 30.0 fps, 1000 bps]", text);

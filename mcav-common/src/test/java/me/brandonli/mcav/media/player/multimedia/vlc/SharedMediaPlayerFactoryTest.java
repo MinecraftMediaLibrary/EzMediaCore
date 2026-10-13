@@ -55,7 +55,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void sharesOneInstanceAndReleasesItWithTheLastReference() {
+  void shouldShareOneInstanceAndReleaseItWithTheLastReference() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final MediaPlayerFactory first = shared.acquire();
     final MediaPlayerFactory second = shared.acquire();
@@ -77,7 +77,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void createsANewInstanceAfterTheLastRelease() {
+  void shouldCreateANewInstanceAfterTheLastRelease() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final MediaPlayerFactory first = shared.acquire();
     shared.release();
@@ -90,7 +90,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void ignoresReleasesWithoutAcquisition() {
+  void shouldIgnoreReleasesWithoutAcquisition() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     shared.release();
     final int referencesBeforeAcquisition = shared.getReferences();
@@ -104,7 +104,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void acquiresNoReferenceWhenTheInstanceCannotBeCreated() {
+  void shouldAcquireNoReferenceWhenTheInstanceCannotBeCreated() {
     final AtomicInteger attempts = new AtomicInteger();
     final Supplier<MediaPlayerFactory> failing = () -> {
       attempts.incrementAndGet();
@@ -144,7 +144,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void createsOneInstanceForConcurrentAcquisitions() throws Exception {
+  void shouldCreateOneInstanceForConcurrentAcquisitions() throws Exception {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final CyclicBarrier barrier = new CyclicBarrier(THREAD_COUNT);
     final CountDownLatch done = new CountDownLatch(THREAD_COUNT);
@@ -170,14 +170,14 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void theSharedInstanceIsASingleton() {
+  void shouldMakeTheSharedInstanceASingleton() {
     final SharedMediaPlayerFactory first = SharedMediaPlayerFactory.getInstance();
     final SharedMediaPlayerFactory second = SharedMediaPlayerFactory.getInstance();
     assertSame(first, second);
   }
 
   @Test
-  void rejectsANullCreator() {
+  void shouldRejectANullCreator() {
     assertThrows(NullPointerException.class, () -> new SharedMediaPlayerFactory(null));
   }
 }

@@ -50,7 +50,7 @@ final class OSUtilsTest {
     "aix, OTHER",
     "'', OTHER",
   })
-  void detectsTheOperatingSystem(final String osName, final OS expected) {
+  void shouldDetectTheOperatingSystem(final String osName, final OS expected) {
     final OS detected = OSUtils.detectOS(osName);
     assertEquals(expected, detected);
   }
@@ -81,13 +81,13 @@ final class OSUtilsTest {
 
   @ParameterizedTest
   @CsvSource({ "x86, 64, BITS_64", "amd64, 32, BITS_32", "amd64, '', BITS_64", "aarch64, '', BITS_64", "x86, '', BITS_32" })
-  void detectsTheWordSizePreferringTheDataModel(final String osArch, final String dataModel, final Bits expected) {
+  void shouldDetectTheWordSizePreferringTheDataModel(final String osArch, final String dataModel, final Bits expected) {
     final Bits detected = OSUtils.detectBits(osArch, dataModel);
     assertEquals(expected, detected);
   }
 
   @Test
-  void agreesWithJnaAboutTheRunningSystem() {
+  void shouldAgreeWithJnaAboutTheRunningSystem() {
     final OS os = OSUtils.getOS();
     final Arch arch = OSUtils.getArch();
     final Bits bits = OSUtils.getBits();
@@ -108,7 +108,7 @@ final class OSUtilsTest {
   }
 
   @Test
-  void readsPropertiesInLowerCaseAndMissingOnesAsEmpty() {
+  void shouldReadPropertiesInLowerCaseAndMissingOnesAsEmpty() {
     System.setProperty("mcav.test.property", "MiXeD");
     try {
       final String value = OSUtils.getProperty("mcav.test.property");
@@ -121,7 +121,7 @@ final class OSUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(OSUtils.class);
   }
 }

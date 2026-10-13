@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Tag;
 final class KeyUtilsFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void replacesKeyNamesWithoutGrowingTheText(final byte[] input) {
+  void shouldReplaceKeyNamesWithoutGrowingTheText(final byte[] input) {
     final String typed = new String(input, StandardCharsets.UTF_8);
 
     final String replaced = KeyUtils.replaceKeysWithKeyCodes(typed);

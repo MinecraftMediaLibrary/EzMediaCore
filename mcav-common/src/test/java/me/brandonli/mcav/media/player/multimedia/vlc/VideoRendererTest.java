@@ -155,7 +155,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void readsRv32AsPackedArgb() {
+  void shouldReadRv32AsPackedArgb() {
     final ByteBuffer buffer = ByteBuffer.wrap(new byte[] { 0x33, 0x22, 0x11, 0x00, 0x66, 0x55, 0x44, (byte) 0xFF });
     final int[] pixels = new int[2];
     VideoRenderer.readVisibleRows(buffer, 2, 2, 1, pixels);
@@ -163,7 +163,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void readsOnlyTheVisibleColumnsAndRowsOfPaddedBuffers() {
+  void shouldReadOnlyTheVisibleColumnsAndRowsOfPaddedBuffers() {
     final int[] padded = new int[4 * 3];
     for (int row = 0; row < 3; row++) {
       for (int column = 0; column < 4; column++) {
@@ -177,7 +177,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void readsFromTheStartWithoutMovingTheBuffer() {
+  void shouldReadFromTheStartWithoutMovingTheBuffer() {
     final ByteBuffer buffer = rv32(RED, GREEN);
     buffer.position(4);
     final int[] pixels = new int[2];
@@ -188,7 +188,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void rendersTheVisiblePartOfEachFrame() throws Exception {
+  void shouldRenderTheVisiblePartOfEachFrame() throws Exception {
     this.startRecording(3, 2);
     this.display(4, 3, RED, GREEN, BLUE, 0, WHITE, RED, GREEN, 0, 0, 0, 0, 0);
     final RecordedFrame frame = take(this.frames);
@@ -208,7 +208,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void reusesTheImageBufferForLaterFrames() throws Exception {
+  void shouldReuseTheImageBufferForLaterFrames() throws Exception {
     this.startRecording(2, 1);
     this.display(2, 1, RED, GREEN);
     final RecordedFrame first = take(this.frames);
@@ -222,7 +222,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsFramesBeforeItIsStarted() throws Exception {
+  void shouldDropFramesBeforeItIsStarted() throws Exception {
     VlcTestFrames.record(this.owner, this.frames);
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.display(1, 1, RED);
@@ -231,7 +231,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsFramesAfterItIsStopped() throws Exception {
+  void shouldDropFramesAfterItIsStopped() throws Exception {
     this.startRecording(1, 1);
     this.renderer.stop();
     this.display(1, 1, RED);
@@ -239,7 +239,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsFramesWithoutBuffers() throws Exception {
+  void shouldDropFramesWithoutBuffers() throws Exception {
     this.startRecording(1, 1);
     final BufferFormat format = new RV32BufferFormat(1, 1);
     this.renderer.display(this.mediaPlayer, new ByteBuffer[0], format, 1, 1);
@@ -247,7 +247,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsFramesWithoutAPipeline() throws Exception {
+  void shouldDropFramesWithoutAPipeline() throws Exception {
     final VideoFilter recorder = VlcTestFrames.recorder(this.frames);
     final VideoPipelineStep recording = VideoPipelineStep.of(recorder);
     final VideoAttachableCallback callback = mock(VideoAttachableCallback.class);
@@ -269,14 +269,14 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsBuffersThatDoNotHoldAWholePicture() throws Exception {
+  void shouldDropBuffersThatDoNotHoldAWholePicture() throws Exception {
     this.startRecording(2, 2);
     this.display(2, 2, RED, GREEN, BLUE);
     assertNoFrame(this.frames);
   }
 
   @Test
-  void dropsFramesUntilTheSizeIsKnown() throws Exception {
+  void shouldDropFramesUntilTheSizeIsKnown() throws Exception {
     VlcTestFrames.record(this.owner, this.frames);
     this.renderer.start();
     this.display(1, 1, RED);
@@ -287,7 +287,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void dropsFramesWhilePaused() throws Exception {
+  void shouldDropFramesWhilePaused() throws Exception {
     this.startRecording(1, 1);
     this.renderer.setPaused(true);
     this.display(1, 1, RED);
@@ -300,7 +300,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void pausingDropsTheQueuedFrame() throws Exception {
+  void shouldDropTheQueuedFrameWhenPausing() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Integer> rendered = Collections.synchronizedList(new ArrayList<>());
@@ -330,7 +330,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void keepsOnlyTheNewestUnrenderedFrame() throws Exception {
+  void shouldKeepOnlyTheNewestUnrenderedFrame() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Integer> rendered = Collections.synchronizedList(new ArrayList<>());
@@ -353,7 +353,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void resumingAnAlreadyRunningRendererKeepsItsQueuedFrame() throws Exception {
+  void shouldKeepTheQueuedFrameWhenResumingAnAlreadyRunningRenderer() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Integer> rendered = Collections.synchronizedList(new ArrayList<>());
@@ -375,7 +375,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void replacementNeverRecyclesAnArrayStillQueuedForRendering() throws Exception {
+  void shouldNeverRecycleAnArrayStillQueuedForRenderingOnReplacement() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Integer> rendered = Collections.synchronizedList(new ArrayList<>());
@@ -400,7 +400,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void scalesFramesToTheAttachedSize() throws Exception {
+  void shouldScaleFramesToTheAttachedSize() throws Exception {
     this.startRecording(4, 4);
     final DimensionAttachableCallback dimension = this.owner.getDimensionAttachableCallback();
     final Dimension half = Dimension.of(2, 2);
@@ -467,7 +467,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void fatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
+  void shouldLetFatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
     final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
@@ -491,7 +491,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void reportsPipelineFailuresAndKeepsRendering() throws Exception {
+  void shouldReportPipelineFailuresAndKeepRendering() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
     final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
     final AssertionError errorFailure = new AssertionError("filter assertion");
@@ -515,7 +515,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void releasesTheImageBufferWhenStopped() throws Exception {
+  void shouldReleaseTheImageBufferWhenStopped() throws Exception {
     this.startRecording(1, 1);
     this.display(1, 1, RED);
     final RecordedFrame frame = take(this.frames);
@@ -525,14 +525,14 @@ final class VideoRendererTest {
   }
 
   @Test
-  void lockAndUnlockTouchNothing() {
+  void shouldTouchNothingOnLockAndUnlock() {
     this.renderer.lock(this.mediaPlayer);
     this.renderer.unlock(this.mediaPlayer);
     verifyNoInteractions(this.mediaPlayer);
   }
 
   @Test
-  void asksVlcToRenderAtTheAttachedSize() throws Exception {
+  void shouldAskVlcToRenderAtTheAttachedSize() throws Exception {
     VlcTestFrames.record(this.owner, this.frames);
     final DimensionAttachableCallback dimension = this.owner.getDimensionAttachableCallback();
     final Dimension target = Dimension.of(2, 1);
@@ -558,7 +558,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void reusesThePixelArraysHandedBack() {
+  void shouldReuseThePixelArraysHandedBack() {
     final int[] first = this.renderer.acquirePixels(4);
     final boolean firstKept = this.renderer.recyclePixels(first);
     final int[] reused = this.renderer.acquirePixels(4);
@@ -573,7 +573,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void keepsOnlyAsManySpareArraysAsCanBeInFlight() {
+  void shouldKeepOnlyAsManySpareArraysAsCanBeInFlight() {
     final int[] first = new int[1];
     final int[] second = new int[1];
     final int[] third = new int[1];
@@ -607,7 +607,7 @@ final class VideoRendererTest {
   }
 
   @Test
-  void reportsRenderingFailuresAndKeepsRendering() throws Exception {
+  void shouldReportRenderingFailuresAndKeepRendering() throws Exception {
     final List<String> reported = Collections.synchronizedList(new ArrayList<>());
     final BlockingQueue<RecordedFrame> recorded = new LinkedBlockingQueue<>();
     final VideoFilter recorder = VlcTestFrames.recorder(recorded);

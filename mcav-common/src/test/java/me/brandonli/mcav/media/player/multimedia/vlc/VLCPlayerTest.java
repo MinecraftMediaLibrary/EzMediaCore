@@ -181,7 +181,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startsACombinedSourceOnOnePlayer() {
+  void shouldStartACombinedSourceOnOnePlayer() {
     final boolean started = this.player.start(this.video);
     final List<MockVlc.Player> players = this.vlc.getPlayers();
     final MockVlc.Player only = this.vlc.player(0);
@@ -203,7 +203,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startsSeparateSourcesOnTwoSynchronizedPlayers() {
+  void shouldStartSeparateSourcesOnTwoSynchronizedPlayers() {
     final boolean started = this.player.start(this.video, this.audio);
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -228,7 +228,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void playsEqualSourcesAsOneCombinedSource() {
+  void shouldPlayEqualSourcesAsOneCombinedSource() {
     final boolean started = this.player.start(this.video, this.video);
     final List<MockVlc.Player> players = this.vlc.getPlayers();
     final MockVlc.Player only = this.vlc.player(0);
@@ -240,7 +240,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startFailsWhenVlcCannotOpenTheMedia() throws InterruptedException {
+  void shouldFailToStartWhenVlcCannotOpenTheMedia() throws InterruptedException {
     this.vlc.queueOutcomes(MockVlc.Outcome.ERROR);
     final boolean started = this.player.start(this.video);
     final MockVlc.Player only = this.vlc.player(0);
@@ -254,7 +254,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startFailsWhenVlcRejectsTheMedia() throws InterruptedException {
+  void shouldFailToStartWhenVlcRejectsTheMedia() throws InterruptedException {
     this.vlc.queueOutcomes(MockVlc.Outcome.REJECTED);
     final boolean started = this.player.start(this.video);
     final List<String> expectedMessages = List.of("Failed to start VLC playback of video.mp4");
@@ -287,7 +287,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @EnumSource(SeparateFailure.class)
-  void startFailsWhenEitherSeparateSourceCannotBeOpened(final SeparateFailure failure) throws InterruptedException {
+  void shouldFailToStartWhenEitherSeparateSourceCannotBeOpened(final SeparateFailure failure) throws InterruptedException {
     this.vlc.queueOutcomes(failure.videoOutcome, failure.audioOutcome);
     final boolean started = this.player.start(this.video, this.audio);
     final MockVlc.Player videoPlayer = this.vlc.player(0);
@@ -303,7 +303,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startSucceedsWhileVlcIsStillOpeningAndReportsLaterErrors() {
+  void shouldStartWhileVlcIsStillOpeningAndReportLaterErrors() {
     final VLCPlayer slow = this.vlc.newPlayer(100L);
     final List<Throwable> slowErrors = Collections.synchronizedList(new ArrayList<>());
     slow.setExceptionHandler((_, error) -> slowErrors.add(error));
@@ -332,7 +332,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void separateSourcesShareTheOpenTimeout() {
+  void shouldShareTheOpenTimeoutBetweenSeparateSources() {
     final VLCPlayer slow = this.vlc.newPlayer(400L);
     this.vlc.queueOutcomes(MockVlc.Outcome.SILENT, MockVlc.Outcome.SILENT);
     try {
@@ -348,7 +348,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startGivesUpWhenInterruptedWhileWaiting() throws InterruptedException {
+  void shouldGiveUpStartingWhenInterruptedWhileWaiting() throws InterruptedException {
     final VLCPlayer slow = this.vlc.newPlayer(10_000L);
     this.vlc.queueOutcomes(MockVlc.Outcome.SILENT);
     final Thread current = Thread.currentThread();
@@ -370,7 +370,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startReportsAVlcInstanceThatCannotBeCreated() {
+  void shouldReportAVlcInstanceThatCannotBeCreatedOnStart() {
     final IllegalStateException failure = new IllegalStateException("libvlc version mismatch");
     this.vlc.failFactoryCreation(failure);
     final boolean started = this.player.start(this.video);
@@ -384,7 +384,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startReportsMissingNativeLibraries() {
+  void shouldReportMissingNativeLibrariesOnStart() {
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("libvlc not found");
     this.vlc.failFactoryCreation(failure);
     final boolean started = this.player.start(this.video);
@@ -396,7 +396,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startReleasesTheFirstPlayerWhenTheSecondCannotBeCreated() {
+  void shouldReleaseTheFirstPlayerOnStartWhenTheSecondCannotBeCreated() {
     final IllegalStateException failure = new IllegalStateException("out of players");
     this.vlc.failSecondPlayerCreation(failure);
     final boolean started = this.player.start(this.video, this.audio);
@@ -411,7 +411,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startCleansUpWhenVlcThrowsWhilePlaying() throws InterruptedException {
+  void shouldCleanUpOnStartWhenVlcThrowsWhilePlaying() throws InterruptedException {
     this.vlc.queueOutcomes(MockVlc.Outcome.THROWS);
     final boolean started = this.player.start(this.video);
     final List<String> expectedMessages = List.of("Failed to start VLC playback of video.mp4");
@@ -423,7 +423,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releasesTheFactoryWhenNativePlayerSetupFailsAfterAcquisition() throws InterruptedException {
+  void shouldReleaseTheFactoryWhenNativePlayerSetupFailsAfterAcquisition() throws InterruptedException {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("player API missing");
     when(factory.mediaPlayers()).thenThrow(failure);
@@ -436,7 +436,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releasesTheFirstPlayerAfterANativeFailureCreatingSeparateAudio() throws InterruptedException {
+  void shouldReleaseTheFirstPlayerAfterANativeFailureCreatingSeparateAudio() throws InterruptedException {
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("audio player native missing");
     this.vlc.failSecondPlayerCreation(failure);
     final boolean started = this.player.start(this.video, this.audio);
@@ -447,7 +447,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void preservesCreationFailureWhenReleasingTheFactoryFails() throws InterruptedException {
+  void shouldPreserveCreationFailureWhenReleasingTheFactoryFails() throws InterruptedException {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("player API missing");
     final AssertionError cleanup = new AssertionError("factory release failed");
@@ -465,7 +465,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void keepsTheAudioCreationFailureWhenReleasingTheVideoPlayerFails() throws InterruptedException {
+  void shouldKeepTheAudioCreationFailureWhenReleasingTheVideoPlayerFails() throws InterruptedException {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final MediaPlayerApi players = factory.mediaPlayers();
     final EmbeddedMediaPlayer first = mock(EmbeddedMediaPlayer.class);
@@ -486,7 +486,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void cleansUpBeforeAThrowingStartFailureHandlerAndPreservesTheNativeFailure() throws InterruptedException {
+  void shouldCleanUpBeforeAThrowingStartFailureHandlerAndPreserveTheNativeFailure() throws InterruptedException {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("video surface native missing");
     final AssertionError reporting = new AssertionError("handler failed");
@@ -503,7 +503,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void aHandlerThrowingTheStartFailureDoesNotReplaceItWithSelfSuppression() throws InterruptedException {
+  void shouldNotReplaceTheStartFailureWithSelfSuppressionWhenAHandlerThrowsIt() throws InterruptedException {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final AssertionError failure = new AssertionError("video setup failed");
     when(factory.videoSurfaces()).thenThrow(failure);
@@ -518,7 +518,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releasesTheReplacementWhenStoppingTheOldPlaybackFails() throws InterruptedException {
+  void shouldReleaseTheReplacementWhenStoppingTheOldPlaybackFails() throws InterruptedException {
     this.startVideo();
     final MockVlc.Player old = this.vlc.player(0);
     final ControlsApi controls = old.getControls();
@@ -534,7 +534,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void keepsTheOldStopFailureWhenReplacementCleanupAlsoFails() throws InterruptedException {
+  void shouldKeepTheOldStopFailureWhenReplacementCleanupAlsoFails() throws InterruptedException {
     this.startVideo();
     final MockVlc.Player old = this.vlc.player(0);
     final ControlsApi controls = old.getControls();
@@ -552,7 +552,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void propagatesFatalStartupFailuresUnwrapped() {
+  void shouldPropagateFatalStartupFailuresUnwrapped() {
     final OutOfMemoryError failure = new OutOfMemoryError("VLC engine out of memory");
     this.vlc.failFactoryCreation(failure);
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> this.player.start(this.video));
@@ -564,7 +564,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void firstNativeAcquisitionFailureAfterReentrantReleaseHasNoPreviousPlaybackToStop() throws Exception {
+  void shouldHaveNoPreviousPlaybackToStopOnTheFirstNativeAcquisitionFailureAfterAReentrantRelease() throws Exception {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final MediaPlayerApi api = factory.mediaPlayers();
     final IllegalStateException failure = new IllegalStateException("first native acquisition failed");
@@ -589,7 +589,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void oldStopFailureDoesNotReclaimACandidateAlreadyCancelledByRelease() throws Exception {
+  void shouldNotReclaimACandidateAlreadyCancelledByReleaseOnAnOldStopFailure() throws Exception {
     this.startVideo();
     final MockVlc.Player previous = this.vlc.player(0);
     final ControlsApi controls = previous.getControls();
@@ -613,7 +613,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void runtimeAcquisitionFailureRemainsPrimaryWhenReportingAlsoFails() {
+  void shouldKeepTheRuntimeAcquisitionFailurePrimaryWhenReportingAlsoFails() {
     final IllegalStateException failure = new IllegalStateException("native acquisition failed");
     final AssertionError reporting = new AssertionError("reporter failed");
     this.vlc.failFactoryCreation(failure);
@@ -630,7 +630,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void startingAgainReplacesThePreviousPlayback() {
+  void shouldReplaceThePreviousPlaybackWhenStartingAgain() {
     this.startVideo();
     final boolean restarted = this.player.start(this.audio);
     final MockVlc.Player first = this.vlc.player(0);
@@ -649,7 +649,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void replacingPlaybackAllowsTheOldPipelineToReenterLifecycle(final boolean releaseInside) throws Exception {
+  void shouldLetTheOldPipelineReenterLifecycleWhenReplacingPlayback(final boolean releaseInside) throws Exception {
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch escape = new CountDownLatch(1);
     final AtomicReference<Boolean> callbackResult = new AtomicReference<>();
@@ -702,7 +702,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void pendingReplacementHasOneOwnerDuringConcurrentLifecycleCalls(final boolean releases) throws Exception {
+  void shouldGiveAPendingReplacementOneOwnerDuringConcurrentLifecycleCalls(final boolean releases) throws Exception {
     this.startVideo();
     final MockVlc.Player first = this.vlc.player(0);
     final ControlsApi controls = first.getControls();
@@ -766,7 +766,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void nativeCreationReentryCannotOverwriteTheReservationOrOpenAfterRelease(final boolean failCreation) throws Exception {
+  void shouldNotLetNativeCreationReentryOverwriteTheReservationOrOpenAfterRelease(final boolean failCreation) throws Exception {
     this.startVideo();
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final MediaPlayerApi api = factory.mediaPlayers();
@@ -803,7 +803,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releaseDuringSourceSetupCannotPublishASuccessfullyOpenedCandidate() throws Exception {
+  void shouldNotPublishASuccessfullyOpenedCandidateOnReleaseDuringSourceSetup() throws Exception {
     final Source cancelling = mock(Source.class);
     final AtomicBoolean cancelled = new AtomicBoolean();
     when(cancelling.getResource()).thenAnswer(_ -> {
@@ -824,7 +824,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void synchronousOpenFailureCallbackMayCancelItsOwnStart() throws Exception {
+  void shouldLetASynchronousOpenFailureCallbackCancelItsOwnStart() throws Exception {
     this.vlc.queueOutcomes(MockVlc.Outcome.REJECTED);
     final AtomicReference<Boolean> released = new AtomicReference<>();
     final AtomicReference<Boolean> restarted = new AtomicReference<>();
@@ -844,7 +844,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void aReleasedPlayerCannotBeStartedOrReleasedAgain() {
+  void shouldNotStartOrReleaseAReleasedPlayerAgain() {
     final boolean released = this.player.release();
     final boolean releasedAgain = this.player.release();
     final boolean started = this.player.start(this.video);
@@ -860,7 +860,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releaseStopsThePlayback() throws InterruptedException {
+  void shouldStopThePlaybackOnRelease() throws InterruptedException {
     this.startSeparate();
     final boolean released = this.player.release();
     assertTrue(released);
@@ -869,7 +869,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void controlsFailWithoutAPlayback() {
+  void shouldControlFailWithoutAPlayback() {
     this.assertControlsFail();
   }
 
@@ -883,7 +883,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void pausesAndResumesEveryPlayer() {
+  void shouldPauseAndResumeEveryPlayer() {
     this.startSeparate();
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -906,7 +906,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void resumesRightAfterPausingAlthoughVlcStillReportsPlaying() {
+  void shouldResumeRightAfterPausingAlthoughVlcStillReportsPlaying() {
     this.startVideo();
     final MockVlc.Player only = this.vlc.player(0);
     final ControlsApi controls = only.getControls();
@@ -919,7 +919,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void pauseFailsWhenVlcIsNotPlaying() {
+  void shouldFailToPauseWhenVlcIsNotPlaying() {
     this.startVideo();
     final MockVlc.Player only = this.vlc.player(0);
     only.fireFinished();
@@ -932,7 +932,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void pausedPlaybackDropsFrames() throws Exception {
+  void shouldDropFramesOfPausedPlayback() throws Exception {
     final BlockingQueue<RecordedFrame> frames = new LinkedBlockingQueue<>();
     VlcTestFrames.record(this.player, frames);
     this.startVideo();
@@ -984,7 +984,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void deliversFramesAndSamplesToThePipelines() throws Exception {
+  void shouldDeliverFramesAndSamplesToThePipelines() throws Exception {
     final BlockingQueue<RecordedFrame> frames = new LinkedBlockingQueue<>();
     final BlockingQueue<Integer> chunkSizes = new LinkedBlockingQueue<>();
     VlcTestFrames.record(this.player, frames);
@@ -1011,7 +1011,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void releaseWaitsForRunningPipelines() throws Exception {
+  void shouldWaitForRunningPipelinesOnRelease() throws Exception {
     final CountDownLatch entered = new CountDownLatch(1);
     final AtomicBoolean finished = new AtomicBoolean();
     this.attachVideoFilter((_, _) -> {
@@ -1037,7 +1037,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void externalReleaseLeavesThePlayerLockAvailableToItsCallback() throws Exception {
+  void shouldLeaveThePlayerLockAvailableToTheCallbackOnAnExternalRelease() throws Exception {
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch escape = new CountDownLatch(1);
     final CountDownLatch finished = new CountDownLatch(1);
@@ -1082,7 +1082,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void aPipelineMayReleaseThePlayer() throws Exception {
+  void shouldLetAPipelineReleaseThePlayer() throws Exception {
     final AtomicReference<Boolean> releasedFromPipeline = new AtomicReference<>();
     final CountDownLatch done = new CountDownLatch(1);
     this.attachVideoFilter((_, _) -> {
@@ -1104,7 +1104,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void seeksEveryPlayer() {
+  void shouldSeekEveryPlayer() {
     this.startSeparate();
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -1131,7 +1131,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @EnumSource(SeekFailure.class)
-  void seekFailsWhenAPlayerCannotSeek(final SeekFailure failure) {
+  void shouldFailToSeekWhenAPlayerCannotSeek(final SeekFailure failure) {
     this.startSeparate();
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -1152,7 +1152,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void seeksWhileVlcIsStillOpeningOrBuffering() {
+  void shouldSeekWhileVlcIsStillOpeningOrBuffering() {
     this.startVideo();
     final MockVlc.Player only = this.vlc.player(0);
     only.setState(State.OPENING);
@@ -1164,7 +1164,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final SharedMediaPlayerFactory shared = this.vlc.getSharedFactory();
     assertThrows(IllegalArgumentException.class, () -> this.player.seek(-1L));
     assertThrows(NullPointerException.class, () -> this.player.start(null));
@@ -1180,7 +1180,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void exposesItsSlotsAndExceptionHandler() {
+  void shouldExposeItsSlotsAndExceptionHandler() {
     final VLCPlayer fresh = this.vlc.newPlayer(1L);
     final BiConsumer<String, Throwable> defaultHandler = fresh.getExceptionHandler();
     final VideoAttachableCallback firstVideo = fresh.getVideoAttachableCallback();
@@ -1200,7 +1200,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void copiesTheMediaOptions() {
+  void shouldCopyTheMediaOptions() {
     final String[] options = { "--first" };
     final VLCPlayer copying = this.vlc.newPlayer(1_000L, options);
     options[0] = "--changed";
@@ -1215,7 +1215,7 @@ final class VLCPlayerTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "pause", "resume", "seek" })
-  void idleControlsAllowReleaseFromAnotherThread(final String operation) throws Exception {
+  void shouldAllowReleaseFromAnotherThreadWithIdleControls(final String operation) throws Exception {
     final boolean controlled = switch (operation) {
       case "pause" -> this.player.pause();
       case "resume" -> this.player.resume();
@@ -1229,7 +1229,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void failedReplacementAllowsANewStartFromAnotherThread() throws Exception {
+  void shouldAllowANewStartFromAnotherThreadAfterAFailedReplacement() throws Exception {
     this.startVideo();
     final MockVlc.Player old = this.vlc.player(0);
     final ControlsApi controls = old.getControls();
@@ -1243,7 +1243,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void failedAcquisitionAllowsReleaseFromAnotherThread() throws Exception {
+  void shouldAllowReleaseFromAnotherThreadAfterAFailedAcquisition() throws Exception {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final UnsatisfiedLinkError failure = new UnsatisfiedLinkError("player API missing");
     when(factory.mediaPlayers()).thenThrow(failure);
@@ -1255,14 +1255,14 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void equalSourcesPreserveAFailedStart() {
+  void shouldPreserveAFailedStartOfEqualSources() {
     this.vlc.queueOutcomes(MockVlc.Outcome.REJECTED);
     final boolean started = this.player.start(this.video, this.video);
     assertFalse(started);
   }
 
   @Test
-  void acceptsAZeroOpenTimeout() {
+  void shouldAcceptAZeroOpenTimeout() {
     final SharedMediaPlayerFactory factory = mock(SharedMediaPlayerFactory.class);
     final VLCPlayer player = new VLCPlayer(factory, 0L);
     try {
@@ -1274,7 +1274,7 @@ final class VLCPlayerTest {
   }
 
   @Test
-  void thePublicConstructorUsesTheSharedInstance() {
+  void shouldUseTheSharedInstanceInThePublicConstructor() {
     final VLCPlayer shared = new VLCPlayer("--x");
     final SharedMediaPlayerFactory factory = shared.getSharedFactory();
     final SharedMediaPlayerFactory instance = SharedMediaPlayerFactory.getInstance();

@@ -52,7 +52,7 @@ import org.mockito.Mockito;
 final class ExampleResourcesTest {
 
   @Test
-  void releasesInReverseAcquisitionOrderExactlyOnce() {
+  void shouldReleaseInReverseAcquisitionOrderExactlyOnce() {
     final List<String> closed = new ArrayList<>();
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add("api"));
@@ -66,7 +66,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void oneCleanupFailureDoesNotPreventOtherResourcesFromClosing() {
+  void shouldCloseOtherResourcesDespiteOneCleanupFailure() {
     final List<String> closed = new ArrayList<>();
     final IllegalStateException first = new IllegalStateException("player");
     final AssertionError second = new AssertionError("speakers");
@@ -91,7 +91,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void cleanupErrorsRetainTheirIdentityAndDoNotSkipTheApi() {
+  void shouldRetainTheIdentityOfCleanupErrorsAndNotSkipTheApi() {
     final List<String> closed = new ArrayList<>();
     final AssertionError failure = new AssertionError("native cleanup");
     final ExampleResources resources = new ExampleResources();
@@ -111,7 +111,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void lateAcquisitionsAreReleasedInsteadOfEscapingAClosedOwner() {
+  void shouldReleaseLateAcquisitionsInsteadOfEscapingAClosedOwner() {
     final List<String> closed = new ArrayList<>();
     final ExampleResources resources = new ExampleResources();
     resources.close();
@@ -122,7 +122,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void concurrentCloseWaitsForTheOwnerAndReentrantCloseDoesNotSelfWait() throws Exception {
+  void shouldWaitForTheOwnerOnAConcurrentCloseAndNotSelfWaitOnAReentrantClose() throws Exception {
     final ExampleResources resources = new ExampleResources();
     final CountDownLatch entered = new CountDownLatch(1);
     final CompletableFuture<Void> resume = new CompletableFuture<>();
@@ -154,7 +154,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void fatalCleanupStopsImmediatelyWithoutBeingReclassified() {
+  void shouldStopImmediatelyOnAFatalCleanupWithoutReclassifyingIt() {
     final List<String> closed = new ArrayList<>();
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic cleanup failure");
     final ExampleResources resources = new ExampleResources();
@@ -169,7 +169,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void fatalWindowCleanupIsNotSuppressedOntoAnOrdinaryConstructionFailure() {
+  void shouldNotSuppressAFatalWindowCleanupOntoAnOrdinaryConstructionFailure() {
     final IllegalStateException primary = new IllegalStateException("window setup");
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic dispose failure");
     try (
@@ -187,7 +187,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void fatalWindowCreationReachesTheWaitingCallerWithoutStrandingIt() throws Exception {
+  void shouldLetAFatalWindowCreationReachTheWaitingCallerWithoutStrandingIt() throws Exception {
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic window failure");
     // the first static and construction mocks of a class instrument it, which takes seconds on a busy machine: done
     // here, outside the waits below, which then measure only the hand-over of the failure
@@ -251,7 +251,7 @@ final class ExampleResourcesTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "ffmpeg", "vlc", "multiplexer" })
-  void everyVideoExampleOwnsTheApiBeforeInstallationCanFail(final String example) {
+  void shouldMakeEveryVideoExampleOwnTheApiBeforeInstallationCanFail(final String example) {
     final MCAVApi api = mock(MCAVApi.class);
     final IllegalStateException failure = new IllegalStateException("install");
     Mockito.doThrow(failure).when(api).install();
@@ -270,7 +270,7 @@ final class ExampleResourcesTest {
   }
 
   @Test
-  void vlcUnavailableFailsBeforeOpeningAWindowOrCreatingAPlayer() {
+  void shouldFailBeforeOpeningAWindowOrCreatingAPlayerWhenVlcIsUnavailable() {
     final MCAVApi api = mock(MCAVApi.class);
     final CompletableFuture<Boolean> unavailable = CompletableFuture.completedFuture(false);
     when(api.whenCapabilityReady(Capability.VLC)).thenReturn(unavailable);

@@ -68,7 +68,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void preparesBothProgramsOnNamedDaemonThreads() throws Exception {
+  void shouldPrepareBothProgramsOnNamedDaemonThreads() throws Exception {
     this.stubCapability(Capability.VLC, true);
     this.stubCapability(Capability.YT_DLP, true);
     final BackgroundInstallation installation = this.createInstallation();
@@ -95,7 +95,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void answersTheOtherCapabilitiesThroughTheLoader() {
+  void shouldAnswerTheOtherCapabilitiesThroughTheLoader() {
     this.stubCapability(Capability.FFMPEG, true);
     this.stubCapability(Capability.FACE_DETECTION, false);
     final BackgroundInstallation installation = this.createInstallation();
@@ -111,7 +111,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void reportsAnUnexpectedFailureOfAStepAndOnlyDisablesItsProgram() throws Exception {
+  void shouldReportAnUnexpectedFailureOfAStepAndOnlyDisablesItsProgram() throws Exception {
     final IllegalStateException failure = new IllegalStateException("broken plugin cache");
     final Stubber failingVlc = Mockito.doThrow(failure);
     final DependencyLoader stubbed = failingVlc.when(this.dependencies);
@@ -132,7 +132,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void endsThePreparationAndLogsAnErrorThatEndsItsThread() throws Exception {
+  void shouldEndThePreparationAndLogAnErrorThatEndsItsThread() throws Exception {
     final OutOfMemoryError error = new OutOfMemoryError("heap is full");
     final Stubber failingYtdlp = Mockito.doThrow(error);
     final DependencyLoader stubbed = failingYtdlp.when(this.dependencies);
@@ -148,7 +148,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void runsCallbacksOutsideOfTheInstallationThreads() throws Exception {
+  void shouldRunCallbacksOutsideOfTheInstallationThreads() throws Exception {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlc(vlcStarted, finishVlc);
@@ -172,7 +172,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void cancellationWaitsForCooperativeCleanupWithinItsBudget() throws Exception {
+  void shouldWaitForCooperativeCleanupWithinItsBudgetOnCancellation() throws Exception {
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch interrupted = new CountDownLatch(1);
     final CountDownLatch finish = new CountDownLatch(1);
@@ -221,7 +221,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void givesUpWaitingForAThreadThatIgnoresTheInterrupt() throws Exception {
+  void shouldGiveUpWaitingForAThreadThatIgnoresTheInterrupt() throws Exception {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlcUninterruptibly(vlcStarted, finishVlc);
@@ -246,7 +246,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void stopsWaitingWhenTheCancellingThreadIsInterrupted() throws Exception {
+  void shouldStopWaitingWhenTheCancellingThreadIsInterrupted() throws Exception {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlcUninterruptibly(vlcStarted, finishVlc);
@@ -267,7 +267,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void cancelledPreparationCannotOverrideANewerSuccessfulPreparation() throws Exception {
+  void shouldNotLetACancelledPreparationOverrideANewerSuccessfulPreparation() throws Exception {
     final CountDownLatch oldStarted = new CountDownLatch(1);
     final CountDownLatch oldFinish = new CountDownLatch(1);
     final CountDownLatch newRecorded = new CountDownLatch(1);
@@ -313,7 +313,7 @@ final class BackgroundInstallationTest {
   }
 
   @Test
-  void cancellingAFinishedInstallationKeepsItsResults() throws Exception {
+  void shouldKeepTheResultsOfAFinishedInstallationWhenCancelling() throws Exception {
     this.stubCapability(Capability.VLC, true);
     this.stubCapability(Capability.YT_DLP, true);
     final BackgroundInstallation installation = this.createInstallation();

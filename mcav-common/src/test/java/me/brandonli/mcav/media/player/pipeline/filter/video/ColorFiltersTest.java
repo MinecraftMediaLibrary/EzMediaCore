@@ -59,7 +59,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void grayscaleMakesAllChannelsEqual() {
+  void shouldMakeAllChannelsEqualWithGrayscale() {
     final int gray = applyToSolid(new GrayscaleFilter(), 0xFF102030);
     final int red = (gray >> 16) & 0xFF;
     final int green = (gray >> 8) & 0xFF;
@@ -70,13 +70,13 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void invertFlipsEveryChannel() {
+  void shouldFlipEveryChannelWhenInverting() {
     final int inverted = applyToSolid(new InvertFilter(), 0xFF102030);
     assertEquals(0xFFEFDFCF, inverted);
   }
 
   @Test
-  void luminanceScalesAndShiftsEveryChannel() {
+  void shouldScaleAndShiftEveryChannelWithLuminance() {
     final int adjusted = applyToSolid(new LuminanceFilter(2.0, 10.0), 0xFF102030);
     assertEquals(0xFF2A4A6A, adjusted);
     assertThrows(IllegalArgumentException.class, () -> new LuminanceFilter(-1.0, 0.0));
@@ -85,7 +85,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void thresholdKeepsOnlyBrightChannels() {
+  void shouldKeepOnlyBrightChannelsWithAThreshold() {
     final ThresholdFilter filter = new ThresholdFilter(127.0, 255.0, opencv_imgproc.THRESH_BINARY);
     final int thresholded = applyToSolid(filter, 0xFF80107F);
     assertEquals(0xFFFF0000, thresholded);
@@ -96,7 +96,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void tintMixesTheColorIn() {
+  void shouldMixTheColorInWhenTinting() {
     final int tinted = applyToSolid(new TintFilter(BLUE, 0.5), 0xFF000000);
     final int red = (tinted >> 16) & 0xFF;
     final int blue = tinted & 0xFF;
@@ -124,7 +124,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void tintRebuildsItsColorOnlyForFramesOfAnotherSizeOrType() throws ReflectiveOperationException {
+  void shouldRebuildTheTintColorOnlyForFramesOfAnotherSizeOrType() throws ReflectiveOperationException {
     final TintFilter filter = new TintFilter(BLUE, 0.5);
     final int first = tintedBlue(filter, 3, 3);
     final Field holderField = TintFilter.class.getDeclaredField("tint");
@@ -153,7 +153,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void acceptsTheBoundaryValuesOfEveryColorFilter() {
+  void shouldAcceptTheBoundaryValuesOfEveryColorFilter() {
     final LuminanceFilter darkest = new LuminanceFilter(0.0, -255.0);
     final LuminanceFilter brightest = new LuminanceFilter(1.0, 255.0);
     final ThresholdFilter lowest = new ThresholdFilter(0.0, 0.0, opencv_imgproc.THRESH_BINARY);
@@ -175,7 +175,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blendAcceptsTheHighestWeight() {
+  void shouldBlendWithTheHighestWeight() {
     try (final ImageBuffer white = Images.solid(3, 3, 0xFFFFFFFF)) {
       final BlendFilter filter = new BlendFilter(white, 1.0);
       final int blended = applyToSolid(filter, 0xFF000000);
@@ -184,7 +184,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void grayscaleReusesItsMatrixAcrossFrameSizes() {
+  void shouldReuseTheGrayscaleMatrixAcrossFrameSizes() {
     final GrayscaleFilter filter = new GrayscaleFilter();
     final int small = applyToSolid(filter, 0xFF102030);
     try (final ImageBuffer large = Images.solid(5, 4, 0xFF102030)) {
@@ -196,7 +196,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void bilateralFiltersBareMatricesInPlace() {
+  void shouldFilterBareMatricesInPlaceWithBilateral() {
     final BilateralFilter filter = new BilateralFilter(5, 50.0, 50.0);
     try (final Mat mat = new Mat(3, 3, opencv_core.CV_8UC3, new Scalar(0x60, 0x50, 0x40, 0.0))) {
       final boolean modified = filter.modifyMat(mat);
@@ -210,7 +210,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void bilateralAveragesANonuniformCrossInTheImageBuffer() {
+  void shouldAverageANonuniformCrossInTheImageBufferWithBilateral() {
     final BilateralFilter filter = new BilateralFilter(3, 1.0e9, 1.0e9);
     try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
       image.setPixel(2, 2, new double[] { 0.0, 0.0, 100.0 });
@@ -226,7 +226,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void bilateralWritesTheSmoothedPixelsBackToABareMatrix() {
+  void shouldWriteTheSmoothedPixelsBackToABareMatrixWithBilateral() {
     final BilateralFilter filter = new BilateralFilter(3, 1.0e9, 1.0e9);
     try (final Scalar black = new Scalar(0.0); final Mat mat = new Mat(5, 5, opencv_core.CV_8UC3, black)) {
       final ByteBuffer original = mat.createBuffer();
@@ -241,7 +241,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void colorMapRecolorsEveryPixelByItsBrightness() {
+  void shouldRecolorEveryPixelByItsBrightnessWithAColorMap() {
     final ColorMapFilter filter = new ColorMapFilter(opencv_imgproc.COLORMAP_JET);
     final int fromGray = applyToSolid(filter, 0xFF1D1D1D);
     final int fromColor = applyToSolid(filter, 0xFF102030);
@@ -252,7 +252,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blendMixesTwoFramesOfTheSameSize() {
+  void shouldBlendTwoFramesOfTheSameSize() {
     try (final ImageBuffer white = Images.solid(3, 3, 0xFFFFFFFF)) {
       final BlendFilter filter = new BlendFilter(white, 0.25);
       final int blended = applyToSolid(filter, 0xFF000000);
@@ -261,7 +261,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blendIgnoresFramesOfAnotherSize() {
+  void shouldNotBlendFramesOfAnotherSize() {
     try (final ImageBuffer other = Images.solid(2, 2, 0xFFFFFFFF); final ImageBuffer image = Images.solid(3, 3, 0xFF000000)) {
       final BlendFilter filter = new BlendFilter(other, 0.5);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
@@ -283,7 +283,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blendAcceptsImagesThatAreNotBackedByAMat() {
+  void shouldBlendImagesThatAreNotBackedByAMat() {
     final ImageBuffer other = mock(ImageBuffer.class);
     when(other.getWidth()).thenReturn(3);
     when(other.getHeight()).thenReturn(3);
@@ -307,7 +307,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void bilateralKeepsFlatAreasFlat() {
+  void shouldKeepFlatAreasFlatWithBilateral() {
     final int filtered = applyToSolid(new BilateralFilter(5, 50.0, 50.0), 0xFF405060);
     assertEquals(0xFF405060, filtered);
     assertThrows(IllegalArgumentException.class, () -> new BilateralFilter(0, 1.0, 1.0));
@@ -316,7 +316,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void everySmoothingBlurSpreadsASinglePixelToItsNeighbors() {
+  void shouldSpreadASinglePixelToItsNeighborsWithEverySmoothingBlur() {
     final BlurFilter.BlurType[] smoothing = { BlurFilter.BlurType.NORMAL, BlurFilter.BlurType.GAUSSIAN, BlurFilter.BlurType.STACK };
     for (final BlurFilter.BlurType type : smoothing) {
       try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
@@ -335,7 +335,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void medianBlurRemovesASinglePixel() {
+  void shouldRemoveASinglePixelWithAMedianBlur() {
     try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
       image.setPixel(2, 2, new double[] { 255.0, 255.0, 255.0 });
       final BlurFilter filter = new BlurFilter(BlurFilter.BlurType.MEDIAN, 3);
@@ -349,7 +349,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blurRejectsInvalidKernels() {
+  void shouldRejectInvalidBlurKernels() {
     final BlurFilter simple = new BlurFilter(BlurFilter.BlurType.NORMAL, 3);
     final int blurred = applyToSolid(simple, 0xFF102030);
     assertEquals(0xFF102030, blurred);
@@ -366,7 +366,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void dilationGrowsBrightAreas() {
+  void shouldGrowBrightAreasWithDilation() {
     try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
       image.setPixel(2, 2, new double[] { 255.0, 255.0, 255.0 });
       final DilationFilter filter = new DilationFilter(3);
@@ -381,7 +381,7 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void erosionGrowsDarkAreas() {
+  void shouldGrowDarkAreasWithErosion() {
     try (final ImageBuffer image = Images.solid(5, 5, 0xFFFFFFFF)) {
       image.setPixel(2, 2, new double[] { 0.0, 0.0, 0.0 });
       final ErosionFilter filter = new ErosionFilter(3);

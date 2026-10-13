@@ -81,7 +81,7 @@ final class PlaybackSessionTerminalTest {
 
   @Test
   @Timeout(15)
-  void terminalMarkerSurvivesAnActualOfferTimeoutAndInterruptWhileTheQueueIsFull() throws Exception {
+  void shouldKeepTheTerminalMarkerThroughAnActualOfferTimeoutAndInterruptWhileTheQueueIsFull() throws Exception {
     final PlaybackSession session = session();
     final ObservedQueue queue = new ObservedQueue();
     queue.add("last decoded frame");

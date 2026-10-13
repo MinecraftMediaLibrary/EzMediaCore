@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 final class InstallerTest {
 
   @Test
-  void findsNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
+  void shouldFindNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
     final Installer installer = new Installer() {
       @Override
       public Path download(final boolean executable) {

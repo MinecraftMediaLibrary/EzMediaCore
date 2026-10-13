@@ -58,7 +58,7 @@ final class DirectAudioOutputTest {
   private static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of("pcm", -1, 48_000, 2, -1);
 
   @Test
-  void writesNothingBeforeItIsStarted() {
+  void shouldWriteNothingBeforeItIsStarted() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     final ByteBuffer samples = ByteBuffer.allocate(4);
@@ -68,7 +68,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void opensTheLineOnceAndWritesTheRemainingSamples() {
+  void shouldOpenTheLineOnceAndWriteTheRemainingSamples() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final AtomicInteger opened = new AtomicInteger();
     final DirectAudioOutput output = new DirectAudioOutput((format, bufferSize) -> {
@@ -97,7 +97,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void releasesTheLineOnce() {
+  void shouldReleaseTheLineOnce() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     output.release();
@@ -111,7 +111,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void closesAnAcquiredLineWhenStartingItFails() {
+  void shouldCloseAnAcquiredLineWhenStartingItFails() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final IllegalStateException failure = new IllegalStateException("start failed");
     doThrow(failure).when(line).start();
@@ -124,7 +124,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void preservesStartFailureWhenClosingTheLineAlsoFails() {
+  void shouldPreserveStartFailureWhenClosingTheLineAlsoFails() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final IllegalArgumentException failure = new IllegalArgumentException("start failed");
     final AssertionError cleanup = new AssertionError("close failed");
@@ -140,7 +140,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void attemptsEveryReleaseStageAndPreservesTheFirstFailure() {
+  void shouldAttemptEveryReleaseStageAndPreserveTheFirstFailure() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final IllegalStateException failure = new IllegalStateException("stop failed");
     final AssertionError flush = new AssertionError("flush failed");
@@ -163,7 +163,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void rethrowsAnOrdinaryErrorAfterClosingTheLineWithoutSelfSuppression() {
+  void shouldRethrowAnOrdinaryErrorAfterClosingTheLineWithoutSelfSuppression() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final AssertionError failure = new AssertionError("shared failure");
     doThrow(failure).when(line).flush();
@@ -178,7 +178,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void propagatesFatalStartFailuresImmediately() {
+  void shouldPropagateFatalStartFailuresImmediately() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final InternalError failure = new InternalError("fatal start");
     doThrow(failure).when(line).start();
@@ -189,7 +189,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void propagatesFatalCleanupAfterAStartFailure() {
+  void shouldPropagateFatalCleanupAfterAStartFailure() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final IllegalStateException failure = new IllegalStateException("start failed");
     final InternalError fatal = new InternalError("fatal close");
@@ -201,7 +201,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void propagatesFatalReleaseFailuresImmediately() {
+  void shouldPropagateFatalReleaseFailuresImmediately() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final InternalError fatal = new InternalError("fatal stop");
     doThrow(fatal).when(line).stop();
@@ -214,7 +214,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void reportsLinesThatCannotBeOpened() {
+  void shouldReportLinesThatCannotBeOpened() {
     final DirectAudioOutput unavailable = new DirectAudioOutput((_, _) -> {
       throw new LineUnavailableException("busy");
     });
@@ -230,7 +230,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void opensTheDefaultLineBeforeStartingIt() throws Exception {
+  void shouldOpenTheDefaultLineBeforeStartingIt() throws Exception {
     final SourceDataLine line = mock(SourceDataLine.class);
     try (final MockedStatic<AudioSystem> system = mockStatic(AudioSystem.class)) {
       system.when(() -> AudioSystem.getLine(ArgumentMatchers.any(DataLine.Info.class))).thenReturn(line);
@@ -247,10 +247,10 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void usesTheDefaultAudioDeviceWhenOneExists() {
+  void shouldUseTheDefaultAudioDeviceWhenOneExists() {
     final DataLine.Info info = new DataLine.Info(SourceDataLine.class, DirectAudioOutput.FORMAT);
     final boolean hasDevice = AudioSystem.isLineSupported(info);
-    Assumptions.assumeTrue(hasDevice, "this machine has no sound device, see reportsLinesThatCannotBeOpened for that case");
+    Assumptions.assumeTrue(hasDevice, "this machine has no sound device, see shouldReportLinesThatCannotBeOpened for that case");
     final DirectAudioOutput output = new DirectAudioOutput();
     try {
       output.start();
@@ -263,14 +263,14 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> mock(SourceDataLine.class));
     assertThrows(NullPointerException.class, () -> output.applyFilter(null, METADATA));
     assertThrows(NullPointerException.class, () -> new DirectAudioOutput(null));
   }
 
   @Test
-  void reusesOneArrayForEveryChunk() {
+  void shouldReuseOneArrayForEveryChunk() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
     output.start();
@@ -292,7 +292,7 @@ final class DirectAudioOutputTest {
   }
 
   @Test
-  void noOpFilterLeavesTheSamplesUntouched() {
+  void shouldLeaveTheSamplesUntouchedWithANoOpFilter() {
     final byte[] original = { 4, 7, 9, 12 };
     final ByteBuffer samples = ByteBuffer.wrap(original.clone());
     samples.position(1).limit(3).mark();

@@ -72,7 +72,7 @@ final class FaceDetectionFilterTest {
   }
 
   @Test
-  void marksDetectionsWithRectangles() throws IOException {
+  void shouldMarkDetectionsWithRectangles() throws IOException {
     final Path cascade = this.copyCascade("accept-everything.xml");
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascade, RED);
     try (final ImageBuffer image = Images.noise(96, 96, 42L)) {
@@ -112,7 +112,7 @@ final class FaceDetectionFilterTest {
   }
 
   @Test
-  void reportsFramesWithoutDetections() throws IOException {
+  void shouldReportFramesWithoutDetections() throws IOException {
     final Path cascade = this.copyCascade("reject-everything.xml");
     final String cascadePath = cascade.toString();
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascadePath, RED);
@@ -128,7 +128,7 @@ final class FaceDetectionFilterTest {
   }
 
   @Test
-  void rejectsAndClosesAClassifierWhoseLoadReturnedFalse() {
+  void shouldRejectAndCloseAClassifierWhoseLoadReturnedFalse() {
     final Path path = this.directory.resolve("rejected.xml");
     try (final CascadeClassifier classifier = new CascadeClassifier()) {
       assertThrows(IllegalArgumentException.class, () -> FaceDetectionFilter.loadClassifier(path, _ -> classifier));
@@ -138,7 +138,7 @@ final class FaceDetectionFilterTest {
   }
 
   @Test
-  void rejectsCascadesThatCannotBeLoaded() throws IOException {
+  void shouldRejectCascadesThatCannotBeLoaded() throws IOException {
     final Path missing = this.directory.resolve("missing.xml");
     final Path unparsable = this.directory.resolve("unparsable.xml");
     final Path withoutCascade = this.directory.resolve("without-cascade.xml");

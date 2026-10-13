@@ -30,7 +30,7 @@ final class VideoTimestampsTest {
   private final AtomicLong nanos = new AtomicLong(1_000_000_000L);
 
   @Test
-  void keepsTimestampsThatComeAfterThePreviousFrame() {
+  void shouldKeepTimestampsThatComeAfterThePreviousFrame() {
     final VideoTimestamps timestamps = new VideoTimestamps(30.0, false, this.nanos::get);
     final long first = timestamps.next(5_000L);
     final long second = timestamps.next(38_333L);
@@ -41,7 +41,7 @@ final class VideoTimestampsTest {
   }
 
   @Test
-  void advancesMediaOfAKnownLengthByOneFramePeriod() {
+  void shouldAdvanceMediaOfAKnownLengthByOneFramePeriod() {
     final VideoTimestamps timestamps = new VideoTimestamps(25.0, false, this.nanos::get);
     final long first = timestamps.next(0L);
     final long second = timestamps.next(0L);
@@ -54,7 +54,7 @@ final class VideoTimestampsTest {
   }
 
   @Test
-  void usesTheArrivalTimeOfLiveFramesAndOfMediaWithoutAFrameRate() {
+  void shouldUseTheArrivalTimeOfLiveFramesAndOfMediaWithoutAFrameRate() {
     final VideoTimestamps live = new VideoTimestamps(30.0, true, this.nanos::get);
     final VideoTimestamps noRate = new VideoTimestamps(0.0, false, this.nanos::get);
     final VideoTimestamps infiniteRate = new VideoTimestamps(Double.POSITIVE_INFINITY, false, this.nanos::get);

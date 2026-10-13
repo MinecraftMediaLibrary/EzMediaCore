@@ -86,7 +86,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void trimsAtEveryIntervalOnADaemonUntilClosed() throws InterruptedException {
+  void shouldTrimAtEveryIntervalOnADaemonUntilClosed() throws InterruptedException {
     final CountDownLatch trims = new CountDownLatch(3);
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, trims::countDown, () -> {});
     trimmer.start();
@@ -104,7 +104,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aFailedTrimIsLoggedAndTrimmingGoesOn() throws InterruptedException {
+  void shouldLogAFailedTrimAndGoOnTrimming() throws InterruptedException {
     final AtomicInteger attempts = new AtomicInteger();
     final CountDownLatch trims = new CountDownLatch(1);
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
@@ -136,7 +136,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void trimsOnlyOnLinuxInAJvmThatDoesNotTrimItselfAtAPositiveInterval() {
+  void shouldTrimOnlyOnLinuxInAJvmThatDoesNotTrimItselfAtAPositiveInterval() {
     final Runnable nothing = () -> {};
     final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(OS.LINUX, 0L, 60L, nothing, nothing);
     trimming.start();
@@ -155,7 +155,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void fixesTheThresholdOnceWhenTrimmingStarts() {
+  void shouldFixTheThresholdOnceWhenTrimmingStarts() {
     final Runnable nothing = () -> {};
     final AtomicInteger fixes = new AtomicInteger();
     final Runnable fix = fixes::incrementAndGet;
@@ -181,7 +181,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aFailedThresholdIsLoggedAndTrimmingStillStarts() {
+  void shouldLogAFailedThresholdAndStillStartTrimming() {
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
       SHORT,
       () -> {},
@@ -208,27 +208,27 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void glibcTakesTheThreshold() {
+  void shouldGiveGlibcTheThreshold() {
     final SymbolLookup library = Linker.nativeLinker().defaultLookup();
     final boolean glibc = OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent();
     assertEquals(glibc, NativeHeapTrimmer.fixGlibcTrimThreshold());
   }
 
   @Test
-  void aCLibraryOtherThanGlibcKeepsItsThreshold() {
+  void shouldKeepTheThresholdOfACLibraryOtherThanGlibc() {
     final SymbolLookup musl = name -> name.equals("mallopt") ? Optional.of(MemorySegment.NULL) : Optional.empty();
     assertFalse(NativeHeapTrimmer.fixGlibcTrimThreshold(musl), "musl has a mallopt that ignores every parameter");
     assertFalse(NativeHeapTrimmer.fixGlibcTrimThreshold(_ -> Optional.empty()));
   }
 
   @Test
-  void aThresholdThatMalloptRefusesIsReported() {
+  void shouldReportAThresholdThatMalloptRefuses() {
     final MethodHandle refusing = MethodHandles.dropArguments(MethodHandles.constant(int.class, 0), 0, int.class, int.class);
     assertFalse(NativeHeapTrimmer.setTrimThreshold(refusing));
   }
 
   @Test
-  void aThresholdThatGlibcRefusesIsReported() throws ReflectiveOperationException {
+  void shouldReportAThresholdThatGlibcRefuses() throws ReflectiveOperationException {
     final List<List<Integer>> calls = new ArrayList<>();
     final boolean taken;
     final boolean refused;
@@ -244,7 +244,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void theCLibraryOfThisJvmAnswersForTheThreshold() {
+  void shouldAskTheCLibraryOfThisJvmForTheThreshold() {
     final List<SymbolLookup> asked = new ArrayList<>();
     final boolean fixed;
     try (final MockedStatic<NativeHeapTrimmer> trimmer = mockStatic(NativeHeapTrimmer.class, CALLS_REAL_METHODS)) {
@@ -281,7 +281,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aMalloptThatCannotBeCalledIsAnIllegalState() {
+  void shouldTreatAMalloptThatCannotBeCalledAsAnIllegalState() {
     final IllegalCallerException refused = new IllegalCallerException("native access is not enabled");
     final MethodHandle mallopt = malloptThatThrows(refused);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt));
@@ -290,7 +290,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aVirtualMachineErrorOfMalloptGoesOnAsItIs() {
+  void shouldPropagateAVirtualMachineErrorOfMalloptAsItIs() {
     final OutOfMemoryError exhausted = new OutOfMemoryError("no memory for the call");
     final MethodHandle mallopt = malloptThatThrows(exhausted);
     assertSame(exhausted, assertThrows(OutOfMemoryError.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt)));
@@ -309,14 +309,14 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void closingWithoutTrimmingIsHarmless() {
+  void shouldCloseWithoutTrimmingHarmlessly() {
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, () -> {}, () -> {});
     trimmer.close();
     assertFalse(trimmer.isTrimming());
   }
 
   @Test
-  void anInterruptedCloseKeepsTheInterruptOfItsCaller() throws InterruptedException {
+  void shouldKeepTheInterruptOfTheCallerOfAnInterruptedClose() throws InterruptedException {
     final CountDownLatch trimStarted = new CountDownLatch(1);
     final Semaphore trimRelease = new Semaphore(0);
     final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
@@ -352,7 +352,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void followsTheIntervalOfTheSystemProperty() {
+  void shouldFollowTheIntervalOfTheSystemProperty() {
     final boolean linux = OSUtils.getOS() == OS.LINUX;
     final String previous = System.getProperty(NativeHeapTrimmer.INTERVAL_PROPERTY);
     try {
@@ -375,7 +375,7 @@ final class NativeHeapTrimmerTest {
 
   @Test
   @SuppressWarnings("restricted")
-  void theTopOfAThreadArenaGoesBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
+  void shouldGiveTheTopOfAThreadArenaBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
     final Linker linker = Linker.nativeLinker();
     final SymbolLookup library = linker.defaultLookup();
     assumeTrue(OSUtils.getOS() == OS.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas");
@@ -433,12 +433,12 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void readsTheIntervalOfTheJvmsOwnTrims() {
+  void shouldReadTheIntervalOfTheJvmsOwnTrims() {
     assertEquals(0L, NativeHeapTrimmer.readJvmIntervalMillis(), "the JVM of the tests does not trim itself");
   }
 
   @Test
-  void aJvmThatTrimsItselfIsLeftToItsOwnTrims() {
+  void shouldLeaveAJvmThatTrimsItselfToItsOwnTrims() {
     final HotSpotDiagnosticMXBean trimmingItself = mock(HotSpotDiagnosticMXBean.class);
     final VMOption option = new VMOption("TrimNativeHeapInterval", "5000", true, VMOption.Origin.VM_CREATION);
     when(trimmingItself.getVMOption("TrimNativeHeapInterval")).thenReturn(option);
@@ -455,7 +455,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aJvmOtherThanHotSpotIsNotTrimmed() {
+  void shouldNotTrimAJvmOtherThanHotSpot() {
     final HotSpotDiagnosticMXBean withoutTheOption = mock(HotSpotDiagnosticMXBean.class);
     final IllegalArgumentException noOption = new IllegalArgumentException("VM option \"TrimNativeHeapInterval\" does not exist");
     when(withoutTheOption.getVMOption(any())).thenThrow(noOption);
@@ -471,7 +471,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void trimsWithTheCommandOfTheJdk() {
+  void shouldTrimWithTheCommandOfTheJdk() {
     final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
     final String answer = NativeHeapTrimmer.trimWithJdk(server);
     final String ownAnswer = NativeHeapTrimmer.trimThisJvm();
@@ -482,7 +482,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void aCommandThatCannotRunFailsWithItsCause() throws Exception {
+  void shouldFailACommandThatCannotRunWithItsCause() throws Exception {
     final MBeanServer server = mock(MBeanServer.class);
     final InstanceNotFoundException missing = new InstanceNotFoundException("no diagnostic commands");
     when(server.invoke(any(ObjectName.class), any(), any(), any())).thenThrow(missing);

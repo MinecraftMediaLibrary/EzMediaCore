@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 final class FPSFilterTest {
 
   @Test
-  void defaultConstructorUsesTheMonotonicNanosecondClock() throws ReflectiveOperationException {
+  void shouldUseTheMonotonicNanosecondClockInTheDefaultConstructor() throws ReflectiveOperationException {
     final long before = System.nanoTime();
     final FPSFilter filter = new FPSFilter();
     final Field clockField = FPSFilter.class.getDeclaredField("clock");
@@ -48,7 +48,7 @@ final class FPSFilterTest {
   }
 
   @Test
-  void updatesAtOneSecondAndDividesByTheActualElapsedTime() {
+  void shouldUpdateAtOneSecondAndDivideByTheActualElapsedTime() {
     final AtomicLong clock = new AtomicLong(0L);
     final FPSFilter filter = new FPSFilter(clock::get);
     clock.set(999_999_999L);

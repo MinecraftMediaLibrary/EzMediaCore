@@ -55,7 +55,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void describesTheAnimation() {
+  void shouldDescribeTheAnimation() {
     final ImageBuffer first = frame(1);
     final List<ImageBuffer> frames = List.of(first);
     final DynamicImageBuffer animation = animation(frames);
@@ -71,7 +71,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void playsTheFramesTheRequestedNumberOfTimesThenHoldsTheLastFrame() {
+  void shouldPlayTheFramesTheRequestedNumberOfTimesThenHoldTheLastFrame() {
     final ImageBuffer first = frame(1);
     final ImageBuffer second = frame(2);
     final List<ImageBuffer> frames = List.of(first, second);
@@ -86,7 +86,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void loopsForeverWithoutARepeatCount() {
+  void shouldLoopForeverWithoutARepeatCount() {
     final ImageBuffer first = frame(1);
     final ImageBuffer second = frame(2);
     final List<ImageBuffer> frames = List.of(first, second);
@@ -103,7 +103,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void handsOutTheCachedPixelsOfTheFramesWithoutCopying() {
+  void shouldHandOutTheCachedPixelsOfTheFramesWithoutCopying() {
     final ImageBuffer only = frame(1);
     final List<ImageBuffer> frames = List.of(only);
     final DynamicImageBuffer animation = animation(frames);
@@ -119,7 +119,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final ImageBuffer first = frame(1);
     final List<ImageBuffer> frames = List.of(first);
     final List<ImageBuffer> noFrames = List.of();

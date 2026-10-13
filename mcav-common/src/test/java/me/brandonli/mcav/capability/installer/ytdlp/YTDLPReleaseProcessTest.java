@@ -41,7 +41,7 @@ import org.opentest4j.AssertionFailedError;
 final class YTDLPReleaseProcessTest {
 
   @Test
-  void readsOutputIndependentlyOfTheDeadlineWaiter() throws Exception {
+  void shouldReadOutputIndependentlyOfTheDeadlineWaiter() throws Exception {
     final Thread caller = Thread.currentThread();
     final Process process = mock(Process.class);
     when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
@@ -66,7 +66,7 @@ final class YTDLPReleaseProcessTest {
   }
 
   @Test
-  void timesOutAndReapsAChildThatKeepsStdoutOpen() throws Exception {
+  void shouldTimeOutAndReapAChildThatKeepsStdoutOpen() throws Exception {
     final Process process = startChild("wait");
     try {
       assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
@@ -83,7 +83,7 @@ final class YTDLPReleaseProcessTest {
   }
 
   @Test
-  void returnsTheCompleteVersionOutput() throws Exception {
+  void shouldReturnTheCompleteVersionOutput() throws Exception {
     final Process process = startChild("version");
     try {
       assertEquals("2026.08.19", YTDLPReleaseTest.runVersion(process, Duration.ofSeconds(10)));
@@ -95,7 +95,7 @@ final class YTDLPReleaseProcessTest {
   }
 
   @Test
-  void boundsTheForcedExitWaitAfterTheVersionDeadline() throws Exception {
+  void shouldBoundTheForcedExitWaitAfterTheVersionDeadline() throws Exception {
     final Process process = mock(Process.class);
     when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
@@ -109,7 +109,7 @@ final class YTDLPReleaseProcessTest {
   }
 
   @Test
-  void closesTheOutputStreamOnTheDrainThread() throws Exception {
+  void shouldCloseTheOutputStreamOnTheDrainThread() throws Exception {
     final Thread caller = Thread.currentThread();
     final AtomicReference<Thread> closer = new AtomicReference<>();
     final Process process = mock(Process.class);

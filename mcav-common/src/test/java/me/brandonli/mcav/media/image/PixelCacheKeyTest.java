@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class PixelCacheKeyTest {
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final PixelCacheKey key = new PixelCacheKey(0x1000L, 4, 2);
     final PixelCacheKey equalKey = new PixelCacheKey(0x1000L, 4, 2);
     final PixelCacheKey otherAddress = new PixelCacheKey(0x2000L, 4, 2);
@@ -38,7 +38,7 @@ final class PixelCacheKeyTest {
   }
 
   @Test
-  void exposesTheShape() {
+  void shouldExposeTheShape() {
     final PixelCacheKey key = new PixelCacheKey(0xABCL, 16, 9);
     final int width = key.getWidth();
     final int height = key.getHeight();

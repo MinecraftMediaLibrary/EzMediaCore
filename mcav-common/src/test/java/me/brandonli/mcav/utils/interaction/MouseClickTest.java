@@ -29,7 +29,7 @@ final class MouseClickTest {
 
   @ParameterizedTest
   @CsvSource({ "LEFT, 0", "RIGHT, 1", "DOUBLE, 2", "HOLD, 3", "RELEASE, 4" })
-  void hasAStableIdentifier(final MouseClick click, final int expectedId) {
+  void shouldHaveAStableIdentifier(final MouseClick click, final int expectedId) {
     final int id = click.getId();
     assertEquals(expectedId, id);
   }

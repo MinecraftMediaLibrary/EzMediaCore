@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class PointTest {
 
   @Test
-  void storesCoordinates() {
+  void shouldStoreCoordinates() {
     final Point point = Point.point(1.5, -2.25);
     final double xCoordinate = point.getX();
     final double yCoordinate = point.getY();
@@ -37,7 +37,7 @@ final class PointTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Point point = Point.point(1.0, 2.0);
     final Point equalPoint = Point.point(1.0, 2.0);
     final Point otherX = Point.point(3.0, 2.0);
@@ -46,14 +46,14 @@ final class PointTest {
   }
 
   @Test
-  void treatsNotANumberAsEqualToItself() {
+  void shouldTreatNotANumberAsEqualToItself() {
     final Point point = Point.point(Double.NaN, 0.0);
     final Point equalPoint = Point.point(Double.NaN, 0.0);
     EqualityAssertions.assertEqualityContract(point, equalPoint);
   }
 
   @Test
-  void rendersBothCoordinates() {
+  void shouldRenderBothCoordinates() {
     final Point point = Point.point(0.5, 4.0);
     final String text = point.toString();
     assertEquals("Point[0.5, 4.0]", text);

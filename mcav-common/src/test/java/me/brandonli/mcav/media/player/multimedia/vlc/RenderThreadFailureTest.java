@@ -34,7 +34,7 @@ final class RenderThreadFailureTest {
 
   @ParameterizedTest
   @ValueSource(ints = { 0, 1, 2, 3 })
-  void everyAbnormalExitStopsAcceptingWorkBeforeCleanup(final int failureSite) throws Exception {
+  void shouldStopAcceptingWorkBeforeCleanupOnEveryAbnormalExit(final int failureSite) throws Exception {
     final AssertionError failure = new AssertionError("render failure");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Thread> worker = new AtomicReference<>();

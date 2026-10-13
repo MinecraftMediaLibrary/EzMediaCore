@@ -62,7 +62,7 @@ final class YTDLPReleaseTest {
   }
 
   @Test
-  void bundledHashesMatchTheChecksumsPublishedWithTheRelease() throws IOException, InterruptedException {
+  void shouldBundleHashesThatMatchTheChecksumsPublishedWithTheRelease() throws IOException, InterruptedException {
     final Map<String, String> published = downloadChecksums();
     final Download[] downloads = IOUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
     for (final Download download : downloads) {
@@ -110,7 +110,7 @@ final class YTDLPReleaseTest {
   }
 
   @Test
-  void installsTheBuildOfThisMachineAndRunsIt(@TempDir final Path folder) throws IOException, InterruptedException {
+  void shouldInstallTheBuildOfThisMachineAndRunIt(@TempDir final Path folder) throws IOException, InterruptedException {
     final YTDLPInstaller installer = YTDLPInstaller.create(folder);
     final boolean supported = installer.isSupported();
     Assumptions.assumeTrue(supported, "yt-dlp has no build for this platform");

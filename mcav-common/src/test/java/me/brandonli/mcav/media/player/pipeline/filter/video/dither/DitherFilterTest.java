@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 final class DitherFilterTest {
 
   @Test
-  void handsEveryFrameToTheResultStep() {
+  void shouldHandEveryFrameToTheResultStep() {
     final DitherAlgorithm algorithm = mock(DitherAlgorithm.class);
     final DitherResultStep result = mock(DitherResultStep.class);
     final ImageBuffer image = mock(ImageBuffer.class);
@@ -57,7 +57,7 @@ final class DitherFilterTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final DitherAlgorithm algorithm = mock(DitherAlgorithm.class);
     final DitherResultStep result = mock(DitherResultStep.class);
     final FunctionalVideoFilter filter = DitherFilter.dither(algorithm, result);
@@ -67,7 +67,7 @@ final class DitherFilterTest {
   }
 
   @Test
-  void algorithmsDefaultToTheMapPalette() {
+  void shouldDefaultAlgorithmsToTheMapPalette() {
     final DefaultPaletteAlgorithm algorithm = new DefaultPaletteAlgorithm();
     final DitherPalette palette = algorithm.getPalette();
     assertSame(DitherPalette.DEFAULT_MAP_PALETTE, palette);

@@ -52,7 +52,7 @@ final class BufferedImageConversionFuzzTest {
   private static final int MAX_SIDE = 48;
 
   @FuzzTest(maxDuration = "30s")
-  void everyPixelIsTheColorTheImageReports(final FuzzedDataProvider data) {
+  void shouldMakeEveryPixelTheColorTheImageReports(final FuzzedDataProvider data) {
     final int type = data.pickValue(TYPES);
     final int width = data.consumeInt(1, MAX_SIDE);
     final int height = data.consumeInt(1, MAX_SIDE);

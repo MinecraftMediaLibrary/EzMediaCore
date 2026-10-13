@@ -73,7 +73,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void looksUpThePublicAddressAndIgnoresSurroundingWhitespace() {
+  void shouldLookUpThePublicAddressAndIgnoreSurroundingWhitespace() {
     final byte[] ipv4Body = " 203.0.113.7\n".getBytes(StandardCharsets.US_ASCII);
     final byte[] ipv6Body = "2001:db8::1".getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/ipv4", 200, ipv4Body);
@@ -93,7 +93,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void looksUpThePublicAddressWithTheDefaultService() {
+  void shouldLookUpThePublicAddressWithTheDefaultService() {
     final URI expectedService = URI.create("https://ipv4.icanhazip.com/");
     final Optional<String> answer = Optional.of("198.51.100.4");
     try (final MockedStatic<NetworkUtils> networkUtils = Mockito.mockStatic(NetworkUtils.class, Mockito.CALLS_REAL_METHODS)) {
@@ -107,7 +107,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void reportsLookupsThatFail() throws IOException {
+  void shouldReportLookupsThatFail() throws IOException {
     final byte[] address = "203.0.113.7".getBytes(StandardCharsets.US_ASCII);
     final byte[] garbage = "<html>not an address</html>".getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/error", 500, address);
@@ -127,7 +127,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void givesUpOnAnAnswerThatDoesNotEndWithinTheTimeout() {
+  void shouldGiveUpOnAnAnswerThatDoesNotEndWithinTheTimeout() {
     this.http.respondStalling("/ip", 200, "203.0".getBytes(StandardCharsets.US_ASCII), 11);
     final URI service = this.http.uri("/ip");
     final Optional<String> address = assertTimeoutPreemptively(Duration.ofSeconds(9), () -> NetworkUtils.lookUpPublicAddress(service));
@@ -135,7 +135,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void readsNoAnswerLongerThanAnyAddress() {
+  void shouldReadNoAnswerLongerThanAnyAddress() {
     final byte[] padded = (" ".repeat(300) + "203.0.113.7").getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/padded", 200, padded);
     final Optional<String> address = NetworkUtils.lookUpPublicAddress(this.http.uri("/padded"));
@@ -143,7 +143,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void rejectsAddressServicesThatAreNotHttpUris() {
+  void shouldRejectAddressServicesThatAreNotHttpUris() {
     final URI ftp = URI.create("ftp://127.0.0.1/ip");
     final URI relative = URI.create("relative/ip");
     final URI withoutHost = URI.create("http:///ip");
@@ -154,7 +154,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void keepsTheInterruptFlagWhenInterruptedDuringTheLookup() {
+  void shouldKeepTheInterruptFlagWhenInterruptedDuringTheLookup() {
     final byte[] address = "203.0.113.7".getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/ip", 200, address);
     final URI service = this.http.uri("/ip");
@@ -168,7 +168,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void acceptsUrlsThatAnswerWithStatus200() {
+  void shouldAcceptUrlsThatAnswerWithStatus200() {
     this.http.respond("/pack.zip", 200, new byte[] { 1, 2, 3 });
     final URI pack = this.http.uri("/pack.zip");
     final URI missing = this.http.uri("/missing.zip");
@@ -181,7 +181,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void followsRedirects() throws IOException {
+  void shouldFollowRedirects() throws IOException {
     final InetAddress loopback = InetAddress.getLoopbackAddress();
     final InetSocketAddress socketAddress = new InetSocketAddress(loopback, 0);
     final HttpServer redirecting = HttpServer.create(socketAddress, 0);
@@ -212,7 +212,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void rejectsUrlsThatAreNotReachableHttpResources() throws IOException {
+  void shouldRejectUrlsThatAreNotReachableHttpResources() throws IOException {
     final URI ftp = URI.create("ftp://127.0.0.1/pack.zip");
     final URI relative = URI.create("relative/pack.zip");
     final URI withoutHost = URI.create("http:///pack.zip");
@@ -229,7 +229,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void acceptsSchemesInAnyCase() {
+  void shouldAcceptSchemesInAnyCase() {
     this.http.respond("/pack.zip", 200, new byte[] { 1 });
     final URI pack = this.http.uri("/pack.zip");
     final String lowerCase = pack.toString();
@@ -240,7 +240,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void keepsTheInterruptFlagWhenInterruptedDuringTheCheck() {
+  void shouldKeepTheInterruptFlagWhenInterruptedDuringTheCheck() {
     this.http.respond("/pack.zip", 200, new byte[] { 1 });
     final URI pack = this.http.uri("/pack.zip");
     final Thread currentThread = Thread.currentThread();
@@ -252,7 +252,7 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void attemptsHttpsUrls() throws Exception {
+  void shouldAttemptHttpsUrls() throws Exception {
     try (final ServerSocket listener = new ServerSocket(0)) {
       listener.setSoTimeout(10_000);
       final int port = listener.getLocalPort();
@@ -274,12 +274,12 @@ final class NetworkUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(NetworkUtils.class);
   }
 
   @Test
-  void bracketsIpv6AddressesForTheHostPartOfAUrl() {
+  void shouldBracketIpv6AddressesForTheHostPartOfAUrl() {
     final String loopback = NetworkUtils.formatHostForUrl("::1");
     final String full = NetworkUtils.formatHostForUrl("2001:db8::1");
     final String scoped = NetworkUtils.formatHostForUrl("fe80::1%eth0");

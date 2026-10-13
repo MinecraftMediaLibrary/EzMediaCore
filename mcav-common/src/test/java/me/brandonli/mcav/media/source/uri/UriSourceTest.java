@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 final class UriSourceTest {
 
   @Test
-  void describesTheUri() {
+  void shouldDescribeTheUri() {
     final URI uri = URI.create("https://example.com/clip.mp4");
     final UriSource source = UriSource.uri(uri);
     final URI storedUri = source.getUri();
@@ -49,7 +49,7 @@ final class UriSourceTest {
   }
 
   @Test
-  void knowsWhetherTheUriPointsAtAMediaFile() {
+  void shouldKnowWhetherTheUriPointsAtAMediaFile() {
     final URI file = URI.create("https://example.com/live/stream.m3u8");
     final URI page = URI.create("https://www.youtube.com/watch?v=abc");
     final UriSource fileSource = UriSource.uri(file);
@@ -61,7 +61,7 @@ final class UriSourceTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final URI uri = URI.create("https://example.com/a.mp4");
     final URI otherUri = URI.create("https://example.com/b.mp4");
     final UriSource source = UriSource.uri(uri);
@@ -71,7 +71,7 @@ final class UriSourceTest {
   }
 
   @Test
-  void detectsUrisWithSchemeAndHost() {
+  void shouldDetectUrisWithSchemeAndHost() {
     final UriSourceDetector detector = new UriSourceDetector();
     final boolean isWebUri = detector.isDetectedSource("rtsp://camera.local/stream");
     final boolean isDrivePath = detector.isDetectedSource("c:/videos/clip.mp4");
@@ -86,7 +86,7 @@ final class UriSourceTest {
   }
 
   @Test
-  void rejectsNullInput() {
+  void shouldRejectNullInput() {
     final UriSourceDetector detector = new UriSourceDetector();
     assertThrows(NullPointerException.class, () -> UriSource.uri(null));
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));

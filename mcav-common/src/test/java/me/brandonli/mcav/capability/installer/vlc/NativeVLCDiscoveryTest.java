@@ -58,7 +58,7 @@ final class NativeVLCDiscoveryTest {
   }
 
   @Test
-  void loadsTheSystemInstallationAndThenRemembersIt(@TempDir final Path emptyDirectory) throws ReflectiveOperationException {
+  void shouldLoadTheSystemInstallationAndThenRememberIt(@TempDir final Path emptyDirectory) throws ReflectiveOperationException {
     final Path systemDirectory = requireSystemInstallation();
     forgetEarlierDiscoveries();
     final NativeVLCDiscovery discovery = new NativeVLCDiscovery();
@@ -77,7 +77,7 @@ final class NativeVLCDiscoveryTest {
   }
 
   @Test
-  void loadsAnInstallationFromItsLibraryDirectory() throws ReflectiveOperationException {
+  void shouldLoadAnInstallationFromItsLibraryDirectory() throws ReflectiveOperationException {
     final Path systemDirectory = requireSystemInstallation();
     forgetEarlierDiscoveries();
     final NativeVLCDiscovery discovery = new NativeVLCDiscovery();

@@ -47,7 +47,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void reportsAStretchInWhichMostFramesCameTooLate() {
+  void shouldReportAStretchInWhichMostFramesCameTooLate() {
     this.counter.count(0L, false);
     this.everySecond(1, 10, true);
 
@@ -55,7 +55,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void aStretchEndsOnlyOnceItsTenSecondsArePast() {
+  void shouldEndAStretchOnlyOnceItsTenSecondsArePast() {
     this.everySecond(0, 9, true);
     this.counter.count(10 * SECOND_MICROS - 1, true);
     final List<String> beforeTheEnd = List.copyOf(this.reports);
@@ -66,7 +66,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void fewerThanTenDroppedFramesAreNoReason() {
+  void shouldNotReportFewerThanTenDroppedFramesAsAReason() {
     this.counter.count(0L, false);
     this.counter.count(SECOND_MICROS, false);
     this.everySecond(2, 10, true);
@@ -75,7 +75,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void dropsOfHalfTheFramesAreNoReason() {
+  void shouldDropOfHalfTheFramesAreNoReason() {
     for (int frame = 0; frame <= 21; frame++) {
       final boolean late = frame % 2 == 0;
       this.counter.count((frame * 10 * SECOND_MICROS) / 21, late);
@@ -85,7 +85,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void aStretchCountsOnlyItsOwnFrames() {
+  void shouldCountOnlyTheOwnFramesOfAStretch() {
     this.everySecond(0, 10, false);
     this.everySecond(11, 20, true);
 
@@ -93,14 +93,14 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void framesOnTimeAreNeverReported() {
+  void shouldNeverReportFramesOnTime() {
     this.everySecond(0, 120, false);
 
     assertEquals(List.of(), this.reports);
   }
 
   @Test
-  void reportsAtMostOnceAMinuteOfVideo() {
+  void shouldReportAtMostOnceAMinuteOfVideo() {
     this.everySecond(0, 69, true);
     final List<String> withinTheMinute = List.copyOf(this.reports);
     this.counter.count(70 * SECOND_MICROS, true);
@@ -110,7 +110,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void aJumpBackInTheTimestampsStartsCountingAnew() {
+  void shouldStartCountingAnewAfterAJumpBackInTheTimestamps() {
     this.everySecond(0, 10, true);
     this.everySecond(0, 10, true);
 
@@ -118,7 +118,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void framesWithTheTimestampOfTheStartOfAStretchCountInIt() {
+  void shouldCountFramesWithTheTimestampOfTheStartOfAStretchInIt() {
     for (int frame = 0; frame < 11; frame++) {
       this.counter.count(0L, true);
     }
@@ -128,7 +128,7 @@ final class LateFrameCounterTest {
   }
 
   @Test
-  void playersWarnInTheLog() {
+  void shouldWarnInTheLogFromPlayers() {
     final PrintStream standardError = System.err;
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));

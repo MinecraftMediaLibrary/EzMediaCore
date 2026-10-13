@@ -49,7 +49,7 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void createsASelectorFromTwoStrategies() {
+  void shouldCreateASelectorFromTwoStrategies() {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final FormatStrategy audio = selector.getAudioStrategy();
     final FormatStrategy video = selector.getVideoStrategy();
@@ -59,13 +59,13 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void rejectsNullStrategies() {
+  void shouldRejectNullStrategies() {
     assertThrows(NullPointerException.class, () -> StrategySelector.of(null, FormatStrategy.FIRST_VIDEO));
     assertThrows(NullPointerException.class, () -> StrategySelector.of(FormatStrategy.FIRST_AUDIO, null));
   }
 
   @Test
-  void selectsTheAudioStreamWithTheAudioStrategyAndTheVideoStreamWithTheVideoStrategy() {
+  void shouldSelectTheAudioStreamWithTheAudioStrategyAndTheVideoStreamWithTheVideoStrategy() {
     final URLParseDump dump = dump("{" + STREAMS + "}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.FIRST_VIDEO);
     final Format audio = selector.getAudioSource(dump);
@@ -75,7 +75,7 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void usesExactlyTheStrategyItWasGiven() {
+  void shouldUseExactlyTheStrategyItWasGiven() {
     final URLParseDump dump = dump("{" + STREAMS + "}");
     final FormatStrategy firstListed = candidate -> {
       final Format first = firstFormat(candidate);
@@ -89,14 +89,14 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void rejectsANullDump() {
+  void shouldRejectANullDump() {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.FIRST_VIDEO);
     assertThrows(NullPointerException.class, () -> selector.getAudioSource(null));
     assertThrows(NullPointerException.class, () -> selector.getVideoSource(null));
   }
 
   @Test
-  void namesTheTitleWhenNoStreamMatches() {
+  void shouldNameTheTitleWhenNoStreamMatches() {
     final URLParseDump dump = dump("{\"title\": \"Example Video\", \"webpage_url\": \"https://example.com/watch\"}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
@@ -108,7 +108,7 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void namesThePageUrlWhenTheTitleIsUnknown() {
+  void shouldNameThePageUrlWhenTheTitleIsUnknown() {
     final URLParseDump dump = dump("{\"webpage_url\": \"https://example.com/watch\"}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
@@ -120,7 +120,7 @@ final class StrategySelectorTest {
   }
 
   @Test
-  void fallsBackToAGenericDescription() {
+  void shouldFallBackToAGenericDescription() {
     final URLParseDump dump = new URLParseDump();
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));

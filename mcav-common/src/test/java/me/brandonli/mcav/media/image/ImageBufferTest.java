@@ -40,7 +40,7 @@ final class ImageBufferTest {
   private static final int SIDE = 2;
 
   @Test
-  void closeInvalidatesTheOwnedImage() {
+  void shouldInvalidateTheOwnedImageOnClose() {
     final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE);
     try {
       image.close();
@@ -51,7 +51,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsIntoAnArrayTheCallerOwns() {
+  void shouldCopyThePixelsIntoAnArrayTheCallerOwns() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] shared = image.getPixels();
       final int[] copy = image.copyPixels();
@@ -66,7 +66,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsAgainOnEveryCall() {
+  void shouldCopyThePixelsAgainOnEveryCall() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] first = image.copyPixels();
       final int[] second = image.copyPixels();
@@ -76,7 +76,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsOfTheCurrentImage() {
+  void shouldCopyThePixelsOfTheCurrentImage() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] before = image.copyPixels();
       final int[] replacement = { 0xFF010203, 0xFF040506, 0xFF070809, 0xFF0A0B0C };
@@ -88,7 +88,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void viewsThePixelsWithoutAllowingWrites() {
+  void shouldViewThePixelsWithoutAllowingWrites() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final IntBuffer view = image.getReadOnlyPixels();
       final boolean readOnly = view.isReadOnly();
@@ -109,7 +109,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void viewsTheSharedArrayInsteadOfCopyingIt() {
+  void shouldViewTheSharedArrayInsteadOfCopyingIt() {
     final int[] shared = PIXELS.clone();
     try (final ImageBuffer image = mock(ImageBuffer.class)) {
       when(image.getPixels()).thenReturn(shared);
@@ -123,7 +123,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void createsAnIndependentViewOnEveryCall() {
+  void shouldCreateAnIndependentViewOnEveryCall() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final IntBuffer first = image.getReadOnlyPixels();
       final IntBuffer second = image.getReadOnlyPixels();

@@ -45,7 +45,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void reportsTheNativeByteOrder() {
+  void shouldReportTheNativeByteOrder() {
     final ByteOrder nativeOrder = ByteOrder.nativeOrder();
     final boolean expectedLittle = nativeOrder == ByteOrder.LITTLE_ENDIAN;
     final boolean little = ByteUtils.isLittleEndian();
@@ -55,7 +55,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void convertsShortSamplesToLittleEndianBytes() {
+  void shouldConvertShortSamplesToLittleEndianBytes() {
     final ShortBuffer samples = ShortBuffer.wrap(new short[] { 0x0102, 0x0304 });
     final ByteBuffer converted = ByteUtils.toLittleEndian(samples);
     final ByteOrder order = converted.order();
@@ -67,7 +67,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void convertsFloatSamplesToLittleEndianBytes() {
+  void shouldConvertFloatSamplesToLittleEndianBytes() {
     final FloatBuffer samples = FloatBuffer.wrap(new float[] { 1.0f });
     final ByteBuffer converted = ByteUtils.toLittleEndian(samples);
     final int bits = Float.floatToIntBits(1.0f);
@@ -82,7 +82,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void swapsBigEndianBytesToLittleEndian() {
+  void shouldSwapBigEndianBytesToLittleEndian() {
     final ByteBuffer bigEndian = ByteBuffer.wrap(new byte[] { 0x01, 0x02, 0x03 });
     bigEndian.order(ByteOrder.BIG_ENDIAN);
     final ByteBuffer converted = ByteUtils.toLittleEndian(bigEndian);
@@ -91,7 +91,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void copiesBytesThatAlreadyHaveTheTargetOrder() {
+  void shouldCopyBytesThatAlreadyHaveTheTargetOrder() {
     final ByteBuffer littleEndian = ByteBuffer.wrap(new byte[] { 0x01, 0x02 });
     littleEndian.order(ByteOrder.LITTLE_ENDIAN);
     final ByteBuffer converted = ByteUtils.toLittleEndian(littleEndian);
@@ -100,7 +100,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void swapsLittleEndianBytesToBigEndian() {
+  void shouldSwapLittleEndianBytesToBigEndian() {
     final ByteBuffer littleEndian = ByteBuffer.wrap(new byte[] { 0x02, 0x01 });
     littleEndian.order(ByteOrder.LITTLE_ENDIAN);
     final ByteBuffer converted = ByteUtils.toBigEndian(littleEndian);
@@ -113,7 +113,7 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void rejectsUnsupportedBuffers() {
+  void shouldRejectUnsupportedBuffers() {
     final IntBuffer integers = IntBuffer.allocate(1);
     assertThrows(PlayerException.class, () -> ByteUtils.toLittleEndian(integers));
     assertThrows(NullPointerException.class, () -> ByteUtils.toLittleEndian(null));
@@ -121,12 +121,12 @@ final class ByteUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ByteUtils.class);
   }
 
   @Test
-  void readsFromThePositionToTheLimit() {
+  void shouldReadFromThePositionToTheLimit() {
     final ByteBuffer bigEndian = ByteBuffer.wrap(new byte[] { 0x09, 0x01, 0x02, 0x03, 0x04, 0x09 });
     bigEndian.order(ByteOrder.BIG_ENDIAN);
     bigEndian.position(1);

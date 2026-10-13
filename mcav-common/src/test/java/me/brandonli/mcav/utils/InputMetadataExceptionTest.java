@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class InputMetadataExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final InputMetadataException exception = new InputMetadataException("Source video.mp4 has no video track");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -40,7 +40,7 @@ final class InputMetadataExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final IOException readFailure = new IOException("connection reset");
     final InputMetadataException exception = new InputMetadataException("Failed to read video metadata", readFailure);
     final String message = exception.getMessage();
@@ -50,7 +50,7 @@ final class InputMetadataExceptionTest {
   }
 
   @Test
-  void isARuntimeException() {
+  void shouldBeARuntimeException() {
     final InputMetadataException exception = new InputMetadataException("failure");
     assertInstanceOf(RuntimeException.class, exception, "unreadable media is recoverable, so it is no Error");
   }

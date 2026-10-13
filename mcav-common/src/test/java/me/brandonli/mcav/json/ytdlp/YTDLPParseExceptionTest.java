@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class YTDLPParseExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final YTDLPParseException exception = new YTDLPParseException("yt-dlp printed no metadata for https://example.com");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -40,7 +40,7 @@ final class YTDLPParseExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated object");
     final YTDLPParseException exception = new YTDLPParseException("yt-dlp printed invalid metadata", parseFailure);
     final String message = exception.getMessage();
@@ -50,7 +50,7 @@ final class YTDLPParseExceptionTest {
   }
 
   @Test
-  void isARuntimeExceptionApartFromIllegalArguments() {
+  void shouldBeARuntimeExceptionApartFromIllegalArguments() {
     final YTDLPParseException exception = new YTDLPParseException("failure");
     final Class<?> superclass = YTDLPParseException.class.getSuperclass();
     assertInstanceOf(RuntimeException.class, exception, "a failing URL is recoverable, so it is no Error");

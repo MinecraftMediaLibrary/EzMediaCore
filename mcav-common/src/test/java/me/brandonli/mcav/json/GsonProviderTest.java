@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 final class GsonProviderTest {
 
   @Test
-  void sharesOneInstance() {
+  void shouldShareOneInstance() {
     final Gson first = GsonProvider.getSimple();
     final Gson second = GsonProvider.getSimple();
     assertNotNull(first);
@@ -43,7 +43,7 @@ final class GsonProviderTest {
   }
 
   @Test
-  void usesTheGsonDefaults() {
+  void shouldUseTheGsonDefaults() {
     final Gson gson = GsonProvider.getSimple();
     final boolean serializesNulls = gson.serializeNulls();
     final boolean escapesHtml = gson.htmlSafe();
@@ -57,7 +57,7 @@ final class GsonProviderTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(GsonProvider.class);
   }
 }

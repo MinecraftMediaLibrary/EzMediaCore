@@ -296,7 +296,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void theThreadsOfASessionAreDaemonsWhateverThreadStartsIt() throws Exception {
+  void shouldMakeTheThreadsOfASessionDaemonsWhateverThreadStartsIt() throws Exception {
     final PlaybackSession session = this.session(threePicturesWithSound(), 0L, true);
     final AtomicReference<Exception> failure = new AtomicReference<>();
     final Thread starter = Thread.ofPlatform()
@@ -326,7 +326,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void rendersVideoAndAudioOfOneGrabber() throws Exception {
+  void shouldRenderVideoAndAudioOfOneGrabber() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger chunks = new AtomicInteger();
     final AtomicReference<OriginalVideoMetadata> videoMetadata = new AtomicReference<>();
@@ -366,7 +366,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void takesTheAudioFromASeparateGrabber() throws Exception {
+  void shouldTakeTheAudioFromASeparateGrabber() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger chunks = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
@@ -393,7 +393,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void reportsAudioSourcesThatCannotBeStarted() throws Exception {
+  void shouldReportAudioSourcesThatCannotBeStarted() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber video = videoAt(0L);
@@ -412,7 +412,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void reportsDecodingFailures() throws Exception {
+  void shouldReportDecodingFailures() throws Exception {
     final FrameGrabber.Exception corrupt = new FrameGrabber.Exception("corrupt");
     final ScriptedFrameGrabber failing = ScriptedFrameGrabber.of(corrupt);
     final PlaybackSession first = this.session(failing, 0L, false);
@@ -430,7 +430,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void skipsFramesItCannotUse() throws Exception {
+  void shouldSkipFramesItCannotUse() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger chunks = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
@@ -458,7 +458,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void startsAtTheRequestedPosition() throws Exception {
+  void shouldStartAtTheRequestedPosition() throws Exception {
     final ScriptedFrameGrabber grabber = videoAt(5_000_000L);
     final PlaybackSession session = this.session(grabber, 5_000_000L, false);
     final long initialPosition = session.getPositionMicros();
@@ -473,7 +473,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void playsFromTheCurrentPositionWhenTheSourceCannotSeek() throws Exception {
+  void shouldPlayFromTheCurrentPositionWhenTheSourceCannotSeek() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROS);
@@ -491,7 +491,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void opensTheSourceBeforeItStartsAnyThread() throws Exception {
+  void shouldOpenTheSourceBeforeItStartsAnyThread() throws Exception {
     final ScriptedFrameGrabber grabber = videoAt(0L);
     grabber.setLength(10_000_000L);
     final AtomicInteger opened = new AtomicInteger();
@@ -513,7 +513,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void refusesToStartThreadsBeforeTheSourceIsOpened() {
+  void shouldRefuseToStartThreadsBeforeTheSourceIsOpened() {
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of();
     final PlaybackSession session = this.session(grabber, 0L, false);
     assertThrows(IllegalStateException.class, session::startThreads);
@@ -522,7 +522,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void reportsFailingFiltersAndKeepsPlaying() throws Exception {
+  void shouldReportFailingFiltersAndKeepPlaying() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> {
       frames.incrementAndGet();
@@ -545,7 +545,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void skipsTheWorkWhenNoPipelineIsAttached() throws Exception {
+  void shouldSkipTheWorkWhenNoPipelineIsAttached() throws Exception {
     final ScriptedFrameGrabber grabber = pictureSoundPicture();
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
@@ -558,7 +558,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void doesNotCopyPicturesWhileNoPipelineIsAttached() throws Exception {
+  void shouldNotCopyPicturesWhileNoPipelineIsAttached() throws Exception {
     final Frame unreadable = ScriptedFrameGrabber.video(0L);
     unreadable.imageStride = 3;
     final Frame last = ScriptedFrameGrabber.video(400_000L);
@@ -578,7 +578,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void copiesPicturesOnlyForAnAttachedPipeline() throws Exception {
+  void shouldCopyPicturesOnlyForAnAttachedPipeline() throws Exception {
     this.onVideo((_, _) -> true);
     final Frame unreadable = ScriptedFrameGrabber.video(0L);
     unreadable.imageStride = 3;
@@ -592,7 +592,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void reusesPooledImagesForLaterFrames() throws Exception {
+  void shouldReusePooledImagesForLaterFrames() throws Exception {
     final Map<ImageBuffer, Boolean> seen = Collections.synchronizedMap(new IdentityHashMap<>());
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((image, _) -> {
@@ -613,7 +613,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void scalesFramesToTheAttachedSizeWhenTheDecoderDidNot() throws Exception {
+  void shouldScaleFramesToTheAttachedSizeWhenTheDecoderDidNot() throws Exception {
     final List<String> sizes = Collections.synchronizedList(new ArrayList<>());
     this.onVideo((image, _) -> {
       final int width = image.getWidth();
@@ -632,7 +632,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void pacesFramesWithoutTimestampsByTheFrameRate() throws Exception {
+  void shouldPaceFramesWithoutTimestampsByTheFrameRate() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final List<Object> script = frames(5, 0L);
@@ -654,7 +654,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void showsFramesOfLiveSourcesWithoutTimestampsAsTheyArrive() throws Exception {
+  void shouldShowFramesOfLiveSourcesWithoutTimestampsAsTheyArrive() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final List<Object> script = new ArrayList<>();
@@ -685,7 +685,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void handsThePictureBackWhenThePipelineIsDetachedBeforeTheFrameIsShown() throws Exception {
+  void shouldHandThePictureBackWhenThePipelineIsDetachedBeforeTheFrameIsShown() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     final VideoFilter counter = (_, _) -> frames.incrementAndGet() > 0;
     final VideoPipelineStep counting = VideoPipelineStep.of(counter);
@@ -717,7 +717,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void dropsFramesThatAreTooLate() throws Exception {
+  void shouldDropFramesThatAreTooLate() throws Exception {
     final AtomicLong now = new AtomicLong();
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> {
@@ -740,7 +740,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void jumpsInTheTimestampsDoNotStallPlayback() throws Exception {
+  void shouldJumpInTheTimestampsDoNotStallPlayback() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, 30_000_000L);
@@ -757,7 +757,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void startsPausedAndResumesOnRequest() throws Exception {
+  void shouldStartPausedAndResumeOnRequest() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROS);
@@ -779,7 +779,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void stopsWhileWaitingForTheNextFrame() throws Exception {
+  void shouldStopWhileWaitingForTheNextFrame() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     this.onAudio((_, _) -> true);
@@ -826,7 +826,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void stopsWhileTheDecoderWaitsForRoomInTheQueue() throws Exception {
+  void shouldStopWhileTheDecoderWaitsForRoomInTheQueue() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final VideoFilter blocking = blockingUntilInterrupted(rendering);
     this.onVideo(blocking);
@@ -869,7 +869,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void canBeStoppedFromItsOwnFilter() throws Exception {
+  void shouldStopFromItsOwnFilter() throws Exception {
     final AtomicReference<PlaybackSession> holder = new AtomicReference<>();
     final AtomicInteger frames = new AtomicInteger();
     final AtomicLong stopNanos = new AtomicLong(-1L);
@@ -898,7 +898,7 @@ final class PlaybackSessionTest {
    * player could return from release while the playback still ran.
    */
   @Test
-  void aStopRacingTheSessionStoppingItselfStillWaitsForTheThreads() throws Exception {
+  void shouldWaitForTheThreadsWhenAStopRacesTheSessionStoppingItself() throws Exception {
     final AtomicReference<PlaybackSession> holder = new AtomicReference<>();
     final AtomicInteger frames = new AtomicInteger();
     final AtomicLong stopNanos = new AtomicLong(-1L);
@@ -920,7 +920,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void keepsTheInterruptWhenStoppedFromAnInterruptedThread() throws Exception {
+  void shouldKeepTheInterruptWhenStoppedFromAnInterruptedThread() throws Exception {
     final ScriptedFrameGrabber.Delay stuck = new ScriptedFrameGrabber.Delay(500L);
     final Frame picture = ScriptedFrameGrabber.video(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(stuck, picture);
@@ -936,7 +936,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void reportsNothingAfterItWasStopped() throws Exception {
+  void shouldReportNothingAfterItWasStopped() throws Exception {
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch releaseFailure = new CountDownLatch(1);
     final FrameGrabber.Exception lateFailure = new FrameGrabber.Exception("late failure");
@@ -980,7 +980,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void describesSourcesWithoutSoundWithTheOutputFormat() throws Exception {
+  void shouldDescribeSourcesWithoutSoundWithTheOutputFormat() throws Exception {
     final AtomicReference<OriginalAudioMetadata> audioMetadata = new AtomicReference<>();
     this.onAudio((_, metadata) -> {
       audioMetadata.set(metadata);
@@ -1001,7 +1001,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void failsToStartWhenTheVideoGrabberCannotBeCreated() {
+  void shouldFailToStartWhenTheVideoGrabberCannotBeCreated() {
     final PlaybackSession.GrabberFactory missing = () -> {
       throw new FrameGrabber.Exception("missing");
     };
@@ -1012,7 +1012,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void handsTheSamplesOnAsLittleEndianBytes() throws Exception {
+  void shouldHandTheSamplesOnAsLittleEndianBytes() throws Exception {
     final AtomicReference<byte[]> received = new AtomicReference<>();
     this.onAudio((samples, _) -> {
       final ByteBuffer view = samples.duplicate();
@@ -1047,7 +1047,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void handsAudioToThePipelineAheadOfItsTimestamp() throws Exception {
+  void shouldHandAudioToThePipelineAheadOfItsTimestamp() throws Exception {
     final List<Long> deliveries = Collections.synchronizedList(new ArrayList<>());
     this.onAudio((_, _) -> {
       final long now = System.nanoTime();
@@ -1067,7 +1067,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void audioLeadLeavesTheRemainingTimestampDelay() throws Exception {
+  void shouldLeaveTheRemainingTimestampDelayWhenTheAudioLeads() throws Exception {
     final AtomicLong virtualTime = new AtomicLong();
     final List<Long> deliveredAt = Collections.synchronizedList(new ArrayList<>());
     this.onAudio((_, _) -> deliveredAt.add(virtualTime.get()));
@@ -1082,7 +1082,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void replacesTheQueueWithTheEndMarkerEvenWhenADecoderRefillsIt() {
+  void shouldReplaceTheQueueWithTheEndMarkerEvenWhenADecoderRefillsIt() {
     final RefillingQueue queue = new RefillingQueue();
     queue.add("frame");
     final List<String> discarded = new ArrayList<>();
@@ -1104,7 +1104,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void leavesAQueuedFrameToTheRendererWhileTheSessionRuns() throws Exception {
+  void shouldLeaveAQueuedFrameToTheRendererWhileTheSessionRuns() throws Exception {
     final BlockingQueue<DecodedVideoFrame> queue = new ArrayBlockingQueue<>(1);
     final DecodedVideoFrame frame = frameWithPicture();
     final MatImageBuffer picture = frame.getImage();
@@ -1122,7 +1122,7 @@ final class PlaybackSessionTest {
    * queue its frame after all, possibly after the renderer drained the queue for the last time.
    */
   @Test
-  void takesBackAFrameQueuedAfterTheSessionStoppedAndReleasesItsPicture() throws Exception {
+  void shouldTakeBackAFrameQueuedAfterTheSessionStoppedAndReleaseItsPicture() throws Exception {
     final BlockingQueue<DecodedVideoFrame> queue = new ArrayBlockingQueue<>(1);
     final DecodedVideoFrame frame = frameWithPicture();
     final MatImageBuffer picture = frame.getImage();
@@ -1134,7 +1134,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void leavesAFrameTheRendererTookBeforeTheDecoderNoticedTheStop() throws Exception {
+  void shouldLeaveAFrameTheRendererTookBeforeTheDecoderNoticedTheStop() throws Exception {
     final BlockingQueue<DecodedVideoFrame> queue = new ArrayBlockingQueue<>(1);
     final DecodedVideoFrame frame = frameWithPicture();
     final MatImageBuffer picture = frame.getImage();
@@ -1154,7 +1154,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void releasesThePictureOfAFrameItCouldNotQueueBeforeItWasInterrupted() {
+  void shouldReleaseThePictureOfAFrameItCouldNotQueueBeforeItWasInterrupted() {
     final BlockingQueue<DecodedVideoFrame> queue = new ArrayBlockingQueue<>(1);
     final DecodedVideoFrame waiting = new DecodedVideoFrame(null, 0L);
     queue.add(waiting);
@@ -1185,7 +1185,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void releasesTheCopyOfAnUnscaledPictureWhenDecodingEnds() throws Exception {
+  void shouldReleaseTheCopyOfAnUnscaledPictureWhenDecodingEnds() throws Exception {
     final List<String> sizes = Collections.synchronizedList(new ArrayList<>());
     this.onVideo((image, _) -> {
       final int width = image.getWidth();
@@ -1210,7 +1210,7 @@ final class PlaybackSessionTest {
    * ends, and it stops the session: otherwise the decoder would wait for room in a queue nobody empties anymore.
    */
   @Test
-  void aVideoPipelineThatInterruptsItsThreadStopsTheSession() throws Exception {
+  void shouldStopTheSessionWhenAVideoPipelineInterruptsItsThread() throws Exception {
     final AtomicReference<Thread> rendererHolder = new AtomicReference<>();
     this.onVideo((_, _) -> {
       final Thread renderer = Thread.currentThread();
@@ -1239,7 +1239,7 @@ final class PlaybackSessionTest {
   }
 
   @Test
-  void anAudioPipelineThatInterruptsItsThreadStopsTheSession() throws Exception {
+  void shouldStopTheSessionWhenAnAudioPipelineInterruptsItsThread() throws Exception {
     final AtomicReference<Thread> rendererHolder = new AtomicReference<>();
     this.onAudio((_, _) -> {
       final Thread renderer = Thread.currentThread();
@@ -1265,7 +1265,7 @@ final class PlaybackSessionTest {
    * the stop puts into its queue. The decoder is stopped before it could queue one: it waits for room in the queue.
    */
   @Test
-  void canBeStoppedFromItsOwnAudioPipeline() throws Exception {
+  void shouldStopFromItsOwnAudioPipeline() throws Exception {
     final AtomicReference<PlaybackSession> holder = new AtomicReference<>();
     final AtomicReference<Thread> rendererHolder = new AtomicReference<>();
     this.onAudio((_, _) -> {
@@ -1297,7 +1297,7 @@ final class PlaybackSessionTest {
    * without a word, so the session says so.
    */
   @Test
-  void saysSoWhenMostFramesComeTooLate() throws Exception {
+  void shouldSaySoWhenMostFramesComeTooLate() throws Exception {
     final AtomicInteger shown = new AtomicInteger();
     this.onVideo((_, _) -> shown.incrementAndGet() > 0);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());

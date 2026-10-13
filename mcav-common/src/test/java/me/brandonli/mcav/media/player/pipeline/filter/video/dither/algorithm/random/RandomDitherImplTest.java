@@ -53,7 +53,7 @@ final class RandomDitherImplTest {
   }
 
   @Test
-  void givesEveryThreadItsOwnGenerator() throws Exception {
+  void shouldGiveEveryThreadItsOwnGenerator() throws Exception {
     final RandomDitherImpl shared = new RandomDitherImpl(BLACK_WHITE, RandomDither.NORMAL_WEIGHT);
     final RandomNumberProvider mine = shared.getRandomNumberProvider();
     final RandomNumberProvider mineAgain = shared.getRandomNumberProvider();
@@ -63,7 +63,7 @@ final class RandomDitherImplTest {
   }
 
   @Test
-  void handsAnExplicitProviderToEveryThread() throws Exception {
+  void shouldHandAnExplicitProviderToEveryThread() throws Exception {
     final RandomNumberProvider provider = mock(RandomNumberProvider.class);
     final RandomDitherImpl explicit = new RandomDitherImpl(BLACK_WHITE, 1, provider);
     final RandomNumberProvider mine = explicit.getRandomNumberProvider();

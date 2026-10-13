@@ -37,7 +37,7 @@ import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 final class VideoPlayerFactoriesTest {
 
   @Test
-  void refusesVlcPlayersWhileVlcIsBeingPrepared() {
+  void shouldRefuseVlcPlayersWhileVlcIsBeingPrepared() {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.markPreparing(Capability.VLC);
     try {
@@ -53,7 +53,7 @@ final class VideoPlayerFactoriesTest {
   }
 
   @Test
-  void refusesVlcPlayersWhenVlcIsNotAvailable() {
+  void shouldRefuseVlcPlayersWhenVlcIsNotAvailable() {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.markPrepared(Capability.VLC, false);
     try {
@@ -66,7 +66,7 @@ final class VideoPlayerFactoriesTest {
   }
 
   @Test
-  void createsVlcPlayersWithoutLoadingVlc() {
+  void shouldCreateVlcPlayersWithoutLoadingVlc() {
     try (final MockedConstruction<MediaPlayerFactory> factories = Mockito.mockConstruction(MediaPlayerFactory.class)) {
       final VideoPlayer withoutOptions = VideoPlayer.vlc();
       final VideoPlayer withOptions = VideoPlayer.vlc("--no-video-title-show");
@@ -79,7 +79,7 @@ final class VideoPlayerFactoriesTest {
   }
 
   @Test
-  void rejectsNullVlcOptions() {
+  void shouldRejectNullVlcOptions() {
     assertThrows(NullPointerException.class, () -> VideoPlayer.vlc((String[]) null));
   }
 }

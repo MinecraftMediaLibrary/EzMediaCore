@@ -118,7 +118,7 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void extractsTheAudioIntoANewOggVorbisFileInTheCache() throws IOException {
+  void shouldExtractTheAudioIntoANewOggVorbisFileInTheCache() throws IOException {
     final Path wave = this.writeTone();
     final FileSource source = FileSource.path(wave);
     final Path first = AudioExtractor.extractOggVorbis(source);
@@ -141,7 +141,7 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void reportsMediaThatFFmpegCannotRead() {
+  void shouldReportMediaThatFFmpegCannotRead() {
     final Path missing = this.directory.resolve("missing.wav");
     final FileSource source = FileSource.path(missing);
     assertThrows(ProcessException.class, () -> AudioExtractor.extractOggVorbis(source));
@@ -149,13 +149,13 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void removesOnlyThePartialOutputWhenExtractionFails() throws IOException {
+  void shouldRemoveOnlyThePartialOutputWhenExtractionFails() throws IOException {
     this.checkFailedExtraction(false, false);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void keepsTheExtractionFailureWhenDeletingThePartialFileFails(final boolean sameFailure) throws IOException {
+  void shouldKeepTheExtractionFailureWhenDeletingThePartialFileFails(final boolean sameFailure) throws IOException {
     this.checkFailedExtraction(true, sameFailure);
   }
 
@@ -205,7 +205,7 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(AudioExtractor.class);
   }
 }

@@ -75,13 +75,13 @@ final class OpenCvVideoBackendsTest {
   """;
 
   @Test
-  void findsNoFileBackendInTheLinuxBuild() {
+  void shouldFindNoFileBackendInTheLinuxBuild() {
     final boolean canDecodeFiles = OpenCvVideoBackends.decideFromBuildInformation(LINUX);
     assertFalse(canDecodeFiles, "the Linux build of the presets only captures from cameras");
   }
 
   @Test
-  void findsTheFileBackendsOfTheOtherBuilds() {
+  void shouldFindTheFileBackendsOfTheOtherBuilds() {
     final boolean canDecodeFilesOnWindows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
     final boolean macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
     assertTrue(canDecodeFilesOnWindows);
@@ -89,7 +89,7 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
-  void readsOnlyTheVideoSection() {
+  void shouldReadOnlyTheVideoSection() {
     final String elsewhere = """
     General configuration for OpenCV 4.14.0 =====================================
 
@@ -104,7 +104,7 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
-  void needsAnEnabledBackendAndAVideoSection() {
+  void shouldNeedAnEnabledBackendAndAVideoSection() {
     final String disabled = """
     Video I/O:
         FFMPEG:                      NO
@@ -120,14 +120,14 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
-  void answersTheSameEveryTime() {
+  void shouldAnswerTheSameEveryTime() {
     final boolean firstAnswer = OpenCvVideoBackends.canDecodeFiles();
     final boolean secondAnswer = OpenCvVideoBackends.canDecodeFiles();
     assertTrue(firstAnswer == secondAnswer, "the answer cannot change while the library runs");
   }
 
   @Test
-  void picksTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
+  void shouldPickTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
     try (final FrameGrabber reader = OpenCVPlayer.createFrameGrabber("file.mp4", true)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
@@ -137,12 +137,12 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
-  void refusesNullBuildInformation() {
+  void shouldRefuseNullBuildInformation() {
     assertThrows(NullPointerException.class, () -> OpenCvVideoBackends.listsEnabledFileBackend(null));
   }
 
   @Test
-  void isNotInstantiable() throws ReflectiveOperationException {
+  void shouldNotBeInstantiable() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(OpenCvVideoBackends.class);
   }
 }

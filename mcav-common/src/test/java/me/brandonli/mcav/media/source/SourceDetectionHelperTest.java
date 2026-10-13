@@ -44,7 +44,7 @@ final class SourceDetectionHelperTest {
   private Path directory;
 
   @Test
-  void detectsExistingFiles() throws IOException {
+  void shouldDetectExistingFiles() throws IOException {
     final Path file = this.directory.resolve("video.mp4");
     Files.createFile(file);
     final SourceDetectionHelper helper = new SourceDetectionHelper();
@@ -57,7 +57,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void detectsUrisDevicesAndFFmpegInputs() {
+  void shouldDetectUrisDevicesAndFFmpegInputs() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> uri = helper.detectSource("https://example.com/video.mp4");
     final Optional<Source> device = helper.detectSource("2");
@@ -71,7 +71,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void detectsNothingForUnrecognizedText() {
+  void shouldDetectNothingForUnrecognizedText() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> text = helper.detectSource("not a source");
     final Optional<Source> negative = helper.detectSource("-1");
@@ -80,7 +80,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void prefersTheDetectorWithTheHighestPriority() {
+  void shouldPreferTheDetectorWithTheHighestPriority() {
     final Source lowSource = DeviceSource.device(1);
     final Source highSource = DeviceSource.device(2);
     final Source tiedSource = DeviceSource.device(3);
@@ -96,7 +96,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void acceptsTheMinimumPriorityAndKeepsTheFirstTie() {
+  void shouldAcceptTheMinimumPriorityAndKeepTheFirstTie() {
     final Source first = DeviceSource.device(1);
     final Source second = DeviceSource.device(2);
     final SourceDetector<Source> low = new FixedDetector(first, Integer.MIN_VALUE, true);
@@ -109,7 +109,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     assertThrows(NullPointerException.class, () -> helper.detectSource(null));
     assertThrows(NullPointerException.class, () -> new SourceDetectionHelper(null));

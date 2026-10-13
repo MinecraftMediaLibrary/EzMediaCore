@@ -106,7 +106,7 @@ final class PlaybackSessionStopStressTest {
   }
 
   @Test
-  void everyStopEndsTheWholeSessionWhereverItLands() throws Exception {
+  void shouldEndTheWholeSessionOnEveryStopWhereverItLands() throws Exception {
     final SplittableRandom random = new SplittableRandom(SEED);
     final StopPoint[] points = StopPoint.values();
     for (int number = 0; number < ROUNDS; number++) {
@@ -124,7 +124,7 @@ final class PlaybackSessionStopStressTest {
    * until missing the case every time would take a miracle.
    */
   @Test
-  void noStopLeavesThePictureOfADecoderWaitingForRoomBehind() throws Exception {
+  void shouldNotLeaveThePictureOfADecoderWaitingForRoomBehindOnAnyStop() throws Exception {
     for (int stop = 0; stop < WAITING_DECODER_STOPS; stop++) {
       final List<Object> script = new ArrayList<>();
       for (int index = 0; index < WAITING_DECODER_FRAMES; index++) {

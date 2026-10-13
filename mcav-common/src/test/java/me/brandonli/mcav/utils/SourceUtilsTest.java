@@ -62,7 +62,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void recognizesGifFilesAndUris() {
+  void shouldRecognizGifFilesAndUris() {
     final URI gifUri = URI.create("https://example.com/animation.gif?size=large");
     final URI opaqueUri = URI.create("mailto:someone@example.com");
     final UriSource gifSource = UriSource.uri(gifUri);
@@ -88,7 +88,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void recognizesUrisWithSchemeAndHost() {
+  void shouldRecognizUrisWithSchemeAndHost() {
     final boolean isWebUri = SourceUtils.isUri("https://example.com/video");
     final boolean stream = SourceUtils.isUri("rtsp://camera.local/live");
     final boolean isDrivePath = SourceUtils.isUri("c:/videos/clip.mp4");
@@ -114,7 +114,7 @@ final class SourceUtilsTest {
       "https://example.com/dvd.vob",
     }
   )
-  void recognizesDirectMediaLinks(final String url) {
+  void shouldRecognizDirectMediaLinks(final String url) {
     final boolean direct = SourceUtils.isDirectVideo(url);
     assertTrue(direct);
   }
@@ -124,13 +124,13 @@ final class SourceUtilsTest {
   @ValueSource(
     strings = { "", "https://example.com", "https://example.com/watch.php", "https://example.com/page", "mailto:a@b.c", "http://[" }
   )
-  void rejectsLinksThatAreNotMediaFiles(final @Nullable String url) {
+  void shouldRejectLinksThatAreNotMediaFiles(final @Nullable String url) {
     final boolean direct = SourceUtils.isDirectVideo(url);
     assertFalse(direct);
   }
 
   @Test
-  void readsAnExtensionOnlyAfterTheLastSeparator() {
+  void shouldReadAnExtensionOnlyAfterTheLastSeparator() {
     final boolean wholeWord = SourceUtils.isDirectVideo("mp4");
     final boolean directoryDot = SourceUtils.isDirectVideo("https://example.com/video.files/clip");
     final boolean trailingDot = SourceUtils.isDirectVideo("https://example.com/clip.");
@@ -140,7 +140,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void recognizesExistingPaths() throws IOException {
+  void shouldRecognizExistingPaths() throws IOException {
     final Path file = this.directory.resolve("exists.txt");
     Files.createFile(file);
     final String existingRaw = file.toString();
@@ -156,7 +156,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void asksTheParserWhetherAStreamIsLive() {
+  void shouldAskTheParserWhetherAStreamIsLive() {
     final URLParseDump live = parseDump("{\"id\": \"live\", \"is_live\": true}");
     final URLParseDump recorded = parseDump("{\"id\": \"recorded\", \"is_live\": false}");
     final List<URI> asked = new ArrayList<>();
@@ -180,7 +180,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void reportsNoLiveStreamWhenTheParserFails() {
+  void shouldReportNoLiveStreamWhenTheParserFails() {
     final YTDLPParser offlineParser = (_, _) -> {
       throw new IOException("offline");
     };
@@ -201,7 +201,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void asksTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
+  void shouldAskTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
     final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
     final IOException offline = new IOException("offline");
     Mockito.when(installer.download(true)).thenThrow(offline);
@@ -216,7 +216,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(SourceUtils.class);
   }
 }

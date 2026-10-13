@@ -68,7 +68,7 @@ final class YTDLPParserFuzzTest {
   );
 
   @FuzzTest(maxDuration = "30s")
-  void readsWhatYtdlpPrintsOrRefusesIt(final byte[] input) throws IOException {
+  void shouldReadWhatYtdlpPrintsOrRefuseIt(final byte[] input) throws IOException {
     if (input.length == 0) {
       return;
     }

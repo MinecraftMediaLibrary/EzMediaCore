@@ -28,7 +28,7 @@ final class DecodedAudioChunkTest {
 
   @ParameterizedTest
   @ValueSource(longs = { -125_000L, 987_654_321L })
-  void retainsThePresentationTimestamp(final long timestamp) {
+  void shouldRetainThePresentationTimestamp(final long timestamp) {
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final DecodedAudioChunk chunk = new DecodedAudioChunk(samples, timestamp);
     final long actual = chunk.getTimestampMicros();

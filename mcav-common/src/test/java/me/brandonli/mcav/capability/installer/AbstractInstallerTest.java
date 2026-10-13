@@ -93,7 +93,7 @@ final class AbstractInstallerTest {
   private Path folder;
 
   @Test
-  void namesExecutablesWithTheSuffixOfTheOperatingSystem() {
+  void shouldNameExecutablesWithTheSuffixOfTheOperatingSystem() {
     final String windows = AbstractInstaller.getExecutableFileName(NAME, OS.WINDOWS);
     final String linux = AbstractInstaller.getExecutableFileName(NAME, OS.LINUX);
     final String mac = AbstractInstaller.getExecutableFileName(NAME, OS.MAC);
@@ -105,7 +105,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void rejectsInvalidConstructorArguments() {
+  void shouldRejectInvalidConstructorArguments() {
     final Supplier<Download[]> noDownloads = () -> new Download[0];
     final Download[] downloadArray = new Download[0];
     assertThrows(NullPointerException.class, () -> new TestInstaller(null, NAME, noDownloads));
@@ -116,7 +116,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void installsIntoTheCacheFolderByDefault(@TempDir final Path home) {
+  void shouldInstallIntoTheCacheFolderByDefault(@TempDir final Path home) {
     try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(home)) {
       final Download[] downloads = new Download[0];
       final TestInstaller installer = new TestInstaller(NAME, downloads);
@@ -135,7 +135,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void resolvesTheDownloadsLazilyAndOnlyOnce() {
+  void shouldResolveTheDownloadsLazilyAndOnlyOnce() {
     final AtomicInteger calls = new AtomicInteger();
     final Download current = new Download(CURRENT_PLATFORM, "https://example.com/tool", "ab12cd");
     final TestInstaller installer = new TestInstaller(this.folder, NAME, () -> {
@@ -155,7 +155,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void prefersTheExactPlatformOverFallbacks() {
+  void shouldPreferTheExactPlatformOverFallbacks() {
     final Download exact = new Download(OTHER_PLATFORM, "https://example.com/exact", null);
     final Download compatible = new Download(LINUX_X86_64, "https://example.com/compatible", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { compatible, exact });
@@ -168,7 +168,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void fallsBackToCompatiblePlatformsInOrder() {
+  void shouldFallBackToCompatiblePlatformsInOrder() {
     final Platform second = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_32);
     final Download secondDownload = new Download(second, "https://example.com/second", null);
     final Download firstDownload = new Download(LINUX_X86_64, "https://example.com/first", null);
@@ -182,7 +182,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void findsNothingWithoutAMatchingOrCompatiblePlatform() {
+  void shouldFindNothingWithoutAMatchingOrCompatiblePlatform() {
     final Platform unrelated = Platform.ofPlatform(OS.MAC, Arch.ARM, Bits.BITS_64);
     final Download download = new Download(unrelated, "https://example.com/mac", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { download });
@@ -195,7 +195,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void offersNoFallbackPlatformsByDefault() {
+  void shouldOfferNoFallbackPlatformsByDefault() {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
     final List<Platform> fallbacks = installer.getFallbackPlatforms(OTHER_PLATFORM);
     final boolean noFallbacks = fallbacks.isEmpty();
@@ -203,7 +203,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void reportsUnsupportedPlatforms() {
+  void shouldReportUnsupportedPlatforms() {
     final Download elsewhere = new Download(OTHER_PLATFORM, "https://example.com/elsewhere", "00");
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { elsewhere });
     final boolean supported = installer.isSupported();
@@ -220,7 +220,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void pointsAtTheExecutableBeforeTheProgramIsInstalled() {
+  void shouldPointAtTheExecutableBeforeTheProgramIsInstalled() {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
     final Path path = installer.getPath();
     final OS operatingSystem = OSUtils.getOS();
@@ -230,7 +230,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void downloadsVerifiesAndRemembersTheProgram() throws IOException {
+  void shouldDownloadVerifyAndRememberTheProgram() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
@@ -251,7 +251,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void reusesAnExistingInstallationWithoutDownloadingAgain() throws IOException {
+  void shouldReuseAnExistingInstallationWithoutDownloadingAgain() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
       final TestInstaller first = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
@@ -267,7 +267,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void findsAnInstallationRememberedInTheConfiguration() throws IOException {
+  void shouldFindAnInstallationRememberedInTheConfiguration() throws IOException {
     final Path elsewhere = this.createFileInFolder("installed-elsewhere");
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
     writer.writePathToConfig(elsewhere);
@@ -280,7 +280,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void downloadsAgainWhenTheRememberedInstallationIsGone() throws IOException {
+  void shouldDownloadAgainWhenTheRememberedInstallationIsGone() throws IOException {
     final Path gone = this.folder.resolve("gone");
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
     writer.writePathToConfig(gone);
@@ -297,7 +297,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void ignoresARememberedPathThatIsNotAValidPath() throws IOException {
+  void shouldIgnoreARememberedPathThatIsNotAValidPath() throws IOException {
     final Properties config = new Properties();
     config.setProperty(NAME, "bad\0path");
     this.writeConfig(config);
@@ -312,7 +312,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void rejectsADownloadWithTheWrongChecksumAndRemembersNothing() throws IOException {
+  void shouldRejectADownloadWithTheWrongChecksumAndRememberNothing() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
       final byte[] otherContent = "something else".getBytes(StandardCharsets.US_ASCII);
@@ -330,7 +330,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void downloadsOnlyOnceWhenCalledConcurrently() throws Exception {
+  void shouldDownloadOnlyOnceWhenCalledConcurrently() throws Exception {
     final CountDownLatch releaseResponse = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respondWhenOpened(TOOL_PATH, 200, PROGRAM, releaseResponse);
@@ -349,7 +349,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void answersQuestionsWhileADownloadIsRunning() throws Exception {
+  void shouldAnswerQuestionsWhileADownloadIsRunning() throws Exception {
     final CountDownLatch releaseResponse = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respondWhenOpened(TOOL_PATH, 200, PROGRAM, releaseResponse);
@@ -374,7 +374,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void reportsAProgramThatCannotBeMarkedExecutableAsAnInstallationFailure() throws IOException {
+  void shouldReportAProgramThatCannotBeMarkedExecutableAsAnInstallationFailure() throws IOException {
     final IOException permissionDenied = new IOException("Operation not permitted");
     final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted", permissionDenied);
     try (
@@ -398,7 +398,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void preservesThePermissionFailureWhenRemovingTheFailedDownloadAlsoFails() throws IOException {
+  void shouldPreserveThePermissionFailureWhenRemovingTheFailedDownloadAlsoFails() throws IOException {
     final UncheckedIOException permissionFailure = new UncheckedIOException(new IOException("permission denied"));
     try (
       final LocalHttpServer server = LocalHttpServer.start();
@@ -430,7 +430,7 @@ final class AbstractInstallerTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void retriesExecutablePreparationAfterAPermissionFailure(final boolean freshInstaller) throws IOException {
+  void shouldRetryExecutablePreparationAfterAPermissionFailure(final boolean freshInstaller) throws IOException {
     try (
       final FileSystem fileSystem = Jimfs.newFileSystem(posixConfiguration());
       final LocalHttpServer server = LocalHttpServer.start();
@@ -459,7 +459,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void marksTheDownloadedProgramExecutableWithoutGivingOthersWriteAccess() throws IOException {
+  void shouldMarkTheDownloadedProgramExecutableWithoutGivingOthersWriteAccess() throws IOException {
     final Configuration posix = posixConfiguration();
     try (final FileSystem fileSystem = Jimfs.newFileSystem(posix); final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
@@ -477,7 +477,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void findsAnEarlierInstallationWithoutDownloadingAnything() throws IOException {
+  void shouldFindAnEarlierInstallationWithoutDownloadingAnything() throws IOException {
     final Supplier<Download[]> noDownloads = () -> {
       throw new AssertionError("The downloads must not be resolved");
     };
@@ -497,7 +497,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void neverOffersADownloadForAnUnknownPlatform() {
+  void shouldNeverOfferADownloadForAnUnknownPlatform() {
     final Platform unknownOs = Platform.ofPlatform(OS.OTHER, Arch.X86, Bits.BITS_64);
     final Platform unknownArch = Platform.ofPlatform(OS.LINUX, Arch.OTHER, Bits.BITS_64);
     final Download forUnknownOs = new Download(unknownOs, "https://example.com/unknown-os", null);
@@ -513,7 +513,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void keepsTheEntriesOfOtherProgramsAndLeavesNoTemporaryFiles() throws IOException {
+  void shouldKeepTheEntriesOfOtherProgramsAndLeaveNoTemporaryFiles() throws IOException {
     final Path first = this.createFileInFolder("first");
     final Path second = this.createFileInFolder("second");
     final TestInstaller firstInstaller = new TestInstaller(this.folder, "first-program", new Download[0]);
@@ -535,7 +535,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void storesArchivesUnderTheFileNameOfTheirUrl() throws IOException {
+  void shouldStoreArchivesUnderTheFileNameOfTheirUrl() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/files/pack-1.0.zip", 200, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, "/files/pack-1.0.zip", null);
@@ -552,7 +552,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void namesArchivesAfterTheProgramWhenTheUrlHasNoUsableFileName() {
+  void shouldNameArchivesAfterTheProgramWhenTheUrlHasNoUsableFileName() {
     final List<String> urls = List.of("https://example.com/", "https://example.com/files/..", "https://example.com/files/.");
     for (final String url : urls) {
       final Download download = new Download(CURRENT_PLATFORM, url, null);
@@ -564,7 +564,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void treatsDownloadsAsProgramsUnlessAnInstallerSaysOtherwise() {
+  void shouldTreatDownloadsAsProgramsUnlessAnInstallerSaysOtherwise() {
     final PlainInstaller installer = new PlainInstaller(this.folder);
     final boolean isArchive = installer.isArchive();
     final String fileName = installer.getFileName();
@@ -575,7 +575,7 @@ final class AbstractInstallerTest {
   }
 
   @Test
-  void storesProgramsUnderTheirExecutableName() {
+  void shouldStoreProgramsUnderTheirExecutableName() {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
     final String fileName = installer.getFileName();
     final boolean isArchive = installer.isArchive();

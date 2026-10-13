@@ -42,7 +42,7 @@ final class ReusableMatTest {
   private static final int ROUNDS = 2_000;
 
   @Test
-  void lendsTheSameMatrixFrameAfterFrame() {
+  void shouldLendTheSameMatrixFrameAfterFrame() {
     final ReusableMat reusable = new ReusableMat();
     final Mat first = reusable.borrow();
     final boolean kept = reusable.giveBack(first);
@@ -53,7 +53,7 @@ final class ReusableMatTest {
   }
 
   @Test
-  void lendsAnotherMatrixWhileTheFirstIsInUseAndFreesTheSurplus() {
+  void shouldLendAnotherMatrixWhileTheFirstIsInUseAndFreeTheSurplus() {
     final ReusableMat reusable = new ReusableMat();
     final Mat first = reusable.borrow();
     final Mat second = reusable.borrow();
@@ -70,7 +70,7 @@ final class ReusableMatTest {
   }
 
   @Test
-  void neverLendsOneMatrixToTwoThreadsAtOnce() throws Exception {
+  void shouldNeverLendOneMatrixToTwoThreadsAtOnce() throws Exception {
     final ReusableMat reusable = new ReusableMat();
     final List<Future<Integer>> results = new ArrayList<>();
     try (final ExecutorService executor = Executors.newFixedThreadPool(THREADS)) {

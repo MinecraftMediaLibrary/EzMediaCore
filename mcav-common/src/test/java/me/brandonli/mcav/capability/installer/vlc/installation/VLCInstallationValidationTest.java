@@ -126,7 +126,7 @@ final class VLCInstallationValidationTest {
 
   @ParameterizedTest
   @EnumSource(Platform.class)
-  void cachedInstallationsNeedBothNonemptyFilesInTheSameDirectory(final Platform platform) throws IOException {
+  void shouldNeedBothNonemptyFilesInTheSameDirectoryForCachedInstallations(final Platform platform) throws IOException {
     for (final Defect defect : Defect.values()) {
       final Path folder = this.temp.resolve(defect.name());
       final VLCInstaller installer = VLCInstaller.create(folder);
@@ -142,7 +142,7 @@ final class VLCInstallationValidationTest {
 
   @ParameterizedTest
   @EnumSource(Platform.class)
-  void findsACompletePairBeyondAnIncompleteCandidate(final Platform platform) throws IOException {
+  void shouldFindACompletePairBeyondAnIncompleteCandidate(final Platform platform) throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final Path install = installer.getInstallDirectory();
     final Path main = install.resolve(platform.mainLibrary());
@@ -158,7 +158,7 @@ final class VLCInstallationValidationTest {
 
   @ParameterizedTest
   @EnumSource(Platform.class)
-  void extractedInstallationsRejectMissingOrEmptyCounterparts(final Platform platform) throws IOException {
+  void shouldRejectMissingOrEmptyCounterpartsOfExtractedInstallations(final Platform platform) throws IOException {
     for (final Defect defect : Defect.values()) {
       final Path folder = this.temp.resolve(defect.name());
       Files.createDirectories(folder);
@@ -213,7 +213,7 @@ final class VLCInstallationValidationTest {
   }
 
   @Test
-  void followsLibrarySymlinksAndRejectsBrokenOrEmptyTargets() throws IOException {
+  void shouldFollowLibrarySymlinksAndRejectBrokenOrEmptyTargets() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final Path directory = installer.getInstallDirectory();
     Files.createDirectories(directory);

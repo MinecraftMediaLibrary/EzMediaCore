@@ -65,7 +65,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void createsTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
+  void shouldCreateTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
     final OpenCVPlayer player = new OpenCVPlayer();
     final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
     try (final FrameGrabber grabber = player.createFrameGrabber("unopened-file.mp4")) {
@@ -81,7 +81,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void readsFilesWithTheGrabberThatCanOpenThem() throws Exception {
+  void shouldReadFilesWithTheGrabberThatCanOpenThem() throws Exception {
     final Path video = TestMedia.video();
     final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
     final boolean openCvOpenedTheFile = opensWithOpenCv(video);
@@ -169,7 +169,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void openCvPlayerDecodesFiles() throws Exception {
+  void shouldDecodeFilesWithTheOpenCvPlayer() throws Exception {
     final int[] result = playTestVideo(null);
     final int frames = result[0];
     final int width = result[1];
@@ -181,7 +181,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void openCvPlayerScalesFilesToTheAttachedSize() throws Exception {
+  void shouldScaleFilesToTheAttachedSizeWithTheOpenCvPlayer() throws Exception {
     final Dimension size = Dimension.of(160, 120);
     final int[] result = playTestVideo(size);
     final int frames = result[0];
@@ -191,7 +191,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void devicePlayerOpensCamerasByIndex() {
+  void shouldOpenCamerasByIndexInTheDevicePlayer() {
     final VideoPlayerMultiplexer player = VideoPlayer.device();
     final VideoInputPlayer device = assertInstanceOf(VideoInputPlayer.class, player);
     final FrameGrabber grabber = device.createFrameGrabber("0");
@@ -202,7 +202,7 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void factoriesCreateEveryKindOfPlayer() {
+  void shouldCreateEveryKindOfPlayerFromTheFactories() {
     final VideoPlayerMultiplexer ffmpeg = VideoPlayer.ffmpeg();
     final VideoPlayerMultiplexer openCv = VideoPlayer.opencv();
     assertInstanceOf(FFmpegPlayer.class, ffmpeg);

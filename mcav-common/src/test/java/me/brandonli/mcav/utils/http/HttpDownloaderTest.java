@@ -88,7 +88,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void rejectsUnsupportedUrisBeforeAllocatingAnHttpClient() {
+  void shouldRejectUnsupportedUrisBeforeAllocatingAnHttpClient() {
     final URI unsupported = URI.create("file:///tmp/media.mp4");
     try (final MockedStatic<HttpClient> clients = Mockito.mockStatic(HttpClient.class)) {
       assertThrows(IllegalArgumentException.class, () -> HttpDownloader.openStream(unsupported));
@@ -97,7 +97,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void downloadsFilesAtomically() throws IOException {
+  void shouldDownloadFilesAtomically() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final URI uri = server.uri("/file");
@@ -113,7 +113,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void verifiesTheChecksum() throws IOException {
+  void shouldVerifyTheChecksum() throws IOException {
     final String expected = contentSha256();
     assertEquals(CONTENT_SHA256, expected, "the constant is the SHA-256 of the content");
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -141,7 +141,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void retriesServerErrorsAndGivesUpAfterThreeAttempts() throws IOException {
+  void shouldRetryServerErrorsAndGiveUpAfterThreeAttempts() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/flaky", 503, CONTENT);
       server.respond("/flaky", 200, CONTENT);
@@ -166,7 +166,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void keepsTheExistingFileWhenADownloadFails() throws IOException {
+  void shouldKeepTheExistingFileWhenADownloadFails() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/broken", 500, CONTENT);
       final URI broken = server.uri("/broken");
@@ -182,7 +182,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void doesNotRetryClientErrors() {
+  void shouldNotRetryClientErrors() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final URI missing = server.uri("/missing");
       final Path destination = this.directory.resolve("missing.bin");
@@ -195,7 +195,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void stopsADownloadThatIsLargerThanAllowed() throws IOException {
+  void shouldStopADownloadThatIsLargerThanAllowed() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final byte[] big = new byte[256 * 1024];
       server.respond("/big", 200, big);
@@ -219,7 +219,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void downloadsAFileThatFitsTheLimit() throws IOException {
+  void shouldDownloadAFileThatFitsTheLimit() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final URI uri = server.uri("/file");
@@ -233,7 +233,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadChecksItsHashAndItsSize() throws IOException {
+  void shouldCheckTheHashAndTheSizeOfAPinnedDownload() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       server.respond("/big", 200, new byte[256 * 1024]);
@@ -255,14 +255,14 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void refusesANonPositiveSizeLimit() {
+  void shouldRefuseANonPositiveSizeLimit() {
     final URI uri = URI.create("http://example.com/file");
     final Path destination = this.directory.resolve("unused.bin");
     assertThrows(IllegalArgumentException.class, () -> HttpDownloader.download(uri, destination, 0));
   }
 
   @Test
-  void decidesWhichFailuresAreWorthRetrying() {
+  void shouldDecideWhichFailuresAreWorthRetrying() {
     final URI uri = URI.create("http://example.com/");
     final IOException network = new IOException("connection reset");
     final IOException checksum = new ChecksumMismatchException("bad hash");
@@ -288,7 +288,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadFollowsARedirectWithinItsOwnHostOnly() throws IOException {
+  void shouldFollowARedirectOfAPinnedDownloadWithinItsOwnHostOnly() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start(); final LocalHttpServer other = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       server.respondRedirect("/moved", 302, "/file");
@@ -311,7 +311,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadFollowsEveryKindOfRedirectFiveTimesAtMost() throws IOException {
+  void shouldFollowEveryKindOfRedirectOfAPinnedDownloadFiveTimesAtMost() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       for (final int status : new int[] { 301, 302, 303, 307, 308 }) {
@@ -336,7 +336,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void anOriginIsItsSchemeItsHostAndItsPort() {
+  void shouldMakeAnOriginOfItsSchemeItsHostAndItsPort() {
     final URI page = URI.create("https://mirror.example/debian/pool/a.deb");
     assertTrue(HttpDownloader.isSameOrigin(page, URI.create("https://MIRROR.example:443/file/b.deb")));
     assertTrue(HttpDownloader.isSameOrigin(URI.create("http://mirror.example/a"), URI.create("http://mirror.example:80/b")));
@@ -346,7 +346,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadThatTricklesIsGivenUpAtItsDeadlineWithoutAnotherAttempt() throws IOException {
+  void shouldGiveUpAPinnedDownloadThatTricklesAtItsDeadlineWithoutAnotherAttempt() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respondTrickling("/slow", 200, CONTENT, 50);
       final Path slow = this.directory.resolve("slow.bin");
@@ -361,7 +361,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadOfTheLargestSizeHasADeadlineFarAway() throws IOException {
+  void shouldGiveAPinnedDownloadOfTheLargestSizeADeadlineFarAway() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final Path destination = this.directory.resolve("unbounded.bin");
@@ -371,14 +371,14 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void aPinnedDownloadMayTakeAMinuteAndASecondForEvery64KibOfItsSize() {
+  void shouldGiveAPinnedDownloadAMinuteAndASecondForEvery64KibOfItsSize() {
     assertEquals(Duration.ofMinutes(1), HttpDownloader.pinnedDeadline(1));
     assertEquals(Duration.ofSeconds(62), HttpDownloader.pinnedDeadline(2 * 64 * 1024));
     assertEquals(Duration.ofSeconds(60 + 3051), HttpDownloader.pinnedDeadline(200_000_000L));
   }
 
   @Test
-  void stopsRetryingWhenInterrupted() throws IOException {
+  void shouldStopRetryingWhenInterrupted() throws IOException {
     final URI unreachable = unusedPort();
     final Path destination = this.directory.resolve("interrupted.bin");
     final Thread current = Thread.currentThread();
@@ -392,7 +392,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void rejectsDestinationsWithoutAFileName() {
+  void shouldRejectDestinationsWithoutAFileName() {
     final URI uri = URI.create("http://127.0.0.1/file");
     final Path root = this.directory.getRoot();
     final Path destination = this.directory.resolve("file");
@@ -402,7 +402,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void opensStreamsThatCloseTheirClient() throws IOException, InterruptedException {
+  void shouldOpenStreamsThatCloseTheirClient() throws IOException, InterruptedException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final URI uri = server.uri("/file");
@@ -423,7 +423,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void usesAFreshTemporaryFileForEveryDownload() throws IOException {
+  void shouldUseAFreshTemporaryFileForEveryDownload() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final URI uri = server.uri("/file");
@@ -439,7 +439,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void downloadsTheSameFileConcurrentlyWithoutMixingTheDownloads() throws Exception {
+  void shouldDownloadTheSameFileConcurrentlyWithoutMixingTheDownloads() throws Exception {
     final CountDownLatch releaseResponses = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respondWhenOpened("/file", 200, CONTENT, releaseResponses);
@@ -470,7 +470,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void doesNotRetryAFileThatCannotBeMovedIntoPlace() throws IOException {
+  void shouldNotRetryAFileThatCannotBeMovedIntoPlace() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/file", 200, CONTENT);
       final URI uri = server.uri("/file");
@@ -490,7 +490,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void givesUpOnABodyThatStopsArriving() {
+  void shouldGiveUpOnABodyThatStopsArriving() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final long announcedLength = CONTENT.length * 10L;
       server.respondStalling("/stalled", 200, CONTENT, announcedLength);
@@ -513,7 +513,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void stopsAtOnceWhenInterruptedWhileTheBodyArrives() throws Exception {
+  void shouldStopAtOnceWhenInterruptedWhileTheBodyArrives() throws Exception {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final long announcedLength = CONTENT.length * 10L;
       server.respondStalling("/slow", 200, CONTENT, announcedLength);
@@ -572,7 +572,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void closingAResponseStreamClosesItsBodyEvenWhenTheClientOwnsNoExchange() throws IOException {
+  void shouldCloseTheBodyOfAResponseStreamEvenWhenTheClientOwnsNoExchange() throws IOException {
     final AtomicBoolean closed = new AtomicBoolean();
     final InputStream body = new ByteArrayInputStream(new byte[] { 1 }) {
       @Override
@@ -590,7 +590,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void openStreamReportsFailures() throws IOException {
+  void shouldReportFailuresOfOpenStream() throws IOException {
     final URI unreachable = unusedPort();
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final URI missing = server.uri("/missing");
@@ -608,7 +608,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void fetchesText() throws IOException {
+  void shouldFetchText() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/text", 200, CONTENT);
       final URI text = server.uri("/text");
@@ -629,7 +629,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void createsConfiguredClientsAndRequests() {
+  void shouldCreateConfiguredClientsAndRequests() {
     final URI uri = URI.create("https://example.com/file");
     final HttpRequest request = HttpDownloader.createRequest(uri);
     final HttpHeaders headers = request.headers();
@@ -647,7 +647,7 @@ final class HttpDownloaderTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(HttpDownloader.class);
   }
 }

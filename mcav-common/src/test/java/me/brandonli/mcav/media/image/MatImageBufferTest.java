@@ -84,7 +84,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void keepsPackedPixelsAndStoresThemAsBgr() {
+  void shouldKeepPackedPixelsAndStoreThemAsBgr() {
     final int[] pixels = { 0xFF112233, 0xFF445566, 0xFF778899, 0xFFAABBCC };
     try (final ImageBuffer image = ImageBuffer.buffer(pixels, 2, 2)) {
       final int[] read = image.getPixels();
@@ -105,7 +105,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void readsRawBgrBytes() {
+  void shouldReadRawBgrBytes() {
     final byte[] bytes = { 1, 2, 3, 4, 5, 6 };
     final ByteBuffer buffer = ByteBuffer.wrap(bytes);
     try (final ImageBuffer fromArray = ImageBuffer.bytes(bytes, 2, 1); final ImageBuffer fromBuffer = ImageBuffer.bytes(buffer, 2, 1)) {
@@ -138,7 +138,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void decodesEncodedImages() {
+  void shouldDecodeEncodedImages() {
     final BufferedImage source = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
     source.setRGB(3, 3, 0xFF0000);
     final byte[] png = Images.encode(source, "png");
@@ -155,7 +155,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refusesAnImageOfADisabledCodecAsUnsupportedRatherThanCrashing() throws IOException {
+  void shouldRefuseAnImageOfADisabledCodecAsUnsupportedRatherThanCrashing() throws IOException {
     // the bundled OpenCV is built without the OpenEXR codec, so imdecode/imread raise an OpenCV error for an EXR
     // image; it is untrusted input, so it must be refused as unsupported, not escape as an unchecked RuntimeException
     final byte[] exr = { 'v', '/', '1', 0x01 };
@@ -168,7 +168,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void loadsImagesFromFilesAndUris() throws IOException {
+  void shouldLoadImagesFromFilesAndUris() throws IOException {
     final Path png = TestMedia.png();
     final FileSource file = FileSource.path(png);
     final Path notAnImage = this.directory.resolve("text.png");
@@ -188,7 +188,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refusesAnImageThatDeclaresMorePixelsThanTheLimitBeforeDecodingIt() throws IOException {
+  void shouldRefuseAnImageThatDeclaresMorePixelsThanTheLimitBeforeDecodingIt() throws IOException {
     final BufferedImage source = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
     final byte[] png = Images.encode(source, "png");
     final Path file = this.directory.resolve("sixteen.png");
@@ -216,7 +216,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refusesAHeaderThatDeclaresAHugeSizeForItsSize() {
+  void shouldRefuseAHeaderThatDeclaresAHugeSizeForItsSize() {
     final byte[] header = new byte[] {
       (byte) 0x89,
       'P',
@@ -262,7 +262,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refusesAnImageWhosePictureIsMissingAfterAValidHeader() throws IOException {
+  void shouldRefuseAnImageWhosePictureIsMissingAfterAValidHeader() throws IOException {
     final byte[] headerOnly = "P6\n4 4\n255\n".getBytes(StandardCharsets.US_ASCII);
     final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
       ImageBuffer.bytes(headerOnly)
@@ -307,7 +307,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void keepsContinuousBgrMatsAndCopiesRegions() {
+  void shouldKeepContinuousBgrMatsAndCopyRegions() {
     final Mat bgr = new Mat(2, 2, opencv_core.CV_8UC3, new Scalar(1.0, 2.0, 3.0, 0.0));
     final Mat wide = new Mat(4, 4, opencv_core.CV_8UC3, new Scalar(9.0, 8.0, 7.0, 0.0));
     final Rect region = new Rect(1, 1, 2, 2);
@@ -324,7 +324,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void convertsMatsOfOtherChannelCountsAndDepths() {
+  void shouldConvertMatsOfOtherChannelCountsAndDepths() {
     final Scalar gray = new Scalar(200.0);
     final Scalar opaqueBlue = new Scalar(255.0, 0.0, 0.0, 255.0);
     final Scalar deepRed = new Scalar(0.0, 0.0, 1000.0, 0.0);
@@ -352,7 +352,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void convertsSingleChannelMatsOfOtherDepthsToColor() {
+  void shouldConvertSingleChannelMatsOfOtherDepthsToColor() {
     final Scalar bright = new Scalar(25_700.0);
     final Mat sixteenBitGray = new Mat(2, 2, opencv_core.CV_16UC1, bright);
     try (final ImageBuffer fromSixteenBitGray = ImageBuffer.mat(sixteenBitGray)) {
@@ -365,7 +365,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void rejectsMatsItCannotConvert() {
+  void shouldRejectMatsItCannotConvert() {
     try (final Mat twoChannels = new Mat(2, 2, opencv_core.CV_8UC2); final Mat empty = new Mat()) {
       assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.mat(twoChannels));
       assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.mat(empty));
@@ -383,7 +383,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void mapsTheFullRangeOfEveryDepthOntoEightBits() {
+  void shouldMapTheFullRangeOfEveryDepthOntoEightBits() {
     final int unsignedSixteen = convertedPixel(opencv_core.CV_16UC3, 65_535.0);
     final int signedEightMiddle = convertedPixel(opencv_core.CV_8SC3, 0.0);
     final int signedEightLowest = convertedPixel(opencv_core.CV_8SC3, -128.0);
@@ -405,7 +405,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void noticesWhenTheMatPointsAtOtherPixels() {
+  void shouldNoticeWhenTheMatPointsAtOtherPixels() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final int[] before = image.getPixels();
@@ -423,7 +423,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void reusesItsConversionArray() {
+  void shouldReuseItsConversionArray() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final byte[] first = buffer.getScratch(12);
@@ -441,7 +441,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesTheImageOutOfFrames() {
+  void shouldCopyTheImageOutOfFrames() {
     final Frame frame = new Frame(2, 1, Frame.DEPTH_UBYTE, 3);
     final ByteBuffer frameBytes = (ByteBuffer) frame.image[0];
     frameBytes.put(new byte[] { 10, 20, 30, 40, 50, 60 });
@@ -459,7 +459,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void convertsBufferedImagesOfEveryType() {
+  void shouldConvertBufferedImagesOfEveryType() {
     final int[] types = {
       BufferedImage.TYPE_3BYTE_BGR,
       BufferedImage.TYPE_INT_RGB,
@@ -524,7 +524,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesLogicalPixelsWhenTheBackingArrayHasExtraStorage() {
+  void shouldCopyLogicalPixelsWhenTheBackingArrayHasExtraStorage() {
     final int[] types = { BufferedImage.TYPE_INT_RGB, BufferedImage.TYPE_3BYTE_BGR };
     for (final int type : types) {
       for (int offset = 0; offset <= 1; offset++) {
@@ -537,7 +537,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesIntegerRowsUsingTheirScanlineStride() {
+  void shouldCopyIntegerRowsUsingTheirScanlineStride() {
     final BufferedImage prototype = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
     final ColorModel colors = prototype.getColorModel();
     final int[] masks = { 0xFF0000, 0xFF00, 0xFF };
@@ -553,7 +553,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesStandardImagesWithExactBackingStorage() {
+  void shouldCopyStandardImagesWithExactBackingStorage() {
     for (int type = BufferedImage.TYPE_INT_RGB; type <= BufferedImage.TYPE_BYTE_INDEXED; type++) {
       final BufferedImage source = new BufferedImage(2, 2, type);
       source.setRGB(0, 0, 0xFF123456);
@@ -565,7 +565,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesASingleRowWithUnusedScanlinePadding() {
+  void shouldCopyASingleRowWithUnusedScanlinePadding() {
     final BufferedImage standard = new BufferedImage(2, 1, BufferedImage.TYPE_3BYTE_BGR);
     final ColorModel colors = standard.getColorModel();
     final SampleModel model = new PixelInterleavedSampleModel(DataBuffer.TYPE_BYTE, 2, 1, 3, 7, new int[] { 2, 1, 0 });
@@ -578,7 +578,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesPlanarCustomRastersAndSeparateBanks() {
+  void shouldCopyPlanarCustomRastersAndSeparateBanks() {
     final ColorSpace space = ColorSpace.getInstance(ColorSpace.CS_sRGB);
     final int[] transferTypes = { DataBuffer.TYPE_BYTE, DataBuffer.TYPE_INT };
     for (final int type : transferTypes) {
@@ -600,7 +600,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesOnlyThePixelsOfSubImages() {
+  void shouldCopyOnlyThePixelsOfSubImages() {
     final int[] types = { BufferedImage.TYPE_3BYTE_BGR, BufferedImage.TYPE_INT_RGB };
     for (final int type : types) {
       final BufferedImage parent = new BufferedImage(4, 4, type);
@@ -629,7 +629,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void convertsBackToBufferedImagesAndReplacesItsContent() {
+  void shouldConvertBackToBufferedImagesAndReplaceItsContent() {
     try (final ImageBuffer image = Images.indexed(3, 2)) {
       final BufferedImage converted = image.toBufferedImage();
       final int type = converted.getType();
@@ -653,7 +653,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void coordinateDiagnosticsDescribeTheActualValidRange() {
+  void shouldDescribeTheActualValidRangeInCoordinateDiagnostics() {
     try (final ImageBuffer image = Images.solid(3, 4, 0xFF000000)) {
       final IllegalArgumentException horizontal = assertThrows(IllegalArgumentException.class, () -> image.getPixel(3, 0));
       final IllegalArgumentException vertical = assertThrows(IllegalArgumentException.class, () -> image.getPixel(0, 4));
@@ -665,7 +665,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void setsAndGetsSinglePixels() {
+  void shouldSetAndGetSinglePixels() {
     try (final ImageBuffer image = Images.solid(3, 3, 0xFF000000)) {
       final int black = argbAt(image, 1, 1);
       image.setPixel(1, 1, new double[] { 300.0, -5.0, 127.6 });
@@ -690,7 +690,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void replacesItsDataWithBgrBytes() {
+  void shouldReplaceItsDataWithBgrBytes() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final ByteBuffer sameSize = ByteBuffer.allocate(2 * 2 * 3);
       sameSize.put(0, (byte) 7);
@@ -715,7 +715,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void replacesItsDataWithPackedPixels() {
+  void shouldReplaceItsDataWithPackedPixels() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final int[] sameSize = { 1, 2, 3, 4 };
       image.updateArgb(sameSize, 2, 2);
@@ -739,7 +739,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void detectsMatsThatWereReallocatedBehindItsBack() {
+  void shouldDetectMatsThatWereReallocatedBehindItsBack() {
     try (final ImageBuffer image = Images.indexed(4, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final int[] cached = image.getPixels();
@@ -768,7 +768,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refreshesTheCacheWhenAskedTo() {
+  void shouldRefreshTheCacheWhenAskedTo() {
     try (final ImageBuffer image = Images.solid(1, 1, 0xFF000000)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       image.getPixels();
@@ -781,7 +781,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void replacesItsMat() {
+  void shouldReplaceItsMat() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat own = buffer.getMat();
@@ -811,7 +811,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void transformsIntoItsSpareMatrixAndReusesItForTheNextFrame() {
+  void shouldTransformIntoItsSpareMatrixAndReuseItForTheNextFrame() {
     try (final ImageBuffer image = Images.indexed(3, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -837,7 +837,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void resizingBackToTheSizeOfTheSpareReusesIt() {
+  void shouldReuseTheSpareWhenResizingBackToItsSize() {
     try (final ImageBuffer image = Images.indexed(4, 2); final Size half = new Size(2, 1)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -858,7 +858,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void keepsTheLatestMatrixAsSpareWhenResizedToANewSize() {
+  void shouldKeepTheLatestMatrixAsSpareWhenResizedToANewSize() {
     try (final ImageBuffer image = Images.indexed(4, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -876,7 +876,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void releasesThePreviousMatrixOfImagesWithoutSpare() {
+  void shouldReleaseThePreviousMatrixOfImagesWithoutSpare() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF000000)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -893,7 +893,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void keepsItsMatrixWhenATransformationFails() {
+  void shouldKeepItsMatrixWhenATransformationFails() {
     try (final ImageBuffer image = Images.indexed(2, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -913,7 +913,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void freesTheMatrixOfAFailedTransformationAtOnce() {
+  void shouldFreeTheMatrixOfAFailedTransformationAtOnce() {
     try (final ImageBuffer image = Images.indexed(2, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final AtomicReference<Mat> given = new AtomicReference<>();
@@ -943,7 +943,7 @@ final class MatImageBufferTest {
   private static void leaveTargetEmpty() {}
 
   @Test
-  void convertsResultsToBgrAndNeverKeepsAMatrixTheResultShares() {
+  void shouldConvertResultsToBgrAndNeverKeepAMatrixTheResultShares() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF102030)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       buffer.transformMat((source, target) -> opencv_imgproc.cvtColor(source, target, opencv_imgproc.COLOR_BGR2GRAY));
@@ -961,7 +961,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void releasesItsSpareMatrixWithItself() {
+  void shouldReleaseItsSpareMatrixWithItself() {
     try (final ImageBuffer image = Images.indexed(2, 1)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final Mat original = buffer.getMat();
@@ -975,7 +975,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void copiesAreIndependent() {
+  void shouldCopyAreIndependent() {
     try (final ImageBuffer image = Images.solid(1, 1, 0xFF00FF00)) {
       final ImageBuffer copy = image.copy();
       copy.updateArgb(new int[] { 0xFF000000 }, 1, 1);
@@ -988,7 +988,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void refusesToBeUsedAfterRelease() {
+  void shouldRefuseToBeUsedAfterRelease() {
     final ImageBuffer image = Images.solid(1, 1, 0xFF000000);
     final MatImageBuffer buffer = (MatImageBuffer) image;
     final Mat own = buffer.getMat();
@@ -1019,7 +1019,7 @@ final class MatImageBufferTest {
     "65536, 65536, Image dimensions exceed the maximum BGR buffer size: 65536x65536",
     "2147483647, 2147483647, Image dimensions exceed the maximum BGR buffer size: 2147483647x2147483647",
   })
-  void rejectsUnrepresentableDimensionsBeforeNativeAllocation(final int width, final int height, final String expectedMessage) {
+  void shouldRejectUnrepresentableDimensionsBeforeNativeAllocation(final int width, final int height, final String expectedMessage) {
     // two elements differ from both wrapped counts of every row (pixels 715827883, 0 and 1, BGR -2147483647, 0 and 3),
     // so without the dimension guard the length guard still refuses before anything is allocated
     final byte[] bytes = new byte[2];
@@ -1062,7 +1062,7 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void permitsTheLargestRepresentablePackedSizeToReachTheLengthCheck() {
+  void shouldPermitTheLargestRepresentablePackedSizeToReachTheLengthCheck() {
     final byte[] shortInput = new byte[2];
     // the length error shows the inclusive boundary passes the size check, without allocating its 2147483646 bytes;
     // matrices are intercepted too, so that without the length guard nothing allocates 2 GiB of native memory
@@ -1083,14 +1083,14 @@ final class MatImageBufferTest {
   }
 
   @Test
-  void rejectsInvalidPackedPixels() {
+  void shouldRejectInvalidPackedPixels() {
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.buffer(new int[3], 2, 2));
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.buffer(new int[0], 0, 2));
     assertThrowsWhileOpening(NullPointerException.class, () -> ImageBuffer.buffer(null, 1, 1));
   }
 
   @Test
-  void discardsTheAlphaChannelOfPackedPixels() {
+  void shouldDiscardTheAlphaChannelOfPackedPixels() {
     final int[] translucent = { 0x00123456, 0x80ABCDEF };
     final int[] expected = { 0xFF123456, 0xFFABCDEF };
     try (final ImageBuffer image = ImageBuffer.buffer(translucent, 2, 1)) {

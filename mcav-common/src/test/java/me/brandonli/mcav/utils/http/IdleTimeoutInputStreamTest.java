@@ -47,7 +47,7 @@ final class IdleTimeoutInputStreamTest {
   private static final Duration GENEROUS_TIMEOUT = Duration.ofSeconds(10);
 
   @Test
-  void passesTheDataThroughByteByByteAndInBlocks() throws IOException {
+  void shouldPassTheDataThroughByteByByteAndInBlocks() throws IOException {
     final byte[] content = { 1, 2, (byte) 200, 4 };
     final ByteArrayInputStream source = new ByteArrayInputStream(content);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT)) {
@@ -70,7 +70,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void failsAndClosesTheSourceWhenNoDataArrives() throws IOException {
+  void shouldFailAndCloseTheSourceWhenNoDataArrives() throws IOException {
     final BlockingSource source = new BlockingSource();
     final Duration idleTimeout = Duration.ofMillis(100);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, idleTimeout)) {
@@ -86,7 +86,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void reportsFailuresOfTheSource() throws IOException {
+  void shouldReportFailuresOfTheSource() throws IOException {
     final IOException failure = new IOException("connection reset");
     final InputStream broken = new InputStream() {
       @Override
@@ -110,7 +110,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void stopsWaitingWhenInterrupted() throws IOException {
+  void shouldStopWaitingWhenInterrupted() throws IOException {
     final BlockingSource source = new BlockingSource();
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT)) {
       final Thread currentThread = Thread.currentThread();
@@ -123,7 +123,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void validatesArgumentsAndReturnsZeroWithoutReadingTheSource() throws IOException {
+  void shouldValidateArgumentsAndReturnZeroWithoutReadingTheSource() throws IOException {
     final InputStream unused = new InputStream() {
       @Override
       public int read() {
@@ -157,7 +157,7 @@ final class IdleTimeoutInputStreamTest {
 
   @ParameterizedTest
   @MethodSource("uncheckedReadFailures")
-  void preservesUncheckedFailuresAcrossTheWorkerThread(final Throwable failure) throws IOException {
+  void shouldPreserveUncheckedFailuresAcrossTheWorkerThread(final Throwable failure) throws IOException {
     final InputStream broken = new InputStream() {
       @Override
       public int read() {
@@ -180,7 +180,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void closesTheSource() throws IOException {
+  void shouldCloseTheSource() throws IOException {
     final BlockingSource source = new BlockingSource();
     final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT);
     stream.close();

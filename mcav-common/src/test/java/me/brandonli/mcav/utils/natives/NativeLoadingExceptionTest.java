@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 final class NativeLoadingExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final NativeLoadingException exception = new NativeLoadingException("no natives for this platform");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -39,7 +39,7 @@ final class NativeLoadingExceptionTest {
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCause() {
     final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniavcodec");
     final NativeLoadingException exception = new NativeLoadingException("FFmpeg could not be loaded", linkError);
     final String message = exception.getMessage();
@@ -49,7 +49,7 @@ final class NativeLoadingExceptionTest {
   }
 
   @Test
-  void isAnIllegalStateException() {
+  void shouldBeAnIllegalStateException() {
     final NativeLoadingException exception = new NativeLoadingException("failure");
     assertInstanceOf(IllegalStateException.class, exception, "missing natives are an environment state, not an Error");
   }

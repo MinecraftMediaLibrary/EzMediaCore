@@ -194,7 +194,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void playsTheFramesAndSamplesOfAFile() throws Exception {
+  void shouldPlayTheFramesAndSamplesOfAFile() throws Exception {
     final boolean started = this.startTestVideo();
     this.awaitFrames(20);
     this.awaitHalfASecondOfAudio("half a second of audio arrived");
@@ -208,7 +208,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void deliversTheColorsAndTheVisibleSizeOfTheVideo() throws Exception {
+  void shouldDeliverTheColorsAndTheVisibleSizeOfTheVideo() throws Exception {
     final Path red = VlcTestSupport.solidVideo(directory, "red", 100, 60);
     final boolean started = this.startFile(red);
     assertTrue(started);
@@ -228,7 +228,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void pausesAndResumesPlayback() throws Exception {
+  void shouldPauseAndResumePlayback() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
     this.awaitFrames(10);
@@ -248,7 +248,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void resumesRightAfterPausing() throws Exception {
+  void shouldResumeRightAfterPausing() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
     this.awaitFrames(5);
@@ -261,7 +261,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void seeksNearTheEndAndStopsThere() throws Exception {
+  void shouldSeekNearTheEndAndStopThere() throws Exception {
     final boolean started = this.player.start(FileSource.path(TestMedia.seekVideo()));
     assertTrue(started);
     this.awaitFrames(5);
@@ -291,7 +291,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void takesTheAudioFromASeparateSource() throws Exception {
+  void shouldTakeTheAudioFromASeparateSource() throws Exception {
     final Path silent = TestMedia.silentVideo();
     final Path sound = TestMedia.audio(2.0);
     final Source video = FileSource.path(silent);
@@ -310,7 +310,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void reportsFilesThatCannotBeOpened() {
+  void shouldReportFilesThatCannotBeOpened() {
     final Path missing = directory.resolve("missing.mp4");
     final boolean started = this.startFile(missing);
     final boolean noErrors = this.errors.isEmpty();
@@ -323,7 +323,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void scalesFramesToTheAttachedSize() throws Exception {
+  void shouldScaleFramesToTheAttachedSize() throws Exception {
     final DimensionAttachableCallback dimension = this.player.getDimensionAttachableCallback();
     final Dimension size = Dimension.of(160, 120);
     dimension.attach(size);
@@ -341,7 +341,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void deliversNothingAfterRelease() throws Exception {
+  void shouldDeliverNothingAfterRelease() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
     this.awaitFrames(5);
@@ -362,7 +362,7 @@ final class VLCPlayerIntegrationTest {
   }
 
   @Test
-  void switchesToAnotherSource() throws Exception {
+  void shouldSwitchToAnotherSource() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
     this.awaitFrames(5);

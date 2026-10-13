@@ -48,7 +48,7 @@ final class ReleasePackageManagerTest {
   }
 
   @Test
-  void pinsTheLinuxAppImageToOneReviewedBuild() {
+  void shouldPinTheLinuxAppImageToOneReviewedBuild() {
     final List<Download> linux = downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_64);
     assertEquals(1, linux.size());
     final Download appImage = linux.getFirst();
@@ -60,7 +60,7 @@ final class ReleasePackageManagerTest {
   }
 
   @Test
-  void resolvesTheDownloadsWithoutAskingTheNetwork() {
+  void shouldResolveTheDownloadsWithoutAskingTheNetwork() {
     try (final MockedStatic<HttpDownloader> downloader = Mockito.mockStatic(HttpDownloader.class)) {
       final Download[] downloads = ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json");
       assertEquals(5, downloads.length, "Windows and macOS, two each, and Linux on x86-64");
@@ -69,7 +69,7 @@ final class ReleasePackageManagerTest {
   }
 
   @Test
-  void verifiesEveryDownloadWithAHash() {
+  void shouldVerifyEveryDownloadWithAHash() {
     for (final Download download : ReleasePackageManager.readVLCDownloadsFromJsonResource("mcav/common/installers/vlc.json")) {
       final String hash = download.getHash();
       assertNotNull(hash, "Every VLC download must be verified with a hash: " + download.getUrl());
@@ -78,18 +78,18 @@ final class ReleasePackageManagerTest {
   }
 
   @Test
-  void offersNoBuildForThirtyTwoBitLinux() {
+  void shouldOfferNoBuildForThirtyTwoBitLinux() {
     // Java 25, which mcav needs, has no port for 32-bit x86 Linux
     assertEquals(List.of(), downloadsFor(OS.LINUX, Arch.X86, Bits.BITS_32));
   }
 
   @Test
-  void rejectsANullResourcePath() {
+  void shouldRejectANullResourcePath() {
     assertThrows(NullPointerException.class, () -> ReleasePackageManager.readVLCDownloadsFromJsonResource(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ReleasePackageManager.class);
   }
 }

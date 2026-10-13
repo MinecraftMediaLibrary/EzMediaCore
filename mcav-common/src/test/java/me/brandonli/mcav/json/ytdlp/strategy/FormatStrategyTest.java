@@ -86,7 +86,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void selectsNothingWithoutStreams() {
+  void shouldSelectNothingWithoutStreams() {
     final URLParseDump missing = dump("{}");
     final URLParseDump empty = formats();
     final URLParseDump onlyNulls = formats("null", "null");
@@ -108,14 +108,14 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void rejectsANullDump() {
+  void shouldRejectANullDump() {
     for (final FormatStrategy strategy : ALL_STRATEGIES) {
       assertThrows(NullPointerException.class, () -> strategy.select(null));
     }
   }
 
   @Test
-  void skipsNullEntries() {
+  void shouldSkipNullEntries() {
     final String audioStream = audio("a", 1, "webm", "https");
     final String videoStream = video("v", 5, "mp4", "https");
     final URLParseDump dump = formats("null", audioStream, "null", videoStream, "null");
@@ -134,7 +134,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void picksTheBestAndLowestQualityOfTheMatchingKind() {
+  void shouldPickTheBestAndLowestQualityOfTheMatchingKind() {
     final String storyboard = "{\"format_id\": \"sb0\", \"audio_ext\": \"none\", \"video_ext\": \"none\", \"quality\": 100}";
     final String video5 = video("v5", 5, "mp4", "https");
     final String audio2 = audio("a2", 2, "m4a", "https");
@@ -155,7 +155,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void breaksQualityTiesInTheOrderYtdlpRanksStreams() {
+  void shouldBreakQualityTiesInTheOrderYtdlpRanksStreams() {
     // yt-dlp lists streams from worst to best, so among equal qualities the later stream is the better one
     final String avc1Low = video("avc1-low", 1, "mp4", "https");
     final String vp9Low = video("vp9-low", 1, "webm", "https");
@@ -175,7 +175,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void fallsBackToTheYtdlpOrderWhenNoQualityIsReported() {
+  void shouldFallBackToTheYtdlpOrderWhenNoQualityIsReported() {
     final URLParseDump dump = formats(
       "{\"format_id\": \"worst\", \"video_ext\": \"mp4\"}",
       "{\"format_id\": \"middle\", \"video_ext\": \"mp4\"}",
@@ -188,7 +188,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void picksTheFirstStreamOfTheMatchingKind() {
+  void shouldPickTheFirstStreamOfTheMatchingKind() {
     final String storyboard = "{\"format_id\": \"sb0\", \"audio_ext\": \"none\", \"video_ext\": \"none\"}";
     final String video1Stream = video("v1", 9, "mp4", "m3u8_native");
     final String audio1Stream = audio("a1", 1, "m4a", "https");
@@ -202,7 +202,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void prefersWebmAudioServedOverHttps() {
+  void shouldPreferWebmAudioServedOverHttps() {
     final String m4aHttps = audio("m4a-https", 3, "m4a", "https");
     final String webmHls = audio("webm-hls", 3, "webm", "m3u8_native");
     final String webmHttp = audio("webm-http", 3, "webm", "http");
@@ -219,7 +219,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void prefersMp4VideoServedOverHttps() {
+  void shouldPreferMp4VideoServedOverHttps() {
     final String webmHttps = video("webm-https", 9, "webm", "https");
     final String mp4Dash = video("mp4-dash", 9, "mp4", "http_dash_segments");
     final String mp4Audio = audio("audio-mp4", 9, "mp4", "https");
@@ -235,7 +235,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void detectsAudioOnlyStreams() {
+  void shouldDetectAudioOnlyStreams() {
     final Format audioOnly = format("{\"audio_ext\": \"webm\", \"video_ext\": \"none\"}");
     final Format noAudio = format("{\"audio_ext\": \"none\", \"video_ext\": \"mp4\"}");
     final Format unknown = format("{}");
@@ -249,7 +249,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void detectsVideoStreams() {
+  void shouldDetectVideoStreams() {
     final Format video = format("{\"audio_ext\": \"none\", \"video_ext\": \"mp4\"}");
     final Format noVideo = format("{\"audio_ext\": \"webm\", \"video_ext\": \"none\"}");
     final Format unknown = format("{}");
@@ -263,7 +263,7 @@ final class FormatStrategyTest {
   }
 
   @Test
-  void detectsPlainHttpsStreams() {
+  void shouldDetectPlainHttpsStreams() {
     final Format https = format("{\"protocol\": \"https\"}");
     final Format http = format("{\"protocol\": \"http\"}");
     final Format hls = format("{\"protocol\": \"m3u8_native\"}");

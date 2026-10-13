@@ -55,7 +55,7 @@ final class AsyncPlayerDefaultsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void videoForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForVideos(final boolean expected) throws Exception {
     final VideoPlayer player = mock(VideoPlayer.class, CALLS_REAL_METHODS);
     final Source source = mock(Source.class);
     doReturn(expected).when(player).start(source);
@@ -69,7 +69,7 @@ final class AsyncPlayerDefaultsTest {
   }
 
   @Test
-  void videoPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForVideos() {
     final VideoPlayer player = mock(VideoPlayer.class, CALLS_REAL_METHODS);
     final Source source = mock(Source.class);
     final RuntimeException expected = new IllegalStateException("synchronous failure");
@@ -85,7 +85,7 @@ final class AsyncPlayerDefaultsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void multiplexerForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForMultiplexers(final boolean expected) throws Exception {
     final VideoPlayerMultiplexer player = mock(VideoPlayerMultiplexer.class, CALLS_REAL_METHODS);
     final Source video = mock(Source.class);
     final Source audio = mock(Source.class);
@@ -100,7 +100,7 @@ final class AsyncPlayerDefaultsTest {
   }
 
   @Test
-  void multiplexerPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForMultiplexers() {
     final VideoPlayerMultiplexer player = mock(VideoPlayerMultiplexer.class, CALLS_REAL_METHODS);
     final Source video = mock(Source.class);
     final Source audio = mock(Source.class);
@@ -117,7 +117,7 @@ final class AsyncPlayerDefaultsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void seekForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultOnSeek(final boolean expected) throws Exception {
     final SeekablePlayer player = mock(SeekablePlayer.class, CALLS_REAL_METHODS);
     final long position = 1234L;
     doReturn(expected).when(player).seek(position);
@@ -131,7 +131,7 @@ final class AsyncPlayerDefaultsTest {
   }
 
   @Test
-  void seekPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureOnSeek() {
     final SeekablePlayer player = mock(SeekablePlayer.class, CALLS_REAL_METHODS);
     final long position = 1234L;
     final RuntimeException expected = new IllegalStateException("synchronous failure");
@@ -147,7 +147,7 @@ final class AsyncPlayerDefaultsTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void imageForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForImages(final boolean expected) throws Exception {
     final ImagePlayer player = mock(ImagePlayer.class, CALLS_REAL_METHODS);
     final FrameSource source = mock(FrameSource.class);
     doReturn(expected).when(player).start(source);
@@ -161,7 +161,7 @@ final class AsyncPlayerDefaultsTest {
   }
 
   @Test
-  void imagePreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForImages() {
     final ImagePlayer player = mock(ImagePlayer.class, CALLS_REAL_METHODS);
     final FrameSource source = mock(FrameSource.class);
     final RuntimeException expected = new IllegalStateException("synchronous failure");

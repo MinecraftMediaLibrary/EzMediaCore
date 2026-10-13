@@ -45,7 +45,7 @@ final class SourceDetectionFuzzTest {
   private final SourceDetectionHelper helper = new SourceDetectionHelper();
 
   @FuzzTest(maxDuration = "30s")
-  void detectsOnlySourcesTheTextReallyNames(final byte[] input) {
+  void shouldDetectOnlySourcesTheTextReallyNames(final byte[] input) {
     final String resource = new String(input, StandardCharsets.UTF_8);
     final Optional<Source> detected = this.helper.detectSource(resource);
     if (detected.isEmpty()) {

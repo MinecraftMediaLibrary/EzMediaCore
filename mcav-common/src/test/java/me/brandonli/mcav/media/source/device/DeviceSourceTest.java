@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 final class DeviceSourceTest {
 
   @Test
-  void describesTheDevice() {
+  void shouldDescribeTheDevice() {
     final DeviceSource source = DeviceSource.device(3);
     final int deviceId = source.getDeviceId();
     final String resource = source.getResource();
@@ -49,7 +49,7 @@ final class DeviceSourceTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final DeviceSource source = DeviceSource.device(1);
     final DeviceSource equalSource = DeviceSource.device(1);
     final DeviceSource otherSource = DeviceSource.device(2);
@@ -57,12 +57,12 @@ final class DeviceSourceTest {
   }
 
   @Test
-  void rejectsNegativeIndices() {
+  void shouldRejectNegativeIndices() {
     assertThrows(IllegalArgumentException.class, () -> DeviceSource.device(-1));
   }
 
   @Test
-  void detectsNonNegativeIntegers() {
+  void shouldDetectNonNegativeIntegers() {
     final DeviceSourceDetector detector = new DeviceSourceDetector();
     final boolean zero = detector.isDetectedSource("0");
     final boolean negative = detector.isDetectedSource("-1");
@@ -78,7 +78,7 @@ final class DeviceSourceTest {
   }
 
   @Test
-  void detectorRejectsNullInput() {
+  void shouldRejectNullInputInTheDetector() {
     final DeviceSourceDetector detector = new DeviceSourceDetector();
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));
     assertThrows(NullPointerException.class, () -> detector.createSource(null));

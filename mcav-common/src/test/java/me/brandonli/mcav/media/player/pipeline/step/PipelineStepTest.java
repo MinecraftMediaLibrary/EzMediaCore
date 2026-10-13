@@ -43,7 +43,7 @@ final class PipelineStepTest {
   private static final OriginalAudioMetadata AUDIO_METADATA = OriginalAudioMetadata.of("pcm", -1, 48_000, 2, -1);
 
   @Test
-  void videoStepsRunTheirFiltersInOrder() {
+  void shouldRunTheFiltersOfVideoStepsInOrder() {
     final List<String> calls = new ArrayList<>();
     final ImageBuffer image = mock(ImageBuffer.class);
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(2, 2);
@@ -71,7 +71,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void audioStepsRewindTheSamplesBeforeEveryFilter() {
+  void shouldRewindTheSamplesBeforeEveryFilterInAudioSteps() {
     final List<Integer> positions = new ArrayList<>();
     final AudioFilter consuming = (samples, _) -> {
       final int position = samples.position();
@@ -95,7 +95,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void runsEveryFilterWhateverTheFiltersBeforeItReturned() {
+  void shouldRunEveryFilterWhateverTheFiltersBeforeItReturned() {
     final List<String> calls = new ArrayList<>();
     final ImageBuffer image = mock(ImageBuffer.class);
     final VideoFilter untouchedVideo = (_, _) -> {
@@ -120,7 +120,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void emptyPipelinesDoNothing() {
+  void shouldDoNothingInEmptyPipelines() {
     final ImageBuffer image = mock(ImageBuffer.class);
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final OriginalVideoMetadata videoMetadata = OriginalVideoMetadata.EMPTY;
@@ -137,7 +137,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void onlyTheEmptyPipelinesAreNoOperations() {
+  void shouldTreatOnlyTheEmptyPipelinesAsNoOperations() {
     final VideoPipelineStep video = VideoPipelineStep.of(VideoFilter.NO_OP);
     final AudioPipelineStep audio = AudioPipelineStep.of(AudioFilter.NO_OP);
     final boolean emptyVideo = VideoPipelineStep.NO_OP.isNoOp();
@@ -151,7 +151,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void emptyPipelinesRejectMissingData() {
+  void shouldRejectMissingDataInEmptyPipelines() {
     final ImageBuffer image = mock(ImageBuffer.class);
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final VideoPipelineStep video = VideoPipelineStep.NO_OP;
@@ -163,7 +163,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void rejectsMissingFilters() {
+  void shouldRejectMissingFilters() {
     assertThrows(NullPointerException.class, () -> VideoPipelineStep.of(null));
     assertThrows(NullPointerException.class, () -> VideoPipelineStep.of(null, null));
     assertThrows(NullPointerException.class, () -> AudioPipelineStep.of(null));
@@ -171,7 +171,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void rejectsMissingSamplesAndMetadata() {
+  void shouldRejectMissingSamplesAndMetadata() {
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final VideoPipelineStep video = VideoPipelineStep.of(VideoFilter.NO_OP);
     final AudioPipelineStep audio = AudioPipelineStep.of(AudioFilter.NO_OP);

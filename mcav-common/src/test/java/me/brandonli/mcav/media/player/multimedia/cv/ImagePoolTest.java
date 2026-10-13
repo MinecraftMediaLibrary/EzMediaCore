@@ -37,7 +37,7 @@ final class ImagePoolTest {
   }
 
   @Test
-  void handsOutTheImagesThatWereHandedBackLatestFirst() {
+  void shouldHandOutTheImagesThatWereHandedBackLatestFirst() {
     final ImagePool pool = new ImagePool(2);
     final MatImageBuffer first = image();
     final MatImageBuffer second = image();
@@ -56,7 +56,7 @@ final class ImagePoolTest {
   }
 
   @Test
-  void releasesImagesBeyondItsCapacity() {
+  void shouldReleaseImagesBeyondItsCapacity() {
     final ImagePool pool = new ImagePool(1);
     final MatImageBuffer kept = image();
     final MatImageBuffer surplus = image();
@@ -71,7 +71,7 @@ final class ImagePoolTest {
   }
 
   @Test
-  void closingReleasesTheUnusedImagesAndEveryImageHandedBackLater() {
+  void shouldReleaseTheUnusedImagesAndEveryImageHandedBackLaterWhenClosing() {
     final ImagePool pool = new ImagePool(4);
     final MatImageBuffer unused = image();
     final MatImageBuffer late = image();

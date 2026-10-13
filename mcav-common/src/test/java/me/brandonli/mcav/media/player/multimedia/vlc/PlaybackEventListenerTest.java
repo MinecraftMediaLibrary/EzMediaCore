@@ -86,7 +86,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void reportsAnErrorBeforeAWaitingStartWakesUp() throws Exception {
+  void shouldReportAnErrorBeforeAWaitingStartWakesUp() throws Exception {
     final AtomicBoolean waiterReturned = new AtomicBoolean();
     final AtomicBoolean returnedBeforeTheReport = new AtomicBoolean();
     final AtomicLong notificationCountAtReport = new AtomicLong(-1);
@@ -120,7 +120,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void aKnownOpeningFailureRemainsFailedWhileItsReportIsBlocked() throws Exception {
+  void shouldKeepAKnownOpeningFailureFailedWhileItsReportIsBlocked() throws Exception {
     final CountDownLatch reporting = new CountDownLatch(1);
     final CountDownLatch finishReport = new CountDownLatch(1);
     final AtomicReference<Throwable> reportingFailure = new AtomicReference<>();
@@ -144,7 +144,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void opensWhenVlcStartsPlaying() throws Exception {
+  void shouldOpenWhenVlcStartsPlaying() throws Exception {
     this.listener.playing(this.mediaPlayer);
     final long elapsed = this.awaitMillis(10_000L);
     final boolean opened = this.listener.awaitOpened(10_000L);
@@ -155,14 +155,14 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void opensWhenVlcAlreadyFinishedTheMedia() throws Exception {
+  void shouldOpenWhenVlcAlreadyFinishedTheMedia() throws Exception {
     this.listener.finished(this.mediaPlayer);
     final boolean opened = this.listener.awaitOpened(10_000L);
     assertTrue(opened);
   }
 
   @Test
-  void failsAndReportsWhenVlcCannotPlayTheMedia() throws Exception {
+  void shouldFailAndReportWhenVlcCannotPlayTheMedia() throws Exception {
     this.listener.error(this.mediaPlayer);
     final long elapsed = this.awaitMillis(10_000L);
     final boolean opened = this.listener.awaitOpened(10_000L);
@@ -177,7 +177,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void reportsErrorsWhilePlaying() {
+  void shouldReportErrorsWhilePlaying() {
     this.listener.playing(this.mediaPlayer);
     this.listener.error(this.mediaPlayer);
     this.listener.error(this.mediaPlayer);
@@ -186,7 +186,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void doesNotReportErrorsOfAStoppedPlayback() throws Exception {
+  void shouldNotReportErrorsOfAStoppedPlayback() throws Exception {
     this.active.set(false);
     this.listener.error(this.mediaPlayer);
     final boolean opened = this.listener.awaitOpened(10_000L);
@@ -196,7 +196,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void treatsMediaThatIsStillOpeningAsStartedAfterTheTimeout() throws Exception {
+  void shouldTreatMediaThatIsStillOpeningAsStartedAfterTheTimeout() throws Exception {
     final long elapsed = this.awaitMillis(100L);
     final boolean opened = this.listener.awaitOpened(10L);
     assertTrue(opened, "VLC may still open slow streams; later failures are reported");
@@ -205,7 +205,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void treatsAnErrorAfterTheTimeoutAsALaterFailure() throws Exception {
+  void shouldTreatAnErrorAfterTheTimeoutAsALaterFailure() throws Exception {
     final boolean opened = this.listener.awaitOpened(10L);
     this.listener.error(this.mediaPlayer);
     final int reported = this.errors.size();
@@ -214,7 +214,7 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void propagatesInterrupts() {
+  void shouldPropagateInterrupts() {
     final Thread current = Thread.currentThread();
     current.interrupt();
     assertThrows(InterruptedException.class, () -> this.listener.awaitOpened(10_000L));

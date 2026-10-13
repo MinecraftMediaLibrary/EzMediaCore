@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Tag;
 final class UnzipFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void extractsOnlyIntoTheDestination(final byte[] archiveBytes) throws IOException {
+  void shouldExtractOnlyIntoTheDestination(final byte[] archiveBytes) throws IOException {
     final Path root = Files.createTempDirectory("mcav-unzip-fuzz");
     try {
       checkExtraction(root, root, archiveBytes);

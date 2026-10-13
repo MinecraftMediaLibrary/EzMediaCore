@@ -29,13 +29,13 @@ import org.junit.jupiter.api.Test;
 final class KeyUtilsTest {
 
   @Test
-  void leavesPlainTextUntouched() {
+  void shouldLeavePlainTextUntouched() {
     final String replaced = KeyUtils.replaceKeysWithKeyCodes("hello world");
     assertEquals("hello world", replaced);
   }
 
   @Test
-  void replacesKeyNamesInAnyCase() {
+  void shouldReplaceKeyNamesInAnyCase() {
     final String replaced = KeyUtils.replaceKeysWithKeyCodes("a{ENTER}b{tab}");
     final String enter = KeyCode.ENTER.asString();
     final String tab = KeyCode.TAB.asString();
@@ -44,7 +44,7 @@ final class KeyUtilsTest {
   }
 
   @Test
-  void expandsAdjacentKeyNames() {
+  void shouldExpandAdjacentKeyNames() {
     final String actual = KeyUtils.replaceKeysWithKeyCodes("{ENTER}{TAB}");
     final String enter = KeyCode.ENTER.asString();
     final String tab = KeyCode.TAB.asString();
@@ -53,13 +53,13 @@ final class KeyUtilsTest {
   }
 
   @Test
-  void turnsDoubledBracesIntoOneBrace() {
+  void shouldTurnDoubledBracesIntoOneBrace() {
     final String replaced = KeyUtils.replaceKeysWithKeyCodes("{{ENTER}");
     assertEquals("{ENTER}", replaced);
   }
 
   @Test
-  void keepsBracesThatDoNotNameAKey() {
+  void shouldKeepBracesThatDoNotNameAKey() {
     final String unknown = KeyUtils.replaceKeysWithKeyCodes("{nope}");
     final String unclosed = KeyUtils.replaceKeysWithKeyCodes("x{ENTER");
     final String trailing = KeyUtils.replaceKeysWithKeyCodes("end{");
@@ -69,12 +69,12 @@ final class KeyUtilsTest {
   }
 
   @Test
-  void rejectsNullInput() {
+  void shouldRejectNullInput() {
     assertThrows(NullPointerException.class, () -> KeyUtils.replaceKeysWithKeyCodes(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(KeyUtils.class);
   }
 }

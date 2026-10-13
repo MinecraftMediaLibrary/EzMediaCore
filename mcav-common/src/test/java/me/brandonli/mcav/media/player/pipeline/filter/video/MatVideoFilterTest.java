@@ -68,7 +68,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void copiesResultsBackIntoImagesThatAreNotBackedByAMat() {
+  void shouldCopyResultsBackIntoImagesThatAreNotBackedByAMat() {
     final WrittenPixels written = new WrittenPixels();
     final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
     final InvertFilter filter = new InvertFilter();
@@ -82,7 +82,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void writesResultsOfAnotherSizeBackWithTheirSize() {
+  void shouldWriteResultsOfAnotherSizeBackWithTheirSize() {
     final WrittenPixels written = new WrittenPixels();
     final ImageBuffer image = foreignImage(2, 2, 0xFF102030, written);
     final CropFilter filter = new CropFilter(1, 0, 1, 1);
@@ -94,7 +94,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void leavesForeignImagesAloneWhenNothingChanged() {
+  void shouldLeaveForeignImagesAloneWhenNothingChanged() {
     final WrittenPixels written = new WrittenPixels();
     final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
     final CropFilter filter = new CropFilter(0, 0, 1, 1);
@@ -105,7 +105,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void keepsTheCacheWhenTheMatWasNotModified() {
+  void shouldKeepTheCacheWhenTheMatWasNotModified() {
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF123456)) {
       final int[] before = image.getPixels();
       final UnchangedFilter filter = new UnchangedFilter();
@@ -117,7 +117,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void singleArgumentApplyUsesEmptyMetadata() {
+  void shouldUseEmptyMetadataInTheSingleArgumentApply() {
     final AtomicReference<OriginalVideoMetadata> received = new AtomicReference<>();
     final VideoFilter recorder = (_, metadata) -> {
       received.set(metadata);
@@ -138,7 +138,7 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void rejectsMissingImages() {
+  void shouldRejectMissingImages() {
     final InvertFilter filter = new InvertFilter();
     assertThrows(NullPointerException.class, () -> filter.applyFilter(null, OriginalVideoMetadata.EMPTY));
     assertThrows(NullPointerException.class, () -> VideoFilter.NO_OP.applyFilter(null));

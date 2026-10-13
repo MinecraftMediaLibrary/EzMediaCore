@@ -47,7 +47,7 @@ final class LinuxInstallationStrategyTest {
   private Path temp;
 
   @Test
-  void extractsTheAppImageAndReturnsTheCoreLibraryDirectory() throws IOException {
+  void shouldExtractTheAppImageAndReturnTheCoreLibraryDirectory() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final List<String> commands = new ArrayList<>();
     final List<Path> workingDirectories = new ArrayList<>();
@@ -73,7 +73,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void removesLeftoversOfAnInterruptedExtractionFirst() throws IOException {
+  void shouldRemoveLeftoversOfAnInterruptedExtractionFirst() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final Path leftover = this.temp.resolve(EXTRACTED_DIRECTORY);
     Files.createDirectories(leftover);
@@ -90,7 +90,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void failsWhenTheExtractionProducesNothing() throws IOException {
+  void shouldFailWhenTheExtractionProducesNothing() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {});
     final Path archive = this.createAppImage();
@@ -101,7 +101,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void failsWhenTheAppImageHasNoCoreLibrary() throws IOException {
+  void shouldFailWhenTheAppImageHasNoCoreLibrary() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final ProcessRunner extractor = (workingDirectory, _) -> {
       final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
@@ -118,7 +118,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void propagatesExtractionFailures() throws IOException {
+  void shouldPropagateExtractionFailures() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final IOException failure = new IOException("not an AppImage");
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {
@@ -130,7 +130,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void findsNoInstallationBeforeTheFirstRun() throws IOException {
+  void shouldFindNoInstallationBeforeTheFirstRun() throws IOException {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer);
     final Optional<Path> installed = strategy.getInstalledPath();
@@ -139,7 +139,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void rejectsANullArchive() {
+  void shouldRejectANullArchive() {
     final VLCInstaller installer = VLCInstaller.create(this.temp);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer);
     assertThrows(NullPointerException.class, () -> strategy.execute(null));

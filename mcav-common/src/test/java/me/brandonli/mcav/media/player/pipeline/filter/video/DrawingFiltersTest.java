@@ -63,7 +63,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsCircles() {
+  void shouldDrawCircles() {
     try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
       final CircleFilter filter = new CircleFilter(4, 6, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -83,7 +83,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsACircleOfRadiusZeroAsItsCenter() {
+  void shouldDrawACircleOfRadiusZeroAsItsCenter() {
     try (final ImageBuffer image = Images.solid(5, 5, BLACK_ARGB)) {
       final CircleFilter filter = new CircleFilter(2, 2, 0, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -96,7 +96,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsEllipses() {
+  void shouldDrawEllipses() {
     try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
       final EllipseFilter filter = new EllipseFilter(5, 5, 4, 2, 0, 0, 360, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -117,7 +117,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsLines() {
+  void shouldDrawLines() {
     try (final ImageBuffer image = Images.solid(5, 3, BLACK_ARGB)) {
       final LineFilter filter = new LineFilter(0, 1, 4, 1, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -132,7 +132,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsRectangleOutlines() {
+  void shouldDrawRectangleOutlines() {
     try (final ImageBuffer image = Images.solid(6, 6, BLACK_ARGB)) {
       final RectangleFilter filter = new RectangleFilter(1, 1, 3, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -155,7 +155,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsText() {
+  void shouldDrawText() {
     final TextFilter filter = new TextFilter("MCAV", 2, 20, TextFilter.DEFAULT_FONT, 0.8, WHITE);
     try (
       final ImageBuffer image = Images.solid(80, 30, BLACK_ARGB);
@@ -177,7 +177,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsTheMeasuredFrameRate() {
+  void shouldDrawTheMeasuredFrameRate() {
     final AtomicLong clock = new AtomicLong();
     final FPSFilter filter = new FPSFilter(clock::get);
     try (final ImageBuffer first = Images.solid(120, 40, BLACK_ARGB); final ImageBuffer second = Images.solid(120, 40, BLACK_ARGB)) {
@@ -214,7 +214,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void fillsRegionsClampedToTheFrame() {
+  void shouldFillRegionsClampedToTheFrame() {
     try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
       final RegionScalarFilter topLeft = new RegionScalarFilter(0, 0, 2, 1, WHITE);
       final RegionScalarFilter clamped = new RegionScalarFilter(2, 1, 5, 5, WHITE);
@@ -236,7 +236,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void regionsOutsideTheFrameChangeNothing() {
+  void shouldChangeNothingForRegionsOutsideTheFrame() {
     try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
       final RegionScalarFilter right = new RegionScalarFilter(3, 0, 1, 1, WHITE);
       final RegionScalarFilter below = new RegionScalarFilter(0, 2, 1, 1, WHITE);
@@ -255,7 +255,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void overlaysImagesClampedToTheFrame() {
+  void shouldOverlayImagesClampedToTheFrame() {
     try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
       final OverlayImageFilter filter = new OverlayImageFilter(overlay, 3, 3);
       final boolean modified = filter.applyFilter(image);
@@ -268,7 +268,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void overlaysOutsideTheFrameChangeNothing() {
+  void shouldOverlayOutsideTheFrameChangeNothing() {
     try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
       final OverlayImageFilter right = new OverlayImageFilter(overlay, 4, 0);
       final OverlayImageFilter below = new OverlayImageFilter(overlay, 0, 4);
@@ -286,7 +286,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void overlaysAcceptImagesThatAreNotBackedByAMat() {
+  void shouldOverlayAcceptImagesThatAreNotBackedByAMat() {
     final ImageBuffer overlay = mock(ImageBuffer.class);
     when(overlay.getWidth()).thenReturn(1);
     when(overlay.getHeight()).thenReturn(1);
@@ -300,7 +300,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void zeroFilterBlanksTheFrame() {
+  void shouldBlankTheFrameWithAZeroFilter() {
     try (final ImageBuffer image = Images.solid(2, 2, WHITE_ARGB)) {
       final ZeroFilter filter = new ZeroFilter();
       final boolean modified = filter.applyFilter(image);

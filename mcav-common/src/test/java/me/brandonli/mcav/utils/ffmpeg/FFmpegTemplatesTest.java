@@ -47,7 +47,7 @@ final class FFmpegTemplatesTest {
   private Path directory;
 
   @Test
-  void extractAudioKeepsOnlyTheAudioTrack() {
+  void shouldKeepOnlyTheAudioTrackWhenExtractingAudio() {
     final FFmpegCommand command = FFmpegTemplates.extractAudio("in.mp4", "libopus", "out.opus");
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of("-i", "in.mp4", "-vn", "-strict", "-2", "-c:a", "libopus", "-y", "out.opus");
@@ -55,7 +55,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void extractOggVorbisProducesAPlayableFile() throws IOException {
+  void shouldProduceAPlayableFileWhenExtractingOggVorbis() throws IOException {
     final Path video = TestMedia.video();
     final Path output = this.directory.resolve("audio.ogg");
     final String videoPath = video.toString();
@@ -100,7 +100,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void compressVideoSetsBothBitrates() {
+  void shouldSetBothBitratesWhenCompressingVideo() {
     final FFmpegCommand command = FFmpegTemplates.compressVideo("in.mp4", "out.mp4", "1M", "96k");
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of("-i", "in.mp4", "-c:v", "libx264", "-b:v", "1M", "-c:a", "aac", "-b:a", "96k", "-y", "out.mp4");
@@ -108,7 +108,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void extractClipSeeksBeforeTheInput() {
+  void shouldSeekBeforeTheInputWhenExtractingAClip() {
     final FFmpegCommand command = FFmpegTemplates.extractClip("in.mp4", "out.mp4", "00:00:10", "5");
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of("-ss", "00:00:10", "-i", "in.mp4", "-t", "5", "-c:v", "copy", "-c:a", "copy", "-y", "out.mp4");
@@ -116,7 +116,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void createThumbnailWritesOneFrame() {
+  void shouldWriteOneFrameWhenCreatingAThumbnail() {
     final FFmpegCommand command = FFmpegTemplates.createThumbnail("in.mp4", "thumb.png", "3");
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of("-ss", "3", "-i", "in.mp4", "-frames:v", "1", "-y", "thumb.png");
@@ -124,7 +124,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void remuxVideoCopiesBothStreams() {
+  void shouldCopyBothStreamsWhenRemuxingVideo() {
     final FFmpegCommand command = FFmpegTemplates.remuxVideo("in.mkv", "out.mp4");
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of("-i", "in.mkv", "-c:v", "copy", "-c:a", "copy", "-y", "out.mp4");
@@ -132,7 +132,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     assertThrows(NullPointerException.class, () -> FFmpegTemplates.extractAudio(null, "aac", "o"));
     assertThrows(NullPointerException.class, () -> FFmpegTemplates.extractAudio("i", null, "o"));
     assertThrows(NullPointerException.class, () -> FFmpegTemplates.extractAudio("i", "aac", null));
@@ -154,7 +154,7 @@ final class FFmpegTemplatesTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(FFmpegTemplates.class);
   }
 }

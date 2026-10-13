@@ -305,7 +305,7 @@ final class ModuleLoaderTest {
   static final class NotAModule {}
 
   @Test
-  void startsModulesInRequestOrder() {
+  void shouldStartModulesInRequestOrder() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(SecondModule.class, FirstModule.class);
     final SecondModule second = loader.getModule(SecondModule.class);
@@ -321,7 +321,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void loadsNothingForNoClasses() {
+  void shouldLoadNothingForNoClasses() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules();
     final Collection<MCAVModule> modules = loader.getModules();
@@ -330,7 +330,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void skipsModulesThatWereAlreadyStarted() {
+  void shouldSkipModulesThatWereAlreadyStarted() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(FirstModule.class, FirstModule.class);
     final FirstModule first = loader.getModule(FirstModule.class);
@@ -345,7 +345,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void createsModulesThroughPrivateConstructors() {
+  void shouldCreateModulesThroughPrivateConstructors() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(HiddenModule.class);
     final HiddenModule module = loader.getModule(HiddenModule.class);
@@ -354,7 +354,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void rejectsNulls() {
+  void shouldRejectNulls() {
     final ModuleLoader loader = new ModuleLoader();
     assertThrows(NullPointerException.class, () -> loader.loadModules((Class<?>[]) null));
     assertThrows(NullPointerException.class, () -> loader.loadModules(FirstModule.class, null));
@@ -365,7 +365,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void rejectsClassesThatAreNotModulesBeforeStartingAnyModule() {
+  void shouldRejectClassesThatAreNotModulesBeforeStartingAnyModule() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(FirstModule.class, NotAModule.class));
     final String message = exception.getMessage();
@@ -376,7 +376,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void wrapsConstructorFailures() {
+  void shouldWrapConstructorFailures() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(ThrowingConstructorModule.class));
     final String message = exception.getMessage();
@@ -389,7 +389,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void rejectsModulesThatCannotBeInstantiated() {
+  void shouldRejectModulesThatCannotBeInstantiated() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException withArgument = assertThrows(ModuleException.class, () -> loader.loadModules(ArgumentModule.class));
     final ModuleException abstractClass = assertThrows(ModuleException.class, () -> loader.loadModules(AbstractModule.class));
@@ -412,7 +412,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void wrapsStartFailuresAndKeepsEarlierModulesStarted() {
+  void shouldWrapStartFailuresAndKeepEarlierModulesStarted() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () ->
       loader.loadModules(FirstModule.class, FailingStartModule.class, SecondModule.class)
@@ -433,7 +433,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void rollsBackLinkageFailuresAndKeepsEarlierModulesStarted() {
+  void shouldRollBackLinkageFailuresAndKeepEarlierModulesStarted() {
     LinkageStartModule.STOPS.set(0);
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException thrown = assertThrows(ModuleException.class, () ->
@@ -459,7 +459,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void keepsAnAssertionStartFailureAndSuppressesTheCleanupFailure() {
+  void shouldKeepAnAssertionStartFailureAndSuppressTheCleanupFailure() {
     AssertionStartAndStopModule.STOPS.set(0);
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException thrown = assertThrows(ModuleException.class, () -> loader.loadModules(AssertionStartAndStopModule.class));
@@ -478,7 +478,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void passesVirtualMachineErrorsOfAStartThroughUnwrapped() {
+  void shouldPassVirtualMachineErrorsOfAStartThroughUnwrapped() {
     FatalStartModule.STOPS.set(0);
     final ModuleLoader loader = new ModuleLoader();
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> loader.loadModules(FatalStartModule.class));
@@ -491,7 +491,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void keepsThePrimaryFailureWhenStartAndStopThrowTheSameException() {
+  void shouldKeepThePrimaryFailureWhenStartAndStopThrowTheSameException() {
     SameStartAndStopFailureModule.STOPS.set(0);
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException thrown = assertThrows(ModuleException.class, () -> loader.loadModules(SameStartAndStopFailureModule.class));
@@ -503,7 +503,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void passesModuleExceptionsThroughUnchanged() {
+  void shouldPassModuleExceptionsThroughUnchanged() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(ModuleExceptionStartModule.class));
     final String message = exception.getMessage();
@@ -516,7 +516,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void stopsModulesInReverseOrderEvenWhenSomeFail() {
+  void shouldStopModulesInReverseOrderEvenWhenSomeFail() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(FirstModule.class, FailingStopModule.class, SecondModule.class, ErrorStopModule.class);
     final FirstModule first = loader.getModule(FirstModule.class);
@@ -543,7 +543,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void createsNewModulesAfterAShutdown() {
+  void shouldCreateNewModulesAfterAShutdown() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(FirstModule.class);
     final FirstModule before = loader.getModule(FirstModule.class);
@@ -556,7 +556,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void returnsAnImmutableSnapshotOfTheModules() {
+  void shouldReturnAnImmutableSnapshotOfTheModules() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(FirstModule.class);
     final Collection<MCAVModule> snapshot = loader.getModules();
@@ -572,7 +572,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void reportsModulesThatAreNotInstalled() {
+  void shouldReportModulesThatAreNotInstalled() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.getModule(FirstModule.class));
     final String message = exception.getMessage();
@@ -580,7 +580,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void startsEachModuleOnceUnderConcurrentLoads() throws Exception {
+  void shouldStartEachModuleOnceUnderConcurrentLoads() throws Exception {
     final ModuleLoader loader = new ModuleLoader();
     final int threads = 8;
     final CountDownLatch startGate = new CountDownLatch(1);
@@ -611,7 +611,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void stopsAModuleWhoseStartFailed() {
+  void shouldStopAModuleWhoseStartFailed() {
     TrackedFailingStartModule.STOPS.set(0);
     TrackedModuleExceptionStartModule.STOPS.set(0);
     final ModuleLoader loader = new ModuleLoader();
@@ -627,7 +627,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void keepsTheStartFailureWhenStoppingTheModuleFailsToo() {
+  void shouldKeepTheStartFailureWhenStoppingTheModuleFailsToo() {
     final ModuleLoader loader = new ModuleLoader();
     final ModuleException exception = assertThrows(ModuleException.class, () -> loader.loadModules(FailingStartAndStopModule.class));
     final String message = exception.getMessage();
@@ -640,7 +640,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void passesVirtualMachineErrorsOfAStopThroughTheShutdown() {
+  void shouldPassVirtualMachineErrorsOfAStopThroughTheShutdown() {
     final ModuleLoader loader = new ModuleLoader();
     loader.loadModules(FatalStopModule.class);
     final StackOverflowError thrown = assertThrows(StackOverflowError.class, loader::shutdownModules);
@@ -648,7 +648,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void passesVirtualMachineErrorsOfAStopAfterAFailedStartThrough() {
+  void shouldPassVirtualMachineErrorsOfAStopAfterAFailedStartThrough() {
     final ModuleLoader loader = new ModuleLoader();
     final StackOverflowError thrown = assertThrows(StackOverflowError.class, () ->
       loader.loadModules(FailingStartAndFatalStopModule.class)
@@ -657,7 +657,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void passesVirtualMachineErrorsOfAConstructorThroughUnwrapped() {
+  void shouldPassVirtualMachineErrorsOfAConstructorThroughUnwrapped() {
     final ModuleLoader loader = new ModuleLoader();
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> loader.loadModules(FatalConstructorModule.class));
     final Collection<MCAVModule> modules = loader.getModules();
@@ -667,7 +667,7 @@ final class ModuleLoaderTest {
   }
 
   @Test
-  void createsExceptionsWithMessageAndCause() {
+  void shouldCreateExceptionsWithMessageAndCause() {
     final IllegalStateException cause = new IllegalStateException("cause");
     final ModuleException withMessage = new ModuleException("message");
     final ModuleException withCause = new ModuleException("wrapped", cause);

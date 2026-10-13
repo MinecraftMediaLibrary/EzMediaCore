@@ -106,14 +106,14 @@ final class VLCPlaybackTest {
 
   @ParameterizedTest
   @CsvSource({ "0, 1.0", "100, 1.0", "-100, 1.0", "101, 0.97", "1999, 0.97", "-101, 1.03", "-1999, 1.03" })
-  void choosesTheRateThatClosesSmallDrifts(final long drift, final float expected) {
+  void shouldChooseTheRateThatClosesSmallDrifts(final long drift, final float expected) {
     final float rate = VLCPlayback.chooseRate(drift);
     assertEquals(expected, rate);
   }
 
   @ParameterizedTest
   @CsvSource({ "2000, 0.97", "-2000, 1.03", "500, 0.97", "0, 1.0" })
-  void correctsSmallDriftsWithTheRate(final long drift, final float expected) {
+  void shouldCorrectSmallDriftsWithTheRate(final long drift, final float expected) {
     final ControlsApi controls = mock(ControlsApi.class);
     VLCPlayback.correctDrift(controls, drift, 10_000L);
     verify(controls).setRate(expected);
@@ -122,7 +122,7 @@ final class VLCPlaybackTest {
 
   @ParameterizedTest
   @CsvSource({ "2001", "-2001", "60000" })
-  void correctsLargeDriftsBySeekingTheVideoToTheAudio(final long drift) {
+  void shouldCorrectLargeDriftsBySeekingTheVideoToTheAudio(final long drift) {
     final ControlsApi controls = mock(ControlsApi.class);
     VLCPlayback.correctDrift(controls, drift, 10_000L);
     verify(controls).setTime(10_000L);
@@ -130,7 +130,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void fatalSecondaryFailuresEscapeWithoutBeingSuppressed() {
+  void shouldLetFatalSecondaryFailuresEscapeWithoutBeingSuppressed() {
     final IllegalStateException primary = new IllegalStateException("recoverable failure");
     final OutOfMemoryError fatal = new OutOfMemoryError("cleanup exhausted memory");
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () ->
@@ -144,7 +144,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void synchronizesTheVideoToTheAudio() {
+  void shouldSynchronizTheVideoToTheAudio() {
     final VLCPlayback playback = this.separatePlayback(1_500L, 1_000L);
     this.synchronize(playback);
     final ControlsApi controls = this.videoControls();
@@ -153,7 +153,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void seeksTheVideoWhenItIsFarAhead() {
+  void shouldSeekTheVideoWhenItIsFarAhead() {
     final VLCPlayback playback = this.separatePlayback(9_000L, 1_000L);
     this.synchronize(playback);
     final ControlsApi controls = this.videoControls();
@@ -163,7 +163,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void leavesPlayersAloneThatAreNotBothPlaying() {
+  void shouldLeavePlayersAloneThatAreNotBothPlaying() {
     final VLCPlayback playback = this.separatePlayback(9_000L, 1_000L);
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -179,7 +179,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void reportsSynchronizationFailures() {
+  void shouldReportSynchronizationFailures() {
     final VLCPlayback playback = this.separatePlayback(0L, 0L);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
     final StatusApi status = audioPlayer.getStatus();
@@ -194,7 +194,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void doesNotSynchronizeAStoppedPlayback() {
+  void shouldNotSynchronizeAStoppedPlayback() {
     final VLCPlayback playback = this.separatePlayback(9_000L, 1_000L);
     playback.stop();
     final MockVlc.Player audioPlayer = this.vlc.player(1);
@@ -205,7 +205,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void stopReleasesEverythingOnce() throws InterruptedException {
+  void shouldReleaseEverythingOnceOnStop() throws InterruptedException {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final boolean started = playback.start();
     final SharedMediaPlayerFactory shared = this.vlc.getSharedFactory();
@@ -240,7 +240,7 @@ final class VLCPlaybackTest {
 
   @ParameterizedTest
   @MethodSource("recoverableStopFailures")
-  void stopCompletesCleanupAfterRecoverableFailures(final Throwable failure) throws InterruptedException {
+  void shouldCompleteCleanupAfterRecoverableFailuresOnStop(final Throwable failure) throws InterruptedException {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final boolean started = playback.start();
     final MockVlc.Player first = this.vlc.player(0);
@@ -273,7 +273,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void stopDoesNotSuppressTheSameFailureOntoItself() {
+  void shouldNotSuppressTheSameFailureOntoItselfOnStop() {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final MockVlc.Player first = this.vlc.player(0);
     final ControlsApi controls = first.getControls();
@@ -291,7 +291,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void stopPropagatesFatalVmErrorsImmediately() {
+  void shouldPropagateFatalVmErrorsImmediatelyOnStop() {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final ControlsApi controls = this.videoControls();
     final OutOfMemoryError failure = new OutOfMemoryError("fatal native allocation");
@@ -309,7 +309,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void theSynchronizerIsADaemonWhateverThreadStartsThePlayback() throws InterruptedException {
+  void shouldMakeTheSynchronizerADaemonWhateverThreadStartsThePlayback() throws InterruptedException {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final AtomicBoolean started = new AtomicBoolean();
     final Thread starter = Thread.ofPlatform()
@@ -334,7 +334,7 @@ final class VLCPlaybackTest {
   }
 
   @Test
-  void theSynchronizerRunsUntilThePlaybackStops() throws InterruptedException {
+  void shouldRunTheSynchronizerUntilThePlaybackStops() throws InterruptedException {
     final VLCPlayback playback = VLCPlayback.create(this.owner, this.video, this.audio);
     final boolean started = playback.start();
     final MockVlc.Player videoPlayer = this.vlc.player(0);

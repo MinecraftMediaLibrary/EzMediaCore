@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class UnsupportedOperatingSystemExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final UnsupportedOperatingSystemException exception = new UnsupportedOperatingSystemException(
       "VLC cannot be installed automatically on FREEBSD"
     );
@@ -40,7 +40,7 @@ final class UnsupportedOperatingSystemExceptionTest {
   }
 
   @Test
-  void isAnUnsupportedOperationException() {
+  void shouldBeAnUnsupportedOperationException() {
     final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("failure");
     assertInstanceOf(UnsupportedOperationException.class, exception, "an unsupported system is recoverable, so it is no Error");
   }

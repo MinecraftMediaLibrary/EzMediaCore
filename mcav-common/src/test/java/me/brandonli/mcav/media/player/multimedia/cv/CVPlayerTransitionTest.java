@@ -79,7 +79,7 @@ final class CVPlayerTransitionTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void configuresTheFormatsAndFfmpegOptionsPromisedToThePipelines(final boolean directInput) {
+  void shouldConfigureTheFormatsAndFfmpegOptionsPromisedToThePipelines(final boolean directInput) {
     final TestPlayer player = new TestPlayer();
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
     final Source source = directInput ? FFmpegDirectSource.mrl("color=c=blue", "lavfi") : source();
@@ -114,7 +114,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void playbackControlsReportWhetherTheActiveSessionWasChanged() {
+  void shouldReportWhetherTheActiveSessionWasChangedFromPlaybackControls() {
     final TestPlayer player = new TestPlayer();
     final AtomicBoolean paused = new AtomicBoolean();
     try (
@@ -166,7 +166,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void replacementLetsThePreviousRendererCallBackWithoutWaitingForThePlayerLock() throws Exception {
+  void shouldLetThePreviousRendererCallBackWithoutWaitingForThePlayerLockOnReplacement() throws Exception {
     final TestPlayer player = new TestPlayer();
     final Source source = source();
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
@@ -192,7 +192,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void seekAlsoJoinsOutsideThePlayerLock() throws Exception {
+  void shouldJoinOutsideThePlayerLockOnSeekToo() throws Exception {
     final TestPlayer player = new TestPlayer();
     final Source source = source();
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
@@ -212,7 +212,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void staleSeekCannotReplaceANewerPlayback() {
+  void shouldNotLetAStaleSeekReplaceANewerPlayback() {
     final TestPlayer player = new TestPlayer();
     final Source source = source();
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
@@ -230,7 +230,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void releaseDuringPreviousShutdownCancelsAndClosesTheReplacement() throws Exception {
+  void shouldCancelAndCloseTheReplacementOnReleaseDuringThePreviousShutdown() throws Exception {
     final TestPlayer player = new TestPlayer();
     final Source source = source();
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
@@ -253,7 +253,7 @@ final class CVPlayerTransitionTest {
   }
 
   @Test
-  void releaseReenteredFromOpeningCannotPublishPlaybackAfterRelease() throws Exception {
+  void shouldNotPublishPlaybackAfterAReleaseReenteredFromOpening() throws Exception {
     final TestPlayer player = new TestPlayer();
     final Source source = source();
     try (
@@ -276,7 +276,7 @@ final class CVPlayerTransitionTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void reentrantReplacementKeepsPipelineDeliverySerialAcrossSessions(final boolean audio) throws Exception {
+  void shouldKeepPipelineDeliverySerialAcrossSessionsOnAReentrantReplacement(final boolean audio) throws Exception {
     final int firstValue = audio ? 17 : 0xFF0000;
     final int secondValue = audio ? 34 : 0x0000FF;
     try (final Frame first = mediaFrame(audio, firstValue); final Frame second = mediaFrame(audio, secondValue)) {
@@ -352,7 +352,7 @@ final class CVPlayerTransitionTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void aStoppedSessionDiscardsAFrameWaitingForPipelineDelivery(final boolean audio) throws Exception {
+  void shouldDiscardAFrameWaitingForPipelineDeliveryInAStoppedSession(final boolean audio) throws Exception {
     final VideoAttachableCallback video = mock(VideoAttachableCallback.class);
     final AudioAttachableCallback sound = mock(AudioAttachableCallback.class);
     final CountDownLatch retrieved = new CountDownLatch(audio ? 1 : 2);

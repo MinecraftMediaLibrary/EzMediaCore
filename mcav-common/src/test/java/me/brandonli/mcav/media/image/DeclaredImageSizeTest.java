@@ -65,7 +65,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 final class DeclaredImageSizeTest {
 
-  private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/decodesAnImageOrRefusesTheBytes";
+  private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/shouldDecodeAnImageOrRefuseTheBytes";
 
   @TempDir
   private Path directory;
@@ -214,7 +214,12 @@ final class DeclaredImageSizeTest {
 
   @ParameterizedTest
   @MethodSource("openCvSamples")
-  void everyFormatOpenCvWritesDeclaresTheSizeOpenCvDecodes(final String extension, final int width, final int height, final int type) {
+  void shouldDeclareTheSizeOpenCvDecodesForEveryFormatOpenCvWrites(
+    final String extension,
+    final int width,
+    final int height,
+    final int type
+  ) {
     final boolean gray = type == opencv_core.CV_8UC1;
     final boolean colorOnly = extension.equals(".ppm") || extension.equals(".gif");
     final boolean grayOnly = extension.equals(".pgm");
@@ -231,7 +236,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void losslessWebpAndTextNetpbmDeclareTheSizeOpenCvDecodes() {
+  void shouldDeclareTheSizeOpenCvDecodesForLosslessWebpAndTextNetpbm() {
     try (final Mat picture = new Mat(7, 5, opencv_core.CV_8UC1, new Scalar(90)); final BytePointer output = new BytePointer()) {
       try (final IntPointer lossless = new IntPointer(opencv_imgcodecs.IMWRITE_WEBP_QUALITY, 101)) {
         assertTrue(opencv_imgcodecs.imencode(".webp", picture, output, lossless));
@@ -249,7 +254,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void aStuffedZeroBetweenMarkersIsSkippedAsLibjpegSkipsIt() {
+  void shouldSkipAStuffedZeroBetweenMarkersAsLibjpegSkipsIt() {
     try (
       final Mat picture = new Mat(2, 300, opencv_core.CV_8UC3, new Scalar(10, 200, 30, 0));
       final BytePointer output = new BytePointer()
@@ -268,7 +273,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void theFuzzSeedsDeclareTheSizeOpenCvDecodes() throws IOException, URISyntaxException {
+  void shouldDeclareTheSizeOpenCvDecodesForTheFuzzSeeds() throws IOException, URISyntaxException {
     final URL seeds = DeclaredImageSizeTest.class.getResource(SEEDS);
     assertTrue(seeds != null, "the seed folder is on the class path");
     final Path folder = Path.of(seeds.toURI());
@@ -282,7 +287,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void filesImageIoWritesDeclareTheSizeOpenCvDecodes() throws IOException {
+  void shouldDeclareTheSizeOpenCvDecodesForFilesImageIoWrites() throws IOException {
     final BufferedImage picture = new BufferedImage(6, 4, BufferedImage.TYPE_3BYTE_BGR);
     picture.setRGB(2, 1, 0x3366CC);
     for (final String format : List.of("png", "jpg", "bmp", "gif", "tiff")) {
@@ -305,7 +310,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void tiffsOfBothByteOrdersAndBigTiffsDeclareTheSizeOpenCvDecodes() {
+  void shouldDeclareTheSizeOpenCvDecodesForTiffsOfBothByteOrdersAndBigTiffs() {
     assertDeclaresWhatOpenCvDecodes("little-endian tiff", tiff(true, false));
     assertDeclaresWhatOpenCvDecodes("big-endian tiff", tiff(false, false));
     assertDeclaresWhatOpenCvDecodes("little-endian bigtiff", tiff(true, true));
@@ -563,7 +568,7 @@ final class DeclaredImageSizeTest {
 
   @ParameterizedTest
   @MethodSource("declaredSizes")
-  void readsTheSizeTheHeaderDeclares(final String name, final byte[] encoded, final long width, final long height) {
+  void shouldReadTheSizeTheHeaderDeclares(final String name, final byte[] encoded, final long width, final long height) {
     final Size size = read(encoded);
     assertEquals(width + "x" + height, sizeOf(size), name);
   }
@@ -707,7 +712,7 @@ final class DeclaredImageSizeTest {
 
   @ParameterizedTest
   @MethodSource("unreadableHeaders")
-  void refusesBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
+  void shouldRefuseBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
     assertNull(read(encoded), name);
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(encoded, 1L << 40)
@@ -716,7 +721,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void readsAnEightByteWidthOfABigTiff() {
+  void shouldReadAnEightByteWidthOfABigTiff() {
     final byte[] entries = bytes(tiffEntry(true, 256, 16, 1, 30000), tiffEntry(true, 257, 4, 1, 20000));
     final byte[] bigTiff = bytes(
       "II",
@@ -731,7 +736,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void refusesAnImageLargerThanTheLimitWithoutDecodingIt() {
+  void shouldRefuseAnImageLargerThanTheLimitWithoutDecodingIt() {
     final byte[] header = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(30000, 4), bigEndian(20000, 4));
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(header, 599_999_999)
@@ -746,7 +751,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void aLimitOfZeroOrLessLeavesEveryImageToOpenCv() throws IOException {
+  void shouldLeaveEveryImageToOpenCvWithALimitOfZeroOrLess() throws IOException {
     final byte[] unknown = bytes("not an image");
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, 0));
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, -1));
@@ -755,7 +760,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void checksFilesWithoutReadingThemWhole() throws IOException {
+  void shouldCheckFilesWithoutReadingThemWhole() throws IOException {
     final byte[] png = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(16, 4), bigEndian(16, 4), new byte[1 << 20]);
     final Path file = this.directory.resolve("large.png");
     Files.write(file, png);
@@ -780,7 +785,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void readsTheLimitFromItsSystemProperty() {
+  void shouldReadTheLimitFromItsSystemProperty() {
     final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
     try {
       System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
@@ -804,7 +809,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void treatsOnlyCWhitespaceAsSpace() {
+  void shouldTreatOnlyCWhitespaceAsSpace() {
     for (final int code : new int[] { ' ', '\t', '\n', 0x0B, '\f', '\r' }) {
       assertTrue(DeclaredImageSize.isSpace(code), Integer.toString(code));
     }
@@ -814,7 +819,7 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(DeclaredImageSize.class);
   }
 }

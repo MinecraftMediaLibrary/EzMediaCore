@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 final class PlaybackClockTest {
 
   @Test
-  void anchorsOnTheFirstTimestamp() {
+  void shouldAnchorOnTheFirstTimestamp() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long before = System.nanoTime();
     final long first = clock.dueAt(5_000_000L);
@@ -46,7 +46,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void reanchorsAfterLargeJumps() {
+  void shouldReanchorAfterLargeJumps() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.dueAt(0L);
     final long beforeJump = System.nanoTime();
@@ -57,7 +57,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void resetForgetsTheAnchor() {
+  void shouldForgetTheAnchorOnReset() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.dueAt(0L);
     clock.reset();
@@ -69,7 +69,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void pausingShiftsTheScheduleByThePausedTime() throws InterruptedException {
+  void shouldShiftTheScheduleByThePausedTimeWhenPausing() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long anchored = clock.dueAt(0L);
     final long beforePause = System.nanoTime();
@@ -92,7 +92,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void schedulingDuringPausePreservesTheRemainingMediaDelay() {
+  void shouldPreserveTheRemainingMediaDelayWhenSchedulingDuringAPause() {
     final AtomicLong now = new AtomicLong();
     final PlaybackClock clock = new PlaybackClock(now::get);
     assertEquals(0L, clock.dueAt(0L));
@@ -107,7 +107,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void firstTimestampScheduledDuringPauseIsDueAtResume() {
+  void shouldMakeTheFirstTimestampScheduledDuringAPauseDueAtResume() {
     final AtomicLong now = new AtomicLong();
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.pause();
@@ -120,7 +120,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void waitsUntilResumed() throws InterruptedException {
+  void shouldWaitUntilResumed() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.pause();
     final CountDownLatch released = new CountDownLatch(1);
@@ -147,7 +147,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void doesNotWaitWhileRunningAndWaitsAtMostTheTimeout() throws InterruptedException {
+  void shouldNotWaitWhileRunningAndWaitsAtMostTheTimeout() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long start = System.nanoTime();
     clock.awaitResume(10_000L);
@@ -164,7 +164,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void reanchorsOnlyBeyondTheExactTwoSecondBoundary() {
+  void shouldReanchorOnlyBeyondTheExactTwoSecondBoundary() {
     final AtomicLong now = new AtomicLong(7_000_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     final long anchor = clock.dueAt(0L);
@@ -177,7 +177,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void playsFasterAndSlowerFromTheMediaDueNow() {
+  void shouldPlayFasterAndSlowerFromTheMediaDueNow() {
     final AtomicLong now = new AtomicLong(1_000_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     assertEquals(PlaybackClock.NORMAL_SPEED, clock.getSpeed());
@@ -197,7 +197,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void keepsTheMediaDueNowWhenTheSpeedChangesWhilePlaying() {
+  void shouldKeepTheMediaDueNowWhenTheSpeedChangesWhilePlaying() {
     final AtomicLong now = new AtomicLong(100_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.setSpeed(2);
@@ -208,7 +208,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void changesSpeedWhilePausedFromWhereThePauseBegan() {
+  void shouldChangeSpeedWhilePausedFromWhereThePauseBegan() {
     final AtomicLong now = new AtomicLong(0L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.dueAt(0L);
@@ -223,7 +223,7 @@ final class PlaybackClockTest {
   }
 
   @Test
-  void keepsTheScheduleForJumpsBelowTwoSeconds() {
+  void shouldKeepTheScheduleForJumpsBelowTwoSeconds() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long first = clock.dueAt(0L);
     final long nearJump = clock.dueAt(1_900_000L);

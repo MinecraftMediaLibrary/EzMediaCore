@@ -47,7 +47,7 @@ final class ImagePlayerShutdownTest {
   }
 
   @Test
-  void callbackReleaseDoesNotJoinItsOwnThread() throws Exception {
+  void shouldNotJoinItsOwnThreadOnACallbackRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
     final CountDownLatch finished = new CountDownLatch(1);
     final AtomicReference<Thread> worker = new AtomicReference<>();
@@ -83,7 +83,7 @@ final class ImagePlayerShutdownTest {
   }
 
   @Test
-  void externalReleaseAllowsAnInterruptedCallbackToReenterThePlayer() throws Exception {
+  void shouldLetAnInterruptedCallbackReenterThePlayerOnAnExternalRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch escape = new CountDownLatch(1);

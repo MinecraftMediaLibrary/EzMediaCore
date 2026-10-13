@@ -35,7 +35,7 @@ final class DownloadTest {
   private static final Platform LINUX = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
 
   @Test
-  void storesPlatformUrlAndHash() {
+  void shouldStorePlatformUrlAndHash() {
     final Download download = new Download(LINUX, "https://example.com/tool", "abc");
     final Platform platform = download.getPlatform();
     final String url = download.getUrl();
@@ -46,7 +46,7 @@ final class DownloadTest {
   }
 
   @Test
-  void everyConstructorDescribesTheSameDownload() {
+  void shouldDescribeTheSameDownloadWithEveryConstructor() {
     final Download withoutHash = new Download(LINUX, "https://example.com/tool");
     final Download fromPartsWithHash = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool", "abc");
     final Download fromParts = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool");
@@ -61,7 +61,7 @@ final class DownloadTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> new Download(LINUX, " "));
     assertThrows(NullPointerException.class, () -> new Download(null, "https://example.com/tool"));
     assertThrows(NullPointerException.class, () -> new Download(LINUX, null));

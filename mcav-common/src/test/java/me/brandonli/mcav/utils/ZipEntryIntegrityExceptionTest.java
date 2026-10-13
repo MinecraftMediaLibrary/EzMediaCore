@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class ZipEntryIntegrityExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final ZipEntryIntegrityException exception = new ZipEntryIntegrityException("Total extracted size exceeds the limit");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -37,7 +37,7 @@ final class ZipEntryIntegrityExceptionTest {
   }
 
   @Test
-  void extendsRuntimeExceptionDirectlyRatherThanAnIoFailure() {
+  void shouldExtendRuntimeExceptionDirectlyRatherThanAnIoFailure() {
     final Class<ZipEntryIntegrityException> type = ZipEntryIntegrityException.class;
     final Class<? super ZipEntryIntegrityException> superclass = type.getSuperclass();
     assertEquals(RuntimeException.class, superclass);

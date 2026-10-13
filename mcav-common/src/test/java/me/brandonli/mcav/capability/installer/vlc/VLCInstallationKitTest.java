@@ -52,7 +52,7 @@ final class VLCInstallationKitTest {
   private static final Path INSTALLED_DIRECTORY = Path.of("cache", "vlc", "lib");
 
   @Test
-  void prefersTheSystemInstallationAndNeverTouchesTheInstaller() throws IOException {
+  void shouldPreferTheSystemInstallationAndNeverTouchTheInstaller() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(true);
@@ -67,7 +67,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void acceptsLibrariesVlcjLoadedBeforeWithoutALocation() throws IOException {
+  void shouldAcceptLibrariesVlcjLoadedBeforeWithoutALocation() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(true);
@@ -80,7 +80,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void installsAndLoadsVlcWhenTheSystemHasNone() throws IOException {
+  void shouldInstallAndLoadVlcWhenTheSystemHasNone() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
@@ -96,7 +96,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void failsWithoutDownloadingWhenVlcCannotBeInstalled() throws IOException {
+  void shouldFailWithoutDownloadingWhenVlcCannotBeInstalled() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
@@ -107,7 +107,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void failsWhenTheInstalledLibrariesCannotBeLoaded() throws IOException {
+  void shouldFailWhenTheInstalledLibrariesCannotBeLoaded() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
@@ -120,7 +120,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void propagatesDownloadFailuresAndRetriesOnTheNextStart() throws IOException {
+  void shouldPropagateDownloadFailuresAndRetryOnTheNextStart() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     final IOException failure = new IOException("offline");
@@ -137,7 +137,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void loadsVlcOnlyOncePerLoadState() throws IOException {
+  void shouldLoadVlcOnlyOncePerLoadState() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(true);
@@ -153,7 +153,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void prefersAnEarlierPrivateInstallationWithoutAskingTheNetwork() throws IOException {
+  void shouldPreferAnEarlierPrivateInstallationWithoutAskingTheNetwork() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
@@ -168,7 +168,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void failsWhenAnEarlierPrivateInstallationCannotBeLoaded() throws IOException {
+  void shouldFailWhenAnEarlierPrivateInstallationCannotBeLoaded() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery discovery = mock(VLCDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
@@ -182,7 +182,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void logsWhereTheLibrariesCameFrom() throws IOException {
+  void shouldLogWhereTheLibrariesCameFrom() throws IOException {
     final Installer installer = mock(Installer.class);
     final VLCDiscovery withoutLocation = mock(VLCDiscovery.class);
     when(withoutLocation.discoverSystemInstallation()).thenReturn(true);
@@ -205,7 +205,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void createsKitsThatShareOneLoadState(@TempDir final Path folder, @TempDir final Path home) {
+  void shouldCreateKitsThatShareOneLoadState(@TempDir final Path folder, @TempDir final Path home) {
     final VLCInstaller installer = VLCInstaller.create(folder);
     final VLCInstallationKit custom = VLCInstallationKit.create(installer);
     final VLCInstallationKit standard;
@@ -230,7 +230,7 @@ final class VLCInstallationKitTest {
   }
 
   @Test
-  void rejectsANullInstaller() {
+  void shouldRejectANullInstaller() {
     assertThrows(NullPointerException.class, () -> VLCInstallationKit.create(null));
   }
 

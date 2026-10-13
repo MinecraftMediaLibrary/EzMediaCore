@@ -28,12 +28,12 @@ import org.junit.jupiter.api.Test;
 final class RuntimeDependenciesTest {
 
   @Test
-  void theNativeBridgeHasOneRuntimeDefinition() throws IOException {
+  void shouldHaveOneRuntimeDefinitionOfTheNativeBridge() throws IOException {
     assertSingleDefinition("com/sun/jna/Native.class");
   }
 
   @Test
-  void theNativePlatformTypesHaveOneRuntimeDefinition() throws IOException {
+  void shouldHaveOneRuntimeDefinitionOfTheNativePlatformTypes() throws IOException {
     assertSingleDefinition("com/sun/jna/platform/win32/WinDef.class");
   }
 

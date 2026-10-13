@@ -58,7 +58,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsTheVideoMetadata() throws IOException {
+  void shouldReadTheVideoMetadata() throws IOException {
     final URLParseDump dump = fixture();
     final List<String> categories = dump.categories;
     final List<String> tags = dump.tags;
@@ -107,7 +107,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsTheRequestedFormatAtTheTopLevel() throws IOException {
+  void shouldReadTheRequestedFormatAtTheTopLevel() throws IOException {
     final URLParseDump dump = fixture();
     final DownloaderOptions options = dump.downloader_options;
     final HttpHeaders headers = dump.http_headers;
@@ -142,7 +142,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsCountsAndSizesBeyondTheIntRange() throws IOException {
+  void shouldReadCountsAndSizesBeyondTheIntRange() throws IOException {
     final URLParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
@@ -155,7 +155,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void leavesUnknownValuesNullOrZero() throws IOException {
+  void shouldLeaveUnknownValuesNullOrZero() throws IOException {
     final URLParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
@@ -186,7 +186,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsEveryFormatField() throws IOException {
+  void shouldReadEveryFormatField() throws IOException {
     final URLParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
@@ -229,7 +229,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsStoryboardFragments() throws IOException {
+  void shouldReadStoryboardFragments() throws IOException {
     final URLParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
@@ -249,7 +249,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void mapsTheHttpHeaderNames() throws IOException {
+  void shouldMapTheHttpHeaderNames() throws IOException {
     final URLParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
@@ -269,7 +269,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsThumbnailsHeatmapAndVersion() throws IOException {
+  void shouldReadThumbnailsHeatmapAndVersion() throws IOException {
     final URLParseDump dump = fixture();
     final List<Thumbnail> thumbnails = dump.thumbnails;
     final List<Heatmap> heatmap = dump.heatmap;
@@ -295,7 +295,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void convertsTheStreamUrlIntoASource() {
+  void shouldConvertTheStreamUrlIntoASource() {
     final Format format = format("{\"url\": \"https://cdn.example.com/video.mp4?token=a%20b\"}");
     final UriSource source = format.toUriSource();
     final URI uri = source.getUri();
@@ -304,7 +304,7 @@ final class FormatModelTest {
   }
 
   @Test
-  void rejectsStreamsWithoutUrl() {
+  void shouldRejectStreamsWithoutUrl() {
     final Format format = format("{\"format_id\": \"sb0\"}");
     final IllegalStateException exception = assertThrows(IllegalStateException.class, format::toUriSource);
     final String message = exception.getMessage();

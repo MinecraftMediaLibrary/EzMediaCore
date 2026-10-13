@@ -101,7 +101,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void parsesTheFirstDocumentWithTheExpectedCommandLine() throws IOException {
+  void shouldParseTheFirstDocumentWithTheExpectedCommandLine() throws IOException {
     final String fixture = fixture();
     final String output = fixture + "\n{\"id\": \"second\", \"title\": \"Second Video\"}\n";
     final CommandTask task = task(0, output, "");
@@ -136,7 +136,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void acceptsMoreExtraArgumentsThanItsFixedOptions() throws IOException {
+  void shouldAcceptMoreExtraArgumentsThanItsFixedOptions() throws IOException {
     final CommandTask task = task(0, "{\"id\":\"many\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
     final YTDLPParserImpl parser = parser(task, command);
@@ -168,7 +168,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void runsWithoutExtraArguments() throws IOException {
+  void shouldRunWithoutExtraArguments() throws IOException {
     final CommandTask task = task(0, "{\"id\": \"plain\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
     final YTDLPParserImpl parser = parser(task, command);
@@ -192,7 +192,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void ignoresSurroundingWhitespaceAndWindowsLineEndings() throws IOException {
+  void shouldIgnoreSurroundingWhitespaceAndWindowsLineEndings() throws IOException {
     final CommandTask windowsTask = task(0, "\r\n  {\"id\": \"first\"}  \r\n{\"id\": \"second\"}\r\n", "");
     final CommandTask singleLineTask = task(0, "  {\"id\": \"only\"}  \n\n", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
@@ -206,7 +206,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void reportsOutputWithoutMetadata() throws IOException {
+  void shouldReportOutputWithoutMetadata() throws IOException {
     final YTDLPParseException empty = assertParseFails("");
     final YTDLPParseException blank = assertParseFails(" \r\n\t\n");
     final YTDLPParseException jsonNull = assertParseFails("null\n");
@@ -222,7 +222,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void reportsMalformedMetadata() throws IOException {
+  void shouldReportMalformedMetadata() throws IOException {
     final YTDLPParseException truncated = assertParseFails("{\"id\": \"abc\", \"title\": ");
     final YTDLPParseException array = assertParseFails("[1, 2, 3]");
     final YTDLPParseException wrongType = assertParseFails("{\"formats\": \"not a list\"}");
@@ -242,7 +242,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void reportsMetadataWhoseDecimalFieldHoldsText() throws IOException {
+  void shouldReportMetadataWhoseDecimalFieldHoldsText() throws IOException {
     final YTDLPParseException duration = assertParseFails("{\"id\": \"abc\", \"duration\": \"long\"}");
     final YTDLPParseException quality = assertParseFails("{\"id\": \"abc\", \"formats\": [{\"quality\": \"high\"}]}");
     final String expected = "yt-dlp printed invalid metadata for " + URL;
@@ -257,7 +257,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void rejectsTextAfterTheDocumentInsteadOfIgnoringIt() throws IOException {
+  void shouldRejectTextAfterTheDocumentInsteadOfIgnoringIt() throws IOException {
     final YTDLPParseException trailingText = assertParseFails("{\"id\": \"abc\"} unexpected trailing text");
     final YTDLPParseException secondDocument = assertParseFails("{\"id\": \"abc\"} {\"id\": \"def\"}");
     final String expected = "yt-dlp printed invalid metadata for " + URL;
@@ -272,7 +272,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void reportsTheErrorOutputWhenYtdlpFails() throws IOException {
+  void shouldReportTheErrorOutputWhenYtdlpFails() throws IOException {
     final CommandTask task = task(1, "partial output", "ERROR: [youtube] dQw4w9WgXcQ: Private video\n");
     final AtomicReference<String[]> command = new AtomicReference<>();
     final YTDLPParserImpl parser = parser(task, command);
@@ -283,7 +283,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void reportsTheStandardOutputWhenTheErrorOutputIsBlank() throws IOException {
+  void shouldReportTheStandardOutputWhenTheErrorOutputIsBlank() throws IOException {
     final CommandTask task = task(2, "  Usage: yt-dlp [OPTIONS] URL\n", " \n");
     final AtomicReference<String[]> command = new AtomicReference<>();
     final YTDLPParserImpl parser = parser(task, command);
@@ -294,7 +294,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void propagatesInstallationFailuresWithoutRunningAnything() {
+  void shouldPropagateInstallationFailuresWithoutRunningAnything() {
     final IOException failure = new IOException("no network");
     final AtomicBoolean created = new AtomicBoolean();
     final YTDLPParserImpl parser = new YTDLPParserImpl(
@@ -314,7 +314,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void propagatesFailuresToStartTheProcess() throws IOException {
+  void shouldPropagateFailuresToStartTheProcess() throws IOException {
     final IOException failure = new IOException("cannot start");
     final CommandTask task = Mockito.mock(CommandTask.class);
     Mockito.when(task.run(ArgumentMatchers.any(Duration.class))).thenThrow(failure);
@@ -326,7 +326,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void rejectsNullArgumentsBeforeInstallingAnything() {
+  void shouldRejectNullArgumentsBeforeInstallingAnything() {
     final AtomicBoolean located = new AtomicBoolean();
     final YTDLPParserImpl parser = new YTDLPParserImpl(
       () -> {
@@ -345,7 +345,7 @@ final class YTDLPParserImplTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "--cookies=/x", "--exec=calc", "ftp://example.com/video", "file:///etc/passwd", "www.youtube.com/watch?v=x" })
-  void rejectsInputsThatAreNotAbsoluteWebUrlsBeforeRunningAnything(final String raw) {
+  void shouldRejectInputsThatAreNotAbsoluteWebUrlsBeforeRunningAnything(final String raw) {
     final URI uri = URI.create(raw);
     final UriSource source = Mockito.mock(UriSource.class);
     Mockito.when(source.getUri()).thenReturn(uri);
@@ -372,7 +372,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void acceptsWebUrlsWhateverTheCaseOfTheScheme() throws IOException {
+  void shouldAcceptWebUrlsWhateverTheCaseOfTheScheme() throws IOException {
     final CommandTask task = task(0, "{\"id\": \"upper\"}", "");
     final AtomicReference<String[]> command = new AtomicReference<>();
     final YTDLPParserImpl parser = parser(task, command);
@@ -386,7 +386,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void simpleReturnsTheSharedDefaultParser() {
+  void shouldReturnTheSharedDefaultParserFromSimple() {
     final YTDLPParser first = YTDLPParser.simple();
     final YTDLPParser second = YTDLPParser.simple();
     assertSame(first, second);
@@ -395,7 +395,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void defaultParserRunsTheInstalledExecutable() throws IOException {
+  void shouldRunTheInstalledExecutableInTheDefaultParser() throws IOException {
     final String javaHome = System.getProperty("java.home");
     final String launcherName = File.separatorChar == '\\' ? "java.exe" : "java";
     final Path javaPath = Path.of(javaHome, "bin", launcherName);
@@ -417,7 +417,7 @@ final class YTDLPParserImplTest {
   }
 
   @Test
-  void defaultParserRefusesWhileTheLibraryPreparesYtdlp() {
+  void shouldRefuseInTheDefaultParserWhileTheLibraryPreparesYtdlp() {
     final YTDLPInstaller installer = Mockito.mock(YTDLPInstaller.class);
     final UriSource source = source();
     final YTDLPParser parser = YTDLPParser.simple();

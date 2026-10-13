@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class DimensionTest {
 
   @Test
-  void storesWidthAndHeight() {
+  void shouldStoreWidthAndHeight() {
     final Dimension dimension = Dimension.of(640, 360);
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
@@ -40,7 +40,7 @@ final class DimensionTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Dimension dimension = new Dimension(3, 4);
     final Dimension equalDimension = Dimension.of(3, 4);
     final Dimension otherWidth = Dimension.of(5, 4);
@@ -49,13 +49,13 @@ final class DimensionTest {
   }
 
   @Test
-  void rejectsNegativeSides() {
+  void shouldRejectNegativeSides() {
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(-1, 1));
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(1, -1));
   }
 
   @Test
-  void isEmptyWhenEitherSideIsZero() {
+  void shouldBeEmptyWhenEitherSideIsZero() {
     final Dimension noWidth = Dimension.of(0, 5);
     final Dimension noHeight = Dimension.of(5, 0);
     final Dimension filled = Dimension.of(1, 1);
@@ -70,7 +70,7 @@ final class DimensionTest {
   }
 
   @Test
-  void rendersAsWidthByHeight() {
+  void shouldRenderAsWidthByHeight() {
     final Dimension dimension = Dimension.of(1920, 1080);
     final String text = dimension.toString();
     assertEquals("1920x1080", text);

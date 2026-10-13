@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Tag;
 final class ImageDecodeFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void decodesAnImageOrRefusesTheBytes(final byte[] encoded) {
+  void shouldDecodeAnImageOrRefuseTheBytes(final byte[] encoded) {
     final ImageBuffer image;
     try {
       image = ImageBuffer.bytes(encoded);

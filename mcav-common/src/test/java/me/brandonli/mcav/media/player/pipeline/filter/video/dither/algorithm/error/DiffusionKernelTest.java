@@ -38,7 +38,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void conservingKernelsSpreadTheWholeError() {
+  void shouldSpreadTheWholeErrorWithConservingKernels() {
     final List<DiffusionKernel> kernels = List.of(
       DiffusionKernel.FLOYD_STEINBERG,
       DiffusionKernel.FILTER_LITE,
@@ -56,7 +56,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void atkinsonSpreadsThreeQuartersOfTheError() {
+  void shouldSpreadThreeQuartersOfTheErrorWithAtkinson() {
     final int sum = weightSum(DiffusionKernel.ATKINSON);
     final int divisor = DiffusionKernel.ATKINSON.getDivisor();
     assertEquals(6, sum);
@@ -64,7 +64,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void describesItsTaps() {
+  void shouldDescribeItsTaps() {
     final DiffusionKernel kernel = DiffusionKernel.FLOYD_STEINBERG;
     final int taps = kernel.getTapCount();
     final int firstX = kernel.getOffsetX(0);
@@ -89,7 +89,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void acceptsCustomKernels() {
+  void shouldAcceptCustomKernels() {
     final DiffusionKernel kernel = new DiffusionKernel("Right", 2, new int[][] { { 1, 0, 1 }, { 0, 1, 1 } });
     final int taps = kernel.getTapCount();
     final int maxX = kernel.getMaxOffsetX();
@@ -98,7 +98,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void rejectsInvalidKernels() {
+  void shouldRejectInvalidKernels() {
     final int[][] valid = { { 1, 0, 1 } };
     assertThrows(NullPointerException.class, () -> new DiffusionKernel(null, 1, valid));
     assertThrows(NullPointerException.class, () -> new DiffusionKernel("x", 1, null));
@@ -119,7 +119,7 @@ final class DiffusionKernelTest {
    * {@link Integer#MIN_VALUE} made the reach negative. A tap may reach at most {@value DiffusionKernel#MAX_OFFSET} pixels.
    */
   @Test
-  void refusesTapsThatReachFartherThanAnyNeighbourhood() {
+  void shouldRefuseTapsThatReachFartherThanAnyNeighbourhood() {
     final int limit = DiffusionKernel.MAX_OFFSET;
     final int[][] widest = { { limit, 0, 1 }, { -limit, limit, 1 } };
     final DiffusionKernel kernel = new DiffusionKernel("widest", 2, widest);

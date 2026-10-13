@@ -78,7 +78,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void decodesEveryFrameOfANarrowAnimation() throws IOException {
+  void shouldDecodeEveryFrameOfANarrowAnimation() throws IOException {
     final Path gif = this.writeAnimation();
     final FileSource source = FileSource.path(gif);
     try (final DynamicImageBuffer animation = DynamicImageBuffer.path(source)) {
@@ -101,7 +101,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void releasesItsFramesWhenClosed() throws IOException {
+  void shouldReleaseItsFramesWhenClosed() throws IOException {
     final Path gif = this.writeAnimation();
     final FileSource source = FileSource.path(gif);
     final DynamicImageBuffer animation = DynamicImageBuffer.path(source);
@@ -111,7 +111,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void downloadsAnimationsFromUris() throws IOException {
+  void shouldDownloadAnimationsFromUris() throws IOException {
     final String previousHome = System.getProperty("user.home");
     final String temporaryHome = this.directory.toString();
     System.setProperty("user.home", temporaryHome);
@@ -129,7 +129,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void rejectsFilesWithoutImages() {
+  void shouldRejectFilesWithoutImages() {
     final Path audio = TestMedia.audio(0.5);
     final FileSource audioSource = FileSource.path(audio);
     final Path missing = this.directory.resolve("missing.gif");
@@ -141,13 +141,13 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void prefersTheReportedFrameRate() {
+  void shouldPreferTheReportedFrameRate() {
     final float reported = DynamicImageBufferImpl.resolveFrameRate(25.0, 3, 0L, 1_000_000L);
     assertEquals(25.0f, reported);
   }
 
   @Test
-  void derivesTheFrameRateFromTimestampsWhenNoneIsReported() {
+  void shouldDeriveTheFrameRateFromTimestampsWhenNoneIsReported() {
     final float zero = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 0L, 2_000_000L);
     final float notANumber = DynamicImageBufferImpl.resolveFrameRate(Double.NaN, 5, 0L, 1_000_000L);
     final float infinite = DynamicImageBufferImpl.resolveFrameRate(Double.POSITIVE_INFINITY, 3, 0L, 1_000_000L);
@@ -157,7 +157,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void derivesTheFrameRateFromTheTimeBetweenTheFirstAndTheLastFrame() {
+  void shouldDeriveTheFrameRateFromTheTimeBetweenTheFirstAndTheLastFrame() {
     final float lateStart = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 1_000_000L, 2_000_000L);
     final float sameTimestamps = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 1_000_000L, 1_000_000L);
     assertEquals(2.0f, lateStart, "two frame periods fit between one and two seconds, however late the first frame is");
@@ -165,7 +165,7 @@ final class DynamicImageBufferTest {
   }
 
   @Test
-  void fallsBackToTheDefaultFrameRate() {
+  void shouldFallBackToTheDefaultFrameRate() {
     final float singleFrame = DynamicImageBufferImpl.resolveFrameRate(-1.0, 1, 0L, 1_000_000L);
     final float noTimestamps = DynamicImageBufferImpl.resolveFrameRate(0.0, 3, 0L, 0L);
     assertEquals(10.0f, singleFrame);

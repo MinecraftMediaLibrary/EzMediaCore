@@ -61,7 +61,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void cropsToTheRequestedRegion() {
+  void shouldCropToTheRequestedRegion() {
     try (final ImageBuffer image = Images.indexed(4, 4)) {
       final CropFilter filter = new CropFilter(1, 1, 2, 2);
       final boolean modified = filter.applyFilter(image);
@@ -74,7 +74,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void clampsCropsThatReachBeyondTheFrame() {
+  void shouldClampCropsThatReachBeyondTheFrame() {
     try (final ImageBuffer image = Images.indexed(4, 4)) {
       final CropFilter filter = new CropFilter(2, 2, 10, 10);
       filter.applyFilter(image);
@@ -84,7 +84,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void leavesTheFrameAloneWhenTheCropIsEmptyOrCoversEverything() {
+  void shouldLeaveTheFrameAloneWhenTheCropIsEmptyOrCoversEverything() {
     final boolean rightOfFrame = crop(4, 0, 1, 1);
     final boolean belowFrame = crop(0, 4, 1, 1);
     final boolean wholeFrame = crop(0, 0, 4, 4);
@@ -104,7 +104,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void cropRejectsInvalidRegions() {
+  void shouldRejectInvalidCropRegions() {
     final CropFilter filter = new CropFilter(0, 0, 1, 1);
     assertThrows(IllegalArgumentException.class, () -> new CropFilter(-1, 0, 1, 1));
     assertThrows(IllegalArgumentException.class, () -> new CropFilter(0, -1, 1, 1));
@@ -116,7 +116,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void resizesUpAndDown() {
+  void shouldResizUpAndDown() {
     try (final ImageBuffer image = Images.indexed(4, 4)) {
       final ResizeFilter same = new ResizeFilter(4, 4);
       final ResizeFilter shorter = new ResizeFilter(4, 2);
@@ -145,7 +145,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void shrinkingEitherAxisAveragesAllThreeSourcePixels() {
+  void shouldAverageAllThreeSourcePixelsWhenShrinkingEitherAxis() {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 3 : 1;
       final int height = horizontal ? 1 : 3;
@@ -161,7 +161,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void growingEitherAxisInterpolatesBetweenPixelCenters() {
+  void shouldInterpolateBetweenPixelCentersWhenGrowingEitherAxis() {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 2 : 1;
       final int height = horizontal ? 1 : 2;
@@ -177,7 +177,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void resizeKnowsItsTargetSize() {
+  void shouldKnowTheTargetSizeOfAResize() {
     final ResizeFilter filter = new ResizeFilter(8, 6);
     final boolean exact = filter.matches(8, 6);
     final boolean otherHeight = filter.matches(8, 7);
@@ -193,7 +193,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void rotatesInEveryDirection() {
+  void shouldRotateInEveryDirection() {
     try (
       final ImageBuffer clockwise = Images.indexed(3, 2);
       final ImageBuffer halfTurn = Images.indexed(3, 2);
@@ -220,7 +220,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void rotationUsesTheOpenCvCodes() {
+  void shouldUseTheOpenCvCodesForRotation() {
     final int clockwise = RotationFilter.Rotation.ROTATE_90_CLOCKWISE.getCode();
     final int halfTurn = RotationFilter.Rotation.ROTATE_180.getCode();
     final int counterClockwise = RotationFilter.Rotation.ROTATE_90_COUNTERCLOCKWISE.getCode();
@@ -235,7 +235,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void transposesRowsAndColumns() {
+  void shouldTransposeRowsAndColumns() {
     try (final ImageBuffer image = Images.indexed(3, 2)) {
       final TransposeFilter filter = new TransposeFilter();
       final boolean modified = filter.applyFilter(image);
@@ -252,7 +252,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void flipsInEveryDirection() {
+  void shouldFlipInEveryDirection() {
     try (
       final ImageBuffer horizontal = Images.indexed(2, 2);
       final ImageBuffer vertical = Images.indexed(2, 2);
@@ -284,7 +284,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void resizingEveryFrameAllocatesNoMatrixOnceTheSizesAreSettled() {
+  void shouldAllocateNoMatrixOnceTheSizesAreSettledWhenResizingEveryFrame() {
     try (final ImageBuffer image = Images.indexed(4, 4)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final ResizeFilter filter = new ResizeFilter(2, 2);
@@ -306,7 +306,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void sizePreservingRotationsSwapBetweenTwoMatrices() {
+  void shouldSwapBetweenTwoMatricesForSizePreservingRotations() {
     try (final ImageBuffer image = Images.indexed(2, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final RotationFilter filter = new RotationFilter(RotationFilter.Rotation.ROTATE_180);
@@ -321,7 +321,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void geometryFiltersWorkOnMatBuffersDirectly() {
+  void shouldRunGeometryFiltersOnMatBuffersDirectly() {
     try (final ImageBuffer image = Images.indexed(4, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final TransposeFilter filter = new TransposeFilter();

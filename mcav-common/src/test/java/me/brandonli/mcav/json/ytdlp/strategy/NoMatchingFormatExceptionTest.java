@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class NoMatchingFormatExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final NoMatchingFormatException exception = new NoMatchingFormatException("No video stream matches the strategy");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -38,7 +38,7 @@ final class NoMatchingFormatExceptionTest {
   }
 
   @Test
-  void isARuntimeException() {
+  void shouldBeARuntimeException() {
     final NoMatchingFormatException exception = new NoMatchingFormatException("failure");
     assertInstanceOf(RuntimeException.class, exception, "a missing format is recoverable, so it is no Error");
   }

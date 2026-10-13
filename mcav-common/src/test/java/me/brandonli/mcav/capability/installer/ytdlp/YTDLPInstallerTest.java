@@ -79,7 +79,7 @@ final class YTDLPInstallerTest {
   private Path folder;
 
   @Test
-  void pinsEveryBundledDownloadToRelease20260819() {
+  void shouldPinEveryBundledDownloadToRelease20260819() {
     final Download[] downloads = IOUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
     assertEquals(8, downloads.length);
     for (final Download download : downloads) {
@@ -95,7 +95,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void bundlesOneDownloadPerPlatform() {
+  void shouldBundleOneDownloadPerPlatform() {
     final Download[] downloads = IOUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
     final Set<Platform> platforms = new HashSet<>();
     for (final Download download : downloads) {
@@ -116,7 +116,7 @@ final class YTDLPInstallerTest {
     "MAC, ARM, BITS_64, yt-dlp_macos, 0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202",
     "MAC, X86, BITS_64, yt-dlp_macos, 0f192b7ec147ab6288885d6351d9ab67367640029b4377576ef46dd79cf7b202",
   })
-  void bundlesTheOfficialBuildOfEachPlatform(
+  void shouldBundleTheOfficialBuildOfEachPlatform(
     final OS operatingSystem,
     final Arch architecture,
     final Bits bits,
@@ -145,7 +145,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void treatsOnlyZipDownloadsAsArchives() {
+  void shouldTreatOnlyZipDownloadsAsArchives() {
     final YTDLPInstaller zipped = installerFor("https://example.com/files/yt-dlp_linux_armv7l.zip");
     final YTDLPInstaller upperCase = installerFor("https://example.com/files/YT-DLP.ZIP");
     final YTDLPInstaller standalone = installerFor("https://example.com/files/yt-dlp_linux");
@@ -161,7 +161,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void findsTheExecutableOfAZipInTheUnpackedFolder() {
+  void shouldFindTheExecutableOfAZipInTheUnpackedFolder() {
     final YTDLPInstaller zipped = installerFor("https://example.com/files/yt-dlp_linux_armv7l.zip");
     final YTDLPInstaller upperCase = installerFor("https://example.com/files/YT-DLP.ZIP");
     final YTDLPInstaller standalone = installerFor("https://example.com/files/yt-dlp_linux");
@@ -180,7 +180,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void unpacksAZipAndMarksItsExecutable() throws IOException {
+  void shouldUnpackAZipAndMarkItsExecutable() throws IOException {
     final Map<String, byte[]> entries = Map.of(EXECUTABLE, LAUNCHER, "_internal/library.so", LIBRARY);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -218,7 +218,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void reusesAnUnpackedZipWithoutDownloadingItAgain() throws IOException {
+  void shouldReuseAnUnpackedZipWithoutDownloadingItAgain() throws IOException {
     final Map<String, byte[]> entries = Map.of(EXECUTABLE, LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -235,7 +235,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void replacesAStaleUnpackedFolderAndLeftoversOfAFailedUnpacking() throws IOException {
+  void shouldReplaceAStaleUnpackedFolderAndLeftoversOfAFailedUnpacking() throws IOException {
     final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
     final Path unpacking = this.folder.resolve("yt-dlp-unpacking");
     final Path stale = unpacked.resolve("stale.txt");
@@ -261,7 +261,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void rejectsAZipWithoutTheExecutableAtItsTopLevel() throws IOException {
+  void shouldRejectAZipWithoutTheExecutableAtItsTopLevel() throws IOException {
     final Map<String, byte[]> entries = Map.of("_internal/yt-dlp_test", LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -279,7 +279,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void rejectsADownloadThatIsNotAZip() throws IOException {
+  void shouldRejectADownloadThatIsNotAZip() throws IOException {
     final byte[] notAZip = "not a zip".getBytes(StandardCharsets.UTF_8);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YTDLPInstaller installer = this.serveZip(server, ZIP_PATH, notAZip);
@@ -293,7 +293,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void rejectsAZipWhoseEntriesEscapeTheFolder() throws IOException {
+  void shouldRejectAZipWhoseEntriesEscapeTheFolder() throws IOException {
     final Map<String, byte[]> entries = Map.of("../escaped", LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -308,7 +308,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void namesTheExecutableAfterTheProgramWhenTheZipHasNoName() throws IOException {
+  void shouldNameTheExecutableAfterTheProgramWhenTheZipHasNoName() throws IOException {
     final Map<String, byte[]> entries = Map.of("yt-dlp", LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
@@ -321,7 +321,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void installsAStandaloneExecutableAsDownloaded() throws IOException {
+  void shouldInstallAStandaloneExecutableAsDownloaded() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YTDLPInstaller installer = this.serveZip(server, "/yt-dlp_linux", LAUNCHER);
       final Path installed = installer.download(true);
@@ -386,7 +386,7 @@ final class YTDLPInstallerTest {
 
   @ParameterizedTest
   @EnumSource(value = OS.class, names = { "WINDOWS", "MAC" })
-  void letsArmMachinesRunTheEmulatedX86Build(final OS operatingSystem) {
+  void shouldLetArmMachinesRunTheEmulatedX86Build(final OS operatingSystem) {
     final YTDLPInstaller installer = YTDLPInstaller.create(this.folder);
     final Platform arm = Platform.ofPlatform(operatingSystem, Arch.ARM, Bits.BITS_64);
     final List<Platform> fallbacks = installer.getFallbackPlatforms(arm);
@@ -396,7 +396,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void offersNoFallbackWhereNoEmulationExists() {
+  void shouldOfferNoFallbackWhereNoEmulationExists() {
     final YTDLPInstaller installer = YTDLPInstaller.create(this.folder);
     final Platform armLinux = Platform.ofPlatform(OS.LINUX, Arch.ARM, Bits.BITS_64);
     final Platform armWindows32 = Platform.ofPlatform(OS.WINDOWS, Arch.ARM, Bits.BITS_32);
@@ -413,7 +413,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void installsASingleExecutableIntoTheChosenFolder() {
+  void shouldInstallASingleExecutableIntoTheChosenFolder() {
     final YTDLPInstaller installer = YTDLPInstaller.create(this.folder);
     final Path installerFolder = installer.getFolder();
     final String name = installer.getName();
@@ -429,7 +429,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void installsIntoTheCacheFolderByDefault(@TempDir final Path home) {
+  void shouldInstallIntoTheCacheFolderByDefault(@TempDir final Path home) {
     try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(home)) {
       final YTDLPInstaller installer = YTDLPInstaller.create();
       final Path installerFolder = installer.getFolder();
@@ -443,7 +443,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void sharesOneInstallerOfTheCacheFolder() {
+  void shouldShareOneInstallerOfTheCacheFolder() {
     final YTDLPInstaller first = YTDLPInstaller.shared();
     final YTDLPInstaller second = YTDLPInstaller.shared();
     final Path sharedFolder = first.getFolder();
@@ -454,7 +454,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void supportsEveryMainstreamDesktopPlatform() {
+  void shouldSupportEveryMainstreamDesktopPlatform() {
     final Platform current = Platform.getCurrentPlatform();
     final Arch architecture = current.getArch();
     final Bits bits = current.getBits();
@@ -470,7 +470,7 @@ final class YTDLPInstallerTest {
   }
 
   @Test
-  void rejectsANullFolder() {
+  void shouldRejectANullFolder() {
     assertThrows(NullPointerException.class, () -> YTDLPInstaller.create(null));
   }
 }

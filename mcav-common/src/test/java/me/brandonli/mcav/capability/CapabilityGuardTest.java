@@ -40,7 +40,7 @@ final class CapabilityGuardTest {
   private final CapabilityGuard guard = new CapabilityGuard();
 
   @Test
-  void sharesOneGuardPerJvm() {
+  void shouldShareOneGuardPerJvm() {
     final CapabilityGuard first = CapabilityGuard.shared();
     final CapabilityGuard second = CapabilityGuard.shared();
     assertSame(first, second);
@@ -48,7 +48,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void refusesNothingItKnowsNothingAbout() {
+  void shouldRefuseNothingItKnowsNothingAbout() {
     for (final Capability capability : Capability.values()) {
       final boolean preparing = this.guard.isPreparing(capability);
       assertFalse(preparing, capability::name);
@@ -58,7 +58,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void refusesACapabilityWhileItIsBeingPrepared() {
+  void shouldRefuseACapabilityWhileItIsBeingPrepared() {
     this.guard.markPreparing(Capability.VLC);
     final boolean vlcPreparing = this.guard.isPreparing(Capability.VLC);
     final boolean ytdlpPreparing = this.guard.isPreparing(Capability.YT_DLP);
@@ -75,7 +75,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void namesTheCapabilityInTheMessage() {
+  void shouldNameTheCapabilityInTheMessage() {
     this.guard.markPreparing(Capability.YT_DLP);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
       this.guard.checkNotPreparing(Capability.YT_DLP)
@@ -85,7 +85,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void stopsGuardingACapabilityThatBecameAvailable() {
+  void shouldStopGuardingACapabilityThatBecameAvailable() {
     this.guard.markPreparing(Capability.VLC);
     this.guard.markPrepared(Capability.VLC, true);
     final boolean preparing = this.guard.isPreparing(Capability.VLC);
@@ -94,7 +94,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void refusesAnUnavailableCapabilityOnlyWhereItMustBeUsable() {
+  void shouldRefuseAnUnavailableCapabilityOnlyWhereItMustBeUsable() {
     this.guard.markPreparing(Capability.VLC);
     this.guard.markPrepared(Capability.VLC, false);
     final boolean preparing = this.guard.isPreparing(Capability.VLC);
@@ -106,7 +106,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void forgetsWhatItRecorded() {
+  void shouldForgetWhatItRecorded() {
     this.guard.markPrepared(Capability.VLC, false);
     this.guard.markPreparing(Capability.YT_DLP);
     this.guard.forget(Capability.VLC);
@@ -116,7 +116,7 @@ final class CapabilityGuardTest {
   }
 
   @Test
-  void rejectsNulls() {
+  void shouldRejectNulls() {
     assertThrows(NullPointerException.class, () -> this.guard.markPreparing(null));
     assertThrows(NullPointerException.class, () -> this.guard.markPrepared(null, true));
     assertThrows(NullPointerException.class, () -> this.guard.forget(null));

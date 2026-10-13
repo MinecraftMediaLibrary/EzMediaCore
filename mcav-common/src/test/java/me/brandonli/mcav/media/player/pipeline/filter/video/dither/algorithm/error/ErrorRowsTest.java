@@ -31,7 +31,7 @@ final class ErrorRowsTest {
   private static final int GRAY = 0x808080;
 
   @Test
-  void scansEvenRowsForwardAndOddRowsBackward() {
+  void shouldScanEvenRowsForwardAndOddRowsBackward() {
     final int evenStart = ErrorRows.getScanStart(0, 5);
     final int evenEnd = ErrorRows.getScanEnd(0, 5);
     final int evenStep = ErrorRows.getScanStep(0);
@@ -47,7 +47,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void splitsPackedColorsIntoChannels() {
+  void shouldSplitPackedColorsIntoChannels() {
     final int red = ErrorRows.red(0xFF123456);
     final int green = ErrorRows.green(0xFF123456);
     final int blue = ErrorRows.blue(0xFF123456);
@@ -60,7 +60,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void spreadsErrorsToTheNeighborsNamedByTheKernel() {
+  void shouldSpreadErrorsToTheNeighborsNamedByTheKernel() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
     rows.diffuse(1, 0, 1, 160, -32, 16);
     final int right = rows.applyPendingError(GRAY, 2, 0);
@@ -76,7 +76,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void mirrorsTheKernelOnRowsScannedBackward() {
+  void shouldMirrorTheKernelOnRowsScannedBackward() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
     rows.diffuse(2, 1, -1, 16, 16, 16);
     final int ahead = rows.applyPendingError(0, 1, 1);
@@ -92,7 +92,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void spreadsAnErrorThatOnlyOneChannelHas() {
+  void shouldSpreadAnErrorThatOnlyOneChannelHas() {
     final ErrorRows redOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
     final ErrorRows greenOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
     final ErrorRows blueOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
@@ -112,7 +112,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void clampsTheWantedColorToTheChannelRange() {
+  void shouldClampTheWantedColorToTheChannelRange() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 2);
     rows.diffuse(0, 0, 1, -160, 160, 0);
     final int clamped = rows.applyPendingError(0x20F010, 1, 0);
@@ -120,7 +120,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void finishedRowsAreClearedForReuse() {
+  void shouldClearFinishedRowsForReuse() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 2);
     rows.diffuse(0, 0, 1, 64, 64, 64);
     rows.finishRow(0);
@@ -131,7 +131,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void addsWhatRoundingCutsOffToTheTapWithTheLargestWeight() {
+  void shouldAddWhatRoundingCutsOffToTheTapWithTheLargestWeight() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
     rows.diffuse(1, 0, 1, 10, -10, 0);
     final int right = rows.applyPendingError(GRAY, 2, 0);
@@ -145,7 +145,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void spreadsOnlyTheFractionTheWeightsDescribe() {
+  void shouldSpreadOnlyTheFractionTheWeightsDescribe() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.ATKINSON, 4);
     rows.diffuse(0, 0, 1, 10, 10, 10);
     final int right = rows.applyPendingError(0, 1, 0);
@@ -161,7 +161,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void findsTheLargestTapWhereverItIs() {
+  void shouldFindTheLargestTapWhereverItIs() {
     final DiffusionKernel kernel = new DiffusionKernel("Mostly down", 4, new int[][] { { 1, 0, 1 }, { 0, 1, 3 } });
     final ErrorRows rows = new ErrorRows(kernel, 2);
     rows.diffuse(0, 0, 1, 10, 10, 10);
@@ -172,7 +172,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void preservesAUnitFractionWithLargeEquivalentWeights() {
+  void shouldPreserveAUnitFractionWithLargeEquivalentWeights() {
     final DiffusionKernel kernel = new DiffusionKernel("Scaled unit", Integer.MAX_VALUE, new int[][] { { 1, 0, Integer.MAX_VALUE } });
     final ErrorRows rows = new ErrorRows(kernel, 2);
     rows.diffuse(0, 0, 1, 100, -100, 1);
@@ -181,7 +181,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void sumsLargeWeightsWithoutWrappingOrForbiddingAmplification() {
+  void shouldSumLargeWeightsWithoutWrappingOrForbiddingAmplification() {
     final DiffusionKernel kernel = new DiffusionKernel("Two unit shares", Integer.MAX_VALUE, new int[][] {
       { 1, 0, Integer.MAX_VALUE },
       { 0, 1, Integer.MAX_VALUE },
@@ -195,7 +195,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void largeAmplificationKeepsTheSignUntilColorClamping() {
+  void shouldKeepTheSignUntilColorClampingWithALargeAmplification() {
     final DiffusionKernel kernel = new DiffusionKernel("Amplified right", 1, new int[][] { { 1, 0, Integer.MAX_VALUE } });
     final ErrorRows rows = new ErrorRows(kernel, 2);
     rows.diffuse(0, 0, 1, 100, -100, 1);
@@ -205,7 +205,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void individuallySafeContributionsDoNotWrapWhenAccumulated() {
+  void shouldNotWrapIndividuallySafeContributionsWhenAccumulated() {
     final DiffusionKernel kernel = new DiffusionKernel("Two amplified shares", 1, new int[][] {
       { 1, 0, 1_000_000_000 },
       { 1, 0, 1_000_000_000 },
@@ -218,7 +218,7 @@ final class ErrorRowsTest {
   }
 
   @Test
-  void dropsErrorsThatFallOutsideTheImage() {
+  void shouldDropErrorsThatFallOutsideTheImage() {
     final ErrorRows rows = new ErrorRows(DiffusionKernel.STEVENSON_ARCE, 1);
     rows.diffuse(0, 0, 1, 200, 200, 200);
     rows.diffuse(0, 1, -1, 200, 200, 200);

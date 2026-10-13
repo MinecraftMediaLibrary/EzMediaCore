@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class ThrowableUtilsTest {
 
   @Test
-  void rethrowsVirtualMachineErrors() {
+  void shouldRethrowVirtualMachineErrors() {
     final StackOverflowError stackOverflow = new StackOverflowError("too deep");
     final OutOfMemoryError outOfMemory = new OutOfMemoryError("heap is full");
     final StackOverflowError thrownStackOverflow = assertThrows(StackOverflowError.class, () -> ThrowableUtils.throwIfFatal(stackOverflow));
@@ -41,7 +41,7 @@ final class ThrowableUtilsTest {
   }
 
   @Test
-  void returnsNormallyForRecoverableFailures() {
+  void shouldReturnNormallyForRecoverableFailures() {
     final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
     final AssertionError assertionFailure = new AssertionError("filter assertion");
     final UnsatisfiedLinkError linkFailure = new UnsatisfiedLinkError("no jniopencv_core");
@@ -53,12 +53,12 @@ final class ThrowableUtilsTest {
   }
 
   @Test
-  void rejectsNull() {
+  void shouldRejectNull() {
     assertThrows(NullPointerException.class, () -> ThrowableUtils.throwIfFatal(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ThrowableUtils.class);
   }
 }

@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class SampleFormatTest {
 
   @Test
-  void mapsToThePackedFfmpegFormats() {
+  void shouldMapToThePackedFfmpegFormats() {
     final int unsigned8 = SampleFormat.UNSIGNED_8_BIT.getFfmpegFormat();
     final int signed16 = SampleFormat.SIGNED_16_BIT.getFfmpegFormat();
     final int signed32 = SampleFormat.SIGNED_32_BIT.getFfmpegFormat();
@@ -44,7 +44,7 @@ final class SampleFormatTest {
   }
 
   @Test
-  void reportsTheSampleSizeFfmpegUses() {
+  void shouldReportTheSampleSizeFfmpegUses() {
     for (final SampleFormat format : SampleFormat.values()) {
       final int ffmpegFormat = format.getFfmpegFormat();
       final int expected = avutil.av_get_bytes_per_sample(ffmpegFormat);
@@ -55,7 +55,7 @@ final class SampleFormatTest {
   }
 
   @Test
-  void everyFormatIsInterleaved() {
+  void shouldInterleaveEveryFormat() {
     for (final SampleFormat format : SampleFormat.values()) {
       final int ffmpegFormat = format.getFfmpegFormat();
       final int planar = avutil.av_sample_fmt_is_planar(ffmpegFormat);

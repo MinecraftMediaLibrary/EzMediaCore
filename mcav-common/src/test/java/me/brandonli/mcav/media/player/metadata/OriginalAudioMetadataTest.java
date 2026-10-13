@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class OriginalAudioMetadataTest {
 
   @Test
-  void storesEveryProperty() {
+  void shouldStoreEveryProperty() {
     final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 128_000, 44_100, 2, 1);
     final String codec = metadata.getAudioCodec();
     final int bitrate = metadata.getAudioBitrate();
@@ -44,7 +44,7 @@ final class OriginalAudioMetadataTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("pcm", 1, 48_000, 2, 1);
     final OriginalAudioMetadata equalMetadata = OriginalAudioMetadata.of("pcm", 1, 48_000, 2, 1);
     final OriginalAudioMetadata otherCodec = OriginalAudioMetadata.of("opus", 1, 48_000, 2, 1);
@@ -64,14 +64,14 @@ final class OriginalAudioMetadataTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of("pcm", 1, 0, 2, 1));
     assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of("pcm", 1, 48_000, 0, 1));
     assertThrows(NullPointerException.class, () -> OriginalAudioMetadata.of(null, 1, 48_000, 2, 1));
   }
 
   @Test
-  void rendersTheMainProperties() {
+  void shouldRenderTheMainProperties() {
     final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 96_000, 44_100, 1, 1);
     final String text = metadata.toString();
     assertEquals("AudioMetadata[aac, 44100 Hz, 1 ch, 96000 bps]", text);

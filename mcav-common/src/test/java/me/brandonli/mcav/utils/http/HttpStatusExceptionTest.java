@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class HttpStatusExceptionTest {
 
   @Test
-  void describesTheStatusAndTheUri() {
+  void shouldDescribeTheStatusAndTheUri() {
     final URI uri = URI.create("https://example.com/file");
     final HttpStatusException exception = new HttpStatusException(503, uri);
     final int statusCode = exception.getStatusCode();
@@ -42,7 +42,7 @@ final class HttpStatusExceptionTest {
   }
 
   @Test
-  void checksumMismatchKeepsItsMessage() {
+  void shouldKeepTheMessageOfAChecksumMismatch() {
     final ChecksumMismatchException exception = new ChecksumMismatchException("expected a but got b");
     final String message = exception.getMessage();
     assertEquals("expected a but got b", message);

@@ -155,7 +155,7 @@ final class MCAVTest {
   }
 
   @Test
-  void createsSeparateUninstalledInstances() {
+  void shouldCreateSeparateUninstalledInstances() {
     final MCAVApi first = MCAV.api();
     final MCAVApi second = MCAV.api();
     assertInstanceOf(MCAV.class, first);
@@ -171,7 +171,7 @@ final class MCAVTest {
   }
 
   @Test
-  void installRunsEveryStepAndStartsTheModules() throws Exception {
+  void shouldRunEveryStepAndStartTheModulesOnInstall() throws Exception {
     final boolean previousCache = ImageIO.getUseCache();
     ImageIO.setUseCache(true);
     try {
@@ -206,7 +206,7 @@ final class MCAVTest {
    * MCAV hands it back to the system once a minute, on Linux.
    */
   @Test
-  void trimsTheNativeHeapWhileInstalled() {
+  void shouldTrimTheNativeHeapWhileInstalled() {
     final boolean linux = OSUtils.getOS() == OS.LINUX;
     final boolean beforeInstall = this.mcav.isTrimmingNativeHeap();
     this.mcav.install();
@@ -220,7 +220,7 @@ final class MCAVTest {
   }
 
   @Test
-  void installsWithoutModules() throws Exception {
+  void shouldInstallWithoutModules() throws Exception {
     this.mcav.install();
     // the mocked loader is stubbed below, which must not race with the installation threads using it
     this.awaitBackgroundInstallation();
@@ -233,7 +233,7 @@ final class MCAVTest {
   }
 
   @Test
-  void reportsWhetherFaceDetectionIsAvailable() throws Exception {
+  void shouldReportWhetherFaceDetectionIsAvailable() throws Exception {
     this.mcav.install();
     this.awaitBackgroundInstallation();
     this.stubCapability(Capability.FACE_DETECTION, false);
@@ -242,7 +242,7 @@ final class MCAVTest {
   }
 
   @Test
-  void answersCapabilitiesThatAreNotPreparedInTheBackgroundAtOnce() {
+  void shouldAnswerCapabilitiesThatAreNotPreparedInTheBackgroundAtOnce() {
     this.stubCapability(Capability.FFMPEG, true);
     this.stubCapability(Capability.FACE_DETECTION, false);
     this.mcav.install();
@@ -259,7 +259,7 @@ final class MCAVTest {
   }
 
   @Test
-  void installReturnsWhileVlcIsStillBeingPrepared() throws Exception {
+  void shouldReturnFromInstallWhileVlcIsStillBeingPrepared() throws Exception {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlcInstallation(vlcStarted, finishVlc);
@@ -295,7 +295,7 @@ final class MCAVTest {
   }
 
   @Test
-  void reportsProgramsThatCouldNotBePreparedAsUnavailable() throws Exception {
+  void shouldReportProgramsThatCouldNotBePreparedAsUnavailable() throws Exception {
     this.stubCapability(Capability.VLC, false);
     this.stubCapability(Capability.YT_DLP, false);
     this.mcav.install();
@@ -318,7 +318,7 @@ final class MCAVTest {
   }
 
   @Test
-  void releaseInterruptsAPreparationThatIsStillRunningAndReturnsPromptly() throws Exception {
+  void shouldInterruptAPreparationThatIsStillRunningAndReturnPromptlyOnRelease() throws Exception {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch vlcInterrupted = new CountDownLatch(1);
     final AtomicReference<Thread> vlcThread = new AtomicReference<>();
@@ -362,7 +362,7 @@ final class MCAVTest {
   }
 
   @Test
-  void installCanOnlyRunOncePerRelease() throws Exception {
+  void shouldInstallOnlyOncePerRelease() throws Exception {
     this.mcav.install(CountingModule.class);
     final MCAVLoadingException exception = assertThrows(MCAVLoadingException.class, () -> this.mcav.install(CountingModule.class));
     final String message = exception.getMessage();
@@ -375,7 +375,7 @@ final class MCAVTest {
   }
 
   @Test
-  void concurrentInstallsRunTheInstallationOnce() throws Exception {
+  void shouldRunTheInstallationOnceForConcurrentInstalls() throws Exception {
     final CountDownLatch nativesStarted = new CountDownLatch(1);
     final CountDownLatch finishNatives = new CountDownLatch(1);
     this.blockNativeLoading(nativesStarted, finishNatives);
@@ -396,7 +396,7 @@ final class MCAVTest {
   }
 
   @Test
-  void releaseWaitsForARunningInstallationAndThenStopsItsModules() throws Exception {
+  void shouldWaitForARunningInstallationAndThenStopItsModulesOnRelease() throws Exception {
     final CountDownLatch nativesStarted = new CountDownLatch(1);
     final CountDownLatch finishNatives = new CountDownLatch(1);
     this.blockNativeLoading(nativesStarted, finishNatives);
@@ -426,7 +426,7 @@ final class MCAVTest {
   }
 
   @Test
-  void failedInstallStopsTheStartedModulesAndCanBeRetried() throws Exception {
+  void shouldStopTheStartedModulesAfterAFailedInstallAndAllowARetry() throws Exception {
     final IllegalStateException failure = new IllegalStateException("no natives");
     final Stubber failingNatives = Mockito.doThrow(failure);
     final DependencyLoader failingLoader = failingNatives.when(this.dependencies);
@@ -463,7 +463,7 @@ final class MCAVTest {
   }
 
   @Test
-  void wrapsModuleFailures() {
+  void shouldWrapModuleFailures() {
     final MCAVLoadingException exception = assertThrows(MCAVLoadingException.class, () ->
       this.mcav.install(CountingModule.class, BrokenModule.class)
     );
@@ -477,7 +477,7 @@ final class MCAVTest {
   }
 
   @Test
-  void reportsFailuresThatHaveNoCause() {
+  void shouldReportFailuresThatHaveNoCause() {
     final CompletionException failure = new CompletionException("lost cause", null);
     final Stubber failingNatives = Mockito.doThrow(failure);
     final DependencyLoader failingLoader = failingNatives.when(this.dependencies);
@@ -490,7 +490,7 @@ final class MCAVTest {
   }
 
   @Test
-  void releaseStopsTheModulesOnceAndAllowsAnotherInstall() {
+  void shouldStopTheModulesOnceAndAllowAnotherInstallOnRelease() {
     this.mcav.install(CountingModule.class);
     final CountingModule module = this.mcav.getModule(CountingModule.class);
     this.mcav.release();
@@ -510,7 +510,7 @@ final class MCAVTest {
   }
 
   @Test
-  void releaseBeforeInstallDoesNothing() {
+  void shouldDoNothingOnReleaseBeforeInstall() {
     this.mcav.release();
     final VerificationMode never = Mockito.never();
     final ModuleLoader verifiedModules = Mockito.verify(this.modules, never);
@@ -518,7 +518,7 @@ final class MCAVTest {
   }
 
   @Test
-  void rejectsNulls() throws Exception {
+  void shouldRejectNulls() throws Exception {
     assertThrows(NullPointerException.class, () -> this.mcav.hasCapability(null));
     assertThrows(NullPointerException.class, () -> this.mcav.whenCapabilityReady(null));
     assertThrows(NullPointerException.class, () -> this.mcav.install((Class<?>[]) null));
@@ -530,7 +530,7 @@ final class MCAVTest {
   }
 
   @Test
-  void createsLoadingExceptionsWithMessageAndCause() {
+  void shouldCreateLoadingExceptionsWithMessageAndCause() {
     final IllegalStateException cause = new IllegalStateException("cause");
     final MCAVLoadingException withMessage = new MCAVLoadingException("message");
     final MCAVLoadingException withCause = new MCAVLoadingException("wrapped", cause);

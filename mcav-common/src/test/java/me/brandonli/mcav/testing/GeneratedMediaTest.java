@@ -88,7 +88,7 @@ final class GeneratedMediaTest {
   }
 
   @Test
-  void replacesUntrustedExistingFilesAndCachesOnlySuccessfulGeneration() throws Exception {
+  void shouldReplaceUntrustedExistingFilesAndCachOnlySuccessfulGeneration() throws Exception {
     final Path output = this.directory.resolve("video.mp4");
     Files.writeString(output, "partial from a failed older attempt");
     final AtomicInteger invocations = new AtomicInteger();
@@ -114,7 +114,7 @@ final class GeneratedMediaTest {
   }
 
   @Test
-  void failedEncodingPreservesTheOldDestinationAndTheNextRequestRetries() throws Exception {
+  void shouldPreserveTheOldDestinationAfterAFailedEncodingAndRetryOnTheNextRequest() throws Exception {
     final Path output = this.directory.resolve("video.mp4");
     Files.writeString(output, "old complete media");
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
@@ -133,7 +133,7 @@ final class GeneratedMediaTest {
   }
 
   @Test
-  void timedOutEncodingIsBoundedAndDoesNotPublishItsPartialOutput() throws Exception {
+  void shouldBoundATimedOutEncodingAndNotPublishItsPartialOutput() throws Exception {
     final Path output = this.directory.resolve("video.mp4");
     final Duration timeout = Duration.ofSeconds(2);
     final long before = System.nanoTime();

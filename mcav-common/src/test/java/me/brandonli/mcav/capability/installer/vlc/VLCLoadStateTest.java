@@ -45,7 +45,7 @@ final class VLCLoadStateTest {
   private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
   @Test
-  void runsTheLoaderOnlyUntilItSucceeds() throws IOException {
+  void shouldRunTheLoaderOnlyUntilItSucceeds() throws IOException {
     final VLCLoadState state = new VLCLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final VLCLoadState.Loader loader = () -> {
@@ -62,7 +62,7 @@ final class VLCLoadStateTest {
   }
 
   @Test
-  void remembersThatTheLocationIsUnknown() throws IOException {
+  void shouldRememberThatTheLocationIsUnknown() throws IOException {
     final VLCLoadState state = new VLCLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final VLCLoadState.Loader loader = () -> {
@@ -80,7 +80,7 @@ final class VLCLoadStateTest {
   }
 
   @Test
-  void retriesAfterAFailedLoad() throws IOException {
+  void shouldRetryAfterAFailedLoad() throws IOException {
     final VLCLoadState state = new VLCLoadState();
     final IOException failure = new IOException("offline");
     final IOException thrown = assertThrows(IOException.class, () ->
@@ -95,7 +95,7 @@ final class VLCLoadStateTest {
   }
 
   @Test
-  void retriesAfterAnUnsupportedSystem() throws IOException {
+  void shouldRetryAfterAnUnsupportedSystem() throws IOException {
     final VLCLoadState state = new VLCLoadState();
     final UnsupportedOperatingSystemException failure = new UnsupportedOperatingSystemException("no VLC");
     assertThrows(UnsupportedOperatingSystemException.class, () ->
@@ -109,7 +109,7 @@ final class VLCLoadStateTest {
   }
 
   @Test
-  void serializesConcurrentLoads() throws Exception {
+  void shouldSerializConcurrentLoads() throws Exception {
     final VLCLoadState state = new VLCLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final CountDownLatch loaderEntered = new CountDownLatch(1);

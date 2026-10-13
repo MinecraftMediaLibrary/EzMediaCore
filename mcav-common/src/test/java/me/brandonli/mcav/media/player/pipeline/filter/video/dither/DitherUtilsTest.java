@@ -35,7 +35,7 @@ final class DitherUtilsTest {
   private static final DitherPalette BLACK_RED_GREEN = DitherPalette.colors(0x000000, 0xFF0000, 0x00FF00);
 
   @Test
-  void dropsTheLowestBitOfEveryChannelForTheLookup() {
+  void shouldDropTheLowestBitOfEveryChannelForTheLookup() {
     final int black = DitherUtils.getLookupIndex(0, 0, 0);
     final int white = DitherUtils.getLookupIndex(255, 255, 255);
     final int mixed = DitherUtils.getLookupIndex(2, 4, 6);
@@ -47,7 +47,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void findsTheClosestPaletteEntry() {
+  void shouldFindTheClosestPaletteEntry() {
     final byte dark = DitherUtils.getBestColor(BLACK_WHITE, 10, 10, 10);
     final byte bright = DitherUtils.getBestColor(BLACK_WHITE, 250, 250, 250);
     final int darkColor = DitherUtils.getBestFullColor(BLACK_WHITE, 10, 10, 10);
@@ -61,7 +61,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void rejectsColorComponentsOutsideTheChannelRange() {
+  void shouldRejectColorComponentsOutsideTheChannelRange() {
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestColor(BLACK_WHITE, -1, 0, 0));
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestColor(BLACK_WHITE, 0, 256, 0));
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestFullColor(BLACK_WHITE, 0, 0, 256));
@@ -69,7 +69,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void rejectsMissingPalettes() {
+  void shouldRejectMissingPalettes() {
     assertThrows(NullPointerException.class, () -> DitherUtils.getBestColor(null, 0, 0, 0));
     assertThrows(NullPointerException.class, () -> DitherUtils.getBestFullColor(null, 0, 0, 0));
     assertThrows(NullPointerException.class, () -> DitherUtils.getColorFromMinecraftPalette(null, (byte) 0));
@@ -77,7 +77,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void rejectsPaletteIndicesThePaletteDoesNotHave() {
+  void shouldRejectPaletteIndicesThePaletteDoesNotHave() {
     final int lastColor = DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) 1);
     assertEquals(0xFFFFFFFF, lastColor);
     assertThrows(IndexOutOfBoundsException.class, () -> DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) 2));
@@ -85,7 +85,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void mapsFullyTransparentPixelsToIndexZero() {
+  void shouldMapFullyTransparentPixelsToIndexZero() {
     final byte transparent = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0x00FFFFFF);
     final byte opaque = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0xFFFFFFFF);
     final byte translucent = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0x01FFFFFF);
@@ -95,7 +95,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void keepsTheTransparentIndexOfTheMapPaletteForTransparentPixelsOnly() {
+  void shouldKeepTheTransparentIndexOfTheMapPaletteForTransparentPixelsOnly() {
     final DitherPalette mapPalette = DitherPalette.DEFAULT_MAP_PALETTE;
     final byte transparent = DitherUtils.getBestColorIncludingTransparent(mapPalette, 0x00FFFFFF);
     final byte opaque = DitherUtils.getBestColorIncludingTransparent(mapPalette, 0xFFFFFFFF);
@@ -106,7 +106,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void readsEveryChannelFromItsOwnPlaceInThePackedColor() {
+  void shouldReadEveryChannelFromItsOwnPlaceInThePackedColor() {
     final byte red = DitherUtils.getBestColorIncludingTransparent(BLACK_RED_GREEN, 0xFFFF0000);
     final byte green = DitherUtils.getBestColorIncludingTransparent(BLACK_RED_GREEN, 0xFF00FF00);
     final int[] pixels = { 0xFFFF0000, 0xFF00FF00 };
@@ -117,7 +117,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void simplifiesWholeImages() {
+  void shouldSimplifyWholeImages() {
     final byte[] indices = DitherUtils.simplify(BLACK_WHITE, new int[] { 0xFF000000, 0xFFFFFFFF, 0xFF101010 });
     assertArrayEquals(new byte[] { 0, 1, 0 }, indices);
     assertThrows(NullPointerException.class, () -> DitherUtils.simplify(null, new int[0]));
@@ -125,7 +125,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void clampsToTheChannelRange() {
+  void shouldClampToTheChannelRange() {
     final int below = DitherUtils.clamp(-5);
     final int inside = DitherUtils.clamp(128);
     final int above = DitherUtils.clamp(300);
@@ -139,7 +139,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(DitherUtils.class);
   }
 }

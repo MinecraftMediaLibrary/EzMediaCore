@@ -66,7 +66,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void capturesStandardOutputAndTheExitCode() throws IOException {
+  void shouldCaptureStandardOutputAndTheExitCode() throws IOException {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "--version");
     final int exitCode = task.run();
@@ -79,7 +79,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void capturesStandardError() throws IOException {
+  void shouldCaptureStandardError() throws IOException {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "-version");
     task.runChecked();
@@ -89,7 +89,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void reportsFailingCommands() throws IOException {
+  void shouldReportFailingCommands() throws IOException {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "-XX:+NoSuchOptionForMcav");
     final int exitCode = task.run();
@@ -101,7 +101,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void runsInTheWorkingDirectory() throws IOException {
+  void shouldRunInTheWorkingDirectory() throws IOException {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(this.directory, java, "-XshowSettings:properties", "-version");
     task.run();
@@ -113,7 +113,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void canRunOnCreation() throws IOException {
+  void shouldRunOnCreation() throws IOException {
     final String java = javaExecutable();
     final String[] command = { java, "-version" };
     final CommandTask ran = new CommandTask(command, true);
@@ -126,7 +126,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void runsOnlyOnce() throws IOException {
+  void shouldRunOnlyOnce() throws IOException {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "-version");
     task.run();
@@ -139,7 +139,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void stopsWaitingWhenInterrupted() {
+  void shouldStopWaitingWhenInterrupted() {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "-version");
     final Thread current = Thread.currentThread();
@@ -152,7 +152,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void reportsOutputThatCannotBeRead() throws IOException, InterruptedException {
+  void shouldReportOutputThatCannotBeRead() throws IOException, InterruptedException {
     final String java = javaExecutable();
     final ProcessBuilder builder = new ProcessBuilder(java, "-version");
     final Process finished = builder.start();
@@ -168,7 +168,7 @@ final class CommandTaskTest {
 
   @Test
   @EnabledOnOs({ OS.LINUX, OS.MAC })
-  void outputThatCannotBeReadEndsTheProgramsThatOutlivedIt() throws IOException, InterruptedException {
+  void shouldEndTheProgramsThatOutlivedOutputThatCannotBeRead() throws IOException, InterruptedException {
     final Process shell = new ProcessBuilder("sh", "-c", "sleep 60 & echo $!; sleep 1").start();
     final String line;
     try (final BufferedReader output = new BufferedReader(new InputStreamReader(shell.getInputStream(), StandardCharsets.US_ASCII))) {
@@ -188,7 +188,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void wrapsStreamFailuresWhileReading() throws IOException {
+  void shouldWrapStreamFailuresWhileReading() throws IOException {
     try (
       final InputStream broken = new InputStream() {
         @Override
@@ -207,13 +207,13 @@ final class CommandTaskTest {
   }
 
   @Test
-  void rejectsInvalidCommands() {
+  void shouldRejectInvalidCommands() {
     assertThrows(IllegalArgumentException.class, CommandTask::new);
     assertThrows(NullPointerException.class, () -> new CommandTask((String[]) null));
   }
 
   @Test
-  void killsAProgramThatRunsLongerThanTheTimeout() throws IOException, InterruptedException {
+  void shouldKillAProgramThatRunsLongerThanTheTimeout() throws IOException, InterruptedException {
     final String java = javaExecutable();
     final String programPath = this.sleeperProgram();
     final CommandTask task = new CommandTask(java, programPath);
@@ -233,7 +233,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void runsProgramsThatFinishWithinTheTimeout() throws IOException {
+  void shouldRunProgramsThatFinishWithinTheTimeout() throws IOException {
     final String java = javaExecutable();
     final Duration timeout = Duration.ofMinutes(1);
     final CommandTask task = new CommandTask(java, "-version");
@@ -251,7 +251,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void rejectsTimeoutsThatAreNotPositive() {
+  void shouldRejectTimeoutsThatAreNotPositive() {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, "-version");
     final Duration negative = Duration.ofSeconds(-1);
@@ -264,7 +264,7 @@ final class CommandTaskTest {
   }
 
   @Test
-  void killsTheProgramWhenInterrupted() throws IOException, InterruptedException {
+  void shouldKillTheProgramWhenInterrupted() throws IOException, InterruptedException {
     final String java = javaExecutable();
     final String programPath = this.sleeperProgram();
     final CommandTask task = new CommandTask(java, programPath);

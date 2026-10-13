@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 final class PlatformTest {
 
   @Test
-  void storesItsParts() {
+  void shouldStoreItsParts() {
     final Platform platform = Platform.ofPlatform(OS.MAC, Arch.ARM, Bits.BITS_64);
     final OS os = platform.getOS();
     final Arch arch = platform.getArch();
@@ -42,7 +42,7 @@ final class PlatformTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Platform platform = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
     final Platform equalPlatform = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
     final Platform otherOs = Platform.ofPlatform(OS.WINDOWS, Arch.X86, Bits.BITS_64);
@@ -52,7 +52,7 @@ final class PlatformTest {
   }
 
   @Test
-  void rendersAsLowerCaseTriple() {
+  void shouldRenderAsLowerCaseTriple() {
     final Platform sixtyFour = Platform.ofPlatform(OS.WINDOWS, Arch.X86, Bits.BITS_64);
     final Platform thirtyTwo = Platform.ofPlatform(OS.FREEBSD, Arch.ARM, Bits.BITS_32);
     final Platform unknown = Platform.ofPlatform(OS.OTHER, Arch.OTHER, Bits.BITS_64);
@@ -65,7 +65,7 @@ final class PlatformTest {
   }
 
   @Test
-  void knowsOnlyPlatformsWithAKnownOperatingSystemAndArchitecture() {
+  void shouldKnowOnlyPlatformsWithAKnownOperatingSystemAndArchitecture() {
     final Platform known = Platform.ofPlatform(OS.LINUX, Arch.ARM, Bits.BITS_64);
     final Platform unknownOs = Platform.ofPlatform(OS.OTHER, Arch.X86, Bits.BITS_64);
     final Platform unknownArch = Platform.ofPlatform(OS.LINUX, Arch.OTHER, Bits.BITS_64);
@@ -78,7 +78,7 @@ final class PlatformTest {
   }
 
   @Test
-  void describesTheRunningSystemLikeJna() {
+  void shouldDescribeTheRunningSystemLikeJna() {
     final Platform current = Platform.getCurrentPlatform();
     final OS os = current.getOS();
     final Arch arch = current.getArch();
@@ -96,7 +96,7 @@ final class PlatformTest {
   }
 
   @Test
-  void rejectsMissingParts() {
+  void shouldRejectMissingParts() {
     assertThrows(NullPointerException.class, () -> Platform.ofPlatform(null, Arch.X86, Bits.BITS_64));
     assertThrows(NullPointerException.class, () -> Platform.ofPlatform(OS.LINUX, null, Bits.BITS_64));
     assertThrows(NullPointerException.class, () -> Platform.ofPlatform(OS.LINUX, Arch.X86, null));

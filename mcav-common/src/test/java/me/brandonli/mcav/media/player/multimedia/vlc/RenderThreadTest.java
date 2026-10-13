@@ -82,7 +82,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void reportsStepsThatFailAndGoesOnWithTheNextStep() throws Exception {
+  void shouldReportStepsThatFailAndGoOnWithTheNextStep() throws Exception {
     final List<RuntimeException> failures = Collections.synchronizedList(new ArrayList<>());
     final RenderThread thread = new RenderThread(THREAD_NAME, failures::add);
     final AtomicInteger steps = new AtomicInteger();
@@ -136,7 +136,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void runsTheStepUntilStoppedAndWaitsForTheThreadToExit() throws Exception {
+  void shouldRunTheStepUntilStoppedAndWaitForTheThreadToExit() throws Exception {
     final RenderThread thread = this.strictThread();
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch blocked = new CountDownLatch(1);
@@ -162,7 +162,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void endsTheLoopAfterTheCurrentStepWhenStoppedFromItself() throws Exception {
+  void shouldEndTheLoopAfterTheCurrentStepWhenStoppedFromItself() throws Exception {
     final RenderThread thread = this.strictThread();
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch cleanedUp = new CountDownLatch(1);
@@ -208,7 +208,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void stopsWaitingWhenTheCallerIsInterrupted() throws Exception {
+  void shouldStopWaitingWhenTheCallerIsInterrupted() throws Exception {
     final RenderThread thread = this.strictThread();
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch release = new CountDownLatch(1);
@@ -234,7 +234,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void stoppingAThreadThatNeverStartedDoesNothing() {
+  void shouldDoNothingWhenStoppingAThreadThatNeverStarted() {
     final RenderThread thread = this.strictThread();
     final boolean runningBeforeStop = thread.isRunning();
     thread.stop();
@@ -245,7 +245,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void cannotBeStartedTwice() {
+  void shouldNotBeStartedTwice() {
     final RenderThread thread = this.strictThread();
     final RenderThread.Step idle = () -> Thread.sleep(10);
     thread.start(idle, () -> {});

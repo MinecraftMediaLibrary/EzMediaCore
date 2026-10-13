@@ -45,7 +45,7 @@ final class PaletteTest {
   }
 
   @Test
-  void blueLookupNeverOverwritesTheFirstEntryOfAnOddGreenRow() {
+  void shouldNeverOverwriteTheFirstEntryOfAnOddGreenRowInTheBlueLookup() {
     final DitherPalette palette = DitherPalette.colors(0x000000, 0x0000FF);
     final byte[] lookup = palette.getColorMap();
     final int[] colors = palette.getFullColorMap();
@@ -54,7 +54,7 @@ final class PaletteTest {
   }
 
   @Test
-  void orderedSpreadCountsOnlyUsablePaletteColors() {
+  void shouldCountOnlyUsablePaletteColorsInTheOrderedSpread() {
     final int[] colors = { 0, 0, 0xFF000000, 0xFFFFFFFF };
     final DitherPalette palette = new ColorPalette(colors, 2);
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1.0f);
@@ -67,7 +67,7 @@ final class PaletteTest {
   }
 
   @Test
-  void customPalettesAreOpaqueAndMapEveryColorToTheClosestEntry() {
+  void shouldMakeCustomPalettesOpaqueAndMapEveryColorToTheClosestEntry() {
     final DitherPalette palette = DitherPalette.colors(0xFF0000, 0x0000FF);
     final int[] colors = palette.getPalette();
     final int size = palette.getSize();
@@ -88,7 +88,7 @@ final class PaletteTest {
   }
 
   @Test
-  void looksUpColorsByTheirFullRedChannel() {
+  void shouldLookUpColorsByTheirFullRedChannel() {
     final DitherPalette palette = DitherPalette.colors(0x800000, 0xFF0000);
     final byte[] colorMap = palette.getColorMap();
     final int lookup = DitherUtils.getLookupIndex(200, 0, 0);
@@ -97,7 +97,7 @@ final class PaletteTest {
   }
 
   @Test
-  void weighsTheChannelsByTheRedmeanFormula() {
+  void shouldWeighTheChannelsByTheRedmeanFormula() {
     final float red = ColorPalette.perceptualDistance(0, 0, 0, 0x3C0000);
     final float green = ColorPalette.perceptualDistance(0, 0, 0, 0x003C00);
     final float blue = ColorPalette.perceptualDistance(0, 0, 0, 0x00003C);
@@ -111,7 +111,7 @@ final class PaletteTest {
   }
 
   @Test
-  void looksUpColorsByTheirFullGreenChannel() {
+  void shouldLookUpColorsByTheirFullGreenChannel() {
     final DitherPalette palette = DitherPalette.colors(0x008000, 0x00FF00);
     final byte[] colorMap = palette.getColorMap();
     final int lookup = DitherUtils.getLookupIndex(0, 200, 0);
@@ -120,7 +120,7 @@ final class PaletteTest {
   }
 
   @Test
-  void looksUpColorsByTheirFullBlueChannel() {
+  void shouldLookUpColorsByTheirFullBlueChannel() {
     final DitherPalette palette = DitherPalette.colors(0x000080, 0x0000FF);
     final byte[] colorMap = palette.getColorMap();
     final int lookup = DitherUtils.getLookupIndex(0, 0, 200);
@@ -129,7 +129,7 @@ final class PaletteTest {
   }
 
   @Test
-  void prefersTheFirstOfTwoEquallyCloseColors() {
+  void shouldPreferTheFirstOfTwoEquallyCloseColors() {
     final DitherPalette palette = DitherPalette.colors(0x123456, 0x123456);
     final byte[] colorMap = palette.getColorMap();
     final int lookup = DitherUtils.getLookupIndex(0x12, 0x34, 0x56);
@@ -138,7 +138,7 @@ final class PaletteTest {
   }
 
   @Test
-  void acceptsAPaletteOfTheLargestAllowedSize() {
+  void shouldAcceptAPaletteOfTheLargestAllowedSize() {
     final int[] largest = new int[256];
     for (int index = 0; index < largest.length; index++) {
       largest[index] = index;
@@ -149,7 +149,7 @@ final class PaletteTest {
   }
 
   @Test
-  void acceptsColorLists() {
+  void shouldAcceptColorLists() {
     final DitherPalette fromList = DitherPalette.colors(List.of(0x000000, 0xFFFFFF));
     final DitherPalette fromArray = DitherPalette.colors(0x000000, 0xFFFFFF);
     final int[] listColors = fromList.getPalette();
@@ -158,7 +158,7 @@ final class PaletteTest {
   }
 
   @Test
-  void rejectsInvalidPalettes() {
+  void shouldRejectInvalidPalettes() {
     final int[] tooMany = new int[257];
     assertThrows(IllegalArgumentException.class, () -> DitherPalette.colors(tooMany));
     assertThrows(IllegalArgumentException.class, () -> DitherPalette.colors());
@@ -169,7 +169,7 @@ final class PaletteTest {
   }
 
   @Test
-  void theMapPaletteKeepsItsTransparentEntriesOutOfTheLookup() {
+  void shouldKeepTheTransparentEntriesOfTheMapPaletteOutOfTheLookup() {
     final DitherPalette palette = DitherPalette.DEFAULT_MAP_PALETTE;
     final int reserved = palette.getReservedIndices();
     final int size = palette.getSize();
@@ -191,7 +191,7 @@ final class PaletteTest {
   }
 
   @Test
-  void theEightBitPaletteHoldsItsEightColors() {
+  void shouldHoldEightColorsInTheEightBitPalette() {
     final DitherPalette palette = DitherPalette.EIGHT_BIT_PALETTE;
     final int[] colors = palette.getPalette();
     final int[] redGreenBlueWhiteBlackYellowCyanPurple = {
@@ -208,7 +208,7 @@ final class PaletteTest {
   }
 
   @Test
-  void loaderHandsOutCopies() {
+  void shouldHandOutCopiesFromTheLoader() {
     final int[] first = MapPaletteLoader.getColors();
     final int[] second = MapPaletteLoader.getColors();
     final int count = MapPaletteLoader.getColorCount();
@@ -220,7 +220,7 @@ final class PaletteTest {
   }
 
   @Test
-  void loaderProvidesColorObjects() {
+  void shouldProvideColorObjectsFromTheLoader() {
     final int[] colors = MapPaletteLoader.getColors();
     final Color color = MapPaletteLoader.getColor((byte) 4);
     final int argb = color.getRGB();
@@ -233,13 +233,13 @@ final class PaletteTest {
   }
 
   @Test
-  void parsesColorsFromJson() {
+  void shouldParseColorsFromJson() {
     final int[] colors = parse("[[1, 2, 3], [255, 128, 0]]");
     assertArrayEquals(new int[] { 0xFF010203, 0xFFFF8000 }, colors);
   }
 
   @Test
-  void rejectsJsonThatIsNotAPalette() {
+  void shouldRejectJsonThatIsNotAPalette() {
     assertThrows(PaletteLoadingException.class, () -> parse("null"));
     assertThrows(PaletteLoadingException.class, () -> parse("[]"));
     assertThrows(PaletteLoadingException.class, () -> parse("[[1, 2]]"));
@@ -252,7 +252,7 @@ final class PaletteTest {
   }
 
   @Test
-  void loaderCannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotInstantiateTheLoader() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MapPaletteLoader.class);
   }
 }

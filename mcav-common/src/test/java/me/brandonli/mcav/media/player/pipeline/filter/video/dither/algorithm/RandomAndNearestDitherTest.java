@@ -59,7 +59,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomDitherWithoutWeightIsNearestColor() {
+  void shouldPickTheNearestColorWhenRandomDitheringWithoutWeight() {
     final int[] pixels = DitherTestImages.gradient(64, 4);
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 0);
     final NearestDither nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
@@ -71,7 +71,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomDitherIsReproducibleWithTheSameSeed() {
+  void shouldRandomDitherReproduciblyWithTheSameSeed() {
     final int[] pixels = DitherTestImages.gradient(64, 16);
     final RandomDitherImpl first = new RandomDitherImpl(
       DitherTestImages.BLACK_WHITE,
@@ -91,7 +91,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomDitherInPlaceWritesPaletteColors() {
+  void shouldWritePaletteColorsWhenRandomDitheringInPlace() {
     final int[] pixels = DitherTestImages.gradient(32, 4);
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, RandomDither.LIGHT_WEIGHT);
     random.dither(pixels, 32);
@@ -102,7 +102,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomBuilderCreatesTheConfiguredAlgorithm() {
+  void shouldCreateTheConfiguredAlgorithmFromTheRandomBuilder() {
     final RandomDitherBuilder<RandomDither, RandomDitherBuilderImpl> builder = DitherAlgorithm.random();
     final RandomDitherBuilderImpl weighted = builder.withWeight(RandomDither.NORMAL_WEIGHT);
     final RandomDitherBuilderImpl configured = weighted.withPalette(DitherTestImages.BLACK_WHITE);
@@ -118,7 +118,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomBuilderAndAlgorithmRejectInvalidSettings() {
+  void shouldRejectInvalidSettingsInTheRandomBuilderAndAlgorithm() {
     final RandomDitherBuilder<RandomDither, RandomDitherBuilderImpl> builder = DitherAlgorithm.random();
     assertThrows(IllegalArgumentException.class, () -> builder.withWeight(-1));
     assertThrows(IllegalArgumentException.class, () -> builder.withWeight(256));
@@ -129,14 +129,14 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomDitherReportsAMissingImageBeforeReadingItsPixels() {
+  void shouldReportAMissingImageBeforeReadingItsPixelsWhenRandomDithering() {
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 0);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> random.ditherIntoBytes(null));
     assertEquals("Image must not be null", missingImage.getMessage());
   }
 
   @Test
-  void acceptsTheBoundaryWeights() {
+  void shouldAcceptTheBoundaryWeights() {
     final RandomDitherBuilder<RandomDither, RandomDitherBuilderImpl> builder = DitherAlgorithm.random();
     final RandomDitherBuilderImpl lightest = builder.withWeight(0);
     final RandomDitherBuilderImpl heaviest = builder.withWeight(255);
@@ -151,14 +151,14 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void theConstructorWithAProviderChecksItsWeightAsWell() {
+  void shouldCheckTheWeightInTheConstructorWithAProviderAsWell() {
     final RandomNumberProvider provider = new XoroshiroRandomProvider(1L);
     assertThrows(IllegalArgumentException.class, () -> new RandomDitherImpl(DitherTestImages.BLACK_WHITE, -1, provider));
     assertThrows(IllegalArgumentException.class, () -> new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 256, provider));
   }
 
   @Test
-  void ditheringInPlaceChecksItsBuffer() {
+  void shouldCheckTheBufferWhenDitheringInPlace() {
     final NearestDither nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 0);
     assertThrows(IllegalArgumentException.class, () -> nearest.dither(new int[3], 2));
@@ -169,7 +169,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroScalesItsDoublesToTheWidthOfTheRange() {
+  void shouldScaleTheDoublesToTheWidthOfTheRangeWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
     final double scaled = provider.nextDouble(0.0, 4.0);
     final double unit = 8119767394961995L / (double) (1L << 53);
@@ -178,7 +178,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroTranslatesNonzeroBoundsWithoutChangingTheDistribution() {
+  void shouldTranslateNonzeroBoundsWithoutChangingTheDistributionWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
     final double actual = provider.nextDouble(-5.0, 7.0);
     final double unit = 8119767394961995L / (double) (1L << 53);
@@ -187,7 +187,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroPreservesTheQuantileWhenTheRangeOverflows() {
+  void shouldPreserveTheQuantileWhenTheRangeOverflowsWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
     final double minimum = -Double.MAX_VALUE;
     final double maximum = Double.MAX_VALUE / 2.0;
@@ -209,7 +209,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroReadsItsBooleanFromTheSignOfItsOutput() {
+  void shouldReadTheBooleanFromTheSignOfTheOutputWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
     final boolean firstDraw = provider.nextBoolean();
     final boolean secondDraw = provider.nextBoolean();
@@ -220,7 +220,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void nearestDitherSplitsAtMidGray() {
+  void shouldSplitAtMidGrayWhenNearestDithering() {
     final int[] pixels = DitherTestImages.gradient(128, 64);
     final NearestDither nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
     final byte[] indices = dither(nearest, pixels, 128);
@@ -231,7 +231,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void nearestDitherReadsEveryChannelFromItsOwnPlaceInThePackedColor() {
+  void shouldReadEveryChannelFromItsOwnPlaceInThePackedColorWhenNearestDithering() {
     final DitherPalette blackRedGreen = DitherPalette.colors(0x000000, 0xFF0000, 0x00FF00);
     final NearestDitherImpl nearest = new NearestDitherImpl(blackRedGreen);
     final int[] pixels = { 0xFFFF0000, 0xFF00FF00 };
@@ -241,7 +241,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void nearestDitherInParallelMatchesSerial() {
+  void shouldMatchSerialWhenNearestDitheringInParallel() {
     final int[] large = DitherTestImages.gradient(128, 64);
     final int[] small = DitherTestImages.gradient(8, 8);
     final NearestDitherImpl nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
@@ -267,7 +267,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void nearestDitherInPlaceAndBuilders() {
+  void shouldNearestDitherInPlaceAndThroughBuilders() {
     final int[] pixels = { 0xFF101010, 0xFFF0F0F0 };
     final NearestDitherBuilder<NearestDither, NearestDitherBuilderImpl> builder = DitherAlgorithm.nearest();
     final NearestDitherBuilderImpl configured = builder.withPalette(DitherTestImages.BLACK_WHITE);
@@ -282,7 +282,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroIsReproducibleWithTheSameSeed() {
+  void shouldBeReproducibleWithTheSameSeedWithXoroshiro() {
     final XoroshiroRandomProvider first = new XoroshiroRandomProvider(42L);
     final XoroshiroRandomProvider second = new XoroshiroRandomProvider(42L);
     final XoroshiroRandomProvider other = new XoroshiroRandomProvider(43L);
@@ -311,7 +311,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroStaysInRangeAndReachesBothEnds() {
+  void shouldStayInRangeAndReachBothEndsWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
     boolean sawMinimum = false;
     boolean sawMaximum = false;
@@ -332,7 +332,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroNeverRoundsToTheExclusiveDoubleBound() {
+  void shouldNeverRoundToTheExclusiveDoubleBoundWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(3L);
     final double upper = Math.nextUp(1.0);
     final double value = provider.nextDouble(1.0, upper);
@@ -340,7 +340,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroHandlesFiniteDoubleBoundsWhoseDifferenceOverflows() {
+  void shouldHandleFiniteDoubleBoundsWhoseDifferenceOverflowsWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(0L);
     for (int sample = 0; sample < 100; sample++) {
       final double value = provider.nextDouble(-Double.MAX_VALUE, Double.MAX_VALUE);
@@ -351,7 +351,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroRejectsNonfiniteDoubleBounds() {
+  void shouldRejectNonfiniteDoubleBoundsWithXoroshiro() {
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(0L);
     assertThrows(IllegalArgumentException.class, () -> provider.nextDouble(Double.NEGATIVE_INFINITY, 1.0));
     assertThrows(IllegalArgumentException.class, () -> provider.nextDouble(0.0, Double.POSITIVE_INFINITY));
@@ -360,7 +360,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroSeedsUnseededGeneratorsDifferently() {
+  void shouldSeedUnseededGeneratorsDifferentlyWithXoroshiro() {
     final XoroshiroRandomProvider first = new XoroshiroRandomProvider();
     final XoroshiroRandomProvider second = new XoroshiroRandomProvider();
     final double firstValue = first.nextDouble(0.0, 1.0);
@@ -373,7 +373,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void randomDitherDrawsNoiseUpToTheWeightInBothDirections() {
+  void shouldDrawNoiseUpToTheWeightInBothDirectionsWhenRandomDithering() {
     final RandomNumberProvider provider = mock(RandomNumberProvider.class);
     when(provider.nextInt(-3, 4)).thenReturn(3);
     final RandomDitherImpl random = new RandomDitherImpl(DitherTestImages.BLACK_WHITE, 3, provider);
@@ -384,7 +384,7 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
-  void xoroshiroMatchesAnIndependentReferenceImplementation() {
+  void shouldMatchAnIndependentReferenceImplementationWithXoroshiro() {
     // computed with a separate implementation of the reference C code of SplitMix64 and xoroshiro128+ (24, 16, 37):
     // the state is the first two outputs of SplitMix64 seeded with 42, and each value is the top 53 bits of an output
     final XoroshiroRandomProvider provider = new XoroshiroRandomProvider(42L);
