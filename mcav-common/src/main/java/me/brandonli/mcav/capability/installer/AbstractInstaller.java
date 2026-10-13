@@ -38,6 +38,8 @@ import me.brandonli.mcav.utils.os.OS;
 import me.brandonli.mcav.utils.os.OSUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The base class of all installers.
@@ -59,6 +61,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * that needs closing. It keeps downloaded files and the configuration for reuse after process shutdown.
  */
 public abstract class AbstractInstaller implements Installer {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractInstaller.class);
 
   private static final String CONFIG_FILE_NAME = "config.properties";
   private static final String CONFIG_TEMPORARY_SUFFIX = ".tmp";
@@ -534,6 +538,10 @@ public abstract class AbstractInstaller implements Installer {
     }
     try (final InputStream configInput = Files.newInputStream(configFile)) {
       properties.load(configInput);
+    } catch (final IllegalArgumentException exception) {
+      // Properties refuses a malformed unicode escape this way; only remembered paths are lost, so they are forgotten
+      LOGGER.warn("Configuration {} is malformed and is ignored.", configFile, exception);
+      return new Properties();
     }
     return properties;
   }

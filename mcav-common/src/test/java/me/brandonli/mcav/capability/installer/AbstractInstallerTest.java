@@ -312,6 +312,26 @@ final class AbstractInstallerTest {
   }
 
   @Test
+  void shouldIgnoreAConfigurationWithAMalformedEscapeAndRememberTheNewInstallation() throws IOException {
+    final Path configFile = this.folder.resolve("config.properties");
+    Files.writeString(configFile, "tool=\\uZZZZ\n", StandardCharsets.ISO_8859_1);
+
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      server.respond(TOOL_PATH, 200, PROGRAM);
+      final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
+      final Path installed = installer.download(false);
+      final Path expected = installer.getDefaultPath();
+      assertEquals(expected, installed);
+
+      final Properties config = this.readConfig();
+      final String remembered = config.getProperty(NAME);
+      final Path absolute = installed.toAbsolutePath();
+      final String expectedRemembered = absolute.toString();
+      assertEquals(expectedRemembered, remembered);
+    }
+  }
+
+  @Test
   void shouldRejectADownloadWithTheWrongChecksumAndRememberNothing() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, 200, PROGRAM);
