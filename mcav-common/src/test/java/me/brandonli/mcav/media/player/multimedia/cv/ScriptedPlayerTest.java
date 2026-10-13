@@ -106,7 +106,7 @@ final class ScriptedPlayerTest {
     await("playback finished", () -> !player.isPlaying());
   }
 
-  private static <T> T resultOf(final CompletableFuture<T> future) throws Exception {
+  private static <ResultType> ResultType resultOf(final CompletableFuture<ResultType> future) throws Exception {
     return future.get(FUTURE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
   }
 

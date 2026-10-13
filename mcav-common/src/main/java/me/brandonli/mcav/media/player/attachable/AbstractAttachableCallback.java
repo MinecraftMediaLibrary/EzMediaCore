@@ -24,12 +24,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A thread-safe {@link AttachableCallback} that stores its value in an atomic reference.
  *
- * @param <T> the type of value the slot holds
+ * @param <ValueType> the type of value the slot holds
  */
-public abstract class AbstractAttachableCallback<T> implements AttachableCallback<T> {
+public abstract class AbstractAttachableCallback<ValueType> implements AttachableCallback<ValueType> {
 
-  private final T fallback;
-  private final AtomicReference<@Nullable T> attached;
+  private final ValueType fallback;
+  private final AtomicReference<@Nullable ValueType> attached;
 
   /**
    * Constructs a slot.
@@ -37,7 +37,7 @@ public abstract class AbstractAttachableCallback<T> implements AttachableCallbac
    * @param fallback the value returned while nothing is attached
    * @throws NullPointerException if {@code fallback} is null
    */
-  protected AbstractAttachableCallback(final T fallback) {
+  protected AbstractAttachableCallback(final ValueType fallback) {
     Preconditions.checkNotNull(fallback, "Fallback must not be null!");
     this.fallback = fallback;
     this.attached = new AtomicReference<>();
@@ -48,7 +48,7 @@ public abstract class AbstractAttachableCallback<T> implements AttachableCallbac
    * @throws NullPointerException if {@code value} is null
    */
   @Override
-  public void attach(final T value) {
+  public void attach(final ValueType value) {
     Preconditions.checkNotNull(value, "Attached value must not be null!");
     this.attached.set(value);
   }
@@ -60,13 +60,13 @@ public abstract class AbstractAttachableCallback<T> implements AttachableCallbac
 
   @Override
   public boolean isAttached() {
-    final T current = this.attached.get();
+    final ValueType current = this.attached.get();
     return current != null;
   }
 
   @Override
-  public T retrieve() {
-    final T current = this.attached.get();
+  public ValueType retrieve() {
+    final ValueType current = this.attached.get();
     return current == null ? this.fallback : current;
   }
 }

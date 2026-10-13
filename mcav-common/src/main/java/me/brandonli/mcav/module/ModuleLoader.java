@@ -60,13 +60,13 @@ public final class ModuleLoader {
   /**
    * Returns a started module.
    *
-   * @param moduleClass the class of the module
-   * @param <T>         the type of the module
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
    * @return the module
    * @throws ModuleException      if no module of that class was started
    * @throws NullPointerException if {@code moduleClass} is null
    */
-  public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
+  public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
     final MCAVModule module = this.modules.get(moduleClass);
     if (module == null) {

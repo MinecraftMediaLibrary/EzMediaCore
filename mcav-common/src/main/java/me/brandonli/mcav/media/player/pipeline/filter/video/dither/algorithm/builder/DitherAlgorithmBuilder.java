@@ -30,16 +30,19 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  *   final ErrorDiffusionDither algorithm = builder.build();
  * </code></pre>
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * @param <AlgorithmType> the type of algorithm the builder creates
+ * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface DitherAlgorithmBuilder<T extends DitherAlgorithm, B extends DitherAlgorithmBuilder<T, B>> {
+public interface DitherAlgorithmBuilder<
+  AlgorithmType extends DitherAlgorithm,
+  BuilderType extends DitherAlgorithmBuilder<AlgorithmType, BuilderType>
+> {
   /**
    * Creates the algorithm.
    *
    * @return the algorithm
    */
-  T build();
+  AlgorithmType build();
 
   /**
    * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
@@ -48,5 +51,5 @@ public interface DitherAlgorithmBuilder<T extends DitherAlgorithm, B extends Dit
    * @return this builder
    * @throws NullPointerException if {@code palette} is null
    */
-  B withPalette(final DitherPalette palette);
+  BuilderType withPalette(final DitherPalette palette);
 }

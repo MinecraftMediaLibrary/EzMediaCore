@@ -24,13 +24,13 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
  * remembers the previous frame of the video it dithers and must not be shared between players, so build one for
  * every player; the other algorithms are stateless and can be shared.
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * @param <AlgorithmType> the type of algorithm the builder creates
+ * @param <BuilderType>   the type of the builder itself, for method chaining
  */
 public interface ErrorDiffusionDitherBuilder<
-  T extends ErrorDiffusionDither,
-  B extends ErrorDiffusionDitherBuilder<T, B>
-> extends DitherAlgorithmBuilder<T, B> {
+  AlgorithmType extends ErrorDiffusionDither,
+  BuilderType extends ErrorDiffusionDitherBuilder<AlgorithmType, BuilderType>
+> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {
   /**
    * Sets the error diffusion algorithm. Defaults to {@link Algorithm#FILTER_LITE}.
    *
@@ -38,7 +38,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws NullPointerException if {@code algorithm} is null
    */
-  B withAlgorithm(final Algorithm algorithm);
+  BuilderType withAlgorithm(final Algorithm algorithm);
 
   /**
    * Sets how far a pixel may drift per channel before its color is recomputed. Only used by
@@ -48,7 +48,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the threshold is outside 0 through 255
    */
-  B withTemporalThreshold(final int threshold);
+  BuilderType withTemporalThreshold(final int threshold);
 
   /**
    * Sets the total error below which nothing is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
@@ -57,7 +57,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the threshold is negative
    */
-  B withErrorThreshold(final int threshold);
+  BuilderType withErrorThreshold(final int threshold);
 
   /**
    * Sets the fraction of the error that is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
@@ -66,7 +66,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the strength is outside 0 through 1 or is NaN
    */
-  B withErrorStrength(final float strength);
+  BuilderType withErrorStrength(final float strength);
 
   /**
    * The error diffusion algorithms that can be built.

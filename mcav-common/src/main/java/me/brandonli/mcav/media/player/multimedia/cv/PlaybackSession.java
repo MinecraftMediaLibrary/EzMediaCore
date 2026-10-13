@@ -577,7 +577,7 @@ final class PlaybackSession {
    * waiting for a renderer that may already have exited. The decoder's interrupt status is preserved.
    */
   @VisibleForTesting
-  <T extends @NonNull Object> void signalEnd(final BlockingQueue<T> queue, final T marker) {
+  <ElementType extends @NonNull Object> void signalEnd(final BlockingQueue<ElementType> queue, final ElementType marker) {
     boolean interrupted = Thread.interrupted();
     try {
       while (this.running.get()) {
@@ -934,18 +934,18 @@ final class PlaybackSession {
    * between draining and offering, so the queue is drained again until the marker fits. Every removed element is
    * handed to a consumer, so it can release its resources.
    *
-   * @param queue     the queue
-   * @param marker    the end marker
-   * @param discarded receives every element that was removed from the queue
-   * @param <T>       the type of the queued elements
+   * @param queue         the queue
+   * @param marker        the end marker
+   * @param discarded     receives every element that was removed from the queue
+   * @param <ElementType> the type of the queued elements
    */
   @VisibleForTesting
-  static <T extends @NonNull Object> void replaceWithEndMarker(
-    final BlockingQueue<T> queue,
-    final T marker,
-    final Consumer<? super T> discarded
+  static <ElementType extends @NonNull Object> void replaceWithEndMarker(
+    final BlockingQueue<ElementType> queue,
+    final ElementType marker,
+    final Consumer<? super ElementType> discarded
   ) {
-    final List<T> removed = new ArrayList<>();
+    final List<ElementType> removed = new ArrayList<>();
     do {
       queue.drainTo(removed);
     } while (!queue.offer(marker));

@@ -36,13 +36,13 @@ public final class ResourceAssertions {
   /**
    * Asserts that opening a resource throws the expected exception.
    *
-   * @param expected the type of exception the factory should throw
-   * @param opening  the factory that opens the resource
-   * @param <T>      the type of exception
+   * @param expected        the type of exception the factory should throw
+   * @param opening         the factory that opens the resource
+   * @param <ExceptionType> the type of exception
    * @return the exception the factory threw
    */
-  public static <T extends Throwable> T assertThrowsWhileOpening(
-    final Class<T> expected,
+  public static <ExceptionType extends Throwable> ExceptionType assertThrowsWhileOpening(
+    final Class<ExceptionType> expected,
     final ThrowingSupplier<? extends AutoCloseable> opening
   ) {
     final Executable openAndClose = () -> {

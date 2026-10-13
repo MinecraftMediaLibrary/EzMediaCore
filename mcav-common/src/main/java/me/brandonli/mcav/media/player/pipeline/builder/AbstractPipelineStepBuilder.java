@@ -27,21 +27,21 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Collects filters in order and links them into a chain of steps.
  *
- * @param <T> the type of data that flows through the pipeline
- * @param <M> the type of metadata that accompanies the data
- * @param <F> the type of filter
- * @param <S> the type of step
- * @param <B> the type of the concrete builder, returned from {@link #then(Filter)}
+ * @param <DataType>     the type of data that flows through the pipeline
+ * @param <MetadataType> the type of metadata that accompanies the data
+ * @param <FilterType>   the type of filter
+ * @param <StepType>     the type of step
+ * @param <BuilderType>  the type of the concrete builder, returned from {@link #then(Filter)}
  */
 public abstract class AbstractPipelineStepBuilder<
-  T,
-  M,
-  F extends Filter<T, M>,
-  S extends PipelineStep<T, M, S>,
-  B extends AbstractPipelineStepBuilder<T, M, F, S, B>
+  DataType,
+  MetadataType,
+  FilterType extends Filter<DataType, MetadataType>,
+  StepType extends PipelineStep<DataType, MetadataType, StepType>,
+  BuilderType extends AbstractPipelineStepBuilder<DataType, MetadataType, FilterType, StepType, BuilderType>
 > {
 
-  private final List<F> filters;
+  private final List<FilterType> filters;
 
   /**
    * Constructs an empty builder.
@@ -57,7 +57,7 @@ public abstract class AbstractPipelineStepBuilder<
    * @return this builder
    * @throws NullPointerException if {@code filter} is null
    */
-  public B then(final F filter) {
+  public BuilderType then(final FilterType filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
     this.filters.add(filter);
     return this.self();
@@ -78,15 +78,15 @@ public abstract class AbstractPipelineStepBuilder<
    *
    * @return the first step, or the no-op step if no filter was added
    */
-  public S build() {
+  public StepType build() {
     final int count = this.filters.size();
     if (count == 0) {
       return this.createEmptyStep();
     }
-    final F last = this.filters.get(count - 1);
-    S chain = this.createStep(null, last);
+    final FilterType last = this.filters.get(count - 1);
+    StepType chain = this.createStep(null, last);
     for (int filterIndex = count - 2; filterIndex >= 0; filterIndex--) {
-      final F filter = this.filters.get(filterIndex);
+      final FilterType filter = this.filters.get(filterIndex);
       chain = this.createStep(chain, filter);
     }
     return chain;
@@ -99,19 +99,19 @@ public abstract class AbstractPipelineStepBuilder<
    * @param filter the filter of the step
    * @return the step
    */
-  protected abstract S createStep(final @Nullable S next, final F filter);
+  protected abstract StepType createStep(final @Nullable StepType next, final FilterType filter);
 
   /**
    * Returns the step returned when no filter was added.
    *
    * @return the no-op step
    */
-  protected abstract S createEmptyStep();
+  protected abstract StepType createEmptyStep();
 
   /**
    * Returns this builder typed as the concrete builder.
    *
    * @return this builder
    */
-  protected abstract B self();
+  protected abstract BuilderType self();
 }

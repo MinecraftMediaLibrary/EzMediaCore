@@ -23,10 +23,13 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 /**
  * Builds ordered dithering algorithms.
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * @param <AlgorithmType> the type of algorithm the builder creates
+ * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface OrderedDitherBuilder<T extends BayerDither, B extends OrderedDitherBuilder<T, B>> extends DitherAlgorithmBuilder<T, B> {
+public interface OrderedDitherBuilder<
+  AlgorithmType extends BayerDither,
+  BuilderType extends OrderedDitherBuilder<AlgorithmType, BuilderType>
+> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {
   /**
    * Sets the threshold pattern. Defaults to a 2x2 Bayer matrix at normal strength.
    *
@@ -34,5 +37,5 @@ public interface OrderedDitherBuilder<T extends BayerDither, B extends OrderedDi
    * @return this builder
    * @throws NullPointerException if {@code mapper} is null
    */
-  B withDitherMatrix(final PixelMapper mapper);
+  BuilderType withDitherMatrix(final PixelMapper mapper);
 }

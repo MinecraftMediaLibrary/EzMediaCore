@@ -22,7 +22,10 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nea
 /**
  * Builds nearest color algorithms, which have no settings besides the palette.
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * @param <AlgorithmType> the type of algorithm the builder creates
+ * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface NearestDitherBuilder<T extends NearestDither, B extends NearestDitherBuilder<T, B>> extends DitherAlgorithmBuilder<T, B> {}
+public interface NearestDitherBuilder<
+  AlgorithmType extends NearestDither,
+  BuilderType extends NearestDitherBuilder<AlgorithmType, BuilderType>
+> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {}

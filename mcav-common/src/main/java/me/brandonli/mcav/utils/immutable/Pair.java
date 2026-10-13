@@ -24,15 +24,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A shallowly immutable pair of two non-null values, retained by reference rather than copied.
  *
- * @param <A> the type of the first value
- * @param <B> the type of the second value
+ * @param <FirstType>  the type of the first value
+ * @param <SecondType> the type of the second value
  */
-public final class Pair<A, B> {
+public final class Pair<FirstType, SecondType> {
 
-  private final A first;
-  private final B second;
+  private final FirstType first;
+  private final SecondType second;
 
-  Pair(final A first, final B second) {
+  Pair(final FirstType first, final SecondType second) {
     this.first = first;
     this.second = second;
   }
@@ -40,14 +40,14 @@ public final class Pair<A, B> {
   /**
    * Creates a pair.
    *
-   * @param <C>    the type of the first value
-   * @param <D>    the type of the second value
-   * @param first  the first value
-   * @param second the second value
+   * @param <FirstType>  the type of the first value
+   * @param <SecondType> the type of the second value
+   * @param first        the first value
+   * @param second       the second value
    * @return the pair
    * @throws NullPointerException if {@code first} or {@code second} is null
    */
-  public static <C, D> Pair<C, D> pair(final C first, final D second) {
+  public static <FirstType, SecondType> Pair<FirstType, SecondType> pair(final FirstType first, final SecondType second) {
     Preconditions.checkNotNull(first, "First value must not be null!");
     Preconditions.checkNotNull(second, "Second value must not be null!");
     return new Pair<>(first, second);
@@ -58,7 +58,7 @@ public final class Pair<A, B> {
    *
    * @return the first value
    */
-  public A getFirst() {
+  public FirstType getFirst() {
     return this.first;
   }
 
@@ -67,7 +67,7 @@ public final class Pair<A, B> {
    *
    * @return the second value
    */
-  public B getSecond() {
+  public SecondType getSecond() {
     return this.second;
   }
 

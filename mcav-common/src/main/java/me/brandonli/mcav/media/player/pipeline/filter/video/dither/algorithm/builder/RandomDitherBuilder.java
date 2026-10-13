@@ -22,10 +22,13 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ran
 /**
  * Builds random dithering algorithms.
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * @param <AlgorithmType> the type of algorithm the builder creates
+ * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface RandomDitherBuilder<T extends RandomDither, B extends RandomDitherBuilder<T, B>> extends DitherAlgorithmBuilder<T, B> {
+public interface RandomDitherBuilder<
+  AlgorithmType extends RandomDither,
+  BuilderType extends RandomDitherBuilder<AlgorithmType, BuilderType>
+> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {
   /**
    * Sets the largest noise value added to or subtracted from a channel. Defaults to
    * {@link RandomDither#NORMAL_WEIGHT}.
@@ -34,5 +37,5 @@ public interface RandomDitherBuilder<T extends RandomDither, B extends RandomDit
    * @return this builder
    * @throws IllegalArgumentException if the weight is outside 0 through 255
    */
-  B withWeight(final int weight);
+  BuilderType withWeight(final int weight);
 }

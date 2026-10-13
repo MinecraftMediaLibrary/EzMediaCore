@@ -119,11 +119,11 @@ public interface MCAVApi {
   /**
    * Returns a module that was started by {@link #install(Class[])}.
    *
-   * @param moduleClass the class of the module
-   * @param <T>         the type of the module
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
    * @return the module instance
    * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
    * @throws NullPointerException                     if {@code moduleClass} is null
    */
-  <T extends MCAVModule> T getModule(final Class<T> moduleClass);
+  <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass);
 }

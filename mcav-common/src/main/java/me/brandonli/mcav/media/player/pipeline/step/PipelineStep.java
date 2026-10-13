@@ -25,17 +25,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * {@link #processAll(Object, Object)} for every frame or sample chunk. Build chains with
  * {@link me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder}.
  *
- * @param <T> the type of data that flows through the pipeline
- * @param <M> the type of metadata that accompanies the data
- * @param <S> the type of the steps of this pipeline
+ * @param <DataType>     the type of data that flows through the pipeline
+ * @param <MetadataType> the type of metadata that accompanies the data
+ * @param <StepType>     the type of the steps of this pipeline
  */
-public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
+public interface PipelineStep<DataType, MetadataType, StepType extends PipelineStep<DataType, MetadataType, StepType>> {
   /**
    * Returns the step that follows this one.
    *
    * @return the next step, or null if this is the last step
    */
-  @Nullable S next();
+  @Nullable StepType next();
 
   /**
    * Checks whether this is the last step of the chain.
@@ -43,7 +43,7 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @return true if no step follows
    */
   default boolean isLast() {
-    final S next = this.next();
+    final StepType next = this.next();
     return next == null;
   }
 
@@ -65,7 +65,7 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
    */
-  void process(final T buffer, final M metadata);
+  void process(final DataType buffer, final MetadataType metadata);
 
   /**
    * Applies the filter of this step and of every step that follows, in order. Every filter runs, whatever the
@@ -76,10 +76,10 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @throws NullPointerException if the data or the metadata is null
    * @throws RuntimeException     if a step or filter fails; subsequent steps are not invoked
    */
-  default void processAll(final T buffer, final M metadata) {
+  default void processAll(final DataType buffer, final MetadataType metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
-    S step = this.self();
+    StepType step = this.self();
     while (step != null) {
       step.process(buffer, metadata);
       step = step.next();
@@ -91,5 +91,5 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    *
    * @return this step
    */
-  S self();
+  StepType self();
 }

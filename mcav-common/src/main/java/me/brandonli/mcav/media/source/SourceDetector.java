@@ -22,9 +22,9 @@ package me.brandonli.mcav.media.source;
  * are consulted by {@link SourceDetectionHelper}; when several detectors accept a string, the one with the highest
  * priority wins.
  *
- * @param <T> the type of source the detector creates
+ * @param <SourceType> the type of source the detector creates
  */
-public interface SourceDetector<T extends Source> {
+public interface SourceDetector<SourceType extends Source> {
   /**
    * The priority of ordinary detectors.
    */
@@ -54,7 +54,7 @@ public interface SourceDetector<T extends Source> {
    * @param raw the string entered by a user
    * @return the source
    */
-  T createSource(final String raw);
+  SourceType createSource(final String raw);
 
   /**
    * Returns the priority of this detector.

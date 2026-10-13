@@ -207,7 +207,7 @@ public final class MCAV implements MCAVApi {
    * @throws NullPointerException if {@code moduleClass} is null
    */
   @Override
-  public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
+  public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
     return this.moduleLoader.getModule(moduleClass);
   }
