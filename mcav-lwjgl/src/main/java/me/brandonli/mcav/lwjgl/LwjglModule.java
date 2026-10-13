@@ -25,6 +25,8 @@ import me.brandonli.mcav.module.MCAVModule;
  */
 public final class LwjglModule implements MCAVModule {
 
+  private static final String MODULE_NAME = "lwjgl";
+
   /**
    * Constructs the module. The module loader creates it for you.
    */
@@ -50,6 +52,6 @@ public final class LwjglModule implements MCAVModule {
    */
   @Override
   public String getModuleName() {
-    return "lwjgl";
+    return MODULE_NAME;
   }
 }

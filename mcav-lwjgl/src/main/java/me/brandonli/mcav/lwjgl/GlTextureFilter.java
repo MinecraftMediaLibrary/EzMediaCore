@@ -68,6 +68,14 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   private static final int NO_TEXTURE = 0;
   private static final int CHANNELS = 3;
 
+  private static final int BASE_LEVEL = 0;
+  private static final int NO_BORDER = 0;
+  private static final int ORIGIN = 0;
+
+  private static final int PACKED_ALIGNMENT = 1;
+  private static final int UPLOAD_ROW_LENGTH = 0;
+  private static final int NO_SKIP = 0;
+
   private final Object lock;
   private final boolean ownsTexture;
 
@@ -257,7 +265,7 @@ public class GlTextureFilter implements FunctionalVideoFilter {
     try {
       GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.textureId);
       // Rows of 3-byte pixels are not usually 4-byte aligned; the frame is tightly packed.
-      setUnpackState(1, 0, 0, 0);
+      setUnpackState(PACKED_ALIGNMENT, UPLOAD_ROW_LENGTH, NO_SKIP, NO_SKIP);
       this.writePixels(pixels, width, height);
     } finally {
       setUnpackState(previousAlignment, previousRowLength, previousSkipRows, previousSkipPixels);
@@ -275,11 +283,11 @@ public class GlTextureFilter implements FunctionalVideoFilter {
   private void writePixels(final ByteBuffer pixels, final int width, final int height) {
     final boolean resized = width != this.textureWidth || height != this.textureHeight;
     if (resized) {
-      GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB8, width, height, 0, GL12.GL_BGR, GL11.GL_UNSIGNED_BYTE, pixels);
+      GL11.glTexImage2D(GL11.GL_TEXTURE_2D, BASE_LEVEL, GL11.GL_RGB8, width, height, NO_BORDER, GL12.GL_BGR, GL11.GL_UNSIGNED_BYTE, pixels);
       this.textureWidth = width;
       this.textureHeight = height;
     } else {
-      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, 0, 0, 0, width, height, GL12.GL_BGR, GL11.GL_UNSIGNED_BYTE, pixels);
+      GL11.glTexSubImage2D(GL11.GL_TEXTURE_2D, BASE_LEVEL, ORIGIN, ORIGIN, width, height, GL12.GL_BGR, GL11.GL_UNSIGNED_BYTE, pixels);
     }
   }
 

@@ -31,11 +31,13 @@ import org.mockito.Mockito;
  */
 final class LwjglModuleTest {
 
+  private static final String MODULE_NAME = "lwjgl";
+
   @Test
   void shouldBeNamedLwjgl() {
     final LwjglModule module = new LwjglModule();
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
@@ -56,7 +58,7 @@ final class LwjglModuleTest {
       assertEquals(List.of(), afterSecondStop);
     }
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
@@ -64,6 +66,6 @@ final class LwjglModuleTest {
     final Constructor<LwjglModule> constructor = LwjglModule.class.getConstructor();
     final LwjglModule module = constructor.newInstance();
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 }
