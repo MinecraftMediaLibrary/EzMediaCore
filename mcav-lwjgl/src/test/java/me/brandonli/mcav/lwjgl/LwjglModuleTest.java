@@ -27,39 +27,53 @@ import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
 /**
- * Tests {@link LWJGLModule}.
+ * Tests {@link LwjglModule}.
  */
-final class LWJGLModuleTest {
+final class LwjglModuleTest {
+
+  private static final String MODULE_NAME = "lwjgl";
 
   @Test
-  void isNamedLwjgl() {
-    final LWJGLModule module = new LWJGLModule();
+  void shouldBeNamedLwjgl() {
+    final LwjglModule module = new LwjglModule();
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
-  void startsAndStopsWithoutPreparingAnything() {
-    final MCAVModule module = new LWJGLModule();
-    try (final MockedConstruction<GLTextureFilter> filters = Mockito.mockConstruction(GLTextureFilter.class)) {
+  void shouldStartAndStopWithoutPreparingAnything() {
+    final MCAVModule module = new LwjglModule();
+    try (final MockedConstruction<GlTextureFilter> filters = Mockito.mockConstruction(GlTextureFilter.class)) {
       module.start();
-      assertEquals(List.of(), filters.constructed());
+
+      final List<GlTextureFilter> afterFirstStart = filters.constructed();
+      assertEquals(List.of(), afterFirstStart);
+
       module.stop();
-      assertEquals(List.of(), filters.constructed());
+
+      final List<GlTextureFilter> afterFirstStop = filters.constructed();
+      assertEquals(List.of(), afterFirstStop);
+
       module.start();
-      assertEquals(List.of(), filters.constructed());
+
+      final List<GlTextureFilter> afterSecondStart = filters.constructed();
+      assertEquals(List.of(), afterSecondStart);
+
       module.stop();
-      assertEquals(List.of(), filters.constructed());
+
+      final List<GlTextureFilter> afterSecondStop = filters.constructed();
+      assertEquals(List.of(), afterSecondStop);
     }
+
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
-  void canBeCreatedByTheModuleLoader() throws ReflectiveOperationException {
-    final Constructor<LWJGLModule> constructor = LWJGLModule.class.getConstructor();
-    final LWJGLModule module = constructor.newInstance();
+  void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
+    final Constructor<LwjglModule> constructor = LwjglModule.class.getConstructor();
+    final LwjglModule module = constructor.newInstance();
     final String name = module.getModuleName();
-    assertEquals("lwjgl", name);
+    assertEquals(MODULE_NAME, name);
   }
 }

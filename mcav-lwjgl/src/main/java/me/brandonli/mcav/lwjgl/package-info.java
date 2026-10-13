@@ -18,16 +18,18 @@
 /**
  * Bridges pipeline video frames to an OpenGL texture through LWJGL.
  *
- * <p>{@link me.brandonli.mcav.lwjgl.GLTextureFilter} copies packed BGR frames on a producer thread and uploads
- * the most recent one when the render thread calls {@link me.brandonli.mcav.lwjgl.GLTextureFilter#upload()}.
+ * <p>{@link me.brandonli.mcav.lwjgl.GlTextureFilter} copies packed BGR frames on a producer thread and uploads
+ * the most recent one when the render thread calls {@link me.brandonli.mcav.lwjgl.GlTextureFilter#upload()}.
  * Its class documentation shows the setup. The render thread must keep the context current and initialize
  * LWJGL capabilities before starting, uploading or deleting an owned texture.
  *
  * <p>The application owns the context and any texture passed to the filter's constructor. Stop producers before
- * releasing the filter on the render thread. {@link me.brandonli.mcav.lwjgl.LWJGLModule} does not create or
+ * releasing the filter on the render thread. {@link me.brandonli.mcav.lwjgl.LwjglModule} does not create or
  * release contexts or filters.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.lwjgl;

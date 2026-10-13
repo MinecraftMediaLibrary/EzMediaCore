@@ -20,36 +20,49 @@ package me.brandonli.mcav.lwjgl;
 import me.brandonli.mcav.module.MCAVModule;
 
 /**
- * Registers the OpenGL backend. Install it with {@code MCAV.api().install(LWJGLModule.class)}. The OpenGL context
+ * Registers the OpenGL backend. Install it with {@code MCAV.api().install(LwjglModule.class)}. The OpenGL context
  * itself is created by your application, for example with GLFW or by Minecraft.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
-public final class LWJGLModule implements MCAVModule {
+public final class LwjglModule implements MCAVModule {
+
+  private static final String MODULE_NAME = "lwjgl";
 
   /**
    * Constructs the module. The module loader creates it for you.
+   *
+   * @since 1.0.0
    */
-  public LWJGLModule() {}
+  public LwjglModule() {}
 
   /**
-   * Starts the module. Nothing is prepared here, because every {@link GLTextureFilter} creates its OpenGL resources
+   * Starts the module. Nothing is prepared here, because every {@link GlTextureFilter} creates its OpenGL resources
    * on the render thread of your application.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {}
 
   /**
-   * Stops the module. Nothing is released here; release every {@link GLTextureFilter} on the render thread instead.
+   * Stops the module. Nothing is released here; release every {@link GlTextureFilter} on the render thread instead.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {}
 
   /**
-   * Gets the name of the module.
+   * Returns the name of the module.
    *
    * @return {@code "lwjgl"}
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {
-    return "lwjgl";
+    return MODULE_NAME;
   }
 }
