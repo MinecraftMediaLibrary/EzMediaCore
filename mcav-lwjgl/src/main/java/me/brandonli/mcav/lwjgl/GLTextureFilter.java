@@ -315,7 +315,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Checks whether a frame is waiting to be uploaded.
+   * Returns whether a frame is waiting to be uploaded.
    *
    * @return true if a staged frame is waiting at the time of the call; this does not check the texture
    *         or context, and another upload or release can consume that frame
@@ -327,7 +327,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the name of the texture.
+   * Returns the name of the texture.
    *
    * @return the borrowed texture name, or the owned texture name; an owned texture has ID 0 before
    *         {@link #start()} and after {@link #release()}
@@ -337,7 +337,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the width of the texture, which is the width of the last uploaded frame.
+   * Returns the width of the texture, which is the width of the last uploaded frame.
    *
    * @return the width in pixels of the last texture storage allocation, or 0 before the first upload
    *         and after recreating an owned texture; release alone leaves this cached value unchanged
@@ -347,7 +347,7 @@ public class GLTextureFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the height of the texture, which is the height of the last uploaded frame.
+   * Returns the height of the texture, which is the height of the last uploaded frame.
    *
    * @return the height in pixels of the last texture storage allocation, or 0 before the first upload
    *         and after recreating an owned texture; release alone leaves this cached value unchanged
