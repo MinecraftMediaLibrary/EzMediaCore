@@ -708,6 +708,11 @@ public final class IOUtils {
       final String message = "Zip entry %s escapes the destination directory!".formatted(name);
       throw new ZipEntryIntegrityException(message);
     }
+    final boolean emptyName = hasEmptyName(destination, target);
+    if (emptyName) {
+      final String message = "Zip entry %s has an empty name in its path!".formatted(name);
+      throw new ZipEntryIntegrityException(message);
+    }
     rejectSymbolicLinks(destination, target, name);
     return target;
   }
@@ -726,6 +731,17 @@ public final class IOUtils {
       }
     }
     return true;
+  }
+
+  private static boolean hasEmptyName(final Path destination, final Path target) {
+    final Path relative = destination.relativize(target);
+    Path rebuilt = destination;
+    for (final Path component : relative) {
+      final String componentName = component.toString();
+      rebuilt = rebuilt.resolve(componentName);
+    }
+    // the zip file system keeps an empty name, as in the entry a/\x, which corrupts its directory tree
+    return !rebuilt.equals(target);
   }
 
   /**

@@ -395,6 +395,24 @@ final class IOUtilsTest {
     }
   }
 
+  /**
+   * Found by {@code UnzipFuzzTest}: the zip file system keeps the empty name of {@code destination/folder//escape.txt},
+   * the entry {@code folder/\escape.txt} resolved there, and the file it wrote made its directory tree list itself.
+   */
+  @Test
+  void shouldRefuseAnEntryWithAnEmptyNameInAZipFileSystem() throws IOException {
+    final Path archive = this.writeZip("folder/\\escape.txt", "evil");
+    final Path container = this.directory.resolve("container.zip");
+    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, Map.of("create", "true"))) {
+      final Path root = fileSystem.getPath("/");
+      final Path destination = root.resolve("safe");
+
+      final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IOUtils.unzip(archive, destination));
+      final String message = refused.getMessage();
+      assertEquals("Zip entry folder/\\escape.txt has an empty name in its path!", message);
+    }
+  }
+
   private static void createSymbolicLinkOrSkip(final Path link, final Path target) {
     try {
       Files.createSymbolicLink(link, target);
