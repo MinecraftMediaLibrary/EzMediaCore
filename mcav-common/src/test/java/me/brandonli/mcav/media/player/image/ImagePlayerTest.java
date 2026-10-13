@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.LongConsumer;
 import me.brandonli.mcav.media.Polling;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
@@ -266,6 +267,38 @@ final class ImagePlayerTest {
       final boolean rendered = finished.await(10, TimeUnit.SECONDS);
       assertTrue(rendered, "three controlled frames are rendered");
       assertEquals(List.of(0L, 60_000_000L, 70_000_000L), starts);
+    } finally {
+      player.release();
+    }
+  }
+
+  @Test
+  void shouldRenderTheNextFrameAtOnceWhenAFrameTakesItsWholePeriod() throws InterruptedException {
+    final AtomicLong clock = new AtomicLong();
+    final List<Long> parks = Collections.synchronizedList(new ArrayList<>());
+    final LongConsumer recordPark = parks::add;
+    final LongConsumer park = recordPark.andThen(clock::addAndGet);
+    final AtomicInteger frames = new AtomicInteger();
+    final CountDownLatch finished = new CountDownLatch(1);
+    final ImagePlayer player = new ImagePlayerImpl(clock::get, park);
+    attach(player, (_, _) -> {
+      if (frames.incrementAndGet() == 1) {
+        clock.addAndGet(10_000_000L);
+      } else {
+        player.release();
+        finished.countDown();
+      }
+      return true;
+    });
+    try {
+      final boolean started = player.start(solidFrames(4, 4, 100.0f));
+      assertTrue(started);
+      final boolean rendered = finished.await(10, TimeUnit.SECONDS);
+      assertTrue(rendered, "two controlled frames are rendered");
+      player.release();
+
+      final boolean parkedForNothing = parks.contains(0L);
+      assertFalse(parkedForNothing, "a frame that used its whole period is followed without parking, parks " + parks);
     } finally {
       player.release();
     }

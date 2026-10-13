@@ -572,6 +572,21 @@ final class VLCPlayerTest {
   }
 
   @Test
+  void shouldRunNoCleanupAfterAFatalErrorCreatingTheAudioPlayer() {
+    final OutOfMemoryError failure = new OutOfMemoryError("audio player out of memory!");
+    this.vlc.failSecondPlayerCreation(failure);
+    final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> this.player.start(this.video, this.audio));
+    final MockVlc.Player videoPlayer = this.vlc.player(0);
+    final EmbeddedMediaPlayer mediaPlayer = videoPlayer.getPlayer();
+    final MediaPlayerFactory factory = this.vlc.getFactory();
+    final boolean restarted = this.player.start(this.video);
+    assertSame(failure, thrown);
+    verify(mediaPlayer, never()).release();
+    verify(factory, never()).release();
+    assertFalse(restarted, "the start stays reserved, so nothing more runs on a broken virtual machine");
+  }
+
+  @Test
   void shouldHaveNoPreviousPlaybackToStopOnTheFirstNativeAcquisitionFailureAfterAReentrantRelease() throws Exception {
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final MediaPlayerApi api = factory.mediaPlayers();

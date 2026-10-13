@@ -152,6 +152,8 @@ final class PlaybackSessionStopStressTest {
       final int remainingSteps = WAITING_DECODER_FRAMES - 6;
       Polling.awaitCondition("the decoder waits for room", TIMEOUT, () -> grabber.getRemainingSteps() == remainingSteps);
       LockSupport.parkNanos(WAITING_DECODER_SETTLE_NANOS);
+      final long waitingPictures = session.getQueuedPictureCount();
+      assertTrue(waitingPictures > 0, "the decoder waits because the queue is full");
 
       session.stop();
       final long queuedPictures = session.getQueuedPictureCount();

@@ -17,16 +17,24 @@
  */
 package me.brandonli.mcav.media.player.multimedia.cv;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.opencv.global.opencv_core;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
 /**
  * Tests {@link OpenCvVideoBackends} against the build information of the platforms the library supports, so both
@@ -81,6 +89,23 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldSayWhereFilesAreReadWhenTheBuildHasNoFileBackend() {
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      OpenCvVideoBackends.decideFromBuildInformation(LINUX);
+    } finally {
+      System.setErr(standardError);
+    }
+    final String log = captured.toString(StandardCharsets.UTF_8);
+
+    final boolean explained = log.contains("files are read with the FFmpeg reader of JavaCV instead");
+    assertTrue(explained, log);
+  }
+
+  @Test
   void shouldFindTheFileBackendsOfTheOtherBuilds() {
     final boolean canDecodeFilesOnWindows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
     final boolean macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
@@ -125,6 +150,16 @@ final class OpenCvVideoBackendsTest {
     final boolean secondAnswer = OpenCvVideoBackends.canDecodeFiles();
     final boolean sameAnswer = firstAnswer == secondAnswer;
     assertTrue(sameAnswer, "the answer cannot change while the library runs");
+  }
+
+  @Test
+  void shouldDecideFromTheBuildOfThisMachine() {
+    final BytePointer information = opencv_core.getBuildInformation();
+    final String text = information.getString();
+    final boolean expected = OpenCvVideoBackends.listsEnabledFileBackend(text);
+
+    final boolean canDecodeFiles = OpenCvVideoBackends.canDecodeFiles();
+    assertEquals(expected, canDecodeFiles);
   }
 
   @Test

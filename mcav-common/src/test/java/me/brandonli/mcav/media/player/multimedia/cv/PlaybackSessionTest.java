@@ -678,7 +678,7 @@ final class PlaybackSessionTest {
     final long position = session.getPositionMicros();
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame that arrives in real time is shown");
-    final boolean followedArrival = position >= 120_000L;
+    final boolean followedArrival = position >= 160_000L;
     assertTrue(followedArrival, "the position follows the time the frames arrived at, got " + position);
   }
 
@@ -1227,6 +1227,38 @@ final class PlaybackSessionTest {
     final boolean copyKept = session.hasUnscaledCopy();
     assertEquals(List.of("2x1"), sizes);
     assertFalse(copyKept, "the decoder releases its copy of the unscaled picture once it is done");
+  }
+
+  @Test
+  void shouldKeepTheCopyOfAnUnscaledPictureWhileDecoding() throws Exception {
+    final AtomicInteger frames = new AtomicInteger();
+    this.onVideo((_, _) -> frames.incrementAndGet() > 0);
+    final Dimension size = Dimension.of(2, 1);
+    this.dimensionCallback.attach(size);
+    final Frame picture = heapPicture(0L);
+    final ScriptedFrameGrabber.Delay stall = new ScriptedFrameGrabber.Delay(1_000L);
+    final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture, stall);
+    final PlaybackSession session = this.session(grabber, 0L, false);
+    session.start();
+    awaitCondition("the first picture was shown", () -> frames.get() == 1);
+
+    final boolean copyKept = session.hasUnscaledCopy();
+    assertTrue(copyKept, "the decoder keeps its copy of the unscaled picture for the next one");
+    awaitEnd(session);
+  }
+
+  @Test
+  void shouldGiveFiltersEmptyMetadataWhenTheDecoderReportsNoPictureSize() throws Exception {
+    final AtomicReference<OriginalVideoMetadata> seen = new AtomicReference<>();
+    this.onVideo((_, metadata) -> seen.compareAndSet(null, metadata));
+    final Frame picture = ScriptedFrameGrabber.video(0L);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(0, 0, false, List.of(picture));
+    final PlaybackSession session = this.session(grabber, 0L, false);
+    session.start();
+    awaitEnd(session);
+
+    final OriginalVideoMetadata metadata = seen.get();
+    assertSame(OriginalVideoMetadata.EMPTY, metadata);
   }
 
   /**

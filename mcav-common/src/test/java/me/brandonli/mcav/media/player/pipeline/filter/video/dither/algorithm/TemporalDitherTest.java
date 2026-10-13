@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.concurrent.ForkJoinPool;
+import java.util.zip.CRC32;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalDitherAlgorithm;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
@@ -42,6 +43,9 @@ final class TemporalDitherTest {
   private static final int YELLOW = 3;
   private static final int MAGENTA = 4;
   private static final int NO_DIFFUSION = 1_000;
+
+  private static final long FOUR_STRIP_GRADIENT_CHECKSUM = 1_452_660_893L;
+
   private static final DitherPalette NEAR_BLACK = DitherPalette.colors(0x000000, 0x141414, 0xFFFFFF);
   private static final int DARKEST = 0;
   private static final int DIM = 1;
@@ -133,6 +137,20 @@ final class TemporalDitherTest {
       assertEquals(serialRatio, parallelRatio, 0.02);
     } finally {
       pool.shutdownNow();
+    }
+  }
+
+  @Test
+  void shouldSplitTheFrameIntoOneStripPerThread() {
+    final int[] pixels = DitherTestImages.gradient(320, 180);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE);
+    try (final ForkJoinPool pool = new ForkJoinPool(4); final ImageBuffer image = ImageBuffer.buffer(pixels, 320, 180)) {
+      final byte[] indices = dither.ditherIntoBytes(image, pool);
+      final CRC32 checksum = new CRC32();
+      checksum.update(indices);
+
+      final long value = checksum.getValue();
+      assertEquals(FOUR_STRIP_GRADIENT_CHECKSUM, value, "four strips of 45 rows, each warmed up on the rows above it");
     }
   }
 

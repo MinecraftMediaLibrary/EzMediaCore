@@ -87,7 +87,8 @@ final class VideoFrameCopierTest {
 
   /**
    * Creates frames whose pixels cannot be read as 8-bit BGR rows: without an image, without planes, with 16-bit
-   * pixels, without width or height, with rows shorter than a row of pixels, and with a plane too small for its rows.
+   * pixels, without width or height, with rows shorter than a row of pixels, and with planes too small for their
+   * rows, by far or by one byte of the last row.
    */
   private static List<Frame> invalidFrames() {
     final Frame withoutImage = new Frame();
@@ -102,7 +103,10 @@ final class VideoFrameCopierTest {
     shortRows.imageStride = 3;
     final Frame truncated = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
     truncated.image[0] = ByteBuffer.allocateDirect(10);
-    return List.of(withoutImage, withoutPlanes, sixteenBit, withoutWidth, withoutHeight, shortRows, truncated);
+    final Frame lastRowCut = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final int lastRowEnd = lastRowCut.imageStride + 4 * 3;
+    lastRowCut.image[0] = ByteBuffer.allocateDirect(lastRowEnd - 1);
+    return List.of(withoutImage, withoutPlanes, sixteenBit, withoutWidth, withoutHeight, shortRows, truncated, lastRowCut);
   }
 
   private void attachSize(final int width, final int height) {

@@ -440,6 +440,41 @@ class DelayedAudioOutputTest {
   }
 
   @Test
+  void shouldStartTheSilenceOnlyOnceTheSoundHandedOverHasPlayed() {
+    final AtomicLong now = new AtomicLong();
+    final AtomicInteger reads = new AtomicInteger();
+    final DelayedAudioOutput quiet = this.quietOutput(() -> {
+      reads.incrementAndGet();
+      return now.get();
+    }, 60);
+    quiet.accept(new byte[1920], 1920);
+    this.at(now, DELAY_MILLIS, 1);
+    quiet.quiet();
+    final int seen = reads.get();
+    waitUntil(() -> reads.get() >= seen + 2);
+
+    final int processedCount = this.processed.size();
+    assertEquals(1, processedCount, "the 10 ms of sound still play, so no silence follows yet");
+  }
+
+  @Test
+  void shouldEndTheSilenceForGoodOnceTheSoundAfterItHasPlayed() {
+    final AtomicLong now = new AtomicLong();
+    final DelayedAudioOutput quiet = this.quietOutput(now, 2000);
+    quiet.quiet();
+    quiet.accept(new byte[] { 3, 0, 3, 0 }, 4);
+    this.at(now, 0, 1);
+    this.at(now, DELAY_MILLIS, 2);
+    final byte soundSample = this.processed.get(1)[0];
+    assertEquals(3, soundSample);
+
+    now.set(TimeUnit.MILLISECONDS.toNanos(400));
+    waitUntil(() -> quiet.getThread().getState() == Thread.State.WAITING);
+    final int silentBytes = this.silentBytes();
+    assertEquals(20 * 192, silentBytes, "only the first chunk of silence, before the sound, which ends the quiet");
+  }
+
+  @Test
   void shouldEndTheSilenceWhereTheNextSoundIsDue() {
     final AtomicLong now = new AtomicLong();
     final DelayedAudioOutput quiet = this.quietOutput(now, 2000);

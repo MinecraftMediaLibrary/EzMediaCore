@@ -247,6 +247,28 @@ final class RandomAndNearestDitherTest {
   }
 
   @Test
+  void shouldMatchSerialWhenNearestDitheringOnASingleThread() {
+    final int[] pixels = DitherTestImages.gradient(8, 8);
+    final NearestDitherImpl nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
+    try (final ForkJoinPool pool = new ForkJoinPool(1); final ImageBuffer image = ImageBuffer.buffer(pixels, 8, 8)) {
+      final byte[] serial = nearest.ditherIntoBytes(image);
+      final byte[] parallel = nearest.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
+  void shouldMatchSerialWhenNearestDitheringALargeImageOnAWidePool() {
+    final int[] pixels = DitherTestImages.gradient(1024, 1024);
+    final NearestDitherImpl nearest = new NearestDitherImpl(DitherTestImages.BLACK_WHITE);
+    try (final ForkJoinPool pool = new ForkJoinPool(32); final ImageBuffer image = ImageBuffer.buffer(pixels, 1024, 1024)) {
+      final byte[] serial = nearest.ditherIntoBytes(image);
+      final byte[] parallel = nearest.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
   void shouldMatchSerialWhenNearestDitheringInParallel() {
     final int[] large = DitherTestImages.gradient(128, 64);
     final int[] small = DitherTestImages.gradient(8, 8);

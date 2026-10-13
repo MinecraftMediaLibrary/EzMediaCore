@@ -118,6 +118,17 @@ final class OrderedDitherTest {
   }
 
   @Test
+  void shouldMatchSerialDitheringWhenDitheringOnASingleThread() {
+    final int[] pixels = DitherTestImages.gradient(64, 80);
+    final OrderedDither dither = blackWhite4x4();
+    try (final ForkJoinPool pool = new ForkJoinPool(1); final ImageBuffer image = ImageBuffer.buffer(pixels, 64, 80)) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
   void shouldMatchTheIndicesWhenDitheringInPlace() {
     final int[] pixels = DitherTestImages.gradient(32, 8);
     final OrderedDither dither = blackWhite4x4();
