@@ -40,6 +40,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -49,6 +50,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -372,6 +374,25 @@ final class IOUtilsTest {
     final Path destination = this.directory.resolve("safe");
 
     assertThrows(ZipEntryIntegrityException.class, () -> IOUtils.unzip(archive, destination));
+  }
+
+  /**
+   * Found by {@code UnzipFuzzTest}: the zip file system normalizes {@code destination/..//escape.txt}, the entry
+   * {@code ../\escape.txt} resolved there, to {@code destination/../escape.txt}, which still starts with the destination.
+   */
+  @Test
+  void shouldRefuseAnEntryThatClimbsOutOfADestinationInAZipFileSystem() throws IOException {
+    final Path archive = this.writeZip("../\\escape.txt", "evil");
+    final Path container = this.directory.resolve("container.zip");
+    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, Map.of("create", "true"))) {
+      final Path root = fileSystem.getPath("/");
+      final Path destination = root.resolve("safe");
+
+      assertThrows(ZipEntryIntegrityException.class, () -> IOUtils.unzip(archive, destination));
+      final Path escaped = root.resolve("escape.txt");
+      final boolean escapedExists = Files.exists(escaped);
+      assertFalse(escapedExists);
+    }
   }
 
   private static void createSymbolicLinkOrSkip(final Path link, final Path target) {

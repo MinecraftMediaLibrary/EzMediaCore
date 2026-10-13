@@ -95,6 +95,8 @@ public final class IOUtils {
 
   private static final String TRUNCATED_ARCHIVE_MESSAGE = "Zip archive %s is truncated!";
 
+  private static final String PARENT_DIRECTORY = "..";
+
   private IOUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -701,13 +703,29 @@ public final class IOUtils {
       throw refused;
     }
     final Path target = resolved.normalize();
-    final boolean insideDestination = target.startsWith(destination);
+    final boolean insideDestination = isInside(destination, target);
     if (!insideDestination) {
       final String message = "Zip entry %s escapes the destination directory!".formatted(name);
       throw new ZipEntryIntegrityException(message);
     }
     rejectSymbolicLinks(destination, target, name);
     return target;
+  }
+
+  private static boolean isInside(final Path destination, final Path target) {
+    if (!target.startsWith(destination)) {
+      return false;
+    }
+
+    // the zip file system keeps a .. that follows an empty name, as in the entry ../\x, when normalizing
+    final Path relative = destination.relativize(target);
+    for (final Path component : relative) {
+      final String componentName = component.toString();
+      if (componentName.equals(PARENT_DIRECTORY)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
