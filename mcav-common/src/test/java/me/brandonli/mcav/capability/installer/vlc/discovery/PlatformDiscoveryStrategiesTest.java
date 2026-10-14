@@ -31,8 +31,10 @@ import static org.mockito.Mockito.when;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.NativeLibrary;
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,7 +46,6 @@ import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDis
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -90,6 +91,12 @@ final class PlatformDiscoveryStrategiesTest {
   private static final String EMPTY_DIRECTORY_NAME = "empty";
   private static final String CHILD_DIRECTORY_NAME = "child";
   private static final String RELATIVE_DIRECTORY_NAME = "relative";
+
+  private static final String LOADABLE_LIBRARY_DIRECTORY = "/com/sun/jna/";
+  private static final String LOADABLE_LIBRARY_NAME = "jnidispatch";
+  private static final String RESOURCE_SEPARATOR = "/";
+  private static final String DYNAMIC_LIBRARY_SUFFIX = ".dylib";
+  private static final String JNI_LIBRARY_SUFFIX = ".jnilib";
 
   private static final int STRATEGY_COUNT = 3;
 
@@ -413,17 +420,32 @@ final class PlatformDiscoveryStrategiesTest {
   }
 
   @Test
-  void shouldPreloadTheCoreLibraryFromTheGivenDirectory() {
-    final Path systemDirectory = findSystemInstallation();
-    Assumptions.assumeTrue(systemDirectory != null, "VLC is not installed on this machine!");
-    final String rawDirectory = systemDirectory.toString();
-    OsxNativeDiscoveryStrategy.preloadCoreLibrary(rawDirectory);
+  void shouldPreloadTheCoreLibraryFromTheGivenDirectory() throws IOException {
     final String coreLibraryName = RuntimeUtil.getLibVlcCoreLibraryName();
+    final String coreFileName = System.mapLibraryName(coreLibraryName);
+    final Path directory = this.temporaryDirectory.resolve(LIBRARY_DIRECTORY_NAME);
+    Files.createDirectories(directory);
+    final Path coreFile = directory.resolve(coreFileName);
+    this.copyLoadableLibrary(coreFile);
+    final String rawDirectory = directory.toString();
+    OsxNativeDiscoveryStrategy.preloadCoreLibrary(rawDirectory);
+
     final NativeLibrary coreLibrary = NativeLibrary.getInstance(coreLibraryName);
-    final File coreFile = coreLibrary.getFile();
-    final File coreDirectory = coreFile.getParentFile();
-    final Path loadedFrom = coreDirectory.toPath();
-    assertEquals(systemDirectory, loadedFrom);
+    final File loadedFile = coreLibrary.getFile();
+    final Path loadedPath = loadedFile.toPath();
+    final boolean loadedFromTheDirectory = Files.isSameFile(coreFile, loadedPath);
+    coreLibrary.close();
+    assertTrue(loadedFromTheDirectory);
+  }
+
+  // JNA's own native library stands in for the core library, so no VLC has to be installed
+  private void copyLoadableLibrary(final Path target) throws IOException {
+    final String mappedName = System.mapLibraryName(LOADABLE_LIBRARY_NAME);
+    final String fileName = mappedName.replace(DYNAMIC_LIBRARY_SUFFIX, JNI_LIBRARY_SUFFIX);
+    final String resource = LOADABLE_LIBRARY_DIRECTORY + Platform.RESOURCE_PREFIX + RESOURCE_SEPARATOR + fileName;
+    try (final InputStream library = Native.class.getResourceAsStream(resource)) {
+      Files.copy(library, target);
+    }
   }
 
   @Test
@@ -438,19 +460,6 @@ final class PlatformDiscoveryStrategiesTest {
     } else {
       libc.unsetenv(TEST_VARIABLE);
     }
-  }
-
-  private static Path findSystemInstallation() {
-    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
-    for (final NativeDiscoveryStrategy strategy : strategies) {
-      final boolean supported = strategy.supported();
-      if (supported) {
-        final String directory = strategy.discover();
-        return directory == null ? null : Path.of(directory);
-      }
-    }
-
-    return null;
   }
 
   private static Path createFiles(final Path parent, final String directoryName, final String... names) throws IOException {
