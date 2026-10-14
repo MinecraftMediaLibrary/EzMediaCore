@@ -34,6 +34,13 @@ optional native features can also need system libraries, a display, or an audio 
 | Linux ARM64    | Used from the system, or installed from Debian packages           | Downloaded    | Bundled           |
 | FreeBSD (any)  | Not available                                                     | Not available | Not available     |
 
+MCAV builds, tests and runs as an ordinary user on every platform in the table: it needs no administrator rights. It
+never runs `sudo`, `pkexec` or `doas`, a system package manager such as `apt` or `brew`, or an installer that asks for
+elevation, and it writes only to the cache folder of the current user, the JavaCPP cache and the temporary directory.
+Every tool it fetches is unpacked into the cache and loaded from there: the macOS disk image is attached with `hdiutil`,
+which needs no administrator rights, and copied into the cache, never into `/Applications`. The package manager
+commands below are an option you can run yourself, never a step MCAV takes.
+
 FFmpeg and OpenCV come from the JavaCPP builds MCAV depends on, which have none for Windows on ARM64 or for FreeBSD on
 any processor. MCAV needs them to install, so on those platforms `install()` fails with an `MCAVLoadingException` caused
 by a `NativeLoadingException` that names the platform, and MCAV cannot be used there; the VLC and yt-dlp columns only
