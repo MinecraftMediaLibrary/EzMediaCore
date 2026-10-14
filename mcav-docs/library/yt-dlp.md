@@ -66,7 +66,10 @@ Sites usually offer many formats, so a `StrategySelector` picks one for video an
 
 ```java
   public static boolean playBestQuality(final UrlParseDump dump, final VideoPlayerMultiplexer player) {
-    final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
+    final StrategySelector selector = StrategySelector.of(
+      FormatStrategy.BEST_QUALITY_AUDIO,
+      FormatStrategy.BEST_QUALITY_VIDEO
+    );
     final Format videoFormat = selector.getVideoSource(dump);
     final Format audioFormat = selector.getAudioSource(dump);
     final UriSource videoSource = videoFormat.toUriSource();

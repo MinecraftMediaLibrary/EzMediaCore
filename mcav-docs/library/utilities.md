@@ -151,7 +151,20 @@ into 48 kHz stereo floating point samples:
 
 ```java
   public static byte[] convertSurroundToStereo(final ByteBuffer surroundSamples) {
-    try (final AudioResampler resampler = AudioResampler.create(44_100, 6, SampleFormat.SIGNED_16_BIT, 48_000, 2, SampleFormat.FLOAT_32_BIT)) {
+    final int inputSampleRate = 44_100;
+    final int inputChannels = 6;
+    final int outputSampleRate = 48_000;
+    final int outputChannels = 2;
+    try (
+      final AudioResampler resampler = AudioResampler.create(
+        inputSampleRate,
+        inputChannels,
+        SampleFormat.SIGNED_16_BIT,
+        outputSampleRate,
+        outputChannels,
+        SampleFormat.FLOAT_32_BIT
+      )
+    ) {
       final byte[] converted = resampler.resample(surroundSamples);
       final byte[] tail = resampler.flush();
       final byte[] stereo = Arrays.copyOf(converted, converted.length + tail.length);

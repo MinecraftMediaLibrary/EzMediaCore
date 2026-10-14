@@ -8,8 +8,9 @@ reads `1.0.0-SNAPSHOT`.
 
 Use modules from the same build. In particular, building the sandbox plugin from this source tree does not update the
 public snapshot repository. Its loader checks that the downloaded modules contain the classes the plugin needs and
-refuses modules that are too old. The [end-to-end build](../manual-test.md#2-start-the-sandbox-server-on-the-devbox) uses a local repository to test the plugin
-with its own modules. A distributable plugin needs matching modules available from its dependency repositories.
+refuses modules that are too old. The [end-to-end build](../manual-test.md#2-start-the-sandbox-server-on-the-devbox)
+uses a local repository to test the plugin with its own modules. A distributable plugin needs matching modules available
+from its dependency repositories.
 
 The release check compared all ten published modules with japicmp 0.26.2, including public and protected members and
 synthetic bridges. No missing classes were ignored in these module comparisons. Counts below are incompatible
@@ -232,10 +233,9 @@ adding raw options.
 ## Maven installer failures
 
 The installer reports failed resolution, verification and copying through `InstallationException`, an unchecked
-exception. Replace catches of the removed `InstallationError` and `JarEntryIntegrityException` with that exception
-when handling those failures. Class-loader injection failures use `JarInjectorException`. The [installer chapter](installer.md)
-describes the current factory, loading callbacks and failure handling.
-
+exception. Replace catches of the removed `InstallationError` and `JarEntryIntegrityException` with that exception when
+handling those failures. Class-loader injection failures use `JarInjectorException`. The [installer
+chapter](installer.md) describes the current factory, loading callbacks and failure handling.
 `MCAVInstaller` is now final. Obtain it through `MCAVInstaller.injector(...)`; use a `JarLoader` callback to control
 where downloaded jars are loaded instead of subclassing the installer.
 
