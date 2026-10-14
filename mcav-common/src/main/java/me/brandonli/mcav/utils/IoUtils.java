@@ -68,6 +68,8 @@ import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * File, hashing, network, and archive helpers used throughout the library.
@@ -89,6 +91,8 @@ public final class IoUtils {
    * @since 1.0.0
    */
   public static final long MAXIMUM_IMAGE_BYTES = 64L * 1024L * 1024L;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(IoUtils.class);
 
   private static final long MAXIMUM_ZIP_ENTRY_SIZE = 512L * 1024L * 1024L;
   private static final long MAXIMUM_ZIP_TOTAL_SIZE = 2L * 1024L * 1024L * 1024L;
@@ -121,6 +125,9 @@ public final class IoUtils {
   private static final String USER_HOME_PROPERTY = "user.home";
   private static final String CACHE_ROOT = ".mcav";
   private static final String CACHE_DIRECTORY = "cache";
+
+  private static final String TEMPORARY_DIRECTORY_PROPERTY = "java.io.tmpdir";
+  private static final String TEMPORARY_CACHE_ROOT = "mcav";
 
   private static final String TRUNCATED_ARCHIVE_MESSAGE = "Zip archive %s is truncated!";
 
@@ -511,16 +518,40 @@ public final class IoUtils {
    * Returns the cache folder of the library, which is {@code ~/.mcav/cache}. The folder is created if it does not
    * exist.
    *
+   * <p>When that folder cannot be created or written, for instance because the home directory is read-only, the cache
+   * moves to {@code mcav/cache} in the temporary directory of the JVM ({@code java.io.tmpdir}), and a warning is logged.
+   *
    * @return the absolute path of the cache folder
-   * @throws FileOperationException if the folder cannot be created
+   * @throws FileOperationException if neither folder can be created
    * @since 1.0.0
    */
   public static Path getCachedFolder() {
     final @Nullable String homeOrNull = System.getProperty(USER_HOME_PROPERTY);
     final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
-    final Path cacheDirectory = Path.of(home, CACHE_ROOT, CACHE_DIRECTORY);
-    createDirectoryIfNotExists(cacheDirectory);
-    return cacheDirectory.toAbsolutePath();
+    final Path homeCache = Path.of(home, CACHE_ROOT, CACHE_DIRECTORY);
+    final boolean writable = createWritableDirectory(homeCache);
+    if (writable) {
+      return homeCache.toAbsolutePath();
+    }
+
+    final @Nullable String temporaryOrNull = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
+    final String temporary = Objects.requireNonNull(temporaryOrNull, "The JVM always sets the temporary directory!");
+    final Path temporaryCache = Path.of(temporary, TEMPORARY_CACHE_ROOT, CACHE_DIRECTORY);
+    LOGGER.warn("Cache folder {} cannot be written, using {} instead.", homeCache, temporaryCache);
+    createDirectoryIfNotExists(temporaryCache);
+    return temporaryCache.toAbsolutePath();
+  }
+
+  // Creates a directory if it is missing and returns whether it can be written. A directory that cannot be created
+  // cannot be written either, so that failure is the answer and not reported.
+  private static boolean createWritableDirectory(final Path directory) {
+    try {
+      createDirectoryIfNotExists(directory);
+    } catch (final FileOperationException exception) {
+      return false;
+    }
+
+    return Files.isWritable(directory);
   }
 
   /**

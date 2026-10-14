@@ -67,6 +67,7 @@ import me.brandonli.mcav.utils.http.HttpStatusException;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -93,6 +94,14 @@ final class IoUtilsTest {
   private static final String OVERWRITTEN_CONTENT = "overwritten";
   private static final String ONE_CONTENT = "1234";
   private static final String TWO_CONTENT = "5678";
+
+  private static final String HOME_NAME = "home";
+  private static final String TEMPORARY_NAME = "temporary";
+  private static final String HOME_CACHE_PATH = ".mcav/cache";
+  private static final String TEMPORARY_CACHE_PATH = "mcav/cache";
+  private static final String TEMPORARY_DIRECTORY_PROPERTY = "java.io.tmpdir";
+  private static final Set<PosixFilePermission> READ_ONLY_PERMISSIONS = PosixFilePermissions.fromString("r-x------");
+  private static final Set<PosixFilePermission> OWNER_DIRECTORY_PERMISSIONS = PosixFilePermissions.fromString("rwx------");
 
   private static final String SAMPLE_DOWNLOADS_RESOURCE = "installers/sample.json";
   private static final String EMPTY_DOWNLOADS_RESOURCE = "installers/empty.json";
@@ -377,6 +386,52 @@ final class IoUtilsTest {
       assertTrue(cacheInHome);
       assertThrows(HttpStatusException.class, () -> IoUtils.downloadImage(missing));
       assertThrows(NullPointerException.class, () -> IoUtils.downloadImage(null));
+    }
+  }
+
+  @Test
+  void shouldMoveTheCacheToTheTemporaryDirectoryWhenTheHomeCannotHoldIt() throws IOException {
+    final Path home = this.directory.resolve(HOME_NAME);
+    Files.writeString(home, FILE_CONTENT);
+    final Path temporary = this.directory.resolve(TEMPORARY_NAME);
+
+    final Path cache = this.getCachedFolderIn(home, temporary);
+    final Path expected = temporary.resolve(TEMPORARY_CACHE_PATH);
+    final boolean created = Files.isDirectory(cache);
+    assertEquals(expected, cache, "a regular file where the home directory should be cannot hold the cache");
+    assertTrue(created);
+  }
+
+  @Test
+  void shouldMoveTheCacheToTheTemporaryDirectoryWhenTheHomeCacheIsReadOnly() throws IOException {
+    final Path home = this.directory.resolve(HOME_NAME);
+    final Path homeCache = Files.createDirectories(home.resolve(HOME_CACHE_PATH));
+    final Path temporary = this.directory.resolve(TEMPORARY_NAME);
+    final Os operatingSystem = OsUtils.getOs();
+    final boolean posix = operatingSystem != Os.WINDOWS;
+    Assumptions.assumeTrue(posix, "Directory permissions need a POSIX file system!");
+
+    Files.setPosixFilePermissions(homeCache, READ_ONLY_PERMISSIONS);
+    try {
+      final boolean writable = Files.isWritable(homeCache);
+      Assumptions.assumeFalse(writable, "The user can write every directory!");
+
+      final Path cache = this.getCachedFolderIn(home, temporary);
+      final Path expected = temporary.resolve(TEMPORARY_CACHE_PATH);
+      assertEquals(expected, cache);
+    } finally {
+      Files.setPosixFilePermissions(homeCache, OWNER_DIRECTORY_PERMISSIONS);
+    }
+  }
+
+  private Path getCachedFolderIn(final Path home, final Path temporary) {
+    final String previousTemporary = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
+    final String rawTemporary = temporary.toString();
+    System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, rawTemporary);
+    try (final TemporaryUserHome _ = TemporaryUserHome.redirectTo(home)) {
+      return IoUtils.getCachedFolder();
+    } finally {
+      System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, previousTemporary);
     }
   }
 

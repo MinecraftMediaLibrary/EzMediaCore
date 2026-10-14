@@ -32,6 +32,9 @@ first download can take several minutes on a slow connection, and nothing waits 
 on once its program is ready. The log shows `VLC ready in <n> ms.` when VLC is ready, or a warning that says why VLC
 is not available.
 
+When the home directory cannot hold `~/.mcav/cache`, for instance because it is read-only, MCAV uses `mcav/cache` in
+the temporary directory of the JVM (`java.io.tmpdir`) instead and logs a warning that names both folders.
+
 Until a program is ready:
 
 - `hasCapability` reports its capability as unavailable;
