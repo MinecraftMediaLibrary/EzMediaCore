@@ -11,17 +11,17 @@
 
 <img align="right" src="developer.png" alt="My Image">
 
-⚙️ PulseBeat02
+PulseBeat02
 
-- **Docs**: https://mcav.readthedocs.io/en/latest/intro.html
-- **GitHub**: https://github.com/PulseBeat02/mcav
-- **CI**: https://ci.brandonli.me/project/mcav
-- **Support**: https://discord.gg/cUMB6kCsh6
-- **Donate**: https://ko-fi.com/pulsebeat_02
+- Docs: https://mcav.readthedocs.io/en/latest/intro.html
+- GitHub: https://github.com/PulseBeat02/mcav
+- CI: https://ci.brandonli.me/project/mcav
+- Support: https://discord.gg/cUMB6kCsh6
+- Donate: https://ko-fi.com/pulsebeat_02
 
 ---
 
-MCAV (pronounced *EM CAV*) is an incredibly powerful multimedia library and plugin for Java, serving as the successor of
+MCAV (pronounced EM CAV) is an incredibly powerful multimedia library and plugin for Java, serving as the successor of
 EzMediaCore2. MCAV utilizes several low-level libraries like [FFmpeg](https://ffmpeg.org/), [OpenCV](https://opencv.org/), and LibVLC
 (from [VLC media player](https://www.videolan.org/vlc/)) to provide a seamless playback experience for developers and
 users. MCAV also is capable of rendering web pages with an embedded Chromium through [JCEF](https://github.com/chromiumembedded/java-cef), or
