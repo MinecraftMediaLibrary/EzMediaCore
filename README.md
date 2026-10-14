@@ -1,7 +1,9 @@
-[![CodeFactor](https://www.codefactor.io/repository/github/pulsebeat02/mcav/badge)](https://www.codefactor.io/repository/github/pulsebeat02/mcav)
+[![CodeFactor](https://www.codefactor.io/repository/github/pulsebeat02/mcav/badge
+)](https://www.codefactor.io/repository/github/pulsebeat02/mcav)
 [![TeamCity Full Build Status](https://img.shields.io/teamcity/build/s/mcav_Build?server=https%3A%2F%2Fci.brandonli.me
 )](https://ci.brandonli.me/project/mcav)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PulseBeat02_mcav&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=PulseBeat02_mcav)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=PulseBeat02_mcav&metric=alert_status
+)](https://sonarcloud.io/summary/new_code?id=PulseBeat02_mcav)
 
 ![Banner](https://www.bisecthosting.com/images/CF/MCAV/MP_MCAV_Header.webp)
 ![Sponsor](https://www.bisecthosting.com/images/CF/MCAV/MP_MCAV_Promo.webp)
@@ -22,20 +24,21 @@ PulseBeat02
 ---
 
 MCAV (pronounced EM CAV) is an incredibly powerful multimedia library and plugin for Java, serving as the successor of
-EzMediaCore2. MCAV utilizes several low-level libraries like [FFmpeg](https://ffmpeg.org/), [OpenCV](https://opencv.org/), and LibVLC
-(from [VLC media player](https://www.videolan.org/vlc/)) to provide a seamless playback experience for developers and
-users. MCAV also is capable of rendering web pages with an embedded Chromium through [JCEF](https://github.com/chromiumembedded/java-cef), or
-even virtual machines using [QEMU](https://www.qemu.org/), each with their sound. All of this is supported within the library and plugin itself.
-For Minecraft, MCAV comes with its own video codec, [MCV2](#mcv2), which shows sharp, full-colour video on a wall of maps
-to players with an unmodified client.
+EzMediaCore2. MCAV utilizes several low-level libraries like [FFmpeg](https://ffmpeg.org/),
+[OpenCV](https://opencv.org/), and LibVLC (from [VLC media player](https://www.videolan.org/vlc/)) to provide a seamless
+playback experience for developers and users. MCAV also is capable of rendering web pages with an embedded Chromium
+through [JCEF](https://github.com/chromiumembedded/java-cef), or even virtual machines using
+[QEMU](https://www.qemu.org/), each with their sound. All of this is supported within the library and plugin itself. For
+Minecraft, MCAV comes with its own video codec, [MCV2](#mcv2), which shows sharp, full-colour video on a wall of maps to
+players with an unmodified client.
 
 The plugin is an example demonstrating the power of the library. For media playback, it supports several thousands of
-websites that can be listed [here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), some of which include
-YouTube, Twitch, SoundCloud, CNN, you name it. You're also able to play local files, stream from IP cameras and capture
-cards, screen-share using an OBS virtual camera, show web pages, virtual machines and VNC desktops, and much more. All of
-this combined with audio playback, which you can use a website to stream audio to, [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat),
-or a Discord bot to play audio in voice channels. Read the [documentation](https://mcav.readthedocs.io/en/latest/intro.html)
-for more information.
+websites that can be listed [here](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md), some of which
+include YouTube, Twitch, SoundCloud, CNN, you name it. You're also able to play local files, stream from IP cameras and
+capture cards, screen-share using an OBS virtual camera, show web pages, virtual machines and VNC desktops, and much
+more. All of this combined with audio playback, which you can use a website to stream audio to,
+[Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat), or a Discord bot to play audio in voice channels.
+Read the [documentation](https://mcav.readthedocs.io/en/latest/intro.html) for more information.
 
 [![Watch the video](https://img.youtube.com/vi/ifs0GiAtqIs/maxresdefault.jpg)](https://youtu.be/ifs0GiAtqIs)
 
@@ -205,11 +208,12 @@ incorporated into the project. The following table lists the libraries used in M
 | [jcefmaven/jcefmaven](https://github.com/jcefmaven/jcefmaven) | [Apache 2](https://opensource.org/license/apache-2-0)       |
 | [Bukkit/Bukkit](https://github.com/Bukkit/Bukkit)      | [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)            |
 
-As a result of this, the MCAV library is licensed under the GPLv3 license shown [here](LICENSE).
-The [Apache 2](https://opensource.org/license/apache-2-0) License is compatible with the
-[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license, but not the [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-license. You should license your project under the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license or any other
-license that is compatible with the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
+As a result of this, the MCAV library is licensed under the GPLv3 license shown [here](LICENSE). The
+[Apache 2](https://opensource.org/license/apache-2-0) License is compatible with the
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license, but not the
+[GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) license. You should license your project under the
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license or any other license that is compatible with the
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
 The third-party code that MCAV's jars bundle, with its licences, and what MCAV downloads while it runs, are listed in
 [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md), which the library and plugin jars carry in `META-INF/`.

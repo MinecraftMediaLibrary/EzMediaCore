@@ -83,9 +83,9 @@ Property tests are [jqwik](https://jqwik.net/) properties in classes named `*Pro
 [Jazzer](https://github.com/CodeIntelligenceTesting/jazzer) fuzz tests in classes named `*FuzzTest`, both in the test
 source set of their module. `./gradlew check`, and so `./gradlew build`, runs both, next to the ordinary tests.
 
-- `./gradlew propertyTest` runs the properties of these twelve modules with 200 tries each (`-Pproperty.tries=<n>`); `test`
-  runs them too, with 10 tries (`-Pproperty.smokeTries=<n>`). Every property pins its seed, so a run is reproducible
-  and a failure reports the seed and the shrunk sample. `propertyTest` keeps jqwik's run database in
+- `./gradlew propertyTest` runs the properties of these twelve modules with 200 tries each (`-Pproperty.tries=<n>`);
+  `test` runs them too, with 10 tries (`-Pproperty.smokeTries=<n>`). Every property pins its seed, so a run is
+  reproducible and a failure reports the seed and the shrunk sample. `propertyTest` keeps jqwik's run database in
   `build/jqwik-database-propertyTest` of the module; `test` keeps none, as its JVMs would overwrite one another's.
 - `./gradlew fuzzTest` replays the committed inputs of every fuzz test, the seed corpus and every crash reproducer in
   `src/test/resources/<package>/<class>Inputs/<method>`. With `-Pfuzz.seconds=<n>`, each fuzz test is also fuzzed
@@ -101,26 +101,25 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
 
 `mcav-bukkit` builds the MCV2 encoder's six native libraries (Linux, Windows and macOS on x86-64 and ARM64) from
 `src/main/native/mcv2` whenever resources are processed. Gradle downloads [Zig](https://ziglang.org/) 0.16.0 and checks
-its pinned SHA-256; no C/C++ toolchain needs to be installed. `ZIG=/path/to/zig` overrides the download with that version.
-The task hands the compiles and links to a Gradle worker, so the tasks of `mcav-bukkit` that do not need the libraries
-run meanwhile; it compiles the 22 objects, then links the six libraries, as many at once as Gradle has workers
-(`--max-workers`).
-The downloaded compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`.
+its pinned SHA-256; no C/C++ toolchain needs to be installed. `ZIG=/path/to/zig` overrides the download with that
+version. The task hands the compiles and links to a Gradle worker, so the tasks of `mcav-bukkit` that do not need the
+libraries run meanwhile; it compiles the 22 objects, then links the six libraries, as many at once as Gradle has workers
+(`--max-workers`). The downloaded compiler is cached in `mcav-bukkit/build/tools/zig/0.16.0`.
 `./gradlew :mcav-bukkit:buildMcv2Natives` runs the cacheable task directly; unchanged inputs are up to date. Generated
-libraries and their `SHA256SUMS` and `SOURCES` manifests live under `mcav-bukkit/build/generated/natives/mcav/mcv2/natives`.
-Commit only the sources. The loader checks the generated digests, and the tests compare the source manifest with the
-tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the sources with clang-format 18.1.8 from
-`requirements.lock`; `build` runs `checkMcv2NativesFormat`, which fails on an unformatted line and changes
-nothing. `CLANG_FORMAT=/path/to/clang-format` names an installed clang-format instead; Windows on ARM64 needs it, as no
-clang-format 18.1.8 package exists for it. Both tasks check the reported version first.
+libraries and their `SHA256SUMS` and `SOURCES` manifests live under
+`mcav-bukkit/build/generated/natives/mcav/mcv2/natives`. Commit only the sources. The loader checks the generated
+digests, and the tests compare the source manifest with the tree. `./gradlew :mcav-bukkit:formatMcv2Natives` formats the
+sources with clang-format 18.1.8 from `requirements.lock`; `build` runs `checkMcv2NativesFormat`, which fails on an
+unformatted line and changes nothing. `CLANG_FORMAT=/path/to/clang-format` names an installed clang-format instead;
+Windows on ARM64 needs it, as no clang-format 18.1.8 package exists for it. Both tasks check the reported version first.
 
-MCV2's Java tools live in `mcav-bukkit/src/test/java/me/brandonli/mcav/bukkit/media/mcv2/Mcv2Tools.java`.
-Its Python tools and independent reference decoder live in `mcav-bukkit/src/test/python`. `check` runs their tests
-with `./gradlew :mcav-bukkit:pythonTest`: pytest runs the test files in parallel processes, no more than Gradle's
-workers, and then `test_shader_timing.py` alone, on the Python and packages of `requirements.lock`. The
-JUnit reports are in `mcav-bukkit/build/test-results/pythonTest`. The
-[MCV2 article](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) lists the tools and
-their commands.
+MCV2's Java tools live in `mcav-bukkit/src/test/java/me/brandonli/mcav/bukkit/media/mcv2/Mcv2Tools.java`. Its Python
+tools and independent reference decoder live in `mcav-bukkit/src/test/python`. `check` runs their tests with
+`./gradlew :mcav-bukkit:pythonTest`: pytest runs the test files in parallel processes, no more than Gradle's workers,
+and then `test_shader_timing.py` alone, on the Python and packages of `requirements.lock`. The JUnit reports are in
+`mcav-bukkit/build/test-results/pythonTest`. The
+[MCV2 article](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) lists the tools
+and their commands.
 
 ## Static analysis
 
