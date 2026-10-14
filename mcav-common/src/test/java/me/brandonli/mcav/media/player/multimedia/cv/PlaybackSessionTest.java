@@ -397,6 +397,25 @@ final class PlaybackSessionTest {
   }
 
   @Test
+  void shouldPlayTheSeparateAudioAfterThePicturesEnd() throws Exception {
+    final AtomicInteger chunks = new AtomicInteger();
+    this.onVideo((_, _) -> true);
+    this.onAudio((_, _) -> chunks.incrementAndGet() > 0);
+
+    final ScriptedFrameGrabber video = videoAt(0L);
+    final ScriptedFrameGrabber.Delay late = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
+    final Frame firstSound = ScriptedFrameGrabber.audio(0L);
+    final Frame secondSound = ScriptedFrameGrabber.audio(FRAME_MICROSECONDS);
+    final ScriptedFrameGrabber audio = new ScriptedFrameGrabber(0, 0, false, List.of(late, firstSound, secondSound));
+    final PlaybackSession session = this.session(() -> video, () -> audio, 0L, StartState.PLAYING);
+    session.start();
+    awaitEnd(session);
+
+    final int chunkCount = chunks.get();
+    assertEquals(2, chunkCount, "the end of the pictures does not end the sound of the separate source");
+  }
+
+  @Test
   void shouldReportAudioSourcesThatCannotBeStarted() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
