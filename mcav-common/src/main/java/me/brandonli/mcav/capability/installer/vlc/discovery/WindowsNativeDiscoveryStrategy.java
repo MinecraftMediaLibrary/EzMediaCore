@@ -38,7 +38,8 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
 
 import java.nio.file.Path;
 import java.util.List;
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 
 /**
  * Finds {@code libvlc.dll} and {@code libvlccore.dll} in the installation directory of VLC on Windows and the other
@@ -54,6 +55,8 @@ public class WindowsNativeDiscoveryStrategy extends DirectoryProviderDiscoverySt
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.dll", "libvlccore\\.dll" };
   private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("plugins"), Path.of("vlc", "plugins"));
 
+  private final Os operatingSystem;
+
   /**
    * Constructs a strategy that searches vlcj's directories and publishes the plugin path with {@code _putenv}.
    *
@@ -62,10 +65,16 @@ public class WindowsNativeDiscoveryStrategy extends DirectoryProviderDiscoverySt
   public WindowsNativeDiscoveryStrategy() {
     final EnvironmentSetter windowsSetter = nativeSetter();
     super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, windowsSetter);
+    this.operatingSystem = OsUtils.getOs();
   }
 
-  WindowsNativeDiscoveryStrategy(final List<SearchProvider> searchProviders, final EnvironmentSetter environmentSetter) {
+  WindowsNativeDiscoveryStrategy(
+    final List<SearchProvider> searchProviders,
+    final EnvironmentSetter environmentSetter,
+    final Os operatingSystem
+  ) {
     super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
+    this.operatingSystem = operatingSystem;
   }
 
   static EnvironmentSetter nativeSetter() {
@@ -74,13 +83,13 @@ public class WindowsNativeDiscoveryStrategy extends DirectoryProviderDiscoverySt
   }
 
   /**
-   * Checks whether the system is Windows.
+   * Returns whether the running operating system is Windows.
    *
    * @return true on Windows
    * @since 1.0.0
    */
   @Override
   public boolean supported() {
-    return RuntimeUtil.isWindows();
+    return this.operatingSystem == Os.WINDOWS;
   }
 }

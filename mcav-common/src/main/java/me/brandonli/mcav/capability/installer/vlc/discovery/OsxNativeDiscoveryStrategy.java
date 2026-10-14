@@ -41,6 +41,8 @@ import com.sun.jna.NativeLibrary;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
@@ -64,6 +66,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
   private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("..", "plugins"));
 
   private final Consumer<String> corePreloader;
+  private final Os operatingSystem;
 
   /**
    * Constructs a strategy that searches vlcj's directories, publishes the plugin path with {@code setenv}, and
@@ -75,28 +78,31 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     final EnvironmentSetter posixSetter = LinuxNativeDiscoveryStrategy.nativeSetter();
     super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, posixSetter);
     this.corePreloader = OsxNativeDiscoveryStrategy::preloadCoreLibrary;
+    this.operatingSystem = OsUtils.getOs();
   }
 
   OsxNativeDiscoveryStrategy(
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter,
-    final Consumer<String> corePreloader
+    final Consumer<String> corePreloader,
+    final Os operatingSystem
   ) {
     super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
     Preconditions.checkNotNull(corePreloader, "Core preloader must not be null!");
 
     this.corePreloader = corePreloader;
+    this.operatingSystem = operatingSystem;
   }
 
   /**
-   * Checks whether the system is macOS.
+   * Returns whether the running operating system is macOS.
    *
    * @return true on macOS
    * @since 1.0.0
    */
   @Override
   public boolean supported() {
-    return RuntimeUtil.isMac();
+    return this.operatingSystem == Os.MAC;
   }
 
   /**

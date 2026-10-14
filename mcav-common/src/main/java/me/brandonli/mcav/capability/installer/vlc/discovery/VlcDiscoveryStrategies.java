@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.util.List;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategy.EnvironmentSetter;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategy.SearchProvider;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
@@ -71,13 +73,15 @@ public final class VlcDiscoveryStrategies {
     final List<SearchProvider> searchProviders = List.of(searchProvider);
     final EnvironmentSetter posixSetter = LinuxNativeDiscoveryStrategy.nativeSetter();
     final EnvironmentSetter windowsSetter = WindowsNativeDiscoveryStrategy.nativeSetter();
-    final LinuxNativeDiscoveryStrategy linux = new LinuxNativeDiscoveryStrategy(searchProviders, posixSetter);
+    final Os operatingSystem = OsUtils.getOs();
+    final LinuxNativeDiscoveryStrategy linux = new LinuxNativeDiscoveryStrategy(searchProviders, posixSetter, operatingSystem);
     final OsxNativeDiscoveryStrategy osx = new OsxNativeDiscoveryStrategy(
       searchProviders,
       posixSetter,
-      OsxNativeDiscoveryStrategy::preloadCoreLibrary
+      OsxNativeDiscoveryStrategy::preloadCoreLibrary,
+      operatingSystem
     );
-    final WindowsNativeDiscoveryStrategy windows = new WindowsNativeDiscoveryStrategy(searchProviders, windowsSetter);
+    final WindowsNativeDiscoveryStrategy windows = new WindowsNativeDiscoveryStrategy(searchProviders, windowsSetter, operatingSystem);
     return new NativeDiscoveryStrategy[] { linux, osx, windows };
   }
 }

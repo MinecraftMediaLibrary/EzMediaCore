@@ -49,6 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import uk.co.caprica.vlcj.binding.lib.LibC;
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
@@ -117,6 +118,21 @@ final class PlatformDiscoveryStrategiesTest {
   }
 
   @ParameterizedTest
+  @EnumSource(Os.class)
+  void shouldSupportExactlyTheStrategyOfTheGivenSystem(final Os operatingSystem) {
+    final List<SearchProvider> providers = List.of();
+    final LinuxNativeDiscoveryStrategy linux = new LinuxNativeDiscoveryStrategy(providers, IGNORING_SETTER, operatingSystem);
+    final OsxNativeDiscoveryStrategy osx = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {}, operatingSystem);
+    final WindowsNativeDiscoveryStrategy windowsStrategy = new WindowsNativeDiscoveryStrategy(providers, IGNORING_SETTER, operatingSystem);
+    final boolean linuxSupported = linux.supported();
+    final boolean osxSupported = osx.supported();
+    final boolean windowsSupported = windowsStrategy.supported();
+    assertEquals(operatingSystem == Os.LINUX || operatingSystem == Os.FREEBSD || operatingSystem == Os.OTHER, linuxSupported);
+    assertEquals(operatingSystem == Os.MAC, osxSupported);
+    assertEquals(operatingSystem == Os.WINDOWS, windowsSupported);
+  }
+
+  @ParameterizedTest
   @CsvSource({
     "libvlc.so, libvlccore.so, true",
     "libvlc.so.5, libvlccore.so.9, true",
@@ -131,7 +147,7 @@ final class PlatformDiscoveryStrategiesTest {
     throws IOException {
     final Path directory = createFiles(this.temporaryDirectory, LIBRARY_DIRECTORY_NAME, library, coreLibrary);
     final List<SearchProvider> providers = providersFor(directory);
-    final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, IGNORING_SETTER);
+    final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, IGNORING_SETTER, Os.LINUX);
     final String found = strategy.discover();
     final String expectedPath = expected ? directory.toString() : null;
     assertEquals(expectedPath, found);
@@ -146,7 +162,7 @@ final class PlatformDiscoveryStrategiesTest {
     final List<String> published = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
     final EnvironmentSetter setter = recordingSetter(published);
-    final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, setter);
+    final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, setter, Os.LINUX);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
     final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
@@ -159,7 +175,7 @@ final class PlatformDiscoveryStrategiesTest {
     final Path directory = createFiles(this.temporaryDirectory, LIBRARY_DIRECTORY_NAME, OSX_LIBRARY_NAME, OSX_CORE_LIBRARY_NAME);
     final List<String> preloaded = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
-    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, preloaded::add);
+    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, preloaded::add, Os.MAC);
     final String found = strategy.discover();
     final String rawDirectory = directory.toString();
     final boolean addsToSearchPath = strategy.onFound(rawDirectory);
@@ -179,7 +195,7 @@ final class PlatformDiscoveryStrategiesTest {
     final List<String> published = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
     final EnvironmentSetter setter = recordingSetter(published);
-    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, setter, _ -> {});
+    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, setter, _ -> {}, Os.MAC);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
     final Path relativePlugins = Path.of(PARENT_DIRECTORY_NAME, PLUGINS_DIRECTORY_NAME);
@@ -194,8 +210,11 @@ final class PlatformDiscoveryStrategiesTest {
     // vlcj does not catch errors of onFound, so an Intel VLC on Apple silicon must be reported, not thrown
     final UnsatisfiedLinkError wrongArchitecture = new UnsatisfiedLinkError("incompatible architecture (have 'x86_64', need 'arm64')!");
     final List<SearchProvider> providers = List.of();
-    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ ->
-      this.failToPreload(wrongArchitecture)
+    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(
+      providers,
+      IGNORING_SETTER,
+      _ -> this.failToPreload(wrongArchitecture),
+      Os.MAC
     );
     final boolean addsToSearchPath = strategy.onFound(OSX_LIBRARY_PATH);
     assertFalse(addsToSearchPath);
@@ -208,8 +227,8 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldRejectNullArgumentsOnOsx() {
     final List<SearchProvider> providers = List.of();
-    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {});
-    assertThrows(NullPointerException.class, () -> new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, null));
+    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {}, Os.MAC);
+    assertThrows(NullPointerException.class, () -> new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, null, Os.MAC));
     assertThrows(NullPointerException.class, () -> strategy.onFound(null));
   }
 
@@ -223,7 +242,7 @@ final class PlatformDiscoveryStrategiesTest {
       WINDOWS_EXECUTABLE_NAME
     );
     final List<SearchProvider> providers = providersFor(directory);
-    final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, IGNORING_SETTER);
+    final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, IGNORING_SETTER, Os.WINDOWS);
     final String found = strategy.discover();
     final String rawDirectory = directory.toString();
     assertEquals(rawDirectory, found);
@@ -242,7 +261,7 @@ final class PlatformDiscoveryStrategiesTest {
     final List<String> published = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
     final EnvironmentSetter setter = recordingSetter(published);
-    final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, setter);
+    final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, setter, Os.WINDOWS);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
     final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
