@@ -55,7 +55,6 @@ import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -551,22 +550,22 @@ public final class IoUtils {
   // an I/O failure of that resource, and UncheckedIOException can only wrap an IOException.
   @VisibleForTesting
   static Download[] parseDownloads(final Reader reader) throws IOException {
-    final Download @Nullable [] parsed = readDownloadArray(reader);
+    final DownloadFields @Nullable [] parsed = readDownloadArray(reader);
     if (parsed == null) {
       return new Download[0];
     }
 
     final Download[] downloads = new Download[parsed.length];
     for (int index = 0; index < parsed.length; index++) {
-      downloads[index] = recheckDownload(parsed[index]);
+      downloads[index] = buildDownload(parsed[index]);
     }
 
     return downloads;
   }
 
-  private static Download @Nullable [] readDownloadArray(final Reader reader) throws IOException {
+  private static DownloadFields @Nullable [] readDownloadArray(final Reader reader) throws IOException {
     final Gson gson = new Gson();
-    final TypeToken<Download[]> typeToken = new TypeToken<>() {};
+    final TypeToken<DownloadFields[]> typeToken = new TypeToken<>() {};
     final Type downloadArrayType = typeToken.getType();
     try {
       return gson.fromJson(reader, downloadArrayType);
@@ -576,19 +575,18 @@ public final class IoUtils {
     }
   }
 
-  // Gson fills the fields without calling the constructors, so a null entry, a missing value or an unknown enum
-  // constant only surfaces when the constructors check the values again.
-  private static Download recheckDownload(final Download parsed) throws IOException {
+  // Gson passes null for a null entry, a missing value or an unknown enum constant, so they only surface when the
+  // constructors of Platform and Download check the values.
+  private static Download buildDownload(final DownloadFields fields) throws IOException {
     try {
-      final Platform platform = parsed.getPlatform();
-      final Os os = platform.getOs();
-      final Arch arch = platform.getArch();
-      final Bits bits = platform.getBits();
-      final Platform checkedPlatform = Platform.ofPlatform(os, arch, bits);
-      final String url = parsed.getUrl();
-      final Optional<String> hash = parsed.getHash();
-      final @Nullable String checkedHash = hash.orElse(null);
-      return new Download(checkedPlatform, url, checkedHash);
+      final PlatformFields platformFields = fields.platform();
+      final Os os = platformFields.os();
+      final Arch arch = platformFields.arch();
+      final Bits bits = platformFields.bits();
+      final Platform platform = Platform.ofPlatform(os, arch, bits);
+      final String url = fields.url();
+      final @Nullable String hash = fields.hash();
+      return new Download(platform, url, hash);
     } catch (final NullPointerException | IllegalArgumentException exception) {
       throw new IOException("Download list has an incomplete download!", exception);
     }
@@ -899,4 +897,8 @@ public final class IoUtils {
   interface FileMover {
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
+
+  private record DownloadFields(PlatformFields platform, String url, @Nullable String hash) {}
+
+  private record PlatformFields(Os os, Arch arch, Bits bits) {}
 }
