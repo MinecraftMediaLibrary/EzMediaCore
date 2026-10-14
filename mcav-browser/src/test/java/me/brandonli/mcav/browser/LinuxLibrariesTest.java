@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import me.brandonli.mcav.browser.testing.Await;
 import me.brandonli.mcav.media.player.PlayerException;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.os.Os;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
@@ -340,6 +341,29 @@ class LinuxLibrariesTest {
     assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), Files.getPosixFilePermissions(cache));
     assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), Files.getPosixFilePermissions(installation));
     assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), Files.getPosixFilePermissions(library));
+  }
+
+  @Test
+  void shouldTryTheNextMirrorWhenTheDownloadOfTheFirstCannotBeMovedIntoPlace() throws IOException {
+    final byte[] deb = testPackage();
+    final LinuxLibraries libraries = new LinuxLibraries(
+      this.folder.resolve("cache"),
+      (uri, destination, sha256, size) -> {
+        this.downloads.add(uri);
+        if (uri.getHost().equals("first.test")) {
+          throw new FileOperationException("The part file could not be moved into place!");
+        }
+        Files.write(destination, deb);
+      },
+      List.of("https://first.test/debian/", "https://second.test/debian/"),
+      List.of(pin(deb))
+    );
+
+    final Path installation = libraries.install("linux-amd64");
+    final List<URI> expected = List.of(URI.create("https://first.test/debian/" + POOL), URI.create("https://second.test/debian/" + POOL));
+    assertEquals(expected, this.downloads);
+    final boolean installed = Files.isRegularFile(installation.resolve("libmcavtest.so.1"));
+    assertTrue(installed);
   }
 
   @Test

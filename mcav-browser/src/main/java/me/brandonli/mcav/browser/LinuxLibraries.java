@@ -51,6 +51,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
@@ -372,7 +373,7 @@ final class LinuxLibraries {
       try {
         this.downloader.download(uri, destination, pin.sha256(), pin.size());
         return;
-      } catch (final IOException | DownloadException exception) {
+      } catch (final IOException | DownloadException | FileOperationException exception) {
         Files.deleteIfExists(destination);
         if (failure == null) {
           failure = exception;
