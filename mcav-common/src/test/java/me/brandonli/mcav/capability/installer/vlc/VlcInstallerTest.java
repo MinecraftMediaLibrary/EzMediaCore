@@ -36,6 +36,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
@@ -48,6 +49,7 @@ import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationSt
 import me.brandonli.mcav.capability.installer.vlc.installation.WindowsInstallationStrategy;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
@@ -57,6 +59,8 @@ import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Stubber;
@@ -71,6 +75,7 @@ final class VlcInstallerTest {
   private static final String LEFTOVER_DIRECTORY = "half-extracted";
   private static final String SOURCE_ZIP_NAME = "vlc-source.zip";
   private static final String APP_IMAGE_FILE = "fixture.AppImage";
+  private static final String WINDOWS_EXTRACTION_FIXTURE_FILE = "fixture.cmd";
 
   private static final String MCAV_DIRECTORY = ".mcav";
   private static final String CACHE_DIRECTORY = "cache";
@@ -327,6 +332,23 @@ final class VlcInstallerTest {
   }
 
   @Test
+  void shouldDeleteTheOtherOldInstallationWhenOneCannotBeDeleted() throws IOException {
+    final Path junest = createTree(this.folder, JUNEST_DIRECTORY);
+    final Path app = createTree(this.folder, APP_DIRECTORY);
+    final FileOperationException refused = new FileOperationException("The old installation is in use!");
+    try (final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class)) {
+      ioUtils.when(() -> IoUtils.deleteRecursively(junest)).thenThrow(refused);
+      ioUtils.when(() -> IoUtils.deleteRecursively(app)).thenCallRealMethod();
+      VlcInstaller.removeLegacyInstallations(this.folder);
+    }
+
+    final boolean junestExists = Files.isDirectory(junest);
+    final boolean appExists = Files.exists(app);
+    assertTrue(junestExists, "a directory that cannot be deleted is left behind without failing");
+    assertFalse(appExists);
+  }
+
+  @Test
   void shouldReuseAnEarlierInstallationWithoutResolvingDownloads() throws IOException {
     final Path libraryDirectory = this.createInstalledLibrary();
     final VlcInstaller installer = new VlcInstaller(this.folder, VlcInstallerTest::noDownloadExpected);
@@ -338,14 +360,16 @@ final class VlcInstallerTest {
 
   @Test
   void shouldDownloadAndExtractTheWindowsZip() throws IOException {
-    final Os operatingSystem = OsUtils.getOs();
-    Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Only the Windows installation can run without external tools!");
     final Path vlcDirectory = this.folder.resolve(VLC_DIRECTORY);
     final Path leftover = vlcDirectory.resolve(LEFTOVER_DIRECTORY);
     Files.createDirectories(leftover);
     final byte[] zip = this.createVlcZip();
 
-    try (final LocalHttpServer server = LocalHttpServer.start()) {
+    try (
+      final LocalHttpServer server = LocalHttpServer.start();
+      final MockedStatic<OsUtils> operatingSystems = Mockito.mockStatic(OsUtils.class, Mockito.CALLS_REAL_METHODS)
+    ) {
+      operatingSystems.when(OsUtils::getOs).thenReturn(Os.WINDOWS);
       server.respond(ZIP_PATH, 200, zip);
       final VlcInstaller installer = this.installerDownloadingFrom(server);
       final Path installed = installer.download(FileMode.EXECUTABLE);
@@ -358,10 +382,42 @@ final class VlcInstallerTest {
 
   @Test
   void shouldInstallALinuxArchiveThroughItsExecutableExtractionProtocol() throws IOException {
+    final Path archive = this.writeExtractionFixture();
+    try (final MockedStatic<OsUtils> operatingSystems = Mockito.mockStatic(OsUtils.class, Mockito.CALLS_REAL_METHODS)) {
+      operatingSystems.when(OsUtils::getOs).thenReturn(Os.LINUX);
+      final VlcInstaller installer = VlcInstaller.create(this.folder);
+      final Path installed = installer.install(archive);
+      final Path installDirectory = installer.getInstallDirectory();
+      final Path expected = installDirectory.resolve(LINUX_LIBRARY_PATH);
+      final Path core = installed.resolve(LINUX_CORE_LIBRARY);
+      final String content = Files.readString(core);
+      final boolean archiveRemains = Files.exists(archive);
+      assertEquals(expected, installed);
+      assertEquals("fixture-core", content);
+      assertFalse(archiveRemains);
+    }
+  }
+
+  // Models the AppImage extraction protocol, not the VLC binary: the returned library must never be loaded. The host
+  // runs the fixture, so it is a batch file on Windows and a shell script everywhere else.
+  private Path writeExtractionFixture() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
-    Assumptions.assumeTrue(operatingSystem == Os.LINUX, "The executable fixture uses a POSIX shell!");
+    if (operatingSystem == Os.WINDOWS) {
+      final Path archive = this.folder.resolve(WINDOWS_EXTRACTION_FIXTURE_FILE);
+      final String script = """
+      @echo off
+      if not "%~1"=="--appimage-extract" exit /b 1
+      mkdir squashfs-root\\usr\\lib\\vlc\\plugins
+      <nul set /p =fixture-core> squashfs-root\\usr\\lib\\libvlccore.so.9
+      <nul set /p =fixture-api> squashfs-root\\usr\\lib\\libvlc.so.5
+      <nul set /p =fixture-plugin> squashfs-root\\usr\\lib\\vlc\\plugins\\test.so
+      exit /b 0
+      """;
+      Files.writeString(archive, script);
+      return archive;
+    }
+
     final Path archive = this.folder.resolve(APP_IMAGE_FILE);
-    // Model the AppImage extraction protocol, not the VLC binary: the returned library must never be loaded.
     final String script = """
     #!/bin/sh
     set -eu
@@ -372,16 +428,7 @@ final class VlcInstallerTest {
     printf fixture-plugin > squashfs-root/usr/lib/vlc/plugins/test.so
     """;
     Files.writeString(archive, script);
-    final VlcInstaller installer = VlcInstaller.create(this.folder);
-    final Path installed = installer.install(archive);
-    final Path installDirectory = installer.getInstallDirectory();
-    final Path expected = installDirectory.resolve(LINUX_LIBRARY_PATH);
-    final Path core = installed.resolve(LINUX_CORE_LIBRARY);
-    final String content = Files.readString(core);
-    final boolean archiveRemains = Files.exists(archive);
-    assertEquals(expected, installed);
-    assertEquals("fixture-core", content);
-    assertFalse(archiveRemains);
+    return archive;
   }
 
   @Test
@@ -403,26 +450,31 @@ final class VlcInstallerTest {
     }
   }
 
-  @Test
-  void shouldOfferTheBundledDownloadForThisPlatform() {
-    final Platform current = Platform.getCurrentPlatform();
-    final Os operatingSystem = current.getOs();
-    final Arch architecture = current.getArch();
-    Assumptions.assumeTrue(
-      operatingSystem == Os.WINDOWS || operatingSystem == Os.MAC,
-      "Only Windows and macOS use the bundled download list!"
-    );
-    Assumptions.assumeTrue(architecture == Arch.X86, "The bundled list is only checked on x86!");
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("bundledDesktopPlatforms")
+  void shouldOfferTheBundledDownloadOfEveryWindowsAndMacPlatform(final Platform platform) {
+    try (final MockedStatic<Platform> platforms = Mockito.mockStatic(Platform.class, Mockito.CALLS_REAL_METHODS)) {
+      platforms.when(Platform::getCurrentPlatform).thenReturn(platform);
+      final VlcInstaller installer = VlcInstaller.create(this.folder);
+      final boolean supported = installer.isSupported();
+      final String url = installer.getUrl();
+      final Optional<String> hash = installer.getHash();
+      final Os operatingSystem = platform.getOs();
+      final String extension = operatingSystem == Os.WINDOWS ? ".zip" : ".dmg";
+      final boolean expectedExtension = url.endsWith(extension);
+      assertTrue(supported);
+      assertTrue(expectedExtension, url);
+      assertSha256(hash, url);
+    }
+  }
 
-    final VlcInstaller installer = VlcInstaller.create(this.folder);
-    final boolean supported = installer.isSupported();
-    final String url = installer.getUrl();
-    final Optional<String> hash = installer.getHash();
-    final String extension = operatingSystem == Os.WINDOWS ? ".zip" : ".dmg";
-    final boolean expectedExtension = url.endsWith(extension);
-    assertTrue(supported);
-    assertTrue(expectedExtension, url);
-    assertSha256(hash, url);
+  private static Stream<Platform> bundledDesktopPlatforms() {
+    return Stream.of(
+      Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_32),
+      Platform.ofPlatform(Os.MAC, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64)
+    );
   }
 
   @Test

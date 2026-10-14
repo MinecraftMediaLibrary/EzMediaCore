@@ -38,9 +38,13 @@ import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.spi.FileSystemProvider;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
@@ -70,7 +74,6 @@ import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -566,20 +569,34 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldReportAConfigurationThatCannotBeRead() throws IOException {
-    final Path configuration = this.createFileInFolder(CONFIGURATION_FILE_NAME);
-    final Set<PosixFilePermission> noPermissions = Set.of();
-    final Os operatingSystem = OsUtils.getOs();
-    final boolean posix = operatingSystem != Os.WINDOWS;
-    Assumptions.assumeTrue(posix, "File permissions need a POSIX file system!");
-
-    Files.setPosixFilePermissions(configuration, noPermissions);
-    final boolean readable = Files.isReadable(configuration);
-    Assumptions.assumeFalse(readable, "The user can read every file!");
-
-    final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
+    final AccessDeniedException denied = new AccessDeniedException(CONFIGURATION_FILE_NAME);
+    final Path unreadableFolder = this.folderWithAnUnreadableConfiguration(denied);
+    final TestInstaller installer = new TestInstaller(unreadableFolder, NAME, new Download[0]);
     final InstallationException thrown = assertThrows(InstallationException.class, () -> installer.writePathToConfiguration(this.folder));
     final Throwable cause = thrown.getCause();
-    assertInstanceOf(AccessDeniedException.class, cause);
+    assertSame(denied, cause);
+  }
+
+  // Permissions cannot deny a read to root, and Windows has none, so a fake file system denies it on every host.
+  private Path folderWithAnUnreadableConfiguration(final IOException failure) throws IOException {
+    final BasicFileAttributes attributes = Mockito.mock(BasicFileAttributes.class);
+    Mockito.when(attributes.isRegularFile()).thenReturn(true);
+    final FileSystemProvider provider = Mockito.mock(FileSystemProvider.class);
+    Mockito.when(
+      provider.readAttributesIfExists(
+        ArgumentMatchers.any(),
+        ArgumentMatchers.eq(BasicFileAttributes.class),
+        ArgumentMatchers.any(LinkOption[].class)
+      )
+    ).thenReturn(attributes);
+    Mockito.when(provider.newInputStream(ArgumentMatchers.any(), ArgumentMatchers.any(OpenOption[].class))).thenThrow(failure);
+    final FileSystem fileSystem = Mockito.mock(FileSystem.class);
+    Mockito.when(fileSystem.provider()).thenReturn(provider);
+    final Path configuration = Mockito.mock(Path.class);
+    Mockito.when(configuration.getFileSystem()).thenReturn(fileSystem);
+    final Path unreadableFolder = Mockito.mock(Path.class);
+    Mockito.when(unreadableFolder.resolve(CONFIGURATION_FILE_NAME)).thenReturn(configuration);
+    return unreadableFolder;
   }
 
   @Test

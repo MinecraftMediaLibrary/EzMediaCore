@@ -41,8 +41,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 final class CommandTaskTest {
@@ -51,11 +49,10 @@ final class CommandTaskTest {
   private static final String WINDOWS_JAVA_EXECUTABLE = "java.exe";
   private static final String JAVA_EXECUTABLE = "java";
   private static final String SLEEPER_SOURCE_FILE = "Sleeper.java";
+  private static final String SPAWNER_SOURCE_FILE = "Spawner.java";
 
   private static final String VERSION_OPTION = "-version";
   private static final String UNKNOWN_OPTION = "-XX:+NoSuchOptionForMcav";
-
-  private static final String SHELL = "sh";
 
   private static final long EXIT_TIMEOUT_SECONDS = 10L;
   private static final long RETURN_DEADLINE_NANOSECONDS = 15_000_000_000L;
@@ -73,6 +70,16 @@ final class CommandTaskTest {
   private String sleeperProgram() throws IOException {
     final Path program = this.directory.resolve(SLEEPER_SOURCE_FILE);
     Files.writeString(program, "class Sleeper { public static void main(String[] args) throws Exception { Thread.sleep(30_000L); } }");
+    return program.toString();
+  }
+
+  // A program that starts the sleeper, prints its pid and ends a second later, leaving the sleeper running.
+  private String spawnerProgram() throws IOException {
+    final Path program = this.directory.resolve(SPAWNER_SOURCE_FILE);
+    Files.writeString(
+      program,
+      "class Spawner { public static void main(String[] args) throws Exception { System.out.println(new ProcessBuilder(args[0], args[1]).start().pid()); System.out.flush(); Thread.sleep(1_000L); } }"
+    );
     return program.toString();
   }
 
@@ -182,20 +189,22 @@ final class CommandTaskTest {
   }
 
   @Test
-  @EnabledOnOs({ OS.LINUX, OS.MAC })
   void shouldEndTheProgramsThatOutlivedOutputThatCannotBeRead() throws IOException, InterruptedException {
-    final Process shell = new ProcessBuilder(SHELL, "-c", "sleep 60 & echo $!; sleep 1").start();
+    final String java = javaExecutable();
+    final String spawnerProgram = this.spawnerProgram();
+    final String sleeperProgram = this.sleeperProgram();
+    final Process spawner = new ProcessBuilder(java, spawnerProgram, java, sleeperProgram).start();
     final String line;
-    try (final BufferedReader output = new BufferedReader(new InputStreamReader(shell.getInputStream(), StandardCharsets.US_ASCII))) {
+    try (final BufferedReader output = new BufferedReader(new InputStreamReader(spawner.getInputStream(), StandardCharsets.US_ASCII))) {
       line = output.readLine();
     }
 
     final ProcessHandle sleeper = ProcessHandle.of(Long.parseLong(line.strip())).orElseThrow();
     try {
-      final CommandTask task = new CommandTask(SHELL);
+      final CommandTask task = new CommandTask(java);
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
-      assertThrows(ProcessException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
+      assertThrows(ProcessException.class, () -> task.awaitCompletion(spawner, failedOutput, errorOutput, null));
 
       final boolean ended = sleeper.onExit().completeOnTimeout(null, EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
       assertTrue(ended, "the sleep the shell left running is ended with it");
@@ -205,13 +214,14 @@ final class CommandTaskTest {
   }
 
   @Test
-  @EnabledOnOs({ OS.LINUX, OS.MAC })
   void shouldEndAProgramThatAppearedAfterTheLastLookAtTheChildren() throws IOException, InterruptedException {
-    final Process sleeper = new ProcessBuilder("sleep", "60").start();
+    final String java = javaExecutable();
+    final String sleeperProgram = this.sleeperProgram();
+    final Process sleeper = new ProcessBuilder(java, sleeperProgram).start();
     try {
       final ProcessHandle sleeperHandle = sleeper.toHandle();
       final Process parent = new LateChildProcess(sleeperHandle);
-      final CommandTask task = new CommandTask(SHELL);
+      final CommandTask task = new CommandTask(java);
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
 

@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
@@ -66,6 +67,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 final class YtdlpInstallerTest {
 
@@ -527,20 +531,31 @@ final class YtdlpInstallerTest {
     assertEquals(CACHE_FOLDER_NAME, name);
   }
 
-  @Test
-  void shouldSupportEveryMainstreamDesktopPlatform() {
-    final Platform current = Platform.getCurrentPlatform();
-    final Arch architecture = current.getArch();
-    final Bits bits = current.getBits();
-    Assumptions.assumeTrue(architecture == Arch.X86 && bits == Bits.BITS_64, "The bundled list is only checked on 64-bit x86!");
-    final YtdlpInstaller installer = YtdlpInstaller.create(this.folder);
-    final boolean supported = installer.isSupported();
-    final String url = installer.getUrl();
-    final boolean secure = url.startsWith("https://");
-    final boolean namesYtDlp = url.contains(PROGRAM_NAME);
-    assertTrue(supported);
-    assertTrue(secure, url);
-    assertTrue(namesYtDlp, url);
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("mainstreamDesktopPlatforms")
+  void shouldSupportEveryMainstreamDesktopPlatform(final Platform platform) {
+    try (final MockedStatic<Platform> platforms = Mockito.mockStatic(Platform.class, Mockito.CALLS_REAL_METHODS)) {
+      platforms.when(Platform::getCurrentPlatform).thenReturn(platform);
+      final YtdlpInstaller installer = YtdlpInstaller.create(this.folder);
+      final boolean supported = installer.isSupported();
+      final String url = installer.getUrl();
+      final boolean secure = url.startsWith("https://");
+      final boolean namesYtDlp = url.contains(PROGRAM_NAME);
+      assertTrue(supported);
+      assertTrue(secure, url);
+      assertTrue(namesYtDlp, url);
+    }
+  }
+
+  private static Stream<Platform> mainstreamDesktopPlatforms() {
+    return Stream.of(
+      Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.LINUX, Arch.ARM, Bits.BITS_64),
+      Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.WINDOWS, Arch.ARM, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64)
+    );
   }
 
   @Test

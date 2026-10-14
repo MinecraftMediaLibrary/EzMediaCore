@@ -21,13 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -44,6 +42,8 @@ import me.brandonli.mcav.media.source.device.DeviceSource;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -67,6 +67,7 @@ final class SourceUtilsTest {
   private static final String MISSING_FILE_NAME = "missing.txt";
   private static final String INVALID_PATH = "bad\u0000path";
   private static final String SCRIPT_FILE_NAME = "yt-dlp";
+  private static final String WINDOWS_SCRIPT_FILE_NAME = "yt-dlp.cmd";
 
   private static final String LIVE_URL = "https://example.com/live";
   private static final String INVALID_URL = "http://[";
@@ -250,12 +251,7 @@ final class SourceUtilsTest {
 
   @Test
   void shouldReportALiveStreamThatTheSharedYtdlpInstallationFinds() throws IOException {
-    final boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
-    assumeTrue(posix, "A shell script stands in for yt-dlp only on a POSIX file system!");
-
-    final Path script = this.directory.resolve(SCRIPT_FILE_NAME);
-    Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
-    Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
+    final Path script = this.writeLiveYtdlpScript();
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
     Mockito.when(installer.download(FileMode.EXECUTABLE)).thenReturn(script);
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
@@ -264,6 +260,20 @@ final class SourceUtilsTest {
       final boolean live = SourceUtils.isDynamicStream(LIVE_URL);
       assertTrue(live);
     }
+  }
+
+  private Path writeLiveYtdlpScript() throws IOException {
+    final Os operatingSystem = OsUtils.getOs();
+    if (operatingSystem == Os.WINDOWS) {
+      final Path script = this.directory.resolve(WINDOWS_SCRIPT_FILE_NAME);
+      Files.writeString(script, "@echo {\"is_live\": true}\r\n", StandardCharsets.UTF_8);
+      return script;
+    }
+
+    final Path script = this.directory.resolve(SCRIPT_FILE_NAME);
+    Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
+    Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
+    return script;
   }
 
   @Test
