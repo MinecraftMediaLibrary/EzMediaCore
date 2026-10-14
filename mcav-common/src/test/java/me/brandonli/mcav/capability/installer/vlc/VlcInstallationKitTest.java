@@ -40,7 +40,11 @@ import java.util.Optional;
 import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
+import me.brandonli.mcav.capability.installer.debian.DebianLibraryInstaller;
 import me.brandonli.mcav.testing.TemporaryUserHome;
+import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Bits;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -52,6 +56,7 @@ final class VlcInstallationKitTest {
 
   private static final String MCAV_DIRECTORY_NAME = ".mcav";
   private static final String CACHE_DIRECTORY_NAME = "cache";
+  private static final String DEBIAN_VLC_NAME = "debian-vlc";
 
   @Test
   void shouldPreferTheSystemInstallationAndNeverTouchTheInstaller() throws IOException {
@@ -236,6 +241,43 @@ final class VlcInstallationKitTest {
     assertEquals(expectedFolder, standardFolder);
     assertNotNull(customState, "the shared load state exists, rather than both kits returning null");
     assertSame(customState, standardState, "libvlc is loaded once per JVM, whichever kit loads it");
+  }
+
+  @Test
+  void shouldInstallTheDebianPackagesOf64BitArmLinux(@TempDir final Path home) {
+    final Platform linuxArm = Platform.ofPlatform(Os.LINUX, Arch.ARM, Bits.BITS_64);
+    final VlcInstallationKit kit;
+    final Path expectedFolder;
+    try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(home)) {
+      kit = VlcInstallationKit.createForPlatform(linuxArm);
+      final Path redirectedHome = redirected.getHome();
+      final Path mcavFolder = redirectedHome.resolve(MCAV_DIRECTORY_NAME);
+      final Path cacheFolder = mcavFolder.resolve(CACHE_DIRECTORY_NAME);
+      expectedFolder = cacheFolder.resolve(DEBIAN_VLC_NAME);
+    }
+
+    final Installer installer = kit.getInstaller();
+    final DebianLibraryInstaller debianInstaller = assertInstanceOf(DebianLibraryInstaller.class, installer);
+    final Path libraryDirectory = debianInstaller.getPath();
+    final boolean insideCache = libraryDirectory.startsWith(expectedFolder);
+    final VlcLoadState loadState = kit.getLoadState();
+    final VlcInstaller customInstaller = VlcInstaller.create(home);
+    final VlcInstallationKit custom = VlcInstallationKit.create(customInstaller);
+    final VlcLoadState customState = custom.getLoadState();
+    assertTrue(insideCache, libraryDirectory.toString());
+    assertSame(customState, loadState);
+  }
+
+  @Test
+  void shouldDownloadVlcOnEveryOtherPlatform(@TempDir final Path home) {
+    final Platform linuxX86 = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
+    final VlcInstallationKit kit;
+    try (final TemporaryUserHome _ = TemporaryUserHome.redirectTo(home)) {
+      kit = VlcInstallationKit.createForPlatform(linuxX86);
+    }
+
+    final Installer installer = kit.getInstaller();
+    assertInstanceOf(VlcInstaller.class, installer);
   }
 
   @Test
