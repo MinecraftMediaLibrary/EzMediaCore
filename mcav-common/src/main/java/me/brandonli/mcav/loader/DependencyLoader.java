@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.capability.Availability;
@@ -84,6 +84,8 @@ public final class DependencyLoader {
   private final Set<Capability> capabilities;
   private final Map<Capability, Object> preparations = new EnumMap<>(Capability.class);
   private final Logger logger;
+  private final Predicate<String> systemLibraries;
+  private final Supplier<DebianLibraryInstaller> gtk2Installers;
 
   /**
    * Constructs a new loader. {@link me.brandonli.mcav.MCAV} creates one for you; only create your own if you embed
@@ -97,12 +99,19 @@ public final class DependencyLoader {
 
   @VisibleForTesting
   DependencyLoader(final Logger logger) {
+    this(logger, DependencyLoader::isLibraryAvailable, DebianLibraryInstaller::createGtk2Installer);
+  }
+
+  @VisibleForTesting
+  DependencyLoader(final Logger logger, final Predicate<String> systemLibraries, final Supplier<DebianLibraryInstaller> gtk2Installers) {
     // VLC and yt-dlp remove their capabilities from two threads at the same time, which a plain EnumSet can lose
     final Set<Capability> available = ConcurrentHashMap.newKeySet();
     final Set<Capability> every = EnumSet.allOf(Capability.class);
     available.addAll(every);
     this.capabilities = available;
     this.logger = logger;
+    this.systemLibraries = systemLibraries;
+    this.gtk2Installers = gtk2Installers;
   }
 
   /**
@@ -134,7 +143,7 @@ public final class DependencyLoader {
    */
   public void loadModules() {
     final Platform platform = Platform.getCurrentPlatform();
-    loadModules(platform, this::loadNatives);
+    loadModules(platform, () -> this.loadNatives(platform));
   }
 
   @VisibleForTesting
@@ -170,7 +179,8 @@ public final class DependencyLoader {
     };
   }
 
-  private void loadNatives() {
+  @VisibleForTesting
+  void loadNatives(final Platform platform) {
     configureJavaCpp();
     Loader.load(Loader.class);
     loadFfmpeg(DependencyLoader::loadFfmpegLibraries, DependencyLoader::configureFfmpegLogging);
@@ -179,7 +189,7 @@ public final class DependencyLoader {
     }
 
     configureOpenCvThreads();
-    this.loadFaceDetection(DependencyLoader::loadObjectDetection);
+    this.loadFaceDetection(() -> this.loadObjectDetection(platform));
   }
 
   // Sets how many threads OpenCV runs its own work on, such as a resize: one by default, so it runs on the calling
@@ -206,9 +216,8 @@ public final class DependencyLoader {
     }
   }
 
-  private static void loadObjectDetection() {
-    final Platform platform = Platform.getCurrentPlatform();
-    provideGtk2(platform, DependencyLoader::hasSystemGtk2, DebianLibraryInstaller::createGtk2Installer);
+  private void loadObjectDetection(final Platform platform) {
+    provideGtk2(platform, this.systemLibraries, this.gtk2Installers);
     Loader.load(opencv_objdetect.class);
   }
 
@@ -218,7 +227,7 @@ public final class DependencyLoader {
   @VisibleForTesting
   static void provideGtk2(
     final Platform platform,
-    final BooleanSupplier systemGtk2,
+    final Predicate<String> systemLibraries,
     final Supplier<DebianLibraryInstaller> installerFactory
   ) {
     final boolean debianPackages = hasDebianGtk2(platform);
@@ -226,7 +235,7 @@ public final class DependencyLoader {
       return;
     }
 
-    final boolean installed = systemGtk2.getAsBoolean();
+    final boolean installed = systemLibraries.test(GTK2_LIBRARY);
     if (installed) {
       return;
     }
@@ -249,10 +258,6 @@ public final class DependencyLoader {
     final DebianLibraryInstaller installer = installerFactory.get();
     installer.download(FileMode.EXECUTABLE);
     installer.loadLibraries();
-  }
-
-  private static boolean hasSystemGtk2() {
-    return isLibraryAvailable(GTK2_LIBRARY);
   }
 
   // asks the dynamic linker for the library the same way OpenCV's GUI module does, so the answer matches what linking

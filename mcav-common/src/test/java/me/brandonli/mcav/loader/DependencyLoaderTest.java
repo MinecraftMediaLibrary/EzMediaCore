@@ -768,7 +768,7 @@ final class DependencyLoaderTest {
     final List<String> loaded = new ArrayList<>();
     final DebianLibraryInstaller installer = DebianLibraryInstallers.create(folder, new Download[0], platform, loaded::add);
 
-    DependencyLoader.provideGtk2(platform, () -> false, () -> installer);
+    DependencyLoader.provideGtk2(platform, libraryName -> false, () -> installer);
 
     final List<String> expected = List.of(library.toString());
     assertEquals(expected, loaded);
@@ -787,7 +787,7 @@ final class DependencyLoaderTest {
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
     try {
-      DependencyLoader.provideGtk2(LINUX_ARM_64, () -> false, () -> installer);
+      DependencyLoader.provideGtk2(LINUX_ARM_64, libraryName -> false, () -> installer);
     } finally {
       System.setErr(standardError);
     }
@@ -801,7 +801,7 @@ final class DependencyLoaderTest {
 
   @Test
   void shouldUseTheGtk2OfTheSystem() {
-    assertDoesNotThrow(() -> DependencyLoader.provideGtk2(LINUX_X86_64, () -> true, this::refuseToInstall));
+    assertDoesNotThrow(() -> DependencyLoader.provideGtk2(LINUX_X86_64, libraryName -> true, this::refuseToInstall));
   }
 
   @ParameterizedTest(name = "{0}")
@@ -817,6 +817,17 @@ final class DependencyLoaderTest {
       Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_32),
       Platform.ofPlatform(Os.LINUX, Arch.OTHER, Bits.BITS_64)
     );
+  }
+
+  @Test
+  void shouldProvideGtk2BeforeLoadingTheObjectDetectionNatives() {
+    final List<String> lookedUp = new ArrayList<>();
+    final Logger logger = mock(Logger.class);
+    final DependencyLoader loader = new DependencyLoader(logger, lookedUp::add, this::refuseToInstall);
+    loader.loadNatives(LINUX_ARM_64);
+
+    final List<String> expected = List.of("libgtk-x11-2.0.so.0");
+    assertEquals(expected, lookedUp);
   }
 
   @Test
@@ -839,7 +850,7 @@ final class DependencyLoaderTest {
     assertFalse(available);
   }
 
-  private boolean refuseToLookUp() {
+  private boolean refuseToLookUp(final String library) {
     return fail("GTK 2 is only looked up on 64-bit Linux!");
   }
 
