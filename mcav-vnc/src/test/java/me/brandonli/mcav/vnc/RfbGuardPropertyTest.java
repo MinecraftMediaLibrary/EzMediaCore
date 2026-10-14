@@ -79,7 +79,7 @@ final class RfbGuardPropertyTest {
     session.handshake(8, NONE, SIDE, SIDE);
     try {
       session.server(messages);
-    } catch (final IOException refused) {
+    } catch (final IOException exception) {
       // the one failure the guard may report
     }
   }

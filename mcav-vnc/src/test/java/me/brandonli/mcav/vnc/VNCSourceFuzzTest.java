@@ -50,9 +50,9 @@ final class VNCSourceFuzzTest {
     try {
       first = build(host, port, username, password, width, height, frameRate);
       second = build(host, port, username, password, width, height, frameRate);
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       final boolean documented = host.isBlank() || port < 1 || port > 65_535 || width < 0 || height < 0 || frameRate < 1;
-      assertTrue(documented, () -> "settings refused without a documented reason: " + refused.getMessage());
+      assertTrue(documented, () -> "settings refused without a documented reason: " + exception.getMessage());
       return;
     }
     final String builtHost = first.getHost();
