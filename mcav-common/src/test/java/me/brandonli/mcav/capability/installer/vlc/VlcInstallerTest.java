@@ -472,6 +472,7 @@ final class VlcInstallerTest {
     return Stream.of(
       Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64),
       Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_32),
+      Platform.ofPlatform(Os.WINDOWS, Arch.ARM, Bits.BITS_64),
       Platform.ofPlatform(Os.MAC, Arch.X86, Bits.BITS_64),
       Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64)
     );

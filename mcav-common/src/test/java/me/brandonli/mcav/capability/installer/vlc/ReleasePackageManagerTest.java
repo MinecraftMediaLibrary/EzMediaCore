@@ -70,7 +70,7 @@ final class ReleasePackageManagerTest {
   void shouldResolveTheDownloadsWithoutAskingTheNetwork() {
     try (final MockedStatic<HttpDownloader> downloader = Mockito.mockStatic(HttpDownloader.class)) {
       final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
-      assertEquals(5, downloads.length, "Windows and macOS, two each, and Linux on x86-64");
+      assertEquals(6, downloads.length, "Windows on x86-64, x86 and arm64, macOS on x86-64 and arm64, and Linux on x86-64");
 
       downloader.verifyNoInteractions();
     }

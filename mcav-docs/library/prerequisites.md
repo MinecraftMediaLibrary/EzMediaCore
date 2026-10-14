@@ -26,7 +26,7 @@ optional native features can also need system libraries, a display, or an audio 
 
 | Operating System | Architectures             | Notes                                                              |
 |------------------|---------------------------|--------------------------------------------------------------------|
-| Windows          | x86-64                    | VLC and yt-dlp are downloaded automatically when missing.          |
+| Windows          | x86-64, x86, ARM64        | VLC and yt-dlp are downloaded automatically when missing.          |
 | macOS            | x86-64, ARM64 (Apple)     | VLC is downloaded and mounted without administrator rights.        |
 | Linux            | x86-64, ARM64             | VLC is used from the system, or downloaded as an AppImage on x86-64. |
 

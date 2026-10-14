@@ -19,6 +19,15 @@
   },
   {
     "platform": {
+      "os": "WINDOWS",
+      "arch": "ARM",
+      "bits": "BITS_64"
+    },
+    "url": "https://get.videolan.org/vlc/3.0.24/winarm64/vlc-3.0.24-winarm64.zip",
+    "hash": "f096226211f67f8e06e50cd0d6a948d842db128ff22a676dc1ca1cc6114baba5"
+  },
+  {
+    "platform": {
       "os": "MAC",
       "arch": "ARM",
       "bits": "BITS_64"
