@@ -32,21 +32,10 @@ public class PaletteLoadingException extends MCAVException {
   @Serial
   private static final long serialVersionUID = 3449385531808176439L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which describes what is wrong with the palette
-   */
   PaletteLoadingException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which describes what is wrong with the palette
-   * @param cause   the underlying failure, such as the JSON parser error
-   */
   PaletteLoadingException(final String message, final Throwable cause) {
     super(message, cause);
   }

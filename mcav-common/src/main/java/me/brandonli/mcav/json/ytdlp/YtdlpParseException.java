@@ -33,21 +33,10 @@ public class YtdlpParseException extends MCAVException {
   @Serial
   private static final long serialVersionUID = 6183930164275481521L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which contains the URL and what yt-dlp reported
-   */
   YtdlpParseException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which contains the URL and what yt-dlp reported
-   * @param cause   the underlying failure, such as the JSON parser error
-   */
   YtdlpParseException(final String message, final Throwable cause) {
     super(message, cause);
   }

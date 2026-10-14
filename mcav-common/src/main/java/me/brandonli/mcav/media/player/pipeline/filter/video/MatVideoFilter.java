@@ -66,14 +66,9 @@ public abstract class MatVideoFilter implements VideoFilter {
     return this.applyToTemporaryMat(samples);
   }
 
-  /**
-   * Applies the filter to a frame that is not backed by OpenCV, through a temporary copy of the frame that is released
-   * afterward. Both copies go through the raw BGR pixels every image buffer stores, see {@link ImageBuffer#getData()},
-   * so neither needs a conversion or an intermediate array.
-   *
-   * @param samples the frame to process
-   * @return true if the filter changed the frame, false if it left the frame untouched
-   */
+  // Applies the filter to a frame that is not backed by OpenCV, through a temporary copy of the frame that is released
+  // afterward. Both copies go through the raw BGR pixels every image buffer stores, see ImageBuffer.getData(), so
+  // neither needs a conversion or an intermediate array.
   private boolean applyToTemporaryMat(final ImageBuffer samples) {
     final int width = samples.getWidth();
     final int height = samples.getHeight();
@@ -93,9 +88,6 @@ public abstract class MatVideoFilter implements VideoFilter {
     }
   }
 
-  /**
-   * Copies the raw BGR pixels of a filtered temporary image into the frame, which takes the size of the result.
-   */
   private static void writeBack(final MatImageBuffer result, final ImageBuffer samples) {
     final int width = result.getWidth();
     final int height = result.getHeight();
@@ -103,14 +95,9 @@ public abstract class MatVideoFilter implements VideoFilter {
     samples.updateData(data, width, height);
   }
 
-  /**
-   * Copies an image into a new 8-bit BGR matrix owned by the caller, for filters that keep an image, such as an
-   * overlay, beyond the lifetime of the buffer it came from. Images that are not backed by OpenCV are converted
-   * through a temporary buffer, which is released before this method returns.
-   *
-   * @param image the image to copy
-   * @return a new matrix with the pixels of the image, which the caller must release
-   */
+  // Copies an image into a new 8-bit BGR matrix owned by the caller, for filters that keep an image, such as an
+  // overlay, beyond the lifetime of the buffer it came from. Images that are not backed by OpenCV are converted through
+  // a temporary buffer, which is released before this method returns.
   static Mat copyToMat(final ImageBuffer image) {
     if (image instanceof final MatImageBuffer matBuffer) {
       final Mat mat = matBuffer.getMat();

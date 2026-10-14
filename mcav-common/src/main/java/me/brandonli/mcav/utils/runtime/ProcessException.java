@@ -34,21 +34,10 @@ public class ProcessException extends MCAVException {
   @Serial
   private static final long serialVersionUID = -9183271875521286701L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which usually contains the exit code and the error output of the program
-   */
   ProcessException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which describes what went wrong while running the program
-   * @param cause   the underlying failure
-   */
   ProcessException(final String message, final Throwable cause) {
     super(message, cause);
   }

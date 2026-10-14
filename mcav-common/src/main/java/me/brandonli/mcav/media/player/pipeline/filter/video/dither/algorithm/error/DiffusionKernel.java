@@ -182,9 +182,6 @@ public final class DiffusionKernel {
     this.maximumOffsetY = getLargestMagnitude(this.offsetsY);
   }
 
-  /**
-   * Checks that a tap has an offset and a weight, and only points to pixels that are processed later.
-   */
   private static void checkTap(final int[] tap, final int tapIndex) {
     Preconditions.checkNotNull(tap, "Tap %s must not be null!", tapIndex);
     Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values!", tapIndex);

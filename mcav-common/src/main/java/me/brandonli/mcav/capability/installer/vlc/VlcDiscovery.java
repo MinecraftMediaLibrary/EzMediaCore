@@ -20,29 +20,10 @@ package me.brandonli.mcav.capability.installer.vlc;
 import java.nio.file.Path;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Finds the native VLC libraries and loads them into vlcj.
- */
 interface VlcDiscovery {
-  /**
-   * Looks for a VLC installation on the system and loads it when one is found.
-   *
-   * @return true if the libraries were found and loaded, including when vlcj had loaded them before
-   */
   boolean discoverSystemInstallation();
 
-  /**
-   * Returns the directory the last successful discovery loaded the libraries from.
-   *
-   * @return the directory, or {@code null} if vlcj had loaded the libraries earlier without reporting where from
-   */
   @Nullable Path getDiscoveredPath();
 
-  /**
-   * Loads the libraries of a VLC installation whose location is known.
-   *
-   * @param libraryDirectory the directory that contains the libraries
-   * @return true if the libraries were loaded
-   */
   boolean loadInstalledLibraries(Path libraryDirectory);
 }

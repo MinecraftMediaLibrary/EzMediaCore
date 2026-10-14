@@ -69,14 +69,6 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     this.corePreloader = OsxNativeDiscoveryStrategy::preloadCoreLibrary;
   }
 
-  /**
-   * Constructs a strategy with custom directories, a custom way of publishing the plugin path, and a custom way of
-   * preloading the core library.
-   *
-   * @param searchProviders   the providers of the directories to search
-   * @param environmentSetter sets the plugin path variable
-   * @param corePreloader     loads the core library from the found directory
-   */
   OsxNativeDiscoveryStrategy(
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter,
@@ -128,11 +120,6 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     }
   }
 
-  /**
-   * Adds a directory to the JNA search path of the core library and loads the library from it.
-   *
-   * @param path the directory that contains the core library
-   */
   static void preloadCoreLibrary(final String path) {
     final String coreLibraryName = RuntimeUtil.getLibVlcCoreLibraryName();
     NativeLibrary.addSearchPath(coreLibraryName, path);

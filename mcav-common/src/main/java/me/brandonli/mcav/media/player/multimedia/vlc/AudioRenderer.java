@@ -36,16 +36,12 @@ import org.bytedeco.ffmpeg.global.avutil;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.callback.AudioCallbackAdapter;
 
-/**
- * Copies audio samples out of VLC and runs the audio pipeline of a player on a render thread.
- *
- * <p>VLC is asked for 16-bit stereo samples at 48 kHz in the byte order of the machine, which is the only 16-bit
- * format every VLC build accepts. The samples are copied into little-endian order, the format the audio pipeline
- * expects, which is a plain copy on little-endian machines and swaps the bytes of every sample on big-endian ones.
- * VLC calls {@link #play} on its audio output thread, which must not block, so when the pipeline falls far behind,
- * the oldest chunks are dropped to keep the latency bounded. Pausing, seeking, and stopping drop the queued chunks, so
- * no stale audio plays afterward.
- */
+// Copies audio samples out of VLC and runs the audio pipeline of a player on a render thread. VLC is asked for 16-bit
+// stereo samples at 48 kHz in the byte order of the machine, which is the only 16-bit format every VLC build accepts.
+// The samples are copied into little-endian order, the format the audio pipeline expects, which is a plain copy on
+// little-endian machines and swaps the bytes of every sample on big-endian ones. VLC calls play on its audio output
+// thread, which must not block, so when the pipeline falls far behind, the oldest chunks are dropped to keep the
+// latency bounded. Pausing, seeking, and stopping drop the queued chunks, so no stale audio plays afterward.
 final class AudioRenderer extends AudioCallbackAdapter {
 
   private static final String THREAD_NAME = "mcav-vlc-render-audio";
@@ -66,11 +62,7 @@ final class AudioRenderer extends AudioCallbackAdapter {
   private final BlockingQueue<ByteBuffer> queue;
   private final RenderThread thread;
 
-  /**
-   * Constructs a new renderer. Samples are dropped until {@link #start()} is called.
-   *
-   * @param owner the player that provides the audio pipeline and the exception handler
-   */
+  // Constructs a new renderer. Samples are dropped until start() is called.
   AudioRenderer(final VideoPlayerMultiplexer owner) {
     this.owner = owner;
     this.queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
@@ -82,29 +74,15 @@ final class AudioRenderer extends AudioCallbackAdapter {
     handler.accept(message, failure);
   }
 
-  /**
-   * Starts the render thread.
-   */
   void start() {
     this.thread.start(this::renderNext, this.queue::clear);
   }
 
-  /**
-   * Stops the render thread, waits for it to exit, and drops the queued samples.
-   */
   void stop() {
     this.thread.stop();
     this.queue.clear();
   }
 
-  /**
-   * Copies samples decoded by VLC and queues them for the render thread.
-   *
-   * @param mediaPlayer the player that plays
-   * @param samples     the native samples, interleaved 16-bit stereo in the byte order of the machine
-   * @param sampleCount the number of samples per channel
-   * @param pts         the presentation time stamp of the samples
-   */
   @Override
   public void play(final MediaPlayer mediaPlayer, final Pointer samples, final int sampleCount, final long pts) {
     if (!this.thread.isRunning()) {
@@ -127,35 +105,18 @@ final class AudioRenderer extends AudioCallbackAdapter {
     }
   }
 
-  /**
-   * Drops the queued samples, because VLC paused the playback and they would otherwise keep playing.
-   *
-   * @param mediaPlayer the player that plays
-   * @param pts         the presentation time stamp of the pause
-   */
+  // Drops the queued samples, because VLC paused the playback and they would otherwise keep playing.
   @Override
   public void pause(final MediaPlayer mediaPlayer, final long pts) {
     this.queue.clear();
   }
 
-  /**
-   * Drops the queued samples, because VLC discards its buffered audio, for example when seeking.
-   *
-   * @param mediaPlayer the player that plays
-   * @param pts         the presentation time stamp of the flush
-   */
+  // Drops the queued samples, because VLC discards its buffered audio, for example when seeking.
   @Override
   public void flush(final MediaPlayer mediaPlayer, final long pts) {
     this.queue.clear();
   }
 
-  /**
-   * Copies 16-bit samples into a new little-endian buffer.
-   *
-   * @param nativeSamples the samples from the position to the limit of the buffer
-   * @param order         the byte order of the samples
-   * @return the copied samples in little-endian order, ready to be read from position zero
-   */
   @VisibleForTesting
   static ByteBuffer copySamples(final ByteBuffer nativeSamples, final ByteOrder order) {
     final ByteBuffer source = nativeSamples.duplicate();

@@ -111,9 +111,6 @@ public final class ThreadedImagePlayer implements ImagePlayer {
     }
   }
 
-  /**
-   * Plays a source until the player is released or the source fails, and marks the player as stopped either way.
-   */
   private void run(final FrameSource source) {
     try {
       this.play(source);
@@ -221,9 +218,6 @@ public final class ThreadedImagePlayer implements ImagePlayer {
     return this.exceptionHandler.getExceptionHandler();
   }
 
-  /**
-   * The frame loop of one playback, which owns the image buffer the frames are copied into.
-   */
   private final class FrameLoop {
 
     private final SampleSupplier supplier;
@@ -275,9 +269,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
       }
     }
 
-    /**
-     * Renders one frame. Failures of the source and the filters are reported and skip only this frame.
-     */
+    // Renders one frame. Failures of the source and the filters are reported and skip only this frame.
     private void renderFrame() {
       try {
         final int[] pixels = this.supplier.getFrameSamples();

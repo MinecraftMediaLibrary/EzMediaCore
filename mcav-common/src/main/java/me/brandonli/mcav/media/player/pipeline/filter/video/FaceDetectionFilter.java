@@ -100,15 +100,6 @@ public class FaceDetectionFilter extends MatVideoFilter {
     return loadClassifier(cascadeFile, CascadeClassifier::new);
   }
 
-  /**
-   * Loads a cascade classifier.
-   *
-   * @param cascadeFile the cascade file
-   * @param factory     creates the classifier from the path of the file
-   * @return the classifier
-   * @throws IllegalArgumentException if the file is not a valid cascade
-   * @throws IllegalStateException    if the object detection natives cannot be loaded
-   */
   @VisibleForTesting
   static CascadeClassifier loadClassifier(final Path cascadeFile, final Function<String, CascadeClassifier> factory) {
     final String cascadePath = cascadeFile.toString();

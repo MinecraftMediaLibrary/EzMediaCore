@@ -55,14 +55,6 @@ public class ColorPalette implements DitherPalette {
   private final byte[] colorMap;
   private final int[] fullColorMap;
 
-  /**
-   * Constructs a new palette and builds its lookup tables.
-   *
-   * @param colors          the colors of the palette in index order, at most 256
-   * @param reservedIndices the number of leading indices reserved for transparency, which are stored as zero and
-   *                        never matched
-   * @throws IllegalArgumentException if the palette has more than 256 colors or no matchable color
-   */
   ColorPalette(final int[] colors, final int reservedIndices) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
     Preconditions.checkArgument(colors.length <= MAXIMUM_COLORS, "A palette may hold at most %s colors!", MAXIMUM_COLORS);
@@ -123,20 +115,12 @@ public class ColorPalette implements DitherPalette {
     return closest;
   }
 
-  /**
-   * Measures how far a color is from another with the "redmean" approximation, which weights the channels by how
-   * sensitive the eye is to them at that brightness: green always counts four times, while red grows from two to
-   * almost three as the average red of the two colors rises and blue falls from almost three to two. The two pass each
-   * other near the middle (with equal weights at a red mean of 127.5), because red is {@code 2 + redMean / 256} and blue is
-   * {@code 2 + (255 - redMean) / 256}. The result is a squared distance, so it is only meaningful compared with
-   * another distance. Visible for testing.
-   *
-   * @param red   the red component of the first color, from 0 to 255
-   * @param green the green component of the first color, from 0 to 255
-   * @param blue  the blue component of the first color, from 0 to 255
-   * @param color the second color as ARGB, whose alpha is ignored
-   * @return the weighted squared distance between the two colors
-   */
+  // Measures how far a color is from another with the "redmean" approximation, which weights the channels by how
+  // sensitive the eye is to them at that brightness: green always counts four times, while red grows from two to almost
+  // three as the average red of the two colors rises and blue falls from almost three to two. The two pass each other
+  // near the middle (with equal weights at a red mean of 127.5), because red is 2 + redMean / 256 and blue is 2 + (255
+  // - redMean) / 256. The result is a squared distance, so it is only meaningful compared with another distance.
+  // Visible for testing.
   @VisibleForTesting
   static float perceptualDistance(final int red, final int green, final int blue, final int color) {
     final int otherRed = (color >> RED_SHIFT) & CHANNEL_MASK;

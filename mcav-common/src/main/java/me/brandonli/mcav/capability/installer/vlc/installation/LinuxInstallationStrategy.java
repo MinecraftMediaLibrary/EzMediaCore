@@ -52,12 +52,6 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
     super(installer);
   }
 
-  /**
-   * Constructs a new strategy that runs the AppImage through the specified runner.
-   *
-   * @param installer     the installer whose installation directory is used
-   * @param processRunner runs the AppImage extraction
-   */
   LinuxInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     super(installer, processRunner);
   }

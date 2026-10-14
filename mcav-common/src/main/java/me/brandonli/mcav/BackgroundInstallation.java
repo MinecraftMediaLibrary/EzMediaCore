@@ -35,19 +35,13 @@ import org.checkerframework.checker.nullness.qual.KeyFor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Prepares the external programs of the library, VLC and yt-dlp, in the background after
- * {@link MCAV#install(Class[])} returned, each on a daemon thread of its own, so a slow download never delays the
- * start of the application.
- *
- * <p>Each program has a future that completes once its preparation finished: with true if its capability is
- * available, with false if it is not supported, failed, or was cancelled. The futures are completed directly, but
- * callers only ever see asynchronous stages of them, so their callbacks never run on the installation threads and can
- * safely call back into the library, even {@link MCAV#release()}, which waits for those threads.
- *
- * <p>{@link #cancel()} interrupts both threads, which makes a running download fail at once and delete its temporary
- * file, and waits a bounded time for the threads to end.
- */
+// Prepares the external programs of the library, VLC and yt-dlp, in the background after MCAV.install(Class[])
+// returned, each on a daemon thread of its own, so a slow download never delays the start of the application. Each
+// program has a future that completes once its preparation finished: with true if its capability is available, with
+// false if it is not supported, failed, or was cancelled. The futures are completed directly, but callers only ever see
+// asynchronous stages of them, so their callbacks never run on the installation threads and can safely call back into
+// the library, even MCAV.release(), which waits for those threads. cancel() interrupts both threads, which makes a
+// running download fail at once and delete its temporary file, and waits a bounded time for the threads to end.
 final class BackgroundInstallation {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BackgroundInstallation.class);
@@ -65,24 +59,10 @@ final class BackgroundInstallation {
 
   private boolean cancelled;
 
-  /**
-   * Constructs an installation that prepares VLC and yt-dlp with the specified loader.
-   *
-   * @param dependencyLoader installs the programs and knows which capabilities are available
-   * @param guard            records which capabilities are being prepared, for the features that consult it
-   */
   BackgroundInstallation(final DependencyLoader dependencyLoader, final CapabilityGuard guard) {
     this(dependencyLoader, guard, LOGGER, CANCEL_TIMEOUT);
   }
 
-  /**
-   * Constructs an installation with a custom logger and cancel timeout.
-   *
-   * @param dependencyLoader installs the programs and knows which capabilities are available
-   * @param guard            records which capabilities are being prepared, for the features that consult it
-   * @param logger           reports unexpected failures of the installation threads
-   * @param cancelTimeout    how long {@link #cancel()} waits at most for the installation threads to end
-   */
   @VisibleForTesting
   BackgroundInstallation(
     final DependencyLoader dependencyLoader,
@@ -107,10 +87,8 @@ final class BackgroundInstallation {
     return steps;
   }
 
-  /**
-   * Marks every program as preparing and starts preparing them. When this method returns, the guard already
-   * reports the programs as preparing, so no feature can use a program the installation is still preparing.
-   */
+  // Marks every program as preparing and starts preparing them. When this method returns, the guard already reports the
+  // programs as preparing, so no feature can use a program the installation is still preparing.
   void start() {
     final Set<Map.Entry<@KeyFor("this.steps") Capability, Runnable>> entries = this.steps.entrySet();
     for (final Map.Entry<@KeyFor("this.steps") Capability, Runnable> entry : entries) {
@@ -137,10 +115,8 @@ final class BackgroundInstallation {
     return thread;
   }
 
-  /**
-   * Runs the step of one program on its installation thread. An error, such as an {@link OutOfMemoryError}, still
-   * ends the preparation, so nobody waits forever, and then ends the thread; its uncaught exception handler logs it.
-   */
+  // Runs the step of one program on its installation thread. An error, such as an OutOfMemoryError, still ends the
+  // preparation, so nobody waits forever, and then ends the thread; its uncaught exception handler logs it.
   private void prepare(final Capability capability, final Runnable step) {
     try {
       final Availability reported = this.runStep(capability, step);
@@ -169,10 +145,8 @@ final class BackgroundInstallation {
     this.logger.error("{} ended with an error.", threadName, error);
   }
 
-  /**
-   * Records the outcome of a preparation. A preparation that ends after {@link #cancel()} reports its program as
-   * unavailable and leaves the guard alone, because the cancellation already forgot about the program.
-   */
+  // Records the outcome of a preparation. A preparation that ends after cancel() reports its program as unavailable and
+  // leaves the guard alone, because the cancellation already forgot about the program.
   private void finish(final Capability capability, final Availability reported) {
     final CompletableFuture<Boolean> preparation = this.getPreparation(capability);
     synchronized (this.lock) {
@@ -187,13 +161,8 @@ final class BackgroundInstallation {
     }
   }
 
-  /**
-   * Checks whether a capability is available right now. The programs prepared in the background are unavailable
-   * until their preparation finished successfully; every other capability is answered by the loader.
-   *
-   * @param capability the capability
-   * @return true if the capability can be used now
-   */
+  // Checks whether a capability is available right now. The programs prepared in the background are unavailable until
+  // their preparation finished successfully; every other capability is answered by the loader.
   boolean isAvailable(final Capability capability) {
     final CompletableFuture<Boolean> preparation = this.preparations.get(capability);
     if (preparation == null) {
@@ -203,13 +172,8 @@ final class BackgroundInstallation {
     return preparation.getNow(false);
   }
 
-  /**
-   * Returns a future that completes once a capability is ready. A capability that is not prepared in the background, or
-   * whose preparation already finished, gets a future that is complete already.
-   *
-   * @param capability the capability
-   * @return a future that completes with true if the capability is available, or false if it is not
-   */
+  // Returns a future that completes once a capability is ready. A capability that is not prepared in the background, or
+  // whose preparation already finished, gets a future that is complete already.
   CompletableFuture<Boolean> whenReady(final Capability capability) {
     final CompletableFuture<Boolean> preparation = this.preparations.get(capability);
     if (preparation == null) {
@@ -228,10 +192,6 @@ final class BackgroundInstallation {
     return preparation.thenApplyAsync(identity);
   }
 
-  /**
-   * Cancels the preparations that are still running: interrupts their threads, waits up to the cancel timeout for
-   * them to end, reports every unfinished program as unavailable, and forgets the programs in the guard.
-   */
   void cancel() {
     synchronized (this.lock) {
       this.cancelled = true;
@@ -285,11 +245,6 @@ final class BackgroundInstallation {
     return Preconditions.checkNotNull(preparation, "Every prepared capability has a future!");
   }
 
-  /**
-   * Returns the threads the programs are prepared on.
-   *
-   * @return the installation threads, in the order they were started
-   */
   @VisibleForTesting
   List<Thread> getThreads() {
     return List.copyOf(this.threads);

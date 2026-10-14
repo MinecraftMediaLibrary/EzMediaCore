@@ -105,11 +105,9 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
     Files.move(extractedRoot, installDirectory);
   }
 
-  /**
-   * Extracts the zip. {@link IoUtils#unzip(Path, Path)} reports failures unchecked, as an {@link UncheckedIOException}
-   * for an archive that cannot be read and as a {@link ZipEntryIntegrityException} for an archive that is unsafe, but an
-   * installation must fail with an {@link IOException} like every other installation failure.
-   */
+  // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as an UncheckedIOException for an archive
+  // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
+  // fail with an IOException like every other installation failure.
   private static void unzip(final Path archive, final Path temporary) throws IOException {
     try {
       IoUtils.unzip(archive, temporary);

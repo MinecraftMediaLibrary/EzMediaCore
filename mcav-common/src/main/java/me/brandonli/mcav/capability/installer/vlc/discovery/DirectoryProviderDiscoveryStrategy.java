@@ -103,15 +103,6 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     this(filenamePatterns, pluginPathFormats, searchProviders, environmentSetter);
   }
 
-  /**
-   * Constructs a new strategy that searches the directories of the specified providers.
-   *
-   * @param filenamePatterns  the regular expressions every one of which must match a file in the library directory
-   * @param pluginPathFormats the formats of the plugin directory, each with a {@code %s} for the library directory,
-   *                          tried in order
-   * @param searchProviders   the providers of the directories to search, with their search depths
-   * @param environmentSetter sets the environment variable that tells libvlc where its plugins are
-   */
   DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
     final String[] pluginPathFormats,
@@ -250,11 +241,6 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     return null;
   }
 
-  /**
-   * Lists a directory unless it was already searched at least as deep as requested now.
-   *
-   * @return the children of the directory, or {@code null} if it is not a readable directory or needs no search
-   */
   private static File @Nullable [] listUnsearched(final File directory, final int remainingDepth, final Map<Path, Integer> searchedDepths) {
     final Path realPath = toRealDirectory(directory);
     if (realPath == null) {
@@ -375,12 +361,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     return false;
   }
 
-  /**
-   * Returns the providers this strategy searches, in the order they were created, before any of them is filtered out for
-   * being unsupported on this machine. Visible for testing.
-   *
-   * @return the providers of the strategy
-   */
+  // Returns the providers this strategy searches, in the order they were created, before any of them is filtered out
+  // for being unsupported on this machine. Visible for testing.
   List<SearchProvider> getSearchProviders() {
     return this.searchProviders;
   }
@@ -400,20 +382,11 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     boolean set(String name, String value);
   }
 
-  /**
-   * A directory provider together with how deep its directories are searched.
-   */
   static final class SearchProvider {
 
     private final DiscoveryDirectoryProvider directoryProvider;
     private final int maximumDepth;
 
-    /**
-     * Constructs a new search provider.
-     *
-     * @param directoryProvider the provider of the directories to search
-     * @param maximumDepth      how many levels below each directory are searched
-     */
     SearchProvider(final DiscoveryDirectoryProvider directoryProvider, final int maximumDepth) {
       this.directoryProvider = directoryProvider;
       this.maximumDepth = maximumDepth;
@@ -432,9 +405,6 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     }
   }
 
-  /**
-   * A directory waiting to be searched, together with how far below its search root it is.
-   */
   private static final class SearchEntry {
 
     private final File directory;

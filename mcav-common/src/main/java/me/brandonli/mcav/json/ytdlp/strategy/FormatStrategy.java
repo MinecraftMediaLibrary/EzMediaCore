@@ -161,11 +161,6 @@ public interface FormatStrategy {
     return Optional.empty();
   }
 
-  /**
-   * Picks one of the matching streams in list order.
-   *
-   * @param replaces decides whether a later candidate replaces the stream picked so far
-   */
   private static Optional<Format> pick(
     final UrlParseDump dump,
     final Predicate<Format> filter,

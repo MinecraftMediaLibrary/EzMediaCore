@@ -72,9 +72,6 @@ public class FramesPerSecondFilter extends MatVideoFilter {
     return true;
   }
 
-  /**
-   * Counts a frame and recomputes the displayed frame rate once per measuring window.
-   */
   private synchronized void countFrame() {
     final long now = this.clock.getAsLong();
     this.framesInWindow++;

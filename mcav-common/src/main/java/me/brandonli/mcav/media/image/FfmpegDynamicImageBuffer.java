@@ -33,10 +33,8 @@ import org.bytedeco.javacv.Frame;
 import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 
-/**
- * Decodes animated images with FFmpeg, which supports GIF, APNG, WebP, and every video container. Every frame is
- * copied once, straight from the decoder into the matrix of its image buffer.
- */
+// Decodes animated images with FFmpeg, which supports GIF, APNG, WebP, and every video container. Every frame is copied
+// once, straight from the decoder into the matrix of its image buffer.
 final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
 
   private static final float DEFAULT_FRAME_RATE = 10.0f;
@@ -101,10 +99,8 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     return timestamps;
   }
 
-  /**
-   * Copies a decoded frame into a new image, which is added to the list before it is filled, so it is released with
-   * the others if the copy fails.
-   */
+  // Copies a decoded frame into a new image, which is added to the list before it is filled, so it is released with the
+  // others if the copy fails.
   private static void copyFrame(final Frame frame, final List<ImageBuffer> decoded) {
     final int width = frame.imageWidth;
     final int height = frame.imageHeight;
@@ -115,16 +111,8 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     FramePixels.copyBgr(frame, data);
   }
 
-  /**
-   * Chooses the frame rate of an animation. GIFs often report no frame rate, so the rate is derived from the
-   * timestamps when possible: the frames after the first one take up the time from the first to the last timestamp.
-   *
-   * @param reported       the frame rate the decoder reported, which may be zero, negative, or not finite
-   * @param frameCount     the number of decoded frames
-   * @param firstTimestamp the timestamp of the first frame in microseconds, which need not be zero
-   * @param lastTimestamp  the timestamp of the last frame in microseconds
-   * @return the frame rate
-   */
+  // Chooses the frame rate of an animation. GIFs often report no frame rate, so the rate is derived from the timestamps
+  // when possible: the frames after the first one take up the time from the first to the last timestamp.
   @VisibleForTesting
   static float resolveFrameRate(final double reported, final int frameCount, final long firstTimestamp, final long lastTimestamp) {
     final float reportedRate = (float) reported;
@@ -177,9 +165,6 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     return this.frames.size();
   }
 
-  /**
-   * The decoded frames of an animation and its frame rate.
-   */
   private static final class Animation {
 
     private final List<ImageBuffer> frames;
@@ -199,9 +184,6 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     }
   }
 
-  /**
-   * The timestamps of the first and the last decoded frame.
-   */
   private static final class TimestampRange {
 
     private long first;

@@ -54,30 +54,23 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * One playback of one media source, or of one video source with a separate audio source.
- *
- * <p>A session owns up to four threads. One decoding thread per grabber pulls frames out of FFmpeg or OpenCV as
- * fast as the bounded queues allow, so decoding never blocks on the pipelines. A video rendering thread waits until
- * each frame is due according to the {@link PlaybackClock}, then runs the video pipeline; frames that are more than
- * 100 ms late are dropped, so a slow pipeline lowers the frame rate instead of drifting out of sync; when most frames
- * of ten seconds of video are dropped, the session says so, see {@link LateFrameCounter}. An audio
- * rendering thread hands each chunk to the audio pipeline slightly before it is due, which keeps downstream buffers
- * full without running ahead of the video. Played faster or slower, the clock runs at that speed and the audio is
- * resampled to match, see {@link SpeedResampler}.
- *
- * <p>Pictures are copied out of the decoder into a small {@link ImagePool}: the rendering thread hands every image
- * back once the pipeline ran, so no memory is allocated per frame. Frames that have another size than the attached
- * dimension are scaled on the decoding thread, see {@link VideoFrameCopier}. While no video pipeline is attached,
- * frames are queued without their picture, which keeps the clock, the position, and the end of the media right
- * without copying anything.
- *
- * <p>When a decoding thread reaches the end of its media, it puts an end marker into the queues it fills, and each
- * rendering thread finishes once it takes its marker. There is no polling and no race between the end of decoding
- * and the last queued frames. Stopping a session interrupts the threads, replaces the queued media with end
- * markers, and waits for the threads to exit. A pipeline may even stop the session from its own rendering thread.
- * Sessions cannot be restarted; seeking or resuming after a stop creates a new session.
- */
+// One playback of one media source, or of one video source with a separate audio source. A session owns up to four
+// threads. One decoding thread per grabber pulls frames out of FFmpeg or OpenCV as fast as the bounded queues allow, so
+// decoding never blocks on the pipelines. A video rendering thread waits until each frame is due according to the
+// PlaybackClock, then runs the video pipeline; frames that are more than 100 ms late are dropped, so a slow pipeline
+// lowers the frame rate instead of drifting out of sync; when most frames of ten seconds of video are dropped, the
+// session says so, see LateFrameCounter. An audio rendering thread hands each chunk to the audio pipeline slightly
+// before it is due, which keeps downstream buffers full without running ahead of the video. Played faster or slower,
+// the clock runs at that speed and the audio is resampled to match, see SpeedResampler. Pictures are copied out of the
+// decoder into a small ImagePool: the rendering thread hands every image back once the pipeline ran, so no memory is
+// allocated per frame. Frames that have another size than the attached dimension are scaled on the decoding thread, see
+// VideoFrameCopier. While no video pipeline is attached, frames are queued without their picture, which keeps the
+// clock, the position, and the end of the media right without copying anything. When a decoding thread reaches the end
+// of its media, it puts an end marker into the queues it fills, and each rendering thread finishes once it takes its
+// marker. There is no polling and no race between the end of decoding and the last queued frames. Stopping a session
+// interrupts the threads, replaces the queued media with end markers, and waits for the threads to exit. A pipeline may
+// even stop the session from its own rendering thread. Sessions cannot be restarted; seeking or resuming after a stop
+// creates a new session.
 final class PlaybackSession {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PlaybackSession.class);
@@ -93,14 +86,9 @@ final class PlaybackSession {
   private static final int IMAGE_POOL_CAPACITY = VIDEO_QUEUE_CAPACITY + 2;
   private static final int AUDIO_QUEUE_CAPACITY = 64;
   private static final long PAUSE_POLL_MILLISECONDS = 50L;
-  /**
-   * How late a frame may be before players drop it instead of showing it, in nanoseconds.
-   */
+  // How late a frame may be before players drop it instead of showing it, in nanoseconds.
   static final long MAXIMUM_VIDEO_LAG_NANOSECONDS = 100_000_000L;
 
-  /**
-   * How long before its timestamp players hand an audio chunk to the pipeline, in nanoseconds.
-   */
   static final long AUDIO_LEAD_NANOSECONDS = 50_000_000L;
 
   private static final long MAXIMUM_SLEEP_NANOSECONDS = 500_000_000L;
@@ -141,25 +129,7 @@ final class PlaybackSession {
   private volatile boolean seekable;
   private @Nullable FrameGrabber videoGrabber;
 
-  /**
-   * Constructs a new session. Nothing is opened until {@link #open()} or {@link #start()} is called.
-   *
-   * @param videoGrabberFactory        creates the grabber of the video source, which also provides the audio when there is
-   *                                   no separate audio source
-   * @param audioGrabberFactory        creates the grabber of a separate audio source, or {@code null} if there is none
-   * @param videoCallback              provides the video pipeline
-   * @param audioCallback              provides the audio pipeline
-   * @param dimensionCallback          provides the size frames are scaled to, if attached
-   * @param exceptionHandler           receives decoding and pipeline failures
-   * @param startMicroseconds          the position to start at in microseconds
-   * @param startPaused                whether the session starts paused
-   * @param audioLeadNanoseconds       how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds;
-   *                                   players pass {@link #AUDIO_LEAD_NANOSECONDS}
-   * @param maximumVideoLagNanoseconds how late a frame may be before it is dropped, in nanoseconds; players pass
-   *                                   {@link #MAXIMUM_VIDEO_LAG_NANOSECONDS}, and {@link Long#MAX_VALUE} never drops a frame
-   * @param nanosecondClock            the clock media is scheduled with, in nanoseconds; players pass
-   *                                   {@link System#nanoTime()}, and tests pass a clock they control
-   */
+  // Constructs a new session. Nothing is opened until open() or start() is called.
   PlaybackSession(
     final GrabberFactory videoGrabberFactory,
     final @Nullable GrabberFactory audioGrabberFactory,
@@ -189,24 +159,6 @@ final class PlaybackSession {
     );
   }
 
-  /**
-   * Constructs a new session that tells a listener when playback falls behind, where the other constructor logs a
-   * warning.
-   *
-   * @param videoGrabberFactory        creates the grabber of the video source
-   * @param audioGrabberFactory        creates the grabber of a separate audio source, or {@code null} if there is none
-   * @param videoCallback              provides the video pipeline
-   * @param audioCallback              provides the audio pipeline
-   * @param dimensionCallback          provides the size frames are scaled to, if attached
-   * @param exceptionHandler           receives decoding and pipeline failures
-   * @param startMicroseconds          the position to start at in microseconds
-   * @param startPaused                whether the session starts paused
-   * @param audioLeadNanoseconds       how long before its timestamp an audio chunk is handed to the pipeline, in nanoseconds
-   * @param maximumVideoLagNanoseconds how late a frame may be before it is dropped, in nanoseconds
-   * @param nanosecondClock            the clock media is scheduled with, in nanoseconds
-   * @param lagListener                hears of stretches of video in which most frames came too late, see
-   *                                   {@link LateFrameCounter}
-   */
   PlaybackSession(
     final GrabberFactory videoGrabberFactory,
     final @Nullable GrabberFactory audioGrabberFactory,
@@ -248,13 +200,9 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Opens the video source without starting any thread, so a player can find out whether the source can be played
-   * before it stops the playback it replaces. Also remembers whether the media can be seeked, which is the case when
-   * its length is known; live streams and cameras report no length.
-   *
-   * @throws FrameGrabber.Exception if the video grabber cannot be created
-   */
+  // Opens the video source without starting any thread, so a player can find out whether the source can be played
+  // before it stops the playback it replaces. Also remembers whether the media can be seeked, which is the case when
+  // its length is known; live streams and cameras report no length.
   void open() throws FrameGrabber.Exception {
     final FrameGrabber grabber = this.videoGrabberFactory.create();
     try {
@@ -280,12 +228,8 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Starts the decoding and rendering threads, opening the video source first unless {@link #open()} did already.
-   * The video grabber is created synchronously, so errors such as a missing file are reported immediately.
-   *
-   * @throws FrameGrabber.Exception if the video grabber cannot be created
-   */
+  // Starts the decoding and rendering threads, opening the video source first unless open() did already. The video
+  // grabber is created synchronously, so errors such as a missing file are reported immediately.
   void start() throws FrameGrabber.Exception {
     if (this.videoGrabber == null) {
       this.open();
@@ -294,11 +238,6 @@ final class PlaybackSession {
     this.startThreads();
   }
 
-  /**
-   * Starts the decoding and rendering threads of a session that {@link #open()} opened.
-   *
-   * @throws IllegalStateException if the session was not opened
-   */
   void startThreads() {
     final FrameGrabber grabber = this.videoGrabber;
     if (grabber == null) {
@@ -349,10 +288,6 @@ final class PlaybackSession {
     this.decode(grabber, DecodedStreams.AUDIO);
   }
 
-  /**
-   * Pulls frames out of a started grabber until the media ends or the session stops, then closes the grabber and
-   * tells the renderers of the decoded streams that no more media follows.
-   */
   private void decode(final FrameGrabber grabber, final DecodedStreams streams) {
     try {
       this.decodeFrames(grabber, streams);
@@ -369,7 +304,6 @@ final class PlaybackSession {
     }
   }
 
-  /** Closes the decoder without allowing failed native cleanup to strand either consumer. */
   private void finishDecoding(final FrameGrabber grabber, final DecodedStreams streams) {
     try {
       closeQuietly(grabber);
@@ -378,7 +312,6 @@ final class PlaybackSession {
     }
   }
 
-  /** Releases the copier before signalling termination, including when that release fails. */
   private void finishDecodedStreams(final DecodedStreams streams) {
     final boolean wantsVideo = streams.includesVideo();
     final boolean wantsAudio = streams.includesAudio();
@@ -397,10 +330,8 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Decodes every frame. Video frames get their timestamps from {@link VideoTimestamps}, because some decoders, such
-   * as the video reader of OpenCV, stamp every frame with zero.
-   */
+  // Decodes every frame. Video frames get their timestamps from VideoTimestamps, because some decoders, such as the
+  // video reader of OpenCV, stamp every frame with zero.
   private void decodeFrames(final FrameGrabber grabber, final DecodedStreams streams) throws FrameGrabber.Exception, InterruptedException {
     this.seekToStart(grabber);
     final boolean wantsVideo = streams.includesVideo();
@@ -422,10 +353,8 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Moves a grabber to the start position of the session. A source that refuses to seek is played from where it
-   * is, which is better than not playing it at all; the failure is reported.
-   */
+  // Moves a grabber to the start position of the session. A source that refuses to seek is played from where it is,
+  // which is better than not playing it at all; the failure is reported.
   private void seekToStart(final FrameGrabber grabber) {
     if (this.startMicroseconds <= 0) {
       return;
@@ -448,9 +377,7 @@ final class PlaybackSession {
     return samples != null && samples.length > 0;
   }
 
-  /**
-   * Grabs the next frame. FFmpeg grabbers that decode only one stream skip the other stream entirely.
-   */
+  // Grabs the next frame. FFmpeg grabbers that decode only one stream skip the other stream entirely.
   private static @Nullable Frame grab(final FrameGrabber grabber, final DecodedStreams streams) throws FrameGrabber.Exception {
     if (!(grabber instanceof final FFmpegFrameGrabber ffmpeg)) {
       return grabber.grab();
@@ -463,10 +390,8 @@ final class PlaybackSession {
     };
   }
 
-  /**
-   * Describes the video track of a grabber. Sources without a video track, such as audio files, report no picture
-   * size and get the empty metadata instead.
-   */
+  // Describes the video track of a grabber. Sources without a video track, such as audio files, report no picture size
+  // and get the empty metadata instead.
   private static OriginalVideoMetadata createVideoMetadata(final FrameGrabber grabber) {
     final int width = grabber.getImageWidth();
     final int height = grabber.getImageHeight();
@@ -480,10 +405,8 @@ final class PlaybackSession {
     return OriginalVideoMetadata.of(width, height, bitrate, frameRate);
   }
 
-  /**
-   * Describes the audio track of a grabber. Sources without an audio track get the metadata of the output format
-   * every grabber resamples to.
-   */
+  // Describes the audio track of a grabber. Sources without an audio track get the metadata of the output format every
+  // grabber resamples to.
   private static OriginalAudioMetadata createAudioMetadata(final FrameGrabber grabber) {
     final int sampleRate = grabber.getSampleRate();
     final int channels = grabber.getAudioChannels();
@@ -499,10 +422,8 @@ final class PlaybackSession {
     return OriginalAudioMetadata.of(codecName, bitrate, sampleRate, channels, format);
   }
 
-  /**
-   * Queues a frame for the video renderer. The picture is only copied if a pipeline wants it; otherwise the frame
-   * travels without it, so the renderer still keeps time.
-   */
+  // Queues a frame for the video renderer. The picture is only copied if a pipeline wants it; otherwise the frame
+  // travels without it, so the renderer still keeps time.
   private void enqueueVideo(final Frame frame, final OriginalVideoMetadata metadata, final VideoTimestamps timestamps)
     throws InterruptedException {
     final Buffer plane = frame.image[0];
@@ -519,18 +440,11 @@ final class PlaybackSession {
     queueFrame(this.videoQueue, decoded, this.running::get);
   }
 
-  /**
-   * Queues a frame for the video renderer, which then owns its picture. Stopping drains the queue, which wakes a
-   * decoder that waits for room; when the wake-up comes before the decoder notices its interrupt, the put completes
-   * after all, possibly after the renderer drained the queue for the last time, and nobody would release the picture.
-   * So a decoder that finds the session stopped once its frame is queued takes the frame back and releases the picture
-   * itself, unless the renderer took the frame already.
-   *
-   * @param queue   the queue of the video renderer
-   * @param frame   the frame
-   * @param running tells whether the session still runs, asked after the frame was queued
-   * @throws InterruptedException if the decoder is interrupted while it waits for room, which releases the picture
-   */
+  // Queues a frame for the video renderer, which then owns its picture. Stopping drains the queue, which wakes a
+  // decoder that waits for room; when the wake-up comes before the decoder notices its interrupt, the put completes
+  // after all, possibly after the renderer drained the queue for the last time, and nobody would release the picture.
+  // So a decoder that finds the session stopped once its frame is queued takes the frame back and releases the picture
+  // itself, unless the renderer took the frame already.
   @VisibleForTesting
   static void queueFrame(final BlockingQueue<DecodedVideoFrame> queue, final DecodedVideoFrame frame, final BooleanSupplier running)
     throws InterruptedException {
@@ -570,11 +484,9 @@ final class PlaybackSession {
     return bytes;
   }
 
-  /**
-   * Tells the renderer of a queue that no more media follows. An unexpected decoder or handler interrupt must not
-   * lose this marker. Once stopping begins, stop() supplies the markers and this bounded wait ends instead of
-   * waiting for a renderer that may already have exited. The decoder's interrupt status is preserved.
-   */
+  // Tells the renderer of a queue that no more media follows. An unexpected decoder or handler interrupt must not lose
+  // this marker. Once stopping begins, stop() supplies the markers and this bounded wait ends instead of waiting for a
+  // renderer that may already have exited. The decoder's interrupt status is preserved.
   @VisibleForTesting
   <ElementType extends @NonNull Object> void signalEnd(final BlockingQueue<ElementType> queue, final ElementType marker) {
     final boolean interruptedBefore = Thread.interrupted();
@@ -638,9 +550,6 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Renders a frame and hands its picture back to the pool, whether the frame was shown, dropped, or interrupted.
-   */
   private void renderVideoFrame(final DecodedVideoFrame frame) throws InterruptedException {
     final MatImageBuffer image = frame.getImage();
     try {
@@ -652,9 +561,6 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Waits until the frame is due and runs it through the pipeline, unless it is too late or nobody watches.
-   */
   private void presentVideoFrame(final DecodedVideoFrame frame, final @Nullable MatImageBuffer image) throws InterruptedException {
     final long timestamp = frame.getTimestampMicroseconds();
     final long lateNanoseconds = this.awaitDue(timestamp, 0L);
@@ -696,12 +602,6 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Warns in the log that playback fell behind, which players do.
-   *
-   * @param droppedFrames the number of frames dropped
-   * @param frames        the number of frames of the stretch
-   */
   @VisibleForTesting
   static void logFallingBehind(final int droppedFrames, final int frames) {
     LOGGER.warn(
@@ -769,13 +669,6 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Blocks until media with the given timestamp is due, minus the lead, and keeps waiting while the clock is
-   * paused.
-   *
-   * @return how late the media is in nanoseconds, zero if it is on time
-   * @throws InterruptedException if the session stops while waiting
-   */
   private long awaitDue(final long timestampMicroseconds, final long leadNanoseconds) throws InterruptedException {
     while (true) {
       if (this.clock.isPaused()) {
@@ -797,26 +690,15 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Pauses the clock, so the renderers stop at their next frame.
-   */
+  // Pauses the clock, so the renderers stop at their next frame.
   void pause() {
     this.clock.pause();
   }
 
-  /**
-   * Resumes the clock and shifts the schedule by the time the session was paused.
-   */
   void resume() {
     this.clock.resume();
   }
 
-  /**
-   * Checks whether the session is still playing, which is the case until it is stopped or all of its threads
-   * finished.
-   *
-   * @return true if the session is playing
-   */
   boolean isActive() {
     if (!this.running.get()) {
       return false;
@@ -831,12 +713,8 @@ final class PlaybackSession {
     return false;
   }
 
-  /**
-   * Counts the pictures that wait for the video renderer. Once the session ended there must be none, because nobody
-   * takes them out of the queue to release them anymore.
-   *
-   * @return the number of queued frames that carry a picture
-   */
+  // Counts the pictures that wait for the video renderer. Once the session ended there must be none, because nobody
+  // takes them out of the queue to release them anymore.
   @VisibleForTesting
   long getQueuedPictureCount() {
     final Stream<DecodedVideoFrame> frames = this.videoQueue.stream();
@@ -845,27 +723,18 @@ final class PlaybackSession {
     return present.count();
   }
 
-  /**
-   * Checks whether the decoder holds a copy of an unscaled picture, which it must release once decoding ended.
-   *
-   * @return true if the decoder holds such a copy
-   */
+  // Checks whether the decoder holds a copy of an unscaled picture, which it must release once decoding ended.
   @VisibleForTesting
   boolean hasUnscaledCopy() {
     return this.frameCopier.hasUnscaledCopy();
   }
 
-  /**
-   * Stops the session and waits for its threads to exit. Calling this method more than once has no effect, and it
-   * may be called from a pipeline running on one of the threads of the session.
-   *
-   * <p>Threads are interrupted, but a decoder stuck in native code only notices at its next frame, so this method
-   * blocks for up to five seconds per thread in the worst case.
-   *
-   * <p>A call from outside the session that comes while the session is already stopping, for instance because one of
-   * its renderers stopped it after a failure, waits for the threads just the same. A thread of the session returns
-   * at once instead, because the thread that is stopping the session may be waiting for it.
-   */
+  // Stops the session and waits for its threads to exit. Calling this method more than once has no effect, and it may
+  // be called from a pipeline running on one of the threads of the session. Threads are interrupted, but a decoder
+  // stuck in native code only notices at its next frame, so this method blocks for up to five seconds per thread in the
+  // worst case. A call from outside the session that comes while the session is already stopping, for instance because
+  // one of its renderers stopped it after a failure, waits for the threads just the same. A thread of the session
+  // returns at once instead, because the thread that is stopping the session may be waiting for it.
   void stop() {
     final boolean wasRunning = this.running.getAndSet(false);
     final Thread currentThread = Thread.currentThread();
@@ -905,10 +774,8 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Waits for every thread of the session but the excluded one to exit. Waiting ends early when the waiting thread is
-   * interrupted, which keeps its interrupt.
-   */
+  // Waits for every thread of the session but the excluded one to exit. Waiting ends early when the waiting thread is
+  // interrupted, which keeps its interrupt.
   private void joinThreadsExcept(final Thread excluded) {
     for (final Thread thread : this.threads) {
       final boolean isExcluded = thread.equals(excluded);
@@ -927,16 +794,9 @@ final class PlaybackSession {
 
   private static void discardChunk(final DecodedAudioChunk chunk) {}
 
-  /**
-   * Replaces everything in a queue with the end marker. A decoder that is still running may refill the queue
-   * between draining and offering, so the queue is drained again until the marker fits. Every removed element is
-   * handed to a consumer, so it can release its resources.
-   *
-   * @param queue         the queue
-   * @param marker        the end marker
-   * @param discarded     receives every element that was removed from the queue
-   * @param <ElementType> the type of the queued elements
-   */
+  // Replaces everything in a queue with the end marker. A decoder that is still running may refill the queue between
+  // draining and offering, so the queue is drained again until the marker fits. Every removed element is handed to a
+  // consumer, so it can release its resources.
   @VisibleForTesting
   static <ElementType extends @NonNull Object> void replaceWithEndMarker(
     final BlockingQueue<ElementType> queue,
@@ -966,67 +826,29 @@ final class PlaybackSession {
     }
   }
 
-  /**
-   * Plays faster or slower from now on.
-   *
-   * @param speed the media time that passes per unit of wall time, positive
-   */
   void setSpeed(final double speed) {
     this.clock.setSpeed(speed);
   }
 
-  /**
-   * Checks whether the session is paused.
-   *
-   * @return true if paused
-   */
   boolean isPaused() {
     return this.clock.isPaused();
   }
 
-  /**
-   * Checks whether the media of the session can be seeked, which {@link #open()} found out from its length.
-   *
-   * @return true for media of a known length, false for live streams and cameras, and before the session is opened
-   */
   boolean isSeekable() {
     return this.seekable;
   }
 
-  /**
-   * Returns the timestamp of the last rendered frame.
-   *
-   * @return the position in microseconds
-   */
   long getPositionMicroseconds() {
     return this.positionMicroseconds;
   }
 
-  /**
-   * Creates a started frame grabber for a source.
-   */
   @FunctionalInterface
   interface GrabberFactory {
-    /**
-     * Creates and starts the grabber.
-     *
-     * @return the started grabber
-     * @throws FrameGrabber.Exception if the source cannot be opened
-     */
     FrameGrabber create() throws FrameGrabber.Exception;
   }
 
-  /**
-   * Hears that playback fell behind: most frames of a stretch of video came too late and were dropped.
-   */
   @FunctionalInterface
   interface LagListener {
-    /**
-     * Called on the video rendering thread for a stretch in which most frames were dropped.
-     *
-     * @param droppedFrames the number of frames dropped
-     * @param frames        the number of frames of the stretch
-     */
     void fellBehind(int droppedFrames, int frames);
   }
 

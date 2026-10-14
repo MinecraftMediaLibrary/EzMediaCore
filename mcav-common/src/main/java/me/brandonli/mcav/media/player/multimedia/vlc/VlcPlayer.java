@@ -97,13 +97,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     this(sharedFactory, OPEN_TIMEOUT_MILLISECONDS, mediaOptions);
   }
 
-  /**
-   * Constructs a new VLC player with its own VLC instance and open timeout.
-   *
-   * @param sharedFactory           provides the VLC instance
-   * @param openTimeoutMilliseconds how long starting waits at most for VLC to open the media, in milliseconds
-   * @param mediaOptions            VLC media options applied to every source
-   */
   @VisibleForTesting
   VlcPlayer(final SharedMediaPlayerFactory sharedFactory, final long openTimeoutMilliseconds, final String... mediaOptions) {
     Preconditions.checkNotNull(sharedFactory, "Shared factory must not be null!");
@@ -196,11 +189,9 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     return this.startReservedPlayback(transition, video);
   }
 
-  /**
-   * Reserves ownership before foreign acquisition code can reenter the player. Reservation and acquisition share
-   * one lock scope; no empty, unclaimed reservation is ever visible to release. The replacement acquires the shared
-   * VLC engine before the previous playback is detached.
-   */
+  // Reserves ownership before foreign acquisition code can reenter the player. Reservation and acquisition share one
+  // lock scope; no empty, unclaimed reservation is ever visible to release. The replacement acquires the shared VLC
+  // engine before the previous playback is detached.
   private boolean prepareCandidate(final StartTransition transition, final Source video, final @Nullable Source audio) {
     this.lock.lock();
     try {
@@ -221,7 +212,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     }
   }
 
-  /** A failed acquisition keeps the old playback unless a reentrant release cancelled it. */
   private void cleanFailedPreparation(final StartTransition transition) {
     this.lock.lock();
     try {
@@ -243,7 +233,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     }
   }
 
-  /** Claims a candidate for failed-transition cleanup only if release has not taken its ownership. */
   private boolean claimCandidate(final StartTransition transition) {
     this.lock.lock();
     try {
@@ -276,7 +265,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     return result == OpenResult.STARTED;
   }
 
-  /** Serializes native open with release; no renderer joins or failure cleanup run under this lock. */
   private OpenResult openCandidate(final StartTransition transition) {
     this.lock.lock();
     try {
@@ -305,7 +293,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     }
   }
 
-  /** Retains the reservation during cleanup so another start cannot overtake unfinished renderer shutdown. */
   private void cleanCandidate(final StartTransition transition) {
     try {
       final VlcPlayback created = Objects.requireNonNull(transition.created, "A prepared transition owns a candidate!");
@@ -315,7 +302,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     }
   }
 
-  /** Only the owner of a claimed candidate calls this; release and competing starts leave that reservation intact. */
   private void clearReservation() {
     this.lock.lock();
     try {
@@ -467,12 +453,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     this.exceptionHandler = exceptionHandler;
   }
 
-  /**
-   * Creates the media options for one VLC media player: the options of this player, followed by an extra option.
-   *
-   * @param extra the extra option, or {@code null} for none
-   * @return a new array of options
-   */
   String[] createMediaOptions(final @Nullable String extra) {
     if (extra == null) {
       return this.mediaOptions.clone();
@@ -528,25 +508,14 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     return this.exceptionHandler;
   }
 
-  /**
-   * Returns the VLC instance the playbacks of this player use.
-   *
-   * @return the shared factory
-   */
   SharedMediaPlayerFactory getSharedFactory() {
     return this.sharedFactory;
   }
 
-  /**
-   * Returns how long starting waits at most for VLC to open the media.
-   *
-   * @return the timeout in milliseconds
-   */
   long getOpenTimeoutMilliseconds() {
     return this.openTimeoutMilliseconds;
   }
 
-  /** One candidate and its previous playback; all access to claimed is guarded by the player lock. */
   private static final class StartTransition {
 
     private @Nullable VlcPlayback created;

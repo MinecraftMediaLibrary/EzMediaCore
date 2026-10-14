@@ -202,14 +202,9 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     return indices;
   }
 
-  /**
-   * Remembers the indices of a frame for the next one. The caller owns the returned indices and may modify them, so
-   * the algorithm keeps a copy. The indices of the previous frame were only read while the frame was dithered, which
-   * has finished, so their array receives the copy instead of a new one whenever the frame has the same size.
-   *
-   * @param indices  the indices of the frame that was just dithered
-   * @param previous the indices of the frame before, or {@code null} if there were none of the same size
-   */
+  // Remembers the indices of a frame for the next one. The caller owns the returned indices and may modify them, so the
+  // algorithm keeps a copy. The indices of the previous frame were only read while the frame was dithered, which has
+  // finished, so their array receives the copy instead of a new one whenever the frame has the same size.
   private void remember(final byte[] indices, final byte @Nullable [] previous) {
     if (previous == null) {
       this.previousIndices = indices.clone();
@@ -272,10 +267,6 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     return previous;
   }
 
-  /**
-   * Dithers the rows from {@code startY} to {@code endY}, warming up on the rows above so the strip joins its
-   * neighbors seamlessly.
-   */
   private void ditherStrip(
     final int[] pixels,
     final int width,
@@ -329,9 +320,6 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     return this.errorStrength / (float) STRENGTH_SCALE;
   }
 
-  /**
-   * One pass of the algorithm over one horizontal strip of an image.
-   */
   private final class StripPass {
 
     private final int[] pixels;
@@ -394,11 +382,6 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       this.diffuseError(wanted, chosenColor, column, row, step);
     }
 
-    /**
-     * Finds the palette index the pixel had in the previous frame, if its wanted color is still close to it.
-     *
-     * @return the previous palette index from 0 to 255, or -1 if the pixel needs a new color
-     */
     private int findReusableIndex(final int pixelIndex, final int wanted) {
       final byte[] previousFrame = this.previous;
       if (previousFrame == null) {

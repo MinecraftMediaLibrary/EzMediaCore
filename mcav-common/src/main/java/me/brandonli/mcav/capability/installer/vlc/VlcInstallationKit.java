@@ -56,13 +56,6 @@ public final class VlcInstallationKit {
   private final VlcDiscovery discovery;
   private final VlcLoadState loadState;
 
-  /**
-   * Constructs a new kit.
-   *
-   * @param installer the installer used when the system has no VLC
-   * @param discovery finds and loads the VLC libraries
-   * @param loadState remembers whether libvlc was loaded
-   */
   @VisibleForTesting
   VlcInstallationKit(final Installer installer, final VlcDiscovery discovery, final VlcLoadState loadState) {
     this.installer = installer;
@@ -155,21 +148,11 @@ public final class VlcInstallationKit {
     LOGGER.info("The VLC installation of the system at {} is used.", systemPath);
   }
 
-  /**
-   * Returns the installer this kit uses when the system has no VLC.
-   *
-   * @return the installer
-   */
   @VisibleForTesting
   Installer getInstaller() {
     return this.installer;
   }
 
-  /**
-   * Returns the state that remembers whether libvlc was loaded, which kits created by the factory methods share.
-   *
-   * @return the load state
-   */
   @VisibleForTesting
   VlcLoadState getLoadState() {
     return this.loadState;

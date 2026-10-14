@@ -44,9 +44,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class DirectAudioOutput implements FunctionalAudioFilter {
 
-  /**
-   * The format of the samples this filter plays, which is the format every player delivers.
-   */
   @VisibleForTesting
   static final AudioFormat FORMAT = new AudioFormat(SAMPLE_RATE, BYTES_PER_SAMPLE * 8, CHANNELS, true, false);
 
@@ -65,11 +62,6 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     this(DirectAudioOutput::openDefaultLine);
   }
 
-  /**
-   * Constructs an output that opens its line through the specified opener.
-   *
-   * @param lineOpener opens the audio line in {@link #start()}
-   */
   @VisibleForTesting
   DirectAudioOutput(final LineOpener lineOpener) {
     Preconditions.checkNotNull(lineOpener, "Line opener must not be null!");
@@ -111,12 +103,6 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     return false;
   }
 
-  /**
-   * Returns the array chunks are copied into, growing it when a chunk does not fit.
-   *
-   * @param length the length of the chunk in bytes
-   * @return an array of at least that length
-   */
   @VisibleForTesting
   byte[] getChunkArray(final int length) {
     final byte[] current = this.chunk;
@@ -227,19 +213,8 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     }
   }
 
-  /**
-   * Opens an audio line with a format and a buffer size.
-   */
   @FunctionalInterface
   interface LineOpener {
-    /**
-     * Opens a line.
-     *
-     * @param format     the format of the samples
-     * @param bufferSize the size of the line buffer in bytes
-     * @return the opened line, not yet started
-     * @throws LineUnavailableException if no line can be opened
-     */
     SourceDataLine open(AudioFormat format, int bufferSize) throws LineUnavailableException;
   }
 }

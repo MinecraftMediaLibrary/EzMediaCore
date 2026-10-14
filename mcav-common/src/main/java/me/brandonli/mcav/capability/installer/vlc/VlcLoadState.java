@@ -22,32 +22,21 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Remembers the outcome of loading libvlc. libvlc can only be loaded once per JVM, so the first successful load
- * decides the result of every later one. A failed load is not remembered, so it can be retried, for example once
- * the network is back.
- */
+// Remembers the outcome of loading libvlc. libvlc can only be loaded once per JVM, so the first successful load decides
+// the result of every later one. A failed load is not remembered, so it can be retried, for example once the network is
+// back.
 final class VlcLoadState {
 
   private final Object lock;
   private boolean loaded;
   private @Nullable Path libraryDirectory;
 
-  /**
-   * Constructs a new state in which nothing has been loaded yet.
-   */
   VlcLoadState() {
     this.lock = new Object();
   }
 
-  /**
-   * Runs the loader unless an earlier call succeeded, in which case the earlier result is returned. Concurrent
-   * calls are serialized, so the loader never runs twice at the same time.
-   *
-   * @param loader loads libvlc
-   * @return the directory libvlc was loaded from, or empty if the location is unknown
-   * @throws IOException if the loader fails
-   */
+  // Runs the loader unless an earlier call succeeded, in which case the earlier result is returned. Concurrent calls
+  // are serialized, so the loader never runs twice at the same time.
   Optional<Path> loadOnce(final Loader loader) throws IOException {
     synchronized (this.lock) {
       if (!this.loaded) {
@@ -60,17 +49,8 @@ final class VlcLoadState {
     }
   }
 
-  /**
-   * Loads libvlc.
-   */
   @FunctionalInterface
   interface Loader {
-    /**
-     * Loads libvlc.
-     *
-     * @return the directory libvlc was loaded from, or empty if the location is unknown
-     * @throws IOException if VLC has to be downloaded and the download fails
-     */
     Optional<Path> load() throws IOException;
   }
 }

@@ -33,21 +33,10 @@ public class InputMetadataException extends MCAVException {
   @Serial
   private static final long serialVersionUID = -2964304434518823943L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the source and what is missing
-   */
   InputMetadataException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which names the source and why it could not be read
-   * @param cause   the underlying failure, such as the decoder error
-   */
   InputMetadataException(final String message, final Throwable cause) {
     super(message, cause);
   }

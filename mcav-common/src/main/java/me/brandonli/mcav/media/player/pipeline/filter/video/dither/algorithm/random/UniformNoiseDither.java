@@ -85,11 +85,6 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
     Preconditions.checkArgument(weight >= 0 && weight <= MAXIMUM_WEIGHT, "Weight must be between 0 and 255!");
   }
 
-  /**
-   * Returns the random number provider the calling thread draws its noise from.
-   *
-   * @return the provider of the calling thread
-   */
   @VisibleForTesting
   RandomNumberProvider getRandomNumberProvider() {
     final RandomNumberProvider provider = this.providers.get();

@@ -31,11 +31,6 @@ public class UnsupportedOperatingSystemException extends MCAVException {
   @Serial
   private static final long serialVersionUID = 885934601050385987L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the system or explains why VLC cannot be provided on it
-   */
   UnsupportedOperatingSystemException(final String message) {
     super(message);
   }

@@ -58,11 +58,6 @@ public final class KeyUtils {
     return output.toString();
   }
 
-  /**
-   * Appends the character, escaped brace or key character that starts at the index to the output.
-   *
-   * @return the index just past what was consumed
-   */
   private static int appendNext(final String input, final int index, final StringBuilder output) {
     final char current = input.charAt(index);
     if (current != OPEN) {
@@ -80,12 +75,6 @@ public final class KeyUtils {
     return appendKey(input, index, output);
   }
 
-  /**
-   * Appends the character of the key whose name is enclosed in braces at the index, or the opening brace itself
-   * if the braces do not enclose the name of a key.
-   *
-   * @return the index just past what was consumed
-   */
   private static int appendKey(final String input, final int index, final StringBuilder output) {
     final int close = input.indexOf(CLOSE, index + 1);
     if (close < 0) {

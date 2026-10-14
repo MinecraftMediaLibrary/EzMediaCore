@@ -33,20 +33,14 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Size;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Copies decoded frames into images of an {@link ImagePool}, scaling them to the attached size when the decoder did
- * not.
- *
- * <p>FFmpeg scales while it converts the pixel format, which is the cheapest place to do it. Other decoders, such as
- * the file reader of OpenCV, ignore the requested size, so their frames are scaled here, straight from the memory of
- * the decoder into the pooled image, with area averaging when shrinking and bilinear interpolation when enlarging.
- * Frames whose pixels do not live in native memory cannot be read by OpenCV directly; they are copied into an image of
- * their own size first, which is kept for the next frame. Pooled images of another size are resized in place, which
- * reuses their spare matrix, see {@link MatImageBuffer#setSize(int, int)}. Once the sizes are settled, no memory is
- * allocated per frame.
- *
- * <p>Instances belong to the decoding thread of one session and are not thread-safe.
- */
+// Copies decoded frames into images of an ImagePool, scaling them to the attached size when the decoder did not. FFmpeg
+// scales while it converts the pixel format, which is the cheapest place to do it. Other decoders, such as the file
+// reader of OpenCV, ignore the requested size, so their frames are scaled here, straight from the memory of the decoder
+// into the pooled image, with area averaging when shrinking and bilinear interpolation when enlarging. Frames whose
+// pixels do not live in native memory cannot be read by OpenCV directly; they are copied into an image of their own
+// size first, which is kept for the next frame. Pooled images of another size are resized in place, which reuses their
+// spare matrix, see MatImageBuffer.setSize(int, int). Once the sizes are settled, no memory is allocated per frame.
+// Instances belong to the decoding thread of one session and are not thread-safe.
 final class VideoFrameCopier {
 
   private final ImagePool pool;
@@ -54,25 +48,11 @@ final class VideoFrameCopier {
 
   private @Nullable MatImageBuffer unscaled;
 
-  /**
-   * Constructs a new copier.
-   *
-   * @param pool              the pool the images come from
-   * @param dimensionCallback provides the size frames are scaled to, if attached
-   */
   VideoFrameCopier(final ImagePool pool, final DimensionAttachableCallback dimensionCallback) {
     this.pool = pool;
     this.dimensionCallback = dimensionCallback;
   }
 
-  /**
-   * Copies a frame decoded to 8-bit BGR into an image from the pool, scaled to the attached size if it has another
-   * size.
-   *
-   * @param frame the frame, which the decoder may reuse as soon as this method returns
-   * @return the image, which the caller hands back to the pool once it is no longer used
-   * @throws IllegalArgumentException if the frame does not hold 8-bit pixels of a positive size
-   */
   MatImageBuffer copy(final Frame frame) {
     final int width = frame.imageWidth;
     final int height = frame.imageHeight;
@@ -103,9 +83,7 @@ final class VideoFrameCopier {
     }
   }
 
-  /**
-   * Releases the image unscaled frames were copied into. The copier can still be used afterward.
-   */
+  // Releases the image unscaled frames were copied into. The copier can still be used afterward.
   void release() {
     final MatImageBuffer image = this.unscaled;
     this.unscaled = null;
@@ -115,11 +93,6 @@ final class VideoFrameCopier {
     }
   }
 
-  /**
-   * Checks whether the copier holds a copy of an unscaled frame, which only frames outside of native memory need.
-   *
-   * @return true if an unscaled copy is kept for the next frame
-   */
   @VisibleForTesting
   boolean hasUnscaledCopy() {
     return this.unscaled != null;
@@ -133,10 +106,8 @@ final class VideoFrameCopier {
     return target;
   }
 
-  /**
-   * Scales a frame into an image of the target size, reading the pixels of the decoder in place when they live in
-   * native memory, and through a copy of the frame otherwise.
-   */
+  // Scales a frame into an image of the target size, reading the pixels of the decoder in place when they live in
+  // native memory, and through a copy of the frame otherwise.
   private MatImageBuffer scale(final Frame frame, final @Nullable MatImageBuffer pooled, final int width, final int height) {
     final ByteBuffer plane = getNativePlane(frame);
     if (plane != null && fitsPlane(frame, plane)) {
@@ -153,13 +124,6 @@ final class VideoFrameCopier {
     return resize(sourceMat, pooled, width, height);
   }
 
-  /**
-   * Creates a matrix header over the pixels of a frame, which uses the memory of the decoder without copying it.
-   *
-   * @param frame the frame, whose plane {@link #fitsPlane(Frame, ByteBuffer)} accepted
-   * @param plane the native plane of the frame
-   * @return the header, which the caller must close before the decoder reuses its memory
-   */
   private static Mat wrapDecodedPixels(final Frame frame, final ByteBuffer plane) {
     final ByteBuffer whole = plane.duplicate();
     whole.clear();
@@ -182,10 +146,8 @@ final class VideoFrameCopier {
     return null;
   }
 
-  /**
-   * Checks that a frame has a positive size and that its plane holds every row it claims, so OpenCV never reads past
-   * the end of the memory of the decoder.
-   */
+  // Checks that a frame has a positive size and that its plane holds every row it claims, so OpenCV never reads past
+  // the end of the memory of the decoder.
   private static boolean fitsPlane(final Frame frame, final ByteBuffer plane) {
     final int width = frame.imageWidth;
     final int height = frame.imageHeight;
@@ -211,10 +173,6 @@ final class VideoFrameCopier {
     return target;
   }
 
-  /**
-   * Returns the reusable image resized to the wanted size, which reuses its spare matrix when it has that size, or a
-   * new image if there is none.
-   */
   private static MatImageBuffer ensureSize(final @Nullable MatImageBuffer reusable, final int width, final int height) {
     if (reusable != null) {
       reusable.setSize(width, height);
@@ -226,11 +184,6 @@ final class VideoFrameCopier {
     return (MatImageBuffer) created;
   }
 
-  /**
-   * Returns the copy of an unscaled frame the copier holds, see {@link #hasUnscaledCopy()}.
-   *
-   * @return the copy, or null if the copier holds none
-   */
   @VisibleForTesting
   @Nullable MatImageBuffer getUnscaledCopy() {
     return this.unscaled;

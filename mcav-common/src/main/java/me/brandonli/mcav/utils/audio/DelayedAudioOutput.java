@@ -75,15 +75,11 @@ public final class DelayedAudioOutput implements AutoCloseable {
    */
   public static final String THREAD_NAME = "mcav-audio-output";
 
-  /**
-   * How long closing waits for the thread at most, in milliseconds, should the pipeline hold it.
-   */
   static final int JOIN_TIMEOUT_MILLISECONDS = 5_000;
 
   /** How much silence follows {@link #quiet()} at most, in milliseconds. */
   public static final int SILENCE_MILLISECONDS = 2_000;
 
-  /** How long each chunk of silence is, in milliseconds. */
   private static final int SILENCE_CHUNK_MILLISECONDS = 20;
 
   private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / MILLISECONDS_PER_SECOND) * AudioFilter.FRAME_SIZE;
@@ -163,19 +159,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     );
   }
 
-  /**
-   * Creates an output with another clock, so tests can check the delay, and starts its thread.
-   *
-   * @param source                    names the source in the failures it reports
-   * @param delayMilliseconds         how long every chunk is held, in milliseconds
-   * @param maximumQueuedMilliseconds the most sound that waits, the delay included, in milliseconds
-   * @param pipeline                  gives the audio pipeline of the player for every chunk
-   * @param failures                  receives a failure of the pipeline
-   * @param clock                     a monotonic clock in nanoseconds
-   * @param joinTimeoutMilliseconds   how long closing waits for a pipeline that holds the thread, in milliseconds
-   * @param silenceMilliseconds       how much silence follows {@link #quiet()} at most, in milliseconds
-   * @return the running output
-   */
+  // Creates an output with another clock, so tests can check the delay, and starts its thread.
   @VisibleForTesting
   static DelayedAudioOutput start(
     final String source,
@@ -287,12 +271,6 @@ public final class DelayedAudioOutput implements AutoCloseable {
     this.paused = false;
   }
 
-  /**
-   * Waits until the oldest chunk is due, and takes it.
-   *
-   * @return the samples, or null once the output is closed
-   * @throws InterruptedException if the thread is interrupted
-   */
   private synchronized @Nullable ByteBuffer take() throws InterruptedException {
     while (!this.closed) {
       final long now = this.clock.getAsLong();
@@ -330,12 +308,6 @@ public final class DelayedAudioOutput implements AutoCloseable {
     return samples;
   }
 
-  /**
-   * Makes the next chunk of silence of a quiet source, once the sound handed over has played: it ends when the next
-   * samples are due, or after a chunk, or when the silence allowed is used up.
-   *
-   * @return the silence, or null if none is due now
-   */
   private @Nullable ByteBuffer silence(final long now, final @Nullable Chunk next) {
     if (this.silenceLeftNanoseconds <= 0 || this.streamEnd - now > 0) {
       return null;
@@ -429,29 +401,17 @@ public final class DelayedAudioOutput implements AutoCloseable {
     current.interrupt();
   }
 
-  /**
-   * Returns the number of bytes that wait for the pipeline.
-   *
-   * @return the queued bytes
-   */
   @VisibleForTesting
   synchronized int getQueuedBytes() {
     return this.queuedBytes;
   }
 
-  /**
-   * Returns the thread that hands the samples over, so tests can interrupt it.
-   *
-   * @return the thread
-   */
+  // Returns the thread that hands the samples over, so tests can interrupt it.
   @VisibleForTesting
   Thread getThread() {
     return this.thread;
   }
 
-  /**
-   * Samples and the time they are due at the pipeline.
-   */
   private static final class Chunk {
 
     private final ByteBuffer samples;

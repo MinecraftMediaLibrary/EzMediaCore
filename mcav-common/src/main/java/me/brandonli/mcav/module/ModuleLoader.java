@@ -137,10 +137,8 @@ public final class ModuleLoader {
     }
   }
 
-  /**
-   * Stops a module whose start failed, so whatever it acquired before failing is released. A failure to stop is
-   * logged and attached to the start failure instead of replacing it.
-   */
+  // Stops a module whose start failed, so whatever it acquired before failing is released. A failure to stop is logged
+  // and attached to the start failure instead of replacing it.
   private static void stopAfterFailedStart(final MCAVModule module, final String moduleName, final ModuleException startFailure) {
     try {
       module.stop();

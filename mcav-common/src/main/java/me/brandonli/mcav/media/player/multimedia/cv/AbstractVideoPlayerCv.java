@@ -172,25 +172,20 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     );
   }
 
-  /**
-   * Makes the sessions started afterward show every frame however late it is, for tests whose frame counts must not
-   * depend on the load of the machine. Players drop frames more than {@link PlaybackSession#MAXIMUM_VIDEO_LAG_NANOSECONDS} late
-   * otherwise.
-   */
+  // Makes the sessions started afterward show every frame however late it is, for tests whose frame counts must not
+  // depend on the load of the machine. Players drop frames more than PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS late
+  // otherwise.
   @VisibleForTesting
   void neverDropLateFrames() {
     this.maximumVideoLagNanoseconds = Long.MAX_VALUE;
   }
 
-  /**
-   * Opens the sources in a new session and only then replaces the current session with it, so a source that cannot
-   * be opened leaves the current playback alone.
-   */
+  // Opens the sources in a new session and only then replaces the current session with it, so a source that cannot be
+  // opened leaves the current playback alone.
   private boolean startSources(final Source video, final @Nullable Source audio, final long positionMicroseconds, final boolean paused) {
     return this.startSources(video, audio, positionMicroseconds, paused, null);
   }
 
-  /** A reservation keeps competing starts from overtaking acquisition or shutdown, without holding the player lock. */
   private boolean startSources(
     final Source video,
     final @Nullable Source audio,
@@ -229,7 +224,6 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     }
   }
 
-  /** Ends an acquisition reservation after cleaning any candidate that was not published. */
   private void finishStart(final PlaybackSession created, final boolean started) {
     try {
       if (!started) {
@@ -249,7 +243,6 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     }
   }
 
-  /** Detaches the previous session before joining its workers outside the lock. */
   private @Nullable PlaybackSession takeSession() {
     this.lock.lock();
     try {
@@ -264,10 +257,8 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     }
   }
 
-  /**
-   * Release can cancel an acquisition or replacement; its owner then closes the prepared candidate. A seek keeps the
-   * speed of the media it seeks in, and new media plays at normal speed.
-   */
+  // Release can cancel an acquisition or replacement; its owner then closes the prepared candidate. A seek keeps the
+  // speed of the media it seeks in, and new media plays at normal speed.
   private boolean publishSession(final PlaybackSession created, final Source video, final @Nullable Source audio, final boolean seek) {
     this.lock.lock();
     try {
@@ -291,10 +282,6 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     }
   }
 
-  /**
-   * Opens a session, reporting every failure: grabbers throw checked exceptions for sources they cannot open,
-   * runtime exceptions for invalid options, and linkage errors when their native libraries cannot be loaded.
-   */
   private boolean openSession(final PlaybackSession created, final Source video) {
     try {
       created.open();

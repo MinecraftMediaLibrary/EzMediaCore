@@ -33,11 +33,6 @@ public class NoMatchingFormatException extends MCAVException {
   @Serial
   private static final long serialVersionUID = -8093712854432123795L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the kind of stream and the media that was searched
-   */
   NoMatchingFormatException(final String message) {
     super(message);
   }

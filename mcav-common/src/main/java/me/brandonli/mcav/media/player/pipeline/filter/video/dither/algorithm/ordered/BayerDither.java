@@ -416,13 +416,6 @@ public interface BayerDither extends DitherAlgorithm {
     return matrix;
   }
 
-  /**
-   * Builds the Bayer matrix of twice the size from a Bayer matrix, by replacing every entry with a 2x2 block of the
-   * entry times four plus the offsets of the 2x2 Bayer pattern.
-   *
-   * @param matrix the square matrix to double
-   * @return the matrix of twice the width and height
-   */
   private static int[][] doubleBayerMatrix(final int[][] matrix) {
     final int current = matrix.length;
     final int next = current * 2;

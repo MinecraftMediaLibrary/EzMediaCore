@@ -68,13 +68,6 @@ public final class MCAV implements MCAVApi {
     this(defaultDependencyLoader, defaultModuleLoader, sharedGuard);
   }
 
-  /**
-   * Creates an instance that installs through the specified loaders.
-   *
-   * @param dependencyLoader loads the natives and installs the optional programs
-   * @param moduleLoader     starts and stops the modules
-   * @param guard            records which programs are still being prepared, for the features that consult it
-   */
   @VisibleForTesting
   MCAV(final DependencyLoader dependencyLoader, final ModuleLoader moduleLoader, final CapabilityGuard guard) {
     this.dependencyLoader = dependencyLoader;
@@ -209,11 +202,6 @@ public final class MCAV implements MCAVApi {
     return this.moduleLoader.getModule(moduleClass);
   }
 
-  /**
-   * Checks whether MCAV trims the native heap, which it does while it is installed on Linux.
-   *
-   * @return true if a trimmer runs
-   */
   @VisibleForTesting
   boolean isTrimmingNativeHeap() {
     return this.trimmer.isTrimming();

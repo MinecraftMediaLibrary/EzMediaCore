@@ -19,15 +19,12 @@ package me.brandonli.mcav.media.player.multimedia.cv;
 
 import java.util.function.LongSupplier;
 
-/**
- * Gives every decoded video frame a timestamp the playback clock can schedule.
- *
- * <p>FFmpeg stamps every frame, but the video reader of OpenCV stamps every frame with zero. Without real timestamps
- * every frame would be due at once, so the frames of a file would race by or be dropped as late. Whenever a frame
- * does not come after the previous one, its timestamp is derived instead: media of a known length advances by one
- * frame period of the reported frame rate, and live sources, such as cameras, use the time that passed since their
- * first frame, because they deliver frames in real time anyway. Instances belong to one decoding thread.
- */
+// Gives every decoded video frame a timestamp the playback clock can schedule. FFmpeg stamps every frame, but the video
+// reader of OpenCV stamps every frame with zero. Without real timestamps every frame would be due at once, so the
+// frames of a file would race by or be dropped as late. Whenever a frame does not come after the previous one, its
+// timestamp is derived instead: media of a known length advances by one frame period of the reported frame rate, and
+// live sources, such as cameras, use the time that passed since their first frame, because they deliver frames in real
+// time anyway. Instances belong to one decoding thread.
 final class VideoTimestamps {
 
   private static final double MICROSECONDS_PER_SECOND = 1_000_000.0;
@@ -41,26 +38,12 @@ final class VideoTimestamps {
   private long firstNanoseconds;
   private long lastTimestamp;
 
-  /**
-   * Constructs a new timeline.
-   *
-   * @param frameRate       the frame rate the decoder reports, or zero or less if it reports none
-   * @param live            whether the source delivers frames in real time, such as a camera or a stream without length
-   * @param nanosecondClock the clock the time between frames of live sources is measured with, usually
-   *                        {@link System#nanoTime()}
-   */
   VideoTimestamps(final double frameRate, final boolean live, final LongSupplier nanosecondClock) {
     final boolean usableRate = !live && frameRate > 0 && Double.isFinite(frameRate);
     this.frameMicroseconds = usableRate ? Math.round(MICROSECONDS_PER_SECOND / frameRate) : 0L;
     this.nanosecondClock = nanosecondClock;
   }
 
-  /**
-   * Returns the timestamp of the next video frame.
-   *
-   * @param reported the timestamp the decoder reported in microseconds
-   * @return the reported timestamp if it comes after the previous frame, a derived one otherwise
-   */
   long next(final long reported) {
     final long now = this.nanosecondClock.getAsLong();
     if (!this.started) {

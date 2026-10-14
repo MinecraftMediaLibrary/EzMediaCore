@@ -151,13 +151,6 @@ public abstract class AbstractInstaller implements Installer {
     return IoUtils.getCachedFolder();
   }
 
-  /**
-   * Returns the file name of an executable on an operating system, which carries the {@code .exe} suffix on Windows.
-   *
-   * @param name            the name of the program
-   * @param operatingSystem the operating system
-   * @return the file name
-   */
   @VisibleForTesting
   static String getExecutableFileName(final String name, final Os operatingSystem) {
     if (operatingSystem == Os.WINDOWS) {
@@ -409,13 +402,8 @@ public abstract class AbstractInstaller implements Installer {
     }
   }
 
-  /**
-   * Finds the download for a platform, falling back to the downloads of {@link #getFallbackPlatforms(Platform)}.
-   * Unknown platforms, whose operating system or architecture is {@code OTHER}, never get a download.
-   *
-   * @param platform the platform to find the download for
-   * @return the download, or empty if neither the platform nor any of its fallbacks has one
-   */
+  // Finds the download for a platform, falling back to the downloads of getFallbackPlatforms(Platform). Unknown
+  // platforms, whose operating system or architecture is OTHER, never get a download.
   @VisibleForTesting
   Optional<Download> findDownload(final Platform platform) {
     final boolean known = platform.isKnown();

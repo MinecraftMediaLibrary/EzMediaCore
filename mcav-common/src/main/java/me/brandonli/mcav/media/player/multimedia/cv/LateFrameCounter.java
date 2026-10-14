@@ -17,31 +17,19 @@
  */
 package me.brandonli.mcav.media.player.multimedia.cv;
 
-/**
- * Counts the frames the video renderer of a session shows and the frames it drops for being late, and reports a stretch
- * of video in which it dropped most of them. A source that decodes, or a pipeline that runs, slower than the video plays
- * freezes the picture without a word otherwise, which looks like a hang.
- *
- * <p>A stretch is ten seconds of video by its own timestamps, so a pause, which hands over no frames, does not count.
- * It is reported when at least ten of its frames and more than half of them were dropped, and at most once a minute of
- * video. A still picture keeps its frames on time and is never reported. Instances belong to the video renderer of one
- * session and are not thread-safe.
- */
+// Counts the frames the video renderer of a session shows and the frames it drops for being late, and reports a stretch
+// of video in which it dropped most of them. A source that decodes, or a pipeline that runs, slower than the video
+// plays freezes the picture without a word otherwise, which looks like a hang. A stretch is ten seconds of video by its
+// own timestamps, so a pause, which hands over no frames, does not count. It is reported when at least ten of its
+// frames and more than half of them were dropped, and at most once a minute of video. A still picture keeps its frames
+// on time and is never reported. Instances belong to the video renderer of one session and are not thread-safe.
 final class LateFrameCounter {
 
-  /**
-   * How much video one count covers, in microseconds.
-   */
   private static final long WINDOW_MICROSECONDS = 10_000_000L;
 
-  /**
-   * How many frames of a stretch must have been dropped at least to report it.
-   */
+  // How many frames of a stretch must have been dropped at least to report it.
   private static final int MINIMUM_DROPPED = 10;
 
-  /**
-   * How much video passes at least between two reports, in microseconds.
-   */
   private static final long REPORT_INTERVAL_MICROSECONDS = 60_000_000L;
 
   private final PlaybackSession.LagListener listener;
@@ -53,21 +41,10 @@ final class LateFrameCounter {
   private boolean reported;
   private long lastReportMicroseconds;
 
-  /**
-   * Creates a counter.
-   *
-   * @param listener hears of every stretch reported
-   */
   LateFrameCounter(final PlaybackSession.LagListener listener) {
     this.listener = listener;
   }
 
-  /**
-   * Counts a frame the renderer showed or dropped.
-   *
-   * @param timestampMicroseconds the timestamp of the frame
-   * @param late                  whether the frame came too late and was dropped
-   */
   void count(final long timestampMicroseconds, final boolean late) {
     if (!this.counting || timestampMicroseconds < this.windowStartMicroseconds) {
       this.counting = true;

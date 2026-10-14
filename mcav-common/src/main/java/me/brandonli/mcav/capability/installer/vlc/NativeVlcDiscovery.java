@@ -23,12 +23,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
-/**
- * Discovers VLC with vlcj's {@link NativeDiscovery} and the bounded discovery strategies of this library.
- *
- * <p>vlcj remembers a successful discovery for the rest of the JVM's lifetime, so once the libraries are loaded,
- * every later discovery succeeds immediately without reporting a directory.
- */
+// Discovers VLC with vlcj's NativeDiscovery and the bounded discovery strategies of this library. vlcj remembers a
+// successful discovery for the rest of the JVM's lifetime, so once the libraries are loaded, every later discovery
+// succeeds immediately without reporting a directory.
 final class NativeVlcDiscovery implements VlcDiscovery {
 
   private @Nullable String discoveredPath;

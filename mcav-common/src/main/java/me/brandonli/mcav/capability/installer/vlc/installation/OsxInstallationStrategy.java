@@ -55,12 +55,6 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     super(installer);
   }
 
-  /**
-   * Constructs a new strategy that runs {@code hdiutil} and {@code cp} through the specified runner.
-   *
-   * @param installer     the installer whose installation directory is used
-   * @param processRunner runs the disk image tools
-   */
   OsxInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     super(installer, processRunner);
   }
@@ -107,10 +101,8 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     return directory;
   }
 
-  /**
-   * Mounts the disk image read-only, copies {@code VLC.app} out of it, and unmounts it again. When the copy fails,
-   * the image is still detached, and a failure to detach is attached to the copy failure instead of hiding it.
-   */
+  // Mounts the disk image read-only, copies VLC.app out of it, and unmounts it again. When the copy fails, the image is
+  // still detached, and a failure to detach is attached to the copy failure instead of hiding it.
   private void copyFromDiskImage(final Path archive, final Path mountPoint, final Path installDirectory) throws IOException {
     final String rawArchive = archive.toString();
     final String rawMountPoint = mountPoint.toString();
@@ -136,11 +128,9 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     }
   }
 
-  /**
-   * Detaches the disk image, forcing it when a regular detach fails, for example because a process still has a file
-   * of the image open. The mount point is only deleted once the image is detached, because deleting it while mounted
-   * would reach into the image.
-   */
+  // Detaches the disk image, forcing it when a regular detach fails, for example because a process still has a file of
+  // the image open. The mount point is only deleted once the image is detached, because deleting it while mounted would
+  // reach into the image.
   private void detach(final Path mountPoint) throws IOException {
     final String rawMountPoint = mountPoint.toString();
     try {

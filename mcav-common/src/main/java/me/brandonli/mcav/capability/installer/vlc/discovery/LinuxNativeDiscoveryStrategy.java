@@ -56,21 +56,10 @@ public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStra
     super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, posixSetter);
   }
 
-  /**
-   * Constructs a strategy with custom directories and a custom way of publishing the plugin path.
-   *
-   * @param searchProviders   the providers of the directories to search
-   * @param environmentSetter sets the plugin path variable
-   */
   LinuxNativeDiscoveryStrategy(final List<SearchProvider> searchProviders, final EnvironmentSetter environmentSetter) {
     super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
   }
 
-  /**
-   * Creates the setter that publishes variables with {@code setenv} of the C library of this process.
-   *
-   * @return the setter
-   */
   static EnvironmentSetter nativeSetter() {
     final EnvironmentVariables variables = EnvironmentVariables.nativeVariables();
     return variables::setPosixVariable;

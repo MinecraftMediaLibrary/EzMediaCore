@@ -20,49 +20,26 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
 import java.nio.file.Path;
 import uk.co.caprica.vlcj.factory.discovery.provider.DiscoveryDirectoryProvider;
 
-/**
- * A directory provider that names exactly one directory, used to load the libraries of a VLC installation whose
- * location is already known.
- */
 final class FixedDirectoryProvider implements DiscoveryDirectoryProvider {
 
   private final String directory;
 
-  /**
-   * Constructs a new provider.
-   *
-   * @param directory the directory to provide
-   */
   FixedDirectoryProvider(final Path directory) {
     final Path absolute = directory.toAbsolutePath();
     this.directory = absolute.toString();
   }
 
-  /**
-   * Returns the priority of the provider, which is the highest possible because the directory was chosen explicitly.
-   *
-   * @return {@link Integer#MAX_VALUE}
-   */
+  // Returns the priority of the provider, which is the highest possible because the directory was chosen explicitly.
   @Override
   public int priority() {
     return Integer.MAX_VALUE;
   }
 
-  /**
-   * Returns the provided directory.
-   *
-   * @return an array holding the absolute path of the directory
-   */
   @Override
   public String[] directories() {
     return new String[] { this.directory };
   }
 
-  /**
-   * Checks whether the provider can be used, which is always the case.
-   *
-   * @return true
-   */
   @Override
   public boolean supported() {
     return true;

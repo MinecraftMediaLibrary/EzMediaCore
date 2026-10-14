@@ -41,9 +41,6 @@ public final class FfmpegExecutableProvider {
     return ExecutableHolder.EXECUTABLE;
   }
 
-  /**
-   * Extracts the executable the first time it is needed; the JVM guarantees that this happens exactly once.
-   */
   private static final class ExecutableHolder {
 
     private static final Path EXECUTABLE = extract();

@@ -167,9 +167,7 @@ public final class CapabilityGuard {
     );
   }
 
-  /**
-   * What the guard knows about a capability. A capability without a state is not guarded.
-   */
+  // What the guard knows about a capability. A capability without a state is not guarded.
   private enum State {
     PREPARING,
     UNAVAILABLE,

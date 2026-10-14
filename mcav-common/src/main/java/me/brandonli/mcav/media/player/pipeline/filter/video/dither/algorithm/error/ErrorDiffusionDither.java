@@ -88,13 +88,6 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
     this.run(buffer, width, null);
   }
 
-  /**
-   * Runs the algorithm over an image.
-   *
-   * @param pixels  the ARGB pixels of the image
-   * @param width   the width of the image
-   * @param indices the array that receives the palette indices, or null to replace the pixels with palette colors
-   */
   private void run(final int[] pixels, final int width, final byte @Nullable [] indices) {
     final DiffusionPass pass = new DiffusionPass(pixels, width, indices);
     pass.run();
@@ -109,9 +102,6 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
     return this.kernel;
   }
 
-  /**
-   * One pass of the algorithm over one image.
-   */
   private final class DiffusionPass {
 
     private final int[] pixels;

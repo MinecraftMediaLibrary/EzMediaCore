@@ -72,10 +72,8 @@ public class TintFilter extends MatVideoFilter {
     return true;
   }
 
-  /**
-   * Makes a matrix of the tint color with the size and type of the frame. A matrix that already has them holds the
-   * color from an earlier frame, because nothing else writes into it, and is left untouched.
-   */
+  // Makes a matrix of the tint color with the size and type of the frame. A matrix that already has them holds the
+  // color from an earlier frame, because nothing else writes into it, and is left untouched.
   private void fillLike(final Mat solid, final Mat frame) {
     final int rows = frame.rows();
     final int columns = frame.cols();

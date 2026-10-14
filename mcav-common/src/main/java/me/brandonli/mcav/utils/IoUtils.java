@@ -153,14 +153,6 @@ public final class IoUtils {
     return findFreePort(FIRST_VNC_PORT, LAST_PORT);
   }
 
-  /**
-   * Finds the first port in a range that nothing is listening on.
-   *
-   * @param firstPort the first port to try
-   * @param lastPort  the last port to try
-   * @return the free port
-   * @throws UncheckedIOException if every port in the range is in use
-   */
   @VisibleForTesting
   static int findFreePort(final int firstPort, final int lastPort) {
     for (int port = firstPort; port <= lastPort; port++) {
@@ -312,16 +304,6 @@ public final class IoUtils {
     moveReplacing(source, target, Files::move, MOVE_RETRY_DELAY);
   }
 
-  /**
-   * Moves a file with the specified mover, falling back to a regular move when the atomic move is not supported and
-   * trying a move that is denied access again after a delay.
-   *
-   * @param source     the file to move
-   * @param target     the destination, which is replaced if it exists
-   * @param mover      performs the move
-   * @param retryDelay the delay before the second attempt; the third attempt waits twice as long
-   * @throws IOException if the file cannot be moved
-   */
   @VisibleForTesting
   static void moveReplacing(final Path source, final Path target, final FileMover mover, final Duration retryDelay) throws IOException {
     for (int attempt = 1; ; attempt++) {
@@ -539,10 +521,8 @@ public final class IoUtils {
     return downloads;
   }
 
-  /**
-   * Parses a download list. Malformed JSON is reported as an {@link IOException}, because a resource that cannot be
-   * parsed is an I/O failure of that resource, and {@link UncheckedIOException} can only wrap an {@link IOException}.
-   */
+  // Parses a download list. Malformed JSON is reported as an IOException, because a resource that cannot be parsed is
+  // an I/O failure of that resource, and UncheckedIOException can only wrap an IOException.
   private static Download @Nullable [] parseDownloads(final Reader reader) throws IOException {
     final Gson gson = new Gson();
     final TypeToken<Download[]> typeToken = new TypeToken<>() {};
@@ -631,14 +611,6 @@ public final class IoUtils {
     unzip(archive, destination, MAXIMUM_ZIP_ENTRY_SIZE, MAXIMUM_ZIP_TOTAL_SIZE);
   }
 
-  /**
-   * Extracts a zip archive into a directory with custom size limits.
-   *
-   * @param archive          the zip archive
-   * @param destination      the directory to extract into, which is created if it does not exist
-   * @param maximumEntrySize the largest number of bytes a single entry may extract to
-   * @param maximumTotalSize the largest number of bytes the whole archive may extract to
-   */
   @VisibleForTesting
   static void unzip(final Path archive, final Path destination, final long maximumEntrySize, final long maximumTotalSize) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
@@ -659,9 +631,6 @@ public final class IoUtils {
     }
   }
 
-  /**
-   * Requires a complete first header: ZipInputStream silently accepts a truncated one as an empty archive.
-   */
   private static void requireZipArchive(final Path archive) throws IOException {
     try (final InputStream stream = Files.newInputStream(archive)) {
       final byte[] signature = stream.readNBytes(ZIP_SIGNATURE_LENGTH);
@@ -803,9 +772,6 @@ public final class IoUtils {
     return !rebuilt.equals(target);
   }
 
-  /**
-   * Rejects existing links, including dangling links, in every component below the real extraction root.
-   */
   private static void rejectSymbolicLinks(final Path destination, final Path target, final String name) {
     final Path relative = destination.relativize(target);
     Path current = destination;
@@ -865,20 +831,9 @@ public final class IoUtils {
     return entrySize;
   }
 
-  /**
-   * Moves a file, like {@link Files#move(Path, Path, CopyOption...)}.
-   */
   @FunctionalInterface
   @VisibleForTesting
   interface FileMover {
-    /**
-     * Moves the file.
-     *
-     * @param source  the file to move
-     * @param target  the destination
-     * @param options how the file is moved
-     * @throws IOException if the file cannot be moved
-     */
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 }

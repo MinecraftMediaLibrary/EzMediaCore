@@ -17,51 +17,27 @@
  */
 package me.brandonli.mcav.media.player.multimedia.vlc;
 
-/**
- * A frame copied out of the VLC surface as packed ARGB pixels, waiting for the render thread.
- */
 final class DecodedFrame {
 
   private final int[] pixels;
   private final int width;
   private final int height;
 
-  /**
-   * Constructs a new frame. The array is taken over, not copied.
-   *
-   * @param pixels the pixels, {@code width * height} integers laid out row by row
-   * @param width  the width in pixels
-   * @param height the height in pixels
-   */
+  // Constructs a new frame. The array is taken over, not copied.
   DecodedFrame(final int[] pixels, final int width, final int height) {
     this.pixels = pixels;
     this.width = width;
     this.height = height;
   }
 
-  /**
-   * Returns the pixels of the frame.
-   *
-   * @return the packed ARGB pixels, laid out row by row
-   */
   int[] getPixels() {
     return this.pixels;
   }
 
-  /**
-   * Returns the width of the frame.
-   *
-   * @return the width in pixels
-   */
   int getWidth() {
     return this.width;
   }
 
-  /**
-   * Returns the height of the frame.
-   *
-   * @return the height in pixels
-   */
   int getHeight() {
     return this.height;
   }

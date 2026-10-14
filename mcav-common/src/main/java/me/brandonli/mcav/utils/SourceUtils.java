@@ -209,14 +209,6 @@ public final class SourceUtils {
     return isDynamicStream(url, parser);
   }
 
-  /**
-   * Asks a parser whether a URL is a live stream.
-   *
-   * @param url    the URL of a web page or stream
-   * @param parser the parser that resolves the URL
-   * @return true if the parser reports the URL as live, false if it does not, if the URL is invalid, or if the
-   * parser fails
-   */
   @VisibleForTesting
   static boolean isDynamicStream(final String url, final YtdlpParser parser) {
     try {

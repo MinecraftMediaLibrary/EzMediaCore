@@ -69,12 +69,6 @@ public final class VlcInstaller extends AbstractInstaller {
 
   private final AtomicBoolean legacyInstallationsRemoved;
 
-  /**
-   * Constructs a new installer with custom downloads.
-   *
-   * @param folder    the folder to install into
-   * @param downloads supplies the downloads of VLC
-   */
   @VisibleForTesting
   VlcInstaller(final Path folder, final Supplier<Download[]> downloads) {
     super(folder, NAME, downloads);
@@ -148,28 +142,15 @@ public final class VlcInstaller extends AbstractInstaller {
     }
   }
 
-  /**
-   * Looks for the libraries of an earlier installation inside the installation directory. A directory without the
-   * libraries, such as one left behind by an interrupted installation, does not count. The first call also deletes
-   * the installations that earlier versions of the library left behind.
-   *
-   * @return the directory that contains the libraries, or empty if VLC has to be installed
-   * @throws IOException if the installation directory cannot be searched
-   */
+  // Looks for the libraries of an earlier installation inside the installation directory. A directory without the
+  // libraries, such as one left behind by an interrupted installation, does not count. The first call also deletes the
+  // installations that earlier versions of the library left behind.
   @Override
   protected Optional<Path> findExistingInstallation() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     return this.findExistingInstallation(operatingSystem);
   }
 
-  /**
-   * Looks for an earlier installation made for an operating system.
-   *
-   * @param operatingSystem the operating system
-   * @return the directory that contains the libraries, or empty if VLC has to be installed or cannot be installed
-   * on the system at all
-   * @throws IOException if the installation directory cannot be searched
-   */
   @VisibleForTesting
   Optional<Path> findExistingInstallation(final Os operatingSystem) throws IOException {
     this.removeLegacyInstallationsOnce();
@@ -192,14 +173,10 @@ public final class VlcInstaller extends AbstractInstaller {
     removeLegacyInstallations(folder);
   }
 
-  /**
-   * Deletes the installations earlier versions of the library left in the installer folder: {@code vlc-junest} on
-   * Linux and {@code VLC.app} on macOS. Only these exact directories are deleted. A symbolic link or a regular file
-   * with one of these names is left alone, and links inside the directories are deleted without following them. A
-   * directory that cannot be deleted is logged and left behind.
-   *
-   * @param folder the installer folder
-   */
+  // Deletes the installations earlier versions of the library left in the installer folder: vlc-junest on Linux and
+  // VLC.app on macOS. Only these exact directories are deleted. A symbolic link or a regular file with one of these
+  // names is left alone, and links inside the directories are deleted without following them. A directory that cannot
+  // be deleted is logged and left behind.
   @VisibleForTesting
   static void removeLegacyInstallations(final Path folder) {
     for (final String name : LEGACY_DIRECTORIES) {
@@ -221,12 +198,6 @@ public final class VlcInstaller extends AbstractInstaller {
     }
   }
 
-  /**
-   * Checks whether VLC can be installed automatically on an operating system.
-   *
-   * @param operatingSystem the operating system
-   * @return true if an installation strategy exists for it
-   */
   @VisibleForTesting
   static boolean hasStrategy(final Os operatingSystem) {
     return switch (operatingSystem) {
@@ -235,13 +206,6 @@ public final class VlcInstaller extends AbstractInstaller {
     };
   }
 
-  /**
-   * Extracts the downloaded archive with the strategy of the current operating system.
-   *
-   * @param downloaded the downloaded archive
-   * @return the directory that contains the libraries
-   * @throws IOException if the archive cannot be extracted
-   */
   @Override
   protected Path install(final Path downloaded) throws IOException {
     final Os operatingSystem = OsUtils.getOs();
@@ -249,14 +213,6 @@ public final class VlcInstaller extends AbstractInstaller {
     return strategy.execute(downloaded);
   }
 
-  /**
-   * Creates the strategy that installs VLC on an operating system.
-   *
-   * @param installer       the installer the strategy installs for
-   * @param operatingSystem the operating system
-   * @return the strategy
-   * @throws UnsupportedOperatingSystemException if VLC cannot be installed automatically on the system
-   */
   @VisibleForTesting
   static InstallationStrategy createStrategy(final VlcInstaller installer, final Os operatingSystem) {
     return switch (operatingSystem) {
@@ -280,12 +236,8 @@ public final class VlcInstaller extends AbstractInstaller {
     return true;
   }
 
-  /**
-   * Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
-   * operating system; {@link #download(FileMode)} returns their exact location.
-   *
-   * @return the installation directory
-   */
+  // Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
+  // operating system; download(FileMode) returns their exact location.
   @Override
   protected Path getDefaultPath() {
     return this.getInstallDirectory();

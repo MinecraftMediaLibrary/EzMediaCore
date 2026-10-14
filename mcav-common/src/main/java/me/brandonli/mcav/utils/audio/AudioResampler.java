@@ -278,13 +278,7 @@ public final class AudioResampler implements AutoCloseable {
     Preconditions.checkState(!this.closed, "The resampler has been closed!");
   }
 
-  /**
-   * Closes this resampler when a native setup call failed, so no native memory leaks, then reports the failure.
-   *
-   * @param result the return value of the native call
-   * @param action what the call did, completing the sentence "Could not ..."
-   * @throws IllegalStateException if the result is negative
-   */
+  // Closes this resampler when a native setup call failed, so no native memory leaks, then reports the failure.
   void closeOnFailure(final int result, final String action) {
     if (result < 0) {
       this.close();
@@ -293,14 +287,6 @@ public final class AudioResampler implements AutoCloseable {
     checkResult(result, action);
   }
 
-  /**
-   * Checks the return value of a native FFmpeg call, where negative values are error codes.
-   *
-   * @param result the return value of the native call
-   * @param action what the call did, completing the sentence "Could not ..."
-   * @return the result, when it is not negative
-   * @throws IllegalStateException with FFmpeg's description of the error if the result is negative
-   */
   static int checkResult(final int result, final String action) {
     if (result < 0) {
       final String message = describeError(result, action);
@@ -401,11 +387,6 @@ public final class AudioResampler implements AutoCloseable {
     return this.closed;
   }
 
-  /**
-   * Returns the native objects this resampler owns: its context and the layouts of its input and output channels.
-   *
-   * @return the context, the input layout and the output layout
-   */
   @VisibleForTesting
   List<Pointer> getNativeObjects() {
     return List.of(this.context, this.inputLayout, this.outputLayout);

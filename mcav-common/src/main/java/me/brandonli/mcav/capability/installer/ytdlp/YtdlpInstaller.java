@@ -120,12 +120,8 @@ public final class YtdlpInstaller extends AbstractInstaller {
     return lowerCaseFileName.endsWith(ZIP_SUFFIX);
   }
 
-  /**
-   * Returns the path of the yt-dlp executable. A standalone executable lies in the installation folder; the executable of
-   * a zip lies in the {@code yt-dlp-unpacked} folder, named like the zip without {@code .zip}.
-   *
-   * @return the path of the yt-dlp executable
-   */
+  // Returns the path of the yt-dlp executable. A standalone executable lies in the installation folder; the executable
+  // of a zip lies in the yt-dlp-unpacked folder, named like the zip without .zip.
   @Override
   protected Path getDefaultPath() {
     final boolean isArchive = this.isArchive();
@@ -138,18 +134,11 @@ public final class YtdlpInstaller extends AbstractInstaller {
     return unpackedFolder.resolve(executableName);
   }
 
-  /**
-   * Installs the download. A standalone executable is used as downloaded. A zip is unpacked into a temporary folder
-   * first, which then replaces the {@code yt-dlp-unpacked} folder, so a failed installation never leaves a half-unpacked
-   * yt-dlp behind; the zip is deleted once it has been unpacked.
-   *
-   * <p>Replacing the unpacked folder is not atomic: the previous installation is deleted before the new one is moved
-   * into place, so a crash in between leaves no installation at all. The next start simply downloads yt-dlp again.
-   *
-   * @param downloaded the downloaded executable or zip
-   * @return the path of the yt-dlp executable
-   * @throws IOException if the zip cannot be unpacked, or does not hold the executable at its top level
-   */
+  // Installs the download. A standalone executable is used as downloaded. A zip is unpacked into a temporary folder
+  // first, which then replaces the yt-dlp-unpacked folder, so a failed installation never leaves a half-unpacked yt-dlp
+  // behind; the zip is deleted once it has been unpacked. Replacing the unpacked folder is not atomic: the previous
+  // installation is deleted before the new one is moved into place, so a crash in between leaves no installation at
+  // all. The next start simply downloads yt-dlp again.
   @Override
   protected Path install(final Path downloaded) throws IOException {
     final boolean isArchive = this.isArchive();
@@ -186,11 +175,9 @@ public final class YtdlpInstaller extends AbstractInstaller {
     markExecutable(executable);
   }
 
-  /**
-   * Extracts the zip. {@link IoUtils#unzip(Path, Path)} reports failures unchecked, as an {@link UncheckedIOException}
-   * for an archive that cannot be read and as a {@link ZipEntryIntegrityException} for an archive that is unsafe, but an
-   * installation must fail with an {@link IOException} like every other installation failure.
-   */
+  // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as an UncheckedIOException for an archive
+  // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
+  // fail with an IOException like every other installation failure.
   private static void extract(final Path archive, final Path destination) throws IOException {
     try {
       IoUtils.unzip(archive, destination);
@@ -206,10 +193,6 @@ public final class YtdlpInstaller extends AbstractInstaller {
     return folder.resolve(UNPACKED_FOLDER);
   }
 
-  /**
-   * Returns the name of the executable inside the zip of the current platform: the file name of the zip without
-   * {@code .zip}, or the name of the program if nothing is left.
-   */
   private String getArchiveExecutableName() {
     final String url = this.getUrl();
     final String fileName = IoUtils.getFileNameFromUrl(url);
@@ -219,16 +202,9 @@ public final class YtdlpInstaller extends AbstractInstaller {
     return nameless ? NAME : executableName;
   }
 
-  /**
-   * Returns fallback download candidates when no exact build is listed. 64-bit ARM Windows and macOS consider
-   * their corresponding 64-bit x86 build; this method does not verify that host emulation is installed.
-   * Other platforms receive no fallback candidates.
-   *
-   * @param platform the platform to find fallbacks for
-   * @return an immutable singleton list of the same OS on 64-bit x86 for ARM64 Windows/macOS, otherwise
-   *         an immutable empty list
-   * @throws NullPointerException if {@code platform} is null
-   */
+  // Returns fallback download candidates when no exact build is listed. 64-bit ARM Windows and macOS consider their
+  // corresponding 64-bit x86 build; this method does not verify that host emulation is installed. Other platforms
+  // receive no fallback candidates.
   @Override
   protected List<Platform> getFallbackPlatforms(final Platform platform) {
     final Os operatingSystem = platform.getOs();
@@ -247,9 +223,6 @@ public final class YtdlpInstaller extends AbstractInstaller {
     return List.of();
   }
 
-  /**
-   * Holds the shared installer, which is only created when it is first needed.
-   */
   private static final class SharedInstaller {
 
     private static final YtdlpInstaller INSTANCE = new YtdlpInstaller();

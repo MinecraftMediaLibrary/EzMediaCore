@@ -65,7 +65,6 @@ public final class DependencyLoader {
   private static final List<Class<?>> OPENCV_MODULES = List.of(opencv_core.class, opencv_imgproc.class, opencv_imgcodecs.class);
   private static final String FACE_DETECTION = "Face detection";
   private static final String PATHS_FIRST_PROPERTY = "org.bytedeco.javacpp.pathsFirst";
-  /** The system property that sets how many threads OpenCV may run its own work on, 1 if it is not set. */
   static final String OPENCV_THREADS_PROPERTY = "mcav.opencv.threads";
   private static final String PATHS_FIRST_VALUE = "false";
 
@@ -81,11 +80,6 @@ public final class DependencyLoader {
     this(LOGGER);
   }
 
-  /**
-   * Constructs a new loader that reports the installation of VLC and yt-dlp to the specified logger.
-   *
-   * @param logger reports the progress and the failures of the VLC and yt-dlp installations
-   */
   @VisibleForTesting
   DependencyLoader(final Logger logger) {
     // VLC and yt-dlp remove their capabilities from two threads at the same time, which a plain EnumSet can lose
@@ -122,12 +116,6 @@ public final class DependencyLoader {
     loadModules(this::loadNatives);
   }
 
-  /**
-   * Loads the natives with the specified loader and turns linking failures into a {@link NativeLoadingException}.
-   *
-   * @param nativeLoader loads the native libraries
-   * @throws NativeLoadingException if the loader fails to link a library
-   */
   @VisibleForTesting
   static void loadModules(final Runnable nativeLoader) {
     final long start = System.currentTimeMillis();
@@ -157,27 +145,20 @@ public final class DependencyLoader {
     this.loadFaceDetection(DependencyLoader::loadObjectDetection);
   }
 
-  /**
-   * Sets how many threads OpenCV runs its own work on, such as a resize: one by default, so it runs on the calling
-   * thread. Otherwise OpenCV starts a pool of one thread per processor but one at its first parallel call, named after
-   * the thread that made it, which outlives every player and works outside the encoders' budget. The system property
-   * {@value #OPENCV_THREADS_PROPERTY} sets another number; 0 runs everything sequentially, and below 0 is OpenCV's
-   * default.
-   */
+  // Sets how many threads OpenCV runs its own work on, such as a resize: one by default, so it runs on the calling
+  // thread. Otherwise OpenCV starts a pool of one thread per processor but one at its first parallel call, named after
+  // the thread that made it, which outlives every player and works outside the encoders' budget. The system property
+  // OPENCV_THREADS_PROPERTY sets another number; 0 runs everything sequentially, and below 0 is OpenCV's default.
   @VisibleForTesting
   static void configureOpenCvThreads() {
     final int threads = Integer.getInteger(OPENCV_THREADS_PROPERTY, 1);
     org.bytedeco.opencv.global.opencv_core.setNumThreads(threads); // fqn: the presets class of the same name is imported to load the natives
   }
 
-  /**
-   * Sets the JavaCPP system properties the library relies on. A property the application has set already is left
-   * alone, so it can still be tuned with {@code -D} on the command line.
-   *
-   * <p>{@code org.bytedeco.openblas.load} is deliberately not set to {@code none}: that value tells JavaCPP the
-   * application provides the BLAS symbols itself, and the OpenCV natives of JavaCV 1.5.14 link OpenBLAS, so
-   * {@code jniopencv_core} then fails with "Can't find dependent libraries".
-   */
+  // Sets the JavaCPP system properties the library relies on. A property the application has set already is left alone,
+  // so it can still be tuned with -D on the command line. org.bytedeco.openblas.load is deliberately not set to none:
+  // that value tells JavaCPP the application provides the BLAS symbols itself, and the OpenCV natives of JavaCV 1.5.14
+  // link OpenBLAS, so jniopencv_core then fails with "Can't find dependent libraries".
   @VisibleForTesting
   static void configureJavaCpp() {
     // the JNI glue is compiled against the bundled FFmpeg and OpenCV, so the bundled libraries must be found before
@@ -192,11 +173,6 @@ public final class DependencyLoader {
     Loader.load(opencv_objdetect.class);
   }
 
-  /**
-   * Loads the natives face detection needs and records the result in {@link Capability#FACE_DETECTION}.
-   *
-   * @param objectDetectionLoader loads the object detection natives
-   */
   @VisibleForTesting
   void loadFaceDetection(final Runnable objectDetectionLoader) {
     // the object detection natives link OpenCV's GUI module, which needs GTK 2 on Linux; servers often lack it, and
@@ -209,14 +185,8 @@ public final class DependencyLoader {
     }
   }
 
-  /**
-   * Loads natives that only one feature needs. If they cannot be linked, the feature is reported as unavailable
-   * instead of failing the whole library.
-   *
-   * @param nativeLoader loads the natives
-   * @param feature      the feature that needs them, for the log
-   * @return true if the natives were loaded
-   */
+  // Loads natives that only one feature needs. If they cannot be linked, the feature is reported as unavailable instead
+  // of failing the whole library.
   @VisibleForTesting
   static boolean loadOptionalModule(final Runnable nativeLoader, final String feature) {
     try {
@@ -231,16 +201,10 @@ public final class DependencyLoader {
     }
   }
 
-  /**
-   * Loads FFmpeg with the specified loader and then runs the setup that needs FFmpeg. A missing device library only
-   * disables capture devices, so that failure is logged instead of thrown, and the setup still runs. That holds for
-   * every load in a JVM: after the first, the JVM reports the device library's class as failed, naming the first
-   * failure as the cause while it keeps that, as when a plugin that installs mcav is disabled and enabled again.
-   *
-   * @param ffmpegLoader loads the FFmpeg libraries
-   * @param setup        configures FFmpeg once it is loaded, such as its logging
-   * @throws NativeLoadingException if any other FFmpeg library cannot be linked
-   */
+  // Loads FFmpeg with the specified loader and then runs the setup that needs FFmpeg. A missing device library only
+  // disables capture devices, so that failure is logged instead of thrown, and the setup still runs. That holds for
+  // every load in a JVM: after the first, the JVM reports the device library's class as failed, naming the first
+  // failure as the cause while it keeps that, as when a plugin that installs mcav is disabled and enabled again.
   @VisibleForTesting
   static void loadFfmpeg(final Runnable ffmpegLoader, final Runnable setup) {
     try {
@@ -279,13 +243,6 @@ public final class DependencyLoader {
     this.installVlc(DependencyLoader::startInstallationKit);
   }
 
-  /**
-   * Prepares VLC with the specified starter and removes the VLC capability when that fails for any reason: a failed
-   * download, an unsupported system, or natives that cannot be linked, such as an Intel VLC on Apple silicon or a
-   * JNA that cannot load.
-   *
-   * @param starter finds or installs VLC
-   */
   @VisibleForTesting
   void installVlc(final VlcStarter starter) {
     final Object preparation = this.beginPreparation(Capability.VLC);
@@ -336,14 +293,9 @@ public final class DependencyLoader {
     return kit.start();
   }
 
-  /**
-   * Logs that the installation of a program was cancelled, if the current thread was interrupted. The library
-   * interrupts its installation threads when it is released, which makes a running download fail; that failure is
-   * expected and not worth a warning.
-   *
-   * @param capability the capability of the program
-   * @return true if the installation was cancelled
-   */
+  // Logs that the installation of a program was cancelled, if the current thread was interrupted. The library
+  // interrupts its installation threads when it is released, which makes a running download fail; that failure is
+  // expected and not worth a warning.
   private boolean logCancellation(final Capability capability) {
     final Thread currentThread = Thread.currentThread();
     final boolean cancelled = currentThread.isInterrupted();
@@ -364,13 +316,6 @@ public final class DependencyLoader {
     this.installYtdlp(installer);
   }
 
-  /**
-   * Prepares yt-dlp with the specified installer and removes the yt-dlp capability when that fails for any reason: a
-   * failed download, a downloaded file that cannot be marked as executable, or any other unchecked failure of the
-   * installer.
-   *
-   * @param installer the yt-dlp installer
-   */
   @VisibleForTesting
   void installYtdlp(final Installer installer) {
     final Object preparation = this.beginPreparation(Capability.YT_DLP);
@@ -399,17 +344,8 @@ public final class DependencyLoader {
     }
   }
 
-  /**
-   * Finds or installs VLC.
-   */
   @FunctionalInterface
   interface VlcStarter {
-    /**
-     * Finds or installs VLC and loads its libraries.
-     *
-     * @return the directory the libraries were loaded from, if known
-     * @throws IOException if VLC has to be downloaded and the download fails
-     */
     Optional<Path> start() throws IOException;
   }
 }

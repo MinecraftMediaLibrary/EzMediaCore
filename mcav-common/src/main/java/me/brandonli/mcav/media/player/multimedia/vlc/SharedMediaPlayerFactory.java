@@ -23,14 +23,10 @@ import java.util.function.Supplier;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
-/**
- * A VLC instance shared by every {@link VlcPlayer}.
- *
- * <p>Creating a {@link MediaPlayerFactory} starts a whole VLC instance, which loads hundreds of plugins and takes
- * noticeable time and memory, so one instance is shared and reference counted. The instance is created when the
- * first playback acquires it and released when the last playback releases it; a later acquisition creates a new
- * one.
- */
+// A VLC instance shared by every VlcPlayer. Creating a MediaPlayerFactory starts a whole VLC instance, which loads
+// hundreds of plugins and takes noticeable time and memory, so one instance is shared and reference counted. The
+// instance is created when the first playback acquires it and released when the last playback releases it; a later
+// acquisition creates a new one.
 final class SharedMediaPlayerFactory {
 
   private static final String[] VLC_ARGUMENTS = { "--quiet", "--no-video-title-show", "--no-snapshot-preview", "--no-osd" };
@@ -42,11 +38,7 @@ final class SharedMediaPlayerFactory {
   private @Nullable MediaPlayerFactory factory;
   private int references;
 
-  /**
-   * Constructs a new shared factory. Use {@link #getInstance()} outside of tests.
-   *
-   * @param creator creates a new VLC instance when the first reference is acquired
-   */
+  // Constructs a new shared factory. Use getInstance() outside of tests.
   @VisibleForTesting
   SharedMediaPlayerFactory(final Supplier<MediaPlayerFactory> creator) {
     Preconditions.checkNotNull(creator, "Creator must not be null!");
@@ -55,11 +47,6 @@ final class SharedMediaPlayerFactory {
     this.lock = new Object();
   }
 
-  /**
-   * Returns the VLC instance shared by every player.
-   *
-   * @return the shared factory
-   */
   static SharedMediaPlayerFactory getInstance() {
     return INSTANCE;
   }
@@ -68,13 +55,8 @@ final class SharedMediaPlayerFactory {
     return new MediaPlayerFactory(VLC_ARGUMENTS);
   }
 
-  /**
-   * Acquires the VLC instance, creating it if no reference is held. Every successful call must be paired with
-   * {@link #release()}.
-   *
-   * @return the VLC instance
-   * @throws RuntimeException if the VLC instance cannot be created; no reference is acquired then
-   */
+  // Acquires the VLC instance, creating it if no reference is held. Every successful call must be paired with
+  // release().
   MediaPlayerFactory acquire() {
     synchronized (this.lock) {
       MediaPlayerFactory current = this.factory;
@@ -89,10 +71,8 @@ final class SharedMediaPlayerFactory {
     }
   }
 
-  /**
-   * Releases one reference to the VLC instance, shutting the instance down when no references remain. Calls without
-   * a matching {@link #acquire()} are ignored.
-   */
+  // Releases one reference to the VLC instance, shutting the instance down when no references remain. Calls without a
+  // matching acquire() are ignored.
   void release() {
     synchronized (this.lock) {
       if (this.references == 0) {
@@ -111,11 +91,6 @@ final class SharedMediaPlayerFactory {
     }
   }
 
-  /**
-   * Returns the number of references currently held.
-   *
-   * @return the number of acquisitions that have not been released yet
-   */
   @VisibleForTesting
   int getReferences() {
     synchronized (this.lock) {

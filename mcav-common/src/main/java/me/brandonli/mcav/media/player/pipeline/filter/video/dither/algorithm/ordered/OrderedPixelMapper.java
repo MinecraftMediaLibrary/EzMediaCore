@@ -64,12 +64,6 @@ public final class OrderedPixelMapper implements PixelMapper {
     return normalized;
   }
 
-  /**
-   * Checks that every row of a matrix exists and has the same, positive number of columns.
-   *
-   * @param thresholds the matrix, which has at least one row
-   * @return the number of columns
-   */
   private static int checkRectangular(final int[][] thresholds) {
     final int[] firstRow = thresholds[0];
     Preconditions.checkNotNull(firstRow, ROW_NULL_MESSAGE);

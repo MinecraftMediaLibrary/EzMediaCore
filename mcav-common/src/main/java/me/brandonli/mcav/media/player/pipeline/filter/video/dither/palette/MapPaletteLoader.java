@@ -56,13 +56,6 @@ public final class MapPaletteLoader {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Loads the map colors from a JSON resource with one {@code [red, green, blue]} array per color.
-   *
-   * @param resource the path of the resource, relative to the classpath root
-   * @return the colors as opaque packed ARGB
-   * @throws PaletteLoadingException if the resource is missing or does not describe a palette
-   */
   @VisibleForTesting
   static int[] loadColors(final String resource) {
     try (final Reader reader = IoUtils.getResourceAsStreamReader(resource)) {
@@ -73,14 +66,6 @@ public final class MapPaletteLoader {
     }
   }
 
-  /**
-   * Parses map colors from JSON with one {@code [red, green, blue]} array per color.
-   *
-   * @param reader the JSON
-   * @return the colors as opaque packed ARGB
-   * @throws PaletteLoadingException if the JSON does not describe a palette, for example because a color does not
-   *                                 have three components from 0 to 255
-   */
   @VisibleForTesting
   static int[] parseColors(final Reader reader) {
     final Gson gson = GsonProvider.getSimple();

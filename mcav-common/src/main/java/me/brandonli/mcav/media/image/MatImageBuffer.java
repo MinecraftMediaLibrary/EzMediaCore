@@ -228,9 +228,6 @@ public final class MatImageBuffer implements ImageBuffer {
     );
   }
 
-  /**
-   * Converts a matrix into continuous 8-bit BGR, releasing the original if a new matrix had to be created.
-   */
   private static Mat toContinuousBgr(final Mat source) {
     final int channels = source.channels();
     final int depth = source.depth();
@@ -244,9 +241,6 @@ public final class MatImageBuffer implements ImageBuffer {
     return converted;
   }
 
-  /**
-   * Copies a matrix into a new continuous 8-bit BGR matrix without releasing the original.
-   */
   private static Mat copyToBgr(final Mat source) {
     final int channels = source.channels();
     final Mat eightBit = toEightBit(source);
@@ -274,11 +268,6 @@ public final class MatImageBuffer implements ImageBuffer {
     return bgr;
   }
 
-  /**
-   * Converts a matrix of any depth to eight bits per channel by mapping the full range of the depth onto 0 to 255:
-   * unsigned integers by dividing by their range, signed integers the same way around the middle value 128, and
-   * floating point values, which OpenCV keeps from 0 to 1, by multiplying with 255.
-   */
   private static Mat toEightBit(final Mat source) {
     final int depth = source.depth();
     if (depth == opencv_core.CV_8U) {
@@ -302,10 +291,6 @@ public final class MatImageBuffer implements ImageBuffer {
     };
   }
 
-  /**
-   * Writes packed ARGB pixels into a BGR matrix of the same size, using a byte array of at least three bytes per
-   * pixel to convert them in one bulk copy.
-   */
   private static void writeArgb(final Mat target, final int[] argb, final byte[] bytes) {
     int index = 0;
     for (final int pixel : argb) {
@@ -351,10 +336,8 @@ public final class MatImageBuffer implements ImageBuffer {
     writeArgb(target, pixels, bytes);
   }
 
-  /**
-   * Checks that the pixels of an image fill its data buffer exactly and start at its beginning. Sub-images share
-   * the data buffer of their parent, so their pixels are read through the raster-aware getRGB fallback instead.
-   */
+  // Checks that the pixels of an image fill its data buffer exactly and start at its beginning. Sub-images share the
+  // data buffer of their parent, so their pixels are read through the raster-aware getRGB fallback instead.
   private static boolean isPacked(final BufferedImage image) {
     final WritableRaster raster = image.getRaster();
     final DataBuffer dataBuffer = raster.getDataBuffer();
@@ -389,13 +372,8 @@ public final class MatImageBuffer implements ImageBuffer {
     return false;
   }
 
-  /**
-   * Returns the byte array this image converts pixels with, growing it when it is too small, so repeated conversions
-   * of frames of the same size reuse one array.
-   *
-   * @param length the number of bytes needed
-   * @return an array of at least that length, whose content is undefined
-   */
+  // Returns the byte array this image converts pixels with, growing it when it is too small, so repeated conversions of
+  // frames of the same size reuse one array.
   @VisibleForTesting
   byte[] getScratch(final int length) {
     final byte[] current = this.scratch;
@@ -494,10 +472,8 @@ public final class MatImageBuffer implements ImageBuffer {
     this.exchange(result);
   }
 
-  /**
-   * Takes the spare matrix out of this image, or creates an empty one if there is none, so a failing operation never
-   * leaves a half-written spare behind.
-   */
+  // Takes the spare matrix out of this image, or creates an empty one if there is none, so a failing operation never
+  // leaves a half-written spare behind.
   private Mat takeSpare() {
     final Mat existing = this.spare;
     this.spare = null;
@@ -509,16 +485,13 @@ public final class MatImageBuffer implements ImageBuffer {
     return new Mat();
   }
 
-  /**
-   * Makes a result the matrix of this image and keeps the previous matrix as the spare, unless the result shares its
-   * pixel memory, in which case writing into the spare would overwrite the image.
-   *
-   * <p>Sharing is recognised by {@code datastart()}, the address of the allocation the pixels belong to: an operation
-   * that returns its source, a matrix wrapping the same data, and an OpenCV region of interest of the previous matrix,
-   * whose first pixel lies elsewhere in that allocation, all compare equal on it. A matrix wrapped around a pointer into
-   * the middle of the pixels has an allocation of its own and is not recognised, so {@link #transformMat(BiConsumer)}
-   * still requires an operation that writes a matrix of its own or returns the source unchanged.
-   */
+  // Makes a result the matrix of this image and keeps the previous matrix as the spare, unless the result shares its
+  // pixel memory, in which case writing into the spare would overwrite the image. Sharing is recognised by datastart(),
+  // the address of the allocation the pixels belong to: an operation that returns its source, a matrix wrapping the
+  // same data, and an OpenCV region of interest of the previous matrix, whose first pixel lies elsewhere in that
+  // allocation, all compare equal on it. A matrix wrapped around a pointer into the middle of the pixels has an
+  // allocation of its own and is not recognised, so transformMat(BiConsumer) still requires an operation that writes a
+  // matrix of its own or returns the source unchanged.
   private void exchange(final Mat result) {
     final Mat previous = this.mat;
     final BytePointer resultStart = result.datastart();
@@ -589,14 +562,10 @@ public final class MatImageBuffer implements ImageBuffer {
     this.invalidateCache();
   }
 
-  /**
-   * Makes the matrix the given size, keeping it if it already has that size. Otherwise the spare matrix takes its place
-   * if it has the size, and a new matrix if not. An image with a spare went through {@link #transformMat(BiConsumer)},
-   * which will most likely produce the size of the previous matrix again, so the previous matrix becomes the new spare;
-   * images without a spare release it.
-   *
-   * @return true if the matrix was replaced, false if it already had the size
-   */
+  // Makes the matrix the given size, keeping it if it already has that size. Otherwise the spare matrix takes its place
+  // if it has the size, and a new matrix if not. An image with a spare went through transformMat(BiConsumer), which
+  // will most likely produce the size of the previous matrix again, so the previous matrix becomes the new spare;
+  // images without a spare release it.
   private boolean ensureSize(final int width, final int height) {
     final Mat previous = this.mat;
     if (hasSize(previous, width, height)) {
@@ -623,10 +592,8 @@ public final class MatImageBuffer implements ImageBuffer {
     return true;
   }
 
-  /**
-   * Checks the size of a matrix of this image. Both the matrix and the spare are always continuous 8-bit BGR, because
-   * the spare is always a former matrix of the image, so the size is all that can differ.
-   */
+  // Checks the size of a matrix of this image. Both the matrix and the spare are always continuous 8-bit BGR, because
+  // the spare is always a former matrix of the image, so the size is all that can differ.
   private static boolean hasSize(final Mat candidate, final int width, final int height) {
     final int candidateWidth = candidate.cols();
     final int candidateHeight = candidate.rows();
@@ -722,10 +689,8 @@ public final class MatImageBuffer implements ImageBuffer {
     return pixels;
   }
 
-  /**
-   * Identifies the pixel memory of a matrix. The address of the pixel data is used rather than the address of the
-   * matrix header, because OpenCV functions reallocate the pixels of a matrix while its header stays in place.
-   */
+  // Identifies the pixel memory of a matrix. The address of the pixel data is used rather than the address of the
+  // matrix header, because OpenCV functions reallocate the pixels of a matrix while its header stays in place.
   private static PixelCacheKey createCacheKey(final Mat mat) {
     final BytePointer data = mat.data();
     final long address = data.address();

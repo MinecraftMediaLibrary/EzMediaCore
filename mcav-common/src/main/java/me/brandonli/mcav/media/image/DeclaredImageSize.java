@@ -29,25 +29,19 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Refuses an encoded image whose header declares more pixels than the limit, before OpenCV decodes it.
- *
- * <p>OpenCV allocates the whole picture as soon as it has read the header, so a small file that declares a huge size
- * (a decompression bomb) would take gigabytes of native memory before anything could look at the result. The header
- * is therefore read here first, the way OpenCV's own decoder for the format reads it: BMP, GIF, Radiance HDR, JPEG,
- * WebP, Sun raster, the Netpbm formats (PBM, PGM, PPM, PAM, PFM), TIFF and PNG, which are the formats the bundled
- * OpenCV decodes. Bytes in any other format are refused as unsupported, as OpenCV refuses them too: JPEG 2000 and
- * OpenEXR, which OpenCV disables unless an environment variable turns them on, are refused as well.
- *
- * <p>The limit is the system property {@value #MAXIMUM_PIXELS_PROPERTY}, {@value #DEFAULT_MAXIMUM_PIXELS} pixels (8192 by 8192)
- * if it is not set. A value of 0 or less turns the check off and leaves every image to OpenCV, as before the check.
- */
+// Refuses an encoded image whose header declares more pixels than the limit, before OpenCV decodes it. OpenCV allocates
+// the whole picture as soon as it has read the header, so a small file that declares a huge size (a decompression bomb)
+// would take gigabytes of native memory before anything could look at the result. The header is therefore read here
+// first, the way OpenCV's own decoder for the format reads it: BMP, GIF, Radiance HDR, JPEG, WebP, Sun raster, the
+// Netpbm formats (PBM, PGM, PPM, PAM, PFM), TIFF and PNG, which are the formats the bundled OpenCV decodes. Bytes in
+// any other format are refused as unsupported, as OpenCV refuses them too: JPEG 2000 and OpenEXR, which OpenCV disables
+// unless an environment variable turns them on, are refused as well. The limit is the system property
+// MAXIMUM_PIXELS_PROPERTY, DEFAULT_MAXIMUM_PIXELS pixels (8192 by 8192) if it is not set. A value of 0 or less turns
+// the check off and leaves every image to OpenCV, as before the check.
 final class DeclaredImageSize {
 
-  /** The system property that sets the most pixels an encoded image may declare; 0 or less turns the check off. */
   static final String MAXIMUM_PIXELS_PROPERTY = "mcav.image.maxPixels";
 
-  /** The limit when the property is not set: 8192 by 8192 pixels, 192 MiB of decoded BGR. */
   private static final long DEFAULT_MAXIMUM_PIXELS = 1L << 26;
 
   private static final String UNSUPPORTED_FILE = "File %s is not a supported image!";
@@ -184,12 +178,6 @@ final class DeclaredImageSize {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Checks the header of an encoded image in memory.
-   *
-   * @param encoded the encoded image
-   * @throws IllegalArgumentException if the bytes are not a supported image format or declare too many pixels
-   */
   static void checkBytes(final byte[] encoded) {
     checkBytes(encoded, limit());
   }
@@ -208,13 +196,7 @@ final class DeclaredImageSize {
     checkLimit(size, limit);
   }
 
-  /**
-   * Checks the header of an image file, mapping the file instead of reading it whole.
-   *
-   * @param path the image file
-   * @throws IllegalArgumentException if the file cannot be read, is not a supported image format or declares too many
-   *                                  pixels
-   */
+  // Checks the header of an image file, mapping the file instead of reading it whole.
   static void checkFile(final Path path) {
     checkFile(path, limit());
   }
@@ -262,11 +244,6 @@ final class DeclaredImageSize {
     }
   }
 
-  /**
-   * Reads the declared size, trying the formats in the order in which OpenCV tries its decoders.
-   *
-   * @return the size, or null if the bytes are in no supported format or their header is broken
-   */
   static @Nullable Size read(final MemorySegment segment) {
     final Header header = new Header(segment);
     if (header.startsWith(0, BMP_SIGNATURE)) {
@@ -319,10 +296,6 @@ final class DeclaredImageSize {
     return null;
   }
 
-  /**
-   * A BMP: the width and height follow the size of the info header, as 32-bit values (the height negative for a
-   * top-down picture) or, in the 12-byte OS/2 header, as 16-bit values.
-   */
   private static @Nullable Size bmp(final Header header) {
     final long informationSize = header.signedLittleEndian32(BMP_INFORMATION_SIZE_OFFSET);
     if (informationSize >= BMP_MINIMUM_INFORMATION_SIZE) {
@@ -336,9 +309,6 @@ final class DeclaredImageSize {
     return null;
   }
 
-  /**
-   * A GIF: OpenCV draws every frame onto a canvas of the logical screen's size.
-   */
   private static @Nullable Size gif(final Header header) {
     if (!header.startsWith(0, GIF87_SIGNATURE) && !header.startsWith(0, GIF89_SIGNATURE)) {
       return null;
@@ -347,10 +317,8 @@ final class DeclaredImageSize {
     return of(header.littleEndian(GIF_WIDTH_OFFSET, SIXTEEN_BIT_BYTES), header.littleEndian(GIF_HEIGHT_OFFSET, SIXTEEN_BIT_BYTES));
   }
 
-  /**
-   * A Radiance HDR: header lines up to an empty one, then the resolution line {@code -Y <height> +X <width>}. OpenCV
-   * reads the lines in pieces of at most 127 characters, so a piece is what decides here too.
-   */
+  // A Radiance HDR: header lines up to an empty one, then the resolution line -Y <height> +X <width>. OpenCV reads the
+  // lines in pieces of at most 127 characters, so a piece is what decides here too.
   private static @Nullable Size hdr(final Header header) {
     final long[] position = { 0 };
     // the first line is the magic, which OpenCV reads and does not look at
@@ -372,10 +340,6 @@ final class DeclaredImageSize {
     return matched ? of(scanner.second, scanner.first) : null;
   }
 
-  /**
-   * A JPEG: the markers after the start of the image are skipped by their lengths, the way libjpeg reads them, up to the
-   * first start of a frame, which holds the height and the width.
-   */
   private static @Nullable Size jpeg(final Header header) {
     long position = JPEG_FIRST_MARKER_OFFSET;
     while (true) {
@@ -415,11 +379,9 @@ final class DeclaredImageSize {
     }
   }
 
-  /**
-   * A WebP, which OpenCV recognizes by libwebp reading the features of its first 32 bytes: the canvas of an extended
-   * file, or the frame of a lossy or lossless one. A lossless bitstream without its RIFF container is read too; a lossy
-   * one never passes OpenCV's signature check, as its first partition is longer than those 32 bytes.
-   */
+  // A WebP, which OpenCV recognizes by libwebp reading the features of its first 32 bytes: the canvas of an extended
+  // file, or the frame of a lossy or lossless one. A lossless bitstream without its RIFF container is read too; a lossy
+  // one never passes OpenCV's signature check, as its first partition is longer than those 32 bytes.
   private static @Nullable Size webp(final Header header) {
     if (header.size() < WEBP_SIGNATURE) {
       return null;
@@ -478,10 +440,6 @@ final class DeclaredImageSize {
     return of(width, height);
   }
 
-  /**
-   * A PBM, PGM or PPM: the width and the height are the first two numbers after the magic, separated by whitespace
-   * and comments that run from {@code #} to the end of their line.
-   */
   private static @Nullable Size pnm(final Header header) {
     final long[] position = { PNM_HEADER_OFFSET };
     final long width = pnmNumber(header, position);
@@ -544,10 +502,7 @@ final class DeclaredImageSize {
     return value <= Integer.MAX_VALUE ? value : -1;
   }
 
-  /**
-   * A PAM: lines of a name and a value after {@code P7}, up to {@code ENDHDR}; {@code WIDTH} and {@code HEIGHT} give the
-   * size. Comments start with {@code #}.
-   */
+  // A PAM: lines of a name and a value after P7, up to ENDHDR; WIDTH and HEIGHT give the size. Comments start with #.
   private static @Nullable Size pam(final Header header) {
     long width = -1;
     long height = -1;
@@ -582,10 +537,6 @@ final class DeclaredImageSize {
     }
   }
 
-  /**
-   * A PFM: the width and the height are the first two whitespace-separated words after the magic line, read the way
-   * {@code atoi} reads them: an optional sign and the digits that start the word.
-   */
   private static @Nullable Size pfm(final Header header) {
     if (header.unsigned8(NETPBM_SEPARATOR_OFFSET) != '\n') {
       return null;
@@ -597,9 +548,6 @@ final class DeclaredImageSize {
     return of(leadingInteger(width), leadingInteger(height));
   }
 
-  /**
-   * A TIFF or BigTIFF: the image width and length tags of the first directory, which is the page OpenCV decodes.
-   */
   private static @Nullable Size tiff(final Header header) {
     final ByteOrder order = header.unsigned8(0) == 'I' ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
     final long magic = header.number(TIFF_MAGIC_OFFSET, SIXTEEN_BIT_BYTES, order);
@@ -635,10 +583,6 @@ final class DeclaredImageSize {
     return of(width, length);
   }
 
-  /**
-   * The single SHORT, LONG or LONG8 value of a directory entry, stored inside the entry; -2 for any other entry, which
-   * libtiff would not accept as a width or a length either.
-   */
   private static long tiffValue(final Header header, final long entry, final boolean big, final ByteOrder order) {
     final long type = header.number(entry + TIFF_TYPE_OFFSET, SIXTEEN_BIT_BYTES, order);
     final int countBytes = big ? SIXTY_FOUR_BIT_BYTES : THIRTY_TWO_BIT_BYTES;
@@ -694,17 +638,8 @@ final class DeclaredImageSize {
     return code == ' ' || (code >= '\t' && code <= '\r');
   }
 
-  /**
-   * The width and the height an image declares, each at least 1.
-   *
-   * @param width  the width in pixels
-   * @param height the height in pixels
-   */
   record Size(long width, long height) {}
 
-  /**
-   * The parts of {@code sscanf(line, "-Y %d +X %d", ...)} this class needs: a literal, whitespace, and an int.
-   */
   private static final class Scanner {
 
     private final String text;
@@ -762,9 +697,6 @@ final class DeclaredImageSize {
     }
   }
 
-  /**
-   * Bounds-checked reads of the encoded bytes: a read past the end gives -1, which no size accepts.
-   */
   private static final class Header {
 
     private final MemorySegment segment;
@@ -800,9 +732,6 @@ final class DeclaredImageSize {
       return this.number(position, bytes, ByteOrder.BIG_ENDIAN);
     }
 
-    /**
-     * An unsigned number of 2 to 8 bytes; -1 if it reaches past the end or does not fit a long.
-     */
     long number(final long position, final int bytes, final ByteOrder order) {
       final boolean little = order == ByteOrder.LITTLE_ENDIAN;
       long value = 0;
@@ -827,12 +756,6 @@ final class DeclaredImageSize {
       return value < 0 ? Long.MIN_VALUE : (int) value;
     }
 
-    /**
-     * What {@code fgets} with a buffer of {@code limit + 1} bytes reads: up to {@code limit} bytes, through the first
-     * line feed.
-     *
-     * @return the piece, or null at the end of the bytes
-     */
     @Nullable String piece(final long[] position, final int limit) {
       final StringBuilder piece = new StringBuilder();
       int code = 0;
@@ -848,12 +771,8 @@ final class DeclaredImageSize {
       return piece.isEmpty() ? null : piece.toString();
     }
 
-    /**
-     * A line ended by a line feed or a carriage return, without the end. Only the first {@code limit} characters are
-     * kept: a longer line can only be a comment, as OpenCV refuses a longer name or value.
-     *
-     * @return the line, or null at the end of the bytes or for a longer line that is not a comment
-     */
+    // A line ended by a line feed or a carriage return, without the end. Only the first limit characters are kept: a
+    // longer line can only be a comment, as OpenCV refuses a longer name or value.
     @Nullable String line(final long[] position, final int limit) {
       final StringBuilder line = new StringBuilder();
       int code = this.unsigned8(position[0]++);
@@ -876,11 +795,6 @@ final class DeclaredImageSize {
       return longer && !comment ? null : text;
     }
 
-    /**
-     * Up to {@code limit} bytes before the next whitespace, as OpenCV's PFM reader reads a number.
-     *
-     * @return the word, or null at the end of the bytes
-     */
     @Nullable String word(final long[] position, final int limit) {
       final StringBuilder word = new StringBuilder();
       while (word.length() < limit) {

@@ -22,15 +22,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * A daemon thread that runs one step of a rendering loop again and again until it is stopped.
- *
- * <p>The renderers of {@link VlcPlayer} hand work from VLC's threads to render threads, so VLC's threads never wait
- * for a pipeline. A step that throws a runtime exception is reported to the failure handler and the loop goes on
- * with the next step, so one broken frame does not end the playback; errors such as running out of memory are not
- * caught. Stopping interrupts the current step and waits up to five seconds for the thread to exit. A step that
- * ignores interruption can outlive that wait; a render thread never waits for itself.
- */
+// A daemon thread that runs one step of a rendering loop again and again until it is stopped. The renderers of
+// VlcPlayer hand work from VLC's threads to render threads, so VLC's threads never wait for a pipeline. A step that
+// throws a runtime exception is reported to the failure handler and the loop goes on with the next step, so one broken
+// frame does not end the playback; errors such as running out of memory are not caught. Stopping interrupts the current
+// step and waits up to five seconds for the thread to exit. A step that ignores interruption can outlive that wait; a
+// render thread never waits for itself.
 final class RenderThread {
 
   private static final long JOIN_TIMEOUT_MILLISECONDS = 5_000L;
@@ -41,24 +38,14 @@ final class RenderThread {
 
   private @Nullable Thread thread;
 
-  /**
-   * Constructs a new render thread. Nothing runs until {@link #start(Step, Runnable)} is called.
-   *
-   * @param name           the name of the thread
-   * @param failureHandler receives the runtime exceptions thrown by steps, on the render thread
-   */
+  // Constructs a new render thread. Nothing runs until start(Step, Runnable) is called.
   RenderThread(final String name, final Consumer<RuntimeException> failureHandler) {
     this.name = name;
     this.failureHandler = failureHandler;
     this.running = new AtomicBoolean(false);
   }
 
-  /**
-   * Starts the thread. A render thread can only be started once.
-   *
-   * @param step    the step that is run repeatedly while the thread is running
-   * @param cleanup the action that is run on the thread once the loop exits
-   */
+  // Starts the thread. A render thread can only be started once.
   void start(final Step step, final Runnable cleanup) {
     Preconditions.checkState(this.thread == null, "Render thread %s was already started!", this.name);
 
@@ -71,11 +58,9 @@ final class RenderThread {
     created.start();
   }
 
-  /**
-   * Stops the thread: the loop ends after the current step, a waiting step is interrupted, and the calling thread
-   * waits up to five seconds for the thread to exit. Stopping a thread that was never started, or stopping it again,
-   * has no effect.
-   */
+  // Stops the thread: the loop ends after the current step, a waiting step is interrupted, and the calling thread waits
+  // up to five seconds for the thread to exit. Stopping a thread that was never started, or stopping it again, has no
+  // effect.
   void stop() {
     this.running.set(false);
     final Thread current = this.thread;
@@ -128,25 +113,12 @@ final class RenderThread {
     }
   }
 
-  /**
-   * Checks whether the thread is still accepting work; every loop exit clears this state.
-   *
-   * @return true if the thread accepts work
-   */
   boolean isRunning() {
     return this.running.get();
   }
 
-  /**
-   * One step of a rendering loop.
-   */
   @FunctionalInterface
   interface Step {
-    /**
-     * Renders the next piece of media, waiting briefly when none is available.
-     *
-     * @throws InterruptedException if the thread is interrupted while waiting
-     */
     void render() throws InterruptedException;
   }
 }

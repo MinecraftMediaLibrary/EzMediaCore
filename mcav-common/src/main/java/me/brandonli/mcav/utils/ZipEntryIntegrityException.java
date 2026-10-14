@@ -34,11 +34,6 @@ public class ZipEntryIntegrityException extends MCAVException {
   @Serial
   private static final long serialVersionUID = -949105092892572153L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the rejected entry or the exceeded limit
-   */
   ZipEntryIntegrityException(final String message) {
     super(message);
   }

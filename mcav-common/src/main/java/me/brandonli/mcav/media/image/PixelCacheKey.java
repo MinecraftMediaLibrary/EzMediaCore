@@ -20,13 +20,10 @@ package me.brandonli.mcav.media.image;
 import com.google.common.base.MoreObjects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Identifies the pixel memory the packed pixels of a {@link MatImageBuffer} were read from.
- *
- * <p>OpenCV functions may reallocate or reshape a matrix in place, keeping the matrix header but moving its pixels.
- * When the address of the pixel data or the shape of the matrix no longer matches the key the cached pixels were read
- * with, the cache is stale even if nobody invalidated it.
- */
+// Identifies the pixel memory the packed pixels of a MatImageBuffer were read from. OpenCV functions may reallocate or
+// reshape a matrix in place, keeping the matrix header but moving its pixels. When the address of the pixel data or the
+// shape of the matrix no longer matches the key the cached pixels were read with, the cache is stale even if nobody
+// invalidated it.
 final class PixelCacheKey {
 
   private static final int HASH_MULTIPLIER = 31;
@@ -35,33 +32,16 @@ final class PixelCacheKey {
   private final int width;
   private final int height;
 
-  /**
-   * Constructs a new key.
-   *
-   * @param address the address of the pixel data, not of the matrix header
-   * @param width   the width of the matrix
-   * @param height  the height of the matrix
-   */
   PixelCacheKey(final long address, final int width, final int height) {
     this.address = address;
     this.width = width;
     this.height = height;
   }
 
-  /**
-   * Returns the width of the matrix.
-   *
-   * @return the width
-   */
   int getWidth() {
     return this.width;
   }
 
-  /**
-   * Returns the height of the matrix.
-   *
-   * @return the height
-   */
   int getHeight() {
     return this.height;
   }

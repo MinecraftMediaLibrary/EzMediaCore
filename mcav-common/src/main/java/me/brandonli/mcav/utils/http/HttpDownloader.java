@@ -174,15 +174,8 @@ public final class HttpDownloader {
     return bodyOf(response, client, uri);
   }
 
-  /**
-   * Opens the body of a pinned download: a redirect is followed only to the host, port and scheme of the URI, and at
-   * most {@value #MAXIMUM_REDIRECTS} times, so a mirror cannot make the server request what it chooses.
-   *
-   * @param uri the URI to download
-   * @return the body of the response, which closes its client
-   * @throws RedirectRefusedException if the server redirects elsewhere, to a location that is not a URI, or too often
-   * @throws IOException              if a request fails or the server answers with an error status
-   */
+  // Opens the body of a pinned download: a redirect is followed only to the host, port and scheme of the URI, and at
+  // most MAXIMUM_REDIRECTS times, so a mirror cannot make the server request what it chooses.
   @VisibleForTesting
   static InputStream openPinnedStream(final URI uri) throws IOException {
     URI current = uri;
@@ -224,13 +217,6 @@ public final class HttpDownloader {
     return HTTP_REDIRECTS.contains(status);
   }
 
-  /**
-   * Checks whether two URIs name the same scheme, host and port, a port left out being the scheme's own.
-   *
-   * @param first  a URI
-   * @param second another URI
-   * @return true if both have the same origin
-   */
   @VisibleForTesting
   static boolean isSameOrigin(final URI first, final URI second) {
     final String scheme = Objects.requireNonNull(first.getScheme());
@@ -350,32 +336,12 @@ public final class HttpDownloader {
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes, pinnedDeadline(maximumBytes));
   }
 
-  /**
-   * Downloads a file with a custom delay between attempts and the default idle timeout.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @throws IOException if every attempt fails
-   */
   @VisibleForTesting
   static void download(final URI uri, final Path destination, final @Nullable String expectedSha256, final Duration retryDelay)
     throws IOException {
     download(uri, destination, expectedSha256, retryDelay, IDLE_TIMEOUT, NO_SIZE_LIMIT);
   }
 
-  /**
-   * Downloads a file with a custom delay between attempts, a custom idle timeout and a custom size limit.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maximumBytes   the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
-   * @throws IOException if every attempt fails or the file cannot be moved into place
-   */
   @VisibleForTesting
   static void download(
     final URI uri,
@@ -388,19 +354,6 @@ public final class HttpDownloader {
     download(uri, destination, expectedSha256, retryDelay, idleTimeout, maximumBytes, null);
   }
 
-  /**
-   * Downloads a file as the method above does, pinned if a deadline is given.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maximumBytes   the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
-   * @param pinnedDeadline how long an attempt of a pinned download may take, which also follows a redirect only to
-   *                       its own host, or null for a download that is not pinned
-   * @throws IOException if every attempt fails or the file cannot be moved into place
-   */
   @VisibleForTesting
   static void download(
     final URI uri,
@@ -431,23 +384,15 @@ public final class HttpDownloader {
     }
   }
 
-  /**
-   * Returns how long a pinned download may take: a minute, and a second for every 64 KiB of its size.
-   *
-   * @param maximumBytes the pinned size
-   * @return the time it may take
-   */
   @VisibleForTesting
   static Duration pinnedDeadline(final long maximumBytes) {
     return PINNED_GRACE.plusSeconds(maximumBytes / PINNED_MINIMUM_BYTES_PER_SECOND);
   }
 
-  /**
-   * Moves a finished and verified download into place. Downloads of the same file in this JVM take turns here,
-   * because Windows refuses to replace a file while another thread is replacing it, so two concurrent downloads of one
-   * file would otherwise fail at random. Equal paths always share a lock stripe; on Windows, paths are equal regardless
-   * of the case of their letters.
-   */
+  // Moves a finished and verified download into place. Downloads of the same file in this JVM take turns here, because
+  // Windows refuses to replace a file while another thread is replacing it, so two concurrent downloads of one file
+  // would otherwise fail at random. Equal paths always share a lock stripe; on Windows, paths are equal regardless of
+  // the case of their letters.
   private static void moveIntoPlace(final Path partFile, final Path target) throws IOException {
     final Path normalizedTarget = target.normalize();
     final Lock lock = TARGET_LOCKS.get(normalizedTarget);
@@ -503,10 +448,8 @@ public final class HttpDownloader {
     }
   }
 
-  /**
-   * Decides whether a failed download is worth another attempt. Network failures, stalled bodies, and server errors
-   * may be temporary, but a client error such as {@code 404 Not Found} or a hash mismatch will not go away on its own.
-   */
+  // Decides whether a failed download is worth another attempt. Network failures, stalled bodies, and server errors may
+  // be temporary, but a client error such as 404 Not Found or a hash mismatch will not go away on its own.
   @VisibleForTesting
   static boolean isRetryable(final IOException exception) {
     if (exception instanceof ChecksumMismatchException) {
@@ -550,11 +493,9 @@ public final class HttpDownloader {
     verifyChecksum(uri, digest, expectedSha256);
   }
 
-  /**
-   * Copies the body into the part file and feeds every chunk into the digest on the way, so the file is hashed
-   * without reading it a second time. A body that passes the limit stops the download at once, before the bytes
-   * beyond it are written, and so does one that takes longer than its deadline.
-   */
+  // Copies the body into the part file and feeds every chunk into the digest on the way, so the file is hashed without
+  // reading it a second time. A body that passes the limit stops the download at once, before the bytes beyond it are
+  // written, and so does one that takes longer than its deadline.
   private static void copy(
     final InputStream body,
     final OutputStream partOutput,
@@ -658,10 +599,8 @@ public final class HttpDownloader {
     return Optional.of(body);
   }
 
-  /**
-   * A response stream that shuts down its HTTP client together with the stream. The client is shut down without
-   * waiting for its exchanges, so closing a stream whose server stopped sending never blocks.
-   */
+  // A response stream that shuts down its HTTP client together with the stream. The client is shut down without waiting
+  // for its exchanges, so closing a stream whose server stopped sending never blocks.
   @VisibleForTesting
   static final class ClientClosingStream extends InputStream {
 
@@ -692,11 +631,6 @@ public final class HttpDownloader {
       }
     }
 
-    /**
-     * Returns the client this stream shuts down when it is closed.
-     *
-     * @return the client
-     */
     HttpClient getClient() {
       return this.client;
     }
