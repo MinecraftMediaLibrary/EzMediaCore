@@ -36,32 +36,8 @@ import me.brandonli.mcav.media.player.PlayerException;
  */
 public final class ByteUtils {
 
-  private static final ByteOrder NATIVE_ORDER = ByteOrder.nativeOrder();
-  private static final boolean LITTLE_ENDIAN = NATIVE_ORDER.equals(ByteOrder.LITTLE_ENDIAN);
-  private static final boolean BIG_ENDIAN = NATIVE_ORDER.equals(ByteOrder.BIG_ENDIAN);
-
   private ByteUtils() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
-  }
-
-  /**
-   * Checks whether the native byte order of this machine is little-endian.
-   *
-   * @return true on little-endian machines, which includes x86 and most ARM systems
-   * @since 1.0.0
-   */
-  public static boolean isLittleEndian() {
-    return LITTLE_ENDIAN;
-  }
-
-  /**
-   * Checks whether the native byte order of this machine is big-endian.
-   *
-   * @return true on big-endian machines
-   * @since 1.0.0
-   */
-  public static boolean isBigEndian() {
-    return BIG_ENDIAN;
   }
 
   /**

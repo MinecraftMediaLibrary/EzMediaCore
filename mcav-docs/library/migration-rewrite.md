@@ -273,6 +273,7 @@ Other utility callers need these updates:
 | `IOUtils.getSHA256Hash(String)` | `IoUtils.getSha256Hash(Path)` |
 | `KeyCode.charAt(int)` | Use `getKeyChar`, `getCodePoint` or `asString` for the needed representation |
 | Removed `SourceUtils.getSource` and `ByteUtils` conversion helpers | Use the current source and buffer APIs; do not depend on their former implementation helpers |
+| `ByteUtils.isLittleEndian()` / `isBigEndian()` | Compare `ByteOrder.nativeOrder()` with `ByteOrder.LITTLE_ENDIAN` or `ByteOrder.BIG_ENDIAN` |
 
 The yt-dlp DTOs in `me.brandonli.mcav.json.ytdlp.format` are now immutable value classes with `equals`, `hashCode` and
 `toString`. Their public snake_case fields are gone: read each value through a camel-case getter with the abbreviations

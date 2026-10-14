@@ -19,7 +19,6 @@ package me.brandonli.mcav.utils.natives;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
@@ -39,16 +38,6 @@ final class ByteUtilsTest {
     final byte[] bytes = new byte[remaining];
     view.get(bytes);
     return bytes;
-  }
-
-  @Test
-  void shouldReportTheNativeByteOrder() {
-    final ByteOrder nativeOrder = ByteOrder.nativeOrder();
-    final boolean expectedLittle = nativeOrder == ByteOrder.LITTLE_ENDIAN;
-    final boolean little = ByteUtils.isLittleEndian();
-    final boolean big = ByteUtils.isBigEndian();
-    assertEquals(expectedLittle, little);
-    assertNotEquals(little, big);
   }
 
   @Test
