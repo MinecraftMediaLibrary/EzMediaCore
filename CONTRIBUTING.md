@@ -3,7 +3,7 @@
 MCAV welcomes all contributors, and contributing is easy. Make sure your contribution follows these guidelines:
 
 - Appropriate (is it reasonable, necessary?)
-- Code quality (follow OOP, avoid DRY code, etc.)
+- Code quality (follow OOP and keep code DRY: extract a utility on its second use, not the first)
 - Code formatting (run `./gradlew spotlessApply`, which adds the license header and formats the code with prettier-java)
 
 `./gradlew spotlessRepositoryCheck` checks whitespace in the repository text files, including
