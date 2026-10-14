@@ -78,7 +78,7 @@ one of their names.
   each JVM runs its tests one at a time. The JVMs run at the same time, so a test writes outside its temporary folders
   only through a file lock or an atomic move, and no two test classes bind the same fixed port.
 
-## Property, Fuzz and Concurrency Tests
+## Property, fuzz and concurrency tests
 
 Property tests are [jqwik](https://jqwik.net/) properties in classes named `*PropertyTest`, and fuzz tests are
 [Jazzer](https://github.com/CodeIntelligenceTesting/jazzer) fuzz tests in classes named `*FuzzTest`, both in the test
@@ -98,7 +98,7 @@ source set of their module. `./gradlew check`, and so `./gradlew build`, runs bo
   harness: it is not published and is kept out of the coverage lint and of PIT. A result a test marks as forbidden
   fails the task.
 
-## The MCV2 Native Libraries
+## The MCV2 native libraries
 
 `mcav-bukkit` builds the MCV2 encoder's six native libraries (Linux, Windows and macOS on x86-64 and ARM64) from
 `src/main/native/mcv2` whenever resources are processed. Gradle downloads [Zig](https://ziglang.org/) 0.16.0 and checks
@@ -123,7 +123,7 @@ JUnit reports are in `mcav-bukkit/build/test-results/pythonTest`. The
 [MCV2 article](https://mcav.readthedocs.io/en/latest/mcv2.html#reproducing-the-measurements-and-figures) lists the tools and
 their commands.
 
-## Static Analysis
+## Static analysis
 
 The Java-library convention runs [Error Prone](https://errorprone.info/) with its default checks on production and
 test code, next to the Checker Framework's nullness checker on production code. The twelve module builds must
@@ -142,7 +142,7 @@ joins strings with `+`; the message's SLF4J placeholders take the other argument
 `variableNames` fails on a variable, parameter or field named by one letter or by a short form a word says better
 (`buf`, `tmp`, `idx`...); type parameters are a word plus `Type`, such as `<KeyType>`.
 
-## Mutation Testing
+## Mutation testing
 
 `./gradlew :<module>:pitest` runs [PIT](https://pitest.org/) on a module: it changes the compiled code in small ways,
 such as flipping a condition, and reruns the tests to see whether one of them notices. The report is written to
@@ -151,7 +151,7 @@ ordinary `test` task's JVM options and system properties once, including `mcav.n
 `jqwik.database`, `jqwik.failures.after.default` and the ordinary smoke tries (`jqwik.tries.default`). It honors
 `-Pmcav.testJavaHome`; the property and fuzz tasks keep their separate roles and budgets.
 
-## End-to-End Test
+## End-to-end test
 
 `./gradlew :mcav-plugin:e2eTest -Pmcav.e2e=true -Pmcav.acceptMinecraftEula=true` runs the MCAV plugin on a real,
 headless Paper 26.3 server together with Simple Voice Chat, exactly as on a production server:

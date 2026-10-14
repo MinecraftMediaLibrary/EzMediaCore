@@ -117,7 +117,7 @@ Here is a list of all the modules that are included in MCAV.
 
 ---
 
-### Building from Source
+### Building from source
 
 Running Gradle needs a JDK 17 or newer and network access, but no credentials. Full coverage also needs a machine
 where all runtime tests can run, as described below. Clone the repository and build it:
@@ -216,7 +216,7 @@ The third-party code that MCAV's jars bundle, with its licences, and what MCAV d
 
 ---
 
-### Contributors / Acknowledgements
+### Contributors and acknowledgements
 
 | Developer                                               | Contribution                                   |
 |---------------------------------------------------------|------------------------------------------------|
@@ -234,7 +234,7 @@ The third-party code that MCAV's jars bundle, with its licences, and what MCAV d
 
 ---
 
-### MCAV Projects
+### MCAV projects
 
 | Project                                                   | Description                            |
 |-----------------------------------------------------------|----------------------------------------|
@@ -243,6 +243,6 @@ The third-party code that MCAV's jars bundle, with its licences, and what MCAV d
 
 ---
 
-### Legacy Demo
+### Legacy demo
 
 https://user-images.githubusercontent.com/40838203/132433665-a675fc35-e31f-4044-a960-ce46a8fb7df5.mp4
