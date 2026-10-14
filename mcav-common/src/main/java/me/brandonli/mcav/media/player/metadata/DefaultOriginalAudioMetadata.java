@@ -118,16 +118,16 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
       return true;
     }
 
-    if (!(other instanceof final DefaultOriginalAudioMetadata metadata)) {
+    if (!(other instanceof final DefaultOriginalAudioMetadata originalAudioMetadata)) {
       return false;
     }
 
     return (
-      this.codec.equals(metadata.codec) &&
-      this.audioBitrate == metadata.audioBitrate &&
-      this.audioSampleRate == metadata.audioSampleRate &&
-      this.audioChannels == metadata.audioChannels &&
-      this.samplingFormat == metadata.samplingFormat
+      this.codec.equals(originalAudioMetadata.codec) &&
+      this.audioBitrate == originalAudioMetadata.audioBitrate &&
+      this.audioSampleRate == originalAudioMetadata.audioSampleRate &&
+      this.audioChannels == originalAudioMetadata.audioChannels &&
+      this.samplingFormat == originalAudioMetadata.samplingFormat
     );
   }
 

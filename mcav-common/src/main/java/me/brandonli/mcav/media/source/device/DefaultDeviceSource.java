@@ -60,11 +60,11 @@ public final class DefaultDeviceSource implements DeviceSource {
       return true;
     }
 
-    if (!(other instanceof final DefaultDeviceSource source)) {
+    if (!(other instanceof final DefaultDeviceSource deviceSource)) {
       return false;
     }
 
-    return this.deviceId == source.deviceId;
+    return this.deviceId == deviceSource.deviceId;
   }
 
   /**

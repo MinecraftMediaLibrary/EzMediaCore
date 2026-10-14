@@ -51,11 +51,11 @@ final class PixelCacheKey {
       return true;
     }
 
-    if (!(other instanceof final PixelCacheKey key)) {
+    if (!(other instanceof final PixelCacheKey pixelCacheKey)) {
       return false;
     }
 
-    return this.address == key.address && this.width == key.width && this.height == key.height;
+    return this.address == pixelCacheKey.address && this.width == pixelCacheKey.width && this.height == pixelCacheKey.height;
   }
 
   @Override

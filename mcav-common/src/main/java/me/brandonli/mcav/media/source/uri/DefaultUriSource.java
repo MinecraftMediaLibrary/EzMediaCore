@@ -77,11 +77,11 @@ public final class DefaultUriSource implements UriSource {
       return true;
     }
 
-    if (!(other instanceof final DefaultUriSource source)) {
+    if (!(other instanceof final DefaultUriSource uriSource)) {
       return false;
     }
 
-    return this.uri.equals(source.uri);
+    return this.uri.equals(uriSource.uri);
   }
 
   /**

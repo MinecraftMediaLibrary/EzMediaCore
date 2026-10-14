@@ -61,11 +61,11 @@ public final class DefaultFileSource implements FileSource {
       return true;
     }
 
-    if (!(other instanceof final DefaultFileSource source)) {
+    if (!(other instanceof final DefaultFileSource fileSource)) {
       return false;
     }
 
-    return this.path.equals(source.path);
+    return this.path.equals(fileSource.path);
   }
 
   /**

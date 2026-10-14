@@ -99,15 +99,15 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
       return true;
     }
 
-    if (!(other instanceof final DefaultOriginalVideoMetadata metadata)) {
+    if (!(other instanceof final DefaultOriginalVideoMetadata originalVideoMetadata)) {
       return false;
     }
 
-    final int frameRateComparison = Float.compare(this.videoFrameRate, metadata.videoFrameRate);
+    final int frameRateComparison = Float.compare(this.videoFrameRate, originalVideoMetadata.videoFrameRate);
     return (
-      this.videoWidth == metadata.videoWidth &&
-      this.videoHeight == metadata.videoHeight &&
-      this.videoBitrate == metadata.videoBitrate &&
+      this.videoWidth == originalVideoMetadata.videoWidth &&
+      this.videoHeight == originalVideoMetadata.videoHeight &&
+      this.videoBitrate == originalVideoMetadata.videoBitrate &&
       frameRateComparison == 0
     );
   }
