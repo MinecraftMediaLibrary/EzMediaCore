@@ -165,55 +165,6 @@ final class FfmpegPlayerTest {
     }
   }
 
-  /**
-   * What a playback delivered to its pipelines: the frames with their sizes and arrival times, the bytes of audio in
-   * the output format, and the errors.
-   */
-  private static final class PlaybackRecording {
-
-    private final AtomicInteger frames = new AtomicInteger();
-    private final AtomicLong audioBytes = new AtomicLong();
-    private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
-    private final List<Long> frameTimes = Collections.synchronizedList(new ArrayList<>());
-    private final List<String> sizes = Collections.synchronizedList(new ArrayList<>());
-
-    /**
-     * Records the errors of a player and attaches pipelines that record its frames and audio.
-     */
-    private void attachTo(final FfmpegPlayer player) {
-      player.setExceptionHandler((_, error) -> this.errors.add(error));
-      final VideoFilter video = recordingFrames(this.frames, this.sizes, this.frameTimes);
-      final AudioFilter audio = countingOutputSamples(this.audioBytes);
-      attach(player, video, audio);
-    }
-
-    /**
-     * Checks that the five seconds of the test video played completely, in real time, and with their audio.
-     */
-    private void assertPlayedTheWholeFileInRealTime(final boolean started, final double seconds) {
-      final int frameCount = this.frames.get();
-      final long bytes = this.audioBytes.get();
-      final long firstFrame = this.frameTimes.getFirst();
-      final long lastFrame = this.frameTimes.getLast();
-      final double frameSpan = secondsBetween(firstFrame, lastFrame);
-      final double frameRate = (frameCount - 1) / frameSpan;
-      final boolean noErrors = this.errors.isEmpty();
-      final Set<String> distinctSizes = Set.copyOf(this.sizes);
-      final Set<String> expectedSizes = Set.of(TestMedia.VIDEO_WIDTH + SIZE_SEPARATOR + TestMedia.VIDEO_WIDTH);
-
-      assertTrue(started);
-      assertTrue(noErrors, "errors: " + this.errors);
-      assertEquals(150, frameCount, "neverDropLateFrames must deliver every frame of the generated 5-second 30-fps file");
-      final boolean pacedAtThirty = frameRate > 24.0 && frameRate < 36.0;
-      assertTrue(pacedAtThirty, "the frames are paced at about 30 per second, got " + frameRate);
-      final boolean realTime = seconds > 4.5;
-      assertTrue(realTime, "playback runs in real time, not faster, took " + seconds);
-      final boolean fiveSecondsOfAudio = bytes > 900_000 && bytes < 1_000_000;
-      assertTrue(fiveSecondsOfAudio, "five seconds of 48 kHz stereo, got " + bytes);
-      assertEquals(expectedSizes, distinctSizes, "every frame has the size of the video");
-    }
-  }
-
   @Test
   void shouldPauseResumeSeekAndScale() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
@@ -372,6 +323,55 @@ final class FfmpegPlayerTest {
       assertThrowsWhileOpening(NullPointerException.class, () -> player.createFrameGrabber(null));
     } finally {
       player.release();
+    }
+  }
+
+  /**
+   * What a playback delivered to its pipelines: the frames with their sizes and arrival times, the bytes of audio in
+   * the output format, and the errors.
+   */
+  private static final class PlaybackRecording {
+
+    private final AtomicInteger frames = new AtomicInteger();
+    private final AtomicLong audioBytes = new AtomicLong();
+    private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+    private final List<Long> frameTimes = Collections.synchronizedList(new ArrayList<>());
+    private final List<String> sizes = Collections.synchronizedList(new ArrayList<>());
+
+    /**
+     * Records the errors of a player and attaches pipelines that record its frames and audio.
+     */
+    private void attachTo(final FfmpegPlayer player) {
+      player.setExceptionHandler((_, error) -> this.errors.add(error));
+      final VideoFilter video = recordingFrames(this.frames, this.sizes, this.frameTimes);
+      final AudioFilter audio = countingOutputSamples(this.audioBytes);
+      attach(player, video, audio);
+    }
+
+    /**
+     * Checks that the five seconds of the test video played completely, in real time, and with their audio.
+     */
+    private void assertPlayedTheWholeFileInRealTime(final boolean started, final double seconds) {
+      final int frameCount = this.frames.get();
+      final long bytes = this.audioBytes.get();
+      final long firstFrame = this.frameTimes.getFirst();
+      final long lastFrame = this.frameTimes.getLast();
+      final double frameSpan = secondsBetween(firstFrame, lastFrame);
+      final double frameRate = (frameCount - 1) / frameSpan;
+      final boolean noErrors = this.errors.isEmpty();
+      final Set<String> distinctSizes = Set.copyOf(this.sizes);
+      final Set<String> expectedSizes = Set.of(TestMedia.VIDEO_WIDTH + SIZE_SEPARATOR + TestMedia.VIDEO_WIDTH);
+
+      assertTrue(started);
+      assertTrue(noErrors, "errors: " + this.errors);
+      assertEquals(150, frameCount, "neverDropLateFrames must deliver every frame of the generated 5-second 30-fps file");
+      final boolean pacedAtThirty = frameRate > 24.0 && frameRate < 36.0;
+      assertTrue(pacedAtThirty, "the frames are paced at about 30 per second, got " + frameRate);
+      final boolean realTime = seconds > 4.5;
+      assertTrue(realTime, "playback runs in real time, not faster, took " + seconds);
+      final boolean fiveSecondsOfAudio = bytes > 900_000 && bytes < 1_000_000;
+      assertTrue(fiveSecondsOfAudio, "five seconds of 48 kHz stereo, got " + bytes);
+      assertEquals(expectedSizes, distinctSizes, "every frame has the size of the video");
     }
   }
 }

@@ -62,30 +62,6 @@ final class CommandTaskDeadlineTest {
   @TempDir
   private Path directory;
 
-  private static final class StringFuture extends CompletableFuture<String> {}
-
-  /**
-   * A parent that starts a child sharing its standard streams and ends, while the child holds the pipes for 30 seconds.
-   * With three arguments, the Java executable, the class path and the file for the child's pid, it is the parent;
-   * with one, the child.
-   */
-  static final class InheritedPipes {
-
-    private InheritedPipes() {}
-
-    public static void main(final String[] args) throws IOException, InterruptedException {
-      if (args.length == 1) {
-        Thread.sleep(30_000L);
-        return;
-      }
-      final Process child = new ProcessBuilder(args[0], CLASS_PATH_OPTION, args[1], InheritedPipes.class.getName(), "child")
-        .inheritIO()
-        .start();
-      Files.writeString(Path.of(args[2]), Long.toString(child.pid()));
-      Thread.sleep(500L);
-    }
-  }
-
   private static Process finishedProcess() throws InterruptedException {
     final Process process = mock(Process.class);
     when(process.waitFor(anyLong(), eq(TimeUnit.NANOSECONDS))).thenReturn(true);
@@ -208,6 +184,30 @@ final class CommandTaskDeadlineTest {
       if (parent != null) {
         parent.destroyForcibly();
       }
+    }
+  }
+
+  private static final class StringFuture extends CompletableFuture<String> {}
+
+  /**
+   * A parent that starts a child sharing its standard streams and ends, while the child holds the pipes for 30 seconds.
+   * With three arguments, the Java executable, the class path and the file for the child's pid, it is the parent;
+   * with one, the child.
+   */
+  static final class InheritedPipes {
+
+    private InheritedPipes() {}
+
+    public static void main(final String[] args) throws IOException, InterruptedException {
+      if (args.length == 1) {
+        Thread.sleep(30_000L);
+        return;
+      }
+      final Process child = new ProcessBuilder(args[0], CLASS_PATH_OPTION, args[1], InheritedPipes.class.getName(), "child")
+        .inheritIO()
+        .start();
+      Files.writeString(Path.of(args[2]), Long.toString(child.pid()));
+      Thread.sleep(500L);
     }
   }
 }

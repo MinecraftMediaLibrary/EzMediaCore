@@ -88,11 +88,6 @@ final class VlcPlayerIntegrationTest {
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
-  @BeforeAll
-  static void loadVlc() {
-    VlcTestSupport.assumeVlc();
-  }
-
   VlcPlayerIntegrationTest() {
     this.player.setExceptionHandler((message, error) -> {
       this.messages.add(message);
@@ -104,6 +99,11 @@ final class VlcPlayerIntegrationTest {
     final AudioAttachableCallback audioCallback = this.player.getAudioAttachableCallback();
     videoCallback.attach(videoStep);
     audioCallback.attach(audioStep);
+  }
+
+  @BeforeAll
+  static void loadVlc() {
+    VlcTestSupport.assumeVlc();
   }
 
   @AfterEach

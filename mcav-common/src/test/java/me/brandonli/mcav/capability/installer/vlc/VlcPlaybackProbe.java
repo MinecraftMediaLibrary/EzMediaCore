@@ -151,13 +151,13 @@ final class VlcPlaybackProbe {
     }
 
     @Override
-    public @Nullable Path getDiscoveredPath() {
-      return this.discovery.getDiscoveredPath();
+    public boolean loadInstalledLibraries(final Path libraryDirectory) {
+      return this.discovery.loadInstalledLibraries(libraryDirectory);
     }
 
     @Override
-    public boolean loadInstalledLibraries(final Path libraryDirectory) {
-      return this.discovery.loadInstalledLibraries(libraryDirectory);
+    public @Nullable Path getDiscoveredPath() {
+      return this.discovery.getDiscoveredPath();
     }
   }
 }

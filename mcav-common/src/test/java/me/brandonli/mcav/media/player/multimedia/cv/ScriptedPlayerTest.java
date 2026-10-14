@@ -703,14 +703,6 @@ final class ScriptedPlayerTest {
       this.configurationFails = true;
     }
 
-    private List<String> getOpenedResources() {
-      return this.openedResources;
-    }
-
-    private List<String> getCallingThreads() {
-      return this.callingThreads;
-    }
-
     private void clearCallingThreads() {
       this.callingThreads.clear();
     }
@@ -719,6 +711,14 @@ final class ScriptedPlayerTest {
       synchronized (this.created) {
         return this.created.getLast();
       }
+    }
+
+    private List<String> getOpenedResources() {
+      return this.openedResources;
+    }
+
+    private List<String> getCallingThreads() {
+      return this.callingThreads;
     }
   }
 }

@@ -64,22 +64,6 @@ final class MockVlc {
 
   private static final int SECOND_PLAYER_INDEX = 1;
 
-  /**
-   * What a player does when it is asked to play media.
-   */
-  enum Outcome {
-    /** Reports that the media plays. */
-    PLAYING,
-    /** Reports an error, like VLC does for a missing file. */
-    ERROR,
-    /** Reports nothing, like VLC while it is still opening a stream. */
-    SILENT,
-    /** Refuses the media, like vlcj does for a malformed MRL. */
-    REJECTED,
-    /** Throws an exception. */
-    THROWS,
-  }
-
   private final MediaPlayerFactory factory;
   private final List<Player> players;
   private final Deque<Outcome> outcomes;
@@ -196,6 +180,22 @@ final class MockVlc {
     this.failingPlayerIndex = SECOND_PLAYER_INDEX;
   }
 
+  Player player(final int index) {
+    return this.players.get(index);
+  }
+
+  BufferFormatCallback getFormatCallback() {
+    final BufferFormatCallback callback = this.formatCallback.get();
+    assertNotNull(callback, "no video surface was created");
+    return callback;
+  }
+
+  RenderCallback getRenderCallback() {
+    final RenderCallback callback = this.renderCallback.get();
+    assertNotNull(callback, "no video surface was created");
+    return callback;
+  }
+
   SharedMediaPlayerFactory getSharedFactory() {
     return this.sharedFactory;
   }
@@ -212,20 +212,20 @@ final class MockVlc {
     return this.players;
   }
 
-  Player player(final int index) {
-    return this.players.get(index);
-  }
-
-  BufferFormatCallback getFormatCallback() {
-    final BufferFormatCallback callback = this.formatCallback.get();
-    assertNotNull(callback, "no video surface was created");
-    return callback;
-  }
-
-  RenderCallback getRenderCallback() {
-    final RenderCallback callback = this.renderCallback.get();
-    assertNotNull(callback, "no video surface was created");
-    return callback;
+  /**
+   * What a player does when it is asked to play media.
+   */
+  enum Outcome {
+    /** Reports that the media plays. */
+    PLAYING,
+    /** Reports an error, like VLC does for a missing file. */
+    ERROR,
+    /** Reports nothing, like VLC while it is still opening a stream. */
+    SILENT,
+    /** Refuses the media, like vlcj does for a malformed MRL. */
+    REJECTED,
+    /** Throws an exception. */
+    THROWS,
   }
 
   /**
@@ -357,12 +357,22 @@ final class MockVlc {
       }
     }
 
-    void setPlaying(final boolean isPlaying) {
-      this.playing.set(isPlaying);
-    }
-
     void makeUnseekable() {
       this.seekable.set(false);
+    }
+
+    AudioCallback getAudioCallback() {
+      final AudioCallback callback = this.audioCallback.get();
+      assertNotNull(callback, "no audio callback was installed");
+      return callback;
+    }
+
+    boolean hasAudioCallback() {
+      return this.audioCallback.get() != null;
+    }
+
+    void setPlaying(final boolean isPlaying) {
+      this.playing.set(isPlaying);
     }
 
     void setTime(final long time) {
@@ -403,16 +413,6 @@ final class MockVlc {
 
     String[] getOptions() {
       return this.options.get();
-    }
-
-    AudioCallback getAudioCallback() {
-      final AudioCallback callback = this.audioCallback.get();
-      assertNotNull(callback, "no audio callback was installed");
-      return callback;
-    }
-
-    boolean hasAudioCallback() {
-      return this.audioCallback.get() != null;
     }
   }
 }

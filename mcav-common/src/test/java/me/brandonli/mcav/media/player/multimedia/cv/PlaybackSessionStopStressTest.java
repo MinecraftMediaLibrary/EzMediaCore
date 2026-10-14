@@ -83,20 +83,6 @@ final class PlaybackSessionStopStressTest {
   private static final int FRAME_HEIGHT = 2;
 
   /**
-   * Where a round stops its session.
-   */
-  private enum StopPoint {
-    BEFORE_THE_THREADS,
-    RIGHT_AFTER_THE_START,
-    WHILE_PAUSED,
-    AFTER_SOME_FRAMES,
-    AS_THE_MEDIA_ENDS,
-    FROM_ITS_OWN_FILTER,
-    FROM_TWO_THREADS,
-    FROM_ITS_FILTER_AND_OUTSIDE,
-  }
-
-  /**
    * Loads the OpenCV natives before the first round, because the first image buffer of the JVM loads them on the
    * decoding thread, where the loading takes seconds.
    */
@@ -195,6 +181,20 @@ final class PlaybackSessionStopStressTest {
       }
     }
     return sessionThreads;
+  }
+
+  /**
+   * Where a round stops its session.
+   */
+  private enum StopPoint {
+    BEFORE_THE_THREADS,
+    RIGHT_AFTER_THE_START,
+    WHILE_PAUSED,
+    AFTER_SOME_FRAMES,
+    AS_THE_MEDIA_ENDS,
+    FROM_ITS_OWN_FILTER,
+    FROM_TWO_THREADS,
+    FROM_ITS_FILTER_AND_OUTSIDE,
   }
 
   /**

@@ -96,14 +96,6 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     return frame;
   }
 
-  boolean isClosed() {
-    return this.closed.get();
-  }
-
-  long getRequestedTimestamp() {
-    return this.requestedTimestamp.get();
-  }
-
   /**
    * Returns the number of steps of the script that have not been reached yet.
    *
@@ -116,24 +108,10 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   }
 
   /**
-   * Gives the media a known length, which makes it seekable.
-   *
-   * @param lengthMicroseconds the length in microseconds
-   */
-  void setLength(final long lengthMicroseconds) {
-    this.length = lengthMicroseconds;
-  }
-
-  /**
    * Makes every seek fail, like a source that cannot seek at all.
    */
   void failOnSeek() {
     this.failOnSeek = true;
-  }
-
-  @Override
-  public long getLengthInTime() {
-    return this.length;
   }
 
   @Override
@@ -198,6 +176,28 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     if (this.failOnSeek) {
       throw new FrameGrabber.Exception("seek failed on purpose");
     }
+  }
+
+  boolean isClosed() {
+    return this.closed.get();
+  }
+
+  long getRequestedTimestamp() {
+    return this.requestedTimestamp.get();
+  }
+
+  /**
+   * Gives the media a known length, which makes it seekable.
+   *
+   * @param lengthMicroseconds the length in microseconds
+   */
+  void setLength(final long lengthMicroseconds) {
+    this.length = lengthMicroseconds;
+  }
+
+  @Override
+  public long getLengthInTime() {
+    return this.length;
   }
 
   /**

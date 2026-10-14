@@ -59,63 +59,6 @@ final class VlcInstallationValidationTest {
   @TempDir
   private Path temporaryDirectory;
 
-  private enum Platform {
-    WINDOWS,
-    MAC,
-    LINUX;
-
-    private static final String WINDOWS_MAIN_LIBRARY_NAME = "libvlc.dll";
-    private static final String WINDOWS_CORE_LIBRARY_NAME = "libvlccore.dll";
-
-    private static final String LINUX_MAIN_LIBRARY_NAME = "libvlc.so.5.6.1";
-    private static final String LINUX_CORE_LIBRARY_NAME = "libvlccore.so.9.0.1";
-
-    private static final Path MAC_LIBRARY_DIRECTORY = Path.of("VLC.app", "Contents", "MacOS", "lib");
-    private static final Path LINUX_LIBRARY_DIRECTORY = Path.of("usr", "lib", "i386-linux-gnu");
-
-    private String mainLibrary() {
-      return switch (this) {
-        case WINDOWS -> WINDOWS_MAIN_LIBRARY_NAME;
-        case MAC -> MAC_MAIN_LIBRARY_NAME;
-        case LINUX -> LINUX_MAIN_LIBRARY_NAME;
-      };
-    }
-
-    private String coreLibrary() {
-      return switch (this) {
-        case WINDOWS -> WINDOWS_CORE_LIBRARY_NAME;
-        case MAC -> MAC_CORE_LIBRARY_NAME;
-        case LINUX -> LINUX_CORE_LIBRARY_NAME;
-      };
-    }
-
-    private Path relativeDirectory() {
-      return switch (this) {
-        case WINDOWS -> Path.of("");
-        case MAC -> MAC_LIBRARY_DIRECTORY;
-        case LINUX -> LINUX_LIBRARY_DIRECTORY;
-      };
-    }
-
-    InstallationStrategy strategy(final VlcInstaller installer, final ProcessRunner tools) {
-      return switch (this) {
-        case WINDOWS -> new WindowsInstallationStrategy(installer);
-        case MAC -> new OsxInstallationStrategy(installer, tools);
-        case LINUX -> new LinuxInstallationStrategy(installer, tools);
-      };
-    }
-  }
-
-  private enum Defect {
-    MISSING_MAIN,
-    MISSING_CORE,
-    EMPTY_MAIN,
-    EMPTY_CORE,
-    DIFFERENT_DIRECTORIES,
-    DIRECTORY_MAIN,
-    DIRECTORY_CORE,
-  }
-
   private static void writePair(final Path directory, final Platform platform) throws IOException {
     Files.createDirectories(directory);
     final Path main = directory.resolve(platform.mainLibrary());
@@ -263,5 +206,62 @@ final class VlcInstallationValidationTest {
     final Optional<Path> broken = strategy.getInstalledPath();
     final boolean brokenMissing = broken.isEmpty();
     assertTrue(brokenMissing);
+  }
+
+  private enum Platform {
+    WINDOWS,
+    MAC,
+    LINUX;
+
+    private static final String WINDOWS_MAIN_LIBRARY_NAME = "libvlc.dll";
+    private static final String WINDOWS_CORE_LIBRARY_NAME = "libvlccore.dll";
+
+    private static final String LINUX_MAIN_LIBRARY_NAME = "libvlc.so.5.6.1";
+    private static final String LINUX_CORE_LIBRARY_NAME = "libvlccore.so.9.0.1";
+
+    private static final Path MAC_LIBRARY_DIRECTORY = Path.of("VLC.app", "Contents", "MacOS", "lib");
+    private static final Path LINUX_LIBRARY_DIRECTORY = Path.of("usr", "lib", "i386-linux-gnu");
+
+    private String mainLibrary() {
+      return switch (this) {
+        case WINDOWS -> WINDOWS_MAIN_LIBRARY_NAME;
+        case MAC -> MAC_MAIN_LIBRARY_NAME;
+        case LINUX -> LINUX_MAIN_LIBRARY_NAME;
+      };
+    }
+
+    private String coreLibrary() {
+      return switch (this) {
+        case WINDOWS -> WINDOWS_CORE_LIBRARY_NAME;
+        case MAC -> MAC_CORE_LIBRARY_NAME;
+        case LINUX -> LINUX_CORE_LIBRARY_NAME;
+      };
+    }
+
+    private Path relativeDirectory() {
+      return switch (this) {
+        case WINDOWS -> Path.of("");
+        case MAC -> MAC_LIBRARY_DIRECTORY;
+        case LINUX -> LINUX_LIBRARY_DIRECTORY;
+      };
+    }
+
+    InstallationStrategy strategy(final VlcInstaller installer, final ProcessRunner tools) {
+      return switch (this) {
+        case WINDOWS -> new WindowsInstallationStrategy(installer);
+        case MAC -> new OsxInstallationStrategy(installer, tools);
+        case LINUX -> new LinuxInstallationStrategy(installer, tools);
+      };
+    }
+  }
+
+  private enum Defect {
+    MISSING_MAIN,
+    MISSING_CORE,
+    EMPTY_MAIN,
+    EMPTY_CORE,
+    DIFFERENT_DIRECTORIES,
+    DIRECTORY_MAIN,
+    DIRECTORY_CORE,
   }
 }

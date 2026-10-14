@@ -246,22 +246,6 @@ final class OsxInstallationStrategyTest {
     assertEquals(MARKER_TEXT, markerText);
   }
 
-  /** A portable child that proves the strategy ran the requested program. */
-  public static final class ChildProbe {
-
-    private ChildProbe() {}
-
-    /**
-     * Writes the marker of a completed child process.
-     *
-     * @param arguments the marker path
-     * @throws IOException if the marker cannot be written
-     */
-    public static void main(final String[] arguments) throws IOException {
-      Files.writeString(Path.of(arguments[0]), MARKER_TEXT);
-    }
-  }
-
   private static OsxInstallationStrategy strategyWith(
     final VlcInstaller installer,
     final List<String> commands,
@@ -336,5 +320,21 @@ final class OsxInstallationStrategyTest {
     Files.createDirectories(libraryDirectory);
     Files.writeString(library, "structural API fixture, never loaded");
     Files.writeString(coreLibrary, "structural core fixture, never loaded");
+  }
+
+  /** A portable child that proves the strategy ran the requested program. */
+  public static final class ChildProbe {
+
+    private ChildProbe() {}
+
+    /**
+     * Writes the marker of a completed child process.
+     *
+     * @param arguments the marker path
+     * @throws IOException if the marker cannot be written
+     */
+    public static void main(final String[] arguments) throws IOException {
+      Files.writeString(Path.of(arguments[0]), MARKER_TEXT);
+    }
   }
 }

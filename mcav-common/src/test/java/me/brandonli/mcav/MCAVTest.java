@@ -73,74 +73,6 @@ final class MCAVTest {
 
   private static final String TRACKED_MODULE_NAME = "tracked";
 
-  /**
-   * A module that counts how often it was started and stopped.
-   */
-  static final class CountingModule implements MCAVModule {
-
-    final AtomicInteger starts = new AtomicInteger();
-    final AtomicInteger stops = new AtomicInteger();
-
-    @Override
-    public void start() {
-      this.starts.incrementAndGet();
-    }
-
-    @Override
-    public void stop() {
-      this.stops.incrementAndGet();
-    }
-
-    @Override
-    public String getModuleName() {
-      return "counting";
-    }
-  }
-
-  /**
-   * A module that counts starts and stops of every instance, for installations whose modules cannot be looked up
-   * afterward.
-   */
-  static final class TrackedModule implements MCAVModule {
-
-    private static final AtomicInteger STARTS = new AtomicInteger();
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      STARTS.incrementAndGet();
-    }
-
-    @Override
-    public void stop() {
-      STOPS.incrementAndGet();
-    }
-
-    @Override
-    public String getModuleName() {
-      return TRACKED_MODULE_NAME;
-    }
-  }
-
-  /**
-   * A module that cannot start.
-   */
-  static final class BrokenModule implements MCAVModule {
-
-    @Override
-    public void start() {
-      throw new IllegalStateException("port in use!");
-    }
-
-    @Override
-    public void stop() {}
-
-    @Override
-    public String getModuleName() {
-      return "broken";
-    }
-  }
-
   private final DependencyLoader dependencies = Mockito.mock(DependencyLoader.class);
   private final ModuleLoader modules = createSpiedModuleLoader();
   private final CapabilityGuard guard = new CapabilityGuard();
@@ -633,5 +565,73 @@ final class MCAVTest {
       Thread.onSpinWait();
     }
     return false;
+  }
+
+  /**
+   * A module that counts how often it was started and stopped.
+   */
+  static final class CountingModule implements MCAVModule {
+
+    final AtomicInteger starts = new AtomicInteger();
+    final AtomicInteger stops = new AtomicInteger();
+
+    @Override
+    public void start() {
+      this.starts.incrementAndGet();
+    }
+
+    @Override
+    public void stop() {
+      this.stops.incrementAndGet();
+    }
+
+    @Override
+    public String getModuleName() {
+      return "counting";
+    }
+  }
+
+  /**
+   * A module that counts starts and stops of every instance, for installations whose modules cannot be looked up
+   * afterward.
+   */
+  static final class TrackedModule implements MCAVModule {
+
+    private static final AtomicInteger STARTS = new AtomicInteger();
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      STARTS.incrementAndGet();
+    }
+
+    @Override
+    public void stop() {
+      STOPS.incrementAndGet();
+    }
+
+    @Override
+    public String getModuleName() {
+      return TRACKED_MODULE_NAME;
+    }
+  }
+
+  /**
+   * A module that cannot start.
+   */
+  static final class BrokenModule implements MCAVModule {
+
+    @Override
+    public void start() {
+      throw new IllegalStateException("port in use!");
+    }
+
+    @Override
+    public void stop() {}
+
+    @Override
+    public String getModuleName() {
+      return "broken";
+    }
   }
 }

@@ -58,19 +58,19 @@ public final class TemporaryUserHome implements AutoCloseable {
   }
 
   /**
+   * Restores the previous home directory.
+   */
+  @Override
+  public void close() {
+    System.setProperty(USER_HOME, this.previousHome);
+  }
+
+  /**
    * Returns the directory {@code user.home} points at while this handle is open.
    *
    * @return the temporary home directory
    */
   public Path getHome() {
     return this.home;
-  }
-
-  /**
-   * Restores the previous home directory.
-   */
-  @Override
-  public void close() {
-    System.setProperty(USER_HOME, this.previousHome);
   }
 }

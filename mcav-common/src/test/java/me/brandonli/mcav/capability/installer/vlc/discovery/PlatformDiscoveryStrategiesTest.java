@@ -404,19 +404,6 @@ final class PlatformDiscoveryStrategiesTest {
     UtilityClassAssertions.assertNotInstantiable(VlcDiscoveryStrategies.class);
   }
 
-  /**
-   * The C library function that reads environment variables, which vlcj's {@link LibC} does not declare.
-   */
-  interface EnvironmentReader extends Library {
-    /**
-     * Reads a variable.
-     *
-     * @param name the name of the variable
-     * @return the value, or null if the variable is not set
-     */
-    String getenv(String name);
-  }
-
   private static void unsetTestVariable(final boolean isWindows) {
     final LibC libc = LibC.INSTANCE;
     if (isWindows) {
@@ -460,5 +447,18 @@ final class PlatformDiscoveryStrategiesTest {
       published.add(name + ASSIGNMENT_SEPARATOR + value);
       return true;
     };
+  }
+
+  /**
+   * The C library function that reads environment variables, which vlcj's {@link LibC} does not declare.
+   */
+  interface EnvironmentReader extends Library {
+    /**
+     * Reads a variable.
+     *
+     * @param name the name of the variable
+     * @return the value, or null if the variable is not set
+     */
+    String getenv(String name);
   }
 }

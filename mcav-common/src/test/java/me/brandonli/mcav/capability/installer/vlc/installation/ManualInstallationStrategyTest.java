@@ -271,13 +271,13 @@ final class ManualInstallationStrategyTest {
     }
 
     @Override
-    public Optional<Path> getInstalledPath() {
-      return Optional.empty();
+    public Path execute(final Path archive) {
+      return archive;
     }
 
     @Override
-    public Path execute(final Path archive) {
-      return archive;
+    public Optional<Path> getInstalledPath() {
+      return Optional.empty();
     }
   }
 }

@@ -236,14 +236,6 @@ final class ImageBufferPropertyTest {
       this.colors = colors;
     }
 
-    int getWidth() {
-      return this.width;
-    }
-
-    int getHeight() {
-      return this.height;
-    }
-
     private int[] createArgb() {
       final int[] argb = new int[this.width * this.height];
       for (int pixel = 0; pixel < argb.length; pixel++) {
@@ -277,6 +269,14 @@ final class ImageBufferPropertyTest {
       buffer.position(this.before);
       buffer.limit(this.before + bytes.length);
       return buffer;
+    }
+
+    int getWidth() {
+      return this.width;
+    }
+
+    int getHeight() {
+      return this.height;
     }
 
     @Override

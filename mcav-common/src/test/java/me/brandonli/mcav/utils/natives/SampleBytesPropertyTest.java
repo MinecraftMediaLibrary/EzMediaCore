@@ -242,10 +242,6 @@ final class SampleBytesPropertyTest {
       this.order = order;
     }
 
-    private byte[] getContent() {
-      return this.content.clone();
-    }
-
     ByteBuffer create() {
       final int capacity = this.before + this.content.length + this.after;
       final boolean direct = this.layout == Layout.DIRECT || this.layout == Layout.SLICED_DIRECT;
@@ -281,6 +277,10 @@ final class SampleBytesPropertyTest {
       final ByteBuffer view = buffer.duplicate();
       view.get(left);
       assertArrayEquals(this.content, left, "bytes");
+    }
+
+    private byte[] getContent() {
+      return this.content.clone();
     }
 
     @Override

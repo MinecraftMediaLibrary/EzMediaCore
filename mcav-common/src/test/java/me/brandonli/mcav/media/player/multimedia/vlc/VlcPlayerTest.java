@@ -277,24 +277,6 @@ final class VlcPlayerTest {
     this.assertEverythingReleased();
   }
 
-  /**
-   * A way one of two separate players fails to start.
-   */
-  enum SeparateFailure {
-    VIDEO_REJECTED(MockVlc.Outcome.REJECTED, MockVlc.Outcome.PLAYING),
-    AUDIO_REJECTED(MockVlc.Outcome.PLAYING, MockVlc.Outcome.REJECTED),
-    VIDEO_ERROR(MockVlc.Outcome.ERROR, MockVlc.Outcome.PLAYING),
-    AUDIO_ERROR(MockVlc.Outcome.PLAYING, MockVlc.Outcome.ERROR);
-
-    private final MockVlc.Outcome videoOutcome;
-    private final MockVlc.Outcome audioOutcome;
-
-    SeparateFailure(final MockVlc.Outcome videoOutcome, final MockVlc.Outcome audioOutcome) {
-      this.videoOutcome = videoOutcome;
-      this.audioOutcome = audioOutcome;
-    }
-  }
-
   @ParameterizedTest
   @EnumSource(SeparateFailure.class)
   void shouldFailToStartWhenEitherSeparateSourceCannotBeOpened(final SeparateFailure failure) throws InterruptedException {
@@ -1151,18 +1133,6 @@ final class VlcPlayerTest {
     verify(audioControls).setTime(1_234L);
   }
 
-  /**
-   * A reason why a playback cannot seek.
-   */
-  enum SeekFailure {
-    VIDEO_NOT_SEEKABLE,
-    AUDIO_NOT_SEEKABLE,
-    VIDEO_ENDED,
-    AUDIO_STOPPED,
-    VIDEO_FAILED,
-    AUDIO_NOTHING_OPEN,
-  }
-
   @ParameterizedTest
   @EnumSource(SeekFailure.class)
   void shouldFailToSeekWhenAPlayerCannotSeek(final SeekFailure failure) {
@@ -1319,5 +1289,35 @@ final class VlcPlayerTest {
     assertEquals(5_000L, timeout);
     assertArrayEquals(new String[] { "--x" }, options);
     assertTrue(released);
+  }
+
+  /**
+   * A way one of two separate players fails to start.
+   */
+  enum SeparateFailure {
+    VIDEO_REJECTED(MockVlc.Outcome.REJECTED, MockVlc.Outcome.PLAYING),
+    AUDIO_REJECTED(MockVlc.Outcome.PLAYING, MockVlc.Outcome.REJECTED),
+    VIDEO_ERROR(MockVlc.Outcome.ERROR, MockVlc.Outcome.PLAYING),
+    AUDIO_ERROR(MockVlc.Outcome.PLAYING, MockVlc.Outcome.ERROR);
+
+    private final MockVlc.Outcome videoOutcome;
+    private final MockVlc.Outcome audioOutcome;
+
+    SeparateFailure(final MockVlc.Outcome videoOutcome, final MockVlc.Outcome audioOutcome) {
+      this.videoOutcome = videoOutcome;
+      this.audioOutcome = audioOutcome;
+    }
+  }
+
+  /**
+   * A reason why a playback cannot seek.
+   */
+  enum SeekFailure {
+    VIDEO_NOT_SEEKABLE,
+    AUDIO_NOT_SEEKABLE,
+    VIDEO_ENDED,
+    AUDIO_STOPPED,
+    VIDEO_FAILED,
+    AUDIO_NOTHING_OPEN,
   }
 }

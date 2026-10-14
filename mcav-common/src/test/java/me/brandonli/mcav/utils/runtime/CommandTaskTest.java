@@ -340,6 +340,19 @@ final class CommandTaskTest {
     }
 
     @Override
+    public int waitFor() {
+      return 0;
+    }
+
+    @Override
+    public int exitValue() {
+      return 0;
+    }
+
+    @Override
+    public void destroy() {}
+
+    @Override
     public OutputStream getOutputStream() {
       return OutputStream.nullOutputStream();
     }
@@ -353,18 +366,5 @@ final class CommandTaskTest {
     public InputStream getErrorStream() {
       return InputStream.nullInputStream();
     }
-
-    @Override
-    public int waitFor() {
-      return 0;
-    }
-
-    @Override
-    public int exitValue() {
-      return 0;
-    }
-
-    @Override
-    public void destroy() {}
   }
 }

@@ -110,6 +110,8 @@ final class VlcInstallerTest {
   @TempDir
   private Path folder;
 
+  private static final String PINNED_APPIMAGES = "https://github.com/ivan-hc/VLC-appimage/releases/download/";
+
   private static Download[] noDownloadExpected() {
     throw new AssertionError("The downloads must not be resolved!");
   }
@@ -421,8 +423,6 @@ final class VlcInstallerTest {
     assertTrue(expectedExtension, url);
     assertSha256(hash, url);
   }
-
-  private static final String PINNED_APPIMAGES = "https://github.com/ivan-hc/VLC-appimage/releases/download/";
 
   @Test
   void shouldBundleVerifiedDownloadsOfTheAdvertisedVersion() {

@@ -770,21 +770,8 @@ final class AbstractInstallerTest {
       super(name, downloads);
     }
 
-    private void setFallbacks(final List<Platform> fallbacks) {
-      this.fallbacks = fallbacks;
-    }
-
     private void markAsArchive() {
       this.isArchive = true;
-    }
-
-    private List<Path> getInstalledArchives() {
-      return this.installedArchives;
-    }
-
-    @Override
-    public boolean isArchive() {
-      return this.isArchive;
     }
 
     @Override
@@ -805,6 +792,19 @@ final class AbstractInstallerTest {
       final Path extracted = installerFolder.resolve(EXTRACTED_FOLDER_NAME);
       Files.createDirectories(extracted);
       return extracted;
+    }
+
+    private void setFallbacks(final List<Platform> fallbacks) {
+      this.fallbacks = fallbacks;
+    }
+
+    private List<Path> getInstalledArchives() {
+      return this.installedArchives;
+    }
+
+    @Override
+    public boolean isArchive() {
+      return this.isArchive;
     }
   }
 }

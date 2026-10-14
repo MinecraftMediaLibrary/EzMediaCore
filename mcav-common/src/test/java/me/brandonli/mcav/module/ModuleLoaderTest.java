@@ -44,266 +44,6 @@ final class ModuleLoaderTest {
 
   private static final AtomicInteger SEQUENCE = new AtomicInteger();
 
-  /**
-   * A module that records when it was started and stopped.
-   */
-  private static class RecordingModule implements MCAVModule {
-
-    final AtomicInteger starts = new AtomicInteger();
-    final AtomicInteger stops = new AtomicInteger();
-    volatile int startedAt = -1;
-    volatile int stoppedAt = -1;
-
-    @Override
-    public void start() {
-      this.starts.incrementAndGet();
-      this.startedAt = SEQUENCE.incrementAndGet();
-    }
-
-    @Override
-    public void stop() {
-      this.stops.incrementAndGet();
-      this.stoppedAt = SEQUENCE.incrementAndGet();
-    }
-
-    @Override
-    public String getModuleName() {
-      final Class<?> type = this.getClass();
-      return type.getSimpleName();
-    }
-  }
-
-  static final class FirstModule extends RecordingModule {}
-
-  static final class SecondModule extends RecordingModule {}
-
-  static final class HiddenModule extends RecordingModule {
-
-    private HiddenModule() {}
-  }
-
-  static final class FailingStopModule extends RecordingModule {
-
-    @Override
-    public void stop() {
-      super.stop();
-      throw new IllegalStateException("stop failed!");
-    }
-  }
-
-  static final class ErrorStopModule extends RecordingModule {
-
-    @Override
-    public void stop() {
-      super.stop();
-      throw new AssertionError("stop crashed!");
-    }
-  }
-
-  static final class FatalStopModule extends RecordingModule {
-
-    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
-
-    @Override
-    public void stop() {
-      super.stop();
-      throw FAILURE;
-    }
-  }
-
-  static final class FailingStartAndFatalStopModule extends RecordingModule {
-
-    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
-
-    @Override
-    public void start() {
-      throw new IllegalStateException("port in use!");
-    }
-
-    @Override
-    public void stop() {
-      throw FAILURE;
-    }
-  }
-
-  static final class FatalConstructorModule extends RecordingModule {
-
-    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("heap is full!");
-
-    FatalConstructorModule() {
-      throw FAILURE;
-    }
-  }
-
-  static final class FailingStartModule extends RecordingModule {
-
-    @Override
-    public void start() {
-      super.start();
-      throw new IllegalStateException("port in use!");
-    }
-  }
-
-  static final class LinkageStartModule extends RecordingModule {
-
-    private static final UnsatisfiedLinkError FAILURE = new UnsatisfiedLinkError("native module missing!");
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      super.start();
-      throw FAILURE;
-    }
-
-    @Override
-    public void stop() {
-      super.stop();
-      STOPS.incrementAndGet();
-    }
-  }
-
-  static final class AssertionStartAndStopModule extends RecordingModule {
-
-    private static final AssertionError START_FAILURE = new AssertionError("startup invariant failed!");
-    private static final LinkageError STOP_FAILURE = new LinkageError("cleanup native missing!");
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      super.start();
-      throw START_FAILURE;
-    }
-
-    @Override
-    public void stop() {
-      STOPS.incrementAndGet();
-      throw STOP_FAILURE;
-    }
-
-    @Override
-    public String getModuleName() {
-      final int starts = this.starts.get();
-      if (starts != 0) {
-        throw new IllegalStateException("a failed module cannot describe itself!");
-      }
-      return "asserting module";
-    }
-  }
-
-  static final class FatalStartModule extends RecordingModule {
-
-    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("start exhausted memory!");
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      throw FAILURE;
-    }
-
-    @Override
-    public void stop() {
-      STOPS.incrementAndGet();
-    }
-  }
-
-  static final class SameStartAndStopFailureModule extends RecordingModule {
-
-    private static final ModuleException FAILURE = new ModuleException("Module failed!");
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      throw FAILURE;
-    }
-
-    @Override
-    public void stop() {
-      STOPS.incrementAndGet();
-      throw FAILURE;
-    }
-  }
-
-  static final class ModuleExceptionStartModule extends RecordingModule {
-
-    @Override
-    public void start() {
-      super.start();
-      throw new ModuleException("Missing configuration!");
-    }
-  }
-
-  static final class TrackedFailingStartModule extends RecordingModule {
-
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      super.start();
-      throw new IllegalStateException("port in use!");
-    }
-
-    @Override
-    public void stop() {
-      super.stop();
-      STOPS.incrementAndGet();
-    }
-  }
-
-  static final class TrackedModuleExceptionStartModule extends RecordingModule {
-
-    private static final AtomicInteger STOPS = new AtomicInteger();
-
-    @Override
-    public void start() {
-      super.start();
-      throw new ModuleException("Missing configuration!");
-    }
-
-    @Override
-    public void stop() {
-      super.stop();
-      STOPS.incrementAndGet();
-    }
-  }
-
-  static final class FailingStartAndStopModule extends RecordingModule {
-
-    @Override
-    public void start() {
-      throw new IllegalStateException("port in use!");
-    }
-
-    @Override
-    public void stop() {
-      throw new IllegalStateException("socket already closed!");
-    }
-  }
-
-  static final class ThrowingConstructorModule extends RecordingModule {
-
-    ThrowingConstructorModule() {
-      throw new IllegalStateException("broken constructor!");
-    }
-  }
-
-  static final class ArgumentModule extends RecordingModule {
-
-    private final String name;
-
-    ArgumentModule(final String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String getModuleName() {
-      return this.name;
-    }
-  }
-
-  abstract static class AbstractModule extends RecordingModule {}
-
-  static final class NotAModule {}
-
   @Test
   void shouldStartModulesInRequestOrder() {
     final ModuleLoader loader = new ModuleLoader();
@@ -689,4 +429,264 @@ final class ModuleLoaderTest {
     assertNull(nullMessage);
     assertInstanceOf(RuntimeException.class, withMessage, "a module failure is recoverable, so it is no Error");
   }
+
+  /**
+   * A module that records when it was started and stopped.
+   */
+  private static class RecordingModule implements MCAVModule {
+
+    final AtomicInteger starts = new AtomicInteger();
+    final AtomicInteger stops = new AtomicInteger();
+    volatile int startedAt = -1;
+    volatile int stoppedAt = -1;
+
+    @Override
+    public void start() {
+      this.starts.incrementAndGet();
+      this.startedAt = SEQUENCE.incrementAndGet();
+    }
+
+    @Override
+    public void stop() {
+      this.stops.incrementAndGet();
+      this.stoppedAt = SEQUENCE.incrementAndGet();
+    }
+
+    @Override
+    public String getModuleName() {
+      final Class<?> type = this.getClass();
+      return type.getSimpleName();
+    }
+  }
+
+  static final class FirstModule extends RecordingModule {}
+
+  static final class SecondModule extends RecordingModule {}
+
+  static final class HiddenModule extends RecordingModule {
+
+    private HiddenModule() {}
+  }
+
+  static final class FailingStopModule extends RecordingModule {
+
+    @Override
+    public void stop() {
+      super.stop();
+      throw new IllegalStateException("stop failed!");
+    }
+  }
+
+  static final class ErrorStopModule extends RecordingModule {
+
+    @Override
+    public void stop() {
+      super.stop();
+      throw new AssertionError("stop crashed!");
+    }
+  }
+
+  static final class FatalStopModule extends RecordingModule {
+
+    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
+
+    @Override
+    public void stop() {
+      super.stop();
+      throw FAILURE;
+    }
+  }
+
+  static final class FailingStartAndFatalStopModule extends RecordingModule {
+
+    private static final StackOverflowError FAILURE = new StackOverflowError("stop recursed!");
+
+    @Override
+    public void start() {
+      throw new IllegalStateException("port in use!");
+    }
+
+    @Override
+    public void stop() {
+      throw FAILURE;
+    }
+  }
+
+  static final class FatalConstructorModule extends RecordingModule {
+
+    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("heap is full!");
+
+    FatalConstructorModule() {
+      throw FAILURE;
+    }
+  }
+
+  static final class FailingStartModule extends RecordingModule {
+
+    @Override
+    public void start() {
+      super.start();
+      throw new IllegalStateException("port in use!");
+    }
+  }
+
+  static final class LinkageStartModule extends RecordingModule {
+
+    private static final UnsatisfiedLinkError FAILURE = new UnsatisfiedLinkError("native module missing!");
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      super.start();
+      throw FAILURE;
+    }
+
+    @Override
+    public void stop() {
+      super.stop();
+      STOPS.incrementAndGet();
+    }
+  }
+
+  static final class AssertionStartAndStopModule extends RecordingModule {
+
+    private static final AssertionError START_FAILURE = new AssertionError("startup invariant failed!");
+    private static final LinkageError STOP_FAILURE = new LinkageError("cleanup native missing!");
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      super.start();
+      throw START_FAILURE;
+    }
+
+    @Override
+    public void stop() {
+      STOPS.incrementAndGet();
+      throw STOP_FAILURE;
+    }
+
+    @Override
+    public String getModuleName() {
+      final int starts = this.starts.get();
+      if (starts != 0) {
+        throw new IllegalStateException("a failed module cannot describe itself!");
+      }
+      return "asserting module";
+    }
+  }
+
+  static final class FatalStartModule extends RecordingModule {
+
+    private static final OutOfMemoryError FAILURE = new OutOfMemoryError("start exhausted memory!");
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      throw FAILURE;
+    }
+
+    @Override
+    public void stop() {
+      STOPS.incrementAndGet();
+    }
+  }
+
+  static final class SameStartAndStopFailureModule extends RecordingModule {
+
+    private static final ModuleException FAILURE = new ModuleException("Module failed!");
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      throw FAILURE;
+    }
+
+    @Override
+    public void stop() {
+      STOPS.incrementAndGet();
+      throw FAILURE;
+    }
+  }
+
+  static final class ModuleExceptionStartModule extends RecordingModule {
+
+    @Override
+    public void start() {
+      super.start();
+      throw new ModuleException("Missing configuration!");
+    }
+  }
+
+  static final class TrackedFailingStartModule extends RecordingModule {
+
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      super.start();
+      throw new IllegalStateException("port in use!");
+    }
+
+    @Override
+    public void stop() {
+      super.stop();
+      STOPS.incrementAndGet();
+    }
+  }
+
+  static final class TrackedModuleExceptionStartModule extends RecordingModule {
+
+    private static final AtomicInteger STOPS = new AtomicInteger();
+
+    @Override
+    public void start() {
+      super.start();
+      throw new ModuleException("Missing configuration!");
+    }
+
+    @Override
+    public void stop() {
+      super.stop();
+      STOPS.incrementAndGet();
+    }
+  }
+
+  static final class FailingStartAndStopModule extends RecordingModule {
+
+    @Override
+    public void start() {
+      throw new IllegalStateException("port in use!");
+    }
+
+    @Override
+    public void stop() {
+      throw new IllegalStateException("socket already closed!");
+    }
+  }
+
+  static final class ThrowingConstructorModule extends RecordingModule {
+
+    ThrowingConstructorModule() {
+      throw new IllegalStateException("broken constructor!");
+    }
+  }
+
+  static final class ArgumentModule extends RecordingModule {
+
+    private final String name;
+
+    ArgumentModule(final String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String getModuleName() {
+      return this.name;
+    }
+  }
+
+  abstract static class AbstractModule extends RecordingModule {}
+
+  static final class NotAModule {}
 }

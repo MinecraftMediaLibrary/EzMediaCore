@@ -34,32 +34,6 @@ import org.junit.jupiter.api.Timeout;
 /** Exercises actual bounded queue waits and interruptions without decoder scheduling or native media. */
 final class PlaybackSessionTerminalTest {
 
-  private static final class ObservedQueue extends ArrayBlockingQueue<String> {
-
-    private static final long serialVersionUID = 1L;
-
-    private final transient CountDownLatch timedOut = new CountDownLatch(1);
-    private final transient CountDownLatch interrupted = new CountDownLatch(1);
-
-    ObservedQueue() {
-      super(1);
-    }
-
-    @Override
-    public boolean offer(final String value, final long timeout, final TimeUnit unit) throws InterruptedException {
-      try {
-        final boolean accepted = super.offer(value, timeout, unit);
-        if (!accepted) {
-          this.timedOut.countDown();
-        }
-        return accepted;
-      } catch (final InterruptedException exception) {
-        this.interrupted.countDown();
-        throw exception;
-      }
-    }
-  }
-
   private static PlaybackSession session() {
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
     final AudioAttachableCallback sound = AudioAttachableCallback.create();
@@ -115,6 +89,32 @@ final class PlaybackSessionTerminalTest {
       producer.interrupt();
       queue.clear();
       producer.join(2_000L);
+    }
+  }
+
+  private static final class ObservedQueue extends ArrayBlockingQueue<String> {
+
+    private static final long serialVersionUID = 1L;
+
+    private final transient CountDownLatch timedOut = new CountDownLatch(1);
+    private final transient CountDownLatch interrupted = new CountDownLatch(1);
+
+    ObservedQueue() {
+      super(1);
+    }
+
+    @Override
+    public boolean offer(final String value, final long timeout, final TimeUnit unit) throws InterruptedException {
+      try {
+        final boolean accepted = super.offer(value, timeout, unit);
+        if (!accepted) {
+          this.timedOut.countDown();
+        }
+        return accepted;
+      } catch (final InterruptedException exception) {
+        this.interrupted.countDown();
+        throw exception;
+      }
     }
   }
 }

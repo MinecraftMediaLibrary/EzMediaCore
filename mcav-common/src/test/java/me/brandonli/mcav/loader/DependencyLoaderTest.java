@@ -809,6 +809,14 @@ final class DependencyLoaderTest {
     return assertThrows(NativeLoadingException.class, () -> DependencyLoader.loadFfmpeg(failingLoader, setup));
   }
 
+  private static void restorePathsFirst(final String value) {
+    if (value == null) {
+      System.clearProperty(PATHS_FIRST);
+      return;
+    }
+    System.setProperty(PATHS_FIRST, value);
+  }
+
   /**
    * A class whose initializer fails as FFmpeg's device class does without its library: the first use throws that
    * failure, and every later one a {@link NoClassDefFoundError} that names it as the cause.
@@ -826,13 +834,5 @@ final class DependencyLoaderTest {
     static void touch() {
       assertEquals(0, LOADED);
     }
-  }
-
-  private static void restorePathsFirst(final String value) {
-    if (value == null) {
-      System.clearProperty(PATHS_FIRST);
-      return;
-    }
-    System.setProperty(PATHS_FIRST, value);
   }
 }

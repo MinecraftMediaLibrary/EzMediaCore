@@ -272,20 +272,20 @@ final class DitherPropertyTest {
       return this.algorithm.create(this.palette);
     }
 
-    private DitherPalette getPalette() {
-      return this.palette;
-    }
-
-    int getWidth() {
-      return this.width;
-    }
-
     private int[] createImage() {
       final int[] image = new int[this.width * this.height];
       for (int pixel = 0; pixel < image.length; pixel++) {
         image[pixel] = this.pixels.get(pixel);
       }
       return image;
+    }
+
+    private DitherPalette getPalette() {
+      return this.palette;
+    }
+
+    int getWidth() {
+      return this.width;
     }
 
     @Override
