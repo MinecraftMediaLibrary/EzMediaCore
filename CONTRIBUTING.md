@@ -129,8 +129,8 @@ The Java-library convention runs [Error Prone](https://errorprone.info/) with it
 test code, next to the Checker Framework's nullness checker on production code. The twelve module builds must
 compile without a single warning; the isolated jcstress exceptions are described above:
 fix what Error Prone reports instead of suppressing it. Error Prone also fails the build on the code-quality rules of
-the project that it can check: the most restrictive modifiers (a field that is never reassigned is `final`, a private
-method that uses no instance state is `static`, a utility class has a private constructor), no unused code, constants in
+the project that it can check: the most restrictive modifiers (a field that is never reassigned is `final`, a utility
+class has a private constructor), no unused code, constants in
 UPPER_SNAKE_CASE, one variable per declaration, overloads next to each other and no wildcard imports; the list is in
 `buildSrc/src/main/kotlin/mcav.java-library.gradle.kts`.
 
@@ -140,7 +140,7 @@ messages live in constants: `logMessages` fails on a log call whose message does
 UPPER_SNAKE_CASE field such as `FAILED_TO_START`, a `private static final String` next to the class's logger) or that
 joins strings with `+`; the message's SLF4J placeholders take the other arguments. Names say what they hold:
 `variableNames` fails on a variable, parameter or field named by one letter or by a short form a word says better
-(`buf`, `tmp`, `idx`...); generic type parameters stay single capitals.
+(`buf`, `tmp`, `idx`...); type parameters are a word plus `Type`, such as `<KeyType>`.
 
 ## Mutation Testing
 
