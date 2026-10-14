@@ -26,14 +26,13 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import me.brandonli.mcav.capability.installer.vlc.discovery.VlcDiscoveryStrategies;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
-import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
-// Tests NativeVlcDiscovery against the VLC installed on this machine. The tests are skipped where VLC is not installed.
+// Tests NativeVlcDiscovery against the VLC the installer of the library downloads, never the one installed on this
+// machine, so the tests behave alike on every host. The system strategies are supplied by each test.
 // vlcj remembers a successful discovery in a static field for the rest of the JVM's lifetime. Each test clears that
 // memory first, so it sees a fresh discovery no matter which tests ran before. Loading libvlc a second time is
 // harmless, because the library stays loaded.
@@ -55,9 +54,9 @@ final class NativeVlcDiscoveryTest {
 
   @Test
   void shouldLoadTheSystemInstallationAndThenRememberIt(@TempDir final Path emptyDirectory) throws ReflectiveOperationException {
-    final Path systemDirectory = requireSystemInstallation();
+    final Path installedDirectory = DownloadedVlc.install();
     forgetEarlierDiscoveries();
-    final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
+    final NativeVlcDiscovery discovery = new NativeVlcDiscovery(() -> VlcDiscoveryStrategies.createDirectoryStrategies(installedDirectory));
     final boolean loadedFromEmptyDirectory = discovery.loadInstalledLibraries(emptyDirectory);
     final Path pathAfterFailure = discovery.getDiscoveredPath();
     assertFalse(loadedFromEmptyDirectory);
@@ -66,7 +65,7 @@ final class NativeVlcDiscoveryTest {
     final boolean found = discovery.discoverSystemInstallation();
     final Path discoveredPath = discovery.getDiscoveredPath();
     assertTrue(found);
-    assertEquals(systemDirectory, discoveredPath);
+    assertEquals(installedDirectory, discoveredPath);
 
     final boolean foundAgain = discovery.loadInstalledLibraries(emptyDirectory);
     final Path pathOfRememberedDiscovery = discovery.getDiscoveredPath();
@@ -75,46 +74,24 @@ final class NativeVlcDiscoveryTest {
   }
 
   @Test
-  void shouldLoadAnInstallationFromItsLibraryDirectory() throws ReflectiveOperationException {
-    final Path systemDirectory = requireSystemInstallation();
+  void shouldFindNoSystemInstallationWhereTheSystemHasNone() throws ReflectiveOperationException {
     forgetEarlierDiscoveries();
-    final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
-    final boolean loaded = discovery.loadInstalledLibraries(systemDirectory);
+    final NativeVlcDiscovery discovery = DownloadedVlc.createDiscovery();
+    final boolean found = discovery.discoverSystemInstallation();
     final Path discoveredPath = discovery.getDiscoveredPath();
-    assertTrue(loaded);
-    assertEquals(systemDirectory, discoveredPath);
+    assertFalse(found);
+    assertNull(discoveredPath);
   }
 
-  // Returns the directory of a VLC installation this machine can actually load, and skips the test otherwise. Finding
-  // libvlc.so is not enough. libvlc refuses to start without its plugins, and vlcj's discovery reports failure when no
-  // plugin directory belongs to the libraries it found. Distributions package the two separately, so a server that
-  // installs only libvlc5 — the usual case on a headless machine that pulled the library in as a transitive dependency
-  // — has the libraries without the plugins. The precondition therefore asks each strategy for both, exactly as a real
-  // discovery does, instead of settling for the libraries alone.
-  private static Path requireSystemInstallation() {
-    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
-    boolean librariesWithoutPlugins = false;
-
-    for (final NativeDiscoveryStrategy strategy : strategies) {
-      final boolean supported = strategy.supported();
-      final String directory = supported ? strategy.discover() : null;
-      if (directory == null) {
-        continue;
-      }
-
-      final boolean pluginsAvailable = strategy.onSetPluginPath(directory);
-      if (pluginsAvailable) {
-        return Path.of(directory);
-      }
-
-      librariesWithoutPlugins = true;
-    }
-
-    final String reason = librariesWithoutPlugins
-      ? "The VLC libraries of this machine have no plugin directory, so libvlc cannot start!"
-      : "VLC is not installed on this machine!";
-    Assumptions.abort(reason);
-    throw new AssertionError("Unreachable!");
+  @Test
+  void shouldLoadAnInstallationFromItsLibraryDirectory() throws ReflectiveOperationException {
+    final Path installedDirectory = DownloadedVlc.install();
+    forgetEarlierDiscoveries();
+    final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
+    final boolean loaded = discovery.loadInstalledLibraries(installedDirectory);
+    final Path discoveredPath = discovery.getDiscoveredPath();
+    assertTrue(loaded);
+    assertEquals(installedDirectory, discoveredPath);
   }
 
   private static Field alreadyFoundField() throws ReflectiveOperationException {

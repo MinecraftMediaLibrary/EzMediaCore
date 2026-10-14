@@ -18,6 +18,7 @@
 package me.brandonli.mcav.capability.installer.vlc;
 
 import java.nio.file.Path;
+import java.util.function.Supplier;
 import me.brandonli.mcav.capability.installer.vlc.discovery.VlcDiscoveryStrategies;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
@@ -28,11 +29,22 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 // succeeds immediately without reporting a directory.
 final class NativeVlcDiscovery implements VlcDiscovery {
 
+  private final Supplier<NativeDiscoveryStrategy[]> systemStrategies;
+
   private @Nullable String discoveredPath;
+
+  NativeVlcDiscovery() {
+    this(VlcDiscoveryStrategies::createSystemStrategies);
+  }
+
+  // test seam for the boolean return mutants of discoverSystemInstallation, so tests need no VLC on the machine
+  NativeVlcDiscovery(final Supplier<NativeDiscoveryStrategy[]> systemStrategies) {
+    this.systemStrategies = systemStrategies;
+  }
 
   @Override
   public boolean discoverSystemInstallation() {
-    final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
+    final NativeDiscoveryStrategy[] strategies = this.systemStrategies.get();
     return this.discover(strategies);
   }
 

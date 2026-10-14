@@ -22,11 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.MCAVException;
-import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
-import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.capability.installer.vlc.DownloadedVlc;
 import me.brandonli.mcav.testing.GeneratedMedia;
 import org.junit.jupiter.api.Assumptions;
-import org.mockito.Mockito;
 
 final class VlcTestSupport {
 
@@ -39,20 +37,17 @@ final class VlcTestSupport {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  // Loads VLC through the installation kit of the library, with an installer that refuses to download, so the tests
-  // never need the internet.
+  // Loads the VLC the installer of the library downloads, never the one installed on this machine, so the tests behave
+  // alike on every host.
   private static String loadVlc() {
-    final VlcInstaller installer = Mockito.mock(VlcInstaller.class);
-    Mockito.when(installer.isSupported()).thenReturn(false);
-    final VlcInstallationKit kit = VlcInstallationKit.create(installer);
     try {
-      final Optional<Path> directory = kit.start();
+      final Optional<Path> directory = DownloadedVlc.load();
       final Optional<String> location = directory.map(Path::toString);
-      final String description = location.orElse("the libvlc found by vlcj");
+      final String description = location.orElse("the libvlc vlcj loaded earlier");
       System.out.println("VLC integration tests use " + description);
       return null;
     } catch (final MCAVException | LinkageError exception) {
-      return "VLC is not installed: " + exception;
+      return "VLC could not be downloaded or loaded: " + exception;
     }
   }
 

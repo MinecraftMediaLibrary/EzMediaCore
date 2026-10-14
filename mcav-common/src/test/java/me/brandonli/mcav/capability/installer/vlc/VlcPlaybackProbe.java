@@ -35,7 +35,6 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.file.FileSource;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.binding.lib.LibVlc;
 
 // The second half of VlcReleaseTest, run in a JVM of its own because libvlc can be loaded only once per JVM and other
@@ -65,7 +64,7 @@ final class VlcPlaybackProbe {
     final Path video = Path.of(arguments[1]);
     startWatchdog();
     final VlcInstaller installer = VlcInstaller.create(folder);
-    final VlcInstallationKit kit = new VlcInstallationKit(installer, new PrivateDiscovery(), new VlcLoadState());
+    final VlcInstallationKit kit = new VlcInstallationKit(installer, DownloadedVlc.createDiscovery(), new VlcLoadState());
     final Optional<Path> loaded = kit.start();
     final String version = LibVlc.libvlc_get_version();
     System.out.println("libvlc " + version + " loaded from " + loaded.orElseThrow());
@@ -131,26 +130,5 @@ final class VlcPlaybackProbe {
     audioBytes.addAndGet(samples.remaining());
 
     return false;
-  }
-
-  // Finds no VLC on the system, so the kit loads the private installation.
-  private static final class PrivateDiscovery implements VlcDiscovery {
-
-    private final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
-
-    @Override
-    public boolean discoverSystemInstallation() {
-      return false;
-    }
-
-    @Override
-    public boolean loadInstalledLibraries(final Path libraryDirectory) {
-      return this.discovery.loadInstalledLibraries(libraryDirectory);
-    }
-
-    @Override
-    public @Nullable Path getDiscoveredPath() {
-      return this.discovery.getDiscoveredPath();
-    }
   }
 }
