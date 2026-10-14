@@ -171,14 +171,14 @@ public abstract class AbstractInstaller implements Installer {
    * Installs the program, or returns the existing installation if it was installed before. Concurrent calls on the
    * same installer are serialized, so the program is downloaded at most once.
    *
-   * @param executable true to mark the downloaded file as executable
+   * @param mode whether to mark the downloaded file as executable
    * @return the path of the installation
    * @throws IOException              if the download fails, the file cannot be written or marked as executable, or the hash does
    *                                  not match
    * @throws IllegalArgumentException if a configured download URL is not a valid URI
    */
   @Override
-  public Path download(final boolean executable) throws IOException {
+  public Path download(final FileMode mode) throws IOException {
     synchronized (this.installLock) {
       final Optional<Path> existing = this.findExistingInstallation();
       if (existing.isPresent()) {
@@ -188,14 +188,14 @@ public abstract class AbstractInstaller implements Installer {
         return existingPath;
       }
 
-      final Path installed = this.downloadAndInstall(executable);
+      final Path installed = this.downloadAndInstall(mode);
       this.installedPath = installed;
 
       return installed;
     }
   }
 
-  private Path downloadAndInstall(final boolean executable) throws IOException {
+  private Path downloadAndInstall(final FileMode mode) throws IOException {
     final Download download = this.requireDownload();
     final String fileName = this.getFileName();
     final Path destination = this.folder.resolve(fileName);
@@ -206,7 +206,7 @@ public abstract class AbstractInstaller implements Installer {
     Files.createDirectories(this.folder);
     HttpDownloader.download(uri, destination, expectedHash);
 
-    if (executable) {
+    if (mode == FileMode.EXECUTABLE) {
       this.markExecutableOrDelete(destination);
     }
 
@@ -296,7 +296,7 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Returns the path of the installation: the path found or created by the last call to {@link #download(boolean)},
+   * Returns the path of the installation: the path found or created by the last call to {@link #download(FileMode)},
    * or {@link #getDefaultPath()} before the program has been installed.
    *
    * @return the installation path

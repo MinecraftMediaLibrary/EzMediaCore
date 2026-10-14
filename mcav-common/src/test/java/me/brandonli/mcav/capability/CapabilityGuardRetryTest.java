@@ -29,7 +29,7 @@ final class CapabilityGuardRetryTest {
   @Test
   void shouldNeverMakeAnUnavailableCapabilityUsableOnARetry() {
     final CapabilityGuard guard = Mockito.spy(new CapabilityGuard());
-    guard.markPrepared(Capability.VLC, false);
+    guard.markPrepared(Capability.VLC, Availability.UNAVAILABLE);
     Mockito.doAnswer(invocation -> this.markPreparingAfterTheRealCheck(invocation, guard))
       .when(guard)
       .checkNotPreparing(Capability.VLC);

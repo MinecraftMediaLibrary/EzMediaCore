@@ -46,6 +46,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import me.brandonli.mcav.utils.IoUtils;
@@ -224,7 +225,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final Path expected = unpacked.resolve(EXECUTABLE);
       final Path library = unpacked.resolve(LIBRARY_ENTRY_NAME);
@@ -264,11 +265,11 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller first = this.serveZip(server, ZIP_PATH, archive);
-      final Path installed = first.download(true);
+      final Path installed = first.download(FileMode.EXECUTABLE);
       final URI uri = server.uri(ZIP_PATH);
       final String url = uri.toString();
       final YtdlpInstaller second = this.installerFor(url);
-      final Path reused = second.download(true);
+      final Path reused = second.download(FileMode.EXECUTABLE);
       final int requests = server.getRequestCount(ZIP_PATH);
       assertEquals(installed, reused);
       assertEquals(1, requests);
@@ -289,7 +290,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final boolean staleLeft = Files.exists(stale);
       final Path relocatedLeftover = unpacked.resolve(LEFTOVER_FILE_NAME);
       final boolean leftoverCopied = Files.exists(relocatedLeftover);
@@ -308,7 +309,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
+      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
       final String message = exception.getMessage();
       final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final Path unpacking = this.folder.resolve(UNPACKING_FOLDER_NAME);
@@ -325,7 +326,7 @@ final class YtdlpInstallerTest {
     final byte[] notAZip = "not a zip".getBytes(StandardCharsets.UTF_8);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, notAZip);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
+      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
       final boolean explained = message.endsWith("\" while extracting the yt-dlp zip!");
@@ -340,7 +341,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
+      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
       final Throwable cause = exception.getCause();
       final Path escaped = this.folder.resolve(ESCAPED_FILE_NAME);
       final boolean escapedExists = Files.exists(escaped);
@@ -355,7 +356,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, NAMELESS_ZIP_PATH, archive);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final Path expected = unpacked.resolve(PROGRAM_NAME);
       assertEquals(expected, installed);
@@ -366,7 +367,7 @@ final class YtdlpInstallerTest {
   void shouldInstallAStandaloneExecutableAsDownloaded() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, STANDALONE_PATH, LAUNCHER);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final Os operatingSystem = OsUtils.getOs();
       final String executableName = operatingSystem == Os.WINDOWS ? WINDOWS_EXECUTABLE_NAME : POSIX_EXECUTABLE_NAME;
       final Path expected = this.folder.resolve(executableName);

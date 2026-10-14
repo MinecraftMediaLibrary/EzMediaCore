@@ -131,8 +131,8 @@ final class CommandTaskTest {
   void shouldRunOnCreation() throws IOException {
     final String java = javaExecutable();
     final String[] command = { java, VERSION_OPTION };
-    final CommandTask ran = new CommandTask(command, true);
-    final CommandTask waiting = new CommandTask(command, false);
+    final CommandTask ran = new CommandTask(command, RunMode.IMMEDIATELY);
+    final CommandTask waiting = new CommandTask(command, RunMode.ON_DEMAND);
     final int exitCode = ran.getExitCode();
     final Optional<Process> process = waiting.getProcess();
     assertEquals(0, exitCode);

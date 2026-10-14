@@ -40,6 +40,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationStrategy;
@@ -331,7 +332,7 @@ final class VlcInstallerTest {
   void shouldReuseAnEarlierInstallationWithoutResolvingDownloads() throws IOException {
     final Path libraryDirectory = this.createInstalledLibrary();
     final VlcInstaller installer = new VlcInstaller(this.folder, VlcInstallerTest::noDownloadExpected);
-    final Path installed = installer.download(true);
+    final Path installed = installer.download(FileMode.EXECUTABLE);
     final Path path = installer.getPath();
     assertEquals(libraryDirectory, installed);
     assertEquals(libraryDirectory, path);
@@ -349,7 +350,7 @@ final class VlcInstallerTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(ZIP_PATH, 200, zip);
       final VlcInstaller installer = this.installerDownloadingFrom(server);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final Path installDirectory = installer.getInstallDirectory();
       assertEquals(installDirectory, installed);
 

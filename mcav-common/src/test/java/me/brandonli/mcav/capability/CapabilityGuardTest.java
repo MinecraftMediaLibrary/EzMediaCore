@@ -87,7 +87,7 @@ final class CapabilityGuardTest {
   @Test
   void shouldStopGuardingACapabilityThatBecameAvailable() {
     this.guard.markPreparing(Capability.VLC);
-    this.guard.markPrepared(Capability.VLC, true);
+    this.guard.markPrepared(Capability.VLC, Availability.AVAILABLE);
     final boolean preparing = this.guard.isPreparing(Capability.VLC);
     assertFalse(preparing);
     assertDoesNotThrow(() -> this.guard.checkUsable(Capability.VLC));
@@ -96,7 +96,7 @@ final class CapabilityGuardTest {
   @Test
   void shouldRefuseAnUnavailableCapabilityOnlyWhereItMustBeUsable() {
     this.guard.markPreparing(Capability.VLC);
-    this.guard.markPrepared(Capability.VLC, false);
+    this.guard.markPrepared(Capability.VLC, Availability.UNAVAILABLE);
     final boolean preparing = this.guard.isPreparing(Capability.VLC);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> this.guard.checkUsable(Capability.VLC));
     final String message = exception.getMessage();
@@ -107,7 +107,7 @@ final class CapabilityGuardTest {
 
   @Test
   void shouldForgetWhatItRecorded() {
-    this.guard.markPrepared(Capability.VLC, false);
+    this.guard.markPrepared(Capability.VLC, Availability.UNAVAILABLE);
     this.guard.markPreparing(Capability.YT_DLP);
     this.guard.forget(Capability.VLC);
     this.guard.forget(Capability.YT_DLP);
@@ -118,7 +118,8 @@ final class CapabilityGuardTest {
   @Test
   void shouldRejectNulls() {
     assertThrows(NullPointerException.class, () -> this.guard.markPreparing(null));
-    assertThrows(NullPointerException.class, () -> this.guard.markPrepared(null, true));
+    assertThrows(NullPointerException.class, () -> this.guard.markPrepared(null, Availability.AVAILABLE));
+    assertThrows(NullPointerException.class, () -> this.guard.markPrepared(Capability.VLC, null));
     assertThrows(NullPointerException.class, () -> this.guard.forget(null));
     assertThrows(NullPointerException.class, () -> this.guard.isPreparing(null));
     assertThrows(NullPointerException.class, () -> this.guard.checkNotPreparing(null));

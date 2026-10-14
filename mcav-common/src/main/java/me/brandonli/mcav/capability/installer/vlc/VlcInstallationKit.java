@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.Installer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -130,7 +131,7 @@ public final class VlcInstallationKit {
       throw new UnsupportedOperatingSystemException("VLC is not installed and cannot be installed automatically on this system!");
     }
 
-    final Path libraryDirectory = this.installer.download(true);
+    final Path libraryDirectory = this.installer.download(FileMode.EXECUTABLE);
     return this.loadPrivateInstallation(libraryDirectory);
   }
 

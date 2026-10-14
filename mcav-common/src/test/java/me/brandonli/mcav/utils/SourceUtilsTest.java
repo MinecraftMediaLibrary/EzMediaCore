@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
@@ -237,7 +238,7 @@ final class SourceUtilsTest {
   void shouldAskTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
     final IOException offline = new IOException("offline!");
-    Mockito.when(installer.download(true)).thenThrow(offline);
+    Mockito.when(installer.download(FileMode.EXECUTABLE)).thenThrow(offline);
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);
       final boolean live = SourceUtils.isDynamicStream(LIVE_URL);
@@ -245,7 +246,7 @@ final class SourceUtilsTest {
     }
 
     final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
-    verifiedInstaller.download(true);
+    verifiedInstaller.download(FileMode.EXECUTABLE);
     assertThrows(NullPointerException.class, () -> SourceUtils.isDynamicStream(null));
   }
 
@@ -258,7 +259,7 @@ final class SourceUtilsTest {
     Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
     Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
-    Mockito.when(installer.download(true)).thenReturn(script);
+    Mockito.when(installer.download(FileMode.EXECUTABLE)).thenReturn(script);
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);
 

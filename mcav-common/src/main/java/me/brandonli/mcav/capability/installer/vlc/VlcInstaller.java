@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy;
@@ -44,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>VLC is shipped as a zip on Windows, a disk image on macOS, and an AppImage on Linux. The archive for the
  * current platform is downloaded into the installation folder, extracted by the matching
- * {@link InstallationStrategy} into the {@code vlc} directory, and deleted afterward. {@link #download(boolean)}
+ * {@link InstallationStrategy} into the {@code vlc} directory, and deleted afterward. {@link #download(FileMode)}
  * returns the directory that contains the {@code libvlc} library, ready to be handed to vlcj.
  *
  * <p>The installation is only used when no VLC is installed on the system. See {@link VlcInstallationKit}, which
@@ -281,7 +282,7 @@ public final class VlcInstaller extends AbstractInstaller {
 
   /**
    * Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
-   * operating system; {@link #download(boolean)} returns their exact location.
+   * operating system; {@link #download(FileMode)} returns their exact location.
    *
    * @return the installation directory
    */

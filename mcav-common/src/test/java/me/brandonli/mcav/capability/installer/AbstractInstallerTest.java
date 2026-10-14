@@ -245,7 +245,7 @@ final class AbstractInstallerTest {
     assertEquals("", url);
     assertTrue(hash.isEmpty());
 
-    final IOException thrown = assertThrows(IOException.class, () -> installer.download(true));
+    final IOException thrown = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
     final String message = thrown.getMessage();
     final boolean namesTheProgram = message.contains(NAME);
     assertTrue(namesTheProgram, message);
@@ -266,7 +266,7 @@ final class AbstractInstallerTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
       final Path expected = installer.getDefaultPath();
       final byte[] content = Files.readAllBytes(installed);
       final Path path = installer.getPath();
@@ -288,9 +288,9 @@ final class AbstractInstallerTest {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller first = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
       final TestInstaller second = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
-      final Path firstPath = first.download(false);
-      final Path secondPath = second.download(false);
-      final Path againPath = first.download(false);
+      final Path firstPath = first.download(FileMode.UNCHANGED);
+      final Path secondPath = second.download(FileMode.UNCHANGED);
+      final Path againPath = first.download(FileMode.UNCHANGED);
       final int requests = server.getRequestCount(TOOL_PATH);
       assertEquals(firstPath, secondPath);
       assertEquals(firstPath, againPath);
@@ -306,7 +306,7 @@ final class AbstractInstallerTest {
 
     final Download unreachable = new Download(CURRENT_PLATFORM, "http://127.0.0.1:1/unreachable", null);
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { unreachable });
-    final Path installed = installer.download(true);
+    final Path installed = installer.download(FileMode.EXECUTABLE);
     final Path expected = elsewhere.toAbsolutePath();
     assertEquals(expected, installed);
   }
@@ -320,7 +320,7 @@ final class AbstractInstallerTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
-      final Path installed = installer.download(false);
+      final Path installed = installer.download(FileMode.UNCHANGED);
       final Path expected = installer.getDefaultPath();
       final int requests = server.getRequestCount(TOOL_PATH);
       assertEquals(expected, installed);
@@ -337,7 +337,7 @@ final class AbstractInstallerTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
-      final Path installed = installer.download(false);
+      final Path installed = installer.download(FileMode.UNCHANGED);
       final Path expected = installer.getDefaultPath();
       assertEquals(expected, installed);
     }
@@ -351,7 +351,7 @@ final class AbstractInstallerTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
-      final Path installed = installer.download(false);
+      final Path installed = installer.download(FileMode.UNCHANGED);
       final Path expected = installer.getDefaultPath();
       assertEquals(expected, installed);
 
@@ -370,7 +370,7 @@ final class AbstractInstallerTest {
       final byte[] otherContent = "something else".getBytes(StandardCharsets.US_ASCII);
       final String otherHash = sha256(otherContent);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, otherHash);
-      assertThrows(IOException.class, () -> installer.download(true));
+      assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
 
       final Path defaultPath = installer.getDefaultPath();
       final boolean exists = Files.exists(defaultPath);
@@ -410,7 +410,7 @@ final class AbstractInstallerTest {
       final Path defaultPath = installer.getDefaultPath();
       final Duration limit = Duration.ofSeconds(5);
       try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
-        final Future<Path> running = executor.submit(() -> installer.download(false));
+        final Future<Path> running = executor.submit(() -> installer.download(FileMode.UNCHANGED));
         awaitToolRequest(server);
         final Path pathDuringDownload = assertTimeoutPreemptively(limit, installer::getPath);
         final boolean supportedDuringDownload = assertTimeoutPreemptively(limit, installer::isSupported);
@@ -436,7 +436,7 @@ final class AbstractInstallerTest {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       ioUtils.when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class))).thenThrow(chmodFailure);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
-      final IOException thrown = assertThrows(IOException.class, () -> installer.download(true));
+      final IOException thrown = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
 
       final Throwable cause = thrown.getCause();
       final String message = thrown.getMessage();
@@ -462,7 +462,7 @@ final class AbstractInstallerTest {
       ioUtils
         .when(() -> IoUtils.markExecutable(destination))
         .thenAnswer(_ -> this.replaceWithANonemptyDirectoryAndFail(destination, permissionFailure));
-      final IOException failure = assertThrows(IOException.class, () -> installer.download(true));
+      final IOException failure = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
       final Throwable cause = failure.getCause();
       assertSame(permissionFailure, cause);
       final String message = failure.getMessage();
@@ -507,9 +507,9 @@ final class AbstractInstallerTest {
       ioUtils
         .when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class)))
         .thenAnswer(invocation -> this.failTheFirstPermissionAttempt(invocation, permissionAttempts));
-      assertThrows(IOException.class, () -> first.download(true));
+      assertThrows(IOException.class, () -> first.download(FileMode.EXECUTABLE));
       final TestInstaller retry = freshInstaller ? new TestInstaller(tools, NAME, new Download[] { download }) : first;
-      final Path installed = retry.download(true);
+      final Path installed = retry.download(FileMode.EXECUTABLE);
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
       assertEquals(PosixFilePermissions.fromString(EXECUTABLE_PERMISSIONS), permissions);
       final int attempts = permissionAttempts.get();
@@ -538,7 +538,7 @@ final class AbstractInstallerTest {
       final Download download = new Download(CURRENT_PLATFORM, url, null);
       final Path posixFolder = fileSystem.getPath(POSIX_FOLDER_PATH);
       final TestInstaller installer = new TestInstaller(posixFolder, NAME, new Download[] { download });
-      final Path installed = installer.download(true);
+      final Path installed = installer.download(FileMode.EXECUTABLE);
 
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
       final Set<PosixFilePermission> expected = PosixFilePermissions.fromString(EXECUTABLE_PERMISSIONS);
@@ -613,7 +613,7 @@ final class AbstractInstallerTest {
       server.respond(ARCHIVE_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, ARCHIVE_PATH, null);
       installer.markAsArchive();
-      final Path installed = installer.download(false);
+      final Path installed = installer.download(FileMode.UNCHANGED);
 
       final Path expectedArchive = this.folder.resolve(ARCHIVE_FILE_NAME);
       final List<Path> expectedArchives = List.of(expectedArchive);
@@ -680,7 +680,7 @@ final class AbstractInstallerTest {
 
   private static Path awaitAndDownload(final CyclicBarrier startTogether, final TestInstaller installer) throws Exception {
     startTogether.await();
-    return installer.download(false);
+    return installer.download(FileMode.UNCHANGED);
   }
 
   private static void assertEveryResultIs(final Path expected, final List<Future<Path>> results) throws Exception {

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
+import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.media.player.multimedia.vlc.VlcPlayer;
@@ -55,7 +56,7 @@ final class VideoPlayerFactoriesTest {
   @Test
   void shouldRefuseVlcPlayersWhenVlcIsNotAvailable() {
     final CapabilityGuard guard = CapabilityGuard.shared();
-    guard.markPrepared(Capability.VLC, false);
+    guard.markPrepared(Capability.VLC, Availability.UNAVAILABLE);
     try {
       final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> new VlcPlayer("--x"));
       final String message = exception.getMessage();

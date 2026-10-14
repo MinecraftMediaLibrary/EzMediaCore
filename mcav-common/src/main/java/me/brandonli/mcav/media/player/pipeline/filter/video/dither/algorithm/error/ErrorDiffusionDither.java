@@ -67,7 +67,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
     final int width = image.getWidth();
     final int[] pixels = image.getPixels();
     final byte[] indices = new byte[pixels.length];
-    this.run(pixels, width, indices, false);
+    this.run(pixels, width, indices);
     return indices;
   }
 
@@ -85,7 +85,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
       return;
     }
 
-    this.run(buffer, width, null, true);
+    this.run(buffer, width, null);
   }
 
   /**
@@ -93,11 +93,10 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    *
    * @param pixels  the ARGB pixels of the image
    * @param width   the width of the image
-   * @param indices the array that receives the palette indices, or null if none are wanted
-   * @param inPlace true to replace the pixels with palette colors
+   * @param indices the array that receives the palette indices, or null to replace the pixels with palette colors
    */
-  private void run(final int[] pixels, final int width, final byte @Nullable [] indices, final boolean inPlace) {
-    final DiffusionPass pass = new DiffusionPass(pixels, width, indices, inPlace);
+  private void run(final int[] pixels, final int width, final byte @Nullable [] indices) {
+    final DiffusionPass pass = new DiffusionPass(pixels, width, indices);
     pass.run();
   }
 
@@ -118,17 +117,15 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
     private final int[] pixels;
     private final int width;
     private final byte @Nullable [] indices;
-    private final boolean inPlace;
     private final byte[] colorMap;
     private final int[] fullColorMap;
     private final ErrorRows errors;
 
-    DiffusionPass(final int[] pixels, final int width, final byte @Nullable [] indices, final boolean inPlace) {
+    DiffusionPass(final int[] pixels, final int width, final byte @Nullable [] indices) {
       final DitherPalette palette = ErrorDiffusionDither.this.getPalette();
       this.pixels = pixels;
       this.width = width;
       this.indices = indices;
-      this.inPlace = inPlace;
       this.colorMap = palette.getColorMap();
       this.fullColorMap = palette.getFullColorMap();
       this.errors = new ErrorRows(ErrorDiffusionDither.this.kernel, width);
@@ -166,13 +163,12 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
 
     private void store(final int pixelIndex, final int lookup, final int chosen) {
       final byte[] targetIndices = this.indices;
-      if (targetIndices != null) {
-        targetIndices[pixelIndex] = this.colorMap[lookup];
+      if (targetIndices == null) {
+        this.pixels[pixelIndex] = chosen;
+        return;
       }
 
-      if (this.inPlace) {
-        this.pixels[pixelIndex] = chosen;
-      }
+      targetIndices[pixelIndex] = this.colorMap[lookup];
     }
   }
 }

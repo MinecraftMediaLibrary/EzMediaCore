@@ -75,14 +75,15 @@ public final class CapabilityGuard {
    * unavailable one is refused by {@link #checkUsable(Capability)} until it is {@linkplain #forget(Capability)
    * forgotten}.
    *
-   * @param capability the capability
-   * @param available  true if the capability can be used now
-   * @throws NullPointerException if {@code capability} is null
+   * @param capability   the capability
+   * @param availability whether the capability can be used now
+   * @throws NullPointerException if an argument is null
    */
-  public void markPrepared(final Capability capability, final boolean available) {
+  public void markPrepared(final Capability capability, final Availability availability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+    Preconditions.checkNotNull(availability, "Availability must not be null!");
 
-    if (available) {
+    if (availability == Availability.AVAILABLE) {
       this.states.remove(capability);
       return;
     }

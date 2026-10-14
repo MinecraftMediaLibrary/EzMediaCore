@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
@@ -428,7 +429,7 @@ final class ExecutableYtdlpParserTest {
     final String launcherName = File.separatorChar == '\\' ? WINDOWS_JAVA_NAME : JAVA_NAME;
     final Path javaPath = Path.of(javaHome, BIN_DIRECTORY_NAME, launcherName);
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
-    Mockito.when(installer.download(true)).thenReturn(javaPath);
+    Mockito.when(installer.download(FileMode.EXECUTABLE)).thenReturn(javaPath);
     final UriSource source = source();
     final YtdlpParser parser = YtdlpParser.simple();
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
@@ -442,7 +443,7 @@ final class ExecutableYtdlpParserTest {
     }
 
     final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
-    verifiedInstaller.download(true);
+    verifiedInstaller.download(FileMode.EXECUTABLE);
   }
 
   @Test

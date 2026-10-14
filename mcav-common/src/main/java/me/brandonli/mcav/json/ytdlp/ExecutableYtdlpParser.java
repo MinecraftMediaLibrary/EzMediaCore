@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.function.Function;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
@@ -94,7 +95,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.checkNotPreparing(Capability.YT_DLP);
     final YtdlpInstaller installer = YtdlpInstaller.shared();
-    return installer.download(true);
+    return installer.download(FileMode.EXECUTABLE);
   }
 
   /**

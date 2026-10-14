@@ -105,18 +105,18 @@ public final class CommandTask {
   }
 
   /**
-   * Creates a task and optionally runs it immediately.
+   * Creates a task that runs either before the constructor returns or when it is asked to.
    *
-   * @param command       the program followed by its arguments
-   * @param runOnCreation true to run the command before the constructor returns
+   * @param command the program followed by its arguments
+   * @param mode    when to run the command
    * @throws IOException              if the program cannot be started
    * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
    */
-  public CommandTask(final String[] command, final boolean runOnCreation) throws IOException {
+  public CommandTask(final String[] command, final RunMode mode) throws IOException {
     this(null, command);
 
-    if (runOnCreation) {
+    if (mode == RunMode.IMMEDIATELY) {
       this.run();
     }
   }

@@ -41,7 +41,7 @@ public class CapabilityRetryRace {
    * Starts with a failed preparation.
    */
   public CapabilityRetryRace() {
-    this.guard.markPrepared(Capability.VLC, false);
+    this.guard.markPrepared(Capability.VLC, Availability.UNAVAILABLE);
   }
 
   /**

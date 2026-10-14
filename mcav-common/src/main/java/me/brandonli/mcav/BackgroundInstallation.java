@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.loader.DependencyLoader;
@@ -142,24 +143,24 @@ final class BackgroundInstallation {
    */
   private void prepare(final Capability capability, final Runnable step) {
     try {
-      final boolean succeeded = this.runStep(capability, step);
-      this.finish(capability, succeeded);
+      final Availability reported = this.runStep(capability, step);
+      this.finish(capability, reported);
     } catch (final Error exception) {
-      this.finish(capability, false);
+      this.finish(capability, Availability.UNAVAILABLE);
       throw exception;
     }
   }
 
-  private boolean runStep(final Capability capability, final Runnable step) {
+  private Availability runStep(final Capability capability, final Runnable step) {
     try {
       step.run();
 
-      return true;
+      return Availability.AVAILABLE;
     } catch (final RuntimeException exception) {
       final String name = capability.getDisplayName();
       this.logger.warn("{} could not be prepared because of an unexpected failure.", name, exception);
 
-      return false;
+      return Availability.UNAVAILABLE;
     }
   }
 
@@ -172,13 +173,14 @@ final class BackgroundInstallation {
    * Records the outcome of a preparation. A preparation that ends after {@link #cancel()} reports its program as
    * unavailable and leaves the guard alone, because the cancellation already forgot about the program.
    */
-  private void finish(final Capability capability, final boolean succeeded) {
+  private void finish(final Capability capability, final Availability reported) {
     final CompletableFuture<Boolean> preparation = this.getPreparation(capability);
     synchronized (this.lock) {
       final boolean loaded = this.dependencyLoader.hasCapability(capability);
-      final boolean available = succeeded && loaded && !this.cancelled;
+      final boolean available = reported == Availability.AVAILABLE && loaded && !this.cancelled;
+      final Availability availability = available ? Availability.AVAILABLE : Availability.UNAVAILABLE;
       if (!this.cancelled) {
-        this.guard.markPrepared(capability, available);
+        this.guard.markPrepared(capability, availability);
       }
 
       preparation.complete(available);

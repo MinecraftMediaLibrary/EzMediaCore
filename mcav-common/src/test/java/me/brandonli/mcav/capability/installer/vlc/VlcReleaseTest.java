@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.testing.TestMedia;
 import me.brandonli.mcav.utils.IoUtils;
 import org.junit.jupiter.api.Assumptions;
@@ -103,7 +104,7 @@ final class VlcReleaseTest {
     final VlcInstaller installer = VlcInstaller.create(folder);
     final boolean supported = installer.isSupported();
     Assumptions.assumeTrue(supported, "VLC has no build for this platform!");
-    final Path libraries = installer.download(true);
+    final Path libraries = installer.download(FileMode.EXECUTABLE);
     System.out.println("VLC installed from " + installer.getUrl() + " into " + libraries);
     final String output = runProbe(folder, TestMedia.video());
     System.out.println(output);

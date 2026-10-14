@@ -307,7 +307,8 @@ final class PlaybackSession {
 
     final GrabberFactory audioFactory = this.audioGrabberFactory;
     final boolean hasSeparateAudio = audioFactory != null;
-    final Thread videoDecoder = createThread(VIDEO_DECODER_THREAD_NAME, () -> this.decode(grabber, true, !hasSeparateAudio));
+    final DecodedStreams videoStreams = hasSeparateAudio ? DecodedStreams.VIDEO : DecodedStreams.VIDEO_AND_AUDIO;
+    final Thread videoDecoder = createThread(VIDEO_DECODER_THREAD_NAME, () -> this.decode(grabber, videoStreams));
     this.threads.add(videoDecoder);
 
     if (audioFactory != null) {
@@ -345,16 +346,16 @@ final class PlaybackSession {
       return;
     }
 
-    this.decode(grabber, false, true);
+    this.decode(grabber, DecodedStreams.AUDIO);
   }
 
   /**
    * Pulls frames out of a started grabber until the media ends or the session stops, then closes the grabber and
    * tells the renderers of the decoded streams that no more media follows.
    */
-  private void decode(final FrameGrabber grabber, final boolean wantsVideo, final boolean wantsAudio) {
+  private void decode(final FrameGrabber grabber, final DecodedStreams streams) {
     try {
-      this.decodeFrames(grabber, wantsVideo, wantsAudio);
+      this.decodeFrames(grabber, streams);
     } catch (final FrameGrabber.Exception exception) {
       this.report("Failed to decode media", exception);
     } catch (final InterruptedException exception) {
@@ -364,21 +365,23 @@ final class PlaybackSession {
       ThrowableUtils.throwIfFatal(exception);
       this.report("Unexpected error while decoding media", exception);
     } finally {
-      this.finishDecoding(grabber, wantsVideo, wantsAudio);
+      this.finishDecoding(grabber, streams);
     }
   }
 
   /** Closes the decoder without allowing failed native cleanup to strand either consumer. */
-  private void finishDecoding(final FrameGrabber grabber, final boolean wantsVideo, final boolean wantsAudio) {
+  private void finishDecoding(final FrameGrabber grabber, final DecodedStreams streams) {
     try {
       closeQuietly(grabber);
     } finally {
-      this.finishDecodedStreams(wantsVideo, wantsAudio);
+      this.finishDecodedStreams(streams);
     }
   }
 
   /** Releases the copier before signalling termination, including when that release fails. */
-  private void finishDecodedStreams(final boolean wantsVideo, final boolean wantsAudio) {
+  private void finishDecodedStreams(final DecodedStreams streams) {
+    final boolean wantsVideo = streams.includesVideo();
+    final boolean wantsAudio = streams.includesAudio();
     try {
       if (wantsVideo) {
         this.frameCopier.release();
@@ -398,15 +401,16 @@ final class PlaybackSession {
    * Decodes every frame. Video frames get their timestamps from {@link VideoTimestamps}, because some decoders, such
    * as the video reader of OpenCV, stamp every frame with zero.
    */
-  private void decodeFrames(final FrameGrabber grabber, final boolean wantsVideo, final boolean wantsAudio)
-    throws FrameGrabber.Exception, InterruptedException {
+  private void decodeFrames(final FrameGrabber grabber, final DecodedStreams streams) throws FrameGrabber.Exception, InterruptedException {
     this.seekToStart(grabber);
+    final boolean wantsVideo = streams.includesVideo();
+    final boolean wantsAudio = streams.includesAudio();
     final OriginalVideoMetadata decodedVideoMetadata = createVideoMetadata(grabber);
     final double frameRate = grabber.getFrameRate();
     final long length = grabber.getLengthInTime();
     final VideoTimestamps timestamps = new VideoTimestamps(frameRate, length <= 0, this.nanosecondClock);
     final OriginalAudioMetadata decodedAudioMetadata = createAudioMetadata(grabber);
-    Frame frame = grab(grabber, wantsVideo, wantsAudio);
+    Frame frame = grab(grabber, streams);
     while (frame != null && this.running.get()) {
       if (wantsVideo && hasImage(frame)) {
         this.enqueueVideo(frame, decodedVideoMetadata, timestamps);
@@ -414,7 +418,7 @@ final class PlaybackSession {
       if (wantsAudio && hasSamples(frame)) {
         this.enqueueAudio(frame, decodedAudioMetadata);
       }
-      frame = grab(grabber, wantsVideo, wantsAudio);
+      frame = grab(grabber, streams);
     }
   }
 
@@ -447,13 +451,16 @@ final class PlaybackSession {
   /**
    * Grabs the next frame. FFmpeg grabbers that decode only one stream skip the other stream entirely.
    */
-  private static @Nullable Frame grab(final FrameGrabber grabber, final boolean wantsVideo, final boolean wantsAudio)
-    throws FrameGrabber.Exception {
-    if (grabber instanceof final FFmpegFrameGrabber ffmpeg && wantsVideo != wantsAudio) {
-      return wantsVideo ? ffmpeg.grabImage() : ffmpeg.grabSamples();
+  private static @Nullable Frame grab(final FrameGrabber grabber, final DecodedStreams streams) throws FrameGrabber.Exception {
+    if (!(grabber instanceof final FFmpegFrameGrabber ffmpeg)) {
+      return grabber.grab();
     }
 
-    return grabber.grab();
+    return switch (streams) {
+      case VIDEO -> ffmpeg.grabImage();
+      case AUDIO -> ffmpeg.grabSamples();
+      case VIDEO_AND_AUDIO -> ffmpeg.grab();
+    };
   }
 
   /**
@@ -1021,5 +1028,27 @@ final class PlaybackSession {
      * @param frames        the number of frames of the stretch
      */
     void fellBehind(int droppedFrames, int frames);
+  }
+
+  private enum DecodedStreams {
+    VIDEO(true, false),
+    AUDIO(false, true),
+    VIDEO_AND_AUDIO(true, true);
+
+    private final boolean video;
+    private final boolean audio;
+
+    DecodedStreams(final boolean video, final boolean audio) {
+      this.video = video;
+      this.audio = audio;
+    }
+
+    boolean includesVideo() {
+      return this.video;
+    }
+
+    boolean includesAudio() {
+      return this.audio;
+    }
   }
 }

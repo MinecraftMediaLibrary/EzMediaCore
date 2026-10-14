@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
+import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -600,19 +601,19 @@ final class DeclaredImageSize {
    * A TIFF or BigTIFF: the image width and length tags of the first directory, which is the page OpenCV decodes.
    */
   private static @Nullable Size tiff(final Header header) {
-    final boolean little = header.unsigned8(0) == 'I';
-    final long magic = header.number(TIFF_MAGIC_OFFSET, SIXTEEN_BIT_BYTES, little);
+    final ByteOrder order = header.unsigned8(0) == 'I' ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
+    final long magic = header.number(TIFF_MAGIC_OFFSET, SIXTEEN_BIT_BYTES, order);
     final boolean big = magic == BIG_TIFF_MAGIC;
     if (magic != TIFF_MAGIC && !big) {
       return null;
     }
 
     final long directory = big
-      ? header.number(BIG_TIFF_DIRECTORY_OFFSET, SIXTY_FOUR_BIT_BYTES, little)
-      : header.number(TIFF_DIRECTORY_OFFSET, THIRTY_TWO_BIT_BYTES, little);
+      ? header.number(BIG_TIFF_DIRECTORY_OFFSET, SIXTY_FOUR_BIT_BYTES, order)
+      : header.number(TIFF_DIRECTORY_OFFSET, THIRTY_TWO_BIT_BYTES, order);
     final int countSize = big ? SIXTY_FOUR_BIT_BYTES : SIXTEEN_BIT_BYTES;
     final int entrySize = big ? BIG_TIFF_ENTRY_SIZE : TIFF_ENTRY_SIZE;
-    final long count = header.number(directory, countSize, little);
+    final long count = header.number(directory, countSize, order);
     if (count < 0) {
       return null;
     }
@@ -622,12 +623,12 @@ final class DeclaredImageSize {
     final long entries = Math.min(count, header.size() / entrySize);
     for (long index = 0; index < entries; index++) {
       final long entry = directory + countSize + index * entrySize;
-      final long tag = header.number(entry, SIXTEEN_BIT_BYTES, little);
+      final long tag = header.number(entry, SIXTEEN_BIT_BYTES, order);
       // a tag given twice is refused, as which of the two libtiff keeps is not something to rely on
       if (tag == TIFF_IMAGE_WIDTH_TAG) {
-        width = width == -1 ? tiffValue(header, entry, big, little) : REFUSED;
+        width = width == -1 ? tiffValue(header, entry, big, order) : REFUSED;
       } else if (tag == TIFF_IMAGE_LENGTH_TAG) {
-        length = length == -1 ? tiffValue(header, entry, big, little) : REFUSED;
+        length = length == -1 ? tiffValue(header, entry, big, order) : REFUSED;
       }
     }
 
@@ -638,10 +639,10 @@ final class DeclaredImageSize {
    * The single SHORT, LONG or LONG8 value of a directory entry, stored inside the entry; -2 for any other entry, which
    * libtiff would not accept as a width or a length either.
    */
-  private static long tiffValue(final Header header, final long entry, final boolean big, final boolean little) {
-    final long type = header.number(entry + TIFF_TYPE_OFFSET, SIXTEEN_BIT_BYTES, little);
+  private static long tiffValue(final Header header, final long entry, final boolean big, final ByteOrder order) {
+    final long type = header.number(entry + TIFF_TYPE_OFFSET, SIXTEEN_BIT_BYTES, order);
     final int countBytes = big ? SIXTY_FOUR_BIT_BYTES : THIRTY_TWO_BIT_BYTES;
-    final long count = header.number(entry + TIFF_COUNT_OFFSET, countBytes, little);
+    final long count = header.number(entry + TIFF_COUNT_OFFSET, countBytes, order);
     final long field = entry + (big ? BIG_TIFF_VALUE_OFFSET : TIFF_VALUE_OFFSET);
     final int bytes;
     if (type == TIFF_SHORT_TYPE) {
@@ -654,7 +655,7 @@ final class DeclaredImageSize {
       return REFUSED;
     }
 
-    return count == 1 ? header.number(field, bytes, little) : REFUSED;
+    return count == 1 ? header.number(field, bytes, order) : REFUSED;
   }
 
   private static long decimal(final String value) {
@@ -792,17 +793,18 @@ final class DeclaredImageSize {
     }
 
     long littleEndian(final long position, final int bytes) {
-      return this.number(position, bytes, true);
+      return this.number(position, bytes, ByteOrder.LITTLE_ENDIAN);
     }
 
     long bigEndian(final long position, final int bytes) {
-      return this.number(position, bytes, false);
+      return this.number(position, bytes, ByteOrder.BIG_ENDIAN);
     }
 
     /**
      * An unsigned number of 2 to 8 bytes; -1 if it reaches past the end or does not fit a long.
      */
-    long number(final long position, final int bytes, final boolean little) {
+    long number(final long position, final int bytes, final ByteOrder order) {
+      final boolean little = order == ByteOrder.LITTLE_ENDIAN;
       long value = 0;
       for (int index = 0; index < bytes; index++) {
         final int code = this.unsigned8(little ? position + bytes - 1 - index : position + index);

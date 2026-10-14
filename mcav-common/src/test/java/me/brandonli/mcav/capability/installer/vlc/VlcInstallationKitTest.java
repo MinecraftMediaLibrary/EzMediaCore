@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -38,6 +37,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,7 @@ final class VlcInstallationKitTest {
     final Optional<Path> expected = Optional.of(SYSTEM_DIRECTORY);
     assertEquals(expected, directory);
     verify(installer, never()).isSupported();
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
     verify(discovery, never()).loadInstalledLibraries(any());
   }
 
@@ -79,7 +79,7 @@ final class VlcInstallationKitTest {
     final Optional<Path> directory = kit.start();
     final boolean noLocation = directory.isEmpty();
     assertTrue(noLocation);
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
   }
 
   @Test
@@ -88,13 +88,13 @@ final class VlcInstallationKitTest {
     final VlcDiscovery discovery = mock(VlcDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenReturn(INSTALLED_DIRECTORY);
+    when(installer.download(FileMode.EXECUTABLE)).thenReturn(INSTALLED_DIRECTORY);
     when(discovery.loadInstalledLibraries(INSTALLED_DIRECTORY)).thenReturn(true);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     final Optional<Path> directory = kit.start();
     final Optional<Path> expected = Optional.of(INSTALLED_DIRECTORY);
     assertEquals(expected, directory);
-    verify(installer).download(true);
+    verify(installer).download(FileMode.EXECUTABLE);
     verify(discovery).loadInstalledLibraries(INSTALLED_DIRECTORY);
   }
 
@@ -106,7 +106,7 @@ final class VlcInstallationKitTest {
     when(installer.isSupported()).thenReturn(false);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     assertThrows(UnsupportedOperatingSystemException.class, kit::start);
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
   }
 
   @Test
@@ -115,7 +115,7 @@ final class VlcInstallationKitTest {
     final VlcDiscovery discovery = mock(VlcDiscovery.class);
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenReturn(INSTALLED_DIRECTORY);
+    when(installer.download(FileMode.EXECUTABLE)).thenReturn(INSTALLED_DIRECTORY);
     when(discovery.loadInstalledLibraries(INSTALLED_DIRECTORY)).thenReturn(false);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     final UnsupportedOperatingSystemException thrown = assertThrows(UnsupportedOperatingSystemException.class, kit::start);
@@ -129,7 +129,7 @@ final class VlcInstallationKitTest {
     final IOException failure = new IOException("offline!");
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(failure).thenReturn(INSTALLED_DIRECTORY);
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(failure).thenReturn(INSTALLED_DIRECTORY);
     when(discovery.loadInstalledLibraries(INSTALLED_DIRECTORY)).thenReturn(true);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     final IOException thrown = assertThrows(IOException.class, kit::start);
@@ -168,7 +168,7 @@ final class VlcInstallationKitTest {
     final Optional<Path> directory = kit.start();
     assertEquals(earlierInstallation, directory);
     verify(installer, never()).isSupported();
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
   }
 
   @Test
@@ -182,7 +182,7 @@ final class VlcInstallationKitTest {
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     final UnsupportedOperatingSystemException thrown = assertThrows(UnsupportedOperatingSystemException.class, kit::start);
     assertNamesTheInstalledDirectory(thrown);
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
   }
 
   @Test

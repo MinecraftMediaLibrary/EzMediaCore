@@ -35,7 +35,7 @@ final class InstallerTest {
   void shouldFindNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
     final Installer installer = new Installer() {
       @Override
-      public Path download(final boolean executable) {
+      public Path download(final FileMode mode) {
         throw new AssertionError("Looking for an installation must not download anything!");
       }
 

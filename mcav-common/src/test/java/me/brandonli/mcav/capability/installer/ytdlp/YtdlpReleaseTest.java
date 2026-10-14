@@ -40,6 +40,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.utils.IoUtils;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -123,7 +124,7 @@ final class YtdlpReleaseTest {
     final YtdlpInstaller installer = YtdlpInstaller.create(folder);
     final boolean supported = installer.isSupported();
     Assumptions.assumeTrue(supported, "yt-dlp has no build for this platform!");
-    final Path executable = installer.download(true);
+    final Path executable = installer.download(FileMode.EXECUTABLE);
     final String version = runVersion(executable);
     assertEquals(RELEASE, version);
   }

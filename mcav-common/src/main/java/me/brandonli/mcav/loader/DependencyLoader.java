@@ -29,7 +29,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
@@ -291,12 +293,12 @@ public final class DependencyLoader {
     final long start = System.currentTimeMillis();
     try {
       starter.start();
-      this.recordPreparation(Capability.VLC, preparation, true);
+      this.recordPreparation(Capability.VLC, preparation, Availability.AVAILABLE);
       final long end = System.currentTimeMillis();
       final long elapsed = end - start;
       this.logger.info("VLC ready in {} ms.", elapsed);
     } catch (final IOException | RuntimeException | LinkageError exception) {
-      this.recordPreparation(Capability.VLC, preparation, false);
+      this.recordPreparation(Capability.VLC, preparation, Availability.UNAVAILABLE);
       final boolean cancelled = this.logCancellation(Capability.VLC);
       if (!cancelled) {
         final String reason = exception.getMessage();
@@ -314,14 +316,14 @@ public final class DependencyLoader {
     return preparation;
   }
 
-  private void recordPreparation(final Capability capability, final Object preparation, final boolean available) {
+  private void recordPreparation(final Capability capability, final Object preparation, final Availability availability) {
     synchronized (this.preparations) {
       // Cancellation may return before an uncooperative installer; only the latest attempt owns the capability.
       if (!preparation.equals(this.preparations.get(capability))) {
         return;
       }
 
-      if (available) {
+      if (availability == Availability.AVAILABLE) {
         this.capabilities.add(capability);
       } else {
         this.capabilities.remove(capability);
@@ -374,7 +376,7 @@ public final class DependencyLoader {
     final Object preparation = this.beginPreparation(Capability.YT_DLP);
     final boolean supported = installer.isSupported();
     if (!supported) {
-      this.recordPreparation(Capability.YT_DLP, preparation, false);
+      this.recordPreparation(Capability.YT_DLP, preparation, Availability.UNAVAILABLE);
       this.logger.warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
       return;
     }
@@ -382,13 +384,13 @@ public final class DependencyLoader {
     this.logger.info("Preparing yt-dlp...");
     final long start = System.currentTimeMillis();
     try {
-      installer.download(true);
-      this.recordPreparation(Capability.YT_DLP, preparation, true);
+      installer.download(FileMode.EXECUTABLE);
+      this.recordPreparation(Capability.YT_DLP, preparation, Availability.AVAILABLE);
       final long end = System.currentTimeMillis();
       final long elapsed = end - start;
       this.logger.info("yt-dlp ready in {} ms.", elapsed);
     } catch (final IOException | RuntimeException exception) {
-      this.recordPreparation(Capability.YT_DLP, preparation, false);
+      this.recordPreparation(Capability.YT_DLP, preparation, Availability.UNAVAILABLE);
       final boolean cancelled = this.logCancellation(Capability.YT_DLP);
       if (!cancelled) {
         final String reason = exception.getMessage();

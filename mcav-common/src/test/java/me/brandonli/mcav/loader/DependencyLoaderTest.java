@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -59,6 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.Capability;
+import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
@@ -440,7 +440,7 @@ final class DependencyLoaderTest {
       final Installer installer = mock(Installer.class);
       when(installer.isSupported()).thenReturn(true);
       try {
-        when(installer.download(true)).thenAnswer(_ -> this.prepareDownload(prepare));
+        when(installer.download(FileMode.EXECUTABLE)).thenAnswer(_ -> this.prepareDownload(prepare));
       } catch (final IOException exception) {
         throw new AssertionError(exception);
       }
@@ -473,7 +473,7 @@ final class DependencyLoaderTest {
     loader.installVlc(() -> this.failVlcStart(new IOException("offline!")));
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(new IOException("offline!")).thenReturn(Path.of(YTDLP_FILE_NAME));
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(new IOException("offline!")).thenReturn(Path.of(YTDLP_FILE_NAME));
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> this.throwError(new UnsatisfiedLinkError("no libgtk-x11-2.0!")));
     final boolean vlcBeforeRetry = loader.hasCapability(Capability.VLC);
@@ -520,7 +520,7 @@ final class DependencyLoaderTest {
     final Installer installer = mock(Installer.class);
     final IllegalStateException failure = new IllegalStateException("broken download list!");
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(failure);
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(failure);
     final DependencyLoader loader = new DependencyLoader();
     loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
@@ -564,12 +564,12 @@ final class DependencyLoaderTest {
     final Installer installer = mock(Installer.class);
     final Path installed = Path.of(YTDLP_FILE_NAME);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenReturn(installed);
+    when(installer.download(FileMode.EXECUTABLE)).thenReturn(installed);
     final DependencyLoader loader = new DependencyLoader();
     loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     assertTrue(hasYtdlp);
-    verify(installer).download(true);
+    verify(installer).download(FileMode.EXECUTABLE);
   }
 
   @Test
@@ -582,7 +582,7 @@ final class DependencyLoaderTest {
     final boolean hasVlc = loader.hasCapability(Capability.VLC);
     assertFalse(hasYtdlp);
     assertTrue(hasVlc);
-    verify(installer, never()).download(anyBoolean());
+    verify(installer, never()).download(any(FileMode.class));
   }
 
   @Test
@@ -590,7 +590,7 @@ final class DependencyLoaderTest {
     final Installer installer = mock(Installer.class);
     final IOException offline = new IOException("offline!");
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(offline);
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(offline);
     final DependencyLoader loader = new DependencyLoader();
     loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
@@ -603,7 +603,7 @@ final class DependencyLoaderTest {
     final IOException permissionDenied = new IOException("Operation not permitted!");
     final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted!", permissionDenied);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(chmodFailure);
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(chmodFailure);
     final DependencyLoader loader = new DependencyLoader();
     loader.installYtdlp(installer);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
@@ -617,7 +617,7 @@ final class DependencyLoaderTest {
     final YtdlpInstaller installer = mock(YtdlpInstaller.class);
     final Path installed = Path.of(YTDLP_FILE_NAME);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenReturn(installed);
+    when(installer.download(FileMode.EXECUTABLE)).thenReturn(installed);
     try (final MockedStatic<YtdlpInstaller> installers = mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);
       final DependencyLoader loader = new DependencyLoader();
@@ -626,7 +626,7 @@ final class DependencyLoaderTest {
       assertTrue(hasYtdlp);
     }
 
-    verify(installer).download(true);
+    verify(installer).download(FileMode.EXECUTABLE);
   }
 
   @Test
@@ -765,11 +765,11 @@ final class DependencyLoaderTest {
     final Installer working = mock(Installer.class);
     final Path installed = Path.of(YTDLP_FILE_NAME);
     when(working.isSupported()).thenReturn(true);
-    when(working.download(true)).thenReturn(installed);
+    when(working.download(FileMode.EXECUTABLE)).thenReturn(installed);
     final Installer offline = mock(Installer.class);
     final IOException offlineFailure = new IOException("offline!");
     when(offline.isSupported()).thenReturn(true);
-    when(offline.download(true)).thenThrow(offlineFailure);
+    when(offline.download(FileMode.EXECUTABLE)).thenThrow(offlineFailure);
     final Installer unsupported = mock(Installer.class);
     when(unsupported.isSupported()).thenReturn(false);
     final DependencyLoader workingLoader = new DependencyLoader(logger);
@@ -788,7 +788,7 @@ final class DependencyLoaderTest {
     final Logger logger = mock(Logger.class);
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenAnswer(_ -> this.interruptAndFailDownload());
+    when(installer.download(FileMode.EXECUTABLE)).thenAnswer(_ -> this.interruptAndFailDownload());
     final DependencyLoader loader = new DependencyLoader(logger);
     loader.installYtdlp(installer);
     final boolean interrupted = Thread.interrupted();
