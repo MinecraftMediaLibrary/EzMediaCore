@@ -111,6 +111,7 @@ final class YtdlpReleaseTest {
         checksums.put(fileName, hash);
       }
     }
+
     return checksums;
   }
 

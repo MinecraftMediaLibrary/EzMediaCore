@@ -56,6 +56,7 @@ final class GeometryFiltersTest {
     for (int index = 0; index < pixels.length; index++) {
       indices[index] = pixels[index] & 0xFFFFFF;
     }
+
     return indices;
   }
 
@@ -126,6 +127,7 @@ final class GeometryFiltersTest {
     assertThrows(IllegalArgumentException.class, () -> new CropFilter(0, -1, 1, 1));
     assertThrows(IllegalArgumentException.class, () -> new CropFilter(0, 0, 0, 1));
     assertThrows(IllegalArgumentException.class, () -> new CropFilter(0, 0, 1, 0));
+
     try (final Mat mat = new Mat(1, 1, opencv_core.CV_8UC3)) {
       assertThrows(UnsupportedOperationException.class, () -> filter.modifyMat(mat));
     }
@@ -201,9 +203,11 @@ final class GeometryFiltersTest {
     assertTrue(exact);
     assertFalse(otherHeight);
     assertFalse(otherWidth);
+
     try (final Mat mat = new Mat(1, 1, opencv_core.CV_8UC3)) {
       assertThrows(UnsupportedOperationException.class, () -> filter.modifyMat(mat));
     }
+
     assertThrows(IllegalArgumentException.class, () -> new ResizeFilter(0, 1));
     assertThrows(IllegalArgumentException.class, () -> new ResizeFilter(1, 0));
   }
@@ -244,9 +248,11 @@ final class GeometryFiltersTest {
     assertEquals(opencv_core.ROTATE_90_CLOCKWISE, clockwise);
     assertEquals(opencv_core.ROTATE_180, halfTurn);
     assertEquals(opencv_core.ROTATE_90_COUNTERCLOCKWISE, counterClockwise);
+
     try (final Mat mat = new Mat(1, 1, opencv_core.CV_8UC3)) {
       assertThrows(UnsupportedOperationException.class, () -> filter.modifyMat(mat));
     }
+
     assertThrows(NullPointerException.class, () -> new RotationFilter(null));
   }
 
@@ -261,6 +267,7 @@ final class GeometryFiltersTest {
       assertEquals(2, width);
       assertArrayEquals(new int[] { 0, 3, 1, 4, 2, 5 }, indices);
     }
+
     try (final Mat mat = new Mat(1, 1, opencv_core.CV_8UC3)) {
       final TransposeFilter filter = new TransposeFilter();
       assertThrows(UnsupportedOperationException.class, () -> filter.modifyMat(mat));
@@ -296,6 +303,7 @@ final class GeometryFiltersTest {
       assertEquals(0, verticalCode);
       assertEquals(-1, bothCode);
     }
+
     assertThrows(NullPointerException.class, () -> new FlipFilter(null));
   }
 

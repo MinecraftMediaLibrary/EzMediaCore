@@ -86,6 +86,7 @@ final class ScriptedPlayerTest {
       final Object frame = ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS);
       script.add(frame);
     }
+
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setLength(10_000_000L);
     return grabber;
@@ -98,6 +99,7 @@ final class ScriptedPlayerTest {
       final Object chunk = ScriptedFrameGrabber.audio(index * 10_000L);
       script.add(chunk);
     }
+
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setLength(30_000_000L);
     return grabber;
@@ -601,10 +603,13 @@ final class ScriptedPlayerTest {
     final long releaseNanoseconds = releasedAt - releaseStart;
     final long pauseNanoseconds = pauseEnd - pauseStart;
     assertFalse(paused);
+
     final boolean releaseWaited = releaseNanoseconds > 1_000_000_000L;
     assertTrue(releaseWaited, "release waits for the stuck decoder, took " + releaseNanoseconds);
+
     final boolean pauseWasQuick = pauseNanoseconds < 500_000_000L;
     assertTrue(pauseWasQuick, "other calls do not wait for the release, pause took " + pauseNanoseconds);
+
     final boolean pausedDuringRelease = pauseEnd < releasedAt;
     assertTrue(pausedDuringRelease, "the pause ran while the release was still waiting");
   }
@@ -660,9 +665,11 @@ final class ScriptedPlayerTest {
       this.recordCallingThread();
       final Throwable failure = this.nextOpenFailure;
       this.nextOpenFailure = null;
+
       if (failure instanceof final RuntimeException exception) {
         throw exception;
       }
+
       if (failure instanceof final Error error) {
         throw error;
       }
@@ -672,12 +679,14 @@ final class ScriptedPlayerTest {
       synchronized (this.created) {
         this.created.addLast(grabber);
       }
+
       return grabber;
     }
 
     @Override
     protected void configureGrabber(final FrameGrabber grabber, final Source source) {
       super.configureGrabber(grabber, source);
+
       if (this.configurationFails) {
         throw new IllegalArgumentException("invalid option!");
       }

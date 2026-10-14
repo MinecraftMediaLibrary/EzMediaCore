@@ -590,6 +590,7 @@ final class AbstractInstallerTest {
     final String secondEntry = configuration.getProperty("second-program");
     assertEquals(expectedFirst, firstEntry);
     assertEquals(expectedSecond, secondEntry);
+
     this.assertNoTemporaryFiles();
     assertThrows(NullPointerException.class, () -> firstInstaller.writePathToConfiguration(null));
   }
@@ -664,6 +665,7 @@ final class AbstractInstallerTest {
       });
       results.add(result);
     }
+
     return results;
   }
 
@@ -715,9 +717,11 @@ final class AbstractInstallerTest {
     if (!exists) {
       return properties;
     }
+
     try (final InputStream configurationInput = Files.newInputStream(configurationFile)) {
       properties.load(configurationInput);
     }
+
     return properties;
   }
 
@@ -779,6 +783,7 @@ final class AbstractInstallerTest {
       if (this.fallbacks == null) {
         return super.getFallbackPlatforms(platform);
       }
+
       return this.fallbacks;
     }
 
@@ -787,6 +792,7 @@ final class AbstractInstallerTest {
       if (!this.isArchive) {
         return super.install(downloaded);
       }
+
       this.installedArchives.add(downloaded);
       final Path installerFolder = this.getFolder();
       final Path extracted = installerFolder.resolve(EXTRACTED_FOLDER_NAME);

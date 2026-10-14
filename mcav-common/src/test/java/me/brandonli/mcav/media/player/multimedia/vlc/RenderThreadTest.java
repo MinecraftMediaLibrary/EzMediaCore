@@ -51,6 +51,7 @@ final class RenderThreadTest {
     for (final RenderThread thread : this.strictThreads) {
       thread.stop();
     }
+
     assertEquals(List.of(), this.unexpectedFailures, "no rendering step of this test fails");
   }
 
@@ -231,6 +232,7 @@ final class RenderThreadTest {
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(stepStarted);
     assertTrue(callerInterrupted, "the interrupt of the caller is kept");
+
     final boolean returnedQuickly = elapsedMilliseconds < 1_000L;
     assertTrue(returnedQuickly, "an interrupted caller does not wait, took " + elapsedMilliseconds);
     assertTrue(cleaned);

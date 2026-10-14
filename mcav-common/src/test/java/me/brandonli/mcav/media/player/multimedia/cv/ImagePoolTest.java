@@ -51,6 +51,7 @@ final class ImagePoolTest {
     assertSame(second, latest);
     assertSame(first, earlier);
     assertNull(none);
+
     first.release();
     second.release();
   }
@@ -67,6 +68,7 @@ final class ImagePoolTest {
     assertEquals(1, unused);
     assertEquals(1, keptWidth);
     assertThrows(IllegalStateException.class, surplus::getWidth, "an image the pool has no room for is released");
+
     pool.close();
   }
 

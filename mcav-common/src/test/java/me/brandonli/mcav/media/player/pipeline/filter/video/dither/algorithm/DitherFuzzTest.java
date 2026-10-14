@@ -63,6 +63,7 @@ final class DitherFuzzTest {
     } catch (final IllegalArgumentException exception) {
       return;
     }
+
     final int width = data.consumeInt(1, MAXIMUM_SIDE);
     final int height = data.consumeInt(1, MAXIMUM_SIDE);
     final int[] image = new int[width * height];
@@ -79,6 +80,7 @@ final class DitherFuzzTest {
     final int reserved = PALETTE.getReservedIndices();
     final int size = PALETTE.getSize();
     assertEquals(image.length, indices.length, "one index per pixel");
+
     for (int pixel = 0; pixel < image.length; pixel++) {
       final int index = indices[pixel] & 0xFF;
       final boolean usable = index >= reserved && index < size;
@@ -129,6 +131,7 @@ final class DitherFuzzTest {
         tap[1] = data.consumeInt();
         tap[2] = data.consumeInt();
       }
+
       this.divisor = data.consumeInt();
       final int rows = data.consumeInt(1, 8);
       final int columns = data.consumeInt(1, 8);
@@ -138,6 +141,7 @@ final class DitherFuzzTest {
           row[column] = data.consumeInt();
         }
       }
+
       this.levels = data.consumeInt();
       this.strength = data.consumeFloat();
       this.weight = data.consumeInt(-8, 300);

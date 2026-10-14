@@ -200,6 +200,7 @@ final class FfmpegCommandTest {
     final boolean exists = Files.isRegularFile(first);
     assertTrue(exists);
     assertSame(first, second);
+
     UtilityClassAssertions.assertNotInstantiable(FfmpegExecutableProvider.class);
   }
 
@@ -207,6 +208,7 @@ final class FfmpegCommandTest {
   void shouldNotInstantiateTheHolder() throws ReflectiveOperationException {
     final Class<?>[] nestedClasses = FfmpegExecutableProvider.class.getDeclaredClasses();
     assertEquals(1, nestedClasses.length);
+
     UtilityClassAssertions.assertNotInstantiable(nestedClasses[0]);
   }
 }

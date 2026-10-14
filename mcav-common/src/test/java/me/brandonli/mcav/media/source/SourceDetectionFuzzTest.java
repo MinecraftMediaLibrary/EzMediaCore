@@ -51,6 +51,7 @@ final class SourceDetectionFuzzTest {
     if (detected.isEmpty()) {
       return;
     }
+
     final Source source = detected.get();
     switch (source) {
       case final DeviceSource device -> {

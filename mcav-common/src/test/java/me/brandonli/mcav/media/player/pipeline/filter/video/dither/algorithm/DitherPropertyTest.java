@@ -118,6 +118,7 @@ final class DitherPropertyTest {
         kernels.add(field);
       }
     }
+
     return kernels;
   }
 
@@ -136,6 +137,7 @@ final class DitherPropertyTest {
     for (int tap = 0; tap < kernel.getTapCount(); tap++) {
       weights += kernel.getWeight(tap);
     }
+
     final boolean atkinson = kernel == DiffusionKernel.ATKINSON;
     final long expected = atkinson ? (divisor * 3L) / 4 : divisor;
 
@@ -196,6 +198,7 @@ final class DitherPropertyTest {
     final int reserved = palette.getReservedIndices();
     final int size = palette.getSize();
     assertEquals(image.length, indices.length, "one index per pixel");
+
     for (int pixel = 0; pixel < image.length; pixel++) {
       final int index = indices[pixel] & 0xFF;
       final int position = pixel;
@@ -223,6 +226,7 @@ final class DitherPropertyTest {
       final int column = pixel % width;
       mirrored[row * width + width - 1 - column] = image[pixel];
     }
+
     return mirrored;
   }
 
@@ -277,6 +281,7 @@ final class DitherPropertyTest {
       for (int pixel = 0; pixel < image.length; pixel++) {
         image[pixel] = this.pixels.get(pixel);
       }
+
       return image;
     }
 

@@ -65,6 +65,7 @@ final class OrderedDitherTest {
   ) {
     final int[][] matrix = thresholds.toArray();
     assertEquals(rows, matrix.length, name + " rows");
+
     int minimum = Integer.MAX_VALUE;
     final Map<Integer, Integer> counts = new HashMap<>();
     for (final int[] row : matrix) {
@@ -78,6 +79,7 @@ final class OrderedDitherTest {
     final int repetitions = (rows * columns) / levels;
     final int distinct = counts.size();
     assertEquals(levels, distinct, name + " levels");
+
     for (int level = 0; level < levels; level++) {
       final int value = minimum + level;
       final int count = counts.getOrDefault(value, 0);
@@ -186,7 +188,9 @@ final class OrderedDitherTest {
         expected[row * 8 + column] = (byte) ((row + column) % 2);
       }
     }
+
     assertArrayEquals(expected, indices, "the default 2x2 ranks darken the diagonal and brighten the other cells");
+
     for (int row = 0; row < 6; row++) {
       for (int column = 0; column < 6; column++) {
         final int index = indices[row * 8 + column];
@@ -222,14 +226,17 @@ final class OrderedDitherTest {
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null));
     final String missingImageMessage = missingImage.getMessage();
     assertEquals("Image must not be null!", missingImageMessage);
+
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null, pool));
       final String missingParallelImageMessage = missingParallelImage.getMessage();
       assertEquals("Image must not be null!", missingParallelImageMessage);
     }
+
     try (final ImageBuffer image = ImageBuffer.buffer(new int[1], 1, 1)) {
       assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(image, null));
     }
+
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[3], 2));
   }
 
@@ -242,8 +249,10 @@ final class OrderedDitherTest {
     final float strength = doubled.getStrength();
     final float[] firstRow = matrix[0];
     assertArrayEquals(new float[] { -0.375f, 0.125f }, firstRow);
+
     final float[] secondRow = matrix[1];
     assertArrayEquals(new float[] { 0.375f, -0.125f }, secondRow);
+
     final float[] doubledFirstRow = doubledMatrix[0];
     assertArrayEquals(new float[] { -0.75f, 0.25f }, doubledFirstRow);
     assertEquals(2.0f, strength);
@@ -318,11 +327,14 @@ final class OrderedDitherTest {
     }
 
     assertArrayEquals(new int[][] { { 0 } }, one);
+
     final int[] firstRowOfFour = four[0];
     assertArrayEquals(new int[] { 0, 8, 2, 10 }, firstRowOfFour);
+
     for (final boolean wasSeen : seen) {
       assertTrue(wasSeen, "every threshold appears exactly once");
     }
+
     assertThrows(IllegalArgumentException.class, () -> BayerDither.createBayerMatrix(0));
     assertThrows(IllegalArgumentException.class, () -> BayerDither.createBayerMatrix(3));
   }
@@ -365,8 +377,10 @@ final class OrderedDitherTest {
 
     final int[][] normalTwo = BayerDither.NORMAL_2X2.toArray();
     assertArrayEquals(generatedTwo.toArray(), normalTwo, "NORMAL_2X2");
+
     final int[][] normalFour = BayerDither.NORMAL_4X4.toArray();
     assertArrayEquals(generatedFour.toArray(), normalFour, "NORMAL_4X4");
+
     final int[][] normalEight = BayerDither.NORMAL_8X8.toArray();
     assertArrayEquals(generatedEight.toArray(), normalEight, "NORMAL_8X8");
   }
@@ -395,6 +409,7 @@ final class OrderedDitherTest {
         row[column] = row[column] + 1;
       }
     }
+
     return ThresholdMatrix.of(generated);
   }
 

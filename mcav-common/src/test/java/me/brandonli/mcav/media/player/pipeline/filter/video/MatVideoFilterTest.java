@@ -62,6 +62,7 @@ final class MatVideoFilterTest {
       bgr[index + 1] = (byte) (argb >> 8);
       bgr[index + 2] = (byte) (argb >> 16);
     }
+
     final ByteBuffer data = ByteBuffer.wrap(bgr);
     final ImageBuffer image = mock(ImageBuffer.class);
     when(image.getWidth()).thenReturn(width);

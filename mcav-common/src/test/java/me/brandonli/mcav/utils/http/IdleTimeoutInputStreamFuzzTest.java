@@ -71,6 +71,7 @@ final class IdleTimeoutInputStreamFuzzTest {
       final byte[] rest = stream.readAllBytes();
       received.write(rest);
     }
+
     final byte[] delivered = received.toByteArray();
     assertArrayEquals(content, delivered, "every byte of the source, once and in order");
   }
@@ -95,6 +96,7 @@ final class IdleTimeoutInputStreamFuzzTest {
       if (this.position >= this.content.length) {
         return -1;
       }
+
       final byte next = this.content[this.position];
       this.position++;
       return next & 0xFF;
@@ -105,9 +107,11 @@ final class IdleTimeoutInputStreamFuzzTest {
       if (length == 0) {
         return 0;
       }
+
       if (this.position >= this.content.length) {
         return -1;
       }
+
       final int wanted = this.pieces.length == 0 ? length : 1 + Math.floorMod(this.pieces[this.piece % this.pieces.length], length);
       this.piece++;
       final int count = Math.min(wanted, this.content.length - this.position);

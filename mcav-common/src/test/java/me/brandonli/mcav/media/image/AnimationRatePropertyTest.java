@@ -63,6 +63,7 @@ final class AnimationRatePropertyTest {
   void shouldStillProduceAPlayableDefaultWithoutAUsableRateOrTimestamp(@ForAll(UNUSABLE_RATES) final double reported) {
     final float rate = FfmpegDynamicImageBuffer.resolveFrameRate(reported, 1, 0, 0);
     assertEquals(10.0f, rate);
+
     final boolean positiveAndFinite = rate > 0 && Float.isFinite(rate);
     assertTrue(positiveAndFinite);
   }

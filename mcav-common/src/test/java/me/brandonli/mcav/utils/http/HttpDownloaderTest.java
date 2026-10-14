@@ -129,6 +129,7 @@ final class HttpDownloaderTest {
     try (final ServerSocket socket = new ServerSocket(0)) {
       port = socket.getLocalPort();
     }
+
     return URI.create("http://127.0.0.1:" + port + FILE_ROUTE);
   }
 
@@ -168,6 +169,7 @@ final class HttpDownloaderTest {
   void shouldVerifyTheChecksum() throws IOException {
     final String expected = contentSha256();
     assertEquals(CONTENT_SHA256, expected, "the constant is the SHA-256 of the content");
+
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
       final URI uri = server.uri(FILE_ROUTE);
@@ -240,6 +242,7 @@ final class HttpDownloaderTest {
 
   private static long failAndTime(final URI uri, final Path destination, final Duration retryDelay) {
     assertThrows(IOException.class, () -> HttpDownloader.download(uri, destination, null, retryDelay));
+
     return System.nanoTime();
   }
 
@@ -479,15 +482,19 @@ final class HttpDownloaderTest {
     final URI page = URI.create("https://mirror.example/debian/pool/a.deb");
     final boolean defaultHttpsPort = HttpDownloader.isSameOrigin(page, URI.create("https://MIRROR.example:443/file/b.deb"));
     assertTrue(defaultHttpsPort);
+
     final boolean defaultHttpPort = HttpDownloader.isSameOrigin(
       URI.create("http://mirror.example/a"),
       URI.create("http://mirror.example:80/b")
     );
     assertTrue(defaultHttpPort);
+
     final boolean otherScheme = HttpDownloader.isSameOrigin(page, URI.create("http://mirror.example/a.deb"));
     assertFalse(otherScheme, "another scheme");
+
     final boolean otherHost = HttpDownloader.isSameOrigin(page, URI.create("https://other.example/a.deb"));
     assertFalse(otherHost, "another host");
+
     final boolean otherPort = HttpDownloader.isSameOrigin(page, URI.create("https://mirror.example:8443/a.deb"));
     assertFalse(otherPort, "another port");
   }
@@ -533,8 +540,10 @@ final class HttpDownloaderTest {
   void shouldGiveAPinnedDownloadAMinuteAndASecondForEvery64KibOfItsSize() {
     final Duration smallestDeadline = HttpDownloader.pinnedDeadline(1);
     assertEquals(Duration.ofMinutes(1), smallestDeadline);
+
     final Duration twoBlockDeadline = HttpDownloader.pinnedDeadline(2 * 64 * 1024);
     assertEquals(Duration.ofSeconds(62), twoBlockDeadline);
+
     final Duration largeDeadline = HttpDownloader.pinnedDeadline(200_000_000L);
     assertEquals(Duration.ofSeconds(60 + 3051), largeDeadline);
   }
@@ -549,6 +558,7 @@ final class HttpDownloaderTest {
     final boolean interrupted = Thread.interrupted();
     final String message = exception.getMessage();
     assertTrue(interrupted, "the interrupt must be restored");
+
     final boolean reportsTheInterrupt = message.startsWith("Interrupted");
     assertTrue(reportsTheInterrupt, message);
   }
@@ -748,6 +758,7 @@ final class HttpDownloaderTest {
     response.close();
     final boolean bodyClosed = closed.get();
     assertTrue(bodyClosed);
+
     Mockito.verify(client).shutdownNow();
   }
 
@@ -758,8 +769,10 @@ final class HttpDownloaderTest {
       final URI missing = server.uri(MISSING_ROUTE);
       assertThrows(HttpStatusException.class, () -> openAndClose(missing));
     }
+
     assertThrows(IOException.class, () -> openAndClose(unreachable));
     assertThrows(NullPointerException.class, () -> openAndClose(null));
+
     final Thread current = Thread.currentThread();
     current.interrupt();
     final IOException exception = assertThrows(IOException.class, () -> openAndClose(unreachable));
@@ -787,6 +800,7 @@ final class HttpDownloaderTest {
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted);
     }
+
     assertThrows(NullPointerException.class, () -> HttpDownloader.fetchText(null));
   }
 
@@ -801,7 +815,9 @@ final class HttpDownloaderTest {
       final HttpClient.Redirect redirect = client.followRedirects();
       assertEquals(HttpClient.Redirect.NORMAL, redirect);
     }
+
     assertEquals("GET", method);
+
     final boolean userAgentPresent = userAgent.isPresent();
     assertTrue(userAgentPresent);
     assertThrows(NullPointerException.class, () -> HttpDownloader.createRequest(null));

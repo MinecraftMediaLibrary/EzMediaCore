@@ -119,6 +119,7 @@ final class ImagePlayerTest {
       final long gap = current - previous;
       shortest = Math.min(shortest, gap);
     }
+
     return shortest;
   }
 
@@ -225,8 +226,10 @@ final class ImagePlayerTest {
     assertTrue(released);
     assertFalse(releasedTwice);
     assertFalse(startedAfterRelease);
+
     final boolean consumedEnough = total >= 30;
     assertTrue(consumedEnough, "consumed " + total);
+
     final boolean rateNearFifty = rate > 35.0 && rate < 65.0;
     assertTrue(rateNearFifty, "frames are delivered at about 50 per second, got " + rate);
     assertEquals(expectedFailures, failures);
@@ -472,6 +475,7 @@ final class ImagePlayerTest {
         return thread;
       }
     }
+
     return null;
   }
 

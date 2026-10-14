@@ -123,6 +123,7 @@ final class LateFrameCounterTest {
     for (int frame = 0; frame < 11; frame++) {
       this.counter.count(0L, true);
     }
+
     this.counter.count(STRETCH_MICROSECONDS, true);
 
     assertEquals(List.of("12 of 12"), this.reports);
@@ -138,6 +139,7 @@ final class LateFrameCounterTest {
     } finally {
       System.setErr(standardError);
     }
+
     final String log = captured.toString(StandardCharsets.UTF_8);
     final boolean reported = log.contains("Playback falls behind: 301 of the last 302 frames came too late to show");
     assertTrue(reported, log);

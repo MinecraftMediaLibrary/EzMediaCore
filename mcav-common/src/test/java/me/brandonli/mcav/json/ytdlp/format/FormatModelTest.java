@@ -113,6 +113,7 @@ final class FormatModelTest {
     assertTrue(dump.playable_in_embed);
     assertFalse(dump.is_live);
     assertFalse(dump.was_live);
+
     final List<String> expectedCategories = List.of("Music");
     final List<String> expectedTags = List.of("example", "video");
     final List<String> expectedSortFields = List.of("quality", "res", "fps");
@@ -165,6 +166,7 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
+
     final Format video = formats.get(VIDEO_FORMAT_INDEX);
     assertEquals(2300000000L, dump.comment_count);
     assertEquals(4100000000L, dump.channel_follower_count);
@@ -178,6 +180,7 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
+
     final Format audio = formats.get(1);
     assertNull(dump.average_rating);
     assertNull(dump.release_timestamp);
@@ -198,6 +201,7 @@ final class FormatModelTest {
     assertNull(audio.preference);
     assertNull(audio.dynamic_range);
     assertNull(audio.fragments);
+
     final UrlParseDump empty = new UrlParseDump();
     assertNull(empty.id);
     assertNull(empty.formats);
@@ -209,6 +213,7 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
+
     final Format audio = formats.get(1);
     final Format video = formats.get(VIDEO_FORMAT_INDEX);
     final DownloaderOptions options = audio.downloader_options;
@@ -252,15 +257,18 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
+
     final Format storyboard = formats.getFirst();
     final List<Fragment> fragments = storyboard.fragments;
     assertNotNull(fragments);
+
     final Fragment fragment = fragments.getFirst();
     assertEquals("mhtml", storyboard.protocol);
     assertEquals(10, storyboard.rows);
     assertEquals(10, storyboard.columns);
     assertEquals(0.5, storyboard.fps, DELTA);
     assertEquals(0L, storyboard.filesize_approx);
+
     final int fragmentsCount = fragments.size();
     assertEquals(1, fragmentsCount);
     assertEquals("https://i.ytimg.com/sb/dQw4w9WgXcQ/storyboard3_L0/default.jpg?sqp=a", fragment.url);
@@ -272,6 +280,7 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
+
     final Format storyboard = formats.getFirst();
     final HttpHeaders headers = storyboard.http_headers;
     assertNotNull(headers);
@@ -279,6 +288,7 @@ final class FormatModelTest {
     assertEquals("text/html,application/xhtml+xml", headers.accept);
     assertEquals("en-us,en;q=0.5", headers.acceptLanguage);
     assertEquals("navigate", headers.secFetchMode);
+
     final Gson gson = GsonProvider.getSimple();
     final String json = gson.toJson(headers);
     assertEquals(
@@ -296,6 +306,7 @@ final class FormatModelTest {
     assertNotNull(thumbnails);
     assertNotNull(heatmap);
     assertNotNull(version);
+
     final Thumbnail thumbnail = thumbnails.getFirst();
     final Heatmap marker = heatmap.getFirst();
     assertEquals(THUMBNAIL_URL, thumbnail.url);

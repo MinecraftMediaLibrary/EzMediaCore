@@ -173,6 +173,7 @@ final class OsxInstallationStrategyTest {
     final OsxInstallationStrategy strategy = strategyWith(installer, commands, OsxInstallationStrategyTest::attachFails);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
     assertThrows(IOException.class, () -> strategy.execute(archive));
+
     final int commandCount = commands.size();
     assertEquals(1, commandCount);
   }
@@ -228,6 +229,7 @@ final class OsxInstallationStrategyTest {
     final VlcInstaller strategyInstaller = strategy.getInstaller();
     assertSame(installer, strategyInstaller);
     assertThrows(NullPointerException.class, () -> strategy.execute(null));
+
     final Path javaFolder = Path.of(System.getProperty("java.home"), JAVA_BINARY_DIRECTORY);
     final Path windowsJava = javaFolder.resolve(WINDOWS_JAVA_NAME);
     final Path java = Files.isRegularFile(windowsJava) ? windowsJava : javaFolder.resolve(JAVA_NAME);
@@ -242,6 +244,7 @@ final class OsxInstallationStrategyTest {
     );
     final boolean markerWritten = Files.isRegularFile(marker);
     assertTrue(markerWritten, "the default runner executes its child process");
+
     final String markerText = Files.readString(marker);
     assertEquals(MARKER_TEXT, markerText);
   }
@@ -266,6 +269,7 @@ final class OsxInstallationStrategyTest {
   private static void assertSuppressedDetachFailure(final IOException thrown, final Path mountPoint) {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(1, suppressed.length);
+
     final Throwable detachFailure = suppressed[0];
     final String detachMessage = detachFailure.getMessage();
     final Throwable[] forcedFailures = detachFailure.getSuppressed();

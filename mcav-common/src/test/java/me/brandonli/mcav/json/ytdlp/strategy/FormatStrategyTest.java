@@ -226,6 +226,7 @@ final class FormatStrategyTest {
     final String selected = select(FormatStrategy.PREFER_WEBM_AUDIO, dump);
     final Optional<Format> none = FormatStrategy.PREFER_WEBM_AUDIO.select(withoutMatch);
     assertEquals("webm-https", selected);
+
     final boolean noneEmpty = none.isEmpty();
     assertTrue(noneEmpty);
   }
@@ -242,6 +243,7 @@ final class FormatStrategyTest {
     final String selected = select(FormatStrategy.PREFER_MP4_VIDEO, dump);
     final Optional<Format> none = FormatStrategy.PREFER_MP4_VIDEO.select(withoutMatch);
     assertEquals("mp4-https", selected);
+
     final boolean noneEmpty = none.isEmpty();
     assertTrue(noneEmpty);
   }

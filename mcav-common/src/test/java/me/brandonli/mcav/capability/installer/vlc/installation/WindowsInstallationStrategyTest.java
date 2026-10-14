@@ -207,6 +207,7 @@ final class WindowsInstallationStrategyTest {
         zipOutput.closeEntry();
       }
     }
+
     return zip;
   }
 }

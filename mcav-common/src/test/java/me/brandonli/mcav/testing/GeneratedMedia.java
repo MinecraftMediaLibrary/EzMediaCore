@@ -88,6 +88,7 @@ public final class GeneratedMedia {
     if (COMPLETED.contains(destination) && Files.isRegularFile(destination) && Files.size(destination) > 0) {
       return destination;
     }
+
     COMPLETED.remove(destination);
     final Path parent = Objects.requireNonNull(destination.getParent(), "A media file must have a directory!");
     Files.createDirectories(parent);
@@ -174,6 +175,7 @@ public final class GeneratedMedia {
     try (final Stream<ProcessHandle> children = process.descendants()) {
       children.forEach(descendants::add);
     }
+
     descendants.forEach(ProcessHandle::destroyForcibly);
     process.destroyForcibly();
     try {
@@ -199,6 +201,7 @@ public final class GeneratedMedia {
         }
       }
     }
+
     if (cleanup != null) {
       if (primary != null) {
         primary.addSuppressed(cleanup);

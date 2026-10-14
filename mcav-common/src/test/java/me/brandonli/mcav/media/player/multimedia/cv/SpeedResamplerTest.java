@@ -39,6 +39,7 @@ final class SpeedResamplerTest {
       buffer.putShort((short) ((first + frameIndex) * 10));
       buffer.putShort((short) (-(first + frameIndex) * 10));
     }
+
     return buffer.flip();
   }
 
@@ -50,6 +51,7 @@ final class SpeedResamplerTest {
       final short right = view.getShort(view.position() + sampleIndex * FRAME_BYTES + 2);
       assertEquals(-samples[sampleIndex], right, "the channels are resampled alike");
     }
+
     return samples;
   }
 
@@ -59,6 +61,7 @@ final class SpeedResamplerTest {
     final ByteBuffer chunk = frames(0, 4);
     final ByteBuffer resampled = resampler.resample(chunk, PlaybackClock.NORMAL_SPEED);
     assertSame(chunk, resampled);
+
     final ByteBuffer empty = ByteBuffer.allocate(3);
     final ByteBuffer resampledEmpty = resampler.resample(empty, DOUBLE_SPEED);
     assertSame(empty, resampledEmpty);
@@ -69,6 +72,7 @@ final class SpeedResamplerTest {
     final SpeedResampler resampler = new SpeedResampler();
     final short[] firstChunk = left(resampler.resample(frames(0, 8), DOUBLE_SPEED));
     assertArrayEquals(new short[] { 0, 20, 40, 60 }, firstChunk);
+
     final short[] secondChunk = left(resampler.resample(frames(8, 8), DOUBLE_SPEED));
     assertArrayEquals(new short[] { 80, 100, 120, 140 }, secondChunk);
   }
@@ -78,6 +82,7 @@ final class SpeedResamplerTest {
     final SpeedResampler resampler = new SpeedResampler();
     final short[] firstChunk = left(resampler.resample(frames(0, 3), HALF_SPEED));
     assertArrayEquals(new short[] { 0, 5, 10, 15 }, firstChunk);
+
     final short[] secondChunk = left(resampler.resample(frames(3, 2), HALF_SPEED));
     assertArrayEquals(new short[] { 20, 25, 30, 35 }, secondChunk);
   }
@@ -89,6 +94,7 @@ final class SpeedResamplerTest {
     resampler.resample(frames(2, 2), PlaybackClock.NORMAL_SPEED);
     final short[] firstChunk = left(resampler.resample(frames(4, 2), HALF_SPEED));
     assertArrayEquals(new short[] { 40, 45 }, firstChunk);
+
     final short[] secondChunk = left(resampler.resample(frames(6, 2), HALF_SPEED));
     assertArrayEquals(new short[] { 50, 55, 60, 65 }, secondChunk);
   }
@@ -104,6 +110,7 @@ final class SpeedResamplerTest {
     final ByteBuffer faster = resampler.resample(chunk, DOUBLE_SPEED);
     final short[] leftSamples = left(faster);
     assertArrayEquals(new short[] { 0, 20 }, leftSamples);
+
     final int position = chunk.position();
     assertEquals(4, position);
   }

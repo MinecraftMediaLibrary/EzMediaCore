@@ -70,6 +70,7 @@ final class DrawingFiltersTest {
         count++;
       }
     }
+
     return count;
   }
 
@@ -90,6 +91,7 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, center, "only the outline is drawn");
       assertEquals(BLACK_ARGB, farAway);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new CircleFilter(0, 0, -1, WHITE));
   }
 
@@ -123,6 +125,7 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, center);
       assertEquals(BLACK_ARGB, beyondTheShortAxis);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new EllipseFilter(0, 0, 0, 1, 0, 0, 360, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new EllipseFilter(0, 0, 1, 0, 0, 0, 360, WHITE));
   }
@@ -161,6 +164,7 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, rightOfRectangle, "a width of 3 covers three columns");
       assertEquals(BLACK_ARGB, belowRectangle, "a height of 3 covers three rows");
     }
+
     assertThrows(IllegalArgumentException.class, () -> new RectangleFilter(0, 0, 0, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RectangleFilter(0, 0, 1, 0, WHITE));
   }
@@ -185,6 +189,7 @@ final class DrawingFiltersTest {
       final ByteBuffer pixels = image.getData();
       assertEquals(expectedPixels, pixels, "the text, baseline, size and color must match");
     }
+
     assertThrows(NullPointerException.class, () -> new TextFilter(null, 0, 0, TextFilter.DEFAULT_FONT, 1.0, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new TextFilter("x", 0, 0, TextFilter.DEFAULT_FONT, 0.0, WHITE));
   }
@@ -266,6 +271,7 @@ final class DrawingFiltersTest {
       assertFalse(rightModified);
       assertFalse(belowModified);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(-1, 0, 1, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(0, -1, 1, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(0, 0, 0, 1, WHITE));
@@ -308,6 +314,7 @@ final class DrawingFiltersTest {
       assertThrows(IllegalArgumentException.class, () -> new OverlayImageFilter(overlay, -1, 0));
       assertThrows(IllegalArgumentException.class, () -> new OverlayImageFilter(overlay, 0, -1));
     }
+
     assertThrows(NullPointerException.class, () -> new OverlayImageFilter(null, 0, 0));
   }
 

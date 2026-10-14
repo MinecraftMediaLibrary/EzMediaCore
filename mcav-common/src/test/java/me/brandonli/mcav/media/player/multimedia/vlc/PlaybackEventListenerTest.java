@@ -124,6 +124,7 @@ final class PlaybackEventListenerTest {
     assertTrue(waiterStarted);
     assertTrue(returned);
     assertFalse(returnedEarly, "a start that returns false finds the reason in the handler");
+
     final long countAtReport = notificationCountAtReport.get();
     assertEquals(1, countAtReport, "notification cannot be released before its failure report");
   }
@@ -150,10 +151,13 @@ final class PlaybackEventListenerTest {
       finishReport.countDown();
       reporter.join(TIMEOUT_MILLISECONDS);
     }
+
     final boolean alive = reporter.isAlive();
     assertFalse(alive);
+
     final Throwable reportedFailure = reportingFailure.get();
     assertEquals(null, reportedFailure);
+
     final boolean opened = this.listener.awaitOpened(0);
     assertFalse(opened);
   }
@@ -165,6 +169,7 @@ final class PlaybackEventListenerTest {
     final boolean opened = this.listener.awaitOpened(TIMEOUT_MILLISECONDS);
     final boolean noErrors = this.errors.isEmpty();
     assertTrue(opened);
+
     final boolean quick = elapsed < QUICK_MILLISECONDS;
     assertTrue(quick, "no waiting once playing, took " + elapsed);
     assertTrue(noErrors);
@@ -187,6 +192,7 @@ final class PlaybackEventListenerTest {
     final PlayerException exception = assertInstanceOf(PlayerException.class, error);
     final String reason = exception.getMessage();
     assertFalse(opened);
+
     final boolean quick = elapsed < QUICK_MILLISECONDS;
     assertTrue(quick, "no waiting after an error, took " + elapsed);
     assertEquals(expectedMessages, this.messages);
@@ -217,8 +223,10 @@ final class PlaybackEventListenerTest {
     final long elapsed = this.awaitMilliseconds(100L);
     final boolean opened = this.listener.awaitOpened(SHORT_TIMEOUT_MILLISECONDS);
     assertTrue(opened, "VLC may still open slow streams; later failures are reported");
+
     final boolean waitedTheTimeout = elapsed >= 90L;
     assertTrue(waitedTheTimeout, "waited only " + elapsed);
+
     final boolean waitedNotMuchLonger = elapsed < 2_000L;
     assertTrue(waitedNotMuchLonger, "waited " + elapsed);
   }
@@ -237,6 +245,7 @@ final class PlaybackEventListenerTest {
     final Thread current = Thread.currentThread();
     current.interrupt();
     assertThrows(InterruptedException.class, () -> this.listener.awaitOpened(TIMEOUT_MILLISECONDS));
+
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(stillInterrupted);
   }

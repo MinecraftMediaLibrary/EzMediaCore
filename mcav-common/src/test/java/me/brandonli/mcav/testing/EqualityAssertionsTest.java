@@ -32,6 +32,7 @@ final class EqualityAssertionsTest {
     final int firstHash = first.hashCode();
     final int differentHash = different.hashCode();
     assertEquals(firstHash, differentHash, "31 * 65 + 97 equals 31 * 66 + 66");
+
     EqualityAssertions.assertEqualityContract(first, equal, different);
   }
 }

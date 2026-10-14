@@ -90,6 +90,7 @@ final class RepeatingFrameSourceTest {
     for (int index = 0; index < colors.length; index++) {
       colors[index] = nextColor(supplier);
     }
+
     assertArrayEquals(new int[] { 1, 2, 1, 2, 2, 2, 2 }, colors);
   }
 
@@ -106,6 +107,7 @@ final class RepeatingFrameSourceTest {
     for (int index = 0; index < colors.length; index++) {
       colors[index] = nextColor(supplier);
     }
+
     assertEquals(Integer.MAX_VALUE, repeatCount);
     assertArrayEquals(new int[] { 1, 2, 1, 2, 1, 2 }, colors);
   }

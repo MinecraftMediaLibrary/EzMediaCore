@@ -85,6 +85,7 @@ final class SharedMediaPlayerFactoryTest {
     final int creationCount = this.creations.get();
     assertNotSame(first, second);
     assertEquals(2, creationCount);
+
     shared.release();
     verify(second).release();
   }
@@ -115,6 +116,7 @@ final class SharedMediaPlayerFactoryTest {
     final String message = exception.getMessage();
     final int references = shared.getReferences();
     assertThrows(IllegalStateException.class, shared::acquire);
+
     final int attemptCount = attempts.get();
     assertEquals("libvlc not found!", message);
     assertEquals(0, references);
@@ -165,6 +167,7 @@ final class SharedMediaPlayerFactoryTest {
     for (int releaseIndex = 0; releaseIndex < THREAD_COUNT; releaseIndex++) {
       shared.release();
     }
+
     final MediaPlayerFactory factory = this.created.getFirst();
     verify(factory, times(1)).release();
   }

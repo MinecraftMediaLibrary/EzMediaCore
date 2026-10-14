@@ -91,6 +91,7 @@ final class VlcReleaseTest {
     final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
     final int statusCode = response.statusCode();
     assertEquals(HTTP_OK, statusCode, url);
+
     final String body = response.body().strip();
     return WHITESPACE_PATTERN.split(body, 2)[0];
   }
@@ -133,11 +134,14 @@ final class VlcReleaseTest {
     if (!exited) {
       process.destroyForcibly();
     }
+
     drain.join(TimeUnit.SECONDS.toMillis(10));
     final String text = output.toString(StandardCharsets.UTF_8);
     assertTrue(exited, "the playback JVM finished in time: " + text);
+
     final int exitValue = process.exitValue();
     assertEquals(0, exitValue, text);
+
     return text;
   }
 

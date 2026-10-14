@@ -59,6 +59,7 @@ final class VlcTestFrames {
       buffer.put((byte) (pixel >>> 16));
       buffer.put((byte) (pixel >>> 24));
     }
+
     buffer.flip();
     return buffer;
   }
@@ -113,6 +114,7 @@ final class VlcTestFrames {
   static RecordedFrame take(final BlockingQueue<RecordedFrame> frames) throws InterruptedException {
     final RecordedFrame frame = frames.poll(FRAME_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertNotNull(frame, "no frame reached the pipeline");
+
     return frame;
   }
 
@@ -147,6 +149,7 @@ final class VlcTestFrames {
       for (int index = 0; index < pixels.length; index++) {
         this.rgb[index] = pixels[index] & RGB_MASK;
       }
+
       this.metadata = metadata;
     }
 

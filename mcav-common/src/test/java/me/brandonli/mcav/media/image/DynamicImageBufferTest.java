@@ -185,6 +185,7 @@ final class DynamicImageBufferTest {
     final float noTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, TIMESTAMPED_FRAMES, 0L, 0L);
     assertEquals(DEFAULT_FRAME_RATE, singleFrame);
     assertEquals(DEFAULT_FRAME_RATE, noTimestamps);
+
     final boolean positive = singleFrame > 0;
     assertTrue(positive);
   }

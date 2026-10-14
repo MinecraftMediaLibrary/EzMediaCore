@@ -241,6 +241,7 @@ final class ImageBufferPropertyTest {
       for (int pixel = 0; pixel < argb.length; pixel++) {
         argb[pixel] = this.colors.get(pixel);
       }
+
       return argb;
     }
 
@@ -252,6 +253,7 @@ final class ImageBufferPropertyTest {
         bgr[pixel * CHANNELS + 1] = (byte) (argb[pixel] >> GREEN_SHIFT);
         bgr[pixel * CHANNELS + 2] = (byte) (argb[pixel] >> RED_SHIFT);
       }
+
       return bgr;
     }
 
@@ -265,6 +267,7 @@ final class ImageBufferPropertyTest {
       for (int index = 0; index < capacity; index++) {
         buffer.put(index, (byte) 0x77);
       }
+
       buffer.put(this.before, bytes);
       buffer.position(this.before);
       buffer.limit(this.before + bytes.length);

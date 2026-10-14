@@ -100,16 +100,22 @@ final class OsUtilsTest {
     final boolean isSixtyFourBit = is64Bit();
     final boolean onWindows = os == Os.WINDOWS;
     assertEquals(isWindows, onWindows);
+
     final boolean onMac = os == Os.MAC;
     assertEquals(isMac, onMac);
+
     final boolean onLinux = os == Os.LINUX;
     assertEquals(isLinux, onLinux);
+
     final boolean onFreeBsd = os == Os.FREEBSD;
     assertEquals(freeBsd, onFreeBsd);
+
     final boolean onIntel = arch == Arch.X86;
     assertEquals(isIntel, onIntel);
+
     final boolean onArm = arch == Arch.ARM;
     assertEquals(isArm, onArm);
+
     final boolean onSixtyFourBit = bits == Bits.BITS_64;
     assertEquals(isSixtyFourBit, onSixtyFourBit);
   }
@@ -123,6 +129,7 @@ final class OsUtilsTest {
     } finally {
       System.clearProperty("mcav.test.property");
     }
+
     final String missing = OsUtils.getProperty("mcav.test.missing");
     assertEquals("", missing);
   }

@@ -143,6 +143,7 @@ final class MatImageBufferTest {
       assertArrayEquals(arrayPixels, bufferPixels);
       assertEquals(0, position, "the buffer must not be consumed");
     }
+
     final byte[] tallBytes = { 1, 2, 3, 4, 5, 6 };
     try (final ImageBuffer tall = ImageBuffer.bytes(tallBytes, 1, 2)) {
       final int top = argbAt(tall, 0, 0);
@@ -174,6 +175,7 @@ final class MatImageBufferTest {
       assertEquals(8, width);
       assertEquals(RED, red);
     }
+
     final IllegalArgumentException empty = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(new byte[0]));
     final String emptyMessage = empty.getMessage();
     assertEquals("Encoded image must not be empty!", emptyMessage);
@@ -207,6 +209,7 @@ final class MatImageBufferTest {
       assertEquals(16, width);
       assertEquals(WHITE, white);
     }
+
     final int downloadedHeight = this.downloadHeight(png);
     assertEquals(8, downloadedHeight);
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(invalid));
@@ -298,6 +301,7 @@ final class MatImageBufferTest {
     );
     final String bytesMessage = fromBytes.getMessage();
     assertEquals("Bytes are not a supported image format!", bytesMessage);
+
     final Path file = this.directory.resolve(HEADER_ONLY_FILE_NAME);
     Files.write(file, headerOnly);
     final FileSource path = FileSource.path(file);
@@ -370,6 +374,7 @@ final class MatImageBufferTest {
       assertEquals(0xFF070809, regionPixel);
       assertEquals(2, regionWidth);
     }
+
     wide.release();
   }
 
@@ -393,6 +398,7 @@ final class MatImageBufferTest {
       assertEquals(BLUE, bluePixel);
       assertEquals(0xFF040000, redPixel, "16-bit values are scaled to eight bits, 1000 / 257 rounds to 4");
     }
+
     final boolean grayReleased = oneChannel.empty();
     final boolean fourReleased = fourChannels.empty();
     final boolean sixteenReleased = sixteenBit.empty();
@@ -527,6 +533,7 @@ final class MatImageBufferTest {
         assertEquals(BLACK, black, "type " + type);
       }
     }
+
     assertThrowsWhileOpening(NullPointerException.class, () -> ImageBuffer.image(null));
   }
 
@@ -547,6 +554,7 @@ final class MatImageBufferTest {
       final byte[] backing = new byte[length];
       data = new DataBufferByte(backing, elements, offset);
     }
+
     final Point origin = new Point();
     final WritableRaster raster = Raster.createWritableRaster(model, data, origin);
     final BufferedImage image = new BufferedImage(colors, raster, false, null);
@@ -641,6 +649,7 @@ final class MatImageBufferTest {
       source.setRGB(1, 1, SECOND_COLOR);
       assertCopiesRasterPixels(source);
     }
+
     final ColorModel colors = new ComponentColorModel(space, false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
     final WritableRaster raster = Raster.createBandedRaster(DataBuffer.TYPE_BYTE, 2, 2, 3, new Point());
     final BufferedImage source = new BufferedImage(colors, raster, false, null);
@@ -801,6 +810,7 @@ final class MatImageBufferTest {
       assertSame(cached, cachedAgain, "unchanged images reuse the cache");
       assertEquals(2, afterResize.length);
     }
+
     try (final ImageBuffer image = Images.indexed(4, 2)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       image.getPixels();
@@ -1175,6 +1185,7 @@ final class MatImageBufferTest {
       assertArrayEquals(expected, reread);
       assertArrayEquals(expected, updated);
     }
+
     final int firstInput = translucent[0];
     assertEquals(0x00123456, firstInput, "the input is not modified");
   }

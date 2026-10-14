@@ -40,6 +40,7 @@ final class ImageDecodeFuzzTest {
     } catch (final IllegalArgumentException exception) {
       return;
     }
+
     try {
       final int width = image.getWidth();
       final int height = image.getHeight();

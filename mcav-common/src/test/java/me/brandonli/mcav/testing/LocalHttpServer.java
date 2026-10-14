@@ -275,26 +275,32 @@ public final class LocalHttpServer implements AutoCloseable {
     if (gate != null) {
       this.awaitGateOrClose(gate);
     }
+
     if (response.location != null) {
       exchange.getResponseHeaders().add("Location", response.location);
     }
+
     if (response.announcedLength >= 0) {
       this.stall(exchange, response);
       return;
     }
+
     if (response.trickleMilliseconds > 0) {
       this.trickle(exchange, response);
       return;
     }
+
     final byte[] body = response.body;
     final String method = exchange.getRequestMethod();
     final boolean isHeadRequest = method.equals("HEAD");
     exchange.sendResponseHeaders(response.status, isHeadRequest || body.length == 0 ? -1 : body.length);
+
     if (!isHeadRequest && body.length > 0) {
       try (final OutputStream output = exchange.getResponseBody()) {
         output.write(body);
       }
     }
+
     exchange.close();
   }
 
@@ -305,6 +311,7 @@ public final class LocalHttpServer implements AutoCloseable {
     output.flush();
     final boolean closed = this.awaitClose();
     exchange.close();
+
     if (!closed) {
       final String message = "The stalling response gave up because the server was not closed within %s s!".formatted(MAXIMUM_WAIT_SECONDS);
       throw new IOException(message);
@@ -372,6 +379,7 @@ public final class LocalHttpServer implements AutoCloseable {
     if (queue == null) {
       return new Response(NOT_FOUND_STATUS, new byte[0], null, -1);
     }
+
     synchronized (queue) {
       if (queue.size() > 1) {
         return queue.removeFirst();

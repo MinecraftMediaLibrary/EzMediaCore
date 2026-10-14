@@ -172,6 +172,7 @@ final class VideoRendererTest {
         padded[row * 4 + column] = row * 16 + column;
       }
     }
+
     final ByteBuffer buffer = rv32(padded);
     final int[] pixels = new int[6];
     VideoRenderer.readVisibleRows(buffer, 4, 3, 2, pixels);
@@ -283,6 +284,7 @@ final class VideoRendererTest {
     this.renderer.start();
     this.display(1, 1, RED);
     assertNoFrame(this.frames);
+
     this.renderer.stop();
     final boolean reportedNothing = this.errors.isEmpty();
     assertTrue(reportedNothing, "an unknown size is dropped before allocating an invalid image");
@@ -294,6 +296,7 @@ final class VideoRendererTest {
     this.renderer.setPaused(true);
     this.display(1, 1, RED);
     assertNoFrame(this.frames);
+
     this.renderer.setPaused(false);
     this.display(1, 1, GREEN);
     final RecordedFrame frame = take(this.frames);
@@ -324,6 +327,7 @@ final class VideoRendererTest {
     } finally {
       proceed.countDown();
     }
+
     this.renderer.setPaused(false);
     proceed.countDown();
     this.display(1, 1, BLUE);
@@ -366,12 +370,14 @@ final class VideoRendererTest {
     this.display(1, 1, RED);
     final boolean blocked = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocked);
+
     try {
       this.display(1, 1, GREEN);
       this.renderer.setPaused(false);
     } finally {
       proceed.countDown();
     }
+
     awaitSize(rendered, 2);
     final List<Integer> expected = List.of(RED, GREEN);
     assertEquals(expected, rendered);
@@ -388,6 +394,7 @@ final class VideoRendererTest {
     this.display(1, 1, RED);
     final boolean blocked = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocked);
+
     try {
       this.display(1, 1, GREEN);
       this.display(1, 1, BLUE);
@@ -397,6 +404,7 @@ final class VideoRendererTest {
     } finally {
       proceed.countDown();
     }
+
     awaitSize(rendered, 2);
     final List<Integer> expected = List.of(RED, WHITE);
     assertEquals(expected, rendered, "a spare array must not alias the newest queued picture");

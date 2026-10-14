@@ -107,10 +107,12 @@ final class FileSourceTest {
     try (final OutputStream output = writable.newOutputStream()) {
       output.write(content);
     }
+
     final byte[] read;
     try (final InputStream input = writable.newInputStream()) {
       read = input.readAllBytes();
     }
+
     assertEquals(path, writablePath);
     assertArrayEquals(content, read);
   }

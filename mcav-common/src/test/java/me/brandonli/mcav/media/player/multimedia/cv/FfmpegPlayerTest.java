@@ -217,6 +217,7 @@ final class FfmpegPlayerTest {
   private static void assertPausingHoldsTheFrames(final FfmpegPlayer player, final AtomicInteger frames) throws InterruptedException {
     final boolean paused = player.pause();
     assertTrue(paused);
+
     Thread.sleep(200);
     final int pausedAt = frames.get();
     Thread.sleep(500);
@@ -228,10 +229,12 @@ final class FfmpegPlayerTest {
     final int pausedAt = frames.get();
     final boolean resumed = player.resume();
     assertTrue(resumed);
+
     await("frames resumed", () -> frames.get() > pausedAt + 10);
 
     final boolean seeked = player.seek(4_000L);
     assertTrue(seeked);
+
     await("the position jumped near the end", () -> player.getPositionMilliseconds() >= 3_900L);
   }
 
@@ -365,10 +368,13 @@ final class FfmpegPlayerTest {
       assertTrue(started);
       assertTrue(noErrors, "errors: " + this.errors);
       assertEquals(150, frameCount, "neverDropLateFrames must deliver every frame of the generated 5-second 30-fps file");
+
       final boolean pacedAtThirty = frameRate > 24.0 && frameRate < 36.0;
       assertTrue(pacedAtThirty, "the frames are paced at about 30 per second, got " + frameRate);
+
       final boolean realTime = seconds > 4.5;
       assertTrue(realTime, "playback runs in real time, not faster, took " + seconds);
+
       final boolean fiveSecondsOfAudio = bytes > 900_000 && bytes < 1_000_000;
       assertTrue(fiveSecondsOfAudio, "five seconds of 48 kHz stereo, got " + bytes);
       assertEquals(expectedSizes, distinctSizes, "every frame has the size of the video");

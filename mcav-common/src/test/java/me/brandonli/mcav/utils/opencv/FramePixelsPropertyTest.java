@@ -58,6 +58,7 @@ final class FramePixelsPropertyTest {
     for (int row = 0; row < height; row++) {
       source.put(row * stride, pixels, row * rowBytes, rowBytes);
     }
+
     source.position(Math.min(1, source.capacity()));
     final int sourcePosition = source.position();
     final byte[] destination = new byte[pixels.length + MARGIN];

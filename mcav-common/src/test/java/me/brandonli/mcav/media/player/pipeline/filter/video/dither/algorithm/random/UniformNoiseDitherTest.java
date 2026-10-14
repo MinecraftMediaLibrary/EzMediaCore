@@ -46,9 +46,12 @@ final class UniformNoiseDitherTest {
     if (stillRunning) {
       thread.interrupt();
     }
+
     assertFalse(stillRunning, "the worker completed its generator lookup");
+
     final RandomNumberProvider result = provider.get();
     assertNotNull(result, "the worker returned a generator");
+
     return result;
   }
 

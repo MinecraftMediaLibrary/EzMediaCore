@@ -57,6 +57,7 @@ final class ReleasePackageManagerTest {
     final List<Download> linux = downloadsFor(Os.LINUX, Arch.X86, Bits.BITS_64);
     final int linuxCount = linux.size();
     assertEquals(1, linuxCount);
+
     final Download appImage = linux.getFirst();
     final String url = appImage.getUrl();
     assertEquals(

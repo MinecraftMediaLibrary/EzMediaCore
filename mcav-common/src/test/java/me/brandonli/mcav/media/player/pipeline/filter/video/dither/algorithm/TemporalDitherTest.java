@@ -108,6 +108,7 @@ final class TemporalDitherTest {
         rowsWithoutWhite++;
       }
     }
+
     return rowsWithoutWhite;
   }
 
@@ -124,6 +125,7 @@ final class TemporalDitherTest {
         count++;
       }
     }
+
     return count;
   }
 
@@ -197,6 +199,7 @@ final class TemporalDitherTest {
     final int red = countRed(slightlyDarker);
     final boolean almostAllRed = red > (slightlyDarker.length * 9) / 10;
     assertTrue(almostAllRed, "almost every pixel stays red, " + red);
+
     final boolean someDarker = red < slightlyDarker.length;
     assertTrue(someDarker, "the kept pixels pass on their error of -8, so a few pixels turn darker");
   }
@@ -208,6 +211,7 @@ final class TemporalDitherTest {
     final byte[] lighter = ditherSolid(dither, DARK_GRAY);
     final double darkRatio = DitherTestImages.whiteRatio(dark);
     assertEquals(0.0, darkRatio, "a dark gray is black");
+
     final double lighterRatio = DitherTestImages.whiteRatio(lighter);
     assertEquals(0.0, lighterRatio, "a strength of 0 diffuses nothing, a kept pixel's error included");
   }
@@ -237,6 +241,7 @@ final class TemporalDitherTest {
     try (final ImageBuffer smaller = ImageBuffer.buffer(smallRedPixels, 8, 8)) {
       smallRed = dither.ditherIntoBytes(smaller);
     }
+
     final byte[] greenAfterResize = ditherSolid(dither, OPAQUE_GREEN);
     assertAll(red, RED, "the first frame is red");
     assertAll(greenKeptRed, RED, "a threshold of 255 keeps every previous color");
@@ -277,8 +282,10 @@ final class TemporalDitherTest {
     final double fullRatio = DitherTestImages.whiteRatio(fullIndices);
     final float strength = halfStrength.getErrorStrength();
     assertEquals(0.0, dampedRatio, "without diffusion a dark gray is all black");
+
     final boolean someWhite = halfRatio > 0.0;
     assertTrue(someWhite, "diffused errors produce some white pixels");
+
     final boolean fewerWhite = halfRatio < fullRatio;
     assertTrue(fewerWhite, "half of the error produces fewer white pixels, " + halfRatio + " < " + fullRatio);
     assertEquals(0.5f, strength);
@@ -312,6 +319,7 @@ final class TemporalDitherTest {
     final int[] expected = green.clone();
     dither.dither(green, SOLID_FRAME_SIDE);
     assertArrayEquals(expected, green, "in-place still images do not reuse the video frame");
+
     final byte[] remembered = ditherSolid(dither, OPAQUE_GREEN);
     assertAll(remembered, RED, "in-place still images do not replace video history");
   }
@@ -387,6 +395,7 @@ final class TemporalDitherTest {
     final double uniformRatio = DitherTestImages.whiteRatio(uniform);
     final double diffusedRatio = DitherTestImages.whiteRatio(diffused);
     assertEquals(0.0, uniformRatio, "an error of exactly the threshold is not diffused");
+
     final boolean errorLetThrough = diffusedRatio > 0.0;
     assertTrue(errorLetThrough, "one less lets the same error through, " + diffusedRatio);
   }
@@ -424,15 +433,18 @@ final class TemporalDitherTest {
     assertThrows(IllegalArgumentException.class, () -> new TemporalFloydSteinbergDither(PRIMARIES, 0, -1, 1.0f));
     assertThrows(IllegalArgumentException.class, () -> new TemporalFloydSteinbergDither(PRIMARIES, 0, 0, -0.1f));
     assertThrows(IllegalArgumentException.class, () -> new TemporalFloydSteinbergDither(PRIMARIES, 0, 0, 1.1f));
+
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES);
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null));
     final String missingImageMessage = missingImage.getMessage();
     assertEquals("Image must not be null!", missingImageMessage);
+
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null, pool));
       final String missingParallelImageMessage = missingParallelImage.getMessage();
       assertEquals("Image must not be null!", missingParallelImageMessage);
     }
+
     try (final ImageBuffer image = ImageBuffer.buffer(new int[1], 1, 1)) {
       assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(image, null));
     }

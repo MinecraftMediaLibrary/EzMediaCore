@@ -64,6 +64,7 @@ final class DirectAudioOutputTest {
     final ByteBuffer samples = ByteBuffer.allocate(4);
     final boolean changed = output.applyFilter(samples, METADATA);
     assertFalse(changed, "the samples are only read");
+
     verifyNoInteractions(line);
   }
 
@@ -119,6 +120,7 @@ final class DirectAudioOutputTest {
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, output::start);
     assertSame(failure, thrown);
     verify(line).close();
+
     output.release();
     verify(line).close();
   }
@@ -154,6 +156,7 @@ final class DirectAudioOutputTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertArrayEquals(new Throwable[] { flush, close }, suppressed);
+
     final InOrder order = inOrder(line);
     order.verify(line).stop();
     order.verify(line).flush();
@@ -280,6 +283,7 @@ final class DirectAudioOutputTest {
     output.applyFilter(second, METADATA);
     final ArgumentCaptor<byte[]> written = ArgumentCaptor.forClass(byte[].class);
     verify(line, times(2)).write(written.capture(), eq(0), eq(8));
+
     final List<byte[]> arrays = written.getAllValues();
     final byte[] firstArray = arrays.getFirst();
     final byte[] secondArray = arrays.get(1);
@@ -288,6 +292,7 @@ final class DirectAudioOutputTest {
     assertSame(firstArray, secondArray, "no array is allocated per chunk");
     assertSame(firstArray, smallChunk, "smaller chunks fit into the array");
     assertEquals(16, largeChunk.length, "the array grows for larger chunks");
+
     output.release();
   }
 
@@ -298,12 +303,16 @@ final class DirectAudioOutputTest {
     samples.position(1).limit(3).mark();
     final boolean changed = AudioFilter.NO_OP.applyFilter(samples, METADATA);
     assertFalse(changed);
+
     final byte[] sampleBytes = samples.array();
     assertArrayEquals(original, sampleBytes);
+
     final int position = samples.position();
     assertEquals(1, position);
+
     final int limit = samples.limit();
     assertEquals(3, limit);
+
     final int markedPosition = samples.reset().position();
     assertEquals(1, markedPosition);
   }

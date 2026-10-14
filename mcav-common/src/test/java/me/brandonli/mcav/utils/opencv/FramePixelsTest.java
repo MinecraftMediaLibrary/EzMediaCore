@@ -114,6 +114,7 @@ final class FramePixelsTest {
       assertThrows(IllegalArgumentException.class, () -> FramePixels.copyBgr(compact, small));
       assertThrows(NullPointerException.class, () -> FramePixels.copyBgr(compact, null));
     }
+
     assertThrows(NullPointerException.class, () -> FramePixels.copyBgr(null, small));
   }
 
@@ -133,6 +134,7 @@ final class FramePixelsTest {
       assertThrows(IllegalArgumentException.class, () -> FramePixels.copyBgr(shortSamples));
       assertThrows(IllegalArgumentException.class, () -> FramePixels.copyBgr(shortRows));
     }
+
     assertThrows(NullPointerException.class, () -> FramePixels.copyBgr(null));
   }
 

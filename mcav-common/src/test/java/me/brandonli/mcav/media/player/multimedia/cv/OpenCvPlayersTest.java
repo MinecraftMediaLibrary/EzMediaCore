@@ -166,6 +166,7 @@ final class OpenCvPlayersTest {
     final VideoPipelineStep step = VideoPipelineStep.of(filter);
     final VideoAttachableCallback callback = player.getVideoAttachableCallback();
     callback.attach(step);
+
     if (size != null) {
       final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
       dimension.attach(size);

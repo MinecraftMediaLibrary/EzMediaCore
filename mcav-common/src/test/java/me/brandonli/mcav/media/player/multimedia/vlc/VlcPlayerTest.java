@@ -180,8 +180,10 @@ final class VlcPlayerTest {
       final EmbeddedMediaPlayer mediaPlayer = mocked.getPlayer();
       verify(mediaPlayer).release();
     }
+
     final int references = this.references();
     assertEquals(0, references);
+
     VlcPlaybackTest.awaitNoPlaybackThreads();
   }
 
@@ -260,6 +262,7 @@ final class VlcPlayerTest {
     assertEquals(expectedMessages, this.messages);
     assertInstanceOf(PlayerException.class, error);
     assertReleased(only);
+
     this.assertEverythingReleased();
   }
 
@@ -274,6 +277,7 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertEquals(expectedMessages, this.messages);
     assertEquals("Media video.mp4 could not be opened by VLC!", reason);
+
     this.assertEverythingReleased();
   }
 
@@ -289,6 +293,7 @@ final class VlcPlayerTest {
     assertEquals(1, reported, "the failure is reported once: " + this.messages);
     assertReleased(videoPlayer);
     assertReleased(audioPlayer);
+
     this.assertEverythingReleased();
     final ControlsApi videoControls = videoPlayer.getControls();
     verify(videoControls, after(400L).never()).setRate(anyFloat());
@@ -354,6 +359,7 @@ final class VlcPlayerTest {
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(started);
     assertTrue(stillInterrupted, "the interrupt is kept");
+
     final boolean gaveUpPromptly = elapsedMilliseconds < 5_000L;
     assertTrue(gaveUpPromptly, "took " + elapsedMilliseconds);
 
@@ -362,6 +368,7 @@ final class VlcPlayerTest {
     final int references = this.references();
     verify(mediaPlayer).release();
     assertEquals(0, references);
+
     VlcPlaybackTest.awaitNoPlaybackThreads();
   }
 
@@ -415,6 +422,7 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertEquals(expectedMessages, this.messages);
     assertInstanceOf(IllegalStateException.class, error);
+
     this.assertEverythingReleased();
   }
 
@@ -428,6 +436,7 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertEquals(expected, this.errors);
     verify(factory).release();
+
     this.assertEverythingReleased();
   }
 
@@ -439,6 +448,7 @@ final class VlcPlayerTest {
     final List<Throwable> expected = List.of(failure);
     assertFalse(started);
     assertEquals(expected, this.errors);
+
     this.assertEverythingReleased();
   }
 
@@ -455,9 +465,11 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertSame(failure, reported);
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(cleanup, firstSuppressed);
     verify(factory).release();
+
     this.assertEverythingReleased();
   }
 
@@ -476,10 +488,12 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertSame(failure, reported);
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(cleanup, firstSuppressed);
     verify(first).release();
     verify(factory).release();
+
     this.assertEverythingReleased();
   }
 
@@ -496,8 +510,10 @@ final class VlcPlayerTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(reporting, firstSuppressed);
+
     this.assertEverythingReleased();
   }
 
@@ -513,6 +529,7 @@ final class VlcPlayerTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(0, suppressed.length);
+
     this.assertEverythingReleased();
   }
 
@@ -528,6 +545,7 @@ final class VlcPlayerTest {
     final int count = players.size();
     assertSame(failure, thrown);
     assertEquals(PLAYERS_WITH_REPLACEMENT, count, "the replacement acquired its player before the old playback stopped");
+
     this.assertEverythingReleased();
     this.assertControlsFail();
   }
@@ -546,8 +564,10 @@ final class VlcPlayerTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(cleanup, firstSuppressed);
+
     this.assertEverythingReleased();
   }
 
@@ -599,6 +619,7 @@ final class VlcPlayerTest {
     assertEquals(0, references);
     assertEquals(List.of(failure), errors);
     verify(factory).release();
+
     final boolean revived = this.player.start(this.video);
     assertFalse(revived);
   }
@@ -624,6 +645,7 @@ final class VlcPlayerTest {
     assertEquals(true, releaseResult);
     assertNull(resource, "a cancelled candidate never opens despite the old stop failure");
     assertReleased(candidate);
+
     this.assertEverythingReleased();
   }
 
@@ -640,6 +662,7 @@ final class VlcPlayerTest {
     final int references = this.references();
     assertSame(failure, thrown);
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(reporting, firstSuppressed);
     assertEquals(0, references);
@@ -809,10 +832,12 @@ final class VlcPlayerTest {
     assertEquals(false, nestedResult, "native factory callbacks cannot recursively replace the reserved candidate");
     verify(created, never()).media();
     verify(created, never()).videoSurface();
+
     if (!failCreation) {
       verify(controls).stop();
       verify(created).release();
     }
+
     this.assertEverythingReleased();
     final boolean revived = this.player.start(this.video);
     assertFalse(revived);
@@ -834,6 +859,7 @@ final class VlcPlayerTest {
     final String opened = candidate.getResource();
     assertEquals("cancelled-during-setup.mp4", opened, "the native mock did open successfully after the callback");
     assertFalse(started, "release cancellation must win even when native opening subsequently succeeds");
+
     this.assertEverythingReleased();
     final boolean revived = this.player.start(this.video);
     assertFalse(revived);
@@ -854,6 +880,7 @@ final class VlcPlayerTest {
     assertFalse(started);
     assertEquals(true, releaseResult);
     assertEquals(false, restartResult, "a reentrant native-open callback cannot start a nested candidate");
+
     this.assertEverythingReleased();
     final boolean revived = this.player.start(this.video);
     assertFalse(revived);
@@ -880,6 +907,7 @@ final class VlcPlayerTest {
     this.startSeparate();
     final boolean released = this.player.release();
     assertTrue(released);
+
     this.assertEverythingReleased();
     this.assertControlsFail();
   }
@@ -910,6 +938,7 @@ final class VlcPlayerTest {
     assertTrue(paused);
     verify(videoControls).setPause(true);
     verify(audioControls).setPause(true);
+
     final boolean pausedAgain = this.player.pause();
     assertFalse(pausedAgain, "pausing twice fails even while VLC still reports playing");
 
@@ -917,6 +946,7 @@ final class VlcPlayerTest {
     assertTrue(resumed);
     verify(videoControls).setPause(false);
     verify(audioControls).setPause(false);
+
     final boolean resumedAgain = this.player.resume();
     assertFalse(resumedAgain, "resuming twice fails");
   }
@@ -958,11 +988,13 @@ final class VlcPlayerTest {
 
     final boolean paused = this.player.pause();
     assertTrue(paused);
+
     this.renderFrame(mediaPlayer, 1, 1, RED);
     assertNoFrame(frames);
 
     final boolean resumed = this.player.resume();
     assertTrue(resumed);
+
     this.renderFrame(mediaPlayer, 1, 1, GREEN);
     final RecordedFrame resumedFrame = take(frames);
     final int[] rgb = resumedFrame.getRgb();
@@ -1112,6 +1144,7 @@ final class VlcPlayerTest {
     this.renderFrame(mediaPlayer, 1, 1, RED);
     final boolean finished = done.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(finished, "releasing from the render thread must not deadlock");
+
     VlcPlaybackTest.awaitNoPlaybackThreads();
     final Boolean released = releasedFromPipeline.get();
     final int references = this.references();
@@ -1147,6 +1180,7 @@ final class VlcPlayerTest {
       case VIDEO_FAILED -> videoPlayer.setState(State.ERROR);
       case AUDIO_NOTHING_OPEN -> audioPlayer.setState(State.NOTHING_SPECIAL);
     }
+
     final boolean seeked = this.player.seek(1_000L);
     final ControlsApi videoControls = videoPlayer.getControls();
     final ControlsApi audioControls = audioPlayer.getControls();
@@ -1214,6 +1248,7 @@ final class VlcPlayerTest {
     final String[] extended = copying.createMediaOptions(":extra");
     assertArrayEquals(new String[] { "--first" }, again);
     assertArrayEquals(new String[] { "--first", ":extra" }, extended);
+
     copying.release();
   }
 
@@ -1227,6 +1262,7 @@ final class VlcPlayerTest {
       default -> throw new AssertionError(operation);
     };
     assertFalse(controlled);
+
     final CompletableFuture<Boolean> release = CompletableFuture.supplyAsync(this.player::release);
     final boolean released = release.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(released, "an idle control call must relinquish the player lock");
@@ -1241,6 +1277,7 @@ final class VlcPlayerTest {
     doThrow(failure).when(controls).stop();
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> this.player.start(this.audio));
     assertSame(failure, thrown);
+
     final CompletableFuture<Boolean> restart = CompletableFuture.supplyAsync(() -> this.player.start(this.video));
     final boolean restarted = restart.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(restarted, "failed replacement must clear its reservation and relinquish its lock");
@@ -1253,6 +1290,7 @@ final class VlcPlayerTest {
     when(factory.mediaPlayers()).thenThrow(failure);
     final boolean started = this.player.start(this.video);
     assertFalse(started);
+
     final CompletableFuture<Boolean> release = CompletableFuture.supplyAsync(this.player::release);
     final boolean released = release.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(released, "failed acquisition must relinquish its lock");

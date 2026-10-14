@@ -89,6 +89,7 @@ final class SampleBytesPropertyTest {
     final ByteOrder convertedOrder = converted.order();
     assertSame(ByteOrder.BIG_ENDIAN, convertedOrder);
     assertSameSamples(sample, sourceOrder, converted);
+
     sample.assertUnchanged(source);
     assertIndependentCopy(sample, source, converted);
   }
@@ -103,6 +104,7 @@ final class SampleBytesPropertyTest {
     final ByteOrder convertedOrder = converted.order();
     assertSame(ByteOrder.LITTLE_ENDIAN, convertedOrder);
     assertSameSamples(sample, sourceOrder, converted);
+
     sample.assertUnchanged(source);
     assertIndependentCopy(sample, source, converted);
   }
@@ -123,12 +125,15 @@ final class SampleBytesPropertyTest {
     final int shortStart = shorts.position();
     final int floatStart = floats.position();
     assertEquals(shortCount * Short.BYTES, shortBytes);
+
     for (int index = 0; index < shortCount; index++) {
       final short expected = shorts.get(shortStart + index);
       final short actual = fromShorts.getShort(index * Short.BYTES);
       assertEquals(expected, actual, "short " + index);
     }
+
     assertEquals(floatCount * Float.BYTES, floatBytes);
+
     for (int index = 0; index < floatCount; index++) {
       final float expectedValue = floats.get(floatStart + index);
       final float actualValue = fromFloats.getFloat(index * Float.BYTES);
@@ -147,6 +152,7 @@ final class SampleBytesPropertyTest {
 
     final int frames = content.length / 4;
     assertEquals(frames, mono.length, "one sample per whole stereo frame");
+
     for (int frame = 0; frame < frames; frame++) {
       final int left = littleEndianShort(content, frame * 4);
       final int right = littleEndianShort(content, frame * 4 + 2);
@@ -154,6 +160,7 @@ final class SampleBytesPropertyTest {
       final short downmixed = mono[frame];
       assertEquals(expected, downmixed, "frame " + frame);
     }
+
     sample.assertUnchanged(stereo);
   }
 
@@ -174,6 +181,7 @@ final class SampleBytesPropertyTest {
     final int remaining = converted.remaining();
     assertEquals(0, position, "the result starts at its beginning");
     assertEquals(content.length, remaining, "every byte is converted");
+
     final ByteBuffer expected = ByteBuffer.wrap(content);
     expected.order(sourceOrder);
     for (int index = 0; index < sampleCount; index++) {
@@ -181,6 +189,7 @@ final class SampleBytesPropertyTest {
       final short actual = converted.getShort(index * SAMPLE_BYTES);
       assertEquals(wanted, actual, "sample " + index);
     }
+
     if (content.length % SAMPLE_BYTES == 1) {
       final byte last = content[content.length - 1];
       final byte convertedLast = converted.get(content.length - 1);
@@ -195,6 +204,7 @@ final class SampleBytesPropertyTest {
     if (source.isReadOnly()) {
       return;
     }
+
     final byte[] before = new byte[converted.remaining()];
     final ByteBuffer view = converted.duplicate();
     view.get(before);
@@ -203,6 +213,7 @@ final class SampleBytesPropertyTest {
       final byte current = source.get(index);
       source.put(index, (byte) ~current);
     }
+
     final byte[] after = new byte[converted.remaining()];
     final ByteBuffer again = converted.duplicate();
     again.get(after);
@@ -236,6 +247,7 @@ final class SampleBytesPropertyTest {
       for (int index = 0; index < this.content.length; index++) {
         this.content[index] = content.get(index);
       }
+
       this.before = before;
       this.after = after;
       this.layout = layout;
@@ -249,6 +261,7 @@ final class SampleBytesPropertyTest {
       for (int index = 0; index < capacity; index++) {
         whole.put(index, JUNK);
       }
+
       whole.put(this.before, this.content);
       whole.position(this.before);
       whole.limit(this.before + this.content.length);
@@ -273,6 +286,7 @@ final class SampleBytesPropertyTest {
       assertEquals(start, position, "position");
       assertEquals(start + this.content.length, limit, "limit");
       assertSame(this.order, bufferOrder, "order");
+
       final byte[] left = new byte[this.content.length];
       final ByteBuffer view = buffer.duplicate();
       view.get(left);

@@ -62,6 +62,7 @@ final class AudioResamplerTest {
     for (final short sample : samples) {
       buffer.putShort(sample);
     }
+
     buffer.flip();
     return buffer;
   }
@@ -75,6 +76,7 @@ final class AudioResamplerTest {
       samples[frame * STEREO_CHANNELS] = sample;
       samples[frame * STEREO_CHANNELS + 1] = sample;
     }
+
     return samples16(samples);
   }
 
@@ -123,6 +125,7 @@ final class AudioResamplerTest {
         crossings++;
       }
     }
+
     return crossings;
   }
 
@@ -132,6 +135,7 @@ final class AudioResamplerTest {
       final int magnitude = Math.abs(samples[index]);
       peak = Math.max(peak, magnitude);
     }
+
     return peak;
   }
 
@@ -226,6 +230,7 @@ final class AudioResamplerTest {
       final byte[] remaining = resampler.flush();
       chunked = concat(chunked, remaining);
     }
+
     assertArrayEquals(atOnce, chunked);
   }
 
@@ -275,6 +280,7 @@ final class AudioResamplerTest {
       frames[index] = 1_000;
       frames[index + 1] = 3_000;
     }
+
     final ByteBuffer stereo = samples16(frames);
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(PIPELINE_RATE, 1, SampleFormat.SIGNED_16_BIT)) {
       final byte[] converted = resampler.resample(stereo);
@@ -322,6 +328,7 @@ final class AudioResamplerTest {
     for (final float sample : floats) {
       input.putFloat(sample);
     }
+
     input.flip();
     try (
       final AudioResampler resampler = AudioResampler.create(
@@ -414,6 +421,7 @@ final class AudioResamplerTest {
     for (short sample = 1; sample <= 6; sample++) {
       input.putShort(sample);
     }
+
     input.put((byte) 7);
     input.put((byte) 8);
     input.put((byte) 9);
@@ -512,6 +520,7 @@ final class AudioResamplerTest {
         names.add(type.getSimpleName());
       }
     }
+
     return names;
   }
 
@@ -581,6 +590,7 @@ final class AudioResamplerTest {
       createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, PIPELINE_RATE, STEREO_CHANNELS, null)
     );
     assertThrows(NullPointerException.class, () -> createFromPipelineAndClose(PIPELINE_RATE, STEREO_CHANNELS, null));
+
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, format)) {
       assertThrows(NullPointerException.class, () -> resampler.resample(null));
     }

@@ -471,6 +471,7 @@ final class CvPlayerTransitionTest {
       samples.put(0, (short) value);
       return frame;
     }
+
     return coloredFrame(value);
   }
 
@@ -485,6 +486,7 @@ final class CvPlayerTransitionTest {
         pixels.put(offset + 2, (byte) (color >>> 16));
       }
     }
+
     return frame;
   }
 

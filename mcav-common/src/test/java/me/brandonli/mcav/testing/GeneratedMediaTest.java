@@ -70,14 +70,17 @@ final class GeneratedMediaTest {
           Path output = Path.of(args[1]);
           if (!output.toString().endsWith(".mp4")) throw new AssertionError("format extension was lost!");
           Files.writeString(output, args[0].equals("success") ? "completed media" : "partial media");
+
           if (args[0].equals("failure")) { System.err.println("fixture encoder diagnostic"); System.exit(7); }
           if (args[0].equals("timeout")) { Thread.sleep(30_000L); }
         }
       }
+
       """
     );
     final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     assertNotNull(compiler, "fixture tests run on the build JDK");
+
     final String target = this.directory.toString();
     final String sourcePath = source.toString();
     final int code = compiler.run(null, null, null, "-d", target, sourcePath);
@@ -113,16 +116,20 @@ final class GeneratedMediaTest {
     final String content = Files.readString(generated);
     assertEquals(COMPLETED_CONTENT, content);
     assertEquals(output.toAbsolutePath(), generated);
+
     final Path staged = temporary.get();
     assertNotNull(staged);
+
     final boolean stagedAtOutput = staged.equals(output);
     assertFalse(stagedAtOutput, "the encoder writes into a temporary sibling");
+
     final Path cached = GeneratedMedia.generate(output, _ -> {
       throw new AssertionError("successfully generated media must be reused!");
     });
     final int commands = invocations.get();
     assertEquals(generated, cached);
     assertEquals(1, commands);
+
     this.assertNoPartialFiles();
   }
 
@@ -136,14 +143,18 @@ final class GeneratedMediaTest {
     final String message = thrown.getMessage();
     final boolean namesExitCode = message.contains("exit code 7");
     assertTrue(namesExitCode);
+
     final boolean namesDiagnostic = message.contains("fixture encoder diagnostic");
     assertTrue(namesDiagnostic);
+
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
+
     this.assertNoPartialFiles();
     final Path retried = GeneratedMedia.generate(output, path -> this.command(path, SUCCESS_MODE));
     final String content = Files.readString(retried);
     assertEquals(COMPLETED_CONTENT, content);
+
     this.assertNoPartialFiles();
   }
 
@@ -159,10 +170,13 @@ final class GeneratedMediaTest {
     final String message = thrown.getMessage();
     final boolean namesDeadline = message.contains("exceeded");
     assertTrue(namesDeadline);
+
     final boolean boundedWait = elapsed < 6_000_000_000L;
     assertTrue(boundedWait, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
+
     final boolean published = Files.exists(output);
     assertFalse(published);
+
     this.assertNoPartialFiles();
   }
 }

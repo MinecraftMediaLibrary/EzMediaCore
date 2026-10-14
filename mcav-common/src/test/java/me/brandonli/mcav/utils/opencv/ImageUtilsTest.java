@@ -109,6 +109,7 @@ final class ImageUtilsTest {
     assertNewSizeRejected(pixels, 1, 0);
     assertNewSizeRejected(pixels, -1, 1);
     assertNewSizeRejected(pixels, 1, -1);
+
     final IllegalArgumentException mismatched = assertThrows(IllegalArgumentException.class, () ->
       ImageUtils.resizeIntArrayImage(pixels, 3, 3, 1, 1)
     );

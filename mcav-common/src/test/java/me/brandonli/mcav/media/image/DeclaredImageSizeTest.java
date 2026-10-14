@@ -98,6 +98,7 @@ final class DeclaredImageSizeTest {
         output.writeBytes((byte[]) part);
       }
     }
+
     return output.toByteArray();
   }
 
@@ -106,6 +107,7 @@ final class DeclaredImageSizeTest {
     for (int index = 0; index < count; index++) {
       result[index] = (byte) (value >>> (8 * index));
     }
+
     return result;
   }
 
@@ -114,6 +116,7 @@ final class DeclaredImageSizeTest {
     for (int index = 0; index < count; index++) {
       result[count - 1 - index] = (byte) (value >>> (8 * index));
     }
+
     return result;
   }
 
@@ -134,6 +137,7 @@ final class DeclaredImageSizeTest {
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
     output.writeBytes(little ? "II".getBytes(StandardCharsets.ISO_8859_1) : "MM".getBytes(StandardCharsets.ISO_8859_1));
     output.writeBytes(number(big ? 43 : 42, 2, little));
+
     if (big) {
       output.writeBytes(number(8, 2, little));
       output.writeBytes(number(0, 2, little));
@@ -141,6 +145,7 @@ final class DeclaredImageSizeTest {
     } else {
       output.writeBytes(number(directory, 4, little));
     }
+
     output.writeBytes(number(entries, countSize, little));
     final long[][] tags = {
       { 256, 3, 1, 3 },
@@ -160,10 +165,12 @@ final class DeclaredImageSizeTest {
       output.writeBytes(number(tag[3], width, little));
       output.writeBytes(new byte[(big ? 8 : 4) - width]);
     }
+
     output.writeBytes(new byte[big ? 8 : 4]);
     for (int index = 0; index < 18; index++) {
       output.write(index * 13);
     }
+
     return output.toByteArray();
   }
 
@@ -189,8 +196,10 @@ final class DeclaredImageSizeTest {
     final Size declared = read(encoded);
     final String declaredSize = sizeOf(declared);
     assertEquals(sizeOf(decoded), declaredSize, name);
+
     final long pixels = decoded.width() * decoded.height();
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(encoded, pixels), name);
+
     final long below = Math.max(1, pixels - 1);
     final boolean refusedBelow = pixels > 1;
     final boolean refused = refuses(encoded, below);
@@ -246,6 +255,7 @@ final class DeclaredImageSizeTest {
     if ((gray && colorOnly) || (!gray && grayOnly)) {
       return;
     }
+
     try (
       final Mat picture = new Mat(height, width, type, new Scalar(FILL_BLUE, FILL_GREEN, FILL_RED, 0));
       final BytePointer output = new BytePointer()
@@ -302,6 +312,7 @@ final class DeclaredImageSizeTest {
   void shouldDeclareTheSizeOpenCvDecodesForTheFuzzSeeds() throws IOException, URISyntaxException {
     final URL seeds = DeclaredImageSizeTest.class.getResource(SEEDS);
     assertTrue(seeds != null, "the seed folder is on the class path");
+
     final Path folder = Path.of(seeds.toURI());
     try (final Stream<Path> files = Files.list(folder)) {
       final Stream<Path> seedFiles = files.filter(DeclaredImageSizeTest::isSeed);
@@ -327,6 +338,7 @@ final class DeclaredImageSizeTest {
     for (final String format : List.of("png", "jpg", "bmp", "gif", "tiff")) {
       assertDeclaresWhatOpenCvDecodes(format, Images.encode(picture, format));
     }
+
     final ImageWriter writer = ImageIO.getImageWritersByFormatName("bmp").next();
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
     try (final ImageOutputStream stream = ImageIO.createImageOutputStream(output)) {
@@ -338,6 +350,7 @@ final class DeclaredImageSizeTest {
     } finally {
       writer.dispose();
     }
+
     final byte[] bmp = output.toByteArray();
     final boolean negativeHeight = bmp[25] < 0;
     assertTrue(negativeHeight, "the height of a top-down BMP is negative");
@@ -370,6 +383,7 @@ final class DeclaredImageSizeTest {
     for (final byte[] entry : entries) {
       output.writeBytes(entry);
     }
+
     return output.toByteArray();
   }
 
@@ -751,6 +765,7 @@ final class DeclaredImageSizeTest {
   void shouldRefuseBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
     final Size declared = read(encoded);
     assertNull(declared, name);
+
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(encoded, 1L << 40)
     );
@@ -808,6 +823,7 @@ final class DeclaredImageSizeTest {
       message
     );
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(header, 600_000_000));
+
     final byte[] huge = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(4294967295L, 4), bigEndian(4294967295L, 4));
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkBytes(huge, Long.MAX_VALUE));
   }
@@ -817,6 +833,7 @@ final class DeclaredImageSizeTest {
     final byte[] unknown = bytes(NOT_AN_IMAGE);
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, 0));
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, -1));
+
     final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(missing, 0));
   }
@@ -827,23 +844,29 @@ final class DeclaredImageSizeTest {
     final Path file = this.directory.resolve(LARGE_FILE_NAME);
     Files.write(file, png);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(file, 256));
+
     final IllegalArgumentException tooLarge = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(file, 255));
     final boolean namesTheSize = tooLarge.getMessage().startsWith("Image size 16x16 exceeds");
     assertTrue(namesTheSize, tooLarge.getMessage());
+
     final Path text = this.directory.resolve(TEXT_FILE_NAME);
     Files.writeString(text, NOT_AN_IMAGE);
     final IllegalArgumentException unsupported = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(text, 256));
     final String unsupportedMessage = unsupported.getMessage();
     assertEquals("File " + text + " is not a supported image!", unsupportedMessage);
+
     final Path empty = this.directory.resolve(EMPTY_FILE_NAME);
     Files.write(empty, new byte[0]);
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(empty, 256));
+
     final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final IllegalArgumentException absent = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(missing, 256));
     final String absentMessage = absent.getMessage();
     assertEquals("File " + missing + " is not a supported image!", absentMessage);
+
     final Throwable absentCause = absent.getCause();
     assertInstanceOf(NoSuchFileException.class, absentCause);
+
     final IllegalArgumentException folder = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkFile(this.directory, 256)
     );
@@ -884,6 +907,7 @@ final class DeclaredImageSizeTest {
       final boolean space = DeclaredImageSize.isSpace(code);
       assertTrue(space, Integer.toString(code));
     }
+
     for (final int code : new int[] { -1, 0, 0x08, 0x0E, 0x1C, 'a', 0xA0 }) {
       final boolean space = DeclaredImageSize.isSpace(code);
       assertFalse(space, Integer.toString(code));

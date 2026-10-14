@@ -254,10 +254,13 @@ final class PlatformDiscoveryStrategiesTest {
   void shouldCoverEveryOperatingSystemWithSystemStrategies() {
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
     assertEquals(STRATEGY_COUNT, strategies.length);
+
     final NativeDiscoveryStrategy linux = strategies[0];
     assertInstanceOf(LinuxNativeDiscoveryStrategy.class, linux);
+
     final NativeDiscoveryStrategy osx = strategies[1];
     assertInstanceOf(OsxNativeDiscoveryStrategy.class, osx);
+
     final NativeDiscoveryStrategy windows = strategies[2];
     assertInstanceOf(WindowsNativeDiscoveryStrategy.class, windows);
   }
@@ -267,6 +270,7 @@ final class PlatformDiscoveryStrategiesTest {
     final Path directory = createFiles(this.temporaryDirectory, VLC_DIRECTORY_NAME, EVERY_LIBRARY);
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createDirectoryStrategies(directory);
     assertEquals(STRATEGY_COUNT, strategies.length);
+
     final String rawDirectory = directory.toString();
     final List<String> expectedDirectories = List.of(rawDirectory);
     for (final NativeDiscoveryStrategy strategy : strategies) {
@@ -422,6 +426,7 @@ final class PlatformDiscoveryStrategiesTest {
         return directory == null ? null : Path.of(directory);
       }
     }
+
     return null;
   }
 
@@ -432,6 +437,7 @@ final class PlatformDiscoveryStrategiesTest {
       final Path file = directory.resolve(name);
       Files.createFile(file);
     }
+
     return directory;
   }
 

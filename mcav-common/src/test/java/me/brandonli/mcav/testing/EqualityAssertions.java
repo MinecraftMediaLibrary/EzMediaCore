@@ -55,6 +55,7 @@ public final class EqualityAssertions {
     assertReflexiveAndSymmetric(value, equalValue);
     assertEqualHashCodes(value, equalValue);
     assertNotEqualToNullOrUnrelated(value);
+
     for (final Object differentValue : differentValues) {
       assertDifferentInBothDirections(value, differentValue);
       assertDistinctMapKeys(value, equalValue, differentValue);

@@ -90,11 +90,14 @@ final class ExampleResourcesTest {
     });
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, resources::close);
     assertSame(first, thrown);
+
     final Throwable[] suppressed = thrown.getSuppressed();
     final Throwable[] expectedFailures = { second };
     assertArrayEquals(expectedFailures, suppressed);
+
     final List<String> expected = List.of(PLAYER_RESOURCE, SPEAKERS_RESOURCE, API_RESOURCE);
     assertEquals(expected, closed);
+
     resources.close();
   }
 
@@ -112,8 +115,10 @@ final class ExampleResourcesTest {
     });
     final AssertionError thrown = assertThrows(AssertionError.class, resources::close);
     assertSame(failure, thrown);
+
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(0, suppressed.length, "repeated failure instances cannot be suppressed onto themselves");
+
     final List<String> expected = List.of(API_RESOURCE);
     assertEquals(expected, closed);
   }
@@ -125,6 +130,7 @@ final class ExampleResourcesTest {
     resources.close();
     final Runnable release = () -> closed.add("late");
     assertThrows(IllegalStateException.class, () -> resources.add(release));
+
     final List<String> expected = List.of("late");
     assertEquals(expected, closed);
   }
@@ -172,6 +178,7 @@ final class ExampleResourcesTest {
     });
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, resources::close);
     assertSame(fatal, thrown);
+
     final List<String> expected = List.of();
     assertEquals(expected, closed, "fatal VM errors stop further cleanup attempts");
   }
@@ -207,6 +214,7 @@ final class ExampleResourcesTest {
       assertTrue(noFramesConstructed);
       warmSwing.verifyNoInteractions();
     }
+
     final CompletableFuture<Throwable> callerFailure = new CompletableFuture<>();
     final CompletableFuture<Throwable> dispatchFailure = new CompletableFuture<>();
     final Thread caller = new Thread(() -> {
@@ -254,6 +262,7 @@ final class ExampleResourcesTest {
     } finally {
       caller.join(5000);
     }
+
     final boolean finished = !caller.isAlive();
     assertTrue(finished, "fatal creation must not strand the waiting caller");
   }

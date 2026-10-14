@@ -56,6 +56,7 @@ public final class Polling {
         throw new InterruptedException("interrupted while polling!");
       }
     }
+
     return true;
   }
 

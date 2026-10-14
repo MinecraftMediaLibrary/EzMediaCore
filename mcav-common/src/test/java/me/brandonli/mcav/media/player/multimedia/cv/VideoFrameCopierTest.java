@@ -79,6 +79,7 @@ final class VideoFrameCopierTest {
         pixels.put(index + 2, red);
       }
     }
+
     return frame;
   }
 
@@ -138,6 +139,7 @@ final class VideoFrameCopierTest {
     assertEquals(3, width);
     assertEquals(FRAME_HEIGHT, height);
     assertArrayEquals(expected, pixels);
+
     image.release();
   }
 
@@ -156,6 +158,7 @@ final class VideoFrameCopierTest {
     assertSame(first, second, "the frame is copied into the image from the pool");
     assertEquals(0xFF000000, blackPixel);
     assertEquals(0xFFFFFFFF, whitePixel, "the cached pixels of the reused image are refreshed");
+
     second.release();
   }
 
@@ -174,6 +177,7 @@ final class VideoFrameCopierTest {
     assertSame(wideImage, smallImage, "the pooled image is resized instead of being replaced");
     assertEquals(NARROW_FRAME_WIDTH, width);
     assertArrayEquals(expected, pixels);
+
     smallImage.release();
   }
 
@@ -243,6 +247,7 @@ final class VideoFrameCopierTest {
     this.pool.recycle(image);
     final MatImageBuffer again = this.copier.copy(frame);
     assertSame(image, again, "the scaled image is reused as well");
+
     again.release();
   }
 
@@ -259,6 +264,7 @@ final class VideoFrameCopierTest {
     assertEquals(8, width);
     assertEquals(4, height);
     assertEquals(SOLID_ARGB, corner);
+
     image.release();
   }
 
@@ -278,6 +284,7 @@ final class VideoFrameCopierTest {
     assertEquals(1, height);
     assertEquals(0xFF400000, first);
     assertSame(unscaled, scaled, "the pooled image of the old height is resized in place");
+
     scaled.release();
   }
 
@@ -292,6 +299,7 @@ final class VideoFrameCopierTest {
 
     assertEquals(FRAME_WIDTH, width);
     assertEquals(0xFF030201, first);
+
     image.release();
   }
 
@@ -312,6 +320,7 @@ final class VideoFrameCopierTest {
     assertEquals(FRAME_WIDTH, width);
     assertEquals(FRAME_HEIGHT, height);
     assertEquals(0xFF030201, first);
+
     image.release();
     racingCopier.release();
   }
@@ -327,6 +336,7 @@ final class VideoFrameCopierTest {
     final Frame broken = new Frame(FRAME_WIDTH, FRAME_HEIGHT, Frame.DEPTH_UBYTE, BGR_CHANNELS);
     broken.image = new Buffer[0];
     assertThrows(RuntimeException.class, () -> this.copier.copy(broken));
+
     final int unusedAfter = this.pool.getUnusedCount();
     assertEquals(1, unusedAfter, "a frame that cannot be copied must not cost the pool one of its images");
   }
@@ -364,6 +374,7 @@ final class VideoFrameCopierTest {
 
     assertArrayEquals(new int[] { SOLID_ARGB, SOLID_ARGB }, pixels);
     assertTrue(copied, "OpenCV cannot read the heap, so the frame is copied into native memory first");
+
     image.release();
   }
 
@@ -391,6 +402,7 @@ final class VideoFrameCopierTest {
     assertTrue(copiedBeforeRelease);
     assertFalse(copiedAfterRelease);
     assertEquals(1, width, "the copier still works after its unscaled image was released");
+
     image.release();
     afterRelease.release();
   }
@@ -406,6 +418,7 @@ final class VideoFrameCopierTest {
 
     assertEquals(NARROW_FRAME_WIDTH, unscaledWidth, "the copy has the size of the frame");
     assertThrows(IllegalStateException.class, unscaled::getWidth, "the copy was released");
+
     image.release();
   }
 }

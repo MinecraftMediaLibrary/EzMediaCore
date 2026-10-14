@@ -41,6 +41,7 @@ public final class OpenCvModules {
    */
   public static boolean canLoad(final Class<?> preset) {
     Preconditions.checkNotNull(preset, "Preset must not be null!");
+
     try {
       Loader.load(preset);
       return true;

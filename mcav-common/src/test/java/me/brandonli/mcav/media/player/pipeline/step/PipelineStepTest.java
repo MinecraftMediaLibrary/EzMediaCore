@@ -183,6 +183,7 @@ final class PipelineStepTest {
       assertThrows(NullPointerException.class, () -> video.processAll(null, OriginalVideoMetadata.EMPTY));
       assertThrows(NullPointerException.class, () -> video.processAll(image, null));
     }
+
     assertThrows(NullPointerException.class, () -> audio.process(null, AUDIO_METADATA));
     assertThrows(NullPointerException.class, () -> audio.process(samples, null));
     assertThrows(NullPointerException.class, () -> audio.processAll(null, AUDIO_METADATA));

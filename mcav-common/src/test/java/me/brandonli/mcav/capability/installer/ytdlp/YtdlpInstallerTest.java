@@ -116,6 +116,7 @@ final class YtdlpInstallerTest {
   void shouldPinEveryBundledDownloadToRelease20260819() {
     final Download[] downloads = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
     assertEquals(8, downloads.length);
+
     for (final Download download : downloads) {
       final String url = download.getUrl();
       final boolean pinned = url.startsWith(RELEASE_URL);
@@ -175,6 +176,7 @@ final class YtdlpInstallerTest {
         return download;
       }
     }
+
     final String message = "Platform %s has no bundled yt-dlp download!".formatted(platform);
     throw new AssertionError(message);
   }
@@ -248,6 +250,7 @@ final class YtdlpInstallerTest {
     if (operatingSystem == Os.WINDOWS) {
       return;
     }
+
     final boolean executable = Files.isExecutable(file);
     assertTrue(executable, file.toString());
   }
@@ -401,6 +404,7 @@ final class YtdlpInstallerTest {
         zip.closeEntry();
       }
     }
+
     return bytes.toByteArray();
   }
 

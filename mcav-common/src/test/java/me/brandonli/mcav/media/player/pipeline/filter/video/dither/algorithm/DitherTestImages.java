@@ -49,6 +49,7 @@ public final class DitherTestImages {
         pixels[row * width + column] = 0xFF000000 | (value << 16) | (value << 8) | value;
       }
     }
+
     return pixels;
   }
 
@@ -65,6 +66,7 @@ public final class DitherTestImages {
         white++;
       }
     }
+
     return white / (double) indices.length;
   }
 }

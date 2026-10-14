@@ -172,10 +172,12 @@ final class VlcInstallationValidationTest {
   private static void writeEntry(final ZipOutputStream zip, final String name, final boolean empty) throws IOException {
     final ZipEntry entry = new ZipEntry(name);
     zip.putNextEntry(entry);
+
     if (!empty) {
       final byte[] content = "structural library marker, never loaded".getBytes(StandardCharsets.UTF_8);
       zip.write(content);
     }
+
     zip.closeEntry();
   }
 
@@ -195,13 +197,16 @@ final class VlcInstallationValidationTest {
       final String message = "Creating symbolic links failed with \"%s\" here!".formatted(exception);
       Assumptions.abort(message);
     }
+
     final InstallationStrategy strategy = new OsxInstallationStrategy(installer, (_, _) -> {});
     final Optional<Path> valid = strategy.getInstalledPath();
     assertEquals(Optional.of(directory), valid);
+
     Files.writeString(coreTarget, "");
     final Optional<Path> empty = strategy.getInstalledPath();
     final boolean emptyMissing = empty.isEmpty();
     assertTrue(emptyMissing);
+
     Files.delete(coreTarget);
     final Optional<Path> broken = strategy.getInstalledPath();
     final boolean brokenMissing = broken.isEmpty();

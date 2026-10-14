@@ -81,18 +81,23 @@ final class FfmpegTemplatesTest {
     final long size = Files.size(output);
     assertEquals(expected, arguments);
     assertEquals(0, exitCode, errorOutput);
+
     final boolean holdsAudio = size > 1_000;
     assertTrue(holdsAudio, "the file holds encoded audio");
+
     final FileSource source = FileSource.path(output);
     final OriginalAudioMetadata metadata = MetadataUtils.parseAudioMetadata(source);
     final int channels = metadata.getAudioChannels();
     final String codec = metadata.getAudioCodec();
     final int sampleRate = metadata.getAudioSampleRate();
     assertEquals(2, channels, "the audio is stereo as requested");
+
     final boolean isVorbis = codec.contains("vorbis");
     assertTrue(isVorbis, codec);
+
     final boolean decodable = sampleRate > 0;
     assertTrue(decodable, "the file can be decoded");
+
     long decodedSamples = 0;
     try (final FFmpegFrameGrabber decoder = new FFmpegFrameGrabber(output.toFile())) {
       decoder.start();
@@ -107,6 +112,7 @@ final class FfmpegTemplatesTest {
         frame = decoder.grabSamples();
       }
     }
+
     final long decodedFrames = decodedSamples / channels;
     final long expectedFrames = (long) TestMedia.VIDEO_SECONDS * sampleRate;
     // AAC and Vorbis may pad the source and destination by a codec block.

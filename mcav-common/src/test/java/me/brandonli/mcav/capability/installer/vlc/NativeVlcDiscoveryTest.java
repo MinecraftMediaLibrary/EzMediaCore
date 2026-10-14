@@ -66,10 +66,12 @@ final class NativeVlcDiscoveryTest {
     final Path pathAfterFailure = discovery.getDiscoveredPath();
     assertFalse(loadedFromEmptyDirectory);
     assertNull(pathAfterFailure);
+
     final boolean found = discovery.discoverSystemInstallation();
     final Path discoveredPath = discovery.getDiscoveredPath();
     assertTrue(found);
     assertEquals(systemDirectory, discoveredPath);
+
     final boolean foundAgain = discovery.loadInstalledLibraries(emptyDirectory);
     final Path pathOfRememberedDiscovery = discovery.getDiscoveredPath();
     assertTrue(foundAgain, "vlcj remembers a successful discovery");

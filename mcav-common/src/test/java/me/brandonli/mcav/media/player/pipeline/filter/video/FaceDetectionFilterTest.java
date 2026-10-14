@@ -78,6 +78,7 @@ final class FaceDetectionFilterTest {
       assertNotNull(stream, "missing test resource " + name);
       Files.copy(stream, target);
     }
+
     return target;
   }
 

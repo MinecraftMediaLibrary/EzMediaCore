@@ -111,6 +111,7 @@ public final class SwingVideoWindow implements AutoCloseable {
     } else {
       SwingUtilities.invokeLater(create);
     }
+
     try {
       return result.join();
     } catch (final CompletionException exception) {

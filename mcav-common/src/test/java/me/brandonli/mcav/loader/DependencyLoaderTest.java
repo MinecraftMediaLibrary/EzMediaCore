@@ -107,6 +107,7 @@ final class DependencyLoaderTest {
       final boolean available = loader.hasCapability(capability);
       assertTrue(available, capability::name);
     }
+
     assertThrows(NullPointerException.class, () -> loader.hasCapability(null));
   }
 
@@ -122,6 +123,7 @@ final class DependencyLoaderTest {
     } finally {
       restoreProperty(PATHS_FIRST, previousPathsFirst);
     }
+
     final String openBlas = System.getProperty(OPENBLAS_LOAD);
     final boolean hasFfmpeg = loader.hasCapability(Capability.FFMPEG);
     assertEquals(DEFAULT_PATHS_FIRST, pathsFirst);
@@ -153,6 +155,7 @@ final class DependencyLoaderTest {
     } finally {
       System.setErr(standardError);
     }
+
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     final int level = avutil.av_log_get_level();
@@ -166,6 +169,7 @@ final class DependencyLoaderTest {
     final DependencyLoader loader = new DependencyLoader();
     final boolean objectDetectionLinks = DependencyLoader.loadOptionalModule(() -> Loader.load(opencv_objdetect.class), "face detection");
     assumeTrue(objectDetectionLinks, "The object detection natives must link on this system!");
+
     loader.loadFaceDetection(() -> {
       throw new UnsatisfiedLinkError("no GTK!");
     });
@@ -183,10 +187,13 @@ final class DependencyLoaderTest {
     // OpenCV's own pool would outlive every player, a thread per processor but one, named after the first caller
     final int threads = opencv_core.getNumThreads();
     assertEquals(1, threads);
+
     opencv_core.setNumThreads(5);
     assertDoesNotThrow(() -> loader.loadModules());
+
     final int threadsAfterReload = opencv_core.getNumThreads();
     assertEquals(1, threadsAfterReload, "loading the natives sets OpenCV's threads");
+
     final String previous = System.getProperty(DependencyLoader.OPENCV_THREADS_PROPERTY);
     try {
       System.setProperty(DependencyLoader.OPENCV_THREADS_PROPERTY, "3");
@@ -254,6 +261,7 @@ final class DependencyLoaderTest {
     } finally {
       System.setErr(standardError);
     }
+
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     final Matcher loaded = NATIVES_LOADED.matcher(log);
@@ -286,10 +294,13 @@ final class DependencyLoaderTest {
     final AtomicInteger configured = new AtomicInteger();
     final Runnable loader = FailingDeviceLibrary::touch;
     assertDoesNotThrow(() -> DependencyLoader.loadFfmpeg(loader, configured::incrementAndGet));
+
     final NoClassDefFoundError again = assertThrows(NoClassDefFoundError.class, loader::run);
     assertDoesNotThrow(() -> DependencyLoader.loadFfmpeg(loader, configured::incrementAndGet));
+
     final int configuredCount = configured.get();
     assertEquals(2, configuredCount);
+
     final String stackTrace = Throwables.getStackTraceAsString(again);
     final boolean namesTheLibrary = stackTrace.contains("no jniavdevice");
     assertTrue(namesTheLibrary, again::toString);
@@ -319,9 +330,11 @@ final class DependencyLoaderTest {
     final NativeLoadingException failure = loadFfmpegFailingWith(codecClass, configured);
     final Throwable cause = failure.getCause();
     assertSame(codecClass, cause);
+
     final String message = failure.getMessage();
     final boolean namesTheClass = message.contains("Could not initialize class avcodec");
     assertTrue(namesTheClass, failure.getMessage());
+
     final boolean configuredAfterFailure = configured.get();
     assertFalse(configuredAfterFailure, "FFmpeg that failed to load is not configured");
   }
@@ -463,17 +476,22 @@ final class DependencyLoaderTest {
     });
     final boolean vlcBeforeRetry = loader.hasCapability(Capability.VLC);
     assertFalse(vlcBeforeRetry);
+
     final boolean ytdlpBeforeRetry = loader.hasCapability(Capability.YT_DLP);
     assertFalse(ytdlpBeforeRetry);
+
     final boolean faceDetectionBeforeRetry = loader.hasCapability(Capability.FACE_DETECTION);
     assertFalse(faceDetectionBeforeRetry);
+
     loader.installVlc(() -> Optional.of(Path.of(VLC_DIRECTORY_NAME)));
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {});
     final boolean vlcAfterRetry = loader.hasCapability(Capability.VLC);
     assertTrue(vlcAfterRetry);
+
     final boolean ytdlpAfterRetry = loader.hasCapability(Capability.YT_DLP);
     assertTrue(ytdlpAfterRetry);
+
     final boolean faceDetectionAfterRetry = loader.hasCapability(Capability.FACE_DETECTION);
     assertTrue(faceDetectionAfterRetry);
   }
@@ -547,6 +565,7 @@ final class DependencyLoaderTest {
       final boolean hasVlc = loader.hasCapability(Capability.VLC);
       assertTrue(hasVlc);
     }
+
     verify(kit).start();
   }
 
@@ -616,6 +635,7 @@ final class DependencyLoaderTest {
       final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
       assertTrue(hasYtdlp);
     }
+
     verify(installer).download(true);
   }
 
@@ -710,6 +730,7 @@ final class DependencyLoaderTest {
   private static void assertLoggedAPlausibleTime(final Logger logger, final String template) {
     final ArgumentCaptor<Object> elapsedCaptor = ArgumentCaptor.forClass(Object.class);
     verify(logger).info(eq(template), elapsedCaptor.capture());
+
     final long elapsed = (Long) elapsedCaptor.getValue();
     final boolean plausible = elapsed >= 0 && elapsed < MAXIMUM_PLAUSIBLE_MILLISECONDS;
     assertTrue(plausible, "elapsed " + elapsed + " ms");
@@ -814,6 +835,7 @@ final class DependencyLoaderTest {
       System.clearProperty(PATHS_FIRST);
       return;
     }
+
     System.setProperty(PATHS_FIRST, value);
   }
 

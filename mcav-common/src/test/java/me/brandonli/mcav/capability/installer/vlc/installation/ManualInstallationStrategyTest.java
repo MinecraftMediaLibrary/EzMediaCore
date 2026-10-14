@@ -226,6 +226,7 @@ final class ManualInstallationStrategyTest {
     for (int level = 0; level < levels; level++) {
       current = current.resolve(LEVEL_PREFIX + level);
     }
+
     return Files.createDirectories(current);
   }
 
@@ -254,6 +255,7 @@ final class ManualInstallationStrategyTest {
     if (operatingSystem == Os.WINDOWS) {
       return new String[] { "cmd", "/c", command };
     }
+
     return new String[] { "sh", "-c", command };
   }
 

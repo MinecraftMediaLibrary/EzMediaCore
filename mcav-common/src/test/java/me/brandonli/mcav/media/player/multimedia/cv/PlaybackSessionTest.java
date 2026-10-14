@@ -215,6 +215,7 @@ final class PlaybackSessionTest {
       final Frame frame = ScriptedFrameGrabber.video(index * spacingMicroseconds);
       script.add(frame);
     }
+
     return script;
   }
 
@@ -227,6 +228,7 @@ final class PlaybackSessionTest {
       final Frame frame = ScriptedFrameGrabber.video(timestamp);
       script.add(frame);
     }
+
     return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
   }
 
@@ -377,6 +379,7 @@ final class PlaybackSessionTest {
     assertMetadataOfTheGrabber(videoMetadata, audioMetadata);
     assertEquals(expectedSizes, sizes, "every frame keeps its width and height, the first one included");
     assertPlayedFromTheBeginningAndClosed(grabber, session);
+
     final boolean noReports = this.reports.isEmpty();
     assertTrue(noReports, this.reports::toString);
   }
@@ -544,6 +547,7 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of();
     final PlaybackSession session = this.session(grabber, 0L, false);
     assertThrows(IllegalStateException.class, session::startThreads);
+
     final boolean active = session.isActive();
     assertFalse(active);
   }
@@ -601,6 +605,7 @@ final class PlaybackSessionTest {
     final boolean noReports = this.reports.isEmpty();
     assertTrue(noReports, "the picture was never copied: " + this.reports);
     assertEquals(LAST_FRAME_POSITION, position, "the frames still move the position");
+
     final boolean keptTime = elapsedNanoseconds >= PACED_NANOSECONDS;
     assertTrue(keptTime, "the frames still keep time, took " + elapsedNanoseconds);
   }
@@ -637,6 +642,7 @@ final class PlaybackSessionTest {
     final int images = distinct.size();
     final int frameCount = frames.get();
     assertEquals(24, frameCount);
+
     final boolean fewImages = images <= 6;
     assertTrue(fewImages, "at most as many images as frames can be in flight are allocated, got " + images);
   }
@@ -679,6 +685,7 @@ final class PlaybackSessionTest {
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame is shown");
     assertEquals(LAST_FRAME_POSITION, position, "every frame is one period of 10 frames per second after the previous one");
+
     final boolean paced = elapsedNanoseconds >= PACED_NANOSECONDS;
     assertTrue(paced, "the frames are paced instead of racing by, took " + elapsedNanoseconds);
   }
@@ -693,6 +700,7 @@ final class PlaybackSessionTest {
       script.add(frame);
       script.add(new ScriptedFrameGrabber.Delay(40L));
     }
+
     final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     camera.setFrameRate(30.0);
     final PlaybackSession session = this.session(camera, 0L, false);
@@ -702,6 +710,7 @@ final class PlaybackSessionTest {
     final long position = session.getPositionMicroseconds();
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame that arrives in real time is shown");
+
     final boolean followedArrival = position >= 160_000L;
     assertTrue(followedArrival, "the position follows the time the frames arrived at, got " + position);
   }
@@ -785,6 +794,7 @@ final class PlaybackSessionTest {
     final long elapsed = end - start;
     final int frameCount = frames.get();
     assertEquals(2, frameCount);
+
     final boolean jumpNotWaited = elapsed < 3_000_000_000L;
     assertTrue(jumpNotWaited, "a jump of 30 seconds is not waited out");
   }
@@ -837,6 +847,7 @@ final class PlaybackSessionTest {
     assertTrue(activeBeforeStop);
     assertFalse(activeAfterStop);
     assertEquals(1, frameCount);
+
     final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "stopping interrupts the waiting threads");
   }
@@ -870,6 +881,7 @@ final class PlaybackSessionTest {
     session.start();
     final boolean rendered = rendering.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
     assertTrue(rendered);
+
     awaitCondition("the queue is full", () -> grabber.getRemainingSteps() == 14);
 
     final long stopStart = System.nanoTime();
@@ -879,6 +891,7 @@ final class PlaybackSessionTest {
     awaitCondition("the decoder closed its grabber", grabber::isClosed);
     final boolean active = session.isActive();
     assertFalse(active);
+
     final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "the blocked decoder is interrupted, took " + stopTime);
   }
@@ -922,6 +935,7 @@ final class PlaybackSessionTest {
     final int frameCount = frames.get();
     assertFalse(active);
     assertTrue(closed, "the decoder finished");
+
     final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "stopping from a filter does not wait for its own thread, took " + stopTime);
     assertEquals(1, frameCount, "frames queued before the stop are discarded");
@@ -952,6 +966,7 @@ final class PlaybackSessionTest {
     final boolean closed = grabber.isClosed();
     final long ownStopTime = stopNanoseconds.get();
     assertTrue(closed, "the stop returned while the decoder was still running");
+
     final boolean stoppedEarly = ownStopTime >= 0;
     assertTrue(stoppedEarly, "the stop returned while the session was still stopping itself");
   }
@@ -969,6 +984,7 @@ final class PlaybackSessionTest {
     session.stop();
     final boolean interrupted = Thread.interrupted();
     assertTrue(interrupted, "the interrupt must be restored");
+
     awaitCondition("the stuck decoder finished and closed its grabber", grabber::isClosed);
   }
 
@@ -1051,6 +1067,7 @@ final class PlaybackSessionTest {
     };
     final PlaybackSession session = this.session(missing, null, 0L, false);
     assertThrows(FrameGrabber.Exception.class, session::start);
+
     final boolean active = session.isActive();
     assertFalse(active);
   }
@@ -1126,8 +1143,10 @@ final class PlaybackSessionTest {
     awaitEnd(session);
     final int deliveries = deliveredAt.size();
     assertEquals(2, deliveries);
+
     final boolean initialWithoutDelay = deliveredAt.getFirst() < 100_000_000L;
     assertTrue(initialWithoutDelay, "the initial audio needs no timestamp delay");
+
     final boolean secondDelayed = deliveredAt.get(1) >= 100_000_000L;
     assertTrue(secondDelayed, "the 400ms lead leaves 100ms of the 500ms timestamp");
   }
@@ -1165,6 +1184,7 @@ final class PlaybackSessionTest {
     final int width = picture.getWidth();
     assertSame(frame, queued);
     assertEquals(1, width, "the picture now belongs to the renderer and is not released");
+
     picture.release();
   }
 
@@ -1201,6 +1221,7 @@ final class PlaybackSessionTest {
     final int width = picture.getWidth();
     assertSame(frame, rendered);
     assertEquals(1, width, "the renderer owns the picture it took, so the decoder leaves it alone");
+
     picture.release();
   }
 
@@ -1215,6 +1236,7 @@ final class PlaybackSessionTest {
     currentThread.interrupt();
 
     assertThrows(InterruptedException.class, () -> PlaybackSession.queueFrame(queue, frame, () -> true));
+
     final boolean interrupted = Thread.interrupted();
     assertFalse(interrupted, "the interrupt was thrown, not kept");
     assertThrows(IllegalStateException.class, picture::getWidth, "the picture was released");
@@ -1271,6 +1293,7 @@ final class PlaybackSessionTest {
 
     final boolean copyKept = session.hasUnscaledCopy();
     assertTrue(copyKept, "the decoder keeps its copy of the unscaled picture for the next one");
+
     awaitEnd(session);
   }
 
@@ -1335,6 +1358,7 @@ final class PlaybackSessionTest {
       final Frame sound = ScriptedFrameGrabber.audio(0L);
       sounds.add(sound);
     }
+
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
@@ -1363,6 +1387,7 @@ final class PlaybackSessionTest {
       final Frame sound = ScriptedFrameGrabber.audio(0L);
       sounds.add(sound);
     }
+
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
     final PlaybackSession session = this.session(grabber, 0L, false);
     holder.set(session);
@@ -1453,6 +1478,7 @@ final class PlaybackSessionTest {
         this.refilled = true;
         this.offer(LATE_FRAME);
       }
+
       return drained;
     }
   }

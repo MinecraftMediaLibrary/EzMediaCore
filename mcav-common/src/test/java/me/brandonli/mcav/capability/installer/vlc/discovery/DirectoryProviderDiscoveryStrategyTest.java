@@ -349,6 +349,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     for (int index = 0; index < childCount; index++) {
       createDirectory(crowded, EMPTY_CHILD_PREFIX + index);
     }
+
     final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     final SearchProvider crowdedSearch = search(HIGH_PRIORITY, crowded, 1);
     final SearchProvider librarySearch = search(1, libraries, 0);
@@ -397,6 +398,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
       System.clearProperty(name);
       return;
     }
+
     System.setProperty(name, previous);
   }
 
@@ -601,6 +603,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
       } catch (final IOException exception) {
         throw new UncheckedIOException(exception);
       }
+
       return this.directories.clone();
     }
 

@@ -86,6 +86,7 @@ final class CommandTaskDeadlineTest {
     final boolean cancelled = pending.isCancelled();
     assertInstanceOf(TimeoutException.class, cause);
     assertTrue(cancelled);
+
     final boolean withinDeadline = elapsed < 1_000_000_000L;
     assertTrue(withinDeadline, "the output wait uses the command deadline");
   }
@@ -125,12 +126,15 @@ final class CommandTaskDeadlineTest {
     final CommandTask task = new CommandTask(FINISHED_COMMAND);
     final Duration timeout = OUTPUT_TIMEOUT;
     assertThrows(IOException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
+
     final long first = firstBudget.get();
     final long second = secondBudget.get();
     final boolean firstPositive = first > 0L;
     assertTrue(firstPositive);
+
     final boolean secondPositive = second > 0L;
     assertTrue(secondPositive);
+
     final boolean budgetShrank = second < first;
     assertTrue(budgetShrank, "reading stderr must not start a fresh timeout");
   }
@@ -203,6 +207,7 @@ final class CommandTaskDeadlineTest {
         Thread.sleep(30_000L);
         return;
       }
+
       final Process child = new ProcessBuilder(args[0], CLASS_PATH_OPTION, args[1], InheritedPipes.class.getName(), "child")
         .inheritIO()
         .start();

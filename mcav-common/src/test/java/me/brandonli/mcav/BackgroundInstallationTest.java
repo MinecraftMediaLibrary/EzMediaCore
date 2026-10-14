@@ -89,6 +89,7 @@ final class BackgroundInstallationTest {
     assertEquals(YTDLP_THREAD, ytdlpName);
     assertTrue(vlcDaemon, "an installation thread never keeps the JVM alive");
     assertTrue(vlcAvailable);
+
     final DependencyLoader verifiedVlc = Mockito.verify(this.dependencies);
     verifiedVlc.installVlc();
     final DependencyLoader verifiedYtdlp = Mockito.verify(this.dependencies);
@@ -128,6 +129,7 @@ final class BackgroundInstallationTest {
     assertFalse(hasVlc, "a step that failed unexpectedly does not provide its program");
     assertTrue(hasYtdlp);
     assertEquals("VLC is not available on this system!", refusalMessage);
+
     final Logger verifiedLogger = Mockito.verify(this.logger);
     verifiedLogger.warn(PREPARATION_FAILED, "VLC", failure);
   }
@@ -144,6 +146,7 @@ final class BackgroundInstallationTest {
     final Boolean hasYtdlp = await(installation, Capability.YT_DLP);
     joinAll(installation);
     assertFalse(hasYtdlp, "nobody waits forever for a preparation that ended with an error");
+
     final Logger verifiedLogger = Mockito.verify(this.logger);
     verifiedLogger.error(THREAD_FAILED, YTDLP_THREAD, error);
   }
@@ -158,6 +161,7 @@ final class BackgroundInstallationTest {
     installation.start();
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(started);
+
     final AtomicReference<Thread> callbackThread = new AtomicReference<>();
     final CompletableFuture<Boolean> vlcReady = installation.whenReady(Capability.VLC);
     final CompletableFuture<Void> callback = vlcReady.thenRun(() -> {
@@ -200,6 +204,7 @@ final class BackgroundInstallationTest {
     installation.start();
     final boolean working = started.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(working);
+
     final Thread cancelling = new Thread(() -> {
       try {
         installation.cancel();
@@ -261,6 +266,7 @@ final class BackgroundInstallationTest {
     final Boolean hasVlc = await(installation, Capability.VLC);
     assertTrue(interruptKept, "the interrupt of the cancelling thread is restored");
     assertFalse(hasVlc);
+
     final Logger verifiedLogger = Mockito.verify(this.logger);
     verifiedLogger.warn(NOT_STOPPED, VLC_THREAD, SHORT_CANCEL_MILLISECONDS);
     finishVlc.countDown();
@@ -339,11 +345,13 @@ final class BackgroundInstallationTest {
     installation.start();
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(started);
+
     final List<Thread> threads = installation.getThreads();
     final Thread ytdlpThread = threads.getLast();
     final Duration wait = Duration.ofSeconds(WAIT_SECONDS);
     final boolean ytdlpEnded = ytdlpThread.join(wait);
     assertTrue(ytdlpEnded);
+
     return installation;
   }
 

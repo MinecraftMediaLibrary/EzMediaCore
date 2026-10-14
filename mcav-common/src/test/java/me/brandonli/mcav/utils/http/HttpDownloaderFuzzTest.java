@@ -93,6 +93,7 @@ final class HttpDownloaderFuzzTest {
     }
 
     assertArrayEquals(CONTENT, content);
+
     this.assertOtherNeverAsked();
   }
 

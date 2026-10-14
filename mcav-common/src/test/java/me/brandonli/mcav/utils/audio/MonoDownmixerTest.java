@@ -37,6 +37,7 @@ final class MonoDownmixerTest {
     for (final short sample : leftAndRight) {
       buffer.putShort(sample);
     }
+
     buffer.flip();
     return buffer;
   }

@@ -166,6 +166,7 @@ final class IdleTimeoutInputStreamTest {
         if (failure instanceof final RuntimeException exception) {
           throw exception;
         }
+
         throw (Error) failure;
       }
 
@@ -219,9 +220,11 @@ final class IdleTimeoutInputStreamTest {
         currentThread.interrupt();
         throw new InterruptedIOException("interrupted!");
       }
+
       if (!closedInTime) {
         throw new IOException("the source was never closed!");
       }
+
       return -1;
     }
 

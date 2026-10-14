@@ -89,6 +89,7 @@ final class NetworkUtilsTest {
     try (final ServerSocket socket = new ServerSocket(0)) {
       port = socket.getLocalPort();
     }
+
     return URI.create(LOOPBACK_URL_PREFIX + port + "/");
   }
 
@@ -122,6 +123,7 @@ final class NetworkUtilsTest {
       assertEquals(answer, address);
       networkUtils.verify(() -> NetworkUtils.lookUpPublicAddress(expectedService));
     }
+
     final URI defaultService = NetworkUtils.DEFAULT_ADDRESS_SERVICE;
     assertEquals(expectedService, defaultService);
   }

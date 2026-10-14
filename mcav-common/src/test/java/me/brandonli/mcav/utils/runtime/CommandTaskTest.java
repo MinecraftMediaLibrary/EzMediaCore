@@ -89,6 +89,7 @@ final class CommandTaskTest {
     final int storedExitCode = task.getExitCode();
     assertEquals(0, exitCode);
     assertEquals(0, storedExitCode);
+
     final boolean outputBlank = output.isBlank();
     assertFalse(outputBlank);
   }
@@ -148,6 +149,7 @@ final class CommandTaskTest {
     final Process process = task.getProcess();
     final List<String> command = task.getCommand();
     assertNotNull(process);
+
     final List<String> expectedCommand = List.of(java, VERSION_OPTION);
     assertEquals(expectedCommand, command);
     assertThrows(IllegalStateException.class, task::run);
@@ -189,6 +191,7 @@ final class CommandTaskTest {
     try (final BufferedReader output = new BufferedReader(new InputStreamReader(shell.getInputStream(), StandardCharsets.US_ASCII))) {
       line = output.readLine();
     }
+
     final ProcessHandle sleeper = ProcessHandle.of(Long.parseLong(line.strip())).orElseThrow();
     try {
       final CommandTask task = new CommandTask(SHELL);
@@ -259,10 +262,12 @@ final class CommandTaskTest {
     final String message = exception.getMessage();
     final Process process = task.getProcess();
     assertNotNull(process);
+
     final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean reportsTheTimeout = message.contains("did not finish");
     assertTrue(reportsTheTimeout, message);
     assertTrue(exited, "the program is killed instead of being left running");
+
     final boolean returnedInTime = elapsed < RETURN_DEADLINE_NANOSECONDS;
     assertTrue(returnedInTime, "run returns once the timeout passed, took " + elapsed + " ns");
     assertThrows(IllegalStateException.class, task::getExitCode);
@@ -280,6 +285,7 @@ final class CommandTaskTest {
     final int checkedExitCode = checked.getExitCode();
     final CommandTask failing = new CommandTask(java, UNKNOWN_OPTION);
     assertEquals(0, exitCode);
+
     final boolean errorOutputBlank = errorOutput.isBlank();
     assertFalse(errorOutputBlank);
     assertEquals(0, checkedExitCode);
@@ -295,6 +301,7 @@ final class CommandTaskTest {
     assertThrows(IllegalArgumentException.class, () -> task.run(Duration.ZERO));
     assertThrows(IllegalArgumentException.class, () -> task.run(negative));
     assertThrows(IllegalArgumentException.class, () -> task.runChecked(Duration.ZERO));
+
     final Process process = task.getProcess();
     assertNull(process, "an invalid timeout does not start the program");
   }
@@ -308,13 +315,16 @@ final class CommandTaskTest {
     final long start = System.nanoTime();
     current.interrupt();
     assertThrows(IOException.class, task::run);
+
     final long elapsed = System.nanoTime() - start;
     final boolean interrupted = Thread.interrupted();
     final Process process = task.getProcess();
     assertNotNull(process);
+
     final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(interrupted);
     assertTrue(exited, "the program is killed instead of being left running");
+
     final boolean returnedInTime = elapsed < RETURN_DEADLINE_NANOSECONDS;
     assertTrue(returnedInTime, "run returns without waiting for the program, took " + elapsed + " ns");
   }

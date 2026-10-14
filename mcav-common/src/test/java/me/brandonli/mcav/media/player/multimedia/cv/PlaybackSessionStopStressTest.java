@@ -163,6 +163,7 @@ final class PlaybackSessionStopStressTest {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
     }
+
     return true;
   }
 
@@ -180,6 +181,7 @@ final class PlaybackSessionStopStressTest {
         sessionThreads.add(thread);
       }
     }
+
     return sessionThreads;
   }
 
@@ -253,6 +255,7 @@ final class PlaybackSessionStopStressTest {
           video.add(delay);
         }
       }
+
       this.videoGrabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, video);
       this.audioGrabber = hasSeparateAudio ? new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, audio) : null;
       this.audioOpened = new AtomicBoolean();
@@ -310,6 +313,7 @@ final class PlaybackSessionStopStressTest {
         this.session.stop();
         this.ownStopReturned.countDown();
       }
+
       return true;
     }
 
@@ -321,6 +325,7 @@ final class PlaybackSessionStopStressTest {
         this.assertEnded();
         return;
       }
+
       this.session.start();
       switch (this.point) {
         case RIGHT_AFTER_THE_START, WHILE_PAUSED -> {
@@ -350,6 +355,7 @@ final class PlaybackSessionStopStressTest {
           throw new IllegalStateException(message);
         }
       }
+
       this.assertEnded();
     }
 
@@ -383,12 +389,14 @@ final class PlaybackSessionStopStressTest {
         stoppers.add(stopper);
         stopper.start();
       }
+
       gate.countDown();
       for (final Thread stopper : stoppers) {
         stopper.join(TIMEOUT_MILLISECONDS);
         final boolean alive = stopper.isAlive();
         assertFalse(alive, () -> this.description + ", a stopping thread hangs");
       }
+
       assertEquals(List.of(), failures, this.description);
     }
 
@@ -414,6 +422,7 @@ final class PlaybackSessionStopStressTest {
         assertTrue(beforeDeadline, () -> this.description + ", the session never stopped itself or ended");
         Thread.onSpinWait();
       }
+
       this.stopFromOutside();
       this.awaitOwnStop();
     }
@@ -425,10 +434,12 @@ final class PlaybackSessionStopStressTest {
     private void awaitOwnStop() throws InterruptedException {
       final boolean returned = this.ownStopReturned.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(returned, () -> this.description + ", the filter did not return from stopping its own session");
+
       final Thread renderer = this.videoRenderer.get();
       if (renderer != null) {
         renderer.join(TIMEOUT_MILLISECONDS);
       }
+
       this.assertStoppedForItsCaller(this.description);
     }
 
@@ -456,9 +467,11 @@ final class PlaybackSessionStopStressTest {
       synchronized (this.pictures) {
         seen = new ArrayList<>(this.pictures);
       }
+
       for (final ImageBuffer picture : seen) {
         assertThrows(IllegalStateException.class, picture::getWidth, () -> this.description + ": a picture was not released");
       }
+
       final long queuedPictures = this.session.getQueuedPictureCount();
       final boolean active = this.session.isActive();
       assertEquals(0L, queuedPictures, () -> this.description + ": pictures were left in the queue, where nobody releases them");

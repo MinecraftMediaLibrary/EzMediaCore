@@ -72,6 +72,7 @@ final class YtdlpParserFuzzTest {
     if (input.length == 0) {
       return;
     }
+
     final int exitCode = input[0];
     final String output = new String(input, 1, input.length - 1, StandardCharsets.UTF_8);
     // a new mock for every input, which keeps no record of its calls, so nothing piles up while the fuzzer runs
@@ -87,7 +88,9 @@ final class YtdlpParserFuzzTest {
     } catch (final YtdlpParseException exception) {
       return;
     }
+
     assertEquals(0, exitCode, "only metadata of a successful run is read");
+
     for (final Strategy strategy : STRATEGIES) {
       final Optional<Format> picked = strategy.strategy().select(dump);
       if (picked.isEmpty()) {

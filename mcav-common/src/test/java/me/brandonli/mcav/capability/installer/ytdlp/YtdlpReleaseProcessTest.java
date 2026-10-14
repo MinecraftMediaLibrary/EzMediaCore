@@ -61,6 +61,7 @@ final class YtdlpReleaseProcessTest {
         public int read() {
           final Thread readingThread = Thread.currentThread();
           assertNotSame(caller, readingThread, "stdout must not block the deadline waiter");
+
           return -1;
         }
 
@@ -142,8 +143,10 @@ final class YtdlpReleaseProcessTest {
     );
     when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
     assertThrows(AssertionFailedError.class, () -> YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE));
+
     final Thread closingThread = closer.get();
     assertNotSame(caller, closingThread, "closing stdout must not block the deadline waiter");
+
     final boolean closed = closer.get() != null;
     assertTrue(closed, "the drain still owns closing stdout");
   }

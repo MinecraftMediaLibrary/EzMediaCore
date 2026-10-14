@@ -62,6 +62,7 @@ final class BufferedImageConversionFuzzTest {
         whole.setRGB(column, row, data.consumeInt());
       }
     }
+
     final int viewX = data.consumeInt(0, width - 1);
     final int viewY = data.consumeInt(0, height - 1);
     final int viewWidth = data.consumeInt(1, width - viewX);
@@ -89,6 +90,7 @@ final class BufferedImageConversionFuzzTest {
     final int bufferHeight = buffer.getHeight();
     assertEquals(width, bufferWidth, "width");
     assertEquals(height, bufferHeight, "height");
+
     final int[] pixels = buffer.getPixels();
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {

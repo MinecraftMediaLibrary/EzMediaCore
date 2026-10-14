@@ -111,6 +111,7 @@ final class AudioExtractorTest {
       samples[index * 2] = (byte) sample;
       samples[index * 2 + 1] = (byte) (sample >> 8);
     }
+
     final AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
     final Path wave = this.directory.resolve(TONE_FILE_NAME);
     final File waveFile = wave.toFile();
@@ -120,6 +121,7 @@ final class AudioExtractorTest {
     ) {
       AudioSystem.write(stream, AudioFileFormat.Type.WAVE, waveFile);
     }
+
     return wave;
   }
 

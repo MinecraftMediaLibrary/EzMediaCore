@@ -99,6 +99,7 @@ final class ErrorDiffusionDitherTest {
     final int[] inPlace = source.clone();
     dither.dither(inPlace, 2);
     assertArrayEquals(new int[] { BLACK, WHITE }, inPlace);
+
     try (final ImageBuffer image = ImageBuffer.buffer(source, 2, 1)) {
       final byte[] ditheredIndices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1 }, ditheredIndices);

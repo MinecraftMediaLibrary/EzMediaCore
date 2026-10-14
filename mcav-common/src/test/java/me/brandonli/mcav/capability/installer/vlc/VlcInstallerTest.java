@@ -166,6 +166,7 @@ final class VlcInstallerTest {
       final boolean expectedHost = url.startsWith(expectedPrefix);
       assertTrue(expectedHost, url);
     }
+
     for (final Os unsupported : new Os[] { Os.FREEBSD, Os.OTHER }) {
       final Platform unavailable = Platform.ofPlatform(unsupported, Arch.X86, Bits.BITS_64);
       try (final MockedStatic<Platform> platforms = Mockito.mockStatic(Platform.class, Mockito.CALLS_REAL_METHODS)) {
@@ -430,6 +431,7 @@ final class VlcInstallerTest {
     final String versionDirectory = "/" + VlcInstaller.VERSION + "/";
     final boolean anyDownloads = downloads.length > 0;
     assertTrue(anyDownloads);
+
     for (final Download download : downloads) {
       final String url = download.getUrl();
       final String hash = download.getHash();
@@ -444,8 +446,10 @@ final class VlcInstallerTest {
 
   private static void assertSha256(final String hash, final String url) {
     assertNotNull(hash, url);
+
     final int length = hash.length();
     assertEquals(64, length, url);
+
     final boolean hexadecimal = SHA256_PATTERN.matcher(hash).matches();
     assertTrue(hexadecimal, "a SHA-256 digest must be hexadecimal: " + url);
   }

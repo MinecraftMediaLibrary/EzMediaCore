@@ -45,6 +45,7 @@ final class FramesPerSecondFilterTest {
     final long after = System.nanoTime();
     final boolean observedAfterStart = observed - before >= 0L;
     assertTrue(observedAfterStart, "the clock is in the monotonic nanosecond time domain");
+
     final boolean observedBeforeEnd = after - observed >= 0L;
     assertTrue(observedBeforeEnd, "the clock sample belongs to this observation window");
   }
@@ -55,10 +56,13 @@ final class FramesPerSecondFilterTest {
     final FramesPerSecondFilter filter = new FramesPerSecondFilter(clock::get);
     clock.set(999_999_999L);
     assertLabel(filter, "0 fps");
+
     clock.set(1_000_000_000L);
     assertLabel(filter, "2 fps");
+
     clock.set(1_500_000_000L);
     assertLabel(filter, "2 fps");
+
     clock.set(3_000_000_000L);
     assertLabel(filter, "1 fps");
   }

@@ -64,6 +64,7 @@ final class PaletteTest {
     final int[] colors = palette.getFullColorMap();
     final byte lookupEntry = lookup[128];
     assertEquals(0, lookupEntry);
+
     final int color = colors[128];
     assertEquals(OPAQUE_BLACK, color);
   }
@@ -92,15 +93,18 @@ final class PaletteTest {
     assertArrayEquals(new int[] { 0xFFFF0000, 0xFF0000FF }, colors);
     assertEquals(2, size);
     assertEquals(0, reserved);
+
     for (int index = 0; index < colorMap.length; index += 997) {
       final int entry = colorMap[index];
       final int fullColor = fullColorMap[index];
       assertEquals(colors[entry], fullColor);
     }
+
     final int reddish = (100 << 14) | (5 << 7) | 5;
     final int bluish = (5 << 14) | (5 << 7) | 100;
     final byte reddishEntry = colorMap[reddish];
     assertEquals(0, reddishEntry);
+
     final byte bluishEntry = colorMap[bluish];
     assertEquals(1, bluishEntry);
   }
@@ -124,8 +128,10 @@ final class PaletteTest {
     assertEquals(14400.0f, green);
     assertEquals(10785.9375f, blue);
     assertEquals(74829.69f, mixed);
+
     final boolean redBelowBlue = red < blue;
     assertTrue(redBelowBlue, "the eye is least sensitive to red in a dark color");
+
     final boolean blueBelowGreen = blue < green;
     assertTrue(blueBelowGreen, "the eye is most sensitive to green");
   }
@@ -163,6 +169,7 @@ final class PaletteTest {
     for (int index = 0; index < largest.length; index++) {
       largest[index] = index;
     }
+
     final DitherPalette palette = DitherPalette.colors(largest);
     final int size = palette.getSize();
     assertEquals(MAXIMUM_PALETTE_SIZE, size, "a palette of exactly 256 colors is allowed");
@@ -199,15 +206,18 @@ final class PaletteTest {
     DitherPalette.init();
     assertEquals(MapPalette.TRANSPARENT_INDICES, reserved);
     assertEquals(colorCount, size);
+
     for (int index = 0; index < MapPalette.TRANSPARENT_INDICES; index++) {
       final int reservedColor = colors[index];
       assertEquals(0, reservedColor, "reserved entries are left empty");
     }
+
     for (final byte entry : colorMap) {
       final int unsigned = entry & 0xFF;
       final boolean opaque = unsigned >= MapPalette.TRANSPARENT_INDICES;
       assertTrue(opaque, "transparent entries must never be chosen");
     }
+
     final int eightBitSize = DitherPalette.EIGHT_BIT_PALETTE.getSize();
     assertEquals(8, eightBitSize);
   }
@@ -238,6 +248,7 @@ final class PaletteTest {
     final int[] third = MapPaletteLoader.getColors();
     assertNotSame(first, second);
     assertEquals(count, second.length);
+
     final int thirdColor = third[SAMPLE_INDEX];
     assertEquals(second[SAMPLE_INDEX], thirdColor, "changing a copy must not change the palette");
   }

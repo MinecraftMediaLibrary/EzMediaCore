@@ -100,13 +100,16 @@ final class MCAVTest {
     final MCAVApi second = MCAV.api();
     assertInstanceOf(MCAV.class, first);
     assertNotSame(first, second);
+
     final MCAVLoadingException exception = assertThrows(MCAVLoadingException.class, () -> first.hasCapability(Capability.FFMPEG));
     final String message = exception.getMessage();
     assertEquals("MCAV has not been installed yet, call install() first!", message);
+
     final MCAVLoadingException waitException = assertThrows(MCAVLoadingException.class, () -> first.whenCapabilityReady(Capability.VLC));
     final String waitMessage = waitException.getMessage();
     assertEquals("MCAV has not been installed yet, call install() first!", waitMessage);
     assertThrows(ModuleException.class, () -> first.getModule(CountingModule.class));
+
     first.release();
   }
 
@@ -170,6 +173,7 @@ final class MCAVTest {
     } finally {
       System.setErr(standardError);
     }
+
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     final boolean built = log.contains("Map color lookup table built in");
@@ -184,6 +188,7 @@ final class MCAVTest {
     final Collection<MCAVModule> started = this.modules.getModules();
     final boolean startedEmpty = started.isEmpty();
     assertTrue(startedEmpty);
+
     this.stubCapability(Capability.FFMPEG, true);
     final boolean hasFfmpeg = this.mcav.hasCapability(Capability.FFMPEG);
     assertTrue(hasFfmpeg);
@@ -299,6 +304,7 @@ final class MCAVTest {
     this.mcav.install(TrackedModule.class);
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(started);
+
     final CompletableFuture<Boolean> vlcReady = this.mcav.whenCapabilityReady(Capability.VLC);
 
     assertTimeout(PROMPT_RELEASE, this.mcav::release, "release() does not wait for VLC to be downloaded");
@@ -327,6 +333,7 @@ final class MCAVTest {
     final int starts = module.starts.get();
     assertEquals("MCAV has already been installed!", message);
     assertEquals(1, starts);
+
     this.awaitBackgroundInstallation();
     this.verifyEveryInstallationStep();
   }
@@ -339,6 +346,7 @@ final class MCAVTest {
     final CompletableFuture<Void> first = CompletableFuture.runAsync(() -> this.mcav.install(CountingModule.class));
     final boolean started = nativesStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(started);
+
     final MCAVLoadingException exception = assertThrows(MCAVLoadingException.class, () -> this.mcav.install(CountingModule.class));
     finishNatives.countDown();
     first.get(INSTALLATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -347,6 +355,7 @@ final class MCAVTest {
     final int starts = module.starts.get();
     assertEquals("MCAV has already been installed!", message);
     assertEquals(1, starts);
+
     this.awaitBackgroundInstallation();
     final DependencyLoader verifiedDependencies = Mockito.verify(this.dependencies);
     verifiedDependencies.installVlc();
@@ -375,6 +384,7 @@ final class MCAVTest {
       assertTrue(releaseWaited, "release() waits for the running installation");
       assertFalse(releasedEarly);
     }
+
     final int starts = TrackedModule.STARTS.get();
     final int stops = TrackedModule.STOPS.get();
     assertEquals(1, starts);
@@ -396,11 +406,13 @@ final class MCAVTest {
     final int stopsAfterFailure = TrackedModule.STOPS.get();
     assertEquals("MCAV failed to install because of \"no natives!\"!", message);
     assertSame(failure, cause);
+
     final boolean afterFailureEmpty = afterFailure.isEmpty();
     assertTrue(afterFailureEmpty);
     assertEquals(1, startsAfterFailure);
     assertEquals(1, stopsAfterFailure, "the module started before the failure is stopped again");
     assertThrows(MCAVLoadingException.class, () -> this.mcav.hasCapability(Capability.VLC));
+
     final VerificationMode never = Mockito.never();
     final DependencyLoader notPrepared = Mockito.verify(this.dependencies, never);
     notPrepared.installVlc();
@@ -429,6 +441,7 @@ final class MCAVTest {
     final Collection<MCAVModule> started = this.modules.getModules();
     assertEquals("MCAV failed to install because of \"Module broken failed with \"port in use!\" while starting!\"!", message);
     assertInstanceOf(ModuleException.class, cause);
+
     final boolean startedEmpty = started.isEmpty();
     assertTrue(startedEmpty);
   }
@@ -454,11 +467,13 @@ final class MCAVTest {
     this.mcav.release();
     final int stops = module.stops.get();
     assertEquals(1, stops);
+
     final ModuleLoader verifiedModules = Mockito.verify(this.modules);
     verifiedModules.shutdownModules();
     assertThrows(MCAVLoadingException.class, () -> this.mcav.hasCapability(Capability.VLC));
     assertThrows(MCAVLoadingException.class, () -> this.mcav.whenCapabilityReady(Capability.VLC));
     assertThrows(ModuleException.class, () -> this.mcav.getModule(CountingModule.class));
+
     this.mcav.install(CountingModule.class);
     final CountingModule reinstalled = this.mcav.getModule(CountingModule.class);
     final int starts = reinstalled.starts.get();
@@ -480,6 +495,7 @@ final class MCAVTest {
     assertThrows(NullPointerException.class, () -> this.mcav.whenCapabilityReady(null));
     assertThrows(NullPointerException.class, () -> this.mcav.install((Class<?>[]) null));
     assertThrows(NullPointerException.class, () -> this.mcav.getModule(null));
+
     this.mcav.install();
     this.awaitBackgroundInstallation();
     final DependencyLoader verifiedDependencies = Mockito.verify(this.dependencies);
@@ -564,6 +580,7 @@ final class MCAVTest {
       }
       Thread.onSpinWait();
     }
+
     return false;
   }
 

@@ -51,6 +51,7 @@ public final class TemporaryUserHome implements AutoCloseable {
    */
   public static TemporaryUserHome redirectTo(final Path home) {
     Preconditions.checkNotNull(home, "Home must not be null!");
+
     final String previousHome = System.getProperty(USER_HOME);
     final String rawHome = home.toString();
     System.setProperty(USER_HOME, rawHome);

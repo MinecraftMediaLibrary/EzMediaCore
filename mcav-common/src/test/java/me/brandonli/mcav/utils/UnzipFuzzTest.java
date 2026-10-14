@@ -82,13 +82,16 @@ final class UnzipFuzzTest {
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       // a broken or unsafe archive; what matters is where anything was written
     }
+
     final List<Path> after = listTree(scope);
     final Stream<Path> created = after.stream();
     final Stream<Path> escaped = created.filter(path -> !before.contains(path) && !path.startsWith(destination));
     final List<Path> outside = escaped.toList();
     assertEquals(List.of(), outside, "something was written outside the destination");
+
     final boolean survived = after.containsAll(before);
     assertTrue(survived, "preexisting paths survive extraction");
+
     final byte[] archiveAfter = Files.readAllBytes(archive);
     assertArrayEquals(archiveBytes, archiveAfter, "extraction preserves the original archive");
   }
@@ -114,6 +117,7 @@ final class UnzipFuzzTest {
           if (failure != null) {
             throw failure;
           }
+
           Files.delete(visited);
           return FileVisitResult.CONTINUE;
         }

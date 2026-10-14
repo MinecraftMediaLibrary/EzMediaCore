@@ -79,6 +79,7 @@ public final class Images {
       final int color = random.nextInt(RGB_RANGE);
       pixels[index] = OPAQUE | color;
     }
+
     return ImageBuffer.buffer(pixels, width, height);
   }
 
@@ -109,6 +110,7 @@ public final class Images {
     for (int index = 0; index < count; index++) {
       pixels[index] = OPAQUE | index;
     }
+
     return pixels;
   }
 
@@ -123,6 +125,7 @@ public final class Images {
   public static byte[] encode(final BufferedImage image, final String format) {
     Preconditions.checkNotNull(image, "Image must not be null!");
     Preconditions.checkNotNull(format, "Format must not be null!");
+
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       final boolean written = ImageIO.write(image, format, output);
       Preconditions.checkArgument(written, "Format %s cannot be written by ImageIO!", format);
@@ -144,6 +147,7 @@ public final class Images {
   public static byte[] animatedGif(final int width, final int height, final int delayInHundredths, final int... colors) {
     checkDimensions(width, height);
     Preconditions.checkNotNull(colors, "Colors must not be null!");
+
     final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("gif");
     final ImageWriter writer = writers.next();
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
@@ -183,6 +187,7 @@ public final class Images {
         frame.setRGB(column, row, color);
       }
     }
+
     return frame;
   }
 
@@ -210,6 +215,7 @@ public final class Images {
         return child;
       }
     }
+
     final IIOMetadataNode created = new IIOMetadataNode(GRAPHIC_CONTROL_EXTENSION);
     root.appendChild(created);
     return created;

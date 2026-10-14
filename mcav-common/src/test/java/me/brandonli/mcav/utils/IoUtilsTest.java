@@ -197,6 +197,7 @@ final class IoUtilsTest {
         zip.closeEntry();
       }
     }
+
     return archive;
   }
 
@@ -218,6 +219,7 @@ final class IoUtilsTest {
     final int port = IoUtils.getNextFreeVncPort();
     final boolean inRange = port >= 5900 && port <= 65535;
     assertTrue(inRange);
+
     try (final ServerSocket occupied = new ServerSocket(0)) {
       final int occupiedPort = occupied.getLocalPort();
       assertThrows(UncheckedIOException.class, () -> IoUtils.findFreePort(occupiedPort, occupiedPort));
@@ -232,12 +234,15 @@ final class IoUtilsTest {
       final int occupiedPort = occupied.getLocalPort();
       found = IoUtils.findFreePort(occupiedPort, occupiedPort + 100);
     }
+
     final int probePort;
     try (final ServerSocket probe = new ServerSocket(0)) {
       probePort = probe.getLocalPort();
     }
+
     final int single = IoUtils.findFreePort(probePort, probePort);
     assertEquals(probePort, single, "a range of one port includes that port");
+
     final boolean skipped = found > firstFree && found <= firstFree + 100;
     assertTrue(skipped, "the occupied port is skipped, got " + found);
   }
@@ -311,6 +316,7 @@ final class IoUtilsTest {
       final boolean exists = Files.exists(tool);
       assertFalse(exists, "nothing is touched without POSIX permissions");
     }
+
     assertThrows(NullPointerException.class, () -> IoUtils.markExecutable(null));
   }
 
@@ -398,11 +404,13 @@ final class IoUtilsTest {
       final int read = reader.read(buffer);
       content = new String(buffer, 0, read);
     }
+
     try (final InputStream stream = IoUtils.getResourceAsInputStream(EMPTY_DOWNLOADS_RESOURCE)) {
       final byte[] bytes = stream.readAllBytes();
       final String text = new String(bytes, StandardCharsets.UTF_8);
       assertEquals(content, text);
     }
+
     assertEquals("null\n", content);
   }
 
@@ -458,6 +466,7 @@ final class IoUtilsTest {
       final Path archive = this.writeZip(name, EVIL_CONTENT);
       assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination), name);
     }
+
     final Path escaped = this.directory.resolve(ESCAPE_FILE_NAME);
     final Path sibling = this.directory.resolve(SAFE_SIBLING_DIRECTORY);
     final boolean escapedExists = Files.exists(escaped);
@@ -538,6 +547,7 @@ final class IoUtilsTest {
     final Path archive = this.writeZip(LINKED_KEPT_PATH, OVERWRITTEN_CONTENT);
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+
     final String content = Files.readString(kept);
     final boolean stillLinked = Files.isSymbolicLink(link);
     assertEquals(ORIGINAL_CONTENT, content);
@@ -555,6 +565,7 @@ final class IoUtilsTest {
     final Path archive = this.writeZip(LINKED_CREATED_ENTRY, "");
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+
     final Path escaped = outside.resolve(CREATED_DIRECTORY);
     final boolean escapedExists = Files.exists(escaped);
     assertFalse(escapedExists);
@@ -571,6 +582,7 @@ final class IoUtilsTest {
     final Path archive = this.writeZip(ENTRY_FILE_NAME, OVERWRITTEN_CONTENT);
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+
     final String content = Files.readString(kept);
     final boolean stillLinked = Files.isSymbolicLink(link);
     assertEquals(ORIGINAL_CONTENT, content);
@@ -587,6 +599,7 @@ final class IoUtilsTest {
     final Path archive = this.writeZip(ENTRY_FILE_NAME, "escaped");
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+
     final boolean outsideExists = Files.exists(outside);
     final boolean stillLinked = Files.isSymbolicLink(link);
     assertFalse(outsideExists);
@@ -652,6 +665,7 @@ final class IoUtilsTest {
     final long written = firstSize + secondSize;
     final String message = failure.getMessage();
     assertEquals(20_000, firstSize);
+
     final boolean withinTotal = written <= totalLimit;
     assertTrue(withinTotal, "bytes written across entries: " + written);
     assertEquals("Total extracted size exceeds the limit!", message);
@@ -753,6 +767,7 @@ final class IoUtilsTest {
     try (final ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
       output.setComment("archive comment");
     }
+
     final Path destination = this.directory.resolve(COMMENTED_OUTPUT_DIRECTORY);
     IoUtils.unzip(archive, destination);
     final byte[] bytes = Files.readAllBytes(archive);
@@ -761,6 +776,7 @@ final class IoUtilsTest {
     final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable cause = failure.getCause();
     assertInstanceOf(ZipException.class, cause);
+
     final String message = failure.getMessage();
     assertEquals("Zip archive %s is truncated!".formatted(truncated), message);
   }
@@ -771,6 +787,7 @@ final class IoUtilsTest {
     try (final ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
       output.setComment(FILLER_CHARACTER.repeat(300));
     }
+
     final byte[] bytes = Files.readAllBytes(archive);
     final Path truncated = this.directory.resolve(LONG_COMMENT_TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
@@ -791,6 +808,7 @@ final class IoUtilsTest {
     try (final Stream<Path> files = Files.list(destination)) {
       entries = files.count();
     }
+
     assertTrue(created);
     assertEquals(0, entries);
   }

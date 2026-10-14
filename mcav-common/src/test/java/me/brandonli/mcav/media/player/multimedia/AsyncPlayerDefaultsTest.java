@@ -71,6 +71,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
@@ -86,6 +87,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
@@ -102,6 +104,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertResult(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(video, audio);
   }
 
@@ -118,6 +121,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertFailure(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(video, audio);
   }
 
@@ -133,6 +137,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertResult(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).seek(position);
   }
 
@@ -148,6 +153,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertFailure(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).seek(position);
   }
 
@@ -163,6 +169,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
@@ -178,6 +185,7 @@ final class AsyncPlayerDefaultsTest {
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }
+
     verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 }

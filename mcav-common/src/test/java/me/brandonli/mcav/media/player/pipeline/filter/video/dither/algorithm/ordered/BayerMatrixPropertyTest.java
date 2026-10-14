@@ -56,6 +56,7 @@ final class BayerMatrixPropertyTest {
       threshold += pattern * weight;
       weight *= 4;
     }
+
     return threshold;
   }
 
@@ -66,6 +67,7 @@ final class BayerMatrixPropertyTest {
     final boolean[] seen = new boolean[size * size];
 
     assertEquals(size, matrix.length, "rows");
+
     for (int row = 0; row < size; row++) {
       final int columnCount = matrix[row].length;
       assertEquals(size, columnCount, "columns");
@@ -106,6 +108,7 @@ final class BayerMatrixPropertyTest {
     final int[][] entries = constant.toArray();
 
     assertEquals(size * size, maximum, "the level count of the constant");
+
     for (int row = 0; row < size; row++) {
       final int[] expected = new int[size];
       for (int column = 0; column < size; column++) {

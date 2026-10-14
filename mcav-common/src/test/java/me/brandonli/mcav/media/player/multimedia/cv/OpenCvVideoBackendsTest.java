@@ -101,6 +101,7 @@ final class OpenCvVideoBackendsTest {
     } finally {
       System.setErr(standardError);
     }
+
     final String log = captured.toString(StandardCharsets.UTF_8);
 
     final boolean explained = log.contains("files are read with the FFmpeg reader of JavaCV instead");
@@ -169,6 +170,7 @@ final class OpenCvVideoBackendsTest {
     try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, true)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
+
     try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, false)) {
       assertInstanceOf(FFmpegFrameGrabber.class, fallback, "a build without a file backend reads the file with FFmpeg");
     }

@@ -36,6 +36,7 @@ final class DiffusionKernelTest {
     for (int tap = 0; tap < taps; tap++) {
       sum += kernel.getWeight(tap);
     }
+
     return sum;
   }
 

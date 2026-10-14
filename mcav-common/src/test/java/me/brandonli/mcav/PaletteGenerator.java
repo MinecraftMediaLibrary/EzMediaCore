@@ -42,6 +42,7 @@ public final class PaletteGenerator {
       final int color = colors[index];
       image.setRGB(column, row, color);
     }
+
     final File file = new File(OUTPUT);
     ImageIO.write(image, "png", file);
   }

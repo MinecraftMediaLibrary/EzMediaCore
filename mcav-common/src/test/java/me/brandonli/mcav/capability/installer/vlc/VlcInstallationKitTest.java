@@ -134,6 +134,7 @@ final class VlcInstallationKitTest {
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
     final IOException thrown = assertThrows(IOException.class, kit::start);
     assertSame(failure, thrown);
+
     final Optional<Path> retried = kit.start();
     final Optional<Path> expected = Optional.of(INSTALLED_DIRECTORY);
     assertEquals(expected, retried);
@@ -259,6 +260,7 @@ final class VlcInstallationKitTest {
     } finally {
       System.setErr(original);
     }
+
     return captured.toString(StandardCharsets.UTF_8);
   }
 }

@@ -110,6 +110,7 @@ final class RandomAndNearestDitherTest {
     final byte[] secondIndices = dither(second, pixels, NOISE_IMAGE_WIDTH);
     final double ratio = DitherTestImages.whiteRatio(firstIndices);
     assertArrayEquals(firstIndices, secondIndices);
+
     final boolean halfWhite = ratio > 0.4 && ratio < 0.6;
     assertTrue(halfWhite, "ratio " + ratio);
   }
@@ -251,10 +252,13 @@ final class RandomAndNearestDitherTest {
     final byte[] indices = dither(nearest, pixels, WIDE_IMAGE_WIDTH);
     final byte firstIndex = indices[0];
     assertEquals(0, firstIndex);
+
     final byte darkerIndex = indices[63];
     assertEquals(0, darkerIndex, "126 is darker than the middle between black and white");
+
     final byte brighterIndex = indices[64];
     assertEquals(1, brighterIndex, "128 is brighter than the middle");
+
     final byte lastIndex = indices[127];
     assertEquals(1, lastIndex);
   }
@@ -314,10 +318,12 @@ final class RandomAndNearestDitherTest {
     } finally {
       pool.shutdownNow();
     }
+
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null));
     final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> nearest.ditherIntoBytes(null, pool));
     final String message = missingImage.getMessage();
     assertEquals("Image must not be null!", message);
+
     final String parallelMessage = missingParallelImage.getMessage();
     assertEquals("Image must not be null!", parallelMessage);
   }
@@ -362,6 +368,7 @@ final class RandomAndNearestDitherTest {
 
     final boolean sameSequence = Arrays.equals(firstSequence, otherSequence);
     assertFalse(sameSequence, "different seeds differ at the same positions");
+
     final int firstNext = first.nextInt(0, Integer.MAX_VALUE);
     final int otherNext = other.nextInt(0, Integer.MAX_VALUE);
     assertNotEquals(firstNext, otherNext, "another seed produces another sequence");
@@ -387,6 +394,7 @@ final class RandomAndNearestDitherTest {
       sawTrue |= drawn;
       sawFalse |= !drawn;
     }
+
     final boolean reachedEveryOutcome = sawMinimum && sawMaximum && sawTrue && sawFalse;
     assertTrue(reachedEveryOutcome);
   }

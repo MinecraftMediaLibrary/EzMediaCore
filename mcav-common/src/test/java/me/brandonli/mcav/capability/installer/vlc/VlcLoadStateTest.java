@@ -89,6 +89,7 @@ final class VlcLoadStateTest {
       })
     );
     assertSame(failure, thrown);
+
     final Optional<Path> retried = state.loadOnce(() -> Optional.of(LIBRARY_DIRECTORY));
     final Optional<Path> expected = Optional.of(LIBRARY_DIRECTORY);
     assertEquals(expected, retried);
@@ -181,6 +182,7 @@ final class VlcLoadStateTest {
       Thread.onSpinWait();
       now = System.nanoTime();
     }
+
     return false;
   }
 
@@ -189,6 +191,7 @@ final class VlcLoadStateTest {
     if (thread == null) {
       return false;
     }
+
     final Thread.State state = thread.getState();
     return state == Thread.State.BLOCKED;
   }

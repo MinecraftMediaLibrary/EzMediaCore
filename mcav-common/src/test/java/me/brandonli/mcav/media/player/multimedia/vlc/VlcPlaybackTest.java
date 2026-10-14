@@ -164,6 +164,7 @@ final class VlcPlaybackTest {
     this.synchronize(playback);
     final ControlsApi controls = this.videoControls();
     verify(controls).setRate(0.97f);
+
     playback.stop();
   }
 
@@ -174,6 +175,7 @@ final class VlcPlaybackTest {
     final ControlsApi controls = this.videoControls();
     verify(controls).setTime(AUDIO_TIME_MILLISECONDS);
     verify(controls).setRate(NORMAL_RATE);
+
     playback.stop();
   }
 
@@ -190,6 +192,7 @@ final class VlcPlaybackTest {
     final ControlsApi controls = this.videoControls();
     verify(controls, never()).setRate(anyFloat());
     verify(controls, never()).setTime(anyLong());
+
     playback.stop();
   }
 
@@ -205,6 +208,7 @@ final class VlcPlaybackTest {
     final List<Throwable> expectedErrors = List.of(failure);
     assertEquals(expectedMessages, this.messages);
     assertEquals(expectedErrors, this.errors);
+
     playback.stop();
   }
 
@@ -236,12 +240,14 @@ final class VlcPlaybackTest {
       verify(controls, times(1)).stop();
       verify(mediaPlayer, times(1)).release();
     }
+
     verify(factory, times(1)).release();
 
     final int referencesAfterStop = shared.getReferences();
     assertTrue(started);
     assertEquals(1, referencesWhilePlaying);
     assertEquals(0, referencesAfterStop);
+
     awaitNoPlaybackThreads();
   }
 
@@ -268,10 +274,13 @@ final class VlcPlaybackTest {
     final Class<? extends Throwable> failureType = failure.getClass();
     final Throwable thrown = assertThrows(failureType, playback::stop);
     assertSame(failure, thrown);
+
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(1, suppressed.length);
+
     final Throwable firstSuppressed = suppressed[0];
     assertSame(releaseFailure, firstSuppressed);
+
     playback.stop();
 
     final List<MockVlc.Player> players = this.vlc.getPlayers();
@@ -281,10 +290,12 @@ final class VlcPlaybackTest {
       verify(playerControls, times(1)).stop();
       verify(mediaPlayer, times(1)).release();
     }
+
     final SharedMediaPlayerFactory shared = this.vlc.getSharedFactory();
     final int references = shared.getReferences();
     assertTrue(started);
     assertEquals(0, references);
+
     awaitNoPlaybackThreads();
   }
 
@@ -301,6 +312,7 @@ final class VlcPlaybackTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertSame(failure, thrown);
     assertEquals(0, suppressed.length);
+
     final SharedMediaPlayerFactory shared = this.vlc.getSharedFactory();
     final int references = shared.getReferences();
     assertEquals(0, references);
@@ -349,6 +361,7 @@ final class VlcPlaybackTest {
     } finally {
       playback.stop();
     }
+
     awaitNoPlaybackThreads();
   }
 
@@ -369,6 +382,7 @@ final class VlcPlaybackTest {
     } finally {
       playback.stop();
     }
+
     awaitNoPlaybackThreads();
   }
 
@@ -381,6 +395,7 @@ final class VlcPlaybackTest {
         return true;
       }
     }
+
     return false;
   }
 
@@ -392,6 +407,7 @@ final class VlcPlaybackTest {
         alive.add(name);
       }
     }
+
     return alive;
   }
 

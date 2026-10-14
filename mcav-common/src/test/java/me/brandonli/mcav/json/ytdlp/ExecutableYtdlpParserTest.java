@@ -144,8 +144,10 @@ final class ExecutableYtdlpParserTest {
     assertEquals("dQw4w9WgXcQ", dump.id);
     assertEquals("Example Video", dump.title);
     assertNotNull(formats);
+
     final int formatsCount = formats.size();
     assertEquals(3, formatsCount);
+
     final CommandTask verifiedTask = Mockito.verify(task);
     verifiedTask.run(TIMEOUT);
   }
@@ -175,12 +177,15 @@ final class ExecutableYtdlpParserTest {
     assertNotNull(actual);
     assertEquals("many", dump.id);
     assertEquals(21, actual.length);
+
     for (int index = 0; index < options.length; index++) {
       final String option = actual[7 + index];
       assertEquals(options[index], option);
     }
+
     final String separator = actual[19];
     assertEquals(END_OF_OPTIONS, separator);
+
     final String url = actual[20];
     assertEquals(URL, url);
   }
@@ -361,6 +366,7 @@ final class ExecutableYtdlpParserTest {
     assertThrows(NullPointerException.class, () -> parser.parse(null));
     assertThrows(NullPointerException.class, () -> parser.parse(source, (String[]) null));
     assertThrows(NullPointerException.class, () -> parser.parse(source, COOKIES_FROM_BROWSER_OPTION, null));
+
     final boolean installed = located.get();
     assertFalse(installed);
   }
@@ -434,6 +440,7 @@ final class ExecutableYtdlpParserTest {
       assertTrue(namesTheUrl, message);
       assertTrue(namesTheOption, message);
     }
+
     final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
     verifiedInstaller.download(true);
   }
@@ -456,6 +463,7 @@ final class ExecutableYtdlpParserTest {
     } finally {
       guard.forget(Capability.YT_DLP);
     }
+
     Mockito.verifyNoInteractions(installer);
   }
 }

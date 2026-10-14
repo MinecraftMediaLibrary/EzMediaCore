@@ -104,9 +104,11 @@ final class MockVlc {
     if (failure instanceof final RuntimeException runtimeException) {
       throw runtimeException;
     }
+
     if (failure instanceof final Error error) {
       throw error;
     }
+
     return this.factory;
   }
 
@@ -121,10 +123,12 @@ final class MockVlc {
         throw exception;
       }
     }
+
     final Outcome outcome;
     synchronized (this.outcomes) {
       outcome = this.outcomes.isEmpty() ? Outcome.PLAYING : this.outcomes.poll();
     }
+
     final Player created = new Player(outcome);
     this.players.add(created);
     return created.getPlayer();
@@ -187,12 +191,14 @@ final class MockVlc {
   BufferFormatCallback getFormatCallback() {
     final BufferFormatCallback callback = this.formatCallback.get();
     assertNotNull(callback, "no video surface was created");
+
     return callback;
   }
 
   RenderCallback getRenderCallback() {
     final RenderCallback callback = this.renderCallback.get();
     assertNotNull(callback, "no video surface was created");
+
     return callback;
   }
 
@@ -364,6 +370,7 @@ final class MockVlc {
     AudioCallback getAudioCallback() {
       final AudioCallback callback = this.audioCallback.get();
       assertNotNull(callback, "no audio callback was installed");
+
       return callback;
     }
 

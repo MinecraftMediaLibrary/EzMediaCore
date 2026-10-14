@@ -73,6 +73,7 @@ final class PlaybackSessionFailureTest {
     if (failure instanceof final Error error) {
       throw error;
     }
+
     throw (RuntimeException) failure;
   }
 
@@ -259,6 +260,7 @@ final class PlaybackSessionFailureTest {
     assertTrue(closed);
     assertFalse(active);
     assertEquals(1, suppressed.length);
+
     final Throwable suppressedCleanup = suppressed[0];
     assertSame(cleanup, suppressedCleanup);
     assertThrows(IllegalStateException.class, playback::startThreads);
@@ -341,6 +343,7 @@ final class PlaybackSessionFailureTest {
       });
       pictures.attach(pipeline);
     }
+
     final PlaybackSession playback = new PlaybackSession(
       () -> grabber,
       null,
@@ -468,6 +471,7 @@ final class PlaybackSessionFailureTest {
       frames.add(ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS));
       frames.add(ScriptedFrameGrabber.audio(index * FRAME_INTERVAL_MICROSECONDS));
     }
+
     final ScriptedFrameGrabber video = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
     final AudioAttachableCallback sound = AudioAttachableCallback.create();
@@ -487,6 +491,7 @@ final class PlaybackSessionFailureTest {
       });
       pictures.attach(pipeline);
     }
+
     final PlaybackSession playback = new PlaybackSession(
       () -> video,
       null,
@@ -525,6 +530,7 @@ final class PlaybackSessionFailureTest {
       final Object frame = ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS);
       frames.add(frame);
     }
+
     final ScriptedFrameGrabber real = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
     final ScriptedFrameGrabber video = spy(real);
     final AtomicReference<Thread> decoder = new AtomicReference<>();

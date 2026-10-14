@@ -50,6 +50,7 @@ final class ExampleResources implements AutoCloseable {
         return;
       }
     }
+
     // Shutdown may race a just-completed acquisition; never leave that new resource without an owner.
     release.run();
     throw new IllegalStateException("The example has already closed!");
@@ -72,6 +73,7 @@ final class ExampleResources implements AutoCloseable {
         wait = false;
       }
     }
+
     if (pending == null) {
       if (wait) {
         // A shutdown hook must not finish while another thread is still releasing native resources.
@@ -79,6 +81,7 @@ final class ExampleResources implements AutoCloseable {
       }
       return;
     }
+
     try {
       releaseAll(pending);
     } finally {
@@ -106,9 +109,11 @@ final class ExampleResources implements AutoCloseable {
         }
       }
     }
+
     if (first instanceof Error error) {
       throw error;
     }
+
     if (first instanceof RuntimeException exception) {
       throw exception;
     }

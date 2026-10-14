@@ -151,6 +151,7 @@ public final class TestMedia {
    */
   public static synchronized Path audio(final double seconds) {
     Preconditions.checkArgument(seconds > 0, "Seconds %s must be positive!", seconds);
+
     final String length = String.valueOf(seconds);
     final String fileName = AUDIO_FILE_PREFIX + length + AUDIO_FILE_EXTENSION;
     final String arguments = SINE_INPUT + "880 -t " + length + " -c:a aac -ac 2";

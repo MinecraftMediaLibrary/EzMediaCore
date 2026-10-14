@@ -49,6 +49,7 @@ final class ReusableMatTest {
     final Mat second = reusable.borrow();
     assertTrue(kept);
     assertSame(first, second, "a matrix handed back is lent again instead of allocating a new one");
+
     reusable.giveBack(second);
   }
 
@@ -66,6 +67,7 @@ final class ReusableMatTest {
     assertFalse(secondKept);
     assertTrue(secondFreed, "a matrix that is not kept is freed right away");
     assertSame(first, next);
+
     reusable.giveBack(next);
   }
 
@@ -104,6 +106,7 @@ final class ReusableMatTest {
       }
       reusable.giveBack(matrix);
     }
+
     return foreignWrites;
   }
 }

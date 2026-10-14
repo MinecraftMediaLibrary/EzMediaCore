@@ -37,6 +37,7 @@ final class VolumeFilterTest {
     for (final short value : values) {
       buffer.putShort(value);
     }
+
     return buffer.flip();
   }
 
@@ -46,6 +47,7 @@ final class VolumeFilterTest {
     for (int sampleIndex = 0; sampleIndex < values.length; sampleIndex++) {
       values[sampleIndex] = view.getShort();
     }
+
     return values;
   }
 
@@ -54,9 +56,11 @@ final class VolumeFilterTest {
     final VolumeFilter filter = new VolumeFilter();
     final double volume = filter.getVolume();
     assertEquals(VolumeFilter.UNCHANGED, volume);
+
     final ByteBuffer buffer = samples((short) 100, (short) -7);
     final boolean changed = filter.applyFilter(buffer, METADATA);
     assertFalse(changed);
+
     final short[] values = read(buffer);
     assertArrayEquals(new short[] { 100, -7 }, values);
   }
@@ -68,13 +72,17 @@ final class VolumeFilterTest {
     final ByteBuffer buffer = samples((short) 100, (short) -7, (short) 3, (short) 0);
     final boolean halved = filter.applyFilter(buffer, METADATA);
     assertTrue(halved);
+
     final short[] halvedValues = read(buffer);
     assertArrayEquals(new short[] { 50, -3, 2, 0 }, halvedValues);
+
     final int position = buffer.position();
     assertEquals(0, position);
+
     filter.setVolume(0);
     final boolean silenced = filter.applyFilter(buffer, METADATA);
     assertTrue(silenced);
+
     final short[] silencedValues = read(buffer);
     assertArrayEquals(new short[] { 0, 0, 0, 0 }, silencedValues);
   }
@@ -103,12 +111,16 @@ final class VolumeFilterTest {
     filter.applyFilter(buffer, METADATA);
     final short beforePosition = buffer.getShort(0);
     assertEquals(5, beforePosition);
+
     final short firstScaled = buffer.getShort(2);
     assertEquals(12, firstScaled);
+
     final short secondScaled = buffer.getShort(4);
     assertEquals(14, secondScaled);
+
     final byte oddByte = buffer.get(6);
     assertEquals(9, oddByte);
+
     final int position = buffer.position();
     assertEquals(2, position);
   }
@@ -119,6 +131,7 @@ final class VolumeFilterTest {
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(-0.01));
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(VolumeFilter.MAXIMUM_VOLUME + 0.01));
     assertThrows(IllegalArgumentException.class, () -> filter.setVolume(Double.NaN));
+
     filter.setVolume(VolumeFilter.MAXIMUM_VOLUME);
     final double volume = filter.getVolume();
     assertEquals(VolumeFilter.MAXIMUM_VOLUME, volume);

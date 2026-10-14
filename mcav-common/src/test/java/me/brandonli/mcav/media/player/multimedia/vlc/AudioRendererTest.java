@@ -251,6 +251,7 @@ final class AudioRendererTest {
     for (short chunk = 1; chunk <= 70; chunk++) {
       this.play(chunk, chunk);
     }
+
     proceed.countDown();
     awaitSize(received, 65);
 
@@ -259,6 +260,7 @@ final class AudioRendererTest {
     for (short chunk = 7; chunk <= 70; chunk++) {
       expected.add(chunk);
     }
+
     assertEquals(expected, received, "the 64 newest chunks are kept");
   }
 

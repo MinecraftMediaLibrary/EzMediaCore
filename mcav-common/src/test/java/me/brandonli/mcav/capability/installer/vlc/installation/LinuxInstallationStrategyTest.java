@@ -81,6 +81,7 @@ final class LinuxInstallationStrategyTest {
     assertEquals(expected, libraryDirectory);
     assertEquals(expectedCommands, commands);
     assertEquals(expectedWorkingDirectories, workingDirectories);
+
     this.assertArchiveAndExtractionAreGone(archive);
 
     final Optional<Path> installed = strategy.getInstalledPath();

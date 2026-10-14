@@ -236,6 +236,7 @@ final class SourceUtilsTest {
       final boolean live = SourceUtils.isDynamicStream(LIVE_URL);
       assertFalse(live, "yt-dlp that cannot be installed reports no live stream");
     }
+
     final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
     verifiedInstaller.download(true);
     assertThrows(NullPointerException.class, () -> SourceUtils.isDynamicStream(null));

@@ -173,6 +173,7 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   @Override
   public void setTimestamp(final long timestamp) throws FrameGrabber.Exception {
     this.requestedTimestamp.set(timestamp);
+
     if (this.failOnSeek) {
       throw new FrameGrabber.Exception("seek failed on purpose");
     }

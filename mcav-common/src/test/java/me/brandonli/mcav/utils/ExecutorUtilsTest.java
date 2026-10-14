@@ -109,6 +109,7 @@ final class ExecutorUtilsTest {
     final Duration timeout = Duration.ofSeconds(1);
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null));
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null, timeout));
+
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(executor, null));
     }

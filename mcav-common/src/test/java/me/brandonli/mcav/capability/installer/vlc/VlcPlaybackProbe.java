@@ -99,9 +99,11 @@ final class VlcPlaybackProbe {
     System.out.println("step: releasing, frames " + frames.get() + ", audio bytes " + audioBytes.get());
     final boolean released = player.release();
     System.out.println("started " + started + ", frames " + frames.get() + ", audio bytes " + audioBytes.get() + ", released " + released);
+
     if (!played || !released) {
       System.exit(1);
     }
+
     System.out.println(PASSED);
     System.exit(0);
   }
@@ -117,6 +119,7 @@ final class VlcPlaybackProbe {
     } catch (final InterruptedException exception) {
       return;
     }
+
     System.out.println("probe stuck after " + STUCK.toMinutes() + " minutes; its threads:");
     for (final Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
       final Thread thread = entry.getKey();
@@ -125,16 +128,19 @@ final class VlcPlaybackProbe {
         System.out.println("    at " + element);
       }
     }
+
     System.exit(STUCK_EXIT);
   }
 
   private static boolean countFrame(final AtomicInteger frames) {
     frames.incrementAndGet();
+
     return false;
   }
 
   private static boolean countSamples(final AtomicLong audioBytes, final ByteBuffer samples) {
     audioBytes.addAndGet(samples.remaining());
+
     return false;
   }
 

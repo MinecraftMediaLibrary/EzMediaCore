@@ -204,6 +204,7 @@ final class ErrorRowsTest {
     rows.diffuse(0, 0, 1, 100, -100, 1);
     final int amplifiedColor = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(0xFF00FF, amplifiedColor);
+
     rows.diffuse(0, 0, 1, -100, 100, -1);
     final int cancelledColor = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(GRAY, cancelledColor, "opposing errors cancel before clamping");
@@ -219,6 +220,7 @@ final class ErrorRowsTest {
     rows.diffuse(0, 0, 1, 2, -2, 2);
     final int accumulatedColor = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(0xFF00FF, accumulatedColor);
+
     rows.finishRow(0);
     final int nextRowColor = rows.applyPendingError(GRAY, 1, 1);
     assertEquals(GRAY, nextRowColor);

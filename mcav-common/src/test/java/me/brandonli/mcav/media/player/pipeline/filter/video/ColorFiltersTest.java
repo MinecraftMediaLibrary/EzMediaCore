@@ -167,6 +167,7 @@ final class ColorFiltersTest {
     final int sameSize = tintedBlue(filter, 3, 3);
     final Object reused = idle.get();
     assertSame(kept, reused, "a stable frame size reuses the cached tint matrix");
+
     final int otherWidth = tintedBlue(filter, 2, 3);
     final int otherHeight = tintedBlue(filter, 2, 2);
     final int grayLevel;
@@ -175,17 +176,23 @@ final class ColorFiltersTest {
       final ByteBuffer levels = gray.createBuffer();
       grayLevel = levels.get(0) & CHANNEL_MASK;
     }
+
     final int afterGray = tintedBlue(filter, 2, 2);
     final boolean firstHalf = isHalf(first);
     assertTrue(firstHalf, "first " + first);
+
     final boolean sameSizeHalf = isHalf(sameSize);
     assertTrue(sameSizeHalf, "the kept color is reused " + sameSize);
+
     final boolean otherWidthHalf = isHalf(otherWidth);
     assertTrue(otherWidthHalf, "another width " + otherWidth);
+
     final boolean otherHeightHalf = isHalf(otherHeight);
     assertTrue(otherHeightHalf, "another height " + otherHeight);
+
     final boolean grayHalf = isHalf(grayLevel);
     assertTrue(grayHalf, "a single channel is tinted with the first component " + grayLevel);
+
     final boolean afterGrayHalf = isHalf(afterGray);
     assertTrue(afterGrayHalf, "and the next color frame gets three channels again " + afterGray);
   }
@@ -315,6 +322,7 @@ final class ColorFiltersTest {
       final int height = image.getHeight();
       assertEquals(SOLID_SIDE, height);
     }
+
     try (
       final ImageBuffer tall = Images.solid(SOLID_SIDE, 4, WHITE);
       final ImageBuffer image = Images.solid(SOLID_SIDE, SOLID_SIDE, BLACK)
@@ -404,6 +412,7 @@ final class ColorFiltersTest {
     final BlurFilter simple = new BlurFilter(BlurFilter.BlurType.NORMAL, KERNEL_SIZE);
     final int blurred = applyToSolid(simple, SAMPLE_COLOR);
     assertEquals(SAMPLE_COLOR, blurred);
+
     final BlurFilter evenBox = new BlurFilter(BlurFilter.BlurType.NORMAL, 2);
     final int evenBlurred = applyToSolid(evenBox, SAMPLE_COLOR);
     assertEquals(SAMPLE_COLOR, evenBlurred, "the box blur accepts even kernels, as OpenCV does");
@@ -428,6 +437,7 @@ final class ColorFiltersTest {
       assertEquals(WHITE, neighbor);
       assertEquals(BLACK, corner);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new DilationFilter(0));
   }
 
@@ -443,6 +453,7 @@ final class ColorFiltersTest {
       assertEquals(BLACK, neighbor);
       assertEquals(WHITE, corner);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new ErosionFilter(0));
   }
 }
