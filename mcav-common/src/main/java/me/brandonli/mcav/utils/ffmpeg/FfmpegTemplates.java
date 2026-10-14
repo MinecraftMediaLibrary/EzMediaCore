@@ -56,7 +56,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(codec, "Codec must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument(NO_VIDEO_FLAG);
     builder.addArguments(STRICTNESS_FLAG, EXPERIMENTAL_STRICTNESS);
@@ -80,7 +80,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument(NO_VIDEO_FLAG);
     builder.addArguments(STRICTNESS_FLAG, EXPERIMENTAL_STRICTNESS);
@@ -107,7 +107,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(videoBitrate, "Video bitrate must not be null!");
     Preconditions.checkNotNull(audioBitrate, "Audio bitrate must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec(H264_CODEC);
     builder.addBitrate(videoBitrate);
@@ -134,7 +134,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(startTime, "Start time must not be null!");
     Preconditions.checkNotNull(duration, "Duration must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addArguments(SEEK_FLAG, startTime);
     builder.addInput(input);
     builder.addArguments("-t", duration);
@@ -159,7 +159,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(timePosition, "Time position must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addArguments(SEEK_FLAG, timePosition);
     builder.addInput(input);
     builder.addArguments("-frames:v", SINGLE_FRAME);
@@ -180,7 +180,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
 
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec(COPY_CODEC);
     builder.addAudioCodec(COPY_CODEC);

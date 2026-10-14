@@ -60,7 +60,7 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldEmitTheExecutableFromAnEmptyBuilder() {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     final FfmpegCommand command = builder.build();
     final Path executable = command.getExecutable();
     final String expected = executable.toString();
@@ -70,8 +70,8 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldAddEveryArgumentInOrderInTheBuilder() {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    final FfmpegCommand.Builder returned = builder.addInput(INPUT_FILE_NAME);
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder returned = builder.addInput(INPUT_FILE_NAME);
     builder.addVideoCodec(VIDEO_CODEC);
     builder.addAudioCodec(AUDIO_CODEC);
     builder.addBitrate(VIDEO_BITRATE);
@@ -114,19 +114,19 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldReturnTheSameBuilderFromEveryBuilderMethod() {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    final FfmpegCommand.Builder afterInput = builder.addInput(INPUT_FILE_NAME);
-    final FfmpegCommand.Builder afterOutput = builder.addOutput(OUTPUT_FILE_NAME);
-    final FfmpegCommand.Builder afterVideoCodec = builder.addVideoCodec(VIDEO_CODEC);
-    final FfmpegCommand.Builder afterAudioCodec = builder.addAudioCodec(AUDIO_CODEC);
-    final FfmpegCommand.Builder afterBitrate = builder.addBitrate(VIDEO_BITRATE);
-    final FfmpegCommand.Builder afterAudioBitrate = builder.addAudioBitrate(AUDIO_BITRATE);
-    final FfmpegCommand.Builder afterFramerate = builder.addFramerate(FRAME_RATE);
-    final FfmpegCommand.Builder afterResolution = builder.addResolution(WIDTH, HEIGHT);
-    final FfmpegCommand.Builder afterOverwrite = builder.addOverwrite();
-    final FfmpegCommand.Builder afterFilter = builder.addFilter(FILTER);
-    final FfmpegCommand.Builder afterArgument = builder.addArgument(NO_AUDIO_ARGUMENT);
-    final FfmpegCommand.Builder afterArguments = builder.addArguments(DURATION_ARGUMENT, DURATION_SECONDS);
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder afterInput = builder.addInput(INPUT_FILE_NAME);
+    final FfmpegCommandBuilder afterOutput = builder.addOutput(OUTPUT_FILE_NAME);
+    final FfmpegCommandBuilder afterVideoCodec = builder.addVideoCodec(VIDEO_CODEC);
+    final FfmpegCommandBuilder afterAudioCodec = builder.addAudioCodec(AUDIO_CODEC);
+    final FfmpegCommandBuilder afterBitrate = builder.addBitrate(VIDEO_BITRATE);
+    final FfmpegCommandBuilder afterAudioBitrate = builder.addAudioBitrate(AUDIO_BITRATE);
+    final FfmpegCommandBuilder afterFramerate = builder.addFramerate(FRAME_RATE);
+    final FfmpegCommandBuilder afterResolution = builder.addResolution(WIDTH, HEIGHT);
+    final FfmpegCommandBuilder afterOverwrite = builder.addOverwrite();
+    final FfmpegCommandBuilder afterFilter = builder.addFilter(FILTER);
+    final FfmpegCommandBuilder afterArgument = builder.addArgument(NO_AUDIO_ARGUMENT);
+    final FfmpegCommandBuilder afterArguments = builder.addArguments(DURATION_ARGUMENT, DURATION_SECONDS);
     assertSame(builder, afterInput);
     assertSame(builder, afterOutput);
     assertSame(builder, afterVideoCodec);
@@ -143,7 +143,7 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldStartTheCommandWithTheBundledExecutable() throws IOException {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addArgument(VERSION_ARGUMENT);
     final FfmpegCommand command = builder.build();
     final Path executable = command.getExecutable();
@@ -165,7 +165,7 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldCommandAreImmutable() {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     builder.addArgument(VERSION_ARGUMENT);
     final FfmpegCommand command = builder.build();
     builder.addArgument("-h");
@@ -177,7 +177,7 @@ final class FfmpegCommandTest {
 
   @Test
   void shouldRejectInvalidArgumentsInTheBuilder() {
-    final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+    final FfmpegCommandBuilder builder = FfmpegCommand.builder();
     assertThrows(IllegalArgumentException.class, () -> builder.addFramerate(0));
     assertThrows(IllegalArgumentException.class, () -> builder.addResolution(0, 10));
     assertThrows(IllegalArgumentException.class, () -> builder.addResolution(10, 0));

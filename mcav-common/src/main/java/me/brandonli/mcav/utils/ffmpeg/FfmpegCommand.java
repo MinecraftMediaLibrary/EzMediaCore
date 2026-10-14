@@ -17,7 +17,6 @@
  */
 package me.brandonli.mcav.utils.ffmpeg;
 
-import com.google.common.base.Preconditions;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  * An FFmpeg command line, built with {@link #builder()} and run through the task of {@link #createTask()}.
  *
  * <pre><code>
- *   final FfmpegCommand.Builder builder = FfmpegCommand.builder();
+ *   final FfmpegCommandBuilder builder = FfmpegCommand.builder();
  *   builder.addInput("input.mp4");
  *   builder.addAudioCodec("libvorbis");
  *   builder.addOverwrite();
@@ -40,7 +39,6 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
 public final class FfmpegCommand {
 
   private static final String ARGUMENT_SEPARATOR = " ";
-  private static final String RESOLUTION_SEPARATOR = "x";
 
   private final List<String> arguments;
 
@@ -53,8 +51,8 @@ public final class FfmpegCommand {
    *
    * @return the builder
    */
-  public static Builder builder() {
-    return new Builder();
+  public static FfmpegCommandBuilder builder() {
+    return new DefaultFfmpegCommandBuilder();
   }
 
   /**
@@ -115,207 +113,5 @@ public final class FfmpegCommand {
   public String toString() {
     final String[] command = this.toCommandArray();
     return String.join(ARGUMENT_SEPARATOR, command);
-  }
-
-  /**
-   * Collects the arguments of an {@link FfmpegCommand}. Arguments are emitted in the order they are added, which
-   * matters to FFmpeg: options apply to the next input or output file. Every method returns this builder.
-   */
-  public static final class Builder {
-
-    private final List<String> arguments;
-
-    Builder() {
-      this.arguments = new ArrayList<>();
-    }
-
-    /**
-     * Adds an input file or URL ({@code -i}).
-     *
-     * @param input the input
-     * @return this builder
-     * @throws NullPointerException if {@code input} is null
-     */
-    public Builder addInput(final String input) {
-      Preconditions.checkNotNull(input, "Input must not be null!");
-
-      this.arguments.add("-i");
-      this.arguments.add(input);
-      return this;
-    }
-
-    /**
-     * Adds an output file. Output options must be added before the output they apply to.
-     *
-     * @param output the output path
-     * @return this builder
-     * @throws NullPointerException if {@code output} is null
-     */
-    public Builder addOutput(final String output) {
-      Preconditions.checkNotNull(output, "Output must not be null!");
-
-      this.arguments.add(output);
-      return this;
-    }
-
-    /**
-     * Sets the video codec ({@code -c:v}).
-     *
-     * @param codec the codec name, or {@code copy} to keep the stream
-     * @return this builder
-     * @throws NullPointerException if {@code codec} is null
-     */
-    public Builder addVideoCodec(final String codec) {
-      Preconditions.checkNotNull(codec, "Codec must not be null!");
-
-      this.arguments.add("-c:v");
-      this.arguments.add(codec);
-      return this;
-    }
-
-    /**
-     * Sets the audio codec ({@code -c:a}).
-     *
-     * @param codec the codec name, or {@code copy} to keep the stream
-     * @return this builder
-     * @throws NullPointerException if {@code codec} is null
-     */
-    public Builder addAudioCodec(final String codec) {
-      Preconditions.checkNotNull(codec, "Codec must not be null!");
-
-      this.arguments.add("-c:a");
-      this.arguments.add(codec);
-      return this;
-    }
-
-    /**
-     * Sets the video bitrate ({@code -b:v}).
-     *
-     * @param bitrate the bitrate, such as {@code 1000k}
-     * @return this builder
-     * @throws NullPointerException if {@code bitrate} is null
-     */
-    public Builder addBitrate(final String bitrate) {
-      Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
-
-      this.arguments.add("-b:v");
-      this.arguments.add(bitrate);
-      return this;
-    }
-
-    /**
-     * Sets the audio bitrate ({@code -b:a}).
-     *
-     * @param bitrate the bitrate, such as {@code 128k}
-     * @return this builder
-     * @throws NullPointerException if {@code bitrate} is null
-     */
-    public Builder addAudioBitrate(final String bitrate) {
-      Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
-
-      this.arguments.add("-b:a");
-      this.arguments.add(bitrate);
-      return this;
-    }
-
-    /**
-     * Sets the frame rate ({@code -r}).
-     *
-     * @param framerate the frame rate in frames per second
-     * @return this builder
-     * @throws IllegalArgumentException if the frame rate is nonpositive
-     */
-    public Builder addFramerate(final int framerate) {
-      Preconditions.checkArgument(framerate > 0, "Frame rate %s must be positive!", framerate);
-
-      this.arguments.add("-r");
-      final String value = String.valueOf(framerate);
-      this.arguments.add(value);
-      return this;
-    }
-
-    /**
-     * Sets the frame size ({@code -s}).
-     *
-     * @param width  the width in pixels
-     * @param height the height in pixels
-     * @return this builder
-     * @throws IllegalArgumentException if either dimension is nonpositive
-     */
-    public Builder addResolution(final int width, final int height) {
-      Preconditions.checkArgument(width > 0 && height > 0, "Resolution %sx%s must be positive!", width, height);
-
-      this.arguments.add("-s");
-      final String size = width + RESOLUTION_SEPARATOR + height;
-      this.arguments.add(size);
-      return this;
-    }
-
-    /**
-     * Allows FFmpeg to overwrite an existing output file ({@code -y}). Without it FFmpeg waits for confirmation
-     * on the console and the task hangs.
-     * @return this builder
-     */
-    public Builder addOverwrite() {
-      this.arguments.add("-y");
-      return this;
-    }
-
-    /**
-     * Adds a filter graph ({@code -filter_complex}).
-     *
-     * @param filter the filter graph
-     * @return this builder
-     * @throws NullPointerException if {@code filter} is null
-     */
-    public Builder addFilter(final String filter) {
-      Preconditions.checkNotNull(filter, "Filter must not be null!");
-
-      this.arguments.add("-filter_complex");
-      this.arguments.add(filter);
-      return this;
-    }
-
-    /**
-     * Adds a raw argument.
-     *
-     * @param argument the argument
-     * @return this builder
-     * @throws NullPointerException if {@code argument} is null
-     */
-    public Builder addArgument(final String argument) {
-      Preconditions.checkNotNull(argument, "Argument must not be null!");
-
-      this.arguments.add(argument);
-      return this;
-    }
-
-    /**
-     * Adds raw arguments.
-     *
-     * @param rawArguments the non-null arguments in order, with no null elements; entries before a null
-     *                     elements have already been appended when validation fails
-     * @return this builder
-     * @throws NullPointerException if the array or any argument is null
-     */
-    public Builder addArguments(final String... rawArguments) {
-      Preconditions.checkNotNull(rawArguments, "Arguments must not be null!");
-
-      for (final String argument : rawArguments) {
-        Preconditions.checkNotNull(argument, "Argument must not be null!");
-        this.arguments.add(argument);
-      }
-
-      return this;
-    }
-
-    /**
-     * Builds the command.
-     *
-     * @return a new immutable snapshot; subsequent builder changes do not affect it
-     */
-    public FfmpegCommand build() {
-      return new FfmpegCommand(this.arguments);
-    }
   }
 }
