@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -70,6 +71,8 @@ import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 final class IoUtilsTest {
 
@@ -392,6 +395,23 @@ final class IoUtilsTest {
     assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(INVALID_DOWNLOADS_RESOURCE));
     assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(MISSING_DOWNLOADS_RESOURCE));
     assertThrows(NullPointerException.class, () -> IoUtils.readDownloadsFromJsonResource(null));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(
+    strings = {
+      "[null]",
+      "[{}]",
+      "[{\"url\": \"https://example.com/tool\"}]",
+      "[{\"platform\": {\"os\": \"BEOS\", \"arch\": \"X86\", \"bits\": \"BITS_64\"}, \"url\": \"https://example.com/tool\"}]",
+      "[{\"platform\": {\"os\": \"LINUX\", \"arch\": \"X86\", \"bits\": \"BITS_64\"}}]",
+      "[{\"platform\": {\"os\": \"LINUX\", \"arch\": \"X86\", \"bits\": \"BITS_64\"}, \"url\": \" \"}]",
+    }
+  )
+  void shouldRefuseIncompleteDownloads(final String json) {
+    final Reader reader = new StringReader(json);
+
+    assertThrows(IOException.class, () -> IoUtils.parseDownloads(reader));
   }
 
   @Test

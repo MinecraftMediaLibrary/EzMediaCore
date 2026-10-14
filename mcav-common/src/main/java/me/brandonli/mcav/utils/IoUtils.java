@@ -55,6 +55,7 @@ import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -65,6 +66,10 @@ import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
+import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Bits;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -527,31 +532,39 @@ public final class IoUtils {
    *
    * @param resourcePath the full path from the classpath root, such as {@code mcav/common/installers/yt-dlp.json}
    * @return the downloads described by the resource
-   * @throws UncheckedIOException if the resource is missing or not valid JSON
+   * @throws UncheckedIOException if the resource is missing, is not valid JSON, or lists a download without a platform or URL
    * @throws NullPointerException if {@code resourcePath} is null
    * @since 1.0.0
    */
   public static Download[] readDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
 
-    final Download[] downloads;
     try (final Reader reader = getResourceAsStreamReader(resourcePath)) {
-      downloads = parseDownloads(reader);
+      return parseDownloads(reader);
     } catch (final IOException exception) {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
     }
+  }
 
-    if (downloads == null) {
+  // Parses a download list. Malformed JSON is reported as an IOException, because a resource that cannot be parsed is
+  // an I/O failure of that resource, and UncheckedIOException can only wrap an IOException.
+  @VisibleForTesting
+  static Download[] parseDownloads(final Reader reader) throws IOException {
+    final Download @Nullable [] parsed = readDownloadArray(reader);
+    if (parsed == null) {
       return new Download[0];
+    }
+
+    final Download[] downloads = new Download[parsed.length];
+    for (int index = 0; index < parsed.length; index++) {
+      downloads[index] = recheckDownload(parsed[index]);
     }
 
     return downloads;
   }
 
-  // Parses a download list. Malformed JSON is reported as an IOException, because a resource that cannot be parsed is
-  // an I/O failure of that resource, and UncheckedIOException can only wrap an IOException.
-  private static Download @Nullable [] parseDownloads(final Reader reader) throws IOException {
+  private static Download @Nullable [] readDownloadArray(final Reader reader) throws IOException {
     final Gson gson = new Gson();
     final TypeToken<Download[]> typeToken = new TypeToken<>() {};
     final Type downloadArrayType = typeToken.getType();
@@ -560,6 +573,24 @@ public final class IoUtils {
     } catch (final JsonSyntaxException exception) {
       final String message = exception.getMessage();
       throw new IOException(message, exception);
+    }
+  }
+
+  // Gson fills the fields without calling the constructors, so a null entry, a missing value or an unknown enum
+  // constant only surfaces when the constructors check the values again.
+  private static Download recheckDownload(final Download parsed) throws IOException {
+    try {
+      final Platform platform = parsed.getPlatform();
+      final Os os = platform.getOs();
+      final Arch arch = platform.getArch();
+      final Bits bits = platform.getBits();
+      final Platform checkedPlatform = Platform.ofPlatform(os, arch, bits);
+      final String url = parsed.getUrl();
+      final Optional<String> hash = parsed.getHash();
+      final @Nullable String checkedHash = hash.orElse(null);
+      return new Download(checkedPlatform, url, checkedHash);
+    } catch (final NullPointerException | IllegalArgumentException exception) {
+      throw new IOException("Download list has an incomplete download!", exception);
     }
   }
 
