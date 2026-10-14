@@ -137,21 +137,17 @@ final class OpenCvVideoBackendsTest {
     assertTrue(lastSection, "the section may be the last one, without a blank line after it");
   }
 
+  // only the first call works the answer out, so the test that asks first has to check the answer as well
   @Test
-  void shouldAnswerTheSameEveryTime() {
-    final VideoFileReader firstAnswer = OpenCvVideoBackends.chooseFileReader();
-    final VideoFileReader secondAnswer = OpenCvVideoBackends.chooseFileReader();
-    assertSame(firstAnswer, secondAnswer, "the answer cannot change while the library runs");
-  }
-
-  @Test
-  void shouldDecideFromTheBuildOfThisMachine() {
+  void shouldDecideOnceFromTheBuildOfThisMachine() {
     final BytePointer information = opencv_core.getBuildInformation();
     final String text = information.getString();
     final VideoFileReader expected = OpenCvVideoBackends.decideFromBuildInformation(text);
 
-    final VideoFileReader reader = OpenCvVideoBackends.chooseFileReader();
-    assertEquals(expected, reader);
+    final VideoFileReader firstAnswer = OpenCvVideoBackends.chooseFileReader();
+    final VideoFileReader secondAnswer = OpenCvVideoBackends.chooseFileReader();
+    assertEquals(expected, firstAnswer);
+    assertSame(firstAnswer, secondAnswer, "the answer cannot change while the library runs");
   }
 
   @Test
