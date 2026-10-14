@@ -26,18 +26,12 @@ import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ImageUtils}.
- */
 final class ImageUtilsTest {
 
   private static final int OPAQUE_COLOR = 0xFF123456;
 
   private static final int VALID_ORIGINAL_SIDE = 2;
 
-  /**
-   * Converts the components into a scalar, reads its four components back, and frees the native scalar again.
-   */
   private static double[] convert(final double[] components) {
     try (final Scalar scalar = ImageUtils.toScalar(components)) {
       final double first = scalar.get(0);
@@ -73,10 +67,6 @@ final class ImageUtilsTest {
     assertArrayEquals(expected, resized);
   }
 
-  /**
-   * Asserts that an original size is rejected by its own precondition, rather than by a later check that happens to
-   * fail as well.
-   */
   private static void assertOriginalSizeRejected(final int[] pixels, final int width, final int height) {
     final IllegalArgumentException rejected = assertThrows(IllegalArgumentException.class, () ->
       ImageUtils.resizeIntArrayImage(pixels, width, height, 1, 1)
@@ -85,9 +75,6 @@ final class ImageUtilsTest {
     assertEquals("Original size must be positive!", message);
   }
 
-  /**
-   * Asserts that a new size is rejected by its own precondition.
-   */
   private static void assertNewSizeRejected(final int[] pixels, final int width, final int height) {
     final IllegalArgumentException rejected = assertThrows(IllegalArgumentException.class, () ->
       ImageUtils.resizeIntArrayImage(pixels, VALID_ORIGINAL_SIDE, VALID_ORIGINAL_SIDE, width, height)

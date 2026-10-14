@@ -20,17 +20,8 @@ package me.brandonli.mcav.testing;
 import com.google.common.base.Preconditions;
 import java.nio.file.Path;
 
-/**
- * Points the {@code user.home} system property at another directory until it is closed, so code that uses the cache
- * folder of the library, {@code ~/.mcav/cache}, works inside a test directory instead of the real home directory.
- *
- * <pre><code>
- *   try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(tempDirectory)) {
- *     final Path home = redirected.getHome();
- *     final Path cache = IoUtils.getCachedFolder();
- *   }
- * </code></pre>
- */
+// Points the user.home system property at another directory until it is closed, so code that uses the cache folder
+// of the library, ~/.mcav/cache, works inside a test directory instead of the real home directory.
 public final class TemporaryUserHome implements AutoCloseable {
 
   private static final String USER_HOME = "user.home";
@@ -43,12 +34,6 @@ public final class TemporaryUserHome implements AutoCloseable {
     this.previousHome = previousHome;
   }
 
-  /**
-   * Points {@code user.home} at a directory.
-   *
-   * @param home the directory that becomes the home directory
-   * @return a handle that restores the previous home directory when closed
-   */
   public static TemporaryUserHome redirectTo(final Path home) {
     Preconditions.checkNotNull(home, "Home must not be null!");
 
@@ -58,19 +43,11 @@ public final class TemporaryUserHome implements AutoCloseable {
     return new TemporaryUserHome(home, previousHome);
   }
 
-  /**
-   * Restores the previous home directory.
-   */
   @Override
   public void close() {
     System.setProperty(USER_HOME, this.previousHome);
   }
 
-  /**
-   * Returns the directory {@code user.home} points at while this handle is open.
-   *
-   * @return the temporary home directory
-   */
   public Path getHome() {
     return this.home;
   }

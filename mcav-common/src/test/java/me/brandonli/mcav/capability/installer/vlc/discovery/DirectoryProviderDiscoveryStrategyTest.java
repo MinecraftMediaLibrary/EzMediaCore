@@ -47,9 +47,6 @@ import uk.co.caprica.vlcj.factory.discovery.provider.SystemPathDirectoryProvider
 import uk.co.caprica.vlcj.factory.discovery.provider.UserDirConfigFileDiscoveryDirectoryProvider;
 import uk.co.caprica.vlcj.factory.discovery.provider.WindowsInstallDirectoryProvider;
 
-/**
- * Tests {@link DirectoryProviderDiscoveryStrategy}.
- */
 final class DirectoryProviderDiscoveryStrategyTest {
 
   private static final String LIBRARY_PATTERN = "libvlc\\.dll";
@@ -544,9 +541,6 @@ final class DirectoryProviderDiscoveryStrategyTest {
     return setterSucceeds;
   }
 
-  /**
-   * A strategy that searches the directories of the providers the library uses by default.
-   */
   private static final class DefaultProviderStrategy extends DirectoryProviderDiscoveryStrategy {
 
     DefaultProviderStrategy() {
@@ -559,9 +553,6 @@ final class DirectoryProviderDiscoveryStrategyTest {
     }
   }
 
-  /**
-   * A strategy for any system with the patterns and plugin formats given to it.
-   */
   private static final class TestStrategy extends DirectoryProviderDiscoveryStrategy {
 
     TestStrategy(
@@ -579,10 +570,6 @@ final class DirectoryProviderDiscoveryStrategyTest {
     }
   }
 
-  /**
-   * A directory provider that creates a file just before it names its directories, as if a library appeared between
-   * two providers.
-   */
   private static final class CompletingDirectoryProvider implements DiscoveryDirectoryProvider {
 
     private final Path fileToCreate;
@@ -615,9 +602,6 @@ final class DirectoryProviderDiscoveryStrategyTest {
     }
   }
 
-  /**
-   * A directory provider with fixed answers.
-   */
   static final class StaticDirectoryProvider implements DiscoveryDirectoryProvider {
 
     private final int priority;

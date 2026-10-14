@@ -26,9 +26,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Dimension}.
- */
 final class DimensionTest {
 
   private static final int WIDTH = 3;

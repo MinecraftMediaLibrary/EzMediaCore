@@ -42,19 +42,12 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link MatVideoFilter} and the defaults of {@link VideoFilter}.
- */
 final class MatVideoFilterTest {
 
   private static final int BLACK = 0xFF000000;
 
   private static final int IMAGE_SIDE = 2;
 
-  /**
-   * Creates an image that is not backed by a matrix and whose pixels all have the same color, and records what the
-   * filter writes back into it.
-   */
   private static ImageBuffer foreignImage(final int width, final int height, final int argb, final WrittenPixels written) {
     final byte[] bgr = new byte[width * height * 3];
     for (int index = 0; index < bgr.length; index += 3) {
@@ -158,18 +151,14 @@ final class MatVideoFilterTest {
     assertThrows(NullPointerException.class, () -> VideoFilter.NO_OP.applyFilter(null));
   }
 
-  /**
-   * Keeps a copy of the pixels written back into a foreign image, taken while the call runs, because the buffer
-   * belongs to a temporary image that is released afterward.
-   */
+  // Keeps a copy of the pixels written back into a foreign image, taken while the call runs, because the buffer belongs
+  // to a temporary image that is released afterward.
   private static final class WrittenPixels {
 
     private byte[] bytes = new byte[0];
 
-    /**
-     * Copies the pixels an update call receives; the result of the answer is ignored, because the update returns
-     * nothing.
-     */
+    // Copies the pixels an update call receives; the result of the answer is ignored, because the update returns
+    // nothing.
     private Object record(final InvocationOnMock invocation) {
       final ByteBuffer data = invocation.getArgument(0);
       final ByteBuffer view = data.duplicate();
@@ -185,9 +174,7 @@ final class MatVideoFilterTest {
     }
   }
 
-  /**
-   * A filter that never changes anything.
-   */
+  // A filter that never changes anything.
   private static final class UnchangedFilter extends MatVideoFilter {
 
     @Override

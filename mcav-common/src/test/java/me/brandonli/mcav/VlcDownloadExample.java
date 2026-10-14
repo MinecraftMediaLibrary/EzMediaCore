@@ -22,9 +22,6 @@ import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.vlc.ReleasePackageManager;
 import me.brandonli.mcav.utils.os.Platform;
 
-/**
- * Prints the VLC downloads the installer knows about.
- */
 public final class VlcDownloadExample {
 
   private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";

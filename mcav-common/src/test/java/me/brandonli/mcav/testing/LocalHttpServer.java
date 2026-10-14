@@ -39,14 +39,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * An HTTP server on the loopback interface for tests that download files.
- *
- * <p>Every path answers with a queue of prepared responses. Once only one response is left, it is repeated for
- * every further request, so a path can fail a few times before it succeeds, or fail forever. Paths without
- * responses answer {@code 404}. Requests are handled on their own threads, so a response that waits or stalls never
- * holds up other requests.
- */
+// An HTTP server on the loopback interface for tests that download files. Every path answers with a queue of prepared
+// responses. Once only one response is left, it is repeated for every further request, so a path can fail a few times
+// before it succeeds, or fail forever. Paths without responses answer 404. Requests are handled on their own threads,
+// so a response that waits or stalls never holds up other requests.
 public final class LocalHttpServer implements AutoCloseable {
 
   private static final long MAXIMUM_WAIT_SECONDS = 60;
@@ -71,11 +67,6 @@ public final class LocalHttpServer implements AutoCloseable {
     this.requestSignal = new Object();
   }
 
-  /**
-   * Starts a server on a free port of the loopback interface.
-   *
-   * @return the running server
-   */
   public static LocalHttpServer start() {
     try {
       final InetAddress loopback = InetAddress.getLoopbackAddress();
@@ -92,66 +83,27 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Adds a response to the queue of a path.
-   *
-   * @param path   the path, starting with a slash
-   * @param status the status code
-   * @param body   the body
-   */
   public void respond(final String path, final int status, final byte[] body) {
     final Response response = new Response(status, body, null, -1);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that is only sent once a gate opens. The request waits for the gate, or for the server to close.
-   *
-   * @param path   the path, starting with a slash
-   * @param status the status code
-   * @param body   the body
-   * @param gate   the gate to wait for
-   */
+  // Adds a response that is only sent once a gate opens. The request waits for the gate, or for the server to close.
   public void respondWhenOpened(final String path, final int status, final byte[] body, final CountDownLatch gate) {
     final Response response = new Response(status, body, gate, -1);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that stalls: it announces more bytes than the body has, sends the body, and then sends nothing
-   * more, without closing the connection, until the server is closed.
-   *
-   * @param path            the path, starting with a slash
-   * @param status          the status code
-   * @param body            the part of the body that is sent
-   * @param announcedLength the length announced in the headers, which must be larger than the body
-   */
   public void respondStalling(final String path, final int status, final byte[] body, final long announcedLength) {
     final Response response = new Response(status, body, null, announcedLength);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a redirect to another place, with an empty body.
-   *
-   * @param path     the path, starting with a slash
-   * @param status   the status code, such as 302
-   * @param location the place, which may be relative
-   */
   public void respondRedirect(final String path, final int status, final String location) {
     final Response response = new Response(status, new byte[0], null, -1, location, 0);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a redirect to another place whose body stalls like {@link #respondStalling(String, int, byte[], long)}.
-   *
-   * @param path            the path, starting with a slash
-   * @param status          the status code, such as 302
-   * @param location        the place, which may be relative
-   * @param body            the part of the body that is sent
-   * @param announcedLength the length announced in the headers, which must be larger than the body
-   */
   public void respondStallingRedirect(
     final String path,
     final int status,
@@ -163,15 +115,6 @@ public final class LocalHttpServer implements AutoCloseable {
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that trickles: it announces the length of the body and sends one byte of it at a time, a byte
-   * every interval, until the body is sent or the server is closed.
-   *
-   * @param path                 the path, starting with a slash
-   * @param status               the status code
-   * @param body                 the body
-   * @param intervalMilliseconds the time between two bytes, in milliseconds
-   */
   public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMilliseconds) {
     final Response response = new Response(status, body, null, -1, null, intervalMilliseconds);
     this.addResponse(path, response);
@@ -184,12 +127,6 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Returns the URI of a path on this server, built from the address the server is bound to.
-   *
-   * @param path the path, starting with a slash
-   * @return the URI
-   */
   public URI uri(final String path) {
     final InetSocketAddress address = this.server.getAddress();
     final InetAddress host = address.getAddress();
@@ -213,12 +150,6 @@ public final class LocalHttpServer implements AutoCloseable {
     return sameHost && port == boundPort;
   }
 
-  /**
-   * Returns how many requests a path received.
-   *
-   * @param path the path, starting with a slash
-   * @return the number of requests
-   */
   public int getRequestCount(final String path) {
     final AtomicInteger count = this.requestCounts.get(path);
     return count == null ? 0 : count.get();
@@ -229,16 +160,8 @@ public final class LocalHttpServer implements AutoCloseable {
     return counts.stream().mapToInt(AtomicInteger::get).sum();
   }
 
-  /**
-   * Waits until a path has received at least the specified number of requests. Every counted request wakes the
-   * waiting threads, so the wait ends as soon as the last request arrives, without polling.
-   *
-   * @param path    the path, starting with a slash
-   * @param count   the number of requests to wait for
-   * @param timeout how long to wait at most
-   * @return true if the path received the requests in time, false if the timeout passed first
-   * @throws InterruptedException if the waiting thread is interrupted
-   */
+  // Waits until a path has received at least the specified number of requests. Every counted request wakes the waiting
+  // threads, so the wait ends as soon as the last request arrives, without polling.
   public boolean awaitRequests(final String path, final int count, final Duration timeout) throws InterruptedException {
     final long start = System.nanoTime();
     final long timeoutNanoseconds = timeout.toNanos();
@@ -343,10 +266,8 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Waits until the gate opens, the server closes, or the maximum wait passes. The gate is checked in short steps, so
-   * a server that closes releases the waiting request right away.
-   */
+  // Waits until the gate opens, the server closes, or the maximum wait passes. The gate is checked in short steps, so a
+  // server that closes releases the waiting request right away.
   private void awaitGateOrClose(final CountDownLatch gate) {
     final long start = System.nanoTime();
     final long maximumWait = TimeUnit.SECONDS.toNanos(MAXIMUM_WAIT_SECONDS);
@@ -367,12 +288,8 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Waits until the server closes. Closing interrupts the handler threads, so an interrupt also means the server
-   * closed.
-   *
-   * @return true once the server closed, false if it was not closed within the maximum wait
-   */
+  // Waits until the server closes. Closing interrupts the handler threads, so an interrupt also means the server
+  // closed.
   private boolean awaitClose() {
     try {
       return this.closing.await(MAXIMUM_WAIT_SECONDS, TimeUnit.SECONDS);
@@ -400,9 +317,6 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Releases every waiting and stalling response and stops the server.
-   */
   @Override
   public void close() {
     this.closing.countDown();
@@ -410,9 +324,6 @@ public final class LocalHttpServer implements AutoCloseable {
     this.executor.shutdownNow();
   }
 
-  /**
-   * A prepared response.
-   */
   private static final class Response {
 
     private final int status;

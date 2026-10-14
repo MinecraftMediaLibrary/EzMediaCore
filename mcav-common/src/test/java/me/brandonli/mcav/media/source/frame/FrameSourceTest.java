@@ -27,9 +27,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link FrameSource}, {@link SupplierFrameSource}, {@link ImageSupplier} and {@link SampleSupplier}.
- */
 final class FrameSourceTest {
 
   @Test
@@ -148,9 +145,6 @@ final class FrameSourceTest {
     assertThrows(NullPointerException.class, () -> FrameSource.image(null, 1, 1));
   }
 
-  /**
-   * A frame source that relies on every default method of the interface.
-   */
   private static final class MinimalFrameSource implements FrameSource {
 
     @Override

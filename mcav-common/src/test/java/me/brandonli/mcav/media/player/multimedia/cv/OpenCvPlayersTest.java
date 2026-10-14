@@ -45,9 +45,6 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OpenCvPlayer}, {@link VideoInputPlayer} and the player factories of {@link VideoPlayer}.
- */
 final class OpenCvPlayersTest {
 
   private static final Duration PLAYBACK_TIMEOUT = Duration.ofSeconds(10);
@@ -56,10 +53,8 @@ final class OpenCvPlayersTest {
 
   private static final String UNOPENED_FILE_NAME = "unopened-file.mp4";
 
-  /**
-   * Loads the natives of OpenCV ahead of the timed tests, because loading them on the decoding thread takes seconds on
-   * a busy machine.
-   */
+  // Loads the natives of OpenCV ahead of the timed tests, because loading them on the decoding thread takes seconds on
+  // a busy machine.
   @BeforeAll
   static void loadTheNativeLibrariesAheadOfTheTimedTests() {
     final ImageBuffer warmUp = ImageBuffer.bytes(new byte[3], 1, 1);
@@ -103,10 +98,8 @@ final class OpenCvPlayersTest {
     }
   }
 
-  /**
-   * Whether the reader of OpenCV opens a video file on this machine. A build without a file backend either refuses to
-   * start or starts without a picture size, and both mean the same: it cannot read the file.
-   */
+  // Whether the reader of OpenCV opens a video file on this machine. A build without a file backend either refuses to
+  // start or starts without a picture size, and both mean the same: it cannot read the file.
   private static boolean opensWithOpenCv(final Path video) {
     final String path = video.toString();
     final OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(path);
@@ -129,13 +122,6 @@ final class OpenCvPlayersTest {
     }
   }
 
-  /**
-   * Plays the test video with the OpenCV player until more than ten frames arrived, and records the width of every
-   * frame.
-   *
-   * @param size the size attached to the player, or {@code null} for none
-   * @return an array of two elements, the number of frames followed by the width of the last frame
-   */
   private static int[] playTestVideo(final Dimension size) throws InterruptedException {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger width = new AtomicInteger();

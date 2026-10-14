@@ -25,9 +25,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.ThresholdMatrix;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ThresholdMatrix}.
- */
 final class ThresholdMatrixTest {
 
   private static final int OVERWRITTEN_ENTRY = 99;

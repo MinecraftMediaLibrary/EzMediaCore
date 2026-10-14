@@ -36,17 +36,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 
-/**
- * Tests {@link OpenCvVideoBackends} against the build information of the platforms the library supports, so both
- * answers are covered wherever the tests run.
- */
+// Tests OpenCvVideoBackends against the build information of the platforms the library supports, so both answers are
+// covered wherever the tests run.
 final class OpenCvVideoBackendsTest {
 
   private static final String VIDEO_FILE_NAME = "file.mp4";
 
-  /**
-   * The video section of the Linux build of the JavaCPP presets: cameras only.
-   */
   private static final String LINUX = """
   General configuration for OpenCV 4.14.0 =====================================
 
@@ -57,9 +52,6 @@ final class OpenCvVideoBackendsTest {
   Parallel framework:             pthreads
   """;
 
-  /**
-   * The video section of the Windows build, which has FFmpeg and Media Foundation.
-   */
   private static final String WINDOWS = """
   General configuration for OpenCV 4.14.0 =====================================
 
@@ -73,9 +65,6 @@ final class OpenCvVideoBackendsTest {
   Parallel framework:             Concurrency
   """;
 
-  /**
-   * The video section of the macOS build, which has AVFoundation.
-   */
   private static final String MACOS = """
   General configuration for OpenCV 4.14.0 =====================================
 

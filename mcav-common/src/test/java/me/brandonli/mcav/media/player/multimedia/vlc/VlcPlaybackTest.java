@@ -53,10 +53,6 @@ import uk.co.caprica.vlcj.player.base.ControlsApi;
 import uk.co.caprica.vlcj.player.base.StatusApi;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
-/**
- * Tests the synchronization and the cleanup of {@link VlcPlayback}; starting and controlling it through the player is
- * tested by {@link VlcPlayerTest}.
- */
 final class VlcPlaybackTest {
 
   private static final String SYNCHRONIZER_THREAD_NAME = "mcav-vlc-sync";
@@ -424,12 +420,8 @@ final class VlcPlaybackTest {
     return alive.isEmpty();
   }
 
-  /**
-   * Waits up to five seconds until no thread of a playback runs anymore. Threads that stopped themselves, for example
-   * because a pipeline released the player from its render thread, exit a moment after the call that stopped them.
-   *
-   * @throws InterruptedException if the calling thread is interrupted while waiting
-   */
+  // Waits up to five seconds until no thread of a playback runs anymore. Threads that stopped themselves, for example
+  // because a pipeline released the player from its render thread, exit a moment after the call that stopped them.
   static void awaitNoPlaybackThreads() throws InterruptedException {
     final boolean exited = Polling.pollUntil(THREAD_EXIT_TIMEOUT, VlcPlaybackTest::noPlaybackThreadIsAlive);
     final List<String> alive = findAlivePlaybackThreads();

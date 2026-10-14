@@ -22,9 +22,6 @@ import java.util.Optional;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.SourceDetectionHelper;
 
-/**
- * Shows which source type {@link SourceDetectionHelper} picks for a few strings.
- */
 public final class SourceExamples {
 
   private static final String LOCAL_FILE_PATH = "C:\\rickroll.mp4";

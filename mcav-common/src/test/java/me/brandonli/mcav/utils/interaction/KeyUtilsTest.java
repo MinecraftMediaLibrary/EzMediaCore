@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link KeyUtils}.
- */
 final class KeyUtilsTest {
 
   @Test

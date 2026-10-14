@@ -52,9 +52,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link SourceUtils}.
- */
 final class SourceUtilsTest {
 
   private static final String UPPER_CASE_GIF_PATH = "images/ANIMATION.GIF";

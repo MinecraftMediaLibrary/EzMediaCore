@@ -24,11 +24,9 @@ import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the key names players type into the chat of a browser or virtual machine screen: whatever the text, the
- * replacement ends, never makes the text longer, since a key name and an escaped brace both become one character, and
- * leaves a text without braces as it is. The seeds are the texts of the tests of {@link KeyUtils}.
- */
+// Fuzzes the key names players type into the chat of a browser or virtual machine screen: whatever the text, the
+// replacement ends, never makes the text longer, since a key name and an escaped brace both become one character, and
+// leaves a text without braces as it is. The seeds are the texts of the tests of KeyUtils.
 @Tag("fuzz")
 final class KeyUtilsFuzzTest {
 

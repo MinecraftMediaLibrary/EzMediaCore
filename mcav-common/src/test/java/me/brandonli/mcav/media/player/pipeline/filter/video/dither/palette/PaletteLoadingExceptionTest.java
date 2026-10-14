@@ -26,9 +26,6 @@ import com.google.gson.JsonSyntaxException;
 import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PaletteLoadingException}.
- */
 final class PaletteLoadingExceptionTest {
 
   @Test

@@ -36,9 +36,6 @@ import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the filters that draw shapes, text and other images onto frames.
- */
 final class DrawingFiltersTest {
 
   private static final double CHANNEL_MAXIMUM = 255.0;

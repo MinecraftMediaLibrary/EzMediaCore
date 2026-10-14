@@ -65,7 +65,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
-/** Exercises callback reentry and cancellation at the session boundary; real decoding has separate integration tests. */
 final class CvPlayerTransitionTest {
 
   private static final String TRANSITION_FILE_NAME = "transition.mp4";

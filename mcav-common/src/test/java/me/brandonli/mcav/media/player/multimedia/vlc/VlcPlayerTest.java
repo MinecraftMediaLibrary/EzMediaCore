@@ -90,10 +90,8 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback;
 
-/**
- * Tests {@link VlcPlayer} and {@link VlcPlayback} against a mocked VLC engine, so every failure and every race of VLC
- * can be simulated deterministically. {@link VlcPlayerIntegrationTest} plays real media through VLC.
- */
+// Tests VlcPlayer and VlcPlayback against a mocked VLC engine, so every failure and every race of VLC can be simulated
+// deterministically. VlcPlayerIntegrationTest plays real media through VLC.
 final class VlcPlayerTest {
 
   private static final int RED = 0xFF0000;
@@ -152,9 +150,6 @@ final class VlcPlayerTest {
     assertTrue(started, "the mocked VLC opens both sources");
   }
 
-  /**
-   * Asks VLC for the buffer of a picture of the given size, and renders the pixels into it like VLC does.
-   */
   private void renderFrame(final MediaPlayer mediaPlayer, final int sourceWidth, final int sourceHeight, final int... argbPixels) {
     final BufferFormatCallback formatCallback = this.vlc.getFormatCallback();
     final RenderCallback renderCallback = this.vlc.getRenderCallback();
@@ -1059,18 +1054,12 @@ final class VlcPlayerTest {
     return false;
   }
 
-  /**
-   * Makes the mocked VLC player report a video track of 2 by 1 pixels.
-   */
   private static void reportTrackSize(final MockVlc.Player mocked) {
     final VideoApi videoApi = mocked.getVideo();
     final Dimension trackSize = new Dimension(2, 1);
     when(videoApi.videoDimension()).thenReturn(trackSize);
   }
 
-  /**
-   * Hands 480 stereo frames of silence, 1920 bytes, to the audio callback of the mocked VLC player, like VLC does.
-   */
   private static void playSilence(final MockVlc.Player mocked, final MediaPlayer mediaPlayer) {
     final AudioCallback vlcAudio = mocked.getAudioCallback();
     final Memory samples = new Memory(1_920L);
@@ -1395,9 +1384,6 @@ final class VlcPlayerTest {
     assertTrue(released);
   }
 
-  /**
-   * A way one of two separate players fails to start.
-   */
   enum SeparateFailure {
     VIDEO_REJECTED(MockVlc.Outcome.REJECTED, MockVlc.Outcome.PLAYING),
     AUDIO_REJECTED(MockVlc.Outcome.PLAYING, MockVlc.Outcome.REJECTED),
@@ -1413,9 +1399,6 @@ final class VlcPlayerTest {
     }
   }
 
-  /**
-   * A reason why a playback cannot seek.
-   */
   enum SeekFailure {
     VIDEO_NOT_SEEKABLE,
     AUDIO_NOT_SEEKABLE,

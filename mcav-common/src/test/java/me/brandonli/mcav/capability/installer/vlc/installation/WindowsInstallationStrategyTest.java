@@ -38,9 +38,6 @@ import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link WindowsInstallationStrategy} with small zips shaped like the portable VLC zip.
- */
 final class WindowsInstallationStrategyTest {
 
   private static final String TEMPORARY_DIRECTORY = "vlc-extract";

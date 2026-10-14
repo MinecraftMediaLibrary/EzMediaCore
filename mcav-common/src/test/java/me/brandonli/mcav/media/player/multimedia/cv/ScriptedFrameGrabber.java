@@ -28,14 +28,10 @@ import java.util.concurrent.locks.LockSupport;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 
-/**
- * A frame grabber that plays a prepared script, so playback sessions can be tested without decoding real media.
- *
- * <p>The script holds frames, which are returned in order, {@link FrameGrabber.Exception checked grabber exceptions}
- * and runtime exceptions, which are thrown when reached, and {@link Delay delays}, which block the decoding thread
- * without reacting to interrupts. The grabber reports the end of the media once the script is used up. The media has
- * no known length, like a live stream, unless one is set.
- */
+// A frame grabber that plays a prepared script, so playback sessions can be tested without decoding real media. The
+// script holds frames, which are returned in order, checked grabber exceptions and runtime exceptions, which are thrown
+// when reached, and delays, which block the decoding thread without reacting to interrupts. The grabber reports the end
+// of the media once the script is used up. The media has no known length, like a live stream, unless one is set.
 final class ScriptedFrameGrabber extends FrameGrabber {
 
   private static final int FRAME_WIDTH = 4;
@@ -96,20 +92,12 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     return frame;
   }
 
-  /**
-   * Returns the number of steps of the script that have not been reached yet.
-   *
-   * @return the remaining steps
-   */
   int getRemainingSteps() {
     synchronized (this.script) {
       return this.script.size();
     }
   }
 
-  /**
-   * Makes every seek fail, like a source that cannot seek at all.
-   */
   void failOnSeek() {
     this.failOnSeek = true;
   }
@@ -131,12 +119,6 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   @Override
   public void trigger() {}
 
-  /**
-   * Plays the script up to its next frame.
-   *
-   * @return the next frame, or {@code null} once the script is used up
-   * @throws FrameGrabber.Exception if the script reached a checked grabber exception
-   */
   @Override
   public Frame grab() throws FrameGrabber.Exception {
     Object next = this.takeNextStep();
@@ -189,11 +171,6 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     return this.requestedTimestamp.get();
   }
 
-  /**
-   * Gives the media a known length, which makes it seekable.
-   *
-   * @param lengthMicroseconds the length in microseconds
-   */
   void setLength(final long lengthMicroseconds) {
     this.length = lengthMicroseconds;
   }
@@ -203,9 +180,6 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     return this.length;
   }
 
-  /**
-   * Blocks the grabbing thread for a while and ignores interrupts meanwhile, like a decoder stuck in native code.
-   */
   static final class Delay {
 
     private static final long NANOSECONDS_PER_MILLISECOND = 1_000_000L;
@@ -216,10 +190,8 @@ final class ScriptedFrameGrabber extends FrameGrabber {
       this.milliseconds = milliseconds;
     }
 
-    /**
-     * Blocks for the whole delay. An interrupt wakes the thread up early, so it is cleared, the thread goes back to
-     * sleep for the rest of the delay, and the interrupt is restored at the end.
-     */
+    // Blocks for the whole delay. An interrupt wakes the thread up early, so it is cleared, the thread goes back to
+    // sleep for the rest of the delay, and the interrupt is restored at the end.
     void block() {
       final long delayNanoseconds = this.milliseconds * NANOSECONDS_PER_MILLISECOND;
       final long end = System.nanoTime() + delayNanoseconds;

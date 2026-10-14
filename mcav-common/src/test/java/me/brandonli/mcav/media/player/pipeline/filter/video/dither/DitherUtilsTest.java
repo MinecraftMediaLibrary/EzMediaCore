@@ -26,9 +26,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherUtils}.
- */
 final class DitherUtilsTest {
 
   private static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);

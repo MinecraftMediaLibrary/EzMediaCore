@@ -30,9 +30,6 @@ import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link FormatStrategy}.
- */
 final class FormatStrategyTest {
 
   private static final List<FormatStrategy> ALL_STRATEGIES = List.of(

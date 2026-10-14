@@ -70,9 +70,6 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link IoUtils}.
- */
 final class IoUtilsTest {
 
   private static final byte[] ABC = "abc".getBytes(StandardCharsets.US_ASCII);
@@ -475,11 +472,6 @@ final class IoUtilsTest {
     assertFalse(siblingExists, "a sibling whose name starts with the destination name is outside of it");
   }
 
-  /**
-   * Found by {@code UnzipFuzzTest}: an entry named with a character the file system cannot hold, such as the NUL of the
-   * fuzzer's archive, made {@link Path#resolve(String)} throw an {@link java.nio.file.InvalidPathException}
-   * out of {@link IoUtils#unzip(Path, Path)}, which documents only its own exceptions for a bad archive.
-   */
   @Test
   void shouldRefuseAnEntryWhoseNameTheFileSystemCannotHold() throws IOException {
     final Path archive = this.writeZip(NUL_ESCAPE_PATH, EVIL_CONTENT);
@@ -488,10 +480,6 @@ final class IoUtilsTest {
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
   }
 
-  /**
-   * Found by {@code UnzipFuzzTest}: the zip file system normalizes {@code destination/..//escape.txt}, the entry
-   * {@code ../\escape.txt} resolved there, to {@code destination/../escape.txt}, which still starts with the destination.
-   */
   @Test
   void shouldRefuseAnEntryThatClimbsOutOfADestinationInAZipFileSystem() throws IOException {
     final Path archive = this.writeZip(BACKSLASH_ESCAPE_PATH, EVIL_CONTENT);
@@ -508,10 +496,6 @@ final class IoUtilsTest {
     }
   }
 
-  /**
-   * Found by {@code UnzipFuzzTest}: the zip file system keeps the empty name of {@code destination/folder//escape.txt},
-   * the entry {@code folder/\escape.txt} resolved there, and the file it wrote made its directory tree list itself.
-   */
   @Test
   void shouldRefuseAnEntryWithAnEmptyNameInAZipFileSystem() throws IOException {
     final Path archive = this.writeZip(FOLDER_BACKSLASH_ESCAPE_PATH, EVIL_CONTENT);

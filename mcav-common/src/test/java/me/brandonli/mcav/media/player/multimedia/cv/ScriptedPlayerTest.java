@@ -54,9 +54,6 @@ import org.bytedeco.javacv.FrameGrabber;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the control logic of {@link AbstractVideoPlayerCv} with scripted grabbers.
- */
 final class ScriptedPlayerTest {
 
   private static final String VIDEO_FILE_NAME = "video.mp4";
@@ -93,7 +90,6 @@ final class ScriptedPlayerTest {
     return grabber;
   }
 
-  /** Half a minute of sound in chunks of 10 ms: 480 frames, 1,920 bytes each. */
   private static ScriptedFrameGrabber sound() {
     final List<Object> script = new ArrayList<>();
     for (int index = 0; index < 3_000; index++) {
@@ -433,12 +429,6 @@ final class ScriptedPlayerTest {
     assertThrows(NullPointerException.class, () -> player.start(VIDEO, null));
   }
 
-  /**
-   * Starts, pauses, resumes, seeks and restarts the player through the asynchronous variants on the executor, waiting
-   * for every call before the next one.
-   *
-   * @return whether every call succeeded
-   */
   private static boolean controlOnTheExecutor(final ScriptedPlayer player, final ExecutorService executor) throws Exception {
     final CompletableFuture<Boolean> startFuture = player.startAsync(VIDEO, executor);
     final boolean started = resultOf(startFuture);
@@ -482,12 +472,6 @@ final class ScriptedPlayerTest {
     }
   }
 
-  /**
-   * Pauses, resumes, seeks and starts the player through the asynchronous variants without an executor, waiting for
-   * every call before the next one.
-   *
-   * @return whether every call succeeded
-   */
   private static boolean controlOnTheCommonPool(final ScriptedPlayer player) throws Exception {
     final CompletableFuture<Boolean> pauseFuture = player.pauseAsync();
     final boolean paused = resultOf(pauseFuture);
@@ -573,17 +557,11 @@ final class ScriptedPlayerTest {
     }
   }
 
-  /**
-   * Creates a grabber whose decoder is stuck for a second and a half and does not react to interrupts.
-   */
   private static ScriptedFrameGrabber stuckDecoder() {
     final Object delay = new ScriptedFrameGrabber.Delay(1_500L);
     return ScriptedFrameGrabber.of(delay);
   }
 
-  /**
-   * Creates a thread that releases the player and records when the release returned.
-   */
   private static Thread releasingThread(final ScriptedPlayer player, final AtomicLong releaseEnd) {
     return new Thread(() -> releaseAndRecordEnd(player, releaseEnd));
   }
@@ -643,10 +621,6 @@ final class ScriptedPlayerTest {
     assertFalse(playing);
   }
 
-  /**
-   * A player whose grabbers come from a supplier and that remembers which resources it opened and on which threads
-   * it was called.
-   */
   private static final class ScriptedPlayer extends AbstractVideoPlayerCv {
 
     private final Supplier<ScriptedFrameGrabber> grabbers;

@@ -27,9 +27,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests how {@link UniformNoiseDither} hands out its random number generators to threads.
- */
 final class UniformNoiseDitherTest {
 
   private static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);

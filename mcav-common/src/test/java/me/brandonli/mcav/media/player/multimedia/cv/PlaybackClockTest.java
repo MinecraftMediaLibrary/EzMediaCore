@@ -28,9 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import me.brandonli.mcav.media.Polling;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PlaybackClock}.
- */
 final class PlaybackClockTest {
 
   private static final long LONG_RESUME_TIMEOUT_MILLISECONDS = 10_000L;

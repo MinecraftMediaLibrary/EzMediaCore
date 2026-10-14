@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DiffusionKernel}.
- */
 final class DiffusionKernelTest {
 
   private static final String KERNEL_NAME = "x";
@@ -116,11 +113,9 @@ final class DiffusionKernelTest {
     assertThrows(NullPointerException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0, 1 }, null }));
   }
 
-  /**
-   * Found by {@code DitherFuzzTest}: a kernel accepted taps of any reach, and the error rows of a pass are as wide and
-   * as many as the kernel reaches, so a tap far away made dithering allocate until the heap ran out, and one at
-   * {@link Integer#MIN_VALUE} made the reach negative. A tap may reach at most {@value DiffusionKernel#MAXIMUM_OFFSET} pixels.
-   */
+  // Found by DitherFuzzTest: a kernel accepted taps of any reach, and the error rows of a pass are as wide and as many
+  // as the kernel reaches, so a tap far away made dithering allocate until the heap ran out, and one at
+  // Integer.MIN_VALUE made the reach negative. A tap may reach at most DiffusionKernel#MAXIMUM_OFFSET pixels.
   @Test
   void shouldRefuseTapsThatReachFartherThanAnyNeighbourhood() {
     final int limit = DiffusionKernel.MAXIMUM_OFFSET;

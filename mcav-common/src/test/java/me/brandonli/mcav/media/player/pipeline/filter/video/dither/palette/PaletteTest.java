@@ -34,9 +34,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherPalette}, {@link ColorPalette}, {@link MapPalette} and {@link MapPaletteLoader}.
- */
 final class PaletteTest {
 
   private static final String PALETTE_RESOURCE = "mcav/common/palette.json";
@@ -293,10 +290,8 @@ final class PaletteTest {
     assertThrows(PaletteLoadingException.class, () -> MapPaletteLoader.loadColors(MISSING_PALETTE_RESOURCE));
   }
 
-  /**
-   * Found by {@code MapPaletteLoaderFuzzTest}: Gson reads the empty element of {@code [[0,,1]]} as a null, which it
-   * cannot store in an {@code int[]}, and reported that with an {@link IllegalArgumentException} instead of a syntax error.
-   */
+  // Found by MapPaletteLoaderFuzzTest: Gson reads the empty element of [[0,,1]] as a null, which it cannot store in an
+  // int[], and reported that with an IllegalArgumentException instead of a syntax error.
   @Test
   void shouldRejectAColorWithAnEmptyComponent() {
     assertThrows(PaletteLoadingException.class, () -> parse("[[0,,1]]"));

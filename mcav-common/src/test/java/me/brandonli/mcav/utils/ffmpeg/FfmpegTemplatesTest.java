@@ -38,9 +38,6 @@ import org.bytedeco.javacv.Frame;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FfmpegTemplates}.
- */
 final class FfmpegTemplatesTest {
 
   private static final String INPUT_NAME = "in.mp4";

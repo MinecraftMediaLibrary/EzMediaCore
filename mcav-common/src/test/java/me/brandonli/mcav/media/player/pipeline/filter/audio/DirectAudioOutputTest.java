@@ -50,9 +50,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
-/**
- * Tests {@link DirectAudioOutput} with a mocked audio line, and {@link AudioFilter#NO_OP}.
- */
 final class DirectAudioOutputTest {
 
   private static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of("pcm", -1, 48_000, 2, -1);

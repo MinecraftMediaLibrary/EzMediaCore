@@ -24,9 +24,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the default methods of {@link Installer}.
- */
 final class InstallerTest {
 
   private static final String PROGRAM_NAME = "program";

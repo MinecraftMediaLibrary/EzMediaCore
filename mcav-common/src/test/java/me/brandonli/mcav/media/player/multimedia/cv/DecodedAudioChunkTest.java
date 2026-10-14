@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Tests that queued audio retains its presentation timestamp, including preroll. */
 final class DecodedAudioChunkTest {
 
   @ParameterizedTest

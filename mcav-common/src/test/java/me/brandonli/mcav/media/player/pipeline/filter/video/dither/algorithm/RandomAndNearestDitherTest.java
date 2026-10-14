@@ -44,9 +44,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ran
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the random and nearest color algorithms, their builders and {@link XoroshiroRandomProvider}.
- */
 final class RandomAndNearestDitherTest {
 
   private static final long SEED = 42L;

@@ -30,10 +30,6 @@ import java.nio.IntBuffer;
 import java.nio.ReadOnlyBufferException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the pixel accessors that {@link ImageBuffer} provides on top of the shared {@link ImageBuffer#getPixels()}
- * array: the copying {@link ImageBuffer#copyPixels()} and the read-only {@link ImageBuffer#getReadOnlyPixels()}.
- */
 final class ImageBufferTest {
 
   private static final int[] PIXELS = { 0xFF112233, 0xFF445566, 0xFF778899, 0xFFAABBCC };

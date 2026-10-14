@@ -32,9 +32,6 @@ import me.brandonli.mcav.utils.ffmpeg.FfmpegCommand;
 import me.brandonli.mcav.utils.ffmpeg.FfmpegTemplates;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 
-/**
- * Downloads the audio of a YouTube video as Ogg Vorbis with the bundled FFmpeg executable.
- */
 public final class FfmpegExtractorExample {
 
   private static final String OUTPUT_FILE_NAME = "output.ogg";

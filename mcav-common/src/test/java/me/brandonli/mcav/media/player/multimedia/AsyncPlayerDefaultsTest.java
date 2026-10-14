@@ -39,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Tests that asynchronous entry points preserve synchronous outcomes and arguments. */
 final class AsyncPlayerDefaultsTest {
 
   private static final long TIMEOUT_SECONDS = 5;

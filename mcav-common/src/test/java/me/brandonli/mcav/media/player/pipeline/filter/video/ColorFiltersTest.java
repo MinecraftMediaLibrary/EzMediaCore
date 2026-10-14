@@ -37,9 +37,6 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the filters that change the colors of frames.
- */
 final class ColorFiltersTest {
 
   private static final double[] BLUE = { 255.0, 0.0, 0.0 };
@@ -140,9 +137,6 @@ final class ColorFiltersTest {
     assertThrows(IllegalArgumentException.class, () -> new TintFilter(BLUE, TOO_HIGH_WEIGHT));
   }
 
-  /**
-   * Tints a black frame of the given size and returns the blue channel of its first pixel.
-   */
   private static int tintedBlue(final TintFilter filter, final int width, final int height) {
     try (final ImageBuffer image = Images.solid(width, height, BLACK)) {
       filter.applyFilter(image);

@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link HttpStatusException} and {@link ChecksumMismatchException}.
- */
 final class HttpStatusExceptionTest {
 
   @Test

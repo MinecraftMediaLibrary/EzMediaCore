@@ -36,9 +36,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link LinuxInstallationStrategy} with a fake AppImage whose extraction is simulated.
- */
 final class LinuxInstallationStrategyTest {
 
   private static final String EXTRACTED_DIRECTORY = "squashfs-root";
@@ -190,9 +187,6 @@ final class LinuxInstallationStrategyTest {
     createFile(libraryDirectory, VERSIONED_CORE_LIBRARY_FILE_NAME);
   }
 
-  /**
-   * Creates an extractor that fails the test unless the leftover of an earlier extraction was deleted before it runs.
-   */
   private static ProcessRunner leftoverCheckingExtractor(final Path staleFile) {
     return (workingDirectory, _) -> extractAfterCheckingTheLeftover(staleFile, workingDirectory);
   }

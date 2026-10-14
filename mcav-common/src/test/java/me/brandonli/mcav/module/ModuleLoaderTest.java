@@ -39,9 +39,6 @@ import me.brandonli.mcav.MCAVException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ModuleLoader} and {@link ModuleException}.
- */
 final class ModuleLoaderTest {
 
   private static final AtomicInteger SEQUENCE = new AtomicInteger();
@@ -455,9 +452,6 @@ final class ModuleLoaderTest {
     assertInstanceOf(MCAVException.class, withMessage, "a module failure is recoverable, so it is no Error");
   }
 
-  /**
-   * A module that records when it was started and stopped.
-   */
   private static class RecordingModule implements MCAVModule {
 
     final AtomicInteger starts = new AtomicInteger();

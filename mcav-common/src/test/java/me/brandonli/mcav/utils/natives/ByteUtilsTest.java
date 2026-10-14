@@ -31,9 +31,6 @@ import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ByteUtils}.
- */
 final class ByteUtilsTest {
 
   private static byte[] remainingBytes(final ByteBuffer buffer) {

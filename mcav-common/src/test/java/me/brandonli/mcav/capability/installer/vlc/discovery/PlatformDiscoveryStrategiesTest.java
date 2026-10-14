@@ -53,11 +53,6 @@ import uk.co.caprica.vlcj.binding.lib.LibC;
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
-/**
- * Tests the platform strategies {@link LinuxNativeDiscoveryStrategy}, {@link OsxNativeDiscoveryStrategy} and
- * {@link WindowsNativeDiscoveryStrategy}, together with {@link VlcDiscoveryStrategies}, {@link FixedDirectoryProvider}
- * and {@link EnvironmentVariables}.
- */
 final class PlatformDiscoveryStrategiesTest {
 
   private static final EnvironmentSetter IGNORING_SETTER = (_, _) -> true;
@@ -466,16 +461,7 @@ final class PlatformDiscoveryStrategiesTest {
     return true;
   }
 
-  /**
-   * The C library function that reads environment variables, which vlcj's {@link LibC} does not declare.
-   */
   interface EnvironmentReader extends Library {
-    /**
-     * Reads a variable.
-     *
-     * @param name the name of the variable
-     * @return the value, or null if the variable is not set
-     */
     String getenv(String name);
   }
 }

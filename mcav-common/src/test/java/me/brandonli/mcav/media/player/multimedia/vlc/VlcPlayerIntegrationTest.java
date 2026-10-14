@@ -56,10 +56,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Plays generated media through the VLC installed on the machine with {@link VlcPlayer}. The tests are skipped when
- * VLC is not installed.
- */
+// Plays generated media through the VLC installed on the machine with VlcPlayer. The tests are skipped when VLC is not
+// installed.
 final class VlcPlayerIntegrationTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(10);
@@ -153,9 +151,6 @@ final class VlcPlayerIntegrationTest {
     return frameCount + audioByteCount;
   }
 
-  /**
-   * Waits until neither frames nor samples arrived for 400 ms, and fails if they keep arriving for ten seconds.
-   */
   private void awaitSilence() throws InterruptedException {
     final QuietPeriod quiet = new QuietPeriod(this::totalActivity, SILENCE_MILLISECONDS);
     Polling.awaitCondition("neither frames nor samples arrived for 400 ms", TIMEOUT, quiet::hasElapsed);
@@ -414,10 +409,8 @@ final class VlcPlayerIntegrationTest {
     assertEquals(48, height);
   }
 
-  /**
-   * Tracks when a steadily growing count last changed, to wait until it stays the same for a while. The count is only
-   * read by the thread that waits.
-   */
+  // Tracks when a steadily growing count last changed, to wait until it stays the same for a while. The count is only
+  // read by the thread that waits.
   private static final class QuietPeriod {
 
     private final LongSupplier activity;

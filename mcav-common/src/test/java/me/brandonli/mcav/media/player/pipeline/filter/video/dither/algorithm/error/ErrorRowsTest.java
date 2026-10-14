@@ -22,10 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.DitherUtils;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ErrorRows}, with expected values computed by hand from the Floyd-Steinberg weights 7, 3, 5 and 1
- * sixteenths.
- */
 final class ErrorRowsTest {
 
   private static final int GRAY = 0x808080;

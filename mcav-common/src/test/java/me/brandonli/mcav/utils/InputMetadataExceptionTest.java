@@ -26,9 +26,6 @@ import java.io.IOException;
 import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link InputMetadataException}.
- */
 final class InputMetadataExceptionTest {
 
   @Test

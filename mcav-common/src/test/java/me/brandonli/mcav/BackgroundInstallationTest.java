@@ -44,10 +44,8 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.slf4j.Logger;
 
-/**
- * Tests {@link BackgroundInstallation} with a mocked {@link DependencyLoader} and a mocked logger, so the failures
- * the installation threads report can be checked. Blocked steps wait for latches; nothing sleeps.
- */
+// Tests BackgroundInstallation with a mocked DependencyLoader and a mocked logger, so the failures the installation
+// threads report can be checked. Blocked steps wait for latches; nothing sleeps.
 final class BackgroundInstallationTest {
 
   private static final long WAIT_SECONDS = 10;
@@ -361,9 +359,6 @@ final class BackgroundInstallationTest {
     assertTrue(hasVlc, "a program that was ready before the cancellation stays reported as ready");
   }
 
-  /**
-   * Starts an installation whose yt-dlp step finishes at once, and waits until VLC started and yt-dlp's thread ended.
-   */
   private BackgroundInstallation startWithFinishedYtdlp(final CountDownLatch vlcStarted) throws Exception {
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();

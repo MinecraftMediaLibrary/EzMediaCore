@@ -36,9 +36,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OrderedDither}, {@link BayerDither}, {@link PixelMapper} and the ordered dither builder.
- */
 final class OrderedDitherTest {
 
   private static final int MID_GRAY = 0xFF808080;
@@ -51,10 +48,8 @@ final class OrderedDitherTest {
 
   private static final float UNIT_STRENGTH = 1.0f;
 
-  /**
-   * Asserts that a threshold matrix has the size its name promises, and that every one of its levels occupies the
-   * same number of cells, so no threshold is missing or repeated by mistake.
-   */
+  // Asserts that a threshold matrix has the size its name promises, and that every one of its levels occupies the same
+  // number of cells, so no threshold is missing or repeated by mistake.
   private static void assertEvenRanking(
     final String name,
     final ThresholdMatrix thresholds,

@@ -38,7 +38,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-/** Validates structure only: fixture libraries are nonempty markers and are never passed to a native loader. */
+// Validates structure only: fixture libraries are nonempty markers and are never passed to a native loader.
 final class VlcInstallationValidationTest {
 
   private static final String MAC_MAIN_LIBRARY_NAME = "libvlc.dylib";

@@ -24,9 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherPalette#colors(List)}, which unboxes a list of colors.
- */
 final class DitherPaletteColorsTest {
 
   @Test

@@ -32,9 +32,6 @@ import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the filters that change the geometry of frames: crop, resize, rotation, transposition and flipping.
- */
 final class GeometryFiltersTest {
 
   private static final int SQUARE_SIDE = 4;

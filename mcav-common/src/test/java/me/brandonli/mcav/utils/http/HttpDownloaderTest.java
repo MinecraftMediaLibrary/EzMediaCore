@@ -61,9 +61,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link HttpDownloader} against a server on the loopback interface.
- */
 final class HttpDownloaderTest {
 
   private static final String CONTENT_TEXT = "hello download";
@@ -775,9 +772,7 @@ final class HttpDownloaderTest {
     return name.endsWith(PART_FILE_EXTENSION) && Files.isRegularFile(file);
   }
 
-  /**
-   * Opens the body of a URL and closes it again right away, so a stream that opens unexpectedly never leaks.
-   */
+  // Opens the body of a URL and closes it again right away, so a stream that opens unexpectedly never leaks.
   private static void openAndClose(final URI uri) throws IOException {
     try (final InputStream stream = HttpDownloader.openStream(uri)) {
       assertNotNull(stream, "opening either fails or yields a stream");

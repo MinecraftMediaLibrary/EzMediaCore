@@ -40,9 +40,6 @@ import me.brandonli.mcav.utils.immutable.Dimension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Plays a video with the VLC backend, scaled down by the player, with an inverted and mirrored picture.
- */
 public final class VlcPlayerExample {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VlcPlayerExample.class);

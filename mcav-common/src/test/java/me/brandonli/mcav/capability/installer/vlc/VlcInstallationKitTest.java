@@ -43,9 +43,6 @@ import me.brandonli.mcav.testing.TemporaryUserHome;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link VlcInstallationKit}.
- */
 final class VlcInstallationKitTest {
 
   private static final Path SYSTEM_DIRECTORY = Path.of("system", "vlc");

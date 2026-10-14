@@ -37,12 +37,10 @@ import net.jqwik.api.arbitraries.ByteArbitrary;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the sample conversions of the audio paths for every layout a buffer can have: heap or native memory,
- * a view that starts inside a larger buffer, bytes that do not belong to the samples around it, read-only, and either
- * byte order flag. The samples must come out unchanged, the caller's buffer must be left as it was, and the result must
- * be a copy the caller's buffer cannot change afterwards.
- */
+// Properties of the sample conversions of the audio paths for every layout a buffer can have: heap or native memory, a
+// view that starts inside a larger buffer, bytes that do not belong to the samples around it, read-only, and either
+// byte order flag. The samples must come out unchanged, the caller's buffer must be left as it was, and the result must
+// be a copy the caller's buffer cannot change afterwards.
 final class SampleBytesPropertyTest {
 
   private static final String SEED = "20260925";
@@ -70,10 +68,8 @@ final class SampleBytesPropertyTest {
     return buffers.as(SampleBuffer::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
   private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -170,10 +166,6 @@ final class SampleBytesPropertyTest {
     return (high << 8) | low;
   }
 
-  /**
-   * Asserts that the converted buffer holds the samples of the source read in the source's own order, and keeps a
-   * trailing odd byte as it is.
-   */
   private static void assertSameSamples(final SampleBuffer sample, final ByteOrder sourceOrder, final ByteBuffer converted) {
     final byte[] content = sample.getContent();
     final int sampleCount = content.length / SAMPLE_BYTES;
@@ -197,9 +189,6 @@ final class SampleBytesPropertyTest {
     }
   }
 
-  /**
-   * Asserts that changing the source afterwards does not change the result.
-   */
   private static void assertIndependentCopy(final SampleBuffer sample, final ByteBuffer source, final ByteBuffer converted) {
     if (source.isReadOnly()) {
       return;
@@ -220,9 +209,6 @@ final class SampleBytesPropertyTest {
     assertArrayEquals(before, after, () -> "the result shares memory with the source: " + sample);
   }
 
-  /**
-   * Where the bytes of a buffer live.
-   */
   enum Layout {
     HEAP,
     DIRECT,
@@ -231,9 +217,6 @@ final class SampleBytesPropertyTest {
     READ_ONLY,
   }
 
-  /**
-   * Samples in a buffer of some layout, with bytes that are not samples before and after them.
-   */
   private static final class SampleBuffer {
 
     private final byte[] content;
@@ -274,9 +257,6 @@ final class SampleBytesPropertyTest {
       return buffer;
     }
 
-    /**
-     * Asserts that a conversion left the position, the limit, the order and the bytes of the buffer as they were.
-     */
     private void assertUnchanged(final ByteBuffer buffer) {
       final boolean sliced = this.layout == Layout.SLICED_HEAP || this.layout == Layout.SLICED_DIRECT;
       final int start = sliced ? 0 : this.before;

@@ -47,11 +47,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Checks the bundled yt-dlp downloads against the real 2026.08.19 release on GitHub. These tests download files from
- * the internet, so they only run when the {@code mcav.networkTests} system property is true, which
- * {@code ./gradlew test -Pmcav.networkTests=true} sets.
- */
+// Checks the bundled yt-dlp downloads against the real 2026.08.19 release on GitHub. These tests download files from
+// the internet, so they only run when the mcav.networkTests system property is true, which ./gradlew test
+// -Pmcav.networkTests=true sets.
 final class YtdlpReleaseTest {
 
   private static final String RELEASE = "2026.08.19";
@@ -99,9 +97,6 @@ final class YtdlpReleaseTest {
     }
   }
 
-  /**
-   * Parses GNU-style checksum lines, {@code <hash>  <file name>}, into a map from file name to hash.
-   */
   private static Map<String, String> parseChecksums(final String body) {
     final Map<String, String> checksums = new HashMap<>();
     final Stream<String> lineStream = body.lines();
@@ -129,9 +124,6 @@ final class YtdlpReleaseTest {
     assertEquals(RELEASE, version);
   }
 
-  /**
-   * Runs {@code yt-dlp --version} and returns what it printed.
-   */
   private static String runVersion(final Path executable) throws IOException, InterruptedException {
     final String command = executable.toString();
     final ProcessBuilder builder = new ProcessBuilder(command, "--version");

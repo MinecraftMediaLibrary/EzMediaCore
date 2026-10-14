@@ -38,14 +38,10 @@ import me.brandonli.mcav.media.source.file.FileSource;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import uk.co.caprica.vlcj.binding.lib.LibVlc;
 
-/**
- * The second half of {@link VlcReleaseTest}, run in a JVM of its own because libvlc can be loaded only once per JVM
- * and other tests load the system's VLC: loads the VLC installed in the folder it is given, never the system's, and
- * plays a video through it.
- *
- * <p>Arguments: the installation folder given to {@link VlcInstaller#create(Path)}, and a video with sound. It prints
- * {@link #PASSED} and exits with 0 once frames and sound arrived.
- */
+// The second half of VlcReleaseTest, run in a JVM of its own because libvlc can be loaded only once per JVM and other
+// tests load the system's VLC: loads the VLC installed in the folder it is given, never the system's, and plays a video
+// through it. Arguments: the installation folder given to VlcInstaller.create(Path), and a video with sound. It prints
+// PASSED and exits with 0 once frames and sound arrived.
 final class VlcPlaybackProbe {
 
   static final String PASSED = "VLC PLAYBACK PASSED";
@@ -64,13 +60,6 @@ final class VlcPlaybackProbe {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Loads the private installation and plays the video.
-   *
-   * @param arguments the installation folder and the video
-   * @throws IOException          if the installation cannot be loaded
-   * @throws InterruptedException if the wait for frames is interrupted
-   */
   public static void main(final String[] arguments) throws IOException, InterruptedException {
     final Path folder = Path.of(arguments[0]);
     final Path video = Path.of(arguments[1]);
@@ -144,9 +133,7 @@ final class VlcPlaybackProbe {
     return false;
   }
 
-  /**
-   * Finds no VLC on the system, so the kit loads the private installation.
-   */
+  // Finds no VLC on the system, so the kit loads the private installation.
   private static final class PrivateDiscovery implements VlcDiscovery {
 
     private final NativeVlcDiscovery discovery = new NativeVlcDiscovery();

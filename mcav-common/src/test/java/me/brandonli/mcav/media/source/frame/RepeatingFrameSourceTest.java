@@ -29,9 +29,6 @@ import me.brandonli.mcav.media.image.DynamicImageBuffer;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link RepeatingFrameSource} and {@link DefaultRepeatingFrameSource}.
- */
 final class RepeatingFrameSourceTest {
 
   private static final int FRAME_WIDTH = 2;

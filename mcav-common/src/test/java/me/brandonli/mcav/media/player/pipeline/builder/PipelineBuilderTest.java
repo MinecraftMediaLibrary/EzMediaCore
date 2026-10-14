@@ -34,9 +34,6 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PipelineBuilder} and the step builders.
- */
 final class PipelineBuilderTest {
 
   @Test

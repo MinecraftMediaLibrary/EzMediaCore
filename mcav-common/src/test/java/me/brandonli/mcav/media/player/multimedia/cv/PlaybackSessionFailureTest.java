@@ -51,7 +51,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
-/** Verifies natural worker termination when decoder acquisition, cleanup or failure reporting throws. */
 final class PlaybackSessionFailureTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);

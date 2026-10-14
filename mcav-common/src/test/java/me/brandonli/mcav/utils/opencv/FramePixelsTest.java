@@ -29,9 +29,6 @@ import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.bytedeco.javacv.Frame;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link FramePixels}.
- */
 final class FramePixelsTest {
 
   private static Frame frame(final int width, final int height, final int stride, final byte[] data) {

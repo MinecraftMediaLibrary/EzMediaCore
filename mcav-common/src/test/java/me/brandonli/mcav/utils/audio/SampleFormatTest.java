@@ -22,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link SampleFormat}.
- */
 final class SampleFormatTest {
 
   @Test

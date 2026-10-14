@@ -51,9 +51,6 @@ import me.brandonli.mcav.utils.immutable.Dimension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FfmpegPlayer} and {@link PlaybackSession} end to end with generated media files.
- */
 final class FfmpegPlayerTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(15L);
@@ -95,10 +92,6 @@ final class FfmpegPlayerTest {
     return (endNanoseconds - startNanoseconds) / NANOSECONDS_PER_SECOND;
   }
 
-  /**
-   * Creates a video filter that records the width of every frame next to the width of the original video, and the
-   * time every frame arrived at.
-   */
   private static VideoFilter recordingFrames(final AtomicInteger frames, final List<String> sizes, final List<Long> frameTimes) {
     return (image, metadata) -> recordFrame(image, metadata, frames, sizes, frameTimes);
   }
@@ -118,9 +111,6 @@ final class FfmpegPlayerTest {
     return frames.incrementAndGet() > 0;
   }
 
-  /**
-   * Creates an audio filter that counts the bytes of samples in the output format of the player.
-   */
   private static AudioFilter countingOutputSamples(final AtomicLong audioBytes) {
     return (samples, metadata) -> countOutputSamples(samples, metadata, audioBytes);
   }
@@ -154,10 +144,8 @@ final class FfmpegPlayerTest {
     return audioBytes.addAndGet(remaining) > 0;
   }
 
-  /**
-   * Creates a player that never drops a frame as late, so how many frames a test sees does not depend on the load of
-   * the machine.
-   */
+  // Creates a player that never drops a frame as late, so how many frames a test sees does not depend on the load of
+  // the machine.
   private static FfmpegPlayer neverDroppingPlayer() {
     final FfmpegPlayer player = new FfmpegPlayer();
     player.neverDropLateFrames();
@@ -212,10 +200,6 @@ final class FfmpegPlayerTest {
     }
   }
 
-  /**
-   * Checks the width of the last scaled frame, that a player at the end of its media plays again only when started
-   * again, and that releasing it stops it.
-   */
   private static void assertScaledAndStartsAgainOnlyWhenStartedAgain(
     final FfmpegPlayer player,
     final Source source,
@@ -353,10 +337,6 @@ final class FfmpegPlayerTest {
     }
   }
 
-  /**
-   * What a playback delivered to its pipelines: the frames with their sizes and arrival times, the bytes of audio in
-   * the output format, and the errors.
-   */
   private static final class PlaybackRecording {
 
     private final AtomicInteger frames = new AtomicInteger();
@@ -365,9 +345,6 @@ final class FfmpegPlayerTest {
     private final List<Long> frameTimes = Collections.synchronizedList(new ArrayList<>());
     private final List<String> sizes = Collections.synchronizedList(new ArrayList<>());
 
-    /**
-     * Records the errors of a player and attaches pipelines that record its frames and audio.
-     */
     private void attachTo(final FfmpegPlayer player) {
       player.setExceptionHandler((_, error) -> this.errors.add(error));
       final VideoFilter video = recordingFrames(this.frames, this.sizes, this.frameTimes);
@@ -375,9 +352,6 @@ final class FfmpegPlayerTest {
       attach(player, video, audio);
     }
 
-    /**
-     * Checks that the five seconds of the test video played completely, in real time, and with their audio.
-     */
     private void assertPlayedTheWholeFileInRealTime(final boolean started, final double seconds) {
       final int frameCount = this.frames.get();
       final long bytes = this.audioBytes.get();

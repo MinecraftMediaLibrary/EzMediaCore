@@ -36,9 +36,6 @@ import me.brandonli.mcav.testing.TestMedia;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link DynamicImageBuffer} and {@link FfmpegDynamicImageBuffer}.
- */
 final class DynamicImageBufferTest {
 
   private static final int ANIMATION_WIDTH = 8;
@@ -72,9 +69,6 @@ final class DynamicImageBufferTest {
     return gif;
   }
 
-  /**
-   * Checks the number of frames, that the frame list and the frame accessor agree, and the color of every frame.
-   */
   private static void assertEveryFrameHasItsColor(final DynamicImageBuffer animation) {
     final int count = animation.getFrameCount();
     final List<ImageBuffer> frames = animation.getFrames();

@@ -32,7 +32,6 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-/** Exercises release from callbacks and while callbacks are waiting. */
 @Timeout(15)
 final class ImagePlayerShutdownTest {
 

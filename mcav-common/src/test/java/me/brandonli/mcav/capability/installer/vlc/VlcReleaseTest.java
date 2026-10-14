@@ -45,12 +45,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Checks the bundled VLC downloads against the release VideoLAN publishes, then installs the build of this machine
- * from the real download and plays a video through it. These tests download files from the internet, so they only
- * run when the {@code mcav.networkTests} system property is true, which {@code ./gradlew test
- * -Pmcav.networkTests=true} sets.
- */
+// Checks the bundled VLC downloads against the release VideoLAN publishes, then installs the build of this machine from
+// the real download and plays a video through it. These tests download files from the internet, so they only run when
+// the mcav.networkTests system property is true, which ./gradlew test -Pmcav.networkTests=true sets.
 final class VlcReleaseTest {
 
   private static final Duration TIMEOUT = Duration.ofMinutes(2);

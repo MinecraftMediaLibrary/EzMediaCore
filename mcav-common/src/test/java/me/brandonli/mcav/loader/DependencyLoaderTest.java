@@ -78,9 +78,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
 
-/**
- * Tests {@link DependencyLoader}.
- */
 final class DependencyLoaderTest {
 
   private static final String OPENBLAS_LOAD = "org.bytedeco.openblas.load";
@@ -826,10 +823,6 @@ final class DependencyLoaderTest {
     System.setProperty(PATHS_FIRST, value);
   }
 
-  /**
-   * A class whose initializer fails as FFmpeg's device class does without its library: the first use throws that
-   * failure, and every later one a {@link NoClassDefFoundError} that names it as the cause.
-   */
   private static final class FailingDeviceLibrary {
 
     private static final int LOADED = fail();

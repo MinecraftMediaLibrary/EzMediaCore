@@ -34,9 +34,6 @@ import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageOutputStream;
 import me.brandonli.mcav.media.image.ImageBuffer;
 
-/**
- * Creates small images for tests.
- */
 public final class Images {
 
   private static final String GIF_METADATA_FORMAT = "javax_imageio_gif_image_1.0";
@@ -48,14 +45,6 @@ public final class Images {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Creates an image filled with one color.
-   *
-   * @param width  the width, at least 1
-   * @param height the height, at least 1
-   * @param argb   the color as packed ARGB
-   * @return the image
-   */
   public static ImageBuffer solid(final int width, final int height, final int argb) {
     checkDimensions(width, height);
 
@@ -64,14 +53,6 @@ public final class Images {
     return ImageBuffer.buffer(pixels, width, height);
   }
 
-  /**
-   * Creates an image of opaque random colors, the same for the same seed.
-   *
-   * @param width  the width, at least 1
-   * @param height the height, at least 1
-   * @param seed   the seed of the random colors
-   * @return the image
-   */
   public static ImageBuffer noise(final int width, final int height, final long seed) {
     checkDimensions(width, height);
 
@@ -85,26 +66,13 @@ public final class Images {
     return ImageBuffer.buffer(pixels, width, height);
   }
 
-  /**
-   * Creates an image whose pixel at index {@code i} has the opaque color {@code i}, so every pixel is unique and its
-   * original position can be read from its color.
-   *
-   * @param width  the width, at least 1
-   * @param height the height, at least 1
-   * @return the image
-   */
+  // Creates an image whose pixel at index i has the opaque color i, so every pixel is unique and its original position
+  // can be read from its color.
   public static ImageBuffer indexed(final int width, final int height) {
     final int[] pixels = indexedPixels(width, height);
     return ImageBuffer.buffer(pixels, width, height);
   }
 
-  /**
-   * Creates the pixels of {@link #indexed(int, int)}.
-   *
-   * @param width  the width, at least 1
-   * @param height the height, at least 1
-   * @return the pixels
-   */
   public static int[] indexedPixels(final int width, final int height) {
     checkDimensions(width, height);
 
@@ -117,14 +85,6 @@ public final class Images {
     return pixels;
   }
 
-  /**
-   * Encodes an image in a format ImageIO supports.
-   *
-   * @param image  the image
-   * @param format the format name, such as {@code png}
-   * @return the encoded bytes
-   * @throws IllegalArgumentException if ImageIO has no writer for the format
-   */
   public static byte[] encode(final BufferedImage image, final String format) {
     Preconditions.checkNotNull(image, "Image must not be null!");
     Preconditions.checkNotNull(format, "Format must not be null!");
@@ -139,15 +99,6 @@ public final class Images {
     }
   }
 
-  /**
-   * Encodes an animated GIF with one solid frame per color.
-   *
-   * @param width             the width of the frames, at least 1
-   * @param height            the height of the frames, at least 1
-   * @param delayInHundredths how long every frame is shown, in hundredths of a second
-   * @param colors            the colors of the frames as packed RGB
-   * @return the encoded GIF
-   */
   public static byte[] animatedGif(final int width, final int height, final int delayInHundredths, final int... colors) {
     checkDimensions(width, height);
     Preconditions.checkNotNull(colors, "Colors must not be null!");

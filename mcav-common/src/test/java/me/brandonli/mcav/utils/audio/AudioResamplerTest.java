@@ -34,9 +34,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import org.bytedeco.javacpp.Pointer;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link AudioResampler}.
- */
 final class AudioResamplerTest {
 
   private static final int PIPELINE_RATE = 48_000;
@@ -511,9 +508,6 @@ final class AudioResamplerTest {
     assertThrows(IllegalStateException.class, resampler::flush);
   }
 
-  /**
-   * Names the native objects that are still allocated.
-   */
   private static List<String> allocated(final List<Pointer> objects) {
     final List<String> names = new ArrayList<>();
     for (final Pointer object : objects) {

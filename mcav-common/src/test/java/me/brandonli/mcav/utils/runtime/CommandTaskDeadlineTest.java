@@ -47,7 +47,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.invocation.InvocationOnMock;
 
-/** Tests the single deadline covering process exit and inherited output pipes. */
 final class CommandTaskDeadlineTest {
 
   private static final String FINISHED_COMMAND = "already-finished";
@@ -204,11 +203,9 @@ final class CommandTaskDeadlineTest {
 
   private static final class StringFuture extends CompletableFuture<String> {}
 
-  /**
-   * A parent that starts a child sharing its standard streams and ends, while the child holds the pipes for 30 seconds.
-   * With three arguments, the Java executable, the class path and the file for the child's pid, it is the parent;
-   * with one, the child.
-   */
+  // A parent that starts a child sharing its standard streams and ends, while the child holds the pipes for 30 seconds.
+  // With three arguments, the Java executable, the class path and the file for the child's pid, it is the parent; with
+  // one, the child.
   static final class InheritedPipes {
 
     private InheritedPipes() {}

@@ -63,9 +63,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
-/**
- * Tests {@link YtdlpInstaller}.
- */
 final class YtdlpInstallerTest {
 
   private static final String RELEASE_URL = "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/";

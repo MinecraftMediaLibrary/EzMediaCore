@@ -39,9 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests {@link IdleTimeoutInputStream}.
- */
 final class IdleTimeoutInputStreamTest {
 
   private static final Duration GENEROUS_TIMEOUT = Duration.ofSeconds(10);
@@ -180,9 +177,6 @@ final class IdleTimeoutInputStreamTest {
     assertTrue(closed);
   }
 
-  /**
-   * A source that delivers no data until it is closed, like a server that stopped sending.
-   */
   private static final class BlockingSource extends InputStream {
 
     private final CountDownLatch closed = new CountDownLatch(1);
@@ -197,9 +191,6 @@ final class IdleTimeoutInputStreamTest {
       return this.awaitClosing();
     }
 
-    /**
-     * Blocks until the source is closed and then reports its end, like a connection that ends without sending.
-     */
     private int awaitClosing() throws IOException {
       final boolean closedInTime;
       try {

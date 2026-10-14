@@ -24,9 +24,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OriginalAudioMetadata} and {@link DefaultOriginalAudioMetadata}.
- */
 final class OriginalAudioMetadataTest {
 
   private static final String CODEC = "aac";

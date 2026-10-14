@@ -25,9 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link NativeLoadingException}.
- */
 final class NativeLoadingExceptionTest {
 
   @Test

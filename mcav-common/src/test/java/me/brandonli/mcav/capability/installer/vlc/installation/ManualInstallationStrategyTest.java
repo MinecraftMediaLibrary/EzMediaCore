@@ -36,9 +36,6 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests the helpers of {@link ManualInstallationStrategy}.
- */
 final class ManualInstallationStrategyTest {
 
   private static final Pattern LIBRARY = Pattern.compile("libvlc\\.dll");
@@ -259,9 +256,6 @@ final class ManualInstallationStrategyTest {
     return new String[] { "sh", "-c", command };
   }
 
-  /**
-   * A strategy that only exposes the helpers of its base class.
-   */
   private static final class TestStrategy extends ManualInstallationStrategy {
 
     TestStrategy(final VlcInstaller installer) {

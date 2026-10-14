@@ -51,20 +51,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Stops playback sessions at many points of their life. This is the stress half of the race tests of
- * {@link PlaybackSession}: jcstress runs its actors millions of times and needs them to finish in microseconds, which a
- * session that starts up to four threads and paces its frames by the clock does not, so {@code EndMarkerRace} in
- * mcav-jcstress covers only the one step of stopping that fits, the end marker replacing a queue a decoder refills.
- *
- * <p>Every round plays a scripted source, sometimes with a separate audio source and sometimes with a decoder that
- * gets stuck for a moment, and stops it at a point drawn from a fixed seed: before the threads start, right after the
- * start, while paused, after some frames, as the media ends, from its own filter, from two threads at once, and from
- * its filter and from outside at once. The seed fixes the rounds, not the interleavings, which is the point of running
- * many. Wherever the stop lands, once {@link PlaybackSession#stop()} returns to a caller outside the session, every
- * thread of the session has ended and every grabber it opened is closed; once the session ended, every picture its
- * pipeline saw is released; and nothing is ever reported, because nothing in the scripts fails.
- */
+// Stops playback sessions at many points of their life. This is the stress half of the race tests of PlaybackSession:
+// jcstress runs its actors millions of times and needs them to finish in microseconds, which a session that starts up
+// to four threads and paces its frames by the clock does not, so EndMarkerRace in mcav-jcstress covers only the one
+// step of stopping that fits, the end marker replacing a queue a decoder refills. Every round plays a scripted source,
+// sometimes with a separate audio source and sometimes with a decoder that gets stuck for a moment, and stops it at a
+// point drawn from a fixed seed: before the threads start, right after the start, while paused, after some frames, as
+// the media ends, from its own filter, from two threads at once, and from its filter and from outside at once. The seed
+// fixes the rounds, not the interleavings, which is the point of running many. Wherever the stop lands, once
+// PlaybackSession.stop() returns to a caller outside the session, every thread of the session has ended and every
+// grabber it opened is closed; once the session ended, every picture its pipeline saw is released; and nothing is ever
+// reported, because nothing in the scripts fails.
 final class PlaybackSessionStopStressTest {
 
   private static final long SEED = 20_260_925L;
@@ -82,10 +79,8 @@ final class PlaybackSessionStopStressTest {
   private static final int FRAME_WIDTH = 4;
   private static final int FRAME_HEIGHT = 2;
 
-  /**
-   * Loads the OpenCV natives before the first round, because the first image buffer of the JVM loads them on the
-   * decoding thread, where the loading takes seconds.
-   */
+  // Loads the OpenCV natives before the first round, because the first image buffer of the JVM loads them on the
+  // decoding thread, where the loading takes seconds.
   @BeforeAll
   static void loadTheNativeLibrariesAheadOfTheRounds() {
     try (final ImageBuffer warmUp = ImageBuffer.bytes(new byte[3], 1, 1)) {
@@ -105,13 +100,11 @@ final class PlaybackSessionStopStressTest {
     }
   }
 
-  /**
-   * Stopping drains the video queue, which wakes a decoder that waits for room in it. When the wake-up comes before the
-   * decoder notices its interrupt, the put completes after all, and it could complete after the renderer drained the
-   * queue for the last time, so nobody released the picture of that frame. Found by the rounds above; which comes
-   * first is up to the scheduler, about one stop in twenty-five on the machine it was found on, so the stop is repeated
-   * until missing the case every time would take a miracle.
-   */
+  // Stopping drains the video queue, which wakes a decoder that waits for room in it. When the wake-up comes before the
+  // decoder notices its interrupt, the put completes after all, and it could complete after the renderer drained the
+  // queue for the last time, so nobody released the picture of that frame. Found by the rounds above; which comes first
+  // is up to the scheduler, about one stop in twenty-five on the machine it was found on, so the stop is repeated until
+  // missing the case every time would take a miracle.
   @Test
   void shouldNotLeaveThePictureOfADecoderWaitingForRoomBehindOnAnyStop() throws Exception {
     for (int stop = 0; stop < WAITING_DECODER_STOPS; stop++) {
@@ -151,10 +144,8 @@ final class PlaybackSessionStopStressTest {
     }
   }
 
-  /**
-   * A video filter that blocks until its thread is interrupted, keeping the interrupt, so the renderer holds one frame
-   * while the decoder fills the queue.
-   */
+  // A video filter that blocks until its thread is interrupted, keeping the interrupt, so the renderer holds one frame
+  // while the decoder fills the queue.
   private static boolean blockUntilInterrupted(final ImageBuffer picture, final OriginalVideoMetadata metadata) {
     final CountDownLatch never = new CountDownLatch(1);
     try {
@@ -167,10 +158,6 @@ final class PlaybackSessionStopStressTest {
     return true;
   }
 
-  /**
-   * Returns the threads of playback sessions that are alive, which includes threads of sessions of other tests that are
-   * still ending; a round only looks at the threads that were not there before it began.
-   */
   private static Set<Thread> liveSessionThreads() {
     final Map<Thread, StackTraceElement[]> stacks = Thread.getAllStackTraces();
     final Set<Thread> sessionThreads = new HashSet<>();
@@ -185,9 +172,6 @@ final class PlaybackSessionStopStressTest {
     return sessionThreads;
   }
 
-  /**
-   * Where a round stops its session.
-   */
   private enum StopPoint {
     BEFORE_THE_THREADS,
     RIGHT_AFTER_THE_START,
@@ -199,9 +183,6 @@ final class PlaybackSessionStopStressTest {
     FROM_ITS_FILTER_AND_OUTSIDE,
   }
 
-  /**
-   * One round: a session, its script, the point it is stopped at, and what its pipelines saw.
-   */
   private static final class Round {
 
     private final String description;
@@ -293,10 +274,6 @@ final class PlaybackSessionStopStressTest {
       );
     }
 
-    /**
-     * The video pipeline: remembers the picture and its thread, and stops the session itself at the chosen frame when
-     * the round stops it from its filter.
-     */
     private boolean showPicture(final ImageBuffer picture, final OriginalVideoMetadata metadata) {
       this.pictures.add(picture);
       final Thread currentThread = Thread.currentThread();
@@ -359,10 +336,8 @@ final class PlaybackSessionStopStressTest {
       this.assertEnded();
     }
 
-    /**
-     * Waits until the pipeline saw the frames after which the round stops, or the media ended before that because
-     * frames were due before the pipeline could show them all.
-     */
+    // Waits until the pipeline saw the frames after which the round stops, or the media ended before that because
+    // frames were due before the pipeline could show them all.
     private void awaitFramesOrEnd() throws InterruptedException {
       Polling.awaitCondition(
         this.description + ", the frames were shown or the media ended",
@@ -376,9 +351,7 @@ final class PlaybackSessionStopStressTest {
       this.assertStoppedForItsCaller(this.description);
     }
 
-    /**
-     * Stops the session from two threads at once; each must find the session stopped when its stop returns.
-     */
+    // Stops the session from two threads at once; each must find the session stopped when its stop returns.
     private void stopFromTwoThreads() throws InterruptedException {
       final CountDownLatch gate = new CountDownLatch(1);
       final List<Throwable> failures = Collections.synchronizedList(new ArrayList<>());
@@ -410,10 +383,6 @@ final class PlaybackSessionStopStressTest {
       }
     }
 
-    /**
-     * Stops the session from outside the moment it begins to stop itself from its filter, spinning rather than
-     * polling so the two stops overlap.
-     */
     private void stopFromOutsideAsTheFilterDoes() throws InterruptedException {
       final long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLISECONDS);
       while (this.session.isActive()) {
@@ -427,10 +396,6 @@ final class PlaybackSessionStopStressTest {
       this.awaitOwnStop();
     }
 
-    /**
-     * Waits until the filter that stopped its own session returned from that stop and its thread ended, which the stop
-     * cannot wait for, being called on that thread.
-     */
     private void awaitOwnStop() throws InterruptedException {
       final boolean returned = this.ownStopReturned.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(returned, () -> this.description + ", the filter did not return from stopping its own session");
@@ -443,10 +408,6 @@ final class PlaybackSessionStopStressTest {
       this.assertStoppedForItsCaller(this.description);
     }
 
-    /**
-     * Checks what a stop promises the caller it returns to: the threads of the session ended and its grabbers are
-     * closed.
-     */
     private void assertStoppedForItsCaller(final String caller) {
       final Set<Thread> alive = liveSessionThreads();
       alive.removeAll(this.threadsBefore);
@@ -458,10 +419,6 @@ final class PlaybackSessionStopStressTest {
       assertTrue(audioClosed, () -> caller + ": the audio grabber is still open after the stop returned");
     }
 
-    /**
-     * Checks what holds once the session ended: every picture the pipeline saw is released, no picture is left in the
-     * queue, and nothing was reported.
-     */
     private void assertEnded() {
       final List<ImageBuffer> seen;
       synchronized (this.pictures) {

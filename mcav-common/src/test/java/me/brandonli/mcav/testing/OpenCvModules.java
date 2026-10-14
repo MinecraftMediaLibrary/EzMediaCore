@@ -20,25 +20,16 @@ package me.brandonli.mcav.testing;
 import com.google.common.base.Preconditions;
 import org.bytedeco.javacpp.Loader;
 
-/**
- * Checks what the OpenCV natives bundled with JavaCV can do on this machine, so tests of features that need a missing
- * part skip themselves.
- *
- * <p>The object detection and GUI natives link GTK 2 on Linux, which most servers lack. The video reader does not need
- * GTK, but the Linux build of OpenCV has no video file backend at all: it only captures from cameras through V4L2.
- */
+// Checks what the OpenCV natives bundled with JavaCV can do on this machine, so tests of features that need a missing
+// part skip themselves. The object detection and GUI natives link GTK 2 on Linux, which most servers lack. The video
+// reader does not need GTK, but the Linux build of OpenCV has no video file backend at all: it only captures from
+// cameras through V4L2.
 public final class OpenCvModules {
 
   private OpenCvModules() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Checks whether the natives of a JavaCPP preset can be loaded.
-   *
-   * @param preset the preset class, such as {@code org.bytedeco.opencv.presets.opencv_objdetect}
-   * @return true if the natives were loaded
-   */
   public static boolean canLoad(final Class<?> preset) {
     Preconditions.checkNotNull(preset, "Preset must not be null!");
 

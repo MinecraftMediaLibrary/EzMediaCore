@@ -57,9 +57,6 @@ import me.brandonli.mcav.media.source.frame.SampleSupplier;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ImagePlayer} and {@link ThreadedImagePlayer}.
- */
 final class ImagePlayerTest {
 
   private static final Duration FRAME_TIMEOUT = Duration.ofSeconds(10);
@@ -121,9 +118,6 @@ final class ImagePlayerTest {
     return shortest;
   }
 
-  /**
-   * Takes 60 ms, longer than the frame period of a source with 100 frames per second, like a slow filter.
-   */
   private static void workSlowly() {
     try {
       Thread.sleep(60);
@@ -133,10 +127,6 @@ final class ImagePlayerTest {
     }
   }
 
-  /**
-   * Creates a filter that checks the size and frame rate of every frame, records when it arrived, and fails on the
-   * fifth frame.
-   */
   private static VideoFilter checkingFramesAndFailingOnce(final List<Long> times, final AtomicInteger consumed) {
     return (image, metadata) -> checkFrameAndFailOnce(image, metadata, times, consumed);
   }
@@ -162,9 +152,6 @@ final class ImagePlayerTest {
     return true;
   }
 
-  /**
-   * Creates a source of 16 by 8 frames at 50 frames per second whose third frame has the wrong size.
-   */
   private static FrameSource framesWithOneOfTheWrongSize() {
     final AtomicInteger produced = new AtomicInteger();
     return FrameSource.supplier(() -> produceFrameOfTheWrongSizeThird(produced), 16, 8, QUICK_FRAME_RATE);
@@ -175,9 +162,6 @@ final class ImagePlayerTest {
     return count == 3 ? new int[1] : new int[16 * 8];
   }
 
-  /**
-   * Creates a player that records the messages of its failures and runs {@link #checkingFramesAndFailingOnce}.
-   */
   private static ImagePlayer checkingPlayer(final List<String> failures, final List<Long> times, final AtomicInteger consumed) {
     final ImagePlayer player = ImagePlayer.player();
     player.setExceptionHandler((message, _) -> failures.add(message));
@@ -374,10 +358,6 @@ final class ImagePlayerTest {
     return true;
   }
 
-  /**
-   * Creates a source of solid frames that records the thread asking it for its frame rate first, which is the thread
-   * that starts the player.
-   */
   private static FrameSource recordingStarter(final AtomicReference<String> starter) {
     final FrameSource delegate = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     final FrameSource source = mock(FrameSource.class);
@@ -396,9 +376,6 @@ final class ImagePlayerTest {
     return FRAME_RATE;
   }
 
-  /**
-   * Checks that both players started, the first on the given executor and the second on the common pool.
-   */
   private static void assertStartedOnTheirThreads(
     final boolean startedOnExecutor,
     final boolean startedOnCommonPool,
@@ -496,12 +473,6 @@ final class ImagePlayerTest {
     }
   }
 
-  /**
-   * Finds the frame thread of a player, which carries the name every player gives its thread and lives as long as the
-   * player plays.
-   *
-   * @return the running frame thread, or null if none is alive
-   */
   private static @Nullable Thread frameThread() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
@@ -517,9 +488,6 @@ final class ImagePlayerTest {
     return null;
   }
 
-  /**
-   * Releases a player on another thread, which only returns once that thread could take the lock of the player.
-   */
   private static void releaseOnAnotherThread(final ImagePlayer player) throws InterruptedException {
     final Thread probe = new Thread(player::release, "image-player-lock-probe");
     probe.setDaemon(true);

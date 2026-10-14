@@ -28,9 +28,6 @@ import me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy;
 import me.brandonli.mcav.json.ytdlp.strategy.StrategySelector;
 import me.brandonli.mcav.media.source.uri.UriSource;
 
-/**
- * Prints the direct video and audio stream URLs yt-dlp finds for a YouTube page.
- */
 public final class YtdlpExample {
 
   private YtdlpExample() {}

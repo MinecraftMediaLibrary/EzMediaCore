@@ -40,9 +40,6 @@ import me.brandonli.mcav.utils.immutable.Dimension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Resolves a YouTube video with yt-dlp into its best separate video and audio streams and plays both in sync.
- */
 public final class MultiplexerInputExample {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MultiplexerInputExample.class);

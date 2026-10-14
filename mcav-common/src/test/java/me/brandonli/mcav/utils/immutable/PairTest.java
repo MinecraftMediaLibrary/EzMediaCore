@@ -24,9 +24,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Pair}.
- */
 final class PairTest {
 
   private static final String FIRST_VALUE = "a";

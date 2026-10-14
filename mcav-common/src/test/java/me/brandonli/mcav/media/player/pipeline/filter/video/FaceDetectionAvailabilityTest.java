@@ -25,10 +25,8 @@ import java.nio.file.Path;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests how {@link FaceDetectionFilter} reports machines that cannot load the object detection natives. The tests
- * never load those natives, so they run everywhere.
- */
+// Tests how FaceDetectionFilter reports machines that cannot load the object detection natives. The tests never load
+// those natives, so they run everywhere.
 final class FaceDetectionAvailabilityTest {
 
   private static final Path CASCADE = Path.of("haarcascade_frontalface_default.xml");

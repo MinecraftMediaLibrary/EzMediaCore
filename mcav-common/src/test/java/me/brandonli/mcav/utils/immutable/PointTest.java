@@ -23,9 +23,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Point}.
- */
 final class PointTest {
 
   @Test

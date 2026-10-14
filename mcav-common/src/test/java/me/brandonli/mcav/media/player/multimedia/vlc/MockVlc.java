@@ -53,14 +53,10 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.CallbackVideoSurface;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCallback;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback;
 
-/**
- * A VLC engine made of Mockito mocks, so {@link VlcPlayer} and {@link VlcPlayback} can be tested without libvlc.
- *
- * <p>Every media player it creates behaves like VLC: asking it to play media records the resource and the options
- * and, depending on the {@link Outcome} of the player, reports playing or an error to the registered event
- * listeners on the calling thread, or reports nothing yet. Like VLC, pausing does not change the playing state
- * right away.
- */
+// A VLC engine made of Mockito mocks, so VlcPlayer and VlcPlayback can be tested without libvlc. Every media player it
+// creates behaves like VLC: asking it to play media records the resource and the options and, depending on the Outcome
+// of the player, reports playing or an error to the registered event listeners on the calling thread, or reports
+// nothing yet. Like VLC, pausing does not change the playing state right away.
 final class MockVlc {
 
   private static final int SECOND_PLAYER_INDEX = 1;
@@ -77,9 +73,7 @@ final class MockVlc {
   private volatile int failingPlayerIndex;
   private volatile Throwable playerFailure;
 
-  /**
-   * Constructs a new engine whose players all play successfully unless configured otherwise.
-   */
+  // Constructs a new engine whose players all play successfully unless configured otherwise.
   MockVlc() {
     this.factory = mock(MediaPlayerFactory.class);
     this.players = new CopyOnWriteArrayList<>();
@@ -146,22 +140,11 @@ final class MockVlc {
     return mock(CallbackVideoSurface.class);
   }
 
-  /**
-   * Creates a player that uses this engine.
-   *
-   * @param openTimeoutMilliseconds how long starting waits for the media to open
-   * @param options                 the media options of the player
-   * @return the player
-   */
   VlcPlayer newPlayer(final long openTimeoutMilliseconds, final String... options) {
     return new VlcPlayer(this.sharedFactory, openTimeoutMilliseconds, options);
   }
 
-  /**
-   * Sets the outcomes of the next created players, in creation order. Players without an outcome play successfully.
-   *
-   * @param next the outcomes
-   */
+  // Sets the outcomes of the next created players, in creation order. Players without an outcome play successfully.
   void queueOutcomes(final Outcome... next) {
     final List<Outcome> queued = List.of(next);
     synchronized (this.outcomes) {
@@ -169,20 +152,10 @@ final class MockVlc {
     }
   }
 
-  /**
-   * Makes the creation of the VLC instance fail.
-   *
-   * @param failure a runtime exception or an error
-   */
   void failFactoryCreation(final Throwable failure) {
     this.factoryFailure = failure;
   }
 
-  /**
-   * Makes the creation of the second media player fail, which is the audio player of separate sources.
-   *
-   * @param failure the exception thrown
-   */
   void failSecondPlayerCreation(final Throwable failure) {
     this.playerFailure = failure;
     this.failingPlayerIndex = SECOND_PLAYER_INDEX;
@@ -222,25 +195,14 @@ final class MockVlc {
     return this.players;
   }
 
-  /**
-   * What a player does when it is asked to play media.
-   */
   enum Outcome {
-    /** Reports that the media plays. */
     PLAYING,
-    /** Reports an error, like VLC does for a missing file. */
     ERROR,
-    /** Reports nothing, like VLC while it is still opening a stream. */
     SILENT,
-    /** Refuses the media, like vlcj does for a malformed MRL. */
     REJECTED,
-    /** Throws an exception. */
     THROWS,
   }
 
-  /**
-   * One mocked VLC media player with its APIs.
-   */
   static final class Player {
 
     private final EmbeddedMediaPlayer player;

@@ -35,9 +35,6 @@ import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link SourceDetectionHelper}.
- */
 final class SourceDetectionHelperTest {
 
   private static final String VIDEO_FILE_NAME = "video.mp4";
@@ -122,9 +119,6 @@ final class SourceDetectionHelperTest {
     assertThrows(NullPointerException.class, () -> new SourceDetectionHelper(null));
   }
 
-  /**
-   * A detector that answers with a fixed decision and source.
-   */
   private static final class FixedDetector implements SourceDetector<Source> {
 
     private final Source source;

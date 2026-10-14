@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Verifies natural failure exit, without a stop call hiding stale running state. */
 final class RenderThreadFailureTest {
 
   @ParameterizedTest

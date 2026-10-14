@@ -32,7 +32,6 @@ final class SpeedResamplerTest {
   private static final double DOUBLE_SPEED = 2.0;
   private static final double HALF_SPEED = 0.5;
 
-  /** Frames of two channels: the left samples count up by 10, the right ones down. */
   private static ByteBuffer frames(final int first, final int count) {
     final ByteBuffer buffer = ByteBuffer.allocate(count * FRAME_BYTES).order(ByteOrder.LITTLE_ENDIAN);
     for (int frameIndex = 0; frameIndex < count; frameIndex++) {

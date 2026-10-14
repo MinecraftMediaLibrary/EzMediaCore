@@ -30,9 +30,6 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.immutable.Dimension;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the attachable callbacks and {@link AbstractAttachableCallback}.
- */
 final class AttachableCallbackTest {
 
   @Test
@@ -108,9 +105,7 @@ final class AttachableCallbackTest {
     assertThrows(NullPointerException.class, NullFallbackCallback::new);
   }
 
-  /**
-   * A callback that passes a null fallback, which the base class must reject.
-   */
+  // A callback that passes a null fallback, which the base class must reject.
   private static final class NullFallbackCallback extends AbstractAttachableCallback<String> {
 
     NullFallbackCallback() {

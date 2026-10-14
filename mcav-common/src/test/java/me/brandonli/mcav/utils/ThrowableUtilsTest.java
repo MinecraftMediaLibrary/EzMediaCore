@@ -25,9 +25,6 @@ import java.io.IOException;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ThrowableUtils}.
- */
 final class ThrowableUtilsTest {
 
   @Test

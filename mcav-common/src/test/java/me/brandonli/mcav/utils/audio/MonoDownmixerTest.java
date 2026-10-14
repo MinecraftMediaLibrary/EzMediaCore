@@ -26,9 +26,6 @@ import java.nio.ByteOrder;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MonoDownmixer}.
- */
 final class MonoDownmixerTest {
 
   private static ByteBuffer stereo(final short... leftAndRight) {

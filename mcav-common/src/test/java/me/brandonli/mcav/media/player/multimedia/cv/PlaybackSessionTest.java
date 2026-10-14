@@ -72,9 +72,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link PlaybackSession} with scripted grabbers, so every timing and failure case is deterministic.
- */
+// Tests PlaybackSession with scripted grabbers, so every timing and failure case is deterministic.
 final class PlaybackSessionTest {
 
   private static final long FRAME_MICROSECONDS = 33_333L;
@@ -110,17 +108,12 @@ final class PlaybackSessionTest {
   private final DimensionAttachableCallback dimensionCallback = DimensionAttachableCallback.create();
   private final List<String> reports = Collections.synchronizedList(new ArrayList<>());
 
-  /**
-   * Records the message of a failure the session reports.
-   */
   private void report(final String message, final Throwable cause) {
     this.reports.add(message);
   }
 
-  /**
-   * Creates a session on the wall clock that never drops a frame as late, so the outcome of the test does not depend
-   * on the load of the machine.
-   */
+  // Creates a session on the wall clock that never drops a frame as late, so the outcome of the test does not depend on
+  // the load of the machine.
   private PlaybackSession session(
     final PlaybackSession.GrabberFactory video,
     final PlaybackSession.GrabberFactory audio,
@@ -130,9 +123,6 @@ final class PlaybackSessionTest {
     return this.session(video, audio, this.videoCallback, Timing.NEVER_DROPPING, startMicroseconds, paused);
   }
 
-  /**
-   * Creates a session with the given video pipeline and timing.
-   */
   private PlaybackSession session(
     final PlaybackSession.GrabberFactory video,
     final PlaybackSession.GrabberFactory audio,
@@ -156,24 +146,15 @@ final class PlaybackSessionTest {
     );
   }
 
-  /**
-   * Creates a session that plays one grabber without a separate audio source.
-   */
   private PlaybackSession session(final ScriptedFrameGrabber grabber, final long startMicroseconds, final boolean paused) {
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
     return this.session(factory, null, startMicroseconds, paused);
   }
 
-  /**
-   * Creates a factory that hands out the grabber, which the session under test starts, drains, and closes.
-   */
   private static PlaybackSession.GrabberFactory factoryOf(final ScriptedFrameGrabber grabber) {
     return () -> grabber;
   }
 
-  /**
-   * Creates a factory that hands out the grabber and counts how often it was asked for it.
-   */
   private static PlaybackSession.GrabberFactory countingOpens(final ScriptedFrameGrabber grabber, final AtomicInteger opened) {
     return () -> countOpen(grabber, opened);
   }
@@ -193,10 +174,8 @@ final class PlaybackSessionTest {
     this.audioCallback.attach(step);
   }
 
-  /**
-   * Loads the OpenCV natives before any timed test, because the first image buffer of the JVM loads them on the
-   * rendering thread, where the loading cannot be interrupted and takes seconds.
-   */
+  // Loads the OpenCV natives before any timed test, because the first image buffer of the JVM loads them on the
+  // rendering thread, where the loading cannot be interrupted and takes seconds.
   @BeforeAll
   static void loadTheNativeLibrariesAheadOfTheTimedTests() {
     try (final ImageBuffer warmUp = ImageBuffer.bytes(new byte[3], 1, 1)) {
@@ -223,9 +202,6 @@ final class PlaybackSessionTest {
     return script;
   }
 
-  /**
-   * Creates a grabber whose script holds one video frame per timestamp.
-   */
   private static ScriptedFrameGrabber videoAt(final long... timestamps) {
     final List<Object> script = new ArrayList<>();
     for (final long timestamp : timestamps) {
@@ -236,9 +212,6 @@ final class PlaybackSessionTest {
     return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
   }
 
-  /**
-   * Creates a grabber that delivers a picture, a chunk of sound and another picture one frame later.
-   */
   private static ScriptedFrameGrabber pictureSoundPicture() {
     final Frame firstPicture = ScriptedFrameGrabber.video(0L);
     final Frame sound = ScriptedFrameGrabber.audio(0L);
@@ -246,9 +219,6 @@ final class PlaybackSessionTest {
     return ScriptedFrameGrabber.of(firstPicture, sound, secondPicture);
   }
 
-  /**
-   * Creates a video filter that records the size of every frame and the metadata passed along with it.
-   */
   private static VideoFilter recordingSizes(
     final List<String> imageSizes,
     final AtomicReference<OriginalVideoMetadata> videoMetadata,
@@ -271,10 +241,6 @@ final class PlaybackSessionTest {
     return frames.incrementAndGet() > 0;
   }
 
-  /**
-   * Attaches a video pipeline that records the size, the metadata and the number of the frames, and an audio pipeline
-   * that records the metadata and the number of the chunks.
-   */
   private void recordFramesAndChunks(
     final List<String> imageSizes,
     final AtomicReference<OriginalVideoMetadata> videoMetadata,
@@ -296,10 +262,6 @@ final class PlaybackSessionTest {
     return chunks.incrementAndGet() > 0;
   }
 
-  /**
-   * Creates a grabber with an audio track of 44.1 kHz that interleaves three pictures, one frame apart, with two chunks
-   * of sound.
-   */
   private static ScriptedFrameGrabber threePicturesWithSound() {
     final Frame firstPicture = ScriptedFrameGrabber.video(0L);
     final Frame firstSound = ScriptedFrameGrabber.audio(0L);
@@ -311,9 +273,6 @@ final class PlaybackSessionTest {
     return grabber;
   }
 
-  /**
-   * Checks that the pipelines received the metadata of the picture and of the audio track of the grabber.
-   */
   private static void assertMetadataOfTheGrabber(
     final AtomicReference<OriginalVideoMetadata> videoMetadata,
     final AtomicReference<OriginalAudioMetadata> audioMetadata
@@ -326,10 +285,6 @@ final class PlaybackSessionTest {
     assertEquals(SAMPLE_RATE, sampleRate, "the metadata describes the audio track of the grabber");
   }
 
-  /**
-   * Checks that a session started at the beginning did not seek, cannot seek media without a length, and closed its
-   * grabber.
-   */
   private static void assertPlayedFromTheBeginningAndClosed(final ScriptedFrameGrabber grabber, final PlaybackSession session) {
     final long requested = grabber.getRequestedTimestamp();
     final boolean seekable = session.isSeekable();
@@ -406,10 +361,7 @@ final class PlaybackSessionTest {
     assertTrue(noReports, this.reports::toString);
   }
 
-  /**
-   * Creates a grabber without a picture size whose script holds a chunk of sound and a picture the session must
-   * ignore.
-   */
+  // Creates a grabber without a picture size whose script holds a chunk of sound and a picture the session must ignore.
   private static ScriptedFrameGrabber soundWithAnIgnoredPicture() {
     final Frame sound = ScriptedFrameGrabber.audio(0L);
     final Frame ignoredPicture = ScriptedFrameGrabber.video(0L);
@@ -747,10 +699,8 @@ final class PlaybackSessionTest {
     assertTrue(followedArrival, "the position follows the time the frames arrived at, got " + position);
   }
 
-  /**
-   * Creates a session that plays one grabber from the beginning and takes its video pipeline from the given callback
-   * instead of the callback of the test.
-   */
+  // Creates a session that plays one grabber from the beginning and takes its video pipeline from the given callback
+  // instead of the callback of the test.
   private PlaybackSession sessionWithVideoCallback(final ScriptedFrameGrabber grabber, final VideoAttachableCallback callback) {
     final PlaybackSession.GrabberFactory videoFactory = factoryOf(grabber);
     return this.session(videoFactory, null, callback, Timing.NEVER_DROPPING, 0L, false);
@@ -887,10 +837,6 @@ final class PlaybackSessionTest {
     assertTrue(stoppedPromptly, "stopping interrupts the waiting threads");
   }
 
-  /**
-   * Creates a video filter that counts down the latch and then blocks until its thread is interrupted, keeping the
-   * interrupt.
-   */
   private static VideoFilter blockingUntilInterrupted(final CountDownLatch rendering) {
     final CountDownLatch never = new CountDownLatch(1);
     return (_, _) -> blockUntilInterrupted(rendering, never);
@@ -934,10 +880,6 @@ final class PlaybackSessionTest {
     assertTrue(stoppedPromptly, "the blocked decoder is interrupted, took " + stopTime);
   }
 
-  /**
-   * Creates a video filter that counts its frames and stops the session in the holder, recording how long stopping
-   * took.
-   */
   private static VideoFilter stoppingItsOwnSession(
     final AtomicReference<PlaybackSession> holder,
     final AtomicInteger frames,
@@ -986,12 +928,10 @@ final class PlaybackSessionTest {
     assertEquals(1, frameCount, "frames queued before the stop are discarded");
   }
 
-  /**
-   * A player stops its session from outside while the session may be stopping itself, which its renderers do when the
-   * exception handler throws. Found by {@code PlaybackSessionStopStressTest}: the outside stop lost the race for the
-   * running flag and returned at once, while the session was still waiting for a decoder stuck in native code, so a
-   * player could return from release while the playback still ran.
-   */
+  // A player stops its session from outside while the session may be stopping itself, which its renderers do when the
+  // exception handler throws. Found by PlaybackSessionStopStressTest: the outside stop lost the race for the running
+  // flag and returned at once, while the session was still waiting for a decoder stuck in native code, so a player
+  // could return from release while the playback still ran.
   @Test
   void shouldWaitForTheThreadsWhenAStopRacesTheSessionStoppingItself() throws Exception {
     final AtomicReference<PlaybackSession> holder = new AtomicReference<>();
@@ -1162,10 +1102,6 @@ final class PlaybackSessionTest {
     return true;
   }
 
-  /**
-   * Creates a session that plays one grabber from the beginning and hands audio to its pipeline 400 ms before it is
-   * due.
-   */
   private PlaybackSession sessionWithAudioLead(final ScriptedFrameGrabber grabber) {
     final long audioLeadNanoseconds = EARLY_AUDIO_NANOSECONDS;
     final Timing earlyAudio = new Timing(audioLeadNanoseconds, Long.MAX_VALUE, System::nanoTime);
@@ -1233,9 +1169,7 @@ final class PlaybackSessionTest {
     assertEquals(expectedDiscarded, discarded, "every removed element is handed on, so it can be released");
   }
 
-  /**
-   * Creates a decoded frame whose picture is a tiny image, so a test can tell whether the picture was released.
-   */
+  // Creates a decoded frame whose picture is a tiny image, so a test can tell whether the picture was released.
   private static DecodedVideoFrame frameWithPicture() {
     final ImageBuffer picture = ImageBuffer.bytes(new byte[3], 1, 1);
     return new DecodedVideoFrame((MatImageBuffer) picture, 0L);
@@ -1256,10 +1190,6 @@ final class PlaybackSessionTest {
     picture.release();
   }
 
-  /**
-   * Found by {@code PlaybackSessionStopStressTest}: a stop drains the queue, which lets a decoder waiting for room
-   * queue its frame after all, possibly after the renderer drained the queue for the last time.
-   */
   @Test
   void shouldTakeBackAFrameQueuedAfterTheSessionStoppedAndReleaseItsPicture() throws Exception {
     final BlockingQueue<DecodedVideoFrame> queue = new ArrayBlockingQueue<>(1);
@@ -1313,10 +1243,8 @@ final class PlaybackSessionTest {
     assertThrows(IllegalStateException.class, picture::getWidth, "the picture was released");
   }
 
-  /**
-   * Creates a picture whose pixels are on the Java heap, where OpenCV cannot read them, so the decoder copies it into
-   * an image of its own size before it scales it.
-   */
+  // Creates a picture whose pixels are on the Java heap, where OpenCV cannot read them, so the decoder copies it into
+  // an image of its own size before it scales it.
   private static Frame heapPicture(final long timestampMicroseconds) {
     final Frame frame = ScriptedFrameGrabber.video(timestampMicroseconds);
     final ByteBuffer direct = (ByteBuffer) frame.image[0];
@@ -1378,10 +1306,8 @@ final class PlaybackSessionTest {
     assertSame(OriginalVideoMetadata.EMPTY, metadata);
   }
 
-  /**
-   * A pipeline may interrupt the thread it runs on, for instance when it gives up a blocking call. Its renderer then
-   * ends, and it stops the session: otherwise the decoder would wait for room in a queue nobody empties anymore.
-   */
+  // A pipeline may interrupt the thread it runs on, for instance when it gives up a blocking call. Its renderer then
+  // ends, and it stops the session: otherwise the decoder would wait for room in a queue nobody empties anymore.
   @Test
   void shouldStopTheSessionWhenAVideoPipelineInterruptsItsThread() throws Exception {
     final AtomicReference<Thread> rendererHolder = new AtomicReference<>();
@@ -1403,9 +1329,6 @@ final class PlaybackSessionTest {
     return true;
   }
 
-  /**
-   * Checks that a renderer ended and kept the interrupt it ended on, for whoever watches the thread.
-   */
   private static void assertEndedInterrupted(final Thread renderer) throws InterruptedException {
     renderer.join(TIMEOUT_MILLISECONDS);
     final boolean alive = renderer.isAlive();
@@ -1432,10 +1355,8 @@ final class PlaybackSessionTest {
     assertEndedInterrupted(rendererHolder.get());
   }
 
-  /**
-   * The audio renderer is not interrupted when its own pipeline stops the session, so it ends through the end marker
-   * the stop puts into its queue. The decoder is stopped before it could queue one: it waits for room in the queue.
-   */
+  // The audio renderer is not interrupted when its own pipeline stops the session, so it ends through the end marker
+  // the stop puts into its queue. The decoder is stopped before it could queue one: it waits for room in the queue.
   @Test
   void shouldStopFromItsOwnAudioPipeline() throws Exception {
     final AtomicReference<PlaybackSession> holder = new AtomicReference<>();
@@ -1468,10 +1389,8 @@ final class PlaybackSessionTest {
     return true;
   }
 
-  /**
-   * A source that decodes slower than it plays has its frames dropped one after the other, which freezes the picture
-   * without a word, so the session says so.
-   */
+  // A source that decodes slower than it plays has its frames dropped one after the other, which freezes the picture
+  // without a word, so the session says so.
   @Test
   void shouldSaySoWhenMostFramesComeTooLate() throws Exception {
     final AtomicInteger shown = new AtomicInteger();
@@ -1502,15 +1421,10 @@ final class PlaybackSessionTest {
     assertEquals(List.of("302 of 302"), reports, "the frames of the first ten seconds, all dropped");
   }
 
-  /**
-   * The timing a test session runs with: how early audio is handed on, how late a frame may be, and the clock.
-   */
   private static final class Timing {
 
-    /**
-     * The wall clock and the audio lead of the players, with a lag no frame can exceed, so frames are never dropped
-     * as late however loaded the machine is.
-     */
+    // The wall clock and the audio lead of the players, with a lag no frame can exceed, so frames are never dropped as
+    // late however loaded the machine is.
     private static final Timing NEVER_DROPPING = new Timing(PlaybackSession.AUDIO_LEAD_NANOSECONDS, Long.MAX_VALUE, System::nanoTime);
 
     private final long audioLeadNanoseconds;
@@ -1524,10 +1438,6 @@ final class PlaybackSessionTest {
     }
   }
 
-  /**
-   * A queue with room for one element that is refilled once right after it is drained, like a decoder racing the
-   * shutdown would.
-   */
   private static final class RefillingQueue extends ArrayBlockingQueue<String> {
 
     @Serial

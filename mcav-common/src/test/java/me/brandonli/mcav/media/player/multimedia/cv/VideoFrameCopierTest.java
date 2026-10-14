@@ -36,9 +36,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link VideoFrameCopier}.
- */
 final class VideoFrameCopierTest {
 
   private static final int FRAME_WIDTH = 4;
@@ -64,9 +61,6 @@ final class VideoFrameCopierTest {
     this.pool.close();
   }
 
-  /**
-   * Creates a BGR frame of two rows in native memory whose pixels all have the same color, the way decoders do.
-   */
   private static Frame solidFrame(final int width, final byte blue, final byte green, final byte red) {
     final Frame frame = new Frame(width, FRAME_HEIGHT, Frame.DEPTH_UBYTE, BGR_CHANNELS);
     final ByteBuffer pixels = (ByteBuffer) frame.image[0];
@@ -83,9 +77,6 @@ final class VideoFrameCopierTest {
     return frame;
   }
 
-  /**
-   * Creates the same frame as {@link #solidFrame}, but with its pixels on the Java heap, where OpenCV cannot read them.
-   */
   private static Frame heapFrame(final int width, final byte blue, final byte green, final byte red) {
     final Frame frame = solidFrame(width, blue, green, red);
     final ByteBuffer direct = (ByteBuffer) frame.image[0];
@@ -97,11 +88,6 @@ final class VideoFrameCopierTest {
     return frame;
   }
 
-  /**
-   * Creates frames whose pixels cannot be read as 8-bit BGR rows: without an image, without planes, with 16-bit
-   * pixels, without width or height, with rows shorter than a row of pixels, and with planes too small for their
-   * rows, by far or by one byte of the last row.
-   */
   private static List<Frame> invalidFrames() {
     final Frame withoutImage = new Frame();
     final Frame withoutPlanes = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);

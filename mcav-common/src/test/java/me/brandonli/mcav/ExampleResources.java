@@ -26,7 +26,6 @@ import java.util.concurrent.CompletableFuture;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Owns the three interactive examples' resources during setup, playback and JVM shutdown. */
 final class ExampleResources implements AutoCloseable {
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();

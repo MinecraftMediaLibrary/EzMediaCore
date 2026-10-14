@@ -59,10 +59,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests {@link DeclaredImageSize}: the size it reads must be the size OpenCV decodes, for every format OpenCV decodes,
- * so that a header declaring a huge size is refused before OpenCV allocates it.
- */
+// Tests DeclaredImageSize: the size it reads must be the size OpenCV decodes, for every format OpenCV decodes, so that
+// a header declaring a huge size is refused before OpenCV allocates it.
 final class DeclaredImageSizeTest {
 
   private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/shouldDecodeAnImageOrRefuseTheBytes";

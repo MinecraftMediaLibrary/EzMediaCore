@@ -34,10 +34,6 @@ import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the yt-dlp JSON model: {@link UrlParseDump}, {@link Format}, {@link Fragment}, {@link Heatmap},
- * {@link HttpHeaders}, {@link Thumbnail}, {@link Version} and {@link DownloaderOptions}.
- */
 final class FormatModelTest {
 
   private static final double DELTA = 1.0e-9;

@@ -31,7 +31,6 @@ import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/** Verifies the measured rate and its visible label against controlled time windows. */
 final class FramesPerSecondFilterTest {
 
   @Test

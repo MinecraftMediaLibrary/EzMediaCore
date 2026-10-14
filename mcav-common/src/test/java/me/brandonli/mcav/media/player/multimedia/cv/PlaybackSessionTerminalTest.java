@@ -31,7 +31,6 @@ import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-/** Exercises actual bounded queue waits and interruptions without decoder scheduling or native media. */
 final class PlaybackSessionTerminalTest {
 
   private static PlaybackSession session() {

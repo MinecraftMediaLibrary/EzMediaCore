@@ -34,9 +34,6 @@ import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FileSource}, {@link DefaultFileSource}, {@link FileSourceDetector} and {@link Writable}.
- */
 final class FileSourceTest {
 
   private static final String MEDIA_DIRECTORY_NAME = "media";

@@ -24,9 +24,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OriginalVideoMetadata} and {@link DefaultOriginalVideoMetadata}.
- */
 final class OriginalVideoMetadataTest {
 
   private static final int WIDTH = 4;

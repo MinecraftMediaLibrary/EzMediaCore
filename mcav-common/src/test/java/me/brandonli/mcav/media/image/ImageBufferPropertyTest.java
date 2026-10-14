@@ -32,13 +32,6 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the image buffers over native OpenCV memory, for every size and every layout of the buffer the pixels
- * come from, checked against what {@link ImageBuffer} documents: raw pixels are copied from the position to the limit
- * of a buffer, ARGB pixels come back opaque, {@link ImageBuffer#getData()} is a view of the image while
- * {@link ImageBuffer#copy()} and {@link ImageBuffer#copyPixels()} share nothing with it, and the cached array of
- * {@link ImageBuffer#getPixels()} is replaced, not changed, when the image changes.
- */
 final class ImageBufferPropertyTest {
 
   private static final String SEED = "20260925";
@@ -75,10 +68,8 @@ final class ImageBufferPropertyTest {
     return images.as(ImageCase::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
   private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -211,9 +202,6 @@ final class ImageBufferPropertyTest {
     return bytes;
   }
 
-  /**
-   * The size of an image, its pixels, and how the buffer they arrive in is laid out.
-   */
   private static final class ImageCase {
 
     private final int width;
@@ -263,9 +251,6 @@ final class ImageBufferPropertyTest {
       return bgr;
     }
 
-    /**
-     * Puts the bytes into a buffer with other bytes before and after them, positioned on the bytes.
-     */
     ByteBuffer wrap(final byte[] bytes) {
       final int capacity = this.before + bytes.length + this.after;
       final ByteBuffer buffer = this.direct ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);

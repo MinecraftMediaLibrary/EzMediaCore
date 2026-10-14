@@ -36,9 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VlcLoadState}.
- */
 final class VlcLoadStateTest {
 
   private static final Path LIBRARY_DIRECTORY = Path.of("vlc", "lib");
@@ -175,10 +172,8 @@ final class VlcLoadStateTest {
     assertEquals(expected, result);
   }
 
-  /**
-   * Waits until a thread blocks on the lock of the load state. Nothing signals that a thread started to wait for a
-   * monitor, so the state of the thread is checked in a spin loop that gives up at a deadline.
-   */
+  // Waits until a thread blocks on the lock of the load state. Nothing signals that a thread started to wait for a
+  // monitor, so the state of the thread is checked in a spin loop that gives up at a deadline.
   private static boolean awaitBlocked(final AtomicReference<Thread> threadReference) {
     final long start = System.nanoTime();
     final long timeout = BLOCK_TIMEOUT.toNanos();

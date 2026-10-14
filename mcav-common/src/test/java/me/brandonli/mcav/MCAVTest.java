@@ -61,11 +61,8 @@ import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.mockito.verification.VerificationMode;
 
-/**
- * Tests {@link MCAV} and {@link MCAVLoadingException} with a mocked {@link DependencyLoader}, so nothing is
- * downloaded. Every instance records its background installations in a guard of its own, so the shared guard that VLC
- * players consult is never touched.
- */
+// Tests MCAV and MCAVLoadingException with a mocked DependencyLoader, so nothing is downloaded. Every instance records
+// its background installations in a guard of its own, so the shared guard that VLC players consult is never touched.
 final class MCAVTest {
 
   private static final long WAIT_SECONDS = 10;
@@ -146,10 +143,8 @@ final class MCAVTest {
     }
   }
 
-  /**
-   * glibc kept freed memory in its arenas and a server's resident memory grew for days (soak test S9), so an installed
-   * MCAV hands it back to the system once a minute, on Linux.
-   */
+  // glibc kept freed memory in its arenas and a server's resident memory grew for days (soak test S9), so an installed
+  // MCAV hands it back to the system once a minute, on Linux.
   @Test
   void shouldTrimTheNativeHeapWhileInstalled() {
     final boolean linux = OsUtils.getOs() == Os.LINUX;
@@ -561,9 +556,6 @@ final class MCAVTest {
     return null;
   }
 
-  /**
-   * Waits until VLC and yt-dlp have been prepared in the background.
-   */
   private void awaitBackgroundInstallation() throws Exception {
     final CompletableFuture<Boolean> vlcReady = this.mcav.whenCapabilityReady(Capability.VLC);
     final CompletableFuture<Boolean> ytdlpReady = this.mcav.whenCapabilityReady(Capability.YT_DLP);
@@ -580,10 +572,8 @@ final class MCAVTest {
     verifiedNatives.loadModules();
   }
 
-  /**
-   * Waits until the thread in the reference blocks on a monitor. Nothing signals that state change, so the thread
-   * state is checked in a spin loop until a deadline.
-   */
+  // Waits until the thread in the reference blocks on a monitor. Nothing signals that state change, so the thread state
+  // is checked in a spin loop until a deadline.
   private static boolean awaitBlocked(final AtomicReference<Thread> threadReference) {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(WAIT_SECONDS);
     while (System.nanoTime() < deadline) {
@@ -608,9 +598,6 @@ final class MCAVTest {
     return state == Thread.State.BLOCKED;
   }
 
-  /**
-   * A module that counts how often it was started and stopped.
-   */
   static final class CountingModule implements MCAVModule {
 
     final AtomicInteger starts = new AtomicInteger();
@@ -632,10 +619,6 @@ final class MCAVTest {
     }
   }
 
-  /**
-   * A module that counts starts and stops of every instance, for installations whose modules cannot be looked up
-   * afterward.
-   */
   static final class TrackedModule implements MCAVModule {
 
     private static final AtomicInteger STARTS = new AtomicInteger();
@@ -657,9 +640,6 @@ final class MCAVTest {
     }
   }
 
-  /**
-   * A module that cannot start.
-   */
   static final class BrokenModule implements MCAVModule {
 
     @Override

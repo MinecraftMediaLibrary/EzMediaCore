@@ -33,9 +33,6 @@ import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ReusableMat}.
- */
 final class ReusableMatTest {
 
   private static final int THREADS = 4;
@@ -89,10 +86,6 @@ final class ReusableMatTest {
     }
   }
 
-  /**
-   * Borrows the matrix many times, writes a marker into it, pauses briefly while the other threads run, and counts how often the
-   * marker was overwritten before the matrix was handed back, which would mean two threads used it at once.
-   */
   private static int countForeignWrites(final ReusableMat reusable, final byte marker) {
     int foreignWrites = 0;
     for (int round = 0; round < ROUNDS; round++) {

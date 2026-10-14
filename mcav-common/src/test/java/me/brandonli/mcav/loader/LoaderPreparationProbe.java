@@ -23,17 +23,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 
-/** Supplies a real loader with deterministic installation actions for lifecycle tests in the parent package. */
 public final class LoaderPreparationProbe {
 
   private LoaderPreparationProbe() {}
 
-  /**
-   * Creates a loader whose VLC installation runs the action and whose yt-dlp step needs no external program.
-   * @param logger  receives the real preparation messages
-   * @param prepare the controlled VLC preparation
-   * @return the real loader with the external entry points replaced
-   */
   public static DependencyLoader vlc(final Logger logger, final Runnable prepare) {
     final DependencyLoader loader = Mockito.spy(new DependencyLoader(logger));
     Mockito.doAnswer(_ -> installControlledVlc(loader, prepare))

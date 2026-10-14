@@ -34,9 +34,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.VideoApi;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 
-/**
- * Tests {@link FrameFormatCallback} and how {@link VideoRenderer} chooses the buffer VLC renders into.
- */
 final class FrameFormatCallbackTest {
 
   private final MediaPlayer player = mock(MediaPlayer.class);

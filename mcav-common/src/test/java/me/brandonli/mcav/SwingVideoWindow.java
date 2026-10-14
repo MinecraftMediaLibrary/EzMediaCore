@@ -37,10 +37,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import org.checkerframework.checker.initialization.qual.UnderInitialization;
 
-/**
- * A window that shows frames, shared by the examples. The {@link #asFilter()} method turns it into a video filter
- * that can be attached at the end of a pipeline.
- */
+// A window that shows frames, shared by the examples. The asFilter() method turns it into a video filter that can be
+// attached at the end of a pipeline.
 public final class SwingVideoWindow implements AutoCloseable {
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
@@ -49,10 +47,8 @@ public final class SwingVideoWindow implements AutoCloseable {
   private final JFrame frame;
   private final CountDownLatch closed = new CountDownLatch(1);
 
-  /**
-   * Creates an exit-on-close window. Call this constructor on the Swing event dispatch thread; the examples use
-   * {@link #open(String, int, int)} to create a disposable window safely from their main thread.
-   */
+  // Creates an exit-on-close window. Call this constructor on the Swing event dispatch thread; the examples use
+  // open(String, int, int) to create a disposable window safely from their main thread.
   public SwingVideoWindow(final String title, final int width, final int height) {
     this(title, width, height, WindowConstants.EXIT_ON_CLOSE);
   }
@@ -89,7 +85,6 @@ public final class SwingVideoWindow implements AutoCloseable {
     }
   }
 
-  /** Creates a window on the Swing event dispatch thread, preserving interruption until the caller owns it. */
   public static SwingVideoWindow open(final String title, final int width, final int height) {
     final CompletableFuture<SwingVideoWindow> result = new CompletableFuture<>();
     final Runnable create = () -> createAndPublish(title, width, height, result);
@@ -134,12 +129,10 @@ public final class SwingVideoWindow implements AutoCloseable {
     }
   }
 
-  /** Waits until the window is disposed; call this from the example's main thread, not from Swing callbacks. */
   public void awaitClosed() throws InterruptedException {
     this.closed.await();
   }
 
-  /** Disposes the window on Swing's thread without joining that thread from a JVM shutdown hook. */
   @Override
   public void close() {
     if (SwingUtilities.isEventDispatchThread()) {

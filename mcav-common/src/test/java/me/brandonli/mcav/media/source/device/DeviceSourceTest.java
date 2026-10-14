@@ -27,9 +27,6 @@ import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DeviceSource}, {@link DefaultDeviceSource} and {@link DeviceSourceDetector}.
- */
 final class DeviceSourceTest {
 
   @Test

@@ -64,9 +64,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat;
 
-/**
- * Tests {@link VideoRenderer}.
- */
 final class VideoRendererTest {
 
   private static final int RED = 0xFF0000;
@@ -94,10 +91,8 @@ final class VideoRendererTest {
     this.errors.add(error);
   }
 
-  /**
-   * Loads the OpenCV natives before any timed test, because the first image buffer of the JVM loads them on the
-   * render thread, which takes seconds on a busy machine.
-   */
+  // Loads the OpenCV natives before any timed test, because the first image buffer of the JVM loads them on the render
+  // thread, which takes seconds on a busy machine.
   @BeforeAll
   static void loadTheNativeLibrariesAheadOfTheTimedTests() {
     final ImageBuffer warmUp = ImageBuffer.bytes(new byte[3], 1, 1);
@@ -137,10 +132,8 @@ final class VideoRendererTest {
     callback.attach(step);
   }
 
-  /**
-   * Attaches a filter that records the first pixel of every frame, then blocks the render thread until the test lets
-   * it proceed, so later frames queue up.
-   */
+  // Attaches a filter that records the first pixel of every frame, then blocks the render thread until the test lets it
+  // proceed, so later frames queue up.
   private void attachBlockingRecorder(final List<Integer> rendered, final CountDownLatch rendering, final CountDownLatch proceed) {
     this.attach((image, _) -> this.recordFirstPixelAndBlock(image, rendered, rendering, proceed));
   }
@@ -440,10 +433,6 @@ final class VideoRendererTest {
     assertScaledToHalfAndQuarter(halfFrame, againFrame, quarterFrame);
   }
 
-  /**
-   * Checks that a red 4 by 4 picture was scaled to 2 by 2 twice and then to 1 by 1, while the metadata kept describing
-   * the original frame.
-   */
   private static void assertScaledToHalfAndQuarter(
     final RecordedFrame halfFrame,
     final RecordedFrame againFrame,
@@ -466,10 +455,6 @@ final class VideoRendererTest {
     assertEquals(4, metadataWidth, "the metadata describes the original frame");
   }
 
-  /**
-   * Creates a filter that throws the runtime failure on its first call, the error on its second call, and counts
-   * down the latch on its third call.
-   */
   private static VideoFilter failingTwiceThenCounting(
     final AtomicInteger calls,
     final IllegalStateException runtimeFailure,
@@ -630,9 +615,6 @@ final class VideoRendererTest {
     assertSame(second, reusedSecond);
   }
 
-  /**
-   * Creates an owner whose render thread fails while it scales the first frame, which happens outside of the pipeline.
-   */
   private static VideoPlayerMultiplexer ownerFailingOnce(
     final VideoAttachableCallback callback,
     final RuntimeException failure,
@@ -686,10 +668,8 @@ final class VideoRendererTest {
     assertTrue(reached, "expected " + expected + " calls but got " + count);
   }
 
-  /**
-   * Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
-   * reports to the exception handler.
-   */
+  // Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
+  // reports to the exception handler.
   private static void awaitRelease(final CountDownLatch proceed) {
     try {
       final boolean released = proceed.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);

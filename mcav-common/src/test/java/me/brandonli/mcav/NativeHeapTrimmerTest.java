@@ -67,9 +67,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link NativeHeapTrimmer} with trims the tests count, and once with the JDK's own command.
- */
 final class NativeHeapTrimmerTest {
 
   private static final Duration SHORT = Duration.ofMillis(10);

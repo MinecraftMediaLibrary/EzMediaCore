@@ -42,9 +42,6 @@ import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
-/**
- * Tests {@link PlaybackEventListener}.
- */
 final class PlaybackEventListenerTest {
 
   private static final String MEDIA_NAME = "movie.mkv";

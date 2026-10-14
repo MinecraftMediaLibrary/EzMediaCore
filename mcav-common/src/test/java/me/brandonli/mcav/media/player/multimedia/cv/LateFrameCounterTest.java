@@ -27,9 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link LateFrameCounter} with frames whose timestamps the test chooses, so every stretch is exact.
- */
+// Tests LateFrameCounter with frames whose timestamps the test chooses, so every stretch is exact.
 final class LateFrameCounterTest {
 
   private static final long SECOND_MICROSECONDS = 1_000_000L;
@@ -38,9 +36,6 @@ final class LateFrameCounterTest {
   private final List<String> reports = new ArrayList<>();
   private final LateFrameCounter counter = new LateFrameCounter((dropped, frames) -> this.reports.add(dropped + " of " + frames));
 
-  /**
-   * Counts one frame a second from the first second to the last, inclusive, all late or all on time.
-   */
   private void everySecond(final int firstSecond, final int lastSecond, final boolean late) {
     for (int second = firstSecond; second <= lastSecond; second++) {
       this.counter.count(second * SECOND_MICROSECONDS, late);

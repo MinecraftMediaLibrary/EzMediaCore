@@ -26,9 +26,6 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.image.MatImageBuffer;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ImagePool}.
- */
 final class ImagePoolTest {
 
   private static MatImageBuffer image() {

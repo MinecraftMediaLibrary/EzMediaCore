@@ -31,9 +31,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link TemporalDitherAlgorithm} and {@link TemporalFloydSteinbergDither}.
- */
 final class TemporalDitherTest {
 
   private static final DitherPalette PRIMARIES = DitherPalette.colors(0x000000, 0xFF0000, 0x00FF00, 0xFFFF00, 0xFF00FF, 0xFFFFFF);
@@ -87,14 +84,8 @@ final class TemporalDitherTest {
     }
   }
 
-  /**
-   * Counts the rows of a dithered frame that hold no white pixel at all, which is what a strip that was never
-   * dithered leaves behind.
-   *
-   * @param indices the palette indices of the frame
-   * @param width   the width of the frame
-   * @return the number of rows without a single white pixel
-   */
+  // Counts the rows of a dithered frame that hold no white pixel at all, which is what a strip that was never dithered
+  // leaves behind.
   private static int countRowsWithoutWhite(final byte[] indices, final int width) {
     final int height = indices.length / width;
     int rowsWithoutWhite = 0;

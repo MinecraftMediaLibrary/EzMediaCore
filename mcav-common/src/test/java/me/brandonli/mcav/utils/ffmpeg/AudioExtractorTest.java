@@ -59,10 +59,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link AudioExtractor} with the bundled FFmpeg. The tests change {@code user.home}, so they run in
- * isolation.
- */
+// Tests AudioExtractor with the bundled FFmpeg. The tests change user.home, so they run in isolation.
 @Isolated
 final class AudioExtractorTest {
 
@@ -79,11 +76,8 @@ final class AudioExtractorTest {
 
   private String previousHome;
 
-  /**
-   * Extracts the bundled FFmpeg into the real JavaCPP cache before any test moves the home directory, because the
-   * native libraries stay locked for the lifetime of the JVM and would keep the temporary directory from being
-   * deleted.
-   */
+  // Extracts the bundled FFmpeg into the real JavaCPP cache before any test moves the home directory, because the
+  // native libraries stay locked for the lifetime of the JVM and would keep the temporary directory from being deleted.
   @BeforeAll
   static void extractFfmpeg() {
     final Path executable = FfmpegExecutableProvider.getFfmpegPath();

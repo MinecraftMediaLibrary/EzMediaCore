@@ -27,9 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link CapabilityGuard}. Only separate guards are changed, so the shared guard of the library stays untouched.
- */
+// Tests CapabilityGuard. Only separate guards are changed, so the shared guard of the library stays untouched.
 final class CapabilityGuardTest {
 
   private static final String VLC_PREPARING =

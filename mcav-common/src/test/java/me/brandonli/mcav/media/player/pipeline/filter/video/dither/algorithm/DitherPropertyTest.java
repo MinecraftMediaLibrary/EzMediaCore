@@ -54,11 +54,6 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the dithering algorithms for every image and every palette, rather than the gradients and solid colors
- * the examples use: every output pixel is a color of the palette, the palette index {@code ditherIntoBytes} returns
- * names exactly the color {@code dither} writes, and both hold for rows scanned in either direction.
- */
 final class DitherPropertyTest {
 
   private static final String SEED = "20260925";
@@ -73,10 +68,8 @@ final class DitherPropertyTest {
     DitherPalette.colors(0xFF808080, 0xFF808080, 0xFFFF0000)
   );
 
-  /**
-   * Every algorithm the library ships, created fresh for a palette; the random one draws from a seeded generator, so
-   * two instances make the same choices.
-   */
+  // Every algorithm the library ships, created fresh for a palette; the random one draws from a seeded generator, so
+  // two instances make the same choices.
   private static final List<NamedAlgorithm> ALGORITHMS = List.of(
     new NamedAlgorithm("Floyd-Steinberg", FloydDither::new),
     new NamedAlgorithm("Filter Lite", FilterLiteDither::new),
@@ -105,9 +98,7 @@ final class DitherPropertyTest {
     return new UniformNoiseDither(palette, 64, random);
   }
 
-  /**
-   * Finds every kernel the library ships as a constant, so a kernel added later is checked as well.
-   */
+  // Finds every kernel the library ships as a constant, so a kernel added later is checked as well.
   private static List<Field> kernelConstants() {
     final List<Field> kernels = new ArrayList<>();
     for (final Field field : DiffusionKernel.class.getFields()) {
@@ -165,10 +156,8 @@ final class DitherPropertyTest {
     return cases.as(DitherCase::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
   private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
@@ -230,9 +219,6 @@ final class DitherPropertyTest {
     return mirrored;
   }
 
-  /**
-   * An algorithm with a name for the report.
-   */
   private static final class NamedAlgorithm {
 
     private final String name;
@@ -253,9 +239,6 @@ final class DitherPropertyTest {
     }
   }
 
-  /**
-   * An algorithm, a palette and an image of random pixels.
-   */
   private static final class DitherCase {
 
     private final NamedAlgorithm algorithm;

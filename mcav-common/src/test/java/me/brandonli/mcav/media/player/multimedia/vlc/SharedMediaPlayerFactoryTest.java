@@ -37,9 +37,6 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
-/**
- * Tests {@link SharedMediaPlayerFactory}.
- */
 final class SharedMediaPlayerFactoryTest {
 
   private static final int THREAD_COUNT = 8;

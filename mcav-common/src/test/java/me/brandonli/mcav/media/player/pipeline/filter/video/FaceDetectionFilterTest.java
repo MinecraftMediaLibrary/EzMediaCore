@@ -44,10 +44,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FaceDetectionFilter} with cascades that accept or reject every window, so the result does not depend
- * on how well a real cascade recognizes a picture. Uniform areas are never detected, so the frames are noise.
- */
+// Tests FaceDetectionFilter with cascades that accept or reject every window, so the result does not depend on how well
+// a real cascade recognizes a picture. Uniform areas are never detected, so the frames are noise.
 final class FaceDetectionFilterTest {
 
   private static final double[] RED = { 0.0, 0.0, 255.0 };

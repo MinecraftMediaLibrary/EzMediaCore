@@ -45,9 +45,6 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link CommandTask}, using the Java launcher of the running JVM as a program that exists everywhere.
- */
 final class CommandTaskTest {
 
   private static final String BINARY_DIRECTORY = "bin";

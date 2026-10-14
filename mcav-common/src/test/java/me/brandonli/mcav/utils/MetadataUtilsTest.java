@@ -41,9 +41,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link MetadataUtils} against generated media files.
- */
 final class MetadataUtilsTest {
 
   private static final String FIXTURE_FILE_NAME = "metadata-fixture";

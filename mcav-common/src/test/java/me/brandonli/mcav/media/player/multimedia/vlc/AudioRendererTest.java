@@ -53,9 +53,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
-/**
- * Tests {@link AudioRenderer}.
- */
 final class AudioRendererTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
@@ -91,9 +88,6 @@ final class AudioRendererTest {
     callback.attach(step);
   }
 
-  /**
-   * Creates a filter that records the first sample of every chunk without changing the chunk.
-   */
   private static AudioFilter firstSampleRecorder(final BlockingQueue<Short> firstSamples) {
     return (samples, _) -> recordFirstSample(samples, firstSamples);
   }
@@ -105,10 +99,8 @@ final class AudioRendererTest {
     return false;
   }
 
-  /**
-   * Attaches a filter that records the first sample of every chunk, then blocks the render thread until the test
-   * lets it proceed, so later chunks queue up.
-   */
+  // Attaches a filter that records the first sample of every chunk, then blocks the render thread until the test lets
+  // it proceed, so later chunks queue up.
   private void attachBlockingRecorder(final List<Short> received, final CountDownLatch blocked, final CountDownLatch proceed) {
     this.attach((samples, _) -> this.recordFirstSampleAndBlock(samples, received, blocked, proceed));
   }
@@ -127,9 +119,6 @@ final class AudioRendererTest {
     return false;
   }
 
-  /**
-   * Creates a filter that copies every chunk and its metadata, and counts down the latch.
-   */
   private static AudioFilter copyingRecorder(
     final AtomicReference<ByteBuffer> received,
     final AtomicReference<OriginalAudioMetadata> receivedMetadata,
@@ -419,9 +408,6 @@ final class AudioRendererTest {
     assertEquals(0, bigEndianPosition, "the native samples are not consumed");
   }
 
-  /**
-   * Creates an owner whose render thread fails to look up the pipeline of the first chunk it renders.
-   */
   private static VideoPlayerMultiplexer ownerFailingOnce(
     final AudioAttachableCallback callback,
     final RuntimeException failure,
@@ -468,10 +454,8 @@ final class AudioRendererTest {
     assertTrue(reached, "expected " + size + " chunks but got " + actual);
   }
 
-  /**
-   * Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
-   * reports to the exception handler.
-   */
+  // Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
+  // reports to the exception handler.
   private static void awaitRelease(final CountDownLatch proceed) {
     try {
       final boolean released = proceed.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);

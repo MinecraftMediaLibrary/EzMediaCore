@@ -29,9 +29,6 @@ import java.util.Map;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link GsonProvider}.
- */
 final class GsonProviderTest {
 
   @Test

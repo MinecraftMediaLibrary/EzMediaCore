@@ -33,9 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link RenderThread}.
- */
 final class RenderThreadTest {
 
   private static final long TIMEOUT_SECONDS = 5L;
@@ -55,18 +52,13 @@ final class RenderThreadTest {
     assertEquals(List.of(), this.unexpectedFailures, "no rendering step of this test fails");
   }
 
-  /**
-   * Creates a render thread whose steps must never fail.
-   */
+  // Creates a render thread whose steps must never fail.
   private RenderThread strictThread() {
     final RenderThread thread = new RenderThread(THREAD_NAME, this.unexpectedFailures::add);
     this.strictThreads.add(thread);
     return thread;
   }
 
-  /**
-   * Creates a step that fails the first time it runs and counts down the latch the third time.
-   */
   private static RenderThread.Step failFirstThenCount(
     final AtomicInteger steps,
     final RuntimeException failure,
@@ -110,10 +102,6 @@ final class RenderThreadTest {
     }
   }
 
-  /**
-   * Creates a step that records the thread it runs on and, from the third step on, counts down the latch and blocks
-   * until it is interrupted.
-   */
   private static RenderThread.Step blockingFromTheThirdStep(
     final AtomicReference<Thread> worker,
     final AtomicInteger steps,
@@ -138,9 +126,6 @@ final class RenderThreadTest {
     }
   }
 
-  /**
-   * Checks that the worker thread of a stopped render thread exited, was a daemon, and had the thread name.
-   */
   private static void assertWorkerExited(final Thread workerThread) {
     final boolean alive = workerThread.isAlive();
     final boolean isDaemon = workerThread.isDaemon();
@@ -206,9 +191,6 @@ final class RenderThreadTest {
     cleanedUp.countDown();
   }
 
-  /**
-   * Creates a stubborn step that ignores interrupts until it is released, and then ends the loop.
-   */
   private static RenderThread.Step stubbornStep(final CountDownLatch started, final CountDownLatch release) {
     return () -> runIgnoringInterruptsUntilReleased(started, release);
   }

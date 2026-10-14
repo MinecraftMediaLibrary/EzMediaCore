@@ -24,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link UnsupportedOperatingSystemException}.
- */
 final class UnsupportedOperatingSystemExceptionTest {
 
   @Test

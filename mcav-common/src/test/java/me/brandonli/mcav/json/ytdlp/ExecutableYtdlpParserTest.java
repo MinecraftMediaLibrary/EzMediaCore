@@ -54,9 +54,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link ExecutableYtdlpParser} with canned yt-dlp output instead of the real executable.
- */
+// Tests ExecutableYtdlpParser with canned yt-dlp output instead of the real executable.
 final class ExecutableYtdlpParserTest {
 
   private static final String URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";

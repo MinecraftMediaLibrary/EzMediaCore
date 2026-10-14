@@ -27,38 +27,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-/**
- * Media files for tests, generated once per test run with the FFmpeg executable bundled with JavaCV, so no binary
- * test files have to be committed.
- *
- * <p>Every file is created the first time it is requested and reused afterwards. The files live in a temporary
- * directory that is deleted when the JVM exits.
- */
+// Media files for tests, generated once per test run with the FFmpeg executable bundled with JavaCV, so no binary test
+// files have to be committed. Every file is created the first time it is requested and reused afterwards. The files
+// live in a temporary directory that is deleted when the JVM exits.
 public final class TestMedia {
 
-  /**
-   * The width of the generated videos.
-   */
   public static final int VIDEO_WIDTH = 320;
 
-  /**
-   * The height of the generated videos.
-   */
   public static final int VIDEO_HEIGHT = 240;
 
-  /**
-   * The frame rate of the generated videos.
-   */
   public static final int VIDEO_FRAME_RATE = 30;
 
-  /**
-   * The sample rate of the generated audio.
-   */
   public static final int AUDIO_SAMPLE_RATE = 44_100;
 
-  /**
-   * The length of the main test video in seconds.
-   */
   public static final int VIDEO_SECONDS = 5;
 
   private static final String TEST_PATTERN_INPUT =
@@ -107,22 +88,12 @@ public final class TestMedia {
     }
   }
 
-  /**
-   * Returns a five second 320x240 MPEG-4 video at 30 frames per second with a mono AAC sine tone.
-   *
-   * @return the video file
-   */
   public static synchronized Path video() {
     final String arguments =
       TEST_PATTERN_INPUT + " " + SINE_INPUT + "440 -t " + VIDEO_SECONDS + " " + MPEG4_VIDEO_OUTPUT + " -g 30 -c:a aac -ac 1";
     return generate(VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Returns a five second video that changes from red to blue after three seconds.
-   *
-   * @return the video file
-   */
   public static synchronized Path seekVideo() {
     final String arguments =
       "-f lavfi -i color=c=red:size=320x240:rate=30:duration=3 " +
@@ -133,22 +104,11 @@ public final class TestMedia {
     return generate(SEEK_VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Returns a one second 320x240 video without an audio track.
-   *
-   * @return the video file
-   */
   public static synchronized Path silentVideo() {
     final String arguments = TEST_PATTERN_INPUT + " -t 1 " + MPEG4_VIDEO_OUTPUT + " -an";
     return generate(SILENT_VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Returns a stereo AAC audio file with an 880 Hz sine tone and no video track.
-   *
-   * @param seconds the length of the audio in seconds, which must be positive
-   * @return the audio file
-   */
   public static synchronized Path audio(final double seconds) {
     Preconditions.checkArgument(seconds > 0, "Seconds %s must be positive!", seconds);
 
@@ -158,11 +118,6 @@ public final class TestMedia {
     return generate(fileName, arguments);
   }
 
-  /**
-   * Returns a white 16x8 PNG image.
-   *
-   * @return the PNG file
-   */
   public static synchronized Path png() {
     return generate(IMAGE_FILE_NAME, "-f lavfi -i color=c=white:size=16x8 -frames:v 1");
   }

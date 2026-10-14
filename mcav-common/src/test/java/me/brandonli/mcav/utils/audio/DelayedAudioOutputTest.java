@@ -430,7 +430,6 @@ class DelayedAudioOutputTest {
     waitUntil(() -> this.processed.size() == 1);
   }
 
-  /** An output whose clock the test moves, with at most {@code silenceMilliseconds} of silence after {@link DelayedAudioOutput#quiet()}. */
   private DelayedAudioOutput quietOutput(final AtomicLong now, final int silenceMilliseconds) {
     return this.quietOutput((LongSupplier) now::get, silenceMilliseconds);
   }
@@ -471,7 +470,6 @@ class DelayedAudioOutputTest {
     return bytes;
   }
 
-  /** Moves the clock to a time and waits until the pipeline has seen a number of chunks. */
   private void at(final AtomicLong now, final int milliseconds, final int chunks) {
     now.set(TimeUnit.MILLISECONDS.toNanos(milliseconds));
     waitUntil(() -> this.processed.size() >= chunks);

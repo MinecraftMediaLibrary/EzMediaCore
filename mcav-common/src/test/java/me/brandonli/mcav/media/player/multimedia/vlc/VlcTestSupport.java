@@ -29,9 +29,6 @@ import me.brandonli.mcav.testing.GeneratedMedia;
 import org.junit.jupiter.api.Assumptions;
 import org.mockito.Mockito;
 
-/**
- * Loads the VLC installed on the machine for the integration tests and generates media for them.
- */
 final class VlcTestSupport {
 
   private static final String UNAVAILABLE = loadVlc();
@@ -43,12 +40,8 @@ final class VlcTestSupport {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Loads VLC through the installation kit of the library, with an installer that refuses to download, so the tests
-   * never need the internet.
-   *
-   * @return null if VLC was loaded, otherwise why not
-   */
+  // Loads VLC through the installation kit of the library, with an installer that refuses to download, so the tests
+  // never need the internet.
   private static String loadVlc() {
     final VlcInstaller installer = Mockito.mock(VlcInstaller.class);
     Mockito.when(installer.isSupported()).thenReturn(false);
@@ -64,22 +57,10 @@ final class VlcTestSupport {
     }
   }
 
-  /**
-   * Skips the calling tests when VLC cannot be loaded.
-   */
   static void assumeVlc() {
     Assumptions.assumeTrue(UNAVAILABLE == null, UNAVAILABLE);
   }
 
-  /**
-   * Generates a video of one color with a stereo sine tone.
-   *
-   * @param directory the directory to write into
-   * @param color     an FFmpeg color name
-   * @param width     the width in pixels
-   * @param height    the height in pixels
-   * @return the video file
-   */
   static Path solidVideo(final Path directory, final String color, final int width, final int height) {
     final Path output = directory.resolve(color + "-" + width + SIZE_SEPARATOR + height + VIDEO_EXTENSION);
     return GeneratedMedia.generate(output, temporary -> solidVideoCommand(color, width, height, temporary));

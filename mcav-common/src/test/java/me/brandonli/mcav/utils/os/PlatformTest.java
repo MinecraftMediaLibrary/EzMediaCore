@@ -26,9 +26,6 @@ import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Platform}.
- */
 final class PlatformTest {
 
   @Test

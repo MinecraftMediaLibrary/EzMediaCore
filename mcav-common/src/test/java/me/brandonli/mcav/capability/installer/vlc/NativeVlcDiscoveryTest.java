@@ -33,14 +33,10 @@ import org.junit.jupiter.api.io.TempDir;
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 
-/**
- * Tests {@link NativeVlcDiscovery} against the VLC installed on this machine. The tests are skipped where VLC is not
- * installed.
- *
- * <p>vlcj remembers a successful discovery in a static field for the rest of the JVM's lifetime. Each test clears
- * that memory first, so it sees a fresh discovery no matter which tests ran before. Loading libvlc a second time is
- * harmless, because the library stays loaded.
- */
+// Tests NativeVlcDiscovery against the VLC installed on this machine. The tests are skipped where VLC is not installed.
+// vlcj remembers a successful discovery in a static field for the rest of the JVM's lifetime. Each test clears that
+// memory first, so it sees a fresh discovery no matter which tests ran before. Loading libvlc a second time is
+// harmless, because the library stays loaded.
 final class NativeVlcDiscoveryTest {
 
   private boolean previouslyFound;
@@ -89,15 +85,12 @@ final class NativeVlcDiscoveryTest {
     assertEquals(systemDirectory, discoveredPath);
   }
 
-  /**
-   * Returns the directory of a VLC installation this machine can actually load, and skips the test otherwise.
-   *
-   * <p>Finding {@code libvlc.so} is not enough. libvlc refuses to start without its plugins, and vlcj's discovery
-   * reports failure when no plugin directory belongs to the libraries it found. Distributions package the two
-   * separately, so a server that installs only {@code libvlc5} — the usual case on a headless machine that pulled
-   * the library in as a transitive dependency — has the libraries without the plugins. The precondition therefore
-   * asks each strategy for both, exactly as a real discovery does, instead of settling for the libraries alone.
-   */
+  // Returns the directory of a VLC installation this machine can actually load, and skips the test otherwise. Finding
+  // libvlc.so is not enough. libvlc refuses to start without its plugins, and vlcj's discovery reports failure when no
+  // plugin directory belongs to the libraries it found. Distributions package the two separately, so a server that
+  // installs only libvlc5 — the usual case on a headless machine that pulled the library in as a transitive dependency
+  // — has the libraries without the plugins. The precondition therefore asks each strategy for both, exactly as a real
+  // discovery does, instead of settling for the libraries alone.
   private static Path requireSystemInstallation() {
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
     boolean librariesWithoutPlugins = false;

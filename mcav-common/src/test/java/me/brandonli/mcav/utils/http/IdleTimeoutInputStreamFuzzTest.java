@@ -29,11 +29,6 @@ import java.io.InputStream;
 import java.time.Duration;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the stream every download of mcav reads its body through, with a source that hands out its bytes in pieces of
- * any size and a caller that asks for any range of its array: a range outside the array is refused before anything is
- * read, and every byte of the source arrives once, in order, whatever the pieces.
- */
 @Tag("fuzz")
 final class IdleTimeoutInputStreamFuzzTest {
 
@@ -90,9 +85,6 @@ final class IdleTimeoutInputStreamFuzzTest {
     return count;
   }
 
-  /**
-   * A source that hands out its content in pieces of the sizes it was given, cycling through them.
-   */
   private static final class PiecewiseStream extends InputStream {
 
     private final byte[] content;

@@ -39,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Tests real child failures and publishing without invoking FFmpeg or production CommandTask. */
 @Timeout(20)
 final class GeneratedMediaTest {
 

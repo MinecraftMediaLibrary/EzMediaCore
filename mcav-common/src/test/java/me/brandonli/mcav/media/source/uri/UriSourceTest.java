@@ -28,9 +28,6 @@ import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link UriSource}, {@link DefaultUriSource} and {@link UriSourceDetector}.
- */
 final class UriSourceTest {
 
   private static final String MEDIA_URL = "https://example.com/a.mp4";

@@ -35,9 +35,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the video and audio pipeline steps.
- */
 final class PipelineStepTest {
 
   private static final OriginalAudioMetadata AUDIO_METADATA = OriginalAudioMetadata.of("pcm", -1, 48_000, 2, -1);

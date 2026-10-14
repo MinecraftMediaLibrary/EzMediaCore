@@ -24,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link NoMatchingFormatException}.
- */
 final class NoMatchingFormatExceptionTest {
 
   @Test

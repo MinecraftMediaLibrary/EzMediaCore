@@ -37,13 +37,10 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ran
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the dithering algorithms through the ways the library lets a developer shape one: an error diffusion kernel
- * of their own, a threshold matrix of their own with any level count and strength, a random weight and seed, and the
- * thresholds of temporal dithering. A constructor may refuse what it documents with an
- * {@link IllegalArgumentException}; an algorithm it accepted must dither any image into the palette, with every index
- * naming the color written in place.
- */
+// Fuzzes the dithering algorithms through the ways the library lets a developer shape one: an error diffusion kernel of
+// their own, a threshold matrix of their own with any level count and strength, a random weight and seed, and the
+// thresholds of temporal dithering. A constructor may refuse what it documents with an IllegalArgumentException; an
+// algorithm it accepted must dither any image into the palette, with every index naming the color written in place.
 @Tag("fuzz")
 final class DitherFuzzTest {
 
@@ -90,9 +87,6 @@ final class DitherFuzzTest {
     }
   }
 
-  /**
-   * An image buffer that only holds pixels, which is all the algorithms read.
-   */
   private static ImageBuffer createBuffer(final int[] pixels, final int width, final int height) {
     final ClassLoader loader = ImageBuffer.class.getClassLoader();
     final Class<?>[] interfaces = { ImageBuffer.class };
@@ -107,9 +101,7 @@ final class DitherFuzzTest {
     return (ImageBuffer) Proxy.newProxyInstance(loader, interfaces, handler);
   }
 
-  /**
-   * The parts of an algorithm, read from the fuzzer's data once, so that two identical algorithms can be created.
-   */
+  // The parts of an algorithm, read from the fuzzer's data once, so that two identical algorithms can be created.
   private static final class AlgorithmRecipe {
 
     private final int kind;

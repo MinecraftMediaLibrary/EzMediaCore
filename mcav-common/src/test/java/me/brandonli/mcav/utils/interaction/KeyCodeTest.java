@@ -24,9 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link KeyCode}.
- */
 final class KeyCodeTest {
 
   private static final char PRIVATE_USE_START = (char) 0xE000;

@@ -35,9 +35,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link ReleasePackageManager}: every VLC download, the Linux AppImage included, is a pinned build with its hash.
- */
 final class ReleasePackageManagerTest {
 
   private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";

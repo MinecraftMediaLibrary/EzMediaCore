@@ -22,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VideoTimestamps} with a clock the test moves by hand.
- */
 final class VideoTimestampsTest {
 
   private static final double FRAMES_PER_SECOND = 30.0;

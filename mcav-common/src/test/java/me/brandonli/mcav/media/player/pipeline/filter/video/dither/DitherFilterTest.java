@@ -31,9 +31,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherFilter} and the defaults of {@link AbstractDitherAlgorithm}.
- */
 final class DitherFilterTest {
 
   @Test
@@ -73,9 +70,6 @@ final class DitherFilterTest {
     assertSame(DitherPalette.DEFAULT_MAP_PALETTE, palette);
   }
 
-  /**
-   * An algorithm that relies on the default palette of its base class.
-   */
   private static final class DefaultPaletteAlgorithm extends AbstractDitherAlgorithm {
 
     @Override

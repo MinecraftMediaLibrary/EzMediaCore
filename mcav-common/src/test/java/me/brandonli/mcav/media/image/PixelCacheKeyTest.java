@@ -22,9 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PixelCacheKey}.
- */
 final class PixelCacheKeyTest {
 
   private static final long ADDRESS = 0x1000L;

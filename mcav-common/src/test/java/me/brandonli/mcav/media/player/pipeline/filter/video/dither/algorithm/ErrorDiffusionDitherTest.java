@@ -43,9 +43,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-/**
- * Tests the error diffusion algorithms, their builder and the factories of {@link DitherAlgorithm}.
- */
 final class ErrorDiffusionDitherTest {
 
   private static final int WIDTH = 256;

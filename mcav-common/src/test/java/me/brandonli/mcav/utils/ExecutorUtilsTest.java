@@ -31,9 +31,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ExecutorUtils}.
- */
 final class ExecutorUtilsTest {
 
   private static final long TERMINATION_TIMEOUT_SECONDS = 5L;

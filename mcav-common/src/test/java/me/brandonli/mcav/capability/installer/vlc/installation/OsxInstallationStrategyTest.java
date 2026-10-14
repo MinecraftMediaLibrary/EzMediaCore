@@ -35,9 +35,6 @@ import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallatio
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link OsxInstallationStrategy} with {@code hdiutil} and {@code cp} simulated.
- */
 final class OsxInstallationStrategyTest {
 
   private static final Predicate<String> COPY_FAILS = commandLine -> commandLine.startsWith("cp ");
@@ -292,13 +289,6 @@ final class OsxInstallationStrategyTest {
     return installDirectory.resolve(RELATIVE_LIBRARY_DIRECTORY);
   }
 
-  /**
-   * Simulates {@code hdiutil} and {@code cp}: {@code cp} creates an application bundle with the library.
-   *
-   * @param commands receives every command line
-   * @param failing  decides which command lines fail; a failure reads {@code Command <command line> failed!}
-   * @return the runner
-   */
   private static ProcessRunner simulatedTools(final List<String> commands, final Predicate<String> failing) {
     return (_, arguments) -> runSimulatedTool(commands, failing, arguments);
   }
@@ -330,17 +320,10 @@ final class OsxInstallationStrategyTest {
     Files.writeString(coreLibrary, "structural core fixture, never loaded");
   }
 
-  /** A portable child that proves the strategy ran the requested program. */
   public static final class ChildProbe {
 
     private ChildProbe() {}
 
-    /**
-     * Writes the marker of a completed child process.
-     *
-     * @param arguments the marker path
-     * @throws IOException if the marker cannot be written
-     */
     public static void main(final String[] arguments) throws IOException {
       Files.writeString(Path.of(arguments[0]), MARKER_TEXT);
     }

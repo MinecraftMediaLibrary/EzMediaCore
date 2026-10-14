@@ -33,10 +33,6 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.media.source.uri.UriSource;
 
-/**
- * Plays a video from the web with the FFmpeg backend, shows it in a window, plays its audio through the speakers,
- * and pauses and resumes after a few seconds.
- */
 public final class FfmpegPlayerExample {
 
   private FfmpegPlayerExample() {}

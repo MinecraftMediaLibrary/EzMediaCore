@@ -30,9 +30,6 @@ import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link StrategySelector}, {@link DefaultStrategySelector} and {@link NoMatchingFormatException}.
- */
 final class StrategySelectorTest {
 
   private static final String STREAMS =

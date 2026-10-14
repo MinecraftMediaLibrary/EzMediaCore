@@ -60,9 +60,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Stubber;
 
-/**
- * Tests {@link VlcInstaller}.
- */
 final class VlcInstallerTest {
 
   private static final String ZIP_NAME = "vlc-3.0.24-win64.zip";

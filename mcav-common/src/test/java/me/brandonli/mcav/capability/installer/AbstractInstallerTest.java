@@ -75,9 +75,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link AbstractInstaller} with a local HTTP server standing in for the download hosts.
- */
 final class AbstractInstallerTest {
 
   private static final String NAME = "tool";
@@ -690,9 +687,6 @@ final class AbstractInstallerTest {
     }
   }
 
-  /**
-   * Waits until the tool was requested once, which the server signals as soon as the request arrives.
-   */
   private static void awaitToolRequest(final LocalHttpServer server) throws InterruptedException {
     final boolean requested = server.awaitRequests(TOOL_PATH, 1, REQUEST_TIMEOUT);
     assertTrue(requested, "the server did not receive the request in time");
@@ -757,9 +751,7 @@ final class AbstractInstallerTest {
     }
   }
 
-  /**
-   * An installer that overrides nothing, so it shows the defaults of {@link AbstractInstaller}.
-   */
+  // An installer that overrides nothing, so it shows the defaults of AbstractInstaller.
   private static final class PlainInstaller extends AbstractInstaller {
 
     PlainInstaller(final Path folder) {
@@ -767,9 +759,6 @@ final class AbstractInstallerTest {
     }
   }
 
-  /**
-   * An installer whose archive handling and fallback platforms are configurable.
-   */
   private static final class TestInstaller extends AbstractInstaller {
 
     private final List<Path> installedArchives = new ArrayList<>();

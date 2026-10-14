@@ -28,9 +28,6 @@ import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Download}.
- */
 final class DownloadTest {
 
   private static final Platform LINUX = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);

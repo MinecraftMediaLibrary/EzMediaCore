@@ -69,9 +69,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link MatImageBuffer} and the factories of {@link ImageBuffer}.
- */
 final class MatImageBufferTest {
 
   private static final String EXR_FILE_NAME = "image.exr";
@@ -315,10 +312,6 @@ final class MatImageBufferTest {
     assertEquals("File " + file + " is not a supported image!", fileMessage);
   }
 
-  /**
-   * Found by {@code ImageDecodeFuzzTest}: OpenCV raises an error for a side longer than its own limit of 2^20 pixels,
-   * even when the whole picture is under the pixel limit of mcav, where it returns an empty matrix for other bad images.
-   */
   @Test
   void shouldRefuseAnImageWithASideLongerThanOpenCvAllows() throws IOException {
     final byte[] tooTall = "P4\n16 2000000\n".getBytes(StandardCharsets.US_ASCII);
@@ -342,12 +335,8 @@ final class MatImageBufferTest {
     }
   }
 
-  /**
-   * Serves an image from a local HTTP server and loads it through its URI, with the download cache in the temporary
-   * directory instead of the real home directory.
-   *
-   * @return the height of the downloaded image
-   */
+  // Serves an image from a local HTTP server and loads it through its URI, with the download cache in the temporary
+  // directory instead of the real home directory.
   private int downloadHeight(final Path png) throws IOException {
     final String previousHome = System.getProperty("user.home");
     final String temporaryHome = this.directory.toString();
@@ -542,9 +531,6 @@ final class MatImageBufferTest {
     assertThrowsWhileOpening(NullPointerException.class, () -> ImageBuffer.image(null));
   }
 
-  /**
-   * Creates a normal RGB or BGR raster whose logical data occupies only part of its backing array.
-   */
   private static BufferedImage imageWithExtraStorage(final int type, final int offset) {
     final BufferedImage prototype = new BufferedImage(SMALL_IMAGE_SIZE, SMALL_IMAGE_SIZE, type);
     final SampleModel model = prototype.getSampleModel();
@@ -570,9 +556,6 @@ final class MatImageBufferTest {
     return image;
   }
 
-  /**
-   * Uses BufferedImage's raster-aware pixel access as the oracle for construction and replacement.
-   */
   private static void assertCopiesRasterPixels(final BufferedImage source) {
     final int width = source.getWidth();
     final int height = source.getHeight();
@@ -1016,13 +999,8 @@ final class MatImageBufferTest {
     }
   }
 
-  /**
-   * Writes a result that shares the pixels of the source and changes them, so the image keeps its pixel memory but
-   * shows other colors.
-   *
-   * @param source the current matrix of the image
-   * @param target the matrix the result is written into
-   */
+  // Writes a result that shares the pixels of the source and changes them, so the image keeps its pixel memory but
+  // shows other colors.
   private static void shareAndInvert(final Mat source, final Mat target) {
     target.put(source);
     opencv_core.bitwise_not(target, target);

@@ -23,24 +23,14 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.function.ThrowingSupplier;
 
-/**
- * Assertions for factories that return a resource, such as an image buffer or a frame grabber, and that should throw
- * instead. A resource the factory returns by mistake is closed before the test fails, so no native memory leaks.
- */
+// Assertions for factories that return a resource, such as an image buffer or a frame grabber, and that should throw
+// instead. A resource the factory returns by mistake is closed before the test fails, so no native memory leaks.
 public final class ResourceAssertions {
 
   private ResourceAssertions() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that opening a resource throws the expected exception.
-   *
-   * @param expected        the type of exception the factory should throw
-   * @param opening         the factory that opens the resource
-   * @param <ExceptionType> the type of exception
-   * @return the exception the factory threw
-   */
   public static <ExceptionType extends Throwable> ExceptionType assertThrowsWhileOpening(
     final Class<ExceptionType> expected,
     final ThrowingSupplier<? extends AutoCloseable> opening
