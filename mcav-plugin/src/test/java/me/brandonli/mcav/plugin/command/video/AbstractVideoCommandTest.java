@@ -50,6 +50,7 @@ import java.util.function.BooleanSupplier;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
@@ -338,8 +339,8 @@ final class AbstractVideoCommandTest {
     verify(this.viewer).sendMessage(loading);
     verify(this.manager).clearCurrentVideo();
     final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("clip.mp4", dump.title);
-    assertEquals("Video from a file", dump.description);
+    assertEquals(Optional.of("clip.mp4"), dump.getTitle());
+    assertEquals(Optional.of("Video from a file"), dump.getDescription());
     this.assertOutputsAttached();
     final Source source = this.verifyStartedWithOneSource();
     final FileSource fileSource = assertInstanceOf(FileSource.class, source);
@@ -388,8 +389,8 @@ final class AbstractVideoCommandTest {
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, "dshow||video=Camera", "");
 
     final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("video=Camera", dump.title);
-    assertEquals("FFmpeg input dshow", dump.description);
+    assertEquals(Optional.of("video=Camera"), dump.getTitle());
+    assertEquals(Optional.of("FFmpeg input dshow"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
     final FfmpegDirectSource input = assertInstanceOf(FfmpegDirectSource.class, source);
     final String format = input.getFormat();
@@ -479,8 +480,8 @@ final class AbstractVideoCommandTest {
     this.play(PlayerArgument.DEVICE, AudioArgument.NONE, "2", "");
 
     final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("Device 2", dump.title);
-    assertEquals("Video from a capture device", dump.description);
+    assertEquals(Optional.of("Device 2"), dump.getTitle());
+    assertEquals(Optional.of("Video from a capture device"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
     final DeviceSource device = assertInstanceOf(DeviceSource.class, source);
     final int deviceId = device.getDeviceId();
@@ -507,8 +508,8 @@ final class AbstractVideoCommandTest {
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, "https://example.com/videos/clip.webm", "");
 
     final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("clip.webm", dump.title);
-    assertEquals("Video from a URL", dump.description);
+    assertEquals(Optional.of("clip.webm"), dump.getTitle());
+    assertEquals(Optional.of("Video from a URL"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
     final UriSource uri = assertInstanceOf(UriSource.class, source);
     final URI played = uri.getUri();
@@ -519,8 +520,7 @@ final class AbstractVideoCommandTest {
 
   @Test
   void resolvesWebPagesWithYtdlpAndPlaysTheirStreams() throws IOException {
-    final UrlParseDump resolved = new UrlParseDump();
-    resolved.title = "A video";
+    final UrlParseDump resolved = UrlParseDump.of("A video");
     when(this.parser.parse(any(UriSource.class), eq("--format"), eq("best"))).thenReturn(resolved);
     final URI videoStream = URI.create("https://cdn.example.com/video");
     final URI audioStream = URI.create("https://cdn.example.com/audio");
@@ -551,7 +551,7 @@ final class AbstractVideoCommandTest {
     "tcp://127.0.0.1:25575, https://cdn.example.com/audio",
   })
   void refusesStreamsOfAWebPageThatAreNotOnTheWeb(final String videoStream, final String audioStream) throws IOException {
-    final UrlParseDump resolved = new UrlParseDump();
+    final UrlParseDump resolved = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
     when(this.parser.parse(any(UriSource.class))).thenReturn(resolved);
     final UriSource videoStreamSource = UriSource.uri(URI.create(videoStream));
     final UriSource audioStreamSource = UriSource.uri(URI.create(audioStream));

@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import net.dv8tion.jda.api.JDA;
@@ -239,8 +240,7 @@ final class DiscordPlayerImplTest {
     assertEquals(expected, name);
     assertEquals(128, length);
 
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = title;
+    final UrlParseDump dump = UrlParseDump.of(title);
     player.setCurrentMedia(dump);
     final String dumpName = this.shownActivityName();
     assertEquals(expected, dumpName);
@@ -447,8 +447,7 @@ final class DiscordPlayerImplTest {
   @Test
   void setCurrentMediaShowsTheTitleOfTheDump() {
     final DiscordPlayerImpl player = this.createPlayer();
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = "Some Video";
+    final UrlParseDump dump = UrlParseDump.of("Some Video");
     player.setCurrentMedia(dump);
     final VerificationMode once = Mockito.times(1);
     final List<Activity> activities = this.shownActivities(once);
@@ -460,9 +459,8 @@ final class DiscordPlayerImplTest {
   @Test
   void setCurrentMediaFallsBackForMissingOrBlankTitles() {
     final DiscordPlayerImpl player = this.createPlayer();
-    final UrlParseDump missing = new UrlParseDump();
-    final UrlParseDump blank = new UrlParseDump();
-    blank.title = "   ";
+    final UrlParseDump missing = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
+    final UrlParseDump blank = UrlParseDump.of("   ");
     player.setCurrentMedia(missing);
     player.setCurrentMedia(blank);
     final VerificationMode twice = Mockito.times(2);

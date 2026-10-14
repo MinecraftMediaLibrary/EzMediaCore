@@ -59,8 +59,14 @@ final class YtdlpParserFuzzTest {
     new Strategy(FormatStrategy.BEST_QUALITY_VIDEO, FormatStrategy::hasVideo),
     new Strategy(FormatStrategy.FIRST_AUDIO, FormatStrategy::hasAudio),
     new Strategy(FormatStrategy.FIRST_VIDEO, FormatStrategy::hasVideo),
-    new Strategy(FormatStrategy.PREFER_WEBM_AUDIO, format -> FormatStrategy.isHttps(format) && "webm".equals(format.audio_ext)),
-    new Strategy(FormatStrategy.PREFER_MP4_VIDEO, format -> FormatStrategy.isHttps(format) && "mp4".equals(format.video_ext))
+    new Strategy(
+      FormatStrategy.PREFER_WEBM_AUDIO,
+      format -> FormatStrategy.isHttps(format) && format.getAudioExtension().equals(Optional.of("webm"))
+    ),
+    new Strategy(
+      FormatStrategy.PREFER_MP4_VIDEO,
+      format -> FormatStrategy.isHttps(format) && format.getVideoExtension().equals(Optional.of("mp4"))
+    )
   );
 
   @FuzzTest(maxDuration = "30s")
@@ -93,7 +99,8 @@ final class YtdlpParserFuzzTest {
         continue;
       }
       final Format format = picked.get();
-      final boolean listed = dump.formats != null && dump.formats.contains(format);
+      final List<Format> formats = dump.getFormats();
+      final boolean listed = formats.contains(format);
       assertTrue(listed, "a strategy picks a stream of the metadata");
       final boolean accepted = strategy.accepts().test(format);
       assertTrue(accepted, "a strategy picks only a stream it accepts");

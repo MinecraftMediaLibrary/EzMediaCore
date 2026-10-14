@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -143,10 +144,10 @@ final class ExecutableYtdlpParserTest {
       URL,
     };
     final String[] actual = command.get();
-    final List<Format> formats = dump.formats;
+    final List<Format> formats = dump.getFormats();
     assertArrayEquals(expected, actual);
-    assertEquals("dQw4w9WgXcQ", dump.id);
-    assertEquals("Example Video", dump.title);
+    assertEquals(Optional.of("dQw4w9WgXcQ"), dump.getId());
+    assertEquals(Optional.of("Example Video"), dump.getTitle());
     assertNotNull(formats);
 
     final int formatsCount = formats.size();
@@ -179,7 +180,7 @@ final class ExecutableYtdlpParserTest {
     final UrlParseDump dump = parser.parse(source, options);
     final String[] actual = command.get();
     assertNotNull(actual);
-    assertEquals("many", dump.id);
+    assertEquals(Optional.of("many"), dump.getId());
     assertEquals(21, actual.length);
 
     for (int index = 0; index < options.length; index++) {
@@ -215,7 +216,7 @@ final class ExecutableYtdlpParserTest {
     };
     final String[] actual = command.get();
     assertArrayEquals(expected, actual);
-    assertEquals("plain", dump.id);
+    assertEquals(Optional.of("plain"), dump.getId());
   }
 
   @Test
@@ -228,8 +229,8 @@ final class ExecutableYtdlpParserTest {
     final UriSource source = source();
     final UrlParseDump windowsDump = windowsParser.parse(source);
     final UrlParseDump singleLineDump = singleLineParser.parse(source);
-    assertEquals("first", windowsDump.id);
-    assertEquals("only", singleLineDump.id);
+    assertEquals(Optional.of("first"), windowsDump.getId());
+    assertEquals(Optional.of("only"), singleLineDump.getId());
   }
 
   @Test
@@ -407,7 +408,7 @@ final class ExecutableYtdlpParserTest {
     final UrlParseDump dump = parser.parse(source);
     final String[] actual = command.get();
     final String lastArgument = actual[actual.length - 1];
-    assertEquals("upper", dump.id);
+    assertEquals(Optional.of("upper"), dump.getId());
     assertEquals("HTTPS://www.youtube.com/watch?v=upper", lastArgument);
   }
 

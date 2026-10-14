@@ -17,45 +17,131 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import com.google.common.base.MoreObjects;
+import com.google.gson.annotations.SerializedName;
+import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The version of yt-dlp that produced the metadata.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
  *
- * <p>This class is mutable and not thread-safe.
+ * <p>This class is immutable and thread-safe.
  *
  * @since 1.0.0
  */
-public class Version {
+public final class Version {
+
+  private final @Nullable String version;
+
+  @SerializedName("current_git_head")
+  private final @Nullable Object currentGitHead;
+
+  @SerializedName("release_git_head")
+  private final @Nullable String releaseGitHead;
+
+  private final @Nullable String repository;
+
+  private Version() {
+    this.version = null;
+    this.currentGitHead = null;
+    this.releaseGitHead = null;
+    this.repository = null;
+  }
 
   /**
-   * The version of yt-dlp, such as {@code 2026.08.19}.
+   * Returns the version of yt-dlp, such as {@code 2026.08.19}, or empty if yt-dlp did not report it.
    *
+   * @return the version of yt-dlp, such as {@code 2026.08.19}, or empty if yt-dlp did not report it
    * @since 1.0.0
    */
-  public @Nullable String version;
-  /**
-   * The Git commit the running yt-dlp was built from, or null for a release build.
-   *
-   * @since 1.0.0
-   */
-  public @Nullable Object current_git_head;
-  /**
-   * The Git commit of the release.
-   *
-   * @since 1.0.0
-   */
-  public @Nullable String release_git_head;
-  /**
-   * The repository the build came from, such as {@code yt-dlp/yt-dlp}.
-   *
-   * @since 1.0.0
-   */
-  public @Nullable String repository;
+  public Optional<String> getVersion() {
+    return Optional.ofNullable(this.version);
+  }
 
-  private Version() {}
+  /**
+   * Returns the Git commit the running yt-dlp was built from, or empty for a release build.
+   *
+   * @return the Git commit the running yt-dlp was built from, or empty for a release build
+   * @since 1.0.0
+   */
+  public Optional<Object> getCurrentGitHead() {
+    return Optional.ofNullable(this.currentGitHead);
+  }
+
+  /**
+   * Returns the Git commit of the release, or empty if yt-dlp did not report it.
+   *
+   * @return the Git commit of the release, or empty if yt-dlp did not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getReleaseGitHead() {
+    return Optional.ofNullable(this.releaseGitHead);
+  }
+
+  /**
+   * Returns the repository the build came from, such as {@code yt-dlp/yt-dlp}, or empty if yt-dlp did not report
+   * it.
+   *
+   * @return the repository the build came from, such as {@code yt-dlp/yt-dlp}, or empty if yt-dlp did not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getRepository() {
+    return Optional.ofNullable(this.repository);
+  }
+
+  /**
+   * Returns whether {@code other} is a version description with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final Version version)) {
+      return false;
+    }
+
+    return (
+      Objects.equals(this.version, version.version) &&
+      Objects.equals(this.currentGitHead, version.currentGitHead) &&
+      Objects.equals(this.releaseGitHead, version.releaseGitHead) &&
+      Objects.equals(this.repository, version.repository)
+    );
+  }
+
+  /**
+   * Returns a hash code built from every value.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.version, this.currentGitHead, this.releaseGitHead, this.repository);
+  }
+
+  /**
+   * Returns a debugging representation with every value.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("version", this.version)
+      .add("currentGitHead", this.currentGitHead)
+      .add("releaseGitHead", this.releaseGitHead)
+      .add("repository", this.repository)
+      .toString();
+  }
 }

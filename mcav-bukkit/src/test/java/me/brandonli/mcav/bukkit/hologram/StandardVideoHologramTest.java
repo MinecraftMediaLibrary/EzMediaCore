@@ -32,6 +32,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +43,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
+import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -107,12 +110,13 @@ final class StandardVideoHologramTest {
   }
 
   private static UrlParseDump createDump(final String title, final String uploader, final int timestamp, final double duration) {
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = title;
-    dump.uploader = uploader;
-    dump.timestamp = timestamp;
-    dump.duration = duration;
-    return dump;
+    final JsonObject json = new JsonObject();
+    json.addProperty("title", title);
+    json.addProperty("uploader", uploader);
+    json.addProperty("timestamp", timestamp);
+    json.addProperty("duration", duration);
+    final Gson gson = GsonProvider.getSimple();
+    return gson.fromJson(json, UrlParseDump.class);
   }
 
   private static int epochSecond(final int day) {

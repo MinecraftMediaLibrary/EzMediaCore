@@ -23,6 +23,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 import me.brandonli.mcav.bukkit.BukkitModule;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
@@ -100,7 +101,8 @@ public class StandardVideoHologram extends VideoHologram {
     this.setDisplay(entity);
     this.metadataText = metadata;
 
-    final double wholeSeconds = Math.ceil(dump.duration);
+    final double duration = dump.getDuration();
+    final double wholeSeconds = Math.ceil(duration);
     this.durationSeconds = Math.max(0, (int) wholeSeconds);
     this.currentSecond = 0;
   }
@@ -116,9 +118,14 @@ public class StandardVideoHologram extends VideoHologram {
   }
 
   private static Component createMetadataText(final UrlParseDump dump) {
-    final String title = dump.title == null ? UNKNOWN_TITLE : dump.title;
-    final String uploader = dump.uploader == null ? UNKNOWN_UPLOADER : dump.uploader;
-    final String uploadDate = formatUploadDate(dump.timestamp);
+    final Optional<String> titleValue = dump.getTitle();
+    final Optional<String> uploaderValue = dump.getUploader();
+    final @Nullable String reportedTitle = titleValue.orElse(null);
+    final @Nullable String reportedUploader = uploaderValue.orElse(null);
+    final String title = reportedTitle == null ? UNKNOWN_TITLE : reportedTitle;
+    final String uploader = reportedUploader == null ? UNKNOWN_UPLOADER : reportedUploader;
+    final int timestamp = dump.getTimestamp();
+    final String uploadDate = formatUploadDate(timestamp);
     // the site names its videos and uploaders, so the names are inserted as text that is never parsed: escaping them
     // leaves a backslash at their end, which would escape the closing tag after them
     return MINI_MESSAGE.deserialize(

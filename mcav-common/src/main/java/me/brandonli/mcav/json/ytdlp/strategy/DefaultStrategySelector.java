@@ -89,8 +89,10 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   private static String describe(final UrlParseDump dump) {
-    final String title = dump.title;
-    final String url = dump.webpage_url;
+    final Optional<String> titleValue = dump.getTitle();
+    final Optional<String> urlValue = dump.getWebpageUrl();
+    final @Nullable String title = titleValue.orElse(null);
+    final @Nullable String url = urlValue.orElse(null);
     if (title != null) {
       return title;
     }

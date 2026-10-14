@@ -17,37 +17,114 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import com.google.common.base.MoreObjects;
+import com.google.gson.annotations.SerializedName;
+import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * One entry of the replay heat map of a video, as listed by yt-dlp.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
  *
- * <p>This class is mutable and not thread-safe.
+ * <p>This class is immutable and thread-safe.
  *
  * @since 1.0.0
  */
-public class Heatmap {
+public final class Heatmap {
+
+  @SerializedName("start_time")
+  private final double startTime;
+
+  @SerializedName("end_time")
+  private final double endTime;
+
+  private final double value;
+
+  private Heatmap() {
+    this.startTime = 0.0;
+    this.endTime = 0.0;
+    this.value = 0.0;
+  }
 
   /**
-   * Where the entry starts, in seconds from the start of the video.
+   * Returns where the entry starts, in seconds from the start of the video.
    *
+   * @return where the entry starts, in seconds from the start of the video
    * @since 1.0.0
    */
-  public double start_time;
-  /**
-   * Where the entry ends, in seconds from the start of the video.
-   *
-   * @since 1.0.0
-   */
-  public double end_time;
-  /**
-   * How often this part of the video was replayed, relative to the most replayed part, from 0 to 1.
-   *
-   * @since 1.0.0
-   */
-  public double value;
+  public double getStartTime() {
+    return this.startTime;
+  }
 
-  private Heatmap() {}
+  /**
+   * Returns where the entry ends, in seconds from the start of the video.
+   *
+   * @return where the entry ends, in seconds from the start of the video
+   * @since 1.0.0
+   */
+  public double getEndTime() {
+    return this.endTime;
+  }
+
+  /**
+   * Returns how often this part of the video was replayed, relative to the most replayed part, from 0 to 1.
+   *
+   * @return how often this part of the video was replayed, relative to the most replayed part, from 0 to 1
+   * @since 1.0.0
+   */
+  public double getValue() {
+    return this.value;
+  }
+
+  /**
+   * Returns whether {@code other} is a heat map entry with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final Heatmap heatmap)) {
+      return false;
+    }
+
+    return (
+      Double.compare(this.startTime, heatmap.startTime) == 0 &&
+      Double.compare(this.endTime, heatmap.endTime) == 0 &&
+      Double.compare(this.value, heatmap.value) == 0
+    );
+  }
+
+  /**
+   * Returns a hash code built from every value.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.startTime, this.endTime, this.value);
+  }
+
+  /**
+   * Returns a debugging representation with every value.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("startTime", this.startTime)
+      .add("endTime", this.endTime)
+      .add("value", this.value)
+      .toString();
+  }
 }

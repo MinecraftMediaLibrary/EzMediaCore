@@ -17,33 +17,91 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * One fragment of a segmented stream, as listed by yt-dlp.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
  *
- * <p>This class is mutable and not thread-safe.
+ * <p>This class is immutable and thread-safe.
  *
  * @since 1.0.0
  */
-public class Fragment {
+public final class Fragment {
+
+  private final @Nullable String url;
+
+  private final double duration;
+
+  private Fragment() {
+    this.url = null;
+    this.duration = 0.0;
+  }
 
   /**
-   * The URL of the fragment, or null if yt-dlp did not report one.
+   * Returns the URL of the fragment, or empty if yt-dlp did not report one.
    *
+   * @return the URL of the fragment, or empty if yt-dlp did not report one
    * @since 1.0.0
    */
-  public @Nullable String url;
-  /**
-   * The length of the fragment in seconds.
-   *
-   * @since 1.0.0
-   */
-  public double duration;
+  public Optional<String> getUrl() {
+    return Optional.ofNullable(this.url);
+  }
 
-  private Fragment() {}
+  /**
+   * Returns the length of the fragment in seconds.
+   *
+   * @return the length of the fragment in seconds
+   * @since 1.0.0
+   */
+  public double getDuration() {
+    return this.duration;
+  }
+
+  /**
+   * Returns whether {@code other} is a fragment with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final Fragment fragment)) {
+      return false;
+    }
+
+    return Objects.equals(this.url, fragment.url) && Double.compare(this.duration, fragment.duration) == 0;
+  }
+
+  /**
+   * Returns a hash code built from every value.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.url, this.duration);
+  }
+
+  /**
+   * Returns a debugging representation with every value.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("url", this.url).add("duration", this.duration).toString();
+  }
 }

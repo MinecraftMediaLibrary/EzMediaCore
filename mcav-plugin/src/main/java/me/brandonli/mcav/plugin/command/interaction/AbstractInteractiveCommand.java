@@ -284,8 +284,7 @@ public abstract class AbstractInteractiveCommand<T> implements AnnotationCommand
     }
     final AudioProvider provider = this.plugin.getAudioProvider();
     this.soundProvider = provider;
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = title;
+    final UrlParseDump dump = UrlParseDump.of(title);
     final AudioFilter filter = provider.constructFilter(type, dump, sound.getViewers(), owner);
     audio.attach(AudioPipelineStep.of(filter));
   }

@@ -34,7 +34,9 @@ YouTube still works, but yt-dlp may find fewer formats; see the
 
 The `YtdlpParser` runs yt-dlp for a `UriSource` and returns a `UrlParseDump` with every format yt-dlp found, together
 with the title, uploader, thumbnail, and other information about the media. Parsing runs yt-dlp as a separate program,
-so it blocks for a few seconds; call it off threads that must stay responsive. It fails in the following cases:
+so it blocks for a few seconds; call it off threads that must stay responsive. The metadata is immutable: read it
+through its getters, which return an empty `Optional` or an empty list for values yt-dlp did not report. Parsing fails
+in the following cases:
 
 | Exception                  | Meaning                                                                             |
 |----------------------------|-------------------------------------------------------------------------------------|

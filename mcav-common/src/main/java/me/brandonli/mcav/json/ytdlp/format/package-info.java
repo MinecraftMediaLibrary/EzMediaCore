@@ -16,17 +16,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 /**
- * Mutable data models for the JSON emitted by yt-dlp.
+ * Immutable data models for the JSON emitted by yt-dlp.
  *
  * <p>{@link me.brandonli.mcav.json.ytdlp.format.UrlParseDump} describes a resolved video and its available
  * {@link me.brandonli.mcav.json.ytdlp.format.Format} objects. Other models describe thumbnails, fragments,
- * headers, download hints and extractor version metadata. Gson fills public fields directly; absent nullable
- * references remain null and absent primitive values remain zero or false. These models do not validate ranges,
- * URLs or consistency between fields.
+ * headers, download hints and extractor version metadata. Gson fills the private fields; getters return absent
+ * references as empty {@code Optional}s or empty lists, and absent primitive values as zero or false. These models do
+ * not validate ranges, URLs or consistency between fields.
  *
- * <p>Metadata and nested collections belong to the caller and are not thread-safe for concurrent mutation.
- * Format selection returns objects from these collections. {@link me.brandonli.mcav.json.ytdlp.format.Format#toUriSource()}
- * wraps only the URL; request headers and other playback options must be applied separately by the caller.
+ * <p>Instances are immutable and thread-safe, and their lists are unmodifiable. Format selection returns objects
+ * from these lists. {@link me.brandonli.mcav.json.ytdlp.format.Format#toUriSource()} wraps only the URL; request
+ * headers and other playback options must be applied separately by the caller.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.

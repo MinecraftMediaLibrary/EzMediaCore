@@ -274,13 +274,20 @@ Other utility callers need these updates:
 | `KeyCode.charAt(int)` | Use `getKeyChar`, `getCodePoint` or `asString` for the needed representation |
 | Removed `SourceUtils.getSource` and `ByteUtils` conversion helpers | Use the current source and buffer APIs; do not depend on their former implementation helpers |
 
-The yt-dlp DTOs also have field-type changes: `Format.filesize` and `filesize_approx`, and the count/size fields of
-`UrlParseDump`, use `long`; `UrlParseDump.duration` and `fps` use `double`. Update arithmetic, serialization bindings
-and reflective field access. Several exception types no longer inherit the removed MCAV unchecked-I/O type; review
-catches for the concrete exception or its current superclass, not just imports. The exceptions of `mcav-common` now
-extend `MCAVException`, an unchecked base for failures outside the caller's control: `NativeLoadingException` and
-`PaletteLoadingException` are no longer an `IllegalStateException`, and `UnsupportedOperatingSystemException` is no
-longer an `UnsupportedOperationException`.
+The yt-dlp DTOs in `me.brandonli.mcav.json.ytdlp.format` are now immutable value classes with `equals`, `hashCode` and
+`toString`. Their public snake_case fields are gone: read each value through a camel-case getter with the abbreviations
+spelled out, such as `Format.getAudioExtension()` for `audio_ext`, `getFramesPerSecond()` for `fps`,
+`getApproximateFileSize()` for `filesize_approx`, `isDrmProtected()` for `has_drm`, `UrlParseDump.isLive()` for
+`is_live` and `UrlParseDump.getFileNameAlias()` for `filename`. A value yt-dlp can leave out is an `Optional`, and a
+list is unmodifiable and empty when yt-dlp reports none. `new UrlParseDump()` and field assignment are gone: create
+metadata for a source that yt-dlp did not resolve with `UrlParseDump.of(title)` or
+`UrlParseDump.of(title, description)`, and parse any other metadata from JSON with Gson. Counts and sizes are `long`,
+and `UrlParseDump.getDuration()` and `getFramesPerSecond()` are `double`.
+
+Several exception types no longer inherit the removed MCAV unchecked-I/O type; review catches for the concrete exception
+or its current superclass, not just imports. The exceptions of `mcav-common` now extend `MCAVException`, an unchecked
+base for failures outside the caller's control: `NativeLoadingException` and `PaletteLoadingException` are no longer an
+`IllegalStateException`, and `UnsupportedOperatingSystemException` is no longer an `UnsupportedOperationException`.
 
 ## Operational failures
 

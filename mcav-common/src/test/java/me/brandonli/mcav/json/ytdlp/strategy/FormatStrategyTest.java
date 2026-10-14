@@ -91,7 +91,8 @@ final class FormatStrategyTest {
   private static String select(final FormatStrategy strategy, final UrlParseDump dump) {
     final Optional<Format> selected = strategy.select(dump);
     final Format format = selected.orElseThrow();
-    return format.format_id;
+    final Optional<String> formatId = format.getFormatId();
+    return formatId.orElseThrow();
   }
 
   @Test

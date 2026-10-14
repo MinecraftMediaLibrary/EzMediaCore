@@ -223,7 +223,7 @@ public final class SourceUtils {
       final URI uri = URI.create(url);
       final UriSource source = UriSource.uri(uri);
       final UrlParseDump dump = parser.parse(source);
-      return dump.is_live;
+      return dump.isLive();
     } catch (final MCAVException | IllegalArgumentException exception) {
       return false;
     }

@@ -17,25 +17,81 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import com.google.common.base.MoreObjects;
+import com.google.gson.annotations.SerializedName;
+import java.util.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * Download hints yt-dlp reports for a stream.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
  *
- * <p>This class is mutable and not thread-safe.
+ * <p>This class is immutable and thread-safe.
  *
  * @since 1.0.0
  */
-public class DownloaderOptions {
+public final class DownloaderOptions {
+
+  @SerializedName("http_chunk_size")
+  private final int httpChunkSize;
+
+  private DownloaderOptions() {
+    this.httpChunkSize = 0;
+  }
 
   /**
-   * The size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some sites, or zero if the stream is requested at once.
+   * Returns the size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some
+   * sites, or zero if the stream is requested at once.
    *
+   * @return the size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some
+   * sites, or zero if the stream is requested at once
    * @since 1.0.0
    */
-  public int http_chunk_size;
+  public int getHttpChunkSize() {
+    return this.httpChunkSize;
+  }
 
-  private DownloaderOptions() {}
+  /**
+   * Returns whether {@code other} is a set of download hints with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final DownloaderOptions downloaderOptions)) {
+      return false;
+    }
+
+    return this.httpChunkSize == downloaderOptions.httpChunkSize;
+  }
+
+  /**
+   * Returns a hash code built from every value.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.httpChunkSize);
+  }
+
+  /**
+   * Returns a debugging representation with every value.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("httpChunkSize", this.httpChunkSize).toString();
+  }
 }

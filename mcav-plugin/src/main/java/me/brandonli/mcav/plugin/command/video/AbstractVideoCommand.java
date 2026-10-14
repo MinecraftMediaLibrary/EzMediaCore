@@ -635,10 +635,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
   }
 
   private static UrlParseDump createDump(final String title, final String description) {
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = title;
-    dump.description = description;
-    return dump;
+    return UrlParseDump.of(title, description);
   }
 
   private static SourceSelection resolveWithYtdlp(final UriSource page, final String[] ytdlpArguments) {

@@ -17,53 +17,140 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import com.google.common.base.MoreObjects;
 import com.google.gson.annotations.SerializedName;
+import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The HTTP headers yt-dlp used to fetch a stream, which a player has to send as well.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
  *
- * <p>This class is mutable and not thread-safe.
+ * <p>This class is immutable and thread-safe.
  *
  * @since 1.0.0
  */
-public class HttpHeaders {
+public final class HttpHeaders {
 
-  private HttpHeaders() {}
-
-  /**
-   * The {@code User-Agent} header, which names the browser yt-dlp pretended to be.
-   *
-   * @since 1.0.0
-   */
   @SerializedName("User-Agent")
-  public @Nullable String userAgent;
+  private final @Nullable String userAgent;
 
-  /**
-   * The {@code Accept} header, which lists the content types the request accepts.
-   *
-   * @since 1.0.0
-   */
   @SerializedName("Accept")
-  public @Nullable String accept;
+  private final @Nullable String accept;
 
-  /**
-   * The {@code Accept-Language} header, which lists the preferred languages.
-   *
-   * @since 1.0.0
-   */
   @SerializedName("Accept-Language")
-  public @Nullable String acceptLanguage;
+  private final @Nullable String acceptLanguage;
+
+  @SerializedName("Sec-Fetch-Mode")
+  private final @Nullable String secFetchMode;
+
+  private HttpHeaders() {
+    this.userAgent = null;
+    this.accept = null;
+    this.acceptLanguage = null;
+    this.secFetchMode = null;
+  }
 
   /**
-   * The {@code Sec-Fetch-Mode} header, which some sites check to tell browsers from other clients.
+   * Returns the {@code User-Agent} header, which names the browser yt-dlp pretended to be, or empty if yt-dlp did
+   * not report it.
    *
+   * @return the {@code User-Agent} header, which names the browser yt-dlp pretended to be, or empty if yt-dlp did
+   * not report it
    * @since 1.0.0
    */
-  @SerializedName("Sec-Fetch-Mode")
-  public @Nullable String secFetchMode;
+  public Optional<String> getUserAgent() {
+    return Optional.ofNullable(this.userAgent);
+  }
+
+  /**
+   * Returns the {@code Accept} header, which lists the content types the request accepts, or empty if yt-dlp did
+   * not report it.
+   *
+   * @return the {@code Accept} header, which lists the content types the request accepts, or empty if yt-dlp did
+   * not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getAccept() {
+    return Optional.ofNullable(this.accept);
+  }
+
+  /**
+   * Returns the {@code Accept-Language} header, which lists the preferred languages, or empty if yt-dlp did not
+   * report it.
+   *
+   * @return the {@code Accept-Language} header, which lists the preferred languages, or empty if yt-dlp did not
+   * report it
+   * @since 1.0.0
+   */
+  public Optional<String> getAcceptLanguage() {
+    return Optional.ofNullable(this.acceptLanguage);
+  }
+
+  /**
+   * Returns the {@code Sec-Fetch-Mode} header, which some sites check to tell browsers from other clients, or empty
+   * if yt-dlp did not report it.
+   *
+   * @return the {@code Sec-Fetch-Mode} header, which some sites check to tell browsers from other clients, or empty
+   * if yt-dlp did not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getSecFetchMode() {
+    return Optional.ofNullable(this.secFetchMode);
+  }
+
+  /**
+   * Returns whether {@code other} is a set of HTTP headers with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final HttpHeaders httpHeaders)) {
+      return false;
+    }
+
+    return (
+      Objects.equals(this.userAgent, httpHeaders.userAgent) &&
+      Objects.equals(this.accept, httpHeaders.accept) &&
+      Objects.equals(this.acceptLanguage, httpHeaders.acceptLanguage) &&
+      Objects.equals(this.secFetchMode, httpHeaders.secFetchMode)
+    );
+  }
+
+  /**
+   * Returns a hash code built from every value.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.userAgent, this.accept, this.acceptLanguage, this.secFetchMode);
+  }
+
+  /**
+   * Returns a debugging representation with every value.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("userAgent", this.userAgent)
+      .add("accept", this.accept)
+      .add("acceptLanguage", this.acceptLanguage)
+      .add("secFetchMode", this.secFetchMode)
+      .toString();
+  }
 }

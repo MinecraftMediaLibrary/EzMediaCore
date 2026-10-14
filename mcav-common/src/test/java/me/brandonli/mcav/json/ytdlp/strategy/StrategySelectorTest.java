@@ -45,7 +45,7 @@ final class StrategySelectorTest {
   }
 
   private static Format firstFormat(final UrlParseDump dump) {
-    final List<Format> formats = dump.formats;
+    final List<Format> formats = dump.getFormats();
     return formats == null ? null : formats.getFirst();
   }
 
@@ -71,8 +71,8 @@ final class StrategySelectorTest {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.FIRST_VIDEO);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
-    assertEquals(AUDIO_FORMAT_ID, audio.format_id);
-    assertEquals("video", video.format_id);
+    assertEquals(Optional.of(AUDIO_FORMAT_ID), audio.getFormatId());
+    assertEquals(Optional.of("video"), video.getFormatId());
   }
 
   @Test
@@ -82,8 +82,8 @@ final class StrategySelectorTest {
     final StrategySelector selector = StrategySelector.of(firstListed, firstListed);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
-    assertEquals(AUDIO_FORMAT_ID, audio.format_id);
-    assertEquals(AUDIO_FORMAT_ID, video.format_id);
+    assertEquals(Optional.of(AUDIO_FORMAT_ID), audio.getFormatId());
+    assertEquals(Optional.of(AUDIO_FORMAT_ID), video.getFormatId());
   }
 
   private Optional<Format> findTheFirstListed(final UrlParseDump candidate) {
@@ -124,7 +124,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldFallBackToAGenericDescription() {
-    final UrlParseDump dump = new UrlParseDump();
+    final UrlParseDump dump = dump("{}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));

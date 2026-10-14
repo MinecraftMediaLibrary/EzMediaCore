@@ -27,10 +27,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
 import com.code_intelligence.jazzer.junit.FuzzTest;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -96,21 +99,26 @@ final class StandardVideoHologramFuzzTest {
     final int timestamp = ByteBuffer.wrap(input, 1, Integer.BYTES).getInt();
     final String text = new String(input, HEADER_BYTES, input.length - HEADER_BYTES, StandardCharsets.UTF_8);
     final int separator = text.indexOf('\0');
-    final UrlParseDump dump = new UrlParseDump();
-    dump.title = (flags & 1) != 0 ? (separator < 0 ? text : text.substring(0, separator)) : null;
-    dump.uploader = (flags & 2) != 0 ? (separator < 0 ? "" : text.substring(separator + 1)) : null;
-    dump.timestamp = (flags & 4) != 0 ? timestamp : 0;
-    dump.duration = 1;
+    final @Nullable String reportedTitle = (flags & 1) != 0 ? (separator < 0 ? text : text.substring(0, separator)) : null;
+    final @Nullable String reportedUploader = (flags & 2) != 0 ? (separator < 0 ? "" : text.substring(separator + 1)) : null;
+    final int reportedTimestamp = (flags & 4) != 0 ? timestamp : 0;
+    final JsonObject json = new JsonObject();
+    json.addProperty("title", reportedTitle);
+    json.addProperty("uploader", reportedUploader);
+    json.addProperty("timestamp", reportedTimestamp);
+    json.addProperty("duration", 1);
+    final Gson gson = GsonProvider.getSimple();
+    final UrlParseDump dump = gson.fromJson(json, UrlParseDump.class);
 
     SHOWN.set(null);
     new StandardVideoHologram().handleRequest(LOCATION, dump);
     final String plain = PLAIN.serialize(SHOWN.get());
 
-    final String title = dump.title == null ? "Unknown title" : dump.title;
-    final String uploader = dump.uploader == null ? "Unknown uploader" : dump.uploader;
+    final String title = reportedTitle == null ? "Unknown title" : reportedTitle;
+    final String uploader = reportedUploader == null ? "Unknown uploader" : reportedUploader;
     final String start = title + "\n" + uploader + " (";
     assertTrue(plain.startsWith(start) && plain.endsWith(")"), () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
-    if (dump.timestamp <= 0) {
+    if (reportedTimestamp <= 0) {
       assertEquals(start + "Unknown date)", plain, "a video without a date says so");
     }
   }

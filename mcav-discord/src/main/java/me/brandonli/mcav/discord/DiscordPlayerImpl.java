@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Optional;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
@@ -197,7 +198,8 @@ public final class DiscordPlayerImpl implements DiscordPlayer {
   @Override
   public void setCurrentMedia(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null");
-    final String title = dump.title;
+    final Optional<String> titleValue = dump.getTitle();
+    final @Nullable String title = titleValue.orElse(null);
     this.showPlaying(title);
   }
 
