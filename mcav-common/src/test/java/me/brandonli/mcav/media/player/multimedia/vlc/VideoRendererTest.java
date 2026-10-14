@@ -342,6 +342,28 @@ final class VideoRendererTest {
   }
 
   @Test
+  void shouldDropTheQueuedFrameWhenStopping() throws Exception {
+    final CountDownLatch rendering = new CountDownLatch(1);
+    final CountDownLatch proceed = new CountDownLatch(1);
+    final List<Integer> rendered = Collections.synchronizedList(new ArrayList<>());
+    this.attachBlockingRecorder(rendered, rendering, proceed);
+    this.renderer.createBufferFormat(1, 1, 1, 1);
+    this.renderer.start();
+    this.display(1, 1, RED);
+    final boolean blocking = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
+    assertTrue(blocking);
+
+    this.display(1, 1, GREEN);
+    this.renderer.stop();
+
+    final Field pendingField = VideoRenderer.class.getDeclaredField("pendingFrame");
+    pendingField.setAccessible(true);
+    final BlockingQueue<?> pending = (BlockingQueue<?>) pendingField.get(this.renderer);
+    final boolean discarded = pending.isEmpty();
+    assertTrue(discarded, "stop discards the frame that was still queued");
+  }
+
+  @Test
   void shouldKeepOnlyTheNewestUnrenderedFrame() throws Exception {
     final CountDownLatch rendering = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
