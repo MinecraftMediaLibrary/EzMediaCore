@@ -20,7 +20,6 @@ package me.brandonli.mcav.capability.installer.vlc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -419,7 +418,7 @@ final class VlcInstallerTest {
     final VlcInstaller installer = VlcInstaller.create(this.folder);
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();
-    final String hash = installer.getHash();
+    final Optional<String> hash = installer.getHash();
     final String extension = operatingSystem == Os.WINDOWS ? ".zip" : ".dmg";
     final boolean expectedExtension = url.endsWith(extension);
     assertTrue(supported);
@@ -436,7 +435,7 @@ final class VlcInstallerTest {
 
     for (final Download download : downloads) {
       final String url = download.getUrl();
-      final String hash = download.getHash();
+      final Optional<String> hash = download.getHash();
       final boolean linux = download.getPlatform().getOs() == Os.LINUX;
       final boolean advertisedVersion = linux ? url.startsWith(PINNED_APPIMAGES) : url.contains(versionDirectory);
       final boolean secure = url.startsWith("https://");
@@ -446,9 +445,10 @@ final class VlcInstallerTest {
     }
   }
 
-  private static void assertSha256(final String hash, final String url) {
-    assertNotNull(hash, url);
+  private static void assertSha256(final Optional<String> optionalHash, final String url) {
+    assertTrue(optionalHash.isPresent(), url);
 
+    final String hash = optionalHash.orElseThrow();
     final int length = hash.length();
     assertEquals(64, length, url);
 

@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +38,7 @@ import java.util.HashSet;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -120,8 +120,9 @@ final class YtdlpInstallerTest {
     for (final Download download : downloads) {
       final String url = download.getUrl();
       final boolean pinned = url.startsWith(RELEASE_URL);
-      final String hash = download.getHash();
-      assertNotNull(hash, url);
+      final Optional<String> optionalHash = download.getHash();
+      assertTrue(optionalHash.isPresent(), url);
+      final String hash = optionalHash.orElseThrow();
       final Matcher hashMatcher = SHA_256.matcher(hash);
       final boolean isSha256 = hashMatcher.matches();
       assertTrue(pinned, url);
@@ -161,10 +162,11 @@ final class YtdlpInstallerTest {
     final Platform platform = Platform.ofPlatform(operatingSystem, architecture, bits);
     final Download download = findBundledDownload(platform);
     final String url = download.getUrl();
-    final String downloadHash = download.getHash();
+    final Optional<String> downloadHash = download.getHash();
     final String expectedUrl = RELEASE_URL + file;
+    final Optional<String> expectedHash = Optional.of(hash);
     assertEquals(expectedUrl, url);
-    assertEquals(hash, downloadHash);
+    assertEquals(expectedHash, downloadHash);
   }
 
   private static Download findBundledDownload(final Platform platform) {

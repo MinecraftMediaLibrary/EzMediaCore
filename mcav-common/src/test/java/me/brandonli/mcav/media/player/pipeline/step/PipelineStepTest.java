@@ -19,7 +19,6 @@ package me.brandonli.mcav.media.player.pipeline.step;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
@@ -54,14 +54,15 @@ final class PipelineStepTest {
     final VideoPipelineStep last = VideoPipelineStep.of(second);
     final VideoPipelineStep head = VideoPipelineStep.of(last, first);
     head.processAll(image, metadata);
-    final VideoPipelineStep next = head.next();
+    final Optional<VideoPipelineStep> next = head.next();
+    final Optional<VideoPipelineStep> expectedNext = Optional.of(last);
     final boolean headIsLast = head.isLast();
     final boolean lastIsLast = last.isLast();
     final VideoFilter filter = head.getFilter();
     final VideoPipelineStep self = head.self();
     final List<String> expected = List.of("first", "second");
     assertEquals(expected, calls);
-    assertSame(last, next);
+    assertEquals(expectedNext, next);
     assertFalse(headIsLast);
     assertTrue(lastIsLast);
     assertSame(first, filter);
@@ -90,12 +91,13 @@ final class PipelineStepTest {
     final ByteBuffer samples = ByteBuffer.allocate(8);
     samples.position(4);
     head.processAll(samples, AUDIO_METADATA);
-    final AudioPipelineStep next = head.next();
+    final Optional<AudioPipelineStep> next = head.next();
+    final Optional<AudioPipelineStep> expectedNext = Optional.of(last);
     final AudioFilter filter = head.getFilter();
     final AudioPipelineStep self = head.self();
     final List<Integer> expected = List.of(0, 0);
     assertEquals(expected, positions, "every filter sees the samples from the start");
-    assertSame(last, next);
+    assertEquals(expectedNext, next);
     assertSame(consuming, filter);
     assertSame(head, self);
   }
@@ -140,12 +142,12 @@ final class PipelineStepTest {
     final OriginalVideoMetadata videoMetadata = OriginalVideoMetadata.EMPTY;
     VideoPipelineStep.NO_OP.processAll(image, videoMetadata);
     AudioPipelineStep.NO_OP.processAll(samples, AUDIO_METADATA);
-    final VideoPipelineStep videoNext = VideoPipelineStep.NO_OP.next();
-    final AudioPipelineStep audioNext = AudioPipelineStep.NO_OP.next();
+    final Optional<VideoPipelineStep> videoNext = VideoPipelineStep.NO_OP.next();
+    final Optional<AudioPipelineStep> audioNext = AudioPipelineStep.NO_OP.next();
     final VideoFilter videoFilter = VideoPipelineStep.NO_OP.getFilter();
     final AudioFilter audioFilter = AudioPipelineStep.NO_OP.getFilter();
-    assertNull(videoNext);
-    assertNull(audioNext);
+    assertTrue(videoNext.isEmpty());
+    assertTrue(audioNext.isEmpty());
     assertSame(VideoFilter.NO_OP, videoFilter);
     assertSame(AudioFilter.NO_OP, audioFilter);
   }

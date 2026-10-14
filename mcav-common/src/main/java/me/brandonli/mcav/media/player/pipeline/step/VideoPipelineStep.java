@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
@@ -90,11 +91,11 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     /**
      * Returns the step that follows this one, which is none.
      *
-     * @return null
+     * @return an empty optional
      */
     @Override
-    public @Nullable VideoPipelineStep next() {
-      return null;
+    public Optional<VideoPipelineStep> next() {
+      return Optional.empty();
     }
 
     /**

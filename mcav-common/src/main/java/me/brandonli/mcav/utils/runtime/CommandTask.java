@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -379,9 +380,9 @@ public final class CommandTask {
   /**
    * Returns the process of the program.
    *
-   * @return the process after a successful launch, even if waiting failed, or null if none was launched
+   * @return the process after a successful launch, even if waiting failed, or empty if none was launched
    */
-  public @Nullable Process getProcess() {
-    return this.process;
+  public Optional<Process> getProcess() {
+    return Optional.ofNullable(this.process);
   }
 }

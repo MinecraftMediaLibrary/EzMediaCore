@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -33,9 +34,9 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
   /**
    * Returns the step that follows this one.
    *
-   * @return the next step, or null if this is the last step
+   * @return the next step, or empty if this is the last step
    */
-  @Nullable StepType next();
+  Optional<StepType> next();
 
   /**
    * Checks whether this is the last step of the chain.
@@ -43,8 +44,8 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * @return true if no step follows
    */
   default boolean isLast() {
-    final StepType next = this.next();
-    return next == null;
+    final Optional<StepType> next = this.next();
+    return next.isEmpty();
   }
 
   /**
@@ -80,10 +81,11 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
 
-    StepType step = this.self();
+    @Nullable StepType step = this.self();
     while (step != null) {
       step.process(buffer, metadata);
-      step = step.next();
+      final Optional<StepType> next = step.next();
+      step = next.orElse(null);
     }
   }
 

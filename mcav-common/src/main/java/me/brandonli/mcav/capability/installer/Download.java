@@ -18,6 +18,7 @@
 package me.brandonli.mcav.capability.installer;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
@@ -120,9 +121,9 @@ public final class Download {
   /**
    * Returns the expected SHA-256 hash of the file.
    *
-   * @return the hash in hexadecimal, or null if the file is not verified
+   * @return the hash in hexadecimal, or empty if the file is not verified
    */
-  public @Nullable String getHash() {
-    return this.hash;
+  public Optional<String> getHash() {
+    return Optional.ofNullable(this.hash);
   }
 }

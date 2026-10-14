@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -74,8 +75,9 @@ final class YtdlpReleaseTest {
       final String url = download.getUrl();
       final String fileName = IoUtils.getFileNameFromUrl(url);
       final String expected = published.get(fileName);
-      final String bundled = download.getHash();
-      assertEquals(expected, bundled, fileName);
+      final Optional<String> bundled = download.getHash();
+      final Optional<String> expectedHash = Optional.ofNullable(expected);
+      assertEquals(expectedHash, bundled, fileName);
     }
   }
 

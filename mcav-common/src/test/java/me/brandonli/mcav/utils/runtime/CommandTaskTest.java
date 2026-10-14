@@ -21,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -135,9 +134,9 @@ final class CommandTaskTest {
     final CommandTask ran = new CommandTask(command, true);
     final CommandTask waiting = new CommandTask(command, false);
     final int exitCode = ran.getExitCode();
-    final Process process = waiting.getProcess();
+    final Optional<Process> process = waiting.getProcess();
     assertEquals(0, exitCode);
-    assertNull(process);
+    assertTrue(process.isEmpty());
     assertThrows(IllegalStateException.class, waiting::getExitCode);
   }
 
@@ -146,9 +145,9 @@ final class CommandTaskTest {
     final String java = javaExecutable();
     final CommandTask task = new CommandTask(java, VERSION_OPTION);
     task.run();
-    final Process process = task.getProcess();
+    final Optional<Process> process = task.getProcess();
     final List<String> command = task.getCommand();
-    assertNotNull(process);
+    assertTrue(process.isPresent());
 
     final List<String> expectedCommand = List.of(java, VERSION_OPTION);
     assertEquals(expectedCommand, command);
@@ -249,9 +248,10 @@ final class CommandTaskTest {
     final IOException exception = assertThrows(IOException.class, () -> task.run(timeout));
     final long elapsed = System.nanoTime() - start;
     final String message = exception.getMessage();
-    final Process process = task.getProcess();
-    assertNotNull(process);
+    final Optional<Process> launched = task.getProcess();
+    assertTrue(launched.isPresent());
 
+    final Process process = launched.orElseThrow();
     final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean reportsTheTimeout = message.contains("did not finish");
     assertTrue(reportsTheTimeout, message);
@@ -291,8 +291,8 @@ final class CommandTaskTest {
     assertThrows(IllegalArgumentException.class, () -> task.run(negative));
     assertThrows(IllegalArgumentException.class, () -> task.runChecked(Duration.ZERO));
 
-    final Process process = task.getProcess();
-    assertNull(process, "an invalid timeout does not start the program");
+    final Optional<Process> process = task.getProcess();
+    assertTrue(process.isEmpty(), "an invalid timeout does not start the program");
   }
 
   @Test
@@ -307,9 +307,10 @@ final class CommandTaskTest {
 
     final long elapsed = System.nanoTime() - start;
     final boolean interrupted = Thread.interrupted();
-    final Process process = task.getProcess();
-    assertNotNull(process);
+    final Optional<Process> launched = task.getProcess();
+    assertTrue(launched.isPresent());
 
+    final Process process = launched.orElseThrow();
     final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(interrupted);
     assertTrue(exited, "the program is killed instead of being left running");

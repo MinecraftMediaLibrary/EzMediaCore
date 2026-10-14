@@ -19,6 +19,7 @@ package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -39,11 +40,11 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
   /**
    * Returns the step that follows this one.
    *
-   * @return the next step, or null if this is the last step
+   * @return the next step, or empty if this is the last step
    */
   @Override
-  public @Nullable AudioPipelineStep next() {
-    return this.next;
+  public Optional<AudioPipelineStep> next() {
+    return Optional.ofNullable(this.next);
   }
 
   /**

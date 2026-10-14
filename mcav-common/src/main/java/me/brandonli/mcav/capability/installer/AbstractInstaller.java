@@ -201,9 +201,10 @@ public abstract class AbstractInstaller implements Installer {
     final Path destination = this.folder.resolve(fileName);
     final String url = download.getUrl();
     final URI uri = URI.create(url);
-    final String hash = download.getHash();
+    final Optional<String> hash = download.getHash();
+    final @Nullable String expectedHash = hash.orElse(null);
     Files.createDirectories(this.folder);
-    HttpDownloader.download(uri, destination, hash);
+    HttpDownloader.download(uri, destination, expectedHash);
 
     if (executable) {
       this.markExecutableOrDelete(destination);
@@ -340,16 +341,11 @@ public abstract class AbstractInstaller implements Installer {
   /**
    * Returns the expected SHA-256 hash of the download for the current platform.
    *
-   * @return the hash in hexadecimal, or null if the platform is not supported or the download is not verified
+   * @return the hash in hexadecimal, or empty if the platform is not supported or the download is not verified
    */
-  public @Nullable String getHash() {
+  public Optional<String> getHash() {
     final Optional<Download> download = this.resolveDownload();
-    if (download.isEmpty()) {
-      return null;
-    }
-
-    final Download resolved = download.get();
-    return resolved.getHash();
+    return download.flatMap(Download::getHash);
   }
 
   /**

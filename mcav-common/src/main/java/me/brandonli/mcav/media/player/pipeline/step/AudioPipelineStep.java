@@ -19,6 +19,7 @@ package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -93,11 +94,12 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
 
-    AudioPipelineStep step = this;
+    @Nullable AudioPipelineStep step = this;
     while (step != null) {
       buffer.rewind();
       step.process(buffer, metadata);
-      step = step.next();
+      final Optional<AudioPipelineStep> next = step.next();
+      step = next.orElse(null);
     }
   }
 
@@ -113,11 +115,11 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     /**
      * Returns the step that follows this one, which is none.
      *
-     * @return null
+     * @return an empty optional
      */
     @Override
-    public @Nullable AudioPipelineStep next() {
-      return null;
+    public Optional<AudioPipelineStep> next() {
+      return Optional.empty();
     }
 
     /**

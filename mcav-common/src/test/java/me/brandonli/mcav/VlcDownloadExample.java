@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav;
 
+import java.util.Optional;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.vlc.ReleasePackageManager;
 import me.brandonli.mcav.utils.os.Platform;
@@ -35,10 +36,11 @@ public final class VlcDownloadExample {
     for (final Download download : downloads) {
       final Platform platform = download.getPlatform();
       final String url = download.getUrl();
-      final String hash = download.getHash();
+      final Optional<String> hash = download.getHash();
+      final String hashText = hash.orElse("none");
       System.out.println("Platform: " + platform);
       System.out.println("URL: " + url);
-      System.out.println("Hash: " + hash);
+      System.out.println("Hash: " + hashText);
       System.out.println();
     }
   }

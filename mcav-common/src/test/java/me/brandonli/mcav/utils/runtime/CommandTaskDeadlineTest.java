@@ -20,7 +20,6 @@ package me.brandonli.mcav.utils.runtime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -184,9 +184,10 @@ final class CommandTaskDeadlineTest {
         Polling.awaitCondition("the remembered child was terminated", cleanupTimeout, () -> !child.isAlive());
       }
 
-      final Process parent = task.getProcess();
-      assertNotNull(parent);
+      final Optional<Process> launched = task.getProcess();
+      assertTrue(launched.isPresent());
 
+      final Process parent = launched.orElseThrow();
       final boolean parentAlive = parent.isAlive();
       assertFalse(parentAlive);
     } finally {
@@ -196,10 +197,8 @@ final class CommandTaskDeadlineTest {
         ProcessHandle.of(pid).ifPresent(ProcessHandle::destroyForcibly);
       }
 
-      final Process parent = task.getProcess();
-      if (parent != null) {
-        parent.destroyForcibly();
-      }
+      final Optional<Process> parent = task.getProcess();
+      parent.ifPresent(Process::destroyForcibly);
     }
   }
 

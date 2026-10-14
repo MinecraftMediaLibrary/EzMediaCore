@@ -18,12 +18,12 @@
 package me.brandonli.mcav.capability.installer.vlc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
@@ -64,8 +64,9 @@ final class ReleasePackageManagerTest {
       "https://github.com/ivan-hc/VLC-appimage/releases/download/20261001-112729/VLC-media-player_3.0.23_2-16-archimage5.0-x86_64.AppImage",
       url
     );
-    final String hash = appImage.getHash();
-    assertEquals("7f6772a5a0e1d242b233e597a2833d38d0b1d1ec83ccae4e905430dfad754ab9", hash);
+    final Optional<String> hash = appImage.getHash();
+    final Optional<String> expected = Optional.of("7f6772a5a0e1d242b233e597a2833d38d0b1d1ec83ccae4e905430dfad754ab9");
+    assertEquals(expected, hash);
   }
 
   @Test
@@ -81,8 +82,9 @@ final class ReleasePackageManagerTest {
   @Test
   void shouldVerifyEveryDownloadWithAHash() {
     for (final Download download : ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE)) {
-      final String hash = download.getHash();
-      assertNotNull(hash, "Every VLC download must be verified with a hash: " + download.getUrl());
+      final Optional<String> optionalHash = download.getHash();
+      assertTrue(optionalHash.isPresent(), "Every VLC download must be verified with a hash: " + download.getUrl());
+      final String hash = optionalHash.orElseThrow();
       final boolean hexadecimal = HASH_PATTERN.matcher(hash).matches();
       assertTrue(hexadecimal, hash);
     }

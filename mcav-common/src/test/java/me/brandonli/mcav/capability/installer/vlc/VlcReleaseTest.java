@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.Download;
@@ -80,8 +81,9 @@ final class VlcReleaseTest {
       for (final Download download : downloads) {
         final String url = download.getUrl();
         final String published = fetchChecksum(client, url + CHECKSUM_SUFFIX);
-        final String bundled = download.getHash();
-        assertEquals(published, bundled, url);
+        final Optional<String> bundled = download.getHash();
+        final Optional<String> expected = Optional.of(published);
+        assertEquals(expected, bundled, url);
       }
     }
   }

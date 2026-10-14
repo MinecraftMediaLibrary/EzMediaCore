@@ -18,9 +18,10 @@
 package me.brandonli.mcav.capability.installer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
@@ -42,10 +43,10 @@ final class DownloadTest {
     final Download download = new Download(LINUX, TOOL_URL, HASH);
     final Platform platform = download.getPlatform();
     final String url = download.getUrl();
-    final String hash = download.getHash();
+    final Optional<String> hash = download.getHash();
     assertEquals(LINUX, platform);
     assertEquals(TOOL_URL, url);
-    assertEquals(HASH, hash);
+    assertEquals(Optional.of(HASH), hash);
   }
 
   @Test
@@ -53,14 +54,14 @@ final class DownloadTest {
     final Download withoutHash = new Download(LINUX, TOOL_URL);
     final Download fromPartsWithHash = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL, HASH);
     final Download fromParts = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL);
-    final String missingHash = withoutHash.getHash();
+    final Optional<String> missingHash = withoutHash.getHash();
     final Platform partsPlatform = fromPartsWithHash.getPlatform();
-    final String partsHash = fromPartsWithHash.getHash();
-    final String partsMissingHash = fromParts.getHash();
-    assertNull(missingHash);
+    final Optional<String> partsHash = fromPartsWithHash.getHash();
+    final Optional<String> partsMissingHash = fromParts.getHash();
+    assertTrue(missingHash.isEmpty());
     assertEquals(LINUX, partsPlatform);
-    assertEquals(HASH, partsHash);
-    assertNull(partsMissingHash);
+    assertEquals(Optional.of(HASH), partsHash);
+    assertTrue(partsMissingHash.isEmpty());
   }
 
   @Test

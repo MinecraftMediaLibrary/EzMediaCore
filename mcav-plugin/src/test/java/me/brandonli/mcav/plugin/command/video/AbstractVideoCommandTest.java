@@ -40,7 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -277,7 +277,8 @@ final class AbstractVideoCommandTest {
     verify(this.audioCallback).attach(audioSteps.capture());
     final AudioPipelineStep audioStep = audioSteps.getValue();
     assertSame(this.volume, audioStep.getFilter(), "the volume comes before the output");
-    final AudioPipelineStep output = Objects.requireNonNull(audioStep.next());
+    final Optional<AudioPipelineStep> next = audioStep.next();
+    final AudioPipelineStep output = next.orElseThrow();
     final AudioFilter audioFilter = output.getFilter();
     assertSame(AudioFilter.NO_OP, audioFilter);
     final Dimension dimension = new Dimension(640, 360);
@@ -434,9 +435,12 @@ final class AbstractVideoCommandTest {
     verify(this.videoCallback).attach(steps.capture());
     final VideoPipelineStep first = steps.getValue();
     assertInstanceOf(GrayscaleFilter.class, first.getFilter());
-    final VideoPipelineStep second = Objects.requireNonNull(first.next());
+    final Optional<VideoPipelineStep> afterFirst = first.next();
+    final VideoPipelineStep second = afterFirst.orElseThrow();
     assertInstanceOf(InvertFilter.class, second.getFilter());
-    assertSame(this.command.pipeline, second.next());
+    final Optional<VideoPipelineStep> afterSecond = second.next();
+    final Optional<VideoPipelineStep> expectedOutput = Optional.of(this.command.pipeline);
+    assertEquals(expectedOutput, afterSecond);
   }
 
   @Test

@@ -20,7 +20,6 @@ package me.brandonli.mcav.capability.installer;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
@@ -173,12 +172,12 @@ final class AbstractInstallerTest {
     final int callsAfterConstruction = calls.get();
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();
-    final String hash = installer.getHash();
+    final Optional<String> hash = installer.getHash();
     final int callsAfterUse = calls.get();
     assertEquals(0, callsAfterConstruction);
     assertTrue(supported);
     assertEquals("https://example.com/tool", url);
-    assertEquals("ab12cd", hash);
+    assertEquals(Optional.of("ab12cd"), hash);
     assertEquals(1, callsAfterUse);
   }
 
@@ -241,10 +240,10 @@ final class AbstractInstallerTest {
     final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { elsewhere });
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();
-    final String hash = installer.getHash();
+    final Optional<String> hash = installer.getHash();
     assertFalse(supported);
     assertEquals("", url);
-    assertNull(hash);
+    assertTrue(hash.isEmpty());
 
     final IOException thrown = assertThrows(IOException.class, () -> installer.download(true));
     final String message = thrown.getMessage();

@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
@@ -39,11 +40,11 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
   /**
    * Returns the step that follows this one.
    *
-   * @return the next step, or null if this is the last step
+   * @return the next step, or empty if this is the last step
    */
   @Override
-  public @Nullable VideoPipelineStep next() {
-    return this.next;
+  public Optional<VideoPipelineStep> next() {
+    return Optional.ofNullable(this.next);
   }
 
   /**
