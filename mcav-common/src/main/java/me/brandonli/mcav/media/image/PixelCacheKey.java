@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.image;
 
 import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 // Identifies the pixel memory the packed pixels of a MatImageBuffer were read from. OpenCV functions may reallocate or
@@ -25,8 +26,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 // shape of the matrix no longer matches the key the cached pixels were read with, the cache is stale even if nobody
 // invalidated it.
 final class PixelCacheKey {
-
-  private static final int HASH_MULTIPLIER = 31;
 
   private final long address;
   private final int width;
@@ -61,8 +60,7 @@ final class PixelCacheKey {
 
   @Override
   public int hashCode() {
-    final int addressHash = Long.hashCode(this.address);
-    return (addressHash * HASH_MULTIPLIER + this.width) * HASH_MULTIPLIER + this.height;
+    return Objects.hash(this.address, this.width, this.height);
   }
 
   @Override

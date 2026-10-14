@@ -19,6 +19,7 @@ package me.brandonli.mcav.media.image;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -39,11 +40,11 @@ final class PixelCacheKeyTest {
   }
 
   @Test
-  void shouldHashTheAddressThenTheWidthThenTheHeight() {
+  void shouldHashTheAddressTheWidthAndTheHeight() {
     final PixelCacheKey key = new PixelCacheKey(ADDRESS, WIDTH, 3);
 
     final int hash = key.hashCode();
-    final int expected = (Long.hashCode(ADDRESS) * 31 + WIDTH) * 31 + 3;
+    final int expected = Objects.hash(ADDRESS, WIDTH, 3);
     assertEquals(expected, hash);
   }
 
