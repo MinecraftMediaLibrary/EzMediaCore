@@ -133,6 +133,7 @@ public interface VideoPlayer extends ExceptionHandler {
   default CompletableFuture<Boolean> startAsync(final Source combined, final ExecutorService executor) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
     Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(combined), executor);
   }
 

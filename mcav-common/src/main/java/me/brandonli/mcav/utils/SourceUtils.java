@@ -167,6 +167,7 @@ public final class SourceUtils {
       if (path == null || path.isEmpty()) {
         return false;
       }
+
       final String extension = getExtension(path);
       return extension != null && MEDIA_EXTENSIONS.contains(extension);
     } catch (final IllegalArgumentException exception) {

@@ -60,6 +60,7 @@ public interface Writable {
    */
   default InputStream newInputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");
+
     final Path path = this.getPath();
     return Files.newInputStream(path, options);
   }
@@ -75,6 +76,7 @@ public interface Writable {
    */
   default OutputStream newOutputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");
+
     final Path path = this.getPath();
     return Files.newOutputStream(path, options);
   }

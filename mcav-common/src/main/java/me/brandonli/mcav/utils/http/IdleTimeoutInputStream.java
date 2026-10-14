@@ -108,9 +108,11 @@ final class IdleTimeoutInputStream extends InputStream {
       if (cause instanceof final RuntimeException runtime) {
         throw runtime;
       }
+
       if (cause instanceof final Error error) {
         throw error;
       }
+
       final String reason = exception.getMessage();
       final String message = "Reading the response failed because of \"%s\"!".formatted(reason);
       throw new IOException(message, cause);

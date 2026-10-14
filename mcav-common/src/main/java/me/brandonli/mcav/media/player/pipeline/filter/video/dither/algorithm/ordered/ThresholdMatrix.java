@@ -49,6 +49,7 @@ public final class ThresholdMatrix {
 
     final int[][] copy = copyRows(rows);
     checkRectangular(copy);
+
     return new ThresholdMatrix(copy);
   }
 

@@ -73,14 +73,17 @@ public final class ExecutorUtils {
       if (terminated) {
         return true;
       }
+
       final List<Runnable> unfinished = service.shutdownNow();
       final int unfinishedCount = unfinished.size();
       LOGGER.warn("Executor did not finish in {} ms, interrupted {} pending tasks.", milliseconds, unfinishedCount);
+
       return false;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       service.shutdownNow();
+
       return false;
     }
   }

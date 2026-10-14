@@ -82,7 +82,9 @@ final class SharedMediaPlayerFactory {
         current = this.creator.get();
         this.factory = current;
       }
+
       this.references++;
+
       return current;
     }
   }
@@ -96,10 +98,13 @@ final class SharedMediaPlayerFactory {
       if (this.references == 0) {
         return;
       }
+
       this.references--;
+
       if (this.references > 0) {
         return;
       }
+
       final MediaPlayerFactory current = Preconditions.checkNotNull(this.factory, "A referenced instance always exists!");
       this.factory = null;
       current.release();

@@ -76,6 +76,7 @@ final class PlaybackClock {
         this.anchor(mediaMicroseconds, now);
         return now;
       }
+
       final long elapsedMedia = (mediaMicroseconds - this.anchorMediaMicroseconds) * NANOSECONDS_PER_MICROSECOND;
       final long due = this.anchorWallNanoseconds + Math.round(elapsedMedia / this.speed);
       final long lag = now - due;
@@ -84,6 +85,7 @@ final class PlaybackClock {
         this.anchor(mediaMicroseconds, now);
         return now;
       }
+
       return due;
     }
   }
@@ -109,6 +111,7 @@ final class PlaybackClock {
         this.anchorMediaMicroseconds += Math.round(((now - this.anchorWallNanoseconds) * this.speed) / NANOSECONDS_PER_MICROSECOND);
         this.anchorWallNanoseconds = now;
       }
+
       this.speed = newSpeed;
     }
   }
@@ -132,6 +135,7 @@ final class PlaybackClock {
       if (this.paused) {
         return;
       }
+
       this.paused = true;
       this.pausedAtNanoseconds = this.nanosecondClock.getAsLong();
     }
@@ -145,6 +149,7 @@ final class PlaybackClock {
       if (!this.paused) {
         return;
       }
+
       this.paused = false;
       final long now = this.nanosecondClock.getAsLong();
       final long pausedFor = now - this.pausedAtNanoseconds;

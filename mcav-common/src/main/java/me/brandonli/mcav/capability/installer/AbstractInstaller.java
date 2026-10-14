@@ -184,10 +184,13 @@ public abstract class AbstractInstaller implements Installer {
       if (existing.isPresent()) {
         final Path existingPath = existing.get();
         this.installedPath = existingPath;
+
         return existingPath;
       }
+
       final Path installed = this.downloadAndInstall(executable);
       this.installedPath = installed;
+
       return installed;
     }
   }
@@ -211,6 +214,7 @@ public abstract class AbstractInstaller implements Installer {
         } catch (final IOException cleanupException) {
           exception.addSuppressed(cleanupException);
         }
+
         throw exception;
       }
     }
@@ -396,6 +400,7 @@ public abstract class AbstractInstaller implements Installer {
         this.resolvedDownload = found.orElse(null);
         this.downloadResolved = true;
       }
+
       return Optional.ofNullable(this.resolvedDownload);
     }
   }
@@ -517,6 +522,7 @@ public abstract class AbstractInstaller implements Installer {
       try (final OutputStream configurationOutput = Files.newOutputStream(temporary)) {
         properties.store(configurationOutput, CONFIGURATION_COMMENT);
       }
+
       IoUtils.moveReplacing(temporary, configurationFile);
     } finally {
       Files.deleteIfExists(temporary);

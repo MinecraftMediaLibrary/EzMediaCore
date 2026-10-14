@@ -217,6 +217,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       if (hotspot == null) {
         return NO_JVM_INTERVAL;
       }
+
       final VMOption option = hotspot.getVMOption(JVM_INTERVAL_OPTION);
       final String value = option.getValue();
       return Long.parseLong(value);

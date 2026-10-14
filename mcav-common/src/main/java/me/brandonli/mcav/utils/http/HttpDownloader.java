@@ -480,6 +480,7 @@ public final class HttpDownloader {
         if (!retryable) {
           throw exception;
         }
+
         if (attempt < MAXIMUM_ATTEMPTS) {
           sleepBeforeRetry(retryDelay, attempt);
         }

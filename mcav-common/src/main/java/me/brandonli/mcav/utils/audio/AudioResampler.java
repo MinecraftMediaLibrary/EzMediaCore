@@ -249,6 +249,7 @@ public final class AudioResampler implements AutoCloseable {
       final byte[] remaining = this.convert(noInput, 0);
       final int reset = swresample.swr_init(this.context);
       checkResult(reset, "reset the resampler");
+
       return remaining;
     }
   }

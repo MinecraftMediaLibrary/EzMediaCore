@@ -57,6 +57,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
   public UniformNoiseDither(final DitherPalette palette, final int weight) {
     super(palette);
     checkWeight(weight);
+
     this.weight = weight;
     this.providers = ThreadLocal.withInitial(XoroshiroRandomProvider::new);
   }

@@ -185,9 +185,11 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       }
     } catch (final RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);
+
       if (this.claimCandidate(transition)) {
         VlcPlayback.attemptAfterFailure(exception, () -> this.cleanCandidate(transition));
       }
+
       throw exception;
     }
 
@@ -205,12 +207,14 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (this.released.get() || this.pending != null) {
         return false;
       }
+
       transition.previous = this.playback;
       transition.claimed = true;
       this.pending = transition;
       transition.created = VlcPlayback.create(this, video, audio);
       this.playback = null;
       transition.claimed = false;
+
       return true;
     } finally {
       this.lock.unlock();
@@ -246,7 +250,9 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (!IDENTITY.equivalent(this.pending, transition)) {
         return false;
       }
+
       transition.claimed = true;
+
       return true;
     } finally {
       this.lock.unlock();
@@ -277,17 +283,22 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (!IDENTITY.equivalent(this.pending, transition)) {
         return OpenResult.CANCELLED;
       }
+
       transition.claimed = true;
+
       if (this.released.get()) {
         return OpenResult.FAILED;
       }
+
       final VlcPlayback created = Objects.requireNonNull(transition.created, "A prepared transition owns a candidate!");
       final boolean started = created.start();
       if (started && !this.released.get()) {
         this.playback = created;
         this.pending = null;
+
         return OpenResult.STARTED;
       }
+
       return OpenResult.FAILED;
     } finally {
       this.lock.unlock();
@@ -321,6 +332,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (exception instanceof RuntimeException runtime) {
         throw runtime;
       }
+
       throw (Error) exception;
     }
 
@@ -347,6 +359,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (current == null) {
         return false;
       }
+
       return current.pause();
     } finally {
       this.lock.unlock();
@@ -366,6 +379,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (current == null) {
         return false;
       }
+
       return current.resume();
     } finally {
       this.lock.unlock();
@@ -389,6 +403,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (current == null) {
         return false;
       }
+
       return current.seek(time);
     } finally {
       this.lock.unlock();
@@ -413,6 +428,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       if (!first) {
         return false;
       }
+
       final StartTransition transition = this.pending;
       if (transition == null) {
         current = this.playback;
@@ -422,6 +438,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
         current = Objects.requireNonNull(transition.created, "An unclaimed transition owns a prepared candidate!");
         this.pending = null;
       }
+
       this.playback = null;
     } finally {
       this.lock.unlock();

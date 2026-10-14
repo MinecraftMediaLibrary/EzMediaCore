@@ -129,6 +129,7 @@ final class VideoRenderer implements RenderCallback {
     if (!shouldScale) {
       this.width = visibleWidth;
       this.height = visibleHeight;
+
       return new RV32BufferFormat(sourceWidth, sourceHeight);
     }
 
@@ -136,6 +137,7 @@ final class VideoRenderer implements RenderCallback {
     final int targetHeight = target.getHeight();
     this.width = targetWidth;
     this.height = targetHeight;
+
     return new RV32BufferFormat(targetWidth, targetHeight);
   }
 
@@ -329,6 +331,7 @@ final class VideoRenderer implements RenderCallback {
 
     final ImageBuffer created = ImageBuffer.buffer(pixels, frameWidth, frameHeight);
     this.renderBuffer = created;
+
     return created;
   }
 
@@ -363,6 +366,7 @@ final class VideoRenderer implements RenderCallback {
 
     final ResizeFilter created = new ResizeFilter(targetWidth, targetHeight);
     this.resizeFilter = created;
+
     return created;
   }
 

@@ -195,6 +195,7 @@ public final class IoUtils {
 
     try {
       Files.createDirectories(path);
+
       return true;
     } catch (final IOException exception) {
       final String message = exception.getMessage();
@@ -223,7 +224,9 @@ public final class IoUtils {
       if (parent != null) {
         Files.createDirectories(parent);
       }
+
       Files.createFile(path);
+
       return true;
     } catch (final IOException exception) {
       final String message = exception.getMessage();
@@ -329,6 +332,7 @@ public final class IoUtils {
         if (attempt == MOVE_ATTEMPTS) {
           throw exception;
         }
+
         sleepBeforeMoveRetry(retryDelay, attempt, exception);
       }
     }
@@ -664,12 +668,14 @@ public final class IoUtils {
         final String message = "File %s is not a zip archive!".formatted(archive);
         throw new ZipException(message);
       }
+
       final int remainingHeaderSize = empty ? ZIP_END_OF_CENTRAL_DIRECTORY_REMAINDER : ZIP_LOCAL_FILE_HEADER_REMAINDER;
       final byte[] header = stream.readNBytes(remainingHeaderSize);
       if (header.length != remainingHeaderSize) {
         final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
         throw new ZipException(message);
       }
+
       if (empty) {
         final int commentLow = header[ZIP_COMMENT_LENGTH_LOW] & UNSIGNED_BYTE_MASK;
         final int commentHigh = header[ZIP_COMMENT_LENGTH_HIGH] & UNSIGNED_BYTE_MASK;
@@ -722,6 +728,7 @@ public final class IoUtils {
         final String message = "Zip directory entry %s must not carry data!".formatted(name);
         throw new ZipEntryIntegrityException(message);
       }
+
       Files.createDirectories(target);
       return 0;
     }

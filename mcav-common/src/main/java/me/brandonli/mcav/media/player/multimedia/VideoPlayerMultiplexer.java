@@ -57,6 +57,7 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
     Preconditions.checkNotNull(video, "Video source must not be null!");
     Preconditions.checkNotNull(audio, "Audio source must not be null!");
     Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(video, audio), executor);
   }
 

@@ -101,6 +101,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
   MatImageBuffer(final byte[] bytes, final int width, final int height) {
     checkDimensions(width, height);
+
     final int expected = width * height * CHANNELS;
     Preconditions.checkArgument(bytes.length == expected, BYTE_COUNT_MESSAGE, bytes.length, expected);
 
@@ -111,6 +112,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
   MatImageBuffer(final ByteBuffer bytes, final int width, final int height) {
     checkDimensions(width, height);
+
     final int expected = width * height * CHANNELS;
     final int remaining = bytes.remaining();
     Preconditions.checkArgument(remaining == expected, BYTE_COUNT_MESSAGE, remaining, expected);
@@ -141,6 +143,7 @@ public final class MatImageBuffer implements ImageBuffer {
     try (final OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat()) {
       final Mat converted = converter.convert(frame);
       Preconditions.checkArgument(converted != null, "Frame does not contain an image!");
+
       this.mat = copyToBgr(converted);
     }
   }
@@ -158,6 +161,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
   MatImageBuffer(final int[] argb, final int width, final int height) {
     checkDimensions(width, height);
+
     final int expected = width * height;
     Preconditions.checkArgument(argb.length == expected, PIXEL_COUNT_MESSAGE, argb.length, expected);
 
@@ -171,6 +175,7 @@ public final class MatImageBuffer implements ImageBuffer {
     final int width = image.getWidth();
     final int height = image.getHeight();
     checkDimensions(width, height);
+
     this.mat = new Mat(height, width, opencv_core.CV_8UC3);
     writeBufferedImage(this.mat, image, byte[]::new);
   }
@@ -400,6 +405,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
     final byte[] created = new byte[length];
     this.scratch = created;
+
     return created;
   }
 
@@ -412,6 +418,7 @@ public final class MatImageBuffer implements ImageBuffer {
    */
   public Mat getMat() {
     this.checkNotReleased();
+
     return this.mat;
   }
 
@@ -432,6 +439,7 @@ public final class MatImageBuffer implements ImageBuffer {
     Preconditions.checkArgument(!empty, EMPTY_MAT_MESSAGE);
 
     this.checkNotReleased();
+
     // matrices compare by the address of their native header, so a second wrapper of the current matrix is never
     // mistaken for a new one and released along with the current matrix
     final boolean current = replacement.equals(this.mat);
@@ -469,12 +477,14 @@ public final class MatImageBuffer implements ImageBuffer {
     Preconditions.checkNotNull(operation, "Operation must not be null!");
 
     this.checkNotReleased();
+
     final Mat target = this.takeSpare();
     final Mat result;
     try {
       operation.accept(this.mat, target);
       final boolean empty = target.empty();
       Preconditions.checkArgument(!empty, "The operation must write its result into the target matrix!");
+
       result = toContinuousBgr(target);
     } catch (final RuntimeException exception) {
       target.close();
@@ -540,6 +550,7 @@ public final class MatImageBuffer implements ImageBuffer {
   public void setSize(final int width, final int height) {
     checkDimensions(width, height);
     this.checkNotReleased();
+
     final boolean resized = this.ensureSize(width, height);
     if (resized) {
       this.invalidateCache();
@@ -549,6 +560,7 @@ public final class MatImageBuffer implements ImageBuffer {
   @Override
   public BufferedImage toBufferedImage() {
     this.checkNotReleased();
+
     final int width = this.mat.cols();
     final int height = this.mat.rows();
     final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
@@ -569,6 +581,7 @@ public final class MatImageBuffer implements ImageBuffer {
     Preconditions.checkNotNull(image, "Image must not be null!");
 
     this.checkNotReleased();
+
     final int width = image.getWidth();
     final int height = image.getHeight();
     this.ensureSize(width, height);
@@ -594,6 +607,7 @@ public final class MatImageBuffer implements ImageBuffer {
     if (reusable == null) {
       this.mat = new Mat(height, width, opencv_core.CV_8UC3);
       previous.release();
+
       return true;
     }
 
@@ -629,6 +643,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
     this.checkNotReleased();
     this.checkCoordinates(column, row);
+
     final ByteBuffer bytes = this.mat.createBuffer();
     final int width = this.mat.cols();
     final int base = (row * width + column) * CHANNELS;
@@ -646,6 +661,7 @@ public final class MatImageBuffer implements ImageBuffer {
   public double[] getPixel(final int column, final int row) {
     this.checkNotReleased();
     this.checkCoordinates(column, row);
+
     final ByteBuffer bytes = this.mat.createBuffer();
     final int width = this.mat.cols();
     final int base = (row * width + column) * CHANNELS;
@@ -667,18 +683,21 @@ public final class MatImageBuffer implements ImageBuffer {
   @Override
   public int getWidth() {
     this.checkNotReleased();
+
     return this.mat.cols();
   }
 
   @Override
   public int getHeight() {
     this.checkNotReleased();
+
     return this.mat.rows();
   }
 
   @Override
   public int getPixelCount() {
     this.checkNotReleased();
+
     final int width = this.mat.cols();
     final int height = this.mat.rows();
     return width * height;
@@ -687,6 +706,7 @@ public final class MatImageBuffer implements ImageBuffer {
   @Override
   public int[] getPixels() {
     this.checkNotReleased();
+
     final PixelCacheKey key = createCacheKey(this.mat);
     final int[] cached = this.cachedPixels;
     if (cached != null && key.equals(this.cachedKey)) {
@@ -698,6 +718,7 @@ public final class MatImageBuffer implements ImageBuffer {
     final int[] pixels = this.readArgb(width, height);
     this.cachedPixels = pixels;
     this.cachedKey = key;
+
     return pixels;
   }
 
@@ -735,6 +756,7 @@ public final class MatImageBuffer implements ImageBuffer {
   @Override
   public ByteBuffer getData() {
     this.checkNotReleased();
+
     return this.mat.createBuffer();
   }
 
@@ -748,6 +770,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
     checkDimensions(width, height);
     this.checkNotReleased();
+
     final int expected = width * height * CHANNELS;
     final int remaining = data.remaining();
     Preconditions.checkArgument(remaining == expected, BYTE_COUNT_MESSAGE, remaining, expected);
@@ -769,6 +792,7 @@ public final class MatImageBuffer implements ImageBuffer {
 
     checkDimensions(width, height);
     this.checkNotReleased();
+
     final int expected = width * height;
     Preconditions.checkArgument(pixels.length == expected, PIXEL_COUNT_MESSAGE, pixels.length, expected);
 
@@ -786,6 +810,7 @@ public final class MatImageBuffer implements ImageBuffer {
   @Override
   public ImageBuffer copy() {
     this.checkNotReleased();
+
     final Mat clone = this.mat.clone();
     return new MatImageBuffer(clone);
   }

@@ -301,10 +301,13 @@ public final class DelayedAudioOutput implements AutoCloseable {
         this.queue.removeFirst();
         final ByteBuffer samples = next.samples();
         this.queuedBytes -= samples.remaining();
+
         if (next.endsQuiet()) {
           this.silenceLeftNanoseconds = 0;
         }
+
         this.streamEnd = Math.max(this.streamEnd, now) + nanosecondsOf(samples.remaining());
+
         return samples;
       }
       final ByteBuffer silence = this.silence(now, next);
@@ -346,11 +349,13 @@ public final class DelayedAudioOutput implements AutoCloseable {
       if (next == null) {
         this.silenceLeftNanoseconds = 0;
       }
+
       return null;
     }
 
     this.silenceLeftNanoseconds -= nanosecondsOf(bytes);
     this.streamEnd = start + nanosecondsOf(bytes);
+
     return ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN);
   }
 

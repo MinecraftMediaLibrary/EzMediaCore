@@ -88,6 +88,7 @@ public abstract class MatVideoFilter implements VideoFilter {
       if (modified) {
         writeBack(temporaryMat, samples);
       }
+
       return modified;
     }
   }

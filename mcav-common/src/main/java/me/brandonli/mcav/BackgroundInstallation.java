@@ -153,10 +153,12 @@ final class BackgroundInstallation {
   private boolean runStep(final Capability capability, final Runnable step) {
     try {
       step.run();
+
       return true;
     } catch (final RuntimeException exception) {
       final String name = capability.getDisplayName();
       this.logger.warn("{} could not be prepared because of an unexpected failure.", name, exception);
+
       return false;
     }
   }
@@ -178,6 +180,7 @@ final class BackgroundInstallation {
       if (!this.cancelled) {
         this.guard.markPrepared(capability, available);
       }
+
       preparation.complete(available);
     }
   }
@@ -270,6 +273,7 @@ final class BackgroundInstallation {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
+
       return false;
     }
   }

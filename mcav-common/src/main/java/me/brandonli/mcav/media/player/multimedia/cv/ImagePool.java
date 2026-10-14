@@ -99,6 +99,7 @@ final class ImagePool {
     this.closed = true;
     final List<MatImageBuffer> unused = new ArrayList<>(this.free);
     this.free.clear();
+
     return unused;
   }
 

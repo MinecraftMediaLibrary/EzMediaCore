@@ -93,15 +93,18 @@ public final class ThreadedImagePlayer implements ImagePlayer {
       if (gone) {
         return false;
       }
+
       final boolean started = this.playing.compareAndSet(false, true);
       if (!started) {
         return false;
       }
+
       final Runnable loop = () -> this.run(source);
       final Thread worker = new Thread(loop, THREAD_NAME);
       worker.setDaemon(true);
       this.thread = worker;
       worker.start();
+
       return true;
     } finally {
       this.lock.unlock();
@@ -154,6 +157,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
       if (!first) {
         return false;
       }
+
       this.playing.set(false);
       worker = this.thread;
       this.thread = null;
@@ -267,6 +271,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
         if (pixels.length != expected) {
           return;
         }
+
         final ImageBuffer filled = this.fill(pixels);
         final VideoPipelineStep pipeline = ThreadedImagePlayer.this.callback.retrieve();
         pipeline.processAll(filled, this.metadata);
@@ -284,6 +289,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
 
       final ImageBuffer created = ImageBuffer.buffer(pixels, this.width, this.height);
       this.buffer = created;
+
       return created;
     }
   }

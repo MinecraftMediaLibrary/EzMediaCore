@@ -158,6 +158,7 @@ final class VlcPlayback {
   static boolean attemptAfterFailure(final Throwable primary, final Runnable action) {
     try {
       action.run();
+
       return true;
     } catch (final RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);
@@ -165,6 +166,7 @@ final class VlcPlayback {
       if (!sameFailure) {
         primary.addSuppressed(exception);
       }
+
       return false;
     }
   }
@@ -285,6 +287,7 @@ final class VlcPlayback {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
+
       return false;
     }
   }

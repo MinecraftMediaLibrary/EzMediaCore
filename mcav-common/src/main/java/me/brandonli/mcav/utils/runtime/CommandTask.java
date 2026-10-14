@@ -146,6 +146,7 @@ public final class CommandTask {
    */
   public int run(final Duration timeout) throws IOException {
     checkTimeout(timeout);
+
     return this.runWithTimeout(timeout);
   }
 

@@ -114,6 +114,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
 
     try {
       this.corePreloader.accept(path);
+
       return true;
     } catch (final UnsatisfiedLinkError exception) {
       final String reason = exception.getMessage();
@@ -122,6 +123,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
         path,
         reason
       );
+
       return false;
     }
   }

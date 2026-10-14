@@ -68,11 +68,13 @@ final class VideoTimestamps {
       this.firstTimestamp = reported;
       this.firstNanoseconds = now;
       this.lastTimestamp = reported;
+
       return reported;
     }
 
     final long timestamp = reported > this.lastTimestamp ? reported : this.derive(now);
     this.lastTimestamp = timestamp;
+
     return timestamp;
   }
 

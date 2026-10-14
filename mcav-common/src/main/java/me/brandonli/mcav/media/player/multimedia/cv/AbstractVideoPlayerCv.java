@@ -204,6 +204,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (this.released || this.starting || (expected != null && !IDENTITY.equivalent(expected, this.session))) {
         return false;
       }
+
       created = this.createSession(video, audio, positionMicroseconds, paused);
       this.starting = true;
     } finally {
@@ -215,10 +216,12 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (!this.openSession(created, video)) {
         return false;
       }
+
       final PlaybackSession previous = this.takeSession();
       if (previous != null) {
         previous.stop();
       }
+
       started = this.publishSession(created, video, audio, expected != null);
       return started;
     } finally {
@@ -254,6 +257,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       this.session = null;
       this.videoSource = null;
       this.audioSource = null;
+
       return previous;
     } finally {
       this.lock.unlock();
@@ -270,14 +274,17 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (this.released) {
         return false;
       }
+
       if (!seek) {
         this.speed = PlaybackClock.NORMAL_SPEED;
       }
+
       created.setSpeed(this.speed);
       created.startThreads();
       this.videoSource = video;
       this.audioSource = audio;
       this.session = created;
+
       return true;
     } finally {
       this.lock.unlock();
@@ -291,10 +298,12 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   private boolean openSession(final PlaybackSession created, final Source video) {
     try {
       created.open();
+
       return true;
     } catch (final FrameGrabber.Exception | RuntimeException | LinkageError exception) {
       final String resource = video.getResource();
       this.exceptionHandler.accept("Failed to start playback of " + resource, exception);
+
       return false;
     }
   }
@@ -387,7 +396,9 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (current == null || !current.isActive() || current.isPaused()) {
         return false;
       }
+
       current.pause();
+
       return true;
     } finally {
       this.lock.unlock();
@@ -408,7 +419,9 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (current == null || !current.isActive() || !current.isPaused()) {
         return false;
       }
+
       current.resume();
+
       return true;
     } finally {
       this.lock.unlock();
@@ -438,6 +451,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (current == null || !current.isSeekable()) {
         return false;
       }
+
       video = Objects.requireNonNull(this.videoSource, "A session always has a video source!");
       audio = this.audioSource;
       paused = current.isPaused();
@@ -472,8 +486,10 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (current == null || !current.isSeekable()) {
         return false;
       }
+
       this.speed = speed;
       current.setSpeed(speed);
+
       return true;
     } finally {
       this.lock.unlock();
@@ -522,6 +538,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       if (this.released) {
         return false;
       }
+
       this.released = true;
       stopped = this.session;
       this.session = null;

@@ -73,6 +73,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
 
     if (this.nextFrame >= frameCount) {
       this.nextFrame = 0;
+
       if (this.repeatCount != Integer.MAX_VALUE) {
         this.completedLoops++;
       }

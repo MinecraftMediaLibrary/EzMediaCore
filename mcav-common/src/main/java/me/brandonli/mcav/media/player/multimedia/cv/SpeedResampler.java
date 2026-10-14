@@ -59,6 +59,7 @@ final class SpeedResampler {
     if (speed == PlaybackClock.NORMAL_SPEED) {
       this.remember(input, frames);
       this.next = 1;
+
       return samples;
     }
 
@@ -78,6 +79,7 @@ final class SpeedResampler {
 
     this.next = at - frames;
     this.remember(input, frames);
+
     return output.flip();
   }
 

@@ -92,11 +92,13 @@ final class VideoFrameCopier {
       if (empty || sameSize) {
         return fill(pooled, frame, width, height);
       }
+
       return this.scale(frame, pooled, targetWidth, targetHeight);
     } catch (final RuntimeException exception) {
       if (pooled != null) {
         this.pool.recycle(pooled);
       }
+
       throw exception;
     }
   }

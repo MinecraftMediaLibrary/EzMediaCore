@@ -96,6 +96,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
     second ^= first;
     this.state0 = Long.rotateLeft(first, FIRST_ROTATION) ^ second ^ (second << STATE_SHIFT);
     this.state1 = Long.rotateLeft(second, SECOND_ROTATION);
+
     return result;
   }
 

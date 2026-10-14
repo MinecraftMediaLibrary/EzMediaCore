@@ -126,6 +126,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
 
     final byte[] created = new byte[length];
     this.chunk = created;
+
     return created;
   }
 
@@ -153,8 +154,10 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
         } catch (final RuntimeException | Error cleanupException) {
           suppressCleanupFailure(exception, cleanupException);
         }
+
         throw exception;
       }
+
       this.line = opened;
     } catch (final LineUnavailableException | IllegalArgumentException exception) {
       final String reason = exception.getMessage();
@@ -185,6 +188,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
         action.run();
       } catch (final RuntimeException | Error exception) {
         ThrowableUtils.throwIfFatal(exception);
+
         if (failure == null) {
           failure = exception;
         } else {

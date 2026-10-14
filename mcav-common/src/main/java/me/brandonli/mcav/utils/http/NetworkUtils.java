@@ -184,6 +184,7 @@ public final class NetworkUtils {
       return false;
     } catch (final InterruptedException exception) {
       restoreInterruptFlag();
+
       return false;
     }
   }

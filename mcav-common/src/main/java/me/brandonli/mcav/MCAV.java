@@ -188,6 +188,7 @@ public final class MCAV implements MCAVApi {
       if (installation == null) {
         return;
       }
+
       this.background = null;
       // the installation threads never take the lifecycle lock, so waiting for them here cannot deadlock
       installation.cancel();

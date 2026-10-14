@@ -686,6 +686,7 @@ final class DeclaredImageSize {
       this.skipSpace();
       final boolean matches = this.text.startsWith(expected, this.position);
       this.position += expected.length();
+
       return matches;
     }
 

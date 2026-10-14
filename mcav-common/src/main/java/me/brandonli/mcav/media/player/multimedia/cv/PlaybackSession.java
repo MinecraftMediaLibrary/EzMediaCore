@@ -341,6 +341,7 @@ final class PlaybackSession {
       } finally {
         this.audioQueue.offer(END_OF_AUDIO);
       }
+
       return;
     }
 
@@ -386,6 +387,7 @@ final class PlaybackSession {
       if (wantsVideo) {
         this.signalEnd(this.videoQueue, END_OF_VIDEO);
       }
+
       if (wantsAudio) {
         this.signalEnd(this.audioQueue, END_OF_AUDIO);
       }
@@ -840,15 +842,18 @@ final class PlaybackSession {
       if (!ownThread) {
         this.joinThreadsExcept(currentThread);
       }
+
       return;
     }
 
     if (this.threads.isEmpty()) {
       final FrameGrabber prepared = this.videoGrabber;
       this.videoGrabber = null;
+
       if (prepared != null) {
         closeQuietly(prepared);
       }
+
       return;
     }
 

@@ -55,6 +55,7 @@ final class VlcLoadState {
         this.libraryDirectory = result.orElse(null);
         this.loaded = true;
       }
+
       return Optional.ofNullable(this.libraryDirectory);
     }
   }

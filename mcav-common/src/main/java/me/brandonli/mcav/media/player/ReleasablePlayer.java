@@ -57,6 +57,7 @@ public interface ReleasablePlayer {
    */
   default CompletableFuture<Boolean> releaseAsync(final ExecutorService executor) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(this::release, executor);
   }
 }

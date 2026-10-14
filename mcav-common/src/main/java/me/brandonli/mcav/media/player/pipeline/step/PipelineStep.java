@@ -79,6 +79,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
   default void processAll(final DataType buffer, final MetadataType metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     StepType step = this.self();
     while (step != null) {
       step.process(buffer, metadata);

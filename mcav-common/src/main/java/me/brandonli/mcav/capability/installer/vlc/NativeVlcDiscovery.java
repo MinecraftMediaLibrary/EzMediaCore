@@ -59,6 +59,7 @@ final class NativeVlcDiscovery implements VlcDiscovery {
     final NativeDiscovery discovery = new NativeDiscovery(strategies);
     final boolean found = discovery.discover();
     this.discoveredPath = discovery.discoveredPath();
+
     return found;
   }
 }

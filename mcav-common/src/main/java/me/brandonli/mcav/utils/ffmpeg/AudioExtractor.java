@@ -93,6 +93,7 @@ public final class AudioExtractor {
           exception.addSuppressed(cleanupException);
         }
       }
+
       throw exception;
     }
   }

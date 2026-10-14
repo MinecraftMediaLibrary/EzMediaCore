@@ -219,10 +219,12 @@ public final class DependencyLoader {
   static boolean loadOptionalModule(final Runnable nativeLoader, final String feature) {
     try {
       nativeLoader.run();
+
       return true;
     } catch (final LinkageError exception) {
       final String reason = exception.getMessage();
       LOGGER.warn("{} is not available on this system, because its native libraries failed with \"{}\" while loading.", feature, reason);
+
       return false;
     }
   }
@@ -251,6 +253,7 @@ public final class DependencyLoader {
         final String message = "Failed with \"%s\" while loading FFmpeg!".formatted(reason);
         throw new NativeLoadingException(message, exception);
       }
+
       LOGGER.warn("The FFmpeg device library is not available, capture devices will not work.");
     }
 
@@ -317,6 +320,7 @@ public final class DependencyLoader {
       if (!preparation.equals(this.preparations.get(capability))) {
         return;
       }
+
       if (available) {
         this.capabilities.add(capability);
       } else {
