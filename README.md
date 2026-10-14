@@ -9,7 +9,7 @@
 
 ## Developer
 
-<img align="right" src="developer.png" alt="My Image">
+<img align="right" src="developer.png" alt="PulseBeat02">
 
 PulseBeat02
 
@@ -34,7 +34,7 @@ websites that can be listed [here](https://github.com/yt-dlp/yt-dlp/blob/master/
 YouTube, Twitch, SoundCloud, CNN, you name it. You're also able to play local files, stream from IP cameras and capture
 cards, screen-share using an OBS virtual camera, show web pages, virtual machines and VNC desktops, and much more. All of
 this combined with audio playback, which you can use a website to stream audio to, [Simple Voice Chat](https://modrinth.com/plugin/simple-voice-chat),
-or a Discord bot to play audio in voice channels. Please check the [documentation](https://mcav.readthedocs.io/en/latest/intro.html)
+or a Discord bot to play audio in voice channels. Read the [documentation](https://mcav.readthedocs.io/en/latest/intro.html)
 for more information.
 
 [![Watch the video](https://img.youtube.com/vi/ifs0GiAtqIs/maxresdefault.jpg)](https://youtu.be/ifs0GiAtqIs)
@@ -175,7 +175,7 @@ mutation testing, the end-to-end test of the plugin and publishing.
 
 ### Contributing
 
-MCAV is looking for contributors to help improve the library and plugin. We need
+MCAV is looking for contributors to help improve the library and plugin. It needs
 
 - Web Developers (Typescript, React, NextJS) to help improve the front-end of the HTTP module.
 - Back-end Developers (Java, Spring Boot) to help improve the back-end of the HTTP module.
@@ -190,7 +190,7 @@ MCAV is looking for contributors to help improve the library and plugin. We need
 
 ### Licensing
 
-Please note that MCAV integrates several different libraries, each under different licenses based on what is
+MCAV integrates several different libraries, each under different licenses based on what is
 incorporated into the project. The following table lists the libraries used in MCAV, and their respective licenses.
 
 | Library                                                | License                                                     |

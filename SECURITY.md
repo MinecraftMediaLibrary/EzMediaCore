@@ -1,7 +1,5 @@
 # Security Policy
 
-If a vulnerability is detected, please join the Discord server and create a ticket. Tickets are
-private meaning other people will not be able to see the vulnerability and abuse it. We thank you
-for creating tickets to report these vulnerabilities to us as we are able to detect any possible
-flaws within the libraries we are using. As a reminder, the Discord server can be joined by clicking
-[this link](https://discord.gg/qVhhbCWQQV).
+If you find a vulnerability, join the Discord server through [this link](https://discord.gg/qVhhbCWQQV) and create a
+ticket. Tickets are private, so other people cannot see the vulnerability and abuse it. Thank you for reporting
+vulnerabilities this way: your tickets help find flaws in MCAV and in the libraries it uses.
