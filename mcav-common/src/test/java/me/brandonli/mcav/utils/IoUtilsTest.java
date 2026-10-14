@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -424,12 +425,32 @@ final class IoUtilsTest {
     }
   }
 
+  @Test
+  void shouldMoveTheCacheToTheTemporaryDirectoryWhenTheHomeCacheCannotRunPrograms() throws IOException {
+    final Path home = this.directory.resolve(HOME_NAME);
+    final Path temporary = this.directory.resolve(TEMPORARY_NAME);
+
+    final Path cache = this.getCachedFolderIn(home, temporary, file -> false);
+    final Path expected = temporary.resolve(TEMPORARY_CACHE_PATH);
+    assertEquals(expected, cache, "a home cache on a noexec mount cannot run the programs it holds");
+
+    final Path homeCache = home.resolve(HOME_CACHE_PATH);
+    try (final Stream<Path> leftovers = Files.list(homeCache)) {
+      final long leftoverCount = leftovers.count();
+      assertEquals(0, leftoverCount, "the file that probes the home cache is deleted");
+    }
+  }
+
   private Path getCachedFolderIn(final Path home, final Path temporary) {
+    return this.getCachedFolderIn(home, temporary, Files::isExecutable);
+  }
+
+  private Path getCachedFolderIn(final Path home, final Path temporary, final Predicate<Path> executable) {
     final String previousTemporary = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
     final String rawTemporary = temporary.toString();
     System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, rawTemporary);
     try (final TemporaryUserHome _ = TemporaryUserHome.redirectTo(home)) {
-      return IoUtils.getCachedFolder();
+      return IoUtils.getCachedFolder(executable);
     } finally {
       System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, previousTemporary);
     }

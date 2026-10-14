@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -128,6 +129,9 @@ public final class IoUtils {
 
   private static final String TEMPORARY_DIRECTORY_PROPERTY = "java.io.tmpdir";
   private static final String TEMPORARY_CACHE_ROOT = "mcav";
+
+  private static final String EXECUTION_PROBE_PREFIX = "execution-probe-";
+  private static final String EXECUTION_PROBE_SUFFIX = ".tmp";
 
   private static final String TRUNCATED_ARCHIVE_MESSAGE = "Zip archive %s is truncated!";
 
@@ -518,40 +522,60 @@ public final class IoUtils {
    * Returns the cache folder of the library, which is {@code ~/.mcav/cache}. The folder is created if it does not
    * exist.
    *
-   * <p>When that folder cannot be created or written, for instance because the home directory is read-only, the cache
-   * moves to {@code mcav/cache} in the temporary directory of the JVM ({@code java.io.tmpdir}), and a warning is logged.
+   * <p>The cache holds the programs MCAV downloads and runs, such as VLC and yt-dlp. When that folder cannot be created
+   * or written, for instance because the home directory is read-only, or lies on a file system mounted {@code noexec}
+   * that cannot run them, the cache moves to {@code mcav/cache} in the temporary directory of the JVM
+   * ({@code java.io.tmpdir}), and a warning is logged. That folder is used even if it cannot run programs either; a
+   * program run from it then fails when it is installed.
    *
    * @return the absolute path of the cache folder
    * @throws FileOperationException if neither folder can be created
    * @since 1.0.0
    */
   public static Path getCachedFolder() {
+    return getCachedFolder(Files::isExecutable);
+  }
+
+  // test seam for the mutants of the fallback from a home cache on a noexec mount, which only a mount option reaches
+  @VisibleForTesting
+  static Path getCachedFolder(final Predicate<Path> executable) {
     final @Nullable String homeOrNull = System.getProperty(USER_HOME_PROPERTY);
     final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
     final Path homeCache = Path.of(home, CACHE_ROOT, CACHE_DIRECTORY);
-    final boolean writable = createWritableDirectory(homeCache);
-    if (writable) {
+    final boolean usable = createUsableDirectory(homeCache, executable);
+    if (usable) {
       return homeCache.toAbsolutePath();
     }
 
     final @Nullable String temporaryOrNull = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
     final String temporary = Objects.requireNonNull(temporaryOrNull, "The JVM always sets the temporary directory!");
     final Path temporaryCache = Path.of(temporary, TEMPORARY_CACHE_ROOT, CACHE_DIRECTORY);
-    LOGGER.warn("Cache folder {} cannot be written, using {} instead.", homeCache, temporaryCache);
+    LOGGER.warn("Cache folder {} cannot be written or cannot run programs, using {} instead.", homeCache, temporaryCache);
     createDirectoryIfNotExists(temporaryCache);
     return temporaryCache.toAbsolutePath();
   }
 
-  // Creates a directory if it is missing and returns whether it can be written. A directory that cannot be created
-  // cannot be written either, so that failure is the answer and not reported.
-  private static boolean createWritableDirectory(final Path directory) {
+  // Creates a directory if it is missing and returns whether a file written into it can be run. A directory that
+  // cannot be created or written cannot hold the cache either, so that failure is the answer and not reported.
+  private static boolean createUsableDirectory(final Path directory, final Predicate<Path> executable) {
     try {
       createDirectoryIfNotExists(directory);
-    } catch (final FileOperationException exception) {
+      final Path probe = Files.createTempFile(directory, EXECUTION_PROBE_PREFIX, EXECUTION_PROBE_SUFFIX);
+      return isExecutableProbe(probe, executable);
+    } catch (final FileOperationException | IOException exception) {
       return false;
     }
+  }
 
-    return Files.isWritable(directory);
+  // Linux refuses the execute access check on every regular file of a noexec mount, even one marked executable, so a
+  // probe marked executable answers for the whole file system.
+  private static boolean isExecutableProbe(final Path probe, final Predicate<Path> executable) throws IOException {
+    try {
+      markExecutable(probe);
+      return executable.test(probe);
+    } finally {
+      Files.delete(probe);
+    }
   }
 
   /**
