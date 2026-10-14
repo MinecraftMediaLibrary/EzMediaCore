@@ -89,6 +89,12 @@ public final class Dimension {
     return this.width == 0 || this.height == 0;
   }
 
+  /**
+   * Returns whether {@code other} is a dimension with the same width and the height.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -102,11 +108,21 @@ public final class Dimension {
     return this.width == dimension.width && this.height == dimension.height;
   }
 
+  /**
+   * Returns a hash code built from the width and the height.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.width, this.height);
   }
 
+  /**
+   * Returns a debugging representation with the width and the height.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("width", this.width).add("height", this.height).toString();

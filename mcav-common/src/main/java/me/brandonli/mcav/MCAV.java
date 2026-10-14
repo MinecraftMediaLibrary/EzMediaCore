@@ -88,7 +88,13 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * {@inheritDoc}
+   * Checks whether an optional capability is available right now, which depends on the platform and on whether the
+   * program behind it could be installed. A capability that is still being prepared in the background is not
+   * available yet; wait for it with {@link #whenCapabilityReady(Capability)}.
+   *
+   * @param capability the capability to check
+   * @return true if the capability is available
+   * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
    */
   @Override
@@ -100,7 +106,20 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * {@inheritDoc}
+   * Returns a future that completes once a capability is ready, without polling. It completes with true when the
+   * capability is available, and with false when it cannot be provided: the system does not support it, its
+   * installation failed, or {@link #release()} cancelled the installation first. Once the future completed with
+   * true, {@link #hasCapability(Capability)} reports the capability as available for that installation until
+   * release. The returned future is separate from the installation's internal future: completing or cancelling
+   * it does not change or cancel preparation.
+   *
+   * <p>A capability that is not prepared in the background, or whose preparation already finished, gets a future
+   * that is complete already. Callbacks attached to the future never run on the installation threads of the library,
+   * so they may call any method of the library, including {@link #release()}.
+   *
+   * @param capability the capability to wait for
+   * @return a future that completes with whether the capability is available
+   * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
    */
   @Override
@@ -121,7 +140,18 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * {@inheritDoc}
+   * Installs the library and starts the specified modules. This method returns once the JavaCV natives are loaded,
+   * the modules are started, and the lookup tables are built; VLC and yt-dlp are prepared in the background
+   * afterward, see {@link #whenCapabilityReady(Capability)}.
+   *
+   * <p>It may be called once per release: calling it again while the library is installed, or while another thread
+   * is installing it, fails. After {@link #release()}, or after an installation that failed, the library can be
+   * installed again.
+   *
+   * @param modules a non-null array of non-null module classes implementing {@link MCAVModule}, with
+   *                accessible no-argument constructors; duplicates are started once and an empty array is allowed
+   * @throws MCAVLoadingException if the library cannot be installed, is installed already, or is being installed by
+   *                              another thread
    * @throws NullPointerException if {@code modules} is null
    */
   @Override
@@ -174,6 +204,17 @@ public final class MCAV implements MCAVApi {
     LOGGER.info("Map color lookup table built in {} ms.", end - start);
   }
 
+  /**
+   * Stops all modules and releases the resources of the library. Media players that are still running should be
+   * released before calling this method.
+   *
+   * <p>If another thread is installing the library, this method waits for that installation to finish and then
+   * releases it. A background preparation of VLC or yt-dlp that is still running is cancelled rather than waited for:
+   * its download is interrupted, its temporary file is deleted, and its thread has ended when this method returns,
+   * unless it ignores the interruption for more than ten seconds, which is logged. The futures of
+   * {@link #whenCapabilityReady(Capability)} for the cancelled programs complete with false. Releasing a library that
+   * is not installed does nothing.
+   */
   @Override
   public void release() {
     synchronized (this.lifecycleLock) {
@@ -192,8 +233,13 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code moduleClass} is null
+   * Returns a module that was started by {@link #install(Class[])}.
+   *
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
+   * @return the module instance
+   * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
+   * @throws NullPointerException                     if {@code moduleClass} is null
    */
   @Override
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {

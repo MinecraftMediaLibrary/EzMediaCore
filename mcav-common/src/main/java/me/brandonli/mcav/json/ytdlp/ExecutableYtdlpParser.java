@@ -90,9 +90,21 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
   }
 
   /**
-   * {@inheritDoc}
+   * Runs yt-dlp on a URL and parses the first JSON output line. The default command disables playlists on
+   * watch pages and selects the first playlist entry; supplied options can override these command defaults.
    *
-   * @throws NullPointerException if {@code input}, the argument array or an argument is null
+   * @param input     the non-null web-page source with an absolute {@code http} or {@code https} URI
+   * @param arguments a non-null array of non-null extra yt-dlp options, passed verbatim after defaults and
+   *                  before the URL, which yt-dlp always reads as a URL and never as an option
+   * @return the parsed metadata and streams
+   * @throws IOException              if yt-dlp cannot be installed or run, or does not finish within two minutes
+   * @throws YtdlpParseException      if yt-dlp reports an error or prints no usable JSON
+   * @throws IllegalArgumentException if the input is not an absolute {@code http} or {@code https} URL
+   * @throws IllegalStateException    if the parser runs the yt-dlp of the library, as {@link #simple()} does, and the
+   *                                  library is still preparing yt-dlp in the background; wait for
+   *                                  {@link me.brandonli.mcav.MCAVApi#whenCapabilityReady(me.brandonli.mcav.capability.Capability)}
+   *                                  with {@link me.brandonli.mcav.capability.Capability#YT_DLP} or try again shortly
+   * @throws NullPointerException     if {@code input}, the argument array or an argument is null
    */
   @Override
   public UrlParseDump parse(final UriSource input, final String... arguments) throws IOException {

@@ -37,8 +37,12 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code dump} is null
+   * Selects the audio stream.
+   *
+   * @param dump the metadata yt-dlp produced
+   * @return the selected format object from the dump, borrowed rather than copied
+   * @throws NoMatchingFormatException if no stream matches the audio strategy
+   * @throws NullPointerException      if {@code dump} is null
    */
   @Override
   public Format getAudioSource(final UrlParseDump dump) {
@@ -56,8 +60,12 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code dump} is null
+   * Selects the video stream.
+   *
+   * @param dump the metadata yt-dlp produced
+   * @return the selected format object from the dump, borrowed rather than copied
+   * @throws NoMatchingFormatException if no stream matches the video strategy
+   * @throws NullPointerException      if {@code dump} is null
    */
   @Override
   public Format getVideoSource(final UrlParseDump dump) {
@@ -88,11 +96,21 @@ public final class DefaultStrategySelector implements StrategySelector {
     return "the media";
   }
 
+  /**
+   * Returns the strategy used for audio.
+   *
+   * @return the audio strategy
+   */
   @Override
   public FormatStrategy getAudioStrategy() {
     return this.audio;
   }
 
+  /**
+   * Returns the strategy used for video.
+   *
+   * @return the video strategy
+   */
   @Override
   public FormatStrategy getVideoStrategy() {
     return this.video;

@@ -530,6 +530,12 @@ public final class MatImageBuffer implements ImageBuffer {
     }
   }
 
+  /**
+   * Copies the image into a new Java image of type {@link BufferedImage#TYPE_3BYTE_BGR}.
+   *
+   * @return a new Java image
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public BufferedImage toBufferedImage() {
     this.checkNotReleased();
@@ -546,8 +552,11 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code image} is null
+   * Replaces the content of this buffer with a Java image, resizing the buffer if necessary.
+   *
+   * @param image the image to copy
+   * @throws IllegalStateException if the image was released
+   * @throws NullPointerException  if {@code image} is null
    */
   @Override
   public void setAsBufferedImage(final BufferedImage image) {
@@ -601,8 +610,16 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code value} is null
+   * Sets the color of one pixel.
+   *
+   * @param column the zero-based column, less than {@link #getWidth()}
+   * @param row    the zero-based row, less than {@link #getHeight()}
+   * @param value  the non-null blue, green and red components in that order; the first three supplied
+   *               values are rounded and clamped to 0 through 255, missing components are unchanged,
+   *               and additional components are ignored
+   * @throws IllegalArgumentException if the row or column is outside the image
+   * @throws IllegalStateException    if the image was released
+   * @throws NullPointerException     if {@code value} is null
    */
   @Override
   public void setPixel(final int column, final int row, final double[] value) {
@@ -624,6 +641,15 @@ public final class MatImageBuffer implements ImageBuffer {
     this.invalidateCache();
   }
 
+  /**
+   * Returns the color of one pixel.
+   *
+   * @param column the zero-based column, less than {@link #getWidth()}
+   * @param row    the zero-based row, less than {@link #getHeight()}
+   * @return a new three-element array containing blue, green and red, each from 0 to 255
+   * @throws IllegalArgumentException if the row or column is outside the image
+   * @throws IllegalStateException    if the image was released
+   */
   @Override
   public double[] getPixel(final int column, final int row) {
     this.checkNotReleased();
@@ -647,6 +673,12 @@ public final class MatImageBuffer implements ImageBuffer {
     Preconditions.checkArgument(row >= 0 && row < height, "y %s must be between 0 and %s!", row, height - 1);
   }
 
+  /**
+   * Returns the width of the image.
+   *
+   * @return the width in pixels
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public int getWidth() {
     this.checkNotReleased();
@@ -654,6 +686,12 @@ public final class MatImageBuffer implements ImageBuffer {
     return this.mat.cols();
   }
 
+  /**
+   * Returns the height of the image.
+   *
+   * @return the height in pixels
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public int getHeight() {
     this.checkNotReleased();
@@ -661,6 +699,12 @@ public final class MatImageBuffer implements ImageBuffer {
     return this.mat.rows();
   }
 
+  /**
+   * Returns the number of pixels of the image.
+   *
+   * @return the width multiplied by the height
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public int getPixelCount() {
     this.checkNotReleased();
@@ -670,6 +714,23 @@ public final class MatImageBuffer implements ImageBuffer {
     return width * height;
   }
 
+  /**
+   * Returns every pixel as packed ARGB integers, laid out row by row, without copying them.
+   *
+   * <p><strong>The array is shared and must be treated as read-only.</strong> It is computed once and cached, and
+   * every caller receives the same instance until the image changes. Writing into it does not change the image
+   * itself, but it silently changes what every later caller of this method sees, and frame sources that replay the
+   * same image, such as {@link me.brandonli.mcav.media.source.frame.RepeatingFrameSource}, then show the damage on
+   * every later frame. The array is also replaced, not updated, when the image changes, so a caller that keeps it
+   * holds the old pixels.
+   *
+   * <p>This method is meant for the per-frame path, where copying every frame would be too slow. Call
+   * {@link #copyPixels()} for an array you may modify or keep, and {@link #getReadOnlyPixels()} for a view that
+   * rejects writes without copying.
+   *
+   * @return the shared pixels of the image, which must not be modified
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public int[] getPixels() {
     this.checkNotReleased();
@@ -718,6 +779,14 @@ public final class MatImageBuffer implements ImageBuffer {
     return pixels;
   }
 
+  /**
+   * Returns a view of the raw 8-bit BGR pixels of the image, without padding. The pixels are the bytes between the
+   * position and the limit of the returned buffer. The buffer shares memory with the image: changes to it change the
+   * image, and it becomes invalid when the image is resized, transformed or released.
+   *
+   * @return a direct buffer over the pixels
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public ByteBuffer getData() {
     this.checkNotReleased();
@@ -726,8 +795,18 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code data} is null
+   * Replaces the pixels of the image with raw 8-bit BGR pixels, reusing the native memory when the dimensions did
+   * not change. The bytes are copied from the current position of the buffer to its limit. Dimensions must be
+   * positive and their packed BGR representation must fit within {@link Integer#MAX_VALUE} bytes. The source
+   * position and limit are unchanged.
+   *
+   * @param data   the pixels, exactly {@code width * height * 3} bytes remaining
+   * @param width  the new width in pixels
+   * @param height the new height in pixels
+   * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
+   *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
+   * @throws IllegalStateException    if the image was released
+   * @throws NullPointerException     if {@code data} is null
    */
   @Override
   public void updateData(final ByteBuffer data, final int width, final int height) {
@@ -748,8 +827,17 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code pixels} is null
+   * Replaces the pixels of the image with packed ARGB pixels, reusing the native memory when the dimensions did
+   * not change. The alpha channel is discarded. Dimensions must be positive and the resulting packed BGR
+   * representation must fit within {@link Integer#MAX_VALUE} bytes.
+   *
+   * @param pixels the pixels, exactly {@code width * height} integers laid out row by row
+   * @param width  the new width in pixels
+   * @param height the new height in pixels
+   * @throws IllegalArgumentException if dimensions are nonpositive, the packed BGR size exceeds
+   *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
+   * @throws IllegalStateException    if the image was released
+   * @throws NullPointerException     if {@code pixels} is null
    */
   @Override
   public void updateArgb(final int[] pixels, final int width, final int height) {
@@ -767,11 +855,21 @@ public final class MatImageBuffer implements ImageBuffer {
     this.invalidateCache();
   }
 
+  /**
+   * Discards the cached ARGB pixel array, so the next call to {@link #getPixels()} reads the image again. Video
+   * filters call this after modifying the image through {@link #getData()} or through OpenCV directly.
+   */
   @Override
   public void invalidateCache() {
     this.cachedPixels = null;
   }
 
+  /**
+   * Creates a deep copy of this image that is independent of it.
+   *
+   * @return a new image buffer with the same pixels
+   * @throws IllegalStateException if the image was released
+   */
   @Override
   public ImageBuffer copy() {
     this.checkNotReleased();
@@ -780,6 +878,11 @@ public final class MatImageBuffer implements ImageBuffer {
     return new MatImageBuffer(clone);
   }
 
+  /**
+   * Releases the native memory of the image. Calling this method more than once has no effect, and every other
+   * operation accessing native pixels or dimensions throws {@link IllegalStateException} afterward.
+   * {@link #invalidateCache()} remains harmless. Previously returned native views must no longer be used.
+   */
   @Override
   public void release() {
     if (this.released) {

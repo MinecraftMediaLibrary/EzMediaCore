@@ -64,6 +64,12 @@ public final class Point {
     return this.yCoordinate;
   }
 
+  /**
+   * Returns whether {@code other} is a point with the same coordinates.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -79,11 +85,21 @@ public final class Point {
     return xComparison == 0 && yComparison == 0;
   }
 
+  /**
+   * Returns a hash code built from both coordinates.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.xCoordinate, this.yCoordinate);
   }
 
+  /**
+   * Returns a debugging representation with both coordinates.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("xCoordinate", this.xCoordinate).add("yCoordinate", this.yCoordinate).toString();

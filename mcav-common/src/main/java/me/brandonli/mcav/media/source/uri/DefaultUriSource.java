@@ -37,16 +37,33 @@ public final class DefaultUriSource implements UriSource {
     this.direct = SourceUtils.isDirectVideo(raw);
   }
 
+  /**
+   * Returns the URL.
+   *
+   * @return the URL
+   */
   @Override
   public URI getUri() {
     return this.uri;
   }
 
+  /**
+   * Checks whether the URL points directly at a media file, judging by its file extension, rather than at a web
+   * page that has to be resolved first.
+   *
+   * @return true if the URL looks like a direct media link
+   */
   @Override
   public boolean isDirect() {
     return this.direct;
   }
 
+  /**
+   * Returns whether {@code other} is an URI source with the same URI.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -60,11 +77,21 @@ public final class DefaultUriSource implements UriSource {
     return this.uri.equals(source.uri);
   }
 
+  /**
+   * Returns a hash code built from the URI.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.uri);
   }
 
+  /**
+   * Returns a debugging representation with the URI.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("uri", this.uri).add("direct", this.direct).toString();

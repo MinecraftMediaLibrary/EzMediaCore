@@ -30,6 +30,11 @@ public final class DefaultWritable implements Writable {
     this.path = path;
   }
 
+  /**
+   * Returns the path of the file.
+   *
+   * @return the path
+   */
   @Override
   public Path getPath() {
     return this.path;

@@ -30,8 +30,9 @@ public final class DefaultDimensionAttachableCallback extends AbstractAttachable
   }
 
   /**
-   * {@inheritDoc}
+   * Puts a value into the slot, replacing the previous one.
    *
+   * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws IllegalArgumentException if either dimension is zero
    * @throws NullPointerException     if {@code value} is null
    */

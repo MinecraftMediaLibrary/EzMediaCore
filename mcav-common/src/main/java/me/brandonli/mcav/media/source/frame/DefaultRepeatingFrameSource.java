@@ -55,6 +55,11 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
     this.frameRate = animation.getFrameRate();
   }
 
+  /**
+   * Returns the supplier of frames.
+   *
+   * @return the supplier
+   */
   @Override
   public SampleSupplier supplyFrameSamples() {
     return this::nextSamples;
@@ -82,21 +87,41 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
     return frame.getPixels();
   }
 
+  /**
+   * Returns how often the animation is played.
+   *
+   * @return the repeat count, or {@link Integer#MAX_VALUE} for endless looping
+   */
   @Override
   public int getRepeatCount() {
     return this.repeatCount;
   }
 
+  /**
+   * Returns the width of the frames.
+   *
+   * @return the width in pixels
+   */
   @Override
   public int getFrameWidth() {
     return this.width;
   }
 
+  /**
+   * Returns the height of the frames.
+   *
+   * @return the height in pixels
+   */
   @Override
   public int getFrameHeight() {
     return this.height;
   }
 
+  /**
+   * Returns the rate at which frames are requested from the supplier.
+   *
+   * @return the frame rate in frames per second
+   */
   @Override
   public float getFrameRate() {
     return this.frameRate;

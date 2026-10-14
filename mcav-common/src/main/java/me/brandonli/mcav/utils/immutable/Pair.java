@@ -73,6 +73,12 @@ public final class Pair<FirstType, SecondType> {
     return this.second;
   }
 
+  /**
+   * Returns whether {@code other} is a pair with equal values.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -86,11 +92,21 @@ public final class Pair<FirstType, SecondType> {
     return Objects.equals(this.first, pair.first) && Objects.equals(this.second, pair.second);
   }
 
+  /**
+   * Returns a hash code built from both values.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.first, this.second);
   }
 
+  /**
+   * Returns a debugging representation with both values.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("first", this.first).add("second", this.second).toString();

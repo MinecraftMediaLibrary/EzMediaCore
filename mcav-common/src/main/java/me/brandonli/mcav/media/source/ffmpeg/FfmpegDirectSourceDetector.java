@@ -35,7 +35,10 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   public FfmpegDirectSourceDetector() {}
 
   /**
-   * {@inheritDoc}
+   * Checks whether the string describes a source of this kind.
+   *
+   * @param raw the string entered by a user
+   * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
    */
   @Override
@@ -55,8 +58,10 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   }
 
   /**
-   * {@inheritDoc}
+   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
    *
+   * @param raw the string entered by a user
+   * @return the source
    * @throws IllegalArgumentException if there is not exactly one {@code ||} separator or the format is blank
    * @throws NullPointerException     if {@code raw} is null
    */
@@ -72,6 +77,11 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
     return FfmpegDirectSource.mrl(mrl, format);
   }
 
+  /**
+   * Returns the priority of this detector.
+   *
+   * @return the priority, higher wins
+   */
   @Override
   public int getPriority() {
     return SourceDetector.HIGH_PRIORITY;

@@ -55,11 +55,22 @@ public interface FileSource extends StaticSource {
     return new DefaultWritable(path);
   }
 
+  /**
+   * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
+   *
+   * @return the type name
+   */
   @Override
   default String getName() {
     return "file";
   }
 
+  /**
+   * Returns the resource description, such as a file path, a URL, or a device index. Generated and specialized
+   * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
+   *
+   * @return the resource string
+   */
   @Override
   default String getResource() {
     final Path path = this.getPath();

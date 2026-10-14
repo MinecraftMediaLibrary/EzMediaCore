@@ -33,7 +33,10 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
   public FileSourceDetector() {}
 
   /**
-   * {@inheritDoc}
+   * Checks whether the string describes a source of this kind.
+   *
+   * @param raw the string entered by a user
+   * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
    */
   @Override
@@ -44,8 +47,10 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
   }
 
   /**
-   * {@inheritDoc}
+   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
    *
+   * @param raw the string entered by a user
+   * @return the source
    * @throws java.nio.file.InvalidPathException if the string is not a valid path on this file system
    * @throws NullPointerException               if {@code raw} is null
    */
@@ -57,6 +62,11 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
     return FileSource.path(path);
   }
 
+  /**
+   * Returns the priority of this detector.
+   *
+   * @return the priority, higher wins
+   */
   @Override
   public int getPriority() {
     return SourceDetector.HIGH_PRIORITY;

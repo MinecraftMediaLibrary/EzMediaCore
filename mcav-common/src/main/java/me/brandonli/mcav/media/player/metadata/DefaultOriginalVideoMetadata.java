@@ -38,26 +38,52 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
     this.videoFrameRate = videoFrameRate;
   }
 
+  /**
+   * Returns the width of the decoded frames.
+   *
+   * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   */
   @Override
   public int getVideoWidth() {
     return this.videoWidth;
   }
 
+  /**
+   * Returns the height of the decoded frames.
+   *
+   * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   */
   @Override
   public int getVideoHeight() {
     return this.videoHeight;
   }
 
+  /**
+   * Returns the bitrate of the video stream.
+   *
+   * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   */
   @Override
   public int getVideoBitrate() {
     return this.videoBitrate;
   }
 
+  /**
+   * Returns the frame rate of the video stream.
+   *
+   * @return the frame rate in frames per second, or {@link #UNKNOWN}
+   */
   @Override
   public float getVideoFrameRate() {
     return this.videoFrameRate;
   }
 
+  /**
+   * Returns whether {@code other} is a video metadata with the same size, bitrate and frame rate.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -77,11 +103,21 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
     );
   }
 
+  /**
+   * Returns a hash code built from the size, bitrate and frame rate.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.videoWidth, this.videoHeight, this.videoBitrate, this.videoFrameRate);
   }
 
+  /**
+   * Returns a debugging representation with the size, bitrate and frame rate.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

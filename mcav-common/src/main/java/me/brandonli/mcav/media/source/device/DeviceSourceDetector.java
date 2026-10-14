@@ -32,7 +32,10 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   public DeviceSourceDetector() {}
 
   /**
-   * {@inheritDoc}
+   * Checks whether the string describes a source of this kind.
+   *
+   * @param raw the string entered by a user
+   * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
    */
   @Override
@@ -44,8 +47,10 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   }
 
   /**
-   * {@inheritDoc}
+   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
    *
+   * @param raw the string entered by a user
+   * @return the source
    * @throws NumberFormatException    if the string is not a decimal {@code int}
    * @throws IllegalArgumentException if the parsed index is negative
    * @throws NullPointerException     if {@code raw} is null
@@ -58,6 +63,11 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
     return DeviceSource.device(deviceId);
   }
 
+  /**
+   * Returns the priority of this detector.
+   *
+   * @return the priority, higher wins
+   */
   @Override
   public int getPriority() {
     return SourceDetector.HIGH_PRIORITY;

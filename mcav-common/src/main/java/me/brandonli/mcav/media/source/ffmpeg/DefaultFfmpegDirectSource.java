@@ -34,16 +34,32 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
     this.format = format;
   }
 
+  /**
+   * Returns the FFmpeg input format.
+   *
+   * @return the format name
+   */
   @Override
   public String getFormat() {
     return this.format;
   }
 
+  /**
+   * Returns the input FFmpeg opens.
+   *
+   * @return the media resource locator
+   */
   @Override
   public String getMrl() {
     return this.mrl;
   }
 
+  /**
+   * Returns whether {@code other} is a direct FFmpeg source with the same resource and the format.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -57,11 +73,21 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
     return this.mrl.equals(source.mrl) && this.format.equals(source.format);
   }
 
+  /**
+   * Returns a hash code built from the resource and the format.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.mrl, this.format);
   }
 
+  /**
+   * Returns a debugging representation with the resource and the format.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("mrl", this.mrl).add("format", this.format).toString();

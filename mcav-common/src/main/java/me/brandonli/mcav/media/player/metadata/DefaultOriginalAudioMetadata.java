@@ -46,31 +46,62 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
     this.samplingFormat = samplingFormat;
   }
 
+  /**
+   * Returns the name of the codec of the audio stream.
+   *
+   * @return the codec name
+   */
   @Override
   public String getAudioCodec() {
     return this.codec;
   }
 
+  /**
+   * Returns the FFmpeg sample format identifier of the audio stream.
+   *
+   * @return the sample format, or {@link #UNKNOWN}
+   */
   @Override
   public int getSamplingFormat() {
     return this.samplingFormat;
   }
 
+  /**
+   * Returns the bitrate of the audio stream.
+   *
+   * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   */
   @Override
   public int getAudioBitrate() {
     return this.audioBitrate;
   }
 
+  /**
+   * Returns the sample rate of the audio stream.
+   *
+   * @return the sample rate in hertz
+   */
   @Override
   public int getAudioSampleRate() {
     return this.audioSampleRate;
   }
 
+  /**
+   * Returns the number of channels of the audio stream.
+   *
+   * @return the channel count
+   */
   @Override
   public int getAudioChannels() {
     return this.audioChannels;
   }
 
+  /**
+   * Returns whether {@code other} is an audio metadata with the same codec, bitrate, sample rate, channel count and sampling format.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -90,11 +121,21 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
     );
   }
 
+  /**
+   * Returns a hash code built from the codec, bitrate, sample rate, channel count and sampling format.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.codec, this.audioBitrate, this.audioSampleRate, this.audioChannels, this.samplingFormat);
   }
 
+  /**
+   * Returns a debugging representation with the codec, bitrate, sample rate, channel count and sampling format.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

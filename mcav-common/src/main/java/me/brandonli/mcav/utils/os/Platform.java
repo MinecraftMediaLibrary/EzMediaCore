@@ -110,6 +110,12 @@ public final class Platform {
     return this.os != Os.OTHER && this.arch != Arch.OTHER;
   }
 
+  /**
+   * Returns whether {@code other} is a platform with the same operating system, architecture and bitness.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -123,6 +129,11 @@ public final class Platform {
     return this.os == platform.os && this.arch == platform.arch && this.bits == platform.bits;
   }
 
+  /**
+   * Returns a hash code built from the operating system, architecture and bitness.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.os, this.arch, this.bits);

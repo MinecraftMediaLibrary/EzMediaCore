@@ -45,7 +45,9 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   }
 
   /**
-   * {@inheritDoc}
+   * Puts a value into the slot, replacing the previous one.
+   *
+   * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
    */
   @Override
@@ -55,17 +57,30 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
     this.attached.set(value);
   }
 
+  /**
+   * Empties the slot, restoring its default.
+   */
   @Override
   public void detach() {
     this.attached.set(null);
   }
 
+  /**
+   * Checks whether a value was explicitly attached, even if it is the fallback value.
+   *
+   * @return a snapshot of the attached state, which can change immediately after this call
+   */
   @Override
   public boolean isAttached() {
     final ValueType current = this.attached.get();
     return current != null;
   }
 
+  /**
+   * Returns the attached value, or the default when nothing is attached.
+   *
+   * @return the value
+   */
   @Override
   public ValueType retrieve() {
     final ValueType current = this.attached.get();

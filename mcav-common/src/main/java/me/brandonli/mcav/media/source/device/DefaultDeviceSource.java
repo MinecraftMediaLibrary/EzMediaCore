@@ -32,11 +32,22 @@ public final class DefaultDeviceSource implements DeviceSource {
     this.deviceId = deviceId;
   }
 
+  /**
+   * Returns the index of the device.
+   *
+   * @return the device index
+   */
   @Override
   public int getDeviceId() {
     return this.deviceId;
   }
 
+  /**
+   * Returns whether {@code other} is a device source with the same device index.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -50,11 +61,21 @@ public final class DefaultDeviceSource implements DeviceSource {
     return this.deviceId == source.deviceId;
   }
 
+  /**
+   * Returns a hash code built from the device index.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.deviceId);
   }
 
+  /**
+   * Returns a debugging representation with the device index.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("deviceId", this.deviceId).toString();

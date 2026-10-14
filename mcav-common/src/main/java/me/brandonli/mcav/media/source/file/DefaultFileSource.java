@@ -33,11 +33,22 @@ public final class DefaultFileSource implements FileSource {
     this.path = path;
   }
 
+  /**
+   * Returns the path of the file.
+   *
+   * @return the path
+   */
   @Override
   public Path getPath() {
     return this.path;
   }
 
+  /**
+   * Returns whether {@code other} is a file source with the same path.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
@@ -51,11 +62,21 @@ public final class DefaultFileSource implements FileSource {
     return this.path.equals(source.path);
   }
 
+  /**
+   * Returns a hash code built from the path.
+   *
+   * @return the hash code
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.path);
   }
 
+  /**
+   * Returns a debugging representation with the path.
+   *
+   * @return the representation
+   */
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("path", this.path).toString();
