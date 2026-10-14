@@ -241,23 +241,37 @@ public final class ThreadedImagePlayer implements ImagePlayer {
     }
 
     void run(final long periodNanoseconds) {
-      long deadline = ThreadedImagePlayer.this.clock.getAsLong();
+      final long start = ThreadedImagePlayer.this.clock.getAsLong();
       try {
-        while (ThreadedImagePlayer.this.playing.get()) {
-          deadline += periodNanoseconds;
-          this.renderFrame();
-          final long remaining = deadline - ThreadedImagePlayer.this.clock.getAsLong();
-          if (remaining > 0) {
-            ThreadedImagePlayer.this.park.accept(remaining);
-          } else {
-            deadline = ThreadedImagePlayer.this.clock.getAsLong();
-          }
-        }
+        this.renderUntilStopped(start, periodNanoseconds);
       } finally {
-        final ImageBuffer current = this.buffer;
-        if (current != null) {
-          current.release();
-        }
+        this.releaseBuffer();
+      }
+    }
+
+    private void renderUntilStopped(final long start, final long periodNanoseconds) {
+      long deadline = start;
+      while (ThreadedImagePlayer.this.playing.get()) {
+        deadline += periodNanoseconds;
+        this.renderFrame();
+        deadline = this.waitForDeadline(deadline);
+      }
+    }
+
+    private long waitForDeadline(final long deadline) {
+      final long remaining = deadline - ThreadedImagePlayer.this.clock.getAsLong();
+      if (remaining > 0) {
+        ThreadedImagePlayer.this.park.accept(remaining);
+        return deadline;
+      }
+
+      return ThreadedImagePlayer.this.clock.getAsLong();
+    }
+
+    private void releaseBuffer() {
+      final ImageBuffer current = this.buffer;
+      if (current != null) {
+        current.release();
       }
     }
 

@@ -206,22 +206,29 @@ public abstract class AbstractInstaller implements Installer {
     HttpDownloader.download(uri, destination, hash);
 
     if (executable) {
-      try {
-        markExecutable(destination);
-      } catch (final IOException exception) {
-        try {
-          Files.deleteIfExists(destination);
-        } catch (final IOException cleanupException) {
-          exception.addSuppressed(cleanupException);
-        }
-
-        throw exception;
-      }
+      this.markExecutableOrDelete(destination);
     }
 
     final Path installed = this.install(destination);
     this.writePathToConfiguration(installed);
     return installed;
+  }
+
+  private void markExecutableOrDelete(final Path destination) throws IOException {
+    try {
+      markExecutable(destination);
+    } catch (final IOException exception) {
+      this.deleteAfterFailure(destination, exception);
+      throw exception;
+    }
+  }
+
+  private void deleteAfterFailure(final Path destination, final IOException failure) {
+    try {
+      Files.deleteIfExists(destination);
+    } catch (final IOException cleanupException) {
+      failure.addSuppressed(cleanupException);
+    }
   }
 
   /**

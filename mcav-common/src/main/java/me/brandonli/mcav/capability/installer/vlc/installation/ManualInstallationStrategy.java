@@ -111,22 +111,24 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
       return Optional.empty();
     }
 
-    Optional<Path> found = Optional.empty();
     try (final Stream<Path> files = Files.walk(root, MAXIMUM_SEARCH_DEPTH)) {
       final Stream<Path> matching = files.filter(file -> matchesFileName(file, pattern));
       final Iterator<Path> candidates = matching.iterator();
-      while (candidates.hasNext()) {
-        final Path library = candidates.next();
-        final Path parentOrNull = library.getParent();
-        final Path parent = Objects.requireNonNull(parentOrNull, "A file found below a directory has a parent!");
-        if (Files.size(library) > 0 && containsCompanions(parent, companions)) {
-          found = Optional.of(parent);
-          break;
-        }
+      return findCompleteDirectory(candidates, companions);
+    }
+  }
+
+  private static Optional<Path> findCompleteDirectory(final Iterator<Path> candidates, final Pattern[] companions) throws IOException {
+    while (candidates.hasNext()) {
+      final Path library = candidates.next();
+      final Path parentOrNull = library.getParent();
+      final Path parent = Objects.requireNonNull(parentOrNull, "A file found below a directory has a parent!");
+      if (Files.size(library) > 0 && containsCompanions(parent, companions)) {
+        return Optional.of(parent);
       }
     }
 
-    return found;
+    return Optional.empty();
   }
 
   private static boolean containsCompanions(final Path directory, final Pattern[] companions) throws IOException {
@@ -140,20 +142,22 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   }
 
   private static boolean containsNonemptyLibrary(final Path directory, final Pattern pattern) throws IOException {
-    boolean found = false;
     try (final Stream<Path> files = Files.list(directory)) {
       final Stream<Path> matching = files.filter(file -> matchesFileName(file, pattern));
       final Iterator<Path> candidates = matching.iterator();
-      while (candidates.hasNext()) {
-        final Path library = candidates.next();
-        if (Files.size(library) > 0) {
-          found = true;
-          break;
-        }
+      return containsNonemptyFile(candidates);
+    }
+  }
+
+  private static boolean containsNonemptyFile(final Iterator<Path> candidates) throws IOException {
+    while (candidates.hasNext()) {
+      final Path library = candidates.next();
+      if (Files.size(library) > 0) {
+        return true;
       }
     }
 
-    return found;
+    return false;
   }
 
   private static boolean matchesFileName(final Path file, final Pattern pattern) {

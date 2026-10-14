@@ -298,17 +298,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
       final long now = this.clock.getAsLong();
       final Chunk next = this.queue.peekFirst();
       if (next != null && next.due() - now <= 0) {
-        this.queue.removeFirst();
-        final ByteBuffer samples = next.samples();
-        this.queuedBytes -= samples.remaining();
-
-        if (next.endsQuiet()) {
-          this.silenceLeftNanoseconds = 0;
-        }
-
-        this.streamEnd = Math.max(this.streamEnd, now) + nanosecondsOf(samples.remaining());
-
-        return samples;
+        return this.takeDue(next, now);
       }
       final ByteBuffer silence = this.silence(now, next);
       if (silence != null) {
@@ -324,6 +314,20 @@ public final class DelayedAudioOutput implements AutoCloseable {
     }
 
     return null;
+  }
+
+  private ByteBuffer takeDue(final Chunk next, final long now) {
+    this.queue.removeFirst();
+    final ByteBuffer samples = next.samples();
+    this.queuedBytes -= samples.remaining();
+
+    if (next.endsQuiet()) {
+      this.silenceLeftNanoseconds = 0;
+    }
+
+    this.streamEnd = Math.max(this.streamEnd, now) + nanosecondsOf(samples.remaining());
+
+    return samples;
   }
 
   /**

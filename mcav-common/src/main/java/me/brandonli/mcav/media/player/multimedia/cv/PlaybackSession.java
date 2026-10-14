@@ -570,23 +570,40 @@ final class PlaybackSession {
    */
   @VisibleForTesting
   <ElementType extends @NonNull Object> void signalEnd(final BlockingQueue<ElementType> queue, final ElementType marker) {
-    boolean interrupted = Thread.interrupted();
+    final boolean interruptedBefore = Thread.interrupted();
+    final AtomicBoolean interrupted = new AtomicBoolean(interruptedBefore);
     try {
-      while (this.running.get()) {
-        try {
-          final boolean offered = queue.offer(marker, END_OFFER_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
-          if (offered) {
-            return;
-          }
-        } catch (final InterruptedException exception) {
-          interrupted = true;
-        }
-      }
+      this.offerEndUntilStopped(queue, marker, interrupted);
     } finally {
-      if (interrupted) {
+      if (interrupted.get()) {
         final Thread currentThread = Thread.currentThread();
         currentThread.interrupt();
       }
+    }
+  }
+
+  private <ElementType extends @NonNull Object> void offerEndUntilStopped(
+    final BlockingQueue<ElementType> queue,
+    final ElementType marker,
+    final AtomicBoolean interrupted
+  ) {
+    boolean offered = false;
+    while (!offered && this.running.get()) {
+      offered = this.offerEnd(queue, marker, interrupted);
+    }
+  }
+
+  private <ElementType extends @NonNull Object> boolean offerEnd(
+    final BlockingQueue<ElementType> queue,
+    final ElementType marker,
+    final AtomicBoolean interrupted
+  ) {
+    try {
+      return queue.offer(marker, END_OFFER_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
+    } catch (final InterruptedException exception) {
+      interrupted.set(true);
+
+      return false;
     }
   }
 
@@ -654,17 +671,21 @@ final class PlaybackSession {
   private void runVideoPipeline(final VideoPipelineStep first, final MatImageBuffer image) {
     final OriginalVideoMetadata metadata = this.videoMetadata;
     try {
-      synchronized (this.videoCallback) {
-        // The callback slot survives replacement sessions, including a replacement started by this pipeline.
-        if (this.running.get()) {
-          first.processAll(image, metadata);
-        }
-      }
+      this.processVideoIfRunning(first, image, metadata);
     } catch (final RuntimeException | Error exception) {
       // filters are user code, and native filters can throw a LinkageError, so any failure is reported and playback
       // goes on; only a virtual machine error ends the thread, because reporting it would hide it
       ThrowableUtils.throwIfFatal(exception);
       this.report("Video filter failed", exception);
+    }
+  }
+
+  private void processVideoIfRunning(final VideoPipelineStep first, final MatImageBuffer image, final OriginalVideoMetadata metadata) {
+    synchronized (this.videoCallback) {
+      // The callback slot survives replacement sessions, including a replacement started by this pipeline.
+      if (this.running.get()) {
+        first.processAll(image, metadata);
+      }
     }
   }
 
@@ -724,16 +745,20 @@ final class PlaybackSession {
   private void runAudioPipeline(final AudioPipelineStep first, final ByteBuffer samples) {
     final OriginalAudioMetadata metadata = this.audioMetadata;
     try {
-      synchronized (this.audioCallback) {
-        if (this.running.get()) {
-          first.processAll(samples, metadata);
-        }
-      }
+      this.processAudioIfRunning(first, samples, metadata);
     } catch (final RuntimeException | Error exception) {
       // filters are user code, and native filters can throw a LinkageError, so any failure is reported and playback
       // goes on; only a virtual machine error ends the thread, because reporting it would hide it
       ThrowableUtils.throwIfFatal(exception);
       this.report("Audio filter failed", exception);
+    }
+  }
+
+  private void processAudioIfRunning(final AudioPipelineStep first, final ByteBuffer samples, final OriginalAudioMetadata metadata) {
+    synchronized (this.audioCallback) {
+      if (this.running.get()) {
+        first.processAll(samples, metadata);
+      }
     }
   }
 

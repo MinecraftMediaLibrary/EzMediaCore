@@ -474,21 +474,32 @@ public final class HttpDownloader {
         return;
       } catch (final IOException exception) {
         lastFailure = exception;
-        final String reason = exception.getMessage();
-        LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAXIMUM_ATTEMPTS);
-        final boolean retryable = isRetryable(exception);
-        if (!retryable) {
-          throw exception;
-        }
-
-        if (attempt < MAXIMUM_ATTEMPTS) {
-          sleepBeforeRetry(retryDelay, attempt);
-        }
+        logFailedAttempt(uri, exception, attempt);
+        rethrowUnlessRetryable(exception);
+        sleepUnlessLastAttempt(retryDelay, attempt);
       }
     }
 
     final String message = "Download of %s failed after %s attempts!".formatted(uri, MAXIMUM_ATTEMPTS);
     throw new IOException(message, lastFailure);
+  }
+
+  private static void logFailedAttempt(final URI uri, final IOException failure, final int attempt) {
+    final String reason = failure.getMessage();
+    LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAXIMUM_ATTEMPTS);
+  }
+
+  private static void rethrowUnlessRetryable(final IOException failure) throws IOException {
+    final boolean retryable = isRetryable(failure);
+    if (!retryable) {
+      throw failure;
+    }
+  }
+
+  private static void sleepUnlessLastAttempt(final Duration retryDelay, final int attempt) throws IOException {
+    if (attempt < MAXIMUM_ATTEMPTS) {
+      sleepBeforeRetry(retryDelay, attempt);
+    }
   }
 
   /**

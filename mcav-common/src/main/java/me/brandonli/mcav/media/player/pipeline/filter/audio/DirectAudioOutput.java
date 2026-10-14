@@ -145,24 +145,30 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     try {
       final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / MILLISECONDS_PER_SECOND;
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
-      try {
-        opened.start();
-      } catch (final RuntimeException | Error exception) {
-        ThrowableUtils.throwIfFatal(exception);
-        try {
-          opened.close();
-        } catch (final RuntimeException | Error cleanupException) {
-          suppressCleanupFailure(exception, cleanupException);
-        }
-
-        throw exception;
-      }
-
+      this.startOrClose(opened);
       this.line = opened;
     } catch (final LineUnavailableException | IllegalArgumentException exception) {
       final String reason = exception.getMessage();
       final String message = "Default audio device could not be opened because of \"%s\"!".formatted(reason);
       throw new PlayerException(message, exception);
+    }
+  }
+
+  private void startOrClose(final SourceDataLine opened) {
+    try {
+      opened.start();
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      this.closeAfterFailedStart(opened, exception);
+      throw exception;
+    }
+  }
+
+  private void closeAfterFailedStart(final SourceDataLine opened, final Throwable failure) {
+    try {
+      opened.close();
+    } catch (final RuntimeException | Error cleanupException) {
+      suppressCleanupFailure(failure, cleanupException);
     }
   }
 
@@ -184,17 +190,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     Throwable failure = null;
     final List<Runnable> cleanup = List.of(currentLine::stop, currentLine::flush, currentLine::close);
     for (final Runnable action : cleanup) {
-      try {
-        action.run();
-      } catch (final RuntimeException | Error exception) {
-        ThrowableUtils.throwIfFatal(exception);
-
-        if (failure == null) {
-          failure = exception;
-        } else {
-          suppressCleanupFailure(failure, exception);
-        }
-      }
+      failure = this.runCleanupAction(action, failure);
     }
 
     if (failure instanceof final RuntimeException runtime) {
@@ -203,6 +199,23 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
 
     if (failure instanceof final Error error) {
       throw error;
+    }
+  }
+
+  private @Nullable Throwable runCleanupAction(final Runnable action, final @Nullable Throwable failure) {
+    try {
+      action.run();
+      return failure;
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+
+      if (failure == null) {
+        return exception;
+      }
+
+      suppressCleanupFailure(failure, exception);
+
+      return failure;
     }
   }
 

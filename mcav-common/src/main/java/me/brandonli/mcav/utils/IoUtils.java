@@ -329,12 +329,15 @@ public final class IoUtils {
         moveOnce(source, target, mover);
         return;
       } catch (final AccessDeniedException exception) {
-        if (attempt == MOVE_ATTEMPTS) {
-          throw exception;
-        }
-
+        rethrowOnLastMoveAttempt(attempt, exception);
         sleepBeforeMoveRetry(retryDelay, attempt, exception);
       }
+    }
+  }
+
+  private static void rethrowOnLastMoveAttempt(final int attempt, final AccessDeniedException failure) throws AccessDeniedException {
+    if (attempt == MOVE_ATTEMPTS) {
+      throw failure;
     }
   }
 
@@ -677,15 +680,19 @@ public final class IoUtils {
       }
 
       if (empty) {
-        final int commentLow = header[ZIP_COMMENT_LENGTH_LOW] & UNSIGNED_BYTE_MASK;
-        final int commentHigh = header[ZIP_COMMENT_LENGTH_HIGH] & UNSIGNED_BYTE_MASK;
-        final int commentLength = commentLow | (commentHigh << BITS_PER_BYTE);
-        final byte[] comment = stream.readNBytes(commentLength);
-        if (comment.length != commentLength) {
-          final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
-          throw new ZipException(message);
-        }
+        requireCompleteComment(stream, header, archive);
       }
+    }
+  }
+
+  private static void requireCompleteComment(final InputStream stream, final byte[] header, final Path archive) throws IOException {
+    final int commentLow = header[ZIP_COMMENT_LENGTH_LOW] & UNSIGNED_BYTE_MASK;
+    final int commentHigh = header[ZIP_COMMENT_LENGTH_HIGH] & UNSIGNED_BYTE_MASK;
+    final int commentLength = commentLow | (commentHigh << BITS_PER_BYTE);
+    final byte[] comment = stream.readNBytes(commentLength);
+    if (comment.length != commentLength) {
+      final String message = TRUNCATED_ARCHIVE_MESSAGE.formatted(archive);
+      throw new ZipException(message);
     }
   }
 
@@ -819,7 +826,6 @@ public final class IoUtils {
     final long maximumEntrySize,
     final long remainingTotalSize
   ) throws IOException {
-    long entrySize = 0;
     try (
       final OutputStream output = Files.newOutputStream(
         target,
@@ -829,20 +835,31 @@ public final class IoUtils {
         LinkOption.NOFOLLOW_LINKS
       )
     ) {
-      final byte[] buffer = new byte[COPY_BUFFER_SIZE];
-      int read = zip.read(buffer);
-      while (read != -1) {
-        if (read > maximumEntrySize - entrySize) {
-          final String message = "Zip entry %s exceeds the maximum size!".formatted(name);
-          throw new ZipEntryIntegrityException(message);
-        }
-        if (read > remainingTotalSize - entrySize) {
-          throw new ZipEntryIntegrityException("Total extracted size exceeds the limit!");
-        }
-        output.write(buffer, 0, read);
-        entrySize += read;
-        read = zip.read(buffer);
+      return copyZipEntry(zip, output, name, maximumEntrySize, remainingTotalSize);
+    }
+  }
+
+  private static long copyZipEntry(
+    final ZipInputStream zip,
+    final OutputStream output,
+    final String name,
+    final long maximumEntrySize,
+    final long remainingTotalSize
+  ) throws IOException {
+    long entrySize = 0;
+    final byte[] buffer = new byte[COPY_BUFFER_SIZE];
+    int read = zip.read(buffer);
+    while (read != -1) {
+      if (read > maximumEntrySize - entrySize) {
+        final String message = "Zip entry %s exceeds the maximum size!".formatted(name);
+        throw new ZipEntryIntegrityException(message);
       }
+      if (read > remainingTotalSize - entrySize) {
+        throw new ZipEntryIntegrityException("Total extracted size exceeds the limit!");
+      }
+      output.write(buffer, 0, read);
+      entrySize += read;
+      read = zip.read(buffer);
     }
 
     return entrySize;

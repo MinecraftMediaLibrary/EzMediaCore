@@ -24,6 +24,7 @@ import java.lang.foreign.ValueLayout;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -128,6 +129,7 @@ final class DeclaredImageSize {
   private static final String PAM_DEPTH = "DEPTH";
   private static final String PAM_MAXIMUM_VALUE = "MAXVAL";
   private static final String PAM_TUPLE_TYPE = "TUPLTYPE";
+  private static final Set<String> PAM_FIELDS = Set.of(PAM_WIDTH, PAM_HEIGHT, PAM_DEPTH, PAM_MAXIMUM_VALUE, PAM_TUPLE_TYPE);
 
   private static final String TIFF_LITTLE_ENDIAN_SIGNATURE = "II";
   private static final String TIFF_BIG_ENDIAN_SIGNATURE = "MM";
@@ -487,22 +489,51 @@ final class DeclaredImageSize {
   }
 
   private static long pnmNumber(final Header header, final long[] position) {
-    int code = header.unsigned8(position[0]++);
-    while (!isDigit(code)) {
-      if (code == '#') {
-        do {
-          code = header.unsigned8(position[0]++);
-        } while (code >= 0 && code != '\n' && code != '\r');
-        code = header.unsigned8(position[0]++);
-      } else if (isSpace(code)) {
-        while (isSpace(code)) {
-          code = header.unsigned8(position[0]++);
-        }
-      } else {
-        return -1;
-      }
+    final int first = skipPnmSeparators(header, position);
+    if (!isDigit(first)) {
+      return -1;
     }
 
+    return readPnmDecimal(header, position, first);
+  }
+
+  private static int skipPnmSeparators(final Header header, final long[] position) {
+    int code = header.unsigned8(position[0]++);
+    while (code == '#' || isSpace(code)) {
+      code = skipPnmSeparator(header, position, code);
+    }
+
+    return code;
+  }
+
+  private static int skipPnmSeparator(final Header header, final long[] position, final int first) {
+    if (first == '#') {
+      return skipPnmComment(header, position);
+    }
+
+    return skipPnmSpaces(header, position, first);
+  }
+
+  private static int skipPnmComment(final Header header, final long[] position) {
+    int code;
+    do {
+      code = header.unsigned8(position[0]++);
+    } while (code >= 0 && code != '\n' && code != '\r');
+
+    return header.unsigned8(position[0]++);
+  }
+
+  private static int skipPnmSpaces(final Header header, final long[] position, final int first) {
+    int code = first;
+    while (isSpace(code)) {
+      code = header.unsigned8(position[0]++);
+    }
+
+    return code;
+  }
+
+  private static long readPnmDecimal(final Header header, final long[] position, final int first) {
+    int code = first;
     long value = 0;
     while (isDigit(code) && value <= Integer.MAX_VALUE) {
       value = value * DECIMAL_BASE + (code - '0');
@@ -532,17 +563,20 @@ final class DeclaredImageSize {
       final String[] parts = PAM_SEPARATOR.split(trimmed, PAM_LINE_PARTS);
       final String name = parts[0];
       final String value = parts.length > 1 ? parts[1] : "";
-      switch (name) {
-        case PAM_END -> {
-          return of(width, height);
-        }
-        case PAM_WIDTH -> width = width < 0 ? decimal(value) : REFUSED;
-        case PAM_HEIGHT -> height = height < 0 ? decimal(value) : REFUSED;
-        case PAM_DEPTH, PAM_MAXIMUM_VALUE, PAM_TUPLE_TYPE -> {
-        }
-        default -> {
-          return null;
-        }
+      if (PAM_END.equals(name)) {
+        return of(width, height);
+      }
+
+      if (!PAM_FIELDS.contains(name)) {
+        return null;
+      }
+
+      if (PAM_WIDTH.equals(name)) {
+        width = width < 0 ? decimal(value) : REFUSED;
+      }
+
+      if (PAM_HEIGHT.equals(name)) {
+        height = height < 0 ? decimal(value) : REFUSED;
       }
     }
   }
