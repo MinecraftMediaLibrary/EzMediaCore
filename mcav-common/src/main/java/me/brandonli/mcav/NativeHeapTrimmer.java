@@ -62,7 +62,6 @@ final class NativeHeapTrimmer implements AutoCloseable {
 
   static final long NO_JVM_INTERVAL = -1L;
 
-  // The trim threshold the trimmer fixes in glibc, in bytes.
   static final int TRIM_THRESHOLD_BYTES = 128 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NativeHeapTrimmer.class);
@@ -180,13 +179,11 @@ final class NativeHeapTrimmer implements AutoCloseable {
     return trimWithJdk(server);
   }
 
-  // Fixes glibc's trim threshold at TRIM_THRESHOLD_BYTES bytes with mallopt, where the C library is glibc.
   @VisibleForTesting
   static boolean fixGlibcTrimThreshold() {
     return fixGlibcTrimThreshold(Linker.nativeLinker().defaultLookup());
   }
 
-  // Fixes glibc's trim threshold with the mallopt of a C library, if the library is glibc.
   @VisibleForTesting
   @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   static boolean fixGlibcTrimThreshold(final SymbolLookup library) {
@@ -200,7 +197,6 @@ final class NativeHeapTrimmer implements AutoCloseable {
     return setTrimThreshold(Linker.nativeLinker().downcallHandle(malloptAddress, descriptor));
   }
 
-  // Sets the trim threshold at TRIM_THRESHOLD_BYTES bytes with glibc's mallopt.
   @VisibleForTesting
   static boolean setTrimThreshold(final MethodHandle mallopt) {
     try {

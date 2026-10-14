@@ -140,8 +140,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Returns the colors of the palette as opaque ARGB integers, indexed by palette index. Reserved transparent indices
-   * hold zero.
+   * Returns the colors of this palette as opaque ARGB integers, indexed by palette index. Reserved transparent indices hold zero.
    *
    * @return the colors, which are shared and must not be modified
    * @since 1.0.0
@@ -152,7 +151,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Returns the number of colors, including reserved indices.
+   * Returns the number of colors of this palette, including reserved indices.
    *
    * @return the palette size
    * @since 1.0.0
@@ -163,7 +162,7 @@ public class ColorPalette implements DitherPalette {
   }
 
   /**
-   * Returns the number of leading indices that are reserved for transparency and never returned by the lookup tables.
+   * Returns the number of leading indices of this palette that are reserved for transparency and never returned by the lookup tables.
    *
    * @return the reserved index count
    * @since 1.0.0

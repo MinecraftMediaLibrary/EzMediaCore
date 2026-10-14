@@ -97,8 +97,8 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
   }
 
   /**
-   * Runs yt-dlp on a URL and parses the first JSON output line. The default command disables playlists on
-   * watch pages and selects the first playlist entry; supplied options can override these command defaults.
+   * Runs the yt-dlp executable on a URL and parses the first JSON output line. The default command disables playlists on watch pages and
+   * selects the first playlist entry; supplied options can override these command defaults.
    *
    * @param input     the non-null web-page source with an absolute {@code http} or {@code https} URI
    * @param arguments a non-null array of non-null extra yt-dlp options, passed verbatim after defaults and

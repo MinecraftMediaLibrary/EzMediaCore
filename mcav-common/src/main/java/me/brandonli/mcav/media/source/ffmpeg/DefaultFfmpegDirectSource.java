@@ -39,7 +39,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
   }
 
   /**
-   * Returns the FFmpeg input format.
+   * Returns the FFmpeg input format this source was created with.
    *
    * @return the format name
    * @since 1.0.0
@@ -50,7 +50,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
   }
 
   /**
-   * Returns the input FFmpeg opens.
+   * Returns the input this source passes to FFmpeg.
    *
    * @return the media resource locator
    * @since 1.0.0

@@ -62,7 +62,7 @@ final class AudioRenderer extends AudioCallbackAdapter {
   private final BlockingQueue<ByteBuffer> queue;
   private final RenderThread thread;
 
-  // Constructs a new renderer. Samples are dropped until start() is called.
+  // Samples are dropped until start() is called.
   AudioRenderer(final VideoPlayerMultiplexer owner) {
     this.owner = owner;
     this.queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);

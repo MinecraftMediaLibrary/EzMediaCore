@@ -125,8 +125,8 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Starts playing a source that contains both video and audio, replacing the current playback. Waits until VLC has
-   * reported an opening event or the five-second event wait expires. The current playback keeps playing if VLC cannot even be set up for the new source.
+   * Starts playing a source that contains both video and audio, replacing the current playback. Waits until VLC has reported an opening
+   * event or the five-second event wait expires. The current playback keeps playing if VLC cannot even be set up for the new source.
    *
    * @param combined the source
    * @return true if playback was accepted, including a slow open that outlives the event wait; false if the player is released, another start is in progress, or the source
@@ -342,7 +342,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Pauses playback, keeping the current position.
+   * Pauses VLC playback, keeping the current position.
    *
    * @return true if playback was paused, false if nothing is playing or it was already paused
    * @since 1.0.0
@@ -363,7 +363,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Resumes playback after {@link #pause()}.
+   * Resumes VLC playback after {@link #pause()}.
    *
    * @return true if playback was resumed, false if nothing is playing or it was not paused
    * @since 1.0.0

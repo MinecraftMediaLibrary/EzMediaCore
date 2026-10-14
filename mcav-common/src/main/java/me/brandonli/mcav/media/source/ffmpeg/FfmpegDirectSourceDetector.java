@@ -41,7 +41,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   public FfmpegDirectSourceDetector() {}
 
   /**
-   * Checks whether the string describes a source of this kind.
+   * Checks whether the string has the form {@code format||input} with both parts non-blank.
    *
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
@@ -65,7 +65,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   }
 
   /**
-   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
+   * Creates an FFmpeg source from the format and the input on either side of {@code ||}.
    *
    * @param raw the string entered by a user
    * @return the source
@@ -86,7 +86,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
   }
 
   /**
-   * Returns the priority of this detector.
+   * Returns {@link SourceDetector#HIGH_PRIORITY}, because the {@code ||} separator marks a direct FFmpeg source on purpose.
    *
    * @return the priority, higher wins
    * @since 1.0.0

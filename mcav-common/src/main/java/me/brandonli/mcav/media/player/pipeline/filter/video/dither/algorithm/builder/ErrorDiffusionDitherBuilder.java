@@ -31,7 +31,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
   /**
-   * Creates the algorithm.
+   * Creates an error diffusion algorithm from the kernel, thresholds, strength and palette set on this builder.
    *
    * @return the algorithm
    * @since 1.0.0
@@ -40,7 +40,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
   ErrorDiffusionDither build();
 
   /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   * Sets the palette the error diffusion algorithm reduces images to. Defaults to the Minecraft map palette.
    *
    * @param palette the palette
    * @return this builder

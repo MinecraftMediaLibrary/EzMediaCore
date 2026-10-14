@@ -23,7 +23,7 @@ final class DecodedFrame {
   private final int width;
   private final int height;
 
-  // Constructs a new frame. The array is taken over, not copied.
+  // The array is taken over, not copied.
   DecodedFrame(final int[] pixels, final int width, final int height) {
     this.pixels = pixels;
     this.width = width;

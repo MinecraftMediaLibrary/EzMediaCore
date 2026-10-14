@@ -38,7 +38,7 @@ final class SharedMediaPlayerFactory {
   private @Nullable MediaPlayerFactory factory;
   private int references;
 
-  // Constructs a new shared factory. Use getInstance() outside of tests.
+  // Use getInstance() outside of tests.
   @VisibleForTesting
   SharedMediaPlayerFactory(final Supplier<MediaPlayerFactory> creator) {
     Preconditions.checkNotNull(creator, "Creator must not be null!");

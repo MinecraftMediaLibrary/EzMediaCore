@@ -70,7 +70,7 @@ final class VideoRenderer implements RenderCallback {
   private volatile int height;
   private volatile OriginalVideoMetadata metadata;
 
-  // Constructs a new renderer. Frames are dropped until start() is called.
+  // Frames are dropped until start() is called.
   VideoRenderer(final VideoPlayerMultiplexer owner) {
     this.owner = owner;
     this.pendingFrame = new ArrayBlockingQueue<>(1);

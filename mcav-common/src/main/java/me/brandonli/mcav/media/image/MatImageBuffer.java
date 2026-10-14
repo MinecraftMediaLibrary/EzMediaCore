@@ -539,7 +539,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Copies the image into a new Java image of type {@link BufferedImage#TYPE_3BYTE_BGR}.
+   * Copies the backing OpenCV matrix into a new Java image of type {@link BufferedImage#TYPE_3BYTE_BGR}.
    *
    * @return a new Java image
    * @throws IllegalStateException if the image was released
@@ -561,7 +561,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Replaces the content of this buffer with a Java image, resizing the buffer if necessary.
+   * Replaces the content of this buffer with a Java image, converting it to BGR and resizing the backing OpenCV matrix if necessary.
    *
    * @param image the image to copy
    * @throws IllegalStateException if the image was released
@@ -620,7 +620,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Sets the color of one pixel.
+   * Sets the color of one pixel in the backing OpenCV matrix.
    *
    * @param column the zero-based column, less than {@link #getWidth()}
    * @param row    the zero-based row, less than {@link #getHeight()}
@@ -653,7 +653,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns the color of one pixel.
+   * Returns the color of one pixel, read from the backing OpenCV matrix.
    *
    * @param column the zero-based column, less than {@link #getWidth()}
    * @param row    the zero-based row, less than {@link #getHeight()}
@@ -686,7 +686,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns the width of the image.
+   * Returns the width of the image, read from the column count of the backing OpenCV matrix.
    *
    * @return the width in pixels
    * @throws IllegalStateException if the image was released
@@ -700,7 +700,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns the height of the image.
+   * Returns the height of the image, read from the row count of the backing OpenCV matrix.
    *
    * @return the height in pixels
    * @throws IllegalStateException if the image was released
@@ -714,7 +714,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns the number of pixels of the image.
+   * Returns the number of pixels of the image, the column count times the row count of the backing OpenCV matrix.
    *
    * @return the width multiplied by the height
    * @throws IllegalStateException if the image was released
@@ -730,7 +730,8 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns every pixel as packed ARGB integers, laid out row by row, without copying them.
+   * Returns every pixel as packed ARGB integers, laid out row by row, without copying them. The array is converted from the backing OpenCV
+   * matrix and cached until the matrix is replaced or {@link #invalidateCache()} is called.
    *
    * <p><strong>The array is shared and must be treated as read-only.</strong> It is computed once and cached, and
    * every caller receives the same instance until the image changes. Writing into it does not change the image
@@ -796,9 +797,9 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Returns a view of the raw 8-bit BGR pixels of the image, without padding. The pixels are the bytes between the
-   * position and the limit of the returned buffer. The buffer shares memory with the image: changes to it change the
-   * image, and it becomes invalid when the image is resized, transformed or released.
+   * Returns a view of the raw 8-bit BGR pixels of the backing OpenCV matrix, without padding. The pixels are the bytes between the position
+   * and the limit of the returned buffer. The buffer shares memory with the image: changes to it change the image, and it becomes invalid
+   * when the image is resized, transformed or released.
    *
    * @return a direct buffer over the pixels
    * @throws IllegalStateException if the image was released
@@ -812,10 +813,9 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Replaces the pixels of the image with raw 8-bit BGR pixels, reusing the native memory when the dimensions did
-   * not change. The bytes are copied from the current position of the buffer to its limit. Dimensions must be
-   * positive and their packed BGR representation must fit within {@link Integer#MAX_VALUE} bytes. The source
-   * position and limit are unchanged.
+   * Replaces the pixels of the backing OpenCV matrix with raw 8-bit BGR pixels, reusing its native memory when the dimensions did not
+   * change. The bytes are copied from the current position of the buffer to its limit. Dimensions must be positive and their packed BGR
+   * representation must fit within {@link Integer#MAX_VALUE} bytes. The source position and limit are unchanged.
    *
    * @param data   the pixels, exactly {@code width * height * 3} bytes remaining
    * @param width  the new width in pixels
@@ -845,9 +845,9 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Replaces the pixels of the image with packed ARGB pixels, reusing the native memory when the dimensions did
-   * not change. The alpha channel is discarded. Dimensions must be positive and the resulting packed BGR
-   * representation must fit within {@link Integer#MAX_VALUE} bytes.
+   * Replaces the pixels of the backing OpenCV matrix with packed ARGB pixels, reusing its native memory when the dimensions did not change.
+   * The alpha channel is discarded. Dimensions must be positive and the resulting packed BGR representation must fit within {@link
+   * Integer#MAX_VALUE} bytes.
    *
    * @param pixels the pixels, exactly {@code width * height} integers laid out row by row
    * @param width  the new width in pixels
@@ -875,8 +875,8 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Discards the cached ARGB pixel array, so the next call to {@link #getPixels()} reads the image again. Video
-   * filters call this after modifying the image through {@link #getData()} or through OpenCV directly.
+   * Discards the ARGB pixel array cached from the backing OpenCV matrix, so the next call to {@link #getPixels()} converts the image again.
+   * Video filters call this after modifying the image through {@link #getData()} or through OpenCV directly.
    *
    * @since 1.0.0
    */
@@ -886,7 +886,7 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Creates a deep copy of this image that is independent of it.
+   * Creates a deep copy of this image by cloning its OpenCV matrix, so the copy shares no native memory with it.
    *
    * @return a new image buffer with the same pixels
    * @throws IllegalStateException if the image was released
@@ -901,9 +901,9 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   /**
-   * Releases the native memory of the image. Calling this method more than once has no effect, and every other
-   * operation accessing native pixels or dimensions throws {@link IllegalStateException} afterward.
-   * {@link #invalidateCache()} remains harmless. Previously returned native views must no longer be used.
+   * Releases the backing OpenCV matrix and its spare buffer. Calling this method more than once has no effect, and every other operation
+   * accessing native pixels or dimensions throws {@link IllegalStateException} afterward. {@link #invalidateCache()} remains harmless.
+   * Previously returned native views must no longer be used.
    *
    * @since 1.0.0
    */

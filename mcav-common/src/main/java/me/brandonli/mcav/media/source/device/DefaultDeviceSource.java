@@ -37,7 +37,7 @@ public final class DefaultDeviceSource implements DeviceSource {
   }
 
   /**
-   * Returns the index of the device.
+   * Returns the camera index this source was created with.
    *
    * @return the device index
    * @since 1.0.0

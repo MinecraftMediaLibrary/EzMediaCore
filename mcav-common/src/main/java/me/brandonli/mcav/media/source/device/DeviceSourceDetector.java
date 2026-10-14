@@ -38,7 +38,7 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   public DeviceSourceDetector() {}
 
   /**
-   * Checks whether the string describes a source of this kind.
+   * Checks whether the string is a non-negative integer, which names a camera index.
    *
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
@@ -54,7 +54,7 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   }
 
   /**
-   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
+   * Creates a device source for the camera index the string holds.
    *
    * @param raw the string entered by a user
    * @return the source
@@ -72,7 +72,7 @@ public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
   }
 
   /**
-   * Returns the priority of this detector.
+   * Returns {@link SourceDetector#HIGH_PRIORITY}, because a non-negative integer is never meant as a path or a URI.
    *
    * @return the priority, higher wins
    * @since 1.0.0

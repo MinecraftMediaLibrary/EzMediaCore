@@ -68,7 +68,7 @@ public interface FfmpegDirectSource extends DynamicSource {
   String getFormat();
 
   /**
-   * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
+   * Returns {@code ffmpeg}, the name that log messages give direct FFmpeg sources.
    *
    * @return the type name
    * @since 1.0.0
@@ -79,8 +79,8 @@ public interface FfmpegDirectSource extends DynamicSource {
   }
 
   /**
-   * Returns the resource description, such as a file path, a URL, or a device index. Generated and specialized
-   * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
+   * Returns the input this source passes to FFmpeg, see {@link #getMrl()}. Generated and specialized sources may return a diagnostic string
+   * that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
    * @since 1.0.0

@@ -38,14 +38,14 @@ final class RenderThread {
 
   private @Nullable Thread thread;
 
-  // Constructs a new render thread. Nothing runs until start(Step, Runnable) is called.
+  // Nothing runs until start(Step, Runnable) is called.
   RenderThread(final String name, final Consumer<RuntimeException> failureHandler) {
     this.name = name;
     this.failureHandler = failureHandler;
     this.running = new AtomicBoolean(false);
   }
 
-  // Starts the thread. A render thread can only be started once.
+  // A render thread can only be started once.
   void start(final Step step, final Runnable cleanup) {
     Preconditions.checkState(this.thread == null, "Render thread %s was already started!", this.name);
 

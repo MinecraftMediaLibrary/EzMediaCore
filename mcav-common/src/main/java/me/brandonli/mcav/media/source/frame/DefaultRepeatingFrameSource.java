@@ -60,7 +60,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   /**
-   * Returns the supplier of frames.
+   * Returns a supplier that hands out the next animation frame on each call and repeats the last frame once every loop has played.
    *
    * @return the supplier
    * @since 1.0.0
@@ -93,7 +93,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   /**
-   * Returns how often the animation is played.
+   * Returns how often this source plays the animation.
    *
    * @return the repeat count, or {@link Integer#MAX_VALUE} for endless looping
    * @since 1.0.0
@@ -104,7 +104,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   /**
-   * Returns the width of the frames.
+   * Returns the width of the animation's first frame, which every frame shares.
    *
    * @return the width in pixels
    * @since 1.0.0
@@ -115,7 +115,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   /**
-   * Returns the height of the frames.
+   * Returns the height of the animation's first frame, which every frame shares.
    *
    * @return the height in pixels
    * @since 1.0.0
@@ -126,7 +126,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   /**
-   * Returns the rate at which frames are requested from the supplier.
+   * Returns the frame rate of the animation, at which the player requests its frames.
    *
    * @return the frame rate in frames per second
    * @since 1.0.0

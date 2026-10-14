@@ -29,7 +29,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public interface NearestDitherBuilder extends DitherAlgorithmBuilder {
   /**
-   * Creates the algorithm.
+   * Creates a nearest color algorithm from the palette set on this builder.
    *
    * @return the algorithm
    * @since 1.0.0
@@ -38,7 +38,7 @@ public interface NearestDitherBuilder extends DitherAlgorithmBuilder {
   NearestDither build();
 
   /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   * Sets the palette the nearest color algorithm reduces images to. Defaults to the Minecraft map palette.
    *
    * @param palette the palette
    * @return this builder

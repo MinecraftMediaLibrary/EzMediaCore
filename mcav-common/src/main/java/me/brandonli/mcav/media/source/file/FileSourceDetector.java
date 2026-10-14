@@ -39,7 +39,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
   public FileSourceDetector() {}
 
   /**
-   * Checks whether the string describes a source of this kind.
+   * Checks whether the string is a path that exists on disk.
    *
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
@@ -54,7 +54,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
   }
 
   /**
-   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
+   * Creates a file source for the path the string holds.
    *
    * @param raw the string entered by a user
    * @return the source
@@ -71,7 +71,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
   }
 
   /**
-   * Returns the priority of this detector.
+   * Returns {@link SourceDetector#HIGH_PRIORITY}, so an existing path wins over a URI reading of the same string.
    *
    * @return the priority, higher wins
    * @since 1.0.0

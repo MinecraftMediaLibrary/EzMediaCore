@@ -128,7 +128,7 @@ public final class HttpHeaders {
   }
 
   /**
-   * Returns a hash code built from every value.
+   * Returns a hash code built from all four headers.
    *
    * @return the hash code
    * @since 1.0.0
@@ -139,7 +139,7 @@ public final class HttpHeaders {
   }
 
   /**
-   * Returns a debugging representation with every value.
+   * Returns a debugging representation with all four headers.
    *
    * @return the representation
    * @since 1.0.0

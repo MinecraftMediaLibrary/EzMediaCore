@@ -38,7 +38,7 @@ public final class DefaultFileSource implements FileSource {
   }
 
   /**
-   * Returns the path of the file.
+   * Returns the path of the file this source reads.
    *
    * @return the path
    * @since 1.0.0

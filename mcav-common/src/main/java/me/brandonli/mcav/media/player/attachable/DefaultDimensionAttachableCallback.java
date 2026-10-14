@@ -34,7 +34,7 @@ public final class DefaultDimensionAttachableCallback extends AbstractAttachable
   }
 
   /**
-   * Puts a value into the slot, replacing the previous one.
+   * Stores a non-empty dimension in this callback's slot, replacing the dimension attached before.
    *
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws IllegalArgumentException if either dimension is zero

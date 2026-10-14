@@ -39,7 +39,7 @@ public final class SupplierFrameSource implements FrameSource {
   }
 
   /**
-   * Returns the supplier of frames.
+   * Returns the supplier this source was created with.
    *
    * @return the supplier
    * @since 1.0.0
@@ -50,7 +50,7 @@ public final class SupplierFrameSource implements FrameSource {
   }
 
   /**
-   * Returns the width of the frames.
+   * Returns the frame width this source was created with.
    *
    * @return the width in pixels
    * @since 1.0.0
@@ -61,7 +61,7 @@ public final class SupplierFrameSource implements FrameSource {
   }
 
   /**
-   * Returns the height of the frames.
+   * Returns the frame height this source was created with.
    *
    * @return the height in pixels
    * @since 1.0.0
@@ -72,7 +72,7 @@ public final class SupplierFrameSource implements FrameSource {
   }
 
   /**
-   * Returns the rate at which frames are requested from the supplier.
+   * Returns the frame rate this source was created with, at which the player calls the supplier.
    *
    * @return the frame rate in frames per second
    * @since 1.0.0

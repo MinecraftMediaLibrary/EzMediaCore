@@ -42,7 +42,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
   }
 
   /**
-   * Returns the step that follows this one.
+   * Returns the audio step that follows this one, or an empty optional when this step is the last.
    *
    * @return the next step, or empty if this is the last step
    * @since 1.0.0
@@ -69,7 +69,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
   }
 
   /**
-   * Returns the filter this step applies.
+   * Returns the audio filter this step was created with.
    *
    * @return the filter
    * @since 1.0.0

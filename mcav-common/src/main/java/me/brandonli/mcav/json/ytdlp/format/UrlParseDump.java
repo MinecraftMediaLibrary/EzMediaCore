@@ -1382,7 +1382,7 @@ public final class UrlParseDump {
   }
 
   /**
-   * Returns a hash code built from every value.
+   * Returns a hash code built from every field of this dump.
    *
    * @return the hash code
    * @since 1.0.0
@@ -1477,7 +1477,7 @@ public final class UrlParseDump {
   }
 
   /**
-   * Returns a debugging representation with every value.
+   * Returns a debugging representation with every field of this dump.
    *
    * @return the representation
    * @since 1.0.0

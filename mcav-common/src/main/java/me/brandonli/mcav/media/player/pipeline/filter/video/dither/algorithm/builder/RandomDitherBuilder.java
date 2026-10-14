@@ -29,7 +29,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  */
 public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
   /**
-   * Creates the algorithm.
+   * Creates a random noise algorithm from the weight and palette set on this builder.
    *
    * @return the algorithm
    * @since 1.0.0
@@ -38,7 +38,7 @@ public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
   RandomDither build();
 
   /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   * Sets the palette the random noise algorithm reduces images to. Defaults to the Minecraft map palette.
    *
    * @param palette the palette
    * @return this builder

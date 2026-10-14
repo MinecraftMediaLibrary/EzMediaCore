@@ -84,7 +84,7 @@ public final class Fragment {
   }
 
   /**
-   * Returns a hash code built from every value.
+   * Returns a hash code built from the URL and the duration of this fragment.
    *
    * @return the hash code
    * @since 1.0.0
@@ -95,7 +95,7 @@ public final class Fragment {
   }
 
   /**
-   * Returns a debugging representation with every value.
+   * Returns a debugging representation with the URL and the duration of this fragment.
    *
    * @return the representation
    * @since 1.0.0

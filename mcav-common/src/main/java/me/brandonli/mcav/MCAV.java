@@ -100,9 +100,9 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Checks whether an optional capability is available right now, which depends on the platform and on whether the
-   * program behind it could be installed. A capability that is still being prepared in the background is not
-   * available yet; wait for it with {@link #whenCapabilityReady(Capability)}.
+   * Checks whether an optional capability is available right now in this installation, which depends on the platform and on whether the
+   * program behind it could be installed. A capability that is still being prepared in the background is not available yet; wait for it
+   * with {@link #whenCapabilityReady(Capability)}.
    *
    * @param capability the capability to check
    * @return true if the capability is available
@@ -119,12 +119,11 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Returns a future that completes once a capability is ready, without polling. It completes with true when the
-   * capability is available, and with false when it cannot be provided: the system does not support it, its
-   * installation failed, or {@link #release()} cancelled the installation first. Once the future completed with
-   * true, {@link #hasCapability(Capability)} reports the capability as available for that installation until
-   * release. The returned future is separate from the installation's internal future: completing or cancelling
-   * it does not change or cancel preparation.
+   * Returns a future that completes once a capability of this installation is ready, without polling. It completes with true when the
+   * capability is available, and with false when it cannot be provided: the system does not support it, its installation failed, or {@link
+   * #release()} cancelled the installation first. Once the future completed with true, {@link #hasCapability(Capability)} reports the
+   * capability as available for that installation until release. The returned future is separate from the installation's internal future:
+   * completing or cancelling it does not change or cancel preparation.
    *
    * <p>A capability that is not prepared in the background, or whose preparation already finished, gets a future
    * that is complete already. Callbacks attached to the future never run on the installation threads of the library,
@@ -154,8 +153,8 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Installs the library and starts the specified modules. This method returns once the JavaCV natives are loaded,
-   * the modules are started, and the lookup tables are built; VLC and yt-dlp are prepared in the background
+   * Installs the library and starts the specified modules on this instance, which can be installed only once. This method returns once the
+   * JavaCV natives are loaded, the modules are started, and the lookup tables are built; VLC and yt-dlp are prepared in the background
    * afterward, see {@link #whenCapabilityReady(Capability)}.
    *
    * <p>It may be called once per release: calling it again while the library is installed, or while another thread
@@ -220,7 +219,7 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Stops all modules and releases the resources of the library. Media players that are still running should be
+   * Stops all modules this instance started and releases the resources of the library. Media players that are still running should be
    * released before calling this method.
    *
    * <p>If another thread is installing the library, this method waits for that installation to finish and then
@@ -250,7 +249,7 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Returns a module that was started by {@link #install(Class[])}.
+   * Returns a module that {@link #install(Class[])} started, looked up by its class.
    *
    * @param moduleClass  the class of the module
    * @param <ModuleType> the type of the module

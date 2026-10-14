@@ -74,7 +74,7 @@ public final class DownloaderOptions {
   }
 
   /**
-   * Returns a hash code built from every value.
+   * Returns a hash code built from the HTTP chunk size.
    *
    * @return the hash code
    * @since 1.0.0
@@ -85,7 +85,7 @@ public final class DownloaderOptions {
   }
 
   /**
-   * Returns a debugging representation with every value.
+   * Returns a debugging representation with the HTTP chunk size.
    *
    * @return the representation
    * @since 1.0.0

@@ -43,7 +43,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
   }
 
   /**
-   * Returns the width of the decoded frames.
+   * Returns the decoded frame width that the decoder reported when the stream opened.
    *
    * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
    * @since 1.0.0
@@ -54,7 +54,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
   }
 
   /**
-   * Returns the height of the decoded frames.
+   * Returns the decoded frame height that the decoder reported when the stream opened.
    *
    * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
    * @since 1.0.0
@@ -65,7 +65,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
   }
 
   /**
-   * Returns the bitrate of the video stream.
+   * Returns the video bitrate that the decoder reported when the stream opened.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
    * @since 1.0.0
@@ -76,7 +76,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
   }
 
   /**
-   * Returns the frame rate of the video stream.
+   * Returns the video frame rate that the decoder reported when the stream opened.
    *
    * @return the frame rate in frames per second, or {@link #UNKNOWN}
    * @since 1.0.0

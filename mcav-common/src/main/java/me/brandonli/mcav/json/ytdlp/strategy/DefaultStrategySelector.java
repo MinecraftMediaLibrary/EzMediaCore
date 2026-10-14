@@ -41,7 +41,7 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * Selects the audio stream.
+   * Selects the audio stream of {@code dump} with the audio strategy of this selector.
    *
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
@@ -65,7 +65,7 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * Selects the video stream.
+   * Selects the video stream of {@code dump} with the video strategy of this selector.
    *
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
@@ -105,7 +105,7 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * Returns the strategy used for audio.
+   * Returns the strategy this selector picks audio streams with.
    *
    * @return the audio strategy
    * @since 1.0.0
@@ -116,7 +116,7 @@ public final class DefaultStrategySelector implements StrategySelector {
   }
 
   /**
-   * Returns the strategy used for video.
+   * Returns the strategy this selector picks video streams with.
    *
    * @return the video strategy
    * @since 1.0.0

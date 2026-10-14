@@ -127,7 +127,7 @@ public interface FrameSource extends DynamicSource {
   }
 
   /**
-   * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
+   * Returns {@code frame-source}, the name that log messages give generated frame sources.
    *
    * @return the type name
    * @since 1.0.0
@@ -138,8 +138,8 @@ public interface FrameSource extends DynamicSource {
   }
 
   /**
-   * Returns the resource description, such as a file path, a URL, or a device index. Generated and specialized
-   * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
+   * Returns a diagnostic string of the form {@code widthxheight@rate}, which no backend can open. Generated and specialized sources may
+   * return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
    * @since 1.0.0

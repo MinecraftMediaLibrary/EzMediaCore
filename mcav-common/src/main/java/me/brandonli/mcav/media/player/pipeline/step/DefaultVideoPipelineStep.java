@@ -42,7 +42,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
   }
 
   /**
-   * Returns the step that follows this one.
+   * Returns the video step that follows this one, or an empty optional when this step is the last.
    *
    * @return the next step, or empty if this is the last step
    * @since 1.0.0
@@ -69,7 +69,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
   }
 
   /**
-   * Returns the filter this step applies.
+   * Returns the video filter this step was created with.
    *
    * @return the filter
    * @since 1.0.0

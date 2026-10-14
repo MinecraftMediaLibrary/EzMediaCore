@@ -118,7 +118,7 @@ public final class OrderedPixelMapper implements PixelMapper {
   }
 
   /**
-   * Returns the strength the pattern was scaled by.
+   * Returns the strength the threshold pattern of this mapper was scaled by.
    *
    * @return the strength
    * @since 1.0.0

@@ -47,7 +47,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   }
 
   /**
-   * Puts a value into the slot, replacing the previous one.
+   * Stores {@code value} in this callback's slot, replacing the value attached before.
    *
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
@@ -61,7 +61,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   }
 
   /**
-   * Empties the slot, restoring its default.
+   * Empties this callback's slot, so {@link #retrieve()} returns the fallback value again.
    *
    * @since 1.0.0
    */
@@ -71,7 +71,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   }
 
   /**
-   * Checks whether a value was explicitly attached, even if it is the fallback value.
+   * Checks whether a value was explicitly attached to this callback, even if it equals the fallback value.
    *
    * @return a snapshot of the attached state, which can change immediately after this call
    * @since 1.0.0
@@ -83,7 +83,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   }
 
   /**
-   * Returns the attached value, or the default when nothing is attached.
+   * Returns the value attached to this callback, or its fallback value when nothing is attached.
    *
    * @return the value
    * @since 1.0.0

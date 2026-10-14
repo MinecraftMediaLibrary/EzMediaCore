@@ -42,7 +42,7 @@ public final class DefaultUriSource implements UriSource {
   }
 
   /**
-   * Returns the URL.
+   * Returns the URI this source was created with.
    *
    * @return the URL
    * @since 1.0.0
@@ -53,7 +53,7 @@ public final class DefaultUriSource implements UriSource {
   }
 
   /**
-   * Checks whether the URL points directly at a media file, judging by its file extension, rather than at a web
+   * Checks whether the URL points directly at a media file, judged by its file extension when this source was created, rather than at a web
    * page that has to be resolved first.
    *
    * @return true if the URL looks like a direct media link

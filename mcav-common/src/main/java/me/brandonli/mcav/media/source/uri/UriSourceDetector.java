@@ -39,7 +39,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
   public UriSourceDetector() {}
 
   /**
-   * Checks whether the string describes a source of this kind.
+   * Checks whether the string parses as a URI with a scheme and a host.
    *
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
@@ -54,7 +54,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
   }
 
   /**
-   * Creates the source described by the string, which was accepted by {@link #isDetectedSource(String)}.
+   * Creates a URI source for the URI the string holds.
    *
    * @param raw the string entered by a user
    * @return the source
@@ -71,7 +71,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
   }
 
   /**
-   * Returns the priority of this detector.
+   * Returns {@link SourceDetector#NORMAL_PRIORITY}, so device, FFmpeg and file detectors are asked first.
    *
    * @return the priority, higher wins
    * @since 1.0.0

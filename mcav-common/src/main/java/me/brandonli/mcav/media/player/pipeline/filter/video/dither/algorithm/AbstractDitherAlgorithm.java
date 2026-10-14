@@ -86,7 +86,7 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
   }
 
   /**
-   * Returns the palette the algorithm reduces images to.
+   * Returns the palette this algorithm was built with.
    *
    * @return the palette
    * @since 1.0.0

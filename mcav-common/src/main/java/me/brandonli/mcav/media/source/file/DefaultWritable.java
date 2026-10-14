@@ -35,7 +35,7 @@ public final class DefaultWritable implements Writable {
   }
 
   /**
-   * Returns the path of the file.
+   * Returns the path of the file this writable target writes.
    *
    * @return the path
    * @since 1.0.0

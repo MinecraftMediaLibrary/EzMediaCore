@@ -129,7 +129,7 @@ final class PlaybackSession {
   private volatile boolean seekable;
   private @Nullable FrameGrabber videoGrabber;
 
-  // Constructs a new session. Nothing is opened until open() or start() is called.
+  // Nothing is opened until open() or start() is called.
   PlaybackSession(
     final GrabberFactory videoGrabberFactory,
     final @Nullable GrabberFactory audioGrabberFactory,

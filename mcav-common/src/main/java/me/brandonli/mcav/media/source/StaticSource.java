@@ -26,8 +26,8 @@ package me.brandonli.mcav.media.source;
  */
 public interface StaticSource extends Source {
   /**
-   * Checks whether the source is classified as static, as opposed to a URI, device or generated frames.
-   * This does not probe its actual duration or whether the selected decoder supports seeking.
+   * Returns {@code true}, because a static source is a file on disk. This does not probe its actual duration or whether the selected
+   * decoder supports seeking.
    *
    * @return true for files and similar finite media
    * @since 1.0.0

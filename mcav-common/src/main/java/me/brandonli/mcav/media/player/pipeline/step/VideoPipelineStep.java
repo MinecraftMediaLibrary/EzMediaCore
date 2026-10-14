@@ -103,7 +103,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     private NoOperationStep() {}
 
     /**
-     * Returns the step that follows this one, which is none.
+     * Returns an empty optional, because the empty video pipeline has no following step.
      *
      * @return an empty optional
      * @since 1.0.0
@@ -128,7 +128,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     }
 
     /**
-     * Returns the filter of this step, which does nothing.
+     * Returns {@link VideoFilter#NO_OP}, the filter of the empty video pipeline.
      *
      * @return {@link VideoFilter#NO_OP}
      * @since 1.0.0
@@ -139,7 +139,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     }
 
     /**
-     * Checks whether this step is the empty pipeline, which it is.
+     * Returns {@code true}, because this step is the empty video pipeline.
      *
      * @return true
      * @since 1.0.0

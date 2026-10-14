@@ -26,8 +26,8 @@ package me.brandonli.mcav.media.source;
  */
 public interface DynamicSource extends Source {
   /**
-   * Checks whether the source is classified as static, as opposed to a URI, device or generated frames.
-   * This does not probe its actual duration or whether the selected decoder supports seeking.
+   * Returns {@code false}, because a dynamic source is a URI, a device, an FFmpeg input or generated frames rather than a file. This does
+   * not probe its actual duration or whether the selected decoder supports seeking.
    *
    * @return true for files and similar finite media
    * @since 1.0.0

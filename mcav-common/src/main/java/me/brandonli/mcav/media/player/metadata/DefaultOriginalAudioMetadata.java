@@ -51,7 +51,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
   }
 
   /**
-   * Returns the name of the codec of the audio stream.
+   * Returns the audio codec name that the decoder reported when the stream opened.
    *
    * @return the codec name
    * @since 1.0.0
@@ -62,7 +62,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
   }
 
   /**
-   * Returns the FFmpeg sample format identifier of the audio stream.
+   * Returns the FFmpeg sample format identifier that the decoder reported when the stream opened.
    *
    * @return the sample format, or {@link #UNKNOWN}
    * @since 1.0.0
@@ -73,7 +73,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
   }
 
   /**
-   * Returns the bitrate of the audio stream.
+   * Returns the audio bitrate that the decoder reported when the stream opened.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
    * @since 1.0.0
@@ -84,7 +84,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
   }
 
   /**
-   * Returns the sample rate of the audio stream.
+   * Returns the audio sample rate that the decoder reported when the stream opened.
    *
    * @return the sample rate in hertz
    * @since 1.0.0
@@ -95,7 +95,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
   }
 
   /**
-   * Returns the number of channels of the audio stream.
+   * Returns the audio channel count that the decoder reported when the stream opened.
    *
    * @return the channel count
    * @since 1.0.0

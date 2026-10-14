@@ -128,7 +128,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     private NoOperationStep() {}
 
     /**
-     * Returns the step that follows this one, which is none.
+     * Returns an empty optional, because the empty audio pipeline has no following step.
      *
      * @return an empty optional
      * @since 1.0.0
@@ -153,7 +153,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     }
 
     /**
-     * Returns the filter of this step, which does nothing.
+     * Returns {@link AudioFilter#NO_OP}, the filter of the empty audio pipeline.
      *
      * @return {@link AudioFilter#NO_OP}
      * @since 1.0.0
@@ -164,7 +164,7 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     }
 
     /**
-     * Checks whether this step is the empty pipeline, which it is.
+     * Returns {@code true}, because this step is the empty audio pipeline.
      *
      * @return true
      * @since 1.0.0
