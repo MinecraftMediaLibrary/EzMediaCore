@@ -260,7 +260,7 @@ final class OrderedDitherTest {
   }
 
   @Test
-  void shouldNormalizThresholdMatricesAroundZero() {
+  void shouldNormalizeThresholdMatricesAroundZero() {
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, UNIT_STRENGTH);
     final PixelMapper doubled = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 2.0f);
     final float[][] matrix = mapper.getMatrix();
@@ -278,7 +278,7 @@ final class OrderedDitherTest {
   }
 
   @Test
-  void shouldNormalizThresholdsAcrossTheEntireIntegerRange() {
+  void shouldNormalizeThresholdsAcrossTheEntireIntegerRange() {
     final int[][] thresholds = { { Integer.MIN_VALUE, 0, Integer.MAX_VALUE } };
     final PixelMapper mapper = PixelMapper.ofPixelMapper(thresholds, UNIT_STRENGTH);
     final float[][] matrix = mapper.getMatrix();

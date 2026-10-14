@@ -112,7 +112,7 @@ final class VlcLoadStateTest {
   }
 
   @Test
-  void shouldSerializConcurrentLoads() throws Exception {
+  void shouldSerializeConcurrentLoads() throws Exception {
     final VlcLoadState state = new VlcLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final CountDownLatch loaderEntered = new CountDownLatch(1);

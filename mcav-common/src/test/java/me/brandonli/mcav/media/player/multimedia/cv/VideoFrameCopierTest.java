@@ -149,7 +149,7 @@ final class VideoFrameCopierTest {
   }
 
   @Test
-  void shouldResizPooledImagesOfAnotherSizeInPlace() {
+  void shouldResizePooledImagesOfAnotherSizeInPlace() {
     final Frame wide = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     final Frame small = solidFrame(NARROW_FRAME_WIDTH, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer wideImage = this.copier.copy(wide);

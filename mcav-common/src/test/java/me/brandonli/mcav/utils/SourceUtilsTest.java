@@ -81,7 +81,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void shouldRecognizGifFilesAndUris() {
+  void shouldRecognizeGifFilesAndUris() {
     final URI gifUri = URI.create("https://example.com/animation.gif?size=large");
     final URI opaqueUri = URI.create("mailto:someone@example.com");
     final UriSource gifSource = UriSource.uri(gifUri);
@@ -113,7 +113,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void shouldRecognizUrisWithSchemeAndHost() {
+  void shouldRecognizeUrisWithSchemeAndHost() {
     final boolean isWebUri = SourceUtils.isUri("https://example.com/video");
     final boolean stream = SourceUtils.isUri("rtsp://camera.local/live");
     final boolean isDrivePath = SourceUtils.isUri(DRIVE_PATH);
@@ -139,7 +139,7 @@ final class SourceUtilsTest {
       "https://example.com/dvd.vob",
     }
   )
-  void shouldRecognizDirectMediaLinks(final String url) {
+  void shouldRecognizeDirectMediaLinks(final String url) {
     final boolean direct = SourceUtils.isDirectVideo(url);
     assertTrue(direct);
   }
@@ -165,7 +165,7 @@ final class SourceUtilsTest {
   }
 
   @Test
-  void shouldRecognizExistingPaths() throws IOException {
+  void shouldRecognizeExistingPaths() throws IOException {
     final Path file = this.directory.resolve(EXISTING_FILE_NAME);
     Files.createFile(file);
     final String existingRaw = file.toString();

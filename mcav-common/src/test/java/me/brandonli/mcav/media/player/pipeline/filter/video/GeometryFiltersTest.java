@@ -134,7 +134,7 @@ final class GeometryFiltersTest {
   }
 
   @Test
-  void shouldResizUpAndDown() {
+  void shouldResizeUpAndDown() {
     try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
       final ResizeFilter same = new ResizeFilter(SQUARE_SIDE, SQUARE_SIDE);
       final ResizeFilter shorter = new ResizeFilter(SQUARE_SIDE, SHRUNK_SIDE);

@@ -57,7 +57,7 @@ final class ImageUtilsTest {
   }
 
   @Test
-  void shouldResizPackedPixels() {
+  void shouldResizePackedPixels() {
     final int[] pixels = new int[4 * 4];
     Arrays.fill(pixels, OPAQUE_COLOR);
     final int[] resized = ImageUtils.resizeIntArrayImage(pixels, 4, 4, 2, 2);
@@ -110,7 +110,7 @@ final class ImageUtilsTest {
   }
 
   @Test
-  void shouldResizPackedPixelsKeepingTheirLayout() {
+  void shouldResizePackedPixelsKeepingTheirLayout() {
     final int red = 0xFFFF0000;
     final int blue = 0xFF0000FF;
     final int[] pixels = { red, red, blue, blue, red, red, blue, blue };
