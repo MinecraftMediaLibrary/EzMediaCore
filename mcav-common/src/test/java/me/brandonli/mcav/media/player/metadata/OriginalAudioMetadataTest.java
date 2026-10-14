@@ -105,6 +105,9 @@ final class OriginalAudioMetadataTest {
   void shouldRenderTheMainProperties() {
     final OriginalAudioMetadata metadata = OriginalAudioMetadata.of(CODEC, 96_000, SAMPLE_RATE, 1, 1);
     final String text = metadata.toString();
-    assertEquals("AudioMetadata[aac, 44100 Hz, 1 ch, 96000 bps]", text);
+    assertEquals(
+      "DefaultOriginalAudioMetadata{codec=aac, audioBitrate=96000, audioSampleRate=44100, audioChannels=1, samplingFormat=1}",
+      text
+    );
   }
 }

@@ -68,6 +68,6 @@ final class PairTest {
   void shouldRenderBothValues() {
     final Pair<String, Integer> pair = Pair.pair("x", 7);
     final String text = pair.toString();
-    assertEquals("Pair[x, 7]", text);
+    assertEquals("Pair{first=x, second=7}", text);
   }
 }

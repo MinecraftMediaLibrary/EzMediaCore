@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.utils.immutable;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -92,6 +93,6 @@ public final class Pair<FirstType, SecondType> {
 
   @Override
   public String toString() {
-    return "Pair[" + this.first + ", " + this.second + "]";
+    return MoreObjects.toStringHelper(this).add("first", this.first).add("second", this.second).toString();
   }
 }

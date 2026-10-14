@@ -17,14 +17,14 @@
  */
 package me.brandonli.mcav.media.player.metadata;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link OriginalVideoMetadata}.
  */
 public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata {
-
-  private static final int HASH_MULTIPLIER = 31;
 
   private final int videoWidth;
   private final int videoHeight;
@@ -79,18 +79,16 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
 
   @Override
   public int hashCode() {
-    final int frameRateHash = Float.hashCode(this.videoFrameRate);
-    int result = this.videoWidth;
-    result = result * HASH_MULTIPLIER + this.videoHeight;
-    result = result * HASH_MULTIPLIER + this.videoBitrate;
-    result = result * HASH_MULTIPLIER + frameRateHash;
-    return result;
+    return Objects.hash(this.videoWidth, this.videoHeight, this.videoBitrate, this.videoFrameRate);
   }
 
   @Override
   public String toString() {
-    return (
-      "VideoMetadata[" + this.videoWidth + "x" + this.videoHeight + ", " + this.videoFrameRate + " fps, " + this.videoBitrate + " bps]"
-    );
+    return MoreObjects.toStringHelper(this)
+      .add("videoWidth", this.videoWidth)
+      .add("videoHeight", this.videoHeight)
+      .add("videoBitrate", this.videoBitrate)
+      .add("videoFrameRate", this.videoFrameRate)
+      .toString();
   }
 }

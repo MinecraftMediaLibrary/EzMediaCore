@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +57,8 @@ final class DimensionTest {
     final Dimension dimension = Dimension.of(WIDTH, HEIGHT);
 
     final int hash = dimension.hashCode();
-    assertEquals(WIDTH * 31 + HEIGHT, hash);
+    final int expected = Objects.hash(WIDTH, HEIGHT);
+    assertEquals(expected, hash);
   }
 
   @Test
@@ -81,9 +83,9 @@ final class DimensionTest {
   }
 
   @Test
-  void shouldRenderAsWidthByHeight() {
+  void shouldRenderBothSides() {
     final Dimension dimension = Dimension.of(1920, 1080);
     final String text = dimension.toString();
-    assertEquals("1920x1080", text);
+    assertEquals("Dimension{width=1920, height=1080}", text);
   }
 }

@@ -58,6 +58,6 @@ final class PixelCacheKeyTest {
     final String text = key.toString();
     assertEquals(16, width);
     assertEquals(9, height);
-    assertEquals("PixelCacheKey[abc, 16x9]", text);
+    assertEquals("PixelCacheKey{address=2748, width=16, height=9}", text);
   }
 }

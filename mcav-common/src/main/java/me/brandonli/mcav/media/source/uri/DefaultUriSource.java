@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.media.source.uri;
 
+import com.google.common.base.MoreObjects;
 import java.net.URI;
 import java.util.Objects;
 import me.brandonli.mcav.utils.SourceUtils;
@@ -66,6 +67,6 @@ public final class DefaultUriSource implements UriSource {
 
   @Override
   public String toString() {
-    return "UriSource[" + this.uri + "]";
+    return MoreObjects.toStringHelper(this).add("uri", this.uri).add("direct", this.direct).toString();
   }
 }

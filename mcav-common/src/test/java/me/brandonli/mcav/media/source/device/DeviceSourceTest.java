@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ final class DeviceSourceTest {
     assertEquals("device", name);
     assertFalse(isStatic);
     assertTrue(isDynamic);
-    assertEquals("DeviceSource[3]", text);
+    assertEquals("DefaultDeviceSource{deviceId=3}", text);
   }
 
   @Test
@@ -61,7 +62,8 @@ final class DeviceSourceTest {
     final DeviceSource source = DeviceSource.device(7);
 
     final int hash = source.hashCode();
-    assertEquals(7, hash);
+    final int expected = Objects.hash(7);
+    assertEquals(expected, hash);
   }
 
   @Test

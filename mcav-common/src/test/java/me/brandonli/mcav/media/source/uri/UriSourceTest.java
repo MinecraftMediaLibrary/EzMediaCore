@@ -50,7 +50,7 @@ final class UriSourceTest {
     assertEquals("https://example.com/clip.mp4", resource);
     assertEquals("uri", name);
     assertTrue(isDynamic);
-    assertEquals("UriSource[https://example.com/clip.mp4]", text);
+    assertEquals("DefaultUriSource{uri=https://example.com/clip.mp4, direct=true}", text);
   }
 
   @Test

@@ -55,7 +55,7 @@ final class FfmpegDirectSourceTest {
     assertEquals("ffmpeg", name);
     assertFalse(isStatic, "screen capture and the other raw inputs are live");
     assertTrue(isDynamic);
-    assertEquals("FfmpegDirectSource[gdigrab||desktop]", text);
+    assertEquals("DefaultFfmpegDirectSource{mrl=desktop, format=gdigrab}", text);
   }
 
   @Test

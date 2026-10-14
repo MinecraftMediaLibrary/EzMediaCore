@@ -17,14 +17,14 @@
  */
 package me.brandonli.mcav.utils.immutable;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An immutable point in two dimensions.
  */
 public final class Point {
-
-  private static final int HASH_MULTIPLIER = 31;
 
   private final double xCoordinate;
   private final double yCoordinate;
@@ -81,13 +81,11 @@ public final class Point {
 
   @Override
   public int hashCode() {
-    final long xBits = Double.doubleToLongBits(this.xCoordinate);
-    final long yBits = Double.doubleToLongBits(this.yCoordinate);
-    return Long.hashCode(xBits) * HASH_MULTIPLIER + Long.hashCode(yBits);
+    return Objects.hash(this.xCoordinate, this.yCoordinate);
   }
 
   @Override
   public String toString() {
-    return "Point[" + this.xCoordinate + ", " + this.yCoordinate + "]";
+    return MoreObjects.toStringHelper(this).add("xCoordinate", this.xCoordinate).add("yCoordinate", this.yCoordinate).toString();
   }
 }

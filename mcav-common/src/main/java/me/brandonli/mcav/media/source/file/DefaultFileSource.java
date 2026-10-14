@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.media.source.file;
 
+import com.google.common.base.MoreObjects;
 import java.nio.file.Path;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -57,6 +58,6 @@ public final class DefaultFileSource implements FileSource {
 
   @Override
   public String toString() {
-    return "FileSource[" + this.path + "]";
+    return MoreObjects.toStringHelper(this).add("path", this.path).toString();
   }
 }

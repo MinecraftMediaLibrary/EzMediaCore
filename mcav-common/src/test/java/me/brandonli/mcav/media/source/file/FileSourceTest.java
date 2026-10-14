@@ -74,7 +74,7 @@ final class FileSourceTest {
     assertEquals(expectedResource, resource);
     assertEquals("file", name);
     assertTrue(isStatic);
-    assertEquals("FileSource[" + path + "]", text);
+    assertEquals("DefaultFileSource{path=" + path + "}", text);
   }
 
   @Test

@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.media.image;
 
+import com.google.common.base.MoreObjects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -86,7 +87,6 @@ final class PixelCacheKey {
 
   @Override
   public String toString() {
-    final String hexAddress = Long.toHexString(this.address);
-    return "PixelCacheKey[" + hexAddress + ", " + this.width + "x" + this.height + "]";
+    return MoreObjects.toStringHelper(this).add("address", this.address).add("width", this.width).add("height", this.height).toString();
   }
 }

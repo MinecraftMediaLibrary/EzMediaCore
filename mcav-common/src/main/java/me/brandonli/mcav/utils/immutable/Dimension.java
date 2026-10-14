@@ -17,7 +17,9 @@
  */
 package me.brandonli.mcav.utils.immutable;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -29,8 +31,6 @@ public final class Dimension {
    * The dimension with zero width and height, used where no size is set.
    */
   public static final Dimension NONE = new Dimension(0, 0);
-
-  private static final int HASH_MULTIPLIER = 31;
 
   private final int width;
   private final int height;
@@ -104,11 +104,11 @@ public final class Dimension {
 
   @Override
   public int hashCode() {
-    return this.width * HASH_MULTIPLIER + this.height;
+    return Objects.hash(this.width, this.height);
   }
 
   @Override
   public String toString() {
-    return this.width + "x" + this.height;
+    return MoreObjects.toStringHelper(this).add("width", this.width).add("height", this.height).toString();
   }
 }

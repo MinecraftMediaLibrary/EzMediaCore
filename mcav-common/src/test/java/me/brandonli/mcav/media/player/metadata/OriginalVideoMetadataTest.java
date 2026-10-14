@@ -20,6 +20,7 @@ package me.brandonli.mcav.media.player.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +84,7 @@ final class OriginalVideoMetadataTest {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
 
     final int hash = metadata.hashCode();
-    final int expected = ((WIDTH * 31 + HEIGHT) * 31 + BITRATE) * 31 + Float.hashCode(FRAME_RATE);
+    final int expected = Objects.hash(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
     assertEquals(expected, hash);
   }
 
@@ -97,6 +98,6 @@ final class OriginalVideoMetadataTest {
   void shouldRenderEveryProperty() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, FRAME_RATE);
     final String text = metadata.toString();
-    assertEquals("VideoMetadata[320x240, 30.0 fps, 1000 bps]", text);
+    assertEquals("DefaultOriginalVideoMetadata{videoWidth=320, videoHeight=240, videoBitrate=1000, videoFrameRate=30.0}", text);
   }
 }

@@ -19,6 +19,7 @@ package me.brandonli.mcav.utils.immutable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
@@ -50,9 +51,8 @@ final class PointTest {
     final Point point = Point.point(1.5, 3.0);
 
     final int hash = point.hashCode();
-    final int xHash = Double.hashCode(1.5);
-    final int yHash = Double.hashCode(3.0);
-    assertEquals(xHash * 31 + yHash, hash);
+    final int expected = Objects.hash(1.5, 3.0);
+    assertEquals(expected, hash);
   }
 
   @Test
@@ -66,6 +66,6 @@ final class PointTest {
   void shouldRenderBothCoordinates() {
     final Point point = Point.point(0.5, 4.0);
     final String text = point.toString();
-    assertEquals("Point[0.5, 4.0]", text);
+    assertEquals("Point{xCoordinate=0.5, yCoordinate=4.0}", text);
   }
 }

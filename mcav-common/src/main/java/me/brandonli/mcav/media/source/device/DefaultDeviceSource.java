@@ -17,6 +17,8 @@
  */
 package me.brandonli.mcav.media.source.device;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -50,11 +52,11 @@ public final class DefaultDeviceSource implements DeviceSource {
 
   @Override
   public int hashCode() {
-    return Integer.hashCode(this.deviceId);
+    return Objects.hash(this.deviceId);
   }
 
   @Override
   public String toString() {
-    return "DeviceSource[" + this.deviceId + "]";
+    return MoreObjects.toStringHelper(this).add("deviceId", this.deviceId).toString();
   }
 }

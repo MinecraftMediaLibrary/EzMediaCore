@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.media.player.metadata;
 
+import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -96,8 +97,12 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
 
   @Override
   public String toString() {
-    return (
-      "AudioMetadata[" + this.codec + ", " + this.audioSampleRate + " Hz, " + this.audioChannels + " ch, " + this.audioBitrate + " bps]"
-    );
+    return MoreObjects.toStringHelper(this)
+      .add("codec", this.codec)
+      .add("audioBitrate", this.audioBitrate)
+      .add("audioSampleRate", this.audioSampleRate)
+      .add("audioChannels", this.audioChannels)
+      .add("samplingFormat", this.samplingFormat)
+      .toString();
   }
 }

@@ -62,16 +62,16 @@ final class PlatformTest {
   }
 
   @Test
-  void shouldRenderAsLowerCaseTriple() {
+  void shouldRenderEveryPart() {
     final Platform sixtyFour = Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64);
     final Platform thirtyTwo = Platform.ofPlatform(Os.FREEBSD, Arch.ARM, Bits.BITS_32);
     final Platform unknown = Platform.ofPlatform(Os.OTHER, Arch.OTHER, Bits.BITS_64);
     final String sixtyFourText = sixtyFour.toString();
     final String thirtyTwoText = thirtyTwo.toString();
     final String unknownText = unknown.toString();
-    assertEquals("windows-x86-64", sixtyFourText);
-    assertEquals("freebsd-arm-32", thirtyTwoText);
-    assertEquals("other-other-64", unknownText);
+    assertEquals("Platform{os=WINDOWS, arch=X86, bits=BITS_64}", sixtyFourText);
+    assertEquals("Platform{os=FREEBSD, arch=ARM, bits=BITS_32}", thirtyTwoText);
+    assertEquals("Platform{os=OTHER, arch=OTHER, bits=BITS_64}", unknownText);
   }
 
   @Test

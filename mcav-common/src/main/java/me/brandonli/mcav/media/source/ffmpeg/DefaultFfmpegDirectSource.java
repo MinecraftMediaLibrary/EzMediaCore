@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.media.source.ffmpeg;
 
+import com.google.common.base.MoreObjects;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -63,6 +64,6 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
 
   @Override
   public String toString() {
-    return "FfmpegDirectSource[" + this.format + "||" + this.mrl + "]";
+    return MoreObjects.toStringHelper(this).add("mrl", this.mrl).add("format", this.format).toString();
   }
 }

@@ -17,8 +17,8 @@
  */
 package me.brandonli.mcav.utils.os;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import java.util.Locale;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -29,10 +29,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public final class Platform {
 
   private static final Platform CURRENT_PLATFORM = detectCurrentPlatform();
-
-  private static final String PART_SEPARATOR = "-";
-  private static final String SIXTY_FOUR_BITS = "64";
-  private static final String THIRTY_TWO_BITS = "32";
 
   private final Os os;
   private final Arch arch;
@@ -133,17 +129,12 @@ public final class Platform {
   }
 
   /**
-   * Describes the platform in a readable form, such as {@code windows-x86-64}.
+   * Returns a debugging representation with the operating system, the architecture and the word size.
    *
-   * @return the description
+   * @return the representation
    */
   @Override
   public String toString() {
-    final String osName = this.os.name();
-    final String lowerOsName = osName.toLowerCase(Locale.ROOT);
-    final String archName = this.arch.name();
-    final String lowerArchName = archName.toLowerCase(Locale.ROOT);
-    final String bitsName = this.bits == Bits.BITS_64 ? SIXTY_FOUR_BITS : THIRTY_TWO_BITS;
-    return lowerOsName + PART_SEPARATOR + lowerArchName + PART_SEPARATOR + bitsName;
+    return MoreObjects.toStringHelper(this).add("os", this.os).add("arch", this.arch).add("bits", this.bits).toString();
   }
 }
