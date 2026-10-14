@@ -162,6 +162,26 @@ final class RenderThreadTest {
   }
 
   @Test
+  void shouldKeepTheInterruptThatEndedAWaitingStep() throws Exception {
+    final RenderThread thread = this.strictThread();
+    final AtomicInteger steps = new AtomicInteger();
+    final CountDownLatch blocked = new CountDownLatch(1);
+    final CountDownLatch cleanedUp = new CountDownLatch(1);
+    final AtomicBoolean interruptedInCleanup = new AtomicBoolean();
+    final AtomicReference<Thread> worker = new AtomicReference<>();
+    final RenderThread.Step step = blockingFromTheThirdStep(worker, steps, blocked);
+    thread.start(step, () -> this.recordInterruptAndCountDown(interruptedInCleanup, cleanedUp));
+    final boolean reachedThirdStep = blocked.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    thread.stop();
+
+    final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    final boolean interrupted = interruptedInCleanup.get();
+    assertTrue(reachedThirdStep);
+    assertTrue(cleaned);
+    assertTrue(interrupted, "the interrupt that ended the waiting step is kept");
+  }
+
+  @Test
   void shouldEndTheLoopAfterTheCurrentStepWhenStoppedFromItself() throws Exception {
     final RenderThread thread = this.strictThread();
     final AtomicInteger steps = new AtomicInteger();
