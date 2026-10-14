@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,8 +51,8 @@ final class InputMetadataExceptionTest {
   }
 
   @Test
-  void shouldBeARuntimeException() {
+  void shouldBeAnMCAVException() {
     final InputMetadataException exception = new InputMetadataException("failure!");
-    assertInstanceOf(RuntimeException.class, exception, "unreadable media is recoverable, so it is no Error");
+    assertInstanceOf(MCAVException.class, exception, "unreadable media is recoverable, so it is no Error");
   }
 }

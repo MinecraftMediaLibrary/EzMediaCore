@@ -20,6 +20,7 @@ package me.brandonli.mcav.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -37,9 +38,9 @@ final class ZipEntryIntegrityExceptionTest {
   }
 
   @Test
-  void shouldExtendRuntimeExceptionDirectlyRatherThanAnIoFailure() {
+  void shouldExtendMCAVExceptionDirectlyRatherThanAnIoFailure() {
     final Class<ZipEntryIntegrityException> type = ZipEntryIntegrityException.class;
     final Class<? super ZipEntryIntegrityException> superclass = type.getSuperclass();
-    assertEquals(RuntimeException.class, superclass);
+    assertEquals(MCAVException.class, superclass);
   }
 }

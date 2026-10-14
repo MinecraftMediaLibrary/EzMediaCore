@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,8 +41,8 @@ final class UnsupportedOperatingSystemExceptionTest {
   }
 
   @Test
-  void shouldBeAnUnsupportedOperationException() {
+  void shouldBeAnMCAVException() {
     final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("Failure!");
-    assertInstanceOf(UnsupportedOperationException.class, exception, "an unsupported system is recoverable, so it is no Error");
+    assertInstanceOf(MCAVException.class, exception, "an unsupported system is recoverable, so it is no Error");
   }
 }

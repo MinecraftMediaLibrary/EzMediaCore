@@ -18,18 +18,18 @@
 package me.brandonli.mcav.utils.runtime;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when an external program fails, either because it exits with a non-zero exit code or because its output
  * cannot be read.
  *
- * <p>This is a plain {@link RuntimeException}: the failure belongs to the external program and its input, such as a
+ * <p>This is an {@link MCAVException}: the failure belongs to the external program and its input, such as a
  * source FFmpeg cannot decode, not to the state of the caller or to an unsupported operation. It is unchecked so that
  * callers who cannot handle a failing program need no {@code throws} clause, while callers who can, for example by
  * skipping the source, catch it explicitly.
  */
-public class ProcessException extends RuntimeException {
+public class ProcessException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = -9183271875521286701L;
@@ -39,7 +39,7 @@ public class ProcessException extends RuntimeException {
    *
    * @param message the detail message, which usually contains the exit code and the error output of the program
    */
-  ProcessException(final @Nullable String message) {
+  ProcessException(final String message) {
     super(message);
   }
 
@@ -47,9 +47,9 @@ public class ProcessException extends RuntimeException {
    * Constructs a new exception with a detail message and the failure that caused it.
    *
    * @param message the detail message, which describes what went wrong while running the program
-   * @param cause   the underlying failure, or null if it is unknown
+   * @param cause   the underlying failure
    */
-  ProcessException(final @Nullable String message, final @Nullable Throwable cause) {
+  ProcessException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

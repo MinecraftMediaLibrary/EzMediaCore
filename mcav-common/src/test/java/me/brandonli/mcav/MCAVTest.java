@@ -525,7 +525,7 @@ final class MCAVTest {
     assertEquals("message!", message);
     assertEquals("wrapped!", wrappedMessage);
     assertSame(cause, wrappedCause);
-    assertInstanceOf(RuntimeException.class, withMessage, "a failed installation is recoverable, so it is no Error");
+    assertInstanceOf(MCAVException.class, withMessage, "a failed installation is recoverable, so it is no Error");
   }
 
   private void stubCapability(final Capability capability, final boolean available) {

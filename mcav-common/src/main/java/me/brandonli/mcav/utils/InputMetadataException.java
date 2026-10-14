@@ -18,17 +18,17 @@
 package me.brandonli.mcav.utils;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when the metadata of a media source cannot be read, for example because the source cannot be opened or has
  * no track of the requested kind.
  *
- * <p>This is a plain {@link RuntimeException}: the failure comes from the content of the media or from reading it,
+ * <p>This is an {@link MCAVException}: the failure comes from the content of the media or from reading it,
  * which the caller usually cannot check in advance, so it is neither an {@link IllegalArgumentException} nor an
  * {@link IllegalStateException}. Callers that can recover, for example by skipping the source, catch it explicitly.
  */
-public class InputMetadataException extends RuntimeException {
+public class InputMetadataException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = -2964304434518823943L;
@@ -38,7 +38,7 @@ public class InputMetadataException extends RuntimeException {
    *
    * @param message the detail message, which names the source and what is missing
    */
-  InputMetadataException(final @Nullable String message) {
+  InputMetadataException(final String message) {
     super(message);
   }
 
@@ -46,9 +46,9 @@ public class InputMetadataException extends RuntimeException {
    * Constructs a new exception with a detail message and the failure that caused it.
    *
    * @param message the detail message, which names the source and why it could not be read
-   * @param cause   the underlying failure, such as the decoder error, or null if it is unknown
+   * @param cause   the underlying failure, such as the decoder error
    */
-  InputMetadataException(final @Nullable String message, final @Nullable Throwable cause) {
+  InputMetadataException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

@@ -18,18 +18,18 @@
 package me.brandonli.mcav.media.player;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when a player cannot open, decode, or control its media, for example because the media cannot be reached, an
  * audio device cannot be opened, or a remote server refuses the connection.
  *
- * <p>This is a plain {@link RuntimeException}: the failures it reports come from the media, the network, or the
+ * <p>This is an {@link MCAVException}: the failures it reports come from the media, the network, or the
  * machine, not from calling a player in the wrong state, so neither {@link IllegalStateException} nor
  * {@link IllegalArgumentException} would describe them. Callers that can recover, for example by trying another
  * source, catch it explicitly; everyone else can let it propagate like any other unchecked exception.
  */
-public class PlayerException extends RuntimeException {
+public class PlayerException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = 5422221049222805060L;
@@ -37,19 +37,19 @@ public class PlayerException extends RuntimeException {
   /**
    * Constructs a new exception with a detail message and no cause.
    *
-   * @param message the detail message describing what the player could not do, or null
+   * @param message the detail message describing what the player could not do
    */
-  public PlayerException(final @Nullable String message) {
+  public PlayerException(final String message) {
     super(message);
   }
 
   /**
    * Constructs a new exception with a detail message and the failure that caused it.
    *
-   * @param message the detail message describing what the player could not do, or null
-   * @param cause   the underlying failure, or null if it is unknown
+   * @param message the detail message describing what the player could not do
+   * @param cause   the underlying failure
    */
-  public PlayerException(final @Nullable String message, final @Nullable Throwable cause) {
+  public PlayerException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

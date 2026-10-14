@@ -27,7 +27,7 @@ thumbnails, and converting containers. `FfmpegCommand.builder()` builds any othe
 ```
 
 `createTask()` only creates the `CommandTask`; nothing runs until you call one of its methods, and a task can run only
-once. `run()` returns the exit code, while `runChecked()` throws a `ProcessException` (an unchecked exception in
+once. `run()` returns the exit code, while `runChecked()` throws a `ProcessException` (an unchecked `MCAVException` in
 `me.brandonli.mcav.utils.runtime`) with the error output of FFmpeg when it exits with a non-zero code. Both throw an
 `IOException` when FFmpeg cannot be started. `run(Duration)` and `runChecked(Duration)` kill FFmpeg when it takes
 longer than the timeout. Every method of `FfmpegCommandBuilder` returns the builder.

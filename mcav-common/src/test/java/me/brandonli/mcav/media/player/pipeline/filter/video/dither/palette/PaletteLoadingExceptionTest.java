@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.gson.JsonSyntaxException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,8 +51,8 @@ final class PaletteLoadingExceptionTest {
   }
 
   @Test
-  void shouldBeAnIllegalStateException() {
+  void shouldBeAnMCAVException() {
     final PaletteLoadingException exception = new PaletteLoadingException("Failure!");
-    assertInstanceOf(IllegalStateException.class, exception, "a broken bundled palette is a broken library state, not an Error");
+    assertInstanceOf(MCAVException.class, exception, "a broken bundled palette is a broken library state, not an Error");
   }
 }

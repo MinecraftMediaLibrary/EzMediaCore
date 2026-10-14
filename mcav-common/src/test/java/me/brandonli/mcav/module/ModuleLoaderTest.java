@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import me.brandonli.mcav.MCAVException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -451,7 +452,7 @@ final class ModuleLoaderTest {
     assertEquals("Wrapped!", wrappedMessage);
     assertSame(cause, wrappedCause);
     assertNull(nullMessage);
-    assertInstanceOf(RuntimeException.class, withMessage, "a module failure is recoverable, so it is no Error");
+    assertInstanceOf(MCAVException.class, withMessage, "a module failure is recoverable, so it is no Error");
   }
 
   /**

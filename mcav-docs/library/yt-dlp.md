@@ -43,8 +43,8 @@ so it blocks for a few seconds; call it off threads that must stay responsive. I
 | `IllegalArgumentException` | The source is not an absolute `http` or `https` URL.                                |
 | `IllegalStateException`    | The library is still preparing yt-dlp in the background after `install`; wait for `api.whenCapabilityReady(Capability.YT_DLP)` or try again shortly. |
 
-`YtdlpParseException` and `NoMatchingFormatException` (below) are unchecked exceptions that extend
-`RuntimeException`.
+`YtdlpParseException` and `NoMatchingFormatException` (below) are unchecked exceptions that extend `MCAVException`,
+the base of every MCAV failure.
 
 ```java
   final URI pageUri = URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ");

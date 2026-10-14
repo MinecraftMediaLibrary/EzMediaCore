@@ -18,17 +18,17 @@
 package me.brandonli.mcav.json.ytdlp;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when yt-dlp exits with a failure or returns missing or malformed metadata.
  *
  * <p>A nonzero exit reports the URL and yt-dlp's error output, falling back to its standard output when stderr
- * is blank. Invalid JSON reports the URL and retains the parse failure as its cause. This unchecked exception
+ * is blank. Invalid JSON reports the URL and retains the parse failure as its cause. This {@link MCAVException}
  * is separate from {@link java.io.IOException} for installation/process I/O and from
  * {@link IllegalArgumentException} for an invalid input scheme.
  */
-public class YtdlpParseException extends RuntimeException {
+public class YtdlpParseException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = 6183930164275481521L;
@@ -38,7 +38,7 @@ public class YtdlpParseException extends RuntimeException {
    *
    * @param message the detail message, which contains the URL and what yt-dlp reported
    */
-  YtdlpParseException(final @Nullable String message) {
+  YtdlpParseException(final String message) {
     super(message);
   }
 
@@ -46,9 +46,9 @@ public class YtdlpParseException extends RuntimeException {
    * Constructs a new exception with a detail message and the failure that caused it.
    *
    * @param message the detail message, which contains the URL and what yt-dlp reported
-   * @param cause   the underlying failure, such as the JSON parser error, or null if it is unknown
+   * @param cause   the underlying failure, such as the JSON parser error
    */
-  YtdlpParseException(final @Nullable String message, final @Nullable Throwable cause) {
+  YtdlpParseException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

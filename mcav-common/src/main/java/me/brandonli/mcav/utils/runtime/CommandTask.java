@@ -333,7 +333,7 @@ public final class CommandTask {
       final byte[] bytes = stream.readAllBytes();
       return new String(bytes, StandardCharsets.UTF_8);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
+      final String message = "Process output could not be read!";
       throw new ProcessException(message, exception);
     }
   }

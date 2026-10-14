@@ -277,7 +277,10 @@ Other utility callers need these updates:
 The yt-dlp DTOs also have field-type changes: `Format.filesize` and `filesize_approx`, and the count/size fields of
 `UrlParseDump`, use `long`; `UrlParseDump.duration` and `fps` use `double`. Update arithmetic, serialization bindings
 and reflective field access. Several exception types no longer inherit the removed MCAV unchecked-I/O type; review
-catches for the concrete exception or its current superclass, not just imports.
+catches for the concrete exception or its current superclass, not just imports. The exceptions of `mcav-common` now
+extend `MCAVException`, an unchecked base for failures outside the caller's control: `NativeLoadingException` and
+`PaletteLoadingException` are no longer an `IllegalStateException`, and `UnsupportedOperatingSystemException` is no
+longer an `UnsupportedOperationException`.
 
 ## Bundled dependencies
 

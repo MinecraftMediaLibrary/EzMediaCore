@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.gson.JsonSyntaxException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,10 +51,10 @@ final class YtdlpParseExceptionTest {
   }
 
   @Test
-  void shouldBeARuntimeExceptionApartFromIllegalArguments() {
+  void shouldBeAnMCAVExceptionApartFromIllegalArguments() {
     final YtdlpParseException exception = new YtdlpParseException("Failure!");
     final Class<?> superclass = YtdlpParseException.class.getSuperclass();
-    assertInstanceOf(RuntimeException.class, exception, "a failing URL is recoverable, so it is no Error");
-    assertEquals(RuntimeException.class, superclass);
+    assertInstanceOf(MCAVException.class, exception, "a failing URL is recoverable, so it is no Error");
+    assertEquals(MCAVException.class, superclass);
   }
 }

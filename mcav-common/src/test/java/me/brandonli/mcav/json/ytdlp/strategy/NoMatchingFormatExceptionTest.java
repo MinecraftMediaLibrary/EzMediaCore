@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,8 +39,8 @@ final class NoMatchingFormatExceptionTest {
   }
 
   @Test
-  void shouldBeARuntimeException() {
+  void shouldBeAnMCAVException() {
     final NoMatchingFormatException exception = new NoMatchingFormatException("Failure!");
-    assertInstanceOf(RuntimeException.class, exception, "a missing format is recoverable, so it is no Error");
+    assertInstanceOf(MCAVException.class, exception, "a missing format is recoverable, so it is no Error");
   }
 }

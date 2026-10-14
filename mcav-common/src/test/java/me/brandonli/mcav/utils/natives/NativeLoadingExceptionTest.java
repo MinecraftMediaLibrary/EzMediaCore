@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -49,8 +50,8 @@ final class NativeLoadingExceptionTest {
   }
 
   @Test
-  void shouldBeAnIllegalStateException() {
+  void shouldBeAnMCAVException() {
     final NativeLoadingException exception = new NativeLoadingException("failure!");
-    assertInstanceOf(IllegalStateException.class, exception, "missing natives are an environment state, not an Error");
+    assertInstanceOf(MCAVException.class, exception, "missing natives are an environment state, not an Error");
   }
 }

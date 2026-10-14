@@ -864,12 +864,20 @@ final class HelperSession implements BrowserSession {
    * @param cause  the failure, if one
    */
   private void end(final String reason, final @Nullable Throwable cause) {
-    final PlayerException failure = new PlayerException(reason, cause);
+    final PlayerException failure = this.createEndFailure(reason, cause);
     this.started.completeExceptionally(failure);
     if (this.closing.get() || !this.ended.compareAndSet(false, true)) {
       return;
     }
     this.listener.onEnded(reason, failure);
+  }
+
+  private PlayerException createEndFailure(final String reason, final @Nullable Throwable cause) {
+    if (cause == null) {
+      return new PlayerException(reason);
+    }
+
+    return new PlayerException(reason, cause);
   }
 
   /**

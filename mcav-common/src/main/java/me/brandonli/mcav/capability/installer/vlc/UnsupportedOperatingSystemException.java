@@ -18,15 +18,15 @@
 package me.brandonli.mcav.capability.installer.vlc;
 
 import java.io.Serial;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when VLC cannot be found or installed, or when an installed private copy cannot be loaded.
  *
- * <p>This is an {@link UnsupportedOperationException}: the requested operation, providing VLC, is not supported on
- * this system in its current state. Callers catch it to disable VLC playback and fall back to
- * another player.
+ * <p>This is an {@link MCAVException}: providing VLC is not possible on this system in its current state, which the
+ * caller cannot change. Callers catch it to disable VLC playback and fall back to another player.
  */
-public class UnsupportedOperatingSystemException extends UnsupportedOperationException {
+public class UnsupportedOperatingSystemException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = 885934601050385987L;
