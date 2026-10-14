@@ -27,10 +27,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.ServerSocket;
@@ -52,8 +54,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -101,6 +106,7 @@ final class IoUtilsTest {
   private static final String HOME_CACHE_PATH = ".mcav/cache";
   private static final String TEMPORARY_CACHE_PATH = "mcav/cache";
   private static final String TEMPORARY_DIRECTORY_PROPERTY = "java.io.tmpdir";
+  private static final Pattern CACHE_FALLBACK_WARNING = Pattern.compile("cannot be written or cannot run programs");
   private static final Set<PosixFilePermission> READ_ONLY_PERMISSIONS = PosixFilePermissions.fromString("r-x------");
   private static final Set<PosixFilePermission> OWNER_DIRECTORY_PERMISSIONS = PosixFilePermissions.fromString("rwx------");
 
@@ -441,16 +447,50 @@ final class IoUtilsTest {
     }
   }
 
+  @Test
+  void shouldWarnAboutTheCacheFallbackOnlyOnce() throws IOException {
+    final Path home = this.directory.resolve(HOME_NAME);
+    Files.writeString(home, FILE_CONTENT);
+    final Path temporary = this.directory.resolve(TEMPORARY_NAME);
+    final AtomicBoolean fallbackReported = new AtomicBoolean();
+
+    final PrintStream original = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    final PrintStream capture = new PrintStream(captured, true, StandardCharsets.UTF_8);
+    System.setErr(capture);
+    try {
+      this.getCachedFolderIn(home, temporary, Files::isExecutable, fallbackReported);
+      this.getCachedFolderIn(home, temporary, Files::isExecutable, fallbackReported);
+    } finally {
+      System.setErr(original);
+    }
+
+    final String output = captured.toString(StandardCharsets.UTF_8);
+    final Matcher warnings = CACHE_FALLBACK_WARNING.matcher(output);
+    final long warningCount = warnings.results().count();
+    assertEquals(1, warningCount, output);
+  }
+
   private Path getCachedFolderIn(final Path home, final Path temporary) {
     return this.getCachedFolderIn(home, temporary, Files::isExecutable);
   }
 
   private Path getCachedFolderIn(final Path home, final Path temporary, final Predicate<Path> executable) {
+    final AtomicBoolean fallbackReported = new AtomicBoolean();
+    return this.getCachedFolderIn(home, temporary, executable, fallbackReported);
+  }
+
+  private Path getCachedFolderIn(
+    final Path home,
+    final Path temporary,
+    final Predicate<Path> executable,
+    final AtomicBoolean fallbackReported
+  ) {
     final String previousTemporary = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
     final String rawTemporary = temporary.toString();
     System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, rawTemporary);
     try (final TemporaryUserHome _ = TemporaryUserHome.redirectTo(home)) {
-      return IoUtils.getCachedFolder(executable);
+      return IoUtils.getCachedFolder(executable, fallbackReported);
     } finally {
       System.setProperty(TEMPORARY_DIRECTORY_PROPERTY, previousTemporary);
     }

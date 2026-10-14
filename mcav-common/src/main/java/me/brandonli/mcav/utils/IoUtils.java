@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -94,6 +95,8 @@ public final class IoUtils {
   public static final long MAXIMUM_IMAGE_BYTES = 64L * 1024L * 1024L;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(IoUtils.class);
+
+  private static final AtomicBoolean CACHE_FALLBACK_REPORTED = new AtomicBoolean();
 
   private static final long MAXIMUM_ZIP_ENTRY_SIZE = 512L * 1024L * 1024L;
   private static final long MAXIMUM_ZIP_TOTAL_SIZE = 2L * 1024L * 1024L * 1024L;
@@ -525,7 +528,7 @@ public final class IoUtils {
    * <p>The cache holds the programs MCAV downloads and runs, such as VLC and yt-dlp. When that folder cannot be created
    * or written, for instance because the home directory is read-only, or lies on a file system mounted {@code noexec}
    * that cannot run them, the cache moves to {@code mcav/cache} in the temporary directory of the JVM
-   * ({@code java.io.tmpdir}), and a warning is logged. That folder is used even if it cannot run programs either; a
+   * ({@code java.io.tmpdir}), and a warning is logged the first time. That folder is used even if it cannot run programs either; a
    * program run from it then fails when it is installed.
    *
    * @return the absolute path of the cache folder
@@ -533,12 +536,13 @@ public final class IoUtils {
    * @since 1.0.0
    */
   public static Path getCachedFolder() {
-    return getCachedFolder(Files::isExecutable);
+    return getCachedFolder(Files::isExecutable, CACHE_FALLBACK_REPORTED);
   }
 
-  // test seam for the mutants of the fallback from a home cache on a noexec mount, which only a mount option reaches
+  // test seam for the mutants of the fallback from a home cache on a noexec mount, which only a mount option reaches,
+  // and of the warning logged once, whose flag for the whole JVM another test may have set already
   @VisibleForTesting
-  static Path getCachedFolder(final Predicate<Path> executable) {
+  static Path getCachedFolder(final Predicate<Path> executable, final AtomicBoolean fallbackReported) {
     final @Nullable String homeOrNull = System.getProperty(USER_HOME_PROPERTY);
     final String home = Objects.requireNonNull(homeOrNull, "The JVM always sets the user home!");
     final Path homeCache = Path.of(home, CACHE_ROOT, CACHE_DIRECTORY);
@@ -550,7 +554,11 @@ public final class IoUtils {
     final @Nullable String temporaryOrNull = System.getProperty(TEMPORARY_DIRECTORY_PROPERTY);
     final String temporary = Objects.requireNonNull(temporaryOrNull, "The JVM always sets the temporary directory!");
     final Path temporaryCache = Path.of(temporary, TEMPORARY_CACHE_ROOT, CACHE_DIRECTORY);
-    LOGGER.warn("Cache folder {} cannot be written or cannot run programs, using {} instead.", homeCache, temporaryCache);
+    final boolean firstFallback = fallbackReported.compareAndSet(false, true);
+    if (firstFallback) {
+      LOGGER.warn("Cache folder {} cannot be written or cannot run programs, using {} instead.", homeCache, temporaryCache);
+    }
+
     createDirectoryIfNotExists(temporaryCache);
     return temporaryCache.toAbsolutePath();
   }
