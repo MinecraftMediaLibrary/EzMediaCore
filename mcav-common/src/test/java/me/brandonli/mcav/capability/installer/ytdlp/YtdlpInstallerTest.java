@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
@@ -337,7 +336,7 @@ final class YtdlpInstallerTest {
       final Throwable cause = exception.getCause();
       final boolean explained = message.endsWith("\" while extracting the yt-dlp zip!");
       assertTrue(explained, message);
-      assertInstanceOf(UncheckedIOException.class, cause);
+      assertInstanceOf(FileOperationException.class, cause);
     }
   }
 

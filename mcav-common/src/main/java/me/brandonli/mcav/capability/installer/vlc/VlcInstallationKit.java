@@ -73,7 +73,7 @@ public final class VlcInstallationKit {
    * Creates a kit that installs VLC into the cache folder of the library when no system installation exists.
    *
    * @return the kit
-   * @throws java.io.UncheckedIOException if the default cache folder cannot be created
+   * @throws FileOperationException if the default cache folder cannot be created
    * @since 1.0.0
    */
   public static VlcInstallationKit create() {

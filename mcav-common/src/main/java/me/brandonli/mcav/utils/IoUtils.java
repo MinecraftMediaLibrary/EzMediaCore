@@ -22,16 +22,13 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
-import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -61,6 +58,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.utils.http.DownloadException;
@@ -74,8 +72,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * File, hashing, network, and archive helpers used throughout the library.
  *
- * <p>Most I/O failures are wrapped in {@link UncheckedIOException}. Deletion and replacement moves report theirs as a
- * {@link FileOperationException}; argument errors and unsafe archive entries use their documented exception types.
+ * <p>I/O failures are reported as a {@link FileOperationException}, and a port search that finds no free port as an
+ * {@link MCAVException}; argument errors and unsafe archive entries use their documented exception types.
  *
  * <p>This class is thread-safe.
  *
@@ -159,7 +157,7 @@ public final class IoUtils {
    * is immediately closed: another process can claim the returned port before the caller binds it.
    *
    * @return the first free port at or above 5900
-   * @throws UncheckedIOException if no port is free
+   * @throws MCAVException if no port is free
    * @since 1.0.0
    */
   public static int getNextFreeVncPort() {
@@ -177,8 +175,7 @@ public final class IoUtils {
     }
 
     final String message = "Port range %s-%s has no free port!".formatted(firstPort, lastPort);
-    final BindException noFreePort = new BindException(message);
-    throw new UncheckedIOException(message, noFreePort);
+    throw new MCAVException(message);
   }
 
   /**
@@ -186,9 +183,9 @@ public final class IoUtils {
    *
    * @param path the directory to create
    * @return true if the directory was created, false if it already existed
-   * @throws UncheckedIOException if the directory cannot be created, for example because a file of the same name
-   *                              exists
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if the directory cannot be created, for example because a file of the same name
+   *                                exists
+   * @throws NullPointerException   if {@code path} is null
    * @since 1.0.0
    */
   public static boolean createDirectoryIfNotExists(final Path path) {
@@ -204,8 +201,8 @@ public final class IoUtils {
 
       return true;
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "Directory %s could not be created!".formatted(path);
+      throw new FileOperationException(message, exception);
     }
   }
 
@@ -214,8 +211,8 @@ public final class IoUtils {
    *
    * @param path the file to create
    * @return true if the file was created, false if it already existed
-   * @throws UncheckedIOException if the file cannot be created
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if the file cannot be created
+   * @throws NullPointerException   if {@code path} is null
    * @since 1.0.0
    */
   public static boolean createFileIfNotExists(final Path path) {
@@ -236,8 +233,8 @@ public final class IoUtils {
 
       return true;
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "File %s could not be created!".formatted(path);
+      throw new FileOperationException(message, exception);
     }
   }
 
@@ -246,8 +243,8 @@ public final class IoUtils {
    * Does nothing on file systems without POSIX permissions, such as Windows.
    *
    * @param file the file to mark
-   * @throws UncheckedIOException if the permissions cannot be changed
-   * @throws NullPointerException if {@code file} is null
+   * @throws FileOperationException if the permissions cannot be changed
+   * @throws NullPointerException   if {@code file} is null
    * @since 1.0.0
    */
   public static void markExecutable(final Path file) {
@@ -263,8 +260,8 @@ public final class IoUtils {
     try {
       Files.setPosixFilePermissions(file, EXECUTABLE_PERMISSIONS);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "File %s could not be marked executable!".formatted(file);
+      throw new FileOperationException(message, exception);
     }
   }
 
@@ -380,8 +377,8 @@ public final class IoUtils {
    *
    * @param path the file to hash
    * @return the hash as lowercase hexadecimal
-   * @throws UncheckedIOException if the file cannot be read
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if the file cannot be read
+   * @throws NullPointerException   if {@code path} is null
    * @since 1.0.0
    */
   public static String getSha256Hash(final Path path) {
@@ -396,8 +393,8 @@ public final class IoUtils {
    *
    * @param path the file to hash
    * @return the hash as lowercase hexadecimal
-   * @throws UncheckedIOException if the file cannot be read
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if the file cannot be read
+   * @throws NullPointerException   if {@code path} is null
    * @since 1.0.0
    */
   public static String getSha1Hash(final Path path) {
@@ -416,8 +413,8 @@ public final class IoUtils {
         read = stream.read(buffer);
       }
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "File %s could not be hashed!".formatted(path);
+      throw new FileOperationException(message, exception);
     }
 
     final byte[] hash = digest.digest();
@@ -515,7 +512,7 @@ public final class IoUtils {
    * exist.
    *
    * @return the absolute path of the cache folder
-   * @throws UncheckedIOException if the folder cannot be created
+   * @throws FileOperationException if the folder cannot be created
    * @since 1.0.0
    */
   public static Path getCachedFolder() {
@@ -531,8 +528,9 @@ public final class IoUtils {
    *
    * @param resourcePath the full path from the classpath root, such as {@code mcav/common/installers/yt-dlp.json}
    * @return the downloads described by the resource
-   * @throws UncheckedIOException if the resource is missing, is not valid JSON, or lists a download without a platform or URL
-   * @throws NullPointerException if {@code resourcePath} is null
+   * @throws FileOperationException if the resource is missing, is not valid JSON, or lists a download without a platform
+   *                                or URL
+   * @throws NullPointerException   if {@code resourcePath} is null
    * @since 1.0.0
    */
   public static Download[] readDownloadsFromJsonResource(final String resourcePath) {
@@ -541,13 +539,13 @@ public final class IoUtils {
     try (final Reader reader = getResourceAsStreamReader(resourcePath)) {
       return parseDownloads(reader);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "Download list %s could not be read!".formatted(resourcePath);
+      throw new FileOperationException(message, exception);
     }
   }
 
   // Parses a download list. Malformed JSON is reported as an IOException, because a resource that cannot be parsed is
-  // an I/O failure of that resource, and UncheckedIOException can only wrap an IOException.
+  // an I/O failure of that resource.
   @VisibleForTesting
   static Download[] parseDownloads(final Reader reader) throws IOException {
     final DownloadFields @Nullable [] parsed = readDownloadArray(reader);
@@ -597,8 +595,8 @@ public final class IoUtils {
    *
    * @param resource the path of the resource, relative to the classpath root
    * @return a reader for the resource, which the caller must close
-   * @throws UncheckedIOException if the resource does not exist
-   * @throws NullPointerException if the resource is null
+   * @throws FileOperationException if the resource does not exist
+   * @throws NullPointerException   if the resource is null
    * @since 1.0.0
    */
   public static Reader getResourceAsStreamReader(final String resource) {
@@ -613,8 +611,8 @@ public final class IoUtils {
    *
    * @param resource the path of the resource, relative to the classpath root
    * @return an input stream for the resource, which the caller must close
-   * @throws UncheckedIOException if the resource does not exist
-   * @throws NullPointerException if the resource is null
+   * @throws FileOperationException if the resource does not exist
+   * @throws NullPointerException   if the resource is null
    * @since 1.0.0
    */
   public static InputStream getResourceAsInputStream(final String resource) {
@@ -629,8 +627,8 @@ public final class IoUtils {
    * @param resource    the path of the resource, relative to the classpath root
    * @param loaderClass the class whose class loader is used to find the resource
    * @return an input stream for the resource, which the caller must close
-   * @throws UncheckedIOException if the resource does not exist, or the class has no class loader to find it with
-   * @throws NullPointerException if the resource or the class is null
+   * @throws FileOperationException if the resource does not exist, or the class has no class loader to find it with
+   * @throws NullPointerException   if the resource or the class is null
    * @since 1.0.0
    */
   public static InputStream getResourceAsInputStream(final String resource, final Class<?> loaderClass) {
@@ -640,9 +638,8 @@ public final class IoUtils {
     final ClassLoader classLoader = loaderClass.getClassLoader();
     final InputStream stream = classLoader == null ? null : classLoader.getResourceAsStream(resource);
     if (stream == null) {
-      final String message = "Resource does not exist: " + resource;
-      final FileNotFoundException missingResource = new FileNotFoundException(message);
-      throw new UncheckedIOException(message, missingResource);
+      final String message = "Resource %s does not exist!".formatted(resource);
+      throw new FileOperationException(message);
     }
 
     return stream;
@@ -659,7 +656,7 @@ public final class IoUtils {
    *
    * @param archive     the zip archive
    * @param destination the directory to extract into, which is created if it does not exist
-   * @throws UncheckedIOException       if the file is not a zip archive, cannot be read, or the files cannot be
+   * @throws FileOperationException     if the file is not a zip archive, cannot be read, or the files cannot be
    *                                    written
    * @throws ZipEntryIntegrityException if the archive contains an entry that is not safe to extract
    * @throws NullPointerException       if the archive or the destination is null
@@ -687,8 +684,8 @@ public final class IoUtils {
       final Path realDestination = normalizedDestination.toRealPath();
       extractArchive(archive, realDestination, maximumEntrySize, maximumTotalSize);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
+      final String message = "Archive %s could not be extracted!".formatted(archive);
+      throw new FileOperationException(message, exception);
     }
   }
 

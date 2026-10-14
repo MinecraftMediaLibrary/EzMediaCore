@@ -25,7 +25,7 @@ import me.brandonli.mcav.MCAVException;
  * directory or exceeds the size limits.
  *
  * <p>This is an {@link MCAVException}: the archive itself is unsafe, which is neither a state of the caller
- * nor an I/O failure that retrying could fix. It deliberately does not extend {@link java.io.UncheckedIOException}, so a
+ * nor an I/O failure that retrying could fix. It deliberately does not extend {@link FileOperationException}, so a
  * rejected archive can be told apart from one that merely could not be read, and both can be caught in one
  * multi-catch clause.
  *

@@ -21,7 +21,7 @@ import java.io.Serial;
 import me.brandonli.mcav.MCAVException;
 
 /**
- * Thrown when a file or a directory cannot be opened, moved or deleted.
+ * Thrown when a file, a directory or a classpath resource cannot be created, opened, read, written, moved or deleted.
  *
  * @since 1.0.0
  */

@@ -18,9 +18,9 @@
 /**
  * Provides shared file, archive, source-classification, metadata and cleanup helpers.
  *
- * <p>File and metadata operations are synchronous and can block on disk, network or native decoding. Most I/O
- * helpers wrap checked failures in {@link java.io.UncheckedIOException}; methods that retain checked exceptions
- * say so individually. Callers close returned streams and readers. Cache downloads persist on disk, and probing
+ * <p>File and metadata operations are synchronous and can block on disk, network or native decoding. I/O helpers
+ * report failures as a {@link me.brandonli.mcav.utils.FileOperationException}; methods that retain checked
+ * exceptions say so individually. Callers close returned streams and readers. Cache downloads persist on disk, and probing
  * a free port does not reserve it for a later bind.
  *
  * <p>Static helpers retain no caller-owned mutable state, but concurrent changes to the same files or archives

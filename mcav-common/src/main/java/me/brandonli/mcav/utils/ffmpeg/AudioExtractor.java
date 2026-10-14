@@ -20,11 +20,11 @@ package me.brandonli.mcav.utils.ffmpeg;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import me.brandonli.mcav.media.source.Source;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
@@ -68,12 +68,12 @@ public final class AudioExtractor {
    *
    * @param source the media to extract the audio from, such as a file or a URL
    * @return the absolute path of the new Ogg Vorbis file
-   * @throws NullPointerException if the source is null
-   * @throws ProcessException     if FFmpeg cannot be started, its output cannot be read, the thread is interrupted
-   *                              while waiting for FFmpeg, or FFmpeg exits with a non-zero exit code, for example
-   *                              because the source does not exist, cannot be decoded, or has no audio track
-   * @throws UncheckedIOException if the cache folder cannot be created
-   * @throws UnsatisfiedLinkError if the bundled FFmpeg is not available for this platform
+   * @throws NullPointerException   if the source is null
+   * @throws ProcessException       if FFmpeg cannot be started, its output cannot be read, the thread is interrupted
+   *                                while waiting for FFmpeg, or FFmpeg exits with a non-zero exit code, for example
+   *                                because the source does not exist, cannot be decoded, or has no audio track
+   * @throws FileOperationException if the cache folder cannot be created
+   * @throws UnsatisfiedLinkError   if the bundled FFmpeg is not available for this platform
    * @since 1.0.0
    */
   public static Path extractOggVorbis(final Source source) {

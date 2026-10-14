@@ -25,9 +25,9 @@ import com.google.gson.reflect.TypeToken;
 import java.awt.Color;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Type;
 import me.brandonli.mcav.json.GsonProvider;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -64,7 +64,7 @@ public final class MapPaletteLoader {
   static int[] loadColors(final String resource) {
     try (final Reader reader = IoUtils.getResourceAsStreamReader(resource)) {
       return parseColors(reader);
-    } catch (final IOException | UncheckedIOException exception) {
+    } catch (final IOException | FileOperationException exception) {
       final String message = "Map palette resource %s could not be read!".formatted(resource);
       throw new PaletteLoadingException(message, exception);
     }

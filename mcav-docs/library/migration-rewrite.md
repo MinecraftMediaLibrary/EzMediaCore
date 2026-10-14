@@ -241,7 +241,8 @@ where downloaded jars are loaded instead of subclassing the installer.
 
 ## Utility APIs
 
-The old MCAV `UncheckedIOException` is replaced by `java.io.UncheckedIOException`; update imports and catch clauses.
+The old MCAV `UncheckedIOException` is removed. `IoUtils` reports I/O failures as a `FileOperationException` and a
+port search that finds no free port as an `MCAVException`; update imports and catch clauses.
 Audio extraction uses `AudioExtractor` in `me.brandonli.mcav.utils.ffmpeg`, replacing the old Bukkit
 `SoundExtractorUtils`. Network helpers are in `me.brandonli.mcav.utils.http.NetworkUtils`; update imports from the
 old Bukkit utility and use the current return types and failure handling described in [utilities](utilities.md).

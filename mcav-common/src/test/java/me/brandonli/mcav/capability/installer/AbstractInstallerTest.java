@@ -31,7 +31,6 @@ import com.google.common.jimfs.Jimfs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
@@ -62,6 +61,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.http.ChecksumMismatchException;
 import me.brandonli.mcav.utils.os.Arch;
@@ -432,7 +432,7 @@ final class AbstractInstallerTest {
   @Test
   void shouldReportAProgramThatCannotBeMarkedExecutableAsAnInstallationFailure() throws IOException {
     final IOException permissionDenied = new IOException("Operation not permitted!");
-    final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted!", permissionDenied);
+    final FileOperationException chmodFailure = new FileOperationException("Operation not permitted!", permissionDenied);
     try (
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
@@ -455,7 +455,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldPreserveThePermissionFailureWhenRemovingTheFailedDownloadAlsoFails() throws IOException {
-    final UncheckedIOException permissionFailure = new UncheckedIOException(new IOException("permission denied!"));
+    final FileOperationException permissionFailure = new FileOperationException("Permission was denied!");
     try (
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
@@ -486,7 +486,7 @@ final class AbstractInstallerTest {
     }
   }
 
-  private Object replaceWithANonemptyDirectoryAndFail(final Path destination, final UncheckedIOException permissionFailure)
+  private Object replaceWithANonemptyDirectoryAndFail(final Path destination, final FileOperationException permissionFailure)
     throws IOException {
     // A nonempty replacement makes cleanup fail on every platform without relying on OS permissions.
     Files.delete(destination);
@@ -526,7 +526,7 @@ final class AbstractInstallerTest {
   private @Nullable Object failTheFirstPermissionAttempt(final InvocationOnMock invocation, final AtomicInteger permissionAttempts)
     throws Throwable {
     if (permissionAttempts.getAndIncrement() == 0) {
-      throw new UncheckedIOException(new IOException("temporary permission failure!"));
+      throw new FileOperationException("Permission failed for now!");
     }
 
     return invocation.callRealMethod();

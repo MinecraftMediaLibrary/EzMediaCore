@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -78,7 +77,7 @@ final class UnzipFuzzTest {
     final List<Path> before = listTree(scope);
     try {
       IoUtils.unzip(archive, destination);
-    } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
+    } catch (final FileOperationException | ZipEntryIntegrityException exception) {
       // a broken or unsafe archive; what matters is where anything was written
     }
 

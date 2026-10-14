@@ -39,7 +39,6 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -65,6 +64,7 @@ import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemExce
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallerFailures;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer;
 import org.bytedeco.ffmpeg.global.avutil;
@@ -586,7 +586,7 @@ final class DependencyLoaderTest {
   void shouldRemoveTheYtdlpCapabilityWhenTheDownloadCannotBeMarkedExecutable() throws IOException {
     final Installer installer = mock(Installer.class);
     final IOException permissionDenied = new IOException("Operation not permitted!");
-    final UncheckedIOException chmodFailure = new UncheckedIOException("Operation not permitted!", permissionDenied);
+    final FileOperationException chmodFailure = new FileOperationException("Operation not permitted!", permissionDenied);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(FileMode.EXECUTABLE)).thenThrow(chmodFailure);
     final DependencyLoader loader = new DependencyLoader();

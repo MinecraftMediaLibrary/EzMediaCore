@@ -213,11 +213,11 @@ threads that must stay responsive, such as the main thread of a Minecraft server
 |-------------------------------|-----------------------------------------------------------------------------------------------------------|
 | `NullPointerException`        | The source is `null`.                                                                                     |
 | `ProcessException`            | FFmpeg cannot be started, its output cannot be read, the thread was interrupted while waiting for it, or FFmpeg exited with a non-zero exit code, for example because the source does not exist, cannot be decoded, or has no audio track. |
-| `java.io.UncheckedIOException` | The cache folder cannot be created.                                                                      |
+| `FileOperationException`      | The cache folder cannot be created.                                                                       |
 | `UnsatisfiedLinkError`        | The bundled FFmpeg is not available for this platform.                                                    |
 
-None of them is checked. `ProcessException` extends `MCAVException`, the unchecked base of every MCAV failure, and
-`UncheckedIOException` is an ordinary unchecked exception, so `catch (RuntimeException exception)` catches both. Catch
+None of them is checked. `ProcessException` and `FileOperationException` extend `MCAVException`, the unchecked base of
+every MCAV failure, so `catch (MCAVException exception)` catches both. Catch
 `ProcessException` (in `me.brandonli.mcav.utils.runtime`) explicitly if you want to handle a source that FFmpeg cannot
 convert:
 

@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +34,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -154,7 +154,7 @@ final class WindowsInstallationStrategyTest {
     Files.writeString(archive, "this is not a zip", StandardCharsets.US_ASCII);
     final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
-    final UncheckedIOException unzipFailure = assertInstanceOf(UncheckedIOException.class, cause);
+    final FileOperationException unzipFailure = assertInstanceOf(FileOperationException.class, cause);
     final Throwable zipFailure = unzipFailure.getCause();
     final boolean temporaryExists = this.temporaryDirectoryExists();
     assertInstanceOf(ZipException.class, zipFailure, "the file is rejected as no zip, not read as an empty one");

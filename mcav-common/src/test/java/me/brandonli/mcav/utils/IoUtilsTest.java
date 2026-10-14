@@ -33,7 +33,6 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +57,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.testing.LocalHttpServer;
@@ -223,7 +223,7 @@ final class IoUtilsTest {
 
     try (final ServerSocket occupied = new ServerSocket(0)) {
       final int occupiedPort = occupied.getLocalPort();
-      assertThrows(UncheckedIOException.class, () -> IoUtils.findFreePort(occupiedPort, occupiedPort));
+      assertThrows(MCAVException.class, () -> IoUtils.findFreePort(occupiedPort, occupiedPort));
     }
   }
 
@@ -260,7 +260,7 @@ final class IoUtilsTest {
     assertTrue(created);
     assertFalse(createdAgain);
     assertTrue(isDirectory);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.createDirectoryIfNotExists(belowFile));
+    assertThrows(FileOperationException.class, () -> IoUtils.createDirectoryIfNotExists(belowFile));
     assertThrows(NullPointerException.class, () -> IoUtils.createDirectoryIfNotExists(null));
   }
 
@@ -274,7 +274,7 @@ final class IoUtilsTest {
     assertTrue(created);
     assertFalse(createdAgain);
     assertTrue(isFile);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.createFileIfNotExists(belowFile));
+    assertThrows(FileOperationException.class, () -> IoUtils.createFileIfNotExists(belowFile));
     assertThrows(NullPointerException.class, () -> IoUtils.createFileIfNotExists(null));
   }
 
@@ -304,7 +304,7 @@ final class IoUtilsTest {
       final Set<PosixFilePermission> expected = PosixFilePermissions.fromString("rwxr-xr-x");
       final Path missing = fileSystem.getPath(MISSING_TOOL_PATH);
       assertEquals(expected, permissions);
-      assertThrows(UncheckedIOException.class, () -> IoUtils.markExecutable(missing));
+      assertThrows(FileOperationException.class, () -> IoUtils.markExecutable(missing));
     }
   }
 
@@ -330,7 +330,7 @@ final class IoUtilsTest {
     final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", sha256);
     assertEquals("a9993e364706816aba3e25717850c26c9cd0d89d", sha1);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getSha256Hash(missing));
+    assertThrows(FileOperationException.class, () -> IoUtils.getSha256Hash(missing));
     assertThrows(IllegalStateException.class, () -> IoUtils.createDigest("NO-SUCH-ALGORITHM"));
     assertThrows(NullPointerException.class, () -> IoUtils.getSha256Hash(null));
     assertThrows(NullPointerException.class, () -> IoUtils.getSha1Hash(null));
@@ -392,8 +392,8 @@ final class IoUtilsTest {
     assertEquals(0, none.length);
     assertEquals(expectedPlatform, platform);
     assertEquals("https://example.com/tool-linux", url);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(INVALID_DOWNLOADS_RESOURCE));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(MISSING_DOWNLOADS_RESOURCE));
+    assertThrows(FileOperationException.class, () -> IoUtils.readDownloadsFromJsonResource(INVALID_DOWNLOADS_RESOURCE));
+    assertThrows(FileOperationException.class, () -> IoUtils.readDownloadsFromJsonResource(MISSING_DOWNLOADS_RESOURCE));
     assertThrows(NullPointerException.class, () -> IoUtils.readDownloadsFromJsonResource(null));
   }
 
@@ -434,9 +434,9 @@ final class IoUtilsTest {
 
   @Test
   void shouldReportResourcesThatCannotBeFound() {
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream(EMPTY_DOWNLOADS_RESOURCE, String.class));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream(MISSING_DOWNLOADS_RESOURCE));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsStreamReader(MISSING_DOWNLOADS_RESOURCE));
+    assertThrows(FileOperationException.class, () -> IoUtils.getResourceAsInputStream(EMPTY_DOWNLOADS_RESOURCE, String.class));
+    assertThrows(FileOperationException.class, () -> IoUtils.getResourceAsInputStream(MISSING_DOWNLOADS_RESOURCE));
+    assertThrows(FileOperationException.class, () -> IoUtils.getResourceAsStreamReader(MISSING_DOWNLOADS_RESOURCE));
   }
 
   @Test
@@ -727,7 +727,7 @@ final class IoUtilsTest {
   void shouldReportArchivesThatCannotBeRead() {
     final Path missing = this.directory.resolve(MISSING_ARCHIVE_NAME);
     final Path destination = this.directory.resolve(OUTPUT_DIRECTORY);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(missing, destination));
+    assertThrows(FileOperationException.class, () -> IoUtils.unzip(missing, destination));
     assertThrows(NullPointerException.class, () -> IoUtils.unzip(null, destination));
     assertThrows(NullPointerException.class, () -> IoUtils.unzip(missing, null));
   }
@@ -740,8 +740,8 @@ final class IoUtilsTest {
     final Path truncated = this.directory.resolve(TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, new byte[] { 0x50, 0x4B });
     final Path destination = this.directory.resolve(OUTPUT_DIRECTORY);
-    final UncheckedIOException textFailure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(text, destination));
-    final UncheckedIOException truncatedFailure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
+    final FileOperationException textFailure = assertThrows(FileOperationException.class, () -> IoUtils.unzip(text, destination));
+    final FileOperationException truncatedFailure = assertThrows(FileOperationException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable textCause = textFailure.getCause();
     final Throwable truncatedCause = truncatedFailure.getCause();
     assertInstanceOf(ZipException.class, textCause);
@@ -760,10 +760,10 @@ final class IoUtilsTest {
         final Path truncated = this.directory.resolve(TRUNCATED_HEADER_PREFIX + headerSize + NAME_SEPARATOR + retained + ZIP_EXTENSION);
         Files.write(truncated, Arrays.copyOf(archiveBytes, retained));
         final Path destination = this.directory.resolve(TRUNCATED_OUTPUT_DIRECTORY);
-        final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
+        final FileOperationException failure = assertThrows(FileOperationException.class, () -> IoUtils.unzip(truncated, destination));
         final Throwable cause = failure.getCause();
         assertInstanceOf(ZipException.class, cause);
-        final String message = failure.getMessage();
+        final String message = cause.getMessage();
         assertEquals("Zip archive %s is truncated!".formatted(truncated), message);
       }
     }
@@ -781,11 +781,11 @@ final class IoUtilsTest {
     final byte[] bytes = Files.readAllBytes(archive);
     final Path truncated = this.directory.resolve(COMMENT_TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
-    final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
+    final FileOperationException failure = assertThrows(FileOperationException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable cause = failure.getCause();
     assertInstanceOf(ZipException.class, cause);
 
-    final String message = failure.getMessage();
+    final String message = cause.getMessage();
     assertEquals("Zip archive %s is truncated!".formatted(truncated), message);
   }
 
@@ -801,7 +801,7 @@ final class IoUtilsTest {
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
     final Path destination = this.directory.resolve(LONG_COMMENT_OUTPUT_DIRECTORY);
 
-    final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
+    final FileOperationException failure = assertThrows(FileOperationException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable cause = failure.getCause();
     assertInstanceOf(ZipException.class, cause);
   }

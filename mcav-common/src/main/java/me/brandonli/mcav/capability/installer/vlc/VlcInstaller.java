@@ -109,7 +109,7 @@ public final class VlcInstaller extends AbstractInstaller {
    * Creates an installer that installs VLC into the cache folder of the library, {@code ~/.mcav/cache}.
    *
    * @return the installer
-   * @throws java.io.UncheckedIOException if the default cache folder cannot be created
+   * @throws FileOperationException if the default cache folder cannot be created
    * @since 1.0.0
    */
   public static VlcInstaller create() {

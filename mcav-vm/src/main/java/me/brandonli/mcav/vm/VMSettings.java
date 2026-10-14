@@ -18,6 +18,7 @@
 package me.brandonli.mcav.vm;
 
 import com.google.common.base.Preconditions;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -49,7 +50,7 @@ public final class VMSettings {
    * @param targetFrameRate the strictly positive requested frame rate in frames per second
    * @return the settings
    * @throws IllegalArgumentException if a dimension or frame rate is nonpositive
-   * @throws java.io.UncheckedIOException if no port in the VNC range can be bound by the probe
+   * @throws MCAVException            if no port in the VNC range can be bound by the probe
    */
   public static VMSettings of(final int width, final int height, final int targetFrameRate) {
     final int port = IoUtils.getNextFreeVncPort();

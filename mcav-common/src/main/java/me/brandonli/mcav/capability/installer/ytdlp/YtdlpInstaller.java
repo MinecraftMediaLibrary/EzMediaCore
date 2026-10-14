@@ -19,7 +19,6 @@ package me.brandonli.mcav.capability.installer.ytdlp;
 
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -96,7 +95,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    * Creates an installer that installs yt-dlp into the cache folder of the library, {@code ~/.mcav/cache}.
    *
    * @return the installer
-   * @throws UncheckedIOException if the default cache folder cannot be created
+   * @throws FileOperationException if the default cache folder cannot be created
    * @since 1.0.0
    */
   public static YtdlpInstaller create() {
@@ -194,13 +193,13 @@ public final class YtdlpInstaller extends AbstractInstaller {
     markExecutable(executable);
   }
 
-  // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as an UncheckedIOException for an archive
+  // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as a FileOperationException for an archive
   // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
   // fail with an InstallationException like every other installation failure.
   private static void extract(final Path archive, final Path destination) {
     try {
       IoUtils.unzip(archive, destination);
-    } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
+    } catch (final FileOperationException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while extracting the yt-dlp zip!".formatted(reason);
       throw new InstallationException(message, exception);

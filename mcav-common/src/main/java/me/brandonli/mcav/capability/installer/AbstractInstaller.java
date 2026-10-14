@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -140,7 +139,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param downloads the non-null array of non-null downloads, retained without copying; do not mutate it
    * @throws IllegalArgumentException if {@code name} is blank
    * @throws NullPointerException     if {@code name} or {@code downloads} is null
-   * @throws UncheckedIOException     if the default cache folder cannot be created
+   * @throws FileOperationException   if the default cache folder cannot be created
    * @since 1.0.0
    */
   protected AbstractInstaller(final String name, final Download[] downloads) {
@@ -154,7 +153,7 @@ public abstract class AbstractInstaller implements Installer {
    * so merely loading an installer class never touches the home directory.
    *
    * @return the default installation folder
-   * @throws UncheckedIOException if the folder cannot be created
+   * @throws FileOperationException if the folder cannot be created
    * @since 1.0.0
    */
   public static Path getDefaultExecutableFolderPath() {
@@ -261,7 +260,7 @@ public abstract class AbstractInstaller implements Installer {
 
     try {
       IoUtils.markExecutable(file);
-    } catch (final UncheckedIOException exception) {
+    } catch (final FileOperationException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while marking %s as executable!".formatted(reason, file);
       throw new InstallationException(message, exception);
