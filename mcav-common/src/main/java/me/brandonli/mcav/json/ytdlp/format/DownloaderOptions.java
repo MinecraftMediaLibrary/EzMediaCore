@@ -17,8 +17,15 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -32,13 +39,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(DownloaderOptions.Deserializer.class)
 public final class DownloaderOptions {
 
   @SerializedName("http_chunk_size")
   private final int httpChunkSize;
 
-  private DownloaderOptions() {
-    this.httpChunkSize = 0;
+  private DownloaderOptions(final Fields fields) {
+    this.httpChunkSize = Objects.requireNonNullElse(fields.httpChunkSize(), 0);
   }
 
   /**
@@ -94,4 +102,16 @@ public final class DownloaderOptions {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("httpChunkSize", this.httpChunkSize).toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<DownloaderOptions> {
+
+    @Override
+    public DownloaderOptions deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new DownloaderOptions(fields);
+    }
+  }
+
+  private record Fields(@SerializedName("http_chunk_size") @Nullable Integer httpChunkSize) {}
 }

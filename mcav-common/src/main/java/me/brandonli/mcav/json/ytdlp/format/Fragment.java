@@ -17,7 +17,14 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -32,15 +39,16 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(Fragment.Deserializer.class)
 public final class Fragment {
 
   private final @Nullable String url;
 
   private final double duration;
 
-  private Fragment() {
-    this.url = null;
-    this.duration = 0.0;
+  private Fragment(final Fields fields) {
+    this.url = fields.url();
+    this.duration = Objects.requireNonNullElse(fields.duration(), 0.0);
   }
 
   /**
@@ -104,4 +112,16 @@ public final class Fragment {
   public String toString() {
     return MoreObjects.toStringHelper(this).add("url", this.url).add("duration", this.duration).toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<Fragment> {
+
+    @Override
+    public Fragment deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Fragment(fields);
+    }
+  }
+
+  private record Fields(@Nullable String url, @Nullable Double duration) {}
 }

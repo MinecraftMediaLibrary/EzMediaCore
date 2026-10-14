@@ -17,9 +17,16 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +45,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(UrlParseDump.Deserializer.class)
 public final class UrlParseDump {
 
   private final @Nullable String id;
@@ -262,8 +270,90 @@ public final class UrlParseDump {
   @SerializedName("_version")
   private final @Nullable Version version;
 
-  private UrlParseDump() {
-    this(null, null);
+  private UrlParseDump(final Fields fields) {
+    this.id = fields.id();
+    this.title = fields.title();
+    this.formats = fields.formats();
+    this.thumbnails = fields.thumbnails();
+    this.thumbnail = fields.thumbnail();
+    this.description = fields.description();
+    this.channelId = fields.channelId();
+    this.channelUrl = fields.channelUrl();
+    this.duration = Objects.requireNonNullElse(fields.duration(), 0.0);
+    this.viewCount = Objects.requireNonNullElse(fields.viewCount(), 0L);
+    this.averageRating = fields.averageRating();
+    this.ageLimit = Objects.requireNonNullElse(fields.ageLimit(), 0);
+    this.webpageUrl = fields.webpageUrl();
+    this.categories = fields.categories();
+    this.tags = fields.tags();
+    this.playableInEmbed = Objects.requireNonNullElse(fields.playableInEmbed(), false);
+    this.liveStatus = fields.liveStatus();
+    this.releaseTimestamp = fields.releaseTimestamp();
+    this.formatSortFields = fields.formatSortFields();
+    this.commentCount = Objects.requireNonNullElse(fields.commentCount(), 0L);
+    this.chapters = fields.chapters();
+    this.heatmap = fields.heatmap();
+    this.likeCount = Objects.requireNonNullElse(fields.likeCount(), 0L);
+    this.channel = fields.channel();
+    this.channelFollowerCount = Objects.requireNonNullElse(fields.channelFollowerCount(), 0L);
+    this.channelVerified = Objects.requireNonNullElse(fields.channelVerified(), false);
+    this.uploader = fields.uploader();
+    this.uploaderId = fields.uploaderId();
+    this.uploaderUrl = fields.uploaderUrl();
+    this.uploadDate = fields.uploadDate();
+    this.timestamp = Objects.requireNonNullElse(fields.timestamp(), 0);
+    this.availability = fields.availability();
+    this.originalUrl = fields.originalUrl();
+    this.webpageUrlBasename = fields.webpageUrlBasename();
+    this.webpageUrlDomain = fields.webpageUrlDomain();
+    this.extractor = fields.extractor();
+    this.extractorKey = fields.extractorKey();
+    this.playlist = fields.playlist();
+    this.playlistIndex = fields.playlistIndex();
+    this.displayId = fields.displayId();
+    this.fullTitle = fields.fullTitle();
+    this.durationString = fields.durationString();
+    this.releaseYear = fields.releaseYear();
+    this.live = Objects.requireNonNullElse(fields.live(), false);
+    this.wasLive = Objects.requireNonNullElse(fields.wasLive(), false);
+    this.requestedSubtitles = fields.requestedSubtitles();
+    this.anyStreamDrmProtected = fields.anyStreamDrmProtected();
+    this.epoch = Objects.requireNonNullElse(fields.epoch(), 0);
+    this.audioSampleRate = Objects.requireNonNullElse(fields.audioSampleRate(), 0);
+    this.fileSize = fields.fileSize();
+    this.formatId = fields.formatId();
+    this.formatNote = fields.formatNote();
+    this.sourcePreference = Objects.requireNonNullElse(fields.sourcePreference(), 0);
+    this.framesPerSecond = Objects.requireNonNullElse(fields.framesPerSecond(), 0.0);
+    this.audioChannels = Objects.requireNonNullElse(fields.audioChannels(), 0);
+    this.height = Objects.requireNonNullElse(fields.height(), 0);
+    this.quality = Objects.requireNonNullElse(fields.quality(), 0.0);
+    this.drmProtected = Objects.requireNonNullElse(fields.drmProtected(), false);
+    this.totalBitrate = Objects.requireNonNullElse(fields.totalBitrate(), 0.0);
+    this.approximateFileSize = Objects.requireNonNullElse(fields.approximateFileSize(), 0L);
+    this.url = fields.url();
+    this.width = Objects.requireNonNullElse(fields.width(), 0);
+    this.language = fields.language();
+    this.languagePreference = Objects.requireNonNullElse(fields.languagePreference(), 0);
+    this.preference = fields.preference();
+    this.extension = fields.extension();
+    this.videoCodec = fields.videoCodec();
+    this.audioCodec = fields.audioCodec();
+    this.dynamicRange = fields.dynamicRange();
+    this.downloaderOptions = fields.downloaderOptions();
+    this.protocol = fields.protocol();
+    this.resolution = fields.resolution();
+    this.aspectRatio = Objects.requireNonNullElse(fields.aspectRatio(), 0.0);
+    this.httpHeaders = fields.httpHeaders();
+    this.videoExtension = fields.videoExtension();
+    this.audioExtension = fields.audioExtension();
+    this.videoBitrate = fields.videoBitrate();
+    this.audioBitrate = fields.audioBitrate();
+    this.format = fields.format();
+    this.fileName = fields.fileName();
+    this.fileNameAlias = fields.fileNameAlias();
+    this.type = fields.type();
+    this.version = fields.version();
   }
 
   private UrlParseDump(final @Nullable String title, final @Nullable String description) {
@@ -1570,4 +1660,100 @@ public final class UrlParseDump {
       .add("version", this.version)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<UrlParseDump> {
+
+    @Override
+    public UrlParseDump deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new UrlParseDump(fields);
+    }
+  }
+
+  private record Fields(
+    @Nullable String id,
+    @Nullable String title,
+    @Nullable List<Format> formats,
+    @Nullable List<Thumbnail> thumbnails,
+    @Nullable String thumbnail,
+    @Nullable String description,
+    @SerializedName("channel_id") @Nullable String channelId,
+    @SerializedName("channel_url") @Nullable String channelUrl,
+    @Nullable Double duration,
+    @SerializedName("view_count") @Nullable Long viewCount,
+    @SerializedName("average_rating") @Nullable Object averageRating,
+    @SerializedName("age_limit") @Nullable Integer ageLimit,
+    @SerializedName("webpage_url") @Nullable String webpageUrl,
+    @Nullable List<String> categories,
+    @Nullable List<String> tags,
+    @SerializedName("playable_in_embed") @Nullable Boolean playableInEmbed,
+    @SerializedName("live_status") @Nullable String liveStatus,
+    @SerializedName("release_timestamp") @Nullable Object releaseTimestamp,
+    @SerializedName("_format_sort_fields") @Nullable List<String> formatSortFields,
+    @SerializedName("comment_count") @Nullable Long commentCount,
+    @Nullable Object chapters,
+    @Nullable List<Heatmap> heatmap,
+    @SerializedName("like_count") @Nullable Long likeCount,
+    @Nullable String channel,
+    @SerializedName("channel_follower_count") @Nullable Long channelFollowerCount,
+    @SerializedName("channel_is_verified") @Nullable Boolean channelVerified,
+    @Nullable String uploader,
+    @SerializedName("uploader_id") @Nullable String uploaderId,
+    @SerializedName("uploader_url") @Nullable String uploaderUrl,
+    @SerializedName("upload_date") @Nullable String uploadDate,
+    @Nullable Integer timestamp,
+    @Nullable String availability,
+    @SerializedName("original_url") @Nullable String originalUrl,
+    @SerializedName("webpage_url_basename") @Nullable String webpageUrlBasename,
+    @SerializedName("webpage_url_domain") @Nullable String webpageUrlDomain,
+    @Nullable String extractor,
+    @SerializedName("extractor_key") @Nullable String extractorKey,
+    @Nullable Object playlist,
+    @SerializedName("playlist_index") @Nullable Object playlistIndex,
+    @SerializedName("display_id") @Nullable String displayId,
+    @SerializedName("fulltitle") @Nullable String fullTitle,
+    @SerializedName("duration_string") @Nullable String durationString,
+    @SerializedName("release_year") @Nullable Object releaseYear,
+    @SerializedName("is_live") @Nullable Boolean live,
+    @SerializedName("was_live") @Nullable Boolean wasLive,
+    @SerializedName("requested_subtitles") @Nullable Object requestedSubtitles,
+    @SerializedName("_has_drm") @Nullable Object anyStreamDrmProtected,
+    @Nullable Integer epoch,
+    @SerializedName("asr") @Nullable Integer audioSampleRate,
+    @SerializedName("filesize") @Nullable Object fileSize,
+    @SerializedName("format_id") @Nullable String formatId,
+    @SerializedName("format_note") @Nullable String formatNote,
+    @SerializedName("source_preference") @Nullable Integer sourcePreference,
+    @SerializedName("fps") @Nullable Double framesPerSecond,
+    @SerializedName("audio_channels") @Nullable Integer audioChannels,
+    @Nullable Integer height,
+    @Nullable Double quality,
+    @SerializedName("has_drm") @Nullable Boolean drmProtected,
+    @SerializedName("tbr") @Nullable Double totalBitrate,
+    @SerializedName("filesize_approx") @Nullable Long approximateFileSize,
+    @Nullable String url,
+    @Nullable Integer width,
+    @Nullable String language,
+    @SerializedName("language_preference") @Nullable Integer languagePreference,
+    @Nullable Object preference,
+    @SerializedName("ext") @Nullable String extension,
+    @SerializedName("vcodec") @Nullable String videoCodec,
+    @SerializedName("acodec") @Nullable String audioCodec,
+    @SerializedName("dynamic_range") @Nullable String dynamicRange,
+    @SerializedName("downloader_options") @Nullable DownloaderOptions downloaderOptions,
+    @Nullable String protocol,
+    @Nullable String resolution,
+    @SerializedName("aspect_ratio") @Nullable Double aspectRatio,
+    @SerializedName("http_headers") @Nullable HttpHeaders httpHeaders,
+    @SerializedName("video_ext") @Nullable String videoExtension,
+    @SerializedName("audio_ext") @Nullable String audioExtension,
+    @SerializedName("vbr") @Nullable Object videoBitrate,
+    @SerializedName("abr") @Nullable Object audioBitrate,
+    @Nullable String format,
+    @SerializedName("_filename") @Nullable String fileName,
+    @SerializedName("filename") @Nullable String fileNameAlias,
+    @SerializedName("_type") @Nullable String type,
+    @SerializedName("_version") @Nullable Version version
+  ) {}
 }

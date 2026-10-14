@@ -17,8 +17,15 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +44,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(Format.Deserializer.class)
 public final class Format {
 
   @SerializedName("format_id")
@@ -137,44 +145,44 @@ public final class Format {
   @SerializedName("downloader_options")
   private final @Nullable DownloaderOptions downloaderOptions;
 
-  private Format() {
-    this.formatId = null;
-    this.formatNote = null;
-    this.extension = null;
-    this.protocol = null;
-    this.audioCodec = null;
-    this.videoCodec = null;
-    this.url = null;
-    this.width = 0;
-    this.height = 0;
-    this.framesPerSecond = 0.0;
-    this.rows = 0;
-    this.columns = 0;
-    this.fragments = null;
-    this.resolution = null;
-    this.aspectRatio = 0.0;
-    this.approximateFileSize = 0L;
-    this.httpHeaders = null;
-    this.audioExtension = null;
-    this.videoExtension = null;
-    this.videoBitrate = 0.0;
-    this.audioBitrate = 0.0;
-    this.totalBitrate = 0.0;
-    this.format = null;
-    this.formatIndex = null;
-    this.manifestUrl = null;
-    this.language = null;
-    this.preference = null;
-    this.quality = 0.0;
-    this.drmProtected = false;
-    this.sourcePreference = 0;
-    this.audioSampleRate = 0;
-    this.fileSize = 0L;
-    this.audioChannels = 0;
-    this.languagePreference = 0;
-    this.dynamicRange = null;
-    this.container = null;
-    this.downloaderOptions = null;
+  private Format(final Fields fields) {
+    this.formatId = fields.formatId();
+    this.formatNote = fields.formatNote();
+    this.extension = fields.extension();
+    this.protocol = fields.protocol();
+    this.audioCodec = fields.audioCodec();
+    this.videoCodec = fields.videoCodec();
+    this.url = fields.url();
+    this.width = Objects.requireNonNullElse(fields.width(), 0);
+    this.height = Objects.requireNonNullElse(fields.height(), 0);
+    this.framesPerSecond = Objects.requireNonNullElse(fields.framesPerSecond(), 0.0);
+    this.rows = Objects.requireNonNullElse(fields.rows(), 0);
+    this.columns = Objects.requireNonNullElse(fields.columns(), 0);
+    this.fragments = fields.fragments();
+    this.resolution = fields.resolution();
+    this.aspectRatio = Objects.requireNonNullElse(fields.aspectRatio(), 0.0);
+    this.approximateFileSize = Objects.requireNonNullElse(fields.approximateFileSize(), 0L);
+    this.httpHeaders = fields.httpHeaders();
+    this.audioExtension = fields.audioExtension();
+    this.videoExtension = fields.videoExtension();
+    this.videoBitrate = Objects.requireNonNullElse(fields.videoBitrate(), 0.0);
+    this.audioBitrate = Objects.requireNonNullElse(fields.audioBitrate(), 0.0);
+    this.totalBitrate = Objects.requireNonNullElse(fields.totalBitrate(), 0.0);
+    this.format = fields.format();
+    this.formatIndex = fields.formatIndex();
+    this.manifestUrl = fields.manifestUrl();
+    this.language = fields.language();
+    this.preference = fields.preference();
+    this.quality = Objects.requireNonNullElse(fields.quality(), 0.0);
+    this.drmProtected = Objects.requireNonNullElse(fields.drmProtected(), false);
+    this.sourcePreference = Objects.requireNonNullElse(fields.sourcePreference(), 0);
+    this.audioSampleRate = Objects.requireNonNullElse(fields.audioSampleRate(), 0);
+    this.fileSize = Objects.requireNonNullElse(fields.fileSize(), 0L);
+    this.audioChannels = Objects.requireNonNullElse(fields.audioChannels(), 0);
+    this.languagePreference = Objects.requireNonNullElse(fields.languagePreference(), 0);
+    this.dynamicRange = fields.dynamicRange();
+    this.container = fields.container();
+    this.downloaderOptions = fields.downloaderOptions();
   }
 
   /**
@@ -753,4 +761,54 @@ public final class Format {
       .add("downloaderOptions", this.downloaderOptions)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<Format> {
+
+    @Override
+    public Format deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Format(fields);
+    }
+  }
+
+  private record Fields(
+    @SerializedName("format_id") @Nullable String formatId,
+    @SerializedName("format_note") @Nullable String formatNote,
+    @SerializedName("ext") @Nullable String extension,
+    @Nullable String protocol,
+    @SerializedName("acodec") @Nullable String audioCodec,
+    @SerializedName("vcodec") @Nullable String videoCodec,
+    @Nullable String url,
+    @Nullable Integer width,
+    @Nullable Integer height,
+    @SerializedName("fps") @Nullable Double framesPerSecond,
+    @Nullable Integer rows,
+    @Nullable Integer columns,
+    @Nullable List<Fragment> fragments,
+    @Nullable String resolution,
+    @SerializedName("aspect_ratio") @Nullable Double aspectRatio,
+    @SerializedName("filesize_approx") @Nullable Long approximateFileSize,
+    @SerializedName("http_headers") @Nullable HttpHeaders httpHeaders,
+    @SerializedName("audio_ext") @Nullable String audioExtension,
+    @SerializedName("video_ext") @Nullable String videoExtension,
+    @SerializedName("vbr") @Nullable Double videoBitrate,
+    @SerializedName("abr") @Nullable Double audioBitrate,
+    @SerializedName("tbr") @Nullable Double totalBitrate,
+    @Nullable String format,
+    @SerializedName("format_index") @Nullable Object formatIndex,
+    @SerializedName("manifest_url") @Nullable String manifestUrl,
+    @Nullable String language,
+    @Nullable Object preference,
+    @Nullable Double quality,
+    @SerializedName("has_drm") @Nullable Boolean drmProtected,
+    @SerializedName("source_preference") @Nullable Integer sourcePreference,
+    @SerializedName("asr") @Nullable Integer audioSampleRate,
+    @SerializedName("filesize") @Nullable Long fileSize,
+    @SerializedName("audio_channels") @Nullable Integer audioChannels,
+    @SerializedName("language_preference") @Nullable Integer languagePreference,
+    @SerializedName("dynamic_range") @Nullable String dynamicRange,
+    @Nullable String container,
+    @SerializedName("downloader_options") @Nullable DownloaderOptions downloaderOptions
+  ) {}
 }

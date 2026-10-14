@@ -17,8 +17,15 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -33,6 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(HttpHeaders.Deserializer.class)
 public final class HttpHeaders {
 
   @SerializedName("User-Agent")
@@ -47,11 +55,11 @@ public final class HttpHeaders {
   @SerializedName("Sec-Fetch-Mode")
   private final @Nullable String secFetchMode;
 
-  private HttpHeaders() {
-    this.userAgent = null;
-    this.accept = null;
-    this.acceptLanguage = null;
-    this.secFetchMode = null;
+  private HttpHeaders(final Fields fields) {
+    this.userAgent = fields.userAgent();
+    this.accept = fields.accept();
+    this.acceptLanguage = fields.acceptLanguage();
+    this.secFetchMode = fields.secFetchMode();
   }
 
   /**
@@ -153,4 +161,21 @@ public final class HttpHeaders {
       .add("secFetchMode", this.secFetchMode)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<HttpHeaders> {
+
+    @Override
+    public HttpHeaders deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new HttpHeaders(fields);
+    }
+  }
+
+  private record Fields(
+    @SerializedName("User-Agent") @Nullable String userAgent,
+    @SerializedName("Accept") @Nullable String accept,
+    @SerializedName("Accept-Language") @Nullable String acceptLanguage,
+    @SerializedName("Sec-Fetch-Mode") @Nullable String secFetchMode
+  ) {}
 }

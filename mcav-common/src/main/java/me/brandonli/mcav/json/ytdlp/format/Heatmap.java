@@ -17,8 +17,15 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -32,6 +39,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(Heatmap.Deserializer.class)
 public final class Heatmap {
 
   @SerializedName("start_time")
@@ -42,10 +50,10 @@ public final class Heatmap {
 
   private final double value;
 
-  private Heatmap() {
-    this.startTime = 0.0;
-    this.endTime = 0.0;
-    this.value = 0.0;
+  private Heatmap(final Fields fields) {
+    this.startTime = Objects.requireNonNullElse(fields.startTime(), 0.0);
+    this.endTime = Objects.requireNonNullElse(fields.endTime(), 0.0);
+    this.value = Objects.requireNonNullElse(fields.value(), 0.0);
   }
 
   /**
@@ -127,4 +135,20 @@ public final class Heatmap {
       .add("value", this.value)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<Heatmap> {
+
+    @Override
+    public Heatmap deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Heatmap(fields);
+    }
+  }
+
+  private record Fields(
+    @SerializedName("start_time") @Nullable Double startTime,
+    @SerializedName("end_time") @Nullable Double endTime,
+    @Nullable Double value
+  ) {}
 }

@@ -17,7 +17,14 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -32,6 +39,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(Thumbnail.Deserializer.class)
 public final class Thumbnail {
 
   private final @Nullable String url;
@@ -46,13 +54,13 @@ public final class Thumbnail {
 
   private final @Nullable String resolution;
 
-  private Thumbnail() {
-    this.url = null;
-    this.preference = 0;
-    this.id = null;
-    this.height = 0;
-    this.width = 0;
-    this.resolution = null;
+  private Thumbnail(final Fields fields) {
+    this.url = fields.url();
+    this.preference = Objects.requireNonNullElse(fields.preference(), 0);
+    this.id = fields.id();
+    this.height = Objects.requireNonNullElse(fields.height(), 0);
+    this.width = Objects.requireNonNullElse(fields.width(), 0);
+    this.resolution = fields.resolution();
   }
 
   /**
@@ -171,4 +179,23 @@ public final class Thumbnail {
       .add("resolution", this.resolution)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<Thumbnail> {
+
+    @Override
+    public Thumbnail deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Thumbnail(fields);
+    }
+  }
+
+  private record Fields(
+    @Nullable String url,
+    @Nullable Integer preference,
+    @Nullable String id,
+    @Nullable Integer height,
+    @Nullable Integer width,
+    @Nullable String resolution
+  ) {}
 }

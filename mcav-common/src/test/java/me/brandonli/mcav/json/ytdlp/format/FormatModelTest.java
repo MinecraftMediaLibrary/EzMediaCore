@@ -25,10 +25,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.ReflectionAccessFilter;
+import com.google.gson.ReflectionAccessFilter.FilterResult;
 import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,14 +103,20 @@ final class FormatModelTest {
 
   private static final String ABSENT = "none";
 
+  private static final ReflectionAccessFilter MODEL_FIELDS_BLOCKED = FormatModelTest::blockModels;
+
   private static UrlParseDump fixture() throws IOException {
+    final String json = fixtureText();
+    final Gson gson = GsonProvider.getSimple();
+    return gson.fromJson(json, UrlParseDump.class);
+  }
+
+  private static String fixtureText() throws IOException {
     try (final InputStream stream = FormatModelTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
 
       final byte[] bytes = stream.readAllBytes();
-      final String json = new String(bytes, StandardCharsets.UTF_8);
-      final Gson gson = GsonProvider.getSimple();
-      return gson.fromJson(json, UrlParseDump.class);
+      return new String(bytes, StandardCharsets.UTF_8);
     }
   }
 
@@ -424,12 +433,33 @@ final class FormatModelTest {
   }
 
   private static String jsonName(final Field field) {
-    final SerializedName serializedName = field.getAnnotation(SerializedName.class);
+    final Field component = findComponentField(field);
+    final SerializedName serializedName = component.getAnnotation(SerializedName.class);
     if (serializedName == null) {
       return field.getName();
     }
 
     return serializedName.value();
+  }
+
+  private static FilterResult blockModels(final Class<?> rawClass) {
+    if (MODELS.contains(rawClass)) {
+      return FilterResult.BLOCK_ALL;
+    }
+
+    return FilterResult.INDECISIVE;
+  }
+
+  private static Field findComponentField(final Field field) {
+    final Class<?> owner = field.getDeclaringClass();
+    final Class<?>[] nestedTypes = owner.getDeclaredClasses();
+    return Arrays.stream(nestedTypes)
+      .filter(Class::isRecord)
+      .map(Class::getDeclaredFields)
+      .flatMap(Arrays::stream)
+      .filter(component -> component.getName().equals(field.getName()))
+      .findFirst()
+      .orElseThrow();
   }
 
   private static JsonElement baseValue(final Type type) {
@@ -561,6 +591,26 @@ final class FormatModelTest {
     final int modelHash = model.hashCode();
     final int sameHash = same.hashCode();
     assertEquals(modelHash, sameHash);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("models")
+  void shouldReadWhatItWrites(final Class<?> clazz) {
+    final Object model = parse(clazz, baseJson(clazz));
+    final Gson gson = GsonProvider.getSimple();
+    final String json = gson.toJson(model);
+    final Object read = gson.fromJson(json, clazz);
+    assertEquals(model, read);
+  }
+
+  @Test
+  void shouldBuildTheModelsWithoutWritingTheirFieldsByReflection() throws IOException {
+    final String json = fixtureText();
+    final GsonBuilder builder = new GsonBuilder();
+    final Gson gson = builder.addReflectionAccessFilter(MODEL_FIELDS_BLOCKED).create();
+    final UrlParseDump dump = gson.fromJson(json, UrlParseDump.class);
+    final UrlParseDump expected = fixture();
+    assertEquals(expected, dump);
   }
 
   @ParameterizedTest(name = "{0}")

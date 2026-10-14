@@ -17,8 +17,15 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -33,6 +40,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @since 1.0.0
  */
+@JsonAdapter(Version.Deserializer.class)
 public final class Version {
 
   private final @Nullable String version;
@@ -45,11 +53,11 @@ public final class Version {
 
   private final @Nullable String repository;
 
-  private Version() {
-    this.version = null;
-    this.currentGitHead = null;
-    this.releaseGitHead = null;
-    this.repository = null;
+  private Version(final Fields fields) {
+    this.version = fields.version();
+    this.currentGitHead = fields.currentGitHead();
+    this.releaseGitHead = fields.releaseGitHead();
+    this.repository = fields.repository();
   }
 
   /**
@@ -144,4 +152,21 @@ public final class Version {
       .add("repository", this.repository)
       .toString();
   }
+
+  static final class Deserializer implements JsonDeserializer<Version> {
+
+    @Override
+    public Version deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Version(fields);
+    }
+  }
+
+  private record Fields(
+    @Nullable String version,
+    @SerializedName("current_git_head") @Nullable Object currentGitHead,
+    @SerializedName("release_git_head") @Nullable String releaseGitHead,
+    @Nullable String repository
+  ) {}
 }
