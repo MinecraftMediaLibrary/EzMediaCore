@@ -32,10 +32,11 @@ import me.brandonli.mcav.media.source.uri.UriSourceDetector;
  * <p>The default detectors recognize existing file or directory paths, URLs with a scheme and host, plain numbers as capture
  * device indices, and {@code format||input} pairs as raw FFmpeg inputs.
  *
- * <pre><code>
- *   final SourceDetectionHelper helper = new SourceDetectionHelper();
- *   final Optional&lt;Source&gt; source = helper.detectSource("videos/intro.mp4");
- * </code></pre>
+ * {@snippet :
+ * final String resource = "videos/intro.mp4";
+ * final SourceDetectionHelper helper = new SourceDetectionHelper();
+ * final Optional<Source> source = helper.detectSource(resource);
+ * }
  *
  * <p>This class is immutable and thread-safe.
  */

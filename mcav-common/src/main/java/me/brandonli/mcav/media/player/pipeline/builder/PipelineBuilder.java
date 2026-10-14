@@ -20,13 +20,13 @@ package me.brandonli.mcav.media.player.pipeline.builder;
 /**
  * Entry point for building pipelines. Filters run in the order they are added.
  *
- * <pre><code>
- *   final VideoPipelineStepBuilder builder = PipelineBuilder.video();
- *   builder.then(resize);
- *   builder.then(dither);
- *   builder.then(display);
- *   final VideoPipelineStep pipeline = builder.build();
- * </code></pre>
+ * {@snippet :
+ * final VideoPipelineStepBuilder builder = PipelineBuilder.video();
+ * builder.then(resize);
+ * builder.then(dither);
+ * builder.then(display);
+ * final VideoPipelineStep pipeline = builder.build();
+ * }
  *
  * <p>Builders are not thread-safe; use one per thread.
  */

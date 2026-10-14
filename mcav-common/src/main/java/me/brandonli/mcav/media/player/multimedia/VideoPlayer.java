@@ -36,16 +36,17 @@ import me.brandonli.mcav.media.source.Source;
  * <p>Pick a backend with one of the static factories, attach a video pipeline, an audio pipeline, and optionally
  * a target size, then start the player:
  *
- * <pre><code>
- *   final VideoPlayerMultiplexer player = VideoPlayer.ffmpeg();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(videoPipeline);
- *   final AudioAttachableCallback audio = player.getAudioAttachableCallback();
- *   audio.attach(audioPipeline);
- *   final Path movie = Path.of("movie.mp4");
- *   final FileSource source = FileSource.path(movie);
- *   player.start(source);
- * </code></pre>
+ * {@snippet :
+ * final VideoPlayerMultiplexer player = VideoPlayer.ffmpeg();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(videoPipeline);
+ * final AudioAttachableCallback audio = player.getAudioAttachableCallback();
+ * audio.attach(audioPipeline);
+ * final String fileName = "movie.mp4";
+ * final Path movie = Path.of(fileName);
+ * final FileSource source = FileSource.path(movie);
+ * player.start(source);
+ * }
  *
  * <p>Frames are delivered on the player's own threads; the pipelines must not block for long.
  *

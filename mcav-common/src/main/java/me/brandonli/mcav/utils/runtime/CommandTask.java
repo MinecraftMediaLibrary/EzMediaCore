@@ -47,11 +47,13 @@ import org.slf4j.LoggerFactory;
  * runs, so a program that prints a lot of text can never block. Both streams are available as strings after the
  * program finished. Nothing is printed to the console of the JVM.
  *
- * <pre><code>
- *   final CommandTask task = new CommandTask("ffmpeg", "-version");
- *   final int exitCode = task.run();
- *   final String output = task.getOutput();
- * </code></pre>
+ * {@snippet :
+ * final String executable = "ffmpeg";
+ * final String versionOption = "-version";
+ * final CommandTask task = new CommandTask(executable, versionOption);
+ * final int exitCode = task.run();
+ * final String output = task.getOutput();
+ * }
  *
  * <p>{@link #run(Duration)} uses one deadline for the program and both captured streams. At the deadline it requests
  * termination of the program and the descendants observed while it ran. Descendant discovery is best effort:

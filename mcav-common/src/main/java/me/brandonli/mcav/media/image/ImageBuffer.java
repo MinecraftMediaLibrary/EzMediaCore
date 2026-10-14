@@ -43,15 +43,15 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * <p>Buffers hold native memory and must be released with {@link #release()} or {@link #close()} when they are no
  * longer needed. They are not thread-safe.
  *
- * <pre><code>
- *   final Path file = Path.of("picture.png");
- *   final FileSource source = FileSource.path(file);
- *   try (final ImageBuffer image = ImageBuffer.path(source)) {
- *     final int[] pixels = image.getPixels();       // shared: read it, never write it
- *     final int[] editable = image.copyPixels();    // private copy: write it freely
- *     // ...
- *   }
- * </code></pre>
+ * {@snippet :
+ * final String fileName = "picture.png";
+ * final Path file = Path.of(fileName);
+ * final FileSource source = FileSource.path(file);
+ * try (final ImageBuffer image = ImageBuffer.path(source)) {
+ *   final int[] pixels = image.getPixels(); // shared: read it, never write it
+ *   final int[] editable = image.copyPixels(); // private copy: write it freely
+ * }
+ * }
  */
 public interface ImageBuffer extends Image {
   /**

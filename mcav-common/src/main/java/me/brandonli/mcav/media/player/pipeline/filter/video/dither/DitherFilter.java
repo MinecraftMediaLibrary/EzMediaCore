@@ -27,14 +27,14 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * A video filter that hands every frame together with a dithering algorithm to a {@link DitherResultStep}, which
  * dithers the frame and displays the result. This is how frames reach map displays.
  *
- * <pre><code>
- *   final DitherAlgorithm algorithm = DitherAlgorithm.filterLite();
- *   final DitherResultStep maps = new CompressedMapResult(configuration);
- *   final FunctionalVideoFilter display = DitherFilter.dither(algorithm, maps);
- *   final VideoPipelineStepBuilder builder = PipelineBuilder.video();
- *   builder.then(display);
- *   final VideoPipelineStep pipeline = builder.build();
- * </code></pre>
+ * {@snippet :
+ * final DitherAlgorithm algorithm = DitherAlgorithm.filterLite();
+ * final DitherResultStep maps = new CompressedMapResult(configuration);
+ * final FunctionalVideoFilter display = DitherFilter.dither(algorithm, maps);
+ * final VideoPipelineStepBuilder builder = PipelineBuilder.video();
+ * builder.then(display);
+ * final VideoPipelineStep pipeline = builder.build();
+ * }
  *
  * <p>This class is immutable; it is thread-safe when its algorithm and result step are.
  */

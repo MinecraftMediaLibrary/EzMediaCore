@@ -35,10 +35,12 @@ import me.brandonli.mcav.utils.runtime.ProcessException;
  * <p>The audio is written as stereo Ogg Vorbis, a compact and royalty-free format that is played by Minecraft
  * resource packs, web browsers, game engines and most media players.
  *
- * <pre>{@code
- * final Source media = UriSource.uri(URI.create("https://example.com/video.mp4"));
+ * {@snippet :
+ * final String address = "https://example.com/video.mp4";
+ * final URI uri = URI.create(address);
+ * final Source media = UriSource.uri(uri);
  * final Path audio = AudioExtractor.extractOggVorbis(media);
- * }</pre>
+ * }
  *
  * <p>This class is stateless and thread-safe.
  */

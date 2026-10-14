@@ -39,11 +39,12 @@ import java.util.concurrent.TimeoutException;
  * failures are reported as an empty result or {@code false} instead. If the calling thread is interrupted while
  * waiting, the method gives up and the interrupt flag of the thread stays set.
  *
- * <pre>{@code
+ * {@snippet :
  * final Optional<String> publicAddress = NetworkUtils.lookUpPublicAddress();
- * final URI download = URI.create("https://example.com/pack.zip");
+ * final String address = "https://example.com/pack.zip";
+ * final URI download = URI.create(address);
  * final boolean reachable = NetworkUtils.isReachable(download);
- * }</pre>
+ * }
  *
  * <p>This class is stateless and thread-safe.
  */

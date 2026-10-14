@@ -36,20 +36,24 @@ import org.bytedeco.javacpp.PointerPointer;
  * {@link AudioFilter}); outputs that expect something else, such as a speech recognizer at 16 kHz mono, a telephony
  * bridge at 8 kHz or an engine that mixes floating point samples, use a resampler to convert them.
  *
- * <pre>{@code
- * final AudioResampler resampler = AudioResampler.fromPipelineFormat(16_000, 1, SampleFormat.SIGNED_16_BIT);
- * final AudioPipelineStep pipeline = AudioPipelineStep.of((samples, metadata) -> {
- *   final byte[] speech = resampler.resample(samples);
- *   recognizer.accept(speech);
- *   // the samples were only read, so the filter reports that it left them untouched
- *   return false;
- * });
+ * {@snippet :
+ * final int sampleRate = 16_000;
+ * final int channels = 1;
+ * this.resampler = AudioResampler.fromPipelineFormat(sampleRate, channels, SampleFormat.SIGNED_16_BIT);
+ * final AudioPipelineStep pipeline = AudioPipelineStep.of(this::forwardSpeech);
  *
  * // once playback has ended
- * final byte[] remaining = resampler.flush();
- * recognizer.accept(remaining);
- * resampler.close();
- * }</pre>
+ * final byte[] remaining = this.resampler.flush();
+ * this.recognizer.accept(remaining);
+ * this.resampler.close();
+ *
+ * private boolean forwardSpeech(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
+ *   final byte[] speech = this.resampler.resample(samples);
+ *   this.recognizer.accept(speech);
+ *   // the samples were only read, so the filter reports that it left them untouched
+ *   return false;
+ * }
+ * }
  *
  * <p>Changing the sample rate needs a few samples of look-ahead, so the resampler holds back a short tail of every
  * buffer and emits it with the next one; {@link #flush()} drains that tail at the end of a stream. Channel counts

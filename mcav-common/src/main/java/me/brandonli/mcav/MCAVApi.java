@@ -42,17 +42,15 @@ import me.brandonli.mcav.module.MCAVModule;
  * </ul>
  * {@link #release()} cancels a preparation that is still running.
  *
- * <pre><code>
- *   final MCAVApi api = MCAV.api();
- *   api.install();
- *   // FFmpeg players can be used right away
- *   final CompletableFuture&lt;Boolean&gt; vlcReady = api.whenCapabilityReady(Capability.VLC);
- *   vlcReady.thenAccept(available -&gt; {
- *     // VLC players can be created from now on if available is true
- *   });
- *   // at shutdown
- *   api.release();
- * </code></pre>
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install();
+ * // FFmpeg players can be used right away
+ * final CompletableFuture<Boolean> vlcReady = api.whenCapabilityReady(Capability.VLC);
+ * vlcReady.thenAccept(this::enableVlcPlayers);
+ * // at shutdown
+ * api.release();
+ * }
  *
  * <p>Implementations in this library are thread-safe.
  */

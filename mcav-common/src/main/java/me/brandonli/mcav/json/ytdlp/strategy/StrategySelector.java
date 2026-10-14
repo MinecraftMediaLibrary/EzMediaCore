@@ -24,11 +24,11 @@ import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 /**
  * Pairs an audio strategy with a video strategy, so both streams of a video can be selected together.
  *
- * <pre><code>
- *   final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
- *   final Format audio = selector.getAudioSource(dump);
- *   final Format video = selector.getVideoSource(dump);
- * </code></pre>
+ * {@snippet :
+ * final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
+ * final Format audio = selector.getAudioSource(dump);
+ * final Format video = selector.getVideoSource(dump);
+ * }
  *
  * <p>Implementations in this library are immutable and thread-safe.
  */

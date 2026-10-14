@@ -42,10 +42,10 @@ import org.slf4j.LoggerFactory;
  * Factory-created kits share synchronized load state, so concurrent starts use the first successful native
  * load. The kit does not own media players and has no close operation; callers release their players separately.
  *
- * <pre><code>
- *   final VlcInstallationKit kit = VlcInstallationKit.create();
- *   final Optional&lt;Path&gt; libraryDirectory = kit.start();
- * </code></pre>
+ * {@snippet :
+ * final VlcInstallationKit kit = VlcInstallationKit.create();
+ * final Optional<Path> libraryDirectory = kit.start();
+ * }
  *
  * <p>This class is thread-safe.
  */

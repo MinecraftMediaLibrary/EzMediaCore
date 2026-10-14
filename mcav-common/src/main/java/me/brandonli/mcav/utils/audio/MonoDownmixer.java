@@ -27,14 +27,16 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
  * averaging both channels. Outputs that carry a single channel, such as Simple Voice Chat, a mono speaker or a
  * speech recognizer, use it to turn the samples of the pipeline into the format they expect.
  *
- * <pre>{@code
- * final AudioPipelineStep pipeline = AudioPipelineStep.of((samples, metadata) -> {
+ * {@snippet :
+ * final AudioPipelineStep pipeline = AudioPipelineStep.of(this::playMono);
+ *
+ * private boolean playMono(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
  *   final short[] mono = MonoDownmixer.downmix(samples);
- *   speaker.play(mono);
+ *   this.speaker.play(mono);
  *   // the samples were only read, so the filter reports that it left them untouched
  *   return false;
- * });
- * }</pre>
+ * }
+ * }
  *
  * <p>This class is stateless and thread-safe.
  */

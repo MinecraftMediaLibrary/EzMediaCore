@@ -25,16 +25,19 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
 /**
  * An FFmpeg command line, built with {@link #builder()} and run through the task of {@link #createTask()}.
  *
- * <pre><code>
- *   final FfmpegCommandBuilder builder = FfmpegCommand.builder();
- *   builder.addInput("input.mp4");
- *   builder.addAudioCodec("libvorbis");
- *   builder.addOverwrite();
- *   builder.addOutput("output.ogg");
- *   final FfmpegCommand command = builder.build();
- *   final CommandTask task = command.createTask();
- *   final int exitCode = task.run();
- * </code></pre>
+ * {@snippet :
+ * final String input = "input.mp4";
+ * final String codec = "libvorbis";
+ * final String output = "output.ogg";
+ * final FfmpegCommandBuilder builder = FfmpegCommand.builder();
+ * builder.addInput(input);
+ * builder.addAudioCodec(codec);
+ * builder.addOverwrite();
+ * builder.addOutput(output);
+ * final FfmpegCommand command = builder.build();
+ * final CommandTask task = command.createTask();
+ * final int exitCode = task.run();
+ * }
  *
  * <p>This class is immutable and thread-safe.
  */

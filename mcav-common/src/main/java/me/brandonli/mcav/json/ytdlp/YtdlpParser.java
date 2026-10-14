@@ -30,14 +30,15 @@ import me.brandonli.mcav.media.source.uri.UriSource;
  * calls, each with its own command process and result. Returned metadata is mutable and belongs to the caller;
  * do not mutate source settings or the argument array while a parse uses them.
  *
- * <pre>{@code
- * final URI page = URI.create("https://youtu.be/...");
+ * {@snippet :
+ * final String address = "https://youtu.be/...";
+ * final URI page = URI.create(address);
  * final UriSource source = UriSource.uri(page);
  * final YtdlpParser parser = YtdlpParser.simple();
  * final UrlParseDump dump = parser.parse(source);
  * final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
  * final Format video = selector.getVideoSource(dump);
- * }</pre>
+ * }
  *
  * <p>Implementations in this library are thread-safe.
  */

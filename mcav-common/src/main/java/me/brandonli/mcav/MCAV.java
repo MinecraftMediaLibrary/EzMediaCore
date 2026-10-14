@@ -49,6 +49,13 @@ import org.slf4j.LoggerFactory;
  * once a minute, on Linux.
  *
  * <p>This class is thread-safe.
+ *
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install();
+ * // at shutdown
+ * api.release();
+ * }
  */
 public final class MCAV implements MCAVApi {
 

@@ -31,13 +31,13 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
  * {@link me.brandonli.mcav.media.image.DynamicImageBuffer} or live captures, through a video pipeline at the
  * frame rate of the source.
  *
- * <pre><code>
- *   final ImagePlayer player = ImagePlayer.player();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(pipeline);
- *   final RepeatingFrameSource source = RepeatingFrameSource.repeating(gif);
- *   player.start(source);
- * </code></pre>
+ * {@snippet :
+ * final ImagePlayer player = ImagePlayer.player();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation);
+ * player.start(source);
+ * }
  *
  * <p>Implementations in this library are thread-safe.
  */
