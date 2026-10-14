@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -596,6 +597,40 @@ final class VlcPlayerTest {
     assertSame(failure, thrown);
     verify(mediaPlayer, never()).release();
     verify(factory, never()).release();
+    assertFalse(restarted, "the start stays reserved, so nothing more runs on a broken virtual machine");
+  }
+
+  @Test
+  void shouldRunNoCleanupAfterAFatalErrorStoppingTheOldPlayback() {
+    this.startVideo();
+    final MockVlc.Player old = this.vlc.player(0);
+    final EmbeddedMediaPlayer oldPlayer = old.getPlayer();
+    final OutOfMemoryError failure = new OutOfMemoryError("old player release out of memory!");
+    doThrow(failure).when(oldPlayer).release();
+    final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> this.player.start(this.audio));
+    final MockVlc.Player replacement = this.vlc.player(1);
+    final EmbeddedMediaPlayer replacementPlayer = replacement.getPlayer();
+    assertSame(failure, thrown);
+    verify(replacementPlayer, never()).release();
+
+    final boolean restarted = this.player.start(this.video);
+    assertFalse(restarted, "the start stays reserved, so nothing more runs on a broken virtual machine");
+  }
+
+  @Test
+  void shouldRunNoCleanupAfterAFatalErrorStartingThePlayback() {
+    final MediaPlayerFactory factory = this.vlc.getFactory();
+    final uk.co.caprica.vlcj.factory.VideoSurfaceApi surfaces = factory.videoSurfaces(); // fqn: VideoSurfaceApi is imported as uk.co.caprica.vlcj.player.embedded.VideoSurfaceApi
+    final OutOfMemoryError failure = new OutOfMemoryError("video surface out of memory!");
+    doThrow(failure).when(surfaces).newVideoSurface(any(BufferFormatCallback.class), any(RenderCallback.class), anyBoolean());
+    final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> this.player.start(this.video));
+    final MockVlc.Player videoPlayer = this.vlc.player(0);
+    final EmbeddedMediaPlayer mediaPlayer = videoPlayer.getPlayer();
+    assertSame(failure, thrown);
+    verify(mediaPlayer, never()).release();
+    verify(factory, never()).release();
+
+    final boolean restarted = this.player.start(this.video);
     assertFalse(restarted, "the start stays reserved, so nothing more runs on a broken virtual machine");
   }
 
