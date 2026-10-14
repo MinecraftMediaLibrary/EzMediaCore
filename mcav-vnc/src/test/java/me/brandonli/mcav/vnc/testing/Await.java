@@ -33,7 +33,7 @@ public final class Await {
   private static final long POLL_NANOS = TimeUnit.MILLISECONDS.toNanos(5);
 
   private Await() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -43,14 +43,14 @@ public final class Await {
    * @param condition   the condition
    */
   public static void until(final String description, final BooleanSupplier condition) {
-    Preconditions.checkNotNull(description, "Description must not be null");
-    Preconditions.checkNotNull(condition, "Condition must not be null");
+    Preconditions.checkNotNull(description, "Description must not be null!");
+    Preconditions.checkNotNull(condition, "Condition must not be null!");
     final long start = System.nanoTime();
     final long deadline = start + TIMEOUT_NANOS;
     while (!condition.getAsBoolean()) {
       final long now = System.nanoTime();
       if (now - deadline > 0) {
-        fail("Timed out waiting until " + description);
+        fail("Condition \"%s\" did not hold in time!".formatted(description));
       }
       LockSupport.parkNanos(POLL_NANOS);
     }

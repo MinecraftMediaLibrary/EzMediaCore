@@ -33,7 +33,7 @@ import java.lang.reflect.Modifier;
 public final class UtilityClassAssertions {
 
   private UtilityClassAssertions() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -43,7 +43,7 @@ public final class UtilityClassAssertions {
    * @param utilityClass the utility class
    */
   public static void assertNotInstantiable(final Class<?> utilityClass) {
-    Preconditions.checkNotNull(utilityClass, "Utility class must not be null");
+    Preconditions.checkNotNull(utilityClass, "Utility class must not be null!");
     final int classModifiers = utilityClass.getModifiers();
     final boolean finalClass = Modifier.isFinal(classModifiers);
     assertTrue(finalClass, "utility classes must be final");

@@ -80,7 +80,7 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @throws NullPointerException if {@code source} is null
    */
   default CompletableFuture<Boolean> startAsync(final VNCSource source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     return this.startAsync(source, pool);
   }
@@ -96,8 +96,8 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @throws NullPointerException if {@code source} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final VNCSource source, final ExecutorService executor) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(source), executor);
   }
 

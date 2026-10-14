@@ -86,7 +86,7 @@ final class RfbGuard {
    * @return the stream the client reads, which fails instead of passing on a byte the protocol does not allow there
    */
   InputStream serverInput(final InputStream input) {
-    Preconditions.checkNotNull(input, "Input must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
     return new GuardedInput(input);
   }
 
@@ -97,7 +97,7 @@ final class RfbGuard {
    * @return the stream the client writes, which passes every byte on unchanged
    */
   OutputStream clientOutput(final OutputStream output) {
-    Preconditions.checkNotNull(output, "Output must not be null");
+    Preconditions.checkNotNull(output, "Output must not be null!");
     return new ObservedOutput(output);
   }
 
@@ -124,7 +124,8 @@ final class RfbGuard {
   }
 
   private static IOException violation(final String what) {
-    return new IOException("The VNC server broke the protocol or a bound: " + what);
+    final String message = "VNC server sent %s, which breaks the protocol or a bound!".formatted(what);
+    return new IOException(message);
   }
 
   private static int unsigned8(final byte[] field, final int at) {
@@ -464,7 +465,7 @@ final class RfbGuard {
         case NONE -> this.expect(RfbGuard.this.minorVersion >= MIN_MINOR_WITH_REASONS ? Server.RESULT : Server.INIT);
         case VNC -> this.expect(Server.CHALLENGE);
         case MS_LOGON -> this.expect(Server.LOGON_KEYS);
-        default -> throw violation("security type " + type + ", which the client does not support");
+        default -> throw violation("security type " + type + " that the client does not support");
       }
     }
 

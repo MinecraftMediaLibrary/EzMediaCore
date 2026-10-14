@@ -551,7 +551,7 @@ final class VNCPlayerImplTest {
     final VNCSource source = source(server, 0, 0);
     final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
     final String message = exception.getMessage();
-    final boolean messageStartsWith = message.startsWith("Failed to start the VNC session with VNCSource[vnc://127.0.0.1:");
+    final boolean messageStartsWith = message.startsWith("VNC session with vnc://127.0.0.1:");
     assertTrue(messageStartsWith, message);
     final boolean playing = player.isPlaying();
     assertFalse(playing);
@@ -566,7 +566,7 @@ final class VNCPlayerImplTest {
     final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    final boolean messageStartsWith = message.startsWith("Failed to connect to ");
+    final boolean messageStartsWith = message.startsWith("VNC server vnc://127.0.0.1:");
     assertTrue(messageStartsWith, message);
     assertInstanceOf(IOException.class, cause);
   }
@@ -620,7 +620,7 @@ final class VNCPlayerImplTest {
   void shouldReportPipelineFailuresAndKeepsStreaming() {
     final RfbTestServer server = this.server(16, 16);
     final VNCPlayerImpl player = this.player();
-    final IllegalStateException failure = new IllegalStateException("filter failed");
+    final IllegalStateException failure = new IllegalStateException("filter failed!");
     final VideoFilter failing = (_, _) -> {
       throw failure;
     };
@@ -824,7 +824,7 @@ final class VNCPlayerImplTest {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("client is already running");
+    final IllegalStateException failure = new IllegalStateException("client is already running!");
     doThrow(failure).when(client).start(any(Socket.class));
     final VNCPlayerImpl player = this.mockedPlayer(client, config);
     final VNCSource source = source(listening, 0, 0);
@@ -847,7 +847,7 @@ final class VNCPlayerImplTest {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final AuthenticationFailedException failure = new AuthenticationFailedException("denied");
+    final AuthenticationFailedException failure = new AuthenticationFailedException("denied!");
     final VNCPlayerImpl player = this.mockedPlayer(client, config);
     doAnswer(_ -> {
       final BufferedImage early = image(4, 4, RED);
@@ -1050,7 +1050,7 @@ final class VNCPlayerImplTest {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("broken pipe");
+    final IllegalStateException failure = new IllegalStateException("broken pipe!");
     doThrow(failure).when(client).moveMouse(anyInt(), anyInt());
     final VNCPlayerImpl player = this.mockedPlayer(client, config);
     final VNCSource source = source(listening, 0, 0);
@@ -1071,7 +1071,7 @@ final class VNCPlayerImplTest {
     doAnswer(_ -> {
       final VNCPlayerImpl current = reference.get();
       current.release();
-      throw new IllegalStateException("closed while typing");
+      throw new IllegalStateException("closed while typing!");
     })
       .when(client)
       .updateKey(anyInt(), anyBoolean());
@@ -1145,7 +1145,7 @@ final class VNCPlayerImplTest {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final AuthenticationFailedException first = new AuthenticationFailedException("denied");
+    final AuthenticationFailedException first = new AuthenticationFailedException("denied!");
     final UnknownMessageTypeException second = new UnknownMessageTypeException(3);
     doAnswer(_ -> {
       pushError(config, first);
@@ -1244,7 +1244,7 @@ final class VNCPlayerImplTest {
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
     final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final InternalError fatal = new InternalError("out of native memory");
+    final InternalError fatal = new InternalError("out of native memory!");
     final VideoFilter failing = (_, _) -> {
       throw fatal;
     };
@@ -1287,7 +1287,7 @@ final class VNCPlayerImplTest {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("stuck");
+    final IllegalStateException failure = new IllegalStateException("stuck!");
     doThrow(failure).when(client).stop();
     final VNCPlayerImpl player = this.mockedPlayer(client, config);
     final VNCSource source = source(listening, 0, 0);
@@ -1727,7 +1727,7 @@ final class VNCPlayerImplTest {
       new VNCPlayerImpl(VernacularClient::new, Socket::new, 1, 0)
     );
     final String message = zero.getMessage();
-    assertEquals("Handshake timeout must be positive", message);
+    assertEquals("Handshake timeout 0 must be positive!", message);
 
     assertThrows(IllegalArgumentException.class, () -> new VNCPlayerImpl(VernacularClient::new, Socket::new, 1, -1));
   }
@@ -2023,13 +2023,13 @@ final class VNCPlayerImplTest {
 
     @Override
     public void connect(final SocketAddress endpoint, final int timeout) throws IOException {
-      throw new ConnectException("refused on purpose");
+      throw new ConnectException("refused on purpose!");
     }
 
     @Override
     public synchronized void close() throws IOException {
       this.closeAttempted = true;
-      throw new IOException("close failed on purpose");
+      throw new IOException("close failed on purpose!");
     }
   }
 
@@ -2072,7 +2072,7 @@ final class VNCPlayerImplTest {
         assertThrows(PlayerException.class, () -> player.start(source))
       );
       final String message = failure.getMessage();
-      final boolean blamesTheDeadline = message.endsWith(": the server did not finish the handshake within 500 ms");
+      final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
       assertTrue(blamesTheDeadline, message);
     } finally {
       release.countDown();
@@ -2088,7 +2088,7 @@ final class VNCPlayerImplTest {
       assertThrows(PlayerException.class, () -> player.start(source))
     );
     final String message = failure.getMessage();
-    final boolean blamesTheDeadline = message.endsWith(": the server did not finish the handshake within 500 ms");
+    final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
     assertTrue(blamesTheDeadline, message);
 
     assertTimeoutPreemptively(Duration.ofSeconds(5), player::release);
@@ -2119,7 +2119,7 @@ final class VNCPlayerImplTest {
       assertThrows(PlayerException.class, () -> player.start(source))
     );
     final String message = failure.getMessage();
-    final boolean blamesTheDeadline = message.endsWith(": the server did not finish the handshake within 500 ms");
+    final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
     assertTrue(blamesTheDeadline, message);
   }
 

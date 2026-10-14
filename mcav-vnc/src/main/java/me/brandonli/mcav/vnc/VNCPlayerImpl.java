@@ -145,8 +145,8 @@ public final class VNCPlayerImpl implements VNCPlayer {
     final long idleParkNanos,
     final long handshakeTimeoutMillis
   ) {
-    Preconditions.checkArgument(idleParkNanos > 0, "Idle wait must be positive");
-    Preconditions.checkArgument(handshakeTimeoutMillis > 0, "Handshake timeout must be positive");
+    Preconditions.checkArgument(idleParkNanos > 0, "Idle wait %s must be positive!", idleParkNanos);
+    Preconditions.checkArgument(handshakeTimeoutMillis > 0, "Handshake timeout %s must be positive!", handshakeTimeoutMillis);
     this.clientFactory = clientFactory;
     this.socketFactory = socketFactory;
     this.handshakeTimeoutMillis = handshakeTimeoutMillis;
@@ -167,7 +167,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    */
   @Override
   public boolean start(final VNCSource source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
     this.lock.lock();
     try {
       final boolean gone = this.released.get();
@@ -260,8 +260,14 @@ public final class VNCPlayerImpl implements VNCPlayer {
   }
 
   private String startFailure(final VNCSource source, final boolean timedOut, final @Nullable String message) {
-    final String reason = timedOut ? "the server did not finish the handshake within " + this.handshakeTimeoutMillis + " ms" : message;
-    return "Failed to start the VNC session with " + source + ": " + reason;
+    final String resource = source.getResource();
+    if (timedOut) {
+      return "VNC session with %s could not start because the server did not finish the handshake within %s ms!".formatted(
+        resource,
+        this.handshakeTimeoutMillis
+      );
+    }
+    return "VNC session with %s could not start because of \"%s\"!".formatted(resource, message);
   }
 
   // the client connects on its own thread and would only report failures later, so the socket is opened here; the
@@ -277,8 +283,10 @@ public final class VNCPlayerImpl implements VNCPlayer {
       return new GuardedSocket(socket);
     } catch (final IOException exception) {
       closeQuietly(socket);
-      final String message = exception.getMessage();
-      throw new PlayerException("Failed to connect to " + source + ": " + message, exception);
+      final String reason = exception.getMessage();
+      final String resource = source.getResource();
+      final String message = "VNC server %s could not be reached because of \"%s\"!".formatted(resource, reason);
+      throw new PlayerException(message, exception);
     }
   }
 
@@ -366,7 +374,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
         metadata = OriginalVideoMetadata.of(width, height, frameRate);
       }
 
-      final OriginalVideoMetadata current = Objects.requireNonNull(metadata, "Metadata must exist with the filter");
+      final OriginalVideoMetadata current = Objects.requireNonNull(metadata, "Metadata must exist with the filter!");
       synchronized (this.deliveryLock) {
         // A callback can restart playback before it returns; the replacement must deliver after that callback.
         if (owner.isAlive()) {
@@ -577,7 +585,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    */
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
-    Preconditions.checkNotNull(type, "Mouse click type must not be null");
+    Preconditions.checkNotNull(type, "Mouse click type must not be null!");
     final VernacularClient vncClient = this.getConnectedClient();
     if (vncClient == null) {
       return;
@@ -610,7 +618,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    */
   @Override
   public void sendKeyEvent(final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, "Text must not be null!");
     final VernacularClient vncClient = this.getConnectedClient();
     if (vncClient == null) {
       return;
@@ -648,7 +656,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
   }
 
   private int[] translateCoordinates(final int frameX, final int frameY) {
-    final VNCSource current = Objects.requireNonNull(this.source, "Source must be set while connected");
+    final VNCSource current = Objects.requireNonNull(this.source, "Source must be set while connected!");
     final int targetWidth = this.remoteWidth;
     final int targetHeight = this.remoteHeight;
 
@@ -688,7 +696,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.exceptionHandler.setExceptionHandler(exceptionHandler);
   }
 

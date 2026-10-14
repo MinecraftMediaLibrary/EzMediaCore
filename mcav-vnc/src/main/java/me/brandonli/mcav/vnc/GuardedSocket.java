@@ -43,7 +43,7 @@ final class GuardedSocket extends Socket {
    * @throws IOException if its streams cannot be opened
    */
   GuardedSocket(final Socket socket) throws IOException {
-    Preconditions.checkNotNull(socket, "Socket must not be null");
+    Preconditions.checkNotNull(socket, "Socket must not be null!");
     this.socket = socket;
     final RfbGuard guard = new RfbGuard();
     this.input = guard.serverInput(socket.getInputStream());

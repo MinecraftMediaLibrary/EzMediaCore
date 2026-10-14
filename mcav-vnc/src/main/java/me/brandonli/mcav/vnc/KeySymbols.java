@@ -41,7 +41,7 @@ final class KeySymbols {
   private static final Map<String, Integer> SYMBOLS = load();
 
   private KeySymbols() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static Map<String, Integer> load() {
@@ -64,7 +64,8 @@ final class KeySymbols {
     try (reader) {
       final Map<String, String> table = gson.fromJson(reader, type);
       if (table == null) {
-        throw new PlayerException("The keysym resource " + RESOURCE + " is empty");
+        final String message = "Keysym resource %s is empty!".formatted(RESOURCE);
+        throw new PlayerException(message);
       }
 
       final Map<String, Integer> symbols = new HashMap<>();
@@ -76,8 +77,9 @@ final class KeySymbols {
       }
       return Map.copyOf(symbols);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Failed to read the keysym resource: " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Keysym resource %s could not be read because of \"%s\"!".formatted(RESOURCE, reason);
+      throw new PlayerException(message, exception);
     }
   }
 
@@ -88,7 +90,7 @@ final class KeySymbols {
    * @return the keysym, or empty if the name is not a key
    */
   static OptionalInt lookup(final String name) {
-    Preconditions.checkNotNull(name, "Name must not be null");
+    Preconditions.checkNotNull(name, "Name must not be null!");
     final Integer code = SYMBOLS.get(name);
     if (code == null) {
       return OptionalInt.empty();

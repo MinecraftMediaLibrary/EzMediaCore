@@ -143,50 +143,50 @@ public final class VNCSourceImpl implements VNCSource {
 
     @Override
     public Builder host(final String host) {
-      Preconditions.checkNotNull(host, "Host must not be null");
-      Preconditions.checkArgument(!host.isBlank(), "Host must not be blank");
+      Preconditions.checkNotNull(host, "Host must not be null!");
+      Preconditions.checkArgument(!host.isBlank(), "Host must not be blank!");
       this.host = host;
       return this;
     }
 
     @Override
     public Builder port(final int port) {
-      Preconditions.checkArgument(port > 0 && port <= 65535, "Port must be between 1 and 65535 but was %s", port);
+      Preconditions.checkArgument(port > 0 && port <= 65535, "Port %s must be between 1 and 65535!", port);
       this.port = port;
       return this;
     }
 
     @Override
     public Builder username(final String username) {
-      Preconditions.checkNotNull(username, "Username must not be null");
+      Preconditions.checkNotNull(username, "Username must not be null!");
       this.username = username;
       return this;
     }
 
     @Override
     public Builder password(final String password) {
-      Preconditions.checkNotNull(password, "Password must not be null");
+      Preconditions.checkNotNull(password, "Password must not be null!");
       this.password = password;
       return this;
     }
 
     @Override
     public Builder screenWidth(final int width) {
-      Preconditions.checkArgument(width >= 0, "Width must not be negative but was %s", width);
+      Preconditions.checkArgument(width >= 0, "Width %s must not be negative!", width);
       this.width = width;
       return this;
     }
 
     @Override
     public Builder screenHeight(final int height) {
-      Preconditions.checkArgument(height >= 0, "Height must not be negative but was %s", height);
+      Preconditions.checkArgument(height >= 0, "Height %s must not be negative!", height);
       this.height = height;
       return this;
     }
 
     @Override
     public Builder targetFrameRate(final int targetFrameRate) {
-      Preconditions.checkArgument(targetFrameRate > 0, "Frame rate must be positive but was %s", targetFrameRate);
+      Preconditions.checkArgument(targetFrameRate > 0, "Frame rate %s must be positive!", targetFrameRate);
       this.targetFrameRate = targetFrameRate;
       return this;
     }
@@ -195,7 +195,7 @@ public final class VNCSourceImpl implements VNCSource {
     public VNCSource build() {
       final String configuredHost = this.host;
       if (configuredHost == null) {
-        throw new IllegalStateException("A host is required");
+        throw new IllegalStateException("Host must be set before the source is built!");
       }
       return new VNCSourceImpl(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
     }

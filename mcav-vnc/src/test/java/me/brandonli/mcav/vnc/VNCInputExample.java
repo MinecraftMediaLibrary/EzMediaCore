@@ -45,7 +45,7 @@ public final class VNCInputExample {
   private static final int HEIGHT = 768;
 
   private VNCInputExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
   /**

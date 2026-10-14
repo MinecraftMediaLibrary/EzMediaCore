@@ -67,7 +67,7 @@ final class RfbGuardPropertyTest {
     }
     final IOException boundary = assertThrows(IOException.class, () -> session.server(new byte[] { (byte) 255 }));
     final String message = boundary.getMessage();
-    assertEquals("The VNC server broke the protocol or a bound: message type 255", message);
+    assertEquals("VNC server sent message type 255, which breaks the protocol or a bound!", message);
   }
 
   @Property(seed = SEED, tries = 300)

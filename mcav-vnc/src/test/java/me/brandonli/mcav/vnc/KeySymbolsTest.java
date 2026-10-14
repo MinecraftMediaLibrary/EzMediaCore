@@ -139,7 +139,7 @@ final class KeySymbolsTest {
       this.closed = true;
       this.content.close();
       if (this.failOnClose) {
-        throw new IOException("close failed");
+        throw new IOException("close failed!");
       }
     }
   }

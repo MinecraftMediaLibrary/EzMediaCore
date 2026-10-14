@@ -145,10 +145,10 @@ public final class RfbTestServer implements AutoCloseable {
    * @return the running server
    */
   public static RfbTestServer start(final int width, final int height, final Security security, final String password) {
-    Preconditions.checkArgument(width > 0, "Width must be positive but was %s", width);
-    Preconditions.checkArgument(height > 0, "Height must be positive but was %s", height);
-    Preconditions.checkNotNull(security, "Security must not be null");
-    Preconditions.checkNotNull(password, "Password must not be null");
+    Preconditions.checkArgument(width > 0, "Width %s must be positive!", width);
+    Preconditions.checkArgument(height > 0, "Height %s must be positive!", height);
+    Preconditions.checkNotNull(security, "Security must not be null!");
+    Preconditions.checkNotNull(password, "Password must not be null!");
     try {
       final InetAddress loopback = InetAddress.getLoopbackAddress();
       final ServerSocket socket = new ServerSocket(0, 5, loopback);
@@ -197,7 +197,7 @@ public final class RfbTestServer implements AutoCloseable {
   public void sendUnknownMessage() {
     final DataOutputStream current = this.output;
     if (current == null) {
-      throw new IllegalStateException("No client is connected");
+      throw new IllegalStateException("No client is connected!");
     }
     synchronized (this.outputLock) {
       try {
@@ -447,7 +447,7 @@ public final class RfbTestServer implements AutoCloseable {
       case 4 -> this.readKeyEvent(input);
       case 5 -> this.readPointerEvent(input);
       case 6 -> skipCutText(input);
-      default -> throw new IOException("Unknown client message " + type);
+      default -> throw new IOException("Client message %s is unknown!".formatted(type));
     }
   }
 
