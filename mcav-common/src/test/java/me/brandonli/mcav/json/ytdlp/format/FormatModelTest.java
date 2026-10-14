@@ -243,6 +243,11 @@ final class FormatModelTest {
     assertEquals(Optional.empty(), empty.getId());
     assertEquals(List.of(), empty.getFormats());
     assertEquals(0, empty.getDuration());
+
+    final boolean channelVerified = empty.isChannelVerified();
+    final boolean playableInEmbed = empty.isPlayableInEmbed();
+    assertFalse(channelVerified);
+    assertFalse(playableInEmbed);
   }
 
   @Test
