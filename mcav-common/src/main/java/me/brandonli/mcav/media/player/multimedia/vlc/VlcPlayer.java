@@ -319,7 +319,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   private boolean reportFailedStart(final Source video, final Throwable exception) {
-    ThrowableUtils.throwIfFatal(exception);
     final boolean reported = this.reportStartFailure(video, exception);
     if (!reported) {
       if (exception instanceof RuntimeException runtime) {
