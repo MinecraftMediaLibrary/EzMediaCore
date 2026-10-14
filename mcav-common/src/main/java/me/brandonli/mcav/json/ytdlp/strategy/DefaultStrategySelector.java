@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link StrategySelector}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultStrategySelector implements StrategySelector {
 
@@ -45,6 +47,7 @@ public final class DefaultStrategySelector implements StrategySelector {
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the audio strategy
    * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
   @Override
   public Format getAudioSource(final UrlParseDump dump) {
@@ -68,6 +71,7 @@ public final class DefaultStrategySelector implements StrategySelector {
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the video strategy
    * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
   @Override
   public Format getVideoSource(final UrlParseDump dump) {
@@ -102,6 +106,7 @@ public final class DefaultStrategySelector implements StrategySelector {
    * Returns the strategy used for audio.
    *
    * @return the audio strategy
+   * @since 1.0.0
    */
   @Override
   public FormatStrategy getAudioStrategy() {
@@ -112,6 +117,7 @@ public final class DefaultStrategySelector implements StrategySelector {
    * Returns the strategy used for video.
    *
    * @return the video strategy
+   * @since 1.0.0
    */
   @Override
   public FormatStrategy getVideoStrategy() {

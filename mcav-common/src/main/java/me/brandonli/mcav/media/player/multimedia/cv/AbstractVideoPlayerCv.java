@@ -58,13 +58,23 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * {@link #releaseAsync()}, from threads that must not block.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
-  /** The slowest speed media plays at: half as fast. */
+  /**
+   * The slowest speed media plays at: half as fast.
+   *
+   * @since 1.0.0
+   */
   public static final double MINIMUM_SPEED = 0.5;
 
-  /** The fastest speed media plays at: twice as fast, which the decoder must keep up with. */
+  /**
+   * The fastest speed media plays at: twice as fast, which the decoder must keep up with.
+   *
+   * @since 1.0.0
+   */
   public static final double MAXIMUM_SPEED = 2.0;
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
@@ -92,6 +102,8 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
   /**
    * Constructs a new player with detached pipelines and the default exception handler, which logs errors.
+   *
+   * @since 1.0.0
    */
   protected AbstractVideoPlayerCv() {
     final ExceptionHandler defaultHandler = ExceptionHandler.createDefault();
@@ -109,6 +121,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    *
    * @param resource the resource to decode, such as a file path, a URL, or a device index
    * @return a non-null, new, unstarted grabber whose ownership transfers to the player
+   * @since 1.0.0
    */
   protected abstract FrameGrabber createFrameGrabber(final String resource);
 
@@ -120,6 +133,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * @return true if playback started, false if the player is released, another start is in progress, or the source cannot be opened, which is
    * reported to the exception handler
    * @throws NullPointerException if {@code combined} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final Source combined) {
@@ -137,6 +151,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * @return true if playback started, false if the player is released, another start is in progress, or the video source cannot be opened, which
    * is reported to the exception handler
    * @throws NullPointerException if {@code video} or {@code audio} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final Source video, final Source audio) {
@@ -326,6 +341,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * @param grabber the grabber to configure
    * @param source  the source the grabber decodes
    * @throws NullPointerException if the grabber or the source is null
+   * @since 1.0.0
    */
   protected void configureGrabber(final FrameGrabber grabber, final Source source) {
     Preconditions.checkNotNull(grabber, "Grabber must not be null!");
@@ -376,6 +392,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * instant.
    *
    * @return true if playback was paused, false if nothing is playing or it was already paused
+   * @since 1.0.0
    */
   @Override
   public boolean pause() {
@@ -399,6 +416,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * behaves the same with every player.
    *
    * @return true if playback was resumed, false if nothing is playing or it was not paused
+   * @since 1.0.0
    */
   @Override
   public boolean resume() {
@@ -425,6 +443,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * @return true if the player seeked, false if nothing was played, the media cannot be seeked, such as a live
    * stream or a camera, or it cannot be opened again
    * @throws IllegalArgumentException if {@code time} is negative
+   * @since 1.0.0
    */
   @Override
   public boolean seek(final long time) {
@@ -460,6 +479,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * @param speed from {@link #MINIMUM_SPEED} to {@link #MAXIMUM_SPEED}, 1 for normal speed
    * @return true if the speed changed, false if nothing is playing or the media is live
    * @throws IllegalArgumentException if the speed is outside that range or not a number
+   * @since 1.0.0
    */
   public boolean setSpeed(final double speed) {
     Preconditions.checkArgument(
@@ -489,6 +509,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * Returns the playback position, which is the timestamp of the last rendered frame.
    *
    * @return the position in milliseconds, or 0 if nothing has been played
+   * @since 1.0.0
    */
   public long getPositionMilliseconds() {
     final PlaybackSession current = this.session;
@@ -504,6 +525,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * Checks whether media is currently being played or paused, as opposed to stopped or finished.
    *
    * @return true if a playback session is active
+   * @since 1.0.0
    */
   public boolean isPlaying() {
     final PlaybackSession current = this.session;
@@ -518,6 +540,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * its owner closes its prepared resources when acquisition or previous-session shutdown returns.
    *
    * @return true if the player was released, false if it was already released
+   * @since 1.0.0
    */
   @Override
   public boolean release() {
@@ -550,6 +573,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    *
    * @param exceptionHandler the new handler
    * @throws NullPointerException if the handler is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
@@ -562,6 +586,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * Returns the speed the media plays at.
    *
    * @return the media time that passes per unit of wall time, 1 for normal speed
+   * @since 1.0.0
    */
   public double getSpeed() {
     return this.speed;
@@ -572,6 +597,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * of the playback, and the pipeline can be swapped while playing.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   @Override
   public VideoAttachableCallback getVideoAttachableCallback() {
@@ -583,6 +609,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * 48 kHz on the audio rendering thread of the playback, and the pipeline can be swapped while playing.
    *
    * @return the audio pipeline slot
+   * @since 1.0.0
    */
   @Override
   public AudioAttachableCallback getAudioAttachableCallback() {
@@ -594,6 +621,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * when a source is opened, so attach it before starting or seeking.
    *
    * @return the target size slot
+   * @since 1.0.0
    */
   @Override
   public DimensionAttachableCallback getDimensionAttachableCallback() {
@@ -604,6 +632,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
    * Returns the handler that receives failures to open, decode, and filter media, which logs them by default.
    *
    * @return the current handler
+   * @since 1.0.0
    */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {

@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 /**
  * Shares one thread-safe {@link Gson} instance across the library so that every module parses and writes JSON
  * the same way.
+ *
+ * @since 1.0.0
  */
 public final class GsonProvider {
 
@@ -35,6 +37,7 @@ public final class GsonProvider {
    * Returns the shared instance, configured with the Gson defaults.
    *
    * @return the shared instance
+   * @since 1.0.0
    */
   public static Gson getSimple() {
     return GSON;

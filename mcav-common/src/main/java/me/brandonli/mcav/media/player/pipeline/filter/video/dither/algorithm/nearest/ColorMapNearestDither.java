@@ -32,6 +32,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * perfectly stable frames, but shows visible color banding in gradients.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ColorMapNearestDither extends AbstractDitherAlgorithm implements NearestDither, ParallelDitherAlgorithm {
 
@@ -47,6 +49,7 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public ColorMapNearestDither(final DitherPalette palette) {
     super(palette);
@@ -57,6 +60,7 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
    *
    * @param image the image to map
    * @return the palette index of every pixel, laid out row by row
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image) {
@@ -77,6 +81,7 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
    * @param pool  the pool that runs the work
    * @return the palette index of every pixel, laid out row by row
    * @throws NullPointerException if {@code pool} is null
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
@@ -129,6 +134,7 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
    *
    * @param buffer the ARGB pixels laid out row by row, which are replaced with palette colors
    * @param width  the width of the image, which must divide the length of the buffer
+   * @since 1.0.0
    */
   @Override
   public void dither(final int[] buffer, final int width) {

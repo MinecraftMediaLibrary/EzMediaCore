@@ -26,6 +26,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
  * first.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface UriSource extends DynamicSource {
   /**
@@ -34,6 +36,7 @@ public interface UriSource extends DynamicSource {
    * @param uri the URL
    * @return the source
    * @throws NullPointerException if {@code uri} is null
+   * @since 1.0.0
    */
   static UriSource uri(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -45,6 +48,7 @@ public interface UriSource extends DynamicSource {
    * Returns the URL.
    *
    * @return the URL
+   * @since 1.0.0
    */
   URI getUri();
 
@@ -53,6 +57,7 @@ public interface UriSource extends DynamicSource {
    * page that has to be resolved first.
    *
    * @return true if the URL looks like a direct media link
+   * @since 1.0.0
    */
   boolean isDirect();
 
@@ -60,6 +65,7 @@ public interface UriSource extends DynamicSource {
    * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   @Override
   default String getName() {
@@ -71,6 +77,7 @@ public interface UriSource extends DynamicSource {
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   @Override
   default String getResource() {

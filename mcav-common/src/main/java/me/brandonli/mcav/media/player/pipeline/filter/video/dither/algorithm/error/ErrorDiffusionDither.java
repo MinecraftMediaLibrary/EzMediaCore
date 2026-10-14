@@ -37,6 +37,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the history of one stream and must not be shared across streams or threads.
  *
  * <p>This class is thread-safe, except for temporal subclasses.
+ *
+ * @since 1.0.0
  */
 public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
 
@@ -48,6 +50,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    * @param palette the palette to reduce images to
    * @param kernel  the kernel that describes how errors are spread
    * @throws NullPointerException if {@code palette}, {@code kernel} is null
+   * @since 1.0.0
    */
   protected ErrorDiffusionDither(final DitherPalette palette, final DiffusionKernel kernel) {
     super(palette);
@@ -61,6 +64,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    *
    * @param image the image to dither
    * @return the palette index of every pixel, laid out row by row
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image) {
@@ -78,6 +82,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    *
    * @param buffer the ARGB pixels laid out row by row, which are replaced with palette colors
    * @param width  the width of the image, which must divide the length of the buffer
+   * @since 1.0.0
    */
   @Override
   public void dither(final int[] buffer, final int width) {
@@ -99,6 +104,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
    * Returns the kernel of this algorithm.
    *
    * @return the kernel
+   * @since 1.0.0
    */
   public DiffusionKernel getKernel() {
     return this.kernel;

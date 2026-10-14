@@ -25,6 +25,7 @@ package me.brandonli.mcav.media.player.attachable;
  * <p>Implementations in this library are thread-safe.
  *
  * @param <ValueType> the type of value the slot holds
+ * @since 1.0.0
  */
 public interface AttachableCallback<ValueType> {
   /**
@@ -32,11 +33,14 @@ public interface AttachableCallback<ValueType> {
    *
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
+   * @since 1.0.0
    */
   void attach(final ValueType value);
 
   /**
    * Empties the slot, restoring its default.
+   *
+   * @since 1.0.0
    */
   void detach();
 
@@ -44,6 +48,7 @@ public interface AttachableCallback<ValueType> {
    * Checks whether a value was explicitly attached, even if it is the fallback value.
    *
    * @return a snapshot of the attached state, which can change immediately after this call
+   * @since 1.0.0
    */
   boolean isAttached();
 
@@ -51,6 +56,7 @@ public interface AttachableCallback<ValueType> {
    * Returns the attached value, or the default when nothing is attached.
    *
    * @return the value
+   * @since 1.0.0
    */
   ValueType retrieve();
 }

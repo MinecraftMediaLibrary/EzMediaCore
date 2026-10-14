@@ -31,6 +31,8 @@ import me.brandonli.mcav.media.player.PlayerException;
  * {@link #toBigEndian(ByteBuffer)}.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ByteUtils {
 
@@ -46,6 +48,7 @@ public final class ByteUtils {
    * Checks whether the native byte order of this machine is little-endian.
    *
    * @return true on little-endian machines, which includes x86 and most ARM systems
+   * @since 1.0.0
    */
   public static boolean isLittleEndian() {
     return LITTLE_ENDIAN;
@@ -55,6 +58,7 @@ public final class ByteUtils {
    * Checks whether the native byte order of this machine is big-endian.
    *
    * @return true on big-endian machines
+   * @since 1.0.0
    */
   public static boolean isBigEndian() {
     return BIG_ENDIAN;
@@ -69,6 +73,7 @@ public final class ByteUtils {
    * @return a new buffer with the samples in little-endian order, ready to read
    * @throws PlayerException      if the buffer is not a short, float, or byte buffer
    * @throws NullPointerException if {@code buffer} is null
+   * @since 1.0.0
    */
   public static ByteBuffer toLittleEndian(final Buffer buffer) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
@@ -118,6 +123,7 @@ public final class ByteUtils {
    * @param samples the samples, read from position to limit without changing the buffer
    * @return a new buffer with the samples in big-endian order, ready to read
    * @throws NullPointerException if {@code samples} is null
+   * @since 1.0.0
    */
   public static ByteBuffer toBigEndian(final ByteBuffer samples) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");

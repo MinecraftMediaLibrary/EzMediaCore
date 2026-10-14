@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions;
  * must keep running after a failure without hiding the failures that no code can recover from.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ThrowableUtils {
 
@@ -41,6 +43,7 @@ public final class ThrowableUtils {
    * @param failure the caught failure
    * @throws VirtualMachineError  the failure itself, if it is a {@link VirtualMachineError}
    * @throws NullPointerException if the failure is null
+   * @since 1.0.0
    */
   public static void throwIfFatal(final Throwable failure) {
     Preconditions.checkNotNull(failure, "Failure must not be null!");

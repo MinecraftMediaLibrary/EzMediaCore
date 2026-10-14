@@ -31,12 +31,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * }
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface DitherAlgorithmBuilder {
   /**
    * Creates the algorithm.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   DitherAlgorithm build();
 
@@ -46,6 +49,7 @@ public interface DitherAlgorithmBuilder {
    * @param palette the palette
    * @return this builder
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   DitherAlgorithmBuilder withPalette(final DitherPalette palette);
 }

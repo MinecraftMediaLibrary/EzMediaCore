@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * original colors completely.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class ColorMapFilter extends MatVideoFilter {
 
@@ -35,6 +37,7 @@ public class ColorMapFilter extends MatVideoFilter {
    * Constructs a new color map filter.
    *
    * @param colorMap the color map, one of the {@code COLORMAP_} constants of {@link opencv_imgproc}
+   * @since 1.0.0
    */
   public ColorMapFilter(final int colorMap) {
     this.colorMap = colorMap;
@@ -45,6 +48,7 @@ public class ColorMapFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because every frame is recolored
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

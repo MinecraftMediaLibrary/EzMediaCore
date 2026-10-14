@@ -29,6 +29,8 @@ import java.nio.file.Path;
  * A file that can be read from and written to, for example to save a downloaded stream.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface Writable {
   /**
@@ -37,6 +39,7 @@ public interface Writable {
    * @param path the path of the file
    * @return the handle
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   static Writable path(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -48,6 +51,7 @@ public interface Writable {
    * Returns the path of the file.
    *
    * @return the path
+   * @since 1.0.0
    */
   Path getPath();
 
@@ -59,6 +63,7 @@ public interface Writable {
    * @throws IOException                   if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
    * @throws NullPointerException          if {@code options} is null
+   * @since 1.0.0
    */
   default InputStream newInputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");
@@ -75,6 +80,7 @@ public interface Writable {
    * @throws IOException                   if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
    * @throws NullPointerException          if {@code options} is null
+   * @since 1.0.0
    */
   default OutputStream newOutputStream(final OpenOption... options) throws IOException {
     Preconditions.checkNotNull(options, "Options must not be null!");

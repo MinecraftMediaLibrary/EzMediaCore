@@ -34,6 +34,8 @@ import com.google.common.base.Preconditions;
  * <p>Kernels are immutable. The kernels of all common algorithms are available as constants.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DiffusionKernel {
 
@@ -41,11 +43,15 @@ public final class DiffusionKernel {
    * The farthest a tap may reach, in pixels, horizontally in either direction and down. A pass keeps as many rows of
    * pending errors as the kernel reaches down, each padded by its horizontal reach on both sides, so the reach is
    * bounded; the kernels of the common algorithms reach at most 3 pixels.
+   *
+   * @since 1.0.0
    */
   public static final int MAXIMUM_OFFSET = 64;
 
   /**
    * Floyd-Steinberg, the classic four-tap kernel.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel FLOYD_STEINBERG = new DiffusionKernel("Floyd-Steinberg", 16, new int[][] {
     { 1, 0, 7 },
@@ -56,6 +62,8 @@ public final class DiffusionKernel {
 
   /**
    * Filter Lite, also known as Sierra Lite, a three-tap kernel that is the fastest error diffusion.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel FILTER_LITE = new DiffusionKernel("Filter Lite", 4, new int[][] {
     { 1, 0, 2 },
@@ -65,6 +73,8 @@ public final class DiffusionKernel {
 
   /**
    * Atkinson, which diffuses only three quarters of the error and produces a high-contrast look.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel ATKINSON = new DiffusionKernel("Atkinson", 8, new int[][] {
     { 1, 0, 1 },
@@ -77,6 +87,8 @@ public final class DiffusionKernel {
 
   /**
    * Burkes, a seven-tap kernel over two rows.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel BURKES = new DiffusionKernel("Burkes", 32, new int[][] {
     { 1, 0, 8 },
@@ -90,6 +102,8 @@ public final class DiffusionKernel {
 
   /**
    * Jarvis, Judice, and Ninke, a twelve-tap kernel over three rows that produces very smooth results.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel JARVIS_JUDICE_NINKE = new DiffusionKernel("Jarvis-Judice-Ninke", 48, new int[][] {
     { 1, 0, 7 },
@@ -108,6 +122,8 @@ public final class DiffusionKernel {
 
   /**
    * Stucki, a twelve-tap kernel over three rows with sharper results than Jarvis, Judice, and Ninke.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel STUCKI = new DiffusionKernel("Stucki", 42, new int[][] {
     { 1, 0, 8 },
@@ -126,6 +142,8 @@ public final class DiffusionKernel {
 
   /**
    * Stevenson and Arce, a twelve-tap kernel over four rows on a hexagonal grid.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel STEVENSON_ARCE = new DiffusionKernel("Stevenson-Arce", 200, new int[][] {
     { 2, 0, 32 },
@@ -160,6 +178,7 @@ public final class DiffusionKernel {
    *                                  three elements, or a tap points to an already processed pixel, reaches farther than
    *                                  {@link #MAXIMUM_OFFSET} pixels, or has a non-positive weight
    * @throws NullPointerException     if the name, the taps or one of the taps is null
+   * @since 1.0.0
    */
   public DiffusionKernel(final String name, final int divisor, final int[][] taps) {
     Preconditions.checkNotNull(name, "Name must not be null!");
@@ -217,6 +236,7 @@ public final class DiffusionKernel {
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the horizontal offset
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getOffsetX(final int tap) {
     return this.offsetsX[tap];
@@ -228,6 +248,7 @@ public final class DiffusionKernel {
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the vertical offset, which is never negative
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getOffsetY(final int tap) {
     return this.offsetsY[tap];
@@ -239,6 +260,7 @@ public final class DiffusionKernel {
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the weight
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getWeight(final int tap) {
     return this.weights[tap];
@@ -248,6 +270,7 @@ public final class DiffusionKernel {
    * Returns the name of the algorithm the kernel belongs to.
    *
    * @return the name
+   * @since 1.0.0
    */
   public String getName() {
     return this.name;
@@ -257,6 +280,7 @@ public final class DiffusionKernel {
    * Returns the number the weights are divided by.
    *
    * @return the divisor
+   * @since 1.0.0
    */
   public int getDivisor() {
     return this.divisor;
@@ -266,6 +290,7 @@ public final class DiffusionKernel {
    * Returns the number of taps.
    *
    * @return the tap count
+   * @since 1.0.0
    */
   public int getTapCount() {
     return this.weights.length;
@@ -275,6 +300,7 @@ public final class DiffusionKernel {
    * Returns the largest horizontal distance any tap reaches.
    *
    * @return the maximum horizontal offset
+   * @since 1.0.0
    */
   public int getMaximumOffsetX() {
     return this.maximumOffsetX;
@@ -284,6 +310,7 @@ public final class DiffusionKernel {
    * Returns the largest number of rows any tap reaches ahead.
    *
    * @return the maximum vertical offset
+   * @since 1.0.0
    */
   public int getMaximumOffsetY() {
     return this.maximumOffsetY;
@@ -293,6 +320,7 @@ public final class DiffusionKernel {
    * Returns the name of the algorithm the kernel belongs to, such as {@code Floyd-Steinberg}.
    *
    * @return the name
+   * @since 1.0.0
    */
   @Override
   public String toString() {

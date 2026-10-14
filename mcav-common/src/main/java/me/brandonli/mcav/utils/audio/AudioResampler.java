@@ -63,11 +63,15 @@ import org.bytedeco.javacpp.PointerPointer;
  * <p>A resampler holds a native context, so it must be {@linkplain #close() closed} when it is no longer needed. An
  * instance keeps state between calls and is not thread-safe: use it from one thread at a time, which is the case
  * for a filter used by one audio pipeline. Do not share the same resampler between independently rendering players.
+ *
+ * @since 1.0.0
  */
 public final class AudioResampler implements AutoCloseable {
 
   /**
    * The largest channel count a resampler accepts, the number of channels of a 7.1 layout.
+   *
+   * @since 1.0.0
    */
   public static final int MAXIMUM_CHANNELS = 8;
 
@@ -125,6 +129,7 @@ public final class AudioResampler implements AutoCloseable {
    * @throws IllegalArgumentException if a sample rate is not positive or a channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
    * @throws NullPointerException     if {@code inputFormat} or {@code outputFormat} is null
+   * @since 1.0.0
    */
   public static AudioResampler create(
     final int inputSampleRate,
@@ -165,6 +170,7 @@ public final class AudioResampler implements AutoCloseable {
    * @throws IllegalArgumentException if the sample rate is not positive or the channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
    * @throws NullPointerException     if {@code outputFormat} is null
+   * @since 1.0.0
    */
   public static AudioResampler fromPipelineFormat(final int outputSampleRate, final int outputChannels, final SampleFormat outputFormat) {
     return create(
@@ -220,6 +226,7 @@ public final class AudioResampler implements AutoCloseable {
    *         possibly empty; the byte-order property of the input buffer is not consulted
    * @throws IllegalStateException if the resampler is closed or FFmpeg fails to convert the samples
    * @throws NullPointerException  if {@code input} is null
+   * @since 1.0.0
    */
   public byte[] resample(final ByteBuffer input) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -246,6 +253,7 @@ public final class AudioResampler implements AutoCloseable {
    *
    * @return the remaining converted interleaved samples, empty when nothing was held back
    * @throws IllegalStateException if the resampler is closed or FFmpeg fails to drain or reset it
+   * @since 1.0.0
    */
   public byte[] flush() {
     this.ensureOpen();
@@ -313,6 +321,8 @@ public final class AudioResampler implements AutoCloseable {
   /**
    * Frees the native resampling context. Samples still held back are discarded, so call {@link #flush()} first to
    * keep them. Closing an already closed resampler does nothing.
+   *
+   * @since 1.0.0
    */
   @Override
   public void close() {
@@ -332,6 +342,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the sample rate of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input sample rate in hertz
+   * @since 1.0.0
    */
   public int getInputSampleRate() {
     return this.inputSampleRate;
@@ -341,6 +352,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the number of interleaved channels of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input channel count
+   * @since 1.0.0
    */
   public int getInputChannels() {
     return this.inputChannels;
@@ -350,6 +362,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the encoding of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input sample format
+   * @since 1.0.0
    */
   public SampleFormat getInputFormat() {
     return this.inputFormat;
@@ -359,6 +372,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the sample rate of the samples this resampler returns.
    *
    * @return the output sample rate in hertz
+   * @since 1.0.0
    */
   public int getOutputSampleRate() {
     return this.outputSampleRate;
@@ -368,6 +382,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the number of interleaved channels of the samples this resampler returns.
    *
    * @return the output channel count
+   * @since 1.0.0
    */
   public int getOutputChannels() {
     return this.outputChannels;
@@ -377,6 +392,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the encoding of the samples this resampler returns.
    *
    * @return the output sample format
+   * @since 1.0.0
    */
   public SampleFormat getOutputFormat() {
     return this.outputFormat;
@@ -386,6 +402,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns whether this resampler has been closed and can no longer convert samples.
    *
    * @return {@code true} once {@link #close()} has been called
+   * @since 1.0.0
    */
   public boolean isClosed() {
     return this.closed;

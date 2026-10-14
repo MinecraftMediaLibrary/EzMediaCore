@@ -31,12 +31,15 @@ import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
  * }
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface StrategySelector {
   /**
    * Returns the strategy used for audio.
    *
    * @return the audio strategy
+   * @since 1.0.0
    */
   FormatStrategy getAudioStrategy();
 
@@ -44,6 +47,7 @@ public interface StrategySelector {
    * Returns the strategy used for video.
    *
    * @return the video strategy
+   * @since 1.0.0
    */
   FormatStrategy getVideoStrategy();
 
@@ -54,6 +58,7 @@ public interface StrategySelector {
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the audio strategy
    * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
   Format getAudioSource(final UrlParseDump dump);
 
@@ -64,6 +69,7 @@ public interface StrategySelector {
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the video strategy
    * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
   Format getVideoSource(final UrlParseDump dump);
 
@@ -74,6 +80,7 @@ public interface StrategySelector {
    * @param video the strategy for video
    * @return the selector
    * @throws NullPointerException if {@code audio} or {@code video} is null
+   * @since 1.0.0
    */
   static StrategySelector of(final FormatStrategy audio, final FormatStrategy video) {
     Preconditions.checkNotNull(audio, "Audio strategy must not be null!");

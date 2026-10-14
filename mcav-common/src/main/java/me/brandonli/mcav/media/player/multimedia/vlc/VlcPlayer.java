@@ -59,6 +59,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Requires VLC to be available, see {@link me.brandonli.mcav.capability.Capability#VLC}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VlcPlayer implements VideoPlayerMultiplexer {
 
@@ -91,6 +93,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * @throws IllegalStateException if VLC is still being prepared, or is not available on this system; the message
    *                               says which
    * @throws NullPointerException  if the options array or any option is null
+   * @since 1.0.0
    */
   public VlcPlayer(final String... mediaOptions) {
     final CapabilityGuard guard = CapabilityGuard.shared();
@@ -129,6 +132,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * @return true if playback was accepted, including a slow open that outlives the event wait; false if the player is released, another start is in progress, or the source
    * cannot be opened. Source failures are reported to the exception handler.
    * @throws NullPointerException if {@code combined} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final Source combined) {
@@ -147,6 +151,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * @return true if playback was accepted, including a slow open that outlives the event wait; false if the player is released, another start is in progress, or a source
    * cannot be opened. Source failures are reported to the exception handler.
    * @throws NullPointerException if {@code video} or {@code audio} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final Source video, final Source audio) {
@@ -340,6 +345,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * Pauses playback, keeping the current position.
    *
    * @return true if playback was paused, false if nothing is playing or it was already paused
+   * @since 1.0.0
    */
   @Override
   public boolean pause() {
@@ -360,6 +366,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * Resumes playback after {@link #pause()}.
    *
    * @return true if playback was resumed, false if nothing is playing or it was not paused
+   * @since 1.0.0
    */
   @Override
   public boolean resume() {
@@ -382,6 +389,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * @param time the position in milliseconds from the start of the media, not negative
    * @return true if the player seeked, false if nothing is playing or the source cannot be seeked
    * @throws IllegalArgumentException if {@code time} is negative
+   * @since 1.0.0
    */
   @Override
   public boolean seek(final long time) {
@@ -408,6 +416,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * publish playback after release. A released player cannot be started again.
    *
    * @return true if the player was released, false if it had already been released
+   * @since 1.0.0
    */
   @Override
   public boolean release() {
@@ -447,6 +456,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    *
    * @param exceptionHandler the exception handler, which receives a description of the failure and its cause
    * @throws NullPointerException if {@code exceptionHandler} is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
@@ -471,6 +481,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * attached while the player plays takes effect with the next frame.
    *
    * @return the video slot, the same instance for the whole life of the player
+   * @since 1.0.0
    */
   @Override
   public VideoAttachableCallback getVideoAttachableCallback() {
@@ -482,6 +493,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * pipeline attached while the player plays takes effect with the next chunk.
    *
    * @return the audio slot, the same instance for the whole life of the player
+   * @since 1.0.0
    */
   @Override
   public AudioAttachableCallback getAudioAttachableCallback() {
@@ -494,6 +506,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * resizing each frame on the render thread.
    *
    * @return the size slot, the same instance for the whole life of the player
+   * @since 1.0.0
    */
   @Override
   public DimensionAttachableCallback getDimensionAttachableCallback() {
@@ -504,6 +517,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
    * Returns the handler that receives failures, such as media that cannot be opened or a filter that throws.
    *
    * @return the exception handler, which receives a description of the failure and its cause
+   * @since 1.0.0
    */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {

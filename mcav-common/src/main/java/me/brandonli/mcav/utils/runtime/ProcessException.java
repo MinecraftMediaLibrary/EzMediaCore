@@ -28,6 +28,8 @@ import me.brandonli.mcav.MCAVException;
  * source FFmpeg cannot decode, not to the state of the caller or to an unsupported operation. It is unchecked so that
  * callers who cannot handle a failing program need no {@code throws} clause, while callers who can, for example by
  * skipping the source, catch it explicitly.
+ *
+ * @since 1.0.0
  */
 public class ProcessException extends MCAVException {
 

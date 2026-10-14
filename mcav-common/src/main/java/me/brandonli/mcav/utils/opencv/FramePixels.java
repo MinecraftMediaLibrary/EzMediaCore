@@ -31,11 +31,15 @@ import org.bytedeco.javacv.Frame;
  * format of the grabber.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class FramePixels {
 
   /**
    * The number of bytes of a pixel in the BGR24 format that the grabbers of this library decode to.
+   *
+   * @since 1.0.0
    */
   public static final int BGR_CHANNELS = 3;
 
@@ -51,6 +55,7 @@ public final class FramePixels {
    * @throws IllegalArgumentException if the frame holds no 8-bit image, its dimensions are negative, its rows are
    *                                  shorter than its width, or its compact pixels cannot fit in one buffer
    * @throws NullPointerException     if {@code frame} is null
+   * @since 1.0.0
    */
   public static ByteBuffer copyBgr(final Frame frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
@@ -75,6 +80,7 @@ public final class FramePixels {
    *                                          target is too small
    * @throws java.nio.ReadOnlyBufferException if the target is read-only
    * @throws NullPointerException             if {@code frame} or {@code target} is null
+   * @since 1.0.0
    */
   public static void copyBgr(final Frame frame, final ByteBuffer target) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");

@@ -59,6 +59,8 @@ import org.slf4j.LoggerFactory;
  * termination of the program and the descendants observed while it ran. Descendant discovery is best effort:
  * an operating system can reparent a very short-lived program's children before they can be observed. After a successful launch a task cannot run again, including after a wait failure. A failed launch may be
  * retried. Instances are not thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class CommandTask {
 
@@ -81,6 +83,7 @@ public final class CommandTask {
    * @param command the program followed by its arguments
    * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
+   * @since 1.0.0
    */
   public CommandTask(final String... command) {
     this(null, command);
@@ -93,6 +96,7 @@ public final class CommandTask {
    * @param command          the program followed by its arguments
    * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
+   * @since 1.0.0
    */
   public CommandTask(final @Nullable Path workingDirectory, final String... command) {
     Preconditions.checkNotNull(command, "Command must not be null!");
@@ -114,6 +118,7 @@ public final class CommandTask {
    * @throws IOException              if the program cannot be started
    * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
+   * @since 1.0.0
    */
   public CommandTask(final String[] command, final RunMode mode) throws IOException {
     this(null, command);
@@ -130,6 +135,7 @@ public final class CommandTask {
    * @return the exit code of the program
    * @throws IOException           if the program cannot be started or its output cannot be read
    * @throws IllegalStateException if the task was already run
+   * @since 1.0.0
    */
   public int run() throws IOException {
     return this.runWithTimeout(null);
@@ -146,6 +152,7 @@ public final class CommandTask {
    * @throws IllegalStateException    if the task was already run
    * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
+   * @since 1.0.0
    */
   public int run(final Duration timeout) throws IOException {
     checkTimeout(timeout);
@@ -190,6 +197,7 @@ public final class CommandTask {
    * @throws IOException           if the program cannot be started or its output cannot be read
    * @throws ProcessException      if the program exits with a non-zero exit code
    * @throws IllegalStateException if a process was already launched by this task
+   * @since 1.0.0
    */
   public void runChecked() throws IOException {
     final int code = this.run();
@@ -207,6 +215,7 @@ public final class CommandTask {
    * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
    * @throws IllegalStateException    if a process was already launched by this task
+   * @since 1.0.0
    */
   public void runChecked(final Duration timeout) throws IOException {
     final int code = this.run(timeout);
@@ -345,6 +354,7 @@ public final class CommandTask {
    *
    * @return the exit code
    * @throws IllegalStateException if no exit code was recorded, including after a launch or wait failure
+   * @since 1.0.0
    */
   public int getExitCode() {
     Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run!");
@@ -356,6 +366,7 @@ public final class CommandTask {
    * Returns the standard output of the program.
    *
    * @return the standard output, or an empty string if the task has not been run
+   * @since 1.0.0
    */
   public String getOutput() {
     return this.output;
@@ -365,6 +376,7 @@ public final class CommandTask {
    * Returns the standard error of the program.
    *
    * @return the standard error, or an empty string if the task has not been run
+   * @since 1.0.0
    */
   public String getErrorOutput() {
     return this.errorOutput;
@@ -374,6 +386,7 @@ public final class CommandTask {
    * Returns the program and its arguments.
    *
    * @return the command as an unmodifiable list
+   * @since 1.0.0
    */
   public List<String> getCommand() {
     return this.command;
@@ -383,6 +396,7 @@ public final class CommandTask {
    * Returns the process of the program.
    *
    * @return the process after a successful launch, even if waiting failed, or empty if none was launched
+   * @since 1.0.0
    */
   public Optional<Process> getProcess() {
     return Optional.ofNullable(this.process);

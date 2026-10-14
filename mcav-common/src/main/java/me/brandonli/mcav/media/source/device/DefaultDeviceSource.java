@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link DeviceSource}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultDeviceSource implements DeviceSource {
 
@@ -38,6 +40,7 @@ public final class DefaultDeviceSource implements DeviceSource {
    * Returns the index of the device.
    *
    * @return the device index
+   * @since 1.0.0
    */
   @Override
   public int getDeviceId() {
@@ -49,6 +52,7 @@ public final class DefaultDeviceSource implements DeviceSource {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -67,6 +71,7 @@ public final class DefaultDeviceSource implements DeviceSource {
    * Returns a hash code built from the device index.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -77,6 +82,7 @@ public final class DefaultDeviceSource implements DeviceSource {
    * Returns a debugging representation with the device index.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

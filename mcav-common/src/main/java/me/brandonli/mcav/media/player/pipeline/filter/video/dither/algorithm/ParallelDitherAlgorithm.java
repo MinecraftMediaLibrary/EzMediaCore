@@ -26,6 +26,8 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * walls faster.
  *
  * <p>Implementations in this library are thread-safe, except for temporal ones, which keep the previous frame.
+ *
+ * @since 1.0.0
  */
 public interface ParallelDitherAlgorithm extends DitherAlgorithm {
   /**
@@ -38,6 +40,7 @@ public interface ParallelDitherAlgorithm extends DitherAlgorithm {
    * @throws NullPointerException                            if the image or pool is null
    * @throws java.util.concurrent.RejectedExecutionException if the pool rejects submitted work
    * @throws IllegalStateException                           if the image has been released
+   * @since 1.0.0
    */
   byte[] ditherIntoBytes(final ImageBuffer buffer, final ForkJoinPool pool);
 }

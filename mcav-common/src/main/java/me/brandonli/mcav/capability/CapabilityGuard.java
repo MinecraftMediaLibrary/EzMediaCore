@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * refused.
  *
  * <p>All methods are thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class CapabilityGuard {
 
@@ -43,6 +45,8 @@ public final class CapabilityGuard {
   /**
    * Constructs a guard that knows nothing about any capability and is independent of {@link #shared()}. The library
    * itself always uses the shared guard; separate guards are for tests and custom bootstraps.
+   *
+   * @since 1.0.0
    */
   public CapabilityGuard() {
     this.states = new ConcurrentHashMap<>();
@@ -53,6 +57,7 @@ public final class CapabilityGuard {
    * the default yt-dlp parser consult.
    *
    * @return the shared guard
+   * @since 1.0.0
    */
   public static CapabilityGuard shared() {
     return SHARED;
@@ -63,6 +68,7 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public void markPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -78,6 +84,7 @@ public final class CapabilityGuard {
    * @param capability   the capability
    * @param availability whether the capability can be used now
    * @throws NullPointerException if an argument is null
+   * @since 1.0.0
    */
   public void markPrepared(final Capability capability, final Availability availability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -96,6 +103,7 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public void forget(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -109,6 +117,7 @@ public final class CapabilityGuard {
    * @param capability the capability
    * @return true if its preparation has not finished yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public boolean isPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -124,6 +133,7 @@ public final class CapabilityGuard {
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared
    * @throws NullPointerException  if {@code capability} is null
+   * @since 1.0.0
    */
   public void checkNotPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -142,6 +152,7 @@ public final class CapabilityGuard {
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared or is not available on this system
    * @throws NullPointerException  if {@code capability} is null
+   * @since 1.0.0
    */
   public void checkUsable(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");

@@ -23,6 +23,8 @@ import java.io.Serial;
 /**
  * Thrown when a downloaded file does not have the expected SHA-256 hash. The downloader treats a mismatch as
  * a terminal verification failure and does not retry it automatically.
+ *
+ * @since 1.0.0
  */
 public class ChecksumMismatchException extends IOException {
 
@@ -33,6 +35,7 @@ public class ChecksumMismatchException extends IOException {
    * Constructs a new exception.
    *
    * @param message the detail message, naming the file and both hashes
+   * @since 1.0.0
    */
   public ChecksumMismatchException(final String message) {
     super(message);

@@ -61,6 +61,8 @@ import org.slf4j.LoggerFactory;
  * that needs closing. It keeps downloaded files and the configuration for reuse after process shutdown.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public abstract class AbstractInstaller implements Installer {
 
@@ -97,6 +99,7 @@ public abstract class AbstractInstaller implements Installer {
    *                  before resolution completes can cause the supplier to be called again
    * @throws IllegalArgumentException if {@code name} is blank
    * @throws NullPointerException     if {@code folder}, {@code name} or {@code downloads} is null
+   * @since 1.0.0
    */
   protected AbstractInstaller(final Path folder, final String name, final Supplier<Download[]> downloads) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
@@ -119,6 +122,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param downloads the non-null array of non-null downloads, retained without copying; do not mutate it
    * @throws IllegalArgumentException if {@code name} is blank
    * @throws NullPointerException     if {@code folder}, {@code name} or {@code downloads} is null
+   * @since 1.0.0
    */
   protected AbstractInstaller(final Path folder, final String name, final Download[] downloads) {
     Preconditions.checkNotNull(downloads, "Downloads must not be null!");
@@ -135,6 +139,7 @@ public abstract class AbstractInstaller implements Installer {
    * @throws IllegalArgumentException if {@code name} is blank
    * @throws NullPointerException     if {@code name} or {@code downloads} is null
    * @throws UncheckedIOException     if the default cache folder cannot be created
+   * @since 1.0.0
    */
   protected AbstractInstaller(final String name, final Download[] downloads) {
     final Path defaultFolder = getDefaultExecutableFolderPath();
@@ -148,6 +153,7 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @return the default installation folder
    * @throws UncheckedIOException if the folder cannot be created
+   * @since 1.0.0
    */
   public static Path getDefaultExecutableFolderPath() {
     return IoUtils.getCachedFolder();
@@ -171,6 +177,7 @@ public abstract class AbstractInstaller implements Installer {
    * @throws IOException              if the download fails, the file cannot be written or marked as executable, or the hash does
    *                                  not match
    * @throws IllegalArgumentException if a configured download URL is not a valid URI
+   * @since 1.0.0
    */
   @Override
   public Path download(final FileMode mode) throws IOException {
@@ -235,6 +242,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param file the file to mark
    * @throws IOException          if the permissions of the file cannot be changed
    * @throws NullPointerException if {@code file} is null
+   * @since 1.0.0
    */
   protected static void markExecutable(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
@@ -254,6 +262,7 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @return the path of the existing installation, or empty if the program has not been installed
    * @throws IOException if the installation folder or the configuration file cannot be read
+   * @since 1.0.0
    */
   @Override
   public Optional<Path> findInstallation() throws IOException {
@@ -274,6 +283,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param downloaded the downloaded file
    * @return the path of the installation
    * @throws IOException if the installation fails
+   * @since 1.0.0
    */
   protected Path install(final Path downloaded) throws IOException {
     return downloaded;
@@ -283,6 +293,7 @@ public abstract class AbstractInstaller implements Installer {
    * Checks whether a download exists for the current platform. The downloads are resolved on the first call.
    *
    * @return true if the program can be installed on this platform
+   * @since 1.0.0
    */
   @Override
   public boolean isSupported() {
@@ -295,6 +306,7 @@ public abstract class AbstractInstaller implements Installer {
    * or {@link #getDefaultPath()} before the program has been installed.
    *
    * @return the installation path
+   * @since 1.0.0
    */
   @Override
   public Path getPath() {
@@ -311,6 +323,7 @@ public abstract class AbstractInstaller implements Installer {
    * the installation folder, named after the program with an {@code .exe} suffix on Windows.
    *
    * @return the default installation path
+   * @since 1.0.0
    */
   protected Path getDefaultPath() {
     final Os operatingSystem = OsUtils.getOs();
@@ -322,6 +335,7 @@ public abstract class AbstractInstaller implements Installer {
    * Returns the URL of the download for the current platform.
    *
    * @return the download URL, or an empty string if the platform is not supported
+   * @since 1.0.0
    */
   public String getUrl() {
     final Optional<Download> download = this.resolveDownload();
@@ -337,6 +351,7 @@ public abstract class AbstractInstaller implements Installer {
    * Returns the expected SHA-256 hash of the download for the current platform.
    *
    * @return the hash in hexadecimal, or empty if the platform is not supported or the download is not verified
+   * @since 1.0.0
    */
   public Optional<String> getHash() {
     final Optional<Download> download = this.resolveDownload();
@@ -349,6 +364,7 @@ public abstract class AbstractInstaller implements Installer {
    * under the name of the program with an {@code .archive} suffix if the URL does not end in a usable file name.
    *
    * @return the file name of the download
+   * @since 1.0.0
    */
   protected String getFileName() {
     final boolean isArchive = this.isArchive();
@@ -378,6 +394,7 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @return the download
    * @throws IOException if the platform is not supported
+   * @since 1.0.0
    */
   protected Download requireDownload() throws IOException {
     final Optional<Download> download = this.resolveDownload();
@@ -449,6 +466,7 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @param platform the platform to find fallbacks for
    * @return the compatible platforms, which may be empty
+   * @since 1.0.0
    */
   protected List<Platform> getFallbackPlatforms(final Platform platform) {
     return List.of();
@@ -460,6 +478,7 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @return the existing installation, or empty if the program has to be downloaded
    * @throws IOException if the configuration file cannot be read
+   * @since 1.0.0
    */
   protected Optional<Path> findExistingInstallation() throws IOException {
     final Path defaultPath = this.getDefaultPath();
@@ -495,6 +514,7 @@ public abstract class AbstractInstaller implements Installer {
    * @param installedPath the path of the installation
    * @throws IOException          if the configuration file cannot be written
    * @throws NullPointerException if {@code installedPath} is null
+   * @since 1.0.0
    */
   public void writePathToConfiguration(final Path installedPath) throws IOException {
     Preconditions.checkNotNull(installedPath, "Path must not be null!");
@@ -546,6 +566,7 @@ public abstract class AbstractInstaller implements Installer {
    * Returns the name of the program, which is also the key of the program in the configuration file.
    *
    * @return the name
+   * @since 1.0.0
    */
   public String getName() {
     return this.name;
@@ -555,6 +576,7 @@ public abstract class AbstractInstaller implements Installer {
    * Returns the folder the program is installed into.
    *
    * @return the installation folder
+   * @since 1.0.0
    */
   public Path getFolder() {
     return this.folder;
@@ -565,6 +587,7 @@ public abstract class AbstractInstaller implements Installer {
    * directly. Archives are stored under their original file name and are never renamed to {@code .exe}.
    *
    * @return true if the download is an archive
+   * @since 1.0.0
    */
   public boolean isArchive() {
     return false;

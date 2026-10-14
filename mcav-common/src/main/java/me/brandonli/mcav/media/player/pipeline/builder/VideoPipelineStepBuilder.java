@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
  * Builds a video pipeline from {@link VideoFilter}s; create one with {@link PipelineBuilder#video()}.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface VideoPipelineStepBuilder {
   /**
@@ -32,6 +34,7 @@ public interface VideoPipelineStepBuilder {
    * @param filter the filter
    * @return this builder
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   VideoPipelineStepBuilder then(final VideoFilter filter);
 
@@ -39,6 +42,7 @@ public interface VideoPipelineStepBuilder {
    * Returns the number of filters added so far.
    *
    * @return the filter count
+   * @since 1.0.0
    */
   int size();
 
@@ -47,6 +51,7 @@ public interface VideoPipelineStepBuilder {
    * unchanged; appending more filters later does not alter this chain.
    *
    * @return the first step, or {@link VideoPipelineStep#NO_OP} if no filter was added
+   * @since 1.0.0
    */
   VideoPipelineStep build();
 }

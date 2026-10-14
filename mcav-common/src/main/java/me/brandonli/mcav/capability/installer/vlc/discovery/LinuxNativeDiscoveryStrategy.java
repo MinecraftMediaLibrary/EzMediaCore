@@ -45,6 +45,8 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
  *
  * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
  * a time.
+ *
+ * @since 1.0.0
  */
 public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
@@ -53,6 +55,8 @@ public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStra
 
   /**
    * Constructs a strategy that searches vlcj's directories and publishes the plugin path with {@code setenv}.
+   *
+   * @since 1.0.0
    */
   public LinuxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = nativeSetter();
@@ -72,6 +76,7 @@ public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStra
    * Checks whether the system is Linux or another Unix system other than macOS.
    *
    * @return true on Linux and other Unix systems
+   * @since 1.0.0
    */
   @Override
   public boolean supported() {

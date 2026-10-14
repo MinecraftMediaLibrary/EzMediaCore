@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
  * The default {@link AudioAttachableCallback}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultAudioAttachableCallback extends AbstractAttachableCallback<AudioPipelineStep> implements AudioAttachableCallback {
 

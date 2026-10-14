@@ -28,6 +28,8 @@ package me.brandonli.mcav.media.source;
  * string with {@link SourceDetectionHelper}.
  *
  * <p>The sources of this library are thread-safe; frame sources are as thread-safe as their suppliers.
+ *
+ * @since 1.0.0
  */
 public interface Source {
   /**
@@ -35,6 +37,7 @@ public interface Source {
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   String getResource();
 
@@ -42,6 +45,7 @@ public interface Source {
    * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   String getName();
 
@@ -50,6 +54,7 @@ public interface Source {
    * This does not probe its actual duration or whether the selected decoder supports seeking.
    *
    * @return true for files and similar finite media
+   * @since 1.0.0
    */
   boolean isStatic();
 
@@ -57,6 +62,7 @@ public interface Source {
    * Checks whether the source is a live or endless stream, the opposite of {@link #isStatic()}.
    *
    * @return true for streams, devices, and generated frames
+   * @since 1.0.0
    */
   default boolean isDynamic() {
     return !this.isStatic();

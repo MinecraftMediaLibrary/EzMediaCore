@@ -26,12 +26,15 @@ import java.util.concurrent.ForkJoinPool;
  * A player whose playback can be paused and resumed.
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface ControllablePlayer {
   /**
    * Pauses playback, keeping the current position.
    *
    * @return true if playback was paused, false if nothing is playing or it was already paused
+   * @since 1.0.0
    */
   boolean pause();
 
@@ -40,6 +43,7 @@ public interface ControllablePlayer {
    *
    * @return a future that completes with the result of {@link #pause()}
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> pauseAsync() {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -54,6 +58,7 @@ public interface ControllablePlayer {
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> pauseAsync(final ExecutorService executor) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");
@@ -65,6 +70,7 @@ public interface ControllablePlayer {
    * Resumes playback after {@link #pause()}.
    *
    * @return true if playback was resumed, false if nothing is playing or it was not paused
+   * @since 1.0.0
    */
   boolean resume();
 
@@ -73,6 +79,7 @@ public interface ControllablePlayer {
    *
    * @return a future that completes with the result of {@link #resume()}
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> resumeAsync() {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -87,6 +94,7 @@ public interface ControllablePlayer {
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> resumeAsync(final ExecutorService executor) {
     Preconditions.checkNotNull(executor, "Executor must not be null!");

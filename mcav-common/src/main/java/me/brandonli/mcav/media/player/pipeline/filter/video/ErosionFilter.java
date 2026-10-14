@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Size;
  * removes small bright specks.
  *
  * <p>This class is thread-safe, because it only reads the matrix it holds.
+ *
+ * @since 1.0.0
  */
 public class ErosionFilter extends MatVideoFilter {
 
@@ -37,6 +39,7 @@ public class ErosionFilter extends MatVideoFilter {
    *
    * @param kernelSize the size of the structuring element in pixels, which must be positive
    * @throws IllegalArgumentException if {@code kernelSize} is nonpositive
+   * @since 1.0.0
    */
   public ErosionFilter(final int kernelSize) {
     Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive!");
@@ -50,6 +53,7 @@ public class ErosionFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

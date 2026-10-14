@@ -39,6 +39,8 @@ import me.brandonli.mcav.media.source.uri.UriSourceDetector;
  * }
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class SourceDetectionHelper {
 
@@ -57,6 +59,7 @@ public class SourceDetectionHelper {
    * @param detectors the non-null detectors to consult in iteration order; the collection is copied and
    *                  must contain no null elements. Detectors themselves are shared, not copied
    * @throws NullPointerException if the collection or any detector is null
+   * @since 1.0.0
    */
   public SourceDetectionHelper(final Collection<SourceDetector<? extends Source>> detectors) {
     Preconditions.checkNotNull(detectors, "Detectors must not be null!");
@@ -66,6 +69,8 @@ public class SourceDetectionHelper {
 
   /**
    * Constructs a helper with the default detectors.
+   *
+   * @since 1.0.0
    */
   public SourceDetectionHelper() {
     this(DEFAULT_DETECTORS);
@@ -80,6 +85,7 @@ public class SourceDetectionHelper {
    * @throws RuntimeException     if a detector fails while testing or creating the source; failures propagate
    *                              and no lower-priority detector is tried as a fallback
    * @throws NullPointerException if {@code resource} is null
+   * @since 1.0.0
    */
   public Optional<Source> detectSource(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");

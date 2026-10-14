@@ -30,12 +30,15 @@ import java.util.function.BiConsumer;
  * }
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface ExceptionHandler {
   /**
    * Returns the handler that receives failures.
    *
    * @return the handler
+   * @since 1.0.0
    */
   BiConsumer<String, Throwable> getExceptionHandler();
 
@@ -45,6 +48,7 @@ public interface ExceptionHandler {
    *
    * @param exceptionHandler the handler
    * @throws NullPointerException if {@code exceptionHandler} is null
+   * @since 1.0.0
    */
   void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler);
 
@@ -53,6 +57,7 @@ public interface ExceptionHandler {
    * it to implement this interface by delegation.
    *
    * @return a new handler holder
+   * @since 1.0.0
    */
   static ExceptionHandler createDefault() {
     return new DefaultExceptionHandler();

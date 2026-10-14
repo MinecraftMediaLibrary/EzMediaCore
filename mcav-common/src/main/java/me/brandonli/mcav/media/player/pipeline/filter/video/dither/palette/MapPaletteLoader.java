@@ -37,6 +37,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * map colors.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MapPaletteLoader {
 
@@ -119,6 +121,7 @@ public final class MapPaletteLoader {
    * Returns every map color as opaque ARGB, indexed by map color index.
    *
    * @return a copy of the map colors
+   * @since 1.0.0
    */
   public static int[] getColors() {
     return COLORS.clone();
@@ -128,6 +131,7 @@ public final class MapPaletteLoader {
    * Returns the number of map colors.
    *
    * @return the color count
+   * @since 1.0.0
    */
   public static int getColorCount() {
     return COLORS.length;
@@ -139,6 +143,7 @@ public final class MapPaletteLoader {
    * @param index the map color index, as stored in map data; negative bytes are treated as unsigned
    * @return the color
    * @throws IllegalArgumentException if the index does not exist
+   * @since 1.0.0
    */
   public static Color getColor(final byte index) {
     final int unsigned = index & UNSIGNED_BYTE_MASK;

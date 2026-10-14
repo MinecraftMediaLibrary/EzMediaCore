@@ -26,12 +26,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * every player; the other algorithms are stateless and can be shared.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
   /**
    * Creates the algorithm.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   @Override
   ErrorDiffusionDither build();
@@ -42,6 +45,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * @param palette the palette
    * @return this builder
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   @Override
   ErrorDiffusionDitherBuilder withPalette(final DitherPalette palette);
@@ -52,6 +56,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * @param algorithm the algorithm
    * @return this builder
    * @throws NullPointerException if {@code algorithm} is null
+   * @since 1.0.0
    */
   ErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm);
 
@@ -62,6 +67,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * @param threshold the threshold from 0 to 255
    * @return this builder
    * @throws IllegalArgumentException if the threshold is outside 0 through 255
+   * @since 1.0.0
    */
   ErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold);
 
@@ -71,6 +77,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * @param threshold the nonnegative sum of absolute channel errors at or below which diffusion is skipped
    * @return this builder
    * @throws IllegalArgumentException if the threshold is negative
+   * @since 1.0.0
    */
   ErrorDiffusionDitherBuilder withErrorThreshold(final int threshold);
 
@@ -80,6 +87,7 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * @param strength the strength from 0 to 1
    * @return this builder
    * @throws IllegalArgumentException if the strength is outside 0 through 1 or is NaN
+   * @since 1.0.0
    */
   ErrorDiffusionDitherBuilder withErrorStrength(final float strength);
 
@@ -87,46 +95,64 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
    * The error diffusion algorithms that can be built.
    *
    * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   enum Algorithm {
     /**
      * High-contrast diffusion that only spreads three quarters of the error.
+     *
+     * @since 1.0.0
      */
     ATKINSON,
 
     /**
      * Seven taps over two rows.
+     *
+     * @since 1.0.0
      */
     BURKES,
 
     /**
      * Three taps, the fastest algorithm and a good default.
+     *
+     * @since 1.0.0
      */
     FILTER_LITE,
 
     /**
      * The classic four-tap algorithm.
+     *
+     * @since 1.0.0
      */
     FLOYD_STEINBERG,
 
     /**
      * Floyd-Steinberg that stays stable between video frames. The algorithm holds the state of one video, so every
      * player needs its own.
+     *
+     * @since 1.0.0
      */
     TEMPORAL_FLOYD_STEINBERG,
 
     /**
      * Twelve taps over three rows, very smooth.
+     *
+     * @since 1.0.0
      */
     JARVIS_JUDICE_NINKE,
 
     /**
      * Twelve taps on a hexagonal pattern over four rows.
+     *
+     * @since 1.0.0
      */
     STEVENSON_ARCE,
 
     /**
      * Twelve taps over three rows, sharper than Jarvis, Judice, and Ninke.
+     *
+     * @since 1.0.0
      */
     STUCKI,
   }

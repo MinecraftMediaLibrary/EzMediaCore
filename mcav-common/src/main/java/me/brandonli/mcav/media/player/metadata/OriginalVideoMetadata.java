@@ -24,15 +24,21 @@ import com.google.common.base.Preconditions;
  * the source does not report them.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface OriginalVideoMetadata extends OriginalMetadata {
   /**
    * The value of a property the source does not report.
+   *
+   * @since 1.0.0
    */
   int UNKNOWN = -1;
 
   /**
    * Metadata with every property unknown.
+   *
+   * @since 1.0.0
    */
   OriginalVideoMetadata EMPTY = new DefaultOriginalVideoMetadata(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
 
@@ -45,6 +51,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param videoFrameRate the frame rate in frames per second, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
     Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size %sx%s must be positive!", videoWidth, videoHeight);
@@ -60,6 +67,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param videoFrameRate the frame rate in frames per second, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final float videoFrameRate) {
     return of(videoWidth, videoHeight, UNKNOWN, videoFrameRate);
@@ -72,6 +80,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param height the height in pixels
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int width, final int height) {
     return of(width, height, UNKNOWN, UNKNOWN);
@@ -81,6 +90,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * Returns the width of the decoded frames.
    *
    * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   int getVideoWidth();
 
@@ -88,6 +98,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * Returns the height of the decoded frames.
    *
    * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   int getVideoHeight();
 
@@ -95,6 +106,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * Returns the bitrate of the video stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getVideoBitrate();
 
@@ -102,6 +114,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * Returns the frame rate of the video stream.
    *
    * @return the frame rate in frames per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   float getVideoFrameRate();
 }

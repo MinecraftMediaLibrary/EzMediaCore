@@ -28,6 +28,8 @@ import java.awt.image.WritableRaster;
  * pixel by pixel.
  *
  * <p>Implementations are called from the player thread only and need not be thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface ImageSupplier {
@@ -35,6 +37,7 @@ public interface ImageSupplier {
    * Returns the next frame.
    *
    * @return a non-null frame matching the source dimensions, stable until its pixels have been copied
+   * @since 1.0.0
    */
   BufferedImage getImage();
 
@@ -42,6 +45,7 @@ public interface ImageSupplier {
    * Adapts this supplier to supply packed ARGB pixels.
    *
    * @return a sample supplier that copies the pixels of every image into a new array
+   * @since 1.0.0
    */
   default SampleSupplier toSampleSupplier() {
     return this::readImageArgb;

@@ -28,6 +28,8 @@ import com.google.common.base.Preconditions;
  * including the shared matrices of {@link BayerDither}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ThresholdMatrix {
 
@@ -44,6 +46,7 @@ public final class ThresholdMatrix {
    * @return the matrix
    * @throws NullPointerException     if the rows or one of them is null
    * @throws IllegalArgumentException if there are no rows, or the rows are empty or differ in length
+   * @since 1.0.0
    */
   public static ThresholdMatrix of(final int[]... rows) {
     Preconditions.checkNotNull(rows, "Rows must not be null!");
@@ -79,6 +82,7 @@ public final class ThresholdMatrix {
    * Returns a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
    *
    * @return a new array with the entries
+   * @since 1.0.0
    */
   public int[][] toArray() {
     return copyRows(this.rows);
@@ -88,6 +92,7 @@ public final class ThresholdMatrix {
    * Returns the number of rows, which is the height of the pattern.
    *
    * @return the number of rows
+   * @since 1.0.0
    */
   public int getRowCount() {
     return this.rows.length;
@@ -97,6 +102,7 @@ public final class ThresholdMatrix {
    * Returns the number of entries of every row, which is the width of the pattern.
    *
    * @return the number of columns
+   * @since 1.0.0
    */
   public int getColumnCount() {
     return this.rows[0].length;

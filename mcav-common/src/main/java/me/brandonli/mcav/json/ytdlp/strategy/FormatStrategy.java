@@ -42,50 +42,68 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * strategies pick the stream listed first.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface FormatStrategy {
   /**
    * The lowest quality audio-only stream.
+   *
+   * @since 1.0.0
    */
   FormatStrategy LOWEST_QUALITY_AUDIO = dump ->
     pick(dump, FormatStrategy::hasAudio, (candidate, current) -> candidate.quality < current.quality);
 
   /**
    * The lowest quality stream that contains video.
+   *
+   * @since 1.0.0
    */
   FormatStrategy LOWEST_QUALITY_VIDEO = dump ->
     pick(dump, FormatStrategy::hasVideo, (candidate, current) -> candidate.quality < current.quality);
 
   /**
    * The highest quality audio-only stream.
+   *
+   * @since 1.0.0
    */
   FormatStrategy BEST_QUALITY_AUDIO = dump ->
     pick(dump, FormatStrategy::hasAudio, (candidate, current) -> candidate.quality >= current.quality);
 
   /**
    * The highest quality stream that contains video.
+   *
+   * @since 1.0.0
    */
   FormatStrategy BEST_QUALITY_VIDEO = dump ->
     pick(dump, FormatStrategy::hasVideo, (candidate, current) -> candidate.quality >= current.quality);
 
   /**
    * The first audio-only stream, in the order yt-dlp listed them.
+   *
+   * @since 1.0.0
    */
   FormatStrategy FIRST_AUDIO = dump -> first(dump, FormatStrategy::hasAudio);
 
   /**
    * The first stream that contains video, in the order yt-dlp listed them.
+   *
+   * @since 1.0.0
    */
   FormatStrategy FIRST_VIDEO = dump -> first(dump, FormatStrategy::hasVideo);
 
   /**
    * The first WebM audio stream served over plain HTTPS, which players decode without extra protocols.
+   *
+   * @since 1.0.0
    */
   FormatStrategy PREFER_WEBM_AUDIO = dump -> first(dump, format -> isHttps(format) && "webm".equals(format.audio_ext));
 
   /**
    * The first MP4 video stream served over plain HTTPS, which players decode without extra protocols.
+   *
+   * @since 1.0.0
    */
   FormatStrategy PREFER_MP4_VIDEO = dump -> first(dump, format -> isHttps(format) && "mp4".equals(format.video_ext));
 
@@ -95,6 +113,7 @@ public interface FormatStrategy {
    * @param dump the metadata yt-dlp produced
    * @return the selected stream, or empty if no stream matches
    * @throws NullPointerException if {@code dump} is null when using a built-in strategy
+   * @since 1.0.0
    */
   Optional<Format> select(final UrlParseDump dump);
 
@@ -106,6 +125,7 @@ public interface FormatStrategy {
    * @param format the non-null stream metadata
    * @return true if its audio-extension marker is present and not {@code none}
    * @throws NullPointerException if {@code format} is null
+   * @since 1.0.0
    */
   static boolean hasAudio(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");
@@ -120,6 +140,7 @@ public interface FormatStrategy {
    * @param format the stream
    * @return true if {@link Format#video_ext} is non-null and not {@code none}; no stream is opened or inspected
    * @throws NullPointerException if {@code format} is null
+   * @since 1.0.0
    */
   static boolean hasVideo(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");
@@ -134,6 +155,7 @@ public interface FormatStrategy {
    * @param format the stream
    * @return true if {@link Format#protocol} equals {@code https}, case-sensitively; the URL is not parsed
    * @throws NullPointerException if {@code format} is null
+   * @since 1.0.0
    */
   static boolean isHttps(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");

@@ -25,10 +25,14 @@ import com.google.common.base.Preconditions;
  * describes the source.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface OriginalAudioMetadata extends OriginalMetadata {
   /**
    * The value of a property the source does not report.
+   *
+   * @since 1.0.0
    */
   int UNKNOWN = -1;
 
@@ -43,6 +47,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * @return the metadata
    * @throws IllegalArgumentException if the sample rate or channel count is nonpositive
    * @throws NullPointerException     if {@code codec} is null
+   * @since 1.0.0
    */
   static OriginalAudioMetadata of(
     final String codec,
@@ -62,6 +67,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * Returns the bitrate of the audio stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getAudioBitrate();
 
@@ -69,6 +75,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * Returns the sample rate of the audio stream.
    *
    * @return the sample rate in hertz
+   * @since 1.0.0
    */
   int getAudioSampleRate();
 
@@ -76,6 +83,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * Returns the number of channels of the audio stream.
    *
    * @return the channel count
+   * @since 1.0.0
    */
   int getAudioChannels();
 
@@ -83,6 +91,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * Returns the name of the codec of the audio stream.
    *
    * @return the codec name
+   * @since 1.0.0
    */
   String getAudioCodec();
 
@@ -90,6 +99,7 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * Returns the FFmpeg sample format identifier of the audio stream.
    *
    * @return the sample format, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getSamplingFormat();
 }

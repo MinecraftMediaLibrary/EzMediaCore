@@ -33,11 +33,15 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * playback clock are the same either way.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class OpenCvPlayer extends AbstractVideoPlayerCv {
 
   /**
    * Constructs a new OpenCV player.
+   *
+   * @since 1.0.0
    */
   public OpenCvPlayer() {}
 

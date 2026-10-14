@@ -25,6 +25,7 @@ package me.brandonli.mcav.media.player.pipeline.filter;
  *
  * @param <SampleType>   the type of sample, such as a video frame or a buffer of audio samples
  * @param <MetadataType> the type of metadata describing the original stream
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface Filter<SampleType, MetadataType> {
@@ -36,6 +37,7 @@ public interface Filter<SampleType, MetadataType> {
    * @param metadata the metadata of the original stream the sample belongs to
    * @return true if the filter changed the sample or may have changed it, false if it left the sample untouched;
    * filters that work on a copy of a sample use this to skip copying unchanged samples back
+   * @since 1.0.0
    */
   boolean applyFilter(final SampleType samples, final MetadataType metadata);
 }

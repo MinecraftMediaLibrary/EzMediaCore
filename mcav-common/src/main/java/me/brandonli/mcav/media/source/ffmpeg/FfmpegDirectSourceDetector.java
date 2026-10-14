@@ -25,6 +25,8 @@ import me.brandonli.mcav.media.source.SourceDetector;
  * Detects raw FFmpeg inputs written as {@code format||input}, such as {@code gdigrab||desktop}.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSource> {
 
@@ -33,6 +35,8 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
 
   /**
    * Constructs a new detector.
+   *
+   * @since 1.0.0
    */
   public FfmpegDirectSourceDetector() {}
 
@@ -42,6 +46,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public boolean isDetectedSource(final String raw) {
@@ -66,6 +71,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
    * @return the source
    * @throws IllegalArgumentException if there is not exactly one {@code ||} separator or the format is blank
    * @throws NullPointerException     if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public FfmpegDirectSource createSource(final String raw) {
@@ -83,6 +89,7 @@ public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSo
    * Returns the priority of this detector.
    *
    * @return the priority, higher wins
+   * @since 1.0.0
    */
   @Override
   public int getPriority() {

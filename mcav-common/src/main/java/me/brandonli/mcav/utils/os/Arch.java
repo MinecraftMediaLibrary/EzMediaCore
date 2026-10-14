@@ -21,19 +21,27 @@ package me.brandonli.mcav.utils.os;
  * The processor family of a machine, as far as the installers care: which binaries to download.
  *
  * <p>This enum is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public enum Arch {
   /**
    * Intel and AMD processors, 32-bit or 64-bit.
+   *
+   * @since 1.0.0
    */
   X86,
   /**
    * ARM processors such as Apple silicon and Raspberry Pi, 32-bit or 64-bit.
+   *
+   * @since 1.0.0
    */
   ARM,
   /**
    * Any other processor family, such as RISC-V, POWER ({@code ppc64le}), IBM Z ({@code s390x}) or LoongArch. The
    * library never downloads programs for it, because none of the builds it knows can run there.
+   *
+   * @since 1.0.0
    */
   OTHER,
 }

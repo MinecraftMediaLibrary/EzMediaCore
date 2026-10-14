@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * A fast {@link RandomNumberProvider} based on the xoroshiro128+ generator, which produces a random number in a
  * handful of instructions. Instances are not thread-safe, so random dithering keeps one per thread.
+ *
+ * @since 1.0.0
  */
 public final class XoroshiroRandomProvider implements RandomNumberProvider {
 
@@ -49,6 +51,8 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
 
   /**
    * Constructs a new provider with a seed that differs for every instance.
+   *
+   * @since 1.0.0
    */
   public XoroshiroRandomProvider() {
     final long seed = nextSeed();
@@ -60,6 +64,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    * Constructs a new provider with a fixed seed, which produces the same sequence every time.
    *
    * @param seed the seed
+   * @since 1.0.0
    */
   public XoroshiroRandomProvider(final long seed) {
     this.state0 = firstStateWord(seed);
@@ -113,6 +118,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    * @param maximum the largest value, exclusive
    * @return a random value from {@code minimum} to {@code maximum - 1}
    * @throws IllegalArgumentException if {@code maximum} is not greater than {@code minimum}
+   * @since 1.0.0
    */
   @Override
   public int nextInt(final int minimum, final int maximum) {
@@ -131,6 +137,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    * @param maximum the finite largest value, exclusive
    * @return a random value greater than or equal to {@code minimum} and less than {@code maximum}
    * @throws IllegalArgumentException if either bound is not finite or {@code maximum} is not greater than {@code minimum}
+   * @since 1.0.0
    */
   @Override
   public double nextDouble(final double minimum, final double maximum) {
@@ -158,6 +165,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
    * Returns a random boolean from the highest bit of the next output, which is the best bit of xoroshiro128+.
    *
    * @return true or false with equal probability
+   * @since 1.0.0
    */
   @Override
   public boolean nextBoolean() {

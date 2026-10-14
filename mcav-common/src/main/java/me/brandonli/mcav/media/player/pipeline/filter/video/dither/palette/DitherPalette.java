@@ -33,20 +33,28 @@ import java.util.Objects;
  * transparency; those indices are never returned by the lookup tables.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface DitherPalette {
   /**
    * The Minecraft map palette, whose first four indices are transparent.
+   *
+   * @since 1.0.0
    */
   DitherPalette DEFAULT_MAP_PALETTE = new MapPalette();
 
   /**
    * A palette of eight basic colors: red, green, blue, white, black, yellow, cyan, and purple.
+   *
+   * @since 1.0.0
    */
   DitherPalette EIGHT_BIT_PALETTE = colors(0xFFFF0000, 0xFF00D93A, 0xFF3737DC, 0xFFFFFFFF, 0xFF000000, 0xFFE5E533, 0xFF5CDBD5, 0xFFB24CD8);
 
   /**
    * Builds the default map palette ahead of time, so the first dithering operation does not pay for it.
+   *
+   * @since 1.0.0
    */
   static void init() {
     Objects.requireNonNull(DEFAULT_MAP_PALETTE, "Map palette must not be null!");
@@ -60,6 +68,7 @@ public interface DitherPalette {
    * @return the palette
    * @throws IllegalArgumentException if the palette is empty or contains more than 256 colors
    * @throws NullPointerException     if {@code colors} is null
+   * @since 1.0.0
    */
   static DitherPalette colors(final int... colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -75,6 +84,7 @@ public interface DitherPalette {
    * @return the palette
    * @throws IllegalArgumentException if the palette is empty or contains more than 256 colors
    * @throws NullPointerException     if the list or any color is null
+   * @since 1.0.0
    */
   static DitherPalette colors(final List<Integer> colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -95,6 +105,7 @@ public interface DitherPalette {
    * indices hold zero.
    *
    * @return the colors, which must not be modified
+   * @since 1.0.0
    */
   int[] getPalette();
 
@@ -102,6 +113,7 @@ public interface DitherPalette {
    * Returns the number of colors, including reserved indices.
    *
    * @return the palette size
+   * @since 1.0.0
    */
   int getSize();
 
@@ -109,6 +121,7 @@ public interface DitherPalette {
    * Returns the number of leading indices that are reserved for transparency and never returned by the lookup tables.
    *
    * @return the reserved index count
+   * @since 1.0.0
    */
   int getReservedIndices();
 
@@ -117,6 +130,7 @@ public interface DitherPalette {
    * {@code ((r >> 1) << 14) | ((g >> 1) << 7) | (b >> 1)}.
    *
    * @return the index lookup table, which must not be modified
+   * @since 1.0.0
    */
   byte[] getColorMap();
 
@@ -125,6 +139,7 @@ public interface DitherPalette {
    * like {@link #getColorMap()}.
    *
    * @return the color lookup table, which must not be modified
+   * @since 1.0.0
    */
   int[] getFullColorMap();
 }

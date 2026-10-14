@@ -28,19 +28,31 @@ import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
  * the filter runs; a change applies from the next chunk on.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VolumeFilter implements AudioFilter {
 
-  /** The volume that leaves the audio as it is. */
+  /**
+   * The volume that leaves the audio as it is.
+   *
+   * @since 1.0.0
+   */
   public static final double UNCHANGED = 1.0;
 
-  /** The largest amplitude multiplier, 2.0; this doubles sample values before clipping, not perceived loudness. */
+  /**
+   * The largest amplitude multiplier, 2.0; this doubles sample values before clipping, not perceived loudness.
+   *
+   * @since 1.0.0
+   */
   public static final double MAXIMUM_VOLUME = 2.0;
 
   private volatile double volume;
 
   /**
    * Constructs a filter that leaves the audio as it is until {@link #setVolume(double)} is called.
+   *
+   * @since 1.0.0
    */
   public VolumeFilter() {
     this.volume = UNCHANGED;
@@ -55,6 +67,7 @@ public final class VolumeFilter implements AudioFilter {
    * @return true if the samples were scaled
    * @throws java.nio.ReadOnlyBufferException if scaling writes to a read-only buffer
    * @throws NullPointerException             if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
@@ -79,6 +92,7 @@ public final class VolumeFilter implements AudioFilter {
    *
    * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAXIMUM_VOLUME}
    * @throws IllegalArgumentException if the volume is outside that range or not a number
+   * @since 1.0.0
    */
   public void setVolume(final double volume) {
     Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
@@ -90,6 +104,7 @@ public final class VolumeFilter implements AudioFilter {
    * Returns the volume.
    *
    * @return the factor every sample is multiplied by
+   * @since 1.0.0
    */
   public double getVolume() {
     return this.volume;

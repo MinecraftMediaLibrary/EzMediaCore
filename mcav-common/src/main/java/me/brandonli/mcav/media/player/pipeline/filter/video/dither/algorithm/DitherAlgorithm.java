@@ -61,6 +61,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  *       thread, so it is only thread-safe if the provider is. Random dithering built without a provider uses a
  *       generator per thread and can be shared.</li>
  * </ul>
+ *
+ * @since 1.0.0
  */
 public interface DitherAlgorithm {
   /**
@@ -70,6 +72,7 @@ public interface DitherAlgorithm {
    * @return a new caller-owned array containing the palette index of every pixel; alpha is ignored
    * @throws NullPointerException  if {@code buffer} is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   byte[] ditherIntoBytes(final ImageBuffer buffer);
 
@@ -80,6 +83,7 @@ public interface DitherAlgorithm {
    * @param width  the strictly positive width, which must divide the buffer length; an empty buffer is allowed
    * @throws NullPointerException     if {@code buffer} is null
    * @throws IllegalArgumentException if width is nonpositive or does not divide the buffer length
+   * @since 1.0.0
    */
   void dither(final int[] buffer, final int width);
 
@@ -87,6 +91,7 @@ public interface DitherAlgorithm {
    * Returns the palette the algorithm reduces images to.
    *
    * @return the palette
+   * @since 1.0.0
    */
   DitherPalette getPalette();
 
@@ -95,6 +100,7 @@ public interface DitherAlgorithm {
    * neighbors and give the highest quality.
    *
    * @return the builder, which defaults to Filter Lite on the map palette
+   * @since 1.0.0
    */
   static ErrorDiffusionDitherBuilder errorDiffusion() {
     return new DefaultErrorDiffusionDitherBuilder();
@@ -104,6 +110,7 @@ public interface DitherAlgorithm {
    * Creates a builder for random dithering, which adds noise before picking the closest color.
    *
    * @return the builder, which defaults to a normal weight on the map palette
+   * @since 1.0.0
    */
   static RandomDitherBuilder random() {
     return new DefaultRandomDitherBuilder();
@@ -114,6 +121,7 @@ public interface DitherAlgorithm {
    * color.
    *
    * @return the builder, which defaults to a 2x2 Bayer matrix on the map palette
+   * @since 1.0.0
    */
   static OrderedDitherBuilder ordered() {
     return new DefaultOrderedDitherBuilder();
@@ -123,6 +131,7 @@ public interface DitherAlgorithm {
    * Creates a builder for nearest color mapping, which does not dither at all.
    *
    * @return the builder, which defaults to the map palette
+   * @since 1.0.0
    */
   static NearestDitherBuilder nearest() {
     return new DefaultNearestDitherBuilder();
@@ -133,6 +142,7 @@ public interface DitherAlgorithm {
    * diffusion and looks almost identical to Floyd-Steinberg.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static ErrorDiffusionDither filterLite() {
     return new FilterLiteDither(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -142,6 +152,7 @@ public interface DitherAlgorithm {
    * Creates a Floyd-Steinberg error diffusion algorithm on the map palette.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static ErrorDiffusionDither floydSteinberg() {
     return new FloydDither(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -151,6 +162,7 @@ public interface DitherAlgorithm {
    * Creates a nearest color algorithm on the map palette, which is the fastest option.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static NearestDither nearestColor() {
     return new ColorMapNearestDither(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -162,6 +174,7 @@ public interface DitherAlgorithm {
    * flickering and lets {@code CompressedMapResult} skip unchanged parts of the picture.
    *
    * @return a new algorithm, which holds the state of one video and must not be shared between players
+   * @since 1.0.0
    */
   static TemporalDitherAlgorithm temporalFloydSteinberg() {
     return new TemporalFloydSteinbergDither();
@@ -179,6 +192,7 @@ public interface DitherAlgorithm {
    * @throws NullPointerException     if {@code palette} is null
    * @throws IllegalArgumentException if the temporal threshold is outside 0 through 255, the error
    *                                  threshold is negative, or the strength is outside 0 through 1 or NaN
+   * @since 1.0.0
    */
   static TemporalDitherAlgorithm temporalFloydSteinberg(
     final DitherPalette palette,

@@ -43,6 +43,8 @@ import me.brandonli.mcav.utils.runtime.ProcessException;
  * }
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class AudioExtractor {
 
@@ -73,6 +75,7 @@ public final class AudioExtractor {
    *                              not exist, cannot be decoded, or has no audio track
    * @throws UncheckedIOException if the cache folder cannot be created
    * @throws UnsatisfiedLinkError if the bundled FFmpeg is not available for this platform
+   * @since 1.0.0
    */
   public static Path extractOggVorbis(final Source source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");

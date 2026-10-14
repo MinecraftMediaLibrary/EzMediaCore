@@ -25,10 +25,16 @@ package me.brandonli.mcav.json.ytdlp.format;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class DownloaderOptions {
 
-  /** The size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some sites, or zero if the stream is requested at once. */
+  /**
+   * The size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some sites, or zero if the stream is requested at once.
+   *
+   * @since 1.0.0
+   */
   public int http_chunk_size;
 
   private DownloaderOptions() {}

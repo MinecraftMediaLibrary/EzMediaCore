@@ -22,6 +22,8 @@ package me.brandonli.mcav.utils.ffmpeg;
  * matters to FFmpeg: options apply to the next input or output file. Every method returns this builder.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface FfmpegCommandBuilder {
   /**
@@ -30,6 +32,7 @@ public interface FfmpegCommandBuilder {
    * @param input the input
    * @return this builder
    * @throws NullPointerException if {@code input} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addInput(final String input);
 
@@ -39,6 +42,7 @@ public interface FfmpegCommandBuilder {
    * @param output the output path
    * @return this builder
    * @throws NullPointerException if {@code output} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addOutput(final String output);
 
@@ -48,6 +52,7 @@ public interface FfmpegCommandBuilder {
    * @param codec the codec name, or {@code copy} to keep the stream
    * @return this builder
    * @throws NullPointerException if {@code codec} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addVideoCodec(final String codec);
 
@@ -57,6 +62,7 @@ public interface FfmpegCommandBuilder {
    * @param codec the codec name, or {@code copy} to keep the stream
    * @return this builder
    * @throws NullPointerException if {@code codec} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addAudioCodec(final String codec);
 
@@ -66,6 +72,7 @@ public interface FfmpegCommandBuilder {
    * @param bitrate the bitrate, such as {@code 1000k}
    * @return this builder
    * @throws NullPointerException if {@code bitrate} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addBitrate(final String bitrate);
 
@@ -75,6 +82,7 @@ public interface FfmpegCommandBuilder {
    * @param bitrate the bitrate, such as {@code 128k}
    * @return this builder
    * @throws NullPointerException if {@code bitrate} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addAudioBitrate(final String bitrate);
 
@@ -84,6 +92,7 @@ public interface FfmpegCommandBuilder {
    * @param framerate the frame rate in frames per second
    * @return this builder
    * @throws IllegalArgumentException if the frame rate is nonpositive
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addFramerate(final int framerate);
 
@@ -94,6 +103,7 @@ public interface FfmpegCommandBuilder {
    * @param height the height in pixels
    * @return this builder
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addResolution(final int width, final int height);
 
@@ -101,6 +111,7 @@ public interface FfmpegCommandBuilder {
    * Allows FFmpeg to overwrite an existing output file ({@code -y}). Without it FFmpeg waits for confirmation
    * on the console and the task hangs.
    * @return this builder
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addOverwrite();
 
@@ -110,6 +121,7 @@ public interface FfmpegCommandBuilder {
    * @param filter the filter graph
    * @return this builder
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addFilter(final String filter);
 
@@ -119,6 +131,7 @@ public interface FfmpegCommandBuilder {
    * @param argument the argument
    * @return this builder
    * @throws NullPointerException if {@code argument} is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addArgument(final String argument);
 
@@ -129,6 +142,7 @@ public interface FfmpegCommandBuilder {
    *                     elements have already been appended when validation fails
    * @return this builder
    * @throws NullPointerException if the array or any argument is null
+   * @since 1.0.0
    */
   FfmpegCommandBuilder addArguments(final String... rawArguments);
 
@@ -136,6 +150,7 @@ public interface FfmpegCommandBuilder {
    * Builds the command.
    *
    * @return a new immutable snapshot; subsequent builder changes do not affect it
+   * @since 1.0.0
    */
   FfmpegCommand build();
 }

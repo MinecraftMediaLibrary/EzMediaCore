@@ -24,11 +24,15 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * Inverts the colors of frames, turning every color into its negative.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class InvertFilter extends MatVideoFilter {
 
   /**
    * Constructs a new invert filter.
+   *
+   * @since 1.0.0
    */
   public InvertFilter() {}
 
@@ -37,6 +41,7 @@ public class InvertFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because every frame is changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * An immutable point in two dimensions.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Point {
 
@@ -43,6 +45,7 @@ public final class Point {
    * @param xCoordinate the x coordinate
    * @param yCoordinate the y coordinate
    * @return the point
+   * @since 1.0.0
    */
   public static Point point(final double xCoordinate, final double yCoordinate) {
     return new Point(xCoordinate, yCoordinate);
@@ -52,6 +55,7 @@ public final class Point {
    * Returns the x coordinate.
    *
    * @return the x coordinate
+   * @since 1.0.0
    */
   public double getX() {
     return this.xCoordinate;
@@ -61,6 +65,7 @@ public final class Point {
    * Returns the y coordinate.
    *
    * @return the y coordinate
+   * @since 1.0.0
    */
   public double getY() {
     return this.yCoordinate;
@@ -71,6 +76,7 @@ public final class Point {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -91,6 +97,7 @@ public final class Point {
    * Returns a hash code built from both coordinates.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -101,6 +108,7 @@ public final class Point {
    * Returns a debugging representation with both coordinates.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

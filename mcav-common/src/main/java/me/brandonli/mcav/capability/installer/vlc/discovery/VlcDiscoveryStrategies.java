@@ -30,6 +30,8 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
  * system, of which vlcj uses the one that supports the running system.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VlcDiscoveryStrategies {
 
@@ -44,6 +46,7 @@ public final class VlcDiscoveryStrategies {
    * without ever walking a large directory tree.
    *
    * @return the strategies for Linux, macOS and Windows
+   * @since 1.0.0
    */
   public static NativeDiscoveryStrategy[] createSystemStrategies() {
     final LinuxNativeDiscoveryStrategy linux = new LinuxNativeDiscoveryStrategy();
@@ -58,6 +61,7 @@ public final class VlcDiscoveryStrategies {
    * @param libraryDirectory the directory that contains the VLC libraries
    * @return the strategies for Linux, macOS and Windows
    * @throws NullPointerException if {@code libraryDirectory} is null
+   * @since 1.0.0
    */
   public static NativeDiscoveryStrategy[] createDirectoryStrategies(final Path libraryDirectory) {
     Preconditions.checkNotNull(libraryDirectory, "Library directory must not be null!");

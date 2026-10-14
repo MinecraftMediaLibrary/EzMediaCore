@@ -30,11 +30,15 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * sizes are settled. The filter keeps no state, so one filter may be attached to several pipelines at once.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class TransposeFilter extends MatVideoFilter {
 
   /**
    * Constructs a new transpose filter.
+   *
+   * @since 1.0.0
    */
   public TransposeFilter() {}
 
@@ -44,6 +48,7 @@ public class TransposeFilter extends MatVideoFilter {
    *
    * @param image the frame to transpose
    * @return true, because every frame is changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -59,6 +64,7 @@ public class TransposeFilter extends MatVideoFilter {
    * @param mat the matrix of the frame
    * @return never returns normally
    * @throws UnsupportedOperationException always
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

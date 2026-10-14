@@ -31,6 +31,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * pipelines at once.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class RotationFilter extends MatVideoFilter {
 
@@ -41,6 +43,7 @@ public class RotationFilter extends MatVideoFilter {
    *
    * @param rotation the rotation to apply
    * @throws NullPointerException if {@code rotation} is null
+   * @since 1.0.0
    */
   public RotationFilter(final Rotation rotation) {
     Preconditions.checkNotNull(rotation, "Rotation must not be null!");
@@ -53,6 +56,7 @@ public class RotationFilter extends MatVideoFilter {
    *
    * @param image the frame to rotate
    * @return true, because every frame is changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -72,6 +76,7 @@ public class RotationFilter extends MatVideoFilter {
    * @param mat the matrix of the frame
    * @return never returns normally
    * @throws UnsupportedOperationException always
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -82,20 +87,28 @@ public class RotationFilter extends MatVideoFilter {
    * The rotations {@link RotationFilter} supports.
    *
    * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public enum Rotation {
     /**
      * Rotates by 90 degrees clockwise.
+     *
+     * @since 1.0.0
      */
     ROTATE_90_CLOCKWISE(opencv_core.ROTATE_90_CLOCKWISE),
 
     /**
      * Rotates by 180 degrees.
+     *
+     * @since 1.0.0
      */
     ROTATE_180(opencv_core.ROTATE_180),
 
     /**
      * Rotates by 90 degrees counterclockwise.
+     *
+     * @since 1.0.0
      */
     ROTATE_90_COUNTERCLOCKWISE(opencv_core.ROTATE_90_COUNTERCLOCKWISE);
 
@@ -109,6 +122,7 @@ public class RotationFilter extends MatVideoFilter {
      * Returns the OpenCV rotate code of this rotation.
      *
      * @return the rotate code
+     * @since 1.0.0
      */
     public int getCode() {
       return this.code;

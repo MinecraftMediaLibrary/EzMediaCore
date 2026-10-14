@@ -29,6 +29,8 @@ import org.bytedeco.opencv.opencv_core.Size;
  * sizes, as OpenCV does.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class BlurFilter extends MatVideoFilter {
 
@@ -51,6 +53,7 @@ public class BlurFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if the kernel is nonpositive, even for a non-normal blur,
    *                                  or a sigma is negative or NaN
    * @throws NullPointerException     if {@code type} is null
+   * @since 1.0.0
    */
   public BlurFilter(final BlurType type, final int kernelSize, final double sigmaX, final double sigmaY) {
     Preconditions.checkNotNull(type, "Blur type must not be null!");
@@ -75,6 +78,7 @@ public class BlurFilter extends MatVideoFilter {
    *                   {@link BlurType#NORMAL}
    * @throws NullPointerException     if {@code type} is null
    * @throws IllegalArgumentException if the kernel is nonpositive or even for a non-normal blur
+   * @since 1.0.0
    */
   public BlurFilter(final BlurType type, final int kernelSize) {
     this(type, kernelSize, 0, 0);
@@ -85,6 +89,7 @@ public class BlurFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -124,25 +129,35 @@ public class BlurFilter extends MatVideoFilter {
    * The blur algorithms supported by {@link BlurFilter}.
    *
    * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public enum BlurType {
     /**
      * Averages the pixels of the kernel. The fastest algorithm.
+     *
+     * @since 1.0.0
      */
     NORMAL,
 
     /**
      * Uses the median of the kernel, which removes noise while keeping edges.
+     *
+     * @since 1.0.0
      */
     MEDIAN,
 
     /**
      * Weights pixels by a Gaussian curve, which gives the most natural blur.
+     *
+     * @since 1.0.0
      */
     GAUSSIAN,
 
     /**
      * Approximates a Gaussian blur at a fraction of the cost for large kernels.
+     *
+     * @since 1.0.0
      */
     STACK,
   }

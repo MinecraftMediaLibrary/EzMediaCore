@@ -26,6 +26,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  *
  * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
  * instance serves several players.
+ *
+ * @since 1.0.0
  */
 public interface DitherResultStep {
   /**
@@ -33,16 +35,21 @@ public interface DitherResultStep {
    *
    * @param samples   the frame, which may be modified
    * @param algorithm the dithering algorithm to use
+   * @since 1.0.0
    */
   void process(final ImageBuffer samples, final DitherAlgorithm algorithm);
 
   /**
    * Prepares the display. Called once before the first frame.
+   *
+   * @since 1.0.0
    */
   void start();
 
   /**
    * Removes the display and releases its resources. Called once after the last frame.
+   *
+   * @since 1.0.0
    */
   void release();
 }

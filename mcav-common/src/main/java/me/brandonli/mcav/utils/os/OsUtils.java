@@ -27,6 +27,8 @@ import java.util.Locale;
  * reported as 64-bit x86, which is what matters for loading native libraries.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class OsUtils {
 
@@ -131,6 +133,7 @@ public final class OsUtils {
    * Returns the operating system of the JVM.
    *
    * @return the operating system
+   * @since 1.0.0
    */
   public static Os getOs() {
     return CURRENT_OS;
@@ -140,6 +143,7 @@ public final class OsUtils {
    * Returns the bitness of the JVM.
    *
    * @return 32-bit or 64-bit
+   * @since 1.0.0
    */
   public static Bits getBits() {
     return CURRENT_BITS;
@@ -149,6 +153,7 @@ public final class OsUtils {
    * Returns the CPU architecture family of the JVM.
    *
    * @return x86, ARM, or {@link Arch#OTHER} for processor families the installers do not know
+   * @since 1.0.0
    */
   public static Arch getArch() {
     return CURRENT_ARCH;

@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * of the Stucki kernel.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class BurkesDither extends ErrorDiffusionDither {
 
@@ -32,6 +34,7 @@ public final class BurkesDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public BurkesDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.BURKES);
@@ -39,6 +42,8 @@ public final class BurkesDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Burkes algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public BurkesDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

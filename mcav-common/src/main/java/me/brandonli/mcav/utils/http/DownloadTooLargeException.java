@@ -24,6 +24,8 @@ import java.io.Serial;
  * Thrown when a download is larger than the caller allows. The download is stopped as soon as the limit is passed, so
  * a server that never stops sending cannot fill the disk of its client. Retrying would download the same bytes again,
  * so this failure is not retried.
+ *
+ * @since 1.0.0
  */
 public class DownloadTooLargeException extends IOException {
 
@@ -34,6 +36,7 @@ public class DownloadTooLargeException extends IOException {
    * Constructs the exception.
    *
    * @param message the detail message, which names the limit
+   * @since 1.0.0
    */
   public DownloadTooLargeException(final String message) {
     super(message);

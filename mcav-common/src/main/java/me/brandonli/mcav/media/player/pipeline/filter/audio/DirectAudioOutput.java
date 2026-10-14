@@ -43,6 +43,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Starting again after release opens a new device line.
  *
  * <p>Starting and releasing are thread-safe; filtering must happen on one thread at a time, as the player does.
+ *
+ * @since 1.0.0
  */
 public class DirectAudioOutput implements FunctionalAudioFilter {
 
@@ -59,6 +61,8 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
 
   /**
    * Constructs a new direct audio output. Nothing is opened until {@link #start()} is called.
+   *
+   * @since 1.0.0
    */
   public DirectAudioOutput() {
     this(DirectAudioOutput::openDefaultLine);
@@ -86,6 +90,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * @return false, because the samples are never changed
    * @throws IllegalArgumentException if the sound line rejects a byte count that is not a whole PCM frame
    * @throws NullPointerException     if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
@@ -123,6 +128,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    *
    * @throws PlayerException if no sound device supports the audio format of the library, for example on a headless
    *                         machine
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
@@ -166,6 +172,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * propagate immediately.
    * @throws RuntimeException if stopping, flushing or closing the line fails
    * @throws Error            if the sound line reports an error during cleanup
+   * @since 1.0.0
    */
   @Override
   public synchronized void release() {

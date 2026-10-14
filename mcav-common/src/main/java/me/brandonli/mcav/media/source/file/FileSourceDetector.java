@@ -26,11 +26,15 @@ import me.brandonli.mcav.utils.SourceUtils;
  * Detects paths of existing files or directories. Existence does not establish that a player can decode them.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FileSourceDetector implements SourceDetector<FileSource> {
 
   /**
    * Constructs a new detector.
+   *
+   * @since 1.0.0
    */
   public FileSourceDetector() {}
 
@@ -40,6 +44,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public boolean isDetectedSource(final String raw) {
@@ -55,6 +60,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    * @return the source
    * @throws java.nio.file.InvalidPathException if the string is not a valid path on this file system
    * @throws NullPointerException               if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public FileSource createSource(final String raw) {
@@ -68,6 +74,7 @@ public class FileSourceDetector implements SourceDetector<FileSource> {
    * Returns the priority of this detector.
    *
    * @return the priority, higher wins
+   * @since 1.0.0
    */
   @Override
   public int getPriority() {

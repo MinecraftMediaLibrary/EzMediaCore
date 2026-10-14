@@ -44,6 +44,8 @@ import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
  * two threads at once, so one filter attached to several pipelines detects faces in one frame at a time.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FaceDetectionFilter extends MatVideoFilter {
 
@@ -64,6 +66,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @throws IllegalStateException    if face detection is not available on this system, because the OpenCV object
    *                                  detection natives cannot be loaded; on Linux they need GTK 2
    * @throws NullPointerException     if {@code cascadeFile} or {@code color} is null
+   * @since 1.0.0
    */
   public FaceDetectionFilter(final Path cascadeFile, final double[] color) {
     Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
@@ -84,6 +87,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    *                                            detection natives cannot be loaded; on Linux they need GTK 2
    * @throws NullPointerException               if {@code cascadeFile} or {@code color} is null
    * @throws java.nio.file.InvalidPathException if the path string is invalid
+   * @since 1.0.0
    */
   public FaceDetectionFilter(final String cascadeFile, final double[] color) {
     Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
@@ -134,6 +138,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true if at least one face was outlined, false if none was found and the frame was left untouched
+   * @since 1.0.0
    */
   @Override
   protected synchronized boolean modifyMat(final Mat mat) {

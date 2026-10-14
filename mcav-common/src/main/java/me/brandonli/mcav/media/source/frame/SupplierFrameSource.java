@@ -21,6 +21,8 @@ package me.brandonli.mcav.media.source.frame;
  * The default {@link FrameSource}.
  *
  * <p>This class is immutable; it is thread-safe when its supplier is.
+ *
+ * @since 1.0.0
  */
 public final class SupplierFrameSource implements FrameSource {
 
@@ -40,6 +42,7 @@ public final class SupplierFrameSource implements FrameSource {
    * Returns the supplier of frames.
    *
    * @return the supplier
+   * @since 1.0.0
    */
   @Override
   public SampleSupplier supplyFrameSamples() {
@@ -50,6 +53,7 @@ public final class SupplierFrameSource implements FrameSource {
    * Returns the width of the frames.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   @Override
   public int getFrameWidth() {
@@ -60,6 +64,7 @@ public final class SupplierFrameSource implements FrameSource {
    * Returns the height of the frames.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   @Override
   public int getFrameHeight() {
@@ -70,6 +75,7 @@ public final class SupplierFrameSource implements FrameSource {
    * Returns the rate at which frames are requested from the supplier.
    *
    * @return the frame rate in frames per second
+   * @since 1.0.0
    */
   @Override
   public float getFrameRate() {

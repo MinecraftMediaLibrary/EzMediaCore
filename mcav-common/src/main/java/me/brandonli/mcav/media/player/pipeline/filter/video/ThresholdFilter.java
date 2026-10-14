@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * can retain combinations of saturated colors.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class ThresholdFilter extends MatVideoFilter {
 
@@ -44,6 +46,7 @@ public class ThresholdFilter extends MatVideoFilter {
    * @param type         a fixed threshold mode from {@link opencv_imgproc}; automatic Otsu and triangle modes
    *                     require a single-channel input and are not suitable for this three-channel BGR filter
    * @throws IllegalArgumentException if the threshold or maximum is outside 0 through 255 or is NaN
+   * @since 1.0.0
    */
   public ThresholdFilter(final double threshold, final double maximumValue, final int type) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= CHANNEL_MAXIMUM, "Threshold must be between 0 and 255!");
@@ -59,6 +62,7 @@ public class ThresholdFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

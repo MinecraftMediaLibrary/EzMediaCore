@@ -27,6 +27,8 @@ import me.brandonli.mcav.MCAVException;
  * the URL, not on the state of the selector or on a bad argument, so {@link IllegalStateException} and
  * {@link IllegalArgumentException} would both be misleading. Callers that can fall back, for example to an audio-only
  * strategy, catch it explicitly.
+ *
+ * @since 1.0.0
  */
 public class NoMatchingFormatException extends MCAVException {
 

@@ -48,21 +48,29 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Dithering one frame in parallel through {@link #ditherIntoBytes(ImageBuffer, ForkJoinPool)} is safe.
  *
  * <p>This class is not thread-safe, because it keeps the previous frame; use one instance per stream.
+ *
+ * @since 1.0.0
  */
 public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither implements ParallelDitherAlgorithm {
 
   /**
    * The default temporal threshold per channel.
+   *
+   * @since 1.0.0
    */
   public static final int DEFAULT_TEMPORAL_THRESHOLD = 8;
 
   /**
    * The default total error at or below which nothing is diffused.
+   *
+   * @since 1.0.0
    */
   public static final int DEFAULT_ERROR_THRESHOLD = 4;
 
   /**
    * The default fraction of the error that is diffused.
+   *
+   * @since 1.0.0
    */
   public static final float DEFAULT_ERROR_STRENGTH = 1.0f;
 
@@ -84,6 +92,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * @param palette the palette to reduce images to
    * @param kernel  the kernel that describes how errors are spread
    * @throws NullPointerException if {@code palette}, {@code kernel} is null
+   * @since 1.0.0
    */
   protected TemporalDitherAlgorithm(final DitherPalette palette, final DiffusionKernel kernel) {
     this(palette, kernel, DEFAULT_TEMPORAL_THRESHOLD, DEFAULT_ERROR_THRESHOLD, DEFAULT_ERROR_STRENGTH);
@@ -101,6 +110,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * @throws NullPointerException     if {@code palette}, {@code kernel} is null
    * @throws IllegalArgumentException if the temporal threshold is outside 0 through 255, the error
    *                                  threshold is negative, or the strength is outside 0 through 1 or NaN
+   * @since 1.0.0
    */
   protected TemporalDitherAlgorithm(
     final DitherPalette palette,
@@ -126,6 +136,8 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * Forgets the previous frame, so the next frame is dithered from scratch. Call this when the video source
    * changes, after a seek, or when dimensions change, especially if the pixel count stays the same.
    * Serialize this with dithering; an in-flight call can otherwise publish history after this reset.
+   *
+   * @since 1.0.0
    */
   public void resetTemporalState() {
     this.previousIndices = null;
@@ -137,6 +149,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    *
    * @param buffer the ARGB pixels, replaced with palette colors
    * @param width  the positive image width, which must divide the buffer length
+   * @since 1.0.0
    */
   @Override
   public void dither(final int[] buffer, final int width) {
@@ -164,6 +177,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    *
    * @param image the frame to dither
    * @return the palette index of every pixel, laid out row by row
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image) {
@@ -187,6 +201,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * @param pool  the pool that runs the work
    * @return the palette index of every pixel, laid out row by row
    * @throws NullPointerException if {@code pool} is null
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
@@ -299,6 +314,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * Returns the temporal threshold per channel.
    *
    * @return the temporal threshold
+   * @since 1.0.0
    */
   public int getTemporalThreshold() {
     return this.temporalThreshold;
@@ -308,6 +324,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * Returns the total error at or below which nothing is diffused.
    *
    * @return the error threshold
+   * @since 1.0.0
    */
   public int getErrorThreshold() {
     return this.errorThreshold;
@@ -317,6 +334,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
    * Returns the fraction of the error that is diffused.
    *
    * @return the error strength from 0 to 1, rounded to the nearest multiple of 1/256
+   * @since 1.0.0
    */
   public float getErrorStrength() {
     return this.errorStrength / (float) STRENGTH_SCALE;

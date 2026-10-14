@@ -27,20 +27,46 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class Thumbnail {
 
-  /** The URL of the image. */
+  /**
+   * The URL of the image.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String url;
-  /** How strongly yt-dlp prefers the thumbnail over the others, where higher is better. */
+  /**
+   * How strongly yt-dlp prefers the thumbnail over the others, where higher is better.
+   *
+   * @since 1.0.0
+   */
   public int preference;
-  /** The identifier of the thumbnail among the thumbnails of the video. */
+  /**
+   * The identifier of the thumbnail among the thumbnails of the video.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String id;
-  /** The height of the image in pixels, or zero if unknown. */
+  /**
+   * The height of the image in pixels, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public int height;
-  /** The width of the image in pixels, or zero if unknown. */
+  /**
+   * The width of the image in pixels, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public int width;
-  /** The resolution of the image as text, such as {@code 1920x1080}, or null if unknown. */
+  /**
+   * The resolution of the image as text, such as {@code 1920x1080}, or null if unknown.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String resolution;
 
   private Thumbnail() {}

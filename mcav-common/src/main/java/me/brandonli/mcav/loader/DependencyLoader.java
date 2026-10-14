@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
  * loaded during installation, and VLC and yt-dlp are installed afterward on two background threads at the same time,
  * so the capabilities are thread-safe. A background thread that is interrupted, because the library was released,
  * stops its installation; the capability is then removed and the cancellation is logged instead of a warning.
+ *
+ * @since 1.0.0
  */
 public final class DependencyLoader {
 
@@ -75,6 +77,8 @@ public final class DependencyLoader {
   /**
    * Constructs a new loader. {@link me.brandonli.mcav.MCAV} creates one for you; only create your own if you embed
    * the installation steps into a custom bootstrap.
+   *
+   * @since 1.0.0
    */
   public DependencyLoader() {
     this(LOGGER);
@@ -98,6 +102,7 @@ public final class DependencyLoader {
    * @param capability the capability to check
    * @return true if the last preparation of the capability did not fail; initially true for every capability
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public boolean hasCapability(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
@@ -111,6 +116,7 @@ public final class DependencyLoader {
    * detection is available afterward is reported by {@link Capability#FACE_DETECTION}.
    *
    * @throws NativeLoadingException if the libraries cannot be loaded on this platform
+   * @since 1.0.0
    */
   public void loadModules() {
     loadModules(this::loadNatives);
@@ -238,6 +244,8 @@ public final class DependencyLoader {
   /**
    * Finds or installs VLC. If VLC is not available for this platform or the installation fails, the
    * {@link Capability#VLC} capability is removed.
+   *
+   * @since 1.0.0
    */
   public void installVlc() {
     this.installVlc(DependencyLoader::startInstallationKit);
@@ -310,6 +318,8 @@ public final class DependencyLoader {
   /**
    * Installs yt-dlp. If yt-dlp is not available for this platform or the installation fails, the
    * {@link Capability#YT_DLP} capability is removed.
+   *
+   * @since 1.0.0
    */
   public void installYtdlp() {
     final YtdlpInstaller installer = YtdlpInstaller.shared();

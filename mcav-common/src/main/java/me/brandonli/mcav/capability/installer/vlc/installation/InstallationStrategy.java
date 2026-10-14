@@ -30,6 +30,7 @@ import java.util.Optional;
  * @see LinuxInstallationStrategy
  * @see WindowsInstallationStrategy
  * @see OsxInstallationStrategy
+ * @since 1.0.0
  */
 public interface InstallationStrategy {
   /**
@@ -37,6 +38,7 @@ public interface InstallationStrategy {
    *
    * @return the directory that contains the VLC libraries, or empty if VLC has not been installed
    * @throws IOException if the installation directory cannot be searched
+   * @since 1.0.0
    */
   Optional<Path> getInstalledPath() throws IOException;
 
@@ -47,6 +49,7 @@ public interface InstallationStrategy {
    * @return the directory that contains the VLC libraries
    * @throws IOException          if extraction, installation verification, archive deletion or related file operations fail
    * @throws NullPointerException if {@code archive} is null
+   * @since 1.0.0
    */
   Path execute(final Path archive) throws IOException;
 }

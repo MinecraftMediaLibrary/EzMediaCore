@@ -36,6 +36,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * which contains {@code libvlc.dylib}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class OsxInstallationStrategy extends ManualInstallationStrategy {
 
@@ -52,6 +54,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
    *
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
+   * @since 1.0.0
    */
   public OsxInstallationStrategy(final VlcInstaller installer) {
     super(installer);
@@ -66,6 +69,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
    *
    * @return the directory that contains the library, or empty if VLC has not been installed
    * @throws IOException if the installation directory cannot be searched
+   * @since 1.0.0
    */
   @Override
   public Optional<Path> getInstalledPath() throws IOException {
@@ -80,6 +84,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
    * @return the directory that contains {@code libvlc.dylib}
    * @throws IOException          if the disk image cannot be mounted or copied, or does not contain the library
    * @throws NullPointerException if {@code archive} is null
+   * @since 1.0.0
    */
   @Override
   public Path execute(final Path archive) throws IOException {

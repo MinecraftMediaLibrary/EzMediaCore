@@ -41,6 +41,8 @@ import me.brandonli.mcav.media.source.uri.UriSource;
  * }
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface YtdlpParser {
   /**
@@ -59,6 +61,7 @@ public interface YtdlpParser {
    *                                  {@link me.brandonli.mcav.MCAVApi#whenCapabilityReady(me.brandonli.mcav.capability.Capability)}
    *                                  with {@link me.brandonli.mcav.capability.Capability#YT_DLP} or try again shortly
    * @throws NullPointerException     if {@code input}, the argument array or an argument is null
+   * @since 1.0.0
    */
   UrlParseDump parse(final UriSource input, final String... arguments) throws IOException;
 
@@ -67,6 +70,7 @@ public interface YtdlpParser {
    * still prepares yt-dlp in the background, see {@link #parse(UriSource, String...)}.
    *
    * @return the parser
+   * @since 1.0.0
    */
   static YtdlpParser simple() {
     return ExecutableYtdlpParser.INSTANCE;

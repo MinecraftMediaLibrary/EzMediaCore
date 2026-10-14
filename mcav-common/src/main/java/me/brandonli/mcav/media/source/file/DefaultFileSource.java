@@ -26,6 +26,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link FileSource}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultFileSource implements FileSource {
 
@@ -39,6 +41,7 @@ public final class DefaultFileSource implements FileSource {
    * Returns the path of the file.
    *
    * @return the path
+   * @since 1.0.0
    */
   @Override
   public Path getPath() {
@@ -50,6 +53,7 @@ public final class DefaultFileSource implements FileSource {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -68,6 +72,7 @@ public final class DefaultFileSource implements FileSource {
    * Returns a hash code built from the path.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -78,6 +83,7 @@ public final class DefaultFileSource implements FileSource {
    * Returns a debugging representation with the path.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

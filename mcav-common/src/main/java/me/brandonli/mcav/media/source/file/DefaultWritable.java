@@ -23,6 +23,8 @@ import java.nio.file.Path;
  * The default {@link Writable}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultWritable implements Writable {
 
@@ -36,6 +38,7 @@ public final class DefaultWritable implements Writable {
    * Returns the path of the file.
    *
    * @return the path
+   * @since 1.0.0
    */
   @Override
   public Path getPath() {

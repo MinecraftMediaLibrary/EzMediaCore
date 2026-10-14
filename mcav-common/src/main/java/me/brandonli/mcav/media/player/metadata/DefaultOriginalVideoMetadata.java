@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link OriginalVideoMetadata}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata {
 
@@ -44,6 +46,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns the width of the decoded frames.
    *
    * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   @Override
   public int getVideoWidth() {
@@ -54,6 +57,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns the height of the decoded frames.
    *
    * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   @Override
   public int getVideoHeight() {
@@ -64,6 +68,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns the bitrate of the video stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   @Override
   public int getVideoBitrate() {
@@ -74,6 +79,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns the frame rate of the video stream.
    *
    * @return the frame rate in frames per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   @Override
   public float getVideoFrameRate() {
@@ -85,6 +91,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -109,6 +116,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns a hash code built from the size, bitrate and frame rate.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -119,6 +127,7 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
    * Returns a debugging representation with the size, bitrate and frame rate.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

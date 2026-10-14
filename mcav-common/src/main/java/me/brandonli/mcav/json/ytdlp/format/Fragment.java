@@ -27,12 +27,22 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class Fragment {
 
-  /** The URL of the fragment, or null if yt-dlp did not report one. */
+  /**
+   * The URL of the fragment, or null if yt-dlp did not report one.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String url;
-  /** The length of the fragment in seconds. */
+  /**
+   * The length of the fragment in seconds.
+   *
+   * @since 1.0.0
+   */
   public double duration;
 
   private Fragment() {}

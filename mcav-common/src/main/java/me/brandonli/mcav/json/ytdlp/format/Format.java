@@ -31,118 +31,268 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class Format {
 
-  /** The identifier of the stream on its site, such as {@code 251}, which yt-dlp accepts in its format option. */
+  /**
+   * The identifier of the stream on its site, such as {@code 251}, which yt-dlp accepts in its format option.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String format_id;
 
-  /** A short readable note about the stream, such as {@code 1080p} or {@code medium}. */
+  /**
+   * A short readable note about the stream, such as {@code 1080p} or {@code medium}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String format_note;
 
-  /** The file extension of the stream, such as {@code mp4} or {@code webm}. */
+  /**
+   * The file extension of the stream, such as {@code mp4} or {@code webm}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String ext;
 
-  /** The protocol of the stream: {@code https}, {@code m3u8_native} for HLS, or {@code http_dash_segments} for DASH. */
+  /**
+   * The protocol of the stream: {@code https}, {@code m3u8_native} for HLS, or {@code http_dash_segments} for DASH.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String protocol;
 
-  /** The audio codec, such as {@code opus}, or {@code none} for a stream without audio. */
+  /**
+   * The audio codec, such as {@code opus}, or {@code none} for a stream without audio.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String acodec;
 
-  /** The video codec, such as {@code avc1.640028}, or {@code none} for a stream without video. */
+  /**
+   * The video codec, such as {@code avc1.640028}, or {@code none} for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String vcodec;
 
-  /** The direct URL of the stream, which a player opens with the {@link #http_headers}. */
+  /**
+   * The direct URL of the stream, which a player opens with the {@link #http_headers}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String url;
 
-  /** The width of the video in pixels, or zero for a stream without video. */
+  /**
+   * The width of the video in pixels, or zero for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public int width;
 
-  /** The height of the video in pixels, or zero for a stream without video. */
+  /**
+   * The height of the video in pixels, or zero for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public int height;
 
-  /** The frame rate of the video in frames per second, or zero for a stream without video. */
+  /**
+   * The frame rate of the video in frames per second, or zero for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public double fps;
 
-  /** The number of thumbnail rows in each image of a storyboard stream, or zero for other streams. */
+  /**
+   * The number of thumbnail rows in each image of a storyboard stream, or zero for other streams.
+   *
+   * @since 1.0.0
+   */
   public int rows;
 
-  /** The number of thumbnail columns in each image of a storyboard stream, or zero for other streams. */
+  /**
+   * The number of thumbnail columns in each image of a storyboard stream, or zero for other streams.
+   *
+   * @since 1.0.0
+   */
   public int columns;
 
-  /** The fragments of a segmented stream, such as the images of a storyboard, or null for a stream served whole. */
+  /**
+   * The fragments of a segmented stream, such as the images of a storyboard, or null for a stream served whole.
+   *
+   * @since 1.0.0
+   */
   public @Nullable ArrayList<Fragment> fragments;
 
-  /** The resolution as text, such as {@code 1920x1080}, or {@code audio only} for a stream without video. */
+  /**
+   * The resolution as text, such as {@code 1920x1080}, or {@code audio only} for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String resolution;
 
-  /** The width of the video divided by its height, or zero for a stream without video. */
+  /**
+   * The width of the video divided by its height, or zero for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public double aspect_ratio;
 
-  /** The size of the stream in bytes as estimated from its bitrate and duration, or zero if unknown. */
+  /**
+   * The size of the stream in bytes as estimated from its bitrate and duration, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public long filesize_approx;
 
-  /** The HTTP headers that requests for the stream must send, or null if no headers were reported. */
+  /**
+   * The HTTP headers that requests for the stream must send, or null if no headers were reported.
+   *
+   * @since 1.0.0
+   */
   public @Nullable HttpHeaders http_headers;
 
-  /** The audio extension of an audio-only stream, such as {@code m4a}, or {@code none} for a stream with video. */
+  /**
+   * The audio extension of an audio-only stream, such as {@code m4a}, or {@code none} for a stream with video.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String audio_ext;
 
-  /** The video extension of the stream, such as {@code mp4}, or {@code none} for an audio-only stream. */
+  /**
+   * The video extension of the stream, such as {@code mp4}, or {@code none} for an audio-only stream.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String video_ext;
 
-  /** The average video bitrate in kilobits per second, or zero if unknown. */
+  /**
+   * The average video bitrate in kilobits per second, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public double vbr;
 
-  /** The average audio bitrate in kilobits per second, or zero if unknown. */
+  /**
+   * The average audio bitrate in kilobits per second, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public double abr;
 
-  /** The average total bitrate of audio and video in kilobits per second, or zero if unknown. */
+  /**
+   * The average total bitrate of audio and video in kilobits per second, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public double tbr;
 
-  /** A readable description of the stream, such as {@code 251 - audio only (medium)}. */
+  /**
+   * A readable description of the stream, such as {@code 251 - audio only (medium)}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String format;
 
-  /** The position of the stream in its HLS or DASH manifest, or null if it was not listed in a manifest. */
+  /**
+   * The position of the stream in its HLS or DASH manifest, or null if it was not listed in a manifest.
+   *
+   * @since 1.0.0
+   */
   public @Nullable Object format_index;
 
-  /** The URL of the HLS or DASH manifest that listed the stream, or null if it was not listed in a manifest. */
+  /**
+   * The URL of the HLS or DASH manifest that listed the stream, or null if it was not listed in a manifest.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String manifest_url;
 
-  /** The language code of the audio, such as {@code en}, or null if unknown. */
+  /**
+   * The language code of the audio, such as {@code en}, or null if unknown.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String language;
 
-  /** How strongly yt-dlp prefers the stream over the other streams of the site, or null for no preference. */
+  /**
+   * How strongly yt-dlp prefers the stream over the other streams of the site, or null for no preference.
+   *
+   * @since 1.0.0
+   */
   public @Nullable Object preference;
 
-  /** The quality rank yt-dlp gives the stream among the streams of the video, where higher is better. */
+  /**
+   * The quality rank yt-dlp gives the stream among the streams of the video, where higher is better.
+   *
+   * @since 1.0.0
+   */
   public double quality;
 
-  /** Whether the stream is protected by DRM, which players cannot decode. */
+  /**
+   * Whether the stream is protected by DRM, which players cannot decode.
+   *
+   * @since 1.0.0
+   */
   public boolean has_drm;
 
-  /** How strongly yt-dlp prefers the source of the stream, where higher is better. */
+  /**
+   * How strongly yt-dlp prefers the source of the stream, where higher is better.
+   *
+   * @since 1.0.0
+   */
   public int source_preference;
 
-  /** The audio sample rate in hertz, or zero for a stream without audio. */
+  /**
+   * The audio sample rate in hertz, or zero for a stream without audio.
+   *
+   * @since 1.0.0
+   */
   public int asr;
 
-  /** The exact size of the stream in bytes, or zero if unknown. */
+  /**
+   * The exact size of the stream in bytes, or zero if unknown.
+   *
+   * @since 1.0.0
+   */
   public long filesize;
 
-  /** The number of audio channels, or zero for a stream without audio. */
+  /**
+   * The number of audio channels, or zero for a stream without audio.
+   *
+   * @since 1.0.0
+   */
   public int audio_channels;
 
-  /** How strongly yt-dlp prefers the language of the stream, where higher is better. */
+  /**
+   * How strongly yt-dlp prefers the language of the stream, where higher is better.
+   *
+   * @since 1.0.0
+   */
   public int language_preference;
 
-  /** The dynamic range of the video, such as {@code SDR} or {@code HDR10}, or null for a stream without video. */
+  /**
+   * The dynamic range of the video, such as {@code SDR} or {@code HDR10}, or null for a stream without video.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String dynamic_range;
 
-  /** The container of the stream, such as {@code mp4_dash} or {@code webm_dash}, or null if unknown. */
+  /**
+   * The container of the stream, such as {@code mp4_dash} or {@code webm_dash}, or null if unknown.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String container;
 
-  /** Hints for downloading the stream, such as the size of the chunks to request, or null if there are none. */
+  /**
+   * Hints for downloading the stream, such as the size of the chunks to request, or null if there are none.
+   *
+   * @since 1.0.0
+   */
   public @Nullable DownloaderOptions downloader_options;
 
   private Format() {}
@@ -154,6 +304,7 @@ public class Format {
    * @return the stream URL as a source
    * @throws IllegalStateException    if yt-dlp did not report a URL for this stream
    * @throws IllegalArgumentException if the reported URL is not a syntactically valid URI
+   * @since 1.0.0
    */
   public UriSource toUriSource() {
     final String streamUrl = this.url;

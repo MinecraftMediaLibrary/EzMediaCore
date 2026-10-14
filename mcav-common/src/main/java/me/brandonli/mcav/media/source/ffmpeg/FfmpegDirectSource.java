@@ -27,6 +27,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
  * are live and have no fixed length, so the source is dynamic.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface FfmpegDirectSource extends DynamicSource {
   /**
@@ -37,6 +39,7 @@ public interface FfmpegDirectSource extends DynamicSource {
    * @return the source
    * @throws IllegalArgumentException if {@code format} is blank
    * @throws NullPointerException     if {@code mrl} or {@code format} is null
+   * @since 1.0.0
    */
   static FfmpegDirectSource mrl(final String mrl, final String format) {
     Preconditions.checkNotNull(mrl, "MRL must not be null!");
@@ -52,6 +55,7 @@ public interface FfmpegDirectSource extends DynamicSource {
    * Returns the input FFmpeg opens.
    *
    * @return the media resource locator
+   * @since 1.0.0
    */
   String getMrl();
 
@@ -59,6 +63,7 @@ public interface FfmpegDirectSource extends DynamicSource {
    * Returns the FFmpeg input format.
    *
    * @return the format name
+   * @since 1.0.0
    */
   String getFormat();
 
@@ -66,6 +71,7 @@ public interface FfmpegDirectSource extends DynamicSource {
    * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   @Override
   default String getName() {
@@ -77,6 +83,7 @@ public interface FfmpegDirectSource extends DynamicSource {
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   @Override
   default String getResource() {

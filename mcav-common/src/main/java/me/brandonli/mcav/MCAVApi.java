@@ -53,6 +53,8 @@ import me.brandonli.mcav.module.MCAVModule;
  * }
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface MCAVApi {
   /**
@@ -64,6 +66,7 @@ public interface MCAVApi {
    * @return true if the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   boolean hasCapability(final Capability capability);
 
@@ -83,6 +86,7 @@ public interface MCAVApi {
    * @return a future that completes with whether the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   CompletableFuture<Boolean> whenCapabilityReady(final Capability capability);
 
@@ -100,6 +104,7 @@ public interface MCAVApi {
    * @throws MCAVLoadingException if the library cannot be installed, is installed already, or is being installed by
    *                              another thread
    * @throws NullPointerException if the module array itself is null
+   * @since 1.0.0
    */
   void install(final Class<?>... modules);
 
@@ -113,6 +118,8 @@ public interface MCAVApi {
    * unless it ignores the interruption for more than ten seconds, which is logged. The futures of
    * {@link #whenCapabilityReady(Capability)} for the cancelled programs complete with false. Releasing a library that
    * is not installed does nothing.
+   *
+   * @since 1.0.0
    */
   void release();
 
@@ -124,6 +131,7 @@ public interface MCAVApi {
    * @return the module instance
    * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
    * @throws NullPointerException                     if {@code moduleClass} is null
+   * @since 1.0.0
    */
   <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass);
 }

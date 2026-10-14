@@ -30,6 +30,8 @@ import org.bytedeco.javacv.FrameGrabber;
  * Reads the properties of media with FFmpeg without playing it.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MetadataUtils {
 
@@ -49,6 +51,7 @@ public final class MetadataUtils {
    * @return the video metadata
    * @throws InputMetadataException if the source cannot be opened or has no video track
    * @throws NullPointerException   if the source is null
+   * @since 1.0.0
    */
   public static OriginalVideoMetadata parseVideoMetadata(final Source source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -93,6 +96,7 @@ public final class MetadataUtils {
    * @return the audio metadata
    * @throws InputMetadataException if the source cannot be opened or has no audio track
    * @throws NullPointerException   if the source is null
+   * @since 1.0.0
    */
   public static OriginalAudioMetadata parseAudioMetadata(final Source source) {
     Preconditions.checkNotNull(source, "Source must not be null!");

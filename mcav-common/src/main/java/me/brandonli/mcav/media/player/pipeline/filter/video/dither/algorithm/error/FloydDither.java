@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * evenly distributed dithering at a moderate cost.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class FloydDither extends ErrorDiffusionDither {
 
@@ -32,6 +34,7 @@ public final class FloydDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public FloydDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.FLOYD_STEINBERG);
@@ -39,6 +42,8 @@ public final class FloydDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Floyd-Steinberg algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public FloydDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

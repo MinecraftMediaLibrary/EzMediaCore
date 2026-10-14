@@ -27,6 +27,8 @@ import com.google.common.base.Preconditions;
  * zero and matrices that count from one both work.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class OrderedPixelMapper implements PixelMapper {
 
@@ -108,6 +110,7 @@ public final class OrderedPixelMapper implements PixelMapper {
    * the strength.
    *
    * @return the pattern, which is shared and must not be modified
+   * @since 1.0.0
    */
   @Override
   public float[][] getMatrix() {
@@ -118,6 +121,7 @@ public final class OrderedPixelMapper implements PixelMapper {
    * Returns the strength the pattern was scaled by.
    *
    * @return the strength
+   * @since 1.0.0
    */
   @Override
   public float getStrength() {

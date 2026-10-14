@@ -52,6 +52,8 @@ import me.brandonli.mcav.utils.os.Platform;
  * downloaded at most once, even when several threads need it at the same time.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class YtdlpInstaller extends AbstractInstaller {
 
@@ -80,6 +82,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    * @param folder the folder to install into
    * @return the installer
    * @throws NullPointerException if {@code folder} is null
+   * @since 1.0.0
    */
   public static YtdlpInstaller create(final Path folder) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
@@ -92,6 +95,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    *
    * @return the installer
    * @throws UncheckedIOException if the default cache folder cannot be created
+   * @since 1.0.0
    */
   public static YtdlpInstaller create() {
     return new YtdlpInstaller();
@@ -102,6 +106,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    * are serialized, so yt-dlp is downloaded at most once.
    *
    * @return the shared installer, which installs into {@code ~/.mcav/cache}
+   * @since 1.0.0
    */
   public static YtdlpInstaller shared() {
     return SharedInstaller.INSTANCE;
@@ -113,6 +118,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    *
    * @return true if the file name of the download of the current platform ends in {@code .zip}, false for a
    *     standalone executable or an unsupported platform
+   * @since 1.0.0
    */
   @Override
   public boolean isArchive() {

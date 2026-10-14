@@ -25,6 +25,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
  * with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()}.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface DeviceSource extends DynamicSource {
   /**
@@ -33,6 +35,7 @@ public interface DeviceSource extends DynamicSource {
    * @param deviceId the index of the device, starting at 0
    * @return the source
    * @throws IllegalArgumentException if {@code deviceId} is negative
+   * @since 1.0.0
    */
   static DeviceSource device(final int deviceId) {
     Preconditions.checkArgument(deviceId >= 0, "Device index must not be negative!");
@@ -44,6 +47,7 @@ public interface DeviceSource extends DynamicSource {
    * Returns the index of the device.
    *
    * @return the device index
+   * @since 1.0.0
    */
   int getDeviceId();
 
@@ -52,6 +56,7 @@ public interface DeviceSource extends DynamicSource {
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   @Override
   default String getResource() {
@@ -63,6 +68,7 @@ public interface DeviceSource extends DynamicSource {
    * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   @Override
   default String getName() {

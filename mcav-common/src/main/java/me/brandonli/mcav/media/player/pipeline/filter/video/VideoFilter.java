@@ -45,11 +45,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.Filter;
  *
  * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
  * instance serves several players.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface VideoFilter extends Filter<ImageBuffer, OriginalVideoMetadata> {
   /**
    * A filter that leaves every frame untouched.
+   *
+   * @since 1.0.0
    */
   VideoFilter NO_OP = (_, _) -> false;
 
@@ -60,6 +64,7 @@ public interface VideoFilter extends Filter<ImageBuffer, OriginalVideoMetadata> 
    * @param samples the frame to process
    * @return true if the filter changed the frame or may have changed it, false if it left the frame untouched
    * @throws NullPointerException if {@code samples} is null
+   * @since 1.0.0
    */
   default boolean applyFilter(final ImageBuffer samples) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");

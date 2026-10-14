@@ -28,11 +28,15 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * Draws a line of text onto every frame with one of the built-in OpenCV fonts.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class TextFilter extends MatVideoFilter {
 
   /**
    * The default font, a plain sans-serif font.
+   *
+   * @since 1.0.0
    */
   public static final int DEFAULT_FONT = opencv_imgproc.FONT_HERSHEY_SIMPLEX;
 
@@ -53,6 +57,7 @@ public class TextFilter extends MatVideoFilter {
    * @param color    the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if {@code scale} is nonpositive or NaN
    * @throws NullPointerException     if {@code text} or {@code color} is null
+   * @since 1.0.0
    */
   public TextFilter(final String text, final int left, final int baseline, final int font, final double scale, final double[] color) {
     Preconditions.checkNotNull(text, "Text must not be null!");
@@ -70,6 +75,7 @@ public class TextFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

@@ -26,6 +26,8 @@ import org.bytedeco.javacpp.Loader;
  * jar the first time it is requested, so the first call may take a moment.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class FfmpegExecutableProvider {
 
@@ -38,6 +40,7 @@ public final class FfmpegExecutableProvider {
    *
    * @return the path of the executable
    * @throws UnsatisfiedLinkError if JavaCV does not ship FFmpeg for this platform
+   * @since 1.0.0
    */
   public static Path getFfmpegPath() {
     return ExecutableHolder.EXECUTABLE;

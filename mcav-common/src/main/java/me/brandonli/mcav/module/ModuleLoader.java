@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
  * {@link #shutdownModules()} when its modules are no longer needed.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ModuleLoader {
 
@@ -53,6 +55,8 @@ public final class ModuleLoader {
 
   /**
    * Constructs a new loader without any modules. {@link me.brandonli.mcav.MCAV} creates one for you.
+   *
+   * @since 1.0.0
    */
   public ModuleLoader() {
     this.modules = new ConcurrentHashMap<>();
@@ -67,6 +71,7 @@ public final class ModuleLoader {
    * @return the module
    * @throws ModuleException      if no module of that class was started
    * @throws NullPointerException if {@code moduleClass} is null
+   * @since 1.0.0
    */
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
@@ -93,6 +98,7 @@ public final class ModuleLoader {
    *                      each needs an accessible no-argument constructor, duplicates are skipped
    * @throws ModuleException      if a class is not a module, cannot be created, or fails to start
    * @throws NullPointerException if the array or a module class is null
+   * @since 1.0.0
    */
   public synchronized void loadModules(final Class<?>... moduleClasses) {
     Preconditions.checkNotNull(moduleClasses, "Module classes must not be null!");
@@ -173,6 +179,8 @@ public final class ModuleLoader {
    * Stops started modules in reverse start order and clears the registry. Recoverable exceptions or errors
    * thrown by a module's {@code stop} callback are logged so remaining modules can be stopped. Fatal VM errors
    * propagate immediately. Calling this again after successful shutdown does nothing.
+   *
+   * @since 1.0.0
    */
   public synchronized void shutdownModules() {
     final List<MCAVModule> reversed = new ArrayList<>(this.startOrder);
@@ -196,6 +204,7 @@ public final class ModuleLoader {
    *
    * @return an unmodifiable snapshot of started modules in start order; module instances are borrowed
    *         and later shutdown may stop them
+   * @since 1.0.0
    */
   public synchronized Collection<MCAVModule> getModules() {
     return List.copyOf(this.startOrder);

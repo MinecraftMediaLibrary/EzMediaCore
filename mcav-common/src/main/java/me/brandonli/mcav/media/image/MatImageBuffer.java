@@ -61,6 +61,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * a second matrix that is released together with the image.
  *
  * <p>This class is not thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MatImageBuffer implements ImageBuffer {
 
@@ -395,6 +397,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return the matrix
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   public Mat getMat() {
     this.checkNotReleased();
@@ -411,6 +414,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws NullPointerException     if the replacement is null
    * @throws IllegalArgumentException if the replacement is empty or has a number of channels other than 1, 3 or 4
    * @throws IllegalStateException    if the image was released
+   * @since 1.0.0
    */
   public void setMat(final Mat replacement) {
     Preconditions.checkNotNull(replacement, "Mat must not be null!");
@@ -452,6 +456,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws IllegalArgumentException if the operation left the target empty or it has an unsupported number of
    *                                  channels
    * @throws IllegalStateException    if the image was released
+   * @since 1.0.0
    */
   public void transformMat(final BiConsumer<Mat, Mat> operation) {
     Preconditions.checkNotNull(operation, "Operation must not be null!");
@@ -521,6 +526,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws IllegalArgumentException if the dimensions are not positive or the packed BGR storage exceeds
    *                                  {@link Integer#MAX_VALUE} bytes
    * @throws IllegalStateException    if the image was released
+   * @since 1.0.0
    */
   public void setSize(final int width, final int height) {
     checkDimensions(width, height);
@@ -537,6 +543,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return a new Java image
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public BufferedImage toBufferedImage() {
@@ -559,6 +566,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @param image the image to copy
    * @throws IllegalStateException if the image was released
    * @throws NullPointerException  if {@code image} is null
+   * @since 1.0.0
    */
   @Override
   public void setAsBufferedImage(final BufferedImage image) {
@@ -622,6 +630,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @throws IllegalArgumentException if the row or column is outside the image
    * @throws IllegalStateException    if the image was released
    * @throws NullPointerException     if {@code value} is null
+   * @since 1.0.0
    */
   @Override
   public void setPixel(final int column, final int row, final double[] value) {
@@ -651,6 +660,7 @@ public final class MatImageBuffer implements ImageBuffer {
    * @return a new three-element array containing blue, green and red, each from 0 to 255
    * @throws IllegalArgumentException if the row or column is outside the image
    * @throws IllegalStateException    if the image was released
+   * @since 1.0.0
    */
   @Override
   public double[] getPixel(final int column, final int row) {
@@ -680,6 +690,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return the width in pixels
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public int getWidth() {
@@ -693,6 +704,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return the height in pixels
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public int getHeight() {
@@ -706,6 +718,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return the width multiplied by the height
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public int getPixelCount() {
@@ -732,6 +745,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return the shared pixels of the image, which must not be modified
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public int[] getPixels() {
@@ -788,6 +802,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return a direct buffer over the pixels
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public ByteBuffer getData() {
@@ -809,6 +824,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
    * @throws IllegalStateException    if the image was released
    * @throws NullPointerException     if {@code data} is null
+   * @since 1.0.0
    */
   @Override
   public void updateData(final ByteBuffer data, final int width, final int height) {
@@ -840,6 +856,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *                                  {@link Integer#MAX_VALUE}, or the input count differs from the dimensions
    * @throws IllegalStateException    if the image was released
    * @throws NullPointerException     if {@code pixels} is null
+   * @since 1.0.0
    */
   @Override
   public void updateArgb(final int[] pixels, final int width, final int height) {
@@ -860,6 +877,8 @@ public final class MatImageBuffer implements ImageBuffer {
   /**
    * Discards the cached ARGB pixel array, so the next call to {@link #getPixels()} reads the image again. Video
    * filters call this after modifying the image through {@link #getData()} or through OpenCV directly.
+   *
+   * @since 1.0.0
    */
   @Override
   public void invalidateCache() {
@@ -871,6 +890,7 @@ public final class MatImageBuffer implements ImageBuffer {
    *
    * @return a new image buffer with the same pixels
    * @throws IllegalStateException if the image was released
+   * @since 1.0.0
    */
   @Override
   public ImageBuffer copy() {
@@ -884,6 +904,8 @@ public final class MatImageBuffer implements ImageBuffer {
    * Releases the native memory of the image. Calling this method more than once has no effect, and every other
    * operation accessing native pixels or dimensions throws {@link IllegalStateException} afterward.
    * {@link #invalidateCache()} remains harmless. Previously returned native views must no longer be used.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {

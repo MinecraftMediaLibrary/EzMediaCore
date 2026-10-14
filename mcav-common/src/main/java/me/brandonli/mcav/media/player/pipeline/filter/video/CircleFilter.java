@@ -28,6 +28,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * Draws a circle outline onto every frame.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class CircleFilter extends MatVideoFilter {
 
@@ -44,6 +46,7 @@ public class CircleFilter extends MatVideoFilter {
    * @param color   the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if {@code radius} is negative
    * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public CircleFilter(final int centerX, final int centerY, final int radius, final double[] color) {
     Preconditions.checkArgument(radius >= 0, "Radius %s must not be negative!", radius);
@@ -58,6 +61,7 @@ public class CircleFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

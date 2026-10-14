@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * four rows. It produces the least visible patterns of all kernels at the highest cost.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class StevensonArceDither extends ErrorDiffusionDither {
 
@@ -32,6 +34,7 @@ public final class StevensonArceDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public StevensonArceDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.STEVENSON_ARCE);
@@ -39,6 +42,8 @@ public final class StevensonArceDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Stevenson-Arce algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public StevensonArceDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

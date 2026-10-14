@@ -70,6 +70,8 @@ import org.slf4j.LoggerFactory;
  * same destination at the same moment is not coordinated with, and such a move can still fail on Windows.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class HttpDownloader {
 
@@ -101,6 +103,8 @@ public final class HttpDownloader {
   private static final long PINNED_MINIMUM_BYTES_PER_SECOND = 64L * 1024;
   /**
    * The limit of a download that names no limit of its own, which is none.
+   *
+   * @since 1.0.0
    */
   public static final long NO_SIZE_LIMIT = Long.MAX_VALUE;
 
@@ -125,6 +129,7 @@ public final class HttpDownloader {
    * The caller owns this client; individual requests define their own response timeout.
    *
    * @return a new client, which the caller must close
+   * @since 1.0.0
    */
   public static HttpClient createClient() {
     return createClient(HttpClient.Redirect.NORMAL);
@@ -144,6 +149,7 @@ public final class HttpDownloader {
    * @return the request
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
    * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
   public static HttpRequest createRequest(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -166,6 +172,7 @@ public final class HttpDownloader {
    * @throws IOException              if the request fails or the server answers with an error status
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
    * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
   public static InputStream openStream(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
@@ -273,6 +280,7 @@ public final class HttpDownloader {
    * @throws NullPointerException     if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                  the destination has no file name
+   * @since 1.0.0
    */
   public static void download(final URI uri, final Path destination) throws IOException {
     download(uri, destination, null);
@@ -289,6 +297,7 @@ public final class HttpDownloader {
    * @throws NullPointerException      if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                   the destination has no file name
+   * @since 1.0.0
    */
   public static void download(final URI uri, final Path destination, final @Nullable String expectedSha256) throws IOException {
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, NO_SIZE_LIMIT);
@@ -307,6 +316,7 @@ public final class HttpDownloader {
    * @throws NullPointerException      if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
+   * @since 1.0.0
    */
   public static void download(final URI uri, final Path destination, final long maximumBytes) throws IOException {
     Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
@@ -329,6 +339,7 @@ public final class HttpDownloader {
    * @throws NullPointerException      if {@code uri}, {@code destination}, {@code expectedSha256} is null
    * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
+   * @since 1.0.0
    */
   public static void download(final URI uri, final Path destination, final String expectedSha256, final long maximumBytes)
     throws IOException {
@@ -572,6 +583,7 @@ public final class HttpDownloader {
    * @throws IOException              if the request cannot be sent
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
    * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
   public static Optional<String> fetchText(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");

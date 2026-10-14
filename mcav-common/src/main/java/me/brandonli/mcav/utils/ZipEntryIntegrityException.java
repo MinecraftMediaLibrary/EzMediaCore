@@ -28,6 +28,8 @@ import me.brandonli.mcav.MCAVException;
  * nor an I/O failure that retrying could fix. It deliberately does not extend {@link java.io.UncheckedIOException}, so a
  * rejected archive can be told apart from one that merely could not be read, and both can be caught in one
  * multi-catch clause.
+ *
+ * @since 1.0.0
  */
 public class ZipEntryIntegrityException extends MCAVException {
 

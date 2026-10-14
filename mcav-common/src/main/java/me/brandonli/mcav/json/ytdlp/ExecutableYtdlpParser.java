@@ -49,6 +49,8 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  * yt-dlp is killed if it takes longer than two minutes.
  *
  * <p>This class is immutable and thread-safe; every parse runs its own yt-dlp process.
+ *
+ * @since 1.0.0
  */
 public final class ExecutableYtdlpParser implements YtdlpParser {
 
@@ -107,6 +109,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
    *                                  {@link me.brandonli.mcav.MCAVApi#whenCapabilityReady(me.brandonli.mcav.capability.Capability)}
    *                                  with {@link me.brandonli.mcav.capability.Capability#YT_DLP} or try again shortly
    * @throws NullPointerException     if {@code input}, the argument array or an argument is null
+   * @since 1.0.0
    */
   @Override
   public UrlParseDump parse(final UriSource input, final String... arguments) throws IOException {

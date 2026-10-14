@@ -28,6 +28,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link AudioPipelineStep}.
  *
  * <p>This class is immutable; it is as thread-safe as its filters.
+ *
+ * @since 1.0.0
  */
 public final class DefaultAudioPipelineStep implements AudioPipelineStep {
 
@@ -43,6 +45,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
    * Returns the step that follows this one.
    *
    * @return the next step, or empty if this is the last step
+   * @since 1.0.0
    */
   @Override
   public Optional<AudioPipelineStep> next() {
@@ -55,6 +58,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
    * @param buffer   the samples
    * @param metadata the metadata of the original audio stream
    * @throws NullPointerException if the samples or the metadata are null
+   * @since 1.0.0
    */
   @Override
   public void process(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
@@ -68,6 +72,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
    * Returns the filter this step applies.
    *
    * @return the filter
+   * @since 1.0.0
    */
   @Override
   public AudioFilter getFilter() {

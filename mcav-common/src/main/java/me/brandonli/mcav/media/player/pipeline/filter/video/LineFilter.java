@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * Draws a straight line onto every frame.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class LineFilter extends MatVideoFilter {
 
@@ -43,6 +45,7 @@ public class LineFilter extends MatVideoFilter {
    * @param endY   the y coordinate of the end of the line
    * @param color  the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws NullPointerException if {@code color} is null
+   * @since 1.0.0
    */
   public LineFilter(final int startX, final int startY, final int endX, final int endY, final double[] color) {
     this.start = new Point(startX, startY);
@@ -55,6 +58,7 @@ public class LineFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

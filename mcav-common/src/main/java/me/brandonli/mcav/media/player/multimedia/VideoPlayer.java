@@ -51,6 +51,8 @@ import me.brandonli.mcav.media.source.Source;
  * <p>Frames are delivered on the player's own threads; the pipelines must not block for long.
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface VideoPlayer extends ExceptionHandler {
   /**
@@ -69,6 +71,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @throws IllegalStateException if VLC is still being prepared in the background, or its preparation found that VLC
    *                               is not available on this system; the message says which
    * @throws NullPointerException  if the options array or any option is null
+   * @since 1.0.0
    */
   static VideoPlayerMultiplexer vlc(final String... arguments) {
     Preconditions.checkNotNull(arguments, "Arguments must not be null!");
@@ -81,6 +84,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * recommended default.
    *
    * @return the player
+   * @since 1.0.0
    */
   static VideoPlayerMultiplexer ffmpeg() {
     return new FfmpegPlayer();
@@ -96,6 +100,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * reader of OpenCV delivers video only.
    *
    * @return the player
+   * @since 1.0.0
    */
   static VideoPlayerMultiplexer opencv() {
     return new OpenCvPlayer();
@@ -106,6 +111,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * {@link me.brandonli.mcav.media.source.device.DeviceSource}.
    *
    * @return the player
+   * @since 1.0.0
    */
   static VideoPlayerMultiplexer device() {
     return new VideoInputPlayer();
@@ -120,6 +126,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * another start is in progress, or the source could not be opened;
    * the reason is passed to the exception handler of the player
    * @throws NullPointerException if {@code combined} is null
+   * @since 1.0.0
    */
   boolean start(final Source combined);
 
@@ -132,6 +139,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @throws NullPointerException                            if {@code combined} or {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final Source combined, final ExecutorService executor) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
@@ -147,6 +155,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * @return a future that completes with the result of {@link #start(Source)}
    * @throws NullPointerException if {@code combined} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final Source combined) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -158,6 +167,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * playing.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 
@@ -166,6 +176,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * playing.
    *
    * @return the audio pipeline slot
+   * @since 1.0.0
    */
   AudioAttachableCallback getAudioAttachableCallback();
 
@@ -174,6 +185,7 @@ public interface VideoPlayer extends ExceptionHandler {
    * detached to receive frames at their original size.
    *
    * @return the target size slot
+   * @since 1.0.0
    */
   DimensionAttachableCallback getDimensionAttachableCallback();
 }

@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link UriSource}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultUriSource implements UriSource {
 
@@ -43,6 +45,7 @@ public final class DefaultUriSource implements UriSource {
    * Returns the URL.
    *
    * @return the URL
+   * @since 1.0.0
    */
   @Override
   public URI getUri() {
@@ -54,6 +57,7 @@ public final class DefaultUriSource implements UriSource {
    * page that has to be resolved first.
    *
    * @return true if the URL looks like a direct media link
+   * @since 1.0.0
    */
   @Override
   public boolean isDirect() {
@@ -65,6 +69,7 @@ public final class DefaultUriSource implements UriSource {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -83,6 +88,7 @@ public final class DefaultUriSource implements UriSource {
    * Returns a hash code built from the URI.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -93,6 +99,7 @@ public final class DefaultUriSource implements UriSource {
    * Returns a debugging representation with the URI.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

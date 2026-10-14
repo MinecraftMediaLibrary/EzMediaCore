@@ -29,6 +29,8 @@ import java.util.Optional;
  * a small configuration file, so they survive restarts.
  *
  * <p>Implementations in this library serialize the downloads of each installer, see {@link AbstractInstaller}.
+ *
+ * @since 1.0.0
  */
 public interface Installer {
   /**
@@ -38,6 +40,7 @@ public interface Installer {
    * @param mode {@link FileMode#EXECUTABLE} for programs that are run directly, which has no effect on Windows
    * @return the installation path chosen by the implementation: an executable file or an extracted directory
    * @throws IOException if the download fails, the file cannot be written, or the hash does not match
+   * @since 1.0.0
    */
   Path download(final FileMode mode) throws IOException;
 
@@ -46,6 +49,7 @@ public interface Installer {
    * it is installed on the system by other means.
    *
    * @return true if the program can be installed on this platform
+   * @since 1.0.0
    */
   boolean isSupported();
 
@@ -56,6 +60,7 @@ public interface Installer {
    *
    * @return the path of the existing installation, or empty if the program has not been installed
    * @throws IOException if the installation folder cannot be searched
+   * @since 1.0.0
    */
   default Optional<Path> findInstallation() throws IOException {
     return Optional.empty();
@@ -65,6 +70,7 @@ public interface Installer {
    * Returns the path the program is installed to, whether or not it has been installed yet.
    *
    * @return the installation path
+   * @since 1.0.0
    */
   Path getPath();
 }

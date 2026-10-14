@@ -30,6 +30,8 @@ import me.brandonli.mcav.media.image.DynamicImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()} for a view you can hand to other code.
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface RepeatingFrameSource extends FrameSource {
   /**
@@ -41,6 +43,7 @@ public interface RepeatingFrameSource extends FrameSource {
    * @throws IllegalArgumentException if {@code repeatCount} is nonpositive or the animation has no frames
    * @throws IllegalStateException    if the first animation frame has been released
    * @throws NullPointerException     if {@code animation} is null
+   * @since 1.0.0
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation, final int repeatCount) {
     Preconditions.checkNotNull(animation, "Animation must not be null!");
@@ -57,6 +60,7 @@ public interface RepeatingFrameSource extends FrameSource {
    * @throws IllegalArgumentException if the animation has no frames
    * @throws IllegalStateException    if the first animation frame has been released
    * @throws NullPointerException     if {@code animation} is null
+   * @since 1.0.0
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation) {
     Preconditions.checkNotNull(animation, "Animation must not be null!");
@@ -68,6 +72,7 @@ public interface RepeatingFrameSource extends FrameSource {
    * Returns how often the animation is played.
    *
    * @return the repeat count, or {@link Integer#MAX_VALUE} for endless looping
+   * @since 1.0.0
    */
   int getRepeatCount();
 }

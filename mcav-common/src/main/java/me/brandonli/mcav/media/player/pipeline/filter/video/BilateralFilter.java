@@ -31,6 +31,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * filter keeps no state of its own, so one filter may be attached to several pipelines at once.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class BilateralFilter extends MatVideoFilter {
 
@@ -45,6 +47,7 @@ public class BilateralFilter extends MatVideoFilter {
    * @param sigmaColor how far apart colors may be to still be mixed; larger values blur more
    * @param sigmaSpace how far apart pixels may be to still influence each other; larger values blur more
    * @throws IllegalArgumentException if the diameter is nonpositive, or a sigma is nonpositive or NaN
+   * @since 1.0.0
    */
   public BilateralFilter(final int diameter, final double sigmaColor, final double sigmaSpace) {
     Preconditions.checkArgument(diameter > 0, "Diameter must be positive!");
@@ -61,6 +64,7 @@ public class BilateralFilter extends MatVideoFilter {
    *
    * @param image the frame to smooth
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -75,6 +79,7 @@ public class BilateralFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

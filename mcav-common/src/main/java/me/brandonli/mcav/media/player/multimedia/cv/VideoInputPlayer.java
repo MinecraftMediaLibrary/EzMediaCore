@@ -29,11 +29,15 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * {@link me.brandonli.mcav.media.source.device.DeviceSource}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public class VideoInputPlayer extends AbstractVideoPlayerCv {
 
   /**
    * Constructs a new capture device player.
+   *
+   * @since 1.0.0
    */
   public VideoInputPlayer() {}
 
@@ -44,6 +48,7 @@ public class VideoInputPlayer extends AbstractVideoPlayerCv {
    * @return a new, unstarted OpenCV grabber of the device
    * @throws NullPointerException     if the resource is null
    * @throws IllegalArgumentException if the resource is not a non-negative number
+   * @since 1.0.0
    */
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {

@@ -32,6 +32,8 @@ import org.bytedeco.opencv.opencv_core.Rect;
  * settled. The filter keeps no state besides its rectangle, so one filter may be attached to several pipelines at once.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class CropFilter extends MatVideoFilter {
 
@@ -48,6 +50,7 @@ public class CropFilter extends MatVideoFilter {
    * @param width  the width of the rectangle, which must be positive
    * @param height the height of the rectangle, which must be positive
    * @throws IllegalArgumentException if the origin is negative or either size is nonpositive
+   * @since 1.0.0
    */
   public CropFilter(final int left, final int top, final int width, final int height) {
     Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative!");
@@ -66,6 +69,7 @@ public class CropFilter extends MatVideoFilter {
    * @param image the frame to crop
    * @return true if the frame was cropped, false if the rectangle lies outside of the frame or covers all of it and
    *     the frame was left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -102,6 +106,7 @@ public class CropFilter extends MatVideoFilter {
    * @param mat the matrix of the frame
    * @return never returns normally
    * @throws UnsupportedOperationException always
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

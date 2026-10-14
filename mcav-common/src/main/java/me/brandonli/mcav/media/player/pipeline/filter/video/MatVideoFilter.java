@@ -38,11 +38,15 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * filtered, and copied back the same way if the filter changed them, which costs two copies per frame.
  *
  * <p>The base class keeps no state; each subclass states its own thread safety.
+ *
+ * @since 1.0.0
  */
 public abstract class MatVideoFilter implements VideoFilter {
 
   /**
    * Constructs a new filter.
+   *
+   * @since 1.0.0
    */
   protected MatVideoFilter() {}
 
@@ -56,6 +60,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    * @return true if the filter changed the frame or may have changed it, false if it left the frame untouched
    * @throws NullPointerException  if the frame is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
@@ -122,6 +127,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    *
    * @param image the frame to modify
    * @return true if the frame was modified, false if it was left untouched
+   * @since 1.0.0
    */
   protected boolean modifyImage(final MatImageBuffer image) {
     final Mat mat = image.getMat();
@@ -139,6 +145,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    *
    * @param mat the matrix of the frame
    * @return true if the matrix was modified, false if it was left untouched
+   * @since 1.0.0
    */
   protected abstract boolean modifyMat(final Mat mat);
 }

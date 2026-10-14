@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * untouched. The image is copied when the filter is created, so it may be released afterward.
  *
  * <p>This class is thread-safe, because it only reads the matrix it holds.
+ *
+ * @since 1.0.0
  */
 public class BlendFilter extends MatVideoFilter {
 
@@ -41,6 +43,7 @@ public class BlendFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if {@code alpha} is outside 0 through 1 or is NaN
    * @throws IllegalStateException    if {@code other} has been released
    * @throws NullPointerException     if {@code other} is null
+   * @since 1.0.0
    */
   public BlendFilter(final ImageBuffer other, final double alpha) {
     Preconditions.checkNotNull(other, "Other image must not be null!");
@@ -55,6 +58,7 @@ public class BlendFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true if the frame was blended, false if its size differs from the image and it was left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

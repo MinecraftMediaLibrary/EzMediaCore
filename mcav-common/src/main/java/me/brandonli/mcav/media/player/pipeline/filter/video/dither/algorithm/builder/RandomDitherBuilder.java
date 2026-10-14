@@ -24,12 +24,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * Builds random dithering algorithms.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
   /**
    * Creates the algorithm.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   @Override
   RandomDither build();
@@ -40,6 +43,7 @@ public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
    * @param palette the palette
    * @return this builder
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   @Override
   RandomDitherBuilder withPalette(final DitherPalette palette);
@@ -51,6 +55,7 @@ public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
    * @param weight the weight from 0 to 255
    * @return this builder
    * @throws IllegalArgumentException if the weight is outside 0 through 255
+   * @since 1.0.0
    */
   RandomDitherBuilder withWeight(final int weight);
 }

@@ -26,11 +26,15 @@ import me.brandonli.mcav.utils.SourceUtils;
  * Detects URLs with a scheme and a host.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class UriSourceDetector implements SourceDetector<UriSource> {
 
   /**
    * Constructs a new detector.
+   *
+   * @since 1.0.0
    */
   public UriSourceDetector() {}
 
@@ -40,6 +44,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public boolean isDetectedSource(final String raw) {
@@ -55,6 +60,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    * @return the source
    * @throws IllegalArgumentException if the string is not syntactically a URI
    * @throws NullPointerException     if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public UriSource createSource(final String raw) {
@@ -68,6 +74,7 @@ public class UriSourceDetector implements SourceDetector<UriSource> {
    * Returns the priority of this detector.
    *
    * @return the priority, higher wins
+   * @since 1.0.0
    */
   @Override
   public int getPriority() {

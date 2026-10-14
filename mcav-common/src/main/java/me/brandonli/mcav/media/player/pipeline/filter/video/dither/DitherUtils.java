@@ -29,6 +29,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * other methods check their arguments.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DitherUtils {
 
@@ -57,6 +59,7 @@ public final class DitherUtils {
    * @param green the green component from 0 to 255
    * @param blue  the blue component from 0 to 255
    * @return the table index
+   * @since 1.0.0
    */
   public static int getLookupIndex(final int red, final int green, final int blue) {
     final int redLevel = red >> LEVEL_SHIFT;
@@ -75,6 +78,7 @@ public final class DitherUtils {
    * @return the palette index
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
    * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static byte getBestColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -96,6 +100,7 @@ public final class DitherUtils {
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
    * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getBestFullColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -124,6 +129,7 @@ public final class DitherUtils {
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
    * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getBestColorNormal(final DitherPalette palette, final int red, final int green, final int blue) {
     return getBestFullColor(palette, red, green, blue);
@@ -137,6 +143,7 @@ public final class DitherUtils {
    * @return the color as opaque ARGB, or zero for a reserved transparent index
    * @throws IndexOutOfBoundsException if the palette has no color at the index
    * @throws NullPointerException      if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getColorFromMinecraftPalette(final DitherPalette palette, final byte index) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -156,6 +163,7 @@ public final class DitherUtils {
    * @param argb    the color
    * @return the palette index, or zero if the color is fully transparent
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public static byte getBestColorIncludingTransparent(final DitherPalette palette, final int argb) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -179,6 +187,7 @@ public final class DitherUtils {
    * @param pixels  the pixels as ARGB
    * @return the palette index of every pixel
    * @throws NullPointerException if {@code palette} or {@code pixels} is null
+   * @since 1.0.0
    */
   public static byte[] simplify(final DitherPalette palette, final int[] pixels) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
@@ -204,6 +213,7 @@ public final class DitherUtils {
    *
    * @param value the value
    * @return the clamped value
+   * @since 1.0.0
    */
   public static int clamp(final int value) {
     if ((value & ~CHANNEL_MASK) == 0) {

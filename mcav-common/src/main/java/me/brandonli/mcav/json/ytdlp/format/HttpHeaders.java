@@ -28,24 +28,42 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class HttpHeaders {
 
   private HttpHeaders() {}
 
-  /** The {@code User-Agent} header, which names the browser yt-dlp pretended to be. */
+  /**
+   * The {@code User-Agent} header, which names the browser yt-dlp pretended to be.
+   *
+   * @since 1.0.0
+   */
   @SerializedName("User-Agent")
   public @Nullable String userAgent;
 
-  /** The {@code Accept} header, which lists the content types the request accepts. */
+  /**
+   * The {@code Accept} header, which lists the content types the request accepts.
+   *
+   * @since 1.0.0
+   */
   @SerializedName("Accept")
   public @Nullable String accept;
 
-  /** The {@code Accept-Language} header, which lists the preferred languages. */
+  /**
+   * The {@code Accept-Language} header, which lists the preferred languages.
+   *
+   * @since 1.0.0
+   */
   @SerializedName("Accept-Language")
   public @Nullable String acceptLanguage;
 
-  /** The {@code Sec-Fetch-Mode} header, which some sites check to tell browsers from other clients. */
+  /**
+   * The {@code Sec-Fetch-Mode} header, which some sites check to tell browsers from other clients.
+   *
+   * @since 1.0.0
+   */
   @SerializedName("Sec-Fetch-Mode")
   public @Nullable String secFetchMode;
 }

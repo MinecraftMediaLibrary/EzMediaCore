@@ -40,12 +40,15 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
  * }
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
+   * @since 1.0.0
    */
   static ImagePlayer player() {
     return new ThreadedImagePlayer();
@@ -60,6 +63,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @return true if playback started, false if the player is already playing or released
    * @throws NullPointerException     if {@code source} is null
    * @throws IllegalArgumentException if the source frame rate is nonpositive or nonfinite
+   * @since 1.0.0
    */
   boolean start(final FrameSource source);
 
@@ -72,6 +76,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @throws NullPointerException                            if {@code source} or {@code executor} is null
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final FrameSource source, final ExecutorService executor) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -87,6 +92,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @return a future that completes with the result of {@link #start(FrameSource)}
    * @throws NullPointerException if {@code source} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final FrameSource source) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -97,6 +103,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * Returns the slot that holds the video pipeline.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 }

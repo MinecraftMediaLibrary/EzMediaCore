@@ -20,6 +20,8 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ra
 /**
  * A source of random numbers for {@link RandomDither}. Implementations are called for every channel of every
  * pixel, so they must be fast, and they are not required to be thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface RandomNumberProvider {
   /**
@@ -28,6 +30,7 @@ public interface RandomNumberProvider {
    * @param minimum the smallest value, inclusive
    * @param maximum the largest value, exclusive
    * @return a random value from {@code minimum} to {@code maximum - 1}
+   * @since 1.0.0
    */
   int nextInt(final int minimum, final int maximum);
 
@@ -37,6 +40,7 @@ public interface RandomNumberProvider {
    * @param minimum the smallest value, inclusive
    * @param maximum the largest value, exclusive
    * @return a random value greater than or equal to {@code minimum} and strictly less than {@code maximum}
+   * @since 1.0.0
    */
   double nextDouble(final double minimum, final double maximum);
 
@@ -44,6 +48,7 @@ public interface RandomNumberProvider {
    * Returns a random boolean.
    *
    * @return true or false with equal probability
+   * @since 1.0.0
    */
   boolean nextBoolean();
 }

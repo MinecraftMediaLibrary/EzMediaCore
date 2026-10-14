@@ -39,6 +39,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * VLC libraries inside an extracted installation.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public abstract class ManualInstallationStrategy implements InstallationStrategy {
 
@@ -54,6 +56,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    *
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
+   * @since 1.0.0
    */
   protected ManualInstallationStrategy(final VlcInstaller installer) {
     this(installer, COMMAND_RUNNER);
@@ -65,6 +68,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param installer     the installer whose installation directory is used
    * @param processRunner runs the external tools the installation needs
    * @throws NullPointerException if {@code installer} or {@code processRunner} is null
+   * @since 1.0.0
    */
   protected ManualInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     Preconditions.checkNotNull(installer, "Installer must not be null!");
@@ -82,6 +86,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @return the parent directory of a matching library, or empty if none exists
    * @throws IOException          if a candidate directory or library cannot be read
    * @throws NullPointerException if {@code root} or {@code pattern} is null
+   * @since 1.0.0
    */
   protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern) throws IOException {
     return findLibraryDirectory(root, pattern, new Pattern[0]);
@@ -98,6 +103,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @return the first complete library directory, or empty if no complete directory exists
    * @throws IOException          if a candidate directory or library cannot be read
    * @throws NullPointerException if {@code root}, {@code pattern}, the companion array or a companion pattern is null
+   * @since 1.0.0
    */
   protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern, final Pattern... companions)
     throws IOException {
@@ -177,6 +183,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param workingDirectory the working directory of the tool, or null for the working directory of the JVM
    * @param arguments        the tool followed by its arguments
    * @throws IOException if the tool cannot be run or exits with an error
+   * @since 1.0.0
    */
   protected void runProcess(final @Nullable Path workingDirectory, final String... arguments) throws IOException {
     this.processRunner.run(workingDirectory, arguments);
@@ -200,6 +207,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @throws IOException          if a file cannot be deleted
    * @throws NullPointerException if {@code path} is null
    * @see IoUtils#deleteRecursively(Path)
+   * @since 1.0.0
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -213,6 +221,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param file the file to delete
    * @throws IOException          if the file cannot be deleted
    * @throws NullPointerException if {@code file} is null
+   * @since 1.0.0
    */
   public void deleteFile(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
@@ -224,6 +233,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * Returns the installer this strategy installs for.
    *
    * @return the installer
+   * @since 1.0.0
    */
   public VlcInstaller getInstaller() {
     return this.installer;
@@ -233,6 +243,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * Returns the directory VLC is installed into.
    *
    * @return the installation directory
+   * @since 1.0.0
    */
   protected Path getInstallDirectory() {
     return this.installer.getInstallDirectory();
@@ -242,6 +253,8 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * Runs an external tool and fails when it exits with an error.
    *
    * <p>Implementations in this library are stateless and thread-safe.
+   *
+   * @since 1.0.0
    */
   @FunctionalInterface
   public interface ProcessRunner {
@@ -251,6 +264,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
      * @param workingDirectory the directory to run the tool in, or {@code null} for the working directory of the JVM
      * @param arguments        the tool followed by its arguments
      * @throws IOException if the tool cannot be started or exits with an error
+     * @since 1.0.0
      */
     void run(@Nullable Path workingDirectory, String... arguments) throws IOException;
   }

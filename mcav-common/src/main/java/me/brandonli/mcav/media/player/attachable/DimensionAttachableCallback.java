@@ -24,12 +24,15 @@ import me.brandonli.mcav.utils.immutable.Dimension;
  * original size.
  *
  * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface DimensionAttachableCallback extends AttachableCallback<Dimension> {
   /**
    * Creates an empty slot.
    *
    * @return the slot
+   * @since 1.0.0
    */
   static DimensionAttachableCallback create() {
     return new DefaultDimensionAttachableCallback();

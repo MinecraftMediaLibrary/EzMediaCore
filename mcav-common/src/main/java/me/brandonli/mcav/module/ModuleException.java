@@ -23,6 +23,8 @@ import me.brandonli.mcav.MCAVException;
 /**
  * Thrown when a module cannot be created, started, or found. The failure is recoverable, for example by fixing the
  * configuration and installing again, so this is an unchecked exception rather than an error.
+ *
+ * @since 1.0.0
  */
 public class ModuleException extends MCAVException {
 
@@ -33,6 +35,7 @@ public class ModuleException extends MCAVException {
    * Constructs a new exception.
    *
    * @param message the detail message
+   * @since 1.0.0
    */
   public ModuleException(final String message) {
     super(message);
@@ -43,6 +46,7 @@ public class ModuleException extends MCAVException {
    *
    * @param message the detail message
    * @param cause   the underlying failure
+   * @since 1.0.0
    */
   public ModuleException(final String message, final Throwable cause) {
     super(message, cause);

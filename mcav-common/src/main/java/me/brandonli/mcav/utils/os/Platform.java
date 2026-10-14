@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * identify which native build of a program a machine needs. Instances are immutable and compare by value.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Platform {
 
@@ -54,6 +56,7 @@ public final class Platform {
    * @param bits the bitness
    * @return the platform
    * @throws NullPointerException if any platform component is null
+   * @since 1.0.0
    */
   public static Platform ofPlatform(final Os os, final Arch arch, final Bits bits) {
     return new Platform(os, arch, bits);
@@ -63,6 +66,7 @@ public final class Platform {
    * Returns the platform of the running JVM.
    *
    * @return the current platform
+   * @since 1.0.0
    */
   public static Platform getCurrentPlatform() {
     return CURRENT_PLATFORM;
@@ -79,6 +83,7 @@ public final class Platform {
    * Returns the operating system.
    *
    * @return the operating system
+   * @since 1.0.0
    */
   public Os getOs() {
     return this.os;
@@ -88,6 +93,7 @@ public final class Platform {
    * Returns the CPU architecture family.
    *
    * @return the architecture
+   * @since 1.0.0
    */
   public Arch getArch() {
     return this.arch;
@@ -97,6 +103,7 @@ public final class Platform {
    * Returns the bitness.
    *
    * @return 32-bit or 64-bit
+   * @since 1.0.0
    */
   public Bits getBits() {
     return this.bits;
@@ -107,6 +114,7 @@ public final class Platform {
    * Programs are never downloaded for an unknown platform, because no known build runs there.
    *
    * @return false if the operating system or the architecture is {@code OTHER}
+   * @since 1.0.0
    */
   public boolean isKnown() {
     return this.os != Os.OTHER && this.arch != Arch.OTHER;
@@ -117,6 +125,7 @@ public final class Platform {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -135,6 +144,7 @@ public final class Platform {
    * Returns a hash code built from the operating system, architecture and bitness.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -145,6 +155,7 @@ public final class Platform {
    * Returns a debugging representation with the operating system, the architecture and the word size.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

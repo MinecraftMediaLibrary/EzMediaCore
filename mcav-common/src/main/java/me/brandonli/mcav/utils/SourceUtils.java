@@ -39,6 +39,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * media file, and whether a source is an animated GIF.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class SourceUtils {
 
@@ -105,6 +107,7 @@ public final class SourceUtils {
    * @param source the source
    * @return true if the path or URL ends with {@code .gif}
    * @throws NullPointerException if {@code source} is null
+   * @since 1.0.0
    */
   public static boolean isImageGif(final Source source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -134,6 +137,7 @@ public final class SourceUtils {
    * @param raw the string
    * @return true if the string is such a URL
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   public static boolean isUri(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
@@ -157,6 +161,7 @@ public final class SourceUtils {
    *
    * @param url the URL, or null
    * @return true if the path of the URL ends with a media extension, false for null, empty, or malformed URLs
+   * @since 1.0.0
    */
   public static boolean isDirectVideo(final @Nullable String url) {
     if (url == null || url.isEmpty()) {
@@ -183,6 +188,7 @@ public final class SourceUtils {
    * @param raw the string
    * @return true if the path exists
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   public static boolean isPath(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
@@ -203,6 +209,7 @@ public final class SourceUtils {
    * @throws IllegalStateException if the library is still preparing yt-dlp in the background, so the answer is not
    *                               known yet
    * @throws NullPointerException  if {@code url} is null
+   * @since 1.0.0
    */
   public static boolean isDynamicStream(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");

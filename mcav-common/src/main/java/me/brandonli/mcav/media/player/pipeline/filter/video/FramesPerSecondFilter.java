@@ -29,6 +29,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * counts their combined calls, so use a separate instance when measuring each pipeline.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FramesPerSecondFilter extends MatVideoFilter {
 
@@ -48,6 +50,8 @@ public class FramesPerSecondFilter extends MatVideoFilter {
 
   /**
    * Constructs a new frame rate filter.
+   *
+   * @since 1.0.0
    */
   public FramesPerSecondFilter() {
     this(System::nanoTime);
@@ -63,6 +67,7 @@ public class FramesPerSecondFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the text is drawn onto every frame
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

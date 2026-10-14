@@ -62,16 +62,22 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
  *
  * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
  * a time.
+ *
+ * @since 1.0.0
  */
 public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscoveryStrategy {
 
   /**
    * The largest number of directories one discovery looks into before it gives up.
+   *
+   * @since 1.0.0
    */
   public static final int MAXIMUM_VISITED_DIRECTORIES = 1_024;
 
   /**
    * The environment variable libvlc reads its plugin directory from.
+   *
+   * @since 1.0.0
    */
   protected static final String PLUGIN_ENVIRONMENT_NAME = "VLC_PLUGIN_PATH";
 
@@ -96,6 +102,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @throws NullPointerException                   if an array, filename expression or the environment setter is null
    * @throws IllegalArgumentException               if no filename pattern is supplied
    * @throws java.util.regex.PatternSyntaxException if a filename expression is not a valid regular expression
+   * @since 1.0.0
    */
   protected DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
@@ -168,6 +175,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * Searches the provided directories, highest priority first, for a directory that contains all the libraries.
    *
    * @return the absolute path of the first directory that contains all the libraries, or {@code null} if none does
+   * @since 1.0.0
    */
   @Override
   public final @Nullable String discover() {
@@ -188,6 +196,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    *
    * @return a new mutable list of directory names from supported providers, highest priority first;
    *         modifying it does not change the strategy
+   * @since 1.0.0
    */
   public final List<String> discoveryDirectories() {
     final List<SearchProvider> providers = this.getSupportedProviders();
@@ -331,6 +340,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @param path the directory that contains the libraries
    * @return {@code true} to let vlcj add the directory to the JNA search path
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public boolean onFound(final String path) {
@@ -347,6 +357,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @return {@code true} if a plugin directory exists and was published
    * @throws java.util.IllegalFormatException if a configured plugin path format cannot accept a directory string
    * @throws NullPointerException             if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public final boolean onSetPluginPath(final String path) {
@@ -374,6 +385,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * Sets an environment variable of the running process, so native libraries such as libvlc can read it.
    *
    * <p>Implementations are called from the discovering thread only and need not be thread-safe.
+   *
+   * @since 1.0.0
    */
   @FunctionalInterface
   public interface EnvironmentSetter {
@@ -383,6 +396,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
      * @param name  the name of the variable
      * @param value the value of the variable
      * @return true if the variable was set
+     * @since 1.0.0
      */
     boolean set(String name, String value);
   }

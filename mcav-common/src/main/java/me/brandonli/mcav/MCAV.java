@@ -56,6 +56,8 @@ import org.slf4j.LoggerFactory;
  * // at shutdown
  * api.release();
  * }
+ *
+ * @since 1.0.0
  */
 public final class MCAV implements MCAVApi {
 
@@ -91,6 +93,7 @@ public final class MCAV implements MCAVApi {
    * Creates a new, uninstalled instance of the library. Call {@link MCAVApi#install(Class[])} before using it.
    *
    * @return a new instance of the library
+   * @since 1.0.0
    */
   public static MCAVApi api() {
     return new MCAV();
@@ -105,6 +108,7 @@ public final class MCAV implements MCAVApi {
    * @return true if the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   @Override
   public boolean hasCapability(final Capability capability) {
@@ -130,6 +134,7 @@ public final class MCAV implements MCAVApi {
    * @return a future that completes with whether the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   @Override
   public CompletableFuture<Boolean> whenCapabilityReady(final Capability capability) {
@@ -162,6 +167,7 @@ public final class MCAV implements MCAVApi {
    * @throws MCAVLoadingException if the library cannot be installed, is installed already, or is being installed by
    *                              another thread
    * @throws NullPointerException if {@code modules} is null
+   * @since 1.0.0
    */
   @Override
   public void install(final Class<?>... modules) {
@@ -223,6 +229,8 @@ public final class MCAV implements MCAVApi {
    * unless it ignores the interruption for more than ten seconds, which is logged. The futures of
    * {@link #whenCapabilityReady(Capability)} for the cancelled programs complete with false. Releasing a library that
    * is not installed does nothing.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {
@@ -249,6 +257,7 @@ public final class MCAV implements MCAVApi {
    * @return the module instance
    * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
    * @throws NullPointerException                     if {@code moduleClass} is null
+   * @since 1.0.0
    */
   @Override
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {

@@ -26,11 +26,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * An immutable width and height in pixels.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Dimension {
 
   /**
    * The dimension with zero width and height, used where no size is set.
+   *
+   * @since 1.0.0
    */
   public static final Dimension NONE = new Dimension(0, 0);
 
@@ -43,6 +47,7 @@ public final class Dimension {
    * @param width  the width in pixels, not negative
    * @param height the height in pixels, not negative
    * @throws IllegalArgumentException if either dimension is negative
+   * @since 1.0.0
    */
   public Dimension(final int width, final int height) {
     Preconditions.checkArgument(width >= 0, "Width %s must not be negative!", width);
@@ -59,6 +64,7 @@ public final class Dimension {
    * @param height the height in pixels, not negative
    * @return the dimension
    * @throws IllegalArgumentException if either dimension is negative
+   * @since 1.0.0
    */
   public static Dimension of(final int width, final int height) {
     return new Dimension(width, height);
@@ -68,6 +74,7 @@ public final class Dimension {
    * Returns the width.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   public int getWidth() {
     return this.width;
@@ -77,6 +84,7 @@ public final class Dimension {
    * Returns the height.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   public int getHeight() {
     return this.height;
@@ -86,6 +94,7 @@ public final class Dimension {
    * Checks whether either side is zero.
    *
    * @return true if the dimension covers no pixels
+   * @since 1.0.0
    */
   public boolean isEmpty() {
     return this.width == 0 || this.height == 0;
@@ -96,6 +105,7 @@ public final class Dimension {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -114,6 +124,7 @@ public final class Dimension {
    * Returns a hash code built from the width and the height.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -124,6 +135,7 @@ public final class Dimension {
    * Returns a debugging representation with the width and the height.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

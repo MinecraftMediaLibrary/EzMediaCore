@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Rect;
  * the frame are cut off. The image is copied when the filter is created, so it may be released afterward.
  *
  * <p>This class is thread-safe, because it only reads the matrix it holds.
+ *
+ * @since 1.0.0
  */
 public class OverlayImageFilter extends MatVideoFilter {
 
@@ -43,6 +45,7 @@ public class OverlayImageFilter extends MatVideoFilter {
    * @throws IllegalArgumentException if {@code left} or {@code top} is negative
    * @throws IllegalStateException    if {@code overlay} has been released
    * @throws NullPointerException     if {@code overlay} is null
+   * @since 1.0.0
    */
   public OverlayImageFilter(final ImageBuffer overlay, final int left, final int top) {
     Preconditions.checkNotNull(overlay, "Overlay must not be null!");
@@ -59,6 +62,7 @@ public class OverlayImageFilter extends MatVideoFilter {
    * @param mat the 8-bit BGR matrix of the frame
    * @return true if part of the image was drawn, false if the position lies outside of the frame and the frame was
    *     left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

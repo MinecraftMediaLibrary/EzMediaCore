@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * produces very smooth results at roughly three times the cost of Floyd-Steinberg.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class JarvisJudiceNinkeDither extends ErrorDiffusionDither {
 
@@ -32,6 +34,7 @@ public final class JarvisJudiceNinkeDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public JarvisJudiceNinkeDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.JARVIS_JUDICE_NINKE);
@@ -39,6 +42,8 @@ public final class JarvisJudiceNinkeDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Jarvis-Judice-Ninke algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public JarvisJudiceNinkeDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

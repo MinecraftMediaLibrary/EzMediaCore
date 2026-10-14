@@ -25,6 +25,8 @@ package me.brandonli.mcav.media.source.frame;
  * as the shared pixels of an image, see {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()}.
  *
  * <p>Implementations are called from the player thread only and need not be thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface SampleSupplier {
@@ -36,6 +38,7 @@ public interface SampleSupplier {
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()} are; copy it before modifying it, as
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} does, or hand it on as a read-only view, as
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()} does
+   * @since 1.0.0
    */
   int[] getFrameSamples();
 }

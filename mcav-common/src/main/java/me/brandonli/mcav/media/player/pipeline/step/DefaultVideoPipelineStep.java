@@ -28,6 +28,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link VideoPipelineStep}.
  *
  * <p>This class is immutable; it is as thread-safe as its filters.
+ *
+ * @since 1.0.0
  */
 public final class DefaultVideoPipelineStep implements VideoPipelineStep {
 
@@ -43,6 +45,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
    * Returns the step that follows this one.
    *
    * @return the next step, or empty if this is the last step
+   * @since 1.0.0
    */
   @Override
   public Optional<VideoPipelineStep> next() {
@@ -55,6 +58,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
    * @param buffer   the frame
    * @param metadata the metadata of the original video
    * @throws NullPointerException if the frame or the metadata is null
+   * @since 1.0.0
    */
   @Override
   public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
@@ -68,6 +72,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
    * Returns the filter this step applies.
    *
    * @return the filter
+   * @since 1.0.0
    */
   @Override
   public VideoFilter getFilter() {

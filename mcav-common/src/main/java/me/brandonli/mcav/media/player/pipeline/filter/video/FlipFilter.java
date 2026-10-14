@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * Mirrors frames horizontally, vertically, or both.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FlipFilter extends MatVideoFilter {
 
@@ -35,6 +37,7 @@ public class FlipFilter extends MatVideoFilter {
    *
    * @param direction the direction to mirror in
    * @throws NullPointerException if {@code direction} is null
+   * @since 1.0.0
    */
   public FlipFilter(final FlipDirection direction) {
     Preconditions.checkNotNull(direction, "Direction must not be null!");
@@ -47,6 +50,7 @@ public class FlipFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -59,20 +63,28 @@ public class FlipFilter extends MatVideoFilter {
    * The directions {@link FlipFilter} can mirror in.
    *
    * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public enum FlipDirection {
     /**
      * Mirrors left and right.
+     *
+     * @since 1.0.0
      */
     HORIZONTAL(1),
 
     /**
      * Mirrors top and bottom.
+     *
+     * @since 1.0.0
      */
     VERTICAL(0),
 
     /**
      * Mirrors in both directions, which equals a rotation by 180 degrees.
+     *
+     * @since 1.0.0
      */
     BOTH(-1);
 
@@ -86,6 +98,7 @@ public class FlipFilter extends MatVideoFilter {
      * Returns the OpenCV flip code of this direction.
      *
      * @return the flip code
+     * @since 1.0.0
      */
     public int getCode() {
       return this.code;

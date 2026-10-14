@@ -25,12 +25,15 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * Builds ordered dithering algorithms.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface OrderedDitherBuilder extends DitherAlgorithmBuilder {
   /**
    * Creates the algorithm.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   @Override
   OrderedDither build();
@@ -41,6 +44,7 @@ public interface OrderedDitherBuilder extends DitherAlgorithmBuilder {
    * @param palette the palette
    * @return this builder
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   @Override
   OrderedDitherBuilder withPalette(final DitherPalette palette);
@@ -51,6 +55,7 @@ public interface OrderedDitherBuilder extends DitherAlgorithmBuilder {
    * @param mapper the threshold pattern
    * @return this builder
    * @throws NullPointerException if {@code mapper} is null
+   * @since 1.0.0
    */
   OrderedDitherBuilder withDitherMatrix(final PixelMapper mapper);
 }

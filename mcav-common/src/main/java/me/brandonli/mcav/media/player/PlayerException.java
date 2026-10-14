@@ -28,6 +28,8 @@ import me.brandonli.mcav.MCAVException;
  * machine, not from calling a player in the wrong state, so neither {@link IllegalStateException} nor
  * {@link IllegalArgumentException} would describe them. Callers that can recover, for example by trying another
  * source, catch it explicitly; everyone else can let it propagate like any other unchecked exception.
+ *
+ * @since 1.0.0
  */
 public class PlayerException extends MCAVException {
 
@@ -38,6 +40,7 @@ public class PlayerException extends MCAVException {
    * Constructs a new exception with a detail message and no cause.
    *
    * @param message the detail message describing what the player could not do
+   * @since 1.0.0
    */
   public PlayerException(final String message) {
     super(message);
@@ -48,6 +51,7 @@ public class PlayerException extends MCAVException {
    *
    * @param message the detail message describing what the player could not do
    * @param cause   the underlying failure
+   * @since 1.0.0
    */
   public PlayerException(final String message, final Throwable cause) {
     super(message, cause);

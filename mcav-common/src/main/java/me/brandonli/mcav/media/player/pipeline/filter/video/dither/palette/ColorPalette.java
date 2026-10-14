@@ -29,6 +29,8 @@ import java.util.stream.IntStream;
  * better matches than a plain Euclidean distance.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class ColorPalette implements DitherPalette {
 
@@ -142,6 +144,7 @@ public class ColorPalette implements DitherPalette {
    * hold zero.
    *
    * @return the colors, which are shared and must not be modified
+   * @since 1.0.0
    */
   @Override
   public int[] getPalette() {
@@ -152,6 +155,7 @@ public class ColorPalette implements DitherPalette {
    * Returns the number of colors, including reserved indices.
    *
    * @return the palette size
+   * @since 1.0.0
    */
   @Override
   public int getSize() {
@@ -162,6 +166,7 @@ public class ColorPalette implements DitherPalette {
    * Returns the number of leading indices that are reserved for transparency and never returned by the lookup tables.
    *
    * @return the reserved index count
+   * @since 1.0.0
    */
   @Override
   public int getReservedIndices() {
@@ -173,6 +178,7 @@ public class ColorPalette implements DitherPalette {
    * {@link me.brandonli.mcav.media.player.pipeline.filter.video.dither.DitherUtils#getLookupIndex(int, int, int)}.
    *
    * @return the index lookup table, which is shared and must not be modified
+   * @since 1.0.0
    */
   @Override
   public byte[] getColorMap() {
@@ -184,6 +190,7 @@ public class ColorPalette implements DitherPalette {
    * {@link #getColorMap()}.
    *
    * @return the color lookup table, which is shared and must not be modified
+   * @since 1.0.0
    */
   @Override
   public int[] getFullColorMap() {

@@ -33,6 +33,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>An algorithm created without a random number provider gives every thread its own fast generator, so it can be
  * shared by any number of players and threads. An algorithm created with a provider hands that one provider to every
  * thread, so it is only thread-safe if the provider is.
+ *
+ * @since 1.0.0
  */
 public final class UniformNoiseDither extends AbstractDitherAlgorithm implements RandomDither {
 
@@ -53,6 +55,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
    * @param weight  the largest noise value added to or subtracted from a channel, see {@link #NORMAL_WEIGHT}
    * @throws NullPointerException     if {@code palette} is null
    * @throws IllegalArgumentException if the weight is outside 0 through 255
+   * @since 1.0.0
    */
   public UniformNoiseDither(final DitherPalette palette, final int weight) {
     super(palette);
@@ -71,6 +74,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
    * @param random  the random number generator every thread uses
    * @throws NullPointerException     if {@code palette}, {@code random} is null
    * @throws IllegalArgumentException if the weight is outside 0 through 255
+   * @since 1.0.0
    */
   public UniformNoiseDither(final DitherPalette palette, final int weight, final RandomNumberProvider random) {
     super(palette);
@@ -97,6 +101,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
    *
    * @param image the image to dither
    * @return the palette index of every pixel, laid out row by row
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image) {
@@ -121,6 +126,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
    *
    * @param buffer the ARGB pixels laid out row by row, which are replaced with palette colors
    * @param width  the width of the image, which must divide the length of the buffer
+   * @since 1.0.0
    */
   @Override
   public void dither(final int[] buffer, final int width) {
@@ -157,6 +163,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
    * Returns the largest noise value added to or subtracted from a channel.
    *
    * @return the weight
+   * @since 1.0.0
    */
   public int getWeight() {
     return this.weight;

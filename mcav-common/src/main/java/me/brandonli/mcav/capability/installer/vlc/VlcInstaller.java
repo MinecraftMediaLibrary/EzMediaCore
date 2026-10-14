@@ -52,11 +52,15 @@ import org.slf4j.LoggerFactory;
  * ties the discovery of a system installation and this installer together.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VlcInstaller extends AbstractInstaller {
 
   /**
    * The VLC version the Windows and macOS downloads point to.
+   *
+   * @since 1.0.0
    */
   public static final String VERSION = "3.0.24";
 
@@ -92,6 +96,7 @@ public final class VlcInstaller extends AbstractInstaller {
    * @param folder the folder to install into
    * @return the installer
    * @throws NullPointerException if {@code folder} is null
+   * @since 1.0.0
    */
   public static VlcInstaller create(final Path folder) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
@@ -104,6 +109,7 @@ public final class VlcInstaller extends AbstractInstaller {
    *
    * @return the installer
    * @throws java.io.UncheckedIOException if the default cache folder cannot be created
+   * @since 1.0.0
    */
   public static VlcInstaller create() {
     return new VlcInstaller();
@@ -113,6 +119,7 @@ public final class VlcInstaller extends AbstractInstaller {
    * Returns the directory the VLC installation is extracted into.
    *
    * @return the installation directory
+   * @since 1.0.0
    */
   public Path getInstallDirectory() {
     final Path folder = this.getFolder();
@@ -124,6 +131,7 @@ public final class VlcInstaller extends AbstractInstaller {
    * network, or a download exists for the current platform, which may ask GitHub for the Linux download links.
    *
    * @return true if VLC is installed already or can be installed on this platform
+   * @since 1.0.0
    */
   @Override
   public boolean isSupported() {
@@ -232,6 +240,7 @@ public final class VlcInstaller extends AbstractInstaller {
    * Checks whether the download is an archive, which is always the case for VLC.
    *
    * @return true
+   * @since 1.0.0
    */
   @Override
   public boolean isArchive() {

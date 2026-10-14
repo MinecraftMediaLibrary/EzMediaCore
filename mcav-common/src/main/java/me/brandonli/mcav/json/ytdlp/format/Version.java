@@ -27,16 +27,34 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class Version {
 
-  /** The version of yt-dlp, such as {@code 2026.08.19}. */
+  /**
+   * The version of yt-dlp, such as {@code 2026.08.19}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String version;
-  /** The Git commit the running yt-dlp was built from, or null for a release build. */
+  /**
+   * The Git commit the running yt-dlp was built from, or null for a release build.
+   *
+   * @since 1.0.0
+   */
   public @Nullable Object current_git_head;
-  /** The Git commit of the release. */
+  /**
+   * The Git commit of the release.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String release_git_head;
-  /** The repository the build came from, such as {@code yt-dlp/yt-dlp}. */
+  /**
+   * The repository the build came from, such as {@code yt-dlp/yt-dlp}.
+   *
+   * @since 1.0.0
+   */
   public @Nullable String repository;
 
   private Version() {}

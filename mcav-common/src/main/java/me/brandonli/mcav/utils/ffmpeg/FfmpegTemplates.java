@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
  * Ready-made FFmpeg commands for common jobs. Every template returns a command that overwrites its output file.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class FfmpegTemplates {
 
@@ -52,6 +54,7 @@ public final class FfmpegTemplates {
    * @param output the path of the output file
    * @return the command
    * @throws NullPointerException if {@code input}, {@code codec} or {@code output} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand extractAudio(final String input, final String codec, final String output) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -77,6 +80,7 @@ public final class FfmpegTemplates {
    * @param output the path of the {@code .ogg} output file
    * @return the command
    * @throws NullPointerException if {@code input} or {@code output} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand extractOggVorbis(final String input, final String output) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -102,6 +106,7 @@ public final class FfmpegTemplates {
    * @param audioBitrate the audio bitrate, such as {@code 128k}
    * @return the command
    * @throws NullPointerException if {@code input}, {@code output}, {@code videoBitrate} or {@code audioBitrate} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand compressVideo(final String input, final String output, final String videoBitrate, final String audioBitrate) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -129,6 +134,7 @@ public final class FfmpegTemplates {
    * @param duration  how long the clip is, as seconds or {@code HH:mm:ss}
    * @return the command
    * @throws NullPointerException if {@code input}, {@code output}, {@code startTime} or {@code duration} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand extractClip(final String input, final String output, final String startTime, final String duration) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -155,6 +161,7 @@ public final class FfmpegTemplates {
    * @param timePosition the position of the frame, as seconds or {@code HH:mm:ss}
    * @return the command
    * @throws NullPointerException if {@code input}, {@code output} or {@code timePosition} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand createThumbnail(final String input, final String output, final String timePosition) {
     Preconditions.checkNotNull(input, "Input must not be null!");
@@ -177,6 +184,7 @@ public final class FfmpegTemplates {
    * @param output the path of the output file, whose extension picks the container
    * @return the command
    * @throws NullPointerException if {@code input} or {@code output} is null
+   * @since 1.0.0
    */
   public static FfmpegCommand remuxVideo(final String input, final String output) {
     Preconditions.checkNotNull(input, "Input must not be null!");

@@ -25,6 +25,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * A thread-safe {@link AttachableCallback} that stores its value in an atomic reference.
  *
  * @param <ValueType> the type of value the slot holds
+ * @since 1.0.0
  */
 public abstract class AbstractAttachableCallback<ValueType> implements AttachableCallback<ValueType> {
 
@@ -36,6 +37,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
    *
    * @param fallback the value returned while nothing is attached
    * @throws NullPointerException if {@code fallback} is null
+   * @since 1.0.0
    */
   protected AbstractAttachableCallback(final ValueType fallback) {
     Preconditions.checkNotNull(fallback, "Fallback must not be null!");
@@ -49,6 +51,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
    *
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
+   * @since 1.0.0
    */
   @Override
   public void attach(final ValueType value) {
@@ -59,6 +62,8 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
 
   /**
    * Empties the slot, restoring its default.
+   *
+   * @since 1.0.0
    */
   @Override
   public void detach() {
@@ -69,6 +74,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
    * Checks whether a value was explicitly attached, even if it is the fallback value.
    *
    * @return a snapshot of the attached state, which can change immediately after this call
+   * @since 1.0.0
    */
   @Override
   public boolean isAttached() {
@@ -80,6 +86,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
    * Returns the attached value, or the default when nothing is attached.
    *
    * @return the value
+   * @since 1.0.0
    */
   @Override
   public ValueType retrieve() {

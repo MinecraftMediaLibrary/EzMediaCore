@@ -25,6 +25,8 @@ import me.brandonli.mcav.media.source.StaticSource;
  * A media file on the local file system.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface FileSource extends StaticSource {
   /**
@@ -33,6 +35,7 @@ public interface FileSource extends StaticSource {
    * @param path the path of the file
    * @return the source
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   static FileSource path(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -44,6 +47,7 @@ public interface FileSource extends StaticSource {
    * Returns the path of the file.
    *
    * @return the path
+   * @since 1.0.0
    */
   Path getPath();
 
@@ -51,6 +55,7 @@ public interface FileSource extends StaticSource {
    * Creates a handle for reading from and writing to the file.
    *
    * @return the writable handle
+   * @since 1.0.0
    */
   default Writable createWritable() {
     final Path path = this.getPath();
@@ -61,6 +66,7 @@ public interface FileSource extends StaticSource {
    * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   @Override
   default String getName() {
@@ -72,6 +78,7 @@ public interface FileSource extends StaticSource {
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   @Override
   default String getResource() {

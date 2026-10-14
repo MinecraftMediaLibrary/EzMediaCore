@@ -28,6 +28,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * {@link ReusableMat}, and freed when the filter is garbage collected.
  *
  * <p>This class is not thread-safe, because it reuses one matrix for every frame; give each player its own instance.
+ *
+ * @since 1.0.0
  */
 public class GrayscaleFilter extends MatVideoFilter {
 
@@ -35,6 +37,8 @@ public class GrayscaleFilter extends MatVideoFilter {
 
   /**
    * Constructs a new grayscale filter.
+   *
+   * @since 1.0.0
    */
   public GrayscaleFilter() {
     this.gray = new ReusableMat();
@@ -46,6 +50,7 @@ public class GrayscaleFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have had colors before
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

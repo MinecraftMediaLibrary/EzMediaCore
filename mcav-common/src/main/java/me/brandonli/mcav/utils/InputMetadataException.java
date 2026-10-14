@@ -27,6 +27,8 @@ import me.brandonli.mcav.MCAVException;
  * <p>This is an {@link MCAVException}: the failure comes from the content of the media or from reading it,
  * which the caller usually cannot check in advance, so it is neither an {@link IllegalArgumentException} nor an
  * {@link IllegalStateException}. Callers that can recover, for example by skipping the source, catch it explicitly.
+ *
+ * @since 1.0.0
  */
 public class InputMetadataException extends MCAVException {
 

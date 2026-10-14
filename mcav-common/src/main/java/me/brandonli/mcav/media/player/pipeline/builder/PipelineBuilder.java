@@ -29,12 +29,15 @@ package me.brandonli.mcav.media.player.pipeline.builder;
  * }
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface PipelineBuilder {
   /**
    * Starts an audio pipeline.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   static AudioPipelineStepBuilder audio() {
     return new DefaultAudioPipelineStepBuilder();
@@ -44,6 +47,7 @@ public interface PipelineBuilder {
    * Starts a video pipeline.
    *
    * @return a new builder
+   * @since 1.0.0
    */
   static VideoPipelineStepBuilder video() {
     return new DefaultVideoPipelineStepBuilder();

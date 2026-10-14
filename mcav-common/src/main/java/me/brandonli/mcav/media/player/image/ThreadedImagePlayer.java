@@ -42,6 +42,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * again.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ThreadedImagePlayer implements ImagePlayer {
 
@@ -80,6 +82,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
    * @return true if playback started, false if the player is already playing or was released
    * @throws IllegalArgumentException if the frame rate of the source is not positive and finite
    * @throws NullPointerException     if {@code source} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final FrameSource source) {
@@ -146,6 +149,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
    * A callback that ignores interruption may outlive the wait; a released player cannot be started again.
    *
    * @return true if the player was released, false if it was already released
+   * @since 1.0.0
    */
   @Override
   public boolean release() {
@@ -192,6 +196,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
    *
    * @param exceptionHandler the new handler
    * @throws NullPointerException if the handler is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
@@ -204,6 +209,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
    * Returns the slot that holds the video pipeline, which can be swapped while playing.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   @Override
   public VideoAttachableCallback getVideoAttachableCallback() {
@@ -214,6 +220,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
    * Returns the handler that receives failures of the source and the filters, which logs them by default.
    *
    * @return the current handler
+   * @since 1.0.0
    */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {

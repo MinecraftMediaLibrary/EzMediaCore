@@ -73,6 +73,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * checked {@link IOException}s; argument errors and unsafe archive entries use their documented exception types.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class IoUtils {
 
@@ -80,6 +82,8 @@ public final class IoUtils {
    * The largest picture {@link #downloadImage(UriSource)} downloads. A frame of the largest map screen is a few
    * megabytes as a PNG, so this leaves room for an unusually large picture while a server that never stops sending
    * cannot fill the disk.
+   *
+   * @since 1.0.0
    */
   public static final long MAXIMUM_IMAGE_BYTES = 64L * 1024L * 1024L;
 
@@ -130,6 +134,7 @@ public final class IoUtils {
    * @return the last segment of the path, such as {@code video.mp4}, or an empty string if the path is empty
    * @throws IllegalArgumentException if the URL is not a valid URI
    * @throws NullPointerException     if {@code url} is null
+   * @since 1.0.0
    */
   public static String getFileNameFromUrl(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");
@@ -150,6 +155,7 @@ public final class IoUtils {
    *
    * @return the first free port at or above 5900
    * @throws UncheckedIOException if no port is free
+   * @since 1.0.0
    */
   public static int getNextFreeVncPort() {
     return findFreePort(FIRST_VNC_PORT, LAST_PORT);
@@ -178,6 +184,7 @@ public final class IoUtils {
    * @throws UncheckedIOException if the directory cannot be created, for example because a file of the same name
    *                              exists
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   public static boolean createDirectoryIfNotExists(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -204,6 +211,7 @@ public final class IoUtils {
    * @return true if the file was created, false if it already existed
    * @throws UncheckedIOException if the file cannot be created
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   public static boolean createFileIfNotExists(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -235,6 +243,7 @@ public final class IoUtils {
    * @param file the file to mark
    * @throws UncheckedIOException if the permissions cannot be changed
    * @throws NullPointerException if {@code file} is null
+   * @since 1.0.0
    */
   public static void markExecutable(final Path file) {
     Preconditions.checkNotNull(file, "File must not be null!");
@@ -262,6 +271,7 @@ public final class IoUtils {
    * @param path the file or directory to delete
    * @throws IOException          if a file cannot be deleted
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -298,6 +308,7 @@ public final class IoUtils {
    * @param target the destination, which is replaced if it exists
    * @throws IOException          if the file cannot be moved
    * @throws NullPointerException if {@code source} or {@code target} is null
+   * @since 1.0.0
    */
   public static void moveReplacing(final Path source, final Path target) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -354,6 +365,7 @@ public final class IoUtils {
    * @return the hash as lowercase hexadecimal
    * @throws UncheckedIOException if the file cannot be read
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   public static String getSha256Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -369,6 +381,7 @@ public final class IoUtils {
    * @return the hash as lowercase hexadecimal
    * @throws UncheckedIOException if the file cannot be read
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   public static String getSha1Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -411,6 +424,7 @@ public final class IoUtils {
    * @param bytes the bytes to convert
    * @return the hexadecimal string, which is empty for an empty array
    * @throws NullPointerException if {@code bytes} is null
+   * @since 1.0.0
    */
   public static String bytesToHex(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Bytes must not be null!");
@@ -435,6 +449,7 @@ public final class IoUtils {
    * @return the last element of the path
    * @throws IllegalArgumentException if the path has no elements, such as a root directory
    * @throws NullPointerException     if {@code path} is null
+   * @since 1.0.0
    */
   public static String getName(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
@@ -461,6 +476,7 @@ public final class IoUtils {
    *                                  {@link #MAXIMUM_IMAGE_BYTES}
    * @throws IllegalArgumentException if the source does not describe an absolute HTTP or HTTPS URI with a host
    * @throws NullPointerException     if {@code source} is null
+   * @since 1.0.0
    */
   public static Path downloadImage(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -488,6 +504,7 @@ public final class IoUtils {
    *
    * @return the absolute path of the cache folder
    * @throws UncheckedIOException if the folder cannot be created
+   * @since 1.0.0
    */
   public static Path getCachedFolder() {
     final @Nullable String homeOrNull = System.getProperty(USER_HOME_PROPERTY);
@@ -504,6 +521,7 @@ public final class IoUtils {
    * @return the downloads described by the resource
    * @throws UncheckedIOException if the resource is missing or not valid JSON
    * @throws NullPointerException if {@code resourcePath} is null
+   * @since 1.0.0
    */
   public static Download[] readDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
@@ -544,6 +562,7 @@ public final class IoUtils {
    * @return a reader for the resource, which the caller must close
    * @throws UncheckedIOException if the resource does not exist
    * @throws NullPointerException if the resource is null
+   * @since 1.0.0
    */
   public static Reader getResourceAsStreamReader(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
@@ -559,6 +578,7 @@ public final class IoUtils {
    * @return an input stream for the resource, which the caller must close
    * @throws UncheckedIOException if the resource does not exist
    * @throws NullPointerException if the resource is null
+   * @since 1.0.0
    */
   public static InputStream getResourceAsInputStream(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
@@ -574,6 +594,7 @@ public final class IoUtils {
    * @return an input stream for the resource, which the caller must close
    * @throws UncheckedIOException if the resource does not exist, or the class has no class loader to find it with
    * @throws NullPointerException if the resource or the class is null
+   * @since 1.0.0
    */
   public static InputStream getResourceAsInputStream(final String resource, final Class<?> loaderClass) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
@@ -605,6 +626,7 @@ public final class IoUtils {
    *                                    written
    * @throws ZipEntryIntegrityException if the archive contains an entry that is not safe to extract
    * @throws NullPointerException       if the archive or the destination is null
+   * @since 1.0.0
    */
   public static void unzip(final Path archive, final Path destination) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");

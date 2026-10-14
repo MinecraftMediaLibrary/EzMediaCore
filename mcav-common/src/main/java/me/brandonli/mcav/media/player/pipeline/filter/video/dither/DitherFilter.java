@@ -37,6 +37,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * }
  *
  * <p>This class is immutable; it is thread-safe when its algorithm and result step are.
+ *
+ * @since 1.0.0
  */
 public final class DitherFilter implements FunctionalVideoFilter {
 
@@ -55,6 +57,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * @param result    the step that receives the frames
    * @return the filter
    * @throws NullPointerException if {@code algorithm} or {@code result} is null
+   * @since 1.0.0
    */
   public static FunctionalVideoFilter dither(final DitherAlgorithm algorithm, final DitherResultStep result) {
     Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
@@ -70,6 +73,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * @param metadata the metadata of the original video
    * @return true, because the result step may modify the frame
    * @throws NullPointerException if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
@@ -83,6 +87,8 @@ public final class DitherFilter implements FunctionalVideoFilter {
   /**
    * Prepares the result step, which for example creates the maps of the display. The owner must call this before
    * playback; attaching a filter to a pipeline does not manage its lifecycle.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -92,6 +98,8 @@ public final class DitherFilter implements FunctionalVideoFilter {
   /**
    * Releases the result step, which for example removes the maps of the display. The owner must call this after
    * playback has stopped, including when playback fails.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {
@@ -102,6 +110,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * Returns the dithering algorithm.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   public DitherAlgorithm getAlgorithm() {
     return this.algorithm;
@@ -111,6 +120,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * Returns the step that receives the frames.
    *
    * @return the result step
+   * @since 1.0.0
    */
   public DitherResultStep getResult() {
     return this.result;

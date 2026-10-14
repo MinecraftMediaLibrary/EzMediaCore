@@ -25,6 +25,8 @@ import me.brandonli.mcav.MCAVException;
  *
  * <p>This is an {@link MCAVException}: providing VLC is not possible on this system in its current state, which the
  * caller cannot change. Callers catch it to disable VLC playback and fall back to another player.
+ *
+ * @since 1.0.0
  */
 public class UnsupportedOperatingSystemException extends MCAVException {
 

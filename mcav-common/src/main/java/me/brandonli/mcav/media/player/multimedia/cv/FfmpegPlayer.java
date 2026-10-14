@@ -28,11 +28,15 @@ import org.bytedeco.javacv.FrameGrabber;
  * {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#ffmpeg()}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public class FfmpegPlayer extends AbstractVideoPlayerCv {
 
   /**
    * Constructs a new FFmpeg player.
+   *
+   * @since 1.0.0
    */
   public FfmpegPlayer() {}
 
@@ -42,6 +46,7 @@ public class FfmpegPlayer extends AbstractVideoPlayerCv {
    * @param resource the resource to decode, such as a file path, a URL, or a device path with an FFmpeg format
    * @return a new, unstarted FFmpeg grabber
    * @throws NullPointerException if the resource is null
+   * @since 1.0.0
    */
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {

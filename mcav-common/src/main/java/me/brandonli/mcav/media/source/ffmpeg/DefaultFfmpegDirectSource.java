@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link FfmpegDirectSource}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
 
@@ -40,6 +42,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
    * Returns the FFmpeg input format.
    *
    * @return the format name
+   * @since 1.0.0
    */
   @Override
   public String getFormat() {
@@ -50,6 +53,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
    * Returns the input FFmpeg opens.
    *
    * @return the media resource locator
+   * @since 1.0.0
    */
   @Override
   public String getMrl() {
@@ -61,6 +65,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -79,6 +84,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
    * Returns a hash code built from the resource and the format.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -89,6 +95,7 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
    * Returns a debugging representation with the resource and the format.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

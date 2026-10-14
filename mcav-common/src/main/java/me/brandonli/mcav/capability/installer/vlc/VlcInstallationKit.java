@@ -48,6 +48,8 @@ import org.slf4j.LoggerFactory;
  * }
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VlcInstallationKit {
 
@@ -70,6 +72,7 @@ public final class VlcInstallationKit {
    *
    * @return the kit
    * @throws java.io.UncheckedIOException if the default cache folder cannot be created
+   * @since 1.0.0
    */
   public static VlcInstallationKit create() {
     final VlcInstaller installer = VlcInstaller.create();
@@ -82,6 +85,7 @@ public final class VlcInstallationKit {
    * @param installer the installer used to download VLC
    * @return the kit
    * @throws NullPointerException if {@code installer} is null
+   * @since 1.0.0
    */
   public static VlcInstallationKit create(final VlcInstaller installer) {
     Preconditions.checkNotNull(installer, "Installer must not be null!");
@@ -100,6 +104,7 @@ public final class VlcInstallationKit {
    * @throws IOException                         if installation discovery, download, verification or extraction fails
    * @throws UnsupportedOperatingSystemException if VLC cannot be found or installed on this system, or
    *                                             the discovered private libraries cannot be loaded
+   * @since 1.0.0
    */
   public Optional<Path> start() throws IOException {
     return this.loadState.loadOnce(this::discoverOrInstall);

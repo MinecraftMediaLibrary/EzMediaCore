@@ -31,6 +31,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * separate matrices as needed; see {@link ReusableMat}, and freed when the filter is garbage collected.
  *
  * <p>This class is not thread-safe, because it reuses one matrix for every frame; give each player its own instance.
+ *
+ * @since 1.0.0
  */
 public class TintFilter extends MatVideoFilter {
 
@@ -45,6 +47,7 @@ public class TintFilter extends MatVideoFilter {
    * @param strength how strongly the color is applied, from 0 for no tint to 1 for a solid color
    * @throws IllegalArgumentException if {@code strength} is outside 0 through 1 or is NaN
    * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public TintFilter(final double[] color, final double strength) {
     Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1!");
@@ -59,6 +62,7 @@ public class TintFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {

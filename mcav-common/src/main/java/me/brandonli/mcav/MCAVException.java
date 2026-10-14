@@ -24,6 +24,8 @@ import java.io.Serial;
  * process or the network.
  *
  * <p>Every module throws its own subtype; catch this class to handle them all.
+ *
+ * @since 1.0.0
  */
 public class MCAVException extends RuntimeException {
 
@@ -34,6 +36,7 @@ public class MCAVException extends RuntimeException {
    * Creates an exception with a message.
    *
    * @param message the detail message
+   * @since 1.0.0
    */
   public MCAVException(final String message) {
     super(message);
@@ -44,6 +47,7 @@ public class MCAVException extends RuntimeException {
    *
    * @param message the detail message
    * @param cause   the cause
+   * @since 1.0.0
    */
   public MCAVException(final String message, final Throwable cause) {
     super(message, cause);

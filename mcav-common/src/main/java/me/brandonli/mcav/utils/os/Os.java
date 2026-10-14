@@ -21,27 +21,39 @@ package me.brandonli.mcav.utils.os;
  * The operating system family of a machine.
  *
  * <p>This enum is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public enum Os {
   /**
    * Microsoft Windows.
+   *
+   * @since 1.0.0
    */
   WINDOWS,
   /**
    * Apple macOS.
+   *
+   * @since 1.0.0
    */
   MAC,
   /**
    * Linux distributions.
+   *
+   * @since 1.0.0
    */
   LINUX,
   /**
    * FreeBSD.
+   *
+   * @since 1.0.0
    */
   FREEBSD,
   /**
    * Any other operating system, such as OpenBSD, NetBSD, Solaris or AIX. The library never downloads programs for
    * it, because none of the builds it knows can run there.
+   *
+   * @since 1.0.0
    */
   OTHER,
 }

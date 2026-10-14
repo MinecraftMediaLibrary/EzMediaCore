@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
  * Helpers for shutting down executors.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ExecutorUtils {
 
@@ -46,6 +48,7 @@ public final class ExecutorUtils {
    * @param service the executor to shut down
    * @return true if every task finished in time, false if tasks had to be interrupted or the wait was interrupted
    * @throws NullPointerException if the executor is null
+   * @since 1.0.0
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service) {
     Preconditions.checkNotNull(service, "Executor must not be null!");
@@ -63,6 +66,7 @@ public final class ExecutorUtils {
    * @return true if every task finished in time, false if tasks had to be interrupted or the wait was interrupted
    * @throws NullPointerException if the executor or the timeout is null
    * @throws ArithmeticException  if the timeout cannot be represented as a {@code long} number of milliseconds
+   * @since 1.0.0
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service, final Duration timeout) {
     Preconditions.checkNotNull(service, "Executor must not be null!");

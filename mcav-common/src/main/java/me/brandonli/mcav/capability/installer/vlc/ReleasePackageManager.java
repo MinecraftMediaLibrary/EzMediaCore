@@ -32,6 +32,8 @@ import me.brandonli.mcav.utils.IoUtils;
  * new pin. 32-bit x86 Linux gets none: Java 25, which mcav needs, has no port for it.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ReleasePackageManager {
 
@@ -45,6 +47,7 @@ public final class ReleasePackageManager {
    * @param resourcePath the full path from the classpath root, such as {@code mcav/common/installers/vlc.json}
    * @return the downloads for every supported platform
    * @throws NullPointerException if {@code resourcePath} is null
+   * @since 1.0.0
    */
   public static Download[] readVlcDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");

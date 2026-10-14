@@ -21,15 +21,21 @@ package me.brandonli.mcav.utils.os;
  * The word size of the Java runtime, which decides whether 32-bit or 64-bit binaries are needed.
  *
  * <p>This enum is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public enum Bits {
   /**
    * A 32-bit runtime.
+   *
+   * @since 1.0.0
    */
   BITS_32,
 
   /**
    * A 64-bit runtime.
+   *
+   * @since 1.0.0
    */
   BITS_64,
 }

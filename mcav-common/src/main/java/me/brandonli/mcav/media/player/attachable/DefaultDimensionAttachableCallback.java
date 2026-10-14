@@ -24,6 +24,8 @@ import me.brandonli.mcav.utils.immutable.Dimension;
  * The default {@link DimensionAttachableCallback}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultDimensionAttachableCallback extends AbstractAttachableCallback<Dimension> implements DimensionAttachableCallback {
 
@@ -37,6 +39,7 @@ public final class DefaultDimensionAttachableCallback extends AbstractAttachable
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws IllegalArgumentException if either dimension is zero
    * @throws NullPointerException     if {@code value} is null
+   * @since 1.0.0
    */
   @Override
   public void attach(final Dimension value) {

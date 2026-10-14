@@ -36,6 +36,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * palette colors estimated from their count; this is not a measured distance between particular colors.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class OrderedDither extends AbstractDitherAlgorithm implements BayerDither, ParallelDitherAlgorithm {
 
@@ -59,6 +61,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
    * @param palette the palette to reduce images to
    * @param mapper  the threshold pattern
    * @throws NullPointerException if {@code palette}, {@code mapper} is null
+   * @since 1.0.0
    */
   public OrderedDither(final DitherPalette palette, final PixelMapper mapper) {
     super(palette);
@@ -91,6 +94,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
    *
    * @param image the image to dither
    * @return the palette index of every pixel, laid out row by row
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image) {
@@ -112,6 +116,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
    * @param pool  the pool that runs the work
    * @return the palette index of every pixel, laid out row by row
    * @throws NullPointerException if {@code pool} is null
+   * @since 1.0.0
    */
   @Override
   public byte[] ditherIntoBytes(final ImageBuffer image, final ForkJoinPool pool) {
@@ -175,6 +180,7 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
    *
    * @param buffer the ARGB pixels laid out row by row, which are replaced with palette colors
    * @param width  the width of the image, which must divide the length of the buffer
+   * @since 1.0.0
    */
   @Override
   public void dither(final int[] buffer, final int width) {

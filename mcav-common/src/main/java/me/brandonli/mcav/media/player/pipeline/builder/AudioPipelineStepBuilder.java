@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
  * Builds an audio pipeline from {@link AudioFilter}s; create one with {@link PipelineBuilder#audio()}.
  *
  * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface AudioPipelineStepBuilder {
   /**
@@ -32,6 +34,7 @@ public interface AudioPipelineStepBuilder {
    * @param filter the filter
    * @return this builder
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   AudioPipelineStepBuilder then(final AudioFilter filter);
 
@@ -39,6 +42,7 @@ public interface AudioPipelineStepBuilder {
    * Returns the number of filters added so far.
    *
    * @return the filter count
+   * @since 1.0.0
    */
   int size();
 
@@ -47,6 +51,7 @@ public interface AudioPipelineStepBuilder {
    * unchanged; appending more filters later does not alter this chain.
    *
    * @return the first step, or {@link AudioPipelineStep#NO_OP} if no filter was added
+   * @since 1.0.0
    */
   AudioPipelineStep build();
 }

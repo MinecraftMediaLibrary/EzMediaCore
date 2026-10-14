@@ -27,6 +27,8 @@ import me.brandonli.mcav.MCAVException;
  * because the natives for this platform are missing or cannot be linked. The caller did nothing wrong, and retrying
  * the same call in the same environment fails again. It can be caught as a {@link RuntimeException}, rather than as the {@link LinkageError} it usually wraps,
  * so applications can report an unavailable feature separately from fatal virtual-machine failures.
+ *
+ * @since 1.0.0
  */
 public class NativeLoadingException extends MCAVException {
 
@@ -37,6 +39,7 @@ public class NativeLoadingException extends MCAVException {
    * Constructs a new exception with a detail message and no cause.
    *
    * @param message the detail message naming the library that could not be loaded
+   * @since 1.0.0
    */
   public NativeLoadingException(final String message) {
     super(message);
@@ -47,6 +50,7 @@ public class NativeLoadingException extends MCAVException {
    *
    * @param message the detail message naming the library that could not be loaded
    * @param cause   the underlying failure, usually a {@link LinkageError}
+   * @since 1.0.0
    */
   public NativeLoadingException(final String message, final Throwable cause) {
     super(message, cause);

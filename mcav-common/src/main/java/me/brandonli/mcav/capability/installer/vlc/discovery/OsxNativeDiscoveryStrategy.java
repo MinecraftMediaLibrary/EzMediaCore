@@ -53,6 +53,8 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
  *
  * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
  * a time.
+ *
+ * @since 1.0.0
  */
 public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
@@ -65,6 +67,8 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
   /**
    * Constructs a strategy that searches vlcj's directories, publishes the plugin path with {@code setenv}, and
    * preloads the core library through JNA.
+   *
+   * @since 1.0.0
    */
   public OsxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = LinuxNativeDiscoveryStrategy.nativeSetter();
@@ -87,6 +91,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
    * Checks whether the system is macOS.
    *
    * @return true on macOS
+   * @since 1.0.0
    */
   @Override
   public boolean supported() {
@@ -102,6 +107,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
    * @return {@code true} to let vlcj add the directory to the JNA search path, {@code false} if the core library
    * cannot be loaded from it
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public boolean onFound(final String path) {

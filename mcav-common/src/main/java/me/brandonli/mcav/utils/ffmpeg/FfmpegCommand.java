@@ -40,6 +40,8 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  * }
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class FfmpegCommand {
 
@@ -55,6 +57,7 @@ public final class FfmpegCommand {
    * Creates a builder for a command.
    *
    * @return the builder
+   * @since 1.0.0
    */
   public static FfmpegCommandBuilder builder() {
     return new DefaultFfmpegCommandBuilder();
@@ -65,6 +68,7 @@ public final class FfmpegCommand {
    *
    * @return the command line as separate arguments
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
+   * @since 1.0.0
    */
   public String[] toCommandArray() {
     final Path executable = this.getExecutable();
@@ -82,6 +86,7 @@ public final class FfmpegCommand {
    *
    * @return the task, which has not been run yet
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
+   * @since 1.0.0
    */
   public CommandTask createTask() {
     final String[] command = this.toCommandArray();
@@ -92,6 +97,7 @@ public final class FfmpegCommand {
    * Returns the arguments after the executable.
    *
    * @return the arguments, which cannot be modified
+   * @since 1.0.0
    */
   public List<String> getArguments() {
     return this.arguments;
@@ -102,6 +108,7 @@ public final class FfmpegCommand {
    *
    * @return the path of the executable
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
+   * @since 1.0.0
    */
   public Path getExecutable() {
     return FfmpegExecutableProvider.getFfmpegPath();
@@ -113,6 +120,7 @@ public final class FfmpegCommand {
    *
    * @return the diagnostic command text
    * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
+   * @since 1.0.0
    */
   @Override
   public String toString() {

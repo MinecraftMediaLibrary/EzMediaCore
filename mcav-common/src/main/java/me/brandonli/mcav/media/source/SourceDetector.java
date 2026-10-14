@@ -25,20 +25,27 @@ package me.brandonli.mcav.media.source;
  * <p>Implementations in this library are stateless and thread-safe.
  *
  * @param <SourceType> the type of source the detector creates
+ * @since 1.0.0
  */
 public interface SourceDetector<SourceType extends Source> {
   /**
    * The priority of ordinary detectors.
+   *
+   * @since 1.0.0
    */
   int NORMAL_PRIORITY = 0;
 
   /**
    * The priority of detectors that recognize very specific strings and should win over others.
+   *
+   * @since 1.0.0
    */
   int HIGH_PRIORITY = 100;
 
   /**
    * The priority of fallback detectors that accept almost anything.
+   *
+   * @since 1.0.0
    */
   int LOW_PRIORITY = -100;
 
@@ -47,6 +54,7 @@ public interface SourceDetector<SourceType extends Source> {
    *
    * @param raw the string entered by a user
    * @return true if {@link #createSource(String)} can create a source from it
+   * @since 1.0.0
    */
   boolean isDetectedSource(final String raw);
 
@@ -55,6 +63,7 @@ public interface SourceDetector<SourceType extends Source> {
    *
    * @param raw the string entered by a user
    * @return the source
+   * @since 1.0.0
    */
   SourceType createSource(final String raw);
 
@@ -62,6 +71,7 @@ public interface SourceDetector<SourceType extends Source> {
    * Returns the priority of this detector.
    *
    * @return the priority, higher wins
+   * @since 1.0.0
    */
   int getPriority();
 }

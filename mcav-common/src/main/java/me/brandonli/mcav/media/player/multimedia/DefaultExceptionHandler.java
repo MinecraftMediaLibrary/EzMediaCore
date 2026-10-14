@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
  * until a custom handler is set.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultExceptionHandler implements ExceptionHandler {
 
@@ -48,6 +50,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
    *
    * @param exceptionHandler the new handler
    * @throws NullPointerException if the handler is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
@@ -60,6 +63,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
    * Returns the handler that receives failures, which logs them at error level until another handler is set.
    *
    * @return the current handler
+   * @since 1.0.0
    */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {

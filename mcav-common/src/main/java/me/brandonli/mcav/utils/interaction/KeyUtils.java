@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <code>&#123;</code> is written as <code>&#123;&#123;</code>.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class KeyUtils {
 
@@ -46,6 +48,7 @@ public final class KeyUtils {
    * @param input the text with key names
    * @return the text with key characters
    * @throws NullPointerException if {@code input} is null
+   * @since 1.0.0
    */
   public static String replaceKeysWithKeyCodes(final String input) {
     Preconditions.checkNotNull(input, "Input must not be null!");

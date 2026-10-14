@@ -25,14 +25,28 @@ package me.brandonli.mcav.json.ytdlp.format;
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
  *
  * <p>This class is mutable and not thread-safe.
+ *
+ * @since 1.0.0
  */
 public class Heatmap {
 
-  /** Where the entry starts, in seconds from the start of the video. */
+  /**
+   * Where the entry starts, in seconds from the start of the video.
+   *
+   * @since 1.0.0
+   */
   public double start_time;
-  /** Where the entry ends, in seconds from the start of the video. */
+  /**
+   * Where the entry ends, in seconds from the start of the video.
+   *
+   * @since 1.0.0
+   */
   public double end_time;
-  /** How often this part of the video was replayed, relative to the most replayed part, from 0 to 1. */
+  /**
+   * How often this part of the video was replayed, relative to the most replayed part, from 0 to 1.
+   *
+   * @since 1.0.0
+   */
   public double value;
 
   private Heatmap() {}

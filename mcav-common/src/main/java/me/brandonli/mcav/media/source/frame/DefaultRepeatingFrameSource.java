@@ -32,6 +32,8 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()}.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
 
@@ -61,6 +63,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
    * Returns the supplier of frames.
    *
    * @return the supplier
+   * @since 1.0.0
    */
   @Override
   public SampleSupplier supplyFrameSamples() {
@@ -93,6 +96,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
    * Returns how often the animation is played.
    *
    * @return the repeat count, or {@link Integer#MAX_VALUE} for endless looping
+   * @since 1.0.0
    */
   @Override
   public int getRepeatCount() {
@@ -103,6 +107,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
    * Returns the width of the frames.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   @Override
   public int getFrameWidth() {
@@ -113,6 +118,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
    * Returns the height of the frames.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   @Override
   public int getFrameHeight() {
@@ -123,6 +129,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
    * Returns the rate at which frames are requested from the supplier.
    *
    * @return the frame rate in frames per second
+   * @since 1.0.0
    */
   @Override
   public float getFrameRate() {

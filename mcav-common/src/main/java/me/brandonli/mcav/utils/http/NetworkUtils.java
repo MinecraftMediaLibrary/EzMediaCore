@@ -47,12 +47,16 @@ import java.util.concurrent.TimeoutException;
  * }
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class NetworkUtils {
 
   /**
    * The service {@link #lookUpPublicAddress()} asks for the public address, {@code https://ipv4.icanhazip.com/}.
    * It answers with the public IPv4 address of the caller as plain text.
+   *
+   * @since 1.0.0
    */
   public static final URI DEFAULT_ADDRESS_SERVICE = URI.create("https://ipv4.icanhazip.com/");
 
@@ -86,6 +90,7 @@ public final class NetworkUtils {
    * @param address the host name or IP address
    * @return the address as it may appear before the colon of the port
    * @throws NullPointerException if the address is null
+   * @since 1.0.0
    */
   public static String formatHostForUrl(final String address) {
     Preconditions.checkNotNull(address, "Address must not be null!");
@@ -108,6 +113,7 @@ public final class NetworkUtils {
    *
    * @return the public address, or an empty optional if the service cannot be reached, fails, or answers with
    *     anything but an IP address, or if the thread is interrupted
+   * @since 1.0.0
    */
   public static Optional<String> lookUpPublicAddress() {
     return lookUpPublicAddress(DEFAULT_ADDRESS_SERVICE);
@@ -127,6 +133,7 @@ public final class NetworkUtils {
    * @throws NullPointerException     if the service URI is null
    * @throws IllegalArgumentException if the service URI is not an absolute {@code http} or {@code https} URI with
    *                                  a host
+   * @since 1.0.0
    */
   public static Optional<String> lookUpPublicAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");
@@ -168,6 +175,7 @@ public final class NetworkUtils {
    *     is not an absolute {@code http} or {@code https} URI with a host, if the server cannot be reached, or if the
    *     thread is interrupted
    * @throws NullPointerException if the URI is null
+   * @since 1.0.0
    */
   public static boolean isReachable(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");

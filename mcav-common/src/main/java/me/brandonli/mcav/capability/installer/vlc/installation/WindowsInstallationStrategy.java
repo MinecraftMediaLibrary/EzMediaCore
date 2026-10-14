@@ -38,6 +38,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * temporary directory and the zip are deleted. The temporary directory is also deleted when the extraction fails.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class WindowsInstallationStrategy extends ManualInstallationStrategy {
 
@@ -50,6 +52,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
    *
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
+   * @since 1.0.0
    */
   public WindowsInstallationStrategy(final VlcInstaller installer) {
     super(installer);
@@ -60,6 +63,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
    *
    * @return the directory that contains the library, or empty if VLC has not been installed
    * @throws IOException if the installation directory cannot be searched
+   * @since 1.0.0
    */
   @Override
   public Optional<Path> getInstalledPath() throws IOException {
@@ -75,6 +79,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
    * @return the installation directory, which contains {@code libvlc.dll}
    * @throws IOException          if the zip cannot be extracted or does not contain the library
    * @throws NullPointerException if {@code archive} is null
+   * @since 1.0.0
    */
   @Override
   public Path execute(final Path archive) throws IOException {

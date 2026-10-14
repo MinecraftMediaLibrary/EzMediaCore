@@ -31,12 +31,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @param <DataType>     the type of data that flows through the pipeline
  * @param <MetadataType> the type of metadata that accompanies the data
  * @param <StepType>     the type of the steps of this pipeline
+ * @since 1.0.0
  */
 public interface PipelineStep<DataType, MetadataType, StepType extends PipelineStep<DataType, MetadataType, StepType>> {
   /**
    * Returns the step that follows this one.
    *
    * @return the next step, or empty if this is the last step
+   * @since 1.0.0
    */
   Optional<StepType> next();
 
@@ -44,6 +46,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * Checks whether this is the last step of the chain.
    *
    * @return true if no step follows
+   * @since 1.0.0
    */
   default boolean isLast() {
     final Optional<StepType> next = this.next();
@@ -56,6 +59,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * because no filter would read them.
    *
    * @return true only for the empty pipeline
+   * @since 1.0.0
    */
   default boolean isNoOp() {
     return false;
@@ -67,6 +71,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * @param buffer   the data
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
+   * @since 1.0.0
    */
   void process(final DataType buffer, final MetadataType metadata);
 
@@ -78,6 +83,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
    * @throws RuntimeException     if a step or filter fails; subsequent steps are not invoked
+   * @since 1.0.0
    */
   default void processAll(final DataType buffer, final MetadataType metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
@@ -95,6 +101,7 @@ public interface PipelineStep<DataType, MetadataType, StepType extends PipelineS
    * Returns this step typed as the step type of the pipeline.
    *
    * @return this step
+   * @since 1.0.0
    */
   StepType self();
 }

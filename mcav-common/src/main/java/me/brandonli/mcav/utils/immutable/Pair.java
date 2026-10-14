@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @param <FirstType>  the type of the first value
  * @param <SecondType> the type of the second value
+ * @since 1.0.0
  */
 public final class Pair<FirstType, SecondType> {
 
@@ -49,6 +50,7 @@ public final class Pair<FirstType, SecondType> {
    * @param second       the second value
    * @return the pair
    * @throws NullPointerException if {@code first} or {@code second} is null
+   * @since 1.0.0
    */
   public static <FirstType, SecondType> Pair<FirstType, SecondType> pair(final FirstType first, final SecondType second) {
     Preconditions.checkNotNull(first, "First value must not be null!");
@@ -61,6 +63,7 @@ public final class Pair<FirstType, SecondType> {
    * Returns the first value.
    *
    * @return the first value
+   * @since 1.0.0
    */
   public FirstType getFirst() {
     return this.first;
@@ -70,6 +73,7 @@ public final class Pair<FirstType, SecondType> {
    * Returns the second value.
    *
    * @return the second value
+   * @since 1.0.0
    */
   public SecondType getSecond() {
     return this.second;
@@ -80,6 +84,7 @@ public final class Pair<FirstType, SecondType> {
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -98,6 +103,7 @@ public final class Pair<FirstType, SecondType> {
    * Returns a hash code built from both values.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -108,6 +114,7 @@ public final class Pair<FirstType, SecondType> {
    * Returns a debugging representation with both values.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

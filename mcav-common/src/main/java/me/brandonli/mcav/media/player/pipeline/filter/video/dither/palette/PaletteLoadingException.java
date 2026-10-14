@@ -26,6 +26,8 @@ import me.brandonli.mcav.MCAVException;
  * <p>This is an {@link MCAVException}: the palette ships inside the library, so a missing or malformed
  * resource means the library itself is packaged in a broken state. No argument of the caller is at fault, and the
  * failure persists for as long as the same library jar is used.
+ *
+ * @since 1.0.0
  */
 public class PaletteLoadingException extends MCAVException {
 

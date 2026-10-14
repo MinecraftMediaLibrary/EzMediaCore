@@ -25,20 +25,28 @@ import com.google.common.base.Preconditions;
  * palette color is chosen.
  *
  * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface PixelMapper {
   /**
    * A subtle strength that only slightly breaks up color bands.
+   *
+   * @since 1.0.0
    */
   float MINIMUM_STRENGTH = 0.5f;
 
   /**
    * The normal strength, which spans the distance between neighboring palette colors.
+   *
+   * @since 1.0.0
    */
   float NORMAL_STRENGTH = 1.0f;
 
   /**
    * A strong strength that produces a clearly visible pattern.
+   *
+   * @since 1.0.0
    */
   float MAXIMUM_STRENGTH = 2.0f;
 
@@ -46,6 +54,7 @@ public interface PixelMapper {
    * Returns the normalized threshold pattern, indexed by row and then column.
    *
    * @return the pattern, which must not be modified
+   * @since 1.0.0
    */
   float[][] getMatrix();
 
@@ -53,6 +62,7 @@ public interface PixelMapper {
    * Returns the strength the pattern was scaled by.
    *
    * @return the strength
+   * @since 1.0.0
    */
   float getStrength();
 
@@ -66,6 +76,7 @@ public interface PixelMapper {
    * @return the mapper
    * @throws NullPointerException     if the matrix or any supplied row is null
    * @throws IllegalArgumentException if the strength is negative or nonfinite, or {@code maximum} is nonpositive
+   * @since 1.0.0
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final int maximum, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
@@ -82,6 +93,7 @@ public interface PixelMapper {
    * @return the mapper
    * @throws NullPointerException     if the matrix or any supplied row is null
    * @throws IllegalArgumentException if the strength is negative or nonfinite
+   * @since 1.0.0
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
@@ -101,6 +113,7 @@ public interface PixelMapper {
    * @throws NullPointerException     if the matrix or any supplied row is null
    * @throws IllegalArgumentException if the strength is negative or nonfinite, or {@code maximum} is nonpositive
    *                                  or the matrix is empty or has unequal or empty rows
+   * @since 1.0.0
    */
   static PixelMapper ofPixelMapper(final int[][] matrix, final int maximum, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
@@ -118,6 +131,7 @@ public interface PixelMapper {
    * @throws NullPointerException     if the matrix or any supplied row is null
    * @throws IllegalArgumentException if the strength is negative or nonfinite
    *                                  or the matrix is empty or has unequal or empty rows
+   * @since 1.0.0
    */
   static PixelMapper ofPixelMapper(final int[][] matrix, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");

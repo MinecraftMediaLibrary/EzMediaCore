@@ -22,6 +22,8 @@ import java.io.Serial;
 /**
  * Thrown when the library cannot be installed, or when it is used before it was installed. The failure is
  * recoverable: a failed installation can be retried, so this is an unchecked exception rather than an error.
+ *
+ * @since 1.0.0
  */
 public class MCAVLoadingException extends MCAVException {
 

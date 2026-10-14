@@ -25,10 +25,13 @@ package me.brandonli.mcav.media.image;
  *
  * @see ImageBuffer
  * @see DynamicImageBuffer
+ * @since 1.0.0
  */
 public interface Image extends AutoCloseable {
   /**
    * Releases the native memory of the image. Calling this method more than once has no effect.
+   *
+   * @since 1.0.0
    */
   @Override
   void close();

@@ -29,11 +29,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * the frame in place for the filters that follow.
  *
  * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
+ *
+ * @since 1.0.0
  */
 public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVideoMetadata, VideoPipelineStep> {
   /**
    * A pipeline that does nothing, attached while no pipeline is set. It is the only video step whose
    * {@link #isNoOp()} returns true.
+   *
+   * @since 1.0.0
    */
   VideoPipelineStep NO_OP = new NoOperationStep();
 
@@ -44,6 +48,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @param filter the filter of the step
    * @return the step
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   static VideoPipelineStep of(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
@@ -57,6 +62,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @param filter the filter of the step
    * @return the step
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   static VideoPipelineStep of(final VideoFilter filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
@@ -68,6 +74,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * Returns the filter of this step.
    *
    * @return the filter
+   * @since 1.0.0
    */
   VideoFilter getFilter();
 
@@ -75,6 +82,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * Returns this step typed as a video step.
    *
    * @return this step
+   * @since 1.0.0
    */
   @Override
   default VideoPipelineStep self() {
@@ -87,6 +95,8 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * two classes.
    *
    * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   final class NoOperationStep implements VideoPipelineStep {
 
@@ -96,6 +106,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      * Returns the step that follows this one, which is none.
      *
      * @return an empty optional
+     * @since 1.0.0
      */
     @Override
     public Optional<VideoPipelineStep> next() {
@@ -108,6 +119,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      * @param buffer   the frame
      * @param metadata the metadata of the original video stream
      * @throws NullPointerException if the frame or the metadata is null
+     * @since 1.0.0
      */
     @Override
     public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
@@ -119,6 +131,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      * Returns the filter of this step, which does nothing.
      *
      * @return {@link VideoFilter#NO_OP}
+     * @since 1.0.0
      */
     @Override
     public VideoFilter getFilter() {
@@ -129,6 +142,7 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      * Checks whether this step is the empty pipeline, which it is.
      *
      * @return true
+     * @since 1.0.0
      */
     @Override
     public boolean isNoOp() {

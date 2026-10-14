@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * Helpers for working with OpenCV values and packed pixel arrays.
  *
  * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ImageUtils {
 
@@ -46,6 +48,7 @@ public final class ImageUtils {
    * @param components the channel values in the order OpenCV expects, which is blue, green, red, and alpha
    * @return a new scalar owned by the caller, which should be closed after use
    * @throws NullPointerException if {@code components} is null
+   * @since 1.0.0
    */
   public static Scalar toScalar(final double[] components) {
     Preconditions.checkNotNull(components, "Components must not be null!");
@@ -68,6 +71,7 @@ public final class ImageUtils {
    * @throws IllegalArgumentException if a dimension is nonpositive, the input pixel count differs from
    *                                  its dimensions, or the original packed BGR size exceeds {@link Integer#MAX_VALUE}
    * @throws NullPointerException     if {@code pixels} is null
+   * @since 1.0.0
    */
   public static int[] resizeIntArrayImage(
     final int[] pixels,

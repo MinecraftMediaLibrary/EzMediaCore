@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * The default {@link OriginalAudioMetadata}.
  *
  * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata {
 
@@ -52,6 +54,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns the name of the codec of the audio stream.
    *
    * @return the codec name
+   * @since 1.0.0
    */
   @Override
   public String getAudioCodec() {
@@ -62,6 +65,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns the FFmpeg sample format identifier of the audio stream.
    *
    * @return the sample format, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   @Override
   public int getSamplingFormat() {
@@ -72,6 +76,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns the bitrate of the audio stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   @Override
   public int getAudioBitrate() {
@@ -82,6 +87,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns the sample rate of the audio stream.
    *
    * @return the sample rate in hertz
+   * @since 1.0.0
    */
   @Override
   public int getAudioSampleRate() {
@@ -92,6 +98,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns the number of channels of the audio stream.
    *
    * @return the channel count
+   * @since 1.0.0
    */
   @Override
   public int getAudioChannels() {
@@ -103,6 +110,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    *
    * @param other the object to compare with
    * @return whether both match
+   * @since 1.0.0
    */
   @Override
   public boolean equals(final @Nullable Object other) {
@@ -127,6 +135,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns a hash code built from the codec, bitrate, sample rate, channel count and sampling format.
    *
    * @return the hash code
+   * @since 1.0.0
    */
   @Override
   public int hashCode() {
@@ -137,6 +146,7 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
    * Returns a debugging representation with the codec, bitrate, sample rate, channel count and sampling format.
    *
    * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {

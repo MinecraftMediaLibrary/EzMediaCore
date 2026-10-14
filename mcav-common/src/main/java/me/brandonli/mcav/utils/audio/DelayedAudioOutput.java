@@ -52,6 +52,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * output is paused.
  *
  * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DelayedAudioOutput implements AutoCloseable {
 
@@ -63,6 +65,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * The format of the samples: 16-bit little-endian PCM in the rate and the channels of the audio pipeline.
+   *
+   * @since 1.0.0
    */
   public static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of(
     PCM_CODEC,
@@ -74,19 +78,29 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * The name of the thread of every output, which hands the samples over.
+   *
+   * @since 1.0.0
    */
   public static final String THREAD_NAME = "mcav-audio-output";
 
   static final int JOIN_TIMEOUT_MILLISECONDS = 5_000;
 
-  /** How much silence follows {@link #quiet()} at most, in milliseconds. */
+  /**
+   * How much silence follows {@link #quiet()} at most, in milliseconds.
+   *
+   * @since 1.0.0
+   */
   public static final int SILENCE_MILLISECONDS = 2_000;
 
   private static final int SILENCE_CHUNK_MILLISECONDS = 20;
 
   private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / MILLISECONDS_PER_SECOND) * AudioFilter.FRAME_SIZE;
 
-  /** The longest queue whose size in bytes, 192 to a millisecond of 48 kHz stereo, still fits in an {@code int}. */
+  /**
+   * The longest queue whose size in bytes, 192 to a millisecond of 48 kHz stereo, still fits in an {@code int}.
+   *
+   * @since 1.0.0
+   */
   public static final int MAXIMUM_QUEUED_MILLISECONDS = Integer.MAX_VALUE / BYTES_PER_MILLISECOND;
 
   private final String source;
@@ -141,6 +155,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * @throws IllegalArgumentException if the delay is negative or leaves no room in the queue, or the queue is longer
    *                                  than {@link #MAXIMUM_QUEUED_MILLISECONDS}
    * @throws NullPointerException     if {@code source}, {@code pipeline} or {@code failures} is null
+   * @since 1.0.0
    */
   public static DelayedAudioOutput start(
     final String source,
@@ -215,6 +230,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * @throws NullPointerException      if samples are actually queued and {@code samples} is null
    * @throws IllegalArgumentException  if samples are queued with a negative length
    * @throws IndexOutOfBoundsException if the requested byte range exceeds the array while queuing
+   * @since 1.0.0
    */
   public synchronized void accept(final byte[] samples, final int length) {
     if (this.paused || this.closed || length == 0) {
@@ -240,6 +256,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * Drops the queued samples and every sample that arrives until {@link #resume()}.
+   *
+   * @since 1.0.0
    */
   public synchronized void pause() {
     this.paused = true;
@@ -251,6 +269,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * Tells the output that its source went quiet and sends nothing until it plays again: the pause is filled with
    * silence in real time, for {@value #SILENCE_MILLISECONDS} ms at most, until the samples that arrive next are due. Nothing
    * happens while the output is paused, and a closed output hands nothing over.
+   *
+   * @since 1.0.0
    */
   public synchronized void quiet() {
     if (this.paused) {
@@ -268,6 +288,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * Queues samples again after a pause. Calling this after close does not reopen the output.
+   *
+   * @since 1.0.0
    */
   public synchronized void resume() {
     this.paused = false;
@@ -379,6 +401,8 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * Stops the thread, dropping the queued samples, and waits for it; a pipeline that holds the thread is waited for
    * {@value #JOIN_TIMEOUT_MILLISECONDS} ms at most and then interrupted, so it can end on its own. Called from the pipeline
    * itself, it does not wait.
+   *
+   * @since 1.0.0
    */
   @Override
   public void close() {
