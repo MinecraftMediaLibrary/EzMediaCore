@@ -43,7 +43,7 @@ public final class VNCModule implements MCAVModule {
   public void stop() {}
 
   /**
-   * Gets the module identifier.
+   * Returns the module identifier.
    *
    * @return {@code vnc}
    */

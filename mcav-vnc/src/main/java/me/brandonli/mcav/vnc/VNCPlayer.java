@@ -66,8 +66,8 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @return true if startup succeeded, false if a session is already active (including paused) or the player
    *         has been released; a session that failed may be started again before release
    * @throws me.brandonli.mcav.media.player.PlayerException if the server cannot be reached or rejects the
-   * connection
-   * @throws NullPointerException if {@code source} is null
+   *                                                        connection
+   * @throws NullPointerException                           if {@code source} is null
    */
   boolean start(final VNCSource source);
 
@@ -93,7 +93,7 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @return a future that completes with the result of {@link #start(VNCSource)}, or exceptionally if
    *         startup fails; cancelling this future does not release the player
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
-   * @throws NullPointerException if {@code source} or {@code executor} is null
+   * @throws NullPointerException                            if {@code source} or {@code executor} is null
    */
   default CompletableFuture<Boolean> startAsync(final VNCSource source, final ExecutorService executor) {
     Preconditions.checkNotNull(source, "Source must not be null!");
@@ -138,14 +138,14 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
   void sendMouseEvent(final MouseClick type, final int frameX, final int frameY);
 
   /**
-   * Checks whether the player is connected and delivering frames.
+   * Returns whether the player is connected and delivering frames.
    *
    * @return true while connected and not paused
    */
   boolean isPlaying();
 
   /**
-   * Gets the slot that holds the video pipeline the frames are sent through.
+   * Returns the slot that holds the video pipeline the frames are sent through.
    *
    * @return the video pipeline slot
    */

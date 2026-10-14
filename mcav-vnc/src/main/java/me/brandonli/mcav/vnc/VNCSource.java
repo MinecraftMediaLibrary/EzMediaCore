@@ -57,49 +57,49 @@ public interface VNCSource extends DynamicSource {
   }
 
   /**
-   * Gets the host name or address of the server.
+   * Returns the host name or address of the server.
    *
    * @return the host
    */
   String getHost();
 
   /**
-   * Gets the port of the server.
+   * Returns the port of the server.
    *
    * @return the TCP port, from 1 to 65535
    */
   int getPort();
 
   /**
-   * Gets the user name for servers that require one.
+   * Returns the user name for servers that require one.
    *
    * @return the user name, or null if none is sent
    */
   @Nullable String getUsername();
 
   /**
-   * Gets the password for servers that require one.
+   * Returns the password for servers that require one.
    *
    * @return the password, or null if none is sent
    */
   @Nullable String getPassword();
 
   /**
-   * Gets the width the frames are scaled to.
+   * Returns the width the frames are scaled to.
    *
    * @return the nonnegative configured width in pixels, or 0 to use each remote frame's width
    */
   int getScreenWidth();
 
   /**
-   * Gets the height the frames are scaled to.
+   * Returns the height the frames are scaled to.
    *
    * @return the nonnegative configured height in pixels, or 0 to use each remote frame's height
    */
   int getScreenHeight();
 
   /**
-   * Gets the frame rate requested from the server. The server sends fewer frames when nothing changes.
+   * Returns the frame rate requested from the server. The server sends fewer frames when nothing changes.
    *
    * @return the positive requested frame rate in frames per second; this is not a delivery guarantee
    */
@@ -119,7 +119,7 @@ public interface VNCSource extends DynamicSource {
   }
 
   /**
-   * Gets the source kind.
+   * Returns the source kind.
    *
    * @return {@code vnc}
    */
@@ -139,7 +139,7 @@ public interface VNCSource extends DynamicSource {
      *
      * @param host the non-null, nonblank host name or address, retained without trimming
      * @return this builder
-     * @throws NullPointerException if {@code host} is null
+     * @throws NullPointerException     if {@code host} is null
      * @throws IllegalArgumentException if {@code host} is blank
      */
     Builder host(final String host);
