@@ -171,6 +171,20 @@ final class DirectAudioOutputTest {
   }
 
   @Test
+  void shouldKeepAReleaseFailureWhenTheLaterStagesSucceed() {
+    final SourceDataLine line = mock(SourceDataLine.class);
+    final IllegalStateException failure = new IllegalStateException("Stop failed!");
+    doThrow(failure).when(line).stop();
+    final DirectAudioOutput output = new DirectAudioOutput((_, _) -> line);
+    output.start();
+    final IllegalStateException thrown = assertThrows(IllegalStateException.class, output::release);
+    assertSame(failure, thrown);
+
+    verify(line).flush();
+    verify(line).close();
+  }
+
+  @Test
   void shouldRethrowAnOrdinaryErrorAfterClosingTheLineWithoutSelfSuppression() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final AssertionError failure = new AssertionError("Shared failure!");

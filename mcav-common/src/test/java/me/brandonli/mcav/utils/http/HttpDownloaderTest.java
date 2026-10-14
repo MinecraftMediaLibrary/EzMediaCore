@@ -27,8 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -58,6 +60,8 @@ import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -279,6 +283,26 @@ final class HttpDownloaderTest {
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
+  }
+
+  @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldLogEveryFailedAttempt() throws IOException {
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      server.respond(BROKEN_ROUTE, HTTP_SERVER_ERROR, CONTENT);
+      final URI broken = server.uri(BROKEN_ROUTE);
+      final Path destination = this.directory.resolve(BROKEN_FILE_NAME);
+      assertThrows(IOException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
+    } finally {
+      System.setErr(standardError);
+    }
+
+    final String log = captured.toString(StandardCharsets.UTF_8);
+    final boolean reported = log.contains("on attempt 3 of 3.");
+    assertTrue(reported, log);
   }
 
   @Test

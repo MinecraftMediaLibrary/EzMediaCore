@@ -131,6 +131,31 @@ final class OrderedDitherTest {
   }
 
   @Test
+  void shouldMatchSerialDitheringWhenTheRowsDoNotSplitEvenlyAcrossTasks() {
+    final int height = TALL_GRADIENT_HEIGHT + 1;
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, height);
+    final OrderedDither dither = blackWhite4x4();
+    try (final ForkJoinPool pool = new ForkJoinPool(3); final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, height)) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
+  void shouldMatchSerialDitheringWhenThePixelCountTimesTheWidthOverflowsAnInt() {
+    final int width = 2048;
+    final int height = 512;
+    final int[] pixels = DitherTestImages.gradient(width, height);
+    final OrderedDither dither = blackWhite4x4();
+    try (final ForkJoinPool pool = new ForkJoinPool(3); final ImageBuffer image = ImageBuffer.buffer(pixels, width, height)) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
   void shouldMatchSerialDitheringWhenDitheringOnASingleThread() {
     final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
     final OrderedDither dither = blackWhite4x4();

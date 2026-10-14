@@ -452,7 +452,9 @@ final class IoUtilsTest {
   void shouldRejectEntriesThatEscapeTheDestination() throws IOException {
     final Path archive = this.writeZip(PARENT_ESCAPE_PATH, EVIL_CONTENT);
     final Path destination = this.directory.resolve(SAFE_DIRECTORY);
-    assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+    final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+    final String message = refused.getMessage();
+    assertEquals("Zip entry ../escape.txt escapes the destination directory!", message);
   }
 
   @Test
