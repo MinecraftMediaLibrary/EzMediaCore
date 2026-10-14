@@ -69,6 +69,7 @@ final class PlatformDiscoveryStrategiesTest {
   private static final String LIBRARY_DIRECTORY_NAME = "lib";
   private static final String VLC_DIRECTORY_NAME = "vlc";
   private static final String PLUGINS_DIRECTORY_NAME = "plugins";
+  private static final String PARENT_DIRECTORY_NAME = "..";
 
   private static final String LINUX_LIBRARY_NAME = "libvlc.so.5";
   private static final String LINUX_CORE_LIBRARY_NAME = "libvlccore.so.9";
@@ -148,7 +149,7 @@ final class PlatformDiscoveryStrategiesTest {
     final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, setter);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "/vlc/plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -181,7 +182,9 @@ final class PlatformDiscoveryStrategiesTest {
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, setter, _ -> {});
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "/../plugins");
+    final Path relativePlugins = Path.of(PARENT_DIRECTORY_NAME, PLUGINS_DIRECTORY_NAME);
+    final Path publishedPlugins = directory.resolve(relativePlugins);
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + publishedPlugins);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -228,8 +231,6 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldPublishThePluginsBelowTheInstallationDirectoryOnWindows() throws IOException {
-    final Os operatingSystem = OsUtils.getOs();
-    Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Windows plugin paths use backslashes!");
     final Path directory = createFiles(
       this.temporaryDirectory,
       WINDOWS_INSTALLATION_DIRECTORY_NAME,
@@ -244,7 +245,7 @@ final class PlatformDiscoveryStrategiesTest {
     final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, setter);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "\\plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }

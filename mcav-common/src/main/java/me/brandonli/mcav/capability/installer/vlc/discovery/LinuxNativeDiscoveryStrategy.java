@@ -36,6 +36,7 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
  * Copyright 2009-2025 Caprica Software Limited.
  */
 
+import java.nio.file.Path;
 import java.util.List;
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 
@@ -51,7 +52,7 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.so(?:\\.\\d+)*", "libvlccore\\.so(?:\\.\\d+)*" };
-  private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s/plugins", "%s/vlc/plugins" };
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("plugins"), Path.of("vlc", "plugins"));
 
   /**
    * Constructs a strategy that searches vlcj's directories and publishes the plugin path with {@code setenv}.
@@ -60,11 +61,11 @@ public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStra
    */
   public LinuxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = nativeSetter();
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, posixSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, posixSetter);
   }
 
   LinuxNativeDiscoveryStrategy(final List<SearchProvider> searchProviders, final EnvironmentSetter environmentSetter) {
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
   }
 
   static EnvironmentSetter nativeSetter() {

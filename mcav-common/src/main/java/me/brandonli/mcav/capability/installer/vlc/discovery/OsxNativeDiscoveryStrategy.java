@@ -38,6 +38,7 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
 
 import com.google.common.base.Preconditions;
 import com.sun.jna.NativeLibrary;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -60,7 +61,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OsxNativeDiscoveryStrategy.class);
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.dylib", "libvlccore\\.dylib" };
-  private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s/../plugins" };
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("..", "plugins"));
 
   private final Consumer<String> corePreloader;
 
@@ -72,7 +73,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
    */
   public OsxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = LinuxNativeDiscoveryStrategy.nativeSetter();
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, posixSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, posixSetter);
     this.corePreloader = OsxNativeDiscoveryStrategy::preloadCoreLibrary;
   }
 
@@ -81,7 +82,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
     final EnvironmentSetter environmentSetter,
     final Consumer<String> corePreloader
   ) {
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
     Preconditions.checkNotNull(corePreloader, "Core preloader must not be null!");
 
     this.corePreloader = corePreloader;

@@ -55,7 +55,6 @@ final class DirectoryProviderDiscoveryStrategyTest {
   private static final String UNMATCHED_PATTERN = "nothing-matches-this";
 
   private static final String[] PATTERNS = { LIBRARY_PATTERN, CORE_LIBRARY_PATTERN };
-  private static final String[] PLUGIN_FORMATS = { "%s/plugins", "%s/vlc/plugins" };
   private static final EnvironmentSetter IGNORING_SETTER = (_, _) -> true;
   private static final String JNA_LIBRARY_PATH = "jna.library.path";
 
@@ -100,8 +99,10 @@ final class DirectoryProviderDiscoveryStrategyTest {
   private static final String PLUGIN_DIRECTORY = "plugins";
   private static final String PLUGIN_PARENT_DIRECTORY = "vlc";
   private static final String PLUGIN_PATH_ASSIGNMENT = "VLC_PLUGIN_PATH=";
-  private static final String PLUGIN_SUFFIX = "/plugins";
-  private static final String NESTED_PLUGIN_SUFFIX = "/vlc/plugins";
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(
+    Path.of(PLUGIN_DIRECTORY),
+    Path.of(PLUGIN_PARENT_DIRECTORY, PLUGIN_DIRECTORY)
+  );
 
   @TempDir
   private Path temporaryDirectory;
@@ -190,7 +191,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final String[] overlapping = { LIBRARY_PATTERN, LIBRARY_PREFIX_PATTERN };
     final SearchProvider provider = search(1, directory, 0);
     final List<SearchProvider> providers = List.of(provider);
-    final TestStrategy strategy = new TestStrategy(overlapping, PLUGIN_FORMATS, providers, IGNORING_SETTER);
+    final TestStrategy strategy = new TestStrategy(overlapping, PLUGIN_DIRECTORIES, providers, IGNORING_SETTER);
     final String found = strategy.discover();
     assertNull(found);
   }
@@ -406,7 +407,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final SearchProvider librarySearch = search(1, libraries, 0);
     final List<SearchProvider> providers = new ArrayList<>();
     providers.add(librarySearch);
-    final TestStrategy strategy = new TestStrategy(patterns, PLUGIN_FORMATS, providers, IGNORING_SETTER);
+    final TestStrategy strategy = new TestStrategy(patterns, PLUGIN_DIRECTORIES, providers, IGNORING_SETTER);
     patterns[0] = UNMATCHED_PATTERN;
     providers.clear();
     final String found = strategy.discover();
@@ -423,7 +424,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final TestStrategy strategy = recordingStrategy(published, true);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
-    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + libraryPath + PLUGIN_SUFFIX);
+    final Path plugins = libraries.resolve(PLUGIN_DIRECTORY);
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -436,7 +438,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final TestStrategy strategy = recordingStrategy(published, true);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
-    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + libraryPath + NESTED_PLUGIN_SUFFIX);
+    final Path pluginParent = libraries.resolve(PLUGIN_PARENT_DIRECTORY);
+    final Path plugins = pluginParent.resolve(PLUGIN_DIRECTORY);
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + plugins);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -477,11 +481,11 @@ final class DirectoryProviderDiscoveryStrategyTest {
   void shouldRejectInvalidArguments() {
     final List<SearchProvider> providers = List.of();
     final TestStrategy strategy = strategy();
-    assertThrows(NullPointerException.class, () -> new TestStrategy(null, PLUGIN_FORMATS, providers, IGNORING_SETTER));
+    assertThrows(NullPointerException.class, () -> new TestStrategy(null, PLUGIN_DIRECTORIES, providers, IGNORING_SETTER));
     assertThrows(NullPointerException.class, () -> new TestStrategy(PATTERNS, null, providers, IGNORING_SETTER));
-    assertThrows(NullPointerException.class, () -> new TestStrategy(PATTERNS, PLUGIN_FORMATS, null, IGNORING_SETTER));
-    assertThrows(NullPointerException.class, () -> new TestStrategy(PATTERNS, PLUGIN_FORMATS, providers, null));
-    assertThrows(IllegalArgumentException.class, () -> new TestStrategy(new String[0], PLUGIN_FORMATS, providers, IGNORING_SETTER));
+    assertThrows(NullPointerException.class, () -> new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, null, IGNORING_SETTER));
+    assertThrows(NullPointerException.class, () -> new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, providers, null));
+    assertThrows(IllegalArgumentException.class, () -> new TestStrategy(new String[0], PLUGIN_DIRECTORIES, providers, IGNORING_SETTER));
     assertThrows(NullPointerException.class, () -> strategy.onFound(null));
     assertThrows(NullPointerException.class, () -> strategy.onSetPluginPath(null));
   }
@@ -527,13 +531,13 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   private static TestStrategy strategy(final SearchProvider... providers) {
     final List<SearchProvider> providerList = List.of(providers);
-    return new TestStrategy(PATTERNS, PLUGIN_FORMATS, providerList, IGNORING_SETTER);
+    return new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, providerList, IGNORING_SETTER);
   }
 
   private static TestStrategy recordingStrategy(final List<String> published, final boolean setterSucceeds) {
     final EnvironmentSetter setter = (name, value) -> recordVariable(published, setterSucceeds, name, value);
     final List<SearchProvider> noProviders = List.of();
-    return new TestStrategy(PATTERNS, PLUGIN_FORMATS, noProviders, setter);
+    return new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, noProviders, setter);
   }
 
   private static boolean recordVariable(final List<String> published, final boolean setterSucceeds, final String name, final String value) {
@@ -544,7 +548,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
   private static final class DefaultProviderStrategy extends DirectoryProviderDiscoveryStrategy {
 
     DefaultProviderStrategy() {
-      super(PATTERNS, PLUGIN_FORMATS, IGNORING_SETTER);
+      super(PATTERNS, PLUGIN_DIRECTORIES, IGNORING_SETTER);
     }
 
     @Override
@@ -557,11 +561,11 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
     TestStrategy(
       final String[] patterns,
-      final String[] pluginFormats,
+      final List<Path> pluginDirectories,
       final List<SearchProvider> providers,
       final EnvironmentSetter setter
     ) {
-      super(patterns, pluginFormats, providers, setter);
+      super(patterns, pluginDirectories, providers, setter);
     }
 
     @Override

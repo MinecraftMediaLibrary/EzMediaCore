@@ -87,7 +87,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   private static final Comparator<SearchProvider> HIGHEST_PRIORITY_FIRST = BY_PRIORITY.reversed();
 
   private final Pattern[] filenamePatterns;
-  private final String[] pluginPathFormats;
+  private final List<Path> pluginDirectories;
   private final List<SearchProvider> searchProviders;
   private final EnvironmentSetter environmentSetter;
 
@@ -96,37 +96,37 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    *
    * @param filenamePatterns  a non-null, nonempty array of non-null regular expressions; each must match a
    *                          library file name; expressions are compiled during construction
-   * @param pluginPathFormats a non-null array of non-null format strings, each with a {@code %s} for the library
-   *                          directory, copied and tried in order; an empty array publishes no plugin path
+   * @param pluginDirectories the plugin directories relative to the library directory, such as {@code plugins},
+   *                          copied and tried in order; an empty list publishes no plugin path
    * @param environmentSetter sets the environment variable that tells libvlc where its plugins are
-   * @throws NullPointerException                   if an array, filename expression or the environment setter is null
+   * @throws NullPointerException                   if an argument, a filename expression or a plugin directory is null
    * @throws IllegalArgumentException               if no filename pattern is supplied
    * @throws java.util.regex.PatternSyntaxException if a filename expression is not a valid regular expression
    * @since 1.0.0
    */
   protected DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
-    final String[] pluginPathFormats,
+    final List<Path> pluginDirectories,
     final EnvironmentSetter environmentSetter
   ) {
     final List<SearchProvider> searchProviders = createSearchProviders();
-    this(filenamePatterns, pluginPathFormats, searchProviders, environmentSetter);
+    this(filenamePatterns, pluginDirectories, searchProviders, environmentSetter);
   }
 
   DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
-    final String[] pluginPathFormats,
+    final List<Path> pluginDirectories,
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter
   ) {
     Preconditions.checkNotNull(filenamePatterns, "Filename patterns must not be null!");
-    Preconditions.checkNotNull(pluginPathFormats, "Plugin path formats must not be null!");
+    Preconditions.checkNotNull(pluginDirectories, "Plugin directories must not be null!");
     Preconditions.checkNotNull(searchProviders, "Search providers must not be null!");
     Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null!");
     Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required!");
 
     this.filenamePatterns = compilePatterns(filenamePatterns);
-    this.pluginPathFormats = pluginPathFormats.clone();
+    this.pluginDirectories = List.copyOf(pluginDirectories);
     this.searchProviders = List.copyOf(searchProviders);
     this.environmentSetter = environmentSetter;
   }
@@ -350,24 +350,25 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   }
 
   /**
-   * Publishes the plugin directory that belongs to the found library directory, using the first plugin path format
-   * that names an existing directory.
+   * Publishes the plugin directory that belongs to the found library directory, using the first configured plugin
+   * directory that exists below it.
    *
    * @param path the directory that contains the libraries
    * @return {@code true} if a plugin directory exists and was published
-   * @throws java.util.IllegalFormatException if a configured plugin path format cannot accept a directory string
-   * @throws NullPointerException             if {@code path} is null
+   * @throws InvalidPathException if {@code path} is not a valid path on this file system
+   * @throws NullPointerException if {@code path} is null
    * @since 1.0.0
    */
   @Override
   public final boolean onSetPluginPath(final String path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
 
-    for (final String pathFormat : this.pluginPathFormats) {
-      final String pluginPath = pathFormat.formatted(path);
-      final File pluginDirectory = new File(pluginPath);
-      final boolean exists = pluginDirectory.isDirectory();
+    final Path libraryDirectory = Path.of(path);
+    for (final Path relativeDirectory : this.pluginDirectories) {
+      final Path pluginDirectory = libraryDirectory.resolve(relativeDirectory);
+      final boolean exists = Files.isDirectory(pluginDirectory);
       if (exists) {
+        final String pluginPath = pluginDirectory.toString();
         return this.environmentSetter.set(PLUGIN_ENVIRONMENT_NAME, pluginPath);
       }
     }
