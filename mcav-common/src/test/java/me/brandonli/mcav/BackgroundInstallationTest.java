@@ -32,6 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.loader.DependencyLoader;
@@ -69,8 +70,8 @@ final class BackgroundInstallationTest {
 
   @Test
   void shouldPrepareBothProgramsOnNamedDaemonThreads() throws Exception {
-    this.stubCapability(Capability.VLC, true);
-    this.stubCapability(Capability.YT_DLP, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
+    this.stubCapability(Capability.YT_DLP, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
     final Boolean hasVlc = await(installation, Capability.VLC);
@@ -97,8 +98,8 @@ final class BackgroundInstallationTest {
 
   @Test
   void shouldAnswerTheOtherCapabilitiesThroughTheLoader() {
-    this.stubCapability(Capability.FFMPEG, true);
-    this.stubCapability(Capability.FACE_DETECTION, false);
+    this.stubCapability(Capability.FFMPEG, Availability.AVAILABLE);
+    this.stubCapability(Capability.FACE_DETECTION, Availability.UNAVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     final boolean hasFfmpeg = installation.isAvailable(Capability.FFMPEG);
     final boolean hasFaceDetection = installation.isAvailable(Capability.FACE_DETECTION);
@@ -117,8 +118,8 @@ final class BackgroundInstallationTest {
     final Stubber failingVlc = Mockito.doThrow(failure);
     final DependencyLoader stubbed = failingVlc.when(this.dependencies);
     stubbed.installVlc();
-    this.stubCapability(Capability.VLC, true);
-    this.stubCapability(Capability.YT_DLP, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
+    this.stubCapability(Capability.YT_DLP, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
     final Boolean hasVlc = await(installation, Capability.VLC);
@@ -139,7 +140,7 @@ final class BackgroundInstallationTest {
     final Stubber failingYtdlp = Mockito.doThrow(error);
     final DependencyLoader stubbed = failingYtdlp.when(this.dependencies);
     stubbed.installYtdlp();
-    this.stubCapability(Capability.YT_DLP, true);
+    this.stubCapability(Capability.YT_DLP, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
     final Boolean hasYtdlp = await(installation, Capability.YT_DLP);
@@ -155,7 +156,7 @@ final class BackgroundInstallationTest {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlc(vlcStarted, finishVlc);
-    this.stubCapability(Capability.VLC, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -243,7 +244,7 @@ final class BackgroundInstallationTest {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlcUninterruptibly(vlcStarted, finishVlc);
-    this.stubCapability(Capability.VLC, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.startWithFinishedYtdlp(vlcStarted);
 
     installation.cancel();
@@ -347,8 +348,8 @@ final class BackgroundInstallationTest {
 
   @Test
   void shouldKeepTheResultsOfAFinishedInstallationWhenCancelling() throws Exception {
-    this.stubCapability(Capability.VLC, true);
-    this.stubCapability(Capability.YT_DLP, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
+    this.stubCapability(Capability.YT_DLP, Availability.AVAILABLE);
     final BackgroundInstallation installation = this.createInstallation();
     installation.start();
     await(installation, Capability.VLC);
@@ -374,7 +375,8 @@ final class BackgroundInstallationTest {
     return installation;
   }
 
-  private void stubCapability(final Capability capability, final boolean available) {
+  private void stubCapability(final Capability capability, final Availability availability) {
+    final boolean available = availability == Availability.AVAILABLE;
     final Stubber stubber = Mockito.doReturn(available);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.hasCapability(capability);

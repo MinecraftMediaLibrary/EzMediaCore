@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -154,16 +154,18 @@ final class AudioExtractorTest {
 
   @Test
   void shouldRemoveOnlyThePartialOutputWhenExtractionFails() throws IOException {
-    this.checkFailedExtraction(false, false);
+    this.checkFailedExtraction(Cleanup.SUCCEEDS);
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldKeepTheExtractionFailureWhenDeletingThePartialFileFails(final boolean sameFailure) throws IOException {
-    this.checkFailedExtraction(true, sameFailure);
+  @EnumSource(value = Cleanup.class, mode = EnumSource.Mode.EXCLUDE, names = "SUCCEEDS")
+  void shouldKeepTheExtractionFailureWhenDeletingThePartialFileFails(final Cleanup cleanup) throws IOException {
+    this.checkFailedExtraction(cleanup);
   }
 
-  private void checkFailedExtraction(final boolean cleanupFails, final boolean sameFailure) throws IOException {
+  private void checkFailedExtraction(final Cleanup cleanup) throws IOException {
+    final boolean cleanupFails = cleanup != Cleanup.SUCCEEDS;
+    final boolean sameFailure = cleanup == Cleanup.FAILS_WITH_THE_EXTRACTION_EXCEPTION;
     final Path cache = IoUtils.getCachedFolder();
     final Path existing = Files.writeString(cache.resolve(KEPT_FILE_NAME), "existing audio");
     final AtomicReference<Path> partial = new AtomicReference<>();
@@ -181,7 +183,7 @@ final class AudioExtractorTest {
     ) {
       templates
         .when(() -> FfmpegTemplates.extractOggVorbis(anyString(), anyString()))
-        .thenAnswer(invocation -> this.recordPartialOutput(invocation, partial, files, cleanupFails, cleanupFailure, command));
+        .thenAnswer(invocation -> this.recordPartialOutput(invocation, partial, files, cleanup, cleanupFailure, command));
       final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));
       final MCAVException thrown = assertThrows(MCAVException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
@@ -208,7 +210,7 @@ final class AudioExtractorTest {
     final InvocationOnMock invocation,
     final AtomicReference<Path> partial,
     final MockedStatic<Files> files,
-    final boolean cleanupFails,
+    final Cleanup cleanup,
     final Exception cleanupFailure,
     final FfmpegCommand command
   ) {
@@ -216,7 +218,7 @@ final class AudioExtractorTest {
     final Path outputPath = Path.of(output);
     partial.set(outputPath);
 
-    if (cleanupFails) {
+    if (cleanup != Cleanup.SUCCEEDS) {
       files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
     }
 
@@ -233,5 +235,11 @@ final class AudioExtractorTest {
   @Test
   void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(AudioExtractor.class);
+  }
+
+  private enum Cleanup {
+    SUCCEEDS,
+    FAILS_WITH_ITS_OWN_EXCEPTION,
+    FAILS_WITH_THE_EXTRACTION_EXCEPTION,
   }
 }

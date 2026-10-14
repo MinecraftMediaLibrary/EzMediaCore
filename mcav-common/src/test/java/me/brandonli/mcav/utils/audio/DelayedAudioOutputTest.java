@@ -48,7 +48,7 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
 class DelayedAudioOutputTest {
@@ -212,8 +212,9 @@ class DelayedAudioOutputTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldNotStopTheSoundOnANonfatalErrorInTheExceptionHandler(final boolean linkage) throws InterruptedException {
+  @EnumSource(ReporterError.class)
+  void shouldNotStopTheSoundOnANonfatalErrorInTheExceptionHandler(final ReporterError reporterError) throws InterruptedException {
+    final boolean linkage = reporterError == ReporterError.LINKAGE;
     final AtomicReference<byte[]> heard = new AtomicReference<>();
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
     final CountDownLatch settled = new CountDownLatch(1);
@@ -854,5 +855,10 @@ class DelayedAudioOutputTest {
 
   private static DelayedAudioOutput start(final Supplier<AudioPipelineStep> pipeline, final BiConsumer<String, Throwable> failures) {
     return DelayedAudioOutput.start(SOURCE_NAME, DELAY_MILLISECONDS, MAXIMUM_QUEUED_MILLISECONDS, pipeline, failures);
+  }
+
+  private enum ReporterError {
+    ASSERTION,
+    LINKAGE,
   }
 }

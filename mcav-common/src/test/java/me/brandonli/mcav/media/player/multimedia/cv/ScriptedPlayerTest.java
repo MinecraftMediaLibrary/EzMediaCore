@@ -85,7 +85,7 @@ final class ScriptedPlayerTest {
       script.add(frame);
     }
 
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     grabber.setLength(10_000_000L);
     return grabber;
   }
@@ -97,7 +97,7 @@ final class ScriptedPlayerTest {
       script.add(chunk);
     }
 
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     grabber.setLength(30_000_000L);
     return grabber;
   }

@@ -170,23 +170,30 @@ final class VlcInstallationValidationTest {
     try (final OutputStream file = Files.newOutputStream(archive); final ZipOutputStream zip = new ZipOutputStream(file)) {
       if (defect != Defect.MISSING_MAIN) {
         final String suffix = defect == Defect.DIRECTORY_MAIN ? DIRECTORY_ENTRY_SUFFIX : "";
-        writeEntry(zip, ARCHIVE_ROOT + platform.mainLibrary() + suffix, defect == Defect.EMPTY_MAIN || defect == Defect.DIRECTORY_MAIN);
+        final EntryContent content = selectContent(defect, Defect.EMPTY_MAIN, Defect.DIRECTORY_MAIN);
+        writeEntry(zip, ARCHIVE_ROOT + platform.mainLibrary() + suffix, content);
       }
       if (defect != Defect.MISSING_CORE) {
         final String prefix = defect == Defect.DIFFERENT_DIRECTORIES ? OTHER_ARCHIVE_DIRECTORY : ARCHIVE_ROOT;
         final String suffix = defect == Defect.DIRECTORY_CORE ? DIRECTORY_ENTRY_SUFFIX : "";
-        writeEntry(zip, prefix + platform.coreLibrary() + suffix, defect == Defect.EMPTY_CORE || defect == Defect.DIRECTORY_CORE);
+        final EntryContent content = selectContent(defect, Defect.EMPTY_CORE, Defect.DIRECTORY_CORE);
+        writeEntry(zip, prefix + platform.coreLibrary() + suffix, content);
       }
     }
   }
 
-  private static void writeEntry(final ZipOutputStream zip, final String name, final boolean empty) throws IOException {
+  private static EntryContent selectContent(final Defect defect, final Defect emptyDefect, final Defect directoryDefect) {
+    final boolean empty = defect == emptyDefect || defect == directoryDefect;
+    return empty ? EntryContent.EMPTY : EntryContent.MARKER;
+  }
+
+  private static void writeEntry(final ZipOutputStream zip, final String name, final EntryContent content) throws IOException {
     final ZipEntry entry = new ZipEntry(name);
     zip.putNextEntry(entry);
 
-    if (!empty) {
-      final byte[] content = "structural library marker, never loaded".getBytes(StandardCharsets.UTF_8);
-      zip.write(content);
+    if (content == EntryContent.MARKER) {
+      final byte[] marker = "structural library marker, never loaded".getBytes(StandardCharsets.UTF_8);
+      zip.write(marker);
     }
 
     zip.closeEntry();
@@ -279,5 +286,10 @@ final class VlcInstallationValidationTest {
     DIFFERENT_DIRECTORIES,
     DIRECTORY_MAIN,
     DIRECTORY_CORE,
+  }
+
+  private enum EntryContent {
+    EMPTY,
+    MARKER,
   }
 }

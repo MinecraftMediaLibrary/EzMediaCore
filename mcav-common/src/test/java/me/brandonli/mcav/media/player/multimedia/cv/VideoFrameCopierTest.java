@@ -169,12 +169,13 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldAverageAllSourcePixelsWhenShrinkingEitherAxis() {
-    for (final boolean horizontal : new boolean[] { true, false }) {
-      this.assertShrinkingAveragesAllSourcePixels(horizontal);
+    for (final Axis axis : Axis.values()) {
+      this.assertShrinkingAveragesAllSourcePixels(axis);
     }
   }
 
-  private void assertShrinkingAveragesAllSourcePixels(final boolean horizontal) {
+  private void assertShrinkingAveragesAllSourcePixels(final Axis axis) {
+    final boolean horizontal = axis == Axis.HORIZONTAL;
     final int width = horizontal ? 3 : 1;
     final int height = horizontal ? 1 : 3;
     try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
@@ -195,12 +196,13 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldInterpolateGrowingFramesAndRefreshTheReusedPixelCache() {
-    for (final boolean horizontal : new boolean[] { true, false }) {
-      this.assertGrowingInterpolatesAndRefreshesThePixelCache(horizontal);
+    for (final Axis axis : Axis.values()) {
+      this.assertGrowingInterpolatesAndRefreshesThePixelCache(axis);
     }
   }
 
-  private void assertGrowingInterpolatesAndRefreshesThePixelCache(final boolean horizontal) {
+  private void assertGrowingInterpolatesAndRefreshesThePixelCache(final Axis axis) {
+    final boolean horizontal = axis == Axis.HORIZONTAL;
     final int width = horizontal ? 2 : 1;
     final int height = horizontal ? 1 : 2;
     try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
@@ -418,5 +420,10 @@ final class VideoFrameCopierTest {
     assertThrows(IllegalStateException.class, unscaled::getWidth, "the copy was released");
 
     image.release();
+  }
+
+  private enum Axis {
+    HORIZONTAL,
+    VERTICAL,
   }
 }

@@ -387,17 +387,18 @@ final class DependencyLoaderTest {
   @Test
   void shouldNotLetOlderPreparationsOverwriteTheLatestOutcome() throws Exception {
     for (final Capability capability : List.of(Capability.VLC, Capability.YT_DLP)) {
-      for (final boolean latestSucceeds : List.of(false, true)) {
-        this.assertTheLatestPreparationWins(capability, latestSucceeds);
+      for (final PreparationOutcome latestOutcome : List.of(PreparationOutcome.FAILS, PreparationOutcome.SUCCEEDS)) {
+        this.assertTheLatestPreparationWins(capability, latestOutcome);
       }
     }
   }
 
-  private void assertTheLatestPreparationWins(final Capability capability, final boolean latestSucceeds) throws InterruptedException {
+  private void assertTheLatestPreparationWins(final Capability capability, final PreparationOutcome latestOutcome)
+    throws InterruptedException {
     final DependencyLoader loader = new DependencyLoader();
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch finish = new CountDownLatch(1);
-    final Runnable olderPreparation = () -> this.awaitOlderPreparation(entered, finish, latestSucceeds);
+    final Runnable olderPreparation = () -> this.awaitOlderPreparation(entered, finish, latestOutcome);
     final Thread older = new Thread(() -> this.prepareProgram(loader, capability, olderPreparation), "old-preparation");
     older.start();
     try {
@@ -405,13 +406,14 @@ final class DependencyLoaderTest {
       assertTrue(enteredInTime);
 
       older.interrupt();
-      this.prepareProgram(loader, capability, () -> this.runNewerPreparation(latestSucceeds));
+      this.prepareProgram(loader, capability, () -> this.runNewerPreparation(latestOutcome));
       finish.countDown();
       final boolean olderEnded = older.join(Duration.ofSeconds(TIMEOUT_SECONDS));
       assertTrue(olderEnded);
 
       final boolean capable = loader.hasCapability(capability);
-      assertEquals(latestSucceeds, capable, capability + " keeps the newest preparation outcome");
+      final boolean expected = latestOutcome == PreparationOutcome.SUCCEEDS;
+      assertEquals(expected, capable, capability + " keeps the newest preparation outcome");
     } finally {
       finish.countDown();
       final boolean ended = older.join(Duration.ofSeconds(TIMEOUT_SECONDS));
@@ -419,11 +421,11 @@ final class DependencyLoaderTest {
     }
   }
 
-  private void awaitOlderPreparation(final CountDownLatch entered, final CountDownLatch finish, final boolean latestSucceeds) {
+  private void awaitOlderPreparation(final CountDownLatch entered, final CountDownLatch finish, final PreparationOutcome latestOutcome) {
     entered.countDown();
     Uninterruptibles.awaitUninterruptibly(finish);
 
-    if (latestSucceeds) {
+    if (latestOutcome == PreparationOutcome.SUCCEEDS) {
       throw new IllegalStateException("old failure!");
     }
   }
@@ -446,8 +448,8 @@ final class DependencyLoaderTest {
     return Path.of(PREPARED_FILE_NAME);
   }
 
-  private void runNewerPreparation(final boolean latestSucceeds) {
-    if (!latestSucceeds) {
+  private void runNewerPreparation(final PreparationOutcome latestOutcome) {
+    if (latestOutcome == PreparationOutcome.FAILS) {
       throw new IllegalStateException("new failure!");
     }
   }
@@ -824,5 +826,10 @@ final class DependencyLoaderTest {
     static void touch() {
       assertEquals(0, LOADED);
     }
+  }
+
+  private enum PreparationOutcome {
+    FAILS,
+    SUCCEEDS,
   }
 }

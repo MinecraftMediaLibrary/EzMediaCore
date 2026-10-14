@@ -51,17 +51,17 @@ final class ImageBufferPropertyTest {
   Arbitrary<ImageCase> images() {
     final Arbitrary<Integer> sides = between(1, MAXIMUM_SIDE);
     final Arbitrary<Integer> margins = between(0, 9);
-    final Arbitrary<Boolean> direct = Arbitraries.of(true, false);
+    final Arbitrary<BufferKind> kinds = Arbitraries.of(BufferKind.DIRECT, BufferKind.HEAP);
     final Arbitrary<ByteOrder> orders = Arbitraries.of(ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN);
     final IntegerArbitrary colors = Arbitraries.integers();
     final ListArbitrary<Integer> colorList = colors.list();
     final ListArbitrary<Integer> pixels = colorList.ofSize(MAXIMUM_SIDE * MAXIMUM_SIDE);
-    final Combinators.Combinator7<Integer, Integer, Integer, Integer, Boolean, ByteOrder, List<Integer>> images = Combinators.combine(
+    final Combinators.Combinator7<Integer, Integer, Integer, Integer, BufferKind, ByteOrder, List<Integer>> images = Combinators.combine(
       sides,
       sides,
       margins,
       margins,
-      direct,
+      kinds,
       orders,
       pixels
     );
@@ -208,7 +208,7 @@ final class ImageBufferPropertyTest {
     private final int height;
     private final int before;
     private final int after;
-    private final boolean direct;
+    private final BufferKind kind;
     private final ByteOrder order;
     private final List<Integer> colors;
 
@@ -217,7 +217,7 @@ final class ImageBufferPropertyTest {
       final int height,
       final int before,
       final int after,
-      final boolean direct,
+      final BufferKind kind,
       final ByteOrder order,
       final List<Integer> colors
     ) {
@@ -225,7 +225,7 @@ final class ImageBufferPropertyTest {
       this.height = height;
       this.before = before;
       this.after = after;
-      this.direct = direct;
+      this.kind = kind;
       this.order = order;
       this.colors = colors;
     }
@@ -253,7 +253,7 @@ final class ImageBufferPropertyTest {
 
     ByteBuffer wrap(final byte[] bytes) {
       final int capacity = this.before + bytes.length + this.after;
-      final ByteBuffer buffer = this.direct ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+      final ByteBuffer buffer = this.kind == BufferKind.DIRECT ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
       buffer.order(this.order);
       for (int index = 0; index < capacity; index++) {
         buffer.put(index, (byte) 0x77);
@@ -275,8 +275,13 @@ final class ImageBufferPropertyTest {
 
     @Override
     public String toString() {
-      final String kind = this.direct ? "direct" : "heap";
+      final String kind = this.kind == BufferKind.DIRECT ? "direct" : "heap";
       return this.width + "x" + this.height + ", " + kind + " " + this.order + ", " + this.before + " before, " + this.after + " after";
     }
+  }
+
+  private enum BufferKind {
+    DIRECT,
+    HEAP,
   }
 }

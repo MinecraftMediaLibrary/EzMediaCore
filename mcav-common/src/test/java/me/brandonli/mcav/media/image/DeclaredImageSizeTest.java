@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -126,25 +127,28 @@ final class DeclaredImageSizeTest {
     return size == null ? "none" : size.width() + SIZE_SEPARATOR + size.height();
   }
 
-  private static byte[] tiff(final boolean little, final boolean big) {
+  private static byte[] tiff(final ByteOrder order, final TiffLayout layout) {
+    final boolean big = layout == TiffLayout.BIG;
     final int entrySize = big ? 20 : 12;
     final int countSize = big ? 8 : 2;
     final int directory = big ? 16 : 8;
     final int entries = 8;
     final int pixels = directory + countSize + entries * entrySize + (big ? 8 : 4);
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
-    output.writeBytes(little ? "II".getBytes(StandardCharsets.ISO_8859_1) : "MM".getBytes(StandardCharsets.ISO_8859_1));
-    output.writeBytes(number(big ? 43 : 42, 2, little));
+    output.writeBytes(
+      order == ByteOrder.LITTLE_ENDIAN ? "II".getBytes(StandardCharsets.ISO_8859_1) : "MM".getBytes(StandardCharsets.ISO_8859_1)
+    );
+    output.writeBytes(number(big ? 43 : 42, 2, order));
 
     if (big) {
-      output.writeBytes(number(8, 2, little));
-      output.writeBytes(number(0, 2, little));
-      output.writeBytes(number(directory, 8, little));
+      output.writeBytes(number(8, 2, order));
+      output.writeBytes(number(0, 2, order));
+      output.writeBytes(number(directory, 8, order));
     } else {
-      output.writeBytes(number(directory, 4, little));
+      output.writeBytes(number(directory, 4, order));
     }
 
-    output.writeBytes(number(entries, countSize, little));
+    output.writeBytes(number(entries, countSize, order));
     final long[][] tags = {
       { 256, 3, 1, 3 },
       { 257, 3, 1, 2 },
@@ -156,11 +160,11 @@ final class DeclaredImageSizeTest {
       { 279, 4, 1, 18 },
     };
     for (final long[] tag : tags) {
-      output.writeBytes(number(tag[0], 2, little));
-      output.writeBytes(number(tag[1], 2, little));
-      output.writeBytes(number(tag[2], big ? 8 : 4, little));
+      output.writeBytes(number(tag[0], 2, order));
+      output.writeBytes(number(tag[1], 2, order));
+      output.writeBytes(number(tag[2], big ? 8 : 4, order));
       final int width = tag[1] == 3 ? 2 : 4;
-      output.writeBytes(number(tag[3], width, little));
+      output.writeBytes(number(tag[3], width, order));
       output.writeBytes(new byte[(big ? 8 : 4) - width]);
     }
 
@@ -172,8 +176,8 @@ final class DeclaredImageSizeTest {
     return output.toByteArray();
   }
 
-  private static byte[] number(final long value, final int count, final boolean little) {
-    return little ? littleEndian(value, count) : bigEndian(value, count);
+  private static byte[] number(final long value, final int count, final ByteOrder order) {
+    return order == ByteOrder.LITTLE_ENDIAN ? littleEndian(value, count) : bigEndian(value, count);
   }
 
   private static Size decodedByOpenCv(final byte[] encoded) {
@@ -362,13 +366,14 @@ final class DeclaredImageSizeTest {
 
   @Test
   void shouldDeclareTheSizeOpenCvDecodesForTiffsOfBothByteOrdersAndBigTiffs() {
-    assertDeclaresWhatOpenCvDecodes("little-endian tiff", tiff(true, false));
-    assertDeclaresWhatOpenCvDecodes("big-endian tiff", tiff(false, false));
-    assertDeclaresWhatOpenCvDecodes("little-endian bigtiff", tiff(true, true));
-    assertDeclaresWhatOpenCvDecodes("big-endian bigtiff", tiff(false, true));
+    assertDeclaresWhatOpenCvDecodes("little-endian tiff", tiff(ByteOrder.LITTLE_ENDIAN, TiffLayout.CLASSIC));
+    assertDeclaresWhatOpenCvDecodes("big-endian tiff", tiff(ByteOrder.BIG_ENDIAN, TiffLayout.CLASSIC));
+    assertDeclaresWhatOpenCvDecodes("little-endian bigtiff", tiff(ByteOrder.LITTLE_ENDIAN, TiffLayout.BIG));
+    assertDeclaresWhatOpenCvDecodes("big-endian bigtiff", tiff(ByteOrder.BIG_ENDIAN, TiffLayout.BIG));
   }
 
-  private static byte[] tiffEntry(final boolean big, final long tag, final long type, final long count, final long value) {
+  private static byte[] tiffEntry(final TiffLayout layout, final long tag, final long type, final long count, final long value) {
+    final boolean big = layout == TiffLayout.BIG;
     final int width = type == 3 ? 2 : type == 16 ? 8 : 4;
     final int field = big ? 8 : 4;
     return bytes(
@@ -564,7 +569,11 @@ final class DeclaredImageSizeTest {
       Arguments.of("pfm read like atoi", bytes("Pf\n+5 7abc\n1\n"), 5, 7),
       Arguments.of(
         "tiff",
-        classicTiff(tiffEntry(false, 254, 4, 1, 0), tiffEntry(false, 256, 3, 1, 30000), tiffEntry(false, 257, 4, 1, 20000)),
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 254, 4, 1, 0),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 30000),
+          tiffEntry(TiffLayout.CLASSIC, 257, 4, 1, 20000)
+        ),
         30000,
         20000
       ),
@@ -602,9 +611,9 @@ final class DeclaredImageSizeTest {
           littleEndian(42, 2),
           littleEndian(8, 4),
           littleEndian(2, 2),
-          tiffEntry(false, 256, 3, 1, 5),
-          tiffEntry(false, 257, 3, 1, 7),
-          tiffEntry(false, 256, 3, 1, 9)
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 9)
         ),
         5,
         7
@@ -741,16 +750,33 @@ final class DeclaredImageSizeTest {
       ),
       Arguments.of(
         "tiff with two widths",
-        classicTiff(tiffEntry(false, 256, 3, 1, 5), tiffEntry(false, 256, 3, 1, 9), tiffEntry(false, 257, 3, 1, 7))
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 9),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7)
+        )
       ),
       Arguments.of(
         "tiff with two lengths",
-        classicTiff(tiffEntry(false, 256, 3, 1, 5), tiffEntry(false, 257, 3, 1, 9), tiffEntry(false, 257, 3, 1, 7))
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 9),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7)
+        )
       ),
-      Arguments.of("tiff with a width of two values", classicTiff(tiffEntry(false, 256, 3, 2, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("tiff with a width in bytes", classicTiff(tiffEntry(false, 256, 1, 1, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("classic tiff with an eight-byte width", classicTiff(tiffEntry(false, 256, 16, 1, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("tiff without its length", classicTiff(tiffEntry(false, 256, 3, 1, 5))),
+      Arguments.of(
+        "tiff with a width of two values",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 3, 2, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of(
+        "tiff with a width in bytes",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 1, 1, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of(
+        "classic tiff with an eight-byte width",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 16, 1, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of("tiff without its length", classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5))),
       Arguments.of("pam with a width of 0 and another", bytes("P7\nWIDTH 0\nWIDTH 5\nHEIGHT 7\nENDHDR\n")),
       Arguments.of("pam with a height of 0 and another", bytes("P7\nWIDTH 5\nHEIGHT 0\nHEIGHT 7\nENDHDR\n")),
       Arguments.of("pam with a line one longer than its limit", bytes("P7\nWIDTH", " ".repeat(507), "5\nHEIGHT 7\nENDHDR\n")),
@@ -778,7 +804,7 @@ final class DeclaredImageSizeTest {
 
   @Test
   void shouldReadAnEightByteWidthOfABigTiff() {
-    final byte[] entries = bytes(tiffEntry(true, 256, 16, 1, 30000), tiffEntry(true, 257, 4, 1, 20000));
+    final byte[] entries = bytes(tiffEntry(TiffLayout.BIG, 256, 16, 1, 30000), tiffEntry(TiffLayout.BIG, 257, 4, 1, 20000));
     final byte[] bigTiff = bytes(
       "II",
       littleEndian(43, 2),
@@ -806,7 +832,7 @@ final class DeclaredImageSizeTest {
   @Test
   void shouldReadOnlyTheTiffEntriesThatFitInTheDataWhole() {
     final byte[] header = bytes("II", littleEndian(42, 2), littleEndian(0, 4), new byte[6]);
-    final byte[] entries = bytes(tiffEntry(false, 256, 3, 1, 30000), tiffEntry(false, 257, 4, 1, 20000));
+    final byte[] entries = bytes(tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 30000), tiffEntry(TiffLayout.CLASSIC, 257, 4, 1, 20000));
     final byte[] truncatedRepeat = littleEndian(256, 2);
     final byte[] tiff = bytes(header, entries, truncatedRepeat);
 
@@ -924,5 +950,10 @@ final class DeclaredImageSizeTest {
   @Test
   void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(DeclaredImageSize.class);
+  }
+
+  private enum TiffLayout {
+    CLASSIC,
+    BIG,
   }
 }

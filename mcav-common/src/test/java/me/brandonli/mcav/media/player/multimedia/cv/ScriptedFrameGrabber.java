@@ -43,16 +43,15 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   private final Deque<Object> script;
   private final AtomicBoolean closed;
   private final AtomicLong requestedTimestamp;
-  private final boolean failOnStop;
   private boolean failOnStart;
+  private boolean failOnStop;
   private boolean failOnSeek;
   private long length;
 
-  ScriptedFrameGrabber(final int width, final int height, final boolean failOnStop, final List<?> steps) {
+  ScriptedFrameGrabber(final int width, final int height, final List<?> steps) {
     this.script = new ArrayDeque<>(steps);
     this.closed = new AtomicBoolean();
     this.requestedTimestamp = new AtomicLong(-1L);
-    this.failOnStop = failOnStop;
     this.imageWidth = width;
     this.imageHeight = height;
     this.sampleRate = SAMPLE_RATE;
@@ -61,7 +60,7 @@ final class ScriptedFrameGrabber extends FrameGrabber {
 
   static ScriptedFrameGrabber of(final Object... steps) {
     final List<Object> script = List.of(steps);
-    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
   }
 
   static ScriptedFrameGrabber failingToStart() {
@@ -71,9 +70,9 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   }
 
   static ScriptedFrameGrabber failingToStartAndStop() {
-    final List<Object> noSteps = List.of();
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, true, noSteps);
+    final ScriptedFrameGrabber grabber = of();
     grabber.failOnStart = true;
+    grabber.failOnStop = true;
     return grabber;
   }
 
@@ -100,6 +99,10 @@ final class ScriptedFrameGrabber extends FrameGrabber {
 
   void failOnSeek() {
     this.failOnSeek = true;
+  }
+
+  void failOnStop() {
+    this.failOnStop = true;
   }
 
   @Override

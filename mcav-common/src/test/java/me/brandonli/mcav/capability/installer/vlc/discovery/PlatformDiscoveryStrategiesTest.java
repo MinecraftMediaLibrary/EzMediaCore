@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategy.EnvironmentSetter;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategy.SearchProvider;
+import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategyTest.ProviderSupport;
 import me.brandonli.mcav.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategyTest.StaticDirectoryProvider;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import me.brandonli.mcav.utils.os.Os;
@@ -377,7 +378,7 @@ final class PlatformDiscoveryStrategiesTest {
     final EnvironmentReader reader = Native.load(libraryName, EnvironmentReader.class);
     final boolean set = setter.set(TEST_VARIABLE, VARIABLE_VALUE);
     final String value = reader.getenv(TEST_VARIABLE);
-    unsetTestVariable(isWindows);
+    unsetTestVariable(operatingSystem);
     final String afterUnset = reader.getenv(TEST_VARIABLE);
     assertTrue(set);
     assertEquals(VARIABLE_VALUE, value, "native code such as libvlc sees the variable");
@@ -453,9 +454,9 @@ final class PlatformDiscoveryStrategiesTest {
     UtilityClassAssertions.assertNotInstantiable(VlcDiscoveryStrategies.class);
   }
 
-  private static void unsetTestVariable(final boolean isWindows) {
+  private static void unsetTestVariable(final Os operatingSystem) {
     final LibC libc = LibC.INSTANCE;
-    if (isWindows) {
+    if (operatingSystem == Os.WINDOWS) {
       libc._putenv(TEST_VARIABLE + ASSIGNMENT_SEPARATOR);
     } else {
       libc.unsetenv(TEST_VARIABLE);
@@ -475,7 +476,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   private static List<SearchProvider> providersFor(final Path directory) {
     final String rawDirectory = directory.toString();
-    final StaticDirectoryProvider provider = new StaticDirectoryProvider(1, true, rawDirectory);
+    final StaticDirectoryProvider provider = new StaticDirectoryProvider(1, ProviderSupport.SUPPORTED, rawDirectory);
     final SearchProvider searchProvider = new SearchProvider(provider, 0);
     return List.of(searchProvider);
   }

@@ -720,12 +720,13 @@ final class VlcPlayerTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldLetTheOldPipelineReenterLifecycleWhenReplacingPlayback(final boolean releaseInside) throws Exception {
+  @EnumSource(LifecycleCall.class)
+  void shouldLetTheOldPipelineReenterLifecycleWhenReplacingPlayback(final LifecycleCall innerCall) throws Exception {
+    final boolean releaseInside = innerCall == LifecycleCall.RELEASE;
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch escape = new CountDownLatch(1);
     final AtomicReference<Boolean> callbackResult = new AtomicReference<>();
-    this.attachVideoFilter((_, _) -> this.reenterLifecycleAfterEscape(entered, escape, releaseInside, callbackResult));
+    this.attachVideoFilter((_, _) -> this.reenterLifecycleAfterEscape(entered, escape, innerCall, callbackResult));
     final AtomicReference<Boolean> replacementResult = new AtomicReference<>();
     final Thread replacement = new Thread(() -> replacementResult.set(this.player.start(this.audio)), "vlc-replacement");
     replacement.setDaemon(true);
@@ -769,7 +770,7 @@ final class VlcPlayerTest {
   private boolean reenterLifecycleAfterEscape(
     final CountDownLatch entered,
     final CountDownLatch escape,
-    final boolean releaseInside,
+    final LifecycleCall innerCall,
     final AtomicReference<Boolean> callbackResult
   ) {
     entered.countDown();
@@ -780,15 +781,16 @@ final class VlcPlayerTest {
       current.interrupt();
     }
 
-    final boolean succeeded = releaseInside ? this.player.release() : this.player.start(this.video);
+    final boolean succeeded = this.callLifecycle(innerCall);
     callbackResult.set(succeeded);
 
     return false;
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldGiveAPendingReplacementOneOwnerDuringConcurrentLifecycleCalls(final boolean releases) throws Exception {
+  @EnumSource(LifecycleCall.class)
+  void shouldGiveAPendingReplacementOneOwnerDuringConcurrentLifecycleCalls(final LifecycleCall competingCall) throws Exception {
+    final boolean releases = competingCall == LifecycleCall.RELEASE;
     this.startVideo();
     final MockVlc.Player first = this.vlc.player(0);
     final ControlsApi controls = first.getControls();
@@ -800,7 +802,7 @@ final class VlcPlayerTest {
     final AtomicReference<Boolean> replacementResult = new AtomicReference<>();
     final AtomicReference<Boolean> competingResult = new AtomicReference<>();
     final Thread replacement = new Thread(() -> replacementResult.set(this.player.start(this.audio)), "vlc-blocked-replacement");
-    final Thread competing = new Thread(() -> this.competeForLifecycle(releases, competingResult), "vlc-competing-lifecycle");
+    final Thread competing = new Thread(() -> this.competeForLifecycle(competingCall, competingResult), "vlc-competing-lifecycle");
     replacement.setDaemon(true);
     competing.setDaemon(true);
     try {
@@ -858,14 +860,22 @@ final class VlcPlayerTest {
     return null;
   }
 
-  private void competeForLifecycle(final boolean releases, final AtomicReference<Boolean> competingResult) {
-    final boolean succeeded = releases ? this.player.release() : this.player.start(this.video);
+  private void competeForLifecycle(final LifecycleCall competingCall, final AtomicReference<Boolean> competingResult) {
+    final boolean succeeded = this.callLifecycle(competingCall);
     competingResult.set(succeeded);
   }
 
+  private boolean callLifecycle(final LifecycleCall call) {
+    return switch (call) {
+      case START -> this.player.start(this.video);
+      case RELEASE -> this.player.release();
+    };
+  }
+
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldNotLetNativeCreationReentryOverwriteTheReservationOrOpenAfterRelease(final boolean failCreation) throws Exception {
+  @EnumSource(CreationOutcome.class)
+  void shouldNotLetNativeCreationReentryOverwriteTheReservationOrOpenAfterRelease(final CreationOutcome creation) throws Exception {
+    final boolean failCreation = creation == CreationOutcome.FAILS;
     this.startVideo();
     final MediaPlayerFactory factory = this.vlc.getFactory();
     final MediaPlayerApi api = factory.mediaPlayers();
@@ -874,7 +884,7 @@ final class VlcPlayerTest {
     when(created.controls()).thenReturn(controls);
     final AtomicReference<Boolean> released = new AtomicReference<>();
     final AtomicReference<Boolean> nestedStart = new AtomicReference<>();
-    doAnswer(_ -> this.reenterCreation(nestedStart, released, failCreation, created))
+    doAnswer(_ -> this.reenterCreation(nestedStart, released, creation, created))
       .when(api)
       .newEmbeddedMediaPlayer();
     final boolean started = this.player.start(this.audio);
@@ -899,13 +909,13 @@ final class VlcPlayerTest {
   private EmbeddedMediaPlayer reenterCreation(
     final AtomicReference<Boolean> nestedStart,
     final AtomicReference<Boolean> released,
-    final boolean failCreation,
+    final CreationOutcome creation,
     final EmbeddedMediaPlayer created
   ) {
     nestedStart.set(this.player.start(this.video));
     released.set(this.player.release());
 
-    if (failCreation) {
+    if (creation == CreationOutcome.FAILS) {
       throw new IllegalStateException("creation failed after reentrant release!");
     }
 
@@ -1441,5 +1451,15 @@ final class VlcPlayerTest {
     AUDIO_STOPPED,
     VIDEO_FAILED,
     AUDIO_NOTHING_OPEN,
+  }
+
+  private enum LifecycleCall {
+    START,
+    RELEASE,
+  }
+
+  private enum CreationOutcome {
+    SUCCEEDS,
+    FAILS,
   }
 }

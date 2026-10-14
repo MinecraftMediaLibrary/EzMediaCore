@@ -77,7 +77,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -499,8 +499,9 @@ final class AbstractInstallerTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldRetryExecutablePreparationAfterAPermissionFailure(final boolean freshInstaller) throws IOException {
+  @EnumSource(RetryInstaller.class)
+  void shouldRetryExecutablePreparationAfterAPermissionFailure(final RetryInstaller retryInstaller) throws IOException {
+    final boolean freshInstaller = retryInstaller == RetryInstaller.FRESH;
     try (
       final FileSystem fileSystem = Jimfs.newFileSystem(posixConfiguration());
       final LocalHttpServer server = LocalHttpServer.start();
@@ -871,5 +872,10 @@ final class AbstractInstallerTest {
     public boolean isArchive() {
       return this.isArchive;
     }
+  }
+
+  private enum RetryInstaller {
+    SAME,
+    FRESH,
   }
 }

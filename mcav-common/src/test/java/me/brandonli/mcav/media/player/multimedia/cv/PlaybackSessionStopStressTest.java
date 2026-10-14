@@ -113,7 +113,7 @@ final class PlaybackSessionStopStressTest {
         final Frame picture = ScriptedFrameGrabber.video(index * WAITING_DECODER_FRAME_MICROSECONDS);
         script.add(picture);
       }
-      final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+      final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
       final VideoAttachableCallback videoCallback = VideoAttachableCallback.create();
       final VideoPipelineStep blocking = VideoPipelineStep.of(PlaybackSessionStopStressTest::blockUntilInterrupted);
       videoCallback.attach(blocking);
@@ -237,8 +237,8 @@ final class PlaybackSessionStopStressTest {
         }
       }
 
-      this.videoGrabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, video);
-      this.audioGrabber = hasSeparateAudio ? new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, audio) : null;
+      this.videoGrabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, video);
+      this.audioGrabber = hasSeparateAudio ? new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, audio) : null;
       this.audioOpened = new AtomicBoolean();
       this.pictures = Collections.synchronizedSet(Collections.newSetFromMap(new IdentityHashMap<>()));
       this.frames = new AtomicInteger();

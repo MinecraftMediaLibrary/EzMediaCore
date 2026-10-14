@@ -209,7 +209,7 @@ final class PlaybackSessionTest {
       script.add(frame);
     }
 
-    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
   }
 
   private static ScriptedFrameGrabber pictureSoundPicture() {
@@ -366,7 +366,7 @@ final class PlaybackSessionTest {
     final Frame sound = ScriptedFrameGrabber.audio(0L);
     final Frame ignoredPicture = ScriptedFrameGrabber.video(0L);
     final List<Object> audioScript = List.of(sound, ignoredPicture);
-    return new ScriptedFrameGrabber(0, 0, false, audioScript);
+    return new ScriptedFrameGrabber(0, 0, audioScript);
   }
 
   @Test
@@ -406,7 +406,7 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber.Delay late = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
     final Frame firstSound = ScriptedFrameGrabber.audio(0L);
     final Frame secondSound = ScriptedFrameGrabber.audio(FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber audio = new ScriptedFrameGrabber(0, 0, false, List.of(late, firstSound, secondSound));
+    final ScriptedFrameGrabber audio = new ScriptedFrameGrabber(0, 0, List.of(late, firstSound, secondSound));
     final PlaybackSession session = this.session(() -> video, () -> audio, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
@@ -445,7 +445,8 @@ final class PlaybackSessionTest {
     awaitEnd(first);
 
     final List<Object> crash = List.of(new IllegalStateException("bug!"));
-    final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, true, crash);
+    final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, crash);
+    crashing.failOnStop();
     final PlaybackSession second = this.session(crashing, 0L, StartState.PLAYING);
     second.start();
     awaitEnd(second);
@@ -629,7 +630,7 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((image, _) -> this.recordImage(seen, frames, image));
     final List<Object> script = frames(24, 5_000L);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
@@ -674,7 +675,7 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final List<Object> script = frames(5, 0L);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     grabber.setFrameRate(10.0);
     grabber.setLength(500_000L);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
@@ -704,7 +705,7 @@ final class PlaybackSessionTest {
       script.add(new ScriptedFrameGrabber.Delay(40L));
     }
 
-    final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     camera.setFrameRate(30.0);
     final PlaybackSession session = this.session(camera, 0L, StartState.PLAYING);
     session.start();
@@ -765,7 +766,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> this.advanceClockAfterFirstFrame(frames, now));
     final Timing controlled = new Timing(PlaybackSession.AUDIO_LEAD_NANOSECONDS, PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS, now::get);
     final List<Object> script = frames(6, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
     final PlaybackSession session = this.session(factory, null, this.videoCallback, controlled, 0L, StartState.PLAYING);
     session.start();
@@ -879,7 +880,7 @@ final class PlaybackSessionTest {
     final VideoFilter blocking = blockingUntilInterrupted(rendering);
     this.onVideo(blocking);
     final List<Object> script = frames(20, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     final boolean rendered = rendering.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -1316,7 +1317,7 @@ final class PlaybackSessionTest {
     final AtomicReference<OriginalVideoMetadata> seen = new AtomicReference<>();
     this.onVideo((_, metadata) -> seen.compareAndSet(null, metadata));
     final Frame picture = ScriptedFrameGrabber.video(0L);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(0, 0, false, List.of(picture));
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(0, 0, List.of(picture));
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
@@ -1332,7 +1333,7 @@ final class PlaybackSessionTest {
     final AtomicReference<Thread> rendererHolder = new AtomicReference<>();
     this.onVideo((_, _) -> this.recordAndInterruptRenderer(rendererHolder));
     final List<Object> pictures = frames(20, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, pictures);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, pictures);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
 
@@ -1366,7 +1367,7 @@ final class PlaybackSessionTest {
       sounds.add(sound);
     }
 
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, sounds);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
 
@@ -1387,7 +1388,7 @@ final class PlaybackSessionTest {
       sounds.add(sound);
     }
 
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, sounds);
     final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     holder.set(session);
     session.start();
@@ -1416,7 +1417,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> shown.incrementAndGet() > 0);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     final List<Object> script = frames(320, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     final PlaybackSession session = new PlaybackSession(
       factoryOf(grabber),
       null,
@@ -1450,7 +1451,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> this.advanceClockByOneFrameOrASlowFrame(shown, now));
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     final List<Object> script = frames(320, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     final PlaybackSession session = new PlaybackSession(
       factoryOf(grabber),
       null,

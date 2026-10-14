@@ -46,8 +46,8 @@ import org.bytedeco.javacv.FrameGrabber;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -338,8 +338,9 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldLetFatalPipelineErrorsEscapeWithoutCallingTheReporter(final boolean audioFailure) throws Exception {
+  @EnumSource(MediaKind.class)
+  void shouldLetFatalPipelineErrorsEscapeWithoutCallingTheReporter(final MediaKind failingMedia) throws Exception {
+    final boolean audioFailure = failingMedia == MediaKind.AUDIO;
     final Object frame = audioFailure ? ScriptedFrameGrabber.audio(0L) : ScriptedFrameGrabber.video(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(frame);
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
@@ -480,15 +481,16 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldStopTheProducerAndEscapeWhenRendererHandlersFail(final boolean audioFailure) throws Exception {
+  @EnumSource(MediaKind.class)
+  void shouldStopTheProducerAndEscapeWhenRendererHandlersFail(final MediaKind failingMedia) throws Exception {
+    final boolean audioFailure = failingMedia == MediaKind.AUDIO;
     final List<Object> frames = new ArrayList<>();
     for (int index = 0; index < 30; index++) {
       frames.add(ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS));
       frames.add(ScriptedFrameGrabber.audio(index * FRAME_INTERVAL_MICROSECONDS));
     }
 
-    final ScriptedFrameGrabber video = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
+    final ScriptedFrameGrabber video = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, frames);
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
     final AudioAttachableCallback sound = AudioAttachableCallback.create();
     final DimensionAttachableCallback dimensions = DimensionAttachableCallback.create();
@@ -554,7 +556,7 @@ final class PlaybackSessionFailureTest {
       frames.add(frame);
     }
 
-    final ScriptedFrameGrabber real = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
+    final ScriptedFrameGrabber real = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, frames);
     final ScriptedFrameGrabber video = spy(real);
     final AtomicReference<Thread> decoder = new AtomicReference<>();
     doAnswer(invocation -> this.recordDecoderAndCallRealMethod(invocation, decoder))
@@ -591,5 +593,10 @@ final class PlaybackSessionFailureTest {
     final Thread worker = decoder.get();
     final boolean closed = video.isClosed();
     return closed && worker != null && worker.getState() == Thread.State.TIMED_WAITING;
+  }
+
+  private enum MediaKind {
+    VIDEO,
+    AUDIO,
   }
 }

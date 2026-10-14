@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.imageio.ImageIO;
+import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.loader.DependencyLoader;
@@ -116,8 +117,8 @@ final class MCAVTest {
     final boolean previousCache = ImageIO.getUseCache();
     ImageIO.setUseCache(true);
     try {
-      this.stubCapability(Capability.VLC, false);
-      this.stubCapability(Capability.YT_DLP, true);
+      this.stubCapability(Capability.VLC, Availability.UNAVAILABLE);
+      this.stubCapability(Capability.YT_DLP, Availability.AVAILABLE);
       this.mcav.install(CountingModule.class);
       final CompletableFuture<Boolean> vlcReady = this.mcav.whenCapabilityReady(Capability.VLC);
       final CompletableFuture<Boolean> ytdlpReady = this.mcav.whenCapabilityReady(Capability.YT_DLP);
@@ -186,7 +187,7 @@ final class MCAVTest {
     final boolean startedEmpty = started.isEmpty();
     assertTrue(startedEmpty);
 
-    this.stubCapability(Capability.FFMPEG, true);
+    this.stubCapability(Capability.FFMPEG, Availability.AVAILABLE);
     final boolean hasFfmpeg = this.mcav.hasCapability(Capability.FFMPEG);
     assertTrue(hasFfmpeg);
   }
@@ -195,15 +196,15 @@ final class MCAVTest {
   void shouldReportWhetherFaceDetectionIsAvailable() throws Exception {
     this.mcav.install();
     this.awaitBackgroundInstallation();
-    this.stubCapability(Capability.FACE_DETECTION, false);
+    this.stubCapability(Capability.FACE_DETECTION, Availability.UNAVAILABLE);
     final boolean hasFaceDetection = this.mcav.hasCapability(Capability.FACE_DETECTION);
     assertFalse(hasFaceDetection);
   }
 
   @Test
   void shouldAnswerCapabilitiesThatAreNotPreparedInTheBackgroundAtOnce() {
-    this.stubCapability(Capability.FFMPEG, true);
-    this.stubCapability(Capability.FACE_DETECTION, false);
+    this.stubCapability(Capability.FFMPEG, Availability.AVAILABLE);
+    this.stubCapability(Capability.FACE_DETECTION, Availability.UNAVAILABLE);
     this.mcav.install();
     final CompletableFuture<Boolean> ffmpegReady = this.mcav.whenCapabilityReady(Capability.FFMPEG);
     final CompletableFuture<Boolean> faceDetectionReady = this.mcav.whenCapabilityReady(Capability.FACE_DETECTION);
@@ -222,7 +223,7 @@ final class MCAVTest {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch finishVlc = new CountDownLatch(1);
     this.blockVlcInstallation(vlcStarted, finishVlc);
-    this.stubCapability(Capability.VLC, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
 
     this.mcav.install(CountingModule.class);
 
@@ -255,8 +256,8 @@ final class MCAVTest {
 
   @Test
   void shouldReportProgramsThatCouldNotBePreparedAsUnavailable() throws Exception {
-    this.stubCapability(Capability.VLC, false);
-    this.stubCapability(Capability.YT_DLP, false);
+    this.stubCapability(Capability.VLC, Availability.UNAVAILABLE);
+    this.stubCapability(Capability.YT_DLP, Availability.UNAVAILABLE);
     this.mcav.install();
 
     final CompletableFuture<Boolean> vlcReady = this.mcav.whenCapabilityReady(Capability.VLC);
@@ -285,7 +286,7 @@ final class MCAVTest {
     final Stubber stubber = Mockito.doAnswer(blockUntilInterrupted);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.installVlc();
-    this.stubCapability(Capability.VLC, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
     this.mcav.install(TrackedModule.class);
     final boolean started = vlcStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(started);
@@ -426,7 +427,7 @@ final class MCAVTest {
     final Stubber workingNatives = Mockito.doNothing();
     final DependencyLoader workingLoader = workingNatives.when(this.dependencies);
     workingLoader.loadModules();
-    this.stubCapability(Capability.VLC, true);
+    this.stubCapability(Capability.VLC, Availability.AVAILABLE);
     this.mcav.install(TrackedModule.class);
     this.awaitBackgroundInstallation();
     final TrackedModule module = this.mcav.getModule(TrackedModule.class);
@@ -523,7 +524,8 @@ final class MCAVTest {
     assertInstanceOf(MCAVException.class, withMessage, "a failed installation is recoverable, so it is no Error");
   }
 
-  private void stubCapability(final Capability capability, final boolean available) {
+  private void stubCapability(final Capability capability, final Availability availability) {
+    final boolean available = availability == Availability.AVAILABLE;
     final Stubber stubber = Mockito.doReturn(available);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.hasCapability(capability);

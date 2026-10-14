@@ -88,10 +88,10 @@ final class SourceDetectionHelperTest {
     final Source lowSource = DeviceSource.device(1);
     final Source highSource = DeviceSource.device(2);
     final Source tiedSource = DeviceSource.device(3);
-    final SourceDetector<Source> low = new FixedDetector(lowSource, SourceDetector.LOW_PRIORITY, true);
-    final SourceDetector<Source> high = new FixedDetector(highSource, SourceDetector.HIGH_PRIORITY, true);
-    final SourceDetector<Source> tied = new FixedDetector(tiedSource, SourceDetector.HIGH_PRIORITY, true);
-    final SourceDetector<Source> refusing = new FixedDetector(tiedSource, Integer.MAX_VALUE, false);
+    final SourceDetector<Source> low = new FixedDetector(lowSource, SourceDetector.LOW_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> high = new FixedDetector(highSource, SourceDetector.HIGH_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> tied = new FixedDetector(tiedSource, SourceDetector.HIGH_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> refusing = new FixedDetector(tiedSource, Integer.MAX_VALUE, Acceptance.REFUSES);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, refusing, high, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
     final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
@@ -103,8 +103,8 @@ final class SourceDetectionHelperTest {
   void shouldAcceptTheMinimumPriorityAndKeepTheFirstTie() {
     final Source first = DeviceSource.device(1);
     final Source second = DeviceSource.device(2);
-    final SourceDetector<Source> low = new FixedDetector(first, Integer.MIN_VALUE, true);
-    final SourceDetector<Source> tied = new FixedDetector(second, Integer.MIN_VALUE, true);
+    final SourceDetector<Source> low = new FixedDetector(first, Integer.MIN_VALUE, Acceptance.ACCEPTS);
+    final SourceDetector<Source> tied = new FixedDetector(second, Integer.MIN_VALUE, Acceptance.ACCEPTS);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
     final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
@@ -123,17 +123,17 @@ final class SourceDetectionHelperTest {
 
     private final Source source;
     private final int priority;
-    private final boolean accepts;
+    private final Acceptance acceptance;
 
-    FixedDetector(final Source source, final int priority, final boolean accepts) {
+    FixedDetector(final Source source, final int priority, final Acceptance acceptance) {
       this.source = source;
       this.priority = priority;
-      this.accepts = accepts;
+      this.acceptance = acceptance;
     }
 
     @Override
     public boolean isDetectedSource(final String raw) {
-      return this.accepts;
+      return this.acceptance == Acceptance.ACCEPTS;
     }
 
     @Override
@@ -145,5 +145,10 @@ final class SourceDetectionHelperTest {
     public int getPriority() {
       return this.priority;
     }
+  }
+
+  private enum Acceptance {
+    ACCEPTS,
+    REFUSES,
   }
 }

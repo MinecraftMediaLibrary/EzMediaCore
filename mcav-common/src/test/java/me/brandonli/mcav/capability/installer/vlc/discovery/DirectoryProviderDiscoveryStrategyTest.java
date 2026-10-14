@@ -253,7 +253,11 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final Path unsupported = createLibraries(this.temporaryDirectory, UNSUPPORTED_DIRECTORY);
     final Path supported = createLibraries(this.temporaryDirectory, SUPPORTED_DIRECTORY);
     final String rawUnsupported = unsupported.toString();
-    final StaticDirectoryProvider unsupportedProvider = new StaticDirectoryProvider(UNSUPPORTED_PRIORITY, false, rawUnsupported);
+    final StaticDirectoryProvider unsupportedProvider = new StaticDirectoryProvider(
+      UNSUPPORTED_PRIORITY,
+      ProviderSupport.UNSUPPORTED,
+      rawUnsupported
+    );
     final SearchProvider unsupportedSearch = new SearchProvider(unsupportedProvider, 0);
     final SearchProvider supportedSearch = search(1, supported, 0);
     final TestStrategy strategy = strategy(unsupportedSearch, supportedSearch);
@@ -271,7 +275,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final String rawRegularFile = regularFile.toString();
     final String rawLibraries = libraries.toString();
     final String[] entries = { null, "", "   ", rawMissing, rawRegularFile, INVALID_DIRECTORY, rawLibraries };
-    final StaticDirectoryProvider provider = new StaticDirectoryProvider(1, true, entries);
+    final StaticDirectoryProvider provider = new StaticDirectoryProvider(1, ProviderSupport.SUPPORTED, entries);
     final SearchProvider providerSearch = new SearchProvider(provider, 0);
     final TestStrategy strategy = strategy(providerSearch);
     final String found = strategy.discover();
@@ -363,9 +367,18 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldListTheDirectoriesOfTheSupportedProvidersByPriority() {
-    final StaticDirectoryProvider low = new StaticDirectoryProvider(1, true, FIRST_LOW_DIRECTORY, SECOND_LOW_DIRECTORY);
-    final StaticDirectoryProvider high = new StaticDirectoryProvider(7, true, HIGH_DIRECTORY);
-    final StaticDirectoryProvider unsupported = new StaticDirectoryProvider(UNSUPPORTED_PRIORITY, false, UNSUPPORTED_DIRECTORY);
+    final StaticDirectoryProvider low = new StaticDirectoryProvider(
+      1,
+      ProviderSupport.SUPPORTED,
+      FIRST_LOW_DIRECTORY,
+      SECOND_LOW_DIRECTORY
+    );
+    final StaticDirectoryProvider high = new StaticDirectoryProvider(7, ProviderSupport.SUPPORTED, HIGH_DIRECTORY);
+    final StaticDirectoryProvider unsupported = new StaticDirectoryProvider(
+      UNSUPPORTED_PRIORITY,
+      ProviderSupport.UNSUPPORTED,
+      UNSUPPORTED_DIRECTORY
+    );
     final SearchProvider lowSearch = new SearchProvider(low, 0);
     final SearchProvider highSearch = new SearchProvider(high, 0);
     final SearchProvider unsupportedSearch = new SearchProvider(unsupported, 0);
@@ -421,7 +434,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     createDirectory(libraries, PLUGIN_DIRECTORY);
     createDirectory(libraries, PLUGIN_PARENT_DIRECTORY, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
-    final TestStrategy strategy = recordingStrategy(published, true);
+    final TestStrategy strategy = recordingStrategy(published, SetterOutcome.SUCCEEDS);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
     final Path plugins = libraries.resolve(PLUGIN_DIRECTORY);
@@ -435,7 +448,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     createDirectory(libraries, PLUGIN_PARENT_DIRECTORY, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
-    final TestStrategy strategy = recordingStrategy(published, true);
+    final TestStrategy strategy = recordingStrategy(published, SetterOutcome.SUCCEEDS);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
     final Path pluginParent = libraries.resolve(PLUGIN_PARENT_DIRECTORY);
@@ -450,7 +463,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
     final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     createDirectory(libraries, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
-    final TestStrategy strategy = recordingStrategy(published, false);
+    final TestStrategy strategy = recordingStrategy(published, SetterOutcome.FAILS);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
     final int publishCount = published.size();
@@ -462,7 +475,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
   void shouldPublishNothingWithoutAPluginDirectory() throws IOException {
     final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     final List<String> published = new ArrayList<>();
-    final TestStrategy strategy = recordingStrategy(published, true);
+    final TestStrategy strategy = recordingStrategy(published, SetterOutcome.SUCCEEDS);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
     final boolean nothingPublished = published.isEmpty();
@@ -520,7 +533,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   private static SearchProvider search(final int priority, final Path directory, final int maximumDepth) {
     final String rawDirectory = directory.toString();
-    final StaticDirectoryProvider provider = new StaticDirectoryProvider(priority, true, rawDirectory);
+    final StaticDirectoryProvider provider = new StaticDirectoryProvider(priority, ProviderSupport.SUPPORTED, rawDirectory);
     return new SearchProvider(provider, maximumDepth);
   }
 
@@ -534,15 +547,15 @@ final class DirectoryProviderDiscoveryStrategyTest {
     return new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, providerList, IGNORING_SETTER);
   }
 
-  private static TestStrategy recordingStrategy(final List<String> published, final boolean setterSucceeds) {
-    final EnvironmentSetter setter = (name, value) -> recordVariable(published, setterSucceeds, name, value);
+  private static TestStrategy recordingStrategy(final List<String> published, final SetterOutcome outcome) {
+    final EnvironmentSetter setter = (name, value) -> recordVariable(published, outcome, name, value);
     final List<SearchProvider> noProviders = List.of();
     return new TestStrategy(PATTERNS, PLUGIN_DIRECTORIES, noProviders, setter);
   }
 
-  private static boolean recordVariable(final List<String> published, final boolean setterSucceeds, final String name, final String value) {
+  private static boolean recordVariable(final List<String> published, final SetterOutcome outcome, final String name, final String value) {
     published.add(name + "=" + value);
-    return setterSucceeds;
+    return outcome == SetterOutcome.SUCCEEDS;
   }
 
   private static final class DefaultProviderStrategy extends DirectoryProviderDiscoveryStrategy {
@@ -609,12 +622,12 @@ final class DirectoryProviderDiscoveryStrategyTest {
   static final class StaticDirectoryProvider implements DiscoveryDirectoryProvider {
 
     private final int priority;
-    private final boolean supported;
+    private final ProviderSupport support;
     private final String[] directories;
 
-    StaticDirectoryProvider(final int priority, final boolean supported, final String... directories) {
+    StaticDirectoryProvider(final int priority, final ProviderSupport support, final String... directories) {
       this.priority = priority;
-      this.supported = supported;
+      this.support = support;
       this.directories = directories;
     }
 
@@ -630,7 +643,17 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
     @Override
     public boolean supported() {
-      return this.supported;
+      return this.support == ProviderSupport.SUPPORTED;
     }
+  }
+
+  enum ProviderSupport {
+    SUPPORTED,
+    UNSUPPORTED,
+  }
+
+  private enum SetterOutcome {
+    SUCCEEDS,
+    FAILS,
   }
 }

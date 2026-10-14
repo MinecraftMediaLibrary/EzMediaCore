@@ -37,7 +37,7 @@ import org.bytedeco.javacv.FrameGrabber;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
@@ -60,8 +60,9 @@ final class MetadataUtilsTest {
   private Path directory;
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldReadMetadataThatAppearsOnTheLastAllowedProbeFrame(final boolean audio) throws FrameGrabber.Exception {
+  @EnumSource(MediaKind.class)
+  void shouldReadMetadataThatAppearsOnTheLastAllowedProbeFrame(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
     final AtomicInteger frames = new AtomicInteger();
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
@@ -106,8 +107,9 @@ final class MetadataUtilsTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldNotConsumeAnyFramesForDeclaredMetadata(final boolean audio) throws FrameGrabber.Exception {
+  @EnumSource(MediaKind.class)
+  void shouldNotConsumeAnyFramesForDeclaredMetadata(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
       final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) ->
@@ -141,11 +143,12 @@ final class MetadataUtilsTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldStopProbingImmediatelyAtTheEndOfTheSource(final boolean audio) throws FrameGrabber.Exception {
+  @EnumSource(MediaKind.class)
+  void shouldStopProbingImmediatelyAtTheEndOfTheSource(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class)) {
-      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> this.parseTrackMetadata(source, audio));
+      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> this.parseTrackMetadata(source, track));
       final String message = failure.getMessage();
       assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track!", message);
 
@@ -155,8 +158,8 @@ final class MetadataUtilsTest {
     }
   }
 
-  private void parseTrackMetadata(final FileSource source, final boolean audio) {
-    if (audio) {
+  private void parseTrackMetadata(final FileSource source, final MediaKind track) {
+    if (track == MediaKind.AUDIO) {
       MetadataUtils.parseAudioMetadata(source);
     } else {
       MetadataUtils.parseVideoMetadata(source);
@@ -223,5 +226,10 @@ final class MetadataUtilsTest {
   @Test
   void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MetadataUtils.class);
+  }
+
+  private enum MediaKind {
+    VIDEO,
+    AUDIO,
   }
 }

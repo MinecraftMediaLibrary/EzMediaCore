@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.invocation.InvocationOnMock;
 
 final class CommandTaskDeadlineTest {
@@ -70,8 +70,9 @@ final class CommandTaskDeadlineTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldNotLetAnOutputStreamWaitForeverAfterItsParentExited(final boolean standardError) throws Exception {
+  @EnumSource(WaitingStream.class)
+  void shouldNotLetAnOutputStreamWaitForeverAfterItsParentExited(final WaitingStream waitingStream) throws Exception {
+    final boolean standardError = waitingStream == WaitingStream.ERROR;
     final Process finished = finishedProcess();
     final CompletableFuture<String> pending = new CompletableFuture<>();
     final CompletableFuture<String> complete = CompletableFuture.completedFuture("");
@@ -222,5 +223,10 @@ final class CommandTaskDeadlineTest {
       Files.writeString(Path.of(args[2]), Long.toString(child.pid()));
       Thread.sleep(500L);
     }
+  }
+
+  private enum WaitingStream {
+    OUTPUT,
+    ERROR,
   }
 }

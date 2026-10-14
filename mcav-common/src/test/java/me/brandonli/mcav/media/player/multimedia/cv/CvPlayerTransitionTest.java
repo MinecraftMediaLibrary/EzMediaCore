@@ -61,7 +61,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
@@ -88,8 +88,9 @@ final class CvPlayerTransitionTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldConfigureTheFormatsAndFfmpegOptionsPromisedToThePipelines(final boolean directInput) {
+  @EnumSource(InputKind.class)
+  void shouldConfigureTheFormatsAndFfmpegOptionsPromisedToThePipelines(final InputKind input) {
+    final boolean directInput = input == InputKind.DIRECT;
     final TestPlayer player = new TestPlayer();
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
     final Source source = directInput ? FfmpegDirectSource.mrl("color=c=blue", "lavfi") : source();
@@ -389,11 +390,12 @@ final class CvPlayerTransitionTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldKeepPipelineDeliverySerialAcrossSessionsOnAReentrantReplacement(final boolean audio) throws Exception {
+  @EnumSource(MediaKind.class)
+  void shouldKeepPipelineDeliverySerialAcrossSessionsOnAReentrantReplacement(final MediaKind media) throws Exception {
+    final boolean audio = media == MediaKind.AUDIO;
     final int firstValue = audio ? 17 : 0xFF0000;
     final int secondValue = audio ? 34 : 0x0000FF;
-    try (final Frame first = mediaFrame(audio, firstValue); final Frame second = mediaFrame(audio, secondValue)) {
+    try (final Frame first = mediaFrame(media, firstValue); final Frame second = mediaFrame(media, secondValue)) {
       final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber.of(first), ScriptedFrameGrabber.of(second));
       player.neverDropLateFrames();
       final Source source = source();
@@ -498,8 +500,9 @@ final class CvPlayerTransitionTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void shouldDiscardAFrameWaitingForPipelineDeliveryInAStoppedSession(final boolean audio) throws Exception {
+  @EnumSource(MediaKind.class)
+  void shouldDiscardAFrameWaitingForPipelineDeliveryInAStoppedSession(final MediaKind media) throws Exception {
+    final boolean audio = media == MediaKind.AUDIO;
     final VideoAttachableCallback video = mock(VideoAttachableCallback.class);
     final AudioAttachableCallback sound = mock(AudioAttachableCallback.class);
     final CountDownLatch retrieved = new CountDownLatch(audio ? 1 : 2);
@@ -508,7 +511,7 @@ final class CvPlayerTransitionTest {
     final AudioPipelineStep samples = AudioPipelineStep.of((_, _) -> this.countDelivery(delivered));
     when(video.retrieve()).thenAnswer(_ -> this.countRetrieval(retrieved, picture));
     when(sound.retrieve()).thenAnswer(_ -> this.countRetrieval(retrieved, samples));
-    try (final Frame frame = mediaFrame(audio, 17)) {
+    try (final Frame frame = mediaFrame(media, 17)) {
       final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(frame);
       final List<Throwable> failures = new CopyOnWriteArrayList<>();
       final PlaybackSession session = new PlaybackSession(
@@ -573,8 +576,8 @@ final class CvPlayerTransitionTest {
     }
   }
 
-  private static Frame mediaFrame(final boolean audio, final int value) {
-    if (audio) {
+  private static Frame mediaFrame(final MediaKind media, final int value) {
+    if (media == MediaKind.AUDIO) {
       final Frame frame = ScriptedFrameGrabber.audio(0);
       final ShortBuffer samples = (ShortBuffer) frame.samples[0];
       samples.put(0, (short) value);
@@ -629,5 +632,15 @@ final class CvPlayerTransitionTest {
     protected FrameGrabber createFrameGrabber(final String resource) {
       throw new AssertionError("Sessions are replaced at the boundary in this fixture!");
     }
+  }
+
+  private enum InputKind {
+    FILE,
+    DIRECT,
+  }
+
+  private enum MediaKind {
+    VIDEO,
+    AUDIO,
   }
 }

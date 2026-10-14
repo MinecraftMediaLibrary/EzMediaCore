@@ -123,14 +123,14 @@ final class FaceDetectionFilterTest {
     final int right = left + rectangle.width() - 1;
     final int bottom = top + rectangle.height() - 1;
     for (int row = Math.max(0, top); row <= Math.min(IMAGE_SIDE - 1, bottom); row++) {
-      final boolean edgeRow = row == top || row == bottom;
-      this.outlineRow(expected, row, edgeRow, left, right);
+      final RowKind kind = row == top || row == bottom ? RowKind.EDGE : RowKind.INNER;
+      this.outlineRow(expected, row, kind, left, right);
     }
   }
 
-  private void outlineRow(final int[] expected, final int row, final boolean edgeRow, final int left, final int right) {
+  private void outlineRow(final int[] expected, final int row, final RowKind kind, final int left, final int right) {
     for (int column = Math.max(0, left); column <= Math.min(IMAGE_SIDE - 1, right); column++) {
-      if (edgeRow || column == left || column == right) {
+      if (kind == RowKind.EDGE || column == left || column == right) {
         expected[row * IMAGE_SIDE + column] = 0xFFFF0000;
       }
     }
@@ -178,5 +178,10 @@ final class FaceDetectionFilterTest {
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(unparsable, RED));
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(withoutCascade, RED));
     assertThrows(NullPointerException.class, () -> new FaceDetectionFilter((Path) null, RED));
+  }
+
+  private enum RowKind {
+    EDGE,
+    INNER,
   }
 }
