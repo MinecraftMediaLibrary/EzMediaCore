@@ -305,6 +305,9 @@ replace catches of `IOException` around them with the exception below:
 `ProcessRunner` and `YtdlpParser` drop `throws IOException` from their overrides and report failures with the
 exceptions above.
 
+The `FaceDetectionFilter` constructors throw `NativeLoadingException` in `me.brandonli.mcav.utils.natives` instead of
+`IllegalStateException` when the OpenCV object detection natives cannot be loaded.
+
 ## Bundled dependencies
 
 The Maven installer bundles its resolver dependencies under `me.brandonli.mcav.libs`. Those classes change with the

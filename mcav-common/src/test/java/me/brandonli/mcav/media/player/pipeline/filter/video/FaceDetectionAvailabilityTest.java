@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,7 @@ final class FaceDetectionAvailabilityTest {
   @Test
   void shouldExplainThatFaceDetectionIsUnavailableWhenTheNativesCannotBeLinked() {
     final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file!");
-    final IllegalStateException exception = assertThrowsWhileOpening(IllegalStateException.class, () ->
+    final NativeLoadingException exception = assertThrowsWhileOpening(NativeLoadingException.class, () ->
       FaceDetectionFilter.loadClassifier(CASCADE, _ -> this.failClassifierLoad(missingGtk))
     );
     final String message = exception.getMessage();

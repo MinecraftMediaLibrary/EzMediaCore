@@ -22,6 +22,7 @@ import com.google.common.base.Preconditions;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
+import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import me.brandonli.mcav.utils.opencv.ImageUtils;
 import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.Mat;
@@ -37,7 +38,7 @@ import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
  * <p>Face detection needs the object detection natives of OpenCV, which link GTK 2 on Linux and are missing on many
  * servers. Check {@link me.brandonli.mcav.MCAVApi#hasCapability(me.brandonli.mcav.capability.Capability)} with
  * {@link me.brandonli.mcav.capability.Capability#FACE_DETECTION} before creating the filter; without the
- * natives the constructors throw an {@link IllegalStateException} that names the reason instead of a linkage error.
+ * natives the constructors throw a {@link NativeLoadingException} that names the reason instead of a linkage error.
  *
  * <p>The grayscale matrix and the list of detections are kept between frames, so detection allocates no frame-sized
  * matrix per frame; both are freed when the filter is garbage collected. OpenCV's cascade classifier must not be used by
@@ -63,7 +64,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @param cascadeFile the path of the Haar cascade XML file
    * @param color       the blue, green, and red components of the rectangle color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if the cascade file does not exist or cannot be loaded
-   * @throws IllegalStateException    if face detection is not available on this system, because the OpenCV object
+   * @throws NativeLoadingException   if face detection is not available on this system, because the OpenCV object
    *                                  detection natives cannot be loaded; on Linux they need GTK 2
    * @throws NullPointerException     if {@code cascadeFile} or {@code color} is null
    * @since 1.0.0
@@ -83,7 +84,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    * @param cascadeFile the path of the Haar cascade XML file
    * @param color       the blue, green, and red components of the rectangle color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException           if the cascade file does not exist or cannot be loaded
-   * @throws IllegalStateException              if face detection is not available on this system, because the OpenCV object
+   * @throws NativeLoadingException             if face detection is not available on this system, because the OpenCV object
    *                                            detection natives cannot be loaded; on Linux they need GTK 2
    * @throws NullPointerException               if {@code cascadeFile} or {@code color} is null
    * @throws java.nio.file.InvalidPathException if the path string is invalid
@@ -116,7 +117,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
       final String reason = exception.getMessage();
       final String message =
         "Face detection is not available, because the error %s stopped the OpenCV object detection natives from loading!".formatted(reason);
-      throw new IllegalStateException(message, exception);
+      throw new NativeLoadingException(message, exception);
     } catch (final RuntimeException exception) {
       final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
       throw new IllegalArgumentException(message, exception);

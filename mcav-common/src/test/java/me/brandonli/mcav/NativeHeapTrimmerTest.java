@@ -317,10 +317,10 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  void shouldTreatAMalloptThatCannotBeCalledAsAnIllegalState() {
+  void shouldReportAMalloptThatCannotBeCalledAsAnOperationalFailure() {
     final IllegalCallerException refused = new IllegalCallerException("native access is not enabled!");
     final MethodHandle mallopt = malloptThatThrows(refused);
-    final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt));
+    final MCAVException failure = assertThrows(MCAVException.class, () -> NativeHeapTrimmer.setTrimThreshold(mallopt));
     final String message = failure.getMessage();
     assertEquals("Could not fix the trim threshold of the native heap!", message);
 
@@ -541,7 +541,7 @@ final class NativeHeapTrimmerTest {
     final InstanceNotFoundException missing = new InstanceNotFoundException("no diagnostic commands!");
     when(server.invoke(any(ObjectName.class), any(), any(), any())).thenThrow(missing);
 
-    final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> NativeHeapTrimmer.trimWithJdk(server));
+    final MCAVException failure = assertThrows(MCAVException.class, () -> NativeHeapTrimmer.trimWithJdk(server));
     final Throwable cause = failure.getCause();
     assertInstanceOf(InstanceNotFoundException.class, cause);
   }

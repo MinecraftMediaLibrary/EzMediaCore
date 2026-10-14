@@ -207,7 +207,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       return (int) mallopt.invokeExact(M_TRIM_THRESHOLD, TRIM_THRESHOLD_BYTES) == 1;
     } catch (final Throwable exception) {
       ThrowableUtils.throwIfFatal(exception);
-      throw new IllegalStateException("Could not fix the trim threshold of the native heap!", exception);
+      throw new MCAVException("Could not fix the trim threshold of the native heap!", exception);
     }
   }
 
@@ -220,7 +220,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
       final Object answer = server.invoke(commands, TRIM_OPERATION, arguments, signature);
       return String.valueOf(answer);
     } catch (final JMException exception) {
-      throw new IllegalStateException("Could not trim the native heap!", exception);
+      throw new MCAVException("Could not trim the native heap!", exception);
     }
   }
 
