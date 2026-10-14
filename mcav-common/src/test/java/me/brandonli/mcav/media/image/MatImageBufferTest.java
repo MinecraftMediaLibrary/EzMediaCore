@@ -1159,20 +1159,21 @@ final class MatImageBufferTest {
     final byte[] shortInput = new byte[2];
     // the length error shows the inclusive boundary passes the size check, without allocating its 2147483646 bytes;
     // matrices are intercepted too, so that without the length guard nothing allocates 2 GiB of native memory
-    try (
-      final MockedConstruction<Mat> allocations = Mockito.mockConstruction(Mat.class, (_, _) -> {
-        throw new AssertionError("The length guard must reject before constructing a native matrix!");
-      })
-    ) {
+    try (final MockedConstruction<Mat> allocations = Mockito.mockConstruction(Mat.class, (_, _) -> this.failMatrixConstruction())) {
       final IllegalArgumentException failure = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
         ImageBuffer.bytes(shortInput, 715827882, 1)
       );
       final String message = failure.getMessage();
       assertEquals("Byte count 2 must be 2147483646!", message);
+
       final List<Mat> constructed = allocations.constructed();
       final int count = constructed.size();
       assertEquals(0, count);
     }
+  }
+
+  private void failMatrixConstruction() {
+    throw new AssertionError("The length guard must reject before constructing a native matrix!");
   }
 
   @Test

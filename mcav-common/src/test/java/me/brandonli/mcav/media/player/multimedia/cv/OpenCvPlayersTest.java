@@ -141,11 +141,7 @@ final class OpenCvPlayersTest {
     final AtomicInteger width = new AtomicInteger();
     final OpenCvPlayer player = new OpenCvPlayer();
     player.neverDropLateFrames();
-    final VideoFilter counter = (image, _) -> {
-      final int frameWidth = image.getWidth();
-      width.set(frameWidth);
-      return frames.incrementAndGet() > 0;
-    };
+    final VideoFilter counter = (image, _) -> recordWidth(image, frames, width);
     attach(player, counter, size);
 
     final Path video = TestMedia.video();
@@ -162,6 +158,12 @@ final class OpenCvPlayersTest {
     final int frameCount = frames.get();
     final int lastWidth = width.get();
     return new int[] { frameCount, lastWidth };
+  }
+
+  private static boolean recordWidth(final ImageBuffer image, final AtomicInteger frames, final AtomicInteger width) {
+    final int frameWidth = image.getWidth();
+    width.set(frameWidth);
+    return frames.incrementAndGet() > 0;
   }
 
   private static void attach(final VideoPlayerMultiplexer player, final VideoFilter filter, final Dimension size) {

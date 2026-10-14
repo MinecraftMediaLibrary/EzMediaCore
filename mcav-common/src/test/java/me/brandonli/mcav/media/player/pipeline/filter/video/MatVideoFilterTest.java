@@ -124,11 +124,7 @@ final class MatVideoFilterTest {
   @Test
   void shouldUseEmptyMetadataInTheSingleArgumentApply() {
     final AtomicReference<OriginalVideoMetadata> received = new AtomicReference<>();
-    final VideoFilter recorder = (_, metadata) -> {
-      received.set(metadata);
-
-      return true;
-    };
+    final VideoFilter recorder = (_, metadata) -> this.recordMetadata(received, metadata);
     try (final ImageBuffer image = Images.indexed(IMAGE_SIDE, IMAGE_SIDE)) {
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean changed = recorder.applyFilter(image);
@@ -147,6 +143,12 @@ final class MatVideoFilterTest {
       final int height = image.getHeight();
       assertEquals(IMAGE_SIDE, height);
     }
+  }
+
+  private boolean recordMetadata(final AtomicReference<OriginalVideoMetadata> received, final OriginalVideoMetadata metadata) {
+    received.set(metadata);
+
+    return true;
   }
 
   @Test

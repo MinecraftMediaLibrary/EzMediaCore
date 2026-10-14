@@ -101,11 +101,13 @@ final class ExecutableYtdlpParserTest {
   }
 
   private static ExecutableYtdlpParser parser(final CommandTask task, final AtomicReference<String[]> command) {
-    final Function<String[], CommandTask> factory = arguments -> {
-      command.set(arguments);
-      return task;
-    };
+    final Function<String[], CommandTask> factory = arguments -> recordCommand(command, task, arguments);
     return new ExecutableYtdlpParser(() -> EXECUTABLE, factory);
+  }
+
+  private static CommandTask recordCommand(final AtomicReference<String[]> command, final CommandTask task, final String[] arguments) {
+    command.set(arguments);
+    return task;
   }
 
   private static YtdlpParseException assertParseFails(final String output) throws IOException {
@@ -326,19 +328,23 @@ final class ExecutableYtdlpParserTest {
     final IOException failure = new IOException("no network!");
     final AtomicBoolean created = new AtomicBoolean();
     final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
-      () -> {
-        throw failure;
-      },
-      _ -> {
-        created.set(true);
-        return Mockito.mock(CommandTask.class);
-      }
+      () -> this.failToLocate(failure),
+      _ -> this.markCreatedAndMockATask(created)
     );
     final UriSource source = source();
     final IOException thrown = assertThrows(IOException.class, () -> parser.parse(source));
     final boolean taskCreated = created.get();
     assertSame(failure, thrown);
     assertFalse(taskCreated);
+  }
+
+  private Path failToLocate(final IOException failure) throws IOException {
+    throw failure;
+  }
+
+  private CommandTask markCreatedAndMockATask(final AtomicBoolean created) {
+    created.set(true);
+    return Mockito.mock(CommandTask.class);
   }
 
   @Test
@@ -356,13 +362,7 @@ final class ExecutableYtdlpParserTest {
   @Test
   void shouldRejectNullArgumentsBeforeInstallingAnything() {
     final AtomicBoolean located = new AtomicBoolean();
-    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
-      () -> {
-        located.set(true);
-        return EXECUTABLE;
-      },
-      _ -> Mockito.mock(CommandTask.class)
-    );
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(() -> this.markLocated(located), _ -> Mockito.mock(CommandTask.class));
     final UriSource source = source();
     assertThrows(NullPointerException.class, () -> parser.parse(null));
     assertThrows(NullPointerException.class, () -> parser.parse(source, (String[]) null));
@@ -370,6 +370,11 @@ final class ExecutableYtdlpParserTest {
 
     final boolean installed = located.get();
     assertFalse(installed);
+  }
+
+  private Path markLocated(final AtomicBoolean located) {
+    located.set(true);
+    return EXECUTABLE;
   }
 
   @ParameterizedTest
@@ -381,14 +386,8 @@ final class ExecutableYtdlpParserTest {
     final AtomicBoolean located = new AtomicBoolean();
     final AtomicBoolean created = new AtomicBoolean();
     final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
-      () -> {
-        located.set(true);
-        return EXECUTABLE;
-      },
-      _ -> {
-        created.set(true);
-        return Mockito.mock(CommandTask.class);
-      }
+      () -> this.markLocated(located),
+      _ -> this.markCreatedAndMockATask(created)
     );
     final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> parser.parse(source));
     final String message = exception.getMessage();

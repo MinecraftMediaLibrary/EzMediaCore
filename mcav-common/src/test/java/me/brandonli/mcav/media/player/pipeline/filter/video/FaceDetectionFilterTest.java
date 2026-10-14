@@ -100,20 +100,7 @@ final class FaceDetectionFilterTest {
         detector.detectMultiScale(gray, rectangles);
         final boolean hasDetections = rectangles.size() > 0;
         assertTrue(hasDetections, "the fixture must produce detections");
-        for (long index = 0; index < rectangles.size(); index++) {
-          final Rect rectangle = rectangles.get(index);
-          final int left = rectangle.x();
-          final int top = rectangle.y();
-          final int right = left + rectangle.width() - 1;
-          final int bottom = top + rectangle.height() - 1;
-          for (int row = Math.max(0, top); row <= Math.min(IMAGE_SIDE - 1, bottom); row++) {
-            for (int column = Math.max(0, left); column <= Math.min(IMAGE_SIDE - 1, right); column++) {
-              if (row == top || row == bottom || column == left || column == right) {
-                expected[row * IMAGE_SIDE + column] = 0xFFFF0000;
-              }
-            }
-          }
-        }
+        this.outlineDetections(rectangles, expected);
       }
 
       final boolean detected = filter.applyFilter(image);
@@ -122,6 +109,32 @@ final class FaceDetectionFilterTest {
       assertTrue(detected);
       assertTrue(changed, "the detections are outlined");
       assertArrayEquals(expected, after, "every detection has its red outline and every other pixel is retained");
+    }
+  }
+
+  private void outlineDetections(final RectVector rectangles, final int[] expected) {
+    for (long index = 0; index < rectangles.size(); index++) {
+      final Rect rectangle = rectangles.get(index);
+      this.outlineRectangle(rectangle, expected);
+    }
+  }
+
+  private void outlineRectangle(final Rect rectangle, final int[] expected) {
+    final int left = rectangle.x();
+    final int top = rectangle.y();
+    final int right = left + rectangle.width() - 1;
+    final int bottom = top + rectangle.height() - 1;
+    for (int row = Math.max(0, top); row <= Math.min(IMAGE_SIDE - 1, bottom); row++) {
+      final boolean edgeRow = row == top || row == bottom;
+      this.outlineRow(expected, row, edgeRow, left, right);
+    }
+  }
+
+  private void outlineRow(final int[] expected, final int row, final boolean edgeRow, final int left, final int right) {
+    for (int column = Math.max(0, left); column <= Math.min(IMAGE_SIDE - 1, right); column++) {
+      if (edgeRow || column == left || column == right) {
+        expected[row * IMAGE_SIDE + column] = 0xFFFF0000;
+      }
     }
   }
 

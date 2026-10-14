@@ -84,12 +84,18 @@ final class VlcTestFrames {
    * @return the filter
    */
   static VideoFilter recorder(final BlockingQueue<RecordedFrame> frames) {
-    return (image, metadata) -> {
-      final RecordedFrame frame = new RecordedFrame(image, metadata);
-      frames.add(frame);
+    return (image, metadata) -> recordFrame(image, metadata, frames);
+  }
 
-      return false;
-    };
+  private static boolean recordFrame(
+    final ImageBuffer image,
+    final OriginalVideoMetadata metadata,
+    final BlockingQueue<RecordedFrame> frames
+  ) {
+    final RecordedFrame frame = new RecordedFrame(image, metadata);
+    frames.add(frame);
+
+    return false;
   }
 
   /**

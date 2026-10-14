@@ -36,10 +36,7 @@ final class UniformNoiseDitherTest {
 
   private static RandomNumberProvider providerOfAnotherThread(final UniformNoiseDither algorithm) throws InterruptedException {
     final AtomicReference<RandomNumberProvider> provider = new AtomicReference<>();
-    final Thread thread = new Thread(() -> {
-      final RandomNumberProvider own = algorithm.getRandomNumberProvider();
-      provider.set(own);
-    });
+    final Thread thread = new Thread(() -> recordProvider(algorithm, provider));
     thread.start();
     thread.join(5_000L);
     final boolean stillRunning = thread.isAlive();
@@ -53,6 +50,11 @@ final class UniformNoiseDitherTest {
     assertNotNull(result, "the worker returned a generator");
 
     return result;
+  }
+
+  private static void recordProvider(final UniformNoiseDither algorithm, final AtomicReference<RandomNumberProvider> provider) {
+    final RandomNumberProvider own = algorithm.getRandomNumberProvider();
+    provider.set(own);
   }
 
   @Test

@@ -49,6 +49,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 /** Verifies natural worker termination when decoder acquisition, cleanup or failure reporting throws. */
 final class PlaybackSessionFailureTest {
@@ -102,16 +103,14 @@ final class PlaybackSessionFailureTest {
 
   @Test
   void shouldNotAcquireTheGrabberWhenCancellingAnUnopenedSession() {
-    final PlaybackSession session = session(
-      () -> {
-        throw new AssertionError("cancelled acquisition!");
-      },
-      null,
-      (_, _) -> {}
-    );
+    final PlaybackSession session = session(this::failAcquisition, null, (_, _) -> {});
     session.stop();
     final boolean active = session.isActive();
     assertFalse(active);
+  }
+
+  private FrameGrabber failAcquisition() {
+    throw new AssertionError("cancelled acquisition!");
   }
 
   private static void awaitNaturalEnd(final PlaybackSession session) throws InterruptedException {
@@ -149,20 +148,10 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     final AtomicBoolean keptInterrupt = new AtomicBoolean();
     final ScriptedFrameGrabber video = ScriptedFrameGrabber.of();
-    final PlaybackSession.GrabberFactory audio = () -> {
-      final Thread worker = Thread.currentThread();
-      worker.setUncaughtExceptionHandler((thread, failure) -> {
-        keptInterrupt.set(thread.isInterrupted());
-        uncaught.set(failure);
-      });
-      throw opening;
-    };
-    final PlaybackSession playback = session(() -> video, audio, (_, failure) -> {
-      reported.set(failure);
-      final Thread worker = Thread.currentThread();
-      worker.interrupt();
-      throw reporting;
-    });
+    final PlaybackSession.GrabberFactory audio = () -> this.failAudioOpening(opening, keptInterrupt, uncaught);
+    final PlaybackSession playback = session(() -> video, audio, (_, failure) ->
+      this.reportInterruptAndThrow(failure, reported, reporting)
+    );
     try {
       playback.start();
       awaitNaturalEnd(playback);
@@ -177,6 +166,34 @@ final class PlaybackSessionFailureTest {
     }
   }
 
+  private FrameGrabber failAudioOpening(
+    final IllegalStateException opening,
+    final AtomicBoolean keptInterrupt,
+    final AtomicReference<Throwable> uncaught
+  ) {
+    final Thread worker = Thread.currentThread();
+    worker.setUncaughtExceptionHandler((thread, failure) -> this.recordUncaught(thread, failure, keptInterrupt, uncaught));
+    throw opening;
+  }
+
+  private void recordUncaught(
+    final Thread thread,
+    final Throwable failure,
+    final AtomicBoolean keptInterrupt,
+    final AtomicReference<Throwable> uncaught
+  ) {
+    final boolean interrupted = thread.isInterrupted();
+    keptInterrupt.set(interrupted);
+    uncaught.set(failure);
+  }
+
+  private void reportInterruptAndThrow(final Throwable failure, final AtomicReference<Throwable> reported, final AssertionError reporting) {
+    reported.set(failure);
+    final Thread worker = Thread.currentThread();
+    worker.interrupt();
+    throw reporting;
+  }
+
   @ParameterizedTest
   @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldSignalBothEndsFromFailedDecodersEvenWhenTheirHandlerInterruptsAndThrows(final Throwable failure) throws Exception {
@@ -185,18 +202,10 @@ final class PlaybackSessionFailureTest {
     final AssertionError reporting = new AssertionError("handler failed!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Throwable> reported = new AtomicReference<>();
-    doAnswer(_ -> {
-      captureUncaught(uncaught);
-      return fail(failure);
-    })
+    doAnswer(_ -> this.captureUncaughtAndFail(uncaught, failure))
       .when(video)
       .grab();
-    final PlaybackSession playback = session(() -> video, null, (_, thrown) -> {
-      reported.set(thrown);
-      final Thread worker = Thread.currentThread();
-      worker.interrupt();
-      throw reporting;
-    });
+    final PlaybackSession playback = session(() -> video, null, (_, thrown) -> this.reportInterruptAndThrow(thrown, reported, reporting));
     try {
       playback.start();
       awaitNaturalEnd(playback);
@@ -211,16 +220,18 @@ final class PlaybackSessionFailureTest {
     }
   }
 
+  private FrameGrabber captureUncaughtAndFail(final AtomicReference<Throwable> uncaught, final Throwable failure) {
+    captureUncaught(uncaught);
+    return fail(failure);
+  }
+
   @ParameterizedTest
   @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldNotStrandEitherRendererOnRecoverableGrabberCloseFailures(final Throwable failure) throws Exception {
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
     final AtomicReference<Throwable> reported = new AtomicReference<>();
-    doAnswer(invocation -> {
-      invocation.callRealMethod();
-      throw failure;
-    })
+    doAnswer(invocation -> this.callRealMethodAndThrow(invocation, failure))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, thrown) -> reported.set(thrown));
@@ -237,6 +248,11 @@ final class PlaybackSessionFailureTest {
     }
   }
 
+  private Object callRealMethodAndThrow(final InvocationOnMock invocation, final Throwable failure) throws Throwable {
+    invocation.callRealMethod();
+    throw failure;
+  }
+
   @ParameterizedTest
   @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldCloseTheAcquiredGrabberAndKeepTheOriginalFailureWhenTheLengthLookupFails(final Throwable failure) throws Exception {
@@ -244,10 +260,7 @@ final class PlaybackSessionFailureTest {
     final ScriptedFrameGrabber video = spy(real);
     final IllegalStateException cleanup = new IllegalStateException("close failed too!");
     when(video.getLengthInTime()).thenThrow(failure);
-    doAnswer(invocation -> {
-      invocation.callRealMethod();
-      throw cleanup;
-    })
+    doAnswer(invocation -> this.callRealMethodAndThrow(invocation, cleanup))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, _) -> {});
@@ -287,10 +300,7 @@ final class PlaybackSessionFailureTest {
     final ScriptedFrameGrabber video = spy(real);
     final AssertionError failure = new AssertionError("metadata and close failed!");
     when(video.getLengthInTime()).thenThrow(failure);
-    doAnswer(invocation -> {
-      invocation.callRealMethod();
-      throw failure;
-    })
+    doAnswer(invocation -> this.callRealMethodAndThrow(invocation, failure))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, _) -> {});
@@ -308,10 +318,7 @@ final class PlaybackSessionFailureTest {
     final IllegalStateException opening = new IllegalStateException("metadata failed!");
     final OutOfMemoryError cleanup = new OutOfMemoryError("close exhausted memory!");
     when(video.getLengthInTime()).thenThrow(opening);
-    doAnswer(invocation -> {
-      invocation.callRealMethod();
-      throw cleanup;
-    })
+    doAnswer(invocation -> this.callRealMethodAndThrow(invocation, cleanup))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, _) -> {});
@@ -331,16 +338,10 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     if (audioFailure) {
-      final AudioPipelineStep pipeline = AudioPipelineStep.of((_, _) -> {
-        captureUncaught(uncaught);
-        throw failure;
-      });
+      final AudioPipelineStep pipeline = AudioPipelineStep.of((_, _) -> this.captureUncaughtAndThrowFromFilter(uncaught, failure));
       sound.attach(pipeline);
     } else {
-      final VideoPipelineStep pipeline = VideoPipelineStep.of((_, _) -> {
-        captureUncaught(uncaught);
-        throw failure;
-      });
+      final VideoPipelineStep pipeline = VideoPipelineStep.of((_, _) -> this.captureUncaughtAndThrowFromFilter(uncaught, failure));
       pictures.attach(pipeline);
     }
 
@@ -369,6 +370,11 @@ final class PlaybackSessionFailureTest {
     }
   }
 
+  private boolean captureUncaughtAndThrowFromFilter(final AtomicReference<Throwable> uncaught, final OutOfMemoryError failure) {
+    captureUncaught(uncaught);
+    throw failure;
+  }
+
   @Test
   void shouldPropagateFatalLengthLookupFailuresWithoutCallingForeignCleanup() throws Exception {
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
@@ -391,10 +397,7 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     final ScriptedFrameGrabber video = ScriptedFrameGrabber.of();
-    final PlaybackSession.GrabberFactory audio = () -> {
-      captureUncaught(uncaught);
-      throw failure;
-    };
+    final PlaybackSession.GrabberFactory audio = () -> this.captureUncaughtAndFail(uncaught, failure);
     final PlaybackSession playback = session(() -> video, audio, (_, thrown) -> reported.set(thrown));
     try {
       playback.start();
@@ -415,10 +418,7 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
-    doAnswer(_ -> {
-      captureUncaught(uncaught);
-      throw failure;
-    })
+    doAnswer(_ -> this.captureUncaughtAndFail(uncaught, failure))
       .when(video)
       .grab();
     final PlaybackSession playback = session(() -> video, null, (_, thrown) -> reported.set(thrown));
@@ -443,11 +443,7 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
-    doAnswer(invocation -> {
-      captureUncaught(uncaught);
-      invocation.callRealMethod();
-      throw failure;
-    })
+    doAnswer(invocation -> this.captureUncaughtThenCallRealMethodAndThrow(invocation, uncaught, failure))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, thrown) -> reported.set(thrown));
@@ -461,6 +457,15 @@ final class PlaybackSessionFailureTest {
     } finally {
       playback.stop();
     }
+  }
+
+  private Object captureUncaughtThenCallRealMethodAndThrow(
+    final InvocationOnMock invocation,
+    final AtomicReference<Throwable> uncaught,
+    final OutOfMemoryError failure
+  ) throws Throwable {
+    captureUncaught(uncaught);
+    return this.callRealMethodAndThrow(invocation, failure);
   }
 
   @ParameterizedTest
@@ -481,14 +486,10 @@ final class PlaybackSessionFailureTest {
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     if (audioFailure) {
-      final AudioPipelineStep pipeline = AudioPipelineStep.of((_, _) -> {
-        throw filterFailure;
-      });
+      final AudioPipelineStep pipeline = AudioPipelineStep.of((_, _) -> this.throwFromFilter(filterFailure));
       sound.attach(pipeline);
     } else {
-      final VideoPipelineStep pipeline = VideoPipelineStep.of((_, _) -> {
-        throw filterFailure;
-      });
+      final VideoPipelineStep pipeline = VideoPipelineStep.of((_, _) -> this.throwFromFilter(filterFailure));
       pictures.attach(pipeline);
     }
 
@@ -498,11 +499,7 @@ final class PlaybackSessionFailureTest {
       pictures,
       sound,
       dimensions,
-      (_, failure) -> {
-        reported.set(failure);
-        captureUncaught(uncaught);
-        throw handlerFailure;
-      },
+      (_, failure) -> this.reportCaptureUncaughtAndThrow(failure, reported, uncaught, handlerFailure),
       0L,
       false,
       0L,
@@ -523,6 +520,21 @@ final class PlaybackSessionFailureTest {
     }
   }
 
+  private boolean throwFromFilter(final IllegalStateException failure) {
+    throw failure;
+  }
+
+  private void reportCaptureUncaughtAndThrow(
+    final Throwable failure,
+    final AtomicReference<Throwable> reported,
+    final AtomicReference<Throwable> uncaught,
+    final AssertionError handlerFailure
+  ) {
+    reported.set(failure);
+    captureUncaught(uncaught);
+    throw handlerFailure;
+  }
+
   @Test
   void shouldStillTerminateADecoderWaitingToSignalEndToAFullQueueWhenStopping() throws Exception {
     final List<Object> frames = new ArrayList<>();
@@ -534,22 +546,16 @@ final class PlaybackSessionFailureTest {
     final ScriptedFrameGrabber real = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
     final ScriptedFrameGrabber video = spy(real);
     final AtomicReference<Thread> decoder = new AtomicReference<>();
-    doAnswer(invocation -> {
-      final Thread worker = Thread.currentThread();
-      decoder.set(worker);
-      return invocation.callRealMethod();
-    })
+    doAnswer(invocation -> this.recordDecoderAndCallRealMethod(invocation, decoder))
       .when(video)
       .close();
     final PlaybackSession playback = session(() -> video, null, (_, _) -> {});
     playback.pause();
     try {
       playback.start();
-      Polling.awaitCondition("decoder waits to signal end to a full paused queue", TIMEOUT, () -> {
-        final Thread worker = decoder.get();
-        final boolean closed = video.isClosed();
-        return closed && worker != null && worker.getState() == Thread.State.TIMED_WAITING;
-      });
+      Polling.awaitCondition("decoder waits to signal end to a full paused queue", TIMEOUT, () ->
+        this.isDecoderWaitingToSignalEnd(decoder, video)
+      );
       final long before = System.nanoTime();
       playback.stop();
       final long elapsed = System.nanoTime() - before;
@@ -561,5 +567,18 @@ final class PlaybackSessionFailureTest {
     } finally {
       playback.stop();
     }
+  }
+
+  private @Nullable Object recordDecoderAndCallRealMethod(final InvocationOnMock invocation, final AtomicReference<Thread> decoder)
+    throws Throwable {
+    final Thread worker = Thread.currentThread();
+    decoder.set(worker);
+    return invocation.callRealMethod();
+  }
+
+  private boolean isDecoderWaitingToSignalEnd(final AtomicReference<Thread> decoder, final ScriptedFrameGrabber video) {
+    final Thread worker = decoder.get();
+    final boolean closed = video.isClosed();
+    return closed && worker != null && worker.getState() == Thread.State.TIMED_WAITING;
   }
 }

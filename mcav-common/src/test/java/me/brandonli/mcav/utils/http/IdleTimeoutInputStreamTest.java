@@ -163,21 +163,7 @@ final class IdleTimeoutInputStreamTest {
   @ParameterizedTest
   @MethodSource("uncheckedReadFailures")
   void shouldPreserveUncheckedFailuresAcrossTheWorkerThread(final Throwable failure) throws IOException {
-    final InputStream broken = new InputStream() {
-      @Override
-      public int read() {
-        if (failure instanceof final RuntimeException exception) {
-          throw exception;
-        }
-
-        throw (Error) failure;
-      }
-
-      @Override
-      public int read(final byte[] bytes, final int offset, final int length) {
-        return this.read();
-      }
-    };
+    final InputStream broken = new UncheckedFailingSource(failure);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(broken, GENEROUS_TIMEOUT)) {
       final Class<? extends Throwable> failureType = failure.getClass();
       final Throwable thrown = assertThrows(failureType, stream::read);
@@ -238,6 +224,29 @@ final class IdleTimeoutInputStreamTest {
 
     private boolean isClosed() {
       return this.closed.getCount() == 0;
+    }
+  }
+
+  private static final class UncheckedFailingSource extends InputStream {
+
+    private final Throwable failure;
+
+    UncheckedFailingSource(final Throwable failure) {
+      this.failure = failure;
+    }
+
+    @Override
+    public int read() {
+      if (this.failure instanceof final RuntimeException exception) {
+        throw exception;
+      }
+
+      throw (Error) this.failure;
+    }
+
+    @Override
+    public int read(final byte[] bytes, final int offset, final int length) {
+      return this.read();
     }
   }
 }

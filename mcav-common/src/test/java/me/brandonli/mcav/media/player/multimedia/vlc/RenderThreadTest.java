@@ -72,18 +72,21 @@ final class RenderThreadTest {
     final RuntimeException failure,
     final CountDownLatch third
   ) {
-    return () -> {
-      final int step = steps.incrementAndGet();
-      if (step == 1) {
-        throw failure;
-      }
+    return () -> runFailingFirstThenCounting(steps, failure, third);
+  }
 
-      if (step == THIRD_STEP) {
-        third.countDown();
-      }
+  private static void runFailingFirstThenCounting(final AtomicInteger steps, final RuntimeException failure, final CountDownLatch third)
+    throws InterruptedException {
+    final int step = steps.incrementAndGet();
+    if (step == 1) {
+      throw failure;
+    }
 
-      Thread.sleep(5);
-    };
+    if (step == THIRD_STEP) {
+      third.countDown();
+    }
+
+    Thread.sleep(5);
   }
 
   @Test
@@ -117,15 +120,22 @@ final class RenderThreadTest {
     final CountDownLatch blocked
   ) {
     final CountDownLatch never = new CountDownLatch(1);
-    return () -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      final int step = steps.incrementAndGet();
-      if (step >= THIRD_STEP) {
-        blocked.countDown();
-        never.await();
-      }
-    };
+    return () -> runBlockingFromTheThirdStep(worker, steps, blocked, never);
+  }
+
+  private static void runBlockingFromTheThirdStep(
+    final AtomicReference<Thread> worker,
+    final AtomicInteger steps,
+    final CountDownLatch blocked,
+    final CountDownLatch never
+  ) throws InterruptedException {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    final int step = steps.incrementAndGet();
+    if (step >= THIRD_STEP) {
+      blocked.countDown();
+      never.await();
+    }
   }
 
   /**
@@ -172,18 +182,7 @@ final class RenderThreadTest {
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch cleanedUp = new CountDownLatch(1);
     final AtomicBoolean interruptedInCleanup = new AtomicBoolean();
-    thread.start(
-      () -> {
-        steps.incrementAndGet();
-        thread.stop();
-      },
-      () -> {
-        final Thread current = Thread.currentThread();
-        final boolean interrupted = current.isInterrupted();
-        interruptedInCleanup.set(interrupted);
-        cleanedUp.countDown();
-      }
-    );
+    thread.start(() -> this.countStepAndStop(steps, thread), () -> this.recordInterruptAndCountDown(interruptedInCleanup, cleanedUp));
 
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final int stepCount = steps.get();
@@ -195,22 +194,37 @@ final class RenderThreadTest {
     assertFalse(running);
   }
 
+  private void countStepAndStop(final AtomicInteger steps, final RenderThread thread) {
+    steps.incrementAndGet();
+    thread.stop();
+  }
+
+  private void recordInterruptAndCountDown(final AtomicBoolean interruptedInCleanup, final CountDownLatch cleanedUp) {
+    final Thread current = Thread.currentThread();
+    final boolean interrupted = current.isInterrupted();
+    interruptedInCleanup.set(interrupted);
+    cleanedUp.countDown();
+  }
+
   /**
    * Creates a stubborn step that ignores interrupts until it is released, and then ends the loop.
    */
   private static RenderThread.Step stubbornStep(final CountDownLatch started, final CountDownLatch release) {
-    return () -> {
-      started.countDown();
-      while (release.getCount() > 0) {
-        try {
-          release.await();
-        } catch (final InterruptedException exception) {
-          // Simulate a renderer that does not stop when interrupted.
-        }
-      }
+    return () -> runIgnoringInterruptsUntilReleased(started, release);
+  }
 
-      throw new InterruptedException("released!");
-    };
+  private static void runIgnoringInterruptsUntilReleased(final CountDownLatch started, final CountDownLatch release)
+    throws InterruptedException {
+    started.countDown();
+    while (release.getCount() > 0) {
+      try {
+        release.await();
+      } catch (final InterruptedException exception) {
+        // Simulate a renderer that does not stop when interrupted.
+      }
+    }
+
+    throw new InterruptedException("released!");
   }
 
   @Test

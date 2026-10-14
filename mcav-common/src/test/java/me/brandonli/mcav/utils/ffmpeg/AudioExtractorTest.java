@@ -57,6 +57,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 /**
  * Tests {@link AudioExtractor} with the bundled FFmpeg. The tests change {@code user.home}, so they run in
@@ -176,10 +177,7 @@ final class AudioExtractorTest {
     final IOException failure = new IOException("output failed after writing bytes!");
     final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
     when(command.createTask()).thenReturn(task);
-    doAnswer(_ -> {
-      Files.writeString(partial.get(), "partial audio");
-      throw failure;
-    })
+    doAnswer(_ -> this.writePartialOutputAndFail(partial, failure))
       .when(task)
       .runChecked();
     try (
@@ -188,17 +186,7 @@ final class AudioExtractorTest {
     ) {
       templates
         .when(() -> FfmpegTemplates.extractOggVorbis(anyString(), anyString()))
-        .thenAnswer(invocation -> {
-          final String output = invocation.getArgument(1);
-          final Path outputPath = Path.of(output);
-          partial.set(outputPath);
-
-          if (cleanupFails) {
-            files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
-          }
-
-          return command;
-        });
+        .thenAnswer(invocation -> this.recordPartialOutput(invocation, partial, files, cleanupFails, cleanupFailure, command));
       final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));
       final IOException thrown = assertThrows(IOException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
@@ -210,11 +198,40 @@ final class AudioExtractorTest {
       final String existingText = Files.readString(existing);
       assertEquals("existing audio", existingText);
       if (!cleanupFails) {
-        try (final Stream<Path> cacheFiles = Files.list(cache)) {
-          final List<Path> cachedFiles = cacheFiles.toList();
-          assertEquals(List.of(existing), cachedFiles);
-        }
+        this.assertCacheHoldsOnly(cache, existing);
       }
+    }
+  }
+
+  private Object writePartialOutputAndFail(final AtomicReference<Path> partial, final IOException failure) throws IOException {
+    Files.writeString(partial.get(), "partial audio");
+
+    throw failure;
+  }
+
+  private FfmpegCommand recordPartialOutput(
+    final InvocationOnMock invocation,
+    final AtomicReference<Path> partial,
+    final MockedStatic<Files> files,
+    final boolean cleanupFails,
+    final IOException cleanupFailure,
+    final FfmpegCommand command
+  ) {
+    final String output = invocation.getArgument(1);
+    final Path outputPath = Path.of(output);
+    partial.set(outputPath);
+
+    if (cleanupFails) {
+      files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
+    }
+
+    return command;
+  }
+
+  private void assertCacheHoldsOnly(final Path cache, final Path existing) throws IOException {
+    try (final Stream<Path> cacheFiles = Files.list(cache)) {
+      final List<Path> cachedFiles = cacheFiles.toList();
+      assertEquals(List.of(existing), cachedFiles);
     }
   }
 

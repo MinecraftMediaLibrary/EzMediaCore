@@ -106,9 +106,7 @@ final class FfmpegTemplatesTest {
         assertNotNull(frame.samples);
         assertEquals(2, frame.audioChannels);
         assertEquals(sampleRate, frame.sampleRate);
-        for (final Buffer samples : frame.samples) {
-          decodedSamples += samples.remaining();
-        }
+        decodedSamples += this.countRemainingSamples(frame.samples);
         frame = decoder.grabSamples();
       }
     }
@@ -118,6 +116,15 @@ final class FfmpegTemplatesTest {
     // AAC and Vorbis may pad the source and destination by a codec block.
     final boolean withinACodecBlock = Math.abs(decodedFrames - expectedFrames) <= 2048;
     assertTrue(withinACodecBlock, "decoded sample frames: " + decodedFrames);
+  }
+
+  private long countRemainingSamples(final Buffer[] buffers) {
+    long count = 0;
+    for (final Buffer samples : buffers) {
+      count += samples.remaining();
+    }
+
+    return count;
   }
 
   @Test

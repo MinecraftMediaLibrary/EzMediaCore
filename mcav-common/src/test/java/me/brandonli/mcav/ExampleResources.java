@@ -104,11 +104,7 @@ final class ExampleResources implements AutoCloseable {
       } catch (final RuntimeException | Error exception) {
         ThrowableUtils.throwIfFatal(exception);
 
-        if (first == null) {
-          first = exception;
-        } else if (!IDENTITY.equivalent(first, exception)) {
-          first.addSuppressed(exception);
-        }
+        first = keepFirstFailure(first, exception);
       }
     }
 
@@ -119,5 +115,17 @@ final class ExampleResources implements AutoCloseable {
     if (first instanceof RuntimeException exception) {
       throw exception;
     }
+  }
+
+  private static Throwable keepFirstFailure(final @Nullable Throwable first, final Throwable failure) {
+    if (first == null) {
+      return failure;
+    }
+
+    if (!IDENTITY.equivalent(first, failure)) {
+      first.addSuppressed(failure);
+    }
+
+    return first;
   }
 }

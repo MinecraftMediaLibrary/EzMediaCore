@@ -60,11 +60,10 @@ final class PlaybackSessionTerminalTest {
     final ObservedQueue queue = new ObservedQueue();
     queue.add("last decoded frame");
     final AtomicBoolean restoredInterrupt = new AtomicBoolean();
-    final Thread producer = new Thread(() -> {
-      session.signalEnd(queue, "end of media");
-      final Thread current = Thread.currentThread();
-      restoredInterrupt.set(current.isInterrupted());
-    }, "terminal-marker-producer");
+    final Thread producer = new Thread(
+      () -> this.signalEndAndRecordInterrupt(session, queue, restoredInterrupt),
+      "terminal-marker-producer"
+    );
     producer.setDaemon(true);
     try {
       producer.start();
@@ -95,6 +94,16 @@ final class PlaybackSessionTerminalTest {
       queue.clear();
       producer.join(2_000L);
     }
+  }
+
+  private void signalEndAndRecordInterrupt(
+    final PlaybackSession session,
+    final ObservedQueue queue,
+    final AtomicBoolean restoredInterrupt
+  ) {
+    session.signalEnd(queue, "end of media");
+    final Thread current = Thread.currentThread();
+    restoredInterrupt.set(current.isInterrupted());
   }
 
   private static final class ObservedQueue extends ArrayBlockingQueue<String> {

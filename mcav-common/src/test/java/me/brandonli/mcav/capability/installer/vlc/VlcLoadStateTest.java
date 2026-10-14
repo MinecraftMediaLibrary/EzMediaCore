@@ -48,10 +48,7 @@ final class VlcLoadStateTest {
   void shouldRunTheLoaderOnlyUntilItSucceeds() throws IOException {
     final VlcLoadState state = new VlcLoadState();
     final AtomicInteger calls = new AtomicInteger();
-    final VlcLoadState.Loader loader = () -> {
-      calls.incrementAndGet();
-      return Optional.of(LIBRARY_DIRECTORY);
-    };
+    final VlcLoadState.Loader loader = () -> this.countAndFindTheLibraries(calls);
     final Optional<Path> first = state.loadOnce(loader);
     final Optional<Path> second = state.loadOnce(loader);
     final int callCount = calls.get();
@@ -61,14 +58,16 @@ final class VlcLoadStateTest {
     assertEquals(1, callCount);
   }
 
+  private Optional<Path> countAndFindTheLibraries(final AtomicInteger calls) {
+    calls.incrementAndGet();
+    return Optional.of(LIBRARY_DIRECTORY);
+  }
+
   @Test
   void shouldRememberThatTheLocationIsUnknown() throws IOException {
     final VlcLoadState state = new VlcLoadState();
     final AtomicInteger calls = new AtomicInteger();
-    final VlcLoadState.Loader loader = () -> {
-      calls.incrementAndGet();
-      return Optional.empty();
-    };
+    final VlcLoadState.Loader loader = () -> this.countAndFindNothing(calls);
     final Optional<Path> first = state.loadOnce(loader);
     final Optional<Path> second = state.loadOnce(() -> Optional.of(LIBRARY_DIRECTORY));
     final boolean firstEmpty = first.isEmpty();
@@ -79,15 +78,16 @@ final class VlcLoadStateTest {
     assertEquals(1, callCount);
   }
 
+  private Optional<Path> countAndFindNothing(final AtomicInteger calls) {
+    calls.incrementAndGet();
+    return Optional.empty();
+  }
+
   @Test
   void shouldRetryAfterAFailedLoad() throws IOException {
     final VlcLoadState state = new VlcLoadState();
     final IOException failure = new IOException("offline!");
-    final IOException thrown = assertThrows(IOException.class, () ->
-      state.loadOnce(() -> {
-        throw failure;
-      })
-    );
+    final IOException thrown = assertThrows(IOException.class, () -> state.loadOnce(() -> this.failToLoad(failure)));
     assertSame(failure, thrown);
 
     final Optional<Path> retried = state.loadOnce(() -> Optional.of(LIBRARY_DIRECTORY));
@@ -95,18 +95,23 @@ final class VlcLoadStateTest {
     assertEquals(expected, retried);
   }
 
+  private Optional<Path> failToLoad(final IOException failure) throws IOException {
+    throw failure;
+  }
+
   @Test
   void shouldRetryAfterAnUnsupportedSystem() throws IOException {
     final VlcLoadState state = new VlcLoadState();
     final UnsupportedOperatingSystemException failure = new UnsupportedOperatingSystemException("no VLC!");
-    assertThrows(UnsupportedOperatingSystemException.class, () ->
-      state.loadOnce(() -> {
-        throw failure;
-      })
-    );
+    assertThrows(UnsupportedOperatingSystemException.class, () -> state.loadOnce(() -> this.failToLoadOnAnUnsupportedSystem(failure)));
+
     final Optional<Path> retried = state.loadOnce(() -> Optional.of(LIBRARY_DIRECTORY));
     final Optional<Path> expected = Optional.of(LIBRARY_DIRECTORY);
     assertEquals(expected, retried);
+  }
+
+  private Optional<Path> failToLoadOnAnUnsupportedSystem(final UnsupportedOperatingSystemException failure) {
+    throw failure;
   }
 
   @Test
@@ -136,12 +141,15 @@ final class VlcLoadStateTest {
   }
 
   private static VlcLoadState.Loader slowLoader(final AtomicInteger calls, final CountDownLatch entered, final CountDownLatch release) {
-    return () -> {
-      calls.incrementAndGet();
-      entered.countDown();
-      awaitInLoader(release);
-      return Optional.of(LIBRARY_DIRECTORY);
-    };
+    return () -> loadSlowly(calls, entered, release);
+  }
+
+  private static Optional<Path> loadSlowly(final AtomicInteger calls, final CountDownLatch entered, final CountDownLatch release)
+    throws IOException {
+    calls.incrementAndGet();
+    entered.countDown();
+    awaitInLoader(release);
+    return Optional.of(LIBRARY_DIRECTORY);
   }
 
   private static Optional<Path> loadRecordingThread(

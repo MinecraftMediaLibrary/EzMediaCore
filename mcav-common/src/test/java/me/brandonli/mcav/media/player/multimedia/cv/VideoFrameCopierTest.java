@@ -184,21 +184,25 @@ final class VideoFrameCopierTest {
   @Test
   void shouldAverageAllSourcePixelsWhenShrinkingEitherAxis() {
     for (final boolean horizontal : new boolean[] { true, false }) {
-      final int width = horizontal ? 3 : 1;
-      final int height = horizontal ? 1 : 3;
-      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
-        final ByteBuffer data = (ByteBuffer) frame.image[0];
-        for (int index = 0; index < data.capacity(); index++) {
-          data.put(index, (byte) 0);
-        }
+      this.assertShrinkingAveragesAllSourcePixels(horizontal);
+    }
+  }
 
-        final int middle = horizontal ? BGR_CHANNELS : frame.imageStride;
-        data.put(middle, (byte) 90);
-        this.attachSize(1, 1);
-        try (final MatImageBuffer image = this.copier.copy(frame)) {
-          final int[] actual = image.getPixels();
-          assertArrayEquals(new int[] { 0xFF00001E }, actual);
-        }
+  private void assertShrinkingAveragesAllSourcePixels(final boolean horizontal) {
+    final int width = horizontal ? 3 : 1;
+    final int height = horizontal ? 1 : 3;
+    try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
+      final ByteBuffer data = (ByteBuffer) frame.image[0];
+      for (int index = 0; index < data.capacity(); index++) {
+        data.put(index, (byte) 0);
+      }
+
+      final int middle = horizontal ? BGR_CHANNELS : frame.imageStride;
+      data.put(middle, (byte) 90);
+      this.attachSize(1, 1);
+      try (final MatImageBuffer image = this.copier.copy(frame)) {
+        final int[] actual = image.getPixels();
+        assertArrayEquals(new int[] { 0xFF00001E }, actual);
       }
     }
   }
@@ -206,28 +210,32 @@ final class VideoFrameCopierTest {
   @Test
   void shouldInterpolateGrowingFramesAndRefreshTheReusedPixelCache() {
     for (final boolean horizontal : new boolean[] { true, false }) {
-      final int width = horizontal ? 2 : 1;
-      final int height = horizontal ? 1 : 2;
-      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
-        final ByteBuffer data = (ByteBuffer) frame.image[0];
-        for (int index = 0; index < data.capacity(); index++) {
-          data.put(index, (byte) 0);
-        }
+      this.assertGrowingInterpolatesAndRefreshesThePixelCache(horizontal);
+    }
+  }
 
-        final int secondPixel = horizontal ? BGR_CHANNELS : frame.imageStride;
-        data.put(secondPixel, (byte) 80);
-        this.attachSize(horizontal ? 4 : 1, horizontal ? 1 : 4);
-        final MatImageBuffer first = this.copier.copy(frame);
-        final int[] actual = first.getPixels();
-        assertArrayEquals(new int[] { 0xFF000000, 0xFF000014, 0xFF00003C, 0xFF000050 }, actual);
+  private void assertGrowingInterpolatesAndRefreshesThePixelCache(final boolean horizontal) {
+    final int width = horizontal ? 2 : 1;
+    final int height = horizontal ? 1 : 2;
+    try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
+      final ByteBuffer data = (ByteBuffer) frame.image[0];
+      for (int index = 0; index < data.capacity(); index++) {
+        data.put(index, (byte) 0);
+      }
 
-        this.pool.recycle(first);
-        data.put(secondPixel, (byte) 0);
-        try (final MatImageBuffer second = this.copier.copy(frame)) {
-          final int[] refreshed = second.getPixels();
-          assertSame(first, second);
-          assertArrayEquals(new int[] { 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000 }, refreshed);
-        }
+      final int secondPixel = horizontal ? BGR_CHANNELS : frame.imageStride;
+      data.put(secondPixel, (byte) 80);
+      this.attachSize(horizontal ? 4 : 1, horizontal ? 1 : 4);
+      final MatImageBuffer first = this.copier.copy(frame);
+      final int[] actual = first.getPixels();
+      assertArrayEquals(new int[] { 0xFF000000, 0xFF000014, 0xFF00003C, 0xFF000050 }, actual);
+
+      this.pool.recycle(first);
+      data.put(secondPixel, (byte) 0);
+      try (final MatImageBuffer second = this.copier.copy(frame)) {
+        final int[] refreshed = second.getPixels();
+        assertSame(first, second);
+        assertArrayEquals(new int[] { 0xFF000000, 0xFF000000, 0xFF000000, 0xFF000000 }, refreshed);
       }
     }
   }

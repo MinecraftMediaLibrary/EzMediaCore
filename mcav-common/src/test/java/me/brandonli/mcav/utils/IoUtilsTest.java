@@ -837,22 +837,29 @@ final class IoUtilsTest {
     IoUtils.moveReplacing(
       source,
       target,
-      (from, to, options) -> {
-        final List<CopyOption> optionList = List.of(options);
-        attempts.add(optionList);
-
-        if (optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
-          final String rawFrom = from.toString();
-          final String rawTo = to.toString();
-          throw new AtomicMoveNotSupportedException(rawFrom, rawTo, "not supported by this file system!");
-        }
-      },
+      (from, to, options) -> this.recordMoveAndRejectAtomicMoves(from, to, options, attempts),
       SHORT_RETRY_DELAY
     );
     final List<CopyOption> atomic = List.of(StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
     final List<CopyOption> regular = List.of(StandardCopyOption.REPLACE_EXISTING);
     final List<List<CopyOption>> expected = List.of(atomic, regular);
     assertEquals(expected, attempts);
+  }
+
+  private void recordMoveAndRejectAtomicMoves(
+    final Path from,
+    final Path to,
+    final CopyOption[] options,
+    final List<List<CopyOption>> attempts
+  ) throws AtomicMoveNotSupportedException {
+    final List<CopyOption> optionList = List.of(options);
+    attempts.add(optionList);
+
+    if (optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
+      final String rawFrom = from.toString();
+      final String rawTo = to.toString();
+      throw new AtomicMoveNotSupportedException(rawFrom, rawTo, "not supported by this file system!");
+    }
   }
 
   @Test
@@ -862,19 +869,17 @@ final class IoUtilsTest {
     final IOException failure = new IOException("disk full!");
     final AtomicInteger attempts = new AtomicInteger();
     final IOException thrown = assertThrows(IOException.class, () ->
-      IoUtils.moveReplacing(
-        source,
-        target,
-        (_, _, _) -> {
-          attempts.incrementAndGet();
-          throw failure;
-        },
-        SHORT_RETRY_DELAY
-      )
+      IoUtils.moveReplacing(source, target, (_, _, _) -> this.countAttemptAndFail(attempts, failure), SHORT_RETRY_DELAY)
     );
     final int attemptCount = attempts.get();
     assertSame(failure, thrown);
     assertEquals(1, attemptCount, "only a denied move is tried again");
+  }
+
+  private void countAttemptAndFail(final AtomicInteger attempts, final IOException failure) throws IOException {
+    attempts.incrementAndGet();
+
+    throw failure;
   }
 
   @Test
@@ -883,20 +888,17 @@ final class IoUtilsTest {
     final Path source = this.directory.resolve(SOURCE_NAME);
     final Path target = this.directory.resolve(TARGET_NAME);
     final AtomicInteger attempts = new AtomicInteger();
-    IoUtils.moveReplacing(
-      source,
-      target,
-      (_, to, _) -> {
-        final int attempt = attempts.incrementAndGet();
-        if (attempt < MAXIMUM_MOVE_ATTEMPTS) {
-          final String rawTo = to.toString();
-          throw new AccessDeniedException(rawTo);
-        }
-      },
-      SHORT_RETRY_DELAY
-    );
+    IoUtils.moveReplacing(source, target, (_, to, _) -> this.denyAllButTheLastAttempt(to, attempts), SHORT_RETRY_DELAY);
     final int attemptCount = attempts.get();
     assertEquals(MAXIMUM_MOVE_ATTEMPTS, attemptCount);
+  }
+
+  private void denyAllButTheLastAttempt(final Path to, final AtomicInteger attempts) throws AccessDeniedException {
+    final int attempt = attempts.incrementAndGet();
+    if (attempt < MAXIMUM_MOVE_ATTEMPTS) {
+      final String rawTo = to.toString();
+      throw new AccessDeniedException(rawTo);
+    }
   }
 
   @Test
@@ -906,15 +908,7 @@ final class IoUtilsTest {
     final AccessDeniedException denied = new AccessDeniedException(TARGET_NAME);
     final AtomicInteger attempts = new AtomicInteger();
     final AccessDeniedException thrown = assertThrows(AccessDeniedException.class, () ->
-      IoUtils.moveReplacing(
-        source,
-        target,
-        (_, _, _) -> {
-          attempts.incrementAndGet();
-          throw denied;
-        },
-        SHORT_RETRY_DELAY
-      )
+      IoUtils.moveReplacing(source, target, (_, _, _) -> this.countAttemptAndFail(attempts, denied), SHORT_RETRY_DELAY)
     );
     final int attemptCount = attempts.get();
     assertSame(denied, thrown);
@@ -930,15 +924,7 @@ final class IoUtilsTest {
     final Thread currentThread = Thread.currentThread();
     currentThread.interrupt();
     final InterruptedIOException thrown = assertThrows(InterruptedIOException.class, () ->
-      IoUtils.moveReplacing(
-        source,
-        target,
-        (_, _, _) -> {
-          attempts.incrementAndGet();
-          throw denied;
-        },
-        SHORT_RETRY_DELAY
-      )
+      IoUtils.moveReplacing(source, target, (_, _, _) -> this.countAttemptAndFail(attempts, denied), SHORT_RETRY_DELAY)
     );
     final boolean interrupted = Thread.interrupted();
     final Throwable cause = thrown.getCause();

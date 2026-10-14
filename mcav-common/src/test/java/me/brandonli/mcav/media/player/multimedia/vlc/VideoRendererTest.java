@@ -86,10 +86,12 @@ final class VideoRendererTest {
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   VideoRendererTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   /**
@@ -140,21 +142,30 @@ final class VideoRendererTest {
    * it proceed, so later frames queue up.
    */
   private void attachBlockingRecorder(final List<Integer> rendered, final CountDownLatch rendering, final CountDownLatch proceed) {
-    this.attach((image, _) -> {
-      final int[] pixels = image.getPixels();
-      rendered.add(pixels[0] & WHITE);
-      rendering.countDown();
-      awaitRelease(proceed);
+    this.attach((image, _) -> this.recordFirstPixelAndBlock(image, rendered, rendering, proceed));
+  }
 
-      return false;
-    });
+  private boolean recordFirstPixelAndBlock(
+    final ImageBuffer image,
+    final List<Integer> rendered,
+    final CountDownLatch rendering,
+    final CountDownLatch proceed
+  ) {
+    final int[] pixels = image.getPixels();
+    rendered.add(pixels[0] & WHITE);
+    rendering.countDown();
+    awaitRelease(proceed);
+
+    return false;
   }
 
   private static BiConsumer<String, Throwable> reportingHandler(final List<String> reported) {
-    return (message, error) -> {
-      final String reason = error.getMessage();
-      reported.add(message + ": " + reason);
-    };
+    return (message, error) -> reportFailure(reported, message, error);
+  }
+
+  private static void reportFailure(final List<String> reported, final String message, final Throwable error) {
+    final String reason = error.getMessage();
+    reported.add(message + ": " + reason);
   }
 
   @Test
@@ -465,20 +476,27 @@ final class VideoRendererTest {
     final AssertionError errorFailure,
     final CountDownLatch third
   ) {
-    return (_, _) -> {
-      final int call = calls.incrementAndGet();
-      if (call == 1) {
-        throw runtimeFailure;
-      }
+    return (_, _) -> failTwiceThenCount(calls, runtimeFailure, errorFailure, third);
+  }
 
-      if (call == 2) {
-        throw errorFailure;
-      }
+  private static boolean failTwiceThenCount(
+    final AtomicInteger calls,
+    final IllegalStateException runtimeFailure,
+    final AssertionError errorFailure,
+    final CountDownLatch third
+  ) {
+    final int call = calls.incrementAndGet();
+    if (call == 1) {
+      throw runtimeFailure;
+    }
 
-      third.countDown();
+    if (call == 2) {
+      throw errorFailure;
+    }
 
-      return false;
-    };
+    third.countDown();
+
+    return false;
   }
 
   @Test
@@ -486,14 +504,7 @@ final class VideoRendererTest {
     final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
-    this.attach((_, _) -> {
-      final Thread worker = Thread.currentThread();
-      worker.setUncaughtExceptionHandler((_, thrown) -> {
-        uncaught.set(thrown);
-        escaped.countDown();
-      });
-      throw failure;
-    });
+    this.attach((_, _) -> this.escapeWithFailure(failure, uncaught, escaped));
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.renderer.start();
     this.display(1, 1, RED);
@@ -503,6 +514,21 @@ final class VideoRendererTest {
     assertTrue(ended);
     assertSame(failure, observed);
     assertTrue(reportedNothing, "fatal VM failures must not be converted to ordinary filter reports");
+  }
+
+  private boolean escapeWithFailure(
+    final OutOfMemoryError failure,
+    final AtomicReference<Throwable> uncaught,
+    final CountDownLatch escaped
+  ) {
+    final Thread worker = Thread.currentThread();
+    worker.setUncaughtExceptionHandler((_, thrown) -> this.recordEscape(thrown, uncaught, escaped));
+    throw failure;
+  }
+
+  private void recordEscape(final Throwable thrown, final AtomicReference<Throwable> uncaught, final CountDownLatch escaped) {
+    uncaught.set(thrown);
+    escaped.countDown();
   }
 
   @Test

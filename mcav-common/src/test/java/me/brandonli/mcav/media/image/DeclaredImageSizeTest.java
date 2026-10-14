@@ -234,13 +234,15 @@ final class DeclaredImageSizeTest {
       ".gif"
     );
     final int[][] sizes = { { 5, 7 }, { 300, 2 }, { 1, 1 } };
-    return extensions
-      .stream()
-      .flatMap(extension ->
-        Stream.of(sizes).flatMap(size ->
-          Stream.of(opencv_core.CV_8UC1, opencv_core.CV_8UC3).map(type -> Arguments.of(extension, size[0], size[1], type))
-        )
-      );
+    return extensions.stream().flatMap(extension -> openCvSamplesOfExtension(extension, sizes));
+  }
+
+  private static Stream<Arguments> openCvSamplesOfExtension(final String extension, final int[][] sizes) {
+    return Stream.of(sizes).flatMap(size -> openCvSamplesOfSize(extension, size));
+  }
+
+  private static Stream<Arguments> openCvSamplesOfSize(final String extension, final int[] size) {
+    return Stream.of(opencv_core.CV_8UC1, opencv_core.CV_8UC3).map(type -> Arguments.of(extension, size[0], size[1], type));
   }
 
   @ParameterizedTest

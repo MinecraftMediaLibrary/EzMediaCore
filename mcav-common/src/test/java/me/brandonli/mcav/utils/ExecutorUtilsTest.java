@@ -62,10 +62,7 @@ final class ExecutorUtilsTest {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final AtomicBoolean release = new AtomicBoolean();
-    executor.execute(() -> {
-      started.countDown();
-      spinUntil(release);
-    });
+    executor.execute(() -> this.signalStartAndSpin(started, release));
     final AtomicBoolean queuedRan = new AtomicBoolean();
     executor.execute(() -> queuedRan.set(true));
     started.await();
@@ -79,20 +76,17 @@ final class ExecutorUtilsTest {
     assertFalse(ranQueued, "tasks that had not started are cancelled");
   }
 
+  private void signalStartAndSpin(final CountDownLatch started, final AtomicBoolean release) {
+    started.countDown();
+    spinUntil(release);
+  }
+
   @Test
   void shouldKeepTheInterruptWhenInterruptedWhileWaiting() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch blocker = new CountDownLatch(1);
-    executor.execute(() -> {
-      started.countDown();
-      try {
-        blocker.await();
-      } catch (final InterruptedException exception) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-      }
-    });
+    executor.execute(() -> this.signalStartAndAwaitBlocker(started, blocker));
     started.await();
     final Thread current = Thread.currentThread();
     current.interrupt();
@@ -102,6 +96,16 @@ final class ExecutorUtilsTest {
     assertFalse(terminated);
     assertTrue(interrupted, "the interrupt must be restored");
     assertTrue(finished, "shutdownNow must interrupt the running task");
+  }
+
+  private void signalStartAndAwaitBlocker(final CountDownLatch started, final CountDownLatch blocker) {
+    started.countDown();
+    try {
+      blocker.await();
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
   }
 
   @Test

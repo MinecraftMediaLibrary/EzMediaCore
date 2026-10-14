@@ -277,14 +277,7 @@ final class PlaybackSessionStopStressTest {
       videoCallback.attach(videoStep);
       audioCallback.attach(audioStep);
       final ScriptedFrameGrabber audio = this.audioGrabber;
-      final PlaybackSession.GrabberFactory audioFactory =
-        audio == null
-          ? null
-          : () -> {
-              this.audioOpened.set(true);
-
-              return audio;
-            };
+      final PlaybackSession.GrabberFactory audioFactory = audio == null ? null : () -> this.openAudio(audio);
       return new PlaybackSession(
         () -> this.videoGrabber,
         audioFactory,
@@ -316,6 +309,12 @@ final class PlaybackSessionStopStressTest {
       }
 
       return true;
+    }
+
+    private ScriptedFrameGrabber openAudio(final ScriptedFrameGrabber audio) {
+      this.audioOpened.set(true);
+
+      return audio;
     }
 
     void play() throws Exception {

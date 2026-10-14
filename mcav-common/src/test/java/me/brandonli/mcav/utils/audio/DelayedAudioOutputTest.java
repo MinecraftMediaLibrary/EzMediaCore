@@ -181,21 +181,8 @@ class DelayedAudioOutputTest {
   void shouldNotStopTheSoundWhenTheExceptionHandlerFails() {
     final List<byte[]> heard = new CopyOnWriteArrayList<>();
     final DelayedAudioOutput failing = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter broke!");
-          }
-
-          final byte[] copy = new byte[samples.remaining()];
-          samples.get(copy);
-          heard.add(copy);
-
-          return true;
-        }),
-      (message, failure) -> {
-        throw new IllegalStateException("handler broke too!");
-      }
+      () -> AudioPipelineStep.of((samples, metadata) -> this.breakOnMarkedChunkOrHear(samples, heard)),
+      (message, failure) -> this.breakHandler()
     );
     try {
       failing.accept(new byte[] { 1, 0, 0, 0 }, AudioFilter.FRAME_SIZE);
@@ -208,6 +195,22 @@ class DelayedAudioOutputTest {
     }
   }
 
+  private boolean breakOnMarkedChunkOrHear(final ByteBuffer samples, final List<byte[]> heard) {
+    if (samples.get(0) == 1) {
+      throw new IllegalStateException("filter broke!");
+    }
+
+    final byte[] copy = new byte[samples.remaining()];
+    samples.get(copy);
+    heard.add(copy);
+
+    return true;
+  }
+
+  private void breakHandler() {
+    throw new IllegalStateException("handler broke too!");
+  }
+
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
   void shouldNotStopTheSoundOnANonfatalErrorInTheExceptionHandler(final boolean linkage) throws InterruptedException {
@@ -216,27 +219,10 @@ class DelayedAudioOutputTest {
     final CountDownLatch settled = new CountDownLatch(1);
     final Error reportFailure = linkage ? new NoClassDefFoundError("reporter unavailable!") : new AssertionError("reporter failed!");
     final DelayedAudioOutput failing = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter failed!");
-          }
-
-          final byte[] copy = new byte[samples.remaining()];
-          samples.get(copy);
-          heard.set(copy);
-          settled.countDown();
-
-          return true;
-        }),
-      (message, failure) -> {
-        throw reportFailure;
-      }
+      () -> AudioPipelineStep.of((samples, metadata) -> this.failOnMarkedChunkOrSettleHeard(samples, heard, settled)),
+      (message, failure) -> this.throwReportFailure(reportFailure)
     );
-    failing.getThread().setUncaughtExceptionHandler((thread, failure) -> {
-      escaped.set(failure);
-      settled.countDown();
-    });
+    failing.getThread().setUncaughtExceptionHandler((thread, failure) -> this.settleEscapedFailure(failure, escaped, settled));
     try {
       failing.accept(new byte[] { 1, 0, 0, 0 }, AudioFilter.FRAME_SIZE);
       failing.accept(new byte[] { 2, 3, 4, 5 }, AudioFilter.FRAME_SIZE);
@@ -259,6 +245,32 @@ class DelayedAudioOutputTest {
     assertFalse(aliveAfterClose);
   }
 
+  private boolean failOnMarkedChunkOrSettleHeard(
+    final ByteBuffer samples,
+    final AtomicReference<byte[]> heard,
+    final CountDownLatch settled
+  ) {
+    if (samples.get(0) == 1) {
+      throw new IllegalStateException("filter failed!");
+    }
+
+    final byte[] copy = new byte[samples.remaining()];
+    samples.get(copy);
+    heard.set(copy);
+    settled.countDown();
+
+    return true;
+  }
+
+  private void throwReportFailure(final Error reportFailure) {
+    throw reportFailure;
+  }
+
+  private void settleEscapedFailure(final Throwable failure, final AtomicReference<Throwable> escaped, final CountDownLatch settled) {
+    escaped.set(failure);
+    settled.countDown();
+  }
+
   @Test
   void shouldEndTheOutputBeforeTheNextChunkOnAFatalErrorInTheExceptionHandler() throws InterruptedException {
     final AtomicReference<Throwable> escaped = new AtomicReference<>();
@@ -266,25 +278,10 @@ class DelayedAudioOutputTest {
     final CountDownLatch settled = new CountDownLatch(1);
     final OutOfMemoryError reportFailure = new OutOfMemoryError("synthetic reporter failure!");
     final DelayedAudioOutput failing = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          if (samples.get(0) == 1) {
-            throw new IllegalStateException("filter failed!");
-          }
-
-          continued.set(true);
-          settled.countDown();
-
-          return true;
-        }),
-      (message, failure) -> {
-        throw reportFailure;
-      }
+      () -> AudioPipelineStep.of((samples, metadata) -> this.failOnMarkedChunkOrSettleContinued(samples, continued, settled)),
+      (message, failure) -> this.throwReportFailure(reportFailure)
     );
-    failing.getThread().setUncaughtExceptionHandler((thread, failure) -> {
-      escaped.set(failure);
-      settled.countDown();
-    });
+    failing.getThread().setUncaughtExceptionHandler((thread, failure) -> this.settleEscapedFailure(failure, escaped, settled));
     try {
       failing.accept(new byte[] { 1, 0, 0, 0 }, AudioFilter.FRAME_SIZE);
       failing.accept(new byte[] { 2, 0, 0, 0 }, AudioFilter.FRAME_SIZE);
@@ -305,19 +302,27 @@ class DelayedAudioOutputTest {
     }
   }
 
+  private boolean failOnMarkedChunkOrSettleContinued(
+    final ByteBuffer samples,
+    final AtomicBoolean continued,
+    final CountDownLatch settled
+  ) {
+    if (samples.get(0) == 1) {
+      throw new IllegalStateException("filter failed!");
+    }
+
+    continued.set(true);
+    settled.countDown();
+
+    return true;
+  }
+
   @Test
   void shouldNotMakeAFilterThatClosesTheOutputWaitForItself() {
     final AtomicReference<DelayedAudioOutput> self = new AtomicReference<>();
     final AtomicLong closeNanoseconds = new AtomicLong(-1);
     final DelayedAudioOutput closing = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          final long start = System.nanoTime();
-          self.get().close();
-          closeNanoseconds.set(System.nanoTime() - start);
-
-          return true;
-        }),
+      () -> AudioPipelineStep.of((samples, metadata) -> this.closeItselfAndMeasure(self, closeNanoseconds)),
       (message, failure) -> this.failures.add(message)
     );
     self.set(closing);
@@ -326,6 +331,14 @@ class DelayedAudioOutputTest {
     final boolean closedQuickly = closeNanoseconds.get() < TimeUnit.SECONDS.toNanos(1);
     assertTrue(closedQuickly, "closed without waiting for its own thread");
     assertEquals(List.of(), this.failures);
+  }
+
+  private boolean closeItselfAndMeasure(final AtomicReference<DelayedAudioOutput> self, final AtomicLong closeNanoseconds) {
+    final long start = System.nanoTime();
+    self.get().close();
+    closeNanoseconds.set(System.nanoTime() - start);
+
+    return true;
   }
 
   @Test
@@ -366,17 +379,7 @@ class DelayedAudioOutputTest {
       "the browser",
       DELAY_MILLISECONDS,
       MAXIMUM_QUEUED_MILLISECONDS,
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          entered.countDown();
-          try {
-            never.await(30, TimeUnit.SECONDS);
-          } catch (final InterruptedException exception) {
-            interrupted.set(true);
-          }
-
-          return true;
-        }),
+      () -> AudioPipelineStep.of((samples, metadata) -> this.holdTheThreadUntilInterrupted(entered, never, interrupted)),
       (message, failure) -> this.failures.add(message),
       System::nanoTime,
       100,
@@ -391,6 +394,17 @@ class DelayedAudioOutputTest {
     final boolean pipelineInterrupted = interrupted.get();
     assertTrue(pipelineInterrupted, "the pipeline was asked to let go of the thread");
     assertEquals(List.of(), this.failures);
+  }
+
+  private boolean holdTheThreadUntilInterrupted(final CountDownLatch entered, final CountDownLatch never, final AtomicBoolean interrupted) {
+    entered.countDown();
+    try {
+      never.await(30, TimeUnit.SECONDS);
+    } catch (final InterruptedException exception) {
+      interrupted.set(true);
+    }
+
+    return true;
   }
 
   @Test
@@ -498,10 +512,7 @@ class DelayedAudioOutputTest {
   void shouldStartTheSilenceOnlyOnceTheSoundHandedOverHasPlayed() {
     final AtomicLong now = new AtomicLong();
     final AtomicInteger reads = new AtomicInteger();
-    final DelayedAudioOutput quiet = this.quietOutput(() -> {
-      reads.incrementAndGet();
-      return now.get();
-    }, SILENCE_LIMIT_MILLISECONDS);
+    final DelayedAudioOutput quiet = this.quietOutput(() -> this.countClockRead(reads, now), SILENCE_LIMIT_MILLISECONDS);
     quiet.accept(new byte[SOUND_CHUNK_BYTES], SOUND_CHUNK_BYTES);
     this.at(now, DELAY_MILLISECONDS, 1);
     quiet.quiet();
@@ -510,6 +521,12 @@ class DelayedAudioOutputTest {
 
     final int processedCount = this.processed.size();
     assertEquals(1, processedCount, "the 10 ms of sound still play, so no silence follows yet");
+  }
+
+  private long countClockRead(final AtomicInteger reads, final AtomicLong now) {
+    reads.incrementAndGet();
+
+    return now.get();
   }
 
   @Test
@@ -600,10 +617,7 @@ class DelayedAudioOutputTest {
     final long start = TimeUnit.SECONDS.toNanos(1);
     final AtomicLong now = new AtomicLong(start);
     final AtomicInteger reads = new AtomicInteger();
-    final DelayedAudioOutput quiet = this.quietOutput(() -> {
-      reads.incrementAndGet();
-      return now.get();
-    }, SILENCE_LIMIT_MILLISECONDS);
+    final DelayedAudioOutput quiet = this.quietOutput(() -> this.countClockRead(reads, now), SILENCE_LIMIT_MILLISECONDS);
     quiet.accept(new byte[] { 6, 0, 6, 0 }, AudioFilter.FRAME_SIZE);
     final long due = start + TimeUnit.MILLISECONDS.toNanos(DELAY_MILLISECONDS);
     now.set(due - 10);
@@ -688,10 +702,7 @@ class DelayedAudioOutputTest {
     waitUntil(() -> empty.getQueuedBytes() == 0);
     empty.close();
     final DelayedAudioOutput failing = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          throw new IllegalStateException("filter broke!");
-        }),
+      () -> AudioPipelineStep.of((samples, metadata) -> this.breakFilter()),
       (message, failure) -> this.failures.add(message + ": " + failure.getMessage())
     );
     failing.accept(new byte[AudioFilter.FRAME_SIZE], AudioFilter.FRAME_SIZE);
@@ -700,16 +711,21 @@ class DelayedAudioOutputTest {
     assertEquals(List.of("Failed to process the audio of the virtual machine: filter broke!"), this.failures);
 
     final DelayedAudioOutput fatal = start(
-      () ->
-        AudioPipelineStep.of((samples, metadata) -> {
-          throw new OutOfMemoryError("fatal!");
-        }),
+      () -> AudioPipelineStep.of((samples, metadata) -> this.failFatally()),
       (message, failure) -> this.failures.add(message)
     );
     fatal.accept(new byte[AudioFilter.FRAME_SIZE], AudioFilter.FRAME_SIZE);
     waitUntil(() -> !fatal.getThread().isAlive());
     final int failureCount = this.failures.size();
     assertEquals(1, failureCount, "an error of the virtual machine ends the thread instead");
+  }
+
+  private boolean breakFilter() {
+    throw new IllegalStateException("filter broke!");
+  }
+
+  private boolean failFatally() {
+    throw new OutOfMemoryError("fatal!");
   }
 
   @Test

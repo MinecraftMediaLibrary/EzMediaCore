@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -36,9 +37,7 @@ final class FaceDetectionAvailabilityTest {
   void shouldExplainThatFaceDetectionIsUnavailableWhenTheNativesCannotBeLinked() {
     final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file!");
     final IllegalStateException exception = assertThrowsWhileOpening(IllegalStateException.class, () ->
-      FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
-        throw missingGtk;
-      })
+      FaceDetectionFilter.loadClassifier(CASCADE, _ -> this.failClassifierLoad(missingGtk))
     );
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -49,13 +48,15 @@ final class FaceDetectionAvailabilityTest {
     assertSame(missingGtk, cause);
   }
 
+  private <FailureType extends Throwable> CascadeClassifier failClassifierLoad(final FailureType failure) throws FailureType {
+    throw failure;
+  }
+
   @Test
   void shouldReportFilesThatAreNotCascades() {
     final RuntimeException openCvError = new RuntimeException("Can't open file!");
     final IllegalArgumentException exception = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
-      FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
-        throw openCvError;
-      })
+      FaceDetectionFilter.loadClassifier(CASCADE, _ -> this.failClassifierLoad(openCvError))
     );
     final Throwable cause = exception.getCause();
     assertSame(openCvError, cause);

@@ -40,6 +40,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import me.brandonli.mcav.media.Polling;
+import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
@@ -124,11 +125,7 @@ final class ScriptedPlayerTest {
 
   @Test
   void shouldPlayAndStopAtTheEndOfTheMedia() throws Exception {
-    final Supplier<ScriptedFrameGrabber> twoFrames = () -> {
-      final Object first = ScriptedFrameGrabber.video(0L);
-      final Object second = ScriptedFrameGrabber.video(FRAME_INTERVAL_MICROSECONDS);
-      return ScriptedFrameGrabber.of(first, second);
-    };
+    final Supplier<ScriptedFrameGrabber> twoFrames = this::twoFrameVideo;
     final ScriptedPlayer player = new ScriptedPlayer(twoFrames);
     final VideoFilter counter = (_, _) -> true;
     final VideoPipelineStep step = VideoPipelineStep.of(counter);
@@ -147,6 +144,12 @@ final class ScriptedPlayerTest {
     assertTrue(released);
     assertEquals(0L, positionAfterRelease);
     assertEquals(expected, opened);
+  }
+
+  private ScriptedFrameGrabber twoFrameVideo() {
+    final Object first = ScriptedFrameGrabber.video(0L);
+    final Object second = ScriptedFrameGrabber.video(FRAME_INTERVAL_MICROSECONDS);
+    return ScriptedFrameGrabber.of(first, second);
   }
 
   @Test
@@ -309,11 +312,7 @@ final class ScriptedPlayerTest {
   @Test
   void shouldRefuseToSeekMediaWithoutALength() {
     final Supplier<ScriptedFrameGrabber> endless = ScriptedPlayerTest::endlessVideo;
-    final Supplier<ScriptedFrameGrabber> live = () -> {
-      final ScriptedFrameGrabber grabber = endless.get();
-      grabber.setLength(0L);
-      return grabber;
-    };
+    final Supplier<ScriptedFrameGrabber> live = () -> this.removeLength(endless.get());
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
@@ -327,6 +326,11 @@ final class ScriptedPlayerTest {
     } finally {
       player.release();
     }
+  }
+
+  private ScriptedFrameGrabber removeLength(final ScriptedFrameGrabber grabber) {
+    grabber.setLength(0L);
+    return grabber;
   }
 
   @Test
@@ -367,11 +371,7 @@ final class ScriptedPlayerTest {
 
   @Test
   void shouldRefuseToChangeTheSpeedOfMediaWithoutALength() {
-    final Supplier<ScriptedFrameGrabber> live = () -> {
-      final ScriptedFrameGrabber grabber = endlessVideo();
-      grabber.setLength(0L);
-      return grabber;
-    };
+    final Supplier<ScriptedFrameGrabber> live = () -> this.removeLength(endlessVideo());
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
@@ -392,13 +392,7 @@ final class ScriptedPlayerTest {
     final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
     dimension.attach(size);
     final List<Dimension> delivered = new CopyOnWriteArrayList<>();
-    final VideoFilter recording = (samples, _) -> {
-      final int deliveredWidth = samples.getWidth();
-      final int deliveredHeight = samples.getHeight();
-      delivered.add(Dimension.of(deliveredWidth, deliveredHeight));
-
-      return false;
-    };
+    final VideoFilter recording = (samples, _) -> this.recordSize(samples, delivered);
     final VideoPipelineStep step = VideoPipelineStep.of(recording);
     final VideoAttachableCallback video = player.getVideoAttachableCallback();
     video.attach(step);
@@ -412,6 +406,14 @@ final class ScriptedPlayerTest {
     assertEquals(160, width);
     assertEquals(90, height);
     assertEquals(List.of(size), delivered, "the pipeline must receive a scaled frame, not just decoder configuration");
+  }
+
+  private boolean recordSize(final ImageBuffer samples, final List<Dimension> delivered) {
+    final int deliveredWidth = samples.getWidth();
+    final int deliveredHeight = samples.getHeight();
+    delivered.add(Dimension.of(deliveredWidth, deliveredHeight));
+
+    return false;
   }
 
   @Test
@@ -583,11 +585,13 @@ final class ScriptedPlayerTest {
    * Creates a thread that releases the player and records when the release returned.
    */
   private static Thread releasingThread(final ScriptedPlayer player, final AtomicLong releaseEnd) {
-    return new Thread(() -> {
-      player.release();
-      final long end = System.nanoTime();
-      releaseEnd.set(end);
-    });
+    return new Thread(() -> releaseAndRecordEnd(player, releaseEnd));
+  }
+
+  private static void releaseAndRecordEnd(final ScriptedPlayer player, final AtomicLong releaseEnd) {
+    player.release();
+    final long end = System.nanoTime();
+    releaseEnd.set(end);
   }
 
   @Test

@@ -151,15 +151,7 @@ final class PlaybackClockTest {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.pause();
     final CountDownLatch released = new CountDownLatch(1);
-    final Thread waiter = new Thread(() -> {
-      try {
-        clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
-        released.countDown();
-      } catch (final InterruptedException exception) {
-        final Thread currentThread = Thread.currentThread();
-        currentThread.interrupt();
-      }
-    });
+    final Thread waiter = new Thread(() -> this.awaitResumeAndRelease(clock, released));
     waiter.start();
 
     final Duration timeout = Duration.ofSeconds(5);
@@ -172,6 +164,16 @@ final class PlaybackClockTest {
     final boolean woke = released.await(5, TimeUnit.SECONDS);
     assertTrue(stillWaiting);
     assertTrue(woke);
+  }
+
+  private void awaitResumeAndRelease(final PlaybackClock clock, final CountDownLatch released) {
+    try {
+      clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
+      released.countDown();
+    } catch (final InterruptedException exception) {
+      final Thread currentThread = Thread.currentThread();
+      currentThread.interrupt();
+    }
   }
 
   @Test

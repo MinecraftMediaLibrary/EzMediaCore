@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,9 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BooleanSupplier;
 import me.brandonli.mcav.media.Polling;
+import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
+import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
+import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
@@ -96,44 +100,58 @@ final class FfmpegPlayerTest {
    * time every frame arrived at.
    */
   private static VideoFilter recordingFrames(final AtomicInteger frames, final List<String> sizes, final List<Long> frameTimes) {
-    return (image, metadata) -> {
-      final int width = image.getWidth();
-      final int originalWidth = metadata.getVideoWidth();
-      sizes.add(width + SIZE_SEPARATOR + originalWidth);
-      final long now = System.nanoTime();
-      frameTimes.add(now);
-      return frames.incrementAndGet() > 0;
-    };
+    return (image, metadata) -> recordFrame(image, metadata, frames, sizes, frameTimes);
+  }
+
+  private static boolean recordFrame(
+    final ImageBuffer image,
+    final OriginalVideoMetadata metadata,
+    final AtomicInteger frames,
+    final List<String> sizes,
+    final List<Long> frameTimes
+  ) {
+    final int width = image.getWidth();
+    final int originalWidth = metadata.getVideoWidth();
+    sizes.add(width + SIZE_SEPARATOR + originalWidth);
+    final long now = System.nanoTime();
+    frameTimes.add(now);
+    return frames.incrementAndGet() > 0;
   }
 
   /**
    * Creates an audio filter that counts the bytes of samples in the output format of the player.
    */
   private static AudioFilter countingOutputSamples(final AtomicLong audioBytes) {
-    return (samples, metadata) -> {
-      final int sampleRate = metadata.getAudioSampleRate();
-      final int remaining = samples.remaining();
-      if (sampleRate == AudioFilter.SAMPLE_RATE) {
-        audioBytes.addAndGet(remaining);
-      }
+    return (samples, metadata) -> countOutputSamples(samples, metadata, audioBytes);
+  }
 
-      return true;
-    };
+  private static boolean countOutputSamples(final ByteBuffer samples, final OriginalAudioMetadata metadata, final AtomicLong audioBytes) {
+    final int sampleRate = metadata.getAudioSampleRate();
+    final int remaining = samples.remaining();
+    if (sampleRate == AudioFilter.SAMPLE_RATE) {
+      audioBytes.addAndGet(remaining);
+    }
+
+    return true;
   }
 
   private static VideoFilter recordingWidth(final AtomicInteger frames, final AtomicInteger width) {
-    return (image, _) -> {
-      final int frameWidth = image.getWidth();
-      width.set(frameWidth);
-      return frames.incrementAndGet() > 0;
-    };
+    return (image, _) -> recordWidth(image, frames, width);
+  }
+
+  private static boolean recordWidth(final ImageBuffer image, final AtomicInteger frames, final AtomicInteger width) {
+    final int frameWidth = image.getWidth();
+    width.set(frameWidth);
+    return frames.incrementAndGet() > 0;
   }
 
   private static AudioFilter countingBytes(final AtomicLong audioBytes) {
-    return (samples, _) -> {
-      final int remaining = samples.remaining();
-      return audioBytes.addAndGet(remaining) > 0;
-    };
+    return (samples, _) -> countBytes(samples, audioBytes);
+  }
+
+  private static boolean countBytes(final ByteBuffer samples, final AtomicLong audioBytes) {
+    final int remaining = samples.remaining();
+    return audioBytes.addAndGet(remaining) > 0;
   }
 
   /**

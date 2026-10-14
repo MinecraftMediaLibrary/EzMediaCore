@@ -66,6 +66,7 @@ import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -73,6 +74,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 /**
  * Tests {@link AbstractInstaller} with a local HTTP server standing in for the download hosts.
@@ -167,10 +169,7 @@ final class AbstractInstallerTest {
   void shouldResolveTheDownloadsLazilyAndOnlyOnce() {
     final AtomicInteger calls = new AtomicInteger();
     final Download current = new Download(CURRENT_PLATFORM, "https://example.com/tool", "ab12cd");
-    final TestInstaller installer = new TestInstaller(this.folder, NAME, () -> {
-      calls.incrementAndGet();
-      return new Download[] { current };
-    });
+    final TestInstaller installer = new TestInstaller(this.folder, NAME, () -> this.countAndListDownload(calls, current));
     final int callsAfterConstruction = calls.get();
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();
@@ -181,6 +180,11 @@ final class AbstractInstallerTest {
     assertEquals("https://example.com/tool", url);
     assertEquals("ab12cd", hash);
     assertEquals(1, callsAfterUse);
+  }
+
+  private Download[] countAndListDownload(final AtomicInteger calls, final Download current) {
+    calls.incrementAndGet();
+    return new Download[] { current };
   }
 
   @Test
@@ -458,13 +462,7 @@ final class AbstractInstallerTest {
       final Path destination = installer.getDefaultPath();
       ioUtils
         .when(() -> IoUtils.markExecutable(destination))
-        .thenAnswer(_ -> {
-          // A nonempty replacement makes cleanup fail on every platform without relying on OS permissions.
-          Files.delete(destination);
-          Files.createDirectory(destination);
-          Files.writeString(destination.resolve(BUSY_FILE_NAME), "retained");
-          throw permissionFailure;
-        });
+        .thenAnswer(_ -> this.replaceWithANonemptyDirectoryAndFail(destination, permissionFailure));
       final IOException failure = assertThrows(IOException.class, () -> installer.download(true));
       final Throwable cause = failure.getCause();
       assertSame(permissionFailure, cause);
@@ -485,6 +483,15 @@ final class AbstractInstallerTest {
     }
   }
 
+  private Object replaceWithANonemptyDirectoryAndFail(final Path destination, final UncheckedIOException permissionFailure)
+    throws IOException {
+    // A nonempty replacement makes cleanup fail on every platform without relying on OS permissions.
+    Files.delete(destination);
+    Files.createDirectory(destination);
+    Files.writeString(destination.resolve(BUSY_FILE_NAME), "retained");
+    throw permissionFailure;
+  }
+
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
   void shouldRetryExecutablePreparationAfterAPermissionFailure(final boolean freshInstaller) throws IOException {
@@ -500,13 +507,7 @@ final class AbstractInstallerTest {
       final AtomicInteger permissionAttempts = new AtomicInteger();
       ioUtils
         .when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class)))
-        .thenAnswer(invocation -> {
-          if (permissionAttempts.getAndIncrement() == 0) {
-            throw new UncheckedIOException(new IOException("temporary permission failure!"));
-          }
-
-          return invocation.callRealMethod();
-        });
+        .thenAnswer(invocation -> this.failTheFirstPermissionAttempt(invocation, permissionAttempts));
       assertThrows(IOException.class, () -> first.download(true));
       final TestInstaller retry = freshInstaller ? new TestInstaller(tools, NAME, new Download[] { download }) : first;
       final Path installed = retry.download(true);
@@ -517,6 +518,15 @@ final class AbstractInstallerTest {
       final byte[] content = Files.readAllBytes(installed);
       assertArrayEquals(PROGRAM, content);
     }
+  }
+
+  private @Nullable Object failTheFirstPermissionAttempt(final InvocationOnMock invocation, final AtomicInteger permissionAttempts)
+    throws Throwable {
+    if (permissionAttempts.getAndIncrement() == 0) {
+      throw new UncheckedIOException(new IOException("temporary permission failure!"));
+    }
+
+    return invocation.callRealMethod();
   }
 
   @Test
@@ -539,9 +549,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldFindAnEarlierInstallationWithoutDownloadingAnything() throws IOException {
-    final Supplier<Download[]> noDownloads = () -> {
-      throw new AssertionError("The downloads must not be resolved!");
-    };
+    final Supplier<Download[]> noDownloads = this::refuseToResolveDownloads;
     final TestInstaller installer = new TestInstaller(this.folder, NAME, noDownloads);
     final Optional<Path> before = installer.findInstallation();
     final Path elsewhere = this.createFileInFolder(ELSEWHERE_FILE_NAME);
@@ -555,6 +563,10 @@ final class AbstractInstallerTest {
     assertTrue(nothingBefore);
     assertEquals(expectedInstallation, after);
     assertEquals(expected, path, "a found installation becomes the installation path");
+  }
+
+  private Download[] refuseToResolveDownloads() {
+    throw new AssertionError("The downloads must not be resolved!");
   }
 
   @Test
@@ -660,14 +672,16 @@ final class AbstractInstallerTest {
     final CyclicBarrier startTogether = new CyclicBarrier(CONCURRENT_DOWNLOADS);
     final List<Future<Path>> results = new ArrayList<>();
     for (int index = 0; index < CONCURRENT_DOWNLOADS; index++) {
-      final Future<Path> result = executor.submit(() -> {
-        startTogether.await();
-        return installer.download(false);
-      });
+      final Future<Path> result = executor.submit(() -> awaitAndDownload(startTogether, installer));
       results.add(result);
     }
 
     return results;
+  }
+
+  private static Path awaitAndDownload(final CyclicBarrier startTogether, final TestInstaller installer) throws Exception {
+    startTogether.await();
+    return installer.download(false);
   }
 
   private static void assertEveryResultIs(final Path expected, final List<Future<Path>> results) throws Exception {

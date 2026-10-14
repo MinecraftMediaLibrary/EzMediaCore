@@ -55,6 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
@@ -431,11 +432,7 @@ final class HttpDownloaderTest {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
       for (final int status : new int[] { 301, 302, 303, 307, 308 }) {
-        server.respondRedirect("/" + status, status, FILE_ROUTE);
-        try (final InputStream body = HttpDownloader.openPinnedStream(server.uri("/" + status))) {
-          final byte[] content = body.readAllBytes();
-          assertArrayEquals(CONTENT, content, "after a " + status);
-        }
+        this.assertPinnedRedirectIsFollowed(server, status);
       }
 
       server.respondRedirect("/loop", 307, "/loop");
@@ -454,6 +451,14 @@ final class HttpDownloaderTest {
       final HttpStatusException choices = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/choices")));
       final int choicesStatus = choices.getStatusCode();
       assertEquals(300, choicesStatus);
+    }
+  }
+
+  private void assertPinnedRedirectIsFollowed(final LocalHttpServer server, final int status) throws IOException {
+    server.respondRedirect("/" + status, status, FILE_ROUTE);
+    try (final InputStream body = HttpDownloader.openPinnedStream(server.uri("/" + status))) {
+      final byte[] content = body.readAllBytes();
+      assertArrayEquals(CONTENT, content, "after a " + status);
     }
   }
 
@@ -637,14 +642,8 @@ final class HttpDownloaderTest {
       final URI uri = server.uri(FILE_ROUTE);
       final Path destination = this.directory.resolve(SHARED_FILE_NAME);
       try (final ExecutorService executor = Executors.newFixedThreadPool(2)) {
-        final Future<?> first = executor.submit(() -> {
-          HttpDownloader.download(uri, destination, CONTENT_SHA256, NO_DELAY);
-          return null;
-        });
-        final Future<?> second = executor.submit(() -> {
-          HttpDownloader.download(uri, destination, CONTENT_SHA256, NO_DELAY);
-          return null;
-        });
+        final Future<?> first = executor.submit(() -> this.downloadSharedFile(uri, destination));
+        final Future<?> second = executor.submit(() -> this.downloadSharedFile(uri, destination));
         final Duration requestWait = Duration.ofSeconds(WAIT_TIMEOUT_SECONDS);
         final boolean bothArrived = server.awaitRequests(FILE_ROUTE, 2, requestWait);
         assertTrue(bothArrived, "the server did not receive the requests in time");
@@ -661,6 +660,12 @@ final class HttpDownloaderTest {
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
+  }
+
+  private @Nullable Void downloadSharedFile(final URI uri, final Path destination) throws IOException {
+    HttpDownloader.download(uri, destination, CONTENT_SHA256, NO_DELAY);
+
+    return null;
   }
 
   @Test
@@ -694,11 +699,7 @@ final class HttpDownloaderTest {
       final Path destination = this.directory.resolve(STALLED_FILE_NAME);
       final Duration idleTimeout = Duration.ofMillis(300);
       final Duration limit = Duration.ofSeconds(30);
-      final IOException exception = assertTimeoutPreemptively(limit, () ->
-        assertThrows(IOException.class, () ->
-          HttpDownloader.download(uri, destination, null, NO_DELAY, idleTimeout, HttpDownloader.NO_SIZE_LIMIT)
-        )
-      );
+      final IOException exception = assertTimeoutPreemptively(limit, () -> this.assertStalledDownloadFails(uri, destination, idleTimeout));
       final Throwable cause = exception.getCause();
       final int requests = server.getRequestCount(STALLED_ROUTE);
       final boolean destinationExists = Files.exists(destination);
@@ -706,6 +707,12 @@ final class HttpDownloaderTest {
       assertEquals(MAXIMUM_ATTEMPTS, requests, "a stalled body is a network failure and is retried");
       assertFalse(destinationExists);
     }
+  }
+
+  private IOException assertStalledDownloadFails(final URI uri, final Path destination, final Duration idleTimeout) {
+    return assertThrows(IOException.class, () ->
+      HttpDownloader.download(uri, destination, null, NO_DELAY, idleTimeout, HttpDownloader.NO_SIZE_LIMIT)
+    );
   }
 
   @Test
@@ -718,13 +725,7 @@ final class HttpDownloaderTest {
       final Duration longRetryDelay = Duration.ofMinutes(1);
       final Duration longIdleTimeout = Duration.ofMinutes(1);
       final AtomicReference<IOException> failure = new AtomicReference<>();
-      final Runnable download = () -> {
-        try {
-          HttpDownloader.download(uri, destination, null, longRetryDelay, longIdleTimeout, HttpDownloader.NO_SIZE_LIMIT);
-        } catch (final IOException exception) {
-          failure.set(exception);
-        }
-      };
+      final Runnable download = () -> this.downloadRecordingFailure(uri, destination, longRetryDelay, longIdleTimeout, failure);
       final Thread downloader = new Thread(download, "interrupted download");
       downloader.start();
       final Duration wait = Duration.ofSeconds(WAIT_TIMEOUT_SECONDS);
@@ -747,15 +748,31 @@ final class HttpDownloaderTest {
     }
   }
 
+  private void downloadRecordingFailure(
+    final URI uri,
+    final Path destination,
+    final Duration retryDelay,
+    final Duration idleTimeout,
+    final AtomicReference<IOException> failure
+  ) {
+    try {
+      HttpDownloader.download(uri, destination, null, retryDelay, idleTimeout, HttpDownloader.NO_SIZE_LIMIT);
+    } catch (final IOException exception) {
+      failure.set(exception);
+    }
+  }
+
   private static List<Path> partFiles(final Path folder) throws IOException {
     try (final Stream<Path> files = Files.list(folder)) {
-      final Stream<Path> parts = files.filter(file -> {
-        final Path fileName = file.getFileName();
-        final String name = fileName.toString();
-        return name.endsWith(PART_FILE_EXTENSION) && Files.isRegularFile(file);
-      });
+      final Stream<Path> parts = files.filter(HttpDownloaderTest::isPartFile);
       return parts.toList();
     }
+  }
+
+  private static boolean isPartFile(final Path file) {
+    final Path fileName = file.getFileName();
+    final String name = fileName.toString();
+    return name.endsWith(PART_FILE_EXTENSION) && Files.isRegularFile(file);
   }
 
   /**

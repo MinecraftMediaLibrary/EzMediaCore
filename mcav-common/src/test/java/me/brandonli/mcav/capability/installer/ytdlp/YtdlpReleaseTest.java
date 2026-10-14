@@ -139,11 +139,7 @@ final class YtdlpReleaseTest {
 
   static String runVersion(final Process process, final Duration timeout) throws IOException, InterruptedException {
     final InputStream stream = process.getInputStream();
-    final FutureTask<byte[]> drain = new FutureTask<>(() -> {
-      try (stream) {
-        return stream.readAllBytes();
-      }
-    });
+    final FutureTask<byte[]> drain = new FutureTask<>(() -> readAndClose(stream));
     final Thread reader = Thread.ofVirtual().start(drain);
     final long started = System.nanoTime();
     final long timeoutNanoseconds = timeout.toNanos();
@@ -171,6 +167,12 @@ final class YtdlpReleaseTest {
         final boolean readerFinished = !reader.isAlive();
         assertTrue(readerFinished, "yt-dlp output reader did not finish");
       }
+    }
+  }
+
+  private static byte[] readAndClose(final InputStream stream) throws IOException {
+    try (stream) {
+      return stream.readAllBytes();
     }
   }
 }

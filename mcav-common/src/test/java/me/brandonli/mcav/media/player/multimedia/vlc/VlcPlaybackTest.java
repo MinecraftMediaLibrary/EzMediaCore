@@ -85,10 +85,12 @@ final class VlcPlaybackTest {
   private final Source audio = source(AUDIO_FILE_NAME);
 
   VlcPlaybackTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   private static Source source(final String resource) {
@@ -149,13 +151,15 @@ final class VlcPlaybackTest {
     final IllegalStateException primary = new IllegalStateException("recoverable failure!");
     final OutOfMemoryError fatal = new OutOfMemoryError("cleanup exhausted memory!");
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () ->
-      VlcPlayback.attemptAfterFailure(primary, () -> {
-        throw fatal;
-      })
+      VlcPlayback.attemptAfterFailure(primary, () -> this.rethrow(fatal))
     );
     final Throwable[] suppressed = primary.getSuppressed();
     assertSame(fatal, thrown);
     assertEquals(0, suppressed.length);
+  }
+
+  private void rethrow(final OutOfMemoryError fatal) {
+    throw fatal;
   }
 
   @Test

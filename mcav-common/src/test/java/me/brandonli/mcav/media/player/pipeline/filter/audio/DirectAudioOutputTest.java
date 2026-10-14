@@ -72,18 +72,7 @@ final class DirectAudioOutputTest {
   void shouldOpenTheLineOnceAndWriteTheRemainingSamples() {
     final SourceDataLine line = mock(SourceDataLine.class);
     final AtomicInteger opened = new AtomicInteger();
-    final DirectAudioOutput output = new DirectAudioOutput((format, bufferSize) -> {
-      final float sampleRate = format.getSampleRate();
-      final int channels = format.getChannels();
-      final AudioFormat.Encoding encoding = format.getEncoding();
-      assertEquals(48_000.0f, sampleRate);
-      assertEquals(2, channels);
-      assertEquals(AudioFormat.Encoding.PCM_SIGNED, encoding);
-      assertEquals((48_000 * 4) / 5, bufferSize);
-
-      opened.incrementAndGet();
-      return line;
-    });
+    final DirectAudioOutput output = new DirectAudioOutput((format, bufferSize) -> this.checkAndOpenLine(format, bufferSize, opened, line));
     output.start();
     output.start();
     final ByteBuffer samples = ByteBuffer.wrap(new byte[] { 9, 1, 2, 3, 4 });
@@ -96,6 +85,24 @@ final class DirectAudioOutputTest {
     assertEquals(1, position, "the samples must not be consumed");
     verify(line).start();
     verify(line).write(new byte[] { 1, 2, 3, 4 }, 0, 4);
+  }
+
+  private SourceDataLine checkAndOpenLine(
+    final AudioFormat format,
+    final int bufferSize,
+    final AtomicInteger opened,
+    final SourceDataLine line
+  ) {
+    final float sampleRate = format.getSampleRate();
+    final int channels = format.getChannels();
+    final AudioFormat.Encoding encoding = format.getEncoding();
+    assertEquals(48_000.0f, sampleRate);
+    assertEquals(2, channels);
+    assertEquals(AudioFormat.Encoding.PCM_SIGNED, encoding);
+    assertEquals((48_000 * 4) / 5, bufferSize);
+
+    opened.incrementAndGet();
+    return line;
   }
 
   @Test
@@ -219,18 +226,20 @@ final class DirectAudioOutputTest {
 
   @Test
   void shouldReportLinesThatCannotBeOpened() {
-    final DirectAudioOutput unavailable = new DirectAudioOutput((_, _) -> {
-      throw new LineUnavailableException("Busy!");
-    });
-    final DirectAudioOutput unsupported = new DirectAudioOutput((_, _) -> {
-      throw new IllegalArgumentException("No line matches!");
-    });
+    final DirectAudioOutput unavailable = new DirectAudioOutput((_, _) -> this.failLineOpen(new LineUnavailableException("Busy!")));
+    final DirectAudioOutput unsupported = new DirectAudioOutput((_, _) ->
+      this.failLineOpen(new IllegalArgumentException("No line matches!"))
+    );
     final PlayerException unavailableException = assertThrows(PlayerException.class, unavailable::start);
     final PlayerException unsupportedException = assertThrows(PlayerException.class, unsupported::start);
     final Throwable unavailableCause = unavailableException.getCause();
     final Throwable unsupportedCause = unsupportedException.getCause();
     assertInstanceOf(LineUnavailableException.class, unavailableCause);
     assertInstanceOf(IllegalArgumentException.class, unsupportedCause);
+  }
+
+  private <FailureType extends Throwable> SourceDataLine failLineOpen(final FailureType failure) throws FailureType {
+    throw failure;
   }
 
   @Test

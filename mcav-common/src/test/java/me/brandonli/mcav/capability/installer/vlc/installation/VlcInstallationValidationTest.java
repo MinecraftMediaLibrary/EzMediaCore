@@ -130,17 +130,7 @@ final class VlcInstallationValidationTest {
       final Path folder = this.temporaryDirectory.resolve(defect.name());
       Files.createDirectories(folder);
       final VlcInstaller installer = VlcInstaller.create(folder);
-      final ProcessRunner tools = (workingDirectory, arguments) -> {
-        if (platform == Platform.LINUX) {
-          final Path extracted = folder.resolve(EXTRACTED_DIRECTORY_NAME).resolve(platform.relativeDirectory());
-          writePair(extracted, platform);
-          breakPair(extracted, platform, defect);
-        } else if (arguments[0].equals("cp")) {
-          final Path extracted = installer.getInstallDirectory().resolve(platform.relativeDirectory());
-          writePair(extracted, platform);
-          breakPair(extracted, platform, defect);
-        }
-      };
+      final ProcessRunner tools = (_, arguments) -> this.extractABrokenPair(platform, defect, folder, installer, arguments);
       final InstallationStrategy strategy = platform.strategy(installer, tools);
       final Path archive = folder.resolve(ARCHIVE_NAME);
       if (platform == Platform.WINDOWS) {
@@ -152,6 +142,24 @@ final class VlcInstallationValidationTest {
       final Optional<Path> cached = strategy.getInstalledPath();
       final boolean accepted = cached.isPresent();
       assertFalse(accepted, "a failed extraction must not become an accepted cached installation");
+    }
+  }
+
+  private void extractABrokenPair(
+    final Platform platform,
+    final Defect defect,
+    final Path folder,
+    final VlcInstaller installer,
+    final String[] arguments
+  ) throws IOException {
+    if (platform == Platform.LINUX) {
+      final Path extracted = folder.resolve(EXTRACTED_DIRECTORY_NAME).resolve(platform.relativeDirectory());
+      writePair(extracted, platform);
+      breakPair(extracted, platform, defect);
+    } else if (arguments[0].equals("cp")) {
+      final Path extracted = installer.getInstallDirectory().resolve(platform.relativeDirectory());
+      writePair(extracted, platform);
+      breakPair(extracted, platform, defect);
     }
   }
 

@@ -228,19 +228,7 @@ final class CommandTaskTest {
 
   @Test
   void shouldWrapStreamFailuresWhileReading() throws IOException {
-    try (
-      final InputStream broken = new InputStream() {
-        @Override
-        public int read() throws IOException {
-          throw new IOException("stream failed!");
-        }
-
-        @Override
-        public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-          throw new IOException("stream failed!");
-        }
-      }
-    ) {
+    try (final InputStream broken = new FailingStream()) {
       assertThrows(ProcessException.class, () -> CommandTask.readFully(broken));
     }
   }
@@ -377,6 +365,19 @@ final class CommandTaskTest {
     @Override
     public InputStream getErrorStream() {
       return InputStream.nullInputStream();
+    }
+  }
+
+  private static final class FailingStream extends InputStream {
+
+    @Override
+    public int read() throws IOException {
+      throw new IOException("stream failed!");
+    }
+
+    @Override
+    public int read(final byte[] buffer, final int offset, final int length) throws IOException {
+      throw new IOException("stream failed!");
     }
   }
 }

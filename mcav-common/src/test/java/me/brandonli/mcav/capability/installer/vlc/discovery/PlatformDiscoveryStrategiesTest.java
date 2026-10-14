@@ -196,11 +196,15 @@ final class PlatformDiscoveryStrategiesTest {
     // vlcj does not catch errors of onFound, so an Intel VLC on Apple silicon must be reported, not thrown
     final UnsatisfiedLinkError wrongArchitecture = new UnsatisfiedLinkError("incompatible architecture (have 'x86_64', need 'arm64')!");
     final List<SearchProvider> providers = List.of();
-    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {
-      throw wrongArchitecture;
-    });
+    final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ ->
+      this.failToPreload(wrongArchitecture)
+    );
     final boolean addsToSearchPath = strategy.onFound(OSX_LIBRARY_PATH);
     assertFalse(addsToSearchPath);
+  }
+
+  private void failToPreload(final UnsatisfiedLinkError failure) {
+    throw failure;
   }
 
   @Test
@@ -363,10 +367,7 @@ final class PlatformDiscoveryStrategiesTest {
     final AtomicInteger loads = new AtomicInteger();
     final LibC libc = mock(LibC.class);
     when(libc.setenv(VARIABLE_NAME, VARIABLE_VALUE, 1)).thenReturn(0);
-    final EnvironmentVariables variables = new EnvironmentVariables(() -> {
-      loads.incrementAndGet();
-      return libc;
-    });
+    final EnvironmentVariables variables = new EnvironmentVariables(() -> this.countAndLoad(loads, libc));
     final int loadsBeforeUse = loads.get();
     final boolean firstSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
     final boolean secondSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
@@ -377,16 +378,23 @@ final class PlatformDiscoveryStrategiesTest {
     assertEquals(1, loadsAfterUse, "a loaded C library is remembered");
   }
 
+  private LibC countAndLoad(final AtomicInteger loads, final LibC libc) {
+    loads.incrementAndGet();
+    return libc;
+  }
+
   @Test
   void shouldReportVariablesAsNotSetWhenTheCLibraryCannotBeLoaded() {
     final UnsatisfiedLinkError missingJna = new UnsatisfiedLinkError("Unable to load library 'jnidispatch'!");
-    final EnvironmentVariables variables = new EnvironmentVariables(() -> {
-      throw missingJna;
-    });
+    final EnvironmentVariables variables = new EnvironmentVariables(() -> this.failToLoad(missingJna));
     final boolean posixSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
     final boolean windowsSet = variables.setWindowsVariable(VARIABLE_NAME, VARIABLE_VALUE);
     assertFalse(posixSet);
     assertFalse(windowsSet);
+  }
+
+  private LibC failToLoad(final UnsatisfiedLinkError failure) {
+    throw failure;
   }
 
   @Test
@@ -449,11 +457,13 @@ final class PlatformDiscoveryStrategiesTest {
   }
 
   private static EnvironmentSetter recordingSetter(final List<String> published) {
-    return (name, value) -> {
-      published.add(name + ASSIGNMENT_SEPARATOR + value);
+    return (name, value) -> recordVariable(published, name, value);
+  }
 
-      return true;
-    };
+  private static boolean recordVariable(final List<String> published, final String name, final String value) {
+    published.add(name + ASSIGNMENT_SEPARATOR + value);
+
+    return true;
   }
 
   /**

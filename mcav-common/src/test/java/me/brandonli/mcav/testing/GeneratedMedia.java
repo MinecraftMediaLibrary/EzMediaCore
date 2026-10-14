@@ -137,21 +137,7 @@ public final class GeneratedMedia {
     final Set<ProcessHandle> descendants = new HashSet<>();
     boolean successful = false;
     try {
-      final long budget = TimeUnit.NANOSECONDS.convert(timeout);
-      while (true) {
-        try (final Stream<ProcessHandle> children = process.descendants()) {
-          children.forEach(descendants::add);
-        }
-        final long remaining = budget - (System.nanoTime() - startedAt);
-        if (remaining <= 0) {
-          final String message = "Fixture command %s exceeded its timeout of %s!".formatted(command, timeout);
-          throw new IOException(message);
-        }
-        final long poll = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20));
-        if (process.waitFor(poll, TimeUnit.NANOSECONDS)) {
-          break;
-        }
-      }
+      awaitExit(process, command, timeout, startedAt, descendants);
 
       final int code = process.exitValue();
       if (code != 0) {
@@ -164,6 +150,30 @@ public final class GeneratedMedia {
     } finally {
       if (!successful) {
         terminate(process, descendants);
+      }
+    }
+  }
+
+  private static void awaitExit(
+    final Process process,
+    final List<String> command,
+    final Duration timeout,
+    final long startedAt,
+    final Set<ProcessHandle> descendants
+  ) throws IOException, InterruptedException {
+    final long budget = TimeUnit.NANOSECONDS.convert(timeout);
+    while (true) {
+      try (final Stream<ProcessHandle> children = process.descendants()) {
+        children.forEach(descendants::add);
+      }
+      final long remaining = budget - (System.nanoTime() - startedAt);
+      if (remaining <= 0) {
+        final String message = "Fixture command %s exceeded its timeout of %s!".formatted(command, timeout);
+        throw new IOException(message);
+      }
+      final long poll = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20));
+      if (process.waitFor(poll, TimeUnit.NANOSECONDS)) {
+        break;
       }
     }
   }
@@ -198,11 +208,7 @@ public final class GeneratedMedia {
       try {
         Files.deleteIfExists(path);
       } catch (final IOException exception) {
-        if (cleanup == null) {
-          cleanup = exception;
-        } else {
-          cleanup.addSuppressed(exception);
-        }
+        cleanup = combineFailures(cleanup, exception);
       }
     }
 
@@ -213,5 +219,14 @@ public final class GeneratedMedia {
         throw cleanup;
       }
     }
+  }
+
+  private static IOException combineFailures(final @Nullable IOException first, final IOException next) {
+    if (first == null) {
+      return next;
+    }
+
+    first.addSuppressed(next);
+    return first;
   }
 }

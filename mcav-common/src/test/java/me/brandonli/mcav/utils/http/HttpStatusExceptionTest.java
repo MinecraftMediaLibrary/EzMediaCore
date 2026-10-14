@@ -36,9 +36,11 @@ final class HttpStatusExceptionTest {
     final String message = exception.getMessage();
     assertEquals(503, statusCode);
     assertEquals("Request for https://example.com/file got status 503, which is not a success!", message);
-    assertThrows(NullPointerException.class, () -> {
-      throw new HttpStatusException(500, null);
-    });
+    assertThrows(NullPointerException.class, this::throwStatusExceptionWithoutUri);
+  }
+
+  private void throwStatusExceptionWithoutUri() throws HttpStatusException {
+    throw new HttpStatusException(500, null);
   }
 
   @Test

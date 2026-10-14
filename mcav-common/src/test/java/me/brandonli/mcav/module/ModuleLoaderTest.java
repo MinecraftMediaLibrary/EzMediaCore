@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -346,11 +347,7 @@ final class ModuleLoaderTest {
     final List<Future<?>> futures = new ArrayList<>();
     try (final ExecutorService executor = Executors.newFixedThreadPool(threads)) {
       for (int index = 0; index < threads; index++) {
-        final Future<?> future = executor.submit(() -> {
-          startGate.await();
-          loader.loadModules(FirstModule.class, SecondModule.class);
-          return null;
-        });
+        final Future<?> future = executor.submit(() -> this.awaitAndLoad(startGate, loader));
         futures.add(future);
       }
 
@@ -370,6 +367,12 @@ final class ModuleLoaderTest {
 
     final int modulesCount = modules.size();
     assertEquals(2, modulesCount);
+  }
+
+  private @Nullable Void awaitAndLoad(final CountDownLatch startGate, final ModuleLoader loader) throws InterruptedException {
+    startGate.await();
+    loader.loadModules(FirstModule.class, SecondModule.class);
+    return null;
   }
 
   @Test

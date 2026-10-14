@@ -50,6 +50,7 @@ import me.brandonli.mcav.module.ModuleException;
 import me.brandonli.mcav.module.ModuleLoader;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -285,20 +286,7 @@ final class MCAVTest {
     final CountDownLatch vlcStarted = new CountDownLatch(1);
     final CountDownLatch vlcInterrupted = new CountDownLatch(1);
     final AtomicReference<Thread> vlcThread = new AtomicReference<>();
-    final Answer<Void> blockUntilInterrupted = _ -> {
-      final Thread current = Thread.currentThread();
-      vlcThread.set(current);
-      vlcStarted.countDown();
-      final CountDownLatch never = new CountDownLatch(1);
-      try {
-        never.await();
-      } catch (final InterruptedException exception) {
-        vlcInterrupted.countDown();
-        current.interrupt();
-      }
-
-      return null;
-    };
+    final Answer<Void> blockUntilInterrupted = _ -> this.recordThreadAndAwaitInterrupt(vlcThread, vlcStarted, vlcInterrupted);
     final Stubber stubber = Mockito.doAnswer(blockUntilInterrupted);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.installVlc();
@@ -324,6 +312,25 @@ final class MCAVTest {
     assertEquals(1, stops);
     assertDoesNotThrow(() -> this.guard.checkUsable(Capability.VLC));
     assertThrows(MCAVLoadingException.class, () -> this.mcav.hasCapability(Capability.VLC));
+  }
+
+  private @Nullable Void recordThreadAndAwaitInterrupt(
+    final AtomicReference<Thread> vlcThread,
+    final CountDownLatch vlcStarted,
+    final CountDownLatch vlcInterrupted
+  ) {
+    final Thread current = Thread.currentThread();
+    vlcThread.set(current);
+    vlcStarted.countDown();
+    final CountDownLatch never = new CountDownLatch(1);
+    try {
+      never.await();
+    } catch (final InterruptedException exception) {
+      vlcInterrupted.countDown();
+      current.interrupt();
+    }
+
+    return null;
   }
 
   @Test
@@ -374,11 +381,7 @@ final class MCAVTest {
       assertTrue(started);
 
       final AtomicReference<Thread> releasingThread = new AtomicReference<>();
-      final Future<?> release = executor.submit(() -> {
-        final Thread currentThread = Thread.currentThread();
-        releasingThread.set(currentThread);
-        this.mcav.release();
-      });
+      final Future<?> release = executor.submit(() -> this.recordThreadAndRelease(releasingThread));
       final boolean releaseWaited = awaitBlocked(releasingThread);
       final boolean releasedEarly = release.isDone();
       finishNatives.countDown();
@@ -393,6 +396,12 @@ final class MCAVTest {
     assertEquals(1, starts);
     assertEquals(1, stops, "the modules started by the installation are stopped by the release");
     assertThrows(MCAVLoadingException.class, () -> this.mcav.hasCapability(Capability.VLC));
+  }
+
+  private void recordThreadAndRelease(final AtomicReference<Thread> releasingThread) {
+    final Thread currentThread = Thread.currentThread();
+    releasingThread.set(currentThread);
+    this.mcav.release();
   }
 
   @Test
@@ -540,13 +549,16 @@ final class MCAVTest {
   }
 
   private static Answer<Void> blockUntil(final CountDownLatch started, final CountDownLatch finish) {
-    return _ -> {
-      started.countDown();
-      final boolean finished = finish.await(WAIT_SECONDS, TimeUnit.SECONDS);
-      assertTrue(finished);
+    return _ -> signalAndAwaitFinish(started, finish);
+  }
 
-      return null;
-    };
+  private static @Nullable Void signalAndAwaitFinish(final CountDownLatch started, final CountDownLatch finish)
+    throws InterruptedException {
+    started.countDown();
+    final boolean finished = finish.await(WAIT_SECONDS, TimeUnit.SECONDS);
+    assertTrue(finished);
+
+    return null;
   }
 
   /**
@@ -576,16 +588,24 @@ final class MCAVTest {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(WAIT_SECONDS);
     while (System.nanoTime() < deadline) {
       final Thread thread = threadReference.get();
-      if (thread != null) {
-        final Thread.State state = thread.getState();
-        if (state == Thread.State.BLOCKED) {
-          return true;
-        }
+      final boolean blocked = isBlocked(thread);
+      if (blocked) {
+        return true;
       }
+
       Thread.onSpinWait();
     }
 
     return false;
+  }
+
+  private static boolean isBlocked(final @Nullable Thread thread) {
+    if (thread == null) {
+      return false;
+    }
+
+    final Thread.State state = thread.getState();
+    return state == Thread.State.BLOCKED;
   }
 
   /**

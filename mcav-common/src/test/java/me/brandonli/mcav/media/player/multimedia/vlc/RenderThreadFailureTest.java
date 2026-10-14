@@ -40,33 +40,10 @@ final class RenderThreadFailureTest {
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final CountDownLatch cleaned = new CountDownLatch(1);
     final AtomicBoolean acceptingDuringCleanup = new AtomicBoolean(true);
-    final RenderThread thread = new RenderThread("render-abnormal-exit", _ -> {
-      throw failure;
-    });
+    final RenderThread thread = new RenderThread("render-abnormal-exit", _ -> this.rethrow(failure));
     thread.start(
-      () -> {
-        final Thread current = Thread.currentThread();
-        worker.set(current);
-        current.setUncaughtExceptionHandler((_, thrown) -> uncaught.set(thrown));
-
-        if (failureSite == 0) {
-          throw failure;
-        }
-
-        if (failureSite == 1) {
-          throw new IllegalStateException("handler will fail!");
-        }
-
-        throw new InterruptedException("natural loop exit!");
-      },
-      () -> {
-        acceptingDuringCleanup.set(thread.isRunning());
-        cleaned.countDown();
-
-        if (failureSite == 3) {
-          throw failure;
-        }
-      }
+      () -> this.failRender(failureSite, failure, worker, uncaught),
+      () -> this.recordCleanup(thread, failureSite, failure, acceptingDuringCleanup, cleaned)
     );
     try {
       final boolean cleanupReached = cleaned.await(5, TimeUnit.SECONDS);
@@ -89,6 +66,46 @@ final class RenderThreadFailureTest {
       }
     } finally {
       thread.stop();
+    }
+  }
+
+  private void rethrow(final AssertionError failure) {
+    throw failure;
+  }
+
+  private void failRender(
+    final int failureSite,
+    final AssertionError failure,
+    final AtomicReference<Thread> worker,
+    final AtomicReference<Throwable> uncaught
+  ) throws InterruptedException {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    current.setUncaughtExceptionHandler((_, thrown) -> uncaught.set(thrown));
+
+    if (failureSite == 0) {
+      throw failure;
+    }
+
+    if (failureSite == 1) {
+      throw new IllegalStateException("handler will fail!");
+    }
+
+    throw new InterruptedException("natural loop exit!");
+  }
+
+  private void recordCleanup(
+    final RenderThread thread,
+    final int failureSite,
+    final AssertionError failure,
+    final AtomicBoolean acceptingDuringCleanup,
+    final CountDownLatch cleaned
+  ) {
+    acceptingDuringCleanup.set(thread.isRunning());
+    cleaned.countDown();
+
+    if (failureSite == 3) {
+      throw failure;
     }
   }
 }

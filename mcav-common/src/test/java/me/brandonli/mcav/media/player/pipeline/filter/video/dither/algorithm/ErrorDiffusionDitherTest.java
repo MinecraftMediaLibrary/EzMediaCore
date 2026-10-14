@@ -114,27 +114,35 @@ final class ErrorDiffusionDitherTest {
     final int[] pixels = DitherTestImages.gradient(WIDTH, HEIGHT);
     for (final ErrorDiffusionDitherBuilder.Algorithm algorithm : ErrorDiffusionDitherBuilder.Algorithm.values()) {
       final ErrorDiffusionDither dither = build(algorithm);
-      try (final ImageBuffer image = ImageBuffer.buffer(pixels, WIDTH, HEIGHT)) {
-        final byte[] indices = dither.ditherIntoBytes(image);
-        final double ratio = DitherTestImages.whiteRatio(indices);
-        int leftWhite = 0;
-        int rightWhite = 0;
-        for (int row = 0; row < HEIGHT; row++) {
-          leftWhite += indices[row * WIDTH];
-          rightWhite += indices[row * WIDTH + WIDTH - 1];
-        }
+      this.assertPreservesTheAverageBrightness(algorithm, dither, pixels);
+    }
+  }
 
-        assertEquals(pixels.length, indices.length);
-
-        final boolean balanced = ratio > 0.45 && ratio < 0.55;
-        assertTrue(balanced, algorithm + " ratio " + ratio);
-
-        final boolean leftMostlyBlack = leftWhite < HEIGHT / 4;
-        assertTrue(leftMostlyBlack, algorithm + " left edge");
-
-        final boolean rightMostlyWhite = rightWhite > (HEIGHT * 3) / 4;
-        assertTrue(rightMostlyWhite, algorithm + " right edge");
+  private void assertPreservesTheAverageBrightness(
+    final ErrorDiffusionDitherBuilder.Algorithm algorithm,
+    final ErrorDiffusionDither dither,
+    final int[] pixels
+  ) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, WIDTH, HEIGHT)) {
+      final byte[] indices = dither.ditherIntoBytes(image);
+      final double ratio = DitherTestImages.whiteRatio(indices);
+      int leftWhite = 0;
+      int rightWhite = 0;
+      for (int row = 0; row < HEIGHT; row++) {
+        leftWhite += indices[row * WIDTH];
+        rightWhite += indices[row * WIDTH + WIDTH - 1];
       }
+
+      assertEquals(pixels.length, indices.length);
+
+      final boolean balanced = ratio > 0.45 && ratio < 0.55;
+      assertTrue(balanced, algorithm + " ratio " + ratio);
+
+      final boolean leftMostlyBlack = leftWhite < HEIGHT / 4;
+      assertTrue(leftMostlyBlack, algorithm + " left edge");
+
+      final boolean rightMostlyWhite = rightWhite > (HEIGHT * 3) / 4;
+      assertTrue(rightMostlyWhite, algorithm + " right edge");
     }
   }
 

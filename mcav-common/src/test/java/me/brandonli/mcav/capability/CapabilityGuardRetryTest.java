@@ -19,8 +19,10 @@ package me.brandonli.mcav.capability;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 final class CapabilityGuardRetryTest {
 
@@ -28,14 +30,17 @@ final class CapabilityGuardRetryTest {
   void shouldNeverMakeAnUnavailableCapabilityUsableOnARetry() {
     final CapabilityGuard guard = Mockito.spy(new CapabilityGuard());
     guard.markPrepared(Capability.VLC, false);
-    Mockito.doAnswer(invocation -> {
-      invocation.callRealMethod();
-      guard.markPreparing(Capability.VLC);
-      return null;
-    })
+    Mockito.doAnswer(invocation -> this.markPreparingAfterTheRealCheck(invocation, guard))
       .when(guard)
       .checkNotPreparing(Capability.VLC);
 
     assertThrows(IllegalStateException.class, () -> guard.checkUsable(Capability.VLC));
+  }
+
+  private @Nullable Object markPreparingAfterTheRealCheck(final InvocationOnMock invocation, final CapabilityGuard guard) throws Throwable {
+    invocation.callRealMethod();
+    guard.markPreparing(Capability.VLC);
+
+    return null;
   }
 }

@@ -64,10 +64,12 @@ final class PlaybackEventListenerTest {
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   PlaybackEventListenerTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   private long awaitMilliseconds(final long timeoutMilliseconds) throws InterruptedException {
@@ -79,19 +81,25 @@ final class PlaybackEventListenerTest {
   }
 
   private static Thread startWaiter(final PlaybackEventListener waitedOn, final CountDownLatch waiting, final AtomicBoolean returned) {
-    final Thread waiter = new Thread(() -> {
-      waiting.countDown();
-      try {
-        waitedOn.awaitOpened(TIMEOUT_MILLISECONDS);
-      } catch (final InterruptedException exception) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-      }
-
-      returned.set(true);
-    });
+    final Thread waiter = new Thread(() -> awaitOpenedAndRecordReturn(waitedOn, waiting, returned));
     waiter.start();
     return waiter;
+  }
+
+  private static void awaitOpenedAndRecordReturn(
+    final PlaybackEventListener waitedOn,
+    final CountDownLatch waiting,
+    final AtomicBoolean returned
+  ) {
+    waiting.countDown();
+    try {
+      waitedOn.awaitOpened(TIMEOUT_MILLISECONDS);
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
+
+    returned.set(true);
   }
 
   @Test
@@ -100,11 +108,8 @@ final class PlaybackEventListenerTest {
     final AtomicBoolean returnedBeforeTheReport = new AtomicBoolean();
     final AtomicLong notificationCountAtReport = new AtomicLong(-1);
     final AtomicReference<LongSupplier> notificationCount = new AtomicReference<>();
-    final BiConsumer<String, Throwable> handler = (_, _) -> {
-      final boolean returned = waiterReturned.get();
-      returnedBeforeTheReport.set(returned);
-      notificationCountAtReport.set(notificationCount.get().getAsLong());
-    };
+    final BiConsumer<String, Throwable> handler = (_, _) ->
+      this.recordStateAtReport(waiterReturned, returnedBeforeTheReport, notificationCountAtReport, notificationCount);
     final VideoPlayerMultiplexer handlerOwner = mock(VideoPlayerMultiplexer.class);
     when(handlerOwner.getExceptionHandler()).thenReturn(handler);
     final AtomicBoolean running = new AtomicBoolean(true);
@@ -130,16 +135,23 @@ final class PlaybackEventListenerTest {
     assertEquals(1, countAtReport, "notification cannot be released before its failure report");
   }
 
+  private void recordStateAtReport(
+    final AtomicBoolean waiterReturned,
+    final AtomicBoolean returnedBeforeTheReport,
+    final AtomicLong notificationCountAtReport,
+    final AtomicReference<LongSupplier> notificationCount
+  ) {
+    final boolean returned = waiterReturned.get();
+    returnedBeforeTheReport.set(returned);
+    notificationCountAtReport.set(notificationCount.get().getAsLong());
+  }
+
   @Test
   void shouldKeepAKnownOpeningFailureFailedWhileItsReportIsBlocked() throws Exception {
     final CountDownLatch reporting = new CountDownLatch(1);
     final CountDownLatch finishReport = new CountDownLatch(1);
     final AtomicReference<Throwable> reportingFailure = new AtomicReference<>();
-    this.owner.setExceptionHandler((_, _) -> {
-      reporting.countDown();
-      final boolean finished = Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS);
-      assertTrue(finished);
-    });
+    this.owner.setExceptionHandler((_, _) -> this.blockReport(reporting, finishReport));
     final Thread reporter = new Thread(() -> this.listener.error(this.mediaPlayer));
     reporter.setUncaughtExceptionHandler((_, failure) -> reportingFailure.set(failure));
     reporter.start();
@@ -162,6 +174,12 @@ final class PlaybackEventListenerTest {
 
     final boolean opened = this.listener.awaitOpened(0);
     assertFalse(opened);
+  }
+
+  private void blockReport(final CountDownLatch reporting, final CountDownLatch finishReport) {
+    reporting.countDown();
+    final boolean finished = Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS);
+    assertTrue(finished);
   }
 
   @Test

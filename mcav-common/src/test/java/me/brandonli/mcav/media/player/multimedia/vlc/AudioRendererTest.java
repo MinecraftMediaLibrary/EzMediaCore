@@ -72,10 +72,12 @@ final class AudioRendererTest {
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   AudioRendererTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   @AfterEach
@@ -93,12 +95,14 @@ final class AudioRendererTest {
    * Creates a filter that records the first sample of every chunk without changing the chunk.
    */
   private static AudioFilter firstSampleRecorder(final BlockingQueue<Short> firstSamples) {
-    return (samples, _) -> {
-      final short first = samples.getShort(0);
-      firstSamples.add(first);
+    return (samples, _) -> recordFirstSample(samples, firstSamples);
+  }
 
-      return false;
-    };
+  private static boolean recordFirstSample(final ByteBuffer samples, final BlockingQueue<Short> firstSamples) {
+    final short first = samples.getShort(0);
+    firstSamples.add(first);
+
+    return false;
   }
 
   /**
@@ -106,14 +110,21 @@ final class AudioRendererTest {
    * lets it proceed, so later chunks queue up.
    */
   private void attachBlockingRecorder(final List<Short> received, final CountDownLatch blocked, final CountDownLatch proceed) {
-    this.attach((samples, _) -> {
-      final short first = samples.getShort(0);
-      received.add(first);
-      blocked.countDown();
-      awaitRelease(proceed);
+    this.attach((samples, _) -> this.recordFirstSampleAndBlock(samples, received, blocked, proceed));
+  }
 
-      return false;
-    });
+  private boolean recordFirstSampleAndBlock(
+    final ByteBuffer samples,
+    final List<Short> received,
+    final CountDownLatch blocked,
+    final CountDownLatch proceed
+  ) {
+    final short first = samples.getShort(0);
+    received.add(first);
+    blocked.countDown();
+    awaitRelease(proceed);
+
+    return false;
   }
 
   /**
@@ -124,26 +135,36 @@ final class AudioRendererTest {
     final AtomicReference<OriginalAudioMetadata> receivedMetadata,
     final CountDownLatch done
   ) {
-    return (samples, metadata) -> {
-      final int remaining = samples.remaining();
-      final ByteOrder order = samples.order();
-      final ByteBuffer copy = ByteBuffer.allocate(remaining);
-      copy.order(order);
-      copy.put(samples);
-      copy.flip();
-      received.set(copy);
-      receivedMetadata.set(metadata);
-      done.countDown();
+    return (samples, metadata) -> copyChunk(samples, metadata, received, receivedMetadata, done);
+  }
 
-      return false;
-    };
+  private static boolean copyChunk(
+    final ByteBuffer samples,
+    final OriginalAudioMetadata metadata,
+    final AtomicReference<ByteBuffer> received,
+    final AtomicReference<OriginalAudioMetadata> receivedMetadata,
+    final CountDownLatch done
+  ) {
+    final int remaining = samples.remaining();
+    final ByteOrder order = samples.order();
+    final ByteBuffer copy = ByteBuffer.allocate(remaining);
+    copy.order(order);
+    copy.put(samples);
+    copy.flip();
+    received.set(copy);
+    receivedMetadata.set(metadata);
+    done.countDown();
+
+    return false;
   }
 
   private static BiConsumer<String, Throwable> reportingHandler(final List<String> reported) {
-    return (message, error) -> {
-      final String reason = error.getMessage();
-      reported.add(message + ": " + reason);
-    };
+    return (message, error) -> reportFailure(reported, message, error);
+  }
+
+  private static void reportFailure(final List<String> reported, final String message, final Throwable error) {
+    final String reason = error.getMessage();
+    reported.add(message + ": " + reason);
   }
 
   private static Memory samples(final short... values) {
@@ -293,14 +314,7 @@ final class AudioRendererTest {
     final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
-    this.attach((_, _) -> {
-      final Thread worker = Thread.currentThread();
-      worker.setUncaughtExceptionHandler((_, thrown) -> {
-        uncaught.set(thrown);
-        escaped.countDown();
-      });
-      throw failure;
-    });
+    this.attach((_, _) -> this.escapeWithFailure(failure, uncaught, escaped));
 
     this.renderer.start();
     this.play((short) 1, (short) 1);
@@ -312,26 +326,28 @@ final class AudioRendererTest {
     assertTrue(reportedNothing, "fatal VM failures must not be converted to ordinary filter reports");
   }
 
+  private boolean escapeWithFailure(
+    final OutOfMemoryError failure,
+    final AtomicReference<Throwable> uncaught,
+    final CountDownLatch escaped
+  ) {
+    final Thread worker = Thread.currentThread();
+    worker.setUncaughtExceptionHandler((_, thrown) -> this.recordEscape(thrown, uncaught, escaped));
+    throw failure;
+  }
+
+  private void recordEscape(final Throwable thrown, final AtomicReference<Throwable> uncaught, final CountDownLatch escaped) {
+    uncaught.set(thrown);
+    escaped.countDown();
+  }
+
   @Test
   void shouldReportPipelineFailuresAndKeepPlaying() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
     final IllegalStateException runtimeFailure = new IllegalStateException("filter bug!");
     final AssertionError errorFailure = new AssertionError("filter assertion!");
     final CountDownLatch third = new CountDownLatch(1);
-    this.attach((_, _) -> {
-      final int call = calls.incrementAndGet();
-      if (call == 1) {
-        throw runtimeFailure;
-      }
-
-      if (call == 2) {
-        throw errorFailure;
-      }
-
-      third.countDown();
-
-      return false;
-    });
+    this.attach((_, _) -> this.failTwiceThenCount(calls, runtimeFailure, errorFailure, third));
     this.renderer.start();
     this.play((short) 1, (short) 1);
     this.play((short) 2, (short) 2);
@@ -342,6 +358,26 @@ final class AudioRendererTest {
     assertTrue(keptPlaying);
     assertEquals(expectedMessages, this.messages);
     assertEquals(expectedErrors, this.errors);
+  }
+
+  private boolean failTwiceThenCount(
+    final AtomicInteger calls,
+    final IllegalStateException runtimeFailure,
+    final AssertionError errorFailure,
+    final CountDownLatch third
+  ) {
+    final int call = calls.incrementAndGet();
+    if (call == 1) {
+      throw runtimeFailure;
+    }
+
+    if (call == 2) {
+      throw errorFailure;
+    }
+
+    third.countDown();
+
+    return false;
   }
 
   @Test

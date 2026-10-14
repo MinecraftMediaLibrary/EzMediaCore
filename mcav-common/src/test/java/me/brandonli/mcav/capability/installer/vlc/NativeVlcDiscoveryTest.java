@@ -105,14 +105,16 @@ final class NativeVlcDiscoveryTest {
     for (final NativeDiscoveryStrategy strategy : strategies) {
       final boolean supported = strategy.supported();
       final String directory = supported ? strategy.discover() : null;
-      if (directory != null) {
-        final boolean pluginsAvailable = strategy.onSetPluginPath(directory);
-        if (pluginsAvailable) {
-          return Path.of(directory);
-        }
-
-        librariesWithoutPlugins = true;
+      if (directory == null) {
+        continue;
       }
+
+      final boolean pluginsAvailable = strategy.onSetPluginPath(directory);
+      if (pluginsAvailable) {
+        return Path.of(directory);
+      }
+
+      librariesWithoutPlugins = true;
     }
 
     final String reason = librariesWithoutPlugins

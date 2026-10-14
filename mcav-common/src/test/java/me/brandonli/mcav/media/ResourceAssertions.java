@@ -45,12 +45,17 @@ public final class ResourceAssertions {
     final Class<ExceptionType> expected,
     final ThrowingSupplier<? extends AutoCloseable> opening
   ) {
-    final Executable openAndClose = () -> {
-      try (final AutoCloseable opened = opening.get()) {
-        final String message = "Factory opened %s, but %s was expected!".formatted(opened, expected);
-        fail(message);
-      }
-    };
+    final Executable openAndClose = () -> openExpectingFailure(expected, opening);
     return assertThrows(expected, openAndClose);
+  }
+
+  private static void openExpectingFailure(
+    final Class<? extends Throwable> expected,
+    final ThrowingSupplier<? extends AutoCloseable> opening
+  ) throws Throwable {
+    try (final AutoCloseable opened = opening.get()) {
+      final String message = "Factory opened %s, but %s was expected!".formatted(opened, expected);
+      fail(message);
+    }
   }
 }

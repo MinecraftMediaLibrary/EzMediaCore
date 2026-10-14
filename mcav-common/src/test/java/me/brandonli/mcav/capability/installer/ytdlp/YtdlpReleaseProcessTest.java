@@ -55,22 +55,7 @@ final class YtdlpReleaseProcessTest {
     final Thread caller = Thread.currentThread();
     final Process process = mock(Process.class);
     when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
-    when(process.getInputStream()).thenReturn(
-      new InputStream() {
-        @Override
-        public int read() {
-          final Thread readingThread = Thread.currentThread();
-          assertNotSame(caller, readingThread, "stdout must not block the deadline waiter");
-
-          return -1;
-        }
-
-        @Override
-        public int read(final byte[] buffer, final int offset, final int length) {
-          return this.read();
-        }
-      }
-    );
+    when(process.getInputStream()).thenReturn(new CallerCheckingInputStream(caller));
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
       YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
     );
@@ -82,21 +67,23 @@ final class YtdlpReleaseProcessTest {
   void shouldTimeOutAndReapAChildThatKeepsStdoutOpen() throws Exception {
     final Process process = startChild(WAIT_MODE);
     try {
-      assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
-        final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
-          YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
-        );
-        final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
-        assertTrue(didNotFinish);
-
-        final boolean alive = process.isAlive();
-        assertFalse(alive, "the deadline must reap its child");
-      });
+      assertTimeoutPreemptively(Duration.ofSeconds(10), () -> this.assertTheDeadlineReapsTheChild(process));
     } finally {
       process.destroyForcibly();
       final boolean exited = process.waitFor(REAP_WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(exited);
     }
+  }
+
+  private void assertTheDeadlineReapsTheChild(final Process process) {
+    final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
+      YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
+    );
+    final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
+    assertTrue(didNotFinish);
+
+    final boolean alive = process.isAlive();
+    assertFalse(alive, "the deadline must reap its child");
   }
 
   @Test
@@ -120,9 +107,7 @@ final class YtdlpReleaseProcessTest {
     final Process process = mock(Process.class);
     when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
-    when(process.waitFor()).thenAnswer(invocation -> {
-      throw new AssertionError("Forced-exit cleanup must not wait without a deadline!");
-    });
+    when(process.waitFor()).thenAnswer(_ -> this.refuseToWaitWithoutADeadline());
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
       YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
     );
@@ -130,19 +115,16 @@ final class YtdlpReleaseProcessTest {
     assertTrue(didNotFinish);
   }
 
+  private int refuseToWaitWithoutADeadline() {
+    throw new AssertionError("Forced-exit cleanup must not wait without a deadline!");
+  }
+
   @Test
   void shouldCloseTheOutputStreamOnTheDrainThread() throws Exception {
     final Thread caller = Thread.currentThread();
     final AtomicReference<Thread> closer = new AtomicReference<>();
     final Process process = mock(Process.class);
-    when(process.getInputStream()).thenReturn(
-      new ByteArrayInputStream(new byte[0]) {
-        @Override
-        public void close() {
-          closer.set(Thread.currentThread());
-        }
-      }
-    );
+    when(process.getInputStream()).thenReturn(new CloseRecordingInputStream(closer));
     when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
     assertThrows(AssertionFailedError.class, () -> YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE));
 
@@ -186,6 +168,43 @@ final class YtdlpReleaseProcessTest {
       } else {
         System.out.println(VERSION);
       }
+    }
+  }
+
+  private static final class CallerCheckingInputStream extends InputStream {
+
+    private final Thread caller;
+
+    CallerCheckingInputStream(final Thread caller) {
+      this.caller = caller;
+    }
+
+    @Override
+    public int read() {
+      final Thread readingThread = Thread.currentThread();
+      assertNotSame(this.caller, readingThread, "stdout must not block the deadline waiter");
+
+      return -1;
+    }
+
+    @Override
+    public int read(final byte[] buffer, final int offset, final int length) {
+      return this.read();
+    }
+  }
+
+  private static final class CloseRecordingInputStream extends ByteArrayInputStream {
+
+    private final AtomicReference<Thread> closer;
+
+    CloseRecordingInputStream(final AtomicReference<Thread> closer) {
+      super(new byte[0]);
+      this.closer = closer;
+    }
+
+    @Override
+    public void close() {
+      this.closer.set(Thread.currentThread());
     }
   }
 }

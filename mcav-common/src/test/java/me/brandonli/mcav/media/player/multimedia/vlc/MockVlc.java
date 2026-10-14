@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.mockito.invocation.InvocationOnMock;
 import uk.co.caprica.vlcj.factory.MediaPlayerApi;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
@@ -299,15 +300,17 @@ final class MockVlc {
     private void stubBehavior() {
       doAnswer(this::addListener).when(this.events).addMediaPlayerEventListener(any(MediaPlayerEventListener.class));
       doAnswer(this::installAudioCallback).when(this.audio).callback(anyString(), anyInt(), anyInt(), any(AudioCallback.class));
-      doAnswer(_ -> {
-        this.playing.set(false);
-        this.state.set(State.STOPPED);
-
-        return null;
-      })
+      doAnswer(_ -> this.markStopped())
         .when(this.controls)
         .stop();
       when(this.media.play(anyString(), any(String[].class))).thenAnswer(this::play);
+    }
+
+    private @Nullable Object markStopped() {
+      this.playing.set(false);
+      this.state.set(State.STOPPED);
+
+      return null;
     }
 
     private boolean addListener(final InvocationOnMock invocation) {

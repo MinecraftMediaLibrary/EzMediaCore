@@ -104,25 +104,27 @@ final class UnzipFuzzTest {
   }
 
   private static void deleteTree(final Path directory) throws IOException {
-    Files.walkFileTree(
-      directory,
-      new SimpleFileVisitor<>() {
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+    Files.walkFileTree(directory, new TreeDeleter());
+  }
 
-        @Override
-        public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
-          if (failure != null) {
-            throw failure;
-          }
+  private static final class TreeDeleter extends SimpleFileVisitor<Path> {
 
-          Files.delete(visited);
-          return FileVisitResult.CONTINUE;
-        }
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
+      Files.delete(file);
+
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
+      if (failure != null) {
+        throw failure;
       }
-    );
+
+      Files.delete(visited);
+
+      return FileVisitResult.CONTINUE;
+    }
   }
 }

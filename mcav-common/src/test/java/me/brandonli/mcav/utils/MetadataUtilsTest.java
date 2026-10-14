@@ -69,21 +69,9 @@ final class MetadataUtilsTest {
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
       final Frame frame = new Frame();
-      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) -> {
-        when(grabber.getImageWidth()).thenAnswer(_ -> frames.get() >= 30 ? VIDEO_WIDTH : 0);
-        when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
-        when(grabber.getFrameRate()).thenAnswer(_ -> frames.get() >= 30 ? FRAME_RATE : 0.0);
-        when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
-        when(grabber.getSampleRate()).thenAnswer(_ -> frames.get() >= 30 ? SAMPLE_RATE : 0);
-        when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
-        when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
-        when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
-        when(grabber.getSampleFormat()).thenReturn(1);
-        when(grabber.grabFrame()).thenAnswer(_ -> {
-          frames.incrementAndGet();
-          return frame;
-        });
-      })
+      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) ->
+        this.stubMetadataRevealedOnTheLastProbeFrame(grabber, frames, frame)
+      )
     ) {
       if (audio) {
         final OriginalAudioMetadata actual = MetadataUtils.parseAudioMetadata(source);
@@ -100,22 +88,34 @@ final class MetadataUtilsTest {
     }
   }
 
+  private void stubMetadataRevealedOnTheLastProbeFrame(final FFmpegFrameGrabber grabber, final AtomicInteger frames, final Frame frame)
+    throws FrameGrabber.Exception {
+    when(grabber.getImageWidth()).thenAnswer(_ -> frames.get() >= 30 ? VIDEO_WIDTH : 0);
+    when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
+    when(grabber.getFrameRate()).thenAnswer(_ -> frames.get() >= 30 ? FRAME_RATE : 0.0);
+    when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
+    when(grabber.getSampleRate()).thenAnswer(_ -> frames.get() >= 30 ? SAMPLE_RATE : 0);
+    when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
+    when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
+    when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
+    when(grabber.getSampleFormat()).thenReturn(1);
+    when(grabber.grabFrame()).thenAnswer(_ -> this.countProbedFrame(frames, frame));
+  }
+
+  private Frame countProbedFrame(final AtomicInteger frames, final Frame frame) {
+    frames.incrementAndGet();
+
+    return frame;
+  }
+
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
   void shouldNotConsumeAnyFramesForDeclaredMetadata(final boolean audio) throws FrameGrabber.Exception {
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
-      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) -> {
-        when(grabber.getImageWidth()).thenReturn(VIDEO_WIDTH);
-        when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
-        when(grabber.getFrameRate()).thenReturn(FRAME_RATE);
-        when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
-        when(grabber.getSampleRate()).thenReturn(SAMPLE_RATE);
-        when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
-        when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
-        when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
-        when(grabber.getSampleFormat()).thenReturn(1);
-      })
+      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) ->
+        this.stubDeclaredMetadata(grabber)
+      )
     ) {
       if (audio) {
         final OriginalAudioMetadata actual = MetadataUtils.parseAudioMetadata(source);
@@ -124,10 +124,23 @@ final class MetadataUtilsTest {
         final OriginalVideoMetadata actual = MetadataUtils.parseVideoMetadata(source);
         assertEquals(OriginalVideoMetadata.of(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, (float) FRAME_RATE), actual);
       }
+
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber, never()).grabFrame();
       verify(grabber).close();
     }
+  }
+
+  private void stubDeclaredMetadata(final FFmpegFrameGrabber grabber) {
+    when(grabber.getImageWidth()).thenReturn(VIDEO_WIDTH);
+    when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
+    when(grabber.getFrameRate()).thenReturn(FRAME_RATE);
+    when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
+    when(grabber.getSampleRate()).thenReturn(SAMPLE_RATE);
+    when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
+    when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
+    when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
+    when(grabber.getSampleFormat()).thenReturn(1);
   }
 
   @ParameterizedTest
@@ -135,19 +148,21 @@ final class MetadataUtilsTest {
   void shouldStopProbingImmediatelyAtTheEndOfTheSource(final boolean audio) throws FrameGrabber.Exception {
     final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class)) {
-      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> {
-        if (audio) {
-          MetadataUtils.parseAudioMetadata(source);
-        } else {
-          MetadataUtils.parseVideoMetadata(source);
-        }
-      });
+      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> this.parseTrackMetadata(source, audio));
       final String message = failure.getMessage();
       assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track!", message);
 
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber).grabFrame();
       verify(grabber).close();
+    }
+  }
+
+  private void parseTrackMetadata(final FileSource source, final boolean audio) {
+    if (audio) {
+      MetadataUtils.parseAudioMetadata(source);
+    } else {
+      MetadataUtils.parseVideoMetadata(source);
     }
   }
 

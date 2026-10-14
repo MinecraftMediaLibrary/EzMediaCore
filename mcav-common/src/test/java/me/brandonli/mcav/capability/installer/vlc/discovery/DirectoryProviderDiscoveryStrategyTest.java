@@ -534,12 +534,14 @@ final class DirectoryProviderDiscoveryStrategyTest {
   }
 
   private static TestStrategy recordingStrategy(final List<String> published, final boolean setterSucceeds) {
-    final EnvironmentSetter setter = (name, value) -> {
-      published.add(name + "=" + value);
-      return setterSucceeds;
-    };
+    final EnvironmentSetter setter = (name, value) -> recordVariable(published, setterSucceeds, name, value);
     final List<SearchProvider> noProviders = List.of();
     return new TestStrategy(PATTERNS, PLUGIN_FORMATS, noProviders, setter);
+  }
+
+  private static boolean recordVariable(final List<String> published, final boolean setterSucceeds, final String name, final String value) {
+    published.add(name + "=" + value);
+    return setterSucceeds;
   }
 
   /**

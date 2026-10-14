@@ -36,6 +36,7 @@ import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.loader.DependencyLoader;
 import me.brandonli.mcav.loader.LoaderPreparationProbe;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
@@ -164,10 +165,7 @@ final class BackgroundInstallationTest {
 
     final AtomicReference<Thread> callbackThread = new AtomicReference<>();
     final CompletableFuture<Boolean> vlcReady = installation.whenReady(Capability.VLC);
-    final CompletableFuture<Void> callback = vlcReady.thenRun(() -> {
-      final Thread current = Thread.currentThread();
-      callbackThread.set(current);
-    });
+    final CompletableFuture<Void> callback = vlcReady.thenRun(() -> this.recordCurrentThread(callbackThread));
     finishVlc.countDown();
     callback.get(WAIT_SECONDS, TimeUnit.SECONDS);
     final List<Thread> threads = installation.getThreads();
@@ -176,24 +174,18 @@ final class BackgroundInstallationTest {
     assertNotSame(vlcThread, ranOn, "a callback may call release(), which waits for the installation threads");
   }
 
+  private void recordCurrentThread(final AtomicReference<Thread> callbackThread) {
+    final Thread current = Thread.currentThread();
+    callbackThread.set(current);
+  }
+
   @Test
   void shouldWaitForCooperativeCleanupWithinItsBudgetOnCancellation() throws Exception {
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch interrupted = new CountDownLatch(1);
     final CountDownLatch finish = new CountDownLatch(1);
     final CountDownLatch cancelled = new CountDownLatch(1);
-    Mockito.doAnswer(_ -> {
-      started.countDown();
-      try {
-        finish.await();
-      } catch (final InterruptedException exception) {
-        interrupted.countDown();
-        final boolean released = Uninterruptibles.awaitUninterruptibly(finish, WAIT_SECONDS, TimeUnit.SECONDS);
-        assertTrue(released);
-      }
-
-      return null;
-    })
+    Mockito.doAnswer(_ -> this.awaitFinishAcrossAnInterrupt(started, interrupted, finish))
       .when(this.dependencies)
       .installVlc();
     final BackgroundInstallation installation = new BackgroundInstallation(
@@ -206,13 +198,7 @@ final class BackgroundInstallationTest {
     final boolean working = started.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(working);
 
-    final Thread cancelling = new Thread(() -> {
-      try {
-        installation.cancel();
-      } finally {
-        cancelled.countDown();
-      }
-    });
+    final Thread cancelling = new Thread(() -> this.cancelAndSignal(installation, cancelled));
     cancelling.start();
     try {
       final boolean receivedInterrupt = interrupted.await(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -226,6 +212,31 @@ final class BackgroundInstallationTest {
       assertTrue(ended);
 
       joinAll(installation);
+    }
+  }
+
+  private @Nullable Void awaitFinishAcrossAnInterrupt(
+    final CountDownLatch started,
+    final CountDownLatch interrupted,
+    final CountDownLatch finish
+  ) {
+    started.countDown();
+    try {
+      finish.await();
+    } catch (final InterruptedException exception) {
+      interrupted.countDown();
+      final boolean released = Uninterruptibles.awaitUninterruptibly(finish, WAIT_SECONDS, TimeUnit.SECONDS);
+      assertTrue(released);
+    }
+
+    return null;
+  }
+
+  private void cancelAndSignal(final BackgroundInstallation installation, final CountDownLatch cancelled) {
+    try {
+      installation.cancel();
+    } finally {
+      cancelled.countDown();
     }
   }
 
@@ -284,20 +295,12 @@ final class BackgroundInstallationTest {
     final CountDownLatch newFinish = new CountDownLatch(1);
     final AtomicInteger attempts = new AtomicInteger();
     final Logger progress = Mockito.mock(Logger.class);
-    Mockito.doAnswer(_ -> {
-      newRecorded.countDown();
-      Uninterruptibles.awaitUninterruptibly(newFinish);
-      return null;
-    })
+    Mockito.doAnswer(_ -> this.signalAndAwaitUninterruptibly(newRecorded, newFinish))
       .when(progress)
       .info(ArgumentMatchers.eq("VLC ready in {} ms."), ArgumentMatchers.anyLong());
-    final DependencyLoader loader = LoaderPreparationProbe.vlc(progress, () -> {
-      if (attempts.incrementAndGet() == 1) {
-        oldStarted.countDown();
-        Uninterruptibles.awaitUninterruptibly(oldFinish);
-        throw new IllegalStateException("cancelled preparation ended late!");
-      }
-    });
+    final DependencyLoader loader = LoaderPreparationProbe.vlc(progress, () ->
+      this.failTheFirstAttemptLate(attempts, oldStarted, oldFinish)
+    );
     final BackgroundInstallation oldInstallation = new BackgroundInstallation(loader, this.guard, this.logger, SHORT_CANCEL_TIMEOUT);
     final BackgroundInstallation newInstallation = new BackgroundInstallation(loader, this.guard, this.logger, SHORT_CANCEL_TIMEOUT);
     try {
@@ -326,6 +329,21 @@ final class BackgroundInstallationTest {
       newInstallation.cancel();
       joinAll(oldInstallation);
       joinAll(newInstallation);
+    }
+  }
+
+  private @Nullable Void signalAndAwaitUninterruptibly(final CountDownLatch recorded, final CountDownLatch finish) {
+    recorded.countDown();
+    Uninterruptibles.awaitUninterruptibly(finish);
+
+    return null;
+  }
+
+  private void failTheFirstAttemptLate(final AtomicInteger attempts, final CountDownLatch started, final CountDownLatch finish) {
+    if (attempts.incrementAndGet() == 1) {
+      started.countDown();
+      Uninterruptibles.awaitUninterruptibly(finish);
+      throw new IllegalStateException("cancelled preparation ended late!");
     }
   }
 
@@ -368,29 +386,33 @@ final class BackgroundInstallationTest {
   }
 
   private void blockVlc(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) {
-    final Answer<Void> blocking = _ -> {
-      vlcStarted.countDown();
-      final boolean finished = finishVlc.await(WAIT_SECONDS, TimeUnit.SECONDS);
-      assertTrue(finished);
-
-      return null;
-    };
+    final Answer<Void> blocking = _ -> this.signalAndAwaitFinish(vlcStarted, finishVlc);
     final Stubber stubber = Mockito.doAnswer(blocking);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.installVlc();
   }
 
-  private void blockVlcUninterruptibly(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) {
-    final Answer<Void> ignoringInterrupts = _ -> {
-      vlcStarted.countDown();
-      final boolean finished = Uninterruptibles.awaitUninterruptibly(finishVlc, WAIT_SECONDS, TimeUnit.SECONDS);
-      assertTrue(finished);
+  private @Nullable Void signalAndAwaitFinish(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) throws InterruptedException {
+    vlcStarted.countDown();
+    final boolean finished = finishVlc.await(WAIT_SECONDS, TimeUnit.SECONDS);
+    assertTrue(finished);
 
-      return null;
-    };
+    return null;
+  }
+
+  private void blockVlcUninterruptibly(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) {
+    final Answer<Void> ignoringInterrupts = _ -> this.signalAndAwaitFinishUninterruptibly(vlcStarted, finishVlc);
     final Stubber stubber = Mockito.doAnswer(ignoringInterrupts);
     final DependencyLoader stubbed = stubber.when(this.dependencies);
     stubbed.installVlc();
+  }
+
+  private @Nullable Void signalAndAwaitFinishUninterruptibly(final CountDownLatch vlcStarted, final CountDownLatch finishVlc) {
+    vlcStarted.countDown();
+    final boolean finished = Uninterruptibles.awaitUninterruptibly(finishVlc, WAIT_SECONDS, TimeUnit.SECONDS);
+    assertTrue(finished);
+
+    return null;
   }
 
   private static Boolean await(final BackgroundInstallation installation, final Capability capability) throws Exception {

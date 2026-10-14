@@ -81,15 +81,17 @@ final class StrategySelectorTest {
   @Test
   void shouldUseExactlyTheStrategyItWasGiven() {
     final UrlParseDump dump = dump("{" + STREAMS + "}");
-    final FormatStrategy firstListed = candidate -> {
-      final Format first = firstFormat(candidate);
-      return Optional.ofNullable(first);
-    };
+    final FormatStrategy firstListed = this::findTheFirstListed;
     final StrategySelector selector = StrategySelector.of(firstListed, firstListed);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
     assertEquals(AUDIO_FORMAT_ID, audio.format_id);
     assertEquals(AUDIO_FORMAT_ID, video.format_id);
+  }
+
+  private Optional<Format> findTheFirstListed(final UrlParseDump candidate) {
+    final Format first = firstFormat(candidate);
+    return Optional.ofNullable(first);
   }
 
   @Test

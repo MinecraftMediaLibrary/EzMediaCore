@@ -47,27 +47,10 @@ final class IdleTimeoutInputStreamFuzzTest {
     final ByteArrayOutputStream received = new ByteArrayOutputStream();
     try (final InputStream stream = new IdleTimeoutInputStream(source, GENEROUS)) {
       int reads = 0;
-      while (data.remainingBytes() > 0 && reads < 10_000) {
+      int count = 0;
+      while (count != -1 && data.remainingBytes() > 0 && reads < 10_000) {
         reads++;
-        final int length = data.consumeInt(-2, 300);
-        final int offset = data.consumeInt(-2, 300);
-        final byte[] buffer = new byte[data.consumeInt(0, 300)];
-        final boolean valid = offset >= 0 && length >= 0 && offset + length <= buffer.length;
-        final int count;
-        try {
-          count = stream.read(buffer, offset, length);
-        } catch (final IndexOutOfBoundsException exception) {
-          assertFalse(valid, "a valid range was refused");
-
-          continue;
-        }
-        assertTrue(valid, () -> "an invalid range was accepted: offset " + offset + ", length " + length + " of " + buffer.length);
-        if (count == -1) {
-          break;
-        }
-        final boolean withinRange = count >= 0 && count <= length;
-        assertTrue(withinRange, () -> count + " bytes for a request of " + length);
-        received.write(buffer, offset, count);
+        count = this.readRandomRange(data, stream, received);
       }
 
       final byte[] rest = stream.readAllBytes();
@@ -76,6 +59,35 @@ final class IdleTimeoutInputStreamFuzzTest {
 
     final byte[] delivered = received.toByteArray();
     assertArrayEquals(content, delivered, "every byte of the source, once and in order");
+  }
+
+  private int readRandomRange(final FuzzedDataProvider data, final InputStream stream, final ByteArrayOutputStream received)
+    throws IOException {
+    final int length = data.consumeInt(-2, 300);
+    final int offset = data.consumeInt(-2, 300);
+    final byte[] buffer = new byte[data.consumeInt(0, 300)];
+    final boolean valid = offset >= 0 && length >= 0 && offset + length <= buffer.length;
+    final int count;
+    try {
+      count = stream.read(buffer, offset, length);
+    } catch (final IndexOutOfBoundsException exception) {
+      assertFalse(valid, "a valid range was refused");
+
+      return 0;
+    }
+
+    assertTrue(valid, () -> "an invalid range was accepted: offset " + offset + ", length " + length + " of " + buffer.length);
+
+    if (count == -1) {
+      return count;
+    }
+
+    final boolean withinRange = count >= 0 && count <= length;
+    assertTrue(withinRange, () -> count + " bytes for a request of " + length);
+
+    received.write(buffer, offset, count);
+
+    return count;
   }
 
   /**

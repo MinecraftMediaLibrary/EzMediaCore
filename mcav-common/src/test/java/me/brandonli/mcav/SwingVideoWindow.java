@@ -35,6 +35,7 @@ import javax.swing.WindowConstants;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.utils.ThrowableUtils;
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
 
 /**
  * A window that shows frames, shared by the examples. The {@link #asFilter()} method turns it into a video filter
@@ -71,12 +72,7 @@ public final class SwingVideoWindow implements AutoCloseable {
       final BorderLayout layout = new BorderLayout();
       this.frame.setLayout(layout);
       this.frame.add(this.label, BorderLayout.CENTER);
-      final WindowAdapter listener = new WindowAdapter() {
-        @Override
-        public void windowClosed(final WindowEvent event) {
-          closed.countDown();
-        }
-      };
+      final WindowAdapter listener = new ClosingListener(this.closed);
       this.frame.addWindowListener(listener);
       this.frame.setVisible(true);
     } catch (final RuntimeException | Error exception) {
@@ -86,9 +82,7 @@ public final class SwingVideoWindow implements AutoCloseable {
       } catch (final RuntimeException | Error cleanupException) {
         ThrowableUtils.throwIfFatal(cleanupException);
 
-        if (!IDENTITY.equivalent(exception, cleanupException)) {
-          exception.addSuppressed(cleanupException);
-        }
+        this.suppressCleanupFailure(exception, cleanupException);
       }
 
       throw exception;
@@ -98,16 +92,7 @@ public final class SwingVideoWindow implements AutoCloseable {
   /** Creates a window on the Swing event dispatch thread, preserving interruption until the caller owns it. */
   public static SwingVideoWindow open(final String title, final int width, final int height) {
     final CompletableFuture<SwingVideoWindow> result = new CompletableFuture<>();
-    final Runnable create = () -> {
-      try {
-        final SwingVideoWindow window = new SwingVideoWindow(title, width, height, WindowConstants.DISPOSE_ON_CLOSE);
-        result.complete(window);
-      } catch (final RuntimeException | Error exception) {
-        // Publish the failure before propagating it on Swing's thread, so the caller cannot be stranded.
-        result.completeExceptionally(exception);
-        ThrowableUtils.throwIfFatal(exception);
-      }
-    };
+    final Runnable create = () -> createAndPublish(title, width, height, result);
     if (SwingUtilities.isEventDispatchThread()) {
       create.run();
     } else {
@@ -120,6 +105,32 @@ public final class SwingVideoWindow implements AutoCloseable {
       final Throwable cause = result.exceptionNow();
       ThrowableUtils.throwIfFatal(cause);
       throw exception;
+    }
+  }
+
+  private static void createAndPublish(
+    final String title,
+    final int width,
+    final int height,
+    final CompletableFuture<SwingVideoWindow> result
+  ) {
+    try {
+      final SwingVideoWindow window = new SwingVideoWindow(title, width, height, WindowConstants.DISPOSE_ON_CLOSE);
+      result.complete(window);
+    } catch (final RuntimeException | Error exception) {
+      // Publish the failure before propagating it on Swing's thread, so the caller cannot be stranded.
+      result.completeExceptionally(exception);
+      ThrowableUtils.throwIfFatal(exception);
+    }
+  }
+
+  private void suppressCleanupFailure(
+    @UnderInitialization SwingVideoWindow this,
+    final Throwable exception,
+    final Throwable cleanupException
+  ) {
+    if (!IDENTITY.equivalent(exception, cleanupException)) {
+      exception.addSuppressed(cleanupException);
     }
   }
 
@@ -139,16 +150,32 @@ public final class SwingVideoWindow implements AutoCloseable {
   }
 
   public VideoFilter asFilter() {
-    return (samples, _) -> {
-      this.show(samples);
+    return (samples, _) -> this.showWithoutChanging(samples);
+  }
 
-      return false;
-    };
+  private boolean showWithoutChanging(final ImageBuffer samples) {
+    this.show(samples);
+
+    return false;
   }
 
   private void show(final ImageBuffer samples) {
     final BufferedImage image = samples.toBufferedImage();
     final ImageIcon icon = new ImageIcon(image);
     SwingUtilities.invokeLater(() -> this.label.setIcon(icon));
+  }
+
+  private static final class ClosingListener extends WindowAdapter {
+
+    private final CountDownLatch closed;
+
+    ClosingListener(final CountDownLatch closed) {
+      this.closed = closed;
+    }
+
+    @Override
+    public void windowClosed(final WindowEvent event) {
+      this.closed.countDown();
+    }
   }
 }

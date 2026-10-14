@@ -107,10 +107,7 @@ final class SharedMediaPlayerFactoryTest {
   @Test
   void shouldAcquireNoReferenceWhenTheInstanceCannotBeCreated() {
     final AtomicInteger attempts = new AtomicInteger();
-    final Supplier<MediaPlayerFactory> failing = () -> {
-      attempts.incrementAndGet();
-      throw new IllegalStateException("libvlc not found!");
-    };
+    final Supplier<MediaPlayerFactory> failing = () -> this.countAttemptAndFail(attempts);
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(failing);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, shared::acquire);
     final String message = exception.getMessage();
@@ -123,26 +120,38 @@ final class SharedMediaPlayerFactoryTest {
     assertEquals(2, attemptCount, "every acquisition tries again");
   }
 
+  private MediaPlayerFactory countAttemptAndFail(final AtomicInteger attempts) {
+    attempts.incrementAndGet();
+    throw new IllegalStateException("libvlc not found!");
+  }
+
   private static void startAcquiring(
     final SharedMediaPlayerFactory shared,
     final CyclicBarrier barrier,
     final CountDownLatch done,
     final List<MediaPlayerFactory> acquired
   ) {
-    final Thread thread = new Thread(() -> {
-      try {
-        barrier.await();
-        final MediaPlayerFactory factory = shared.acquire();
-        synchronized (acquired) {
-          acquired.add(factory);
-        }
-      } catch (final Exception exception) {
-        throw new IllegalStateException(exception);
-      } finally {
-        done.countDown();
-      }
-    });
+    final Thread thread = new Thread(() -> acquireTogether(shared, barrier, done, acquired));
     thread.start();
+  }
+
+  private static void acquireTogether(
+    final SharedMediaPlayerFactory shared,
+    final CyclicBarrier barrier,
+    final CountDownLatch done,
+    final List<MediaPlayerFactory> acquired
+  ) {
+    try {
+      barrier.await();
+      final MediaPlayerFactory factory = shared.acquire();
+      synchronized (acquired) {
+        acquired.add(factory);
+      }
+    } catch (final Exception exception) {
+      throw new IllegalStateException(exception);
+    } finally {
+      done.countDown();
+    }
   }
 
   @Test

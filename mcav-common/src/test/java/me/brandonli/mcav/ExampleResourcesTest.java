@@ -41,6 +41,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,6 +49,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 final class ExampleResourcesTest {
 
@@ -80,14 +82,8 @@ final class ExampleResourcesTest {
     final AssertionError second = new AssertionError("speakers!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add(API_RESOURCE));
-    resources.add(() -> {
-      closed.add(SPEAKERS_RESOURCE);
-      throw second;
-    });
-    resources.add(() -> {
-      closed.add(PLAYER_RESOURCE);
-      throw first;
-    });
+    resources.add(() -> this.recordAndFail(closed, SPEAKERS_RESOURCE, second));
+    resources.add(() -> this.recordAndFail(closed, PLAYER_RESOURCE, first));
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, resources::close);
     assertSame(first, thrown);
 
@@ -101,18 +97,24 @@ final class ExampleResourcesTest {
     resources.close();
   }
 
+  private void recordAndFail(final List<String> closed, final String resource, final Error failure) {
+    closed.add(resource);
+    throw failure;
+  }
+
+  private void recordAndFail(final List<String> closed, final String resource, final RuntimeException failure) {
+    closed.add(resource);
+    throw failure;
+  }
+
   @Test
   void shouldRetainTheIdentityOfCleanupErrorsAndNotSkipTheApi() {
     final List<String> closed = new ArrayList<>();
     final AssertionError failure = new AssertionError("native cleanup!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add(API_RESOURCE));
-    resources.add(() -> {
-      throw failure;
-    });
-    resources.add(() -> {
-      throw failure;
-    });
+    resources.add(() -> this.throwFailure(failure));
+    resources.add(() -> this.throwFailure(failure));
     final AssertionError thrown = assertThrows(AssertionError.class, resources::close);
     assertSame(failure, thrown);
 
@@ -121,6 +123,10 @@ final class ExampleResourcesTest {
 
     final List<String> expected = List.of(API_RESOURCE);
     assertEquals(expected, closed);
+  }
+
+  private void throwFailure(final Error failure) {
+    throw failure;
   }
 
   @Test
@@ -140,21 +146,14 @@ final class ExampleResourcesTest {
     final ExampleResources resources = new ExampleResources();
     final CountDownLatch entered = new CountDownLatch(1);
     final CompletableFuture<Void> resume = new CompletableFuture<>();
-    resources.add(() -> {
-      resources.close();
-      entered.countDown();
-      resume.join();
-    });
+    resources.add(() -> this.closeAgainAndAwaitResume(resources, entered, resume));
     final CompletableFuture<Void> owner = CompletableFuture.runAsync(resources::close);
     try {
       final boolean started = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started, "the owner must reenter close without joining itself");
 
       final CountDownLatch otherEntered = new CountDownLatch(1);
-      final CompletableFuture<Void> other = CompletableFuture.runAsync(() -> {
-        otherEntered.countDown();
-        resources.close();
-      });
+      final CompletableFuture<Void> other = CompletableFuture.runAsync(() -> this.signalAndClose(otherEntered, resources));
       final boolean otherStarted = otherEntered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(otherStarted, "the competing closer must run before testing that it waits");
       assertThrows(TimeoutException.class, () -> other.get(100, TimeUnit.MILLISECONDS));
@@ -169,15 +168,28 @@ final class ExampleResourcesTest {
     }
   }
 
+  private void closeAgainAndAwaitResume(
+    final ExampleResources resources,
+    final CountDownLatch entered,
+    final CompletableFuture<Void> resume
+  ) {
+    resources.close();
+    entered.countDown();
+    resume.join();
+  }
+
+  private void signalAndClose(final CountDownLatch otherEntered, final ExampleResources resources) {
+    otherEntered.countDown();
+    resources.close();
+  }
+
   @Test
   void shouldStopImmediatelyOnAFatalCleanupWithoutReclassifyingIt() {
     final List<String> closed = new ArrayList<>();
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic cleanup failure!");
     final ExampleResources resources = new ExampleResources();
     resources.add(() -> closed.add(API_RESOURCE));
-    resources.add(() -> {
-      throw fatal;
-    });
+    resources.add(() -> this.throwFailure(fatal));
     final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, resources::close);
     assertSame(fatal, thrown);
 
@@ -190,17 +202,22 @@ final class ExampleResourcesTest {
     final IllegalStateException primary = new IllegalStateException("window setup!");
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic dispose failure!");
     try (
-      final MockedConstruction<JFrame> frames = mockConstruction(JFrame.class, (frame, context) -> {
-        doThrow(primary).when(frame).setDefaultCloseOperation(anyInt());
-        doThrow(fatal).when(frame).dispose();
-      })
+      final MockedConstruction<JFrame> frames = mockConstruction(JFrame.class, (frame, _) ->
+        this.failTheSetupAndTheDisposal(frame, primary, fatal)
+      )
     ) {
       final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> new SwingVideoWindow(WINDOW_TITLE, 1, 1));
       assertSame(fatal, thrown);
+
       final List<JFrame> constructed = frames.constructed();
       final int constructedCount = constructed.size();
       assertEquals(1, constructedCount);
     }
+  }
+
+  private void failTheSetupAndTheDisposal(final JFrame frame, final IllegalStateException primary, final OutOfMemoryError fatal) {
+    doThrow(primary).when(frame).setDefaultCloseOperation(anyInt());
+    doThrow(fatal).when(frame).dispose();
   }
 
   @Test
@@ -219,41 +236,10 @@ final class ExampleResourcesTest {
 
     final CompletableFuture<Throwable> callerFailure = new CompletableFuture<>();
     final CompletableFuture<Throwable> dispatchFailure = new CompletableFuture<>();
-    final Thread caller = new Thread(() -> {
-      try (final MockedStatic<SwingUtilities> swing = mockStatic(SwingUtilities.class)) {
-        swing
-          .when(() -> SwingUtilities.invokeLater(any(Runnable.class)))
-          .thenAnswer(invocation -> {
-            final Runnable create = invocation.getArgument(0);
-            final Thread dispatcher = new Thread(() -> {
-              try (
-                final MockedConstruction<JFrame> frames = mockConstruction(JFrame.class, (frame, context) -> {
-                  doThrow(fatal).when(frame).setDefaultCloseOperation(anyInt());
-                })
-              ) {
-                try {
-                  create.run();
-                  dispatchFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
-                } finally {
-                  final List<JFrame> constructed = frames.constructed();
-                  final int constructedCount = constructed.size();
-                  assertEquals(1, constructedCount, "fatal dispatch must attempt exactly one frame construction");
-                }
-              } catch (final Throwable exception) {
-                // Transport the synthetic fatal error to the test thread; do not lose it to an uncaught-handler log.
-                dispatchFailure.complete(exception);
-              }
-            }, "example-fatal-window-dispatch");
-            dispatcher.setDaemon(true);
-            dispatcher.start();
-            return null;
-          });
-        SwingVideoWindow.open(WINDOW_TITLE, 1, 1);
-        callerFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
-      } catch (final Throwable exception) {
-        callerFailure.complete(exception);
-      }
-    }, "example-fatal-window-caller");
+    final Thread caller = new Thread(
+      () -> this.openTheWindowRecordingTheFailure(fatal, callerFailure, dispatchFailure),
+      "example-fatal-window-caller"
+    );
     caller.setDaemon(true);
     caller.start();
     try {
@@ -267,6 +253,61 @@ final class ExampleResourcesTest {
 
     final boolean finished = !caller.isAlive();
     assertTrue(finished, "fatal creation must not strand the waiting caller");
+  }
+
+  private void openTheWindowRecordingTheFailure(
+    final OutOfMemoryError fatal,
+    final CompletableFuture<Throwable> callerFailure,
+    final CompletableFuture<Throwable> dispatchFailure
+  ) {
+    try (final MockedStatic<SwingUtilities> swing = mockStatic(SwingUtilities.class)) {
+      swing
+        .when(() -> SwingUtilities.invokeLater(any(Runnable.class)))
+        .thenAnswer(invocation -> this.dispatchOnANewThread(invocation, fatal, dispatchFailure));
+      SwingVideoWindow.open(WINDOW_TITLE, 1, 1);
+      callerFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
+    } catch (final Throwable exception) {
+      callerFailure.complete(exception);
+    }
+  }
+
+  private @Nullable Object dispatchOnANewThread(
+    final InvocationOnMock invocation,
+    final OutOfMemoryError fatal,
+    final CompletableFuture<Throwable> dispatchFailure
+  ) {
+    final Runnable create = invocation.getArgument(0);
+    final Thread dispatcher = new Thread(
+      () -> this.createTheWindowRecordingTheFailure(create, fatal, dispatchFailure),
+      "example-fatal-window-dispatch"
+    );
+    dispatcher.setDaemon(true);
+    dispatcher.start();
+    return null;
+  }
+
+  private void createTheWindowRecordingTheFailure(
+    final Runnable create,
+    final OutOfMemoryError fatal,
+    final CompletableFuture<Throwable> dispatchFailure
+  ) {
+    try (
+      final MockedConstruction<JFrame> frames = mockConstruction(JFrame.class, (frame, _) ->
+        doThrow(fatal).when(frame).setDefaultCloseOperation(anyInt())
+      )
+    ) {
+      try {
+        create.run();
+        dispatchFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
+      } finally {
+        final List<JFrame> constructed = frames.constructed();
+        final int constructedCount = constructed.size();
+        assertEquals(1, constructedCount, "fatal dispatch must attempt exactly one frame construction");
+      }
+    } catch (final Throwable exception) {
+      // Transport the synthetic fatal error to the test thread; do not lose it to an uncaught-handler log.
+      dispatchFailure.complete(exception);
+    }
   }
 
   @ParameterizedTest

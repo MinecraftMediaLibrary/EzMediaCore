@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy.ProcessRunner;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -120,12 +121,7 @@ final class LinuxInstallationStrategyTest {
   @Test
   void shouldFailWhenTheAppImageHasNoCoreLibrary() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final ProcessRunner extractor = (workingDirectory, _) -> {
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
-      Files.createDirectories(extracted);
-      createFile(extracted, APP_RUN_FILE_NAME);
-    };
+    final ProcessRunner extractor = (workingDirectory, _) -> this.extractWithoutCoreLibrary(workingDirectory);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, extractor);
     final Path archive = this.createAppImage();
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
@@ -134,16 +130,25 @@ final class LinuxInstallationStrategyTest {
     assertTrue(namesTheLibrary, message);
   }
 
+  private void extractWithoutCoreLibrary(final @Nullable Path workingDirectory) throws IOException {
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
+    Files.createDirectories(extracted);
+    createFile(extracted, APP_RUN_FILE_NAME);
+  }
+
   @Test
   void shouldPropagateExtractionFailures() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final IOException failure = new IOException("not an AppImage!");
-    final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {
-      throw failure;
-    });
+    final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> this.failToExtract(failure));
     final Path archive = this.createAppImage();
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     assertSame(failure, thrown);
+  }
+
+  private void failToExtract(final IOException failure) throws IOException {
+    throw failure;
   }
 
   @Test
@@ -163,36 +168,45 @@ final class LinuxInstallationStrategyTest {
   }
 
   private static ProcessRunner recordingExtractor(final List<String> commands, final List<Path> workingDirectories) {
-    return (workingDirectory, arguments) -> {
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      workingDirectories.add(directory);
-      final String commandLine = String.join(" ", arguments);
-      commands.add(commandLine);
-      final Path relativeLibraryDirectory = Path.of(EXTRACTED_DIRECTORY, PROGRAMS_DIRECTORY, LIBRARY_DIRECTORY);
-      final Path libraryDirectory = directory.resolve(relativeLibraryDirectory);
-      final Path relativePlugins = Path.of(VLC_DIRECTORY, PLUGINS_DIRECTORY);
-      final Path plugins = libraryDirectory.resolve(relativePlugins);
-      Files.createDirectories(plugins);
-      createFile(libraryDirectory, VERSIONED_LIBRARY_FILE_NAME);
-      createFile(libraryDirectory, VERSIONED_CORE_LIBRARY_FILE_NAME);
-    };
+    return (workingDirectory, arguments) -> extractRecording(commands, workingDirectories, workingDirectory, arguments);
+  }
+
+  private static void extractRecording(
+    final List<String> commands,
+    final List<Path> workingDirectories,
+    final @Nullable Path workingDirectory,
+    final String[] arguments
+  ) throws IOException {
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    workingDirectories.add(directory);
+    final String commandLine = String.join(" ", arguments);
+    commands.add(commandLine);
+    final Path relativeLibraryDirectory = Path.of(EXTRACTED_DIRECTORY, PROGRAMS_DIRECTORY, LIBRARY_DIRECTORY);
+    final Path libraryDirectory = directory.resolve(relativeLibraryDirectory);
+    final Path relativePlugins = Path.of(VLC_DIRECTORY, PLUGINS_DIRECTORY);
+    final Path plugins = libraryDirectory.resolve(relativePlugins);
+    Files.createDirectories(plugins);
+    createFile(libraryDirectory, VERSIONED_LIBRARY_FILE_NAME);
+    createFile(libraryDirectory, VERSIONED_CORE_LIBRARY_FILE_NAME);
   }
 
   /**
    * Creates an extractor that fails the test unless the leftover of an earlier extraction was deleted before it runs.
    */
   private static ProcessRunner leftoverCheckingExtractor(final Path staleFile) {
-    return (workingDirectory, _) -> {
-      final boolean leftoverStillThere = Files.exists(staleFile);
-      assertFalse(leftoverStillThere);
+    return (workingDirectory, _) -> extractAfterCheckingTheLeftover(staleFile, workingDirectory);
+  }
 
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
-      final Path libraryDirectory = extracted.resolve(LIBRARY_DIRECTORY);
-      Files.createDirectories(libraryDirectory);
-      createFile(libraryDirectory, CORE_LIBRARY_FILE_NAME);
-      createFile(libraryDirectory, LIBRARY_FILE_NAME);
-    };
+  private static void extractAfterCheckingTheLeftover(final Path staleFile, final @Nullable Path workingDirectory) throws IOException {
+    final boolean leftoverStillThere = Files.exists(staleFile);
+    assertFalse(leftoverStillThere);
+
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
+    final Path libraryDirectory = extracted.resolve(LIBRARY_DIRECTORY);
+    Files.createDirectories(libraryDirectory);
+    createFile(libraryDirectory, CORE_LIBRARY_FILE_NAME);
+    createFile(libraryDirectory, LIBRARY_FILE_NAME);
   }
 
   private void assertArchiveAndExtractionAreGone(final Path archive) {

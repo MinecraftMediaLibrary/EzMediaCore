@@ -65,6 +65,7 @@ import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 
 /**
  * Tests {@link NativeHeapTrimmer} with trims the tests count, and once with the JDK's own command.
@@ -119,17 +120,7 @@ final class NativeHeapTrimmerTest {
   void shouldLogAFailedTrimAndGoOnTrimming() throws InterruptedException {
     final AtomicInteger attempts = new AtomicInteger();
     final CountDownLatch trims = new CountDownLatch(1);
-    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
-      SHORT,
-      () -> {
-        if (attempts.incrementAndGet() == 1) {
-          throw new IllegalStateException("the first trim fails on purpose!");
-        }
-
-        trims.countDown();
-      },
-      () -> {}
-    );
+    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, () -> this.failTheFirstTrim(attempts, trims), () -> {});
     final PrintStream standardError = System.err;
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
@@ -151,6 +142,14 @@ final class NativeHeapTrimmerTest {
 
     final boolean reportsTheCause = log.contains("the first trim fails on purpose");
     assertTrue(reportsTheCause, log);
+  }
+
+  private void failTheFirstTrim(final AtomicInteger attempts, final CountDownLatch trims) {
+    if (attempts.incrementAndGet() == 1) {
+      throw new IllegalStateException("the first trim fails on purpose!");
+    }
+
+    trims.countDown();
   }
 
   @Test
@@ -202,13 +201,7 @@ final class NativeHeapTrimmerTest {
 
   @Test
   void shouldLogAFailedThresholdAndStillStartTrimming() {
-    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
-      SHORT,
-      () -> {},
-      () -> {
-        throw new IllegalStateException("the threshold fails on purpose!");
-      }
-    );
+    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, () -> {}, this::failTheThreshold);
     final PrintStream standardError = System.err;
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
@@ -230,6 +223,10 @@ final class NativeHeapTrimmerTest {
 
     final boolean reportsTheCause = log.contains("the threshold fails on purpose");
     assertTrue(reportsTheCause, log);
+  }
+
+  private void failTheThreshold() {
+    throw new IllegalStateException("the threshold fails on purpose!");
   }
 
   @Test
@@ -281,11 +278,7 @@ final class NativeHeapTrimmerTest {
     try (final MockedStatic<NativeHeapTrimmer> trimmer = mockStatic(NativeHeapTrimmer.class, CALLS_REAL_METHODS)) {
       trimmer
         .when(() -> NativeHeapTrimmer.fixGlibcTrimThreshold(any(SymbolLookup.class)))
-        .thenAnswer(call -> {
-          asked.add(call.getArgument(0));
-
-          return false;
-        });
+        .thenAnswer(invocation -> this.recordTheAskedLibrary(asked, invocation));
       fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
     }
 
@@ -301,11 +294,19 @@ final class NativeHeapTrimmerTest {
     assertEquals(ownLibrary.find(MALLOC_SYMBOL), askedMalloc, "the C library of this JVM is asked");
   }
 
+  private boolean recordTheAskedLibrary(final List<SymbolLookup> asked, final InvocationOnMock invocation) {
+    asked.add(invocation.getArgument(0));
+
+    return false;
+  }
+
   private static IntBinaryOperator recordingMallopt(final List<List<Integer>> calls, final int answer) {
-    return (parameter, value) -> {
-      calls.add(List.of(parameter, value));
-      return answer;
-    };
+    return (parameter, value) -> recordMallopt(calls, answer, parameter, value);
+  }
+
+  private static int recordMallopt(final List<List<Integer>> calls, final int answer, final int parameter, final int value) {
+    calls.add(List.of(parameter, value));
+    return answer;
   }
 
   // a glibc whose mallopt is a native stub that calls the operator; the trimmer only looks gnu_get_libc_version up
@@ -361,14 +362,7 @@ final class NativeHeapTrimmerTest {
   void shouldKeepTheInterruptOfTheCallerOfAnInterruptedClose() throws InterruptedException {
     final CountDownLatch trimStarted = new CountDownLatch(1);
     final Semaphore trimRelease = new Semaphore(0);
-    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(
-      SHORT,
-      () -> {
-        trimStarted.countDown();
-        trimRelease.acquireUninterruptibly();
-      },
-      () -> {}
-    );
+    final NativeHeapTrimmer trimmer = new NativeHeapTrimmer(SHORT, () -> this.signalAndAwaitRelease(trimStarted, trimRelease), () -> {});
     final boolean started;
     final Thread thread;
     final boolean interrupted;
@@ -394,6 +388,11 @@ final class NativeHeapTrimmerTest {
 
     final boolean alive = thread.isAlive();
     assertFalse(alive, "the trimming thread ends on its interrupt");
+  }
+
+  private void signalAndAwaitRelease(final CountDownLatch trimStarted, final Semaphore trimRelease) {
+    trimStarted.countDown();
+    trimRelease.acquireUninterruptibly();
   }
 
   @Test

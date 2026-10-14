@@ -56,16 +56,7 @@ final class ImagePlayerShutdownTest {
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final AtomicReference<Boolean> released = new AtomicReference<>();
     final AtomicReference<Long> elapsed = new AtomicReference<>();
-    attach(player, (_, _) -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      final long before = System.nanoTime();
-      released.set(player.release());
-      elapsed.set(System.nanoTime() - before);
-      finished.countDown();
-
-      return false;
-    });
+    attach(player, (_, _) -> this.releaseFromTheCallback(player, worker, released, elapsed, finished));
     try {
       final boolean started = player.start(source());
       final boolean completed = finished.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -91,6 +82,23 @@ final class ImagePlayerShutdownTest {
     }
   }
 
+  private boolean releaseFromTheCallback(
+    final ImagePlayer player,
+    final AtomicReference<Thread> worker,
+    final AtomicReference<Boolean> released,
+    final AtomicReference<Long> elapsed,
+    final CountDownLatch finished
+  ) {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    final long before = System.nanoTime();
+    released.set(player.release());
+    elapsed.set(System.nanoTime() - before);
+    finished.countDown();
+
+    return false;
+  }
+
   @Test
   void shouldLetAnInterruptedCallbackReenterThePlayerOnAnExternalRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
@@ -99,21 +107,7 @@ final class ImagePlayerShutdownTest {
     final CountDownLatch completed = new CountDownLatch(1);
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final AtomicReference<Boolean> repeatedRelease = new AtomicReference<>();
-    attach(player, (_, _) -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      entered.countDown();
-      try {
-        escape.await();
-      } catch (final InterruptedException exception) {
-        current.interrupt();
-      }
-
-      repeatedRelease.set(player.release());
-      completed.countDown();
-
-      return false;
-    });
+    attach(player, (_, _) -> this.awaitEscapeAndRelease(player, worker, entered, escape, repeatedRelease, completed));
     final AtomicReference<Boolean> firstRelease = new AtomicReference<>();
     final Thread releaser = new Thread(() -> firstRelease.set(player.release()), "image-external-release");
     releaser.setDaemon(true);
@@ -149,5 +143,28 @@ final class ImagePlayerShutdownTest {
         thread.join(3_000L);
       }
     }
+  }
+
+  private boolean awaitEscapeAndRelease(
+    final ImagePlayer player,
+    final AtomicReference<Thread> worker,
+    final CountDownLatch entered,
+    final CountDownLatch escape,
+    final AtomicReference<Boolean> repeatedRelease,
+    final CountDownLatch completed
+  ) {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    entered.countDown();
+    try {
+      escape.await();
+    } catch (final InterruptedException exception) {
+      current.interrupt();
+    }
+
+    repeatedRelease.set(player.release());
+    completed.countDown();
+
+    return false;
   }
 }

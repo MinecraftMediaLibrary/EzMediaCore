@@ -89,16 +89,18 @@ final class VlcPlayerIntegrationTest {
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   VlcPlayerIntegrationTest() {
-    this.player.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.player.setExceptionHandler(this::recordFailure);
     final VideoPipelineStep videoStep = VideoPipelineStep.of(this::recordFrame);
     final AudioPipelineStep audioStep = AudioPipelineStep.of(this::recordSamples);
     final VideoAttachableCallback videoCallback = this.player.getVideoAttachableCallback();
     final AudioAttachableCallback audioCallback = this.player.getAudioAttachableCallback();
     videoCallback.attach(videoStep);
     audioCallback.attach(audioStep);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   @BeforeAll

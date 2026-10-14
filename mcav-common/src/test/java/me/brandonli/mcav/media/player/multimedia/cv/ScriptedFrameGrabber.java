@@ -139,30 +139,32 @@ final class ScriptedFrameGrabber extends FrameGrabber {
    */
   @Override
   public Frame grab() throws FrameGrabber.Exception {
-    while (true) {
-      final Object next = this.takeNextStep();
-      switch (next) {
-        case null -> {
-          return null;
-        }
-        case final Frame frame -> {
-          return frame;
-        }
-        case final FrameGrabber.Exception exception -> throw exception;
-        case final RuntimeException exception -> throw exception;
-        case final Delay delay -> delay.block();
-        default -> {
-          final String message = "Script step %s is unknown!".formatted(next);
-          throw new IllegalStateException(message);
-        }
-      }
+    Object next = this.takeNextStep();
+    while (next instanceof final Delay delay) {
+      delay.block();
+      next = this.takeNextStep();
     }
+
+    return this.playStep(next);
   }
 
   private Object takeNextStep() {
     synchronized (this.script) {
       return this.script.poll();
     }
+  }
+
+  private Frame playStep(final Object next) throws FrameGrabber.Exception {
+    return switch (next) {
+      case null -> null;
+      case final Frame frame -> frame;
+      case final FrameGrabber.Exception exception -> throw exception;
+      case final RuntimeException exception -> throw exception;
+      default -> {
+        final String message = "Script step %s is unknown!".formatted(next);
+        throw new IllegalStateException(message);
+      }
+    };
   }
 
   @Override

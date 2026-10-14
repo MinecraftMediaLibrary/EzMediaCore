@@ -186,11 +186,7 @@ final class SourceUtilsTest {
     final UrlParseDump live = parseDump("{\"id\": \"live\", \"is_live\": true}");
     final UrlParseDump recorded = parseDump("{\"id\": \"recorded\", \"is_live\": false}");
     final List<URI> asked = new ArrayList<>();
-    final YtdlpParser liveParser = (input, _) -> {
-      final URI uri = input.getUri();
-      asked.add(uri);
-      return live;
-    };
+    final YtdlpParser liveParser = (input, _) -> this.recordAskedUri(input, asked, live);
     final YtdlpParser recordedParser = (_, _) -> recorded;
 
     final boolean liveResult = SourceUtils.isDynamicStream(LIVE_URL, liveParser);
@@ -205,20 +201,31 @@ final class SourceUtilsTest {
     assertEquals(expectedAsked, asked, "an invalid URL is never handed to the parser");
   }
 
+  private UrlParseDump recordAskedUri(final UriSource input, final List<URI> asked, final UrlParseDump answer) {
+    final URI uri = input.getUri();
+    asked.add(uri);
+
+    return answer;
+  }
+
   @Test
   void shouldReportNoLiveStreamWhenTheParserFails() {
-    final YtdlpParser offlineParser = (_, _) -> {
-      throw new IOException("offline!");
-    };
-    final YtdlpParser rejectingParser = (_, _) -> {
-      throw new IllegalArgumentException("not a web URL!");
-    };
+    final YtdlpParser offlineParser = (_, _) -> this.failOffline();
+    final YtdlpParser rejectingParser = (_, _) -> this.rejectUrl();
 
     final boolean offlineResult = SourceUtils.isDynamicStream(LIVE_URL, offlineParser);
     final boolean rejectedResult = SourceUtils.isDynamicStream("ftp://example.com/live", rejectingParser);
 
     assertFalse(offlineResult, "a failing lookup is not a live stream");
     assertFalse(rejectedResult, "a URL the parser rejects is not a live stream");
+  }
+
+  private UrlParseDump failOffline() throws IOException {
+    throw new IOException("offline!");
+  }
+
+  private UrlParseDump rejectUrl() {
+    throw new IllegalArgumentException("not a web URL!");
   }
 
   private static UrlParseDump parseDump(final String json) {

@@ -73,13 +73,7 @@ final class BufferedImageConversionFuzzTest {
     try (final ImageBuffer created = ImageBuffer.image(frame)) {
       assertSamePixels(frame, created);
 
-      final BufferedImage replacement = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
-      for (int row = 0; row < replacement.getHeight(); row++) {
-        for (int column = 0; column < replacement.getWidth(); column++) {
-          replacement.setRGB(column, row, ~frame.getRGB(column, row));
-        }
-      }
-
+      final BufferedImage replacement = this.invertColors(frame, type);
       created.setAsBufferedImage(replacement);
       assertSamePixels(replacement, created);
     }
@@ -107,5 +101,16 @@ final class BufferedImageConversionFuzzTest {
         );
       }
     }
+  }
+
+  private BufferedImage invertColors(final BufferedImage frame, final int type) {
+    final BufferedImage replacement = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
+    for (int row = 0; row < replacement.getHeight(); row++) {
+      for (int column = 0; column < replacement.getWidth(); column++) {
+        replacement.setRGB(column, row, ~frame.getRGB(column, row));
+      }
+    }
+
+    return replacement;
   }
 }

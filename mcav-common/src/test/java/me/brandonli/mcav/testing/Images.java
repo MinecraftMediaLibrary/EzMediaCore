@@ -155,21 +155,32 @@ public final class Images {
     final Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("gif");
     final ImageWriter writer = writers.next();
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-      try (final ImageOutputStream imageOutput = ImageIO.createImageOutputStream(output)) {
-        writer.setOutput(imageOutput);
-        writer.prepareWriteSequence(null);
-        for (final int color : colors) {
-          writeGifFrame(writer, width, height, delayInHundredths, color);
-        }
-
-        writer.endWriteSequence();
-      }
+      writeGifSequence(writer, output, width, height, delayInHundredths, colors);
 
       return output.toByteArray();
     } catch (final IOException exception) {
       throw new UncheckedIOException(exception);
     } finally {
       writer.dispose();
+    }
+  }
+
+  private static void writeGifSequence(
+    final ImageWriter writer,
+    final ByteArrayOutputStream output,
+    final int width,
+    final int height,
+    final int delayInHundredths,
+    final int[] colors
+  ) throws IOException {
+    try (final ImageOutputStream imageOutput = ImageIO.createImageOutputStream(output)) {
+      writer.setOutput(imageOutput);
+      writer.prepareWriteSequence(null);
+      for (final int color : colors) {
+        writeGifFrame(writer, width, height, delayInHundredths, color);
+      }
+
+      writer.endWriteSequence();
     }
   }
 

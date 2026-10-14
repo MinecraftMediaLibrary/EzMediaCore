@@ -244,19 +244,23 @@ public final class LocalHttpServer implements AutoCloseable {
     final long timeoutNanoseconds = timeout.toNanos();
     final long deadline = start + timeoutNanoseconds;
     synchronized (this.requestSignal) {
-      int received = this.getRequestCount(path);
-      while (received < count) {
-        final long now = System.nanoTime();
-        final long remaining = deadline - now;
-        if (remaining <= 0) {
-          return false;
-        }
-        TimeUnit.NANOSECONDS.timedWait(this.requestSignal, remaining);
-        received = this.getRequestCount(path);
-      }
-
-      return true;
+      return this.awaitRequestCount(path, count, deadline);
     }
+  }
+
+  private boolean awaitRequestCount(final String path, final int count, final long deadline) throws InterruptedException {
+    int received = this.getRequestCount(path);
+    while (received < count) {
+      final long now = System.nanoTime();
+      final long remaining = deadline - now;
+      if (remaining <= 0) {
+        return false;
+      }
+      TimeUnit.NANOSECONDS.timedWait(this.requestSignal, remaining);
+      received = this.getRequestCount(path);
+    }
+
+    return true;
   }
 
   private void signalRequest() {
@@ -322,16 +326,20 @@ public final class LocalHttpServer implements AutoCloseable {
   private void trickle(final HttpExchange exchange, final Response response) throws IOException {
     exchange.sendResponseHeaders(response.status, response.body.length);
     try (final OutputStream output = exchange.getResponseBody()) {
-      for (final byte value : response.body) {
-        output.write(value);
-        output.flush();
-        if (this.closing.await(response.trickleMilliseconds, TimeUnit.MILLISECONDS)) {
-          return;
-        }
-      }
+      this.trickleBody(output, response);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
+    }
+  }
+
+  private void trickleBody(final OutputStream output, final Response response) throws IOException, InterruptedException {
+    for (final byte value : response.body) {
+      output.write(value);
+      output.flush();
+      if (this.closing.await(response.trickleMilliseconds, TimeUnit.MILLISECONDS)) {
+        return;
+      }
     }
   }
 

@@ -50,12 +50,7 @@ final class PipelineStepTest {
     final ImageBuffer image = mock(ImageBuffer.class);
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(2, 2);
     final VideoFilter second = (_, _) -> calls.add("second");
-    final VideoFilter first = (buffer, videoMetadata) -> {
-      assertSame(image, buffer);
-      assertSame(metadata, videoMetadata);
-
-      return calls.add("first");
-    };
+    final VideoFilter first = (buffer, videoMetadata) -> this.checkAndRecordFirst(image, metadata, buffer, videoMetadata, calls);
     final VideoPipelineStep last = VideoPipelineStep.of(second);
     final VideoPipelineStep head = VideoPipelineStep.of(last, first);
     head.processAll(image, metadata);
@@ -73,16 +68,23 @@ final class PipelineStepTest {
     assertSame(head, self);
   }
 
+  private boolean checkAndRecordFirst(
+    final ImageBuffer image,
+    final OriginalVideoMetadata metadata,
+    final ImageBuffer buffer,
+    final OriginalVideoMetadata videoMetadata,
+    final List<String> calls
+  ) {
+    assertSame(image, buffer);
+    assertSame(metadata, videoMetadata);
+
+    return calls.add("first");
+  }
+
   @Test
   void shouldRewindTheSamplesBeforeEveryFilterInAudioSteps() {
     final List<Integer> positions = new ArrayList<>();
-    final AudioFilter consuming = (samples, _) -> {
-      final int position = samples.position();
-      positions.add(position);
-      samples.getInt();
-
-      return true;
-    };
+    final AudioFilter consuming = (samples, _) -> this.recordPositionAndConsume(positions, samples);
     final AudioPipelineStep last = AudioPipelineStep.of(consuming);
     final AudioPipelineStep head = AudioPipelineStep.of(last, consuming);
     final ByteBuffer samples = ByteBuffer.allocate(8);
@@ -98,21 +100,21 @@ final class PipelineStepTest {
     assertSame(head, self);
   }
 
+  private boolean recordPositionAndConsume(final List<Integer> positions, final ByteBuffer samples) {
+    final int position = samples.position();
+    positions.add(position);
+    samples.getInt();
+
+    return true;
+  }
+
   @Test
   void shouldRunEveryFilterWhateverTheFiltersBeforeItReturned() {
     final List<String> calls = new ArrayList<>();
     final ImageBuffer image = mock(ImageBuffer.class);
-    final VideoFilter untouchedVideo = (_, _) -> {
-      calls.add("video left untouched");
-
-      return false;
-    };
+    final VideoFilter untouchedVideo = (_, _) -> this.recordUntouched(calls, "video left untouched");
     final VideoFilter nextVideo = (_, _) -> calls.add("next video filter");
-    final AudioFilter untouchedAudio = (_, _) -> {
-      calls.add("audio left untouched");
-
-      return false;
-    };
+    final AudioFilter untouchedAudio = (_, _) -> this.recordUntouched(calls, "audio left untouched");
     final AudioFilter nextAudio = (_, _) -> calls.add("next audio filter");
     final VideoPipelineStep lastVideo = VideoPipelineStep.of(nextVideo);
     final VideoPipelineStep video = VideoPipelineStep.of(lastVideo, untouchedVideo);
@@ -123,6 +125,12 @@ final class PipelineStepTest {
     audio.processAll(samples, AUDIO_METADATA);
     final List<String> expected = List.of("video left untouched", "next video filter", "audio left untouched", "next audio filter");
     assertEquals(expected, calls, "false only reports an untouched sample, it never stops the pipeline");
+  }
+
+  private boolean recordUntouched(final List<String> calls, final String call) {
+    calls.add(call);
+
+    return false;
   }
 
   @Test

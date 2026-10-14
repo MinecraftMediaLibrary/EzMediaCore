@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.invocation.InvocationOnMock;
 
 /** Tests the single deadline covering process exit and inherited output pipes. */
 final class CommandTaskDeadlineTest {
@@ -112,17 +113,8 @@ final class CommandTaskDeadlineTest {
     final Future<String> errors = mock(StringFuture.class);
     final AtomicLong firstBudget = new AtomicLong();
     final AtomicLong secondBudget = new AtomicLong();
-    when(output.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> {
-      final long nanoseconds = invocation.getArgument(0);
-      firstBudget.set(nanoseconds);
-      Thread.sleep(30L);
-      return "output";
-    });
-    when(errors.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> {
-      final long nanoseconds = invocation.getArgument(0);
-      secondBudget.set(nanoseconds);
-      throw new TimeoutException("still reading error output!");
-    });
+    when(output.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> this.recordBudgetAndAnswerLate(invocation, firstBudget));
+    when(errors.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> this.recordBudgetAndTimeOut(invocation, secondBudget));
     final CommandTask task = new CommandTask(FINISHED_COMMAND);
     final Duration timeout = OUTPUT_TIMEOUT;
     assertThrows(IOException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
@@ -137,6 +129,21 @@ final class CommandTaskDeadlineTest {
 
     final boolean budgetShrank = second < first;
     assertTrue(budgetShrank, "reading stderr must not start a fresh timeout");
+  }
+
+  private String recordBudgetAndAnswerLate(final InvocationOnMock invocation, final AtomicLong budget) throws InterruptedException {
+    final long nanoseconds = invocation.getArgument(0);
+    budget.set(nanoseconds);
+    Thread.sleep(30L);
+
+    return "output";
+  }
+
+  private String recordBudgetAndTimeOut(final InvocationOnMock invocation, final AtomicLong budget) throws TimeoutException {
+    final long nanoseconds = invocation.getArgument(0);
+    budget.set(nanoseconds);
+
+    throw new TimeoutException("still reading error output!");
   }
 
   private static String javaExecutable() {

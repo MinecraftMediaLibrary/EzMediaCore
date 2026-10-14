@@ -300,21 +300,24 @@ final class OsxInstallationStrategyTest {
    * @return the runner
    */
   private static ProcessRunner simulatedTools(final List<String> commands, final Predicate<String> failing) {
-    return (_, arguments) -> {
-      final String commandLine = String.join(" ", arguments);
-      commands.add(commandLine);
-      final boolean fails = failing.test(commandLine);
-      if (fails) {
-        final String message = "Command %s failed!".formatted(commandLine);
-        throw new IOException(message);
-      }
+    return (_, arguments) -> runSimulatedTool(commands, failing, arguments);
+  }
 
-      final String tool = arguments[0];
-      final boolean copy = tool.equals("cp");
-      if (copy) {
-        simulateCopy(arguments);
-      }
-    };
+  private static void runSimulatedTool(final List<String> commands, final Predicate<String> failing, final String[] arguments)
+    throws IOException {
+    final String commandLine = String.join(" ", arguments);
+    commands.add(commandLine);
+    final boolean fails = failing.test(commandLine);
+    if (fails) {
+      final String message = "Command %s failed!".formatted(commandLine);
+      throw new IOException(message);
+    }
+
+    final String tool = arguments[0];
+    final boolean copy = tool.equals("cp");
+    if (copy) {
+      simulateCopy(arguments);
+    }
   }
 
   private static void simulateCopy(final String[] arguments) throws IOException {
