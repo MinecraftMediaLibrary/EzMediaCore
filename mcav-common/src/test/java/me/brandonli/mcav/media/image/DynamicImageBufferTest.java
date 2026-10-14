@@ -27,12 +27,17 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.testing.Images;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TestMedia;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.Frame;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -50,6 +55,7 @@ final class DynamicImageBufferTest {
   private static final int TIMESTAMPED_FRAMES = 3;
   private static final long ONE_SECOND = 1_000_000L;
   private static final long TWO_SECONDS = 2_000_000L;
+  private static final long THREE_SECONDS = 3_000_000L;
 
   private static final float DEFAULT_FRAME_RATE = 10.0f;
 
@@ -183,5 +189,84 @@ final class DynamicImageBufferTest {
 
     final boolean positive = singleFrame > 0;
     assertTrue(positive);
+  }
+
+  @Test
+  void shouldDeriveTheFrameRateFromTheDecodedTimestampsWhenTheDecoderReportsNone() {
+    final Path path = this.directory.resolve(ANIMATION_NAME);
+    final Frame first = timestampedFrame(ONE_SECOND);
+    final Frame second = timestampedFrame(TWO_SECONDS);
+    final Frame third = timestampedFrame(THREE_SECONDS);
+    final ScriptedFfmpegGrabber grabber = new ScriptedFfmpegGrabber(first, second, third);
+    final List<ImageBuffer> decoded = new ArrayList<>();
+    final FfmpegDynamicImageBuffer.Animation animation = FfmpegDynamicImageBuffer.decode(path, grabber, decoded);
+    final float frameRate = animation.getFrameRate();
+    assertEquals(1.0f, frameRate, "two frame periods fit between the first frame at one second and the last at three");
+
+    decoded.forEach(ImageBuffer::release);
+  }
+
+  @Test
+  void shouldReleaseTheDecodedFramesWhenDecodingFails() {
+    final Path path = this.directory.resolve(ANIMATION_NAME);
+    final Frame first = timestampedFrame(ONE_SECOND);
+    final Frame second = timestampedFrame(TWO_SECONDS);
+    final FFmpegFrameGrabber.Exception failure = new FFmpegFrameGrabber.Exception("decoding failed on purpose");
+    final ScriptedFfmpegGrabber grabber = new ScriptedFfmpegGrabber(first, second, failure);
+    final List<ImageBuffer> decoded = new ArrayList<>();
+    assertThrows(ImageDecodingException.class, () -> FfmpegDynamicImageBuffer.decode(path, grabber, decoded));
+
+    final int count = decoded.size();
+    assertEquals(2, count);
+
+    for (final ImageBuffer frame : decoded) {
+      assertThrows(IllegalStateException.class, frame::getWidth, "a frame decoded before the failure was not released");
+    }
+  }
+
+  private static Frame timestampedFrame(final long timestampMicroseconds) {
+    final Frame frame = new Frame(ANIMATION_WIDTH, ANIMATION_HEIGHT, Frame.DEPTH_UBYTE, 3);
+    frame.timestamp = timestampMicroseconds;
+    return frame;
+  }
+
+  // Plays a script of frames and failures instead of decoding a file, and reports no frame rate, which FFmpeg reports
+  // for every test file.
+  private static final class ScriptedFfmpegGrabber extends FFmpegFrameGrabber {
+
+    private final Deque<Object> steps;
+
+    ScriptedFfmpegGrabber(final Object... steps) {
+      super(ANIMATION_NAME);
+      this.steps = new ArrayDeque<>(List.of(steps));
+    }
+
+    @Override
+    public void start() {}
+
+    @Override
+    public Frame grabImage() throws FFmpegFrameGrabber.Exception {
+      final Object next = this.steps.poll();
+      return switch (next) {
+        case null -> null;
+        case final Frame frame -> frame;
+        case final FFmpegFrameGrabber.Exception exception -> throw exception;
+        default -> {
+          final String message = "Script step %s is unknown!".formatted(next);
+          throw new IllegalStateException(message);
+        }
+      };
+    }
+
+    @Override
+    public double getFrameRate() {
+      return 0.0;
+    }
+
+    @Override
+    public void stop() {}
+
+    @Override
+    public void release() {}
   }
 }

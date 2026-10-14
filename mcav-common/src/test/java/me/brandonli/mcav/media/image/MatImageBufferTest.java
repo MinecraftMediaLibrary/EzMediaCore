@@ -46,6 +46,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import me.brandonli.mcav.media.source.file.FileSource;
@@ -452,6 +453,34 @@ final class MatImageBufferTest {
     assertEquals(WHITE, floatWhite, "floating point images range from 0 to 1");
     assertEquals(0xFF808080, floatHalf);
     assertEquals(0xFF404040, doubleQuarter);
+  }
+
+  @Test
+  void shouldReleaseTheEightBitCopyOfAConvertedMat() {
+    final Mat source = new Mat(1, 1, opencv_core.CV_16UC1);
+    final List<Mat> released = new ArrayList<>();
+    final Mat bgr = MatImageBuffer.copyToBgr(source, released::add);
+    final int count = released.size();
+    assertEquals(1, count);
+
+    final Mat copy = released.getFirst();
+    assertNotSame(source, copy, "the caller's matrix is not released");
+    assertNotSame(bgr, copy, "the returned matrix is not released");
+
+    copy.release();
+    bgr.release();
+    source.release();
+  }
+
+  @Test
+  void shouldReleaseNothingOfAnEightBitMat() {
+    final Mat source = new Mat(1, 1, opencv_core.CV_8UC1);
+    final List<Mat> released = new ArrayList<>();
+    final Mat bgr = MatImageBuffer.copyToBgr(source, released::add);
+    assertEquals(List.of(), released, "an eight-bit matrix needs no copy, and the caller's matrix is not released");
+
+    bgr.release();
+    source.release();
   }
 
   @Test

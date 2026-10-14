@@ -59,10 +59,19 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
   }
 
   private static Animation decode(final Path path) {
+    final String raw = path.toString();
+    final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(raw);
     final List<ImageBuffer> decoded = new ArrayList<>();
+    return decode(path, grabber, decoded);
+  }
+
+  // test seam for the timestamp mutants: a test grabber reports no frame rate and starts after zero, as no test file does
+  // test seam for the mutant that removes releaseAll: the test keeps the list to see the frames decoded before a failure
+  @VisibleForTesting
+  static Animation decode(final Path path, final FFmpegFrameGrabber grabber, final List<ImageBuffer> decoded) {
     final float frameRate;
     try {
-      frameRate = decodeInto(path, decoded);
+      frameRate = decodeInto(path, grabber, decoded);
     } catch (final RuntimeException exception) {
       releaseAll(decoded);
       throw exception;
@@ -75,9 +84,8 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     return new Animation(frames, frameRate);
   }
 
-  private static float decodeInto(final Path path, final List<ImageBuffer> decoded) {
-    final String raw = path.toString();
-    try (final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(raw)) {
+  private static float decodeInto(final Path path, final FFmpegFrameGrabber grabber, final List<ImageBuffer> decoded) {
+    try (grabber) {
       grabber.start();
       final TimestampRange timestamps = decodeFrames(grabber, decoded);
       final double reportedFrameRate = grabber.getFrameRate();
@@ -174,7 +182,7 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     return this.frames.size();
   }
 
-  private static final class Animation {
+  static final class Animation {
 
     private final List<ImageBuffer> frames;
     private final float frameRate;
@@ -184,11 +192,11 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
       this.frameRate = frameRate;
     }
 
-    private List<ImageBuffer> getFrames() {
+    List<ImageBuffer> getFrames() {
       return this.frames;
     }
 
-    private float getFrameRate() {
+    float getFrameRate() {
       return this.frameRate;
     }
   }

@@ -30,6 +30,7 @@ import java.awt.image.WritableRaster;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
@@ -246,6 +247,12 @@ public final class MatImageBuffer implements ImageBuffer {
   }
 
   private static Mat copyToBgr(final Mat source) {
+    return copyToBgr(source, Mat::release);
+  }
+
+  // test seam for the mutants that skip or misplace the release of the eight-bit copy, which only leak native memory
+  @VisibleForTesting
+  static Mat copyToBgr(final Mat source, final Consumer<Mat> release) {
     final int channels = source.channels();
     final Mat eightBit = toEightBit(source);
     // matrices compare by the address of their native header, so only a newly converted matrix differs
@@ -266,7 +273,7 @@ public final class MatImageBuffer implements ImageBuffer {
     }
 
     if (converted) {
-      eightBit.release();
+      release.accept(eightBit);
     }
 
     return bgr;
