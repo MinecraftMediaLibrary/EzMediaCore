@@ -243,7 +243,6 @@ public final class DebianLibraryInstaller implements Installer {
     final Path archive = staging.resolve(PACKAGE_FILE);
     HttpDownloader.download(uri, archive, sha256, MAXIMUM_PACKAGE_SIZE);
     DebianPackageExtractor.extract(archive, extracted);
-    Files.delete(archive);
 
     final Set<String> libraries = this.listLibraries(extracted);
     libraries.removeAll(loadOrder);
