@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Installs VLC on Windows by extracting the portable zip.
@@ -96,11 +97,11 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
   private static void extractInto(final Path archive, final Path temporary, final Path installDirectory) throws IOException {
     unzip(archive, temporary);
     final Optional<Path> extractedLibraryDirectory = findLibraryDirectory(temporary, LIBRARY, CORE_LIBRARY);
-    if (extractedLibraryDirectory.isEmpty()) {
+    final @Nullable Path extractedRoot = extractedLibraryDirectory.orElse(null);
+    if (extractedRoot == null) {
       throw new IOException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory!");
     }
 
-    final Path extractedRoot = extractedLibraryDirectory.get();
     Files.move(extractedRoot, installDirectory);
   }
 

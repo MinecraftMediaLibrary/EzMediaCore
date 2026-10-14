@@ -20,6 +20,7 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
 import com.google.common.base.Suppliers;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.caprica.vlcj.binding.lib.LibC;
@@ -81,11 +82,11 @@ final class EnvironmentVariables {
    */
   boolean setPosixVariable(final String name, final String value) {
     final Optional<LibC> library = this.loadLibrary();
-    if (library.isEmpty()) {
+    final @Nullable LibC loaded = library.orElse(null);
+    if (loaded == null) {
       return false;
     }
 
-    final LibC loaded = library.get();
     final int result = loaded.setenv(name, value, 1);
     return result == 0;
   }
@@ -99,11 +100,11 @@ final class EnvironmentVariables {
    */
   boolean setWindowsVariable(final String name, final String value) {
     final Optional<LibC> library = this.loadLibrary();
-    if (library.isEmpty()) {
+    final @Nullable LibC loaded = library.orElse(null);
+    if (loaded == null) {
       return false;
     }
 
-    final LibC loaded = library.get();
     final String assignment = name + ASSIGNMENT_SEPARATOR + value;
     final int result = loaded._putenv(assignment);
     return result == 0;

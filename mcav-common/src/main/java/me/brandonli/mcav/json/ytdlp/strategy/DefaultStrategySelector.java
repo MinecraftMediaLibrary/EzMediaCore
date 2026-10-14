@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.Optional;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link StrategySelector}.
@@ -44,13 +45,14 @@ public final class DefaultStrategySelector implements StrategySelector {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
 
     final Optional<Format> selected = this.audio.select(dump);
-    if (selected.isEmpty()) {
+    final @Nullable Format format = selected.orElse(null);
+    if (format == null) {
       final String description = describe(dump);
       final String message = "No audio stream of %s matches the strategy!".formatted(description);
       throw new NoMatchingFormatException(message);
     }
 
-    return selected.get();
+    return format;
   }
 
   /**
@@ -62,13 +64,14 @@ public final class DefaultStrategySelector implements StrategySelector {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
 
     final Optional<Format> selected = this.video.select(dump);
-    if (selected.isEmpty()) {
+    final @Nullable Format format = selected.orElse(null);
+    if (format == null) {
       final String description = describe(dump);
       final String message = "No video stream of %s matches the strategy!".formatted(description);
       throw new NoMatchingFormatException(message);
     }
 
-    return selected.get();
+    return format;
   }
 
   private static String describe(final UrlParseDump dump) {

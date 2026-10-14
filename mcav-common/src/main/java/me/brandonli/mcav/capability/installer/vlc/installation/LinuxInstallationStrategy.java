@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.utils.IoUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Installs VLC on Linux by extracting an AppImage.
@@ -96,11 +97,12 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
     Files.move(extracted, installDirectory);
     Files.deleteIfExists(absoluteArchive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
-    if (libraryDirectory.isEmpty()) {
+    final @Nullable Path directory = libraryDirectory.orElse(null);
+    if (directory == null) {
       throw new IOException("The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory!");
     }
 
-    return libraryDirectory.get();
+    return directory;
   }
 
   private void extractAppImage(final Path archive, final Path workingDirectory, final Path extracted) throws IOException {

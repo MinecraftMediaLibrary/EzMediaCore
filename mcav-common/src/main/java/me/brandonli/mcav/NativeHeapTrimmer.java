@@ -263,12 +263,13 @@ final class NativeHeapTrimmer implements AutoCloseable {
   @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   static boolean fixGlibcTrimThreshold(final SymbolLookup library) {
     final Optional<MemorySegment> mallopt = library.find(GLIBC_SYMBOL).flatMap(_ -> library.find(MALLOPT_SYMBOL));
-    if (mallopt.isEmpty()) {
+    final @Nullable MemorySegment malloptAddress = mallopt.orElse(null);
+    if (malloptAddress == null) {
       return false;
     }
 
     final FunctionDescriptor descriptor = FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT);
-    return setTrimThreshold(Linker.nativeLinker().downcallHandle(mallopt.get(), descriptor));
+    return setTrimThreshold(Linker.nativeLinker().downcallHandle(malloptAddress, descriptor));
   }
 
   /**

@@ -19,6 +19,7 @@ package me.brandonli.mcav.utils.interaction;
 
 import com.google.common.base.Preconditions;
 import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Helpers for typing text that contains special keys.
@@ -94,12 +95,12 @@ public final class KeyUtils {
 
     final String name = input.substring(index + 1, close);
     final Optional<KeyCode> key = KeyCode.fromName(name);
-    if (key.isEmpty()) {
+    final @Nullable KeyCode code = key.orElse(null);
+    if (code == null) {
       output.append(OPEN);
       return index + 1;
     }
 
-    final KeyCode code = key.get();
     final char character = code.getKeyChar();
     output.append(character);
     return close + 1;

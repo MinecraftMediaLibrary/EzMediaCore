@@ -181,8 +181,8 @@ public abstract class AbstractInstaller implements Installer {
   public Path download(final FileMode mode) throws IOException {
     synchronized (this.installLock) {
       final Optional<Path> existing = this.findExistingInstallation();
-      if (existing.isPresent()) {
-        final Path existingPath = existing.get();
+      final @Nullable Path existingPath = existing.orElse(null);
+      if (existingPath != null) {
         this.installedPath = existingPath;
 
         return existingPath;
@@ -263,8 +263,8 @@ public abstract class AbstractInstaller implements Installer {
   @Override
   public Optional<Path> findInstallation() throws IOException {
     final Optional<Path> existing = this.findExistingInstallation();
-    if (existing.isPresent()) {
-      final Path existingPath = existing.get();
+    final @Nullable Path existingPath = existing.orElse(null);
+    if (existingPath != null) {
       this.installedPath = existingPath;
     }
 
@@ -330,11 +330,11 @@ public abstract class AbstractInstaller implements Installer {
    */
   public String getUrl() {
     final Optional<Download> download = this.resolveDownload();
-    if (download.isEmpty()) {
+    final @Nullable Download resolved = download.orElse(null);
+    if (resolved == null) {
       return "";
     }
 
-    final Download resolved = download.get();
     return resolved.getUrl();
   }
 
@@ -386,13 +386,14 @@ public abstract class AbstractInstaller implements Installer {
    */
   protected Download requireDownload() throws IOException {
     final Optional<Download> download = this.resolveDownload();
-    if (download.isEmpty()) {
+    final @Nullable Download resolved = download.orElse(null);
+    if (resolved == null) {
       final Platform platform = Platform.getCurrentPlatform();
       final String message = "Platform %s has no %s download available!".formatted(platform, this.name);
       throw new IOException(message);
     }
 
-    return download.get();
+    return resolved;
   }
 
   private Optional<Download> resolveDownload() {

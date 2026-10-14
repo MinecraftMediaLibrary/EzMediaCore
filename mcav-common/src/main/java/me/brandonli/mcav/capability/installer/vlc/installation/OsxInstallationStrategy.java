@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Installs VLC on macOS by copying {@code VLC.app} out of the downloaded disk image.
@@ -98,11 +99,12 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     this.copyFromDiskImage(archive, mountPoint, installDirectory);
     Files.deleteIfExists(archive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
-    if (libraryDirectory.isEmpty()) {
+    final @Nullable Path directory = libraryDirectory.orElse(null);
+    if (directory == null) {
       throw new IOException("The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory!");
     }
 
-    return libraryDirectory.get();
+    return directory;
   }
 
   /**

@@ -192,12 +192,13 @@ public final class HttpDownloader {
       final HttpResponse<InputStream> response = send(client, request, current);
       final int status = response.statusCode();
       final Optional<String> location = response.headers().firstValue(LOCATION_HEADER);
-      if (!isRedirect(status) || location.isEmpty()) {
+      final @Nullable String redirectLocation = location.orElse(null);
+      if (!isRedirect(status) || redirectLocation == null) {
         return bodyOf(response, client, current);
       }
       response.body().close();
       client.close();
-      final URI next = resolveRedirect(uri, current, location.get());
+      final URI next = resolveRedirect(uri, current, redirectLocation);
       if (!isSameOrigin(uri, next)) {
         final String message = "Pinned download %s may not redirect to %s on another host!".formatted(uri, next);
         throw new RedirectRefusedException(message);
