@@ -248,19 +248,20 @@ final class PlaybackSession {
     final boolean hasSeparateAudio = audioFactory != null;
     final DecodedStreams videoStreams = hasSeparateAudio ? DecodedStreams.VIDEO : DecodedStreams.VIDEO_AND_AUDIO;
     final Thread videoDecoder = createThread(VIDEO_DECODER_THREAD_NAME, () -> this.decode(grabber, videoStreams));
-    this.threads.add(videoDecoder);
-
-    if (audioFactory != null) {
-      final Thread audioDecoder = createThread(AUDIO_DECODER_THREAD_NAME, () -> this.decodeSeparateAudio(audioFactory));
-      this.threads.add(audioDecoder);
-    }
-
     final Thread videoRenderer = createThread(VIDEO_RENDERER_THREAD_NAME, this::renderVideo);
     final Thread audioRenderer = createThread(AUDIO_RENDERER_THREAD_NAME, this::renderAudio);
-    this.threads.add(videoRenderer);
-    this.threads.add(audioRenderer);
-    for (final Thread thread : this.threads) {
-      thread.start();
+    // A thread that stops the session while the later threads are not started yet waits until they are, so it can
+    // interrupt them and wait for them; a thread that is not started yet would start after the stop returned.
+    synchronized (this.threads) {
+      this.threads.add(videoDecoder);
+      if (audioFactory != null) {
+        final Thread audioDecoder = createThread(AUDIO_DECODER_THREAD_NAME, () -> this.decodeSeparateAudio(audioFactory));
+        this.threads.add(audioDecoder);
+      }
+
+      this.threads.add(videoRenderer);
+      this.threads.add(audioRenderer);
+      this.threads.forEach(Thread::start);
     }
   }
 
@@ -713,13 +714,20 @@ final class PlaybackSession {
       return false;
     }
 
-    for (final Thread thread : this.threads) {
+    final List<Thread> threads = this.copyThreads();
+    for (final Thread thread : threads) {
       if (thread.isAlive()) {
         return true;
       }
     }
 
     return false;
+  }
+
+  private List<Thread> copyThreads() {
+    synchronized (this.threads) {
+      return List.copyOf(this.threads);
+    }
   }
 
   // Counts the pictures that wait for the video renderer. Once the session ended there must be none, because nobody
@@ -747,16 +755,17 @@ final class PlaybackSession {
   void stop() {
     final boolean wasRunning = this.running.getAndSet(false);
     final Thread currentThread = Thread.currentThread();
+    final List<Thread> threads = this.copyThreads();
     if (!wasRunning) {
-      final boolean ownThread = this.threads.contains(currentThread);
+      final boolean ownThread = threads.contains(currentThread);
       if (!ownThread) {
-        this.joinThreadsExcept(currentThread);
+        this.joinThreadsExcept(threads, currentThread);
       }
 
       return;
     }
 
-    if (this.threads.isEmpty()) {
+    if (threads.isEmpty()) {
       final FrameGrabber prepared = this.videoGrabber;
       this.videoGrabber = null;
 
@@ -767,15 +776,15 @@ final class PlaybackSession {
       return;
     }
 
-    this.interruptThreadsExcept(currentThread);
+    this.interruptThreadsExcept(threads, currentThread);
     // A renderer that stops its own session finishes through this marker instead of an interrupt.
     replaceWithEndMarker(this.videoQueue, END_OF_VIDEO, PlaybackSession::releaseImage);
     replaceWithEndMarker(this.audioQueue, END_OF_AUDIO, PlaybackSession::discardChunk);
-    this.joinThreadsExcept(currentThread);
+    this.joinThreadsExcept(threads, currentThread);
   }
 
-  private void interruptThreadsExcept(final Thread excluded) {
-    for (final Thread thread : this.threads) {
+  private void interruptThreadsExcept(final List<Thread> threads, final Thread excluded) {
+    for (final Thread thread : threads) {
       final boolean isExcluded = thread.equals(excluded);
       if (!isExcluded) {
         thread.interrupt();
@@ -785,8 +794,8 @@ final class PlaybackSession {
 
   // Waits for every thread of the session but the excluded one to exit. Waiting ends early when the waiting thread is
   // interrupted, which keeps its interrupt.
-  private void joinThreadsExcept(final Thread excluded) {
-    for (final Thread thread : this.threads) {
+  private void joinThreadsExcept(final List<Thread> threads, final Thread excluded) {
+    for (final Thread thread : threads) {
       final boolean isExcluded = thread.equals(excluded);
       if (isExcluded) {
         continue;
