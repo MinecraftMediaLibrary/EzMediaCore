@@ -25,32 +25,31 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.ThresholdMatrix;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ThresholdMatrix}.
- */
 final class ThresholdMatrixTest {
 
+  private static final int OVERWRITTEN_ENTRY = 99;
+
   @Test
-  void keepsItsOwnCopyOfTheRows() {
+  void shouldKeepItsOwnCopyOfTheRows() {
     final int[][] rows = { { 1, 2, 3 }, { 4, 5, 6 } };
     final ThresholdMatrix matrix = ThresholdMatrix.of(rows);
-    rows[0][0] = 99;
+    rows[0][0] = OVERWRITTEN_ENTRY;
     final int[][] entries = matrix.toArray();
     final int[][] expected = { { 1, 2, 3 }, { 4, 5, 6 } };
     assertArrayEquals(expected, entries, "changing the rows it was created from does not change the matrix");
   }
 
   @Test
-  void handsOutCopiesOfItsEntries() {
+  void shouldHandOutCopiesOfItsEntries() {
     final int[][] first = BayerDither.NORMAL_2X2.toArray();
-    first[0][0] = 99;
+    first[0][0] = OVERWRITTEN_ENTRY;
     final int[][] second = BayerDither.NORMAL_2X2.toArray();
     final int[][] expected = { { 1, 3 }, { 4, 2 } };
     assertArrayEquals(expected, second, "the shared matrices of BayerDither cannot be changed through a copy");
   }
 
   @Test
-  void reportsItsSize() {
+  void shouldReportItsSize() {
     final ThresholdMatrix matrix = ThresholdMatrix.of(new int[] { 0, 1, 2 }, new int[] { 3, 4, 5 });
     final int rows = matrix.getRowCount();
     final int columns = matrix.getColumnCount();
@@ -59,14 +58,14 @@ final class ThresholdMatrixTest {
   }
 
   @Test
-  void rejectsMissingRows() {
+  void shouldRejectMissingRows() {
     final int[] row = { 1 };
     assertThrows(NullPointerException.class, () -> ThresholdMatrix.of((int[][]) null));
     assertThrows(NullPointerException.class, () -> ThresholdMatrix.of(row, null));
   }
 
   @Test
-  void rejectsMatricesThatAreNotRectangular() {
+  void shouldRejectMatricesThatAreNotRectangular() {
     final int[] empty = {};
     final int[] shortRow = { 1 };
     final int[] longRow = { 1, 2 };

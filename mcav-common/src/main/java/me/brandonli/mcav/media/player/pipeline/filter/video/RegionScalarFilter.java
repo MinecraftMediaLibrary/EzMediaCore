@@ -26,6 +26,10 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 /**
  * Fills a rectangle of every frame with a solid color. Parts of the rectangle that extend past the edge of the
  * frame are ignored.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class RegionScalarFilter extends MatVideoFilter {
 
@@ -44,11 +48,13 @@ public class RegionScalarFilter extends MatVideoFilter {
    * @param height the height of the rectangle, which must be positive
    * @param color  the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if the origin is negative or either size is nonpositive
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public RegionScalarFilter(final int left, final int top, final int width, final int height, final double[] color) {
-    Preconditions.checkArgument(left >= 0 && top >= 0, "Region origin must not be negative");
-    Preconditions.checkArgument(width > 0 && height > 0, "Region size must be positive");
+    Preconditions.checkArgument(left >= 0 && top >= 0, "Region origin must not be negative!");
+    Preconditions.checkArgument(width > 0 && height > 0, "Region size must be positive!");
+
     this.left = left;
     this.top = top;
     this.width = width;
@@ -62,6 +68,7 @@ public class RegionScalarFilter extends MatVideoFilter {
    * @param mat the 8-bit BGR matrix of the frame
    * @return true if part of the rectangle was filled, false if the rectangle lies outside of the frame and the frame
    *     was left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -72,9 +79,11 @@ public class RegionScalarFilter extends MatVideoFilter {
     if (clampedWidth <= 0 || clampedHeight <= 0) {
       return false;
     }
+
     try (final Rect bounds = new Rect(this.left, this.top, clampedWidth, clampedHeight); final Mat region = new Mat(mat, bounds)) {
       region.put(this.color);
     }
+
     return true;
   }
 }

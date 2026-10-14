@@ -9,7 +9,7 @@ place, so each one can also be applied to a single image with `applyFilter(image
 ```java
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.GrayscaleFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.LuminanceFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.TextFilter;
@@ -22,7 +22,7 @@ import org.bytedeco.opencv.global.opencv_imgproc;
     builder.then(new GrayscaleFilter());
     builder.then(new LuminanceFilter(1.4, -20)); // contrast, brightness
     builder.then(new TextFilter("CAM 1", 12, 28, opencv_imgproc.FONT_HERSHEY_SIMPLEX, 0.8, new double[] { 255, 255, 255 }));
-    builder.then(new FPSFilter());
+    builder.then(new FramesPerSecondFilter());
     builder.then(display);
     return builder.build();
   }
@@ -38,7 +38,7 @@ frame, from its top left corner.
 | `GrayscaleFilter` | `new GrayscaleFilter()` | Shades of grey; the frame keeps its three channels |
 | `InvertFilter` | `new InvertFilter()` | Every colour turned into its negative |
 | `LuminanceFilter` | `new LuminanceFilter(contrast, brightness)` | Every channel multiplied by the contrast and the brightness added, clamped |
-| `ThresholdFilter` | `new ThresholdFilter(threshold, maxValue, type)` | OpenCV's fixed threshold on every channel, `type` a `THRESH_` constant of `opencv_imgproc` |
+| `ThresholdFilter` | `new ThresholdFilter(threshold, maximumValue, type)` | OpenCV's fixed threshold on every channel, `type` a `THRESH_` constant of `opencv_imgproc` |
 | `ColorMapFilter` | `new ColorMapFilter(colorMap)` | False colours from one of OpenCV's `COLORMAP_` constants, over the grey levels |
 | `TintFilter` | `new TintFilter(color, strength)` | Blended with a solid colour, `strength` from 0 to 1 |
 | `BlurFilter` | `new BlurFilter(type, kernelSize)` or with the Gaussian sigmas | A `NORMAL` (box), `MEDIAN`, `GAUSSIAN` or `STACK` blur; the last three need an odd kernel size |
@@ -55,13 +55,15 @@ frame, from its top left corner.
 | `OverlayImageFilter` | `new OverlayImageFilter(image, left, top)` | An image drawn on top of every frame; the image is copied, so it may be released |
 | `BlendFilter` | `new BlendFilter(image, alpha)` | Every frame blended with a fixed image of the same size |
 | `ZeroFilter` | `new ZeroFilter()` | A black frame |
-| `FPSFilter` | `new FPSFilter()` | The frame rate of the pipeline written into the top left corner, smoothed over a second |
+| `FramesPerSecondFilter` | `new FramesPerSecondFilter()` | The frame rate of the pipeline written into the top left corner, smoothed over a second |
 | `FaceDetectionFilter` | `new FaceDetectionFilter(cascadeFile, color)` | A rectangle around every face an OpenCV Haar cascade finds |
 
 ```{warning}
-`FaceDetectionFilter` needs OpenCV's object detection natives, which link GTK 2 on Linux and are missing on many
-headless servers. Check the `FACE_DETECTION` [capability](instance.md#capabilities) before you create one. It needs a
-cascade file too, such as OpenCV's `haarcascade_frontalface_default.xml`, which MCAV does not ship.
+`FaceDetectionFilter` needs OpenCV's object detection natives, which link GTK 2 on Linux. MCAV installs GTK 2 into its
+cache on x86-64 and ARM64 Linux when the system has none (see [prerequisites](prerequisites.md#supported-platforms)),
+but the natives can still be missing elsewhere or when that installation fails. Check the `FACE_DETECTION`
+[capability](instance.md#capabilities) before you create one. It needs a cascade file too, such as OpenCV's
+`haarcascade_frontalface_default.xml`, which MCAV does not ship.
 ```
 
 The display filters that end a pipeline come with their modules: `DitherFilter` of `mcav-common`, the map, block, chat,
@@ -72,7 +74,7 @@ entity and scoreboard results of `mcav-bukkit` ([Bukkit integration](../bukkit/b
 
 | Filter | Module | Effect |
 |---|---|---|
-| `VolumeFilter` | `mcav-common` | Multiplies every sample by a volume from 0 to 2 (`VolumeFilter.MAX_VOLUME`), clipped; `setVolume` may be called from any thread while it runs |
+| `VolumeFilter` | `mcav-common` | Multiplies every sample by a volume from 0 to 2 (`VolumeFilter.MAXIMUM_VOLUME`), clipped; `setVolume` may be called from any thread while it runs |
 | `DirectAudioOutput` | `mcav-common` | Plays through the default sound device of the machine; its `start()` throws a `PlayerException` where there is none |
 | `DiscordPlayer` | `mcav-discord` | Sends to a Discord voice channel ([Discord module](discord.md)) |
 | `HttpResult` | `mcav-http` | Streams to web browsers ([HTTP module](http.md)) |

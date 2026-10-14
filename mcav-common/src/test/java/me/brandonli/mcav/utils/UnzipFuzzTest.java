@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -36,23 +35,32 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the extraction of zip archives, which the installers of mcav run on archives they download: whatever the
- * archive, nothing is written outside the destination, and a bad archive fails with one of the exceptions
- * {@link IOUtils#unzip(Path, Path)} documents. The seeds are archives shaped like those the tests of the method build: an
- * ordinary one, one that escapes with {@code ..}, one with an absolute entry, a nested one and an empty one.
- */
+// Fuzzes the extraction of zip archives, which the installers of mcav run on archives they download: whatever the
+// archive, nothing is written outside the destination, and a bad archive fails with one of the exceptions
+// IoUtils.unzip(Path, Path) documents. The seeds are archives shaped like those the tests of the method build: an
+// ordinary one, one that escapes with .., one with an absolute entry, a nested one and an empty one.
 @Tag("fuzz")
 final class UnzipFuzzTest {
 
+  private static final String TEMPORARY_DIRECTORY_PREFIX = "mcav-unzip-fuzz";
+
+  private static final String OBSERVED_ARCHIVE_NAME = "observed.zip";
+  private static final String ZIP_ROOT = "/";
+  private static final String NESTED_ROOT = "nested/root";
+
+  private static final String ARCHIVE_NAME = "archive.zip";
+  private static final String NESTING = "1/2/3/4/5/6/7/8";
+  private static final String DESTINATION_NAME = "destination";
+
   @FuzzTest(maxDuration = "30s")
-  void extractsOnlyIntoTheDestination(final byte[] archiveBytes) throws IOException {
-    final Path root = Files.createTempDirectory("mcav-unzip-fuzz");
+  void shouldExtractOnlyIntoTheDestination(final byte[] archiveBytes) throws IOException {
+    final Path root = Files.createTempDirectory(TEMPORARY_DIRECTORY_PREFIX);
     try {
       checkExtraction(root, root, archiveBytes);
-      try (final FileSystem fileSystem = FileSystems.newFileSystem(root.resolve("observed.zip"), Map.of("create", "true"))) {
-        final Path scope = fileSystem.getPath("/");
-        final Path extractionRoot = Files.createDirectories(scope.resolve("nested/root"));
+
+      try (final FileSystem fileSystem = FileSystems.newFileSystem(root.resolve(OBSERVED_ARCHIVE_NAME), Map.of("create", "true"))) {
+        final Path scope = fileSystem.getPath(ZIP_ROOT);
+        final Path extractionRoot = Files.createDirectories(scope.resolve(NESTED_ROOT));
         checkExtraction(extractionRoot, scope, archiveBytes);
       }
     } finally {
@@ -61,24 +69,29 @@ final class UnzipFuzzTest {
   }
 
   private static void checkExtraction(final Path root, final Path scope, final byte[] archiveBytes) throws IOException {
-    final Path archive = root.resolve("archive.zip");
-    final Path nesting = root.resolve("1/2/3/4/5/6/7/8");
-    final Path destination = nesting.resolve("destination");
+    final Path archive = root.resolve(ARCHIVE_NAME);
+    final Path nesting = root.resolve(NESTING);
+    final Path destination = nesting.resolve(DESTINATION_NAME);
     Files.createDirectories(nesting);
     Files.write(archive, archiveBytes);
     final List<Path> before = listTree(scope);
     try {
-      IOUtils.unzip(archive, destination);
-    } catch (final UncheckedIOException | ZipEntryIntegrityException refused) {
+      IoUtils.unzip(archive, destination);
+    } catch (final FileOperationException | ZipEntryIntegrityException exception) {
       // a broken or unsafe archive; what matters is where anything was written
     }
+
     final List<Path> after = listTree(scope);
     final Stream<Path> created = after.stream();
     final Stream<Path> escaped = created.filter(path -> !before.contains(path) && !path.startsWith(destination));
     final List<Path> outside = escaped.toList();
     assertEquals(List.of(), outside, "something was written outside the destination");
-    assertTrue(after.containsAll(before), "preexisting paths survive extraction");
-    assertArrayEquals(archiveBytes, Files.readAllBytes(archive), "extraction preserves the original archive");
+
+    final boolean survived = after.containsAll(before);
+    assertTrue(survived, "preexisting paths survive extraction");
+
+    final byte[] archiveAfter = Files.readAllBytes(archive);
+    assertArrayEquals(archiveBytes, archiveAfter, "extraction preserves the original archive");
   }
 
   private static List<Path> listTree(final Path directory) throws IOException {
@@ -88,24 +101,27 @@ final class UnzipFuzzTest {
   }
 
   private static void deleteTree(final Path directory) throws IOException {
-    Files.walkFileTree(
-      directory,
-      new SimpleFileVisitor<>() {
-        @Override
-        public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
-        }
+    Files.walkFileTree(directory, new TreeDeleter());
+  }
 
-        @Override
-        public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
-          if (failure != null) {
-            throw failure;
-          }
-          Files.delete(visited);
-          return FileVisitResult.CONTINUE;
-        }
+  private static final class TreeDeleter extends SimpleFileVisitor<Path> {
+
+    @Override
+    public FileVisitResult visitFile(final Path file, final BasicFileAttributes attributes) throws IOException {
+      Files.delete(file);
+
+      return FileVisitResult.CONTINUE;
+    }
+
+    @Override
+    public FileVisitResult postVisitDirectory(final Path visited, final IOException failure) throws IOException {
+      if (failure != null) {
+        throw failure;
       }
-    );
+
+      Files.delete(visited);
+
+      return FileVisitResult.CONTINUE;
+    }
   }
 }

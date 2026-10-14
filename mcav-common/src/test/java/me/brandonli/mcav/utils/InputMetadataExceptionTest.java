@@ -23,35 +23,33 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link InputMetadataException}.
- */
 final class InputMetadataExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final InputMetadataException exception = new InputMetadataException("Source video.mp4 has no video track");
+  void shouldKeepTheMessage() {
+    final InputMetadataException exception = new InputMetadataException("Source video.mp4 has no video track!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Source video.mp4 has no video track", message);
+    assertEquals("Source video.mp4 has no video track!", message);
     assertNull(cause);
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
-    final IOException readFailure = new IOException("connection reset");
-    final InputMetadataException exception = new InputMetadataException("Failed to read video metadata", readFailure);
+  void shouldKeepTheMessageAndTheCause() {
+    final IOException readFailure = new IOException("connection reset!");
+    final InputMetadataException exception = new InputMetadataException("Failed to read video metadata!", readFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Failed to read video metadata", message);
+    assertEquals("Failed to read video metadata!", message);
     assertSame(readFailure, cause);
   }
 
   @Test
-  void isARuntimeException() {
-    final InputMetadataException exception = new InputMetadataException("failure");
-    assertInstanceOf(RuntimeException.class, exception, "unreadable media is recoverable, so it is no Error");
+  void shouldBeAnMCAVException() {
+    final InputMetadataException exception = new InputMetadataException("failure!");
+    assertInstanceOf(MCAVException.class, exception, "unreadable media is recoverable, so it is no Error");
   }
 }

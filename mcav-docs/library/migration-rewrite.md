@@ -8,8 +8,9 @@ reads `1.0.0-SNAPSHOT`.
 
 Use modules from the same build. In particular, building the sandbox plugin from this source tree does not update the
 public snapshot repository. Its loader checks that the downloaded modules contain the classes the plugin needs and
-refuses modules that are too old. The [end-to-end build](../manual-test.md#2-start-the-sandbox-server-on-the-devbox) uses a local repository to test the plugin
-with its own modules. A distributable plugin needs matching modules available from its dependency repositories.
+refuses modules that are too old. The [end-to-end build](../manual-test.md#2-start-the-sandbox-server-on-the-devbox)
+uses a local repository to test the plugin with its own modules. A distributable plugin needs matching modules available
+from its dependency repositories.
 
 The release check compared all ten published modules with japicmp 0.26.2, including public and protected members and
 synthetic bridges. No missing classes were ignored in these module comparisons. Counts below are incompatible
@@ -38,6 +39,90 @@ dependency, the imports and the installer's `Artifact` constant:
 | --- | --- |
 | `me.brandonli:mcav-jda`, package `me.brandonli.mcav.jda`, `Artifact.JDA` | `me.brandonli:mcav-discord`, package `me.brandonli.mcav.discord`, `Artifact.DISCORD` |
 | `me.brandonli:mcav-svc`, package `me.brandonli.mcav.svc`, `Artifact.SVC` | `me.brandonli:mcav-voicechat`, package `me.brandonli.mcav.voicechat`, `Artifact.VOICECHAT` |
+
+Types and methods of `mcav-common` whose names held an upper-case acronym now case it as a word. Change the
+imports and calls:
+
+| Former name | Current name |
+| --- | --- |
+| `AbstractVideoPlayerCV` | `AbstractVideoPlayerCv` |
+| `FFmpegCommand` | `FfmpegCommand` |
+| `FFmpegDirectSource` | `FfmpegDirectSource` |
+| `FFmpegDirectSourceDetector` | `FfmpegDirectSourceDetector` |
+| `FFmpegDirectSourceImpl` | `DefaultFfmpegDirectSource` |
+| `FFmpegExecutableProvider` | `FfmpegExecutableProvider` |
+| `FFmpegPlayer` | `FfmpegPlayer` |
+| `FFmpegTemplates` | `FfmpegTemplates` |
+| `IOUtils` | `IoUtils` |
+| `OpenCVPlayer` | `OpenCvPlayer` |
+| `OS` | `Os` |
+| `OSUtils` | `OsUtils` |
+| `OSXInstallationStrategy` | `OsxInstallationStrategy` |
+| `URLParseDump` | `UrlParseDump` |
+| `VLCDiscoveryStrategies` | `VlcDiscoveryStrategies` |
+| `VLCInstallationKit` | `VlcInstallationKit` |
+| `VLCInstaller` | `VlcInstaller` |
+| `VLCPlayer` | `VlcPlayer` |
+| `YTDLPInstaller` | `YtdlpInstaller` |
+| `YTDLPParseException` | `YtdlpParseException` |
+| `YTDLPParser` | `YtdlpParser` |
+| `YTDLPParserImpl` | `ExecutableYtdlpParser` |
+| `FFmpegExecutableProvider.getFFmpegPath()` | `getFfmpegPath()` |
+| `IOUtils.getSHA1Hash` | `getSha1Hash` |
+| `IOUtils.getSHA256Hash` | `getSha256Hash` |
+| `IOUtils.getNextFreeVNCPort` | `getNextFreeVncPort` |
+| `OSUtils.getOS()` | `getOs()` |
+| `Platform.getOS()` | `getOs()` |
+| `ReleasePackageManager.readVLCDownloadsFromJsonResource` | `readVlcDownloadsFromJsonResource` |
+| `DependencyLoader.installVLC()` | `installVlc()` |
+| `DependencyLoader.installYTDLP()` | `installYtdlp()` |
+
+Names that abbreviated a word now spell it out:
+
+| Former name | Current name |
+| --- | --- |
+| `AbstractInstaller.writePathToConfig` | `writePathToConfiguration` |
+| `AbstractVideoPlayerCV.MIN_SPEED` | `MINIMUM_SPEED` |
+| `AbstractVideoPlayerCV.MAX_SPEED` | `MAXIMUM_SPEED` |
+| `AbstractVideoPlayerCV.getPositionMillis()` | `getPositionMilliseconds()` |
+| `AudioResampler.MAX_CHANNELS` | `MAXIMUM_CHANNELS` |
+| `BayerDither.*_MAX` | `*_MAXIMUM`, such as `NORMAL_8X8_MAXIMUM` |
+| `DelayedAudioOutput.MAX_QUEUED_MILLIS` | `MAXIMUM_QUEUED_MILLISECONDS` |
+| `DelayedAudioOutput.SILENCE_MILLIS` | `SILENCE_MILLISECONDS` |
+| `DiffusionKernel.MAX_OFFSET` | `MAXIMUM_OFFSET` |
+| `DiffusionKernel.getMaxOffsetX()` | `getMaximumOffsetX()` |
+| `DiffusionKernel.getMaxOffsetY()` | `getMaximumOffsetY()` |
+| `DirectoryProviderDiscoveryStrategy.MAX_VISITED_DIRECTORIES` | `MAXIMUM_VISITED_DIRECTORIES` |
+| `DirectoryProviderDiscoveryStrategy.PLUGIN_ENV_NAME` | `PLUGIN_ENVIRONMENT_NAME` |
+| `FPSFilter` | `FramesPerSecondFilter` |
+| `IOUtils.MAX_IMAGE_BYTES` | `IoUtils.MAXIMUM_IMAGE_BYTES` |
+| `PixelMapper.MIN_STRENGTH` | `MINIMUM_STRENGTH` |
+| `PixelMapper.MAX_STRENGTH` | `MAXIMUM_STRENGTH` |
+| `VolumeFilter.MAX_VOLUME` | `MAXIMUM_VOLUME` |
+| `WinInstallationStrategy` | `WindowsInstallationStrategy` |
+
+Implementation classes are named for how they work, or start with `Default` when nothing else sets them apart:
+
+| Former name | Current name |
+| --- | --- |
+| `AudioAttachableCallbackImpl` | `DefaultAudioAttachableCallback` |
+| `AudioPipelineStepImpl` | `DefaultAudioPipelineStep` |
+| `DeviceSourceImpl` | `DefaultDeviceSource` |
+| `DimensionAttachableCallbackImpl` | `DefaultDimensionAttachableCallback` |
+| `DynamicImageBufferImpl` | `FfmpegDynamicImageBuffer` |
+| `FileSourceImpl` | `DefaultFileSource` |
+| `FrameSourceImpl` | `SupplierFrameSource` |
+| `ImagePlayerImpl` | `ThreadedImagePlayer` |
+| `NearestDitherImpl` | `ColorMapNearestDither` |
+| `OriginalAudioMetadataImpl` | `DefaultOriginalAudioMetadata` |
+| `OriginalVideoMetadataImpl` | `DefaultOriginalVideoMetadata` |
+| `RandomDitherImpl` | `UniformNoiseDither` |
+| `RepeatingFrameSourceImpl` | `DefaultRepeatingFrameSource` |
+| `StrategySelectorImpl` | `DefaultStrategySelector` |
+| `UriSourceImpl` | `DefaultUriSource` |
+| `VideoAttachableCallbackImpl` | `DefaultVideoAttachableCallback` |
+| `VideoPipelineStepImpl` | `DefaultVideoPipelineStep` |
+| `WritableImpl` | `DefaultWritable` |
 
 ## Browser players
 
@@ -83,17 +168,18 @@ that threw it. The examinable-property access to `MatImageBuffer` is removed. Us
 owned buffers.
 
 `VideoPlayer.jcodec()` is removed. Choose a current `VideoPlayer` factory for the backend needed by the application.
-Subclasses of `AbstractVideoPlayerCV` must use its current constructor and implement `createFrameGrabber` instead of
+Subclasses of `AbstractVideoPlayerCv` must use its current constructor and implement `createFrameGrabber` instead of
 `getFrameGrabber`. Several supplied player and callback implementations are now final, and their old `retrieve`
 helpers are removed; use the callback interfaces to attach and invoke pipelines. `OriginalVideoMetadata.NO_OP` is
 also removed: use the metadata factories and their documented values.
 
-Pipeline builders and steps use more specific generic types. Recompile calls to `PipelineBuilder.audio()` and
-`video()` even if their source still compiles. Custom builders need the current `self`, `createStep` and
-`createEmptyStep` methods. `PipelineStep.next()` now returns a pipeline step rather than `Object`; custom steps must
-also implement `self` and the filter accessors, with the current audio processing contract. Prefer the supplied
-builders and `AudioPipelineStep.of` / `VideoPipelineStep.of` factories. `FrameSource.getFrameSupplier()` is removed;
-use the source's current frame-production interface rather than extracting its implementation supplier.
+Pipeline builders and steps use more specific generic types. Recompile calls to `PipelineBuilder.audio()` and `video()`
+even if their source still compiles. `AudioPipelineStepBuilder` and `VideoPipelineStepBuilder` are now interfaces,
+and their implementations are internal. `PipelineStep.next()` now returns an `Optional` of the next pipeline step
+rather than `Object`; custom steps must also implement `self` and the filter accessors, with the current audio
+processing contract. Prefer the supplied builders and `AudioPipelineStep.of` / `VideoPipelineStep.of` factories.
+`FrameSource.getFrameSupplier()` is removed; use the source's current frame-production interface rather than
+extracting its implementation supplier.
 
 `BlendFilter` and `OverlayImageFilter` now accept the image interface through their current constructors, and
 `FaceDetectionFilter` has a different construction API. Update callers against those signatures rather than
@@ -104,7 +190,9 @@ constructing concrete image-buffer implementations.
 The types in `media.player.pipeline.filter.video.dither` now use typed builder interfaces and immutable threshold
 matrices. Replace setter calls with the relevant builder's fluent methods, and keep the returned builder. Recompile
 all fluent calls: several return descriptors and generic bounds changed even when the method name stayed the same.
-Error-strength and temporal settings belong to the error-diffusion builder, rather than the general builder.
+Error-strength and temporal settings belong to the error-diffusion builder, rather than the general builder. The
+builder interfaces no longer take type parameters, and their implementations are internal: get a builder from the
+`DitherAlgorithm` factories, such as `DitherAlgorithm.errorDiffusion()`.
 
 `BayerDither` constants now contain `ThresholdMatrix` values instead of `int[][]`. Pass the matrix to the current
 mapper API, or call `toArray()` when an independent array is required; create a custom matrix with
@@ -145,16 +233,16 @@ adding raw options.
 ## Maven installer failures
 
 The installer reports failed resolution, verification and copying through `InstallationException`, an unchecked
-exception. Replace catches of the removed `InstallationError` and `JarEntryIntegrityException` with that exception
-when handling those failures. Class-loader injection failures use `JarInjectorException`. The [installer chapter](installer.md)
-describes the current factory, loading callbacks and failure handling.
-
+exception. Replace catches of the removed `InstallationError` and `JarEntryIntegrityException` with that exception when
+handling those failures. Class-loader injection failures use `JarInjectorException`. The [installer
+chapter](installer.md) describes the current factory, loading callbacks and failure handling.
 `MCAVInstaller` is now final. Obtain it through `MCAVInstaller.injector(...)`; use a `JarLoader` callback to control
 where downloaded jars are loaded instead of subclassing the installer.
 
 ## Utility APIs
 
-The old MCAV `UncheckedIOException` is replaced by `java.io.UncheckedIOException`; update imports and catch clauses.
+The old MCAV `UncheckedIOException` is removed. `IoUtils` reports I/O failures as a `FileOperationException` and a
+port search that finds no free port as an `MCAVException`; update imports and catch clauses.
 Audio extraction uses `AudioExtractor` in `me.brandonli.mcav.utils.ffmpeg`, replacing the old Bukkit
 `SoundExtractorUtils`. Network helpers are in `me.brandonli.mcav.utils.http.NetworkUtils`; update imports from the
 old Bukkit utility and use the current return types and failure handling described in [utilities](utilities.md).
@@ -179,18 +267,56 @@ Other utility callers need these updates:
 | --- | --- |
 | `ModuleLoader.loadPlugins` / `shutdownPlugins` | `loadModules` / `shutdownModules` |
 | `AudioResampler` constructors and `resample(byte[])` | `create` or `fromPipelineFormat`, `resample(ByteBuffer)`, then `flush` and `close` as appropriate |
-| `FFmpegCommand.execute()` | `createTask()`, then explicitly run the returned `CommandTask` |
+| `FFmpegCommand.execute()` | `FfmpegCommand.createTask()`, then explicitly run the returned `CommandTask` |
 | `CommandTask.run(String...)` | Construct the task with its command and call `run()` or `runChecked()` |
 | `CommandTask.getCommand()` returning `String[]` | Consume the returned `List<String>` |
 | Checked-exception catches around `getOutput()` / `getErrorOutput()` | Handle execution failures at the run operation; the getters no longer declare that exception |
-| `IOUtils.getSHA256Hash(String)` | Pass a `Path` |
+| `IOUtils.getSHA256Hash(String)` | `IoUtils.getSha256Hash(Path)` |
 | `KeyCode.charAt(int)` | Use `getKeyChar`, `getCodePoint` or `asString` for the needed representation |
 | Removed `SourceUtils.getSource` and `ByteUtils` conversion helpers | Use the current source and buffer APIs; do not depend on their former implementation helpers |
+| `ByteUtils.isLittleEndian()` / `isBigEndian()` | Compare `ByteOrder.nativeOrder()` with `ByteOrder.LITTLE_ENDIAN` or `ByteOrder.BIG_ENDIAN` |
+| `DirectoryProviderDiscoveryStrategy` plugin path formats such as `"%s/plugins"` | Pass the plugin directories relative to the library directory as a `List<Path>`, such as `List.of(Path.of("plugins"))` |
 
-The yt-dlp DTOs also have field-type changes: `Format.filesize` and `filesize_approx`, and the count/size fields of
-`URLParseDump`, use `long`; `URLParseDump.duration` and `fps` use `double`. Update arithmetic, serialization bindings
-and reflective field access. Several exception types no longer inherit the removed MCAV unchecked-I/O type; review
-catches for the concrete exception or its current superclass, not just imports.
+The yt-dlp DTOs in `me.brandonli.mcav.json.ytdlp.format` are now immutable value classes with `equals`, `hashCode` and
+`toString`. Their public snake_case fields are gone: read each value through a camel-case getter with the abbreviations
+spelled out, such as `Format.getAudioExtension()` for `audio_ext`, `getFramesPerSecond()` for `fps`,
+`getApproximateFileSize()` for `filesize_approx`, `isDrmProtected()` for `has_drm`, `UrlParseDump.isLive()` for
+`is_live` and `UrlParseDump.getFileNameAlias()` for `filename`. A value yt-dlp can leave out is an `Optional`, and a
+list is unmodifiable and empty when yt-dlp reports none. `new UrlParseDump()` and field assignment are gone: create
+metadata for a source that yt-dlp did not resolve with `UrlParseDump.of(title)` or
+`UrlParseDump.of(title, description)`, and parse any other metadata from JSON with Gson. Counts and sizes are `long`,
+and `UrlParseDump.getDuration()` and `getFramesPerSecond()` are `double`.
+
+Several exception types no longer inherit the removed MCAV unchecked-I/O type; review catches for the concrete exception
+or its current superclass, not just imports. The exceptions of `mcav-common` now extend `MCAVException`, an unchecked
+base for failures outside the caller's control: `NativeLoadingException` and `PaletteLoadingException` are no longer an
+`IllegalStateException`, and `UnsupportedOperatingSystemException` is no longer an `UnsupportedOperationException`.
+
+## Operational failures
+
+Public methods of `mcav-common` no longer declare `IOException`. A failure outside the caller's control is reported as
+an unchecked subtype of `MCAVException`, so remove `throws IOException` clauses that only existed for these calls and
+replace catches of `IOException` around them with the exception below:
+
+| Failure | Exception |
+| --- | --- |
+| An HTTP request or download fails | `DownloadException` in `me.brandonli.mcav.utils.http` |
+| A file cannot be opened, moved or deleted | `FileOperationException` in `me.brandonli.mcav.utils` |
+| A process cannot be started or read, times out or is interrupted | `ProcessException` in `me.brandonli.mcav.utils.runtime` |
+| VLC or yt-dlp cannot be installed or located | `InstallationException` in `me.brandonli.mcav.capability.installer` |
+| An animated image cannot be decoded | `ImageDecodingException` in `me.brandonli.mcav.media.image` |
+
+`HttpStatusException`, `ChecksumMismatchException`, `DownloadTooLargeException`, `DownloadTooSlowException` and
+`RedirectRefusedException` now extend `DownloadException` instead of `IOException`. The affected calls are
+`HttpDownloader.download`, `openStream` and `fetchText`; `IoUtils.deleteRecursively` and `moveReplacing`; the
+`CommandTask` constructor, `run` and `runChecked`; `AudioExtractor.extractOggVorbis`; `Installer.download` and
+`findInstallation`; `VlcInstallationKit.start`; `YtdlpParser.parse`; `DynamicImageBuffer.path` and `uri`; and
+`Writable.newInputStream` and `newOutputStream`. Implementations of `Installer`, `InstallationStrategy`,
+`ProcessRunner` and `YtdlpParser` drop `throws IOException` from their overrides and report failures with the
+exceptions above.
+
+The `FaceDetectionFilter` constructors throw `NativeLoadingException` in `me.brandonli.mcav.utils.natives` instead of
+`IllegalStateException` when the OpenCV object detection natives cannot be loaded.
 
 ## Bundled dependencies
 

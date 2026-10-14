@@ -19,26 +19,40 @@ package me.brandonli.mcav.utils.interaction;
 
 /**
  * The kinds of mouse events that interactive players such as browsers, VNC sessions, and virtual machines accept.
+ *
+ * <p>This enum is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public enum MouseClick {
   /**
    * A click with the left button.
+   *
+   * @since 1.0.0
    */
   LEFT(0),
   /**
    * A click with the right button.
+   *
+   * @since 1.0.0
    */
   RIGHT(1),
   /**
    * A double click with the left button.
+   *
+   * @since 1.0.0
    */
   DOUBLE(2),
   /**
    * Pressing and holding the left button.
+   *
+   * @since 1.0.0
    */
   HOLD(3),
   /**
    * Releasing the left button after {@link #HOLD}.
+   *
+   * @since 1.0.0
    */
   RELEASE(4);
 
@@ -49,9 +63,10 @@ public enum MouseClick {
   }
 
   /**
-   * Gets a small stable number for the event, useful for tables and protocols.
+   * Returns a small stable number for the event, useful for tables and protocols.
    *
    * @return the identifier
+   * @since 1.0.0
    */
   public int getId() {
     return this.id;

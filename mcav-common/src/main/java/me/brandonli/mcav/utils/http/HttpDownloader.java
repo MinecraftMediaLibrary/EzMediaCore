@@ -35,8 +35,10 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -65,38 +67,62 @@ import org.slf4j.LoggerFactory;
  * temporary file, and the
  * finished files are moved into place one after another, so the destination always holds one complete, verified
  * download. A move that another process denies for a moment, such as a virus scanner inspecting the new file, is
- * retried briefly by {@link IOUtils#moveReplacing(Path, Path)}. A known limitation: another process that replaces the
+ * retried briefly by {@link IoUtils#moveReplacing(Path, Path)}. A known limitation: another process that replaces the
  * same destination at the same moment is not coordinated with, and such a move can still fail on Windows.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class HttpDownloader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(HttpDownloader.class);
-  private static final String ATTEMPT_FAILED = "Download attempt {}/{} of {} failed: {}";
-  private static final String UNEXPECTED_STATUS = "Server answered with status {} for {}";
+
   private static final String USER_AGENT = "mcav (+https://github.com/PulseBeat02/mcav)";
+  private static final String USER_AGENT_HEADER = "User-Agent";
+  private static final String ACCEPT_HEADER = "Accept";
+  private static final String ANY_MEDIA_TYPE = "*/*";
+  private static final String LOCATION_HEADER = "Location";
+
+  private static final String HTTPS_SCHEME = "https";
+  private static final int HTTPS_PORT = 443;
+  private static final int HTTP_PORT = 80;
+
   private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(20);
   private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(30);
   private static final Duration IDLE_TIMEOUT = Duration.ofMinutes(1);
-  private static final int MAX_ATTEMPTS = 3;
+  private static final int MAXIMUM_ATTEMPTS = 3;
   private static final Duration RETRY_DELAY = Duration.ofSeconds(2);
+
   private static final int BUFFER_SIZE = 64 * 1024;
   private static final String PART_SUFFIX = ".part";
-  private static final int MAX_REDIRECTS = 5;
+  private static final String PART_PREFIX_SEPARATOR = ".";
+  private static final String DIGEST_ALGORITHM = "SHA-256";
+
+  private static final int MAXIMUM_REDIRECTS = 5;
   private static final Duration PINNED_GRACE = Duration.ofMinutes(1);
-  private static final long PINNED_MIN_BYTES_PER_SECOND = 64L * 1024;
+  private static final long PINNED_MINIMUM_BYTES_PER_SECOND = 64L * 1024;
   /**
    * The limit of a download that names no limit of its own, which is none.
+   *
+   * @since 1.0.0
    */
   public static final long NO_SIZE_LIMIT = Long.MAX_VALUE;
 
   private static final int HTTP_REQUEST_TIMEOUT = 408;
   private static final int HTTP_TOO_MANY_REQUESTS = 429;
   private static final int HTTP_SERVER_ERROR = 500;
+  private static final int HTTP_STATUS_CLASS_SIZE = 100;
+  private static final int HTTP_SUCCESS_CLASS = 2;
+  private static final Set<Integer> HTTP_REDIRECTS = Set.of(301, 302, 303, 307, 308);
+
   private static final int TARGET_LOCK_STRIPES = 64;
   private static final Striped<Lock> TARGET_LOCKS = Striped.lock(TARGET_LOCK_STRIPES);
 
+  private static final String SIZE_LIMIT_MESSAGE = "Size limit %s must be positive!";
+
   private HttpDownloader() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -104,6 +130,7 @@ public final class HttpDownloader {
    * The caller owns this client; individual requests define their own response timeout.
    *
    * @return a new client, which the caller must close
+   * @since 1.0.0
    */
   public static HttpClient createClient() {
     return createClient(HttpClient.Redirect.NORMAL);
@@ -122,14 +149,16 @@ public final class HttpDownloader {
    * @param uri the URI to request
    * @return the request
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
   public static HttpRequest createRequest(final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final HttpRequest.Builder builder = HttpRequest.newBuilder(uri);
     builder.timeout(REQUEST_TIMEOUT);
-    builder.header("User-Agent", USER_AGENT);
-    builder.header("Accept", "*/*");
+    builder.header(USER_AGENT_HEADER, USER_AGENT);
+    builder.header(ACCEPT_HEADER, ANY_MEDIA_TYPE);
     builder.GET();
     return builder.build();
   }
@@ -137,31 +166,36 @@ public final class HttpDownloader {
   /**
    * Opens the body of a URL as a stream. The stream must be closed by the caller, which also shuts down the HTTP
    * client behind it. This method makes one request and does not impose a timeout on subsequent body reads.
-   * Interruption while waiting for the response is restored and wrapped in {@link IOException}.
+   * Interruption while waiting for the response is restored and wrapped in {@link DownloadException}.
    *
    * @param uri the URI to download
    * @return the body of the response
-   * @throws IOException if the request fails or the server answers with an error status
+   * @throws HttpStatusException      if the server answers with an error status
+   * @throws DownloadException        if the request fails or is interrupted
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
-  public static InputStream openStream(final URI uri) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+  public static InputStream openStream(final URI uri) {
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
+    try {
+      return openUnpinnedStream(uri);
+    } catch (final IOException exception) {
+      final String message = "Request for %s failed!".formatted(uri);
+      throw new DownloadException(message, exception);
+    }
+  }
+
+  private static InputStream openUnpinnedStream(final URI uri) throws IOException {
     final HttpRequest request = createRequest(uri);
     final HttpClient client = createClient();
     final HttpResponse<InputStream> response = send(client, request, uri);
     return bodyOf(response, client, uri);
   }
 
-  /**
-   * Opens the body of a pinned download: a redirect is followed only to the host, port and scheme of the URI, and at
-   * most {@value #MAX_REDIRECTS} times, so a mirror cannot make the server request what it chooses.
-   *
-   * @param uri the URI to download
-   * @return the body of the response, which closes its client
-   * @throws RedirectRefusedException if the server redirects elsewhere, or too often
-   * @throws IOException if a request fails or the server answers with an error status
-   */
+  // Opens the body of a pinned download: a redirect is followed only to the host, port and scheme of the URI, and at
+  // most MAXIMUM_REDIRECTS times, so a mirror cannot make the server request what it chooses.
   @VisibleForTesting
   static InputStream openPinnedStream(final URI uri) throws IOException {
     URI current = uri;
@@ -170,34 +204,39 @@ public final class HttpDownloader {
       final HttpClient client = createClient(HttpClient.Redirect.NEVER);
       final HttpResponse<InputStream> response = send(client, request, current);
       final int status = response.statusCode();
-      final Optional<String> location = response.headers().firstValue("Location");
-      if (!isRedirect(status) || location.isEmpty()) {
+      final Optional<String> location = response.headers().firstValue(LOCATION_HEADER);
+      final @Nullable String redirectLocation = location.orElse(null);
+      if (!isRedirect(status) || redirectLocation == null) {
         return bodyOf(response, client, current);
       }
       response.body().close();
       client.close();
-      final URI next = current.resolve(location.get());
+      final URI next = resolveRedirect(uri, current, redirectLocation);
       if (!isSameOrigin(uri, next)) {
-        throw new RedirectRefusedException("The pinned download of " + uri + " was redirected to another host: " + next);
+        final String message = "Pinned download %s may not redirect to %s on another host!".formatted(uri, next);
+        throw new RedirectRefusedException(message);
       }
-      if (redirects == MAX_REDIRECTS) {
-        throw new RedirectRefusedException("The pinned download of " + uri + " was redirected more than " + MAX_REDIRECTS + " times");
+      if (redirects == MAXIMUM_REDIRECTS) {
+        final String message = "Pinned download %s was redirected more than %s times!".formatted(uri, MAXIMUM_REDIRECTS);
+        throw new RedirectRefusedException(message);
       }
       current = next;
     }
   }
 
-  private static boolean isRedirect(final int status) {
-    return status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
+  private static URI resolveRedirect(final URI uri, final URI current, final String location) {
+    try {
+      return current.resolve(location);
+    } catch (final IllegalArgumentException exception) {
+      final String message = "Pinned download %s may not redirect to %s, which is not a URI!".formatted(uri, location);
+      throw new RedirectRefusedException(message, exception);
+    }
   }
 
-  /**
-   * Checks whether two URIs name the same scheme, host and port, a port left out being the scheme's own.
-   *
-   * @param first  a URI
-   * @param second another URI
-   * @return true if both have the same origin
-   */
+  private static boolean isRedirect(final int status) {
+    return HTTP_REDIRECTS.contains(status);
+  }
+
   @VisibleForTesting
   static boolean isSameOrigin(final URI first, final URI second) {
     final String scheme = Objects.requireNonNull(first.getScheme());
@@ -210,7 +249,8 @@ public final class HttpDownloader {
     if (port >= 0) {
       return port;
     }
-    return "https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80;
+
+    return HTTPS_SCHEME.equalsIgnoreCase(uri.getScheme()) ? HTTPS_PORT : HTTP_PORT;
   }
 
   private static HttpResponse<InputStream> send(final HttpClient client, final HttpRequest request, final URI uri) throws IOException {
@@ -221,7 +261,8 @@ public final class HttpDownloader {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       client.close();
-      throw new IOException("Interrupted while downloading " + uri, exception);
+      final String message = "Download of %s was interrupted!".formatted(uri);
+      throw new DownloadException(message, exception);
     } catch (final IOException exception) {
       client.close();
       throw exception;
@@ -231,12 +272,13 @@ public final class HttpDownloader {
   private static InputStream bodyOf(final HttpResponse<InputStream> response, final HttpClient client, final URI uri) throws IOException {
     final int status = response.statusCode();
     final InputStream body = response.body();
-    final boolean successful = status / 100 == 2;
+    final boolean successful = status / HTTP_STATUS_CLASS_SIZE == HTTP_SUCCESS_CLASS;
     if (!successful) {
       body.close();
       client.close();
       throw new HttpStatusException(status, uri);
     }
+
     return new ClientClosingStream(body, client);
   }
 
@@ -245,12 +287,16 @@ public final class HttpDownloader {
    *
    * @param uri         the URI to download
    * @param destination the file to write, which is replaced if it exists
-   * @throws IOException if the download fails after all retries
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
+   * @throws HttpStatusException      if the server answers with an error status that is not retried
+   * @throws DownloadException        if the download fails after all retries
+   * @throws FileOperationException   if the part file cannot be created or deleted, or the finished download cannot be
+   *                                  moved into place
+   * @throws NullPointerException     if {@code uri}, {@code destination} is null
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
    *                                  the destination has no file name
+   * @since 1.0.0
    */
-  public static void download(final URI uri, final Path destination) throws IOException {
+  public static void download(final URI uri, final Path destination) {
     download(uri, destination, null);
   }
 
@@ -260,13 +306,17 @@ public final class HttpDownloader {
    * @param uri            the URI to download
    * @param destination    the file to write, which is replaced if it exists
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or null to skip verification
-   * @throws IOException                if the download fails after all retries or the file cannot be moved into place
    * @throws ChecksumMismatchException if the hash does not match, which is not retried
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name
+   * @throws HttpStatusException       if the server answers with an error status that is not retried
+   * @throws DownloadException         if the download fails after all retries
+   * @throws FileOperationException    if the part file cannot be created or deleted, or the finished download cannot be
+   *                                   moved into place
+   * @throws NullPointerException      if {@code uri}, {@code destination} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name
+   * @since 1.0.0
    */
-  public static void download(final URI uri, final Path destination, final @Nullable String expectedSha256) throws IOException {
+  public static void download(final URI uri, final Path destination, final @Nullable String expectedSha256) {
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, NO_SIZE_LIMIT);
   }
 
@@ -275,18 +325,23 @@ public final class HttpDownloader {
    * remote server chooses, such as a picture behind a URL a player named: a server that never stops sending would
    * otherwise fill the disk of its client.
    *
-   * @param uri         the URL to download
-   * @param destination the file to write, which is replaced only after a complete download
-   * @param maxBytes    the largest number of bytes the download may have, at least 1
+   * @param uri          the URL to download
+   * @param destination  the file to write, which is replaced only after a complete download
+   * @param maximumBytes the largest number of bytes the download may have, at least 1
    * @throws DownloadTooLargeException if the download is larger than the limit
-   * @throws IOException               if the download fails
-   * @throws NullPointerException if {@code uri}, {@code destination} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name, or {@code maxBytes} is nonpositive
+   * @throws HttpStatusException       if the server answers with an error status that is not retried
+   * @throws DownloadException         if the download fails after all retries
+   * @throws FileOperationException    if the part file cannot be created or deleted, or the finished download cannot be
+   *                                   moved into place
+   * @throws NullPointerException      if {@code uri}, {@code destination} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
+   * @since 1.0.0
    */
-  public static void download(final URI uri, final Path destination, final long maxBytes) throws IOException {
-    Preconditions.checkArgument(maxBytes > 0, "The size limit must be positive but was %s", maxBytes);
-    download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maxBytes);
+  public static void download(final URI uri, final Path destination, final long maximumBytes) {
+    Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+
+    download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes);
   }
 
   /**
@@ -297,46 +352,30 @@ public final class HttpDownloader {
    * @param uri            the URL to download
    * @param destination    the file to write, which is replaced only after a complete download
    * @param expectedSha256 the expected SHA-256 hash in hexadecimal
-   * @param maxBytes       the largest number of bytes the download may have, at least 1
+   * @param maximumBytes   the largest number of bytes the download may have, at least 1
    * @throws DownloadTooLargeException if the download is larger than the limit
    * @throws ChecksumMismatchException if the hash does not match
-   * @throws IOException               if the download fails
-   * @throws NullPointerException if {@code uri}, {@code destination}, {@code expectedSha256} is null
-   * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host,
-   *                                  the destination has no file name, or {@code maxBytes} is nonpositive
+   * @throws HttpStatusException       if the server answers with an error status that is not retried
+   * @throws DownloadException         if the download fails after all retries, or is redirected to another host
+   * @throws FileOperationException    if the part file cannot be created or deleted, or the finished download cannot be
+   *                                   moved into place
+   * @throws NullPointerException      if {@code uri}, {@code destination}, {@code expectedSha256} is null
+   * @throws IllegalArgumentException  if the URI is not an absolute HTTP or HTTPS URI with a valid host,
+   *                                   the destination has no file name, or {@code maximumBytes} is nonpositive
+   * @since 1.0.0
    */
-  public static void download(final URI uri, final Path destination, final String expectedSha256, final long maxBytes) throws IOException {
-    Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null");
-    Preconditions.checkArgument(maxBytes > 0, "The size limit must be positive but was %s", maxBytes);
-    download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maxBytes, pinnedDeadline(maxBytes));
+  public static void download(final URI uri, final Path destination, final String expectedSha256, final long maximumBytes) {
+    Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null!");
+    Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+
+    download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes, pinnedDeadline(maximumBytes));
   }
 
-  /**
-   * Downloads a file with a custom delay between attempts and the default idle timeout.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @throws IOException if every attempt fails
-   */
   @VisibleForTesting
-  static void download(final URI uri, final Path destination, final @Nullable String expectedSha256, final Duration retryDelay)
-    throws IOException {
+  static void download(final URI uri, final Path destination, final @Nullable String expectedSha256, final Duration retryDelay) {
     download(uri, destination, expectedSha256, retryDelay, IDLE_TIMEOUT, NO_SIZE_LIMIT);
   }
 
-  /**
-   * Downloads a file with a custom delay between attempts, a custom idle timeout and a custom size limit.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maxBytes       the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
-   * @throws IOException if every attempt fails or the file cannot be moved into place
-   */
   @VisibleForTesting
   static void download(
     final URI uri,
@@ -344,24 +383,11 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes
-  ) throws IOException {
-    download(uri, destination, expectedSha256, retryDelay, idleTimeout, maxBytes, null);
+    final long maximumBytes
+  ) {
+    download(uri, destination, expectedSha256, retryDelay, idleTimeout, maximumBytes, null);
   }
 
-  /**
-   * Downloads a file as the method above does, pinned if a deadline is given.
-   *
-   * @param uri            the URI to download
-   * @param destination    the file to write to; its parent directories are created if needed
-   * @param expectedSha256 the expected SHA-256 hash in hexadecimal, or {@code null} to skip verification
-   * @param retryDelay     the delay before the second attempt; later attempts wait correspondingly longer
-   * @param idleTimeout    how long a read may wait for data before the attempt fails
-   * @param maxBytes       the largest number of bytes the download may have, or {@link #NO_SIZE_LIMIT} for no limit
-   * @param pinnedDeadline how long an attempt of a pinned download may take, which also follows a redirect only to
-   *                       its own host, or null for a download that is not pinned
-   * @throws IOException if every attempt fails or the file cannot be moved into place
-   */
   @VisibleForTesting
   static void download(
     final URI uri,
@@ -369,50 +395,49 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
-  ) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
-    Preconditions.checkNotNull(destination, "Destination must not be null");
+  ) {
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+    Preconditions.checkNotNull(destination, "Destination must not be null!");
+
     final Path target = destination.toAbsolutePath();
     final Path fileName = target.getFileName();
-    Preconditions.checkArgument(fileName != null, "Destination must name a file but was %s", destination);
+    Preconditions.checkArgument(fileName != null, "Destination %s must name a file!", destination);
+
     final Path parentOrNull = target.getParent();
-    final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory");
-    Files.createDirectories(parent);
-    final String partPrefix = fileName + ".";
-    final Path partFile = Files.createTempFile(parent, partPrefix, PART_SUFFIX);
+    final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory!");
+    final String partPrefix = fileName + PART_PREFIX_SEPARATOR;
     try {
-      downloadWithRetries(uri, partFile, expectedSha256, retryDelay, idleTimeout, maxBytes, pinnedDeadline);
-      moveIntoPlace(partFile, target);
-    } finally {
-      Files.deleteIfExists(partFile);
+      Files.createDirectories(parent);
+      final Path partFile = Files.createTempFile(parent, partPrefix, PART_SUFFIX);
+      try {
+        downloadWithRetries(uri, partFile, expectedSha256, retryDelay, idleTimeout, maximumBytes, pinnedDeadline);
+        moveIntoPlace(partFile, target);
+      } finally {
+        Files.deleteIfExists(partFile);
+      }
+    } catch (final IOException exception) {
+      final String message = "Part file of the download of %s to %s could not be created or deleted!".formatted(uri, target);
+      throw new FileOperationException(message, exception);
     }
   }
 
-  /**
-   * Gets how long a pinned download may take: a minute, and a second for every 64 KiB of its size.
-   *
-   * @param maxBytes the pinned size
-   * @return the time it may take
-   */
   @VisibleForTesting
-  static Duration pinnedDeadline(final long maxBytes) {
-    return PINNED_GRACE.plusSeconds(maxBytes / PINNED_MIN_BYTES_PER_SECOND);
+  static Duration pinnedDeadline(final long maximumBytes) {
+    return PINNED_GRACE.plusSeconds(maximumBytes / PINNED_MINIMUM_BYTES_PER_SECOND);
   }
 
-  /**
-   * Moves a finished and verified download into place. Downloads of the same file in this JVM take turns here,
-   * because Windows refuses to replace a file while another thread is replacing it, so two concurrent downloads of one
-   * file would otherwise fail at random. Equal paths always share a lock stripe; on Windows, paths are equal regardless
-   * of the case of their letters.
-   */
-  private static void moveIntoPlace(final Path partFile, final Path target) throws IOException {
+  // Moves a finished and verified download into place. Downloads of the same file in this JVM take turns here, because
+  // Windows refuses to replace a file while another thread is replacing it, so two concurrent downloads of one file
+  // would otherwise fail at random. Equal paths always share a lock stripe; on Windows, paths are equal regardless of
+  // the case of their letters.
+  private static void moveIntoPlace(final Path partFile, final Path target) {
     final Path normalizedTarget = target.normalize();
     final Lock lock = TARGET_LOCKS.get(normalizedTarget);
     lock.lock();
     try {
-      IOUtils.moveReplacing(partFile, target);
+      IoUtils.moveReplacing(partFile, target);
     } finally {
       lock.unlock();
     }
@@ -424,48 +449,64 @@ public final class HttpDownloader {
     final @Nullable String expectedSha256,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
-  ) throws IOException {
-    IOException lastFailure = null;
-    for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+  ) {
+    Exception lastFailure = null;
+    for (int attempt = 1; attempt <= MAXIMUM_ATTEMPTS; attempt++) {
       try {
-        downloadOnce(uri, partFile, expectedSha256, idleTimeout, maxBytes, pinnedDeadline);
+        downloadOnce(uri, partFile, expectedSha256, idleTimeout, maximumBytes, pinnedDeadline);
         return;
-      } catch (final IOException exception) {
+      } catch (final IOException | DownloadException exception) {
         lastFailure = exception;
-        final String reason = exception.getMessage();
-        LOGGER.warn(ATTEMPT_FAILED, attempt, MAX_ATTEMPTS, uri, reason);
-        final boolean retryable = isRetryable(exception);
-        if (!retryable) {
-          throw exception;
-        }
-        if (attempt < MAX_ATTEMPTS) {
-          sleepBeforeRetry(retryDelay, attempt);
-        }
+        logFailedAttempt(uri, exception, attempt);
+        rethrowUnlessRetryable(exception);
+        sleepUnlessLastAttempt(retryDelay, attempt);
       }
     }
-    throw new IOException("Failed to download " + uri + " after " + MAX_ATTEMPTS + " attempts", lastFailure);
+
+    final String message = "Download of %s failed after %s attempts!".formatted(uri, MAXIMUM_ATTEMPTS);
+    final Exception cause = Objects.requireNonNull(lastFailure, "Every attempt failed before the loop ended!");
+    throw new DownloadException(message, cause);
   }
 
-  /**
-   * Decides whether a failed download is worth another attempt. Network failures, stalled bodies, and server errors
-   * may be temporary, but a client error such as {@code 404 Not Found} or a hash mismatch will not go away on its own.
-   */
+  private static void logFailedAttempt(final URI uri, final Exception failure, final int attempt) {
+    final String reason = failure.getMessage();
+    LOGGER.warn("Download of {} failed with \"{}\" on attempt {} of {}.", uri, reason, attempt, MAXIMUM_ATTEMPTS);
+  }
+
+  private static void rethrowUnlessRetryable(final Exception failure) {
+    if (failure instanceof final DownloadException downloadFailure && !isRetryable(downloadFailure)) {
+      throw downloadFailure;
+    }
+  }
+
+  private static void sleepUnlessLastAttempt(final Duration retryDelay, final int attempt) {
+    if (attempt < MAXIMUM_ATTEMPTS) {
+      sleepBeforeRetry(retryDelay, attempt);
+    }
+  }
+
+  // Decides whether a failed download is worth another attempt. Network failures, stalled bodies, and server errors may
+  // be temporary, but a client error such as 404 Not Found or a hash mismatch will not go away on its own.
   @VisibleForTesting
-  static boolean isRetryable(final IOException exception) {
+  static boolean isRetryable(final Exception exception) {
     if (exception instanceof ChecksumMismatchException) {
       return false;
     }
+
     if (exception instanceof DownloadTooLargeException) {
       return false;
     }
+
     if (exception instanceof RedirectRefusedException || exception instanceof DownloadTooSlowException) {
       return false;
     }
+
     if (!(exception instanceof final HttpStatusException statusException)) {
       return true;
     }
+
     final int status = statusException.getStatusCode();
     return status >= HTTP_SERVER_ERROR || status == HTTP_REQUEST_TIMEOUT || status == HTTP_TOO_MANY_REQUESTS;
   }
@@ -475,32 +516,31 @@ public final class HttpDownloader {
     final Path partFile,
     final @Nullable String expectedSha256,
     final Duration idleTimeout,
-    final long maxBytes,
+    final long maximumBytes,
     final @Nullable Duration pinnedDeadline
   ) throws IOException {
-    final MessageDigest digest = createDigest("SHA-256");
+    final MessageDigest digest = createDigest(DIGEST_ALGORITHM);
     final long started = System.nanoTime();
     try (
-      final InputStream response = pinnedDeadline == null ? openStream(uri) : openPinnedStream(uri);
+      final InputStream response = pinnedDeadline == null ? openUnpinnedStream(uri) : openPinnedStream(uri);
       final InputStream body = new IdleTimeoutInputStream(response, idleTimeout);
       final OutputStream partOutput = Files.newOutputStream(partFile)
     ) {
-      copy(body, partOutput, digest, uri, maxBytes, started, pinnedDeadline);
+      copy(body, partOutput, digest, uri, maximumBytes, started, pinnedDeadline);
     }
+
     verifyChecksum(uri, digest, expectedSha256);
   }
 
-  /**
-   * Copies the body into the part file and feeds every chunk into the digest on the way, so the file is hashed
-   * without reading it a second time. A body that passes the limit stops the download at once, before the bytes
-   * beyond it are written, and so does one that takes longer than its deadline.
-   */
+  // Copies the body into the part file and feeds every chunk into the digest on the way, so the file is hashed without
+  // reading it a second time. A body that passes the limit stops the download at once, before the bytes beyond it are
+  // written, and so does one that takes longer than its deadline.
   private static void copy(
     final InputStream body,
     final OutputStream partOutput,
     final MessageDigest digest,
     final URI uri,
-    final long maxBytes,
+    final long maximumBytes,
     final long started,
     final @Nullable Duration deadline
   ) throws IOException {
@@ -509,13 +549,13 @@ public final class HttpDownloader {
     int read = body.read(chunk);
     while (read != -1) {
       written += read;
-      if (written > maxBytes) {
-        final String message = "The download of %s is larger than the %s bytes it may have".formatted(uri, maxBytes);
+      if (written > maximumBytes) {
+        final String message = "The download of %s is larger than the %s bytes it may have!".formatted(uri, maximumBytes);
         throw new DownloadTooLargeException(message);
       }
       // compared as durations: the deadline of the largest pinned size does not fit a long of nanoseconds
       if (deadline != null && Duration.ofNanos(System.nanoTime() - started).compareTo(deadline) > 0) {
-        final String message = "The download of %s took longer than the %s it may take".formatted(uri, deadline);
+        final String message = "The download of %s took longer than the %s it may take!".formatted(uri, deadline);
         throw new DownloadTooSlowException(message);
       }
       partOutput.write(chunk, 0, read);
@@ -524,37 +564,39 @@ public final class HttpDownloader {
     }
   }
 
-  private static void verifyChecksum(final URI uri, final MessageDigest digest, final @Nullable String expectedSha256) throws IOException {
+  private static void verifyChecksum(final URI uri, final MessageDigest digest, final @Nullable String expectedSha256) {
     if (expectedSha256 == null || expectedSha256.isBlank()) {
       return;
     }
+
     final byte[] hash = digest.digest();
     final HexFormat hexFormat = HexFormat.of();
     final String actualSha256 = hexFormat.formatHex(hash);
     final boolean matches = actualSha256.equalsIgnoreCase(expectedSha256);
     if (!matches) {
-      final String message = "SHA-256 mismatch for %s: expected %s but got %s".formatted(uri, expectedSha256, actualSha256);
+      final String message = "Download %s has the SHA-256 hash %s, but %s was expected!".formatted(uri, actualSha256, expectedSha256);
       throw new ChecksumMismatchException(message);
     }
   }
 
   @VisibleForTesting
-  static MessageDigest createDigest(final String algorithm) throws IOException {
+  static MessageDigest createDigest(final String algorithm) {
     try {
       return MessageDigest.getInstance(algorithm);
     } catch (final NoSuchAlgorithmException exception) {
-      throw new IOException(algorithm + " is not available", exception);
+      final String message = "Digest algorithm %s is not available!".formatted(algorithm);
+      throw new DownloadException(message, exception);
     }
   }
 
-  private static void sleepBeforeRetry(final Duration retryDelay, final int attempt) throws IOException {
+  private static void sleepBeforeRetry(final Duration retryDelay, final int attempt) {
     try {
       final Duration delay = retryDelay.multipliedBy(attempt);
       Thread.sleep(delay);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Interrupted while waiting to retry a download", exception);
+      throw new DownloadException("Interrupted while waiting to retry a download!", exception);
     }
   }
 
@@ -564,12 +606,14 @@ public final class HttpDownloader {
    * @param uri the URI to fetch
    * @return the body decoded using the response charset, or UTF-8 if none is supplied, or empty for a
    *         non-2xx status; the response is accumulated in memory
-   * @throws IOException if the request cannot be sent
+   * @throws DownloadException        if the request cannot be sent or is interrupted
    * @throws IllegalArgumentException if the URI is not an absolute HTTP or HTTPS URI with a valid host
-   * @throws NullPointerException if {@code uri} is null
+   * @throws NullPointerException     if {@code uri} is null
+   * @since 1.0.0
    */
-  public static Optional<String> fetchText(final URI uri) throws IOException {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+  public static Optional<String> fetchText(final URI uri) {
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final HttpRequest request = createRequest(uri);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
     try (final HttpClient client = createClient()) {
@@ -578,25 +622,28 @@ public final class HttpDownloader {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Interrupted while fetching " + uri, exception);
+      final String message = "Fetch of %s was interrupted!".formatted(uri);
+      throw new DownloadException(message, exception);
+    } catch (final IOException exception) {
+      final String message = "Fetch of %s failed!".formatted(uri);
+      throw new DownloadException(message, exception);
     }
   }
 
   private static Optional<String> readSuccessfulBody(final HttpResponse<String> response, final URI uri) {
     final int status = response.statusCode();
-    final boolean successful = status / 100 == 2;
+    final boolean successful = status / HTTP_STATUS_CLASS_SIZE == HTTP_SUCCESS_CLASS;
     if (!successful) {
-      LOGGER.warn(UNEXPECTED_STATUS, status, uri);
+      LOGGER.warn("Server answered with status {} for {}, which is not a success.", status, uri);
       return Optional.empty();
     }
+
     final String body = response.body();
     return Optional.of(body);
   }
 
-  /**
-   * A response stream that shuts down its HTTP client together with the stream. The client is shut down without
-   * waiting for its exchanges, so closing a stream whose server stopped sending never blocks.
-   */
+  // A response stream that shuts down its HTTP client together with the stream. The client is shut down without waiting
+  // for its exchanges, so closing a stream whose server stopped sending never blocks.
   @VisibleForTesting
   static final class ClientClosingStream extends InputStream {
 
@@ -606,15 +653,6 @@ public final class HttpDownloader {
     ClientClosingStream(final InputStream delegate, final HttpClient client) {
       this.delegate = delegate;
       this.client = client;
-    }
-
-    /**
-     * Gets the client this stream shuts down when it is closed.
-     *
-     * @return the client
-     */
-    HttpClient getClient() {
-      return this.client;
     }
 
     @Override
@@ -634,6 +672,10 @@ public final class HttpDownloader {
       } finally {
         this.client.shutdownNow();
       }
+    }
+
+    HttpClient getClient() {
+      return this.client;
     }
   }
 }

@@ -21,16 +21,24 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette;
  * The color palette of Minecraft maps, as loaded by {@link MapPaletteLoader}. The first four indices of the map
  * palette are transparent and are therefore reserved. Use {@link DitherPalette#DEFAULT_MAP_PALETTE} instead of
  * creating instances, because every instance builds its own lookup tables.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MapPalette extends ColorPalette {
 
   /**
    * The number of leading map colors that are transparent.
+   *
+   * @since 1.0.0
    */
   public static final int TRANSPARENT_INDICES = 4;
 
   /**
    * Constructs a new map palette and builds its lookup tables, which takes about a second.
+   *
+   * @since 1.0.0
    */
   public MapPalette() {
     final int[] colors = MapPaletteLoader.getColors();

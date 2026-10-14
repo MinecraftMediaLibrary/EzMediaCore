@@ -20,26 +20,24 @@ package me.brandonli.mcav.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ZipEntryIntegrityException}.
- */
 final class ZipEntryIntegrityExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final ZipEntryIntegrityException exception = new ZipEntryIntegrityException("Total extracted size exceeds the limit");
+  void shouldKeepTheMessage() {
+    final ZipEntryIntegrityException exception = new ZipEntryIntegrityException("Total extracted size exceeds the limit!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Total extracted size exceeds the limit", message);
+    assertEquals("Total extracted size exceeds the limit!", message);
     assertNull(cause);
   }
 
   @Test
-  void extendsRuntimeExceptionDirectlyRatherThanAnIoFailure() {
+  void shouldExtendMCAVExceptionDirectlyRatherThanAnIoFailure() {
     final Class<ZipEntryIntegrityException> type = ZipEntryIntegrityException.class;
     final Class<? super ZipEntryIntegrityException> superclass = type.getSuperclass();
-    assertEquals(RuntimeException.class, superclass);
+    assertEquals(MCAVException.class, superclass);
   }
 }

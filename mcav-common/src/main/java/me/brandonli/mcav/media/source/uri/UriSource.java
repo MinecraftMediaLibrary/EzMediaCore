@@ -24,6 +24,10 @@ import me.brandonli.mcav.media.source.DynamicSource;
 /**
  * Media behind a URL, such as an HTTP stream, an RTSP camera, or a web page that has to be resolved with yt-dlp
  * first.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface UriSource extends DynamicSource {
   /**
@@ -32,16 +36,19 @@ public interface UriSource extends DynamicSource {
    * @param uri the URL
    * @return the source
    * @throws NullPointerException if {@code uri} is null
+   * @since 1.0.0
    */
   static UriSource uri(final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
-    return new UriSourceImpl(uri);
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
+    return new DefaultUriSource(uri);
   }
 
   /**
-   * Gets the URL.
+   * Returns the URL.
    *
    * @return the URL
+   * @since 1.0.0
    */
   URI getUri();
 
@@ -50,14 +57,28 @@ public interface UriSource extends DynamicSource {
    * page that has to be resolved first.
    *
    * @return true if the URL looks like a direct media link
+   * @since 1.0.0
    */
   boolean isDirect();
 
+  /**
+   * Returns {@code uri}, the name that log messages give URI sources.
+   *
+   * @return the type name
+   * @since 1.0.0
+   */
   @Override
   default String getName() {
     return "uri";
   }
 
+  /**
+   * Returns the URI of this source as a string. Generated and specialized sources may return a diagnostic string that cannot be opened by
+   * an arbitrary backend.
+   *
+   * @return the resource string
+   * @since 1.0.0
+   */
   @Override
   default String getResource() {
     final URI uri = this.getUri();

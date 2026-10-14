@@ -18,7 +18,7 @@
 /**
  * Maps each pixel directly to its nearest palette color without adding dithering noise.
  *
- * <p>{@link me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl}
+ * <p>{@link me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither}
  * uses the palette's precomputed lookup tables, ignores alpha and retains no per-frame state. Instances can be
  * shared when palette tables are treated as read-only. Parallel mapping produces the same indices as serial
  * mapping, waits for completion and leaves ownership of the supplied pool with the caller. Use in-place ARGB
@@ -26,5 +26,7 @@
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest;

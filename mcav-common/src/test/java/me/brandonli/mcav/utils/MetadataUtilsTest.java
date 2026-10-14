@@ -37,104 +37,137 @@ import org.bytedeco.javacv.FrameGrabber;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 
-/**
- * Tests {@link MetadataUtils} against generated media files.
- */
 final class MetadataUtilsTest {
+
+  private static final String FIXTURE_FILE_NAME = "metadata-fixture";
+  private static final String MISSING_FILE_NAME = "missing.mp4";
+
+  private static final int VIDEO_WIDTH = 16;
+  private static final int VIDEO_HEIGHT = 8;
+  private static final double FRAME_RATE = 24.0;
+  private static final int VIDEO_BITRATE = 12_345;
+
+  private static final String AUDIO_CODEC = "fixture-codec";
+  private static final int AUDIO_BITRATE = 96_000;
+  private static final int SAMPLE_RATE = 48_000;
+  private static final int AUDIO_CHANNELS = 2;
 
   @TempDir
   private Path directory;
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void readsMetadataThatAppearsOnTheLastAllowedProbeFrame(final boolean audio) throws FrameGrabber.Exception {
+  @EnumSource(MediaKind.class)
+  void shouldReadMetadataThatAppearsOnTheLastAllowedProbeFrame(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
     final AtomicInteger frames = new AtomicInteger();
-    final FileSource source = FileSource.path(Path.of("metadata-fixture"));
+    final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
       final Frame frame = new Frame();
-      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) -> {
-        when(grabber.getImageWidth()).thenAnswer(_ -> frames.get() >= 30 ? 16 : 0);
-        when(grabber.getImageHeight()).thenReturn(8);
-        when(grabber.getFrameRate()).thenAnswer(_ -> frames.get() >= 30 ? 24.0 : 0.0);
-        when(grabber.getVideoBitrate()).thenReturn(12_345);
-        when(grabber.getSampleRate()).thenAnswer(_ -> frames.get() >= 30 ? 48_000 : 0);
-        when(grabber.getAudioChannels()).thenReturn(2);
-        when(grabber.getAudioCodecName()).thenReturn("fixture-codec");
-        when(grabber.getAudioBitrate()).thenReturn(96_000);
-        when(grabber.getSampleFormat()).thenReturn(1);
-        when(grabber.grabFrame()).thenAnswer(_ -> {
-          frames.incrementAndGet();
-          return frame;
-        });
-      })
+      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) ->
+        this.stubMetadataRevealedOnTheLastProbeFrame(grabber, frames, frame)
+      )
     ) {
       if (audio) {
         final OriginalAudioMetadata actual = MetadataUtils.parseAudioMetadata(source);
-        assertEquals(OriginalAudioMetadata.of("fixture-codec", 96_000, 48_000, 2, 1), actual);
+        assertEquals(OriginalAudioMetadata.of(AUDIO_CODEC, AUDIO_BITRATE, SAMPLE_RATE, AUDIO_CHANNELS, 1), actual);
       } else {
         final OriginalVideoMetadata actual = MetadataUtils.parseVideoMetadata(source);
-        assertEquals(OriginalVideoMetadata.of(16, 8, 12_345, 24.0f), actual);
+        assertEquals(OriginalVideoMetadata.of(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, (float) FRAME_RATE), actual);
       }
-      assertEquals(30, frames.get(), "the probe includes its last allowed frame and stops there");
+      final int probedFrames = frames.get();
+      assertEquals(30, probedFrames, "the probe includes its last allowed frame and stops there");
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber, times(30)).grabFrame();
       verify(grabber).close();
     }
   }
 
+  private void stubMetadataRevealedOnTheLastProbeFrame(final FFmpegFrameGrabber grabber, final AtomicInteger frames, final Frame frame)
+    throws FrameGrabber.Exception {
+    when(grabber.getImageWidth()).thenAnswer(_ -> frames.get() >= 30 ? VIDEO_WIDTH : 0);
+    when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
+    when(grabber.getFrameRate()).thenAnswer(_ -> frames.get() >= 30 ? FRAME_RATE : 0.0);
+    when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
+    when(grabber.getSampleRate()).thenAnswer(_ -> frames.get() >= 30 ? SAMPLE_RATE : 0);
+    when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
+    when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
+    when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
+    when(grabber.getSampleFormat()).thenReturn(1);
+    when(grabber.grabFrame()).thenAnswer(_ -> this.countProbedFrame(frames, frame));
+  }
+
+  private Frame countProbedFrame(final AtomicInteger frames, final Frame frame) {
+    frames.incrementAndGet();
+
+    return frame;
+  }
+
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void declaredMetadataDoesNotConsumeAnyFrames(final boolean audio) throws FrameGrabber.Exception {
-    final FileSource source = FileSource.path(Path.of("metadata-fixture"));
+  @EnumSource(MediaKind.class)
+  void shouldNotConsumeAnyFramesForDeclaredMetadata(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
+    final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (
-      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) -> {
-        when(grabber.getImageWidth()).thenReturn(16);
-        when(grabber.getImageHeight()).thenReturn(8);
-        when(grabber.getFrameRate()).thenReturn(24.0);
-        when(grabber.getVideoBitrate()).thenReturn(12_345);
-        when(grabber.getSampleRate()).thenReturn(48_000);
-        when(grabber.getAudioChannels()).thenReturn(2);
-        when(grabber.getAudioCodecName()).thenReturn("fixture-codec");
-        when(grabber.getAudioBitrate()).thenReturn(96_000);
-        when(grabber.getSampleFormat()).thenReturn(1);
-      })
+      final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class, (grabber, _) ->
+        this.stubDeclaredMetadata(grabber)
+      )
     ) {
       if (audio) {
-        assertEquals(OriginalAudioMetadata.of("fixture-codec", 96_000, 48_000, 2, 1), MetadataUtils.parseAudioMetadata(source));
+        final OriginalAudioMetadata actual = MetadataUtils.parseAudioMetadata(source);
+        assertEquals(OriginalAudioMetadata.of(AUDIO_CODEC, AUDIO_BITRATE, SAMPLE_RATE, AUDIO_CHANNELS, 1), actual);
       } else {
-        assertEquals(OriginalVideoMetadata.of(16, 8, 12_345, 24.0f), MetadataUtils.parseVideoMetadata(source));
+        final OriginalVideoMetadata actual = MetadataUtils.parseVideoMetadata(source);
+        assertEquals(OriginalVideoMetadata.of(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, (float) FRAME_RATE), actual);
       }
+
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber, never()).grabFrame();
       verify(grabber).close();
     }
   }
 
+  private void stubDeclaredMetadata(final FFmpegFrameGrabber grabber) {
+    when(grabber.getImageWidth()).thenReturn(VIDEO_WIDTH);
+    when(grabber.getImageHeight()).thenReturn(VIDEO_HEIGHT);
+    when(grabber.getFrameRate()).thenReturn(FRAME_RATE);
+    when(grabber.getVideoBitrate()).thenReturn(VIDEO_BITRATE);
+    when(grabber.getSampleRate()).thenReturn(SAMPLE_RATE);
+    when(grabber.getAudioChannels()).thenReturn(AUDIO_CHANNELS);
+    when(grabber.getAudioCodecName()).thenReturn(AUDIO_CODEC);
+    when(grabber.getAudioBitrate()).thenReturn(AUDIO_BITRATE);
+    when(grabber.getSampleFormat()).thenReturn(1);
+  }
+
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void probingStopsImmediatelyAtTheEndOfTheSource(final boolean audio) throws FrameGrabber.Exception {
-    final FileSource source = FileSource.path(Path.of("metadata-fixture"));
+  @EnumSource(MediaKind.class)
+  void shouldStopProbingImmediatelyAtTheEndOfTheSource(final MediaKind track) throws FrameGrabber.Exception {
+    final boolean audio = track == MediaKind.AUDIO;
+    final FileSource source = FileSource.path(Path.of(FIXTURE_FILE_NAME));
     try (final MockedConstruction<FFmpegFrameGrabber> grabbers = Mockito.mockConstruction(FFmpegFrameGrabber.class)) {
-      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> {
-        if (audio) {
-          MetadataUtils.parseAudioMetadata(source);
-        } else {
-          MetadataUtils.parseVideoMetadata(source);
-        }
-      });
-      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track", failure.getMessage());
+      final InputMetadataException failure = assertThrows(InputMetadataException.class, () -> this.parseTrackMetadata(source, track));
+      final String message = failure.getMessage();
+      assertEquals("Source " + source.getResource() + " has no " + (audio ? "audio" : "video") + " track!", message);
+
       final FFmpegFrameGrabber grabber = grabbers.constructed().getFirst();
       verify(grabber).grabFrame();
       verify(grabber).close();
     }
   }
 
+  private void parseTrackMetadata(final FileSource source, final MediaKind track) {
+    if (track == MediaKind.AUDIO) {
+      MetadataUtils.parseAudioMetadata(source);
+    } else {
+      MetadataUtils.parseVideoMetadata(source);
+    }
+  }
+
   @Test
-  void readsTheVideoTrack() {
+  void shouldReadTheVideoTrack() {
     final Path video = TestMedia.video();
     final FileSource source = FileSource.path(video);
     final OriginalVideoMetadata metadata = MetadataUtils.parseVideoMetadata(source);
@@ -147,7 +180,7 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void readsTheAudioTrack() {
+  void shouldReadTheAudioTrack() {
     final Path video = TestMedia.video();
     final FileSource source = FileSource.path(video);
     final OriginalAudioMetadata metadata = MetadataUtils.parseAudioMetadata(source);
@@ -160,7 +193,7 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void reportsMissingVideoTracksAfterProbing() {
+  void shouldReportMissingVideoTracksAfterProbing() {
     final Path shortAudio = TestMedia.audio(0.5);
     final Path longAudio = TestMedia.audio(2.0);
     final FileSource shortSource = FileSource.path(shortAudio);
@@ -170,28 +203,33 @@ final class MetadataUtilsTest {
   }
 
   @Test
-  void reportsMissingAudioTracksAfterProbing() {
+  void shouldReportMissingAudioTracksAfterProbing() {
     final Path silentVideo = TestMedia.silentVideo();
     final FileSource source = FileSource.path(silentVideo);
     assertThrows(InputMetadataException.class, () -> MetadataUtils.parseAudioMetadata(source));
   }
 
   @Test
-  void reportsFilesThatCannotBeOpened() {
-    final Path missing = this.directory.resolve("missing.mp4");
+  void shouldReportFilesThatCannotBeOpened() {
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final FileSource source = FileSource.path(missing);
     assertThrows(InputMetadataException.class, () -> MetadataUtils.parseVideoMetadata(source));
     assertThrows(InputMetadataException.class, () -> MetadataUtils.parseAudioMetadata(source));
   }
 
   @Test
-  void rejectsMissingSources() {
+  void shouldRejectMissingSources() {
     assertThrows(NullPointerException.class, () -> MetadataUtils.parseVideoMetadata(null));
     assertThrows(NullPointerException.class, () -> MetadataUtils.parseAudioMetadata(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MetadataUtils.class);
+  }
+
+  private enum MediaKind {
+    VIDEO,
+    AUDIO,
   }
 }

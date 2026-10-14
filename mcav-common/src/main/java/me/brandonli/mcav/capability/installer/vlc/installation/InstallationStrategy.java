@@ -17,34 +17,42 @@
  */
 package me.brandonli.mcav.capability.installer.vlc.installation;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.utils.FileOperationException;
 
 /**
  * Extracts a downloaded VLC archive into a usable installation. Every operating system ships VLC in a different
  * archive format, so each has its own strategy.
  *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
  * @see LinuxInstallationStrategy
- * @see WinInstallationStrategy
- * @see OSXInstallationStrategy
+ * @see WindowsInstallationStrategy
+ * @see OsxInstallationStrategy
+ * @since 1.0.0
  */
 public interface InstallationStrategy {
   /**
    * Looks for an installation created by a previous run.
    *
    * @return the directory that contains the VLC libraries, or empty if VLC has not been installed
-   * @throws IOException if the installation directory cannot be searched
+   * @throws InstallationException if the installation directory cannot be searched
+   * @since 1.0.0
    */
-  Optional<Path> getInstalledPath() throws IOException;
+  Optional<Path> getInstalledPath();
 
   /**
    * Extracts the downloaded archive into the installation directory and deletes the archive.
    *
    * @param archive the downloaded archive
    * @return the directory that contains the VLC libraries
-   * @throws IOException if extraction, installation verification, archive deletion or related file operations fail
-   * @throws NullPointerException if {@code archive} is null
+   * @throws InstallationException  if extraction or installation verification fails
+   * @throws FileOperationException if an earlier installation, the archive or a temporary file cannot be moved or
+   *                                deleted
+   * @throws NullPointerException   if {@code archive} is null
+   * @since 1.0.0
    */
-  Path execute(final Path archive) throws IOException;
+  Path execute(final Path archive);
 }

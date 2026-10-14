@@ -41,17 +41,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * after the largest chunk has been accommodated. Use it from one producer at a time. Stop producers before
  * releasing the device; synchronization of start and release does not serialize sample writes with them.
  * Starting again after release opens a new device line.
+ *
+ * <p>Starting and releasing are thread-safe; filtering must happen on one thread at a time, as the player does.
+ *
+ * @since 1.0.0
  */
 public class DirectAudioOutput implements FunctionalAudioFilter {
 
-  /**
-   * The format of the samples this filter plays, which is the format every player delivers.
-   */
   @VisibleForTesting
   static final AudioFormat FORMAT = new AudioFormat(SAMPLE_RATE, BYTES_PER_SAMPLE * 8, CHANNELS, true, false);
 
   private static final Equivalence<Object> FAILURE_IDENTITY = Equivalence.identity();
-  private static final int BUFFER_MILLIS = 200;
+  private static final int BUFFER_MILLISECONDS = 200;
+  private static final int MILLISECONDS_PER_SECOND = 1000;
 
   private final LineOpener lineOpener;
   private volatile @Nullable SourceDataLine line;
@@ -59,25 +61,23 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
 
   /**
    * Constructs a new direct audio output. Nothing is opened until {@link #start()} is called.
+   *
+   * @since 1.0.0
    */
   public DirectAudioOutput() {
     this(DirectAudioOutput::openDefaultLine);
   }
 
-  /**
-   * Constructs an output that opens its line through the specified opener.
-   *
-   * @param lineOpener opens the audio line in {@link #start()}
-   */
   @VisibleForTesting
   DirectAudioOutput(final LineOpener lineOpener) {
-    Preconditions.checkNotNull(lineOpener, "Line opener must not be null");
+    Preconditions.checkNotNull(lineOpener, "Line opener must not be null!");
+
     this.lineOpener = lineOpener;
   }
 
   private static SourceDataLine openDefaultLine(final AudioFormat format, final int bufferSize) throws LineUnavailableException {
-    final DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
-    final SourceDataLine opened = (SourceDataLine) AudioSystem.getLine(info);
+    final DataLine.Info lineInformation = new DataLine.Info(SourceDataLine.class, format);
+    final SourceDataLine opened = (SourceDataLine) AudioSystem.getLine(lineInformation);
     opened.open(format, bufferSize);
     return opened;
   }
@@ -89,37 +89,37 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * @param metadata the metadata of the original stream
    * @return false, because the samples are never changed
    * @throws IllegalArgumentException if the sound line rejects a byte count that is not a whole PCM frame
-   * @throws NullPointerException if {@code samples} is null
+   * @throws NullPointerException     if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     final SourceDataLine currentLine = this.line;
     if (currentLine == null) {
       return false;
     }
+
     final ByteBuffer view = samples.duplicate();
     final int length = view.remaining();
     final byte[] data = this.getChunkArray(length);
     view.get(data, 0, length);
     currentLine.write(data, 0, length);
+
     return false;
   }
 
-  /**
-   * Gets the array chunks are copied into, growing it when a chunk does not fit.
-   *
-   * @param length the length of the chunk in bytes
-   * @return an array of at least that length
-   */
   @VisibleForTesting
   byte[] getChunkArray(final int length) {
     final byte[] current = this.chunk;
     if (current != null && current.length >= length) {
       return current;
     }
+
     final byte[] created = new byte[length];
     this.chunk = created;
+
     return created;
   }
 
@@ -128,30 +128,41 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    *
    * @throws PlayerException if no sound device supports the audio format of the library, for example on a headless
    *                         machine
+   * @since 1.0.0
    */
   @Override
   public synchronized void start() {
     if (this.line != null) {
       return;
     }
+
     try {
-      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLIS) / 1000;
+      final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / MILLISECONDS_PER_SECOND;
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
-      try {
-        opened.start();
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
-        try {
-          opened.close();
-        } catch (final RuntimeException | Error cleanup) {
-          suppressCleanupFailure(failure, cleanup);
-        }
-        throw failure;
-      }
+      this.startOrClose(opened);
       this.line = opened;
     } catch (final LineUnavailableException | IllegalArgumentException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Could not open the default audio device: " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Default audio device could not be opened because of \"%s\"!".formatted(reason);
+      throw new PlayerException(message, exception);
+    }
+  }
+
+  private void startOrClose(final SourceDataLine opened) {
+    try {
+      opened.start();
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      this.closeAfterFailedStart(opened, exception);
+      throw exception;
+    }
+  }
+
+  private void closeAfterFailedStart(final SourceDataLine opened, final Throwable failure) {
+    try {
+      opened.close();
+    } catch (final RuntimeException | Error cleanupException) {
+      suppressCleanupFailure(failure, cleanupException);
     }
   }
 
@@ -160,7 +171,8 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
    * not prevent closing the line; the first failure is rethrown with later failures suppressed. Fatal VM errors
    * propagate immediately.
    * @throws RuntimeException if stopping, flushing or closing the line fails
-   * @throws Error if the sound line reports an error during cleanup
+   * @throws Error            if the sound line reports an error during cleanup
+   * @since 1.0.0
    */
   @Override
   public synchronized void release() {
@@ -168,26 +180,37 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     if (currentLine == null) {
       return;
     }
+
     this.line = null;
     Throwable failure = null;
     final List<Runnable> cleanup = List.of(currentLine::stop, currentLine::flush, currentLine::close);
     for (final Runnable action : cleanup) {
-      try {
-        action.run();
-      } catch (final RuntimeException | Error exception) {
-        ThrowableUtils.throwIfFatal(exception);
-        if (failure == null) {
-          failure = exception;
-        } else {
-          suppressCleanupFailure(failure, exception);
-        }
-      }
+      failure = this.runCleanupAction(action, failure);
     }
+
     if (failure instanceof final RuntimeException runtime) {
       throw runtime;
     }
+
     if (failure instanceof final Error error) {
       throw error;
+    }
+  }
+
+  private @Nullable Throwable runCleanupAction(final Runnable action, final @Nullable Throwable failure) {
+    try {
+      action.run();
+      return failure;
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+
+      if (failure == null) {
+        return exception;
+      }
+
+      suppressCleanupFailure(failure, exception);
+
+      return failure;
     }
   }
 
@@ -199,19 +222,8 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     }
   }
 
-  /**
-   * Opens an audio line with a format and a buffer size.
-   */
   @FunctionalInterface
   interface LineOpener {
-    /**
-     * Opens a line.
-     *
-     * @param format     the format of the samples
-     * @param bufferSize the size of the line buffer in bytes
-     * @return the opened line, not yet started
-     * @throws LineUnavailableException if no line can be opened
-     */
     SourceDataLine open(AudioFormat format, int bufferSize) throws LineUnavailableException;
   }
 }

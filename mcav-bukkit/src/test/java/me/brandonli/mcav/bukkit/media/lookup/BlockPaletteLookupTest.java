@@ -36,7 +36,7 @@ import java.util.Random;
 import java.util.Set;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FilterLiteDither;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -78,7 +78,7 @@ final class BlockPaletteLookupTest {
 
   @Test
   void resolvesEveryBlockOfTheBundledPalette() {
-    final Reader reader = IOUtils.getResourceAsStreamReader("mcav/bukkit/blocks.json");
+    final Reader reader = IoUtils.getResourceAsStreamReader("mcav/bukkit/blocks.json");
     final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
     final Set<Map.Entry<String, int[]>> entries = palette.entrySet();
 

@@ -21,19 +21,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 
-/**
- * Plays audio at another speed by resampling it, which keeps it in step with pictures shown at that speed: at twice
- * the speed a chunk becomes half as long and sounds an octave higher. Between two frames the samples are
- * interpolated linearly. Where the next frame falls and the last frame of a chunk carry over to the next chunk, so
- * the chunks join without a click.
- *
- * <p>Not thread-safe: the audio renderer of one session uses it.
- */
+// Plays audio at another speed by resampling it, which keeps it in step with pictures shown at that speed: at twice the
+// speed a chunk becomes half as long and sounds an octave higher. Between two frames the samples are interpolated
+// linearly. Where the next frame falls and the last frame of a chunk carry over to the next chunk, so the chunks join
+// without a click. Not thread-safe: the audio renderer of one session uses it.
 final class SpeedResampler {
 
   private final short[] previous;
 
-  /** Where the next frame lies, in frames, counted from the last frame of the chunk before, which is frame 0. */
   private double next;
 
   SpeedResampler() {
@@ -41,25 +36,20 @@ final class SpeedResampler {
     this.next = 1;
   }
 
-  /**
-   * Resamples a chunk of 16-bit little-endian frames of {@link AudioFilter#CHANNELS} channels.
-   *
-   * @param samples the frames, from the position to the limit of the buffer, which is not consumed
-   * @param speed   how fast the chunk plays, positive
-   * @return the chunk itself at normal speed, otherwise a new chunk about {@code 1 / speed} as long, without a
-   *     trailing partial frame
-   */
   ByteBuffer resample(final ByteBuffer samples, final double speed) {
     final ByteBuffer input = samples.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     final int frames = input.remaining() / AudioFilter.FRAME_SIZE;
     if (frames == 0) {
       return samples;
     }
+
     if (speed == PlaybackClock.NORMAL_SPEED) {
       this.remember(input, frames);
       this.next = 1;
+
       return samples;
     }
+
     final int capacity = (int) Math.ceil(frames / speed) + 1;
     final ByteBuffer output = ByteBuffer.allocate(capacity * AudioFilter.FRAME_SIZE).order(ByteOrder.LITTLE_ENDIAN);
     double at = this.next;
@@ -73,16 +63,18 @@ final class SpeedResampler {
       }
       at += speed;
     }
+
     this.next = at - frames;
     this.remember(input, frames);
+
     return output.flip();
   }
 
-  /** A sample of a frame: frame 0 is the last frame of the chunk before, frame n the chunk's frame n - 1. */
   private int sample(final ByteBuffer input, final int frame, final int channel) {
     if (frame == 0) {
       return this.previous[channel];
     }
+
     return input.getShort(offset(input, frame - 1, channel));
   }
 

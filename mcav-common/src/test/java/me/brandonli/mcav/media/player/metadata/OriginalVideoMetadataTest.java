@@ -20,16 +20,19 @@ package me.brandonli.mcav.media.player.metadata;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OriginalVideoMetadata} and {@link OriginalVideoMetadataImpl}.
- */
 final class OriginalVideoMetadataTest {
 
+  private static final int WIDTH = 4;
+  private static final int HEIGHT = 3;
+  private static final int BITRATE = 100;
+  private static final float FRAME_RATE = 30.0f;
+
   @Test
-  void storesEveryProperty() {
+  void shouldStoreEveryProperty() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(1920, 1080, 4_000_000, 29.97f);
     final int width = metadata.getVideoWidth();
     final int height = metadata.getVideoHeight();
@@ -42,7 +45,7 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void marksOmittedPropertiesAsUnknown() {
+  void shouldMarkOmittedPropertiesAsUnknown() {
     final OriginalVideoMetadata withFrameRate = OriginalVideoMetadata.of(640, 480, 25.0f);
     final OriginalVideoMetadata sizeOnly = OriginalVideoMetadata.of(640, 480);
     final int bitrate = withFrameRate.getVideoBitrate();
@@ -54,7 +57,7 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void emptyMetadataIsUnknownEverywhere() {
+  void shouldMakeEmptyMetadataUnknownEverywhere() {
     final OriginalVideoMetadata empty = OriginalVideoMetadata.EMPTY;
     final int width = empty.getVideoWidth();
     final int height = empty.getVideoHeight();
@@ -63,26 +66,35 @@ final class OriginalVideoMetadataTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
-    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
-    final OriginalVideoMetadata equalMetadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
-    final OriginalVideoMetadata otherWidth = OriginalVideoMetadata.of(5, 3, 100, 30.0f);
-    final OriginalVideoMetadata otherHeight = OriginalVideoMetadata.of(4, 5, 100, 30.0f);
-    final OriginalVideoMetadata otherBitrate = OriginalVideoMetadata.of(4, 3, 200, 30.0f);
-    final OriginalVideoMetadata otherFrameRate = OriginalVideoMetadata.of(4, 3, 100, 60.0f);
+  void shouldFollowTheEqualityContract() {
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata equalMetadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherWidth = OriginalVideoMetadata.of(5, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherHeight = OriginalVideoMetadata.of(WIDTH, 5, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherBitrate = OriginalVideoMetadata.of(WIDTH, HEIGHT, 200, FRAME_RATE);
+    final OriginalVideoMetadata otherFrameRate = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, 60.0f);
     EqualityAssertions.assertEqualityContract(metadata, equalMetadata, otherWidth, otherHeight, otherBitrate, otherFrameRate);
   }
 
   @Test
-  void rejectsNonPositiveSizes() {
+  void shouldHashTheWidthThenTheHeightThenTheBitrateThenTheFrameRate() {
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+
+    final int hash = metadata.hashCode();
+    final int expected = Objects.hash(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldRejectNonPositiveSizes() {
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(0, 10));
     assertThrows(IllegalArgumentException.class, () -> OriginalVideoMetadata.of(10, 0));
   }
 
   @Test
-  void rendersEveryProperty() {
-    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, 30.0f);
+  void shouldRenderEveryProperty() {
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, FRAME_RATE);
     final String text = metadata.toString();
-    assertEquals("VideoMetadata[320x240, 30.0 fps, 1000 bps]", text);
+    assertEquals("DefaultOriginalVideoMetadata{videoWidth=320, videoHeight=240, videoBitrate=1000, videoFrameRate=30.0}", text);
   }
 }

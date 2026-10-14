@@ -1,0 +1,42 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package me.brandonli.mcav.capability.installer.debian;
+
+import java.nio.file.Path;
+import java.util.function.Consumer;
+import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.utils.os.Platform;
+
+// Lets tests of other packages create a Debian installer with their own packages and library loader.
+public final class DebianLibraryInstallers {
+
+  private static final String NAME = "debian-test";
+
+  private DebianLibraryInstallers() {
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
+  }
+
+  public static DebianLibraryInstaller create(
+    final Path folder,
+    final Download[] downloads,
+    final Platform platform,
+    final Consumer<String> libraryLoader
+  ) {
+    return new DebianLibraryInstaller(folder, NAME, downloads, platform, libraryLoader);
+  }
+}

@@ -36,53 +36,60 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
  * Copyright 2009-2025 Caprica Software Limited.
  */
 
+import java.nio.file.Path;
 import java.util.List;
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 
 /**
  * Finds {@code libvlc.so} and {@code libvlccore.so} in the well-known directories of Linux and other Unix
  * systems. Versioned library names such as {@code libvlc.so.5} and {@code libvlccore.so.9.0.1} are recognized.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
+ *
+ * @since 1.0.0
  */
 public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.so(?:\\.\\d+)*", "libvlccore\\.so(?:\\.\\d+)*" };
-  private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s/plugins", "%s/vlc/plugins" };
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("plugins"), Path.of("vlc", "plugins"));
+
+  private final Os operatingSystem;
 
   /**
    * Constructs a strategy that searches vlcj's directories and publishes the plugin path with {@code setenv}.
+   *
+   * @since 1.0.0
    */
   public LinuxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = nativeSetter();
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, posixSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, posixSetter);
+    this.operatingSystem = OsUtils.getOs();
   }
 
-  /**
-   * Constructs a strategy with custom directories and a custom way of publishing the plugin path.
-   *
-   * @param searchProviders   the providers of the directories to search
-   * @param environmentSetter sets the plugin path variable
-   */
-  LinuxNativeDiscoveryStrategy(final List<SearchProvider> searchProviders, final EnvironmentSetter environmentSetter) {
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
+  LinuxNativeDiscoveryStrategy(
+    final List<SearchProvider> searchProviders,
+    final EnvironmentSetter environmentSetter,
+    final Os operatingSystem
+  ) {
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
+    this.operatingSystem = operatingSystem;
   }
 
-  /**
-   * Creates the setter that publishes variables with {@code setenv} of the C library of this process.
-   *
-   * @return the setter
-   */
   static EnvironmentSetter nativeSetter() {
     final EnvironmentVariables variables = EnvironmentVariables.nativeVariables();
     return variables::setPosixVariable;
   }
 
   /**
-   * Checks whether the system is Linux or another Unix system other than macOS.
+   * Returns whether the running operating system is Linux or another Unix system other than macOS.
    *
    * @return true on Linux and other Unix systems
+   * @since 1.0.0
    */
   @Override
   public boolean supported() {
-    return RuntimeUtil.isNix();
+    return this.operatingSystem != Os.WINDOWS && this.operatingSystem != Os.MAC;
   }
 }

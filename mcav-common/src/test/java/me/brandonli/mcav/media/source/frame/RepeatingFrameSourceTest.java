@@ -29,14 +29,19 @@ import me.brandonli.mcav.media.image.DynamicImageBuffer;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link RepeatingFrameSource} and {@link RepeatingFrameSourceImpl}.
- */
 final class RepeatingFrameSourceTest {
+
+  private static final int FRAME_WIDTH = 2;
+
+  private static final float FRAME_RATE = 12.5f;
+
+  private static final int SECOND_FRAME_COLOR = 2;
+
+  private static final int REPEAT_COUNT = 2;
 
   private static ImageBuffer frame(final int color) {
     final ImageBuffer frame = mock(ImageBuffer.class);
-    when(frame.getWidth()).thenReturn(2);
+    when(frame.getWidth()).thenReturn(FRAME_WIDTH);
     when(frame.getHeight()).thenReturn(1);
     when(frame.getPixels()).thenReturn(new int[] { color, color });
     return frame;
@@ -45,7 +50,7 @@ final class RepeatingFrameSourceTest {
   private static DynamicImageBuffer animation(final List<ImageBuffer> frames) {
     final DynamicImageBuffer animation = mock(DynamicImageBuffer.class);
     when(animation.getFrames()).thenReturn(frames);
-    when(animation.getFrameRate()).thenReturn(12.5f);
+    when(animation.getFrameRate()).thenReturn(FRAME_RATE);
     return animation;
   }
 
@@ -55,7 +60,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void describesTheAnimation() {
+  void shouldDescribeTheAnimation() {
     final ImageBuffer first = frame(1);
     final List<ImageBuffer> frames = List.of(first);
     final DynamicImageBuffer animation = animation(frames);
@@ -65,30 +70,31 @@ final class RepeatingFrameSourceTest {
     final int height = source.getFrameHeight();
     final float frameRate = source.getFrameRate();
     assertEquals(3, repeatCount);
-    assertEquals(2, width);
+    assertEquals(FRAME_WIDTH, width);
     assertEquals(1, height);
-    assertEquals(12.5f, frameRate);
+    assertEquals(FRAME_RATE, frameRate);
   }
 
   @Test
-  void playsTheFramesTheRequestedNumberOfTimesThenHoldsTheLastFrame() {
+  void shouldPlayTheFramesTheRequestedNumberOfTimesThenHoldTheLastFrame() {
     final ImageBuffer first = frame(1);
-    final ImageBuffer second = frame(2);
+    final ImageBuffer second = frame(SECOND_FRAME_COLOR);
     final List<ImageBuffer> frames = List.of(first, second);
     final DynamicImageBuffer animation = animation(frames);
-    final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation, 2);
+    final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation, REPEAT_COUNT);
     final SampleSupplier supplier = source.supplyFrameSamples();
     final int[] colors = new int[7];
     for (int index = 0; index < colors.length; index++) {
       colors[index] = nextColor(supplier);
     }
+
     assertArrayEquals(new int[] { 1, 2, 1, 2, 2, 2, 2 }, colors);
   }
 
   @Test
-  void loopsForeverWithoutARepeatCount() {
+  void shouldLoopForeverWithoutARepeatCount() {
     final ImageBuffer first = frame(1);
-    final ImageBuffer second = frame(2);
+    final ImageBuffer second = frame(SECOND_FRAME_COLOR);
     final List<ImageBuffer> frames = List.of(first, second);
     final DynamicImageBuffer animation = animation(frames);
     final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation);
@@ -98,16 +104,17 @@ final class RepeatingFrameSourceTest {
     for (int index = 0; index < colors.length; index++) {
       colors[index] = nextColor(supplier);
     }
+
     assertEquals(Integer.MAX_VALUE, repeatCount);
     assertArrayEquals(new int[] { 1, 2, 1, 2, 1, 2 }, colors);
   }
 
   @Test
-  void handsOutTheCachedPixelsOfTheFramesWithoutCopying() {
+  void shouldHandOutTheCachedPixelsOfTheFramesWithoutCopying() {
     final ImageBuffer only = frame(1);
     final List<ImageBuffer> frames = List.of(only);
     final DynamicImageBuffer animation = animation(frames);
-    final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation, 2);
+    final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation, REPEAT_COUNT);
     final SampleSupplier supplier = source.supplyFrameSamples();
     final int[] firstLoop = supplier.getFrameSamples();
     final int[] secondLoop = supplier.getFrameSamples();
@@ -119,7 +126,7 @@ final class RepeatingFrameSourceTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final ImageBuffer first = frame(1);
     final List<ImageBuffer> frames = List.of(first);
     final List<ImageBuffer> noFrames = List.of();

@@ -24,49 +24,73 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A thread-safe {@link AttachableCallback} that stores its value in an atomic reference.
  *
- * @param <T> the type of value the slot holds
+ * @param <ValueType> the type of value the slot holds
+ * @since 1.0.0
  */
-public abstract class AbstractAttachableCallback<T> implements AttachableCallback<T> {
+public abstract class AbstractAttachableCallback<ValueType> implements AttachableCallback<ValueType> {
 
-  private final T fallback;
-  private final AtomicReference<@Nullable T> attached;
+  private final ValueType fallback;
+  private final AtomicReference<@Nullable ValueType> attached;
 
   /**
    * Constructs a slot.
    *
    * @param fallback the value returned while nothing is attached
    * @throws NullPointerException if {@code fallback} is null
+   * @since 1.0.0
    */
-  protected AbstractAttachableCallback(final T fallback) {
-    Preconditions.checkNotNull(fallback, "Fallback must not be null");
+  protected AbstractAttachableCallback(final ValueType fallback) {
+    Preconditions.checkNotNull(fallback, "Fallback must not be null!");
+
     this.fallback = fallback;
     this.attached = new AtomicReference<>();
   }
 
   /**
-   * {@inheritDoc}
+   * Stores {@code value} in this callback's slot, replacing the value attached before.
+   *
+   * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
+   * @since 1.0.0
    */
   @Override
-  public void attach(final T value) {
-    Preconditions.checkNotNull(value, "Attached value must not be null");
+  public void attach(final ValueType value) {
+    Preconditions.checkNotNull(value, "Attached value must not be null!");
+
     this.attached.set(value);
   }
 
+  /**
+   * Empties this callback's slot, so {@link #retrieve()} returns the fallback value again.
+   *
+   * @since 1.0.0
+   */
   @Override
   public void detach() {
     this.attached.set(null);
   }
 
+  /**
+   * Checks whether a value was explicitly attached to this callback, even if it equals the fallback value.
+   *
+   * @return a snapshot of the attached state, which can change immediately after this call
+   * @since 1.0.0
+   */
   @Override
   public boolean isAttached() {
-    final T current = this.attached.get();
+    final ValueType current = this.attached.get();
     return current != null;
   }
 
+  /**
+   * Returns the value attached to this callback, or its fallback value when nothing is attached.
+   *
+   * @return the value
+   * @since 1.0.0
+   */
   @Override
-  public T retrieve() {
-    final T current = this.attached.get();
+  public ValueType retrieve() {
+    final ValueType current = this.attached.get();
     return current == null ? this.fallback : current;
   }
 }

@@ -17,10 +17,16 @@
  */
 package me.brandonli.mcav.utils.immutable;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An immutable point in two dimensions.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Point {
 
@@ -39,51 +45,73 @@ public final class Point {
    * @param xCoordinate the x coordinate
    * @param yCoordinate the y coordinate
    * @return the point
+   * @since 1.0.0
    */
   public static Point point(final double xCoordinate, final double yCoordinate) {
     return new Point(xCoordinate, yCoordinate);
   }
 
   /**
-   * Gets the x coordinate.
+   * Returns the x coordinate.
    *
    * @return the x coordinate
+   * @since 1.0.0
    */
   public double getX() {
     return this.xCoordinate;
   }
 
   /**
-   * Gets the y coordinate.
+   * Returns the y coordinate.
    *
    * @return the y coordinate
+   * @since 1.0.0
    */
   public double getY() {
     return this.yCoordinate;
   }
 
+  /**
+   * Returns whether {@code other} is a point with the same coordinates.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   * @since 1.0.0
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Point point)) {
       return false;
     }
+
     final int xComparison = Double.compare(this.xCoordinate, point.xCoordinate);
     final int yComparison = Double.compare(this.yCoordinate, point.yCoordinate);
     return xComparison == 0 && yComparison == 0;
   }
 
+  /**
+   * Returns a hash code built from both coordinates.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
   @Override
   public int hashCode() {
-    final long xBits = Double.doubleToLongBits(this.xCoordinate);
-    final long yBits = Double.doubleToLongBits(this.yCoordinate);
-    return Long.hashCode(xBits) * 31 + Long.hashCode(yBits);
+    return Objects.hash(this.xCoordinate, this.yCoordinate);
   }
 
+  /**
+   * Returns a debugging representation with both coordinates.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
   @Override
   public String toString() {
-    return "Point[" + this.xCoordinate + ", " + this.yCoordinate + "]";
+    return MoreObjects.toStringHelper(this).add("xCoordinate", this.xCoordinate).add("yCoordinate", this.yCoordinate).toString();
   }
 }

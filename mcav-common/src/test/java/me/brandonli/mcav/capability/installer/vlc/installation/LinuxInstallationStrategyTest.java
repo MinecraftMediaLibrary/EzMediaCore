@@ -30,25 +30,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy.ProcessRunner;
+import me.brandonli.mcav.testing.IoActions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link LinuxInstallationStrategy} with a fake AppImage whose extraction is simulated.
- */
 final class LinuxInstallationStrategyTest {
 
   private static final String EXTRACTED_DIRECTORY = "squashfs-root";
   private static final String WORKING_DIRECTORY_REQUIRED = "The AppImage is extracted in the directory of the archive";
 
+  private static final String APP_IMAGE_FILE_NAME = "VLC.AppImage";
+  private static final String APP_RUN_FILE_NAME = "AppRun";
+
+  private static final String PROGRAMS_DIRECTORY = "usr";
+  private static final String LIBRARY_DIRECTORY = "lib";
+  private static final String VLC_DIRECTORY = "vlc";
+  private static final String PLUGINS_DIRECTORY = "plugins";
+
+  private static final String LIBRARY_FILE_NAME = "libvlc.so";
+  private static final String VERSIONED_LIBRARY_FILE_NAME = "libvlc.so.5";
+  private static final String CORE_LIBRARY_FILE_NAME = "libvlccore.so";
+  private static final String VERSIONED_CORE_LIBRARY_FILE_NAME = "libvlccore.so.9.0.1";
+
+  private static final String STALE_FILE_NAME = "stale";
+  private static final String OLD_INSTALL_FILE_NAME = "old";
+
   @TempDir
-  private Path temp;
+  private Path temporaryDirectory;
 
   @Test
-  void extractsTheAppImageAndReturnsTheCoreLibraryDirectory() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+  void shouldExtractTheAppImageAndReturnTheCoreLibraryDirectory() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final List<String> commands = new ArrayList<>();
     final List<Path> workingDirectories = new ArrayList<>();
     final ProcessRunner extractor = recordingExtractor(commands, workingDirectories);
@@ -57,14 +73,15 @@ final class LinuxInstallationStrategyTest {
     final Path libraryDirectory = strategy.execute(archive);
 
     final Path installDirectory = installer.getInstallDirectory();
-    final Path relativeLibraryDirectory = Path.of("usr", "lib");
+    final Path relativeLibraryDirectory = Path.of(PROGRAMS_DIRECTORY, LIBRARY_DIRECTORY);
     final Path expected = installDirectory.resolve(relativeLibraryDirectory);
     final Path absoluteArchive = archive.toAbsolutePath();
     final List<String> expectedCommands = List.of(absoluteArchive + " --appimage-extract");
-    final List<Path> expectedWorkingDirectories = List.of(this.temp);
+    final List<Path> expectedWorkingDirectories = List.of(this.temporaryDirectory);
     assertEquals(expected, libraryDirectory);
     assertEquals(expectedCommands, commands);
     assertEquals(expectedWorkingDirectories, workingDirectories);
+
     this.assertArchiveAndExtractionAreGone(archive);
 
     final Optional<Path> installed = strategy.getInstalledPath();
@@ -73,14 +90,14 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void removesLeftoversOfAnInterruptedExtractionFirst() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
-    final Path leftover = this.temp.resolve(EXTRACTED_DIRECTORY);
+  void shouldRemoveLeftoversOfAnInterruptedExtractionFirst() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
+    final Path leftover = this.temporaryDirectory.resolve(EXTRACTED_DIRECTORY);
     Files.createDirectories(leftover);
-    final Path staleFile = createFile(leftover, "stale");
+    final Path staleFile = createFile(leftover, STALE_FILE_NAME);
     final Path installDirectory = installer.getInstallDirectory();
     Files.createDirectories(installDirectory);
-    final Path staleInstall = createFile(installDirectory, "old");
+    final Path staleInstall = createFile(installDirectory, OLD_INSTALL_FILE_NAME);
     final ProcessRunner extractor = leftoverCheckingExtractor(staleFile);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, extractor);
     final Path archive = this.createAppImage();
@@ -90,48 +107,52 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void failsWhenTheExtractionProducesNothing() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+  void shouldFailWhenTheExtractionProducesNothing() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {});
     final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
     final boolean namesTheDirectory = message.contains(EXTRACTED_DIRECTORY);
     assertTrue(namesTheDirectory, message);
   }
 
   @Test
-  void failsWhenTheAppImageHasNoCoreLibrary() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
-    final ProcessRunner extractor = (workingDirectory, _) -> {
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
-      Files.createDirectories(extracted);
-      createFile(extracted, "AppRun");
-    };
+  void shouldFailWhenTheAppImageHasNoCoreLibrary() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
+    final ProcessRunner extractor = (workingDirectory, _) -> IoActions.runUnchecked(() -> this.extractWithoutCoreLibrary(workingDirectory));
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, extractor);
     final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
-    final boolean namesTheLibrary = message.contains("libvlccore.so");
+    final boolean namesTheLibrary = message.contains(CORE_LIBRARY_FILE_NAME);
     assertTrue(namesTheLibrary, message);
   }
 
-  @Test
-  void propagatesExtractionFailures() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
-    final IOException failure = new IOException("not an AppImage");
-    final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {
-      throw failure;
-    });
-    final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
-    assertSame(failure, thrown);
+  private void extractWithoutCoreLibrary(final @Nullable Path workingDirectory) throws IOException {
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
+    Files.createDirectories(extracted);
+    createFile(extracted, APP_RUN_FILE_NAME);
   }
 
   @Test
-  void findsNoInstallationBeforeTheFirstRun() throws IOException {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+  void shouldPropagateExtractionFailures() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
+    final InstallationException failure = new InstallationException("not an AppImage!");
+    final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> this.failToExtract(failure));
+    final Path archive = this.createAppImage();
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
+    assertSame(failure, thrown);
+  }
+
+  private void failToExtract(final InstallationException failure) {
+    throw failure;
+  }
+
+  @Test
+  void shouldFindNoInstallationBeforeTheFirstRun() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer);
     final Optional<Path> installed = strategy.getInstalledPath();
     final boolean nothingInstalled = installed.isEmpty();
@@ -139,46 +160,54 @@ final class LinuxInstallationStrategyTest {
   }
 
   @Test
-  void rejectsANullArchive() {
-    final VLCInstaller installer = VLCInstaller.create(this.temp);
+  void shouldRejectANullArchive() {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer);
     assertThrows(NullPointerException.class, () -> strategy.execute(null));
   }
 
   private static ProcessRunner recordingExtractor(final List<String> commands, final List<Path> workingDirectories) {
-    return (workingDirectory, arguments) -> {
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      workingDirectories.add(directory);
-      final String commandLine = String.join(" ", arguments);
-      commands.add(commandLine);
-      final Path relativeLibraryDirectory = Path.of(EXTRACTED_DIRECTORY, "usr", "lib");
-      final Path libraryDirectory = directory.resolve(relativeLibraryDirectory);
-      final Path relativePlugins = Path.of("vlc", "plugins");
-      final Path plugins = libraryDirectory.resolve(relativePlugins);
-      Files.createDirectories(plugins);
-      createFile(libraryDirectory, "libvlc.so.5");
-      createFile(libraryDirectory, "libvlccore.so.9.0.1");
-    };
+    return (workingDirectory, arguments) ->
+      IoActions.runUnchecked(() -> extractRecording(commands, workingDirectories, workingDirectory, arguments));
   }
 
-  /**
-   * Creates an extractor that fails the test unless the leftover of an earlier extraction was deleted before it runs.
-   */
+  private static void extractRecording(
+    final List<String> commands,
+    final List<Path> workingDirectories,
+    final @Nullable Path workingDirectory,
+    final String[] arguments
+  ) throws IOException {
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    workingDirectories.add(directory);
+    final String commandLine = String.join(" ", arguments);
+    commands.add(commandLine);
+    final Path relativeLibraryDirectory = Path.of(EXTRACTED_DIRECTORY, PROGRAMS_DIRECTORY, LIBRARY_DIRECTORY);
+    final Path libraryDirectory = directory.resolve(relativeLibraryDirectory);
+    final Path relativePlugins = Path.of(VLC_DIRECTORY, PLUGINS_DIRECTORY);
+    final Path plugins = libraryDirectory.resolve(relativePlugins);
+    Files.createDirectories(plugins);
+    createFile(libraryDirectory, VERSIONED_LIBRARY_FILE_NAME);
+    createFile(libraryDirectory, VERSIONED_CORE_LIBRARY_FILE_NAME);
+  }
+
   private static ProcessRunner leftoverCheckingExtractor(final Path staleFile) {
-    return (workingDirectory, _) -> {
-      final boolean leftoverStillThere = Files.exists(staleFile);
-      assertFalse(leftoverStillThere);
-      final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
-      final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
-      final Path libraryDirectory = extracted.resolve("lib");
-      Files.createDirectories(libraryDirectory);
-      createFile(libraryDirectory, "libvlccore.so");
-      createFile(libraryDirectory, "libvlc.so");
-    };
+    return (workingDirectory, _) -> IoActions.runUnchecked(() -> extractAfterCheckingTheLeftover(staleFile, workingDirectory));
+  }
+
+  private static void extractAfterCheckingTheLeftover(final Path staleFile, final @Nullable Path workingDirectory) throws IOException {
+    final boolean leftoverStillThere = Files.exists(staleFile);
+    assertFalse(leftoverStillThere);
+
+    final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
+    final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
+    final Path libraryDirectory = extracted.resolve(LIBRARY_DIRECTORY);
+    Files.createDirectories(libraryDirectory);
+    createFile(libraryDirectory, CORE_LIBRARY_FILE_NAME);
+    createFile(libraryDirectory, LIBRARY_FILE_NAME);
   }
 
   private void assertArchiveAndExtractionAreGone(final Path archive) {
-    final Path extracted = this.temp.resolve(EXTRACTED_DIRECTORY);
+    final Path extracted = this.temporaryDirectory.resolve(EXTRACTED_DIRECTORY);
     final boolean archiveExists = Files.exists(archive);
     final boolean extractedExists = Files.exists(extracted);
     assertFalse(archiveExists);
@@ -186,7 +215,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   private Path createAppImage() throws IOException {
-    return createFile(this.temp, "VLC.AppImage");
+    return createFile(this.temporaryDirectory, APP_IMAGE_FILE_NAME);
   }
 
   private static Path createFile(final Path directory, final String name) throws IOException {

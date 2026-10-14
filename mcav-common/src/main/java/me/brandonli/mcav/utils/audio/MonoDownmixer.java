@@ -27,19 +27,25 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
  * averaging both channels. Outputs that carry a single channel, such as Simple Voice Chat, a mono speaker or a
  * speech recognizer, use it to turn the samples of the pipeline into the format they expect.
  *
- * <pre>{@code
- * final AudioPipelineStep pipeline = AudioPipelineStep.of((samples, metadata) -> {
+ * {@snippet :
+ * final AudioPipelineStep pipeline = AudioPipelineStep.of(this::playMono);
+ *
+ * private boolean playMono(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
  *   final short[] mono = MonoDownmixer.downmix(samples);
- *   speaker.play(mono);
+ *   this.speaker.play(mono);
  *   // the samples were only read, so the filter reports that it left them untouched
  *   return false;
- * });
- * }</pre>
+ * }
+ * }
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class MonoDownmixer {
 
   private MonoDownmixer() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -49,9 +55,11 @@ public final class MonoDownmixer {
    *               the buffer; a trailing incomplete sample is ignored
    * @return one mono sample for every stereo sample
    * @throws NullPointerException if {@code stereo} is null
+   * @since 1.0.0
    */
   public static short[] downmix(final ByteBuffer stereo) {
-    Preconditions.checkNotNull(stereo, "Samples must not be null");
+    Preconditions.checkNotNull(stereo, "Samples must not be null!");
+
     final ByteBuffer source = stereo.duplicate();
     source.order(ByteOrder.LITTLE_ENDIAN);
     final int frames = source.remaining() / AudioFilter.FRAME_SIZE;
@@ -62,6 +70,7 @@ public final class MonoDownmixer {
       final int sum = left + right;
       mono[frame] = (short) (sum >> 1);
     }
+
     return mono;
   }
 }

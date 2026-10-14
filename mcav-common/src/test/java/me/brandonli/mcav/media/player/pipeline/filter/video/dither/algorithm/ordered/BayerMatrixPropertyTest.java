@@ -31,17 +31,13 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.IntRange;
 
-/**
- * Properties of the Bayer matrices at every size. Pass 1 found {@link BayerDither#NORMAL_8X8} to be the transpose of the
- * canonical matrix while the class's own generator produced the canonical one; the examples then pinned the three
- * constants. These check the generator itself against an independent closed form at every power of two up to 512, and
- * the constants against the generator.
- *
- * <p>The closed form reads the coordinates bit by bit: the most significant bit pair of {@code (column, row)} picks the
- * entry of the 2x2 Bayer pattern that becomes the least significant base-4 digit of the threshold, the next pair the
- * next digit, and so on. The 2x2 pattern is {@code [[0, 2], [3, 1]]}, which is {@code 2 * (column ^ row) + row} for
- * single bits.
- */
+// Properties of the Bayer matrices at every size. Pass 1 found BayerDither.NORMAL_8X8 to be the transpose of the
+// canonical matrix while the class's own generator produced the canonical one; the examples then pinned the three
+// constants. These check the generator itself against an independent closed form at every power of two up to 512, and
+// the constants against the generator. The closed form reads the coordinates bit by bit: the most significant bit pair
+// of (column, row) picks the entry of the 2x2 Bayer pattern that becomes the least significant base-4 digit of the
+// threshold, the next pair the next digit, and so on. The 2x2 pattern is [[0, 2], [3, 1]], which is 2 * (column ^ row)
+// + row for single bits.
 final class BayerMatrixPropertyTest {
 
   private static final String SEED = "20260925";
@@ -56,18 +52,21 @@ final class BayerMatrixPropertyTest {
       threshold += pattern * weight;
       weight *= 4;
     }
+
     return threshold;
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void theGeneratorMatchesTheClosedFormAndRanksEveryCellOnce(@ForAll @IntRange(min = 0, max = 9) final int bits) {
+  void shouldMatchTheClosedFormAndRankEveryCellOnceWithTheGenerator(@ForAll @IntRange(min = 0, max = 9) final int bits) {
     final int size = 1 << bits;
     final int[][] matrix = BayerDither.createBayerMatrix(size);
     final boolean[] seen = new boolean[size * size];
 
     assertEquals(size, matrix.length, "rows");
+
     for (int row = 0; row < size; row++) {
-      assertEquals(size, matrix[row].length, "columns");
+      final int columnCount = matrix[row].length;
+      assertEquals(size, columnCount, "columns");
       for (int column = 0; column < size; column++) {
         final int threshold = matrix[row][column];
         final int expected = closedForm(column, row, bits);
@@ -76,7 +75,8 @@ final class BayerMatrixPropertyTest {
         assertEquals(expected, threshold, () -> "threshold at " + cellColumn + "," + cellRow + " of the " + size + "x" + size + " matrix");
         final boolean inRange = threshold >= 0 && threshold < size * size;
         assertTrue(inRange, "thresholds rank the cells from 0");
-        assertFalse(seen[threshold], "every threshold appears once");
+        final boolean seenBefore = seen[threshold];
+        assertFalse(seenBefore, "every threshold appears once");
         seen[threshold] = true;
       }
     }
@@ -89,27 +89,29 @@ final class BayerMatrixPropertyTest {
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void theConstantsAreTheGeneratorsMatricesCountedFromOne(@ForAll("constantSizes") final int size) {
+  void shouldMakeTheConstantsTheGeneratorsMatricesCountedFromOne(@ForAll("constantSizes") final int size) {
     final ThresholdMatrix constant = switch (size) {
       case 2 -> BayerDither.NORMAL_2X2;
       case 4 -> BayerDither.NORMAL_4X4;
       default -> BayerDither.NORMAL_8X8;
     };
-    final int max = switch (size) {
-      case 2 -> BayerDither.NORMAL_2X2_MAX;
-      case 4 -> BayerDither.NORMAL_4X4_MAX;
-      default -> BayerDither.NORMAL_8X8_MAX;
+    final int maximum = switch (size) {
+      case 2 -> BayerDither.NORMAL_2X2_MAXIMUM;
+      case 4 -> BayerDither.NORMAL_4X4_MAXIMUM;
+      default -> BayerDither.NORMAL_8X8_MAXIMUM;
     };
     final int[][] generated = BayerDither.createBayerMatrix(size);
     final int[][] entries = constant.toArray();
 
-    assertEquals(size * size, max, "the level count of the constant");
+    assertEquals(size * size, maximum, "the level count of the constant");
+
     for (int row = 0; row < size; row++) {
       final int[] expected = new int[size];
       for (int column = 0; column < size; column++) {
         expected[column] = generated[row][column] + 1;
       }
-      assertArrayEquals(expected, entries[row], "row " + row + " of the " + size + "x" + size + " constant");
+      final int[] entryRow = entries[row];
+      assertArrayEquals(expected, entryRow, "row " + row + " of the " + size + "x" + size + " constant");
     }
   }
 }

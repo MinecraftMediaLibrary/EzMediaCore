@@ -22,16 +22,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Dimension}.
- */
 final class DimensionTest {
 
+  private static final int WIDTH = 3;
+  private static final int HEIGHT = 4;
+
   @Test
-  void storesWidthAndHeight() {
+  void shouldStoreWidthAndHeight() {
     final Dimension dimension = Dimension.of(640, 360);
     final int width = dimension.getWidth();
     final int height = dimension.getHeight();
@@ -40,22 +41,31 @@ final class DimensionTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
-    final Dimension dimension = new Dimension(3, 4);
-    final Dimension equalDimension = Dimension.of(3, 4);
-    final Dimension otherWidth = Dimension.of(5, 4);
-    final Dimension otherHeight = Dimension.of(3, 5);
+  void shouldFollowTheEqualityContract() {
+    final Dimension dimension = new Dimension(WIDTH, HEIGHT);
+    final Dimension equalDimension = Dimension.of(WIDTH, HEIGHT);
+    final Dimension otherWidth = Dimension.of(5, HEIGHT);
+    final Dimension otherHeight = Dimension.of(WIDTH, 5);
     EqualityAssertions.assertEqualityContract(dimension, equalDimension, otherWidth, otherHeight);
   }
 
   @Test
-  void rejectsNegativeSides() {
+  void shouldHashTheWidthThenTheHeight() {
+    final Dimension dimension = Dimension.of(WIDTH, HEIGHT);
+
+    final int hash = dimension.hashCode();
+    final int expected = Objects.hash(WIDTH, HEIGHT);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldRejectNegativeSides() {
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(-1, 1));
     assertThrows(IllegalArgumentException.class, () -> Dimension.of(1, -1));
   }
 
   @Test
-  void isEmptyWhenEitherSideIsZero() {
+  void shouldBeEmptyWhenEitherSideIsZero() {
     final Dimension noWidth = Dimension.of(0, 5);
     final Dimension noHeight = Dimension.of(5, 0);
     final Dimension filled = Dimension.of(1, 1);
@@ -70,9 +80,9 @@ final class DimensionTest {
   }
 
   @Test
-  void rendersAsWidthByHeight() {
+  void shouldRenderBothSides() {
     final Dimension dimension = Dimension.of(1920, 1080);
     final String text = dimension.toString();
-    assertEquals("1920x1080", text);
+    assertEquals("Dimension{width=1920, height=1080}", text);
   }
 }

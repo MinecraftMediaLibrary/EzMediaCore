@@ -19,8 +19,19 @@ package me.brandonli.mcav.media.source;
 
 /**
  * A source without a fixed length, such as a live stream, a capture device, or generated frames.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface DynamicSource extends Source {
+  /**
+   * Returns {@code false}, because a dynamic source is a URI, a device, an FFmpeg input or generated frames rather than a file. This does
+   * not probe its actual duration or whether the selected decoder supports seeking.
+   *
+   * @return true for files and similar finite media
+   * @since 1.0.0
+   */
   @Override
   default boolean isStatic() {
     return false;

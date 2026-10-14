@@ -41,7 +41,7 @@ final class FramePixelsPropertyTest {
   private static final byte SENTINEL = 93;
 
   @Property(seed = SEED)
-  void compactingPaddedRowsPreservesPixelsAndBufferWindows(
+  void shouldPreservePixelsAndBufferWindowsWhenCompactingPaddedRows(
     @ForAll @IntRange(min = 0, max = 32) final int width,
     @ForAll @IntRange(min = 0, max = 24) final int height,
     @ForAll @IntRange(min = 0, max = 16) final int padding,
@@ -58,6 +58,7 @@ final class FramePixelsPropertyTest {
     for (int row = 0; row < height; row++) {
       source.put(row * stride, pixels, row * rowBytes, rowBytes);
     }
+
     source.position(Math.min(1, source.capacity()));
     final int sourcePosition = source.position();
     final byte[] destination = new byte[pixels.length + MARGIN];
@@ -75,10 +76,19 @@ final class FramePixelsPropertyTest {
       final byte[] expected = Arrays.copyOf(pixels, destination.length);
       Arrays.fill(expected, pixels.length, expected.length, SENTINEL);
       assertArrayEquals(expected, destination, "only compact pixels are written, starting at target index zero");
-      assertEquals(1, target.position());
-      assertEquals(2, target.limit());
-      assertEquals(sourcePosition, source.position());
-      assertEquals(stride * height, source.limit());
+
+      final int targetPosition = target.position();
+      assertEquals(1, targetPosition);
+
+      final int targetLimit = target.limit();
+      assertEquals(2, targetLimit);
+
+      final int sourcePositionAfterCopy = source.position();
+      assertEquals(sourcePosition, sourcePositionAfterCopy);
+
+      final int sourceLimit = source.limit();
+      assertEquals(stride * height, sourceLimit);
+
       final ByteBuffer allocated = FramePixels.copyBgr(frame);
       final byte[] copy = new byte[allocated.remaining()];
       allocated.get(copy);
@@ -92,7 +102,7 @@ final class FramePixelsPropertyTest {
   }
 
   @Property(seed = SEED)
-  void aWrappedByteCountNeverMakesAHugeRowValid(@ForAll("widthsWhoseByteCountsWrap") final int width) {
+  void shouldNeverMakeAHugeRowValidWithAWrappedByteCount(@ForAll("widthsWhoseByteCountsWrap") final int width) {
     try (final Frame frame = new Frame()) {
       frame.imageWidth = width;
       frame.imageHeight = 1;

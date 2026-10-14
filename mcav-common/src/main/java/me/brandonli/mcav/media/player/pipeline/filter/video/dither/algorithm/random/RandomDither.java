@@ -22,20 +22,30 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 /**
  * A dithering algorithm that adds random noise before picking the closest palette color. Create instances with
  * {@link DitherAlgorithm#random()}.
+ *
+ * <p>Implementations in this library are thread-safe when their random number provider is.
+ *
+ * @since 1.0.0
  */
 public interface RandomDither extends DitherAlgorithm {
   /**
    * A subtle noise level of 32 per channel.
+   *
+   * @since 1.0.0
    */
   int LIGHT_WEIGHT = 32;
 
   /**
    * The default noise level of 64 per channel.
+   *
+   * @since 1.0.0
    */
   int NORMAL_WEIGHT = 64;
 
   /**
    * A strong noise level of 128 per channel.
+   *
+   * @since 1.0.0
    */
   int HEAVY_WEIGHT = 128;
 }

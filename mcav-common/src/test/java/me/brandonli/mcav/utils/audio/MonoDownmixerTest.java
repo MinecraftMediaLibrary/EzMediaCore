@@ -26,9 +26,6 @@ import java.nio.ByteOrder;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link MonoDownmixer}.
- */
 final class MonoDownmixerTest {
 
   private static ByteBuffer stereo(final short... leftAndRight) {
@@ -37,12 +34,13 @@ final class MonoDownmixerTest {
     for (final short sample : leftAndRight) {
       buffer.putShort(sample);
     }
+
     buffer.flip();
     return buffer;
   }
 
   @Test
-  void averagesTheLeftAndRightChannels() {
+  void shouldAverageTheLeftAndRightChannels() {
     final ByteBuffer samples = stereo((short) 1000, (short) 3000, (short) -200, (short) 200, (short) 7, (short) 8, (short) -7, (short) -8);
     final short[] mono = MonoDownmixer.downmix(samples);
     final short[] expected = { 2000, 0, 7, -8 };
@@ -50,7 +48,7 @@ final class MonoDownmixerTest {
   }
 
   @Test
-  void roundsHalfSamplesTowardNegativeInfinity() {
+  void shouldRoundHalfSamplesTowardNegativeInfinity() {
     final ByteBuffer samples = stereo((short) -1, (short) 0, (short) 1, (short) 0, (short) -3, (short) 0);
     final short[] mono = MonoDownmixer.downmix(samples);
     final short[] expected = { -1, 0, -2 };
@@ -58,7 +56,7 @@ final class MonoDownmixerTest {
   }
 
   @Test
-  void doesNotOverflowAtTheExtremes() {
+  void shouldNotOverflowAtTheExtremes() {
     final ByteBuffer samples = stereo(Short.MAX_VALUE, Short.MAX_VALUE, Short.MIN_VALUE, Short.MIN_VALUE, Short.MAX_VALUE, Short.MIN_VALUE);
     final short[] mono = MonoDownmixer.downmix(samples);
     final short[] expected = { Short.MAX_VALUE, Short.MIN_VALUE, -1 };
@@ -66,7 +64,7 @@ final class MonoDownmixerTest {
   }
 
   @Test
-  void readsLittleEndianRegardlessOfTheBufferOrderAndLeavesTheBufferUnchanged() {
+  void shouldReadLittleEndianRegardlessOfTheBufferOrderAndLeaveTheBufferUnchanged() {
     final byte[] bytes = { 0x10, 0x00, 0x30, 0x00, 0x00, 0x01, 0x00, 0x03 };
     final ByteBuffer samples = ByteBuffer.wrap(bytes);
     samples.order(ByteOrder.BIG_ENDIAN);
@@ -80,7 +78,7 @@ final class MonoDownmixerTest {
   }
 
   @Test
-  void readsFromThePositionAndIgnoresAnIncompleteTrailingSample() {
+  void shouldReadFromThePositionAndIgnoreAnIncompleteTrailingSample() {
     final ByteBuffer samples = ByteBuffer.allocate(4 + 4 + 3);
     samples.order(ByteOrder.LITTLE_ENDIAN);
     samples.putShort((short) 111);
@@ -98,19 +96,19 @@ final class MonoDownmixerTest {
   }
 
   @Test
-  void returnsNoSamplesForAnEmptyBuffer() {
+  void shouldReturnNoSamplesForAnEmptyBuffer() {
     final ByteBuffer empty = ByteBuffer.allocate(0);
     final short[] mono = MonoDownmixer.downmix(empty);
     assertEquals(0, mono.length);
   }
 
   @Test
-  void rejectsNull() {
+  void shouldRejectNull() {
     assertThrows(NullPointerException.class, () -> MonoDownmixer.downmix(null));
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MonoDownmixer.class);
   }
 }

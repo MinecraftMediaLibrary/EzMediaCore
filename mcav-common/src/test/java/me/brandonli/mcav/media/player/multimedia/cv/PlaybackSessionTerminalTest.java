@@ -31,8 +31,79 @@ import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-/** Exercises actual bounded queue waits and interruptions without decoder scheduling or native media. */
 final class PlaybackSessionTerminalTest {
+
+  private static PlaybackSession session() {
+    final VideoAttachableCallback pictures = VideoAttachableCallback.create();
+    final AudioAttachableCallback sound = AudioAttachableCallback.create();
+    final DimensionAttachableCallback dimensions = DimensionAttachableCallback.create();
+    return new PlaybackSession(
+      ScriptedFrameGrabber::of,
+      null,
+      pictures,
+      sound,
+      dimensions,
+      (_, _) -> {},
+      0L,
+      StartState.PLAYING,
+      0L,
+      Long.MAX_VALUE,
+      System::nanoTime
+    );
+  }
+
+  @Test
+  @Timeout(15)
+  void shouldKeepTheTerminalMarkerThroughAnActualOfferTimeoutAndInterruptWhileTheQueueIsFull() throws Exception {
+    final PlaybackSession session = session();
+    final ObservedQueue queue = new ObservedQueue();
+    queue.add("last decoded frame");
+    final AtomicBoolean restoredInterrupt = new AtomicBoolean();
+    final Thread producer = new Thread(
+      () -> this.signalEndAndRecordInterrupt(session, queue, restoredInterrupt),
+      "terminal-marker-producer"
+    );
+    producer.setDaemon(true);
+    try {
+      producer.start();
+      final boolean retried = queue.timedOut.await(5, TimeUnit.SECONDS);
+      assertTrue(retried, "the full queue must cause a real timed offer to return false");
+
+      producer.interrupt();
+      final boolean interruptCaught = queue.interrupted.await(5, TimeUnit.SECONDS);
+      assertTrue(interruptCaught, "interrupt the bounded queue wait, not unrelated decoder work");
+
+      final boolean waiting = producer.isAlive();
+      assertTrue(waiting, "an interrupt must not discard the terminal marker while playback remains active");
+
+      final String frame = queue.take();
+      assertEquals("last decoded frame", frame, "end signalling must not discard already queued media");
+
+      producer.join(1_000L);
+      final boolean alive = producer.isAlive();
+      assertFalse(alive, "signalling finishes once the consumer frees a queue slot");
+
+      final String terminal = queue.poll();
+      final boolean keptInterrupt = restoredInterrupt.get();
+      assertEquals("end of media", terminal);
+      assertTrue(keptInterrupt, "the producer keeps the interrupt after delivering its terminal marker");
+    } finally {
+      session.stop();
+      producer.interrupt();
+      queue.clear();
+      producer.join(2_000L);
+    }
+  }
+
+  private void signalEndAndRecordInterrupt(
+    final PlaybackSession session,
+    final ObservedQueue queue,
+    final AtomicBoolean restoredInterrupt
+  ) {
+    session.signalEnd(queue, "end of media");
+    final Thread current = Thread.currentThread();
+    restoredInterrupt.set(current.isInterrupted());
+  }
 
   private static final class ObservedQueue extends ArrayBlockingQueue<String> {
 
@@ -52,69 +123,12 @@ final class PlaybackSessionTerminalTest {
         if (!accepted) {
           this.timedOut.countDown();
         }
+
         return accepted;
-      } catch (final InterruptedException failure) {
+      } catch (final InterruptedException exception) {
         this.interrupted.countDown();
-        throw failure;
+        throw exception;
       }
-    }
-  }
-
-  private static PlaybackSession session() {
-    final VideoAttachableCallback pictures = VideoAttachableCallback.create();
-    final AudioAttachableCallback sound = AudioAttachableCallback.create();
-    final DimensionAttachableCallback dimensions = DimensionAttachableCallback.create();
-    return new PlaybackSession(
-      ScriptedFrameGrabber::of,
-      null,
-      pictures,
-      sound,
-      dimensions,
-      (_, _) -> {},
-      0L,
-      false,
-      0L,
-      Long.MAX_VALUE,
-      System::nanoTime
-    );
-  }
-
-  @Test
-  @Timeout(15)
-  void terminalMarkerSurvivesAnActualOfferTimeoutAndInterruptWhileTheQueueIsFull() throws Exception {
-    final PlaybackSession session = session();
-    final ObservedQueue queue = new ObservedQueue();
-    queue.add("last decoded frame");
-    final AtomicBoolean restoredInterrupt = new AtomicBoolean();
-    final Thread producer = new Thread(() -> {
-      session.signalEnd(queue, "end of media");
-      final Thread current = Thread.currentThread();
-      restoredInterrupt.set(current.isInterrupted());
-    }, "terminal-marker-producer");
-    producer.setDaemon(true);
-    try {
-      producer.start();
-      final boolean retried = queue.timedOut.await(5, TimeUnit.SECONDS);
-      assertTrue(retried, "the full queue must cause a real timed offer to return false");
-      producer.interrupt();
-      final boolean interruptCaught = queue.interrupted.await(5, TimeUnit.SECONDS);
-      assertTrue(interruptCaught, "interrupt the bounded queue wait, not unrelated decoder work");
-      final boolean waiting = producer.isAlive();
-      assertTrue(waiting, "an interrupt must not discard the terminal marker while playback remains active");
-      final String frame = queue.take();
-      assertEquals("last decoded frame", frame, "end signalling must not discard already queued media");
-      producer.join(1_000L);
-      final boolean alive = producer.isAlive();
-      assertFalse(alive, "signalling finishes once the consumer frees a queue slot");
-      final String terminal = queue.poll();
-      final boolean keptInterrupt = restoredInterrupt.get();
-      assertEquals("end of media", terminal);
-      assertTrue(keptInterrupt, "the producer keeps the interrupt after delivering its terminal marker");
-    } finally {
-      session.stop();
-      producer.interrupt();
-      queue.clear();
-      producer.join(2_000L);
     }
   }
 }

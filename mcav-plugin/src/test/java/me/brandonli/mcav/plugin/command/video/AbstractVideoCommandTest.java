@@ -40,7 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,9 +49,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.json.GsonProvider;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy;
 import me.brandonli.mcav.json.ytdlp.strategy.StrategySelector;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
@@ -68,7 +70,7 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.device.DeviceSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSource;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSource;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -132,10 +134,10 @@ final class AbstractVideoCommandTest {
   private AudioAttachableCallback audioCallback;
   private DimensionAttachableCallback dimensionCallback;
   private Hologram hologram;
-  private YTDLPParser parser;
+  private YtdlpParser parser;
   private MockedStatic<VideoPlayer> videoPlayers;
   private MockedStatic<Hologram> holograms;
-  private MockedStatic<YTDLPParser> parsers;
+  private MockedStatic<YtdlpParser> parsers;
 
   /**
    * A command whose video output is a mocked filter and that remembers what it was asked to create.
@@ -216,9 +218,9 @@ final class AbstractVideoCommandTest {
     this.hologram = mock(Hologram.class);
     this.holograms = Mockito.mockStatic(Hologram.class);
     this.holograms.when(Hologram::basic).thenReturn(this.hologram);
-    this.parser = mock(YTDLPParser.class);
-    this.parsers = Mockito.mockStatic(YTDLPParser.class);
-    this.parsers.when(YTDLPParser::simple).thenReturn(this.parser);
+    this.parser = mock(YtdlpParser.class);
+    this.parsers = Mockito.mockStatic(YtdlpParser.class);
+    this.parsers.when(YtdlpParser::simple).thenReturn(this.parser);
   }
 
   @AfterEach
@@ -256,8 +258,8 @@ final class AbstractVideoCommandTest {
     assertFalse(starting);
   }
 
-  private URLParseDump verifyPlayedWithDump(final AudioArgument audioType) {
-    final ArgumentCaptor<URLParseDump> dumps = ArgumentCaptor.forClass(URLParseDump.class);
+  private UrlParseDump verifyPlayedWithDump(final AudioArgument audioType) {
+    final ArgumentCaptor<UrlParseDump> dumps = ArgumentCaptor.forClass(UrlParseDump.class);
     final Object[] viewers = { this.viewer };
     verify(this.provider).constructFilter(eq(audioType), dumps.capture(), aryEq(viewers));
     return dumps.getValue();
@@ -277,7 +279,8 @@ final class AbstractVideoCommandTest {
     verify(this.audioCallback).attach(audioSteps.capture());
     final AudioPipelineStep audioStep = audioSteps.getValue();
     assertSame(this.volume, audioStep.getFilter(), "the volume comes before the output");
-    final AudioPipelineStep output = Objects.requireNonNull(audioStep.next());
+    final Optional<AudioPipelineStep> next = audioStep.next();
+    final AudioPipelineStep output = next.orElseThrow();
     final AudioFilter audioFilter = output.getFilter();
     assertSame(AudioFilter.NO_OP, audioFilter);
     final Dimension dimension = new Dimension(640, 360);
@@ -295,7 +298,7 @@ final class AbstractVideoCommandTest {
     assertEquals("configuration", configuration);
   }
 
-  private static StrategySelector mockStrategies(final URLParseDump resolved, final UriSource videoSource, final UriSource audioSource) {
+  private static StrategySelector mockStrategies(final UrlParseDump resolved, final UriSource videoSource, final UriSource audioSource) {
     final Format video = mock(Format.class);
     final Format audio = mock(Format.class);
     when(video.toUriSource()).thenReturn(videoSource);
@@ -335,9 +338,9 @@ final class AbstractVideoCommandTest {
     final Component loading = Message.LOAD_VIDEO.build();
     verify(this.viewer).sendMessage(loading);
     verify(this.manager).clearCurrentVideo();
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("clip.mp4", dump.title);
-    assertEquals("Video from a file", dump.description);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    assertEquals(Optional.of("clip.mp4"), dump.getTitle());
+    assertEquals(Optional.of("Video from a file"), dump.getDescription());
     this.assertOutputsAttached();
     final Source source = this.verifyStartedWithOneSource();
     final FileSource fileSource = assertInstanceOf(FileSource.class, source);
@@ -359,7 +362,7 @@ final class AbstractVideoCommandTest {
 
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, mrl, "");
 
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
     final InOrder order = inOrder(this.hologram, this.manager);
     order.verify(this.manager).setHologram(this.hologram);
     order.verify(this.hologram).handleRequest(location, dump);
@@ -385,11 +388,11 @@ final class AbstractVideoCommandTest {
     when(this.sender.hasPermission(CaptureDevices.PERMISSION)).thenReturn(true);
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, "dshow||video=Camera", "");
 
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("video=Camera", dump.title);
-    assertEquals("FFmpeg input dshow", dump.description);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    assertEquals(Optional.of("video=Camera"), dump.getTitle());
+    assertEquals(Optional.of("FFmpeg input dshow"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
-    final FFmpegDirectSource input = assertInstanceOf(FFmpegDirectSource.class, source);
+    final FfmpegDirectSource input = assertInstanceOf(FfmpegDirectSource.class, source);
     final String format = input.getFormat();
     assertEquals("dshow", format);
   }
@@ -434,9 +437,12 @@ final class AbstractVideoCommandTest {
     verify(this.videoCallback).attach(steps.capture());
     final VideoPipelineStep first = steps.getValue();
     assertInstanceOf(GrayscaleFilter.class, first.getFilter());
-    final VideoPipelineStep second = Objects.requireNonNull(first.next());
+    final Optional<VideoPipelineStep> afterFirst = first.next();
+    final VideoPipelineStep second = afterFirst.orElseThrow();
     assertInstanceOf(InvertFilter.class, second.getFilter());
-    assertSame(this.command.pipeline, second.next());
+    final Optional<VideoPipelineStep> afterSecond = second.next();
+    final Optional<VideoPipelineStep> expectedOutput = Optional.of(this.command.pipeline);
+    assertEquals(expectedOutput, afterSecond);
   }
 
   @Test
@@ -473,9 +479,9 @@ final class AbstractVideoCommandTest {
     when(this.manager.getDevices()).thenReturn(List.of(new CaptureDevices.Device(2, "camera")));
     this.play(PlayerArgument.DEVICE, AudioArgument.NONE, "2", "");
 
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("Device 2", dump.title);
-    assertEquals("Video from a capture device", dump.description);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    assertEquals(Optional.of("Device 2"), dump.getTitle());
+    assertEquals(Optional.of("Video from a capture device"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
     final DeviceSource device = assertInstanceOf(DeviceSource.class, source);
     final int deviceId = device.getDeviceId();
@@ -501,9 +507,9 @@ final class AbstractVideoCommandTest {
   void playsAUrlOfAMediaFileWithoutYtdlp() {
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, "https://example.com/videos/clip.webm", "");
 
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
-    assertEquals("clip.webm", dump.title);
-    assertEquals("Video from a URL", dump.description);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    assertEquals(Optional.of("clip.webm"), dump.getTitle());
+    assertEquals(Optional.of("Video from a URL"), dump.getDescription());
     final Source source = this.verifyStartedWithOneSource();
     final UriSource uri = assertInstanceOf(UriSource.class, source);
     final URI played = uri.getUri();
@@ -514,8 +520,7 @@ final class AbstractVideoCommandTest {
 
   @Test
   void resolvesWebPagesWithYtdlpAndPlaysTheirStreams() throws IOException {
-    final URLParseDump resolved = new URLParseDump();
-    resolved.title = "A video";
+    final UrlParseDump resolved = UrlParseDump.of("A video");
     when(this.parser.parse(any(UriSource.class), eq("--format"), eq("best"))).thenReturn(resolved);
     final URI videoStream = URI.create("https://cdn.example.com/video");
     final URI audioStream = URI.create("https://cdn.example.com/audio");
@@ -531,7 +536,7 @@ final class AbstractVideoCommandTest {
     }
 
     this.assertResolvedTheWebPage();
-    final URLParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
+    final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
     assertSame(resolved, dump);
     this.assertStartedWithStreams(videoStreamSource, audioStreamSource);
     final Component started = Message.START_VIDEO.build();
@@ -546,7 +551,7 @@ final class AbstractVideoCommandTest {
     "tcp://127.0.0.1:25575, https://cdn.example.com/audio",
   })
   void refusesStreamsOfAWebPageThatAreNotOnTheWeb(final String videoStream, final String audioStream) throws IOException {
-    final URLParseDump resolved = new URLParseDump();
+    final UrlParseDump resolved = GsonProvider.getSimple().fromJson("{}", UrlParseDump.class);
     when(this.parser.parse(any(UriSource.class))).thenReturn(resolved);
     final UriSource videoStreamSource = UriSource.uri(URI.create(videoStream));
     final UriSource audioStreamSource = UriSource.uri(URI.create(audioStream));
@@ -567,8 +572,8 @@ final class AbstractVideoCommandTest {
   }
 
   @Test
-  void reportsWebPagesThatYtdlpCannotResolve() throws IOException {
-    when(this.parser.parse(any(UriSource.class))).thenThrow(new IOException("offline"));
+  void reportsWebPagesThatYtdlpCannotResolve() {
+    when(this.parser.parse(any(UriSource.class))).thenThrow(new InstallationException("offline"));
 
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, WEB_PAGE, "");
 

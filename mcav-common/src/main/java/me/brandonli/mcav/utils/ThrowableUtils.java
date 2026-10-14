@@ -22,11 +22,15 @@ import com.google.common.base.Preconditions;
 /**
  * Helpers for code that catches failures at a thread boundary, such as a render thread that runs user filters, and
  * must keep running after a failure without hiding the failures that no code can recover from.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ThrowableUtils {
 
   private ThrowableUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -39,9 +43,11 @@ public final class ThrowableUtils {
    * @param failure the caught failure
    * @throws VirtualMachineError  the failure itself, if it is a {@link VirtualMachineError}
    * @throws NullPointerException if the failure is null
+   * @since 1.0.0
    */
   public static void throwIfFatal(final Throwable failure) {
-    Preconditions.checkNotNull(failure, "Failure must not be null");
+    Preconditions.checkNotNull(failure, "Failure must not be null!");
+
     if (failure instanceof final VirtualMachineError fatal) {
       throw fatal;
     }

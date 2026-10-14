@@ -22,17 +22,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DeviceSource}, {@link DeviceSourceImpl} and {@link DeviceSourceDetector}.
- */
 final class DeviceSourceTest {
 
   @Test
-  void describesTheDevice() {
+  void shouldDescribeTheDevice() {
     final DeviceSource source = DeviceSource.device(3);
     final int deviceId = source.getDeviceId();
     final String resource = source.getResource();
@@ -45,11 +43,11 @@ final class DeviceSourceTest {
     assertEquals("device", name);
     assertFalse(isStatic);
     assertTrue(isDynamic);
-    assertEquals("DeviceSource[3]", text);
+    assertEquals("DefaultDeviceSource{deviceId=3}", text);
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final DeviceSource source = DeviceSource.device(1);
     final DeviceSource equalSource = DeviceSource.device(1);
     final DeviceSource otherSource = DeviceSource.device(2);
@@ -57,12 +55,21 @@ final class DeviceSourceTest {
   }
 
   @Test
-  void rejectsNegativeIndices() {
+  void shouldHashTheDeviceIndex() {
+    final DeviceSource source = DeviceSource.device(7);
+
+    final int hash = source.hashCode();
+    final int expected = Objects.hash(7);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldRejectNegativeIndices() {
     assertThrows(IllegalArgumentException.class, () -> DeviceSource.device(-1));
   }
 
   @Test
-  void detectsNonNegativeIntegers() {
+  void shouldDetectNonNegativeIntegers() {
     final DeviceSourceDetector detector = new DeviceSourceDetector();
     final boolean zero = detector.isDetectedSource("0");
     final boolean negative = detector.isDetectedSource("-1");
@@ -78,7 +85,7 @@ final class DeviceSourceTest {
   }
 
   @Test
-  void detectorRejectsNullInput() {
+  void shouldRejectNullInputInTheDetector() {
     final DeviceSourceDetector detector = new DeviceSourceDetector();
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));
     assertThrows(NullPointerException.class, () -> detector.createSource(null));

@@ -32,26 +32,23 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.ThresholdMatrix;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.XoroshiroRandomProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the dithering algorithms through the ways the library lets a developer shape one: an error diffusion kernel
- * of their own, a threshold matrix of their own with any level count and strength, a random weight and seed, and the
- * thresholds of temporal dithering. A constructor may refuse what it documents with an
- * {@link IllegalArgumentException}; an algorithm it accepted must dither any image into the palette, with every index
- * naming the color written in place.
- */
+// Fuzzes the dithering algorithms through the ways the library lets a developer shape one: an error diffusion kernel of
+// their own, a threshold matrix of their own with any level count and strength, a random weight and seed, and the
+// thresholds of temporal dithering. A constructor may refuse what it documents with an IllegalArgumentException; an
+// algorithm it accepted must dither any image into the palette, with every index naming the color written in place.
 @Tag("fuzz")
 final class DitherFuzzTest {
 
   private static final DitherPalette PALETTE = DitherPalette.EIGHT_BIT_PALETTE;
-  private static final int MAX_SIDE = 24;
+  private static final int MAXIMUM_SIDE = 24;
 
   @FuzzTest(maxDuration = "30s")
-  void everyAcceptedAlgorithmDithersIntoThePalette(final FuzzedDataProvider data) {
+  void shouldDitherIntoThePaletteWithEveryAcceptedAlgorithm(final FuzzedDataProvider data) {
     final int kind = data.consumeInt(0, 3);
     final DitherAlgorithm forColors;
     final DitherAlgorithm forIndices;
@@ -60,11 +57,12 @@ final class DitherFuzzTest {
       final AlgorithmRecipe recipe = new AlgorithmRecipe(kind, data);
       forColors = recipe.create(seed);
       forIndices = recipe.create(seed);
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       return;
     }
-    final int width = data.consumeInt(1, MAX_SIDE);
-    final int height = data.consumeInt(1, MAX_SIDE);
+
+    final int width = data.consumeInt(1, MAXIMUM_SIDE);
+    final int height = data.consumeInt(1, MAXIMUM_SIDE);
     final int[] image = new int[width * height];
     for (int pixel = 0; pixel < image.length; pixel++) {
       image[pixel] = data.consumeInt();
@@ -79,17 +77,16 @@ final class DitherFuzzTest {
     final int reserved = PALETTE.getReservedIndices();
     final int size = PALETTE.getSize();
     assertEquals(image.length, indices.length, "one index per pixel");
+
     for (int pixel = 0; pixel < image.length; pixel++) {
       final int index = indices[pixel] & 0xFF;
       final boolean usable = index >= reserved && index < size;
       assertTrue(usable, "an index outside of the palette");
-      assertEquals(palette[index], colors[pixel], "the index names the color written in place");
+      final int writtenColor = colors[pixel];
+      assertEquals(palette[index], writtenColor, "the index names the color written in place");
     }
   }
 
-  /**
-   * An image buffer that only holds pixels, which is all the algorithms read.
-   */
   private static ImageBuffer createBuffer(final int[] pixels, final int width, final int height) {
     final ClassLoader loader = ImageBuffer.class.getClassLoader();
     final Class<?>[] interfaces = { ImageBuffer.class };
@@ -104,9 +101,7 @@ final class DitherFuzzTest {
     return (ImageBuffer) Proxy.newProxyInstance(loader, interfaces, handler);
   }
 
-  /**
-   * The parts of an algorithm, read from the fuzzer's data once, so that two identical algorithms can be created.
-   */
+  // The parts of an algorithm, read from the fuzzer's data once, so that two identical algorithms can be created.
   private static final class AlgorithmRecipe {
 
     private final int kind;
@@ -128,6 +123,7 @@ final class DitherFuzzTest {
         tap[1] = data.consumeInt();
         tap[2] = data.consumeInt();
       }
+
       this.divisor = data.consumeInt();
       final int rows = data.consumeInt(1, 8);
       final int columns = data.consumeInt(1, 8);
@@ -137,6 +133,7 @@ final class DitherFuzzTest {
           row[column] = data.consumeInt();
         }
       }
+
       this.levels = data.consumeInt();
       this.strength = data.consumeFloat();
       this.weight = data.consumeInt(-8, 300);
@@ -157,7 +154,7 @@ final class DitherFuzzTest {
         }
         case 2 -> {
           final XoroshiroRandomProvider random = new XoroshiroRandomProvider(seed);
-          yield new RandomDitherImpl(PALETTE, this.weight, random);
+          yield new UniformNoiseDither(PALETTE, this.weight, random);
         }
         default -> new TemporalFloydSteinbergDither(PALETTE, this.temporalThreshold, this.errorThreshold, this.strength);
       };

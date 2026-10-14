@@ -25,6 +25,10 @@ import org.bytedeco.opencv.opencv_core.Rect;
 /**
  * Draws a fixed image on top of every frame at a fixed position. Parts of the image that extend past the edge of
  * the frame are cut off. The image is copied when the filter is created, so it may be released afterward.
+ *
+ * <p>This class is thread-safe, because it only reads the matrix it holds.
+ *
+ * @since 1.0.0
  */
 public class OverlayImageFilter extends MatVideoFilter {
 
@@ -39,12 +43,14 @@ public class OverlayImageFilter extends MatVideoFilter {
    * @param left    the x coordinate of the top left corner of the image inside the frame
    * @param top     the y coordinate of the top left corner of the image inside the frame
    * @throws IllegalArgumentException if {@code left} or {@code top} is negative
-   * @throws IllegalStateException if {@code overlay} has been released
-   * @throws NullPointerException if {@code overlay} is null
+   * @throws IllegalStateException    if {@code overlay} has been released
+   * @throws NullPointerException     if {@code overlay} is null
+   * @since 1.0.0
    */
   public OverlayImageFilter(final ImageBuffer overlay, final int left, final int top) {
-    Preconditions.checkNotNull(overlay, "Overlay must not be null");
-    Preconditions.checkArgument(left >= 0 && top >= 0, "Overlay position must not be negative");
+    Preconditions.checkNotNull(overlay, "Overlay must not be null!");
+    Preconditions.checkArgument(left >= 0 && top >= 0, "Overlay position must not be negative!");
+
     this.overlay = copyToMat(overlay);
     this.left = left;
     this.top = top;
@@ -56,6 +62,7 @@ public class OverlayImageFilter extends MatVideoFilter {
    * @param mat the 8-bit BGR matrix of the frame
    * @return true if part of the image was drawn, false if the position lies outside of the frame and the frame was
    *     left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -68,6 +75,7 @@ public class OverlayImageFilter extends MatVideoFilter {
     if (width <= 0 || height <= 0) {
       return false;
     }
+
     try (
       final Rect targetRect = new Rect(this.left, this.top, width, height);
       final Rect sourceRect = new Rect(0, 0, width, height);
@@ -76,6 +84,7 @@ public class OverlayImageFilter extends MatVideoFilter {
     ) {
       source.copyTo(target);
     }
+
     return true;
   }
 }

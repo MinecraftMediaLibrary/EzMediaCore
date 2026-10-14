@@ -1,0 +1,248 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package me.brandonli.mcav.capability.installer.ytdlp;
+
+import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
+import me.brandonli.mcav.capability.installer.AbstractInstaller;
+import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.ZipEntryIntegrityException;
+import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Bits;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.Platform;
+
+/**
+ * Installs <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, which the library uses to resolve stream URLs
+ * of websites such as YouTube. The download links are read from the {@code mcav/common/installers/yt-dlp.json} resource, which
+ * pins one release of yt-dlp and the SHA-256 hash of every file, so a download that does not match is rejected.
+ *
+ * <p>yt-dlp ships most platforms as one standalone executable, which is used as downloaded. 32-bit ARM Linux is only
+ * shipped as a zip of the executable and the libraries it loads; a zip download is unpacked into the
+ * {@code yt-dlp-unpacked} folder of the installation folder, whose top level must hold the executable under the name
+ * of the zip without {@code .zip}, as {@code yt-dlp_linux_armv7l.zip} holds {@code yt-dlp_linux_armv7l}.
+ *
+ * <p>For a custom download list without an exact match, 64-bit ARM Windows and macOS also consider the 64-bit
+ * x86 build of the same operating system; using that candidate requires working x86 emulation on the host.
+ * The bundled list already names a native build for these platforms, including a universal macOS build.
+ *
+ * <p>Use {@link #shared()} inside the library, so every user of yt-dlp goes through one installer and the program is
+ * downloaded at most once, even when several threads need it at the same time.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
+ */
+public final class YtdlpInstaller extends AbstractInstaller {
+
+  private static final String NAME = "yt-dlp";
+  private static final String DOWNLOADS_RESOURCE = "mcav/common/installers/yt-dlp.json";
+  private static final Download[] DOWNLOADS = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
+  private static final String ZIP_SUFFIX = ".zip";
+  private static final String UNPACKED_FOLDER = "yt-dlp-unpacked";
+  private static final String UNPACKING_FOLDER = "yt-dlp-unpacking";
+
+  YtdlpInstaller(final Path folder, final Download[] downloads) {
+    super(folder, NAME, downloads);
+  }
+
+  private YtdlpInstaller(final Path folder) {
+    this(folder, DOWNLOADS);
+  }
+
+  private YtdlpInstaller() {
+    super(NAME, DOWNLOADS);
+  }
+
+  /**
+   * Creates an installer that installs yt-dlp into the specified folder.
+   *
+   * @param folder the folder to install into
+   * @return the installer
+   * @throws NullPointerException if {@code folder} is null
+   * @since 1.0.0
+   */
+  public static YtdlpInstaller create(final Path folder) {
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
+
+    return new YtdlpInstaller(folder);
+  }
+
+  /**
+   * Creates an installer that installs yt-dlp into the cache folder of the library, {@code ~/.mcav/cache}.
+   *
+   * @return the installer
+   * @throws FileOperationException if the default cache folder cannot be created
+   * @since 1.0.0
+   */
+  public static YtdlpInstaller create() {
+    return new YtdlpInstaller();
+  }
+
+  /**
+   * Returns the installer of the cache folder that the whole library shares. Concurrent downloads through one installer
+   * are serialized, so yt-dlp is downloaded at most once.
+   *
+   * @return the shared installer, which installs into {@code ~/.mcav/cache}
+   * @since 1.0.0
+   */
+  public static YtdlpInstaller shared() {
+    return SharedInstaller.INSTANCE;
+  }
+
+  /**
+   * Checks whether the download of the current platform is a zip archive that has to be unpacked, rather than a
+   * standalone executable.
+   *
+   * @return true if the file name of the download of the current platform ends in {@code .zip}, false for a
+   *     standalone executable or an unsupported platform
+   * @since 1.0.0
+   */
+  @Override
+  public boolean isArchive() {
+    final String url = this.getUrl();
+    final String fileName = IoUtils.getFileNameFromUrl(url);
+    final String lowerCaseFileName = fileName.toLowerCase(Locale.ROOT);
+    return lowerCaseFileName.endsWith(ZIP_SUFFIX);
+  }
+
+  // Returns the path of the yt-dlp executable. A standalone executable lies in the installation folder; the executable
+  // of a zip lies in the yt-dlp-unpacked folder, named like the zip without .zip.
+  @Override
+  protected Path getDefaultPath() {
+    final boolean isArchive = this.isArchive();
+    if (!isArchive) {
+      return super.getDefaultPath();
+    }
+
+    final Path unpackedFolder = this.getUnpackedFolder();
+    final String executableName = this.getArchiveExecutableName();
+    return unpackedFolder.resolve(executableName);
+  }
+
+  // Installs the download. A standalone executable is used as downloaded. A zip is unpacked into a temporary folder
+  // first, which then replaces the yt-dlp-unpacked folder, so a failed installation never leaves a half-unpacked yt-dlp
+  // behind; the zip is deleted once it has been unpacked. Replacing the unpacked folder is not atomic: the previous
+  // installation is deleted before the new one is moved into place, so a crash in between leaves no installation at
+  // all. The next start simply downloads yt-dlp again.
+  @Override
+  protected Path install(final Path downloaded) {
+    final boolean isArchive = this.isArchive();
+    if (!isArchive) {
+      return downloaded;
+    }
+
+    final Path folder = this.getFolder();
+    final Path unpacking = folder.resolve(UNPACKING_FOLDER);
+    final Path unpacked = this.getUnpackedFolder();
+    IoUtils.deleteRecursively(unpacking);
+    try {
+      this.unpack(downloaded, unpacking);
+      IoUtils.deleteRecursively(unpacked);
+      IoUtils.moveReplacing(unpacking, unpacked);
+    } finally {
+      IoUtils.deleteRecursively(unpacking);
+    }
+
+    deleteDownload(downloaded);
+    return this.getDefaultPath();
+  }
+
+  private static void deleteDownload(final Path downloaded) {
+    try {
+      Files.deleteIfExists(downloaded);
+    } catch (final IOException exception) {
+      final String message = "Downloaded zip %s could not be deleted!".formatted(downloaded);
+      throw new FileOperationException(message, exception);
+    }
+  }
+
+  private void unpack(final Path archive, final Path destination) {
+    extract(archive, destination);
+    final String executableName = this.getArchiveExecutableName();
+    final Path executable = destination.resolve(executableName);
+    final boolean present = Files.isRegularFile(executable, LinkOption.NOFOLLOW_LINKS);
+    if (!present) {
+      final String message = "The yt-dlp zip does not contain %s at its top level!".formatted(executableName);
+      throw new InstallationException(message);
+    }
+
+    markExecutable(executable);
+  }
+
+  // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as a FileOperationException for an archive
+  // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
+  // fail with an InstallationException like every other installation failure.
+  private static void extract(final Path archive, final Path destination) {
+    try {
+      IoUtils.unzip(archive, destination);
+    } catch (final FileOperationException | ZipEntryIntegrityException exception) {
+      final String reason = exception.getMessage();
+      final String message = "Failed with \"%s\" while extracting the yt-dlp zip!".formatted(reason);
+      throw new InstallationException(message, exception);
+    }
+  }
+
+  private Path getUnpackedFolder() {
+    final Path folder = this.getFolder();
+    return folder.resolve(UNPACKED_FOLDER);
+  }
+
+  private String getArchiveExecutableName() {
+    final String url = this.getUrl();
+    final String fileName = IoUtils.getFileNameFromUrl(url);
+    final int suffixStart = fileName.length() - ZIP_SUFFIX.length();
+    final String executableName = fileName.substring(0, suffixStart);
+    final boolean nameless = executableName.isEmpty();
+    return nameless ? NAME : executableName;
+  }
+
+  // Returns fallback download candidates when no exact build is listed. 64-bit ARM Windows and macOS consider their
+  // corresponding 64-bit x86 build; this method does not verify that host emulation is installed. Other platforms
+  // receive no fallback candidates.
+  @Override
+  protected List<Platform> getFallbackPlatforms(final Platform platform) {
+    final Os operatingSystem = platform.getOs();
+    final Arch architecture = platform.getArch();
+    final Bits bits = platform.getBits();
+    final boolean arm64 = architecture == Arch.ARM && bits == Bits.BITS_64;
+    if (!arm64) {
+      return List.of();
+    }
+
+    if (operatingSystem == Os.WINDOWS || operatingSystem == Os.MAC) {
+      final Platform x86 = Platform.ofPlatform(operatingSystem, Arch.X86, Bits.BITS_64);
+      return List.of(x86);
+    }
+
+    return List.of();
+  }
+
+  private static final class SharedInstaller {
+
+    private static final YtdlpInstaller INSTANCE = new YtdlpInstaller();
+  }
+}

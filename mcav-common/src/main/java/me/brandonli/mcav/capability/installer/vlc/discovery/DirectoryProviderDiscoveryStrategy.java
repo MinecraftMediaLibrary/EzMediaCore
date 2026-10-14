@@ -55,22 +55,31 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
  * directly, such as the configured native directory, {@code jna.library.path}, {@code PATH} and the VLC installation
  * directory on Windows, are only checked themselves, and the well-known system library directories are searched one
  * level deep. A directory is searched again only when a provider allows a deeper search of it than before, which
- * also ends symbolic link loops, and one discovery looks into at most {@value #MAX_VISITED_DIRECTORIES} directories.
+ * also ends symbolic link loops, and one discovery looks into at most {@value #MAXIMUM_VISITED_DIRECTORIES} directories.
  *
  * <p>Subclasses describe the platform: the file name patterns of the libraries, where the plugins live relative to
  * them, and how the plugin path is published to libvlc.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
+ *
+ * @since 1.0.0
  */
 public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscoveryStrategy {
 
   /**
    * The largest number of directories one discovery looks into before it gives up.
+   *
+   * @since 1.0.0
    */
-  public static final int MAX_VISITED_DIRECTORIES = 1_024;
+  public static final int MAXIMUM_VISITED_DIRECTORIES = 1_024;
 
   /**
    * The environment variable libvlc reads its plugin directory from.
+   *
+   * @since 1.0.0
    */
-  protected static final String PLUGIN_ENV_NAME = "VLC_PLUGIN_PATH";
+  protected static final String PLUGIN_ENVIRONMENT_NAME = "VLC_PLUGIN_PATH";
 
   private static final int DIRECT_DEPTH = 0;
   private static final int WELL_KNOWN_DEPTH = 1;
@@ -78,7 +87,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   private static final Comparator<SearchProvider> HIGHEST_PRIORITY_FIRST = BY_PRIORITY.reversed();
 
   private final Pattern[] filenamePatterns;
-  private final String[] pluginPathFormats;
+  private final List<Path> pluginDirectories;
   private final List<SearchProvider> searchProviders;
   private final EnvironmentSetter environmentSetter;
 
@@ -87,44 +96,37 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    *
    * @param filenamePatterns  a non-null, nonempty array of non-null regular expressions; each must match a
    *                          library file name; expressions are compiled during construction
-   * @param pluginPathFormats a non-null array of non-null format strings, each with a {@code %s} for the library
-   *                          directory, copied and tried in order; an empty array publishes no plugin path
+   * @param pluginDirectories the plugin directories relative to the library directory, such as {@code plugins},
+   *                          copied and tried in order; an empty list publishes no plugin path
    * @param environmentSetter sets the environment variable that tells libvlc where its plugins are
-   * @throws NullPointerException if an array, filename expression or the environment setter is null
-   * @throws IllegalArgumentException if no filename pattern is supplied
+   * @throws NullPointerException                   if an argument, a filename expression or a plugin directory is null
+   * @throws IllegalArgumentException               if no filename pattern is supplied
    * @throws java.util.regex.PatternSyntaxException if a filename expression is not a valid regular expression
+   * @since 1.0.0
    */
   protected DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
-    final String[] pluginPathFormats,
+    final List<Path> pluginDirectories,
     final EnvironmentSetter environmentSetter
   ) {
     final List<SearchProvider> searchProviders = createSearchProviders();
-    this(filenamePatterns, pluginPathFormats, searchProviders, environmentSetter);
+    this(filenamePatterns, pluginDirectories, searchProviders, environmentSetter);
   }
 
-  /**
-   * Constructs a new strategy that searches the directories of the specified providers.
-   *
-   * @param filenamePatterns  the regular expressions every one of which must match a file in the library directory
-   * @param pluginPathFormats the formats of the plugin directory, each with a {@code %s} for the library directory,
-   *                          tried in order
-   * @param searchProviders   the providers of the directories to search, with their search depths
-   * @param environmentSetter sets the environment variable that tells libvlc where its plugins are
-   */
   DirectoryProviderDiscoveryStrategy(
     final String[] filenamePatterns,
-    final String[] pluginPathFormats,
+    final List<Path> pluginDirectories,
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter
   ) {
-    Preconditions.checkNotNull(filenamePatterns, "Filename patterns must not be null");
-    Preconditions.checkNotNull(pluginPathFormats, "Plugin path formats must not be null");
-    Preconditions.checkNotNull(searchProviders, "Search providers must not be null");
-    Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null");
-    Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required");
+    Preconditions.checkNotNull(filenamePatterns, "Filename patterns must not be null!");
+    Preconditions.checkNotNull(pluginDirectories, "Plugin directories must not be null!");
+    Preconditions.checkNotNull(searchProviders, "Search providers must not be null!");
+    Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null!");
+    Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required!");
+
     this.filenamePatterns = compilePatterns(filenamePatterns);
-    this.pluginPathFormats = pluginPathFormats.clone();
+    this.pluginDirectories = List.copyOf(pluginDirectories);
     this.searchProviders = List.copyOf(searchProviders);
     this.environmentSetter = environmentSetter;
   }
@@ -135,13 +137,14 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       final String expression = expressions[patternIndex];
       patterns[patternIndex] = Pattern.compile(expression);
     }
+
     return patterns;
   }
 
   private static List<SearchProvider> createSearchProviders() {
     final List<SearchProvider> providers = new ArrayList<>();
-    final DiscoveryDirectoryProvider configDirectory = new ConfigDirConfigFileDiscoveryDirectoryProvider();
-    addSearchProvider(providers, configDirectory, DIRECT_DEPTH);
+    final DiscoveryDirectoryProvider configurationDirectory = new ConfigDirConfigFileDiscoveryDirectoryProvider();
+    addSearchProvider(providers, configurationDirectory, DIRECT_DEPTH);
     final DiscoveryDirectoryProvider jnaLibraryPath = new JnaLibraryPathDirectoryProvider();
     addSearchProvider(providers, jnaLibraryPath, DIRECT_DEPTH);
     final DiscoveryDirectoryProvider linuxWellKnown = new LinuxWellKnownDirectoryProvider();
@@ -162,9 +165,9 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   private static void addSearchProvider(
     final List<SearchProvider> providers,
     final DiscoveryDirectoryProvider directoryProvider,
-    final int maxDepth
+    final int maximumDepth
   ) {
-    final SearchProvider searchProvider = new SearchProvider(directoryProvider, maxDepth);
+    final SearchProvider searchProvider = new SearchProvider(directoryProvider, maximumDepth);
     providers.add(searchProvider);
   }
 
@@ -172,6 +175,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * Searches the provided directories, highest priority first, for a directory that contains all the libraries.
    *
    * @return the absolute path of the first directory that contains all the libraries, or {@code null} if none does
+   * @since 1.0.0
    */
   @Override
   public final @Nullable String discover() {
@@ -183,14 +187,16 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return found.getAbsolutePath();
       }
     }
+
     return null;
   }
 
   /**
-   * Gets the directories that are searched, in order, without searching them.
+   * Returns the directories that are searched, in order, without searching them.
    *
    * @return a new mutable list of directory names from supported providers, highest priority first;
    *         modifying it does not change the strategy
+   * @since 1.0.0
    */
   public final List<String> discoveryDirectories() {
     final List<SearchProvider> providers = this.getSupportedProviders();
@@ -201,35 +207,37 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       final List<String> providedList = List.of(provided);
       directories.addAll(providedList);
     }
+
     return directories;
   }
 
   private @Nullable File searchProvider(final SearchProvider provider, final Map<Path, Integer> searchedDepths) {
     final DiscoveryDirectoryProvider directoryProvider = provider.getDirectoryProvider();
     final String[] directories = directoryProvider.directories();
-    final int maxDepth = provider.getMaxDepth();
+    final int maximumDepth = provider.getMaximumDepth();
     for (final String directory : directories) {
       if (directory == null || directory.isBlank()) {
         continue;
       }
       final File root = new File(directory);
-      final File found = this.searchTree(root, maxDepth, searchedDepths);
+      final File found = this.searchTree(root, maximumDepth, searchedDepths);
       if (found != null) {
         return found;
       }
     }
+
     return null;
   }
 
-  private @Nullable File searchTree(final File root, final int maxDepth, final Map<Path, Integer> searchedDepths) {
+  private @Nullable File searchTree(final File root, final int maximumDepth, final Map<Path, Integer> searchedDepths) {
     final Deque<SearchEntry> pending = new ArrayDeque<>();
     final SearchEntry rootEntry = new SearchEntry(root, 0);
     pending.add(rootEntry);
-    while (!pending.isEmpty() && searchedDepths.size() < MAX_VISITED_DIRECTORIES) {
+    while (!pending.isEmpty() && searchedDepths.size() < MAXIMUM_VISITED_DIRECTORIES) {
       final SearchEntry entry = pending.removeFirst();
       final File directory = entry.getDirectory();
       final int depth = entry.getDepth();
-      final int remainingDepth = maxDepth - depth;
+      final int remainingDepth = maximumDepth - depth;
       final File[] children = listUnsearched(directory, remainingDepth, searchedDepths);
       if (children == null) {
         continue;
@@ -241,23 +249,21 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         enqueueSubdirectories(children, depth + 1, pending);
       }
     }
+
     return null;
   }
 
-  /**
-   * Lists a directory unless it was already searched at least as deep as requested now.
-   *
-   * @return the children of the directory, or {@code null} if it is not a readable directory or needs no search
-   */
   private static File @Nullable [] listUnsearched(final File directory, final int remainingDepth, final Map<Path, Integer> searchedDepths) {
     final Path realPath = toRealDirectory(directory);
     if (realPath == null) {
       return null;
     }
+
     final Integer searchedDepth = searchedDepths.get(realPath);
     if (searchedDepth != null && searchedDepth >= remainingDepth) {
       return null;
     }
+
     searchedDepths.put(realPath, remainingDepth);
     return directory.listFiles();
   }
@@ -294,6 +300,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         matchCount++;
       }
     }
+
     return matchCount == patternCount;
   }
 
@@ -309,17 +316,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return patternIndex;
       }
     }
-    return -1;
-  }
 
-  /**
-   * Gets the providers this strategy searches, in the order they were created, before any of them is filtered out for
-   * being unsupported on this machine. Visible for testing.
-   *
-   * @return the providers of the strategy
-   */
-  List<SearchProvider> getSearchProviders() {
-    return this.searchProviders;
+    return -1;
   }
 
   private List<SearchProvider> getSupportedProviders() {
@@ -331,6 +329,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         result.add(provider);
       }
     }
+
     result.sort(HIGHEST_PRIORITY_FIRST);
     return result;
   }
@@ -341,38 +340,54 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
    * @param path the directory that contains the libraries
    * @return {@code true} to let vlcj add the directory to the JNA search path
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public boolean onFound(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
+
     return true;
   }
 
   /**
-   * Publishes the plugin directory that belongs to the found library directory, using the first plugin path format
-   * that names an existing directory.
+   * Publishes the plugin directory that belongs to the found library directory, using the first configured plugin
+   * directory that exists below it.
    *
    * @param path the directory that contains the libraries
    * @return {@code true} if a plugin directory exists and was published
-   * @throws java.util.IllegalFormatException if a configured plugin path format cannot accept a directory string
+   * @throws InvalidPathException if {@code path} is not a valid path on this file system
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public final boolean onSetPluginPath(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
-    for (final String pathFormat : this.pluginPathFormats) {
-      final String pluginPath = pathFormat.formatted(path);
-      final File pluginDirectory = new File(pluginPath);
-      final boolean exists = pluginDirectory.isDirectory();
+    Preconditions.checkNotNull(path, "Path must not be null!");
+
+    final Path libraryDirectory = Path.of(path);
+    for (final Path relativeDirectory : this.pluginDirectories) {
+      final Path pluginDirectory = libraryDirectory.resolve(relativeDirectory);
+      final boolean exists = Files.isDirectory(pluginDirectory);
       if (exists) {
-        return this.environmentSetter.set(PLUGIN_ENV_NAME, pluginPath);
+        final String pluginPath = pluginDirectory.toString();
+        return this.environmentSetter.set(PLUGIN_ENVIRONMENT_NAME, pluginPath);
       }
     }
+
     return false;
+  }
+
+  // Returns the providers this strategy searches, in the order they were created, before any of them is filtered out
+  // for being unsupported on this machine. Visible for testing.
+  List<SearchProvider> getSearchProviders() {
+    return this.searchProviders;
   }
 
   /**
    * Sets an environment variable of the running process, so native libraries such as libvlc can read it.
+   *
+   * <p>Implementations are called from the discovering thread only and need not be thread-safe.
+   *
+   * @since 1.0.0
    */
   @FunctionalInterface
   public interface EnvironmentSetter {
@@ -382,35 +397,27 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
      * @param name  the name of the variable
      * @param value the value of the variable
      * @return true if the variable was set
+     * @since 1.0.0
      */
     boolean set(String name, String value);
   }
 
-  /**
-   * A directory provider together with how deep its directories are searched.
-   */
   static final class SearchProvider {
 
     private final DiscoveryDirectoryProvider directoryProvider;
-    private final int maxDepth;
+    private final int maximumDepth;
 
-    /**
-     * Constructs a new search provider.
-     *
-     * @param directoryProvider the provider of the directories to search
-     * @param maxDepth          how many levels below each directory are searched
-     */
-    SearchProvider(final DiscoveryDirectoryProvider directoryProvider, final int maxDepth) {
+    SearchProvider(final DiscoveryDirectoryProvider directoryProvider, final int maximumDepth) {
       this.directoryProvider = directoryProvider;
-      this.maxDepth = maxDepth;
+      this.maximumDepth = maximumDepth;
     }
 
     DiscoveryDirectoryProvider getDirectoryProvider() {
       return this.directoryProvider;
     }
 
-    int getMaxDepth() {
-      return this.maxDepth;
+    int getMaximumDepth() {
+      return this.maximumDepth;
     }
 
     private int getPriority() {
@@ -418,9 +425,6 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     }
   }
 
-  /**
-   * A directory waiting to be searched, together with how far below its search root it is.
-   */
   private static final class SearchEntry {
 
     private final File directory;

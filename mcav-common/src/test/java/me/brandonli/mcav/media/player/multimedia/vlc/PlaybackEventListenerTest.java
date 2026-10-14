@@ -42,64 +42,75 @@ import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
-/**
- * Tests {@link PlaybackEventListener}.
- */
 final class PlaybackEventListenerTest {
 
+  private static final String MEDIA_NAME = "movie.mkv";
+  private static final String MISSING_MEDIA_NAME = "missing.mp4";
+
+  private static final long TIMEOUT_MILLISECONDS = 10_000L;
+  private static final long SHORT_TIMEOUT_MILLISECONDS = 10L;
+
+  private static final long QUICK_MILLISECONDS = 1_000L;
+
   private final MockVlc vlc = new MockVlc();
-  private final VLCPlayer owner = this.vlc.newPlayer(1_000L);
+  private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final AtomicBoolean active = new AtomicBoolean(true);
-  private final PlaybackEventListener listener = new PlaybackEventListener(this.owner, "movie.mkv", this.active);
+  private final PlaybackEventListener listener = new PlaybackEventListener(this.owner, MEDIA_NAME, this.active);
   private final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   PlaybackEventListenerTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
   }
 
-  private long awaitMillis(final long timeoutMillis) throws InterruptedException {
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
+  }
+
+  private long awaitMilliseconds(final long timeoutMilliseconds) throws InterruptedException {
     final long start = System.nanoTime();
-    this.listener.awaitOpened(timeoutMillis);
+    this.listener.awaitOpened(timeoutMilliseconds);
     final long end = System.nanoTime();
-    final long elapsedNanos = end - start;
-    return TimeUnit.NANOSECONDS.toMillis(elapsedNanos);
+    final long elapsedNanoseconds = end - start;
+    return TimeUnit.NANOSECONDS.toMillis(elapsedNanoseconds);
   }
 
   private static Thread startWaiter(final PlaybackEventListener waitedOn, final CountDownLatch waiting, final AtomicBoolean returned) {
-    final Thread waiter = new Thread(() -> {
-      waiting.countDown();
-      try {
-        waitedOn.awaitOpened(10_000L);
-      } catch (final InterruptedException exception) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-      }
-      returned.set(true);
-    });
+    final Thread waiter = new Thread(() -> awaitOpenedAndRecordReturn(waitedOn, waiting, returned));
     waiter.start();
     return waiter;
   }
 
+  private static void awaitOpenedAndRecordReturn(
+    final PlaybackEventListener waitedOn,
+    final CountDownLatch waiting,
+    final AtomicBoolean returned
+  ) {
+    waiting.countDown();
+    try {
+      waitedOn.awaitOpened(TIMEOUT_MILLISECONDS);
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
+
+    returned.set(true);
+  }
+
   @Test
-  void reportsAnErrorBeforeAWaitingStartWakesUp() throws Exception {
+  void shouldReportAnErrorBeforeAWaitingStartWakesUp() throws Exception {
     final AtomicBoolean waiterReturned = new AtomicBoolean();
     final AtomicBoolean returnedBeforeTheReport = new AtomicBoolean();
     final AtomicLong notificationCountAtReport = new AtomicLong(-1);
     final AtomicReference<LongSupplier> notificationCount = new AtomicReference<>();
-    final BiConsumer<String, Throwable> handler = (_, _) -> {
-      final boolean returned = waiterReturned.get();
-      returnedBeforeTheReport.set(returned);
-      notificationCountAtReport.set(notificationCount.get().getAsLong());
-    };
+    final BiConsumer<String, Throwable> handler = (_, _) ->
+      this.recordStateAtReport(waiterReturned, returnedBeforeTheReport, notificationCountAtReport, notificationCount);
     final VideoPlayerMultiplexer handlerOwner = mock(VideoPlayerMultiplexer.class);
     when(handlerOwner.getExceptionHandler()).thenReturn(handler);
     final AtomicBoolean running = new AtomicBoolean(true);
-    final PlaybackEventListener waitedOn = new PlaybackEventListener(handlerOwner, "missing.mp4", running);
+    final PlaybackEventListener waitedOn = new PlaybackEventListener(handlerOwner, MISSING_MEDIA_NAME, running);
     final Field settledField = PlaybackEventListener.class.getDeclaredField("settled");
     settledField.setAccessible(true);
     final CountDownLatch notification = (CountDownLatch) settledField.get(waitedOn);
@@ -116,68 +127,97 @@ final class PlaybackEventListenerTest {
     assertTrue(waiterStarted);
     assertTrue(returned);
     assertFalse(returnedEarly, "a start that returns false finds the reason in the handler");
-    assertEquals(1, notificationCountAtReport.get(), "notification cannot be released before its failure report");
+
+    final long countAtReport = notificationCountAtReport.get();
+    assertEquals(1, countAtReport, "notification cannot be released before its failure report");
+  }
+
+  private void recordStateAtReport(
+    final AtomicBoolean waiterReturned,
+    final AtomicBoolean returnedBeforeTheReport,
+    final AtomicLong notificationCountAtReport,
+    final AtomicReference<LongSupplier> notificationCount
+  ) {
+    final boolean returned = waiterReturned.get();
+    returnedBeforeTheReport.set(returned);
+    notificationCountAtReport.set(notificationCount.get().getAsLong());
   }
 
   @Test
-  void aKnownOpeningFailureRemainsFailedWhileItsReportIsBlocked() throws Exception {
+  void shouldKeepAKnownOpeningFailureFailedWhileItsReportIsBlocked() throws Exception {
     final CountDownLatch reporting = new CountDownLatch(1);
     final CountDownLatch finishReport = new CountDownLatch(1);
     final AtomicReference<Throwable> reportingFailure = new AtomicReference<>();
-    this.owner.setExceptionHandler((_, _) -> {
-      reporting.countDown();
-      assertTrue(Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS));
-    });
+    this.owner.setExceptionHandler((_, _) -> this.blockReport(reporting, finishReport));
     final Thread reporter = new Thread(() -> this.listener.error(this.mediaPlayer));
     reporter.setUncaughtExceptionHandler((_, failure) -> reportingFailure.set(failure));
     reporter.start();
     try {
-      assertTrue(reporting.await(10, TimeUnit.SECONDS), "the opening error reached its handler");
-      assertFalse(this.listener.awaitOpened(0), "a known failure cannot become a successful open at the timeout");
+      final boolean reported = reporting.await(10, TimeUnit.SECONDS);
+      assertTrue(reported, "the opening error reached its handler");
+
+      final boolean openedAtTimeout = this.listener.awaitOpened(0);
+      assertFalse(openedAtTimeout, "a known failure cannot become a successful open at the timeout");
     } finally {
       finishReport.countDown();
-      reporter.join(10_000L);
+      reporter.join(TIMEOUT_MILLISECONDS);
     }
-    assertFalse(reporter.isAlive());
-    assertEquals(null, reportingFailure.get());
-    assertFalse(this.listener.awaitOpened(0));
+
+    final boolean alive = reporter.isAlive();
+    assertFalse(alive);
+
+    final Throwable reportedFailure = reportingFailure.get();
+    assertEquals(null, reportedFailure);
+
+    final boolean opened = this.listener.awaitOpened(0);
+    assertFalse(opened);
+  }
+
+  private void blockReport(final CountDownLatch reporting, final CountDownLatch finishReport) {
+    reporting.countDown();
+    final boolean finished = Uninterruptibles.awaitUninterruptibly(finishReport, 10, TimeUnit.SECONDS);
+    assertTrue(finished);
   }
 
   @Test
-  void opensWhenVlcStartsPlaying() throws Exception {
+  void shouldOpenWhenVlcStartsPlaying() throws Exception {
     this.listener.playing(this.mediaPlayer);
-    final long elapsed = this.awaitMillis(10_000L);
-    final boolean opened = this.listener.awaitOpened(10_000L);
+    final long elapsed = this.awaitMilliseconds(TIMEOUT_MILLISECONDS);
+    final boolean opened = this.listener.awaitOpened(TIMEOUT_MILLISECONDS);
     final boolean noErrors = this.errors.isEmpty();
     assertTrue(opened);
-    assertTrue(elapsed < 1_000L, "no waiting once playing, took " + elapsed);
+
+    final boolean quick = elapsed < QUICK_MILLISECONDS;
+    assertTrue(quick, "no waiting once playing, took " + elapsed);
     assertTrue(noErrors);
   }
 
   @Test
-  void opensWhenVlcAlreadyFinishedTheMedia() throws Exception {
+  void shouldOpenWhenVlcAlreadyFinishedTheMedia() throws Exception {
     this.listener.finished(this.mediaPlayer);
-    final boolean opened = this.listener.awaitOpened(10_000L);
+    final boolean opened = this.listener.awaitOpened(TIMEOUT_MILLISECONDS);
     assertTrue(opened);
   }
 
   @Test
-  void failsAndReportsWhenVlcCannotPlayTheMedia() throws Exception {
+  void shouldFailAndReportWhenVlcCannotPlayTheMedia() throws Exception {
     this.listener.error(this.mediaPlayer);
-    final long elapsed = this.awaitMillis(10_000L);
-    final boolean opened = this.listener.awaitOpened(10_000L);
+    final long elapsed = this.awaitMilliseconds(TIMEOUT_MILLISECONDS);
+    final boolean opened = this.listener.awaitOpened(TIMEOUT_MILLISECONDS);
     final List<String> expectedMessages = List.of("VLC playback of movie.mkv failed");
     final Throwable error = this.errors.getFirst();
     final PlayerException exception = assertInstanceOf(PlayerException.class, error);
     final String reason = exception.getMessage();
     assertFalse(opened);
-    assertTrue(elapsed < 1_000L, "no waiting after an error, took " + elapsed);
+
+    final boolean quick = elapsed < QUICK_MILLISECONDS;
+    assertTrue(quick, "no waiting after an error, took " + elapsed);
     assertEquals(expectedMessages, this.messages);
-    assertEquals("VLC could not play movie.mkv", reason);
+    assertEquals("Media movie.mkv could not be played by VLC!", reason);
   }
 
   @Test
-  void reportsErrorsWhilePlaying() {
+  void shouldReportErrorsWhilePlaying() {
     this.listener.playing(this.mediaPlayer);
     this.listener.error(this.mediaPlayer);
     this.listener.error(this.mediaPlayer);
@@ -186,27 +226,31 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void doesNotReportErrorsOfAStoppedPlayback() throws Exception {
+  void shouldNotReportErrorsOfAStoppedPlayback() throws Exception {
     this.active.set(false);
     this.listener.error(this.mediaPlayer);
-    final boolean opened = this.listener.awaitOpened(10_000L);
+    final boolean opened = this.listener.awaitOpened(TIMEOUT_MILLISECONDS);
     final boolean noErrors = this.errors.isEmpty();
     assertFalse(opened);
     assertTrue(noErrors);
   }
 
   @Test
-  void treatsMediaThatIsStillOpeningAsStartedAfterTheTimeout() throws Exception {
-    final long elapsed = this.awaitMillis(100L);
-    final boolean opened = this.listener.awaitOpened(10L);
+  void shouldTreatMediaThatIsStillOpeningAsStartedAfterTheTimeout() throws Exception {
+    final long elapsed = this.awaitMilliseconds(100L);
+    final boolean opened = this.listener.awaitOpened(SHORT_TIMEOUT_MILLISECONDS);
     assertTrue(opened, "VLC may still open slow streams; later failures are reported");
-    assertTrue(elapsed >= 90L, "waited only " + elapsed);
-    assertTrue(elapsed < 2_000L, "waited " + elapsed);
+
+    final boolean waitedTheTimeout = elapsed >= 90L;
+    assertTrue(waitedTheTimeout, "waited only " + elapsed);
+
+    final boolean waitedNotMuchLonger = elapsed < 2_000L;
+    assertTrue(waitedNotMuchLonger, "waited " + elapsed);
   }
 
   @Test
-  void treatsAnErrorAfterTheTimeoutAsALaterFailure() throws Exception {
-    final boolean opened = this.listener.awaitOpened(10L);
+  void shouldTreatAnErrorAfterTheTimeoutAsALaterFailure() throws Exception {
+    final boolean opened = this.listener.awaitOpened(SHORT_TIMEOUT_MILLISECONDS);
     this.listener.error(this.mediaPlayer);
     final int reported = this.errors.size();
     assertTrue(opened, "the start already returned while VLC was still opening");
@@ -214,10 +258,11 @@ final class PlaybackEventListenerTest {
   }
 
   @Test
-  void propagatesInterrupts() {
+  void shouldPropagateInterrupts() {
     final Thread current = Thread.currentThread();
     current.interrupt();
-    assertThrows(InterruptedException.class, () -> this.listener.awaitOpened(10_000L));
+    assertThrows(InterruptedException.class, () -> this.listener.awaitOpened(TIMEOUT_MILLISECONDS));
+
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(stillInterrupted);
   }

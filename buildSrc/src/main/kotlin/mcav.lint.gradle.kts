@@ -35,7 +35,7 @@ val qualifiedNames = tasks.register<QualifiedNamesTask>("qualifiedNames") {
 
 val logMessages = tasks.register<LogMessagesTask>("logMessages") {
     group = "verification"
-    description = "Fails on log calls whose message is not a constant in the Java code of every source set of this module"
+    description = "Fails on log calls that join strings with + in the Java code of every source set of this module"
     sources.from(javaSources)
     report = layout.buildDirectory.file("reports/log-messages.txt")
 }

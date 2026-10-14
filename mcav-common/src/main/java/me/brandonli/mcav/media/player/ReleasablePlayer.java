@@ -25,6 +25,10 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * A player that owns threads, native handles, or network connections which must be released when the player is
  * no longer needed. Releasing stops playback; a released player cannot be started again.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface ReleasablePlayer {
@@ -32,6 +36,7 @@ public interface ReleasablePlayer {
    * Stops playback and releases every resource of the player. Calling it again has no effect.
    *
    * @return true if the player was released, false if it was already released
+   * @since 1.0.0
    */
   boolean release();
 
@@ -40,6 +45,7 @@ public interface ReleasablePlayer {
    *
    * @return a future that completes with the result of {@link #release()}
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> releaseAsync() {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -52,11 +58,13 @@ public interface ReleasablePlayer {
    * @param executor the non-null caller-owned executor that runs the release
    * @return a future that completes with the result of {@link #release()}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
-   * @throws NullPointerException if {@code executor} is null
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> releaseAsync(final ExecutorService executor) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(this::release, executor);
   }
 }

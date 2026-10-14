@@ -17,29 +17,185 @@
  */
 package me.brandonli.mcav.json.ytdlp.format;
 
+import static java.util.Objects.requireNonNull;
+
+import com.google.common.base.MoreObjects;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.annotations.JsonAdapter;
+import java.lang.reflect.Type;
+import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * One thumbnail of a video, as listed by yt-dlp.
  *
- * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
- * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
- * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ * <p>Gson fills instances from the JSON yt-dlp prints. Values yt-dlp did not report are empty, zero or false; a
+ * primitive zero or false does not tell a missing value from a reported one.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
-public class Thumbnail {
+@JsonAdapter(Thumbnail.Deserializer.class)
+public final class Thumbnail {
 
-  private Thumbnail() {}
+  private final @Nullable String url;
 
-  /** The URL of the image. */
-  public @Nullable String url;
-  /** How strongly yt-dlp prefers the thumbnail over the others, where higher is better. */
-  public int preference;
-  /** The identifier of the thumbnail among the thumbnails of the video. */
-  public @Nullable String id;
-  /** The height of the image in pixels, or zero if unknown. */
-  public int height;
-  /** The width of the image in pixels, or zero if unknown. */
-  public int width;
-  /** The resolution of the image as text, such as {@code 1920x1080}, or null if unknown. */
-  public @Nullable String resolution;
+  private final int preference;
+
+  private final @Nullable String id;
+
+  private final int height;
+
+  private final int width;
+
+  private final @Nullable String resolution;
+
+  private Thumbnail(final Fields fields) {
+    this.url = fields.url();
+    this.preference = Objects.requireNonNullElse(fields.preference(), 0);
+    this.id = fields.id();
+    this.height = Objects.requireNonNullElse(fields.height(), 0);
+    this.width = Objects.requireNonNullElse(fields.width(), 0);
+    this.resolution = fields.resolution();
+  }
+
+  /**
+   * Returns the URL of the image, or empty if yt-dlp did not report it.
+   *
+   * @return the URL of the image, or empty if yt-dlp did not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getUrl() {
+    return Optional.ofNullable(this.url);
+  }
+
+  /**
+   * Returns how strongly yt-dlp prefers the thumbnail over the others, where higher is better.
+   *
+   * @return how strongly yt-dlp prefers the thumbnail over the others, where higher is better
+   * @since 1.0.0
+   */
+  public int getPreference() {
+    return this.preference;
+  }
+
+  /**
+   * Returns the identifier of the thumbnail among the thumbnails of the video, or empty if yt-dlp did not report
+   * it.
+   *
+   * @return the identifier of the thumbnail among the thumbnails of the video, or empty if yt-dlp did not report it
+   * @since 1.0.0
+   */
+  public Optional<String> getId() {
+    return Optional.ofNullable(this.id);
+  }
+
+  /**
+   * Returns the height of the image in pixels, or zero if unknown.
+   *
+   * @return the height of the image in pixels, or zero if unknown
+   * @since 1.0.0
+   */
+  public int getHeight() {
+    return this.height;
+  }
+
+  /**
+   * Returns the width of the image in pixels, or zero if unknown.
+   *
+   * @return the width of the image in pixels, or zero if unknown
+   * @since 1.0.0
+   */
+  public int getWidth() {
+    return this.width;
+  }
+
+  /**
+   * Returns the resolution of the image as text, such as {@code 1920x1080}, or empty if unknown.
+   *
+   * @return the resolution of the image as text, such as {@code 1920x1080}, or empty if unknown
+   * @since 1.0.0
+   */
+  public Optional<String> getResolution() {
+    return Optional.ofNullable(this.resolution);
+  }
+
+  /**
+   * Returns whether {@code other} is a thumbnail with the same values.
+   *
+   * @param other the object to compare with
+   * @return whether every value matches
+   * @since 1.0.0
+   */
+  @Override
+  public boolean equals(final @Nullable Object other) {
+    if (this == other) {
+      return true;
+    }
+
+    if (!(other instanceof final Thumbnail thumbnail)) {
+      return false;
+    }
+
+    return (
+      Objects.equals(this.url, thumbnail.url) &&
+      this.preference == thumbnail.preference &&
+      Objects.equals(this.id, thumbnail.id) &&
+      this.height == thumbnail.height &&
+      this.width == thumbnail.width &&
+      Objects.equals(this.resolution, thumbnail.resolution)
+    );
+  }
+
+  /**
+   * Returns a hash code built from every field of this thumbnail.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(this.url, this.preference, this.id, this.height, this.width, this.resolution);
+  }
+
+  /**
+   * Returns a debugging representation with every field of this thumbnail.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+      .add("url", this.url)
+      .add("preference", this.preference)
+      .add("id", this.id)
+      .add("height", this.height)
+      .add("width", this.width)
+      .add("resolution", this.resolution)
+      .toString();
+  }
+
+  static final class Deserializer implements JsonDeserializer<Thumbnail> {
+
+    @Override
+    public Thumbnail deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
+      final @Nullable Fields parsed = context.deserialize(json, Fields.class);
+      final Fields fields = requireNonNull(parsed); // checker framework
+      return new Thumbnail(fields);
+    }
+  }
+
+  private record Fields(
+    @Nullable String url,
+    @Nullable Integer preference,
+    @Nullable String id,
+    @Nullable Integer height,
+    @Nullable Integer width,
+    @Nullable String resolution
+  ) {}
 }

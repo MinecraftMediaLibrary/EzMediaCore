@@ -18,13 +18,15 @@
 package me.brandonli.mcav.module;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when a module cannot be created, started, or found. The failure is recoverable, for example by fixing the
  * configuration and installing again, so this is an unchecked exception rather than an error.
+ *
+ * @since 1.0.0
  */
-public class ModuleException extends RuntimeException {
+public class ModuleException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = -2431307065385281467L;
@@ -32,19 +34,21 @@ public class ModuleException extends RuntimeException {
   /**
    * Constructs a new exception.
    *
-   * @param message the detail message, or null if none is provided
+   * @param message the detail message
+   * @since 1.0.0
    */
-  public ModuleException(final @Nullable String message) {
+  public ModuleException(final String message) {
     super(message);
   }
 
   /**
    * Constructs a new exception.
    *
-   * @param message the detail message, or null if none is provided
-   * @param cause   the underlying failure, or null if unknown
+   * @param message the detail message
+   * @param cause   the underlying failure
+   * @since 1.0.0
    */
-  public ModuleException(final @Nullable String message, final @Nullable Throwable cause) {
+  public ModuleException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

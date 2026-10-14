@@ -26,7 +26,6 @@ import java.util.concurrent.CompletableFuture;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/** Owns the three interactive examples' resources during setup, playback and JVM shutdown. */
 final class ExampleResources implements AutoCloseable {
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
@@ -50,9 +49,10 @@ final class ExampleResources implements AutoCloseable {
         return;
       }
     }
+
     // Shutdown may race a just-completed acquisition; never leave that new resource without an owner.
     release.run();
-    throw new IllegalStateException("The example has already closed");
+    throw new IllegalStateException("The example has already closed!");
   }
 
   @Override
@@ -72,19 +72,22 @@ final class ExampleResources implements AutoCloseable {
         wait = false;
       }
     }
+
     if (pending == null) {
       if (wait) {
         // A shutdown hook must not finish while another thread is still releasing native resources.
         this.completion.join();
       }
+
       return;
     }
+
     try {
       releaseAll(pending);
     } finally {
       try {
         this.runtime.removeShutdownHook(this.shutdownHook);
-      } catch (final IllegalStateException shutdownInProgress) {
+      } catch (final IllegalStateException exception) {
         // Hooks cannot be removed after JVM shutdown has begun.
       } finally {
         this.completion.complete(null);
@@ -97,20 +100,31 @@ final class ExampleResources implements AutoCloseable {
     for (final Runnable release : releases) {
       try {
         release.run();
-      } catch (final RuntimeException | Error failure) {
-        ThrowableUtils.throwIfFatal(failure);
-        if (first == null) {
-          first = failure;
-        } else if (!IDENTITY.equivalent(first, failure)) {
-          first.addSuppressed(failure);
-        }
+      } catch (final RuntimeException | Error exception) {
+        ThrowableUtils.throwIfFatal(exception);
+
+        first = keepFirstFailure(first, exception);
       }
     }
+
     if (first instanceof Error error) {
       throw error;
     }
+
     if (first instanceof RuntimeException exception) {
       throw exception;
     }
+  }
+
+  private static Throwable keepFirstFailure(final @Nullable Throwable first, final Throwable failure) {
+    if (first == null) {
+      return failure;
+    }
+
+    if (!IDENTITY.equivalent(first, failure)) {
+      first.addSuppressed(failure);
+    }
+
+    return first;
   }
 }

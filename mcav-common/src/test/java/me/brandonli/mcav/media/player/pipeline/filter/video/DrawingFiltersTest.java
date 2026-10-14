@@ -36,14 +36,22 @@ import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the filters that draw shapes, text and other images onto frames.
- */
 final class DrawingFiltersTest {
 
-  private static final double[] WHITE = { 255.0, 255.0, 255.0 };
+  private static final double CHANNEL_MAXIMUM = 255.0;
+  private static final double[] WHITE = { CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM };
   private static final int BLACK_ARGB = 0xFF000000;
   private static final int WHITE_ARGB = 0xFFFFFFFF;
+  private static final int RED_ARGB = 0xFFFF0000;
+  private static final int BLUE_ARGB = 0xFF0000FF;
+
+  private static final int SHAPE_IMAGE_SIZE = 11;
+
+  private static final int REGION_IMAGE_WIDTH = 3;
+  private static final int REGION_IMAGE_HEIGHT = 2;
+
+  private static final int OVERLAY_SIZE = 2;
+  private static final int OVERLAY_FRAME_SIZE = 4;
 
   private static int pixelAt(final ImageBuffer image, final int column, final int row) {
     final int[] pixels = image.getPixels();
@@ -59,12 +67,13 @@ final class DrawingFiltersTest {
         count++;
       }
     }
+
     return count;
   }
 
   @Test
-  void drawsCircles() {
-    try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
+  void shouldDrawCircles() {
+    try (final ImageBuffer image = Images.solid(SHAPE_IMAGE_SIZE, SHAPE_IMAGE_SIZE, BLACK_ARGB)) {
       final CircleFilter filter = new CircleFilter(4, 6, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
       final int right = pixelAt(image, 7, 6);
@@ -79,11 +88,12 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, center, "only the outline is drawn");
       assertEquals(BLACK_ARGB, farAway);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new CircleFilter(0, 0, -1, WHITE));
   }
 
   @Test
-  void drawsACircleOfRadiusZeroAsItsCenter() {
+  void shouldDrawACircleOfRadiusZeroAsItsCenter() {
     try (final ImageBuffer image = Images.solid(5, 5, BLACK_ARGB)) {
       final CircleFilter filter = new CircleFilter(2, 2, 0, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -96,8 +106,8 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsEllipses() {
-    try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
+  void shouldDrawEllipses() {
+    try (final ImageBuffer image = Images.solid(SHAPE_IMAGE_SIZE, SHAPE_IMAGE_SIZE, BLACK_ARGB)) {
       final EllipseFilter filter = new EllipseFilter(5, 5, 4, 2, 0, 0, 360, WHITE);
       final boolean modified = filter.applyFilter(image);
       final int right = pixelAt(image, 9, 5);
@@ -112,12 +122,13 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, center);
       assertEquals(BLACK_ARGB, beyondTheShortAxis);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new EllipseFilter(0, 0, 0, 1, 0, 0, 360, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new EllipseFilter(0, 0, 1, 0, 0, 0, 360, WHITE));
   }
 
   @Test
-  void drawsLines() {
+  void shouldDrawLines() {
     try (final ImageBuffer image = Images.solid(5, 3, BLACK_ARGB)) {
       final LineFilter filter = new LineFilter(0, 1, 4, 1, WHITE);
       final boolean modified = filter.applyFilter(image);
@@ -132,11 +143,12 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void drawsRectangleOutlines() {
+  void shouldDrawRectangleOutlines() {
     try (final ImageBuffer image = Images.solid(6, 6, BLACK_ARGB)) {
       final RectangleFilter filter = new RectangleFilter(1, 1, 3, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
       assertTrue(modified, "the filter reports the change, which decides whether the result is written back");
+
       final int corner = pixelAt(image, 1, 1);
       final int oppositeCorner = pixelAt(image, 3, 3);
       final int center = pixelAt(image, 2, 2);
@@ -150,36 +162,40 @@ final class DrawingFiltersTest {
       assertEquals(BLACK_ARGB, rightOfRectangle, "a width of 3 covers three columns");
       assertEquals(BLACK_ARGB, belowRectangle, "a height of 3 covers three rows");
     }
+
     assertThrows(IllegalArgumentException.class, () -> new RectangleFilter(0, 0, 0, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RectangleFilter(0, 0, 1, 0, WHITE));
   }
 
   @Test
-  void drawsText() {
+  void shouldDrawText() {
     final TextFilter filter = new TextFilter("MCAV", 2, 20, TextFilter.DEFAULT_FONT, 0.8, WHITE);
     try (
       final ImageBuffer image = Images.solid(80, 30, BLACK_ARGB);
       final Scalar black = new Scalar(0.0);
-      final Scalar white = new Scalar(255.0, 255.0, 255.0, 0.0);
+      final Scalar white = new Scalar(CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, 0.0);
       final Point baseline = new Point(2, 20);
       final Mat expected = new Mat(30, 80, opencv_core.CV_8UC3, black)
     ) {
       final boolean modified = filter.applyFilter(image);
       final int drawn = countNonBlack(image);
       assertTrue(modified);
-      assertTrue(drawn > 0);
+      final boolean anythingDrawn = drawn > 0;
+      assertTrue(anythingDrawn);
       opencv_imgproc.putText(expected, "MCAV", baseline, opencv_imgproc.FONT_HERSHEY_SIMPLEX, 0.8, white);
       final ByteBuffer expectedPixels = expected.createBuffer();
-      assertEquals(expectedPixels, image.getData(), "the text, baseline, size and color must match");
+      final ByteBuffer pixels = image.getData();
+      assertEquals(expectedPixels, pixels, "the text, baseline, size and color must match");
     }
+
     assertThrows(NullPointerException.class, () -> new TextFilter(null, 0, 0, TextFilter.DEFAULT_FONT, 1.0, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new TextFilter("x", 0, 0, TextFilter.DEFAULT_FONT, 0.0, WHITE));
   }
 
   @Test
-  void drawsTheMeasuredFrameRate() {
+  void shouldDrawTheMeasuredFrameRate() {
     final AtomicLong clock = new AtomicLong();
-    final FPSFilter filter = new FPSFilter(clock::get);
+    final FramesPerSecondFilter filter = new FramesPerSecondFilter(clock::get);
     try (final ImageBuffer first = Images.solid(120, 40, BLACK_ARGB); final ImageBuffer second = Images.solid(120, 40, BLACK_ARGB)) {
       final boolean firstModified = filter.applyFilter(first);
       clock.set(1_000_000_000L);
@@ -191,8 +207,10 @@ final class DrawingFiltersTest {
       final int[] firstPixels = first.getPixels();
       final int[] secondPixels = second.getPixels();
       final boolean sameText = Arrays.equals(firstPixels, secondPixels);
-      assertTrue(firstDrawn > 0);
-      assertTrue(secondDrawn > 0);
+      final boolean firstHasText = firstDrawn > 0;
+      assertTrue(firstHasText);
+      final boolean secondHasText = secondDrawn > 0;
+      assertTrue(secondHasText);
       assertFalse(sameText, "after one second the text changes from 0 fps to 2 fps");
       assertFrameRateLabel(first, "0 fps");
       assertFrameRateLabel(second, "2 fps");
@@ -202,26 +220,28 @@ final class DrawingFiltersTest {
   private static void assertFrameRateLabel(final ImageBuffer image, final String label) {
     try (
       final Scalar black = new Scalar(0.0);
-      final Scalar white = new Scalar(255.0, 255.0, 255.0, 0.0);
+      final Scalar white = new Scalar(CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, 0.0);
       final Point baseline = new Point(10, 24);
       final Mat expected = new Mat(40, 120, opencv_core.CV_8UC3, black)
     ) {
       opencv_imgproc.putText(expected, label, baseline, opencv_imgproc.FONT_HERSHEY_SIMPLEX, 0.6, black, 3, opencv_imgproc.LINE_AA, false);
       opencv_imgproc.putText(expected, label, baseline, opencv_imgproc.FONT_HERSHEY_SIMPLEX, 0.6, white, 1, opencv_imgproc.LINE_AA, false);
       final ByteBuffer expectedPixels = expected.createBuffer();
-      assertEquals(expectedPixels, image.getData(), label);
+      final ByteBuffer pixels = image.getData();
+      assertEquals(expectedPixels, pixels, label);
     }
   }
 
   @Test
-  void fillsRegionsClampedToTheFrame() {
-    try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
+  void shouldFillRegionsClampedToTheFrame() {
+    try (final ImageBuffer image = Images.solid(REGION_IMAGE_WIDTH, REGION_IMAGE_HEIGHT, BLACK_ARGB)) {
       final RegionScalarFilter topLeft = new RegionScalarFilter(0, 0, 2, 1, WHITE);
       final RegionScalarFilter clamped = new RegionScalarFilter(2, 1, 5, 5, WHITE);
       final boolean topLeftModified = topLeft.applyFilter(image);
       final boolean clampedModified = clamped.applyFilter(image);
       assertTrue(topLeftModified, "a region inside the frame reports the change");
       assertTrue(clampedModified, "and so does a region that only reaches into the frame");
+
       final int first = pixelAt(image, 0, 0);
       final int second = pixelAt(image, 1, 0);
       final int third = pixelAt(image, 2, 0);
@@ -236,18 +256,22 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void regionsOutsideTheFrameChangeNothing() {
-    try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
+  void shouldChangeNothingForRegionsOutsideTheFrame() {
+    try (final ImageBuffer image = Images.solid(REGION_IMAGE_WIDTH, REGION_IMAGE_HEIGHT, BLACK_ARGB)) {
       final RegionScalarFilter right = new RegionScalarFilter(3, 0, 1, 1, WHITE);
       final RegionScalarFilter below = new RegionScalarFilter(0, 2, 1, 1, WHITE);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean rightModified = right.applyFilter(image);
-      assertEquals(before, image.getData());
+      final ByteBuffer afterRight = image.getData();
+      assertEquals(before, afterRight);
+
       final boolean belowModified = below.applyFilter(image);
-      assertEquals(before, image.getData());
+      final ByteBuffer afterBelow = image.getData();
+      assertEquals(before, afterBelow);
       assertFalse(rightModified);
       assertFalse(belowModified);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(-1, 0, 1, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(0, -1, 1, 1, WHITE));
     assertThrows(IllegalArgumentException.class, () -> new RegionScalarFilter(0, 0, 0, 1, WHITE));
@@ -255,38 +279,47 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void overlaysImagesClampedToTheFrame() {
-    try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
+  void shouldOverlayImagesClampedToTheFrame() {
+    try (
+      final ImageBuffer overlay = Images.solid(OVERLAY_SIZE, OVERLAY_SIZE, RED_ARGB);
+      final ImageBuffer image = Images.solid(OVERLAY_FRAME_SIZE, OVERLAY_FRAME_SIZE, BLUE_ARGB)
+    ) {
       final OverlayImageFilter filter = new OverlayImageFilter(overlay, 3, 3);
       final boolean modified = filter.applyFilter(image);
       final int covered = pixelAt(image, 3, 3);
       final int uncovered = pixelAt(image, 2, 3);
       assertTrue(modified);
-      assertEquals(0xFFFF0000, covered);
-      assertEquals(0xFF0000FF, uncovered);
+      assertEquals(RED_ARGB, covered);
+      assertEquals(BLUE_ARGB, uncovered);
     }
   }
 
   @Test
-  void overlaysOutsideTheFrameChangeNothing() {
-    try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
+  void shouldOverlayOutsideTheFrameChangeNothing() {
+    try (
+      final ImageBuffer overlay = Images.solid(OVERLAY_SIZE, OVERLAY_SIZE, RED_ARGB);
+      final ImageBuffer image = Images.solid(OVERLAY_FRAME_SIZE, OVERLAY_FRAME_SIZE, BLUE_ARGB)
+    ) {
       final OverlayImageFilter right = new OverlayImageFilter(overlay, 4, 0);
       final OverlayImageFilter below = new OverlayImageFilter(overlay, 0, 4);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean rightModified = right.applyFilter(image);
-      assertEquals(before, image.getData());
+      final ByteBuffer afterRight = image.getData();
+      assertEquals(before, afterRight);
       final boolean belowModified = below.applyFilter(image);
-      assertEquals(before, image.getData());
+      final ByteBuffer afterBelow = image.getData();
+      assertEquals(before, afterBelow);
       assertFalse(rightModified);
       assertFalse(belowModified);
       assertThrows(IllegalArgumentException.class, () -> new OverlayImageFilter(overlay, -1, 0));
       assertThrows(IllegalArgumentException.class, () -> new OverlayImageFilter(overlay, 0, -1));
     }
+
     assertThrows(NullPointerException.class, () -> new OverlayImageFilter(null, 0, 0));
   }
 
   @Test
-  void overlaysAcceptImagesThatAreNotBackedByAMat() {
+  void shouldOverlayAcceptImagesThatAreNotBackedByAMat() {
     final ImageBuffer overlay = mock(ImageBuffer.class);
     when(overlay.getWidth()).thenReturn(1);
     when(overlay.getHeight()).thenReturn(1);
@@ -300,7 +333,7 @@ final class DrawingFiltersTest {
   }
 
   @Test
-  void zeroFilterBlanksTheFrame() {
+  void shouldBlankTheFrameWithAZeroFilter() {
     try (final ImageBuffer image = Images.solid(2, 2, WHITE_ARGB)) {
       final ZeroFilter filter = new ZeroFilter();
       final boolean modified = filter.applyFilter(image);

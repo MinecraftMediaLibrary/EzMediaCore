@@ -29,23 +29,24 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.media.source.device.DeviceSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSource;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSource;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link SourceDetectionHelper}.
- */
 final class SourceDetectionHelperTest {
+
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+
+  private static final String ANY_RESOURCE = "anything";
 
   @TempDir
   private Path directory;
 
   @Test
-  void detectsExistingFiles() throws IOException {
-    final Path file = this.directory.resolve("video.mp4");
+  void shouldDetectExistingFiles() throws IOException {
+    final Path file = this.directory.resolve(VIDEO_FILE_NAME);
     Files.createFile(file);
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final String raw = file.toString();
@@ -57,7 +58,7 @@ final class SourceDetectionHelperTest {
   }
 
   @Test
-  void detectsUrisDevicesAndFFmpegInputs() {
+  void shouldDetectUrisDevicesAndFfmpegInputs() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> uri = helper.detectSource("https://example.com/video.mp4");
     final Optional<Source> device = helper.detectSource("2");
@@ -67,72 +68,72 @@ final class SourceDetectionHelperTest {
     final Source ffmpegSource = ffmpeg.orElseThrow();
     assertInstanceOf(UriSource.class, uriSource);
     assertInstanceOf(DeviceSource.class, deviceSource);
-    assertInstanceOf(FFmpegDirectSource.class, ffmpegSource);
+    assertInstanceOf(FfmpegDirectSource.class, ffmpegSource);
   }
 
   @Test
-  void detectsNothingForUnrecognizedText() {
+  void shouldDetectNothingForUnrecognizedText() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final Optional<Source> text = helper.detectSource("not a source");
     final Optional<Source> negative = helper.detectSource("-1");
-    assertTrue(text.isEmpty());
-    assertTrue(negative.isEmpty());
+    final boolean textMissing = text.isEmpty();
+    assertTrue(textMissing);
+
+    final boolean negativeMissing = negative.isEmpty();
+    assertTrue(negativeMissing);
   }
 
   @Test
-  void prefersTheDetectorWithTheHighestPriority() {
+  void shouldPreferTheDetectorWithTheHighestPriority() {
     final Source lowSource = DeviceSource.device(1);
     final Source highSource = DeviceSource.device(2);
     final Source tiedSource = DeviceSource.device(3);
-    final SourceDetector<Source> low = new FixedDetector(lowSource, SourceDetector.LOW_PRIORITY, true);
-    final SourceDetector<Source> high = new FixedDetector(highSource, SourceDetector.HIGH_PRIORITY, true);
-    final SourceDetector<Source> tied = new FixedDetector(tiedSource, SourceDetector.HIGH_PRIORITY, true);
-    final SourceDetector<Source> refusing = new FixedDetector(tiedSource, Integer.MAX_VALUE, false);
+    final SourceDetector<Source> low = new FixedDetector(lowSource, SourceDetector.LOW_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> high = new FixedDetector(highSource, SourceDetector.HIGH_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> tied = new FixedDetector(tiedSource, SourceDetector.HIGH_PRIORITY, Acceptance.ACCEPTS);
+    final SourceDetector<Source> refusing = new FixedDetector(tiedSource, Integer.MAX_VALUE, Acceptance.REFUSES);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, refusing, high, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
-    final Optional<Source> detected = helper.detectSource("anything");
+    final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
     final Source source = detected.orElseThrow();
     assertSame(highSource, source, "the first detector with the highest priority wins");
   }
 
   @Test
-  void acceptsTheMinimumPriorityAndKeepsTheFirstTie() {
+  void shouldAcceptTheMinimumPriorityAndKeepTheFirstTie() {
     final Source first = DeviceSource.device(1);
     final Source second = DeviceSource.device(2);
-    final SourceDetector<Source> low = new FixedDetector(first, Integer.MIN_VALUE, true);
-    final SourceDetector<Source> tied = new FixedDetector(second, Integer.MIN_VALUE, true);
+    final SourceDetector<Source> low = new FixedDetector(first, Integer.MIN_VALUE, Acceptance.ACCEPTS);
+    final SourceDetector<Source> tied = new FixedDetector(second, Integer.MIN_VALUE, Acceptance.ACCEPTS);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
-    final Optional<Source> detected = helper.detectSource("anything");
+    final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
     final Source source = detected.orElseThrow();
     assertSame(first, source);
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     assertThrows(NullPointerException.class, () -> helper.detectSource(null));
     assertThrows(NullPointerException.class, () -> new SourceDetectionHelper(null));
   }
 
-  /**
-   * A detector that answers with a fixed decision and source.
-   */
   private static final class FixedDetector implements SourceDetector<Source> {
 
     private final Source source;
     private final int priority;
-    private final boolean accepts;
+    private final Acceptance acceptance;
 
-    FixedDetector(final Source source, final int priority, final boolean accepts) {
+    FixedDetector(final Source source, final int priority, final Acceptance acceptance) {
       this.source = source;
       this.priority = priority;
-      this.accepts = accepts;
+      this.acceptance = acceptance;
     }
 
     @Override
     public boolean isDetectedSource(final String raw) {
-      return this.accepts;
+      return this.acceptance == Acceptance.ACCEPTS;
     }
 
     @Override
@@ -144,5 +145,10 @@ final class SourceDetectionHelperTest {
     public int getPriority() {
       return this.priority;
     }
+  }
+
+  private enum Acceptance {
+    ACCEPTS,
+    REFUSES,
   }
 }

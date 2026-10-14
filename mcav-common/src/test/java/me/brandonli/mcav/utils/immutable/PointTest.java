@@ -19,16 +19,14 @@ package me.brandonli.mcav.utils.immutable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Point}.
- */
 final class PointTest {
 
   @Test
-  void storesCoordinates() {
+  void shouldStoreCoordinates() {
     final Point point = Point.point(1.5, -2.25);
     final double xCoordinate = point.getX();
     final double yCoordinate = point.getY();
@@ -37,7 +35,7 @@ final class PointTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
+  void shouldFollowTheEqualityContract() {
     final Point point = Point.point(1.0, 2.0);
     final Point equalPoint = Point.point(1.0, 2.0);
     final Point otherX = Point.point(3.0, 2.0);
@@ -46,16 +44,25 @@ final class PointTest {
   }
 
   @Test
-  void treatsNotANumberAsEqualToItself() {
+  void shouldHashTheBitsOfBothCoordinates() {
+    final Point point = Point.point(1.5, 3.0);
+
+    final int hash = point.hashCode();
+    final int expected = Objects.hash(1.5, 3.0);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldTreatNotANumberAsEqualToItself() {
     final Point point = Point.point(Double.NaN, 0.0);
     final Point equalPoint = Point.point(Double.NaN, 0.0);
     EqualityAssertions.assertEqualityContract(point, equalPoint);
   }
 
   @Test
-  void rendersBothCoordinates() {
+  void shouldRenderBothCoordinates() {
     final Point point = Point.point(0.5, 4.0);
     final String text = point.toString();
-    assertEquals("Point[0.5, 4.0]", text);
+    assertEquals("Point{xCoordinate=0.5, yCoordinate=4.0}", text);
   }
 }

@@ -32,26 +32,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-/**
- * An input stream that fails when its source delivers no data for too long.
- *
- * <p>The HTTP client only limits how long the response headers may take; once the body is flowing, a server that
- * stops sending would block a read forever. This stream waits for every read of its source on a virtual thread for
- * at most the idle timeout. When the timeout passes, the source is closed and the read fails with an
- * {@link HttpTimeoutException}, which the downloader treats like any other network failure.
- */
+// An input stream that fails when its source delivers no data for too long. The HTTP client only limits how long the
+// response headers may take; once the body is flowing, a server that stops sending would block a read forever. This
+// stream waits for every read of its source on a virtual thread for at most the idle timeout. When the timeout passes,
+// the source is closed and the read fails with an HttpTimeoutException, which the downloader treats like any other
+// network failure.
 final class IdleTimeoutInputStream extends InputStream {
+
+  private static final int UNSIGNED_BYTE_MASK = 0xFF;
 
   private final InputStream delegate;
   private final Duration idleTimeout;
   private final ExecutorService reader;
 
-  /**
-   * Constructs a new stream.
-   *
-   * @param delegate    the source, which this stream closes
-   * @param idleTimeout how long a read may wait for data
-   */
   IdleTimeoutInputStream(final InputStream delegate, final Duration idleTimeout) {
     this.delegate = delegate;
     this.idleTimeout = idleTimeout;
@@ -65,36 +58,40 @@ final class IdleTimeoutInputStream extends InputStream {
     if (count == -1) {
       return -1;
     }
-    return single[0] & 0xFF;
+
+    return single[0] & UNSIGNED_BYTE_MASK;
   }
 
   @Override
   public int read(final byte @NonNull [] buffer, final int offset, final int length) throws IOException {
     Objects.checkFromIndexSize(offset, length, buffer.length);
+
     if (length == 0) {
       return 0;
     }
+
     final Callable<Integer> readTask = () -> this.delegate.read(buffer, offset, length);
     final Future<Integer> pending = this.reader.submit(readTask);
     return this.await(pending);
   }
 
   private int await(final Future<Integer> pending) throws IOException {
-    final long timeoutNanos = this.idleTimeout.toNanos();
+    final long timeoutNanoseconds = this.idleTimeout.toNanos();
     try {
-      return pending.get(timeoutNanos, TimeUnit.NANOSECONDS);
+      return pending.get(timeoutNanoseconds, TimeUnit.NANOSECONDS);
     } catch (final TimeoutException exception) {
       pending.cancel(true);
       this.delegate.close();
-      final long timeoutMillis = this.idleTimeout.toMillis();
-      final HttpTimeoutException timedOut = new HttpTimeoutException("No data was received for " + timeoutMillis + " ms");
+      final long timeoutMilliseconds = this.idleTimeout.toMillis();
+      final String message = "No data was received for %s ms!".formatted(timeoutMilliseconds);
+      final HttpTimeoutException timedOut = new HttpTimeoutException(message);
       timedOut.initCause(exception);
       throw timedOut;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       pending.cancel(true);
-      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting for data");
+      final InterruptedIOException interrupted = new InterruptedIOException("Interrupted while waiting for data!");
       interrupted.initCause(exception);
       throw interrupted;
     } catch (final ExecutionException exception) {
@@ -102,11 +99,14 @@ final class IdleTimeoutInputStream extends InputStream {
       if (cause instanceof final RuntimeException runtime) {
         throw runtime;
       }
+
       if (cause instanceof final Error error) {
         throw error;
       }
+
       final String reason = exception.getMessage();
-      throw new IOException("Reading the response failed: " + reason, cause);
+      final String message = "Reading the response failed because of \"%s\"!".formatted(reason);
+      throw new IOException(message, cause);
     }
   }
 

@@ -52,8 +52,9 @@ import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import me.brandonli.mcav.browser.testing.Await;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.IOUtils;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.os.Os;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -61,6 +62,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 class LinuxLibrariesTest {
@@ -342,6 +344,29 @@ class LinuxLibrariesTest {
   }
 
   @Test
+  void shouldTryTheNextMirrorWhenTheDownloadOfTheFirstCannotBeMovedIntoPlace() throws IOException {
+    final byte[] deb = testPackage();
+    final LinuxLibraries libraries = new LinuxLibraries(
+      this.folder.resolve("cache"),
+      (uri, destination, sha256, size) -> {
+        this.downloads.add(uri);
+        if (uri.getHost().equals("first.test")) {
+          throw new FileOperationException("The part file could not be moved into place!");
+        }
+        Files.write(destination, deb);
+      },
+      List.of("https://first.test/debian/", "https://second.test/debian/"),
+      List.of(pin(deb))
+    );
+
+    final Path installation = libraries.install("linux-amd64");
+    final List<URI> expected = List.of(URI.create("https://first.test/debian/" + POOL), URI.create("https://second.test/debian/" + POOL));
+    assertEquals(expected, this.downloads);
+    final boolean installed = Files.isRegularFile(installation.resolve("libmcavtest.so.1"));
+    assertTrue(installed);
+  }
+
+  @Test
   void aMirrorThatFailsIsFollowedByTheNextAndAllFailingIsReported() throws IOException {
     final byte[] deb = testPackage();
     final LinuxLibraries fallback = this.installer(
@@ -534,7 +559,7 @@ class LinuxLibrariesTest {
   }
 
   @Test
-  @EnabledOnOs(org.junit.jupiter.api.condition.OS.LINUX) // fqn: OS is imported as me.brandonli.mcav.utils.os.OS
+  @EnabledOnOs(OS.LINUX)
   void theDefaultSessionsOfLinuxLinkTheLibrariesTheServerLacks() throws IOException {
     final byte[] deb = testPackage();
     final String platform = JcefNatives.detectCurrent().getIdentifier();
@@ -543,17 +568,17 @@ class LinuxLibrariesTest {
       List.of("https://mirror.test/debian/"),
       List.of(pin(deb).replace("linux-amd64", platform))
     );
-    final HelperLauncher linux = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, OS.LINUX);
+    final HelperLauncher linux = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, Os.LINUX);
     final HelperLauncher withLibraries = CefBrowserPlayer.DefaultSessionFactory.withLibraries(linux, libraries);
     final Path session = Files.createDirectory(this.folder.resolve("session"));
     final Path linked = withLibraries.linkLibraries(session);
     assertTrue(Files.isSymbolicLink(linked.resolve("libmcavtest.so.1")), "this machine lacks the test library");
-    final HelperLauncher windows = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, OS.WINDOWS);
+    final HelperLauncher windows = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, Os.WINDOWS);
     assertSame(windows, CefBrowserPlayer.DefaultSessionFactory.withLibraries(windows, libraries));
   }
 
   @Test
-  @EnabledOnOs(org.junit.jupiter.api.condition.OS.LINUX) // fqn: OS is imported as me.brandonli.mcav.utils.os.OS
+  @EnabledOnOs(OS.LINUX)
   void aServerThatHasEveryLibraryDownloadsNothing() throws IOException {
     final byte[] deb = testPackage();
     final String platform = JcefNatives.detectCurrent().getIdentifier();
@@ -565,13 +590,13 @@ class LinuxLibrariesTest {
     final Path root = Files.createDirectories(this.folder.resolve("provisioned"));
     final Path loader = Files.createDirectories(LinuxLibraries.hostFolders(root, platform).getFirst());
     Files.write(loader.resolve("libmcavtest.so.1"), elf(2, 1, platform.endsWith("arm64") ? 183 : 62));
-    final HelperLauncher linux = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, OS.LINUX);
+    final HelperLauncher linux = HelperSessionTest.launcher(ScriptedEngine.class.getName(), 1_000L, Os.LINUX);
     assertSame(linux, CefBrowserPlayer.DefaultSessionFactory.withLibraries(linux, libraries, root));
     assertEquals(List.of(), this.downloads, "a server behind a firewall that has every library needs no mirror");
   }
 
   @Test
-  @EnabledOnOs(org.junit.jupiter.api.condition.OS.LINUX) // fqn: OS is imported as me.brandonli.mcav.utils.os.OS
+  @EnabledOnOs(OS.LINUX)
   void aHeadlessJavaRuntimeIsRefusedWithWhatToInstall() throws IOException {
     final byte[] deb = testPackage();
     final String platform = JcefNatives.detectCurrent().getIdentifier();
@@ -589,7 +614,7 @@ class LinuxLibrariesTest {
       ScriptedEngine.class.getName(),
       List.of(),
       List.of(),
-      OS.LINUX,
+      Os.LINUX,
       Map.of(),
       1_000L
     );
@@ -689,7 +714,7 @@ class LinuxLibrariesTest {
       List.of("host linux-amd64")
     );
     assertEquals(List.of(), nothingExpected.getPins("linux-amd64"));
-    assertEquals(IOUtils.getCachedFolder().resolve("jcef-libraries"), new LinuxLibraries().getFolder());
+    assertEquals(IoUtils.getCachedFolder().resolve("jcef-libraries"), new LinuxLibraries().getFolder());
   }
 
   @Test

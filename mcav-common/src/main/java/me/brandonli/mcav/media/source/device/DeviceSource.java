@@ -23,6 +23,10 @@ import me.brandonli.mcav.media.source.DynamicSource;
 /**
  * A camera or capture card, identified by its index; {@code 0} is usually the default webcam. Play device sources
  * with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()}.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface DeviceSource extends DynamicSource {
   /**
@@ -31,25 +35,41 @@ public interface DeviceSource extends DynamicSource {
    * @param deviceId the index of the device, starting at 0
    * @return the source
    * @throws IllegalArgumentException if {@code deviceId} is negative
+   * @since 1.0.0
    */
   static DeviceSource device(final int deviceId) {
-    Preconditions.checkArgument(deviceId >= 0, "Device index must not be negative");
-    return new DeviceSourceImpl(deviceId);
+    Preconditions.checkArgument(deviceId >= 0, "Device index must not be negative!");
+
+    return new DefaultDeviceSource(deviceId);
   }
 
   /**
-   * Gets the index of the device.
+   * Returns the index of the device.
    *
    * @return the device index
+   * @since 1.0.0
    */
   int getDeviceId();
 
+  /**
+   * Returns the camera index of this device source as a string. Generated and specialized sources may return a diagnostic string that
+   * cannot be opened by an arbitrary backend.
+   *
+   * @return the resource string
+   * @since 1.0.0
+   */
   @Override
   default String getResource() {
     final int deviceId = this.getDeviceId();
     return String.valueOf(deviceId);
   }
 
+  /**
+   * Returns {@code device}, the name that log messages give device sources.
+   *
+   * @return the type name
+   * @since 1.0.0
+   */
   @Override
   default String getName() {
     return "device";

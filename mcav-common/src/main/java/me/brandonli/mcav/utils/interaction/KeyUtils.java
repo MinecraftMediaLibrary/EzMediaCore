@@ -19,6 +19,7 @@ package me.brandonli.mcav.utils.interaction;
 
 import com.google.common.base.Preconditions;
 import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Helpers for typing text that contains special keys.
@@ -26,6 +27,10 @@ import java.util.Optional;
  * <p>Users write special keys by name, such as {@code Hello{ENTER}}, and {@link #replaceKeysWithKeyCodes(String)}
  * turns every {@code {NAME}} into the character of the corresponding {@link KeyCode}. A literal
  * <code>&#123;</code> is written as <code>&#123;&#123;</code>.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class KeyUtils {
 
@@ -33,7 +38,7 @@ public final class KeyUtils {
   private static final char CLOSE = '}';
 
   private KeyUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -43,57 +48,53 @@ public final class KeyUtils {
    * @param input the text with key names
    * @return the text with key characters
    * @throws NullPointerException if {@code input} is null
+   * @since 1.0.0
    */
   public static String replaceKeysWithKeyCodes(final String input) {
-    Preconditions.checkNotNull(input, "Input must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+
     final int length = input.length();
     final StringBuilder output = new StringBuilder(length);
     int index = 0;
     while (index < length) {
       index = appendNext(input, index, output);
     }
+
     return output.toString();
   }
 
-  /**
-   * Appends the character, escaped brace or key character that starts at the index to the output.
-   *
-   * @return the index just past what was consumed
-   */
   private static int appendNext(final String input, final int index, final StringBuilder output) {
     final char current = input.charAt(index);
     if (current != OPEN) {
       output.append(current);
       return index + 1;
     }
+
     final int next = index + 1;
     final boolean escaped = next < input.length() && input.charAt(next) == OPEN;
     if (escaped) {
       output.append(OPEN);
-      return index + 2;
+      return next + 1;
     }
+
     return appendKey(input, index, output);
   }
 
-  /**
-   * Appends the character of the key whose name is enclosed in braces at the index, or the opening brace itself
-   * if the braces do not enclose the name of a key.
-   *
-   * @return the index just past what was consumed
-   */
   private static int appendKey(final String input, final int index, final StringBuilder output) {
     final int close = input.indexOf(CLOSE, index + 1);
     if (close < 0) {
       output.append(OPEN);
       return index + 1;
     }
+
     final String name = input.substring(index + 1, close);
     final Optional<KeyCode> key = KeyCode.fromName(name);
-    if (key.isEmpty()) {
+    final @Nullable KeyCode code = key.orElse(null);
+    if (code == null) {
       output.append(OPEN);
       return index + 1;
     }
-    final KeyCode code = key.get();
+
     final char character = code.getKeyChar();
     output.append(character);
     return close + 1;

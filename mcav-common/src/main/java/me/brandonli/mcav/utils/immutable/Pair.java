@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.utils.immutable;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -24,15 +25,18 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A shallowly immutable pair of two non-null values, retained by reference rather than copied.
  *
- * @param <A> the type of the first value
- * @param <B> the type of the second value
+ * <p>This class is immutable, and thread-safe when its values are.
+ *
+ * @param <FirstType>  the type of the first value
+ * @param <SecondType> the type of the second value
+ * @since 1.0.0
  */
-public final class Pair<A, B> {
+public final class Pair<FirstType, SecondType> {
 
-  private final A first;
-  private final B second;
+  private final FirstType first;
+  private final SecondType second;
 
-  Pair(final A first, final B second) {
+  Pair(final FirstType first, final SecondType second) {
     this.first = first;
     this.second = second;
   }
@@ -40,55 +44,80 @@ public final class Pair<A, B> {
   /**
    * Creates a pair.
    *
-   * @param <C>    the type of the first value
-   * @param <D>    the type of the second value
-   * @param first  the first value
-   * @param second the second value
+   * @param <FirstType>  the type of the first value
+   * @param <SecondType> the type of the second value
+   * @param first        the first value
+   * @param second       the second value
    * @return the pair
    * @throws NullPointerException if {@code first} or {@code second} is null
+   * @since 1.0.0
    */
-  public static <C, D> Pair<C, D> pair(final C first, final D second) {
-    Preconditions.checkNotNull(first, "First value must not be null");
-    Preconditions.checkNotNull(second, "Second value must not be null");
+  public static <FirstType, SecondType> Pair<FirstType, SecondType> pair(final FirstType first, final SecondType second) {
+    Preconditions.checkNotNull(first, "First value must not be null!");
+    Preconditions.checkNotNull(second, "Second value must not be null!");
+
     return new Pair<>(first, second);
   }
 
   /**
-   * Gets the first value.
+   * Returns the first value.
    *
    * @return the first value
+   * @since 1.0.0
    */
-  public A getFirst() {
+  public FirstType getFirst() {
     return this.first;
   }
 
   /**
-   * Gets the second value.
+   * Returns the second value.
    *
    * @return the second value
+   * @since 1.0.0
    */
-  public B getSecond() {
+  public SecondType getSecond() {
     return this.second;
   }
 
+  /**
+   * Returns whether {@code other} is a pair with equal values.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   * @since 1.0.0
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Pair<?, ?> pair)) {
       return false;
     }
+
     return Objects.equals(this.first, pair.first) && Objects.equals(this.second, pair.second);
   }
 
+  /**
+   * Returns a hash code built from both values.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.first, this.second);
   }
 
+  /**
+   * Returns a debugging representation with both values.
+   *
+   * @return the representation
+   * @since 1.0.0
+   */
   @Override
   public String toString() {
-    return "Pair[" + this.first + ", " + this.second + "]";
+    return MoreObjects.toStringHelper(this).add("first", this.first).add("second", this.second).toString();
   }
 }

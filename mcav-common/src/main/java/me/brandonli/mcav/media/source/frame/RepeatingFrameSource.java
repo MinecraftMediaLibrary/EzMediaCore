@@ -28,6 +28,10 @@ import me.brandonli.mcav.media.image.DynamicImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()}. Use
  * {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} for pixels you may modify and
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()} for a view you can hand to other code.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface RepeatingFrameSource extends FrameSource {
   /**
@@ -37,13 +41,15 @@ public interface RepeatingFrameSource extends FrameSource {
    * @param repeatCount how often the animation is played, at least 1; {@link Integer#MAX_VALUE} means forever
    * @return the source
    * @throws IllegalArgumentException if {@code repeatCount} is nonpositive or the animation has no frames
-   * @throws IllegalStateException if the first animation frame has been released
-   * @throws NullPointerException if {@code animation} is null
+   * @throws IllegalStateException    if the first animation frame has been released
+   * @throws NullPointerException     if {@code animation} is null
+   * @since 1.0.0
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation, final int repeatCount) {
-    Preconditions.checkNotNull(animation, "Animation must not be null");
-    Preconditions.checkArgument(repeatCount > 0, "Repeat count must be positive");
-    return new RepeatingFrameSourceImpl(animation, repeatCount);
+    Preconditions.checkNotNull(animation, "Animation must not be null!");
+    Preconditions.checkArgument(repeatCount > 0, "Repeat count must be positive!");
+
+    return new DefaultRepeatingFrameSource(animation, repeatCount);
   }
 
   /**
@@ -52,18 +58,21 @@ public interface RepeatingFrameSource extends FrameSource {
    * @param animation the decoded animation, which must stay open while the source is played
    * @return the source
    * @throws IllegalArgumentException if the animation has no frames
-   * @throws IllegalStateException if the first animation frame has been released
-   * @throws NullPointerException if {@code animation} is null
+   * @throws IllegalStateException    if the first animation frame has been released
+   * @throws NullPointerException     if {@code animation} is null
+   * @since 1.0.0
    */
   static RepeatingFrameSource repeating(final DynamicImageBuffer animation) {
-    Preconditions.checkNotNull(animation, "Animation must not be null");
-    return new RepeatingFrameSourceImpl(animation, Integer.MAX_VALUE);
+    Preconditions.checkNotNull(animation, "Animation must not be null!");
+
+    return new DefaultRepeatingFrameSource(animation, Integer.MAX_VALUE);
   }
 
   /**
-   * Gets how often the animation is played.
+   * Returns how often the animation is played.
    *
    * @return the repeat count, or {@link Integer#MAX_VALUE} for endless looping
+   * @since 1.0.0
    */
   int getRepeatCount();
 }

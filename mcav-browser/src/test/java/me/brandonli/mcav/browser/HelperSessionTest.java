@@ -70,11 +70,12 @@ import me.brandonli.mcav.browser.testing.OpenFiles;
 import me.brandonli.mcav.browser.testing.StandardError;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -93,14 +94,14 @@ class HelperSessionTest {
   private final List<HelperSession> sessions = new ArrayList<>();
 
   static HelperLauncher launcher(final String mainClass, final long startTimeoutMillis) {
-    return launcher(mainClass, startTimeoutMillis, OSUtils.getOS());
+    return launcher(mainClass, startTimeoutMillis, OsUtils.getOs());
   }
 
-  static HelperLauncher launcher(final String mainClass, final long startTimeoutMillis, final OS os) {
+  static HelperLauncher launcher(final String mainClass, final long startTimeoutMillis, final Os os) {
     return launcher(mainClass, startTimeoutMillis, os, List.of());
   }
 
-  static HelperLauncher launcher(final String mainClass, final long startTimeoutMillis, final OS os, final List<String> jvmOptions) {
+  static HelperLauncher launcher(final String mainClass, final long startTimeoutMillis, final Os os, final List<String> jvmOptions) {
     final String javaHome = System.getProperty("java.home");
     final Path java = Path.of(javaHome, "bin", File.separatorChar == '\\' ? "java.exe" : "java");
     final List<Path> classPath = new ArrayList<>();
@@ -380,7 +381,7 @@ class HelperSessionTest {
       ScriptedEngine.class.getName(),
       List.of(),
       List.of(),
-      OS.LINUX,
+      Os.LINUX,
       Map.of("PATH", "/usr/bin", "MCAV_TEST_SECRET", "hidden"),
       1_000L
     );
@@ -422,7 +423,7 @@ class HelperSessionTest {
   }
 
   @Test
-  @EnabledOnOs(org.junit.jupiter.api.condition.OS.LINUX) // fqn: OS is imported as me.brandonli.mcav.utils.os.OS
+  @EnabledOnOs(OS.LINUX)
   void inputThatCannotBeWrittenEndsTheSession() {
     final HelperSession session = this.open(RawHelperMain.class.getName(), "/deaf");
     Await.until("the end of the session", () -> {
@@ -516,7 +517,7 @@ class HelperSessionTest {
       ScriptedEngine.class.getName(),
       List.of(),
       List.of(),
-      OSUtils.getOS(),
+      OsUtils.getOs(),
       System.getenv(),
       5_000L
     );
@@ -744,7 +745,7 @@ class HelperSessionTest {
     final HelperLauncher gated = launcher(
       GatedHelperMain.class.getName(),
       60_000L,
-      OSUtils.getOS(),
+      OsUtils.getOs(),
       List.of("-D" + GatedHelperMain.GATE_PROPERTY + "=" + gate)
     );
     final BrowserSource source = BrowserSource.uri(URI.create("https://example.com/page"), 4, 3, 1);
@@ -776,7 +777,7 @@ class HelperSessionTest {
     final HelperLauncher gated = launcher(
       GatedHelperMain.class.getName(),
       60_000L,
-      OSUtils.getOS(),
+      OsUtils.getOs(),
       List.of("-D" + GatedHelperMain.GATE_PROPERTY + "=" + gate)
     );
     final BrowserSource source = BrowserSource.uri(URI.create("https://example.com/page"), 4, 3, 1);
@@ -968,10 +969,10 @@ class HelperSessionTest {
   @Test
   void aTemporaryFolderTooLongForChromiumsSocketIsRefusedOnLinuxWithTheReason() {
     // the longest temporary folder, 47 characters: Chromium's socket path has 107, the most a path may have
-    HelperSession.requireShortEnough(OS.LINUX, Path.of("/" + "t".repeat(46), "mcavb-12345678"));
+    HelperSession.requireShortEnough(Os.LINUX, Path.of("/" + "t".repeat(46), "mcavb-12345678"));
     final Path folder = Path.of("/" + "t".repeat(47));
     final Path tooLong = folder.resolve("mcavb-12345678");
-    final PlayerException refused = assertThrows(PlayerException.class, () -> HelperSession.requireShortEnough(OS.LINUX, tooLong));
+    final PlayerException refused = assertThrows(PlayerException.class, () -> HelperSession.requireShortEnough(Os.LINUX, tooLong));
     assertEquals(
       "The temporary folder " +
         folder +
@@ -979,15 +980,15 @@ class HelperSessionTest {
         " java.io.tmpdir, such as /tmp",
       refused.getMessage()
     );
-    HelperSession.requireShortEnough(OS.WINDOWS, tooLong);
+    HelperSession.requireShortEnough(Os.WINDOWS, tooLong);
   }
 
   @Test
-  @EnabledOnOs(org.junit.jupiter.api.condition.OS.LINUX) // fqn: OS is imported as me.brandonli.mcav.utils.os.OS
+  @EnabledOnOs(OS.LINUX)
   void aHelperIsNotStartedInATemporaryFolderTooLongForChromiumAndItsFolderIsRemoved() throws IOException {
     final Path temporary = Files.createDirectories(this.directory.resolve("t".repeat(70 - this.directory.toString().length())));
     final BrowserSource source = BrowserSource.uri(URI.create("https://example.com/page"), 4, 3, 1);
-    final HelperLauncher launcher = launcher(ScriptedEngine.class.getName(), 60_000L, OS.LINUX);
+    final HelperLauncher launcher = launcher(ScriptedEngine.class.getName(), 60_000L, Os.LINUX);
     final PlayerException refused = assertThrows(PlayerException.class, () ->
       HelperSession.open(launcher, NATIVES, source, BrowserOptions.DEFAULT, this.listener, temporary)
     );

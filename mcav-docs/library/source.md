@@ -8,7 +8,7 @@ code generates. Sources are small immutable descriptions; the player opens them 
 | `FileSource`          | `FileSource.path(path)` with a `Path`                | FFmpeg, VLC, OpenCV                |
 | `UriSource`           | `UriSource.uri(uri)` with a `URI`                    | FFmpeg, VLC; OpenCV with a compatible URL backend |
 | `DeviceSource`        | `DeviceSource.device(0)`                             | `VideoPlayer.device()`             |
-| `FFmpegDirectSource`  | `FFmpegDirectSource.mrl("desktop", "gdigrab")`       | `VideoPlayer.ffmpeg()`             |
+| `FfmpegDirectSource`  | `FfmpegDirectSource.mrl("desktop", "gdigrab")`       | `VideoPlayer.ffmpeg()`             |
 | `FrameSource`         | `FrameSource.supplier(...)` or `FrameSource.image(...)` | `ImagePlayer`                   |
 | `BrowserSource`       | `BrowserSource.uri(...)`                             | `BrowserPlayer`                    |
 

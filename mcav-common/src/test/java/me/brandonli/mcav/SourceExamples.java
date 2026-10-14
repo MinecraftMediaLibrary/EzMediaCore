@@ -22,10 +22,9 @@ import java.util.Optional;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.SourceDetectionHelper;
 
-/**
- * Shows which source type {@link SourceDetectionHelper} picks for a few strings.
- */
 public final class SourceExamples {
+
+  private static final String LOCAL_FILE_PATH = "C:\\rickroll.mp4";
 
   private SourceExamples() {}
 
@@ -34,7 +33,7 @@ public final class SourceExamples {
     final List<String> inputs = List.of(
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
       "2",
-      "C:\\rickroll.mp4",
+      LOCAL_FILE_PATH,
       "https://github.com/mediaelement/mediaelement-files/blob/master/echo-hereweare.mp4",
       "dshow||video=OBS Virtual Camera",
       "daibsdahsbdashvb"

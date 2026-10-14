@@ -23,17 +23,22 @@ package me.brandonli.mcav.media.source.frame;
  * <p>The {@link me.brandonli.mcav.media.player.image.ImagePlayer} copies the pixels into its frame before it runs the
  * pipeline and never modifies or keeps the returned array, so a supplier may hand out the same array every time, such
  * as the shared pixels of an image, see {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()}.
+ *
+ * <p>Implementations are called from the player thread only and need not be thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface SampleSupplier {
   /**
-   * Gets the next frame.
+   * Returns the next frame.
    *
    * @return the pixels of the frame laid out row by row, or an empty array if no frame is available yet. The array
    *     may be shared and is read-only, as the pixels of
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()} are; copy it before modifying it, as
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} does, or hand it on as a read-only view, as
    *     {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()} does
+   * @since 1.0.0
    */
   int[] getFrameSamples();
 }

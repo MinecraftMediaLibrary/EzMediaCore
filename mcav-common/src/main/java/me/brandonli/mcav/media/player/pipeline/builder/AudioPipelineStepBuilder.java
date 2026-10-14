@@ -17,20 +17,41 @@
  */
 package me.brandonli.mcav.media.player.pipeline.builder;
 
-import java.nio.ByteBuffer;
-import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 
 /**
  * Builds an audio pipeline from {@link AudioFilter}s; create one with {@link PipelineBuilder#audio()}.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
-public abstract class AudioPipelineStepBuilder
-  extends AbstractPipelineStepBuilder<ByteBuffer, OriginalAudioMetadata, AudioFilter, AudioPipelineStep, AudioPipelineStepBuilder>
-{
+public interface AudioPipelineStepBuilder {
+  /**
+   * Adds a filter to the end of the pipeline.
+   *
+   * @param filter the filter
+   * @return this builder
+   * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
+   */
+  AudioPipelineStepBuilder then(final AudioFilter filter);
 
   /**
-   * Constructs an empty builder.
+   * Returns the number of filters added so far.
+   *
+   * @return the filter count
+   * @since 1.0.0
    */
-  protected AudioPipelineStepBuilder() {}
+  int size();
+
+  /**
+   * Links the filters into a new chain, first filter first, retaining the filter instances. The builder is
+   * unchanged; appending more filters later does not alter this chain.
+   *
+   * @return the first step, or {@link AudioPipelineStep#NO_OP} if no filter was added
+   * @since 1.0.0
+   */
+  AudioPipelineStep build();
 }

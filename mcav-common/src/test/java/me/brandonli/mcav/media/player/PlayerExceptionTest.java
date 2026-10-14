@@ -23,35 +23,33 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PlayerException}.
- */
 final class PlayerExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final PlayerException exception = new PlayerException("VLC could not open video.mp4");
+  void shouldKeepTheMessage() {
+    final PlayerException exception = new PlayerException("Media video.mp4 could not be opened by VLC!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("VLC could not open video.mp4", message);
+    assertEquals("Media video.mp4 could not be opened by VLC!", message);
     assertNull(cause);
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
-    final IOException connectFailure = new IOException("connection refused");
-    final PlayerException exception = new PlayerException("The VNC server cannot be reached", connectFailure);
+  void shouldKeepTheMessageAndTheCause() {
+    final IOException connectFailure = new IOException("connection refused!");
+    final PlayerException exception = new PlayerException("The VNC server cannot be reached!", connectFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("The VNC server cannot be reached", message);
+    assertEquals("The VNC server cannot be reached!", message);
     assertSame(connectFailure, cause);
   }
 
   @Test
-  void isARuntimeException() {
-    final PlayerException exception = new PlayerException("failure");
-    assertInstanceOf(RuntimeException.class, exception, "a player failure is recoverable, so it is no Error");
+  void shouldBeAnMCAVException() {
+    final PlayerException exception = new PlayerException("failure!");
+    assertInstanceOf(MCAVException.class, exception, "a player failure is recoverable, so it is no Error");
   }
 }

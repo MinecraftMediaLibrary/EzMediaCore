@@ -26,15 +26,11 @@ import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter;
 
-/**
- * Watches one VLC media player: tells the playback when VLC has opened the media, and reports playback errors to the
- * exception handler of the player.
- *
- * <p>VLC opens media asynchronously, so asking it to play a file that does not exist succeeds, and the failure only
- * arrives later as an error event. The playback therefore waits for the first playing, finished, or error event, so
- * that {@link VLCPlayer#start} can return false for media that cannot be opened. Errors that happen later, while the
- * media plays, are reported to the exception handler as well.
- */
+// Watches one VLC media player: tells the playback when VLC has opened the media, and reports playback errors to the
+// exception handler of the player. VLC opens media asynchronously, so asking it to play a file that does not exist
+// succeeds, and the failure only arrives later as an error event. The playback therefore waits for the first playing,
+// finished, or error event, so that VlcPlayer.start can return false for media that cannot be opened. Errors that
+// happen later, while the media plays, are reported to the exception handler as well.
 final class PlaybackEventListener extends MediaPlayerEventAdapter {
 
   private final VideoPlayerMultiplexer owner;
@@ -43,13 +39,6 @@ final class PlaybackEventListener extends MediaPlayerEventAdapter {
   private final CountDownLatch settled;
   private final AtomicBoolean failed;
 
-  /**
-   * Constructs a new listener.
-   *
-   * @param owner    the player whose exception handler receives errors
-   * @param resource the resource the watched player plays, for error messages
-   * @param active   whether the playback still runs; errors are no longer reported once it is false
-   */
   PlaybackEventListener(final VideoPlayerMultiplexer owner, final String resource, final AtomicBoolean active) {
     this.owner = owner;
     this.resource = resource;
@@ -58,33 +47,19 @@ final class PlaybackEventListener extends MediaPlayerEventAdapter {
     this.failed = new AtomicBoolean(false);
   }
 
-  /**
-   * Records that VLC has opened the media and started playing it.
-   *
-   * @param mediaPlayer the player that plays
-   */
   @Override
   public void playing(final MediaPlayer mediaPlayer) {
     this.settled.countDown();
   }
 
-  /**
-   * Records that VLC has played the media to its end, which means it was opened.
-   *
-   * @param mediaPlayer the player that played
-   */
   @Override
   public void finished(final MediaPlayer mediaPlayer) {
     this.settled.countDown();
   }
 
-  /**
-   * Records that VLC could not open or play the media and reports it to the exception handler, unless the playback
-   * has already been stopped. The report releases a thread waiting in {@link #awaitOpened(long)} after the handler
-   * finishes; a wait that times out during the report still observes the recorded failure.
-   *
-   * @param mediaPlayer the player that failed
-   */
+  // Records that VLC could not open or play the media and reports it to the exception handler, unless the playback has
+  // already been stopped. The report releases a thread waiting in awaitOpened(long) after the handler finishes; a wait
+  // that times out during the report still observes the recorded failure.
   @Override
   public void error(final MediaPlayer mediaPlayer) {
     this.failed.set(true);
@@ -99,21 +74,15 @@ final class PlaybackEventListener extends MediaPlayerEventAdapter {
     if (!this.active.get()) {
       return;
     }
+
     final BiConsumer<String, Throwable> handler = this.owner.getExceptionHandler();
-    final PlayerException exception = new PlayerException("VLC could not play " + this.resource);
+    final String message = "Media %s could not be played by VLC!".formatted(this.resource);
+    final PlayerException exception = new PlayerException(message);
     handler.accept("VLC playback of " + this.resource + " failed", exception);
   }
 
-  /**
-   * Waits until VLC has started playing the media, has finished it, or has failed.
-   *
-   * @param timeoutMillis how long to wait at most in milliseconds
-   * @return false if VLC reported an error, true otherwise, including when VLC is still opening the media when the
-   * timeout elapses; later failures are still reported to the exception handler
-   * @throws InterruptedException if the calling thread is interrupted while waiting
-   */
-  boolean awaitOpened(final long timeoutMillis) throws InterruptedException {
-    this.settled.await(timeoutMillis, TimeUnit.MILLISECONDS);
+  boolean awaitOpened(final long timeoutMilliseconds) throws InterruptedException {
+    this.settled.await(timeoutMilliseconds, TimeUnit.MILLISECONDS);
 
     final boolean failedToOpen = this.failed.get();
     return !failedToOpen;

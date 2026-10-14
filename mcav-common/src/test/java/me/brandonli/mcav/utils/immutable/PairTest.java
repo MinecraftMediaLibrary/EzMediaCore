@@ -20,16 +20,16 @@ package me.brandonli.mcav.utils.immutable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Pair}.
- */
 final class PairTest {
 
+  private static final String FIRST_VALUE = "a";
+
   @Test
-  void storesBothValues() {
+  void shouldStoreBothValues() {
     final Pair<String, Integer> pair = Pair.pair("width", 42);
     final String first = pair.getFirst();
     final Integer second = pair.getSecond();
@@ -38,24 +38,33 @@ final class PairTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
-    final Pair<String, Integer> pair = Pair.pair("a", 1);
-    final Pair<String, Integer> equalPair = Pair.pair("a", 1);
+  void shouldFollowTheEqualityContract() {
+    final Pair<String, Integer> pair = Pair.pair(FIRST_VALUE, 1);
+    final Pair<String, Integer> equalPair = Pair.pair(FIRST_VALUE, 1);
     final Pair<String, Integer> otherFirst = Pair.pair("b", 1);
-    final Pair<String, Integer> otherSecond = Pair.pair("a", 2);
+    final Pair<String, Integer> otherSecond = Pair.pair(FIRST_VALUE, 2);
     EqualityAssertions.assertEqualityContract(pair, equalPair, otherFirst, otherSecond);
   }
 
   @Test
-  void rejectsNullValues() {
+  void shouldHashBothValues() {
+    final Pair<String, Integer> pair = Pair.pair(FIRST_VALUE, 1);
+
+    final int hash = pair.hashCode();
+    final int expected = Objects.hash(FIRST_VALUE, 1);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldRejectNullValues() {
     assertThrows(NullPointerException.class, () -> Pair.pair(null, 1));
     assertThrows(NullPointerException.class, () -> Pair.pair(1, null));
   }
 
   @Test
-  void rendersBothValues() {
+  void shouldRenderBothValues() {
     final Pair<String, Integer> pair = Pair.pair("x", 7);
     final String text = pair.toString();
-    assertEquals("Pair[x, 7]", text);
+    assertEquals("Pair{first=x, second=7}", text);
   }
 }

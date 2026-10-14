@@ -19,32 +19,43 @@ package me.brandonli.mcav.media.image;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Objects;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PixelCacheKey}.
- */
 final class PixelCacheKeyTest {
 
+  private static final long ADDRESS = 0x1000L;
+
+  private static final int WIDTH = 4;
+
   @Test
-  void followsTheEqualityContract() {
-    final PixelCacheKey key = new PixelCacheKey(0x1000L, 4, 2);
-    final PixelCacheKey equalKey = new PixelCacheKey(0x1000L, 4, 2);
-    final PixelCacheKey otherAddress = new PixelCacheKey(0x2000L, 4, 2);
-    final PixelCacheKey otherWidth = new PixelCacheKey(0x1000L, 2, 2);
-    final PixelCacheKey otherHeight = new PixelCacheKey(0x1000L, 4, 1);
+  void shouldFollowTheEqualityContract() {
+    final PixelCacheKey key = new PixelCacheKey(ADDRESS, WIDTH, 2);
+    final PixelCacheKey equalKey = new PixelCacheKey(ADDRESS, WIDTH, 2);
+    final PixelCacheKey otherAddress = new PixelCacheKey(0x2000L, WIDTH, 2);
+    final PixelCacheKey otherWidth = new PixelCacheKey(ADDRESS, 2, 2);
+    final PixelCacheKey otherHeight = new PixelCacheKey(ADDRESS, WIDTH, 1);
     EqualityAssertions.assertEqualityContract(key, equalKey, otherAddress, otherWidth, otherHeight);
   }
 
   @Test
-  void exposesTheShape() {
+  void shouldHashTheAddressTheWidthAndTheHeight() {
+    final PixelCacheKey key = new PixelCacheKey(ADDRESS, WIDTH, 3);
+
+    final int hash = key.hashCode();
+    final int expected = Objects.hash(ADDRESS, WIDTH, 3);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldExposeTheShape() {
     final PixelCacheKey key = new PixelCacheKey(0xABCL, 16, 9);
     final int width = key.getWidth();
     final int height = key.getHeight();
     final String text = key.toString();
     assertEquals(16, width);
     assertEquals(9, height);
-    assertEquals("PixelCacheKey[abc, 16x9]", text);
+    assertEquals("PixelCacheKey{address=2748, width=16, height=9}", text);
   }
 }

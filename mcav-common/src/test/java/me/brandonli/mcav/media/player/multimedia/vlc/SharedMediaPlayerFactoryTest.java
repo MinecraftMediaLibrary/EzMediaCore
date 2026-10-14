@@ -37,9 +37,6 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory;
 
-/**
- * Tests {@link SharedMediaPlayerFactory}.
- */
 final class SharedMediaPlayerFactoryTest {
 
   private static final int THREAD_COUNT = 8;
@@ -55,7 +52,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void sharesOneInstanceAndReleasesItWithTheLastReference() {
+  void shouldShareOneInstanceAndReleaseItWithTheLastReference() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final MediaPlayerFactory first = shared.acquire();
     final MediaPlayerFactory second = shared.acquire();
@@ -77,7 +74,7 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void createsANewInstanceAfterTheLastRelease() {
+  void shouldCreateANewInstanceAfterTheLastRelease() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final MediaPlayerFactory first = shared.acquire();
     shared.release();
@@ -85,12 +82,13 @@ final class SharedMediaPlayerFactoryTest {
     final int creationCount = this.creations.get();
     assertNotSame(first, second);
     assertEquals(2, creationCount);
+
     shared.release();
     verify(second).release();
   }
 
   @Test
-  void ignoresReleasesWithoutAcquisition() {
+  void shouldIgnoreReleasesWithoutAcquisition() {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     shared.release();
     final int referencesBeforeAcquisition = shared.getReferences();
@@ -104,21 +102,24 @@ final class SharedMediaPlayerFactoryTest {
   }
 
   @Test
-  void acquiresNoReferenceWhenTheInstanceCannotBeCreated() {
+  void shouldAcquireNoReferenceWhenTheInstanceCannotBeCreated() {
     final AtomicInteger attempts = new AtomicInteger();
-    final Supplier<MediaPlayerFactory> failing = () -> {
-      attempts.incrementAndGet();
-      throw new IllegalStateException("libvlc not found");
-    };
+    final Supplier<MediaPlayerFactory> failing = () -> this.countAttemptAndFail(attempts);
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(failing);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, shared::acquire);
     final String message = exception.getMessage();
     final int references = shared.getReferences();
     assertThrows(IllegalStateException.class, shared::acquire);
+
     final int attemptCount = attempts.get();
-    assertEquals("libvlc not found", message);
+    assertEquals("libvlc not found!", message);
     assertEquals(0, references);
     assertEquals(2, attemptCount, "every acquisition tries again");
+  }
+
+  private MediaPlayerFactory countAttemptAndFail(final AtomicInteger attempts) {
+    attempts.incrementAndGet();
+    throw new IllegalStateException("libvlc not found!");
   }
 
   private static void startAcquiring(
@@ -127,24 +128,31 @@ final class SharedMediaPlayerFactoryTest {
     final CountDownLatch done,
     final List<MediaPlayerFactory> acquired
   ) {
-    final Thread thread = new Thread(() -> {
-      try {
-        barrier.await();
-        final MediaPlayerFactory factory = shared.acquire();
-        synchronized (acquired) {
-          acquired.add(factory);
-        }
-      } catch (final Exception exception) {
-        throw new IllegalStateException(exception);
-      } finally {
-        done.countDown();
-      }
-    });
+    final Thread thread = new Thread(() -> acquireTogether(shared, barrier, done, acquired));
     thread.start();
   }
 
+  private static void acquireTogether(
+    final SharedMediaPlayerFactory shared,
+    final CyclicBarrier barrier,
+    final CountDownLatch done,
+    final List<MediaPlayerFactory> acquired
+  ) {
+    try {
+      barrier.await();
+      final MediaPlayerFactory factory = shared.acquire();
+      synchronized (acquired) {
+        acquired.add(factory);
+      }
+    } catch (final Exception exception) {
+      throw new IllegalStateException(exception);
+    } finally {
+      done.countDown();
+    }
+  }
+
   @Test
-  void createsOneInstanceForConcurrentAcquisitions() throws Exception {
+  void shouldCreateOneInstanceForConcurrentAcquisitions() throws Exception {
     final SharedMediaPlayerFactory shared = new SharedMediaPlayerFactory(this::create);
     final CyclicBarrier barrier = new CyclicBarrier(THREAD_COUNT);
     final CountDownLatch done = new CountDownLatch(THREAD_COUNT);
@@ -165,19 +173,20 @@ final class SharedMediaPlayerFactoryTest {
     for (int releaseIndex = 0; releaseIndex < THREAD_COUNT; releaseIndex++) {
       shared.release();
     }
+
     final MediaPlayerFactory factory = this.created.getFirst();
     verify(factory, times(1)).release();
   }
 
   @Test
-  void theSharedInstanceIsASingleton() {
+  void shouldMakeTheSharedInstanceASingleton() {
     final SharedMediaPlayerFactory first = SharedMediaPlayerFactory.getInstance();
     final SharedMediaPlayerFactory second = SharedMediaPlayerFactory.getInstance();
     assertSame(first, second);
   }
 
   @Test
-  void rejectsANullCreator() {
+  void shouldRejectANullCreator() {
     assertThrows(NullPointerException.class, () -> new SharedMediaPlayerFactory(null));
   }
 }

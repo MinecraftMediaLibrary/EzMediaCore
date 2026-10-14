@@ -23,39 +23,60 @@ import me.brandonli.mcav.media.source.SourceDetector;
 
 /**
  * Detects non-negative whole numbers as capture device indices.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
 
   /**
    * Constructs a new detector.
+   *
+   * @since 1.0.0
    */
   public DeviceSourceDetector() {}
 
   /**
-   * {@inheritDoc}
+   * Checks whether the string is a non-negative integer, which names a camera index.
+   *
+   * @param raw the string entered by a user
+   * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     final Integer parsed = Ints.tryParse(raw);
     return parsed != null && parsed >= 0;
   }
 
   /**
-   * {@inheritDoc}
+   * Creates a device source for the camera index the string holds.
    *
-   * @throws NumberFormatException if the string is not a decimal {@code int}
+   * @param raw the string entered by a user
+   * @return the source
+   * @throws NumberFormatException    if the string is not a decimal {@code int}
    * @throws IllegalArgumentException if the parsed index is negative
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException     if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public DeviceSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     final int deviceId = Integer.parseInt(raw);
     return DeviceSource.device(deviceId);
   }
 
+  /**
+   * Returns {@link SourceDetector#HIGH_PRIORITY}, because a non-negative integer is never meant as a path or a URI.
+   *
+   * @return the priority, higher wins
+   * @since 1.0.0
+   */
   @Override
   public int getPriority() {
     return SourceDetector.HIGH_PRIORITY;

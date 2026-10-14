@@ -38,7 +38,7 @@ class JavaLintTaskTest {
         val source = directory.resolve("Example.java").toFile()
         source.writeText("final class Example {}\n")
         val tasks = listOf(
-            project.tasks.register("logs", LogMessagesTask::class.java).get() to "no log call with an inline message in 1 files\n",
+            project.tasks.register("logs", LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
             project.tasks.register("qualified", QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
             project.tasks.register("variables", VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
         )
@@ -57,8 +57,8 @@ class JavaLintTaskTest {
         val tasks = listOf(
             Triple(
                 project.tasks.register("logs", LogMessagesTask::class.java).get(),
-                "final class Example { void run() { logger.info(\"inline\"); logger.error(\"inline\"); } }",
-                "2 log calls with an inline message"
+                "final class Example { void run() { logger.info(\"joined \" + name); logger.error(\"joined \" + name); } }",
+                "2 log calls with a concatenated message"
             ),
             Triple(
                 project.tasks.register("qualified", QualifiedNamesTask::class.java).get(),

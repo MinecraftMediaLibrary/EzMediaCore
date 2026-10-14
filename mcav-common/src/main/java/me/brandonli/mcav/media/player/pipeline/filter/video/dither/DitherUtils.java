@@ -27,13 +27,28 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * <p>{@link #getLookupIndex(int, int, int)} and {@link #clamp(int)} run for every channel of every pixel, so they
  * leave their arguments unchecked; the dithering algorithms only pass them values they have already clamped. The
  * other methods check their arguments.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DitherUtils {
 
   private static final int CHANNEL_MASK = 0xFF;
+  private static final int CHANNEL_MAXIMUM = 255;
+
+  private static final int ALPHA_SHIFT = 24;
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int LEVEL_SHIFT = 1;
+  private static final int RED_LEVEL_SHIFT = 14;
+  private static final int GREEN_LEVEL_SHIFT = 7;
+
+  private static final String PALETTE_NULL_MESSAGE = "Palette must not be null!";
 
   private DitherUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -44,9 +59,13 @@ public final class DitherUtils {
    * @param green the green component from 0 to 255
    * @param blue  the blue component from 0 to 255
    * @return the table index
+   * @since 1.0.0
    */
   public static int getLookupIndex(final int red, final int green, final int blue) {
-    return ((red >> 1) << 14) | ((green >> 1) << 7) | (blue >> 1);
+    final int redLevel = red >> LEVEL_SHIFT;
+    final int greenLevel = green >> LEVEL_SHIFT;
+    final int blueLevel = blue >> LEVEL_SHIFT;
+    return (redLevel << RED_LEVEL_SHIFT) | (greenLevel << GREEN_LEVEL_SHIFT) | blueLevel;
   }
 
   /**
@@ -58,10 +77,12 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the palette index
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static byte getBestColor(final DitherPalette palette, final int red, final int green, final int blue) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     checkChannels(red, green, blue);
 
     final byte[] colorMap = palette.getColorMap();
@@ -78,10 +99,12 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getBestFullColor(final DitherPalette palette, final int red, final int green, final int blue) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     checkChannels(red, green, blue);
 
     final int[] fullColorMap = palette.getFullColorMap();
@@ -92,7 +115,7 @@ public final class DitherUtils {
   private static void checkChannels(final int red, final int green, final int blue) {
     final int combined = red | green | blue;
     final boolean inRange = (combined & ~CHANNEL_MASK) == 0;
-    Preconditions.checkArgument(inRange, "Color components must be between 0 and 255, got %s, %s and %s", red, green, blue);
+    Preconditions.checkArgument(inRange, "Color components %s, %s and %s must be between 0 and 255!", red, green, blue);
   }
 
   /**
@@ -105,26 +128,30 @@ public final class DitherUtils {
    * @param blue    the blue component from 0 to 255
    * @return the closest palette color as opaque ARGB
    * @throws IllegalArgumentException if a component is outside the range from 0 to 255
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getBestColorNormal(final DitherPalette palette, final int red, final int green, final int blue) {
     return getBestFullColor(palette, red, green, blue);
   }
 
   /**
-   * Gets the color of a palette index.
+   * Returns the color of a palette index.
    *
    * @param palette the palette
    * @param index   the palette index, as stored in map data; negative bytes are treated as unsigned
    * @return the color as opaque ARGB, or zero for a reserved transparent index
    * @throws IndexOutOfBoundsException if the palette has no color at the index
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException      if {@code palette} is null
+   * @since 1.0.0
    */
   public static int getColorFromMinecraftPalette(final DitherPalette palette, final byte index) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     final int[] colors = palette.getPalette();
     final int unsigned = index & CHANNEL_MASK;
     Preconditions.checkElementIndex(unsigned, colors.length, "Palette index");
+
     return colors[unsigned];
   }
 
@@ -136,16 +163,18 @@ public final class DitherUtils {
    * @param argb    the color
    * @return the palette index, or zero if the color is fully transparent
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public static byte getBestColorIncludingTransparent(final DitherPalette palette, final int argb) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
-    final int alpha = argb >>> 24;
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
+    final int alpha = argb >>> ALPHA_SHIFT;
     if (alpha == 0) {
       return 0;
     }
 
-    final int red = (argb >> 16) & CHANNEL_MASK;
-    final int green = (argb >> 8) & CHANNEL_MASK;
+    final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+    final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
     final int blue = argb & CHANNEL_MASK;
     return getBestColor(palette, red, green, blue);
   }
@@ -158,21 +187,23 @@ public final class DitherUtils {
    * @param pixels  the pixels as ARGB
    * @return the palette index of every pixel
    * @throws NullPointerException if {@code palette} or {@code pixels} is null
+   * @since 1.0.0
    */
   public static byte[] simplify(final DitherPalette palette, final int[] pixels) {
-    Preconditions.checkNotNull(palette, "Palette must not be null");
-    Preconditions.checkNotNull(pixels, "Pixels must not be null");
+    Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+    Preconditions.checkNotNull(pixels, "Pixels must not be null!");
 
     final byte[] colorMap = palette.getColorMap();
     final byte[] indices = new byte[pixels.length];
     for (int pixelIndex = 0; pixelIndex < pixels.length; pixelIndex++) {
       final int argb = pixels[pixelIndex];
-      final int red = (argb >> 16) & CHANNEL_MASK;
-      final int green = (argb >> 8) & CHANNEL_MASK;
+      final int red = (argb >> RED_SHIFT) & CHANNEL_MASK;
+      final int green = (argb >> GREEN_SHIFT) & CHANNEL_MASK;
       final int blue = argb & CHANNEL_MASK;
       final int lookup = getLookupIndex(red, green, blue);
       indices[pixelIndex] = colorMap[lookup];
     }
+
     return indices;
   }
 
@@ -182,11 +213,13 @@ public final class DitherUtils {
    *
    * @param value the value
    * @return the clamped value
+   * @since 1.0.0
    */
   public static int clamp(final int value) {
-    if ((value & ~0xFF) == 0) {
+    if ((value & ~CHANNEL_MASK) == 0) {
       return value;
     }
-    return value < 0 ? 0 : 255;
+
+    return value < 0 ? 0 : CHANNEL_MAXIMUM;
   }
 }

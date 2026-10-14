@@ -32,6 +32,10 @@ import com.google.common.base.Preconditions;
  * largest weight, so exactly the fraction the weights describe is spread and nothing is lost to rounding.
  *
  * <p>Kernels are immutable. The kernels of all common algorithms are available as constants.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DiffusionKernel {
 
@@ -39,11 +43,15 @@ public final class DiffusionKernel {
    * The farthest a tap may reach, in pixels, horizontally in either direction and down. A pass keeps as many rows of
    * pending errors as the kernel reaches down, each padded by its horizontal reach on both sides, so the reach is
    * bounded; the kernels of the common algorithms reach at most 3 pixels.
+   *
+   * @since 1.0.0
    */
-  public static final int MAX_OFFSET = 64;
+  public static final int MAXIMUM_OFFSET = 64;
 
   /**
    * Floyd-Steinberg, the classic four-tap kernel.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel FLOYD_STEINBERG = new DiffusionKernel("Floyd-Steinberg", 16, new int[][] {
     { 1, 0, 7 },
@@ -54,6 +62,8 @@ public final class DiffusionKernel {
 
   /**
    * Filter Lite, also known as Sierra Lite, a three-tap kernel that is the fastest error diffusion.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel FILTER_LITE = new DiffusionKernel("Filter Lite", 4, new int[][] {
     { 1, 0, 2 },
@@ -63,6 +73,8 @@ public final class DiffusionKernel {
 
   /**
    * Atkinson, which diffuses only three quarters of the error and produces a high-contrast look.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel ATKINSON = new DiffusionKernel("Atkinson", 8, new int[][] {
     { 1, 0, 1 },
@@ -75,6 +87,8 @@ public final class DiffusionKernel {
 
   /**
    * Burkes, a seven-tap kernel over two rows.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel BURKES = new DiffusionKernel("Burkes", 32, new int[][] {
     { 1, 0, 8 },
@@ -88,6 +102,8 @@ public final class DiffusionKernel {
 
   /**
    * Jarvis, Judice, and Ninke, a twelve-tap kernel over three rows that produces very smooth results.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel JARVIS_JUDICE_NINKE = new DiffusionKernel("Jarvis-Judice-Ninke", 48, new int[][] {
     { 1, 0, 7 },
@@ -106,6 +122,8 @@ public final class DiffusionKernel {
 
   /**
    * Stucki, a twelve-tap kernel over three rows with sharper results than Jarvis, Judice, and Ninke.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel STUCKI = new DiffusionKernel("Stucki", 42, new int[][] {
     { 1, 0, 8 },
@@ -124,6 +142,8 @@ public final class DiffusionKernel {
 
   /**
    * Stevenson and Arce, a twelve-tap kernel over four rows on a hexagonal grid.
+   *
+   * @since 1.0.0
    */
   public static final DiffusionKernel STEVENSON_ARCE = new DiffusionKernel("Stevenson-Arce", 200, new int[][] {
     { 2, 0, 32 },
@@ -145,8 +165,8 @@ public final class DiffusionKernel {
   private final int[] offsetsX;
   private final int[] offsetsY;
   private final int[] weights;
-  private final int maxOffsetX;
-  private final int maxOffsetY;
+  private final int maximumOffsetX;
+  private final int maximumOffsetY;
 
   /**
    * Constructs a new kernel.
@@ -155,15 +175,16 @@ public final class DiffusionKernel {
    * @param divisor the strictly positive divisor of each weight
    * @param taps    the nonempty array of non-null {@code {dx, dy, weight}} triples, copied by this constructor
    * @throws IllegalArgumentException if the divisor is nonpositive, there are no taps, a tap has other than
-   *                                 three elements, or a tap points to an already processed pixel, reaches farther than
-   *                                  {@link #MAX_OFFSET} pixels, or has a non-positive weight
+   *                                  three elements, or a tap points to an already processed pixel, reaches farther than
+   *                                  {@link #MAXIMUM_OFFSET} pixels, or has a non-positive weight
    * @throws NullPointerException     if the name, the taps or one of the taps is null
+   * @since 1.0.0
    */
   public DiffusionKernel(final String name, final int divisor, final int[][] taps) {
-    Preconditions.checkNotNull(name, "Name must not be null");
-    Preconditions.checkNotNull(taps, "Taps must not be null");
-    Preconditions.checkArgument(divisor > 0, "Divisor must be positive");
-    Preconditions.checkArgument(taps.length > 0, "Kernel must have at least one tap");
+    Preconditions.checkNotNull(name, "Name must not be null!");
+    Preconditions.checkNotNull(taps, "Taps must not be null!");
+    Preconditions.checkArgument(divisor > 0, "Divisor must be positive!");
+    Preconditions.checkArgument(taps.length > 0, "Kernel must have at least one tap!");
 
     this.name = name;
     this.divisor = divisor;
@@ -177,26 +198,26 @@ public final class DiffusionKernel {
       this.offsetsY[tapIndex] = tap[1];
       this.weights[tapIndex] = tap[2];
     }
-    this.maxOffsetX = getLargestMagnitude(this.offsetsX);
-    this.maxOffsetY = getLargestMagnitude(this.offsetsY);
+
+    this.maximumOffsetX = getLargestMagnitude(this.offsetsX);
+    this.maximumOffsetY = getLargestMagnitude(this.offsetsY);
   }
 
-  /**
-   * Checks that a tap has an offset and a weight, and only points to pixels that are processed later.
-   */
   private static void checkTap(final int[] tap, final int tapIndex) {
-    Preconditions.checkNotNull(tap, "Tap %s must not be null", tapIndex);
-    Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values", tapIndex);
+    Preconditions.checkNotNull(tap, "Tap %s must not be null!", tapIndex);
+    Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values!", tapIndex);
+
     final int offsetX = tap[0];
     final int offsetY = tap[1];
     final int weight = tap[2];
-    Preconditions.checkArgument(offsetY >= 0, "Tap %s points to a previous row", tapIndex);
-    Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel", tapIndex);
+    Preconditions.checkArgument(offsetY >= 0, "Tap %s points to a previous row!", tapIndex);
+    Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel!", tapIndex);
+
     // widened, because the magnitude of Integer.MIN_VALUE does not fit an int
     final long reachX = Math.abs((long) offsetX);
-    final boolean withinReach = reachX <= MAX_OFFSET && offsetY <= MAX_OFFSET;
-    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels", tapIndex, MAX_OFFSET);
-    Preconditions.checkArgument(weight > 0, "Tap %s must have a positive weight", tapIndex);
+    final boolean withinReach = reachX <= MAXIMUM_OFFSET && offsetY <= MAXIMUM_OFFSET;
+    Preconditions.checkArgument(withinReach, "Tap %s reaches farther than %s pixels!", tapIndex, MAXIMUM_OFFSET);
+    Preconditions.checkArgument(weight > 0, "Tap %s must have a positive weight!", tapIndex);
   }
 
   private static int getLargestMagnitude(final int[] values) {
@@ -205,91 +226,101 @@ public final class DiffusionKernel {
       final int magnitude = Math.abs(value);
       largest = Math.max(largest, magnitude);
     }
+
     return largest;
   }
 
   /**
-   * Gets the name of the algorithm the kernel belongs to.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return this.name;
-  }
-
-  /**
-   * Gets the number the weights are divided by.
-   *
-   * @return the divisor
-   */
-  public int getDivisor() {
-    return this.divisor;
-  }
-
-  /**
-   * Gets the number of taps.
-   *
-   * @return the tap count
-   */
-  public int getTapCount() {
-    return this.weights.length;
-  }
-
-  /**
-   * Gets the horizontal offset of a tap, relative to the scanning direction.
+   * Returns the horizontal offset of a tap, relative to the scanning direction.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the horizontal offset
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getOffsetX(final int tap) {
     return this.offsetsX[tap];
   }
 
   /**
-   * Gets the vertical offset of a tap.
+   * Returns the vertical offset of a tap.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the vertical offset, which is never negative
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getOffsetY(final int tap) {
     return this.offsetsY[tap];
   }
 
   /**
-   * Gets the weight of a tap.
+   * Returns the weight of a tap.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
    * @return the weight
    * @throws IndexOutOfBoundsException if the tap index is outside the kernel
+   * @since 1.0.0
    */
   public int getWeight(final int tap) {
     return this.weights[tap];
   }
 
   /**
-   * Gets the largest horizontal distance any tap reaches.
-   *
-   * @return the maximum horizontal offset
-   */
-  public int getMaxOffsetX() {
-    return this.maxOffsetX;
-  }
-
-  /**
-   * Gets the largest number of rows any tap reaches ahead.
-   *
-   * @return the maximum vertical offset
-   */
-  public int getMaxOffsetY() {
-    return this.maxOffsetY;
-  }
-
-  /**
-   * Gets the name of the algorithm the kernel belongs to, such as {@code Floyd-Steinberg}.
+   * Returns the name of the algorithm the kernel belongs to.
    *
    * @return the name
+   * @since 1.0.0
+   */
+  public String getName() {
+    return this.name;
+  }
+
+  /**
+   * Returns the number the weights are divided by.
+   *
+   * @return the divisor
+   * @since 1.0.0
+   */
+  public int getDivisor() {
+    return this.divisor;
+  }
+
+  /**
+   * Returns the number of taps.
+   *
+   * @return the tap count
+   * @since 1.0.0
+   */
+  public int getTapCount() {
+    return this.weights.length;
+  }
+
+  /**
+   * Returns the largest horizontal distance any tap reaches.
+   *
+   * @return the maximum horizontal offset
+   * @since 1.0.0
+   */
+  public int getMaximumOffsetX() {
+    return this.maximumOffsetX;
+  }
+
+  /**
+   * Returns the largest number of rows any tap reaches ahead.
+   *
+   * @return the maximum vertical offset
+   * @since 1.0.0
+   */
+  public int getMaximumOffsetY() {
+    return this.maximumOffsetY;
+  }
+
+  /**
+   * Returns the name of the algorithm the kernel belongs to, such as {@code Floyd-Steinberg}.
+   *
+   * @return the name
+   * @since 1.0.0
    */
   @Override
   public String toString() {

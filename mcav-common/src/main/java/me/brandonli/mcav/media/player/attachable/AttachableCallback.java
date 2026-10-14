@@ -22,19 +22,25 @@ package me.brandonli.mcav.media.player.attachable;
  * and detached at any time, including while the player is playing. A detached slot holds a harmless default so
  * players never have to check for null.
  *
- * @param <T> the type of value the slot holds
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @param <ValueType> the type of value the slot holds
+ * @since 1.0.0
  */
-public interface AttachableCallback<T> {
+public interface AttachableCallback<ValueType> {
   /**
    * Puts a value into the slot, replacing the previous one.
    *
    * @param value the non-null value, retained by reference; replacing a value does not release it
    * @throws NullPointerException if {@code value} is null
+   * @since 1.0.0
    */
-  void attach(final T value);
+  void attach(final ValueType value);
 
   /**
    * Empties the slot, restoring its default.
+   *
+   * @since 1.0.0
    */
   void detach();
 
@@ -42,13 +48,15 @@ public interface AttachableCallback<T> {
    * Checks whether a value was explicitly attached, even if it is the fallback value.
    *
    * @return a snapshot of the attached state, which can change immediately after this call
+   * @since 1.0.0
    */
   boolean isAttached();
 
   /**
-   * Gets the attached value, or the default when nothing is attached.
+   * Returns the attached value, or the default when nothing is attached.
    *
    * @return the value
+   * @since 1.0.0
    */
-  T retrieve();
+  ValueType retrieve();
 }

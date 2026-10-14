@@ -24,27 +24,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Capability}.
- */
 final class CapabilityTest {
 
   @Test
-  void listsTheOptionalFeatures() {
+  void shouldListTheOptionalFeatures() {
     final Capability[] values = Capability.values();
     final Capability[] expected = { Capability.VLC, Capability.FFMPEG, Capability.YT_DLP, Capability.FACE_DETECTION };
     assertArrayEquals(expected, values);
   }
 
   @Test
-  void resolvesCapabilitiesByName() {
+  void shouldResolveCapabilitiesByName() {
     final Capability ytdlp = Capability.valueOf("YT_DLP");
     assertSame(Capability.YT_DLP, ytdlp);
     assertThrows(IllegalArgumentException.class, () -> Capability.valueOf("yt-dlp"));
   }
 
   @Test
-  void namesEveryCapabilityForMessages() {
+  void shouldNameEveryCapabilityForMessages() {
     final String vlc = Capability.VLC.getDisplayName();
     final String ffmpeg = Capability.FFMPEG.getDisplayName();
     final String ytdlp = Capability.YT_DLP.getDisplayName();

@@ -26,9 +26,6 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.image.MatImageBuffer;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ImagePool}.
- */
 final class ImagePoolTest {
 
   private static MatImageBuffer image() {
@@ -37,7 +34,7 @@ final class ImagePoolTest {
   }
 
   @Test
-  void handsOutTheImagesThatWereHandedBackLatestFirst() {
+  void shouldHandOutTheImagesThatWereHandedBackLatestFirst() {
     final ImagePool pool = new ImagePool(2);
     final MatImageBuffer first = image();
     final MatImageBuffer second = image();
@@ -51,12 +48,13 @@ final class ImagePoolTest {
     assertSame(second, latest);
     assertSame(first, earlier);
     assertNull(none);
+
     first.release();
     second.release();
   }
 
   @Test
-  void releasesImagesBeyondItsCapacity() {
+  void shouldReleaseImagesBeyondItsCapacity() {
     final ImagePool pool = new ImagePool(1);
     final MatImageBuffer kept = image();
     final MatImageBuffer surplus = image();
@@ -67,11 +65,12 @@ final class ImagePoolTest {
     assertEquals(1, unused);
     assertEquals(1, keptWidth);
     assertThrows(IllegalStateException.class, surplus::getWidth, "an image the pool has no room for is released");
+
     pool.close();
   }
 
   @Test
-  void closingReleasesTheUnusedImagesAndEveryImageHandedBackLater() {
+  void shouldReleaseTheUnusedImagesAndEveryImageHandedBackLaterWhenClosing() {
     final ImagePool pool = new ImagePool(4);
     final MatImageBuffer unused = image();
     final MatImageBuffer late = image();

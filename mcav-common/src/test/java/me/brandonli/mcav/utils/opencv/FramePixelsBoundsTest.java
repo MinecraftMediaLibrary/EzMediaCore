@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 final class FramePixelsBoundsTest {
 
   @Test
-  void refusesARowWhoseByteCountWrapsIntoTheSourcePlane() {
+  void shouldRefuseARowWhoseByteCountWrapsIntoTheSourcePlane() {
     try (final Frame frame = new Frame()) {
       frame.imageWidth = 1_431_655_766;
       frame.imageHeight = 1;
@@ -48,7 +48,7 @@ final class FramePixelsBoundsTest {
   }
 
   @Test
-  void refusesAFrameWhoseByteCountWrapsToZero() {
+  void shouldRefuseAFrameWhoseByteCountWrapsToZero() {
     try (final Frame frame = new Frame()) {
       frame.imageWidth = 65_536;
       frame.imageHeight = 65_536;
@@ -63,7 +63,7 @@ final class FramePixelsBoundsTest {
 
   @ParameterizedTest
   @CsvSource({ "-1, 1", "1, -1", "0, -1", "-1, 0" })
-  void refusesNegativeDimensions(final int width, final int height) {
+  void shouldRefuseNegativeDimensions(final int width, final int height) {
     try (final Frame frame = new Frame()) {
       frame.imageWidth = width;
       frame.imageHeight = height;
@@ -76,11 +76,12 @@ final class FramePixelsBoundsTest {
   }
 
   @Test
-  void stillCopiesAnEmptyFrame() {
+  void shouldStillCopyAnEmptyFrame() {
     try (final Frame frame = new Frame()) {
       frame.image = new Buffer[] { ByteBuffer.allocate(0) };
       final ByteBuffer copied = FramePixels.copyBgr(frame);
-      assertEquals(0, copied.remaining());
+      final int copiedBytes = copied.remaining();
+      assertEquals(0, copiedBytes);
     }
   }
 }

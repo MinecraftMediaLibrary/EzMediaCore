@@ -34,10 +34,20 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherPalette}, {@link ColorPalette}, {@link MapPalette} and {@link MapPaletteLoader}.
- */
 final class PaletteTest {
+
+  private static final String PALETTE_RESOURCE = "mcav/common/palette.json";
+  private static final String MISSING_PALETTE_RESOURCE = "no-such-palette.json";
+
+  private static final int RED = 0xFF0000;
+  private static final int BLUE = 0x0000FF;
+  private static final int OPAQUE_BLACK = 0xFF000000;
+
+  private static final int LOOKUP_LEVEL = 200;
+
+  private static final int MAXIMUM_PALETTE_SIZE = 256;
+
+  private static final int SAMPLE_INDEX = 4;
 
   private static int[] parse(final String json) {
     final StringReader reader = new StringReader(json);
@@ -45,17 +55,20 @@ final class PaletteTest {
   }
 
   @Test
-  void blueLookupNeverOverwritesTheFirstEntryOfAnOddGreenRow() {
-    final DitherPalette palette = DitherPalette.colors(0x000000, 0x0000FF);
+  void shouldNeverOverwriteTheFirstEntryOfAnOddGreenRowInTheBlueLookup() {
+    final DitherPalette palette = DitherPalette.colors(0x000000, BLUE);
     final byte[] lookup = palette.getColorMap();
     final int[] colors = palette.getFullColorMap();
-    assertEquals(0, lookup[128]);
-    assertEquals(0xFF000000, colors[128]);
+    final byte lookupEntry = lookup[128];
+    assertEquals(0, lookupEntry);
+
+    final int color = colors[128];
+    assertEquals(OPAQUE_BLACK, color);
   }
 
   @Test
-  void orderedSpreadCountsOnlyUsablePaletteColors() {
-    final int[] colors = { 0, 0, 0xFF000000, 0xFFFFFFFF };
+  void shouldCountOnlyUsablePaletteColorsInTheOrderedSpread() {
+    final int[] colors = { 0, 0, OPAQUE_BLACK, 0xFFFFFFFF };
     final DitherPalette palette = new ColorPalette(colors, 2);
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1.0f);
     final OrderedDither dither = new OrderedDither(palette, mapper);
@@ -67,8 +80,8 @@ final class PaletteTest {
   }
 
   @Test
-  void customPalettesAreOpaqueAndMapEveryColorToTheClosestEntry() {
-    final DitherPalette palette = DitherPalette.colors(0xFF0000, 0x0000FF);
+  void shouldMakeCustomPalettesOpaqueAndMapEveryColorToTheClosestEntry() {
+    final DitherPalette palette = DitherPalette.colors(RED, BLUE);
     final int[] colors = palette.getPalette();
     final int size = palette.getSize();
     final int reserved = palette.getReservedIndices();
@@ -77,27 +90,33 @@ final class PaletteTest {
     assertArrayEquals(new int[] { 0xFFFF0000, 0xFF0000FF }, colors);
     assertEquals(2, size);
     assertEquals(0, reserved);
+
     for (int index = 0; index < colorMap.length; index += 997) {
       final int entry = colorMap[index];
-      assertEquals(colors[entry], fullColorMap[index]);
+      final int fullColor = fullColorMap[index];
+      assertEquals(colors[entry], fullColor);
     }
+
     final int reddish = (100 << 14) | (5 << 7) | 5;
     final int bluish = (5 << 14) | (5 << 7) | 100;
-    assertEquals(0, colorMap[reddish]);
-    assertEquals(1, colorMap[bluish]);
+    final byte reddishEntry = colorMap[reddish];
+    assertEquals(0, reddishEntry);
+
+    final byte bluishEntry = colorMap[bluish];
+    assertEquals(1, bluishEntry);
   }
 
   @Test
-  void looksUpColorsByTheirFullRedChannel() {
-    final DitherPalette palette = DitherPalette.colors(0x800000, 0xFF0000);
+  void shouldLookUpColorsByTheirFullRedChannel() {
+    final DitherPalette palette = DitherPalette.colors(0x800000, RED);
     final byte[] colorMap = palette.getColorMap();
-    final int lookup = DitherUtils.getLookupIndex(200, 0, 0);
+    final int lookup = DitherUtils.getLookupIndex(LOOKUP_LEVEL, 0, 0);
     final int index = colorMap[lookup];
     assertEquals(1, index, "a red of 200 is closer to 255 than to 128, which only holds if the level is doubled");
   }
 
   @Test
-  void weighsTheChannelsByTheRedmeanFormula() {
+  void shouldWeighTheChannelsByTheRedmeanFormula() {
     final float red = ColorPalette.perceptualDistance(0, 0, 0, 0x3C0000);
     final float green = ColorPalette.perceptualDistance(0, 0, 0, 0x003C00);
     final float blue = ColorPalette.perceptualDistance(0, 0, 0, 0x00003C);
@@ -106,30 +125,34 @@ final class PaletteTest {
     assertEquals(14400.0f, green);
     assertEquals(10785.9375f, blue);
     assertEquals(74829.69f, mixed);
-    assertTrue(red < blue, "the eye is least sensitive to red in a dark color");
-    assertTrue(blue < green, "the eye is most sensitive to green");
+
+    final boolean redBelowBlue = red < blue;
+    assertTrue(redBelowBlue, "the eye is least sensitive to red in a dark color");
+
+    final boolean blueBelowGreen = blue < green;
+    assertTrue(blueBelowGreen, "the eye is most sensitive to green");
   }
 
   @Test
-  void looksUpColorsByTheirFullGreenChannel() {
+  void shouldLookUpColorsByTheirFullGreenChannel() {
     final DitherPalette palette = DitherPalette.colors(0x008000, 0x00FF00);
     final byte[] colorMap = palette.getColorMap();
-    final int lookup = DitherUtils.getLookupIndex(0, 200, 0);
+    final int lookup = DitherUtils.getLookupIndex(0, LOOKUP_LEVEL, 0);
     final int index = colorMap[lookup];
     assertEquals(1, index, "a green of 200 is closer to 255 than to 128, which only holds if the level is doubled");
   }
 
   @Test
-  void looksUpColorsByTheirFullBlueChannel() {
-    final DitherPalette palette = DitherPalette.colors(0x000080, 0x0000FF);
+  void shouldLookUpColorsByTheirFullBlueChannel() {
+    final DitherPalette palette = DitherPalette.colors(0x000080, BLUE);
     final byte[] colorMap = palette.getColorMap();
-    final int lookup = DitherUtils.getLookupIndex(0, 0, 200);
+    final int lookup = DitherUtils.getLookupIndex(0, 0, LOOKUP_LEVEL);
     final int index = colorMap[lookup];
     assertEquals(1, index, "a blue of 200 is closer to 255 than to 128, which only holds if the level is doubled");
   }
 
   @Test
-  void prefersTheFirstOfTwoEquallyCloseColors() {
+  void shouldPreferTheFirstOfTwoEquallyCloseColors() {
     final DitherPalette palette = DitherPalette.colors(0x123456, 0x123456);
     final byte[] colorMap = palette.getColorMap();
     final int lookup = DitherUtils.getLookupIndex(0x12, 0x34, 0x56);
@@ -138,18 +161,19 @@ final class PaletteTest {
   }
 
   @Test
-  void acceptsAPaletteOfTheLargestAllowedSize() {
-    final int[] largest = new int[256];
+  void shouldAcceptAPaletteOfTheLargestAllowedSize() {
+    final int[] largest = new int[MAXIMUM_PALETTE_SIZE];
     for (int index = 0; index < largest.length; index++) {
       largest[index] = index;
     }
+
     final DitherPalette palette = DitherPalette.colors(largest);
     final int size = palette.getSize();
-    assertEquals(256, size, "a palette of exactly 256 colors is allowed");
+    assertEquals(MAXIMUM_PALETTE_SIZE, size, "a palette of exactly 256 colors is allowed");
   }
 
   @Test
-  void acceptsColorLists() {
+  void shouldAcceptColorLists() {
     final DitherPalette fromList = DitherPalette.colors(List.of(0x000000, 0xFFFFFF));
     final DitherPalette fromArray = DitherPalette.colors(0x000000, 0xFFFFFF);
     final int[] listColors = fromList.getPalette();
@@ -158,8 +182,8 @@ final class PaletteTest {
   }
 
   @Test
-  void rejectsInvalidPalettes() {
-    final int[] tooMany = new int[257];
+  void shouldRejectInvalidPalettes() {
+    final int[] tooMany = new int[MAXIMUM_PALETTE_SIZE + 1];
     assertThrows(IllegalArgumentException.class, () -> DitherPalette.colors(tooMany));
     assertThrows(IllegalArgumentException.class, () -> DitherPalette.colors());
     assertThrows(IllegalArgumentException.class, () -> new ColorPalette(new int[] { 1 }, -1));
@@ -169,7 +193,7 @@ final class PaletteTest {
   }
 
   @Test
-  void theMapPaletteKeepsItsTransparentEntriesOutOfTheLookup() {
+  void shouldKeepTheTransparentEntriesOfTheMapPaletteOutOfTheLookup() {
     final DitherPalette palette = DitherPalette.DEFAULT_MAP_PALETTE;
     final int reserved = palette.getReservedIndices();
     final int size = palette.getSize();
@@ -179,19 +203,24 @@ final class PaletteTest {
     DitherPalette.init();
     assertEquals(MapPalette.TRANSPARENT_INDICES, reserved);
     assertEquals(colorCount, size);
+
     for (int index = 0; index < MapPalette.TRANSPARENT_INDICES; index++) {
-      assertEquals(0, colors[index], "reserved entries are left empty");
+      final int reservedColor = colors[index];
+      assertEquals(0, reservedColor, "reserved entries are left empty");
     }
+
     for (final byte entry : colorMap) {
       final int unsigned = entry & 0xFF;
-      assertTrue(unsigned >= MapPalette.TRANSPARENT_INDICES, "transparent entries must never be chosen");
+      final boolean opaque = unsigned >= MapPalette.TRANSPARENT_INDICES;
+      assertTrue(opaque, "transparent entries must never be chosen");
     }
+
     final int eightBitSize = DitherPalette.EIGHT_BIT_PALETTE.getSize();
     assertEquals(8, eightBitSize);
   }
 
   @Test
-  void theEightBitPaletteHoldsItsEightColors() {
+  void shouldHoldEightColorsInTheEightBitPalette() {
     final DitherPalette palette = DitherPalette.EIGHT_BIT_PALETTE;
     final int[] colors = palette.getPalette();
     final int[] redGreenBlueWhiteBlackYellowCyanPurple = {
@@ -208,38 +237,48 @@ final class PaletteTest {
   }
 
   @Test
-  void loaderHandsOutCopies() {
+  void shouldHandOutCopiesFromTheLoader() {
     final int[] first = MapPaletteLoader.getColors();
     final int[] second = MapPaletteLoader.getColors();
     final int count = MapPaletteLoader.getColorCount();
-    first[4] = 0;
+    first[SAMPLE_INDEX] = 0;
     final int[] third = MapPaletteLoader.getColors();
     assertNotSame(first, second);
     assertEquals(count, second.length);
-    assertEquals(second[4], third[4], "changing a copy must not change the palette");
+
+    final int thirdColor = third[SAMPLE_INDEX];
+    assertEquals(second[SAMPLE_INDEX], thirdColor, "changing a copy must not change the palette");
   }
 
   @Test
-  void loaderProvidesColorObjects() {
+  void shouldLoadTheBundledPaletteFromItsResource() {
+    final int[] loaded = MapPaletteLoader.loadColors(PALETTE_RESOURCE);
+
     final int[] colors = MapPaletteLoader.getColors();
-    final Color color = MapPaletteLoader.getColor((byte) 4);
+    assertArrayEquals(colors, loaded);
+  }
+
+  @Test
+  void shouldProvideColorObjectsFromTheLoader() {
+    final int[] colors = MapPaletteLoader.getColors();
+    final Color color = MapPaletteLoader.getColor((byte) SAMPLE_INDEX);
     final int argb = color.getRGB();
     final int alpha = color.getAlpha();
     final int count = MapPaletteLoader.getColorCount();
     final byte missing = (byte) count;
-    assertEquals(colors[4], argb);
+    assertEquals(colors[SAMPLE_INDEX], argb);
     assertEquals(255, alpha);
     assertThrows(IllegalArgumentException.class, () -> MapPaletteLoader.getColor(missing));
   }
 
   @Test
-  void parsesColorsFromJson() {
+  void shouldParseColorsFromJson() {
     final int[] colors = parse("[[1, 2, 3], [255, 128, 0]]");
     assertArrayEquals(new int[] { 0xFF010203, 0xFFFF8000 }, colors);
   }
 
   @Test
-  void rejectsJsonThatIsNotAPalette() {
+  void shouldRejectJsonThatIsNotAPalette() {
     assertThrows(PaletteLoadingException.class, () -> parse("null"));
     assertThrows(PaletteLoadingException.class, () -> parse("[]"));
     assertThrows(PaletteLoadingException.class, () -> parse("[[1, 2]]"));
@@ -248,11 +287,18 @@ final class PaletteTest {
     assertThrows(PaletteLoadingException.class, () -> parse("[[0, -1, 0]]"));
     assertThrows(PaletteLoadingException.class, () -> parse("[[0, 0, 300]]"));
     assertThrows(PaletteLoadingException.class, () -> parse("{\"not\": \"an array\"}"));
-    assertThrows(PaletteLoadingException.class, () -> MapPaletteLoader.loadColors("no-such-palette.json"));
+    assertThrows(PaletteLoadingException.class, () -> MapPaletteLoader.loadColors(MISSING_PALETTE_RESOURCE));
+  }
+
+  // Found by MapPaletteLoaderFuzzTest: Gson reads the empty element of [[0,,1]] as a null, which it cannot store in an
+  // int[], and reported that with an IllegalArgumentException instead of a syntax error.
+  @Test
+  void shouldRejectAColorWithAnEmptyComponent() {
+    assertThrows(PaletteLoadingException.class, () -> parse("[[0,,1]]"));
   }
 
   @Test
-  void loaderCannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotInstantiateTheLoader() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MapPaletteLoader.class);
   }
 }

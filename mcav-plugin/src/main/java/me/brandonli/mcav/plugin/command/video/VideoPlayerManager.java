@@ -36,7 +36,7 @@ import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
-import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCV;
+import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCv;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.VolumeFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -598,7 +598,7 @@ public final class VideoPlayerManager {
   /** Plays a video that reached its end again from the start. A paused video still plays, so it is left alone. */
   void restartEnded() {
     final VideoPlayerMultiplexer current = this.player;
-    if (this.looping && current instanceof final AbstractVideoPlayerCV decoded && !decoded.isPlaying()) {
+    if (this.looping && current instanceof final AbstractVideoPlayerCv decoded && !decoded.isPlaying()) {
       decoded.seek(0L);
     }
   }

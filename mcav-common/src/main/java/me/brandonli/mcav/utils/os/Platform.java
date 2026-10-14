@@ -17,37 +17,35 @@
  */
 package me.brandonli.mcav.utils.os;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import java.util.Locale;
 import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A combination of operating system, CPU architecture family, and bitness, such as 64-bit x86 Windows. Platforms
  * identify which native build of a program a machine needs. Instances are immutable and compare by value.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Platform {
 
   private static final Platform CURRENT_PLATFORM = detectCurrentPlatform();
 
-  private final OS os;
+  private final Os os;
   private final Arch arch;
   private final Bits bits;
 
-  Platform(final OS os, final Arch arch, final Bits bits) {
-    Preconditions.checkNotNull(os, "OS must not be null");
-    Preconditions.checkNotNull(arch, "Arch must not be null");
-    Preconditions.checkNotNull(bits, "Bits must not be null");
+  Platform(final Os os, final Arch arch, final Bits bits) {
+    Preconditions.checkNotNull(os, "OS must not be null!");
+    Preconditions.checkNotNull(arch, "Arch must not be null!");
+    Preconditions.checkNotNull(bits, "Bits must not be null!");
+
     this.os = os;
     this.arch = arch;
     this.bits = bits;
-  }
-
-  private static Platform detectCurrentPlatform() {
-    final OS os = OSUtils.getOS();
-    final Arch arch = OSUtils.getArch();
-    final Bits bits = OSUtils.getBits();
-    return new Platform(os, arch, bits);
   }
 
   /**
@@ -58,42 +56,54 @@ public final class Platform {
    * @param bits the bitness
    * @return the platform
    * @throws NullPointerException if any platform component is null
+   * @since 1.0.0
    */
-  public static Platform ofPlatform(final OS os, final Arch arch, final Bits bits) {
+  public static Platform ofPlatform(final Os os, final Arch arch, final Bits bits) {
     return new Platform(os, arch, bits);
   }
 
   /**
-   * Gets the platform of the running JVM.
+   * Returns the platform of the running JVM.
    *
    * @return the current platform
+   * @since 1.0.0
    */
   public static Platform getCurrentPlatform() {
     return CURRENT_PLATFORM;
   }
 
+  private static Platform detectCurrentPlatform() {
+    final Os os = OsUtils.getOs();
+    final Arch arch = OsUtils.getArch();
+    final Bits bits = OsUtils.getBits();
+    return new Platform(os, arch, bits);
+  }
+
   /**
-   * Gets the operating system.
+   * Returns the operating system.
    *
    * @return the operating system
+   * @since 1.0.0
    */
-  public OS getOS() {
+  public Os getOs() {
     return this.os;
   }
 
   /**
-   * Gets the CPU architecture family.
+   * Returns the CPU architecture family.
    *
    * @return the architecture
+   * @since 1.0.0
    */
   public Arch getArch() {
     return this.arch;
   }
 
   /**
-   * Gets the bitness.
+   * Returns the bitness.
    *
    * @return 32-bit or 64-bit
+   * @since 1.0.0
    */
   public Bits getBits() {
     return this.bits;
@@ -104,39 +114,51 @@ public final class Platform {
    * Programs are never downloaded for an unknown platform, because no known build runs there.
    *
    * @return false if the operating system or the architecture is {@code OTHER}
+   * @since 1.0.0
    */
   public boolean isKnown() {
-    return this.os != OS.OTHER && this.arch != Arch.OTHER;
+    return this.os != Os.OTHER && this.arch != Arch.OTHER;
   }
 
+  /**
+   * Returns whether {@code other} is a platform with the same operating system, architecture and bitness.
+   *
+   * @param other the object to compare with
+   * @return whether both match
+   * @since 1.0.0
+   */
   @Override
   public boolean equals(final @Nullable Object other) {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Platform platform)) {
       return false;
     }
+
     return this.os == platform.os && this.arch == platform.arch && this.bits == platform.bits;
   }
 
+  /**
+   * Returns a hash code built from the operating system, architecture and bitness.
+   *
+   * @return the hash code
+   * @since 1.0.0
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.os, this.arch, this.bits);
   }
 
   /**
-   * Describes the platform in a readable form, such as {@code windows-x86-64}.
+   * Returns a debugging representation with the operating system, the architecture and the word size.
    *
-   * @return the description
+   * @return the representation
+   * @since 1.0.0
    */
   @Override
   public String toString() {
-    final String osName = this.os.name();
-    final String lowerOsName = osName.toLowerCase(Locale.ROOT);
-    final String archName = this.arch.name();
-    final String lowerArchName = archName.toLowerCase(Locale.ROOT);
-    final String bitsName = this.bits == Bits.BITS_64 ? "64" : "32";
-    return lowerOsName + "-" + lowerArchName + "-" + bitsName;
+    return MoreObjects.toStringHelper(this).add("os", this.os).add("arch", this.arch).add("bits", this.bits).toString();
   }
 }

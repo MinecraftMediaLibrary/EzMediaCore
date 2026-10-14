@@ -40,6 +40,7 @@ import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import me.brandonli.mcav.media.Polling;
+import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.attachable.DimensionAttachableCallback;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
@@ -53,17 +54,24 @@ import org.bytedeco.javacv.FrameGrabber;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the control logic of {@link AbstractVideoPlayerCV} with scripted grabbers.
- */
 final class ScriptedPlayerTest {
 
-  private static final Source VIDEO = file("video.mp4");
-  private static final Source AUDIO = file("audio.m4a");
-  private static final long TIMEOUT_MILLIS = 10_000L;
-  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLIS);
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+  private static final String AUDIO_FILE_NAME = "audio.m4a";
+
+  private static final Source VIDEO = file(VIDEO_FILE_NAME);
+  private static final Source AUDIO = file(AUDIO_FILE_NAME);
+  private static final long TIMEOUT_MILLISECONDS = 10_000L;
+  private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLISECONDS);
   private static final long FUTURE_TIMEOUT_SECONDS = 5L;
   private static final String EXECUTOR_THREAD = "the-given-executor";
+
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+
+  private static final long FRAME_INTERVAL_MICROSECONDS = 33_333L;
+
+  private static final long SEEK_POSITION_MILLISECONDS = 1_000L;
 
   private static Source file(final String name) {
     final Path path = Path.of(name);
@@ -73,22 +81,23 @@ final class ScriptedPlayerTest {
   private static ScriptedFrameGrabber endlessVideo() {
     final List<Object> script = new ArrayList<>();
     for (int index = 0; index < 300; index++) {
-      final Object frame = ScriptedFrameGrabber.video(index * 33_333L);
+      final Object frame = ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS);
       script.add(frame);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     grabber.setLength(10_000_000L);
     return grabber;
   }
 
-  /** Half a minute of sound in chunks of 10 ms: 480 frames, 1,920 bytes each. */
   private static ScriptedFrameGrabber sound() {
     final List<Object> script = new ArrayList<>();
     for (int index = 0; index < 3_000; index++) {
       final Object chunk = ScriptedFrameGrabber.audio(index * 10_000L);
       script.add(chunk);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
     grabber.setLength(30_000_000L);
     return grabber;
   }
@@ -102,21 +111,17 @@ final class ScriptedPlayerTest {
     Polling.awaitCondition(description, TIMEOUT, condition);
   }
 
-  private static void awaitEnd(final AbstractVideoPlayerCV player) throws InterruptedException {
+  private static void awaitEnd(final AbstractVideoPlayerCv player) throws InterruptedException {
     await("playback finished", () -> !player.isPlaying());
   }
 
-  private static <T> T resultOf(final CompletableFuture<T> future) throws Exception {
+  private static <ResultType> ResultType resultOf(final CompletableFuture<ResultType> future) throws Exception {
     return future.get(FUTURE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
   }
 
   @Test
-  void playsAndStopsAtTheEndOfTheMedia() throws Exception {
-    final Supplier<ScriptedFrameGrabber> twoFrames = () -> {
-      final Object first = ScriptedFrameGrabber.video(0L);
-      final Object second = ScriptedFrameGrabber.video(33_333L);
-      return ScriptedFrameGrabber.of(first, second);
-    };
+  void shouldPlayAndStopAtTheEndOfTheMedia() throws Exception {
+    final Supplier<ScriptedFrameGrabber> twoFrames = this::twoFrameVideo;
     final ScriptedPlayer player = new ScriptedPlayer(twoFrames);
     final VideoFilter counter = (_, _) -> true;
     final VideoPipelineStep step = VideoPipelineStep.of(counter);
@@ -125,11 +130,11 @@ final class ScriptedPlayerTest {
 
     final boolean started = player.start(VIDEO);
     awaitEnd(player);
-    final long position = player.getPositionMillis();
+    final long position = player.getPositionMilliseconds();
     final boolean released = player.release();
-    final long positionAfterRelease = player.getPositionMillis();
+    final long positionAfterRelease = player.getPositionMilliseconds();
     final List<String> opened = player.getOpenedResources();
-    final List<String> expected = List.of("video.mp4");
+    final List<String> expected = List.of(VIDEO_FILE_NAME);
     assertTrue(started);
     assertEquals(33L, position);
     assertTrue(released);
@@ -137,8 +142,14 @@ final class ScriptedPlayerTest {
     assertEquals(expected, opened);
   }
 
+  private ScriptedFrameGrabber twoFrameVideo() {
+    final Object first = ScriptedFrameGrabber.video(0L);
+    final Object second = ScriptedFrameGrabber.video(FRAME_INTERVAL_MICROSECONDS);
+    return ScriptedFrameGrabber.of(first, second);
+  }
+
   @Test
-  void reportsSourcesThatCannotBeOpenedAndClosesTheirGrabbers() {
+  void shouldReportSourcesThatCannotBeOpenedAndCloseTheirGrabbers() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber::failingToStart);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((message, _) -> reports.add(message));
@@ -155,7 +166,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void reportsTheStartFailureEvenWhenTheGrabberCannotBeClosed() {
+  void shouldReportTheStartFailureEvenWhenTheGrabberCannotBeClosed() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedFrameGrabber::failingToStartAndStop);
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((_, error) -> errors.add(error));
@@ -172,7 +183,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void closesGrabbersThatCannotBeConfigured() {
+  void shouldCloseGrabbersThatCannotBeConfigured() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((_, error) -> errors.add(error));
@@ -185,20 +196,20 @@ final class ScriptedPlayerTest {
     final String message = error.getMessage();
     assertFalse(started);
     assertTrue(closed);
-    assertEquals("invalid option", message);
+    assertEquals("invalid option!", message);
   }
 
   @Test
-  void keepsPlayingTheCurrentSourceWhenTheNewOneCannotBeOpened() {
+  void shouldKeepPlayingTheCurrentSourceWhenTheNewOneCannotBeOpened() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     player.setExceptionHandler((message, _) -> reports.add(message));
     try {
       final boolean started = player.start(VIDEO);
       final ScriptedFrameGrabber playing = player.getLatestGrabber();
-      player.failNextOpen(new IllegalStateException("unknown option"));
+      player.failNextOpen(new IllegalStateException("unknown option!"));
       final boolean runtimeFailure = player.start(AUDIO);
-      player.failNextOpen(new UnsatisfiedLinkError("natives are missing"));
+      player.failNextOpen(new UnsatisfiedLinkError("natives are missing!"));
       final boolean linkageFailure = player.start(AUDIO);
 
       final boolean stillPlaying = player.isPlaying();
@@ -216,7 +227,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void opensSeparateAudioOnlyForDifferentSources() throws Exception {
+  void shouldOpenSeparateAudioOnlyForDifferentSources() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     player.start(VIDEO, VIDEO);
     awaitEnd(player);
@@ -228,18 +239,18 @@ final class ScriptedPlayerTest {
     final List<String> bothSources = player.getOpenedResources();
     player.release();
 
-    final List<String> expectedSameSource = List.of("video.mp4");
-    final List<String> expectedBothSources = List.of("video.mp4", "video.mp4", "audio.m4a");
+    final List<String> expectedSameSource = List.of(VIDEO_FILE_NAME);
+    final List<String> expectedBothSources = List.of(VIDEO_FILE_NAME, VIDEO_FILE_NAME, AUDIO_FILE_NAME);
     assertEquals(expectedSameSource, sameSource);
     assertEquals(expectedBothSources, bothSources);
   }
 
   @Test
-  void pausesAndResumesOnlyWhenThatChangesSomething() {
+  void shouldPauseAndResumeOnlyWhenThatChangesSomething() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final boolean pauseWithoutSession = player.pause();
     final boolean resumeWithoutSession = player.resume();
-    final boolean seekWithoutSession = player.seek(1_000L);
+    final boolean seekWithoutSession = player.seek(SEEK_POSITION_MILLISECONDS);
 
     player.start(VIDEO);
     final boolean paused = player.pause();
@@ -258,7 +269,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void neitherResumesNorPausesPlaybackThatHasEnded() throws Exception {
+  void shouldNeitherResumeNorPausePlaybackThatHasEnded() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     player.start(VIDEO);
     awaitEnd(player);
@@ -277,7 +288,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void seeksByRestartingAtThePositionAndKeepsThePausedState() throws Exception {
+  void shouldSeekByRestartingAtThePositionAndKeepThePausedState() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     player.start(VIDEO);
     player.pause();
@@ -295,17 +306,13 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void refusesToSeekMediaWithoutALength() {
+  void shouldRefuseToSeekMediaWithoutALength() {
     final Supplier<ScriptedFrameGrabber> endless = ScriptedPlayerTest::endlessVideo;
-    final Supplier<ScriptedFrameGrabber> live = () -> {
-      final ScriptedFrameGrabber grabber = endless.get();
-      grabber.setLength(0L);
-      return grabber;
-    };
+    final Supplier<ScriptedFrameGrabber> live = () -> this.removeLength(endless.get());
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
-      final boolean seeked = player.seek(1_000L);
+      final boolean seeked = player.seek(SEEK_POSITION_MILLISECONDS);
       final boolean playing = player.isPlaying();
       final List<String> opened = player.getOpenedResources();
       final int openCount = opened.size();
@@ -317,8 +324,13 @@ final class ScriptedPlayerTest {
     }
   }
 
+  private ScriptedFrameGrabber removeLength(final ScriptedFrameGrabber grabber) {
+    grabber.setLength(0L);
+    return grabber;
+  }
+
   @Test
-  void playsFasterWithItsSoundResampledAndKeepsTheSpeedWhenSeeking() throws Exception {
+  void shouldPlayFasterWithItsSoundResampledAndKeepTheSpeedWhenSeeking() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::sound);
     final List<Integer> chunks = new CopyOnWriteArrayList<>();
     final AudioFilter sizes = (samples, _) -> chunks.add(samples.remaining());
@@ -345,8 +357,8 @@ final class ScriptedPlayerTest {
       assertEquals(2, afterSeek, "a seek keeps the speed");
       assertTrue(allFaster, "and the new session plays at it: " + chunks);
       assertEquals(1, newMedia, "new media plays at normal speed");
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MIN_SPEED - 0.01));
-      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCV.MAX_SPEED + 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCv.MINIMUM_SPEED - 0.01));
+      assertThrows(IllegalArgumentException.class, () -> player.setSpeed(AbstractVideoPlayerCv.MAXIMUM_SPEED + 0.01));
       assertThrows(IllegalArgumentException.class, () -> player.setSpeed(Double.NaN));
     } finally {
       player.release();
@@ -354,36 +366,29 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void refusesToChangeTheSpeedOfMediaWithoutALength() {
-    final Supplier<ScriptedFrameGrabber> live = () -> {
-      final ScriptedFrameGrabber grabber = endlessVideo();
-      grabber.setLength(0L);
-      return grabber;
-    };
+  void shouldRefuseToChangeTheSpeedOfMediaWithoutALength() {
+    final Supplier<ScriptedFrameGrabber> live = () -> this.removeLength(endlessVideo());
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
-      final boolean changed = player.setSpeed(AbstractVideoPlayerCV.MAX_SPEED);
+      final boolean changed = player.setSpeed(AbstractVideoPlayerCv.MAXIMUM_SPEED);
       assertFalse(changed, "a live stream cannot be played ahead of itself");
-      assertEquals(1, player.getSpeed());
+
+      final double speed = player.getSpeed();
+      assertEquals(1, speed);
     } finally {
       player.release();
     }
   }
 
   @Test
-  void scalesTheDecodedPicture() throws Exception {
+  void shouldScaleTheDecodedPicture() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::singleFrame);
     final Dimension size = Dimension.of(160, 90);
     final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
     dimension.attach(size);
     final List<Dimension> delivered = new CopyOnWriteArrayList<>();
-    final VideoFilter recording = (samples, _) -> {
-      final int deliveredWidth = samples.getWidth();
-      final int deliveredHeight = samples.getHeight();
-      delivered.add(Dimension.of(deliveredWidth, deliveredHeight));
-      return false;
-    };
+    final VideoFilter recording = (samples, _) -> this.recordSize(samples, delivered);
     final VideoPipelineStep step = VideoPipelineStep.of(recording);
     final VideoAttachableCallback video = player.getVideoAttachableCallback();
     video.attach(step);
@@ -399,12 +404,20 @@ final class ScriptedPlayerTest {
     assertEquals(List.of(size), delivered, "the pipeline must receive a scaled frame, not just decoder configuration");
   }
 
+  private boolean recordSize(final ImageBuffer samples, final List<Dimension> delivered) {
+    final int deliveredWidth = samples.getWidth();
+    final int deliveredHeight = samples.getHeight();
+    delivered.add(Dimension.of(deliveredWidth, deliveredHeight));
+
+    return false;
+  }
+
   @Test
-  void exposesItsCallbacksAndExceptionHandler() {
+  void shouldExposeItsCallbacksAndExceptionHandler() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     final BiConsumer<String, Throwable> defaultHandler = player.getExceptionHandler();
-    final IllegalStateException expected = new IllegalStateException("expected in this test");
+    final IllegalStateException expected = new IllegalStateException("expected in this test!");
     defaultHandler.accept("logged by the default handler", expected);
 
     player.setExceptionHandler(handler);
@@ -416,12 +429,6 @@ final class ScriptedPlayerTest {
     assertThrows(NullPointerException.class, () -> player.start(VIDEO, null));
   }
 
-  /**
-   * Starts, pauses, resumes, seeks and restarts the player through the asynchronous variants on the executor, waiting
-   * for every call before the next one.
-   *
-   * @return whether every call succeeded
-   */
   private static boolean controlOnTheExecutor(final ScriptedPlayer player, final ExecutorService executor) throws Exception {
     final CompletableFuture<Boolean> startFuture = player.startAsync(VIDEO, executor);
     final boolean started = resultOf(startFuture);
@@ -437,7 +444,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsRunOnTheGivenExecutor() throws Exception {
+  void shouldRunAsynchronousVariantsOnTheGivenExecutor() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final ExecutorService executor = Executors.newSingleThreadExecutor(task -> new Thread(task, EXECUTOR_THREAD));
     try {
@@ -452,9 +459,11 @@ final class ScriptedPlayerTest {
       final boolean anyRecorded = !executorThreads.isEmpty();
       assertTrue(everyCallSucceeded);
       assertTrue(anyRecorded);
+
       for (final String thread : executorThreads) {
         assertEquals(EXECUTOR_THREAD, thread, "every call ran on the given executor: " + executorThreads);
       }
+
       assertTrue(released);
       assertFalse(releasedAgain, "a second release has nothing left to release");
     } finally {
@@ -463,12 +472,6 @@ final class ScriptedPlayerTest {
     }
   }
 
-  /**
-   * Pauses, resumes, seeks and starts the player through the asynchronous variants without an executor, waiting for
-   * every call before the next one.
-   *
-   * @return whether every call succeeded
-   */
   private static boolean controlOnTheCommonPool(final ScriptedPlayer player) throws Exception {
     final CompletableFuture<Boolean> pauseFuture = player.pauseAsync();
     final boolean paused = resultOf(pauseFuture);
@@ -484,7 +487,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsWithoutAnExecutorRunOnTheCommonPool() throws Exception {
+  void shouldRunAsynchronousVariantsWithoutAnExecutorOnTheCommonPool() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       player.start(VIDEO);
@@ -496,6 +499,7 @@ final class ScriptedPlayerTest {
       final boolean anyRecorded = !commonPoolThreads.isEmpty();
       assertTrue(everyCallSucceeded);
       assertTrue(anyRecorded);
+
       for (final String thread : commonPoolThreads) {
         final boolean onCommonPool = thread.startsWith("ForkJoinPool.commonPool");
         assertTrue(onCommonPool, "the calls without an executor ran on the common pool: " + thread);
@@ -506,11 +510,12 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void equalSourcesPreserveBothSuccessfulAndRejectedStarts() {
+  void shouldPreserveBothSuccessfulAndRejectedStartsOfEqualSources() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       final boolean started = player.start(VIDEO, VIDEO);
       assertTrue(started);
+
       player.release();
       final boolean restarted = player.start(VIDEO, VIDEO);
       assertFalse(restarted);
@@ -520,11 +525,12 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void completedStartAllowsControlFromAnotherThread() throws Exception {
+  void shouldAllowControlFromAnotherThreadAfterACompletedStart() throws Exception {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try {
       final boolean started = player.start(VIDEO);
       assertTrue(started);
+
       final CompletableFuture<Boolean> pause = CompletableFuture.supplyAsync(player::pause);
       final boolean paused = pause.get(5L, TimeUnit.SECONDS);
       assertTrue(paused, "completed start must relinquish its reservation lock");
@@ -534,7 +540,7 @@ final class ScriptedPlayerTest {
   }
 
   @Test
-  void asynchronousVariantsRejectNullArguments() {
+  void shouldRejectNullArgumentsOfAsynchronousVariants() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor(task -> new Thread(task, EXECUTOR_THREAD))) {
       assertThrows(NullPointerException.class, () -> player.startAsync(null, executor));
@@ -551,27 +557,23 @@ final class ScriptedPlayerTest {
     }
   }
 
-  /**
-   * Creates a grabber whose decoder is stuck for a second and a half and does not react to interrupts.
-   */
   private static ScriptedFrameGrabber stuckDecoder() {
     final Object delay = new ScriptedFrameGrabber.Delay(1_500L);
     return ScriptedFrameGrabber.of(delay);
   }
 
-  /**
-   * Creates a thread that releases the player and records when the release returned.
-   */
   private static Thread releasingThread(final ScriptedPlayer player, final AtomicLong releaseEnd) {
-    return new Thread(() -> {
-      player.release();
-      final long end = System.nanoTime();
-      releaseEnd.set(end);
-    });
+    return new Thread(() -> releaseAndRecordEnd(player, releaseEnd));
+  }
+
+  private static void releaseAndRecordEnd(final ScriptedPlayer player, final AtomicLong releaseEnd) {
+    player.release();
+    final long end = System.nanoTime();
+    releaseEnd.set(end);
   }
 
   @Test
-  void releaseWaitsForTheThreadsWithoutBlockingOtherCalls() throws Exception {
+  void shouldWaitForTheThreadsWithoutBlockingOtherCallsOnRelease() throws Exception {
     final Supplier<ScriptedFrameGrabber> stuck = ScriptedPlayerTest::stuckDecoder;
     final ScriptedPlayer player = new ScriptedPlayer(stuck);
     player.start(VIDEO);
@@ -584,19 +586,25 @@ final class ScriptedPlayerTest {
     final long pauseStart = System.nanoTime();
     final boolean paused = player.pause();
     final long pauseEnd = System.nanoTime();
-    releasing.join(TIMEOUT_MILLIS);
+    releasing.join(TIMEOUT_MILLISECONDS);
 
     final long releasedAt = releaseEnd.get();
-    final long releaseNanos = releasedAt - releaseStart;
-    final long pauseNanos = pauseEnd - pauseStart;
+    final long releaseNanoseconds = releasedAt - releaseStart;
+    final long pauseNanoseconds = pauseEnd - pauseStart;
     assertFalse(paused);
-    assertTrue(releaseNanos > 1_000_000_000L, "release waits for the stuck decoder, took " + releaseNanos);
-    assertTrue(pauseNanos < 500_000_000L, "other calls do not wait for the release, pause took " + pauseNanos);
-    assertTrue(pauseEnd < releasedAt, "the pause ran while the release was still waiting");
+
+    final boolean releaseWaited = releaseNanoseconds > 1_000_000_000L;
+    assertTrue(releaseWaited, "release waits for the stuck decoder, took " + releaseNanoseconds);
+
+    final boolean pauseWasQuick = pauseNanoseconds < 500_000_000L;
+    assertTrue(pauseWasQuick, "other calls do not wait for the release, pause took " + pauseNanoseconds);
+
+    final boolean pausedDuringRelease = pauseEnd < releasedAt;
+    assertTrue(pausedDuringRelease, "the pause ran while the release was still waiting");
   }
 
   @Test
-  void cannotBeStartedAgainOnceReleased() {
+  void shouldNotBeStartedAgainOnceReleased() {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final boolean firstRelease = player.release();
     final boolean secondRelease = player.release();
@@ -613,11 +621,7 @@ final class ScriptedPlayerTest {
     assertFalse(playing);
   }
 
-  /**
-   * A player whose grabbers come from a supplier and that remembers which resources it opened and on which threads
-   * it was called.
-   */
-  private static final class ScriptedPlayer extends AbstractVideoPlayerCV {
+  private static final class ScriptedPlayer extends AbstractVideoPlayerCv {
 
     private final Supplier<ScriptedFrameGrabber> grabbers;
     private final List<String> openedResources;
@@ -646,9 +650,11 @@ final class ScriptedPlayerTest {
       this.recordCallingThread();
       final Throwable failure = this.nextOpenFailure;
       this.nextOpenFailure = null;
+
       if (failure instanceof final RuntimeException exception) {
         throw exception;
       }
+
       if (failure instanceof final Error error) {
         throw error;
       }
@@ -658,26 +664,30 @@ final class ScriptedPlayerTest {
       synchronized (this.created) {
         this.created.addLast(grabber);
       }
+
       return grabber;
     }
 
     @Override
     protected void configureGrabber(final FrameGrabber grabber, final Source source) {
       super.configureGrabber(grabber, source);
+
       if (this.configurationFails) {
-        throw new IllegalArgumentException("invalid option");
+        throw new IllegalArgumentException("invalid option!");
       }
     }
 
     @Override
     public boolean pause() {
       this.recordCallingThread();
+
       return super.pause();
     }
 
     @Override
     public boolean resume() {
       this.recordCallingThread();
+
       return super.resume();
     }
 
@@ -689,14 +699,6 @@ final class ScriptedPlayerTest {
       this.configurationFails = true;
     }
 
-    private List<String> getOpenedResources() {
-      return this.openedResources;
-    }
-
-    private List<String> getCallingThreads() {
-      return this.callingThreads;
-    }
-
     private void clearCallingThreads() {
       this.callingThreads.clear();
     }
@@ -705,6 +707,14 @@ final class ScriptedPlayerTest {
       synchronized (this.created) {
         return this.created.getLast();
       }
+    }
+
+    private List<String> getOpenedResources() {
+      return this.openedResources;
+    }
+
+    private List<String> getCallingThreads() {
+      return this.callingThreads;
     }
   }
 }

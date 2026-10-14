@@ -24,13 +24,11 @@ import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.awt.image.BufferedImage;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the conversion of Java images into image buffers, the path every frame of a VNC server takes: the server
- * decides the size of its screen and the image type the client decodes it into, and a frame may be a view into a larger
- * image. Whatever the type, size and view, every pixel of the buffer is the color the image itself reports, made
- * opaque, both for a new buffer and for one that is reused. The images are built from the fuzzer's data; there is no
- * artefact of a VNC screen in the repository to seed them with.
- */
+// Fuzzes the conversion of Java images into image buffers, the path every frame of a VNC server takes: the server
+// decides the size of its screen and the image type the client decodes it into, and a frame may be a view into a larger
+// image. Whatever the type, size and view, every pixel of the buffer is the color the image itself reports, made
+// opaque, both for a new buffer and for one that is reused. The images are built from the fuzzer's data; there is no
+// artefact of a VNC screen in the repository to seed them with.
 @Tag("fuzz")
 final class BufferedImageConversionFuzzTest {
 
@@ -49,19 +47,20 @@ final class BufferedImageConversionFuzzTest {
     BufferedImage.TYPE_BYTE_BINARY,
     BufferedImage.TYPE_BYTE_INDEXED,
   };
-  private static final int MAX_SIDE = 48;
+  private static final int MAXIMUM_SIDE = 48;
 
   @FuzzTest(maxDuration = "30s")
-  void everyPixelIsTheColorTheImageReports(final FuzzedDataProvider data) {
+  void shouldMakeEveryPixelTheColorTheImageReports(final FuzzedDataProvider data) {
     final int type = data.pickValue(TYPES);
-    final int width = data.consumeInt(1, MAX_SIDE);
-    final int height = data.consumeInt(1, MAX_SIDE);
+    final int width = data.consumeInt(1, MAXIMUM_SIDE);
+    final int height = data.consumeInt(1, MAXIMUM_SIDE);
     final BufferedImage whole = new BufferedImage(width, height, type);
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
         whole.setRGB(column, row, data.consumeInt());
       }
     }
+
     final int viewX = data.consumeInt(0, width - 1);
     final int viewY = data.consumeInt(0, height - 1);
     final int viewWidth = data.consumeInt(1, width - viewX);
@@ -71,12 +70,8 @@ final class BufferedImageConversionFuzzTest {
 
     try (final ImageBuffer created = ImageBuffer.image(frame)) {
       assertSamePixels(frame, created);
-      final BufferedImage replacement = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
-      for (int row = 0; row < replacement.getHeight(); row++) {
-        for (int column = 0; column < replacement.getWidth(); column++) {
-          replacement.setRGB(column, row, ~frame.getRGB(column, row));
-        }
-      }
+
+      final BufferedImage replacement = this.invertColors(frame, type);
       created.setAsBufferedImage(replacement);
       assertSamePixels(replacement, created);
     }
@@ -89,6 +84,7 @@ final class BufferedImageConversionFuzzTest {
     final int bufferHeight = buffer.getHeight();
     assertEquals(width, bufferWidth, "width");
     assertEquals(height, bufferHeight, "height");
+
     final int[] pixels = buffer.getPixels();
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
@@ -103,5 +99,16 @@ final class BufferedImageConversionFuzzTest {
         );
       }
     }
+  }
+
+  private BufferedImage invertColors(final BufferedImage frame, final int type) {
+    final BufferedImage replacement = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
+    for (int row = 0; row < replacement.getHeight(); row++) {
+      for (int column = 0; column < replacement.getWidth(); column++) {
+        replacement.setRGB(column, row, ~frame.getRGB(column, row));
+      }
+    }
+
+    return replacement;
   }
 }

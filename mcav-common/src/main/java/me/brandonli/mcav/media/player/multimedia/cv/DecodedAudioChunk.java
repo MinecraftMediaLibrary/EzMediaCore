@@ -19,25 +19,23 @@ package me.brandonli.mcav.media.player.multimedia.cv;
 
 import java.nio.ByteBuffer;
 
-/**
- * A chunk of decoded audio on its way from the decoding thread to the rendering thread. The samples are signed
- * 16-bit little-endian stereo at 48 kHz, which is the format every audio filter expects.
- */
+// A chunk of decoded audio on its way from the decoding thread to the rendering thread. The samples are signed 16-bit
+// little-endian stereo at 48 kHz, which is the format every audio filter expects.
 final class DecodedAudioChunk {
 
   private final ByteBuffer samples;
-  private final long timestampMicros;
+  private final long timestampMicroseconds;
 
-  DecodedAudioChunk(final ByteBuffer samples, final long timestampMicros) {
+  DecodedAudioChunk(final ByteBuffer samples, final long timestampMicroseconds) {
     this.samples = samples;
-    this.timestampMicros = timestampMicros;
+    this.timestampMicroseconds = timestampMicroseconds;
   }
 
   ByteBuffer getSamples() {
     return this.samples;
   }
 
-  long getTimestampMicros() {
-    return this.timestampMicros;
+  long getTimestampMicroseconds() {
+    return this.timestampMicroseconds;
   }
 }

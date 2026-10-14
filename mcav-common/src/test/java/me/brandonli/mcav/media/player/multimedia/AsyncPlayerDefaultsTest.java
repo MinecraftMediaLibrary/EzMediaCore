@@ -39,53 +39,62 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/** Tests that asynchronous entry points preserve synchronous outcomes and arguments. */
 final class AsyncPlayerDefaultsTest {
 
+  private static final long TIMEOUT_SECONDS = 5;
+
+  private static final int ASYNC_CALL_COUNT = 2;
+
+  private static final long SEEK_POSITION = 1234L;
+
   private static void assertResult(final boolean expected, final CompletableFuture<Boolean> future) throws Exception {
-    final Boolean actual = future.get(5, TimeUnit.SECONDS);
+    final Boolean actual = future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertEquals(Boolean.valueOf(expected), actual);
   }
 
   private static void assertFailure(final RuntimeException expected, final CompletableFuture<Boolean> future) {
-    final ExecutionException failure = assertThrows(ExecutionException.class, () -> future.get(5, TimeUnit.SECONDS));
+    final ExecutionException failure = assertThrows(ExecutionException.class, () -> future.get(TIMEOUT_SECONDS, TimeUnit.SECONDS));
     final Throwable cause = failure.getCause();
     assertSame(expected, cause);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void videoForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForVideos(final boolean expected) throws Exception {
     final VideoPlayer player = mock(VideoPlayer.class, CALLS_REAL_METHODS);
     final Source source = mock(Source.class);
     doReturn(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
-    verify(player, times(2)).start(source);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
   @Test
-  void videoPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForVideos() {
     final VideoPlayer player = mock(VideoPlayer.class, CALLS_REAL_METHODS);
     final Source source = mock(Source.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }
-    verify(player, times(2)).start(source);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void multiplexerForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForMultiplexers(final boolean expected) throws Exception {
     final VideoPlayerMultiplexer player = mock(VideoPlayerMultiplexer.class, CALLS_REAL_METHODS);
     final Source video = mock(Source.class);
     final Source audio = mock(Source.class);
@@ -93,85 +102,97 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(video, audio, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertResult(expected, common);
     }
-    verify(player, times(2)).start(video, audio);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(video, audio);
   }
 
   @Test
-  void multiplexerPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForMultiplexers() {
     final VideoPlayerMultiplexer player = mock(VideoPlayerMultiplexer.class, CALLS_REAL_METHODS);
     final Source video = mock(Source.class);
     final Source audio = mock(Source.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(video, audio);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(video, audio, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertFailure(expected, common);
     }
-    verify(player, times(2)).start(video, audio);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(video, audio);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void seekForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultOnSeek(final boolean expected) throws Exception {
     final SeekablePlayer player = mock(SeekablePlayer.class, CALLS_REAL_METHODS);
-    final long position = 1234L;
+    final long position = SEEK_POSITION;
     doReturn(expected).when(player).seek(position);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.seekAsync(executor, position);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertResult(expected, common);
     }
-    verify(player, times(2)).seek(position);
+
+    verify(player, times(ASYNC_CALL_COUNT)).seek(position);
   }
 
   @Test
-  void seekPreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureOnSeek() {
     final SeekablePlayer player = mock(SeekablePlayer.class, CALLS_REAL_METHODS);
-    final long position = 1234L;
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final long position = SEEK_POSITION;
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).seek(position);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.seekAsync(executor, position);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertFailure(expected, common);
     }
-    verify(player, times(2)).seek(position);
+
+    verify(player, times(ASYNC_CALL_COUNT)).seek(position);
   }
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
-  void imageForwardsEitherResult(final boolean expected) throws Exception {
+  void shouldForwardEitherResultForImages(final boolean expected) throws Exception {
     final ImagePlayer player = mock(ImagePlayer.class, CALLS_REAL_METHODS);
     final FrameSource source = mock(FrameSource.class);
     doReturn(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
-    verify(player, times(2)).start(source);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 
   @Test
-  void imagePreservesTheOriginalFailure() {
+  void shouldPreserveTheOriginalFailureForImages() {
     final ImagePlayer player = mock(ImagePlayer.class, CALLS_REAL_METHODS);
     final FrameSource source = mock(FrameSource.class);
-    final RuntimeException expected = new IllegalStateException("synchronous failure");
+    final RuntimeException expected = new IllegalStateException("synchronous failure!");
     doThrow(expected).when(player).start(source);
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }
-    verify(player, times(2)).start(source);
+
+    verify(player, times(ASYNC_CALL_COUNT)).start(source);
   }
 }

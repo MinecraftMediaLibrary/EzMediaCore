@@ -36,20 +36,24 @@ import org.bytedeco.javacpp.PointerPointer;
  * {@link AudioFilter}); outputs that expect something else, such as a speech recognizer at 16 kHz mono, a telephony
  * bridge at 8 kHz or an engine that mixes floating point samples, use a resampler to convert them.
  *
- * <pre>{@code
- * final AudioResampler resampler = AudioResampler.fromPipelineFormat(16_000, 1, SampleFormat.SIGNED_16_BIT);
- * final AudioPipelineStep pipeline = AudioPipelineStep.of((samples, metadata) -> {
- *   final byte[] speech = resampler.resample(samples);
- *   recognizer.accept(speech);
- *   // the samples were only read, so the filter reports that it left them untouched
- *   return false;
- * });
+ * {@snippet :
+ * final int sampleRate = 16_000;
+ * final int channels = 1;
+ * this.resampler = AudioResampler.fromPipelineFormat(sampleRate, channels, SampleFormat.SIGNED_16_BIT);
+ * final AudioPipelineStep pipeline = AudioPipelineStep.of(this::forwardSpeech);
  *
  * // once playback has ended
- * final byte[] remaining = resampler.flush();
- * recognizer.accept(remaining);
- * resampler.close();
- * }</pre>
+ * final byte[] remaining = this.resampler.flush();
+ * this.recognizer.accept(remaining);
+ * this.resampler.close();
+ *
+ * private boolean forwardSpeech(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
+ *   final byte[] speech = this.resampler.resample(samples);
+ *   this.recognizer.accept(speech);
+ *   // the samples were only read, so the filter reports that it left them untouched
+ *   return false;
+ * }
+ * }
  *
  * <p>Changing the sample rate needs a few samples of look-ahead, so the resampler holds back a short tail of every
  * buffer and emits it with the next one; {@link #flush()} drains that tail at the end of a stream. Channel counts
@@ -59,13 +63,20 @@ import org.bytedeco.javacpp.PointerPointer;
  * <p>A resampler holds a native context, so it must be {@linkplain #close() closed} when it is no longer needed. An
  * instance keeps state between calls and is not thread-safe: use it from one thread at a time, which is the case
  * for a filter used by one audio pipeline. Do not share the same resampler between independently rendering players.
+ *
+ * @since 1.0.0
  */
 public final class AudioResampler implements AutoCloseable {
 
   /**
    * The largest channel count a resampler accepts, the number of channels of a 7.1 layout.
+   *
+   * @since 1.0.0
    */
-  public static final int MAX_CHANNELS = 8;
+  public static final int MAXIMUM_CHANNELS = 8;
+
+  private static final String INPUT_LABEL = "Input";
+  private static final String OUTPUT_LABEL = "Output";
 
   private final int inputSampleRate;
   private final int inputChannels;
@@ -109,15 +120,16 @@ public final class AudioResampler implements AutoCloseable {
    * Creates a resampler between two arbitrary interleaved PCM formats.
    *
    * @param inputSampleRate  the sample rate of the samples passed to {@link #resample(ByteBuffer)}, in hertz
-   * @param inputChannels    the number of interleaved input channels, from 1 to {@value #MAX_CHANNELS}
+   * @param inputChannels    the number of interleaved input channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param inputFormat      the encoding of the input samples
    * @param outputSampleRate the sample rate of the returned samples, in hertz
-   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAX_CHANNELS}
+   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param outputFormat     the encoding of the returned samples
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if a sample rate is not positive or a channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
-   * @throws NullPointerException if {@code inputFormat} or {@code outputFormat} is null
+   * @throws NullPointerException     if {@code inputFormat} or {@code outputFormat} is null
+   * @since 1.0.0
    */
   public static AudioResampler create(
     final int inputSampleRate,
@@ -127,12 +139,13 @@ public final class AudioResampler implements AutoCloseable {
     final int outputChannels,
     final SampleFormat outputFormat
   ) {
-    checkSampleRate(inputSampleRate, "Input");
-    checkChannels(inputChannels, "Input");
-    Preconditions.checkNotNull(inputFormat, "Input format must not be null");
-    checkSampleRate(outputSampleRate, "Output");
-    checkChannels(outputChannels, "Output");
-    Preconditions.checkNotNull(outputFormat, "Output format must not be null");
+    checkSampleRate(inputSampleRate, INPUT_LABEL);
+    checkChannels(inputChannels, INPUT_LABEL);
+    Preconditions.checkNotNull(inputFormat, "Input format must not be null!");
+
+    checkSampleRate(outputSampleRate, OUTPUT_LABEL);
+    checkChannels(outputChannels, OUTPUT_LABEL);
+    Preconditions.checkNotNull(outputFormat, "Output format must not be null!");
 
     final AudioResampler resampler = new AudioResampler(
       inputSampleRate,
@@ -151,12 +164,13 @@ public final class AudioResampler implements AutoCloseable {
    * samples at {@value AudioFilter#SAMPLE_RATE} Hz.
    *
    * @param outputSampleRate the sample rate of the returned samples, in hertz
-   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAX_CHANNELS}
+   * @param outputChannels   the number of interleaved output channels, from 1 to {@value #MAXIMUM_CHANNELS}
    * @param outputFormat     the encoding of the returned samples
    * @return a new resampler, which must be closed by the caller
    * @throws IllegalArgumentException if the sample rate is not positive or the channel count is out of range
    * @throws IllegalStateException    if FFmpeg cannot set up the conversion
-   * @throws NullPointerException if {@code outputFormat} is null
+   * @throws NullPointerException     if {@code outputFormat} is null
+   * @since 1.0.0
    */
   public static AudioResampler fromPipelineFormat(final int outputSampleRate, final int outputChannels, final SampleFormat outputFormat) {
     return create(
@@ -170,12 +184,12 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   private static void checkSampleRate(final int sampleRate, final String side) {
-    Preconditions.checkArgument(sampleRate > 0, "%s sample rate must be positive, was %s", side, sampleRate);
+    Preconditions.checkArgument(sampleRate > 0, "%s sample rate %s must be positive!", side, sampleRate);
   }
 
   private static void checkChannels(final int channels, final String side) {
-    final boolean inRange = channels >= 1 && channels <= MAX_CHANNELS;
-    Preconditions.checkArgument(inRange, "%s channels must be between 1 and %s, was %s", side, MAX_CHANNELS, channels);
+    final boolean inRange = channels >= 1 && channels <= MAXIMUM_CHANNELS;
+    Preconditions.checkArgument(inRange, "%s channel count %s must be between 1 and %s!", side, channels, MAXIMUM_CHANNELS);
   }
 
   private void configure() {
@@ -211,10 +225,12 @@ public final class AudioResampler implements AutoCloseable {
    * @return a new caller-owned array of interleaved samples in the output format and native byte order,
    *         possibly empty; the byte-order property of the input buffer is not consulted
    * @throws IllegalStateException if the resampler is closed or FFmpeg fails to convert the samples
-   * @throws NullPointerException if {@code input} is null
+   * @throws NullPointerException  if {@code input} is null
+   * @since 1.0.0
    */
   public byte[] resample(final ByteBuffer input) {
-    Preconditions.checkNotNull(input, "Input must not be null");
+    Preconditions.checkNotNull(input, "Input must not be null!");
+
     this.ensureOpen();
 
     final ByteBuffer source = input.duplicate();
@@ -237,6 +253,7 @@ public final class AudioResampler implements AutoCloseable {
    *
    * @return the remaining converted interleaved samples, empty when nothing was held back
    * @throws IllegalStateException if the resampler is closed or FFmpeg fails to drain or reset it
+   * @since 1.0.0
    */
   public byte[] flush() {
     this.ensureOpen();
@@ -244,6 +261,7 @@ public final class AudioResampler implements AutoCloseable {
       final byte[] remaining = this.convert(noInput, 0);
       final int reset = swresample.swr_init(this.context);
       checkResult(reset, "reset the resampler");
+
       return remaining;
     }
   }
@@ -269,36 +287,24 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   private void ensureOpen() {
-    Preconditions.checkState(!this.closed, "The resampler has been closed");
+    Preconditions.checkState(!this.closed, "The resampler has been closed!");
   }
 
-  /**
-   * Closes this resampler when a native setup call failed, so no native memory leaks, then reports the failure.
-   *
-   * @param result the return value of the native call
-   * @param action what the call did, completing the sentence "Could not ..."
-   * @throws IllegalStateException if the result is negative
-   */
+  // Closes this resampler when a native setup call failed, so no native memory leaks, then reports the failure.
   void closeOnFailure(final int result, final String action) {
     if (result < 0) {
       this.close();
     }
+
     checkResult(result, action);
   }
 
-  /**
-   * Checks the return value of a native FFmpeg call, where negative values are error codes.
-   *
-   * @param result the return value of the native call
-   * @param action what the call did, completing the sentence "Could not ..."
-   * @return the result, when it is not negative
-   * @throws IllegalStateException with FFmpeg's description of the error if the result is negative
-   */
   static int checkResult(final int result, final String action) {
     if (result < 0) {
       final String message = describeError(result, action);
       throw new IllegalStateException(message);
     }
+
     return result;
   }
 
@@ -308,14 +314,35 @@ public final class AudioResampler implements AutoCloseable {
       // without a limit JavaCPP reads up to the terminating zero instead of the whole buffer
       description.limit(0);
       final String text = description.getString();
-      return "Could not " + action + ": " + text + " (FFmpeg error " + code + ")";
+      return "FFmpeg error %s (%s) occurred while trying to %s!".formatted(code, text, action);
     }
+  }
+
+  /**
+   * Frees the native resampling context. Samples still held back are discarded, so call {@link #flush()} first to
+   * keep them. Closing an already closed resampler does nothing.
+   *
+   * @since 1.0.0
+   */
+  @Override
+  public void close() {
+    if (this.closed) {
+      return;
+    }
+
+    this.closed = true;
+    swresample.swr_free(this.context);
+    avutil.av_channel_layout_uninit(this.inputLayout);
+    avutil.av_channel_layout_uninit(this.outputLayout);
+    this.inputLayout.close();
+    this.outputLayout.close();
   }
 
   /**
    * Returns the sample rate of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input sample rate in hertz
+   * @since 1.0.0
    */
   public int getInputSampleRate() {
     return this.inputSampleRate;
@@ -325,6 +352,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the number of interleaved channels of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input channel count
+   * @since 1.0.0
    */
   public int getInputChannels() {
     return this.inputChannels;
@@ -334,6 +362,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the encoding of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input sample format
+   * @since 1.0.0
    */
   public SampleFormat getInputFormat() {
     return this.inputFormat;
@@ -343,6 +372,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the sample rate of the samples this resampler returns.
    *
    * @return the output sample rate in hertz
+   * @since 1.0.0
    */
   public int getOutputSampleRate() {
     return this.outputSampleRate;
@@ -352,6 +382,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the number of interleaved channels of the samples this resampler returns.
    *
    * @return the output channel count
+   * @since 1.0.0
    */
   public int getOutputChannels() {
     return this.outputChannels;
@@ -361,6 +392,7 @@ public final class AudioResampler implements AutoCloseable {
    * Returns the encoding of the samples this resampler returns.
    *
    * @return the output sample format
+   * @since 1.0.0
    */
   public SampleFormat getOutputFormat() {
     return this.outputFormat;
@@ -370,35 +402,14 @@ public final class AudioResampler implements AutoCloseable {
    * Returns whether this resampler has been closed and can no longer convert samples.
    *
    * @return {@code true} once {@link #close()} has been called
+   * @since 1.0.0
    */
   public boolean isClosed() {
     return this.closed;
   }
 
-  /**
-   * Gets the native objects this resampler owns: its context and the layouts of its input and output channels.
-   *
-   * @return the context, the input layout and the output layout
-   */
   @VisibleForTesting
   List<Pointer> getNativeObjects() {
     return List.of(this.context, this.inputLayout, this.outputLayout);
-  }
-
-  /**
-   * Frees the native resampling context. Samples still held back are discarded, so call {@link #flush()} first to
-   * keep them. Closing an already closed resampler does nothing.
-   */
-  @Override
-  public void close() {
-    if (this.closed) {
-      return;
-    }
-    this.closed = true;
-    swresample.swr_free(this.context);
-    avutil.av_channel_layout_uninit(this.inputLayout);
-    avutil.av_channel_layout_uninit(this.outputLayout);
-    this.inputLayout.close();
-    this.outputLayout.close();
   }
 }

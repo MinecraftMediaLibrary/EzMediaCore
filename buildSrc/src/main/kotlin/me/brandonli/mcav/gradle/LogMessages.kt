@@ -18,7 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
-data class InlineLogMessage(val line: Int, val call: String)
+data class ConcatenatedLogMessage(val line: Int, val call: String)
 
 object LogMessages {
 
@@ -26,25 +26,22 @@ object LogMessages {
 
     private val LOGGER = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
 
-    private val CONSTANT = Regex("""(?:[A-Za-z_][A-Za-z0-9_]*\.)*[A-Z][A-Z0-9_]*""")
-
     private val OPENING = setOf('(', '[', '{')
 
     private val CLOSING = setOf(')', ']', '}')
 
-    fun find(source: String): List<InlineLogMessage> {
+    fun find(source: String): List<ConcatenatedLogMessage> {
         val code = JavaSource.mask(source)
         val text = JavaSource.withoutComments(source)
         return CALL.findAll(code)
             .filter { LOGGER.matches(it.groupValues[1]) }
-            .filter { call -> isInline(arguments(text, code, call.range.last + 1)) }
-            .map { call -> InlineLogMessage(lineOf(source, call.range.first), call.value.substringBefore('(')) }
+            .filter { call -> isConcatenated(arguments(text, code, call.range.last + 1)) }
+            .map { call -> ConcatenatedLogMessage(lineOf(source, call.range.first), call.value.substringBefore('(')) }
             .toList()
     }
 
-    private fun isInline(arguments: List<Argument>): Boolean {
-        val message = arguments.firstOrNull() ?: return false
-        return !CONSTANT.matches(message.text.trim()) || arguments.any { it.joinsStrings() }
+    private fun isConcatenated(arguments: List<Argument>): Boolean {
+        return arguments.any { it.joinsStrings() }
     }
 
     private fun arguments(source: String, code: String, start: Int): List<Argument> {

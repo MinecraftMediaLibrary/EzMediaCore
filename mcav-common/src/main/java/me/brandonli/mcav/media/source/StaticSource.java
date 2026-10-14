@@ -19,8 +19,19 @@ package me.brandonli.mcav.media.source;
 
 /**
  * A source with a fixed length, such as a file, which can be seeked and played to its end.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface StaticSource extends Source {
+  /**
+   * Returns {@code true}, because a static source is a file on disk. This does not probe its actual duration or whether the selected
+   * decoder supports seeking.
+   *
+   * @return true for files and similar finite media
+   * @since 1.0.0
+   */
   @Override
   default boolean isStatic() {
     return true;

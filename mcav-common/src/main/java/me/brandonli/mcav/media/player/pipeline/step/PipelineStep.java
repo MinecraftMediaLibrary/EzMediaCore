@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -25,26 +26,31 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * {@link #processAll(Object, Object)} for every frame or sample chunk. Build chains with
  * {@link me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder}.
  *
- * @param <T> the type of data that flows through the pipeline
- * @param <M> the type of metadata that accompanies the data
- * @param <S> the type of the steps of this pipeline
+ * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
+ *
+ * @param <DataType>     the type of data that flows through the pipeline
+ * @param <MetadataType> the type of metadata that accompanies the data
+ * @param <StepType>     the type of the steps of this pipeline
+ * @since 1.0.0
  */
-public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
+public interface PipelineStep<DataType, MetadataType, StepType extends PipelineStep<DataType, MetadataType, StepType>> {
   /**
-   * Gets the step that follows this one.
+   * Returns the step that follows this one.
    *
-   * @return the next step, or null if this is the last step
+   * @return the next step, or empty if this is the last step
+   * @since 1.0.0
    */
-  @Nullable S next();
+  Optional<StepType> next();
 
   /**
    * Checks whether this is the last step of the chain.
    *
    * @return true if no step follows
+   * @since 1.0.0
    */
   default boolean isLast() {
-    final S next = this.next();
-    return next == null;
+    final Optional<StepType> next = this.next();
+    return next.isEmpty();
   }
 
   /**
@@ -53,6 +59,7 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * because no filter would read them.
    *
    * @return true only for the empty pipeline
+   * @since 1.0.0
    */
   default boolean isNoOp() {
     return false;
@@ -64,8 +71,9 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @param buffer   the data
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
+   * @since 1.0.0
    */
-  void process(final T buffer, final M metadata);
+  void process(final DataType buffer, final MetadataType metadata);
 
   /**
    * Applies the filter of this step and of every step that follows, in order. Every filter runs, whatever the
@@ -74,22 +82,26 @@ public interface PipelineStep<T, M, S extends PipelineStep<T, M, S>> {
    * @param buffer   the data
    * @param metadata the metadata of the data
    * @throws NullPointerException if the data or the metadata is null
-   * @throws RuntimeException if a step or filter fails; subsequent steps are not invoked
+   * @throws RuntimeException     if a step or filter fails; subsequent steps are not invoked
+   * @since 1.0.0
    */
-  default void processAll(final T buffer, final M metadata) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
-    S step = this.self();
+  default void processAll(final DataType buffer, final MetadataType metadata) {
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
+    @Nullable StepType step = this.self();
     while (step != null) {
       step.process(buffer, metadata);
-      step = step.next();
+      final Optional<StepType> next = step.next();
+      step = next.orElse(null);
     }
   }
 
   /**
-   * Gets this step typed as the step type of the pipeline.
+   * Returns this step typed as the step type of the pipeline.
    *
    * @return this step
+   * @since 1.0.0
    */
-  S self();
+  StepType self();
 }

@@ -30,13 +30,10 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.immutable.Dimension;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the attachable callbacks and {@link AbstractAttachableCallback}.
- */
 final class AttachableCallbackTest {
 
   @Test
-  void videoCallbackFallsBackToTheEmptyPipeline() {
+  void shouldFallBackToTheEmptyPipelineInTheVideoCallback() {
     final VideoAttachableCallback callback = VideoAttachableCallback.create();
     final VideoPipelineStep initial = callback.retrieve();
     final boolean initiallyAttached = callback.isAttached();
@@ -56,7 +53,7 @@ final class AttachableCallbackTest {
   }
 
   @Test
-  void audioCallbackFallsBackToTheEmptyPipeline() {
+  void shouldFallBackToTheEmptyPipelineInTheAudioCallback() {
     final AudioAttachableCallback callback = AudioAttachableCallback.create();
     final AudioPipelineStep initial = callback.retrieve();
     final AudioPipelineStep step = AudioPipelineStep.of(AudioFilter.NO_OP);
@@ -70,7 +67,7 @@ final class AttachableCallbackTest {
   }
 
   @Test
-  void dimensionCallbackAcceptsOnlyNonEmptySizes() {
+  void shouldAcceptOnlyNonEmptySizesInTheDimensionCallback() {
     final DimensionAttachableCallback callback = DimensionAttachableCallback.create();
     final Dimension initial = callback.retrieve();
     final Dimension size = Dimension.of(160, 90);
@@ -86,7 +83,7 @@ final class AttachableCallbackTest {
   }
 
   @Test
-  void countsAnAttachedValueAsAttachedEvenWhenItIsTheFallback() {
+  void shouldCountAnAttachedValueAsAttachedEvenWhenItIsTheFallback() {
     final VideoAttachableCallback callback = VideoAttachableCallback.create();
     final VideoPipelineStep fallback = callback.retrieve();
     callback.attach(fallback);
@@ -102,15 +99,13 @@ final class AttachableCallbackTest {
   }
 
   @Test
-  void rejectsNullValues() {
+  void shouldRejectNullValues() {
     final VideoAttachableCallback callback = VideoAttachableCallback.create();
     assertThrows(NullPointerException.class, () -> callback.attach(null));
     assertThrows(NullPointerException.class, NullFallbackCallback::new);
   }
 
-  /**
-   * A callback that passes a null fallback, which the base class must reject.
-   */
+  // A callback that passes a null fallback, which the base class must reject.
   private static final class NullFallbackCallback extends AbstractAttachableCallback<String> {
 
     NullFallbackCallback() {

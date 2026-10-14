@@ -27,6 +27,10 @@ import org.bytedeco.opencv.opencv_core.Size;
  * Blurs frames with one of several blur algorithms; larger kernels blur more. The box blur of
  * {@link BlurType#NORMAL} accepts any positive kernel size, while the median, Gaussian, and stack blurs need odd
  * sizes, as OpenCV does.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class BlurFilter extends MatVideoFilter {
 
@@ -48,14 +52,17 @@ public class BlurFilter extends MatVideoFilter {
    *                   horizontal value
    * @throws IllegalArgumentException if the kernel is nonpositive, even for a non-normal blur,
    *                                  or a sigma is negative or NaN
-   * @throws NullPointerException if {@code type} is null
+   * @throws NullPointerException     if {@code type} is null
+   * @since 1.0.0
    */
   public BlurFilter(final BlurType type, final int kernelSize, final double sigmaX, final double sigmaY) {
-    Preconditions.checkNotNull(type, "Blur type must not be null");
-    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive but was %s", kernelSize);
+    Preconditions.checkNotNull(type, "Blur type must not be null!");
+    Preconditions.checkArgument(kernelSize > 0, "Kernel size %s must be positive!", kernelSize);
+
     final boolean odd = kernelSize % 2 == 1;
-    Preconditions.checkArgument(odd || type == BlurType.NORMAL, "Kernel size of a %s blur must be odd but was %s", type, kernelSize);
-    Preconditions.checkArgument(sigmaX >= 0 && sigmaY >= 0, "Sigma values must not be negative");
+    Preconditions.checkArgument(odd || type == BlurType.NORMAL, "Kernel size %s of a %s blur must be odd!", kernelSize, type);
+    Preconditions.checkArgument(sigmaX >= 0 && sigmaY >= 0, "Sigma values must not be negative!");
+
     this.type = type;
     this.size = new Size(kernelSize, kernelSize);
     this.kernelSize = kernelSize;
@@ -69,8 +76,9 @@ public class BlurFilter extends MatVideoFilter {
    * @param type       the blur algorithm
    * @param kernelSize the size of the blur kernel, which must be positive, and odd for every type but
    *                   {@link BlurType#NORMAL}
-   * @throws NullPointerException if {@code type} is null
+   * @throws NullPointerException     if {@code type} is null
    * @throws IllegalArgumentException if the kernel is nonpositive or even for a non-normal blur
+   * @since 1.0.0
    */
   public BlurFilter(final BlurType type, final int kernelSize) {
     this(type, kernelSize, 0, 0);
@@ -81,6 +89,7 @@ public class BlurFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -94,45 +103,61 @@ public class BlurFilter extends MatVideoFilter {
 
   private boolean normalBlur(final Mat mat) {
     opencv_imgproc.blur(mat, mat, this.size);
+
     return true;
   }
 
   private boolean medianBlur(final Mat mat) {
     opencv_imgproc.medianBlur(mat, mat, this.kernelSize);
+
     return true;
   }
 
   private boolean gaussianBlur(final Mat mat) {
     opencv_imgproc.GaussianBlur(mat, mat, this.size, this.sigmaX, this.sigmaY, opencv_core.BORDER_DEFAULT, opencv_core.ALGO_HINT_DEFAULT);
+
     return true;
   }
 
   private boolean stackBlur(final Mat mat) {
     opencv_imgproc.stackBlur(mat, mat, this.size);
+
     return true;
   }
 
   /**
    * The blur algorithms supported by {@link BlurFilter}.
+   *
+   * <p>This enum is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   public enum BlurType {
     /**
      * Averages the pixels of the kernel. The fastest algorithm.
+     *
+     * @since 1.0.0
      */
     NORMAL,
 
     /**
      * Uses the median of the kernel, which removes noise while keeping edges.
+     *
+     * @since 1.0.0
      */
     MEDIAN,
 
     /**
      * Weights pixels by a Gaussian curve, which gives the most natural blur.
+     *
+     * @since 1.0.0
      */
     GAUSSIAN,
 
     /**
      * Approximates a Gaussian blur at a fraction of the cost for large kernels.
+     *
+     * @since 1.0.0
      */
     STACK,
   }

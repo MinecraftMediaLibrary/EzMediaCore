@@ -24,13 +24,10 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherPalette#colors(List)}, which unboxes a list of colors.
- */
 final class DitherPaletteColorsTest {
 
   @Test
-  void createsAPaletteFromAListOfColors() {
+  void shouldCreateAPaletteFromAListOfColors() {
     final List<Integer> colors = List.of(0x000000, 0xFF0000, 0x00FF00);
     final DitherPalette palette = DitherPalette.colors(colors);
     final int[] opaqueColors = palette.getPalette();
@@ -38,7 +35,7 @@ final class DitherPaletteColorsTest {
   }
 
   @Test
-  void rejectsMissingColors() {
+  void shouldRejectMissingColors() {
     final List<Integer> withNull = Arrays.asList(0x000000, null);
     assertThrows(NullPointerException.class, () -> DitherPalette.colors(withNull));
     assertThrows(NullPointerException.class, () -> DitherPalette.colors((List<Integer>) null));

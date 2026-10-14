@@ -20,5 +20,9 @@ package me.brandonli.mcav.media.player.metadata;
 /**
  * Properties of the media as it was decoded, before any filter changed it. Filters receive metadata alongside
  * every frame or sample chunk so they can, for example, compute aspect ratios or timing.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface OriginalMetadata {}

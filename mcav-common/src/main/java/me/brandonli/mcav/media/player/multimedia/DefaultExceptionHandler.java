@@ -25,12 +25,14 @@ import org.slf4j.LoggerFactory;
 /**
  * The handler holder created by {@link ExceptionHandler#createDefault()}. Failures are logged at error level
  * until a custom handler is set.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DefaultExceptionHandler implements ExceptionHandler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExceptionHandler.class);
-
-  private static final String FAILURE = "{}";
 
   private volatile BiConsumer<String, Throwable> handler;
 
@@ -39,17 +41,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   }
 
   private static void log(final String message, final Throwable error) {
-    LOGGER.error(FAILURE, message, error);
-  }
-
-  /**
-   * Gets the handler that receives failures, which logs them at error level until another handler is set.
-   *
-   * @return the current handler
-   */
-  @Override
-  public BiConsumer<String, Throwable> getExceptionHandler() {
-    return this.handler;
+    LOGGER.error("{}", message, error);
   }
 
   /**
@@ -58,10 +50,23 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
    *
    * @param exceptionHandler the new handler
    * @throws NullPointerException if the handler is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.handler = exceptionHandler;
+  }
+
+  /**
+   * Returns the handler that receives failures, which logs them at error level until another handler is set.
+   *
+   * @return the current handler
+   * @since 1.0.0
+   */
+  @Override
+  public BiConsumer<String, Throwable> getExceptionHandler() {
+    return this.handler;
   }
 }

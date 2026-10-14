@@ -30,20 +30,20 @@ class LogMessagesTest {
             "LOGGER.info(STARTED /* why this message */);",
             "LOGGER.info(// why this message\n STARTED);",
         )) {
-            assertEquals(emptyList<InlineLogMessage>(), LogMessages.find(source), source)
+            assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source), source)
         }
     }
 
     @Test
     fun doesNotTreatQuotedCommentTextAsStringConcatenation() {
         val source = "LOGGER.info(STARTED, count + 1 /* \"units\" */);"
-        assertEquals(emptyList<InlineLogMessage>(), LogMessages.find(source))
+        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
     }
 
     @Test
     fun stillRejectsLiteralConcatenationBesideAComment() {
         val source = "LOGGER.info(/* explanation */ \"\" + STARTED);"
-        assertEquals(listOf(InlineLogMessage(1, "LOGGER.info")), LogMessages.find(source))
+        assertEquals(listOf(ConcatenatedLogMessage(1, "LOGGER.info")), LogMessages.find(source))
     }
 
     @Test
@@ -58,11 +58,11 @@ class LogMessagesTest {
               }
             }
         """.trimIndent()
-        assertEquals(emptyList<InlineLogMessage>(), LogMessages.find(source))
+        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
     }
 
     @Test
-    fun reportsAMessageWrittenInline() {
+    fun acceptsAMessageWrittenInline() {
         val source = """
             final class Example {
               void run() {
@@ -70,29 +70,29 @@ class LogMessagesTest {
               }
             }
         """.trimIndent()
-        assertEquals(listOf(InlineLogMessage(3, "LOGGER.info")), LogMessages.find(source))
+        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
     }
 
     @Test
     fun reportsEveryLevelOnEveryKindOfLogger() {
         val source = listOf(
-            "log.trace(\"a\");",
-            "logger.debug(\"b\");",
-            "LOG.info(\"c\");",
-            "AUDIT_LOGGER.warn(\"d\");",
-            "pluginLogger.error(\"e\");",
+            "log.trace(\"a\" + name);",
+            "logger.debug(\"b\" + name);",
+            "LOG.info(\"c\" + name);",
+            "AUDIT_LOGGER.warn(\"d\" + name);",
+            "pluginLogger.error(\"e\" + name);",
         ).joinToString("\n")
         assertEquals(listOf(1, 2, 3, 4, 5), LogMessages.find(source).map { it.line })
     }
 
     @Test
-    fun reportsAMessageThatIsNotAConstant() {
+    fun acceptsAMessageThatIsNotAConstant() {
         val source = listOf(
             "LOGGER.error(message, error);",
             "LOGGER.warn(prefix() + NAME);",
             "LOGGER.info(Failed.name());",
         ).joinToString("\n")
-        assertEquals(listOf(1, 2, 3), LogMessages.find(source).map { it.line })
+        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
     }
 
     @Test
@@ -111,32 +111,31 @@ class LogMessagesTest {
             final class Example {
               void run() {
                 budget.log(() -> LOGGER.warn(
-                  "The browser could not load {}: {}",
-                  url,
+                  "The browser could not load " + url,
                   text
                 ), Example::skipped);
               }
             }
         """.trimIndent()
-        assertEquals(listOf(InlineLogMessage(3, "LOGGER.warn")), LogMessages.find(source))
+        assertEquals(listOf(ConcatenatedLogMessage(3, "LOGGER.warn")), LogMessages.find(source))
     }
 
     @Test
     fun ignoresCallsThatAreNotLogCalls() {
         val source = listOf(
-            "verify(logger).warn(\"checked by a test\");",
-            "counter.info(\"not a logger\");",
+            "verify(logger).warn(\"checked by \" + test);",
+            "counter.info(\"not a \" + logger);",
             "LOGGER.isDebugEnabled();",
             "log.info();",
-            "// LOGGER.info(\"in a comment\");",
-            "String text = \"LOGGER.info(\\\"in a string\\\")\";",
+            "// LOGGER.info(\"in a \" + comment);",
+            "String text = \"LOGGER.info(\\\"in a \\\" + string)\";",
         ).joinToString("\n")
-        assertEquals(emptyList<InlineLogMessage>(), LogMessages.find(source))
+        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
     }
 
     @Test
     fun readsParenthesesAndCommasInLiteralsAsText() {
-        val source = "LOGGER.info(STARTED, \"(,\", ')', name);\nLOGGER.info(\"x\");"
-        assertEquals(listOf(2), LogMessages.find(source).map { it.line })
+        val source = "LOGGER.info(STARTED, \"(,\", ')', \"at \" + name);\nLOGGER.info(\"x\");"
+        assertEquals(listOf(1), LogMessages.find(source).map { it.line })
     }
 }

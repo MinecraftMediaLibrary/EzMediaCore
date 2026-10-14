@@ -27,6 +27,10 @@ import org.bytedeco.opencv.opencv_core.Size;
 
 /**
  * Draws an ellipse outline, or an arc of one, onto every frame.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class EllipseFilter extends MatVideoFilter {
 
@@ -49,7 +53,8 @@ public class EllipseFilter extends MatVideoFilter {
    * @param endAngle   the angle in degrees the arc ends at
    * @param color      the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if either axis length is nonpositive
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public EllipseFilter(
     final int centerX,
@@ -61,7 +66,8 @@ public class EllipseFilter extends MatVideoFilter {
     final int endAngle,
     final double[] color
   ) {
-    Preconditions.checkArgument(axisX > 0 && axisY > 0, "Axes must be positive");
+    Preconditions.checkArgument(axisX > 0 && axisY > 0, "Axes must be positive!");
+
     this.center = new Point(centerX, centerY);
     this.axes = new Size(axisX, axisY);
     this.angle = angle;
@@ -76,10 +82,12 @@ public class EllipseFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.ellipse(mat, this.center, this.axes, this.angle, this.startAngle, this.endAngle, this.color);
+
     return true;
   }
 }

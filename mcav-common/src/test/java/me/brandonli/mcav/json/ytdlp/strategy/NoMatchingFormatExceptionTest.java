@@ -21,25 +21,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link NoMatchingFormatException}.
- */
 final class NoMatchingFormatExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final NoMatchingFormatException exception = new NoMatchingFormatException("No video stream matches the strategy");
+  void shouldKeepTheMessage() {
+    final NoMatchingFormatException exception = new NoMatchingFormatException("No video stream matches the strategy!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("No video stream matches the strategy", message);
+    assertEquals("No video stream matches the strategy!", message);
     assertNull(cause);
   }
 
   @Test
-  void isARuntimeException() {
-    final NoMatchingFormatException exception = new NoMatchingFormatException("failure");
-    assertInstanceOf(RuntimeException.class, exception, "a missing format is recoverable, so it is no Error");
+  void shouldBeAnMCAVException() {
+    final NoMatchingFormatException exception = new NoMatchingFormatException("Failure!");
+    assertInstanceOf(MCAVException.class, exception, "a missing format is recoverable, so it is no Error");
   }
 }

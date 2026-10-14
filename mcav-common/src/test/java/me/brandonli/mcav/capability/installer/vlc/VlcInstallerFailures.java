@@ -17,22 +17,14 @@
  */
 package me.brandonli.mcav.capability.installer.vlc;
 
-/**
- * Creates the failures of the VLC installer for tests in other packages, whose constructors are package-private so
- * that only the installer throws them.
- */
+// Creates the failures of the VLC installer for tests in other packages, whose constructors are package-private so that
+// only the installer throws them.
 public final class VlcInstallerFailures {
 
   private VlcInstallerFailures() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Creates the failure the installer throws when VLC cannot be provided on the system.
-   *
-   * @param message the detail message
-   * @return the failure
-   */
   public static UnsupportedOperatingSystemException unsupportedSystem(final String message) {
     return new UnsupportedOperatingSystemException(message);
   }

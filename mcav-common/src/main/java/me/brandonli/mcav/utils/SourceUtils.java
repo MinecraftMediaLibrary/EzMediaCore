@@ -19,16 +19,15 @@ package me.brandonli.mcav.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Set;
-import me.brandonli.mcav.json.ytdlp.YTDLPParseException;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.MCAVException;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
@@ -37,8 +36,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Helpers for classifying strings and sources: whether a string is a path or a URL, whether a URL points at a
  * media file, and whether a source is an animated GIF.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class SourceUtils {
+
+  private static final String GIF_EXTENSION = "gif";
 
   private static final Set<String> MEDIA_EXTENSIONS = Set.of(
     "mp4",
@@ -79,7 +84,7 @@ public final class SourceUtils {
     "opus",
     "wma",
     "amr",
-    "gif",
+    GIF_EXTENSION,
     "png",
     "apng",
     "jpg",
@@ -92,7 +97,7 @@ public final class SourceUtils {
   );
 
   private SourceUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -101,9 +106,11 @@ public final class SourceUtils {
    * @param source the source
    * @return true if the path or URL ends with {@code .gif}
    * @throws NullPointerException if {@code source} is null
+   * @since 1.0.0
    */
   public static boolean isImageGif(final Source source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
+
     final String resource;
     if (source instanceof final FileSource fileSource) {
       final Path path = fileSource.getPath();
@@ -114,11 +121,13 @@ public final class SourceUtils {
     } else {
       return false;
     }
+
     if (resource == null) {
       return false;
     }
+
     final String extension = getExtension(resource);
-    return "gif".equals(extension);
+    return GIF_EXTENSION.equals(extension);
   }
 
   /**
@@ -127,9 +136,11 @@ public final class SourceUtils {
    * @param raw the string
    * @return true if the string is such a URL
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   public static boolean isUri(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     try {
       final URI uri = URI.create(raw);
       final String scheme = uri.getScheme();
@@ -149,17 +160,20 @@ public final class SourceUtils {
    *
    * @param url the URL, or null
    * @return true if the path of the URL ends with a media extension, false for null, empty, or malformed URLs
+   * @since 1.0.0
    */
   public static boolean isDirectVideo(final @Nullable String url) {
     if (url == null || url.isEmpty()) {
       return false;
     }
+
     try {
       final URI uri = URI.create(url);
       final String path = uri.getPath();
       if (path == null || path.isEmpty()) {
         return false;
       }
+
       final String extension = getExtension(path);
       return extension != null && MEDIA_EXTENSIONS.contains(extension);
     } catch (final IllegalArgumentException exception) {
@@ -173,9 +187,11 @@ public final class SourceUtils {
    * @param raw the string
    * @return true if the path exists
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   public static boolean isPath(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     try {
       final Path path = Path.of(raw);
       return Files.exists(path);
@@ -191,30 +207,24 @@ public final class SourceUtils {
    * @return true if yt-dlp reports the URL as live, false if it does not or if yt-dlp fails
    * @throws IllegalStateException if the library is still preparing yt-dlp in the background, so the answer is not
    *                               known yet
-   * @throws NullPointerException if {@code url} is null
+   * @throws NullPointerException  if {@code url} is null
+   * @since 1.0.0
    */
   public static boolean isDynamicStream(final String url) {
-    Preconditions.checkNotNull(url, "URL must not be null");
-    final YTDLPParser parser = YTDLPParser.simple();
+    Preconditions.checkNotNull(url, "URL must not be null!");
+
+    final YtdlpParser parser = YtdlpParser.simple();
     return isDynamicStream(url, parser);
   }
 
-  /**
-   * Asks a parser whether a URL is a live stream.
-   *
-   * @param url    the URL of a web page or stream
-   * @param parser the parser that resolves the URL
-   * @return true if the parser reports the URL as live, false if it does not, if the URL is invalid, or if the
-   * parser fails
-   */
   @VisibleForTesting
-  static boolean isDynamicStream(final String url, final YTDLPParser parser) {
+  static boolean isDynamicStream(final String url, final YtdlpParser parser) {
     try {
       final URI uri = URI.create(url);
       final UriSource source = UriSource.uri(uri);
-      final URLParseDump dump = parser.parse(source);
-      return dump.is_live;
-    } catch (final IOException | IllegalArgumentException | YTDLPParseException exception) {
+      final UrlParseDump dump = parser.parse(source);
+      return dump.isLive();
+    } catch (final MCAVException | IllegalArgumentException exception) {
       return false;
     }
   }
@@ -229,6 +239,7 @@ public final class SourceUtils {
     if (!hasExtension) {
       return null;
     }
+
     final String extension = path.substring(lastDot + 1);
     return extension.toLowerCase(Locale.ROOT);
   }

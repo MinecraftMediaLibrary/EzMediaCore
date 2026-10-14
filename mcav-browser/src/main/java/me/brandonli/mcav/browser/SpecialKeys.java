@@ -27,7 +27,7 @@ import java.lang.reflect.Type;
 import java.util.Set;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 
 /**
  * The key names {@link BrowserPlayer#sendKeyEvent(String)} presses rather than types: the W3C
@@ -44,7 +44,7 @@ final class SpecialKeys {
   }
 
   private static Set<String> loadSpecialKeys() {
-    final Reader reader = IOUtils.getResourceAsStreamReader(RESOURCE);
+    final Reader reader = IoUtils.getResourceAsStreamReader(RESOURCE);
     return parse(reader);
   }
 

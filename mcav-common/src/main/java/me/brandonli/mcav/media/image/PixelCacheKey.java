@@ -17,48 +17,30 @@
  */
 package me.brandonli.mcav.media.image;
 
+import com.google.common.base.MoreObjects;
+import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Identifies the pixel memory the packed pixels of a {@link MatImageBuffer} were read from.
- *
- * <p>OpenCV functions may reallocate or reshape a matrix in place, keeping the matrix header but moving its pixels.
- * When the address of the pixel data or the shape of the matrix no longer matches the key the cached pixels were read
- * with, the cache is stale even if nobody invalidated it.
- */
+// Identifies the pixel memory the packed pixels of a MatImageBuffer were read from. OpenCV functions may reallocate or
+// reshape a matrix in place, keeping the matrix header but moving its pixels. When the address of the pixel data or the
+// shape of the matrix no longer matches the key the cached pixels were read with, the cache is stale even if nobody
+// invalidated it.
 final class PixelCacheKey {
 
   private final long address;
   private final int width;
   private final int height;
 
-  /**
-   * Constructs a new key.
-   *
-   * @param address the address of the pixel data, not of the matrix header
-   * @param width   the width of the matrix
-   * @param height  the height of the matrix
-   */
   PixelCacheKey(final long address, final int width, final int height) {
     this.address = address;
     this.width = width;
     this.height = height;
   }
 
-  /**
-   * Gets the width of the matrix.
-   *
-   * @return the width
-   */
   int getWidth() {
     return this.width;
   }
 
-  /**
-   * Gets the height of the matrix.
-   *
-   * @return the height
-   */
   int getHeight() {
     return this.height;
   }
@@ -68,21 +50,21 @@ final class PixelCacheKey {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final PixelCacheKey key)) {
+
+    if (!(other instanceof final PixelCacheKey pixelCacheKey)) {
       return false;
     }
-    return this.address == key.address && this.width == key.width && this.height == key.height;
+
+    return this.address == pixelCacheKey.address && this.width == pixelCacheKey.width && this.height == pixelCacheKey.height;
   }
 
   @Override
   public int hashCode() {
-    final int addressHash = Long.hashCode(this.address);
-    return (addressHash * 31 + this.width) * 31 + this.height;
+    return Objects.hash(this.address, this.width, this.height);
   }
 
   @Override
   public String toString() {
-    final String hexAddress = Long.toHexString(this.address);
-    return "PixelCacheKey[" + hexAddress + ", " + this.width + "x" + this.height + "]";
+    return MoreObjects.toStringHelper(this).add("address", this.address).add("width", this.width).add("height", this.height).toString();
   }
 }

@@ -29,8 +29,13 @@ VLC and yt-dlp are external programs, so they are prepared **in the background**
 taken from the system if it is installed there; both are taken from the MCAV cache folder (`~/.mcav/cache`) if an
 earlier run downloaded them, or downloaded into that folder otherwise. A yt-dlp installed on the system is not used. No administrator rights or system packages are needed. The
 first download can take several minutes on a slow connection, and nothing waits for it: each capability simply turns
-on once its program is ready. The log shows `VLC ready in <n> ms` when VLC is ready, or a warning that says why VLC
+on once its program is ready. The log shows `VLC ready in <n> ms.` when VLC is ready, or a warning that says why VLC
 is not available.
+
+When the home directory cannot hold `~/.mcav/cache`, for instance because it is read-only or mounted `noexec` so the
+programs in the cache cannot run, MCAV uses `mcav/cache` in the temporary directory of the JVM (`java.io.tmpdir`)
+instead and logs a warning that names both folders. If that folder cannot run programs either, VLC and yt-dlp are
+not available; point `java.io.tmpdir` at a folder that can.
 
 Until a program is ready:
 
@@ -66,7 +71,7 @@ library.
 | `VLC`            | `VideoPlayer.vlc()`                                      | In the background         |
 | `FFMPEG`         | The FFmpeg players and FFmpeg commands                   | Before `install` returns  |
 | `YT_DLP`         | Resolving web pages, such as YouTube videos, with yt-dlp | In the background         |
-| `FACE_DETECTION` | The `FaceDetectionFilter`; its OpenCV natives need GTK 2 on Linux, so it is missing on many headless servers | Before `install` returns |
+| `FACE_DETECTION` | The `FaceDetectionFilter`; its OpenCV natives need GTK 2 on Linux, which MCAV installs on x86-64 and ARM64 Linux when it is missing | Before `install` returns |
 
 `hasCapability` tells whether a capability is available **right now**. A capability that is still being prepared is
 not available yet, so the example below plays with FFmpeg until VLC is ready:

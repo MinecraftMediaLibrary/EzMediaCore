@@ -32,51 +32,51 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the image buffers over native OpenCV memory, for every size and every layout of the buffer the pixels
- * come from, checked against what {@link ImageBuffer} documents: raw pixels are copied from the position to the limit
- * of a buffer, ARGB pixels come back opaque, {@link ImageBuffer#getData()} is a view of the image while
- * {@link ImageBuffer#copy()} and {@link ImageBuffer#copyPixels()} share nothing with it, and the cached array of
- * {@link ImageBuffer#getPixels()} is replaced, not changed, when the image changes.
- */
 final class ImageBufferPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_SIDE = 24;
+  private static final int MAXIMUM_SIDE = 24;
   private static final int CHANNELS = 3;
+
+  private static final String IMAGES_PROVIDER = "images";
+  private static final int TRIES = 100;
+
+  private static final int OPAQUE_ALPHA = 0xFF000000;
+  private static final int CHANNEL_MASK = 0xFF;
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
 
   @Provide
   Arbitrary<ImageCase> images() {
-    final Arbitrary<Integer> sides = between(1, MAX_SIDE);
+    final Arbitrary<Integer> sides = between(1, MAXIMUM_SIDE);
     final Arbitrary<Integer> margins = between(0, 9);
-    final Arbitrary<Boolean> direct = Arbitraries.of(true, false);
+    final Arbitrary<BufferKind> kinds = Arbitraries.of(BufferKind.DIRECT, BufferKind.HEAP);
     final Arbitrary<ByteOrder> orders = Arbitraries.of(ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN);
     final IntegerArbitrary colors = Arbitraries.integers();
     final ListArbitrary<Integer> colorList = colors.list();
-    final ListArbitrary<Integer> pixels = colorList.ofSize(MAX_SIDE * MAX_SIDE);
-    final Combinators.Combinator7<Integer, Integer, Integer, Integer, Boolean, ByteOrder, List<Integer>> images = Combinators.combine(
+    final ListArbitrary<Integer> pixels = colorList.ofSize(MAXIMUM_SIDE * MAXIMUM_SIDE);
+    final Combinators.Combinator7<Integer, Integer, Integer, Integer, BufferKind, ByteOrder, List<Integer>> images = Combinators.combine(
       sides,
       sides,
       margins,
       margins,
-      direct,
+      kinds,
       orders,
       pixels
     );
     return images.as(ImageCase::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
-  @Property(seed = SEED, tries = 100)
-  void rawPixelsAreCopiedFromEveryBufferLayout(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldCopyRawPixelsFromEveryBufferLayout(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final byte[] bgr = image.createBgr();
     final ByteBuffer source = image.wrap(bgr);
     final int position = source.position();
@@ -87,6 +87,7 @@ final class ImageBufferPropertyTest {
       final int sourceLimit = source.limit();
       assertEquals(position, sourcePosition, "the position of the source is left alone");
       assertEquals(limit, sourceLimit, "the limit of the source is left alone");
+
       final byte[] held = readData(buffer);
       assertArrayEquals(bgr, held, "the image holds the bytes between position and limit");
 
@@ -94,6 +95,7 @@ final class ImageBufferPropertyTest {
         final byte current = source.get(index);
         source.put(index, (byte) ~current);
       }
+
       final byte[] stillHeld = readData(buffer);
       assertArrayEquals(bgr, stillHeld, "the image does not share memory with the source");
     } finally {
@@ -101,29 +103,32 @@ final class ImageBufferPropertyTest {
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void argbPixelsComeBackOpaqueAndAsTheirBgrBytes(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldReturnArgbPixelsOpaqueAndAsTheirBgrBytes(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {
       final int[] pixels = buffer.getPixels();
       final byte[] bgr = readData(buffer);
       assertEquals(argb.length, pixels.length, "one pixel per pixel");
+
       for (int pixel = 0; pixel < argb.length; pixel++) {
-        final int expected = argb[pixel] | 0xFF000000;
-        assertEquals(expected, pixels[pixel], "pixel " + pixel + " is its color, opaque");
-        final int blue = bgr[pixel * CHANNELS] & 0xFF;
-        final int green = bgr[pixel * CHANNELS + 1] & 0xFF;
-        final int red = bgr[pixel * CHANNELS + 2] & 0xFF;
-        assertEquals(expected & 0xFFFFFF, (red << 16) | (green << 8) | blue, "pixel " + pixel + " as blue, green, red");
+        final int expected = argb[pixel] | OPAQUE_ALPHA;
+        final int opaquePixel = pixels[pixel];
+        assertEquals(expected, opaquePixel, "pixel " + pixel + " is its color, opaque");
+        final int blue = bgr[pixel * CHANNELS] & CHANNEL_MASK;
+        final int green = bgr[pixel * CHANNELS + 1] & CHANNEL_MASK;
+        final int red = bgr[pixel * CHANNELS + 2] & CHANNEL_MASK;
+        final int storedColor = (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
+        assertEquals(expected & 0xFFFFFF, storedColor, "pixel " + pixel + " as blue, green, red");
       }
     } finally {
       buffer.release();
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void copiesShareNothingAndTheCachedPixelsAreReplacedOnChange(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldShareNothingWithCopiesAndReplaceTheCachedPixelsOnChange(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -141,15 +146,18 @@ final class ImageBufferPropertyTest {
       for (int pixel = 0; pixel < changed.length; pixel++) {
         changed[pixel] = ~argb[pixel];
       }
+
       original.updateArgb(changed, width, height);
 
       final int[] copyPixels = copy.getPixels();
       assertArrayEquals(beforeValues, copyPixels, "a copy does not change with its original");
       assertArrayEquals(beforeValues, before, "the array a caller kept still holds the old pixels");
+
       final int[] after = original.getPixels();
       for (int pixel = 0; pixel < changed.length; pixel++) {
-        final int expected = changed[pixel] | 0xFF000000;
-        assertEquals(expected, after[pixel], "the image shows its new pixels");
+        final int expected = changed[pixel] | OPAQUE_ALPHA;
+        final int afterPixel = after[pixel];
+        assertEquals(expected, afterPixel, "the image shows its new pixels");
       }
     } finally {
       copy.release();
@@ -157,8 +165,8 @@ final class ImageBufferPropertyTest {
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void writesThroughTheDataViewChangeTheImage(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldChangeTheImageOnWritesThroughTheDataView(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {
@@ -169,15 +177,17 @@ final class ImageBufferPropertyTest {
         written[index] = (byte) ~written[index];
         data.put(start + index, written[index]);
       }
+
       buffer.invalidateCache();
 
       final int[] pixels = buffer.getPixels();
       for (int pixel = 0; pixel < pixels.length; pixel++) {
-        final int blue = written[pixel * CHANNELS] & 0xFF;
-        final int green = written[pixel * CHANNELS + 1] & 0xFF;
-        final int red = written[pixel * CHANNELS + 2] & 0xFF;
-        final int expected = 0xFF000000 | (red << 16) | (green << 8) | blue;
-        assertEquals(expected, pixels[pixel], "pixel " + pixel + " shows what was written through the view");
+        final int blue = written[pixel * CHANNELS] & CHANNEL_MASK;
+        final int green = written[pixel * CHANNELS + 1] & CHANNEL_MASK;
+        final int red = written[pixel * CHANNELS + 2] & CHANNEL_MASK;
+        final int expected = OPAQUE_ALPHA | (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
+        final int shownPixel = pixels[pixel];
+        assertEquals(expected, shownPixel, "pixel " + pixel + " shows what was written through the view");
       }
     } finally {
       buffer.release();
@@ -192,16 +202,13 @@ final class ImageBufferPropertyTest {
     return bytes;
   }
 
-  /**
-   * The size of an image, its pixels, and how the buffer they arrive in is laid out.
-   */
   private static final class ImageCase {
 
     private final int width;
     private final int height;
     private final int before;
     private final int after;
-    private final boolean direct;
+    private final BufferKind kind;
     private final ByteOrder order;
     private final List<Integer> colors;
 
@@ -210,7 +217,7 @@ final class ImageBufferPropertyTest {
       final int height,
       final int before,
       final int after,
-      final boolean direct,
+      final BufferKind kind,
       final ByteOrder order,
       final List<Integer> colors
     ) {
@@ -218,9 +225,44 @@ final class ImageBufferPropertyTest {
       this.height = height;
       this.before = before;
       this.after = after;
-      this.direct = direct;
+      this.kind = kind;
       this.order = order;
       this.colors = colors;
+    }
+
+    private int[] createArgb() {
+      final int[] argb = new int[this.width * this.height];
+      for (int pixel = 0; pixel < argb.length; pixel++) {
+        argb[pixel] = this.colors.get(pixel);
+      }
+
+      return argb;
+    }
+
+    private byte[] createBgr() {
+      final int[] argb = this.createArgb();
+      final byte[] bgr = new byte[argb.length * CHANNELS];
+      for (int pixel = 0; pixel < argb.length; pixel++) {
+        bgr[pixel * CHANNELS] = (byte) argb[pixel];
+        bgr[pixel * CHANNELS + 1] = (byte) (argb[pixel] >> GREEN_SHIFT);
+        bgr[pixel * CHANNELS + 2] = (byte) (argb[pixel] >> RED_SHIFT);
+      }
+
+      return bgr;
+    }
+
+    ByteBuffer wrap(final byte[] bytes) {
+      final int capacity = this.before + bytes.length + this.after;
+      final ByteBuffer buffer = this.kind == BufferKind.DIRECT ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+      buffer.order(this.order);
+      for (int index = 0; index < capacity; index++) {
+        buffer.put(index, (byte) 0x77);
+      }
+
+      buffer.put(this.before, bytes);
+      buffer.position(this.before);
+      buffer.limit(this.before + bytes.length);
+      return buffer;
     }
 
     int getWidth() {
@@ -231,45 +273,15 @@ final class ImageBufferPropertyTest {
       return this.height;
     }
 
-    private int[] createArgb() {
-      final int[] argb = new int[this.width * this.height];
-      for (int pixel = 0; pixel < argb.length; pixel++) {
-        argb[pixel] = this.colors.get(pixel);
-      }
-      return argb;
-    }
-
-    private byte[] createBgr() {
-      final int[] argb = this.createArgb();
-      final byte[] bgr = new byte[argb.length * CHANNELS];
-      for (int pixel = 0; pixel < argb.length; pixel++) {
-        bgr[pixel * CHANNELS] = (byte) argb[pixel];
-        bgr[pixel * CHANNELS + 1] = (byte) (argb[pixel] >> 8);
-        bgr[pixel * CHANNELS + 2] = (byte) (argb[pixel] >> 16);
-      }
-      return bgr;
-    }
-
-    /**
-     * Puts the bytes into a buffer with other bytes before and after them, positioned on the bytes.
-     */
-    ByteBuffer wrap(final byte[] bytes) {
-      final int capacity = this.before + bytes.length + this.after;
-      final ByteBuffer buffer = this.direct ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
-      buffer.order(this.order);
-      for (int index = 0; index < capacity; index++) {
-        buffer.put(index, (byte) 0x77);
-      }
-      buffer.put(this.before, bytes);
-      buffer.position(this.before);
-      buffer.limit(this.before + bytes.length);
-      return buffer;
-    }
-
     @Override
     public String toString() {
-      final String kind = this.direct ? "direct" : "heap";
+      final String kind = this.kind == BufferKind.DIRECT ? "direct" : "heap";
       return this.width + "x" + this.height + ", " + kind + " " + this.order + ", " + this.before + " before, " + this.after + " after";
     }
+  }
+
+  private enum BufferKind {
+    DIRECT,
+    HEAP,
   }
 }

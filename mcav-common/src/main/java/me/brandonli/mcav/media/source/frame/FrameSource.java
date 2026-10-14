@@ -26,10 +26,16 @@ import me.brandonli.mcav.media.source.DynamicSource;
  *
  * <p>The player asks the supplier for a frame at the frame rate of the source. Suppliers that have no new frame
  * may return the previous one or an empty array, which is skipped.
+ *
+ * <p>Implementations in this library are thread-safe, {@link SupplierFrameSource} as far as its supplier is.
+ *
+ * @since 1.0.0
  */
 public interface FrameSource extends DynamicSource {
   /**
    * The frame rate used when none is specified.
+   *
+   * @since 1.0.0
    */
   float DEFAULT_FRAME_RATE = 30.0f;
 
@@ -41,10 +47,12 @@ public interface FrameSource extends DynamicSource {
    * @param height the strictly positive height of the frames in pixels
    * @return the source, played at {@link #DEFAULT_FRAME_RATE}
    * @throws IllegalArgumentException if a dimension is nonpositive
-   * @throws NullPointerException if {@code images} is null
+   * @throws NullPointerException     if {@code images} is null
+   * @since 1.0.0
    */
   static FrameSource image(final ImageSupplier images, final int width, final int height) {
-    Preconditions.checkNotNull(images, "Image supplier must not be null");
+    Preconditions.checkNotNull(images, "Image supplier must not be null!");
+
     final SampleSupplier samples = images.toSampleSupplier();
     return supplier(samples, width, height, DEFAULT_FRAME_RATE);
   }
@@ -57,7 +65,8 @@ public interface FrameSource extends DynamicSource {
    * @param height   the strictly positive height of the frames in pixels
    * @return the source, played at {@link #DEFAULT_FRAME_RATE}
    * @throws IllegalArgumentException if a dimension is nonpositive
-   * @throws NullPointerException if {@code supplier} is null
+   * @throws NullPointerException     if {@code supplier} is null
+   * @since 1.0.0
    */
   static FrameSource supplier(final SampleSupplier supplier, final int width, final int height) {
     return supplier(supplier, width, height, DEFAULT_FRAME_RATE);
@@ -72,50 +81,69 @@ public interface FrameSource extends DynamicSource {
    * @param frameRate the finite, strictly positive frame rate in frames per second
    * @return the source
    * @throws IllegalArgumentException if a dimension is nonpositive or the frame rate is nonpositive or nonfinite
-   * @throws NullPointerException if {@code supplier} is null
+   * @throws NullPointerException     if {@code supplier} is null
+   * @since 1.0.0
    */
   static FrameSource supplier(final SampleSupplier supplier, final int width, final int height, final float frameRate) {
-    Preconditions.checkNotNull(supplier, "Sample supplier must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive");
-    Preconditions.checkArgument(frameRate > 0 && Float.isFinite(frameRate), "Frame rate must be positive");
-    return new FrameSourceImpl(supplier, width, height, frameRate);
+    Preconditions.checkNotNull(supplier, "Sample supplier must not be null!");
+    Preconditions.checkArgument(width > 0 && height > 0, "Frame size must be positive!");
+    Preconditions.checkArgument(frameRate > 0 && Float.isFinite(frameRate), "Frame rate must be positive!");
+
+    return new SupplierFrameSource(supplier, width, height, frameRate);
   }
 
   /**
-   * Gets the supplier of frames.
+   * Returns the supplier of frames.
    *
    * @return the supplier
+   * @since 1.0.0
    */
   SampleSupplier supplyFrameSamples();
 
   /**
-   * Gets the width of the frames.
+   * Returns the width of the frames.
    *
    * @return the width in pixels
+   * @since 1.0.0
    */
   int getFrameWidth();
 
   /**
-   * Gets the height of the frames.
+   * Returns the height of the frames.
    *
    * @return the height in pixels
+   * @since 1.0.0
    */
   int getFrameHeight();
 
   /**
-   * Gets the rate at which frames are requested from the supplier.
+   * Returns the rate at which frames are requested from the supplier.
    *
    * @return the frame rate in frames per second
+   * @since 1.0.0
    */
   default float getFrameRate() {
     return DEFAULT_FRAME_RATE;
   }
 
+  /**
+   * Returns {@code frame-source}, the name that log messages give generated frame sources.
+   *
+   * @return the type name
+   * @since 1.0.0
+   */
   @Override
   default String getName() {
     return "frame-source";
   }
 
+  /**
+   * Returns a diagnostic string of the form {@code widthxheight@rate}, which no backend can open. Generated and specialized sources may
+   * return a diagnostic string that cannot be opened by an arbitrary backend.
+   *
+   * @return the resource string
+   * @since 1.0.0
+   */
   @Override
   default String getResource() {
     final int width = this.getFrameWidth();

@@ -56,11 +56,11 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.browser.testing.Await;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -151,21 +151,21 @@ class JcefNativesTest {
 
   @Test
   void everyPlatformWithNativesIsFound() {
-    assertEquals(Optional.of(JcefNatives.NativePlatform.LINUX_AMD64), JcefNatives.detect(OS.LINUX, Arch.X86, Bits.BITS_64));
-    assertEquals(Optional.of(JcefNatives.NativePlatform.LINUX_ARM64), JcefNatives.detect(OS.LINUX, Arch.ARM, Bits.BITS_64));
-    assertEquals(Optional.of(JcefNatives.NativePlatform.WINDOWS_AMD64), JcefNatives.detect(OS.WINDOWS, Arch.X86, Bits.BITS_64));
-    assertEquals(Optional.of(JcefNatives.NativePlatform.WINDOWS_ARM64), JcefNatives.detect(OS.WINDOWS, Arch.ARM, Bits.BITS_64));
-    assertEquals(Optional.of(JcefNatives.NativePlatform.MACOS_AMD64), JcefNatives.detect(OS.MAC, Arch.X86, Bits.BITS_64));
-    assertEquals(Optional.of(JcefNatives.NativePlatform.MACOS_ARM64), JcefNatives.detect(OS.MAC, Arch.ARM, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.LINUX_AMD64), JcefNatives.detect(Os.LINUX, Arch.X86, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.LINUX_ARM64), JcefNatives.detect(Os.LINUX, Arch.ARM, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.WINDOWS_AMD64), JcefNatives.detect(Os.WINDOWS, Arch.X86, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.WINDOWS_ARM64), JcefNatives.detect(Os.WINDOWS, Arch.ARM, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.MACOS_AMD64), JcefNatives.detect(Os.MAC, Arch.X86, Bits.BITS_64));
+    assertEquals(Optional.of(JcefNatives.NativePlatform.MACOS_ARM64), JcefNatives.detect(Os.MAC, Arch.ARM, Bits.BITS_64));
   }
 
   @Test
   void platformsWithoutNativesAreNotFound() {
-    assertEquals(Optional.empty(), JcefNatives.detect(OS.LINUX, Arch.X86, Bits.BITS_32));
-    assertEquals(Optional.empty(), JcefNatives.detect(OS.WINDOWS, Arch.ARM, Bits.BITS_32));
-    assertEquals(Optional.empty(), JcefNatives.detect(OS.FREEBSD, Arch.X86, Bits.BITS_64));
-    assertEquals(Optional.empty(), JcefNatives.detect(OS.LINUX, Arch.OTHER, Bits.BITS_64));
-    assertEquals(Optional.empty(), JcefNatives.detect(OS.OTHER, Arch.ARM, Bits.BITS_64));
+    assertEquals(Optional.empty(), JcefNatives.detect(Os.LINUX, Arch.X86, Bits.BITS_32));
+    assertEquals(Optional.empty(), JcefNatives.detect(Os.WINDOWS, Arch.ARM, Bits.BITS_32));
+    assertEquals(Optional.empty(), JcefNatives.detect(Os.FREEBSD, Arch.X86, Bits.BITS_64));
+    assertEquals(Optional.empty(), JcefNatives.detect(Os.LINUX, Arch.OTHER, Bits.BITS_64));
+    assertEquals(Optional.empty(), JcefNatives.detect(Os.OTHER, Arch.ARM, Bits.BITS_64));
   }
 
   @Test
@@ -256,7 +256,7 @@ class JcefNativesTest {
       REPOSITORY,
       new ArchiveExtractor()
     );
-    final Optional<JcefNatives.NativePlatform> platform = JcefNatives.detect(OSUtils.getOS(), OSUtils.getArch(), OSUtils.getBits());
+    final Optional<JcefNatives.NativePlatform> platform = JcefNatives.detect(OsUtils.getOs(), OsUtils.getArch(), OsUtils.getBits());
     if (platform.isPresent()) {
       final Path installation = natives.install();
       assertTrue(installation.getFileName().toString().endsWith(platform.get().getIdentifier()));
@@ -339,7 +339,7 @@ class JcefNativesTest {
   void aPlatformWithoutNativesIsRefusedBeforeAnythingIsDownloaded() throws IOException {
     final JcefNatives natives = this.natives(nativesJar(true));
     final IOException failure = assertThrows(IOException.class, () ->
-      natives.install(JcefNatives.detectOrFail(OS.FREEBSD, Arch.X86, Bits.BITS_64))
+      natives.install(JcefNatives.detectOrFail(Os.FREEBSD, Arch.X86, Bits.BITS_64))
     );
     assertEquals("jcefmaven has no CEF build for FREEBSD X86 BITS_64; the browser cannot run here", failure.getMessage());
     assertEquals(0, this.downloads.get());
@@ -347,10 +347,10 @@ class JcefNativesTest {
 
   @Test
   void aMachineIsSupportedWhenJcefmavenHasACefBuildForIt() {
-    assertTrue(JcefNatives.isSupported(OS.LINUX, Arch.X86, Bits.BITS_64));
-    assertTrue(JcefNatives.isSupported(OS.MAC, Arch.ARM, Bits.BITS_64));
-    assertFalse(JcefNatives.isSupported(OS.LINUX, Arch.X86, Bits.BITS_32), "no 32-bit builds");
-    assertFalse(JcefNatives.isSupported(OS.FREEBSD, Arch.X86, Bits.BITS_64));
+    assertTrue(JcefNatives.isSupported(Os.LINUX, Arch.X86, Bits.BITS_64));
+    assertTrue(JcefNatives.isSupported(Os.MAC, Arch.ARM, Bits.BITS_64));
+    assertFalse(JcefNatives.isSupported(Os.LINUX, Arch.X86, Bits.BITS_32), "no 32-bit builds");
+    assertFalse(JcefNatives.isSupported(Os.FREEBSD, Arch.X86, Bits.BITS_64));
     assertTrue(JcefNatives.isSupported());
     assertTrue(BrowserPlayer.isSupported());
     assertTrue(new BrowserModule().isSupported());
@@ -383,7 +383,7 @@ class JcefNativesTest {
 
   @Test
   void theNativesLiveInTheCacheOfMcavByDefault() {
-    assertEquals(IOUtils.getCachedFolder().resolve("jcef"), new JcefNatives().getFolder());
+    assertEquals(IoUtils.getCachedFolder().resolve("jcef"), new JcefNatives().getFolder());
   }
 
   @Test

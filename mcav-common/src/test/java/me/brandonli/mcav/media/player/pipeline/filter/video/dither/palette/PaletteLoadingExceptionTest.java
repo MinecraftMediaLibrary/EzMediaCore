@@ -23,35 +23,33 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.gson.JsonSyntaxException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PaletteLoadingException}.
- */
 final class PaletteLoadingExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is empty");
+  void shouldKeepTheMessage() {
+    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is empty!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Map palette resource is empty", message);
+    assertEquals("Map palette resource is empty!", message);
     assertNull(cause);
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
-    final JsonSyntaxException parseFailure = new JsonSyntaxException("unterminated array");
-    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is malformed", parseFailure);
+  void shouldKeepTheMessageAndTheCause() {
+    final JsonSyntaxException parseFailure = new JsonSyntaxException("Unterminated array!");
+    final PaletteLoadingException exception = new PaletteLoadingException("Map palette resource is malformed!", parseFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("Map palette resource is malformed", message);
+    assertEquals("Map palette resource is malformed!", message);
     assertSame(parseFailure, cause);
   }
 
   @Test
-  void isAnIllegalStateException() {
-    final PaletteLoadingException exception = new PaletteLoadingException("failure");
-    assertInstanceOf(IllegalStateException.class, exception, "a broken bundled palette is a broken library state, not an Error");
+  void shouldBeAnMCAVException() {
+    final PaletteLoadingException exception = new PaletteLoadingException("Failure!");
+    assertInstanceOf(MCAVException.class, exception, "a broken bundled palette is a broken library state, not an Error");
   }
 }

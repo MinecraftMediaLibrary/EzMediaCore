@@ -17,23 +17,15 @@
  */
 package me.brandonli.mcav.utils.http;
 
-import java.io.IOException;
 import java.io.Serial;
 
-/**
- * Thrown when a pinned download takes longer than its size allows, as from a mirror that trickles. Another attempt
- * would end the same way, so it is not retried.
- */
-final class DownloadTooSlowException extends IOException {
+// Thrown when a pinned download takes longer than its size allows, as from a mirror that trickles. Another attempt
+// would end the same way, so it is not retried.
+final class DownloadTooSlowException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = 2_839_570_116_452_078_903L;
 
-  /**
-   * Constructs the exception.
-   *
-   * @param message the detail message, which names the deadline
-   */
   DownloadTooSlowException(final String message) {
     super(message);
   }

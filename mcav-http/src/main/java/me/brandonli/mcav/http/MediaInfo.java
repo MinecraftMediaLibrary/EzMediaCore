@@ -20,7 +20,8 @@ package me.brandonli.mcav.http;
 import com.google.common.base.Preconditions;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import java.util.Optional;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -78,21 +79,31 @@ public final class MediaInfo {
    * @return a new immutable snapshot, with missing text fields retained as null
    * @throws NullPointerException if {@code dump} is null
    */
-  public static MediaInfo of(final URLParseDump dump) {
+  public static MediaInfo of(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null");
-    final double wholeSeconds = Math.ceil(dump.duration);
+    final double reportedDuration = dump.getDuration();
+    final double wholeSeconds = Math.ceil(reportedDuration);
     final long duration = (long) wholeSeconds;
+    final Optional<String> title = dump.getTitle();
+    final Optional<String> uploader = dump.getUploader();
+    final Optional<String> channel = dump.getChannel();
+    final Optional<String> uploaderId = dump.getUploaderId();
+    final Optional<String> description = dump.getDescription();
+    final Optional<String> thumbnail = dump.getThumbnail();
+    final Optional<String> uploadDate = dump.getUploadDate();
+    final long viewCount = dump.getViewCount();
+    final long likeCount = dump.getLikeCount();
     return new MediaInfo(
-      dump.title,
-      dump.uploader,
-      dump.channel,
-      dump.uploader_id,
-      dump.description,
-      dump.thumbnail,
+      title.orElse(null),
+      uploader.orElse(null),
+      channel.orElse(null),
+      uploaderId.orElse(null),
+      description.orElse(null),
+      thumbnail.orElse(null),
       duration,
-      dump.view_count,
-      dump.like_count,
-      dump.upload_date
+      viewCount,
+      likeCount,
+      uploadDate.orElse(null)
     );
   }
 

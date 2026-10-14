@@ -34,9 +34,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer;
 import uk.co.caprica.vlcj.player.base.VideoApi;
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormat;
 
-/**
- * Tests {@link FrameFormatCallback} and how {@link VideoRenderer} chooses the buffer VLC renders into.
- */
 final class FrameFormatCallbackTest {
 
   private final MediaPlayer player = mock(MediaPlayer.class);
@@ -59,7 +56,7 @@ final class FrameFormatCallbackTest {
   }
 
   @Test
-  void rendersIntoAnRv32BufferOfThePaddedSize() {
+  void shouldRenderIntoAnRv32BufferOfThePaddedSize() {
     final Dimension trackSize = new Dimension(1920, 1080);
     final BufferFormat format = this.format(trackSize, 1920, 1088);
     final String chroma = format.getChroma();
@@ -83,7 +80,7 @@ final class FrameFormatCallbackTest {
     "0, 240, 320, 240, 320, 240",
     "320, 0, 320, 240, 320, 240",
   })
-  void usesTheTrackSizeLimitedToTheBuffer(
+  void shouldUseTheTrackSizeLimitedToTheBuffer(
     final int trackWidth,
     final int trackHeight,
     final int sourceWidth,
@@ -97,7 +94,7 @@ final class FrameFormatCallbackTest {
   }
 
   @Test
-  void usesTheBufferSizeWhenTheTrackReportsNoSize() {
+  void shouldUseTheBufferSizeWhenTheTrackReportsNoSize() {
     final BufferFormat format = this.format(null, 320, 240);
     final int width = format.getWidth();
     assertEquals(320, width);

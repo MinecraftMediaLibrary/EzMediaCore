@@ -19,27 +19,14 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
-/**
- * Shared inputs of the dithering tests.
- */
 public final class DitherTestImages {
 
-  /**
-   * A palette with only black and white, which makes the brightness of a dithered image easy to measure.
-   */
   public static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);
 
   private DitherTestImages() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Creates a horizontal gray gradient from black on the left to white on the right.
-   *
-   * @param width  the width
-   * @param height the height
-   * @return the pixels as packed ARGB
-   */
   public static int[] gradient(final int width, final int height) {
     final int[] pixels = new int[width * height];
     final int steps = Math.max(1, width - 1);
@@ -49,15 +36,10 @@ public final class DitherTestImages {
         pixels[row * width + column] = 0xFF000000 | (value << 16) | (value << 8) | value;
       }
     }
+
     return pixels;
   }
 
-  /**
-   * Counts the indices that point at white in {@link #BLACK_WHITE}.
-   *
-   * @param indices the palette indices
-   * @return the share of white pixels, from 0 to 1
-   */
   public static double whiteRatio(final byte[] indices) {
     long white = 0;
     for (final byte index : indices) {
@@ -65,6 +47,7 @@ public final class DitherTestImages {
         white++;
       }
     }
+
     return white / (double) indices.length;
   }
 }

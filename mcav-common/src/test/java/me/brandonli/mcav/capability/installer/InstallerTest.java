@@ -24,27 +24,26 @@ import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the default methods of {@link Installer}.
- */
 final class InstallerTest {
 
+  private static final String PROGRAM_NAME = "program";
+
   @Test
-  void findsNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
+  void shouldFindNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
     final Installer installer = new Installer() {
       @Override
-      public Path download(final boolean executable) {
-        throw new AssertionError("Looking for an installation must not download anything");
+      public Path download(final FileMode mode) {
+        throw new AssertionError("Looking for an installation must not download anything!");
       }
 
       @Override
       public boolean isSupported() {
-        throw new AssertionError("Looking for an installation must not ask whether a download exists");
+        throw new AssertionError("Looking for an installation must not ask whether a download exists!");
       }
 
       @Override
       public Path getPath() {
-        return Path.of("program");
+        return Path.of(PROGRAM_NAME);
       }
     };
     final Optional<Path> installation = installer.findInstallation();

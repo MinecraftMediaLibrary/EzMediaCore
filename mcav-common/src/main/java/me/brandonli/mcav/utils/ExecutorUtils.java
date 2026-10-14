@@ -27,15 +27,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Helpers for shutting down executors.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ExecutorUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorUtils.class);
-  private static final String EXECUTOR_NOT_FINISHED = "Executor did not finish in {} ms, interrupted {} pending tasks";
   private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
 
   private ExecutorUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -45,9 +48,11 @@ public final class ExecutorUtils {
    * @param service the executor to shut down
    * @return true if every task finished in time, false if tasks had to be interrupted or the wait was interrupted
    * @throws NullPointerException if the executor is null
+   * @since 1.0.0
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service) {
-    Preconditions.checkNotNull(service, "Executor must not be null");
+    Preconditions.checkNotNull(service, "Executor must not be null!");
+
     return shutdownExecutorGracefully(service, DEFAULT_TIMEOUT);
   }
 
@@ -60,27 +65,31 @@ public final class ExecutorUtils {
    *                request an immediate termination check
    * @return true if every task finished in time, false if tasks had to be interrupted or the wait was interrupted
    * @throws NullPointerException if the executor or the timeout is null
-   * @throws ArithmeticException if the timeout cannot be represented as a {@code long} number of milliseconds
+   * @throws ArithmeticException  if the timeout cannot be represented as a {@code long} number of milliseconds
+   * @since 1.0.0
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service, final Duration timeout) {
-    Preconditions.checkNotNull(service, "Executor must not be null");
-    Preconditions.checkNotNull(timeout, "Timeout must not be null");
+    Preconditions.checkNotNull(service, "Executor must not be null!");
+    Preconditions.checkNotNull(timeout, "Timeout must not be null!");
 
     service.shutdown();
     try {
-      final long millis = timeout.toMillis();
-      final boolean terminated = service.awaitTermination(millis, TimeUnit.MILLISECONDS);
+      final long milliseconds = timeout.toMillis();
+      final boolean terminated = service.awaitTermination(milliseconds, TimeUnit.MILLISECONDS);
       if (terminated) {
         return true;
       }
+
       final List<Runnable> unfinished = service.shutdownNow();
       final int unfinishedCount = unfinished.size();
-      LOGGER.warn(EXECUTOR_NOT_FINISHED, millis, unfinishedCount);
+      LOGGER.warn("Executor did not finish in {} ms, interrupted {} pending tasks.", milliseconds, unfinishedCount);
+
       return false;
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
       service.shutdownNow();
+
       return false;
     }
   }

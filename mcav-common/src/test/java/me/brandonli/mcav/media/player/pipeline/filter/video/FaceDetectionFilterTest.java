@@ -44,13 +44,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/**
- * Tests {@link FaceDetectionFilter} with cascades that accept or reject every window, so the result does not depend
- * on how well a real cascade recognizes a picture. Uniform areas are never detected, so the frames are noise.
- */
+// Tests FaceDetectionFilter with cascades that accept or reject every window, so the result does not depend on how well
+// a real cascade recognizes a picture. Uniform areas are never detected, so the frames are noise.
 final class FaceDetectionFilterTest {
 
   private static final double[] RED = { 0.0, 0.0, 255.0 };
+
+  private static final int IMAGE_SIDE = 96;
+
+  private static final String CASCADE_RESOURCE_DIRECTORY = "cascades/";
+  private static final String ACCEPTING_CASCADE_NAME = "accept-everything.xml";
+  private static final String REJECTING_CASCADE_NAME = "reject-everything.xml";
+  private static final String REJECTED_CASCADE_NAME = "rejected.xml";
+  private static final String MISSING_CASCADE_NAME = "missing.xml";
+  private static final String UNPARSABLE_CASCADE_NAME = "unparsable.xml";
+  private static final String WITHOUT_CASCADE_NAME = "without-cascade.xml";
 
   @TempDir
   private Path directory;
@@ -58,24 +66,26 @@ final class FaceDetectionFilterTest {
   @BeforeEach
   void requireObjectDetection() {
     final boolean available = OpenCvModules.canLoad(opencv_objdetect.class);
-    Assumptions.assumeTrue(available, "The OpenCV object detection natives cannot be loaded here (GTK 2 is missing)");
+    Assumptions.assumeTrue(available, "The OpenCV object detection natives cannot be loaded here, because GTK 2 is missing!");
   }
 
   private Path copyCascade(final String name) throws IOException {
     final Path target = this.directory.resolve(name);
     final ClassLoader loader = FaceDetectionFilterTest.class.getClassLoader();
-    try (final InputStream stream = loader.getResourceAsStream("cascades/" + name)) {
+    try (final InputStream stream = loader.getResourceAsStream(CASCADE_RESOURCE_DIRECTORY + name)) {
       assertNotNull(stream, "missing test resource " + name);
+
       Files.copy(stream, target);
     }
+
     return target;
   }
 
   @Test
-  void marksDetectionsWithRectangles() throws IOException {
-    final Path cascade = this.copyCascade("accept-everything.xml");
+  void shouldMarkDetectionsWithRectangles() throws IOException {
+    final Path cascade = this.copyCascade(ACCEPTING_CASCADE_NAME);
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascade, RED);
-    try (final ImageBuffer image = Images.noise(96, 96, 42L)) {
+    try (final ImageBuffer image = Images.noise(IMAGE_SIDE, IMAGE_SIDE, 42L)) {
       final int[] original = image.getPixels();
       final int[] before = original.clone();
       final int[] expected = before.clone();
@@ -86,22 +96,11 @@ final class FaceDetectionFilterTest {
       ) {
         opencv_imgproc.cvtColor(((MatImageBuffer) image).getMat(), gray, opencv_imgproc.COLOR_BGR2GRAY);
         detector.detectMultiScale(gray, rectangles);
-        assertTrue(rectangles.size() > 0, "the fixture must produce detections");
-        for (long index = 0; index < rectangles.size(); index++) {
-          final Rect rectangle = rectangles.get(index);
-          final int left = rectangle.x();
-          final int top = rectangle.y();
-          final int right = left + rectangle.width() - 1;
-          final int bottom = top + rectangle.height() - 1;
-          for (int row = Math.max(0, top); row <= Math.min(95, bottom); row++) {
-            for (int column = Math.max(0, left); column <= Math.min(95, right); column++) {
-              if (row == top || row == bottom || column == left || column == right) {
-                expected[row * 96 + column] = 0xFFFF0000;
-              }
-            }
-          }
-        }
+        final boolean hasDetections = rectangles.size() > 0;
+        assertTrue(hasDetections, "the fixture must produce detections");
+        this.outlineDetections(rectangles, expected);
       }
+
       final boolean detected = filter.applyFilter(image);
       final int[] after = image.getPixels();
       final boolean changed = !Arrays.equals(before, after);
@@ -111,12 +110,38 @@ final class FaceDetectionFilterTest {
     }
   }
 
+  private void outlineDetections(final RectVector rectangles, final int[] expected) {
+    for (long index = 0; index < rectangles.size(); index++) {
+      final Rect rectangle = rectangles.get(index);
+      this.outlineRectangle(rectangle, expected);
+    }
+  }
+
+  private void outlineRectangle(final Rect rectangle, final int[] expected) {
+    final int left = rectangle.x();
+    final int top = rectangle.y();
+    final int right = left + rectangle.width() - 1;
+    final int bottom = top + rectangle.height() - 1;
+    for (int row = Math.max(0, top); row <= Math.min(IMAGE_SIDE - 1, bottom); row++) {
+      final RowKind kind = row == top || row == bottom ? RowKind.EDGE : RowKind.INNER;
+      this.outlineRow(expected, row, kind, left, right);
+    }
+  }
+
+  private void outlineRow(final int[] expected, final int row, final RowKind kind, final int left, final int right) {
+    for (int column = Math.max(0, left); column <= Math.min(IMAGE_SIDE - 1, right); column++) {
+      if (kind == RowKind.EDGE || column == left || column == right) {
+        expected[row * IMAGE_SIDE + column] = 0xFFFF0000;
+      }
+    }
+  }
+
   @Test
-  void reportsFramesWithoutDetections() throws IOException {
-    final Path cascade = this.copyCascade("reject-everything.xml");
+  void shouldReportFramesWithoutDetections() throws IOException {
+    final Path cascade = this.copyCascade(REJECTING_CASCADE_NAME);
     final String cascadePath = cascade.toString();
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascadePath, RED);
-    try (final ImageBuffer image = Images.noise(96, 96, 7L)) {
+    try (final ImageBuffer image = Images.noise(IMAGE_SIDE, IMAGE_SIDE, 7L)) {
       final int[] original = image.getPixels();
       final int[] before = original.clone();
       final boolean detected = filter.applyFilter(image);
@@ -128,29 +153,35 @@ final class FaceDetectionFilterTest {
   }
 
   @Test
-  void rejectsAndClosesAClassifierWhoseLoadReturnedFalse() {
-    final Path path = this.directory.resolve("rejected.xml");
+  void shouldRejectAndCloseAClassifierWhoseLoadReturnedFalse() {
+    final Path path = this.directory.resolve(REJECTED_CASCADE_NAME);
     try (final CascadeClassifier classifier = new CascadeClassifier()) {
       assertThrows(IllegalArgumentException.class, () -> FaceDetectionFilter.loadClassifier(path, _ -> classifier));
+
       final boolean closed = classifier.isNull();
       assertTrue(closed, "failed native classifier ownership must be released before reporting failure");
     }
   }
 
   @Test
-  void rejectsCascadesThatCannotBeLoaded() throws IOException {
-    final Path missing = this.directory.resolve("missing.xml");
-    final Path unparsable = this.directory.resolve("unparsable.xml");
-    final Path withoutCascade = this.directory.resolve("without-cascade.xml");
+  void shouldRejectCascadesThatCannotBeLoaded() throws IOException {
+    final Path missing = this.directory.resolve(MISSING_CASCADE_NAME);
+    final Path unparsable = this.directory.resolve(UNPARSABLE_CASCADE_NAME);
+    final Path withoutCascade = this.directory.resolve(WITHOUT_CASCADE_NAME);
     Files.writeString(unparsable, "");
     Files.writeString(withoutCascade, "<?xml version=\"1.0\"?>\n<opencv_storage>\n<unrelated>1</unrelated>\n</opencv_storage>\n");
     final IllegalArgumentException missingFailure = assertThrows(IllegalArgumentException.class, () ->
       new FaceDetectionFilter(missing, RED)
     );
     final String missingMessage = missingFailure.getMessage();
-    assertEquals("Cascade file does not exist: " + missing, missingMessage);
+    assertEquals("Cascade file " + missing + " does not exist!", missingMessage);
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(unparsable, RED));
     assertThrows(IllegalArgumentException.class, () -> new FaceDetectionFilter(withoutCascade, RED));
     assertThrows(NullPointerException.class, () -> new FaceDetectionFilter((Path) null, RED));
+  }
+
+  private enum RowKind {
+    EDGE,
+    INNER,
   }
 }

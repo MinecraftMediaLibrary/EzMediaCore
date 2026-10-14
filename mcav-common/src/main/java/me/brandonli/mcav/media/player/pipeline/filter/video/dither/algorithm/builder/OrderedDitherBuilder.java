@@ -17,22 +17,45 @@
  */
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
 
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
 /**
  * Builds ordered dithering algorithms.
  *
- * @param <T> the type of algorithm the builder creates
- * @param <B> the type of the builder itself, for method chaining
+ * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
-public interface OrderedDitherBuilder<T extends BayerDither, B extends OrderedDitherBuilder<T, B>> extends DitherAlgorithmBuilder<T, B> {
+public interface OrderedDitherBuilder extends DitherAlgorithmBuilder {
+  /**
+   * Creates an ordered algorithm from the dither matrix and palette set on this builder.
+   *
+   * @return the algorithm
+   * @since 1.0.0
+   */
+  @Override
+  OrderedDither build();
+
+  /**
+   * Sets the palette the ordered algorithm reduces images to. Defaults to the Minecraft map palette.
+   *
+   * @param palette the palette
+   * @return this builder
+   * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
+   */
+  @Override
+  OrderedDitherBuilder withPalette(final DitherPalette palette);
+
   /**
    * Sets the threshold pattern. Defaults to a 2x2 Bayer matrix at normal strength.
    *
    * @param mapper the threshold pattern
    * @return this builder
    * @throws NullPointerException if {@code mapper} is null
+   * @since 1.0.0
    */
-  B withDitherMatrix(final PixelMapper mapper);
+  OrderedDitherBuilder withDitherMatrix(final PixelMapper mapper);
 }

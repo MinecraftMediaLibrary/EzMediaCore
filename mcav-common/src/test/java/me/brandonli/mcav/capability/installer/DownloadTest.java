@@ -18,52 +18,53 @@
 package me.brandonli.mcav.capability.installer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link Download}.
- */
 final class DownloadTest {
 
-  private static final Platform LINUX = Platform.ofPlatform(OS.LINUX, Arch.X86, Bits.BITS_64);
+  private static final Platform LINUX = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
+
+  private static final String TOOL_URL = "https://example.com/tool";
+  private static final String HASH = "abc";
 
   @Test
-  void storesPlatformUrlAndHash() {
-    final Download download = new Download(LINUX, "https://example.com/tool", "abc");
+  void shouldStorePlatformUrlAndHash() {
+    final Download download = new Download(LINUX, TOOL_URL, HASH);
     final Platform platform = download.getPlatform();
     final String url = download.getUrl();
-    final String hash = download.getHash();
+    final Optional<String> hash = download.getHash();
     assertEquals(LINUX, platform);
-    assertEquals("https://example.com/tool", url);
-    assertEquals("abc", hash);
+    assertEquals(TOOL_URL, url);
+    assertEquals(Optional.of(HASH), hash);
   }
 
   @Test
-  void everyConstructorDescribesTheSameDownload() {
-    final Download withoutHash = new Download(LINUX, "https://example.com/tool");
-    final Download fromPartsWithHash = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool", "abc");
-    final Download fromParts = new Download(OS.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool");
-    final String missingHash = withoutHash.getHash();
+  void shouldDescribeTheSameDownloadWithEveryConstructor() {
+    final Download withoutHash = new Download(LINUX, TOOL_URL);
+    final Download fromPartsWithHash = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL, HASH);
+    final Download fromParts = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL);
+    final Optional<String> missingHash = withoutHash.getHash();
     final Platform partsPlatform = fromPartsWithHash.getPlatform();
-    final String partsHash = fromPartsWithHash.getHash();
-    final String partsMissingHash = fromParts.getHash();
-    assertNull(missingHash);
+    final Optional<String> partsHash = fromPartsWithHash.getHash();
+    final Optional<String> partsMissingHash = fromParts.getHash();
+    assertTrue(missingHash.isEmpty());
     assertEquals(LINUX, partsPlatform);
-    assertEquals("abc", partsHash);
-    assertNull(partsMissingHash);
+    assertEquals(Optional.of(HASH), partsHash);
+    assertTrue(partsMissingHash.isEmpty());
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> new Download(LINUX, " "));
-    assertThrows(NullPointerException.class, () -> new Download(null, "https://example.com/tool"));
+    assertThrows(NullPointerException.class, () -> new Download(null, TOOL_URL));
     assertThrows(NullPointerException.class, () -> new Download(LINUX, null));
   }
 }

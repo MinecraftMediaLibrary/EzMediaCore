@@ -18,27 +18,24 @@
 package me.brandonli.mcav.json.ytdlp.strategy;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when none of the streams yt-dlp found matches a {@link FormatStrategy}.
  *
- * <p>This is a plain {@link RuntimeException}: whether a stream matches depends on what the remote site offers for
+ * <p>This is an {@link MCAVException}: whether a stream matches depends on what the remote site offers for
  * the URL, not on the state of the selector or on a bad argument, so {@link IllegalStateException} and
  * {@link IllegalArgumentException} would both be misleading. Callers that can fall back, for example to an audio-only
  * strategy, catch it explicitly.
+ *
+ * @since 1.0.0
  */
-public class NoMatchingFormatException extends RuntimeException {
+public class NoMatchingFormatException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = -8093712854432123795L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which names the kind of stream and the media that was searched
-   */
-  NoMatchingFormatException(final @Nullable String message) {
+  NoMatchingFormatException(final String message) {
     super(message);
   }
 }

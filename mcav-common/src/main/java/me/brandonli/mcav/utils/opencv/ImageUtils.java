@@ -24,13 +24,21 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Helpers for working with OpenCV values and packed pixel arrays.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ImageUtils {
 
   private static final int SCALAR_COMPONENTS = 4;
+  private static final int BLUE_INDEX = 0;
+  private static final int GREEN_INDEX = 1;
+  private static final int RED_INDEX = 2;
+  private static final int ALPHA_INDEX = 3;
 
   private ImageUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -40,13 +48,15 @@ public final class ImageUtils {
    * @param components the channel values in the order OpenCV expects, which is blue, green, red, and alpha
    * @return a new scalar owned by the caller, which should be closed after use
    * @throws NullPointerException if {@code components} is null
+   * @since 1.0.0
    */
   public static Scalar toScalar(final double[] components) {
-    Preconditions.checkNotNull(components, "Components must not be null");
+    Preconditions.checkNotNull(components, "Components must not be null!");
+
     final double[] values = new double[SCALAR_COMPONENTS];
     final int count = Math.min(components.length, SCALAR_COMPONENTS);
     System.arraycopy(components, 0, values, 0, count);
-    return new Scalar(values[0], values[1], values[2], values[3]);
+    return new Scalar(values[BLUE_INDEX], values[GREEN_INDEX], values[RED_INDEX], values[ALPHA_INDEX]);
   }
 
   /**
@@ -60,7 +70,8 @@ public final class ImageUtils {
    * @return the pixels of the resized image, laid out row by row
    * @throws IllegalArgumentException if a dimension is nonpositive, the input pixel count differs from
    *                                  its dimensions, or the original packed BGR size exceeds {@link Integer#MAX_VALUE}
-   * @throws NullPointerException if {@code pixels} is null
+   * @throws NullPointerException     if {@code pixels} is null
+   * @since 1.0.0
    */
   public static int[] resizeIntArrayImage(
     final int[] pixels,
@@ -69,10 +80,11 @@ public final class ImageUtils {
     final int newWidth,
     final int newHeight
   ) {
-    Preconditions.checkNotNull(pixels, "Pixels must not be null");
-    Preconditions.checkArgument(originalWidth > 0 && originalHeight > 0, "Original size must be positive");
-    Preconditions.checkArgument(newWidth > 0 && newHeight > 0, "New size must be positive");
-    Preconditions.checkArgument(pixels.length == originalWidth * originalHeight, "Pixel count does not match the original size");
+    Preconditions.checkNotNull(pixels, "Pixels must not be null!");
+    Preconditions.checkArgument(originalWidth > 0 && originalHeight > 0, "Original size must be positive!");
+    Preconditions.checkArgument(newWidth > 0 && newHeight > 0, "New size must be positive!");
+    Preconditions.checkArgument(pixels.length == originalWidth * originalHeight, "Pixel count does not match the original size!");
+
     try (final ImageBuffer image = ImageBuffer.buffer(pixels, originalWidth, originalHeight)) {
       final ResizeFilter resize = new ResizeFilter(newWidth, newHeight);
       resize.applyFilter(image);

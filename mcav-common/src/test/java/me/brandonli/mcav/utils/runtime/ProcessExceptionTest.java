@@ -23,35 +23,33 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.io.IOException;
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ProcessException}.
- */
 final class ProcessExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final ProcessException exception = new ProcessException("ffmpeg exited with code 1");
+  void shouldKeepTheMessage() {
+    final ProcessException exception = new ProcessException("ffmpeg exited with code 1!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("ffmpeg exited with code 1", message);
+    assertEquals("ffmpeg exited with code 1!", message);
     assertNull(cause);
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
-    final IOException readFailure = new IOException("stream closed");
-    final ProcessException exception = new ProcessException("The output of ffmpeg cannot be read", readFailure);
+  void shouldKeepTheMessageAndTheCause() {
+    final IOException readFailure = new IOException("stream closed!");
+    final ProcessException exception = new ProcessException("The output of ffmpeg cannot be read!", readFailure);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("The output of ffmpeg cannot be read", message);
+    assertEquals("The output of ffmpeg cannot be read!", message);
     assertSame(readFailure, cause);
   }
 
   @Test
-  void isARuntimeException() {
-    final ProcessException exception = new ProcessException("failure");
-    assertInstanceOf(RuntimeException.class, exception, "a failing program is recoverable, so it is no Error");
+  void shouldBeAnMCAVException() {
+    final ProcessException exception = new ProcessException("Failure!");
+    assertInstanceOf(MCAVException.class, exception, "a failing program is recoverable, so it is no Error");
   }
 }

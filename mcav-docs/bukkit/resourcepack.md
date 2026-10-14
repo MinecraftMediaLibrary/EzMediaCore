@@ -14,7 +14,7 @@ format of your server's Minecraft version; the [Minecraft Wiki](https://minecraf
 format of every version.
 
 ```java
-  public static void buildAudioPack(final int packFormat, final Path destination) throws IOException {
+  public static void buildAudioPack(final int packFormat, final Path destination) {
     final URI mediaUri = URI.create("https://example.com/video.mp4");
     final UriSource media = UriSource.uri(mediaUri);
     final Path sound = AudioExtractor.extractOggVorbis(media);

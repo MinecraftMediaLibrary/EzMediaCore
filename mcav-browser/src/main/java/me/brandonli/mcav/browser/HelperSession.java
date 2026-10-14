@@ -69,8 +69,9 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.PlayerException;
-import me.brandonli.mcav.utils.IOUtils;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.os.Os;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,9 +282,9 @@ final class HelperSession implements BrowserSession {
    * @throws PlayerException if the path is too long
    */
   @VisibleForTesting
-  static void requireShortEnough(final OS os, final Path folder) {
+  static void requireShortEnough(final Os os, final Path folder) {
     final String path = folder.toString();
-    if (os == OS.LINUX && path.length() + CHROMIUM_SOCKET_TAIL > MAX_SOCKET_PATH) {
+    if (os == Os.LINUX && path.length() + CHROMIUM_SOCKET_TAIL > MAX_SOCKET_PATH) {
       final int longest = MAX_SOCKET_PATH - CHROMIUM_SOCKET_TAIL - 1 - SessionFolders.PREFIX.length() - SessionFolders.RANDOM_CHARACTERS;
       throw new PlayerException(
         "The temporary folder " +
@@ -864,12 +865,20 @@ final class HelperSession implements BrowserSession {
    * @param cause  the failure, if one
    */
   private void end(final String reason, final @Nullable Throwable cause) {
-    final PlayerException failure = new PlayerException(reason, cause);
+    final PlayerException failure = this.createEndFailure(reason, cause);
     this.started.completeExceptionally(failure);
     if (this.closing.get() || !this.ended.compareAndSet(false, true)) {
       return;
     }
     this.listener.onEnded(reason, failure);
+  }
+
+  private PlayerException createEndFailure(final String reason, final @Nullable Throwable cause) {
+    if (cause == null) {
+      return new PlayerException(reason);
+    }
+
+    return new PlayerException(reason, cause);
   }
 
   /**
@@ -1042,8 +1051,8 @@ final class HelperSession implements BrowserSession {
   @VisibleForTesting
   static void deleteFolder(final Path folder) {
     try {
-      IOUtils.deleteRecursively(folder);
-    } catch (final IOException exception) {
+      IoUtils.deleteRecursively(folder);
+    } catch (final FileOperationException exception) {
       LOGGER.warn(FOLDER_NOT_REMOVED, folder, exception.getMessage());
     }
   }

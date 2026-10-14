@@ -28,48 +28,60 @@ import java.util.concurrent.atomic.AtomicLong;
 import me.brandonli.mcav.media.Polling;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link PlaybackClock}.
- */
 final class PlaybackClockTest {
 
+  private static final long LONG_RESUME_TIMEOUT_MILLISECONDS = 10_000L;
+  private static final long PROMPT_NANOSECONDS = 1_000_000_000L;
+
+  private static final double FASTER_SPEED = 2;
+  private static final double SLOWER_SPEED = 0.5;
+
   @Test
-  void anchorsOnTheFirstTimestamp() {
+  void shouldAnchorOnTheFirstTimestamp() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long before = System.nanoTime();
     final long first = clock.dueAt(5_000_000L);
     final long second = clock.dueAt(5_500_000L);
     final long after = System.nanoTime();
-    assertTrue(first >= before);
-    assertTrue(first <= after, "the first timestamp is due now");
+    final boolean notEarly = first >= before;
+    assertTrue(notEarly);
+
+    final boolean dueNow = first <= after;
+    assertTrue(dueNow, "the first timestamp is due now");
     assertEquals(first + 500_000_000L, second, "later media is due correspondingly later");
   }
 
   @Test
-  void reanchorsAfterLargeJumps() {
+  void shouldReanchorAfterLargeJumps() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.dueAt(0L);
     final long beforeJump = System.nanoTime();
     final long afterForwardJump = clock.dueAt(60_000_000L);
     final long afterBackwardJump = clock.dueAt(0L);
-    assertTrue(afterForwardJump - beforeJump < 1_000_000_000L, "a jump ahead does not wait a minute");
-    assertTrue(afterBackwardJump >= afterForwardJump, "a jump back does not rush through the media");
+    final boolean forwardJumpIsDueSoon = afterForwardJump - beforeJump < PROMPT_NANOSECONDS;
+    assertTrue(forwardJumpIsDueSoon, "a jump ahead does not wait a minute");
+
+    final boolean backwardJumpIsNotRushed = afterBackwardJump >= afterForwardJump;
+    assertTrue(backwardJumpIsNotRushed, "a jump back does not rush through the media");
   }
 
   @Test
-  void resetForgetsTheAnchor() {
+  void shouldForgetTheAnchorOnReset() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.dueAt(0L);
     clock.reset();
     final long before = System.nanoTime();
     final long due = clock.dueAt(1_000_000L);
     final long after = System.nanoTime();
-    assertTrue(due >= before, "the next timestamp is due now");
-    assertTrue(due <= after, "and not one second after the forgotten anchor");
+    final boolean notEarly = due >= before;
+    assertTrue(notEarly, "the next timestamp is due now");
+
+    final boolean dueNow = due <= after;
+    assertTrue(dueNow, "and not one second after the forgotten anchor");
   }
 
   @Test
-  void pausingShiftsTheScheduleByThePausedTime() throws InterruptedException {
+  void shouldShiftTheScheduleByThePausedTimeWhenPausing() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long anchored = clock.dueAt(0L);
     final long beforePause = System.nanoTime();
@@ -87,52 +99,56 @@ final class PlaybackClockTest {
     final long shift = due - anchored - 100_000_000L;
     assertTrue(paused);
     assertTrue(resumed);
-    assertTrue(shift >= 65_000_000L, "the whole pause of 70 ms is added to the schedule, shift " + shift);
-    assertTrue(shift <= afterResume - beforePause, "only the paused time is added, shift " + shift);
+
+    final boolean wholePauseAdded = shift >= 65_000_000L;
+    assertTrue(wholePauseAdded, "the whole pause of 70 ms is added to the schedule, shift " + shift);
+
+    final boolean onlyPauseAdded = shift <= afterResume - beforePause;
+    assertTrue(onlyPauseAdded, "only the paused time is added, shift " + shift);
   }
 
   @Test
-  void schedulingDuringPausePreservesTheRemainingMediaDelay() {
+  void shouldPreserveTheRemainingMediaDelayWhenSchedulingDuringAPause() {
     final AtomicLong now = new AtomicLong();
     final PlaybackClock clock = new PlaybackClock(now::get);
-    assertEquals(0L, clock.dueAt(0L));
+    final long anchor = clock.dueAt(0L);
+    assertEquals(0L, anchor);
+
     now.set(100_000_000L);
     clock.pause();
     now.set(3_100_000_000L);
     clock.dueAt(500_000L);
-    assertTrue(clock.isPaused());
+    final boolean paused = clock.isPaused();
+    assertTrue(paused);
+
     now.set(3_200_000_000L);
     clock.resume();
-    assertEquals(3_600_000_000L, clock.dueAt(500_000L), "the pending frame keeps its remaining 400ms");
+    final long due = clock.dueAt(500_000L);
+    assertEquals(3_600_000_000L, due, "the pending frame keeps its remaining 400ms");
   }
 
   @Test
-  void firstTimestampScheduledDuringPauseIsDueAtResume() {
+  void shouldMakeTheFirstTimestampScheduledDuringAPauseDueAtResume() {
     final AtomicLong now = new AtomicLong();
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.pause();
     now.set(1_000_000_000L);
     clock.dueAt(0L);
-    assertTrue(clock.isPaused());
+    final boolean paused = clock.isPaused();
+    assertTrue(paused);
+
     now.set(1_500_000_000L);
     clock.resume();
-    assertEquals(1_500_000_000L, clock.dueAt(0L), "time before the first frame is not added twice");
+    final long due = clock.dueAt(0L);
+    assertEquals(1_500_000_000L, due, "time before the first frame is not added twice");
   }
 
   @Test
-  void waitsUntilResumed() throws InterruptedException {
+  void shouldWaitUntilResumed() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     clock.pause();
     final CountDownLatch released = new CountDownLatch(1);
-    final Thread waiter = new Thread(() -> {
-      try {
-        clock.awaitResume(10_000L);
-        released.countDown();
-      } catch (final InterruptedException exception) {
-        final Thread currentThread = Thread.currentThread();
-        currentThread.interrupt();
-      }
-    });
+    final Thread waiter = new Thread(() -> this.awaitResumeAndRelease(clock, released));
     waiter.start();
 
     final Duration timeout = Duration.ofSeconds(5);
@@ -140,90 +156,126 @@ final class PlaybackClockTest {
     final Thread.State state = waiter.getState();
     final boolean stillWaiting = released.getCount() == 1;
     assertEquals(Thread.State.TIMED_WAITING, state, "the waiter waits for the resume");
+
     clock.resume();
     final boolean woke = released.await(5, TimeUnit.SECONDS);
     assertTrue(stillWaiting);
     assertTrue(woke);
   }
 
+  private void awaitResumeAndRelease(final PlaybackClock clock, final CountDownLatch released) {
+    try {
+      clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
+      released.countDown();
+    } catch (final InterruptedException exception) {
+      final Thread currentThread = Thread.currentThread();
+      currentThread.interrupt();
+    }
+  }
+
   @Test
-  void doesNotWaitWhileRunningAndWaitsAtMostTheTimeout() throws InterruptedException {
+  void shouldNotWaitWhileRunningAndWaitsAtMostTheTimeout() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long start = System.nanoTime();
-    clock.awaitResume(10_000L);
+    clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
     final long running = System.nanoTime() - start;
     clock.pause();
     final long pausedStart = System.nanoTime();
     clock.awaitResume(30L);
     final long paused = System.nanoTime() - pausedStart;
-    assertTrue(running < 1_000_000_000L);
+    final boolean runningDidNotWait = running < PROMPT_NANOSECONDS;
+    assertTrue(runningDidNotWait);
+
     final boolean stillPaused = clock.isPaused();
-    assertTrue(paused >= 25_000_000L, "a paused clock waits the timeout, waited " + paused);
-    assertTrue(paused < 2_000_000_000L, "but not much longer, waited " + paused);
+    final boolean waitedTheTimeout = paused >= 25_000_000L;
+    assertTrue(waitedTheTimeout, "a paused clock waits the timeout, waited " + paused);
+
+    final boolean waitedNotMuchLonger = paused < 2_000_000_000L;
+    assertTrue(waitedNotMuchLonger, "but not much longer, waited " + paused);
     assertTrue(stillPaused);
   }
 
   @Test
-  void reanchorsOnlyBeyondTheExactTwoSecondBoundary() {
+  void shouldReanchorOnlyBeyondTheExactTwoSecondBoundary() {
     final AtomicLong now = new AtomicLong(7_000_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     final long anchor = clock.dueAt(0L);
     final long boundary = clock.dueAt(2_000_000L);
     assertEquals(7_000_000_000L, anchor);
     assertEquals(9_000_000_000L, boundary);
+
     now.set(8_000_000_000L);
     final long reanchored = clock.dueAt(4_000_000L);
     assertEquals(8_000_000_000L, reanchored);
   }
 
   @Test
-  void playsFasterAndSlowerFromTheMediaDueNow() {
+  void shouldPlayFasterAndSlowerFromTheMediaDueNow() {
     final AtomicLong now = new AtomicLong(1_000_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
-    assertEquals(PlaybackClock.NORMAL_SPEED, clock.getSpeed());
-    clock.setSpeed(2);
-    assertEquals(2, clock.getSpeed());
-    assertEquals(1_000_000_000L, clock.dueAt(0L));
-    assertEquals(1_500_000_000L, clock.dueAt(1_000_000L));
+    final double initialSpeed = clock.getSpeed();
+    assertEquals(PlaybackClock.NORMAL_SPEED, initialSpeed);
+
+    clock.setSpeed(FASTER_SPEED);
+    final double doubledSpeed = clock.getSpeed();
+    assertEquals(FASTER_SPEED, doubledSpeed);
+
+    final long anchor = clock.dueAt(0L);
+    assertEquals(1_000_000_000L, anchor);
+
+    final long fasterDue = clock.dueAt(1_000_000L);
+    assertEquals(1_500_000_000L, fasterDue);
+
     now.set(1_250_000_000L);
-    clock.setSpeed(0.5);
-    assertEquals(1_250_000_000L, clock.dueAt(500_000L));
-    assertEquals(1_450_000_000L, clock.dueAt(600_000L));
+    clock.setSpeed(SLOWER_SPEED);
+    final long changedDue = clock.dueAt(500_000L);
+    assertEquals(1_250_000_000L, changedDue);
+
+    final long slowerDue = clock.dueAt(600_000L);
+    assertEquals(1_450_000_000L, slowerDue);
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(0));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(-1));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.NaN));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.POSITIVE_INFINITY));
-    assertEquals(0.5, clock.getSpeed());
+
+    final double halvedSpeed = clock.getSpeed();
+    assertEquals(SLOWER_SPEED, halvedSpeed);
   }
 
   @Test
-  void keepsTheMediaDueNowWhenTheSpeedChangesWhilePlaying() {
+  void shouldKeepTheMediaDueNowWhenTheSpeedChangesWhilePlaying() {
     final AtomicLong now = new AtomicLong(100_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
-    clock.setSpeed(2);
-    assertEquals(100_000_000L, clock.dueAt(0L));
+    clock.setSpeed(FASTER_SPEED);
+    final long anchor = clock.dueAt(0L);
+    assertEquals(100_000_000L, anchor);
+
     now.set(350_000_000L);
-    clock.setSpeed(0.5);
-    assertEquals(550_000_000L, clock.dueAt(600_000L));
+    clock.setSpeed(SLOWER_SPEED);
+    final long slowerDue = clock.dueAt(600_000L);
+    assertEquals(550_000_000L, slowerDue);
   }
 
   @Test
-  void changesSpeedWhilePausedFromWhereThePauseBegan() {
+  void shouldChangeSpeedWhilePausedFromWhereThePauseBegan() {
     final AtomicLong now = new AtomicLong(0L);
     final PlaybackClock clock = new PlaybackClock(now::get);
     clock.dueAt(0L);
     now.set(400_000_000L);
     clock.pause();
     now.set(900_000_000L);
-    clock.setSpeed(2);
+    clock.setSpeed(FASTER_SPEED);
     now.set(1_000_000_000L);
     clock.resume();
-    assertEquals(1_000_000_000L, clock.dueAt(400_000L));
-    assertEquals(1_100_000_000L, clock.dueAt(600_000L));
+    final long resumedDue = clock.dueAt(400_000L);
+    assertEquals(1_000_000_000L, resumedDue);
+
+    final long fasterDue = clock.dueAt(600_000L);
+    assertEquals(1_100_000_000L, fasterDue);
   }
 
   @Test
-  void keepsTheScheduleForJumpsBelowTwoSeconds() {
+  void shouldKeepTheScheduleForJumpsBelowTwoSeconds() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long first = clock.dueAt(0L);
     final long nearJump = clock.dueAt(1_900_000L);

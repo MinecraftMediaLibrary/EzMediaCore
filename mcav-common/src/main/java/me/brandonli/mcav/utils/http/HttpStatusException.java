@@ -18,19 +18,20 @@
 package me.brandonli.mcav.utils.http;
 
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.io.Serial;
 import java.net.URI;
-import java.util.Locale;
 
 /**
  * Thrown when a server answers a request with a status code outside of the {@code 2xx} range.
+ *
+ * @since 1.0.0
  */
-public class HttpStatusException extends IOException {
+public class HttpStatusException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = 4_319_027_551_202_837_465L;
 
+  // documented because the serialized form of the exception publishes the field
   /**
    * The status code the server answered with, such as {@code 404}.
    */
@@ -42,23 +43,21 @@ public class HttpStatusException extends IOException {
    * @param statusCode the status code the server answered with
    * @param uri        the URI that was requested
    * @throws NullPointerException if {@code uri} is null
+   * @since 1.0.0
    */
   public HttpStatusException(final int statusCode, final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
-    final String message = String.format(
-      Locale.getDefault(Locale.Category.FORMAT),
-      "Server answered with status %d for %s",
-      statusCode,
-      uri
-    );
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
+    final String message = "Request for %s got status %s, which is not a success!".formatted(uri, statusCode);
     super(message);
     this.statusCode = statusCode;
   }
 
   /**
-   * Gets the status code the server answered with.
+   * Returns the status code the server answered with.
    *
    * @return the status code
+   * @since 1.0.0
    */
   public int getStatusCode() {
     return this.statusCode;

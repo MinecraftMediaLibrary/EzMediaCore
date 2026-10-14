@@ -23,9 +23,6 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.MapPaletteLoader;
 
-/**
- * Renders the Minecraft map palette as a 16 by 16 image, one pixel per color, for documentation.
- */
 public final class PaletteGenerator {
 
   private static final String OUTPUT = "palette.png";
@@ -42,6 +39,7 @@ public final class PaletteGenerator {
       final int color = colors[index];
       image.setRGB(column, row, color);
     }
+
     final File file = new File(OUTPUT);
     ImageIO.write(image, "png", file);
   }

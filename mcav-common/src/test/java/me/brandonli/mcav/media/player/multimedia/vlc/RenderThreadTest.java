@@ -33,13 +33,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link RenderThread}.
- */
 final class RenderThreadTest {
 
   private static final long TIMEOUT_SECONDS = 5L;
   private static final String THREAD_NAME = "test-render";
+
+  private static final int THIRD_STEP = 3;
 
   private final List<RuntimeException> unexpectedFailures = Collections.synchronizedList(new ArrayList<>());
   private final List<RenderThread> strictThreads = new ArrayList<>();
@@ -49,45 +48,46 @@ final class RenderThreadTest {
     for (final RenderThread thread : this.strictThreads) {
       thread.stop();
     }
+
     assertEquals(List.of(), this.unexpectedFailures, "no rendering step of this test fails");
   }
 
-  /**
-   * Creates a render thread whose steps must never fail.
-   */
+  // Creates a render thread whose steps must never fail.
   private RenderThread strictThread() {
     final RenderThread thread = new RenderThread(THREAD_NAME, this.unexpectedFailures::add);
     this.strictThreads.add(thread);
     return thread;
   }
 
-  /**
-   * Creates a step that fails the first time it runs and counts down the latch the third time.
-   */
   private static RenderThread.Step failFirstThenCount(
     final AtomicInteger steps,
     final RuntimeException failure,
     final CountDownLatch third
   ) {
-    return () -> {
-      final int step = steps.incrementAndGet();
-      if (step == 1) {
-        throw failure;
-      }
-      if (step == 3) {
-        third.countDown();
-      }
-      Thread.sleep(5);
-    };
+    return () -> runFailingFirstThenCounting(steps, failure, third);
+  }
+
+  private static void runFailingFirstThenCounting(final AtomicInteger steps, final RuntimeException failure, final CountDownLatch third)
+    throws InterruptedException {
+    final int step = steps.incrementAndGet();
+    if (step == 1) {
+      throw failure;
+    }
+
+    if (step == THIRD_STEP) {
+      third.countDown();
+    }
+
+    Thread.sleep(5);
   }
 
   @Test
-  void reportsStepsThatFailAndGoesOnWithTheNextStep() throws Exception {
+  void shouldReportStepsThatFailAndGoOnWithTheNextStep() throws Exception {
     final List<RuntimeException> failures = Collections.synchronizedList(new ArrayList<>());
     final RenderThread thread = new RenderThread(THREAD_NAME, failures::add);
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch third = new CountDownLatch(1);
-    final IllegalStateException failure = new IllegalStateException("broken frame");
+    final IllegalStateException failure = new IllegalStateException("broken frame!");
     final RenderThread.Step step = failFirstThenCount(steps, failure, third);
     thread.start(step, () -> {});
     try {
@@ -102,30 +102,30 @@ final class RenderThreadTest {
     }
   }
 
-  /**
-   * Creates a step that records the thread it runs on and, from the third step on, counts down the latch and blocks
-   * until it is interrupted.
-   */
   private static RenderThread.Step blockingFromTheThirdStep(
     final AtomicReference<Thread> worker,
     final AtomicInteger steps,
     final CountDownLatch blocked
   ) {
     final CountDownLatch never = new CountDownLatch(1);
-    return () -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      final int step = steps.incrementAndGet();
-      if (step >= 3) {
-        blocked.countDown();
-        never.await();
-      }
-    };
+    return () -> runBlockingFromTheThirdStep(worker, steps, blocked, never);
   }
 
-  /**
-   * Checks that the worker thread of a stopped render thread exited, was a daemon, and had the thread name.
-   */
+  private static void runBlockingFromTheThirdStep(
+    final AtomicReference<Thread> worker,
+    final AtomicInteger steps,
+    final CountDownLatch blocked,
+    final CountDownLatch never
+  ) throws InterruptedException {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    final int step = steps.incrementAndGet();
+    if (step >= THIRD_STEP) {
+      blocked.countDown();
+      never.await();
+    }
+  }
+
   private static void assertWorkerExited(final Thread workerThread) {
     final boolean alive = workerThread.isAlive();
     final boolean isDaemon = workerThread.isDaemon();
@@ -136,7 +136,7 @@ final class RenderThreadTest {
   }
 
   @Test
-  void runsTheStepUntilStoppedAndWaitsForTheThreadToExit() throws Exception {
+  void shouldRunTheStepUntilStoppedAndWaitForTheThreadToExit() throws Exception {
     final RenderThread thread = this.strictThread();
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch blocked = new CountDownLatch(1);
@@ -158,27 +158,36 @@ final class RenderThreadTest {
     assertFalse(runningAfterStop);
     assertTrue(cleaned, "stop waits until the thread has cleaned up");
     assertWorkerExited(workerThread);
-    assertEquals(3, stepCount);
+    assertEquals(THIRD_STEP, stepCount);
   }
 
   @Test
-  void endsTheLoopAfterTheCurrentStepWhenStoppedFromItself() throws Exception {
+  void shouldKeepTheInterruptThatEndedAWaitingStep() throws Exception {
+    final RenderThread thread = this.strictThread();
+    final AtomicInteger steps = new AtomicInteger();
+    final CountDownLatch blocked = new CountDownLatch(1);
+    final CountDownLatch cleanedUp = new CountDownLatch(1);
+    final AtomicBoolean interruptedInCleanup = new AtomicBoolean();
+    final AtomicReference<Thread> worker = new AtomicReference<>();
+    final RenderThread.Step step = blockingFromTheThirdStep(worker, steps, blocked);
+    thread.start(step, () -> this.recordInterruptAndCountDown(interruptedInCleanup, cleanedUp));
+    final boolean reachedThirdStep = blocked.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    thread.stop();
+
+    final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    final boolean interrupted = interruptedInCleanup.get();
+    assertTrue(reachedThirdStep);
+    assertTrue(cleaned);
+    assertTrue(interrupted, "the interrupt that ended the waiting step is kept");
+  }
+
+  @Test
+  void shouldEndTheLoopAfterTheCurrentStepWhenStoppedFromItself() throws Exception {
     final RenderThread thread = this.strictThread();
     final AtomicInteger steps = new AtomicInteger();
     final CountDownLatch cleanedUp = new CountDownLatch(1);
     final AtomicBoolean interruptedInCleanup = new AtomicBoolean();
-    thread.start(
-      () -> {
-        steps.incrementAndGet();
-        thread.stop();
-      },
-      () -> {
-        final Thread current = Thread.currentThread();
-        final boolean interrupted = current.isInterrupted();
-        interruptedInCleanup.set(interrupted);
-        cleanedUp.countDown();
-      }
-    );
+    thread.start(() -> this.countStepAndStop(steps, thread), () -> this.recordInterruptAndCountDown(interruptedInCleanup, cleanedUp));
 
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final int stepCount = steps.get();
@@ -190,25 +199,38 @@ final class RenderThreadTest {
     assertFalse(running);
   }
 
-  /**
-   * Creates a stubborn step that ignores interrupts until it is released, and then ends the loop.
-   */
+  private void countStepAndStop(final AtomicInteger steps, final RenderThread thread) {
+    steps.incrementAndGet();
+    thread.stop();
+  }
+
+  private void recordInterruptAndCountDown(final AtomicBoolean interruptedInCleanup, final CountDownLatch cleanedUp) {
+    final Thread current = Thread.currentThread();
+    final boolean interrupted = current.isInterrupted();
+    interruptedInCleanup.set(interrupted);
+    cleanedUp.countDown();
+  }
+
   private static RenderThread.Step stubbornStep(final CountDownLatch started, final CountDownLatch release) {
-    return () -> {
-      started.countDown();
-      while (release.getCount() > 0) {
-        try {
-          release.await();
-        } catch (final InterruptedException exception) {
-          // Simulate a renderer that does not stop when interrupted.
-        }
+    return () -> runIgnoringInterruptsUntilReleased(started, release);
+  }
+
+  private static void runIgnoringInterruptsUntilReleased(final CountDownLatch started, final CountDownLatch release)
+    throws InterruptedException {
+    started.countDown();
+    while (release.getCount() > 0) {
+      try {
+        release.await();
+      } catch (final InterruptedException exception) {
+        // Simulate a renderer that does not stop when interrupted.
       }
-      throw new InterruptedException("released");
-    };
+    }
+
+    throw new InterruptedException("released!");
   }
 
   @Test
-  void stopsWaitingWhenTheCallerIsInterrupted() throws Exception {
+  void shouldStopWaitingWhenTheCallerIsInterrupted() throws Exception {
     final RenderThread thread = this.strictThread();
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch release = new CountDownLatch(1);
@@ -222,19 +244,21 @@ final class RenderThreadTest {
     final long start = System.nanoTime();
     thread.stop();
     final long end = System.nanoTime();
-    final long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(end - start);
+    final long elapsedMilliseconds = TimeUnit.NANOSECONDS.toMillis(end - start);
     final boolean callerInterrupted = Thread.interrupted();
 
     release.countDown();
     final boolean cleaned = cleanedUp.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(stepStarted);
     assertTrue(callerInterrupted, "the interrupt of the caller is kept");
-    assertTrue(elapsedMillis < 1_000L, "an interrupted caller does not wait, took " + elapsedMillis);
+
+    final boolean returnedQuickly = elapsedMilliseconds < 1_000L;
+    assertTrue(returnedQuickly, "an interrupted caller does not wait, took " + elapsedMilliseconds);
     assertTrue(cleaned);
   }
 
   @Test
-  void stoppingAThreadThatNeverStartedDoesNothing() {
+  void shouldDoNothingWhenStoppingAThreadThatNeverStarted() {
     final RenderThread thread = this.strictThread();
     final boolean runningBeforeStop = thread.isRunning();
     thread.stop();
@@ -245,12 +269,13 @@ final class RenderThreadTest {
   }
 
   @Test
-  void cannotBeStartedTwice() {
+  void shouldNotBeStartedTwice() {
     final RenderThread thread = this.strictThread();
     final RenderThread.Step idle = () -> Thread.sleep(10);
     thread.start(idle, () -> {});
     try {
       assertThrows(IllegalStateException.class, () -> thread.start(idle, () -> {}));
+
       thread.stop();
       assertThrows(IllegalStateException.class, () -> thread.start(idle, () -> {}), "a stopped thread cannot be restarted");
     } finally {

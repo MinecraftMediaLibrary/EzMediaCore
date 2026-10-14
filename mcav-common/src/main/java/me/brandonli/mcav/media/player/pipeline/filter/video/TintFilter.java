@@ -29,6 +29,10 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * <p>The matrix of the tint color is kept between frames and only rebuilt when a frame has another size, so tinting
  * reuses native image storage in the usual serial case with stable dimensions. Concurrent calls borrow
  * separate matrices as needed; see {@link ReusableMat}, and freed when the filter is garbage collected.
+ *
+ * <p>This class is not thread-safe, because it reuses one matrix for every frame; give each player its own instance.
+ *
+ * @since 1.0.0
  */
 public class TintFilter extends MatVideoFilter {
 
@@ -42,10 +46,12 @@ public class TintFilter extends MatVideoFilter {
    * @param color    the blue, green, and red components of the tint color, normally 0 to 255; the non-null array is copied
    * @param strength how strongly the color is applied, from 0 for no tint to 1 for a solid color
    * @throws IllegalArgumentException if {@code strength} is outside 0 through 1 or is NaN
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public TintFilter(final double[] color, final double strength) {
-    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1");
+    Preconditions.checkArgument(strength >= 0 && strength <= 1, "Strength must be between 0 and 1!");
+
     this.color = ImageUtils.toScalar(color);
     this.strength = strength;
     this.tint = new ReusableMat();
@@ -56,6 +62,7 @@ public class TintFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -67,13 +74,12 @@ public class TintFilter extends MatVideoFilter {
     } finally {
       this.tint.giveBack(solid);
     }
+
     return true;
   }
 
-  /**
-   * Makes a matrix of the tint color with the size and type of the frame. A matrix that already has them holds the
-   * color from an earlier frame, because nothing else writes into it, and is left untouched.
-   */
+  // Makes a matrix of the tint color with the size and type of the frame. A matrix that already has them holds the
+  // color from an earlier frame, because nothing else writes into it, and is left untouched.
   private void fillLike(final Mat solid, final Mat frame) {
     final int rows = frame.rows();
     final int columns = frame.cols();
@@ -82,6 +88,7 @@ public class TintFilter extends MatVideoFilter {
     if (matches) {
       return;
     }
+
     solid.create(rows, columns, type);
     solid.put(this.color);
   }

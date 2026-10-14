@@ -32,9 +32,11 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
-/** Exercises release from callbacks and while callbacks are waiting. */
 @Timeout(15)
 final class ImagePlayerShutdownTest {
+
+  private static final long CALLBACK_TIMEOUT_SECONDS = 10L;
+  private static final long JOIN_TIMEOUT_MILLISECONDS = 1_000L;
 
   private static FrameSource source() {
     return FrameSource.supplier(() -> new int[] { 0xFF102030 }, 1, 1, 0.1f);
@@ -47,34 +49,31 @@ final class ImagePlayerShutdownTest {
   }
 
   @Test
-  void callbackReleaseDoesNotJoinItsOwnThread() throws Exception {
+  void shouldNotJoinItsOwnThreadOnACallbackRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
     final CountDownLatch finished = new CountDownLatch(1);
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final AtomicReference<Boolean> released = new AtomicReference<>();
     final AtomicReference<Long> elapsed = new AtomicReference<>();
-    attach(player, (_, _) -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      final long before = System.nanoTime();
-      released.set(player.release());
-      elapsed.set(System.nanoTime() - before);
-      finished.countDown();
-      return false;
-    });
+    attach(player, (_, _) -> this.releaseFromTheCallback(player, worker, released, elapsed, finished));
     try {
       final boolean started = player.start(source());
-      final boolean completed = finished.await(10, TimeUnit.SECONDS);
+      final boolean completed = finished.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(completed);
-      final Long releaseNanos = elapsed.get();
+
+      final Long releaseNanoseconds = elapsed.get();
       final Boolean firstRelease = released.get();
-      assertNotNull(releaseNanos);
-      assertTrue(releaseNanos < 1_000_000_000L, "self release must not spend two seconds joining itself");
+      assertNotNull(releaseNanoseconds);
+
+      final boolean releasedQuickly = releaseNanoseconds < 1_000_000_000L;
+      assertTrue(releasedQuickly, "self release must not spend two seconds joining itself");
       assertEquals(true, firstRelease);
+
       final Thread thread = worker.get();
       assertNotNull(thread);
-      thread.join(1_000L);
+
+      thread.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean alive = thread.isAlive();
       assertFalse(alive, "the self-released worker exits and releases its frame");
     } finally {
@@ -82,47 +81,56 @@ final class ImagePlayerShutdownTest {
     }
   }
 
+  private boolean releaseFromTheCallback(
+    final ImagePlayer player,
+    final AtomicReference<Thread> worker,
+    final AtomicReference<Boolean> released,
+    final AtomicReference<Long> elapsed,
+    final CountDownLatch finished
+  ) {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    final long before = System.nanoTime();
+    released.set(player.release());
+    elapsed.set(System.nanoTime() - before);
+    finished.countDown();
+
+    return false;
+  }
+
   @Test
-  void externalReleaseAllowsAnInterruptedCallbackToReenterThePlayer() throws Exception {
+  void shouldLetAnInterruptedCallbackReenterThePlayerOnAnExternalRelease() throws Exception {
     final ImagePlayer player = ImagePlayer.player();
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch escape = new CountDownLatch(1);
     final CountDownLatch completed = new CountDownLatch(1);
     final AtomicReference<Thread> worker = new AtomicReference<>();
     final AtomicReference<Boolean> repeatedRelease = new AtomicReference<>();
-    attach(player, (_, _) -> {
-      final Thread current = Thread.currentThread();
-      worker.set(current);
-      entered.countDown();
-      try {
-        escape.await();
-      } catch (final InterruptedException exception) {
-        current.interrupt();
-      }
-      repeatedRelease.set(player.release());
-      completed.countDown();
-      return false;
-    });
+    attach(player, (_, _) -> this.awaitEscapeAndRelease(player, worker, entered, escape, repeatedRelease, completed));
     final AtomicReference<Boolean> firstRelease = new AtomicReference<>();
     final Thread releaser = new Thread(() -> firstRelease.set(player.release()), "image-external-release");
     releaser.setDaemon(true);
     try {
       final boolean started = player.start(source());
-      final boolean processing = entered.await(10, TimeUnit.SECONDS);
+      final boolean processing = entered.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(processing);
+
       releaser.start();
-      releaser.join(1_000L);
+      releaser.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean releaseBlocked = releaser.isAlive();
       final long unfinishedCallbacks = completed.getCount();
       assertFalse(releaseBlocked, "release must interrupt the callback and leave its lifecycle lock available");
       assertEquals(0L, unfinishedCallbacks, "the callback completes before external release returns");
+
       final Boolean first = firstRelease.get();
       final Boolean repeated = repeatedRelease.get();
       assertEquals(true, first);
       assertEquals(false, repeated);
+
       final Thread thread = worker.get();
       assertNotNull(thread);
+
       final boolean alive = thread.isAlive();
       assertFalse(alive);
     } finally {
@@ -134,5 +142,28 @@ final class ImagePlayerShutdownTest {
         thread.join(3_000L);
       }
     }
+  }
+
+  private boolean awaitEscapeAndRelease(
+    final ImagePlayer player,
+    final AtomicReference<Thread> worker,
+    final CountDownLatch entered,
+    final CountDownLatch escape,
+    final AtomicReference<Boolean> repeatedRelease,
+    final CountDownLatch completed
+  ) {
+    final Thread current = Thread.currentThread();
+    worker.set(current);
+    entered.countDown();
+    try {
+      escape.await();
+    } catch (final InterruptedException exception) {
+      current.interrupt();
+    }
+
+    repeatedRelease.set(player.release());
+    completed.countDown();
+
+    return false;
   }
 }

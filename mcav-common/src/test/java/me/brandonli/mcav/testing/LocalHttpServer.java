@@ -28,6 +28,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,17 +39,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * An HTTP server on the loopback interface for tests that download files.
- *
- * <p>Every path answers with a queue of prepared responses. Once only one response is left, it is repeated for
- * every further request, so a path can fail a few times before it succeeds, or fail forever. Paths without
- * responses answer {@code 404}. Requests are handled on their own threads, so a response that waits or stalls never
- * holds up other requests.
- */
+// An HTTP server on the loopback interface for tests that download files. Every path answers with a queue of prepared
+// responses. Once only one response is left, it is repeated for every further request, so a path can fail a few times
+// before it succeeds, or fail forever. Paths without responses answer 404. Requests are handled on their own threads,
+// so a response that waits or stalls never holds up other requests.
 public final class LocalHttpServer implements AutoCloseable {
 
-  private static final long MAX_WAIT_SECONDS = 60;
+  private static final long MAXIMUM_WAIT_SECONDS = 60;
+
+  private static final String ROOT_PATH = "/";
+
+  private static final int NOT_FOUND_STATUS = 404;
 
   private final HttpServer server;
   private final ExecutorService executor;
@@ -66,11 +67,6 @@ public final class LocalHttpServer implements AutoCloseable {
     this.requestSignal = new Object();
   }
 
-  /**
-   * Starts a server on a free port of the loopback interface.
-   *
-   * @return the running server
-   */
   public static LocalHttpServer start() {
     try {
       final InetAddress loopback = InetAddress.getLoopbackAddress();
@@ -79,7 +75,7 @@ public final class LocalHttpServer implements AutoCloseable {
       final ExecutorService executor = Executors.newCachedThreadPool();
       httpServer.setExecutor(executor);
       final LocalHttpServer localServer = new LocalHttpServer(httpServer, executor);
-      httpServer.createContext("/", localServer::handle);
+      httpServer.createContext(ROOT_PATH, localServer::handle);
       httpServer.start();
       return localServer;
     } catch (final IOException exception) {
@@ -87,68 +83,40 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Adds a response to the queue of a path.
-   *
-   * @param path   the path, starting with a slash
-   * @param status the status code
-   * @param body   the body
-   */
   public void respond(final String path, final int status, final byte[] body) {
     final Response response = new Response(status, body, null, -1);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that is only sent once a gate opens. The request waits for the gate, or for the server to close.
-   *
-   * @param path   the path, starting with a slash
-   * @param status the status code
-   * @param body   the body
-   * @param gate   the gate to wait for
-   */
+  // Adds a response that is only sent once a gate opens. The request waits for the gate, or for the server to close.
   public void respondWhenOpened(final String path, final int status, final byte[] body, final CountDownLatch gate) {
     final Response response = new Response(status, body, gate, -1);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that stalls: it announces more bytes than the body has, sends the body, and then sends nothing
-   * more, without closing the connection, until the server is closed.
-   *
-   * @param path           the path, starting with a slash
-   * @param status         the status code
-   * @param body           the part of the body that is sent
-   * @param announcedLength the length announced in the headers, which must be larger than the body
-   */
   public void respondStalling(final String path, final int status, final byte[] body, final long announcedLength) {
     final Response response = new Response(status, body, null, announcedLength);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a redirect to another place, with an empty body.
-   *
-   * @param path     the path, starting with a slash
-   * @param status   the status code, such as 302
-   * @param location the place, which may be relative
-   */
   public void respondRedirect(final String path, final int status, final String location) {
     final Response response = new Response(status, new byte[0], null, -1, location, 0);
     this.addResponse(path, response);
   }
 
-  /**
-   * Adds a response that trickles: it announces the length of the body and sends one byte of it at a time, a byte
-   * every interval, until the body is sent or the server is closed.
-   *
-   * @param path           the path, starting with a slash
-   * @param status         the status code
-   * @param body           the body
-   * @param intervalMillis the time between two bytes, in milliseconds
-   */
-  public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMillis) {
-    final Response response = new Response(status, body, null, -1, null, intervalMillis);
+  public void respondStallingRedirect(
+    final String path,
+    final int status,
+    final String location,
+    final byte[] body,
+    final long announcedLength
+  ) {
+    final Response response = new Response(status, body, null, announcedLength, location, 0);
+    this.addResponse(path, response);
+  }
+
+  public void respondTrickling(final String path, final int status, final byte[] body, final long intervalMilliseconds) {
+    final Response response = new Response(status, body, null, -1, null, intervalMilliseconds);
     this.addResponse(path, response);
   }
 
@@ -159,12 +127,6 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gets the URI of a path on this server, built from the address the server is bound to.
-   *
-   * @param path the path, starting with a slash
-   * @return the URI
-   */
   public URI uri(final String path) {
     final InetSocketAddress address = this.server.getAddress();
     final InetAddress host = address.getAddress();
@@ -173,48 +135,55 @@ public final class LocalHttpServer implements AutoCloseable {
     try {
       return new URI("http", null, hostAddress, port, path, null, null);
     } catch (final URISyntaxException exception) {
-      throw new IllegalArgumentException("Not a valid path: " + path, exception);
+      final String message = "Path %s is not valid!".formatted(path);
+      throw new IllegalArgumentException(message, exception);
     }
   }
 
-  /**
-   * Gets how many requests a path received.
-   *
-   * @param path the path, starting with a slash
-   * @return the number of requests
-   */
+  public boolean isServing(final String host, final int port) {
+    final InetSocketAddress address = this.server.getAddress();
+    final InetAddress boundHost = address.getAddress();
+    final String boundHostName = boundHost.getHostName();
+    final String boundHostAddress = boundHost.getHostAddress();
+    final boolean sameHost = host.equals(boundHostName) || host.equals(boundHostAddress);
+    final int boundPort = address.getPort();
+    return sameHost && port == boundPort;
+  }
+
   public int getRequestCount(final String path) {
     final AtomicInteger count = this.requestCounts.get(path);
     return count == null ? 0 : count.get();
   }
 
-  /**
-   * Waits until a path has received at least the specified number of requests. Every counted request wakes the
-   * waiting threads, so the wait ends as soon as the last request arrives, without polling.
-   *
-   * @param path    the path, starting with a slash
-   * @param count   the number of requests to wait for
-   * @param timeout how long to wait at most
-   * @return true if the path received the requests in time, false if the timeout passed first
-   * @throws InterruptedException if the waiting thread is interrupted
-   */
+  public int getTotalRequestCount() {
+    final Collection<AtomicInteger> counts = this.requestCounts.values();
+    return counts.stream().mapToInt(AtomicInteger::get).sum();
+  }
+
+  // Waits until a path has received at least the specified number of requests. Every counted request wakes the waiting
+  // threads, so the wait ends as soon as the last request arrives, without polling.
   public boolean awaitRequests(final String path, final int count, final Duration timeout) throws InterruptedException {
     final long start = System.nanoTime();
-    final long timeoutNanos = timeout.toNanos();
-    final long deadline = start + timeoutNanos;
+    final long timeoutNanoseconds = timeout.toNanos();
+    final long deadline = start + timeoutNanoseconds;
     synchronized (this.requestSignal) {
-      int received = this.getRequestCount(path);
-      while (received < count) {
-        final long now = System.nanoTime();
-        final long remaining = deadline - now;
-        if (remaining <= 0) {
-          return false;
-        }
-        TimeUnit.NANOSECONDS.timedWait(this.requestSignal, remaining);
-        received = this.getRequestCount(path);
-      }
-      return true;
+      return this.awaitRequestCount(path, count, deadline);
     }
+  }
+
+  private boolean awaitRequestCount(final String path, final int count, final long deadline) throws InterruptedException {
+    int received = this.getRequestCount(path);
+    while (received < count) {
+      final long now = System.nanoTime();
+      final long remaining = deadline - now;
+      if (remaining <= 0) {
+        return false;
+      }
+      TimeUnit.NANOSECONDS.timedWait(this.requestSignal, remaining);
+      received = this.getRequestCount(path);
+    }
+
+    return true;
   }
 
   private void signalRequest() {
@@ -234,26 +203,32 @@ public final class LocalHttpServer implements AutoCloseable {
     if (gate != null) {
       this.awaitGateOrClose(gate);
     }
+
+    if (response.location != null) {
+      exchange.getResponseHeaders().add("Location", response.location);
+    }
+
     if (response.announcedLength >= 0) {
       this.stall(exchange, response);
       return;
     }
-    if (response.location != null) {
-      exchange.getResponseHeaders().add("Location", response.location);
-    }
-    if (response.trickleMillis > 0) {
+
+    if (response.trickleMilliseconds > 0) {
       this.trickle(exchange, response);
       return;
     }
+
     final byte[] body = response.body;
     final String method = exchange.getRequestMethod();
     final boolean isHeadRequest = method.equals("HEAD");
     exchange.sendResponseHeaders(response.status, isHeadRequest || body.length == 0 ? -1 : body.length);
+
     if (!isHeadRequest && body.length > 0) {
       try (final OutputStream output = exchange.getResponseBody()) {
         output.write(body);
       }
     }
+
     exchange.close();
   }
 
@@ -264,34 +239,38 @@ public final class LocalHttpServer implements AutoCloseable {
     output.flush();
     final boolean closed = this.awaitClose();
     exchange.close();
+
     if (!closed) {
-      throw new IOException("The stalling response gave up because the server was not closed within " + MAX_WAIT_SECONDS + " s");
+      final String message = "The stalling response gave up because the server was not closed within %s s!".formatted(MAXIMUM_WAIT_SECONDS);
+      throw new IOException(message);
     }
   }
 
   private void trickle(final HttpExchange exchange, final Response response) throws IOException {
     exchange.sendResponseHeaders(response.status, response.body.length);
     try (final OutputStream output = exchange.getResponseBody()) {
-      for (final byte value : response.body) {
-        output.write(value);
-        output.flush();
-        if (this.closing.await(response.trickleMillis, TimeUnit.MILLISECONDS)) {
-          return;
-        }
-      }
+      this.trickleBody(output, response);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
     }
   }
 
-  /**
-   * Waits until the gate opens, the server closes, or the maximum wait passes. The gate is checked in short steps, so
-   * a server that closes releases the waiting request right away.
-   */
+  private void trickleBody(final OutputStream output, final Response response) throws IOException, InterruptedException {
+    for (final byte value : response.body) {
+      output.write(value);
+      output.flush();
+      if (this.closing.await(response.trickleMilliseconds, TimeUnit.MILLISECONDS)) {
+        return;
+      }
+    }
+  }
+
+  // Waits until the gate opens, the server closes, or the maximum wait passes. The gate is checked in short steps, so a
+  // server that closes releases the waiting request right away.
   private void awaitGateOrClose(final CountDownLatch gate) {
     final long start = System.nanoTime();
-    final long maximumWait = TimeUnit.SECONDS.toNanos(MAX_WAIT_SECONDS);
+    final long maximumWait = TimeUnit.SECONDS.toNanos(MAXIMUM_WAIT_SECONDS);
     final long deadline = start + maximumWait;
     boolean opened = false;
     while (!opened && this.closing.getCount() > 0) {
@@ -309,18 +288,15 @@ public final class LocalHttpServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Waits until the server closes. Closing interrupts the handler threads, so an interrupt also means the server
-   * closed.
-   *
-   * @return true once the server closed, false if it was not closed within the maximum wait
-   */
+  // Waits until the server closes. Closing interrupts the handler threads, so an interrupt also means the server
+  // closed.
   private boolean awaitClose() {
     try {
-      return this.closing.await(MAX_WAIT_SECONDS, TimeUnit.SECONDS);
+      return this.closing.await(MAXIMUM_WAIT_SECONDS, TimeUnit.SECONDS);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
+
       return true;
     }
   }
@@ -328,20 +304,19 @@ public final class LocalHttpServer implements AutoCloseable {
   private Response nextResponse(final String path) {
     final Deque<Response> queue = this.responses.get(path);
     if (queue == null) {
-      return new Response(404, new byte[0], null, -1);
+      return new Response(NOT_FOUND_STATUS, new byte[0], null, -1);
     }
+
     synchronized (queue) {
       if (queue.size() > 1) {
         return queue.removeFirst();
       }
+
       final Response last = queue.peekFirst();
-      return last == null ? new Response(404, new byte[0], null, -1) : last;
+      return last == null ? new Response(NOT_FOUND_STATUS, new byte[0], null, -1) : last;
     }
   }
 
-  /**
-   * Releases every waiting and stalling response and stops the server.
-   */
   @Override
   public void close() {
     this.closing.countDown();
@@ -349,9 +324,6 @@ public final class LocalHttpServer implements AutoCloseable {
     this.executor.shutdownNow();
   }
 
-  /**
-   * A prepared response.
-   */
   private static final class Response {
 
     private final int status;
@@ -359,7 +331,7 @@ public final class LocalHttpServer implements AutoCloseable {
     private final CountDownLatch gate;
     private final long announcedLength;
     private final @Nullable String location;
-    private final long trickleMillis;
+    private final long trickleMilliseconds;
 
     Response(final int status, final byte[] body, final CountDownLatch gate, final long announcedLength) {
       this(status, body, gate, announcedLength, null, 0);
@@ -371,14 +343,14 @@ public final class LocalHttpServer implements AutoCloseable {
       final CountDownLatch gate,
       final long announcedLength,
       final @Nullable String location,
-      final long trickleMillis
+      final long trickleMilliseconds
     ) {
       this.status = status;
       this.body = body.clone();
       this.gate = gate;
       this.announcedLength = announcedLength;
       this.location = location;
-      this.trickleMillis = trickleMillis;
+      this.trickleMilliseconds = trickleMilliseconds;
     }
   }
 }

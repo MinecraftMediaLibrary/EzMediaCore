@@ -23,28 +23,27 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.URI;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link HttpStatusException} and {@link ChecksumMismatchException}.
- */
 final class HttpStatusExceptionTest {
 
   @Test
-  void describesTheStatusAndTheUri() {
+  void shouldDescribeTheStatusAndTheUri() {
     final URI uri = URI.create("https://example.com/file");
     final HttpStatusException exception = new HttpStatusException(503, uri);
     final int statusCode = exception.getStatusCode();
     final String message = exception.getMessage();
     assertEquals(503, statusCode);
-    assertEquals("Server answered with status 503 for https://example.com/file", message);
-    assertThrows(NullPointerException.class, () -> {
-      throw new HttpStatusException(500, null);
-    });
+    assertEquals("Request for https://example.com/file got status 503, which is not a success!", message);
+    assertThrows(NullPointerException.class, this::throwStatusExceptionWithoutUri);
+  }
+
+  private void throwStatusExceptionWithoutUri() throws HttpStatusException {
+    throw new HttpStatusException(500, null);
   }
 
   @Test
-  void checksumMismatchKeepsItsMessage() {
-    final ChecksumMismatchException exception = new ChecksumMismatchException("expected a but got b");
+  void shouldKeepTheMessageOfAChecksumMismatch() {
+    final ChecksumMismatchException exception = new ChecksumMismatchException("expected a but got b!");
     final String message = exception.getMessage();
-    assertEquals("expected a but got b", message);
+    assertEquals("expected a but got b!", message);
   }
 }

@@ -41,22 +41,22 @@ import org.slf4j.LoggerFactory;
  * Individual module lookup is concurrent and can observe only modules whose startup has finished; a lookup
  * racing with shutdown can return a module that is being stopped. The caller owns the loader and must call
  * {@link #shutdownModules()} when its modules are no longer needed.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ModuleLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ModuleLoader.class);
-
-  private static final String STARTING_MODULE = "Starting module {}";
-
-  private static final String STOP_AFTER_FAILED_START_FAILED = "Module {} failed to stop after it failed to start";
-
-  private static final String STOP_FAILED = "Module {} failed to stop";
 
   private final Map<Class<?>, MCAVModule> modules;
   private final List<MCAVModule> startOrder;
 
   /**
    * Constructs a new loader without any modules. {@link me.brandonli.mcav.MCAV} creates one for you.
+   *
+   * @since 1.0.0
    */
   public ModuleLoader() {
     this.modules = new ConcurrentHashMap<>();
@@ -64,22 +64,25 @@ public final class ModuleLoader {
   }
 
   /**
-   * Gets a started module.
+   * Returns a started module.
    *
-   * @param moduleClass the class of the module
-   * @param <T>         the type of the module
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
    * @return the module
-   * @throws ModuleException if no module of that class was started
+   * @throws ModuleException      if no module of that class was started
    * @throws NullPointerException if {@code moduleClass} is null
+   * @since 1.0.0
    */
-  public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
-    Preconditions.checkNotNull(moduleClass, "Module class must not be null");
+  public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
+    Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
+
     final MCAVModule module = this.modules.get(moduleClass);
     if (module == null) {
       final String name = moduleClass.getSimpleName();
-      final String message = "Module %s is not installed".formatted(name);
+      final String message = "Module %s is not installed!".formatted(name);
       throw new ModuleException(message);
     }
+
     return moduleClass.cast(module);
   }
 
@@ -93,20 +96,23 @@ public final class ModuleLoader {
    *
    * @param moduleClasses the non-null array of non-null module classes implementing {@link MCAVModule};
    *                      each needs an accessible no-argument constructor, duplicates are skipped
-   * @throws ModuleException if a class is not a module, cannot be created, or fails to start
+   * @throws ModuleException      if a class is not a module, cannot be created, or fails to start
    * @throws NullPointerException if the array or a module class is null
+   * @since 1.0.0
    */
   public synchronized void loadModules(final Class<?>... moduleClasses) {
-    Preconditions.checkNotNull(moduleClasses, "Module classes must not be null");
+    Preconditions.checkNotNull(moduleClasses, "Module classes must not be null!");
+
     for (final Class<?> moduleClass : moduleClasses) {
-      Preconditions.checkNotNull(moduleClass, "Module class must not be null");
+      Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
       final boolean isModule = MCAVModule.class.isAssignableFrom(moduleClass);
       if (!isModule) {
         final String name = moduleClass.getSimpleName();
-        final String message = "%s does not implement MCAVModule".formatted(name);
+        final String message = "%s does not implement MCAVModule!".formatted(name);
         throw new ModuleException(message);
       }
     }
+
     final MethodType constructorType = MethodType.methodType(void.class);
     final MethodHandles.Lookup lookup = MethodHandles.lookup();
     for (final Class<?> moduleClass : moduleClasses) {
@@ -123,7 +129,7 @@ public final class ModuleLoader {
 
   private static void startModule(final MCAVModule module) {
     final String moduleName = module.getModuleName();
-    LOGGER.info(STARTING_MODULE, moduleName);
+    LOGGER.info("Module {} is starting.", moduleName);
     try {
       module.start();
     } catch (final ModuleException exception) {
@@ -132,26 +138,24 @@ public final class ModuleLoader {
     } catch (final RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);
       final String reason = exception.getMessage();
-      final String message = "Module %s failed to start: %s".formatted(moduleName, reason);
+      final String message = "Module %s failed with \"%s\" while starting!".formatted(moduleName, reason);
       final ModuleException failure = new ModuleException(message, exception);
       stopAfterFailedStart(module, moduleName, failure);
       throw failure;
     }
   }
 
-  /**
-   * Stops a module whose start failed, so whatever it acquired before failing is released. A failure to stop is
-   * logged and attached to the start failure instead of replacing it.
-   */
+  // Stops a module whose start failed, so whatever it acquired before failing is released. A failure to stop is logged
+  // and attached to the start failure instead of replacing it.
   private static void stopAfterFailedStart(final MCAVModule module, final String moduleName, final ModuleException startFailure) {
     try {
       module.stop();
-    } catch (final RuntimeException | Error stopFailure) {
-      ThrowableUtils.throwIfFatal(stopFailure);
-      LOGGER.error(STOP_AFTER_FAILED_START_FAILED, moduleName, stopFailure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      LOGGER.error("Module {} failed to stop after it failed to start.", moduleName, exception);
       final Equivalence<Object> identity = Equivalence.identity();
-      if (!identity.equivalent(stopFailure, startFailure)) {
-        startFailure.addSuppressed(stopFailure);
+      if (!identity.equivalent(exception, startFailure)) {
+        startFailure.addSuppressed(exception);
       }
     }
   }
@@ -162,12 +166,12 @@ public final class ModuleLoader {
       final MethodHandle constructor = privateLookup.findConstructor(moduleClass, constructorType);
       final Object instance = constructor.invoke();
       return (MCAVModule) instance;
-    } catch (final Throwable throwable) {
-      ThrowableUtils.throwIfFatal(throwable);
+    } catch (final Throwable exception) {
+      ThrowableUtils.throwIfFatal(exception);
       final String name = moduleClass.getSimpleName();
-      final String reason = throwable.getMessage();
-      final String message = "Module %s could not be created: %s".formatted(name, reason);
-      throw new ModuleException(message, throwable);
+      final String reason = exception.getMessage();
+      final String message = "Module %s failed with \"%s\" while being created!".formatted(name, reason);
+      throw new ModuleException(message, exception);
     }
   }
 
@@ -175,6 +179,8 @@ public final class ModuleLoader {
    * Stops started modules in reverse start order and clears the registry. Recoverable exceptions or errors
    * thrown by a module's {@code stop} callback are logged so remaining modules can be stopped. Fatal VM errors
    * propagate immediately. Calling this again after successful shutdown does nothing.
+   *
+   * @since 1.0.0
    */
   public synchronized void shutdownModules() {
     final List<MCAVModule> reversed = new ArrayList<>(this.startOrder);
@@ -185,18 +191,20 @@ public final class ModuleLoader {
         module.stop();
       } catch (final RuntimeException | Error exception) {
         ThrowableUtils.throwIfFatal(exception);
-        LOGGER.error(STOP_FAILED, moduleName, exception);
+        LOGGER.error("Module {} failed to stop.", moduleName, exception);
       }
     }
+
     this.startOrder.clear();
     this.modules.clear();
   }
 
   /**
-   * Gets every started module.
+   * Returns every started module.
    *
    * @return an unmodifiable snapshot of started modules in start order; module instances are borrowed
    *         and later shutdown may stop them
+   * @since 1.0.0
    */
   public synchronized Collection<MCAVModule> getModules() {
     return List.copyOf(this.startOrder);

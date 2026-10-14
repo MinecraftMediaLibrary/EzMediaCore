@@ -74,7 +74,7 @@ with `updateArgb(int[], width, height)`:
 with the [image player](player.md#image-players).
 
 ```java
-  public static void describeGif() throws IOException {
+  public static void describeGif() {
     final URI sourceUri = URI.create("https://example.com/image.gif");
     final UriSource source = UriSource.uri(sourceUri);
     try (final DynamicImageBuffer gif = DynamicImageBuffer.uri(source)) {

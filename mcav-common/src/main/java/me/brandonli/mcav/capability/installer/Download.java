@@ -18,9 +18,10 @@
 package me.brandonli.mcav.capability.installer;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
+import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -30,6 +31,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Installers are given a list of downloads and pick the one whose platform matches the machine they run on.
  * Downloads are usually read from the JSON resources in the {@code installers} folder, but can be created by hand
  * as well. Instances are immutable.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class Download {
 
@@ -44,12 +49,14 @@ public final class Download {
    * @param url      the non-null, nonblank URL of the file; URI syntax is checked when downloading
    * @param hash     the expected SHA-256 hash of the file in hexadecimal, or null to skip verification
    * @throws IllegalArgumentException if {@code url} is blank
-   * @throws NullPointerException if {@code platform} or {@code url} is null
+   * @throws NullPointerException     if {@code platform} or {@code url} is null
+   * @since 1.0.0
    */
   public Download(final Platform platform, final String url, final @Nullable String hash) {
-    Preconditions.checkNotNull(platform, "Platform must not be null");
-    Preconditions.checkNotNull(url, "URL must not be null");
-    Preconditions.checkArgument(!url.isBlank(), "URL must not be blank");
+    Preconditions.checkNotNull(platform, "Platform must not be null!");
+    Preconditions.checkNotNull(url, "URL must not be null!");
+    Preconditions.checkArgument(!url.isBlank(), "URL must not be blank!");
+
     this.platform = platform;
     this.url = url;
     this.hash = hash;
@@ -61,7 +68,8 @@ public final class Download {
    * @param platform the platform the file is built for
    * @param url      the non-null, nonblank URL of the file; URI syntax is checked when downloading
    * @throws IllegalArgumentException if {@code url} is blank
-   * @throws NullPointerException if {@code platform} or {@code url} is null
+   * @throws NullPointerException     if {@code platform} or {@code url} is null
+   * @since 1.0.0
    */
   public Download(final Platform platform, final String url) {
     this(platform, url, null);
@@ -76,9 +84,10 @@ public final class Download {
    * @param url             the non-null, nonblank URL of the file; URI syntax is checked when downloading
    * @param hash            the expected SHA-256 hash of the file in hexadecimal, or null to skip verification
    * @throws IllegalArgumentException if {@code url} is blank
-   * @throws NullPointerException if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
+   * @throws NullPointerException     if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
+   * @since 1.0.0
    */
-  public Download(final OS operatingSystem, final Arch architecture, final Bits bits, final String url, final @Nullable String hash) {
+  public Download(final Os operatingSystem, final Arch architecture, final Bits bits, final String url, final @Nullable String hash) {
     final Platform platform = Platform.ofPlatform(operatingSystem, architecture, bits);
     this(platform, url, hash);
   }
@@ -91,37 +100,41 @@ public final class Download {
    * @param bits            the bitness the file is built for
    * @param url             the non-null, nonblank URL of the file; URI syntax is checked when downloading
    * @throws IllegalArgumentException if {@code url} is blank
-   * @throws NullPointerException if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
+   * @throws NullPointerException     if {@code operatingSystem}, {@code architecture}, {@code bits} or {@code url} is null
+   * @since 1.0.0
    */
-  public Download(final OS operatingSystem, final Arch architecture, final Bits bits, final String url) {
+  public Download(final Os operatingSystem, final Arch architecture, final Bits bits, final String url) {
     final Platform platform = Platform.ofPlatform(operatingSystem, architecture, bits);
     this(platform, url, null);
   }
 
   /**
-   * Gets the platform the file is built for.
+   * Returns the platform the file is built for.
    *
    * @return the platform
+   * @since 1.0.0
    */
   public Platform getPlatform() {
     return this.platform;
   }
 
   /**
-   * Gets the URL of the file.
+   * Returns the URL of the file.
    *
    * @return the URL
+   * @since 1.0.0
    */
   public String getUrl() {
     return this.url;
   }
 
   /**
-   * Gets the expected SHA-256 hash of the file.
+   * Returns the expected SHA-256 hash of the file.
    *
-   * @return the hash in hexadecimal, or null if the file is not verified
+   * @return the hash in hexadecimal, or empty if the file is not verified
+   * @since 1.0.0
    */
-  public @Nullable String getHash() {
-    return this.hash;
+  public Optional<String> getHash() {
+    return Optional.ofNullable(this.hash);
   }
 }

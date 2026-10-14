@@ -18,7 +18,7 @@ the pipeline passes the samples on to the next step either way.
 
 ## Reading Bundled Installer Lists
 
-`IOUtils.readDownloadsFromJsonResource` and `ReleasePackageManager.readVLCDownloadsFromJsonResource` take a full
+`IoUtils.readDownloadsFromJsonResource` and `ReleasePackageManager.readVlcDownloadsFromJsonResource` take a full
 path from the classpath root, without a leading slash. The bundled lists are `mcav/common/installers/vlc.json` and
 `mcav/common/installers/yt-dlp.json`. Custom lists can live at any full classpath path, such as
 `installers/custom.json`.
@@ -80,7 +80,7 @@ There are two factories. Both return a new resampler that the caller must close:
 | `AudioResampler.create(inputSampleRate, inputChannels, inputFormat, outputSampleRate, outputChannels, outputFormat)` | Any interleaved PCM format                              |
 
 Sample rates are in hertz and must be positive, and channel counts must be between 1 and
-`AudioResampler.MAX_CHANNELS`, which is 8, the number of channels of a 7.1 layout. Otherwise the factories throw an
+`AudioResampler.MAXIMUM_CHANNELS`, which is 8, the number of channels of a 7.1 layout. Otherwise the factories throw an
 `IllegalArgumentException`; a `null` format throws a `NullPointerException`, and an `IllegalStateException` is thrown
 if FFmpeg cannot set up the conversion. Channel counts map to FFmpeg's default layouts (mono, stereo, 2.1, quad, 5.0,
 5.1, 6.1, and 7.1). FFmpeg rematrixes channels according to their speaker positions; surround downmixing uses
@@ -151,7 +151,20 @@ into 48 kHz stereo floating point samples:
 
 ```java
   public static byte[] convertSurroundToStereo(final ByteBuffer surroundSamples) {
-    try (final AudioResampler resampler = AudioResampler.create(44_100, 6, SampleFormat.SIGNED_16_BIT, 48_000, 2, SampleFormat.FLOAT_32_BIT)) {
+    final int inputSampleRate = 44_100;
+    final int inputChannels = 6;
+    final int outputSampleRate = 48_000;
+    final int outputChannels = 2;
+    try (
+      final AudioResampler resampler = AudioResampler.create(
+        inputSampleRate,
+        inputChannels,
+        SampleFormat.SIGNED_16_BIT,
+        outputSampleRate,
+        outputChannels,
+        SampleFormat.FLOAT_32_BIT
+      )
+    ) {
       final byte[] converted = resampler.resample(surroundSamples);
       final byte[] tail = resampler.flush();
       final byte[] stereo = Arrays.copyOf(converted, converted.length + tail.length);
@@ -199,13 +212,12 @@ threads that must stay responsive, such as the main thread of a Minecraft server
 | Exception                     | Meaning                                                                                                   |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------|
 | `NullPointerException`        | The source is `null`.                                                                                     |
-| `IOException`                 | FFmpeg cannot be started, its output cannot be read, or the thread was interrupted while waiting for it. |
-| `ProcessException`            | FFmpeg exited with a non-zero exit code, for example because the source does not exist, cannot be decoded, or has no audio track. |
-| `java.io.UncheckedIOException` | The cache folder cannot be created.                                                                      |
+| `ProcessException`            | FFmpeg cannot be started, its output cannot be read, the thread was interrupted while waiting for it, or FFmpeg exited with a non-zero exit code, for example because the source does not exist, cannot be decoded, or has no audio track. |
+| `FileOperationException`      | The cache folder cannot be created.                                                                       |
 | `UnsatisfiedLinkError`        | The bundled FFmpeg is not available for this platform.                                                    |
 
-`IOException` is the only checked exception. `ProcessException` and `UncheckedIOException` are ordinary unchecked
-exceptions that extend `RuntimeException`, so `catch (RuntimeException exception)` catches them too. Catch
+None of them is checked. `ProcessException` and `FileOperationException` extend `MCAVException`, the unchecked base of
+every MCAV failure, so `catch (MCAVException exception)` catches both. Catch
 `ProcessException` (in `me.brandonli.mcav.utils.runtime`) explicitly if you want to handle a source that FFmpeg cannot
 convert:
 
@@ -218,9 +230,7 @@ convert:
       final Path oggFile = AudioExtractor.extractOggVorbis(media);
       // ... use the Ogg Vorbis file, then delete it
     } catch (final ProcessException exception) {
-      // the source does not exist, cannot be decoded, or has no audio track
-    } catch (final IOException exception) {
-      // FFmpeg could not be run
+      // FFmpeg could not be run, or the source does not exist, cannot be decoded, or has no audio track
     }
   });
 ```

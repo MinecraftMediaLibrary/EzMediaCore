@@ -47,14 +47,21 @@ import org.slf4j.LoggerFactory;
  *
  * <p>While MCAV is installed, a {@link NativeHeapTrimmer} hands the memory the C library keeps free back to the system
  * once a minute, on Linux.
+ *
+ * <p>This class is thread-safe.
+ *
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install();
+ * // at shutdown
+ * api.release();
+ * }
+ *
+ * @since 1.0.0
  */
 public final class MCAV implements MCAVApi {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MCAV.class);
-
-  private static final String BUILDING_PALETTE = "Building the map color lookup table...";
-
-  private static final String PALETTE_BUILT = "Map color lookup table built in {} ms";
 
   private final DependencyLoader dependencyLoader;
   private final ModuleLoader moduleLoader;
@@ -72,13 +79,6 @@ public final class MCAV implements MCAVApi {
     this(defaultDependencyLoader, defaultModuleLoader, sharedGuard);
   }
 
-  /**
-   * Creates an instance that installs through the specified loaders.
-   *
-   * @param dependencyLoader loads the natives and installs the optional programs
-   * @param moduleLoader     starts and stops the modules
-   * @param guard            records which programs are still being prepared, for the features that consult it
-   */
   @VisibleForTesting
   MCAV(final DependencyLoader dependencyLoader, final ModuleLoader moduleLoader, final CapabilityGuard guard) {
     this.dependencyLoader = dependencyLoader;
@@ -93,29 +93,52 @@ public final class MCAV implements MCAVApi {
    * Creates a new, uninstalled instance of the library. Call {@link MCAVApi#install(Class[])} before using it.
    *
    * @return a new instance of the library
+   * @since 1.0.0
    */
   public static MCAVApi api() {
     return new MCAV();
   }
 
   /**
-   * {@inheritDoc}
+   * Checks whether an optional capability is available right now in this installation, which depends on the platform and on whether the
+   * program behind it could be installed. A capability that is still being prepared in the background is not available yet; wait for it
+   * with {@link #whenCapabilityReady(Capability)}.
+   *
+   * @param capability the capability to check
+   * @return true if the capability is available
+   * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   @Override
   public boolean hasCapability(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.isAvailable(capability);
   }
 
   /**
-   * {@inheritDoc}
+   * Returns a future that completes once a capability of this installation is ready, without polling. It completes with true when the
+   * capability is available, and with false when it cannot be provided: the system does not support it, its installation failed, or {@link
+   * #release()} cancelled the installation first. Once the future completed with true, {@link #hasCapability(Capability)} reports the
+   * capability as available for that installation until release. The returned future is separate from the installation's internal future:
+   * completing or cancelling it does not change or cancel preparation.
+   *
+   * <p>A capability that is not prepared in the background, or whose preparation already finished, gets a future
+   * that is complete already. Callbacks attached to the future never run on the installation threads of the library,
+   * so they may call any method of the library, including {@link #release()}.
+   *
+   * @param capability the capability to wait for
+   * @return a future that completes with whether the capability is available
+   * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   @Override
   public CompletableFuture<Boolean> whenCapabilityReady(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.whenReady(capability);
   }
@@ -123,22 +146,37 @@ public final class MCAV implements MCAVApi {
   private BackgroundInstallation requireInstalled() {
     final BackgroundInstallation installation = this.background;
     if (installation == null) {
-      throw new MCAVLoadingException("MCAV has not been installed yet, call install() first");
+      throw new MCAVLoadingException("MCAV has not been installed yet, call install() first!");
     }
+
     return installation;
   }
 
   /**
-   * {@inheritDoc}
+   * Installs the library and starts the specified modules on this instance, which can be installed only once. This method returns once the
+   * JavaCV natives are loaded, the modules are started, and the lookup tables are built; VLC and yt-dlp are prepared in the background
+   * afterward, see {@link #whenCapabilityReady(Capability)}.
+   *
+   * <p>It may be called once per release: calling it again while the library is installed, or while another thread
+   * is installing it, fails. After {@link #release()}, or after an installation that failed, the library can be
+   * installed again.
+   *
+   * @param modules a non-null array of non-null module classes implementing {@link MCAVModule}, with
+   *                accessible no-argument constructors; duplicates are started once and an empty array is allowed
+   * @throws MCAVLoadingException if the library cannot be installed, is installed already, or is being installed by
+   *                              another thread
    * @throws NullPointerException if {@code modules} is null
+   * @since 1.0.0
    */
   @Override
   public void install(final Class<?>... modules) {
-    Preconditions.checkNotNull(modules, "Modules must not be null");
+    Preconditions.checkNotNull(modules, "Modules must not be null!");
+
     final boolean claimed = this.installing.compareAndSet(false, true);
     if (!claimed) {
-      throw new MCAVLoadingException("MCAV has already been installed");
+      throw new MCAVLoadingException("MCAV has already been installed!");
     }
+
     // release() takes this lock and must wait for startup or installation failure.
     synchronized (this.lifecycleLock) {
       this.runInstallation(modules);
@@ -160,8 +198,9 @@ public final class MCAV implements MCAVApi {
       this.installing.set(false);
       final Throwable cause = exception.getCause();
       final Throwable failure = cause == null ? exception : cause;
-      final String message = failure.getMessage();
-      throw new MCAVLoadingException("MCAV failed to install: " + message, failure);
+      final String reason = failure.getMessage();
+      final String message = "MCAV failed to install because of \"%s\"!".formatted(reason);
+      throw new MCAVLoadingException(message, failure);
     }
   }
 
@@ -172,13 +211,26 @@ public final class MCAV implements MCAVApi {
   }
 
   private static void loadPalette() {
-    LOGGER.info(BUILDING_PALETTE);
+    LOGGER.info("Building the map color lookup table.");
     final long start = System.currentTimeMillis();
     DitherPalette.init();
     final long end = System.currentTimeMillis();
-    LOGGER.info(PALETTE_BUILT, end - start);
+    LOGGER.info("Map color lookup table built in {} ms.", end - start);
   }
 
+  /**
+   * Stops all modules this instance started and releases the resources of the library. Media players that are still running should be
+   * released before calling this method.
+   *
+   * <p>If another thread is installing the library, this method waits for that installation to finish and then
+   * releases it. A background preparation of VLC or yt-dlp that is still running is cancelled rather than waited for:
+   * its download is interrupted, its temporary file is deleted, and its thread has ended when this method returns,
+   * unless it ignores the interruption for more than ten seconds, which is logged. The futures of
+   * {@link #whenCapabilityReady(Capability)} for the cancelled programs complete with false. Releasing a library that
+   * is not installed does nothing.
+   *
+   * @since 1.0.0
+   */
   @Override
   public void release() {
     synchronized (this.lifecycleLock) {
@@ -186,6 +238,7 @@ public final class MCAV implements MCAVApi {
       if (installation == null) {
         return;
       }
+
       this.background = null;
       // the installation threads never take the lifecycle lock, so waiting for them here cannot deadlock
       installation.cancel();
@@ -196,22 +249,24 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Checks whether MCAV trims the native heap, which it does while it is installed on Linux.
+   * Returns a module that {@link #install(Class[])} started, looked up by its class.
    *
-   * @return true if a trimmer runs
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
+   * @return the module instance
+   * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
+   * @throws NullPointerException                     if {@code moduleClass} is null
+   * @since 1.0.0
    */
+  @Override
+  public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
+    Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
+
+    return this.moduleLoader.getModule(moduleClass);
+  }
+
   @VisibleForTesting
   boolean isTrimmingNativeHeap() {
     return this.trimmer.isTrimming();
-  }
-
-  /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code moduleClass} is null
-   */
-  @Override
-  public <T extends MCAVModule> T getModule(final Class<T> moduleClass) {
-    Preconditions.checkNotNull(moduleClass, "Module class must not be null");
-    return this.moduleLoader.getModule(moduleClass);
   }
 }

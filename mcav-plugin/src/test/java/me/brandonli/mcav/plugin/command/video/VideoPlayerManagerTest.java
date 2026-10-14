@@ -57,7 +57,7 @@ import me.brandonli.mcav.MCAVApi;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
-import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCV;
+import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCv;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.VolumeFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FunctionalVideoFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -843,7 +843,7 @@ final class VideoPlayerManagerTest {
   @Test
   void playsAgainOnlyADecodedVideoThatEndedWhileLooping() {
     stubLoopWatcher();
-    final AbstractVideoPlayerCV decoded = mock(AbstractVideoPlayerCV.class);
+    final AbstractVideoPlayerCv decoded = mock(AbstractVideoPlayerCv.class);
     this.manager.setPlayer(decoded);
     this.manager.restartEnded();
     this.manager.setLooping(true);

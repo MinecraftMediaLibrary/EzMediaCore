@@ -30,6 +30,10 @@ import org.bytedeco.opencv.opencv_core.Rect;
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}. A player that refills the frame at the size of
  * the video every frame gets the spare back, so cropping allocates no frame-sized matrix per frame once the sizes are
  * settled. The filter keeps no state besides its rectangle, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class CropFilter extends MatVideoFilter {
 
@@ -46,10 +50,12 @@ public class CropFilter extends MatVideoFilter {
    * @param width  the width of the rectangle, which must be positive
    * @param height the height of the rectangle, which must be positive
    * @throws IllegalArgumentException if the origin is negative or either size is nonpositive
+   * @since 1.0.0
    */
   public CropFilter(final int left, final int top, final int width, final int height) {
-    Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative");
-    Preconditions.checkArgument(width > 0 && height > 0, "Crop size must be positive");
+    Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative!");
+    Preconditions.checkArgument(width > 0 && height > 0, "Crop size must be positive!");
+
     this.left = left;
     this.top = top;
     this.width = width;
@@ -63,6 +69,7 @@ public class CropFilter extends MatVideoFilter {
    * @param image the frame to crop
    * @return true if the frame was cropped, false if the rectangle lies outside of the frame or covers all of it and
    *     the frame was left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -73,13 +80,16 @@ public class CropFilter extends MatVideoFilter {
     if (clampedWidth <= 0 || clampedHeight <= 0) {
       return false;
     }
+
     final boolean wholeFrame = this.left == 0 && this.top == 0 && clampedWidth == frameWidth && clampedHeight == frameHeight;
     if (wholeFrame) {
       return false;
     }
+
     try (final Rect bounds = new Rect(this.left, this.top, clampedWidth, clampedHeight)) {
       image.transformMat((source, cropped) -> copyRegion(source, bounds, cropped));
     }
+
     return true;
   }
 
@@ -96,9 +106,10 @@ public class CropFilter extends MatVideoFilter {
    * @param mat the matrix of the frame
    * @return never returns normally
    * @throws UnsupportedOperationException always
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    throw new UnsupportedOperationException("Cropping cannot be done in place");
+    throw new UnsupportedOperationException("Cropping cannot be done in place!");
   }
 }

@@ -37,11 +37,11 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.StevensonArceDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.StuckiDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDitherImpl;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.XoroshiroRandomProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import net.jqwik.api.Arbitraries;
@@ -54,16 +54,11 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the dithering algorithms for every image and every palette, rather than the gradients and solid colors
- * the examples use: every output pixel is a color of the palette, the palette index {@code ditherIntoBytes} returns
- * names exactly the color {@code dither} writes, and both hold for rows scanned in either direction.
- */
 final class DitherPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_WIDTH = 48;
-  private static final int MAX_HEIGHT = 32;
+  private static final int MAXIMUM_WIDTH = 48;
+  private static final int MAXIMUM_HEIGHT = 32;
 
   private static final List<DitherPalette> PALETTES = List.of(
     DitherPalette.DEFAULT_MAP_PALETTE,
@@ -73,10 +68,8 @@ final class DitherPropertyTest {
     DitherPalette.colors(0xFF808080, 0xFF808080, 0xFFFF0000)
   );
 
-  /**
-   * Every algorithm the library ships, created fresh for a palette; the random one draws from a seeded generator, so
-   * two instances make the same choices.
-   */
+  // Every algorithm the library ships, created fresh for a palette; the random one draws from a seeded generator, so
+  // two instances make the same choices.
   private static final List<NamedAlgorithm> ALGORITHMS = List.of(
     new NamedAlgorithm("Floyd-Steinberg", FloydDither::new),
     new NamedAlgorithm("Filter Lite", FilterLiteDither::new),
@@ -86,24 +79,26 @@ final class DitherPropertyTest {
     new NamedAlgorithm("Stucki", StuckiDither::new),
     new NamedAlgorithm("Stevenson-Arce", StevensonArceDither::new),
     new NamedAlgorithm("temporal Floyd-Steinberg", TemporalFloydSteinbergDither::new),
-    new NamedAlgorithm("nearest", NearestDitherImpl::new),
+    new NamedAlgorithm("nearest", ColorMapNearestDither::new),
     new NamedAlgorithm("ordered 8x8", DitherPropertyTest::createOrdered),
     new NamedAlgorithm("random", DitherPropertyTest::createRandom)
   );
 
   private static DitherAlgorithm createOrdered(final DitherPalette palette) {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, BayerDither.NORMAL_8X8_MAX, PixelMapper.NORMAL_STRENGTH);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(
+      BayerDither.NORMAL_8X8,
+      BayerDither.NORMAL_8X8_MAXIMUM,
+      PixelMapper.NORMAL_STRENGTH
+    );
     return new OrderedDither(palette, mapper);
   }
 
   private static DitherAlgorithm createRandom(final DitherPalette palette) {
     final XoroshiroRandomProvider random = new XoroshiroRandomProvider(42L);
-    return new RandomDitherImpl(palette, 64, random);
+    return new UniformNoiseDither(palette, 64, random);
   }
 
-  /**
-   * Finds every kernel the library ships as a constant, so a kernel added later is checked as well.
-   */
+  // Finds every kernel the library ships as a constant, so a kernel added later is checked as well.
   private static List<Field> kernelConstants() {
     final List<Field> kernels = new ArrayList<>();
     for (final Field field : DiffusionKernel.class.getFields()) {
@@ -114,6 +109,7 @@ final class DitherPropertyTest {
         kernels.add(field);
       }
     }
+
     return kernels;
   }
 
@@ -124,7 +120,7 @@ final class DitherPropertyTest {
   }
 
   @Property(seed = SEED, generation = GenerationMode.EXHAUSTIVE)
-  void everyKernelSpreadsTheWholeErrorExceptAtkinsonWhichSpreadsThreeQuarters(@ForAll("kernels") final Field constant)
+  void shouldSpreadTheWholeErrorWithEveryKernelExceptAtkinsonWhichSpreadsThreeQuarters(@ForAll("kernels") final Field constant)
     throws IllegalAccessException {
     final DiffusionKernel kernel = (DiffusionKernel) constant.get(null);
     final int divisor = kernel.getDivisor();
@@ -132,6 +128,7 @@ final class DitherPropertyTest {
     for (int tap = 0; tap < kernel.getTapCount(); tap++) {
       weights += kernel.getWeight(tap);
     }
+
     final boolean atkinson = kernel == DiffusionKernel.ATKINSON;
     final long expected = atkinson ? (divisor * 3L) / 4 : divisor;
 
@@ -142,13 +139,13 @@ final class DitherPropertyTest {
   Arbitrary<DitherCase> cases() {
     final Arbitrary<NamedAlgorithm> algorithms = Arbitraries.of(ALGORITHMS);
     final Arbitrary<DitherPalette> palettes = Arbitraries.of(PALETTES);
-    final Arbitrary<Integer> widths = between(1, MAX_WIDTH);
-    final Arbitrary<Integer> heights = between(1, MAX_HEIGHT);
+    final Arbitrary<Integer> widths = between(1, MAXIMUM_WIDTH);
+    final Arbitrary<Integer> heights = between(1, MAXIMUM_HEIGHT);
     final IntegerArbitrary colors = Arbitraries.integers();
     final Arbitrary<Integer> extremes = Arbitraries.of(0, -1, 0xFF000000, 0x00FFFFFF, 0xFFFFFFFF, 0x80FF00FF);
     final Arbitrary<Integer> pixel = Arbitraries.oneOf(colors, extremes);
     final ListArbitrary<Integer> pixelList = pixel.list();
-    final ListArbitrary<Integer> pixels = pixelList.ofSize(MAX_WIDTH * MAX_HEIGHT);
+    final ListArbitrary<Integer> pixels = pixelList.ofSize(MAXIMUM_WIDTH * MAXIMUM_HEIGHT);
     final Combinators.Combinator5<NamedAlgorithm, DitherPalette, Integer, Integer, List<Integer>> cases = Combinators.combine(
       algorithms,
       palettes,
@@ -159,17 +156,15 @@ final class DitherPropertyTest {
     return cases.as(DitherCase::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Property(seed = SEED)
-  void everyPixelBecomesAColorOfThePaletteAndTheIndexNamesIt(@ForAll("cases") final DitherCase ditherCase) {
+  void shouldTurnEveryPixelIntoAColorOfThePaletteThatTheIndexNames(@ForAll("cases") final DitherCase ditherCase) {
     final int[] image = ditherCase.createImage();
     final int[] mirrored = mirror(image, ditherCase.getWidth());
 
@@ -192,6 +187,7 @@ final class DitherPropertyTest {
     final int reserved = palette.getReservedIndices();
     final int size = palette.getSize();
     assertEquals(image.length, indices.length, "one index per pixel");
+
     for (int pixel = 0; pixel < image.length; pixel++) {
       final int index = indices[pixel] & 0xFF;
       final int position = pixel;
@@ -219,12 +215,10 @@ final class DitherPropertyTest {
       final int column = pixel % width;
       mirrored[row * width + width - 1 - column] = image[pixel];
     }
+
     return mirrored;
   }
 
-  /**
-   * An algorithm with a name for the report.
-   */
   private static final class NamedAlgorithm {
 
     private final String name;
@@ -245,9 +239,6 @@ final class DitherPropertyTest {
     }
   }
 
-  /**
-   * An algorithm, a palette and an image of random pixels.
-   */
   private static final class DitherCase {
 
     private final NamedAlgorithm algorithm;
@@ -268,20 +259,21 @@ final class DitherPropertyTest {
       return this.algorithm.create(this.palette);
     }
 
+    private int[] createImage() {
+      final int[] image = new int[this.width * this.height];
+      for (int pixel = 0; pixel < image.length; pixel++) {
+        image[pixel] = this.pixels.get(pixel);
+      }
+
+      return image;
+    }
+
     private DitherPalette getPalette() {
       return this.palette;
     }
 
     int getWidth() {
       return this.width;
-    }
-
-    private int[] createImage() {
-      final int[] image = new int[this.width * this.height];
-      for (int pixel = 0; pixel < image.length; pixel++) {
-        image[pixel] = this.pixels.get(pixel);
-      }
-      return image;
     }
 
     @Override

@@ -21,14 +21,19 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 
 /**
  * The slot of a player that holds its video pipeline. While nothing is attached, frames are decoded and dropped.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface VideoAttachableCallback extends AttachableCallback<VideoPipelineStep> {
   /**
    * Creates an empty slot.
    *
    * @return the slot
+   * @since 1.0.0
    */
   static VideoAttachableCallback create() {
-    return new VideoAttachableCallbackImpl();
+    return new DefaultVideoAttachableCallback();
   }
 }

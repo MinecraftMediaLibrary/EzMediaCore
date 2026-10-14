@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.lang.foreign.MemorySegment;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -59,13 +60,28 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests {@link DeclaredImageSize}: the size it reads must be the size OpenCV decodes, for every format OpenCV decodes,
- * so that a header declaring a huge size is refused before OpenCV allocates it.
- */
+// Tests DeclaredImageSize: the size it reads must be the size OpenCV decodes, for every format OpenCV decodes, so that
+// a header declaring a huge size is refused before OpenCV allocates it.
 final class DeclaredImageSizeTest {
 
-  private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/decodesAnImageOrRefusesTheBytes";
+  private static final String SEEDS = "/me/brandonli/mcav/media/image/ImageDecodeFuzzTestInputs/shouldDecodeAnImageOrRefuseTheBytes";
+  private static final String CRASH_PREFIX = "crash-";
+
+  private static final String MISSING_FILE_NAME = "missing.png";
+  private static final String LARGE_FILE_NAME = "large.png";
+  private static final String TEXT_FILE_NAME = "text.png";
+  private static final String EMPTY_FILE_NAME = "empty.png";
+
+  private static final String PGM_EXTENSION = ".pgm";
+
+  private static final String NOT_AN_IMAGE = "not an image";
+
+  private static final String SIZE_SEPARATOR = "x";
+  private static final String DECLARED_LARGE_SIZE = "30000x20000";
+
+  private static final int FILL_BLUE = 10;
+  private static final int FILL_GREEN = 200;
+  private static final int FILL_RED = 30;
 
   @TempDir
   private Path directory;
@@ -81,6 +97,7 @@ final class DeclaredImageSizeTest {
         output.writeBytes((byte[]) part);
       }
     }
+
     return output.toByteArray();
   }
 
@@ -89,6 +106,7 @@ final class DeclaredImageSizeTest {
     for (int index = 0; index < count; index++) {
       result[index] = (byte) (value >>> (8 * index));
     }
+
     return result;
   }
 
@@ -97,6 +115,7 @@ final class DeclaredImageSizeTest {
     for (int index = 0; index < count; index++) {
       result[count - 1 - index] = (byte) (value >>> (8 * index));
     }
+
     return result;
   }
 
@@ -105,26 +124,31 @@ final class DeclaredImageSizeTest {
   }
 
   private static String sizeOf(final @Nullable Size size) {
-    return size == null ? "none" : size.width() + "x" + size.height();
+    return size == null ? "none" : size.width() + SIZE_SEPARATOR + size.height();
   }
 
-  private static byte[] tiff(final boolean little, final boolean big) {
+  private static byte[] tiff(final ByteOrder order, final TiffLayout layout) {
+    final boolean big = layout == TiffLayout.BIG;
     final int entrySize = big ? 20 : 12;
     final int countSize = big ? 8 : 2;
     final int directory = big ? 16 : 8;
     final int entries = 8;
     final int pixels = directory + countSize + entries * entrySize + (big ? 8 : 4);
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
-    output.writeBytes(little ? "II".getBytes(StandardCharsets.ISO_8859_1) : "MM".getBytes(StandardCharsets.ISO_8859_1));
-    output.writeBytes(number(big ? 43 : 42, 2, little));
+    output.writeBytes(
+      order == ByteOrder.LITTLE_ENDIAN ? "II".getBytes(StandardCharsets.ISO_8859_1) : "MM".getBytes(StandardCharsets.ISO_8859_1)
+    );
+    output.writeBytes(number(big ? 43 : 42, 2, order));
+
     if (big) {
-      output.writeBytes(number(8, 2, little));
-      output.writeBytes(number(0, 2, little));
-      output.writeBytes(number(directory, 8, little));
+      output.writeBytes(number(8, 2, order));
+      output.writeBytes(number(0, 2, order));
+      output.writeBytes(number(directory, 8, order));
     } else {
-      output.writeBytes(number(directory, 4, little));
+      output.writeBytes(number(directory, 4, order));
     }
-    output.writeBytes(number(entries, countSize, little));
+
+    output.writeBytes(number(entries, countSize, order));
     final long[][] tags = {
       { 256, 3, 1, 3 },
       { 257, 3, 1, 2 },
@@ -136,29 +160,33 @@ final class DeclaredImageSizeTest {
       { 279, 4, 1, 18 },
     };
     for (final long[] tag : tags) {
-      output.writeBytes(number(tag[0], 2, little));
-      output.writeBytes(number(tag[1], 2, little));
-      output.writeBytes(number(tag[2], big ? 8 : 4, little));
+      output.writeBytes(number(tag[0], 2, order));
+      output.writeBytes(number(tag[1], 2, order));
+      output.writeBytes(number(tag[2], big ? 8 : 4, order));
       final int width = tag[1] == 3 ? 2 : 4;
-      output.writeBytes(number(tag[3], width, little));
+      output.writeBytes(number(tag[3], width, order));
       output.writeBytes(new byte[(big ? 8 : 4) - width]);
     }
+
     output.writeBytes(new byte[big ? 8 : 4]);
     for (int index = 0; index < 18; index++) {
       output.write(index * 13);
     }
+
     return output.toByteArray();
   }
 
-  private static byte[] number(final long value, final int count, final boolean little) {
-    return little ? littleEndian(value, count) : bigEndian(value, count);
+  private static byte[] number(final long value, final int count, final ByteOrder order) {
+    return order == ByteOrder.LITTLE_ENDIAN ? littleEndian(value, count) : bigEndian(value, count);
   }
 
   private static Size decodedByOpenCv(final byte[] encoded) {
     try (final BytePointer pointer = new BytePointer(encoded); final Mat wrapper = new Mat(pointer)) {
       final Mat decoded = opencv_imgcodecs.imdecode(wrapper, opencv_imgcodecs.IMREAD_COLOR);
       try {
-        assertFalse(decoded.empty(), "OpenCV decodes the sample");
+        final boolean empty = decoded.empty();
+        assertFalse(empty, "OpenCV decodes the sample");
+
         return new Size(decoded.cols(), decoded.rows());
       } finally {
         decoded.release();
@@ -169,19 +197,24 @@ final class DeclaredImageSizeTest {
   private static void assertDeclaresWhatOpenCvDecodes(final String name, final byte[] encoded) {
     final Size decoded = decodedByOpenCv(encoded);
     final Size declared = read(encoded);
-    assertEquals(sizeOf(decoded), sizeOf(declared), name);
+    final String declaredSize = sizeOf(declared);
+    assertEquals(sizeOf(decoded), declaredSize, name);
+
     final long pixels = decoded.width() * decoded.height();
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(encoded, pixels), name);
+
     final long below = Math.max(1, pixels - 1);
     final boolean refusedBelow = pixels > 1;
-    assertEquals(refusedBelow, refuses(encoded, below), name);
+    final boolean refused = refuses(encoded, below);
+    assertEquals(refusedBelow, refused, name);
   }
 
   private static boolean refuses(final byte[] encoded, final long limit) {
     try {
       DeclaredImageSize.checkBytes(encoded, limit);
+
       return false;
-    } catch (final IllegalArgumentException refused) {
+    } catch (final IllegalArgumentException exception) {
       return true;
     }
   }
@@ -203,44 +236,57 @@ final class DeclaredImageSizeTest {
       ".gif"
     );
     final int[][] sizes = { { 5, 7 }, { 300, 2 }, { 1, 1 } };
-    return extensions
-      .stream()
-      .flatMap(extension ->
-        Stream.of(sizes).flatMap(size ->
-          Stream.of(opencv_core.CV_8UC1, opencv_core.CV_8UC3).map(type -> Arguments.of(extension, size[0], size[1], type))
-        )
-      );
+    return extensions.stream().flatMap(extension -> openCvSamplesOfExtension(extension, sizes));
+  }
+
+  private static Stream<Arguments> openCvSamplesOfExtension(final String extension, final int[][] sizes) {
+    return Stream.of(sizes).flatMap(size -> openCvSamplesOfSize(extension, size));
+  }
+
+  private static Stream<Arguments> openCvSamplesOfSize(final String extension, final int[] size) {
+    return Stream.of(opencv_core.CV_8UC1, opencv_core.CV_8UC3).map(type -> Arguments.of(extension, size[0], size[1], type));
   }
 
   @ParameterizedTest
   @MethodSource("openCvSamples")
-  void everyFormatOpenCvWritesDeclaresTheSizeOpenCvDecodes(final String extension, final int width, final int height, final int type) {
+  void shouldDeclareTheSizeOpenCvDecodesForEveryFormatOpenCvWrites(
+    final String extension,
+    final int width,
+    final int height,
+    final int type
+  ) {
     final boolean gray = type == opencv_core.CV_8UC1;
     final boolean colorOnly = extension.equals(".ppm") || extension.equals(".gif");
-    final boolean grayOnly = extension.equals(".pgm");
+    final boolean grayOnly = extension.equals(PGM_EXTENSION);
     if ((gray && colorOnly) || (!gray && grayOnly)) {
       return;
     }
-    try (final Mat picture = new Mat(height, width, type, new Scalar(10, 200, 30, 0)); final BytePointer output = new BytePointer()) {
+
+    try (
+      final Mat picture = new Mat(height, width, type, new Scalar(FILL_BLUE, FILL_GREEN, FILL_RED, 0));
+      final BytePointer output = new BytePointer()
+    ) {
       final boolean written = opencv_imgcodecs.imencode(extension, picture, output);
       assertTrue(written, extension);
       final byte[] encoded = new byte[(int) output.limit()];
       output.get(encoded);
-      assertDeclaresWhatOpenCvDecodes(extension + " " + width + "x" + height, encoded);
+      assertDeclaresWhatOpenCvDecodes(extension + " " + width + SIZE_SEPARATOR + height, encoded);
     }
   }
 
   @Test
-  void losslessWebpAndTextNetpbmDeclareTheSizeOpenCvDecodes() {
+  void shouldDeclareTheSizeOpenCvDecodesForLosslessWebpAndTextNetpbm() {
     try (final Mat picture = new Mat(7, 5, opencv_core.CV_8UC1, new Scalar(90)); final BytePointer output = new BytePointer()) {
       try (final IntPointer lossless = new IntPointer(opencv_imgcodecs.IMWRITE_WEBP_QUALITY, 101)) {
-        assertTrue(opencv_imgcodecs.imencode(".webp", picture, output, lossless));
+        final boolean encoded = opencv_imgcodecs.imencode(".webp", picture, output, lossless);
+        assertTrue(encoded);
       }
       final byte[] webp = new byte[(int) output.limit()];
       output.get(webp);
       assertDeclaresWhatOpenCvDecodes("lossless webp", webp);
       try (final IntPointer text = new IntPointer(opencv_imgcodecs.IMWRITE_PXM_BINARY, 0)) {
-        assertTrue(opencv_imgcodecs.imencode(".pgm", picture, output, text));
+        final boolean encoded = opencv_imgcodecs.imencode(PGM_EXTENSION, picture, output, text);
+        assertTrue(encoded);
       }
       final byte[] pgm = new byte[(int) output.limit()];
       output.get(pgm);
@@ -249,12 +295,13 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void aStuffedZeroBetweenMarkersIsSkippedAsLibjpegSkipsIt() {
+  void shouldSkipAStuffedZeroBetweenMarkersAsLibjpegSkipsIt() {
     try (
-      final Mat picture = new Mat(2, 300, opencv_core.CV_8UC3, new Scalar(10, 200, 30, 0));
+      final Mat picture = new Mat(2, 300, opencv_core.CV_8UC3, new Scalar(FILL_BLUE, FILL_GREEN, FILL_RED, 0));
       final BytePointer output = new BytePointer()
     ) {
-      assertTrue(opencv_imgcodecs.imencode(".jpg", picture, output));
+      final boolean encoded = opencv_imgcodecs.imencode(".jpg", picture, output);
+      assertTrue(encoded);
       final byte[] jpeg = new byte[(int) output.limit()];
       output.get(jpeg);
       final int decoy = 4 + (((jpeg[2] & 0xFF) << 8) | (jpeg[3] & 0xFF));
@@ -268,26 +315,37 @@ final class DeclaredImageSizeTest {
   }
 
   @Test
-  void theFuzzSeedsDeclareTheSizeOpenCvDecodes() throws IOException, URISyntaxException {
+  void shouldDeclareTheSizeOpenCvDecodesForTheFuzzSeeds() throws IOException, URISyntaxException {
     final URL seeds = DeclaredImageSizeTest.class.getResource(SEEDS);
     assertTrue(seeds != null, "the seed folder is on the class path");
+
     final Path folder = Path.of(seeds.toURI());
     try (final Stream<Path> files = Files.list(folder)) {
-      final List<Path> samples = files.sorted().toList();
-      assertEquals(10, samples.size());
+      final Stream<Path> seedFiles = files.filter(DeclaredImageSizeTest::isSeed);
+      final List<Path> samples = seedFiles.sorted().toList();
+      final int sampleCount = samples.size();
+      assertEquals(10, sampleCount);
+
       for (final Path sample : samples) {
         assertDeclaresWhatOpenCvDecodes(sample.getFileName().toString(), Files.readAllBytes(sample));
       }
     }
   }
 
+  private static boolean isSeed(final Path sample) {
+    final Path fileName = sample.getFileName();
+    final String name = fileName.toString();
+    return !name.startsWith(CRASH_PREFIX);
+  }
+
   @Test
-  void filesImageIoWritesDeclareTheSizeOpenCvDecodes() throws IOException {
+  void shouldDeclareTheSizeOpenCvDecodesForFilesImageIoWrites() throws IOException {
     final BufferedImage picture = new BufferedImage(6, 4, BufferedImage.TYPE_3BYTE_BGR);
     picture.setRGB(2, 1, 0x3366CC);
     for (final String format : List.of("png", "jpg", "bmp", "gif", "tiff")) {
       assertDeclaresWhatOpenCvDecodes(format, Images.encode(picture, format));
     }
+
     final ImageWriter writer = ImageIO.getImageWritersByFormatName("bmp").next();
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
     try (final ImageOutputStream stream = ImageIO.createImageOutputStream(output)) {
@@ -299,20 +357,23 @@ final class DeclaredImageSizeTest {
     } finally {
       writer.dispose();
     }
+
     final byte[] bmp = output.toByteArray();
-    assertTrue(bmp[25] < 0, "the height of a top-down BMP is negative");
+    final boolean negativeHeight = bmp[25] < 0;
+    assertTrue(negativeHeight, "the height of a top-down BMP is negative");
     assertDeclaresWhatOpenCvDecodes("top-down bmp", bmp);
   }
 
   @Test
-  void tiffsOfBothByteOrdersAndBigTiffsDeclareTheSizeOpenCvDecodes() {
-    assertDeclaresWhatOpenCvDecodes("little-endian tiff", tiff(true, false));
-    assertDeclaresWhatOpenCvDecodes("big-endian tiff", tiff(false, false));
-    assertDeclaresWhatOpenCvDecodes("little-endian bigtiff", tiff(true, true));
-    assertDeclaresWhatOpenCvDecodes("big-endian bigtiff", tiff(false, true));
+  void shouldDeclareTheSizeOpenCvDecodesForTiffsOfBothByteOrdersAndBigTiffs() {
+    assertDeclaresWhatOpenCvDecodes("little-endian tiff", tiff(ByteOrder.LITTLE_ENDIAN, TiffLayout.CLASSIC));
+    assertDeclaresWhatOpenCvDecodes("big-endian tiff", tiff(ByteOrder.BIG_ENDIAN, TiffLayout.CLASSIC));
+    assertDeclaresWhatOpenCvDecodes("little-endian bigtiff", tiff(ByteOrder.LITTLE_ENDIAN, TiffLayout.BIG));
+    assertDeclaresWhatOpenCvDecodes("big-endian bigtiff", tiff(ByteOrder.BIG_ENDIAN, TiffLayout.BIG));
   }
 
-  private static byte[] tiffEntry(final boolean big, final long tag, final long type, final long count, final long value) {
+  private static byte[] tiffEntry(final TiffLayout layout, final long tag, final long type, final long count, final long value) {
+    final boolean big = layout == TiffLayout.BIG;
     final int width = type == 3 ? 2 : type == 16 ? 8 : 4;
     final int field = big ? 8 : 4;
     return bytes(
@@ -330,6 +391,7 @@ final class DeclaredImageSizeTest {
     for (final byte[] entry : entries) {
       output.writeBytes(entry);
     }
+
     return output.toByteArray();
   }
 
@@ -507,7 +569,11 @@ final class DeclaredImageSizeTest {
       Arguments.of("pfm read like atoi", bytes("Pf\n+5 7abc\n1\n"), 5, 7),
       Arguments.of(
         "tiff",
-        classicTiff(tiffEntry(false, 254, 4, 1, 0), tiffEntry(false, 256, 3, 1, 30000), tiffEntry(false, 257, 4, 1, 20000)),
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 254, 4, 1, 0),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 30000),
+          tiffEntry(TiffLayout.CLASSIC, 257, 4, 1, 20000)
+        ),
         30000,
         20000
       ),
@@ -545,9 +611,9 @@ final class DeclaredImageSizeTest {
           littleEndian(42, 2),
           littleEndian(8, 4),
           littleEndian(2, 2),
-          tiffEntry(false, 256, 3, 1, 5),
-          tiffEntry(false, 257, 3, 1, 7),
-          tiffEntry(false, 256, 3, 1, 9)
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 9)
         ),
         5,
         7
@@ -563,9 +629,10 @@ final class DeclaredImageSizeTest {
 
   @ParameterizedTest
   @MethodSource("declaredSizes")
-  void readsTheSizeTheHeaderDeclares(final String name, final byte[] encoded, final long width, final long height) {
+  void shouldReadTheSizeTheHeaderDeclares(final String name, final byte[] encoded, final long width, final long height) {
     final Size size = read(encoded);
-    assertEquals(width + "x" + height, sizeOf(size), name);
+    final String declaredSize = sizeOf(size);
+    assertEquals(width + SIZE_SEPARATOR + height, declaredSize, name);
   }
 
   static Stream<Arguments> unreadableHeaders() {
@@ -683,16 +750,33 @@ final class DeclaredImageSizeTest {
       ),
       Arguments.of(
         "tiff with two widths",
-        classicTiff(tiffEntry(false, 256, 3, 1, 5), tiffEntry(false, 256, 3, 1, 9), tiffEntry(false, 257, 3, 1, 7))
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 9),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7)
+        )
       ),
       Arguments.of(
         "tiff with two lengths",
-        classicTiff(tiffEntry(false, 256, 3, 1, 5), tiffEntry(false, 257, 3, 1, 9), tiffEntry(false, 257, 3, 1, 7))
+        classicTiff(
+          tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 9),
+          tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7)
+        )
       ),
-      Arguments.of("tiff with a width of two values", classicTiff(tiffEntry(false, 256, 3, 2, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("tiff with a width in bytes", classicTiff(tiffEntry(false, 256, 1, 1, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("classic tiff with an eight-byte width", classicTiff(tiffEntry(false, 256, 16, 1, 5), tiffEntry(false, 257, 3, 1, 7))),
-      Arguments.of("tiff without its length", classicTiff(tiffEntry(false, 256, 3, 1, 5))),
+      Arguments.of(
+        "tiff with a width of two values",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 3, 2, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of(
+        "tiff with a width in bytes",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 1, 1, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of(
+        "classic tiff with an eight-byte width",
+        classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 16, 1, 5), tiffEntry(TiffLayout.CLASSIC, 257, 3, 1, 7))
+      ),
+      Arguments.of("tiff without its length", classicTiff(tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 5))),
       Arguments.of("pam with a width of 0 and another", bytes("P7\nWIDTH 0\nWIDTH 5\nHEIGHT 7\nENDHDR\n")),
       Arguments.of("pam with a height of 0 and another", bytes("P7\nWIDTH 5\nHEIGHT 0\nHEIGHT 7\nENDHDR\n")),
       Arguments.of("pam with a line one longer than its limit", bytes("P7\nWIDTH", " ".repeat(507), "5\nHEIGHT 7\nENDHDR\n")),
@@ -707,17 +791,20 @@ final class DeclaredImageSizeTest {
 
   @ParameterizedTest
   @MethodSource("unreadableHeaders")
-  void refusesBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
-    assertNull(read(encoded), name);
+  void shouldRefuseBytesWhoseHeaderItCannotRead(final String name, final byte[] encoded) {
+    final Size declared = read(encoded);
+    assertNull(declared, name);
+
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(encoded, 1L << 40)
     );
-    assertEquals("Bytes are not a supported image format", refused.getMessage(), name);
+    final String message = refused.getMessage();
+    assertEquals("Bytes are not a supported image format!", message, name);
   }
 
   @Test
-  void readsAnEightByteWidthOfABigTiff() {
-    final byte[] entries = bytes(tiffEntry(true, 256, 16, 1, 30000), tiffEntry(true, 257, 4, 1, 20000));
+  void shouldReadAnEightByteWidthOfABigTiff() {
+    final byte[] entries = bytes(tiffEntry(TiffLayout.BIG, 256, 16, 1, 30000), tiffEntry(TiffLayout.BIG, 257, 4, 1, 20000));
     final byte[] bigTiff = bytes(
       "II",
       littleEndian(43, 2),
@@ -727,94 +814,146 @@ final class DeclaredImageSizeTest {
       littleEndian(2, 8),
       entries
     );
-    assertEquals("30000x20000", sizeOf(read(bigTiff)));
+    final String declaredSize = sizeOf(read(bigTiff));
+    assertEquals(DECLARED_LARGE_SIZE, declaredSize);
   }
 
   @Test
-  void refusesAnImageLargerThanTheLimitWithoutDecodingIt() {
+  void shouldRefuseANetpbmWidthThatGrowsPastTheLargestIntOnlyByItsLastDigit() {
+    final byte[] largest = bytes("P6 2147483647 1\n");
+    final byte[] tooLong = bytes("P6 21474836470 1\n");
+
+    final String largestSize = sizeOf(read(largest));
+    final Size tooLongSize = read(tooLong);
+    assertEquals("2147483647x1", largestSize);
+    assertNull(tooLongSize);
+  }
+
+  @Test
+  void shouldReadOnlyTheTiffEntriesThatFitInTheDataWhole() {
+    final byte[] header = bytes("II", littleEndian(42, 2), littleEndian(0, 4), new byte[6]);
+    final byte[] entries = bytes(tiffEntry(TiffLayout.CLASSIC, 256, 3, 1, 30000), tiffEntry(TiffLayout.CLASSIC, 257, 4, 1, 20000));
+    final byte[] truncatedRepeat = littleEndian(256, 2);
+    final byte[] tiff = bytes(header, entries, truncatedRepeat);
+
+    final String declaredSize = sizeOf(read(tiff));
+    assertEquals(DECLARED_LARGE_SIZE, declaredSize);
+  }
+
+  @Test
+  void shouldRefuseAnImageLargerThanTheLimitWithoutDecodingIt() {
     final byte[] header = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(30000, 4), bigEndian(20000, 4));
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkBytes(header, 599_999_999)
     );
+    final String message = refused.getMessage();
     assertEquals(
-      "Image declares 30000x20000 pixels, more than the 599999999 pixels mcav decodes (the system property mcav.image.maxPixels raises the limit)",
-      refused.getMessage()
+      "Image size 30000x20000 exceeds the limit of 599999999 pixels that the system property mcav.image.maxPixels sets!",
+      message
     );
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(header, 600_000_000));
+
     final byte[] huge = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(4294967295L, 4), bigEndian(4294967295L, 4));
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkBytes(huge, Long.MAX_VALUE));
   }
 
   @Test
-  void aLimitOfZeroOrLessLeavesEveryImageToOpenCv() throws IOException {
-    final byte[] unknown = bytes("not an image");
+  void shouldLeaveEveryImageToOpenCvWithALimitOfZeroOrLess() throws IOException {
+    final byte[] unknown = bytes(NOT_AN_IMAGE);
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, 0));
     assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown, -1));
-    final Path missing = this.directory.resolve("missing.png");
+
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(missing, 0));
   }
 
   @Test
-  void checksFilesWithoutReadingThemWhole() throws IOException {
+  void shouldCheckFilesWithoutReadingThemWhole() throws IOException {
     final byte[] png = bytes(0x89, "PNG\r\n", 0x1A, "\n", bigEndian(13, 4), "IHDR", bigEndian(16, 4), bigEndian(16, 4), new byte[1 << 20]);
-    final Path file = this.directory.resolve("large.png");
+    final Path file = this.directory.resolve(LARGE_FILE_NAME);
     Files.write(file, png);
     assertDoesNotThrow(() -> DeclaredImageSize.checkFile(file, 256));
+
     final IllegalArgumentException tooLarge = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(file, 255));
-    assertTrue(tooLarge.getMessage().startsWith("Image declares 16x16 pixels"), tooLarge.getMessage());
-    final Path text = this.directory.resolve("text.png");
-    Files.writeString(text, "not an image");
+    final boolean namesTheSize = tooLarge.getMessage().startsWith("Image size 16x16 exceeds");
+    assertTrue(namesTheSize, tooLarge.getMessage());
+
+    final Path text = this.directory.resolve(TEXT_FILE_NAME);
+    Files.writeString(text, NOT_AN_IMAGE);
     final IllegalArgumentException unsupported = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(text, 256));
-    assertEquals("File is not a supported image: " + text, unsupported.getMessage());
-    final Path empty = this.directory.resolve("empty.png");
+    final String unsupportedMessage = unsupported.getMessage();
+    assertEquals("File " + text + " is not a supported image!", unsupportedMessage);
+
+    final Path empty = this.directory.resolve(EMPTY_FILE_NAME);
     Files.write(empty, new byte[0]);
     assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(empty, 256));
-    final Path missing = this.directory.resolve("missing.png");
+
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final IllegalArgumentException absent = assertThrows(IllegalArgumentException.class, () -> DeclaredImageSize.checkFile(missing, 256));
-    assertEquals("File is not a supported image: " + missing, absent.getMessage());
-    assertInstanceOf(NoSuchFileException.class, absent.getCause());
+    final String absentMessage = absent.getMessage();
+    assertEquals("File " + missing + " is not a supported image!", absentMessage);
+
+    final Throwable absentCause = absent.getCause();
+    assertInstanceOf(NoSuchFileException.class, absentCause);
+
     final IllegalArgumentException folder = assertThrows(IllegalArgumentException.class, () ->
       DeclaredImageSize.checkFile(this.directory, 256)
     );
-    assertInstanceOf(IOException.class, folder.getCause());
+    final Throwable folderCause = folder.getCause();
+    assertInstanceOf(IOException.class, folderCause);
   }
 
   @Test
-  void readsTheLimitFromItsSystemProperty() {
-    final String previous = System.getProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+  void shouldReadTheLimitFromItsSystemProperty() {
+    final String previous = System.getProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
     try {
-      System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
-      assertEquals(67_108_864L, DeclaredImageSize.limit());
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "123");
-      assertEquals(123L, DeclaredImageSize.limit());
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "a lot");
-      assertEquals(67_108_864L, DeclaredImageSize.limit());
-      final byte[] unknown = bytes("not an image");
-      System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, "0");
+      System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
+      final long defaultLimit = DeclaredImageSize.limit();
+      assertEquals(67_108_864L, defaultLimit);
+
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "123");
+      final long raisedLimit = DeclaredImageSize.limit();
+      assertEquals(123L, raisedLimit);
+
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "a lot");
+      final long fallbackLimit = DeclaredImageSize.limit();
+      assertEquals(67_108_864L, fallbackLimit);
+
+      final byte[] unknown = bytes(NOT_AN_IMAGE);
+      System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "0");
       assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown));
-      final Path missing = this.directory.resolve("missing.png");
+
+      final Path missing = this.directory.resolve(MISSING_FILE_NAME);
       assertDoesNotThrow(() -> DeclaredImageSize.checkFile(missing));
     } finally {
       if (previous == null) {
-        System.clearProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY);
+        System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
       } else {
-        System.setProperty(DeclaredImageSize.MAX_PIXELS_PROPERTY, previous);
+        System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, previous);
       }
     }
   }
 
   @Test
-  void treatsOnlyCWhitespaceAsSpace() {
+  void shouldTreatOnlyCWhitespaceAsSpace() {
     for (final int code : new int[] { ' ', '\t', '\n', 0x0B, '\f', '\r' }) {
-      assertTrue(DeclaredImageSize.isSpace(code), Integer.toString(code));
+      final boolean space = DeclaredImageSize.isSpace(code);
+      assertTrue(space, Integer.toString(code));
     }
+
     for (final int code : new int[] { -1, 0, 0x08, 0x0E, 0x1C, 'a', 0xA0 }) {
-      assertFalse(DeclaredImageSize.isSpace(code), Integer.toString(code));
+      final boolean space = DeclaredImageSize.isSpace(code);
+      assertFalse(space, Integer.toString(code));
     }
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(DeclaredImageSize.class);
+  }
+
+  private enum TiffLayout {
+    CLASSIC,
+    BIG,
   }
 }

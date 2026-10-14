@@ -23,9 +23,8 @@ import java.io.File
 abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
-        const val INLINE_MESSAGE =
-            "{}:{}: error: the message of {} is written inline; name it in a private static final String constant, " +
-                "with SLF4J placeholders for the arguments and no string concatenation"
+        const val CONCATENATED_MESSAGE =
+            "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead"
     }
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
@@ -36,9 +35,9 @@ abstract class LogMessagesTask : JavaLintTask() {
         }
     }
 
-    override fun diagnosticMessage(): String = INLINE_MESSAGE
+    override fun diagnosticMessage(): String = CONCATENATED_MESSAGE
 
-    override fun failureMessage(count: Int): String = "$count log calls with an inline message"
+    override fun failureMessage(count: Int): String = "$count log calls with a concatenated message"
 
-    override fun successMessage(fileCount: Int): String = "no log call with an inline message in $fileCount files\n"
+    override fun successMessage(fileCount: Int): String = "no log call with a concatenated message in $fileCount files\n"
 }

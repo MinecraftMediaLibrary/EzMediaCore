@@ -19,36 +19,104 @@ package me.brandonli.mcav.json.ytdlp.format;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.ReflectionAccessFilter;
+import com.google.gson.ReflectionAccessFilter.FilterResult;
+import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests the yt-dlp JSON model: {@link URLParseDump}, {@link Format}, {@link Fragment}, {@link Heatmap},
- * {@link HttpHeaders}, {@link Thumbnail}, {@link Version} and {@link DownloaderOptions}.
- */
 final class FormatModelTest {
 
   private static final double DELTA = 1.0e-9;
 
-  private static URLParseDump fixture() throws IOException {
-    try (final InputStream stream = FormatModelTest.class.getResourceAsStream("/ytdlp/video.json")) {
+  private static final String FIXTURE_RESOURCE = "/ytdlp/video.json";
+
+  private static final String THUMBNAIL_URL = "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg";
+  private static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)";
+  private static final int HTTP_CHUNK_SIZE = 10485760;
+
+  private static final int VIDEO_FORMAT_INDEX = 2;
+  private static final int VIDEO_WIDTH = 1920;
+  private static final int VIDEO_HEIGHT = 1080;
+  private static final double FRAMES_PER_SECOND = 29.97;
+  private static final String DYNAMIC_RANGE = "SDR";
+
+  private static final String AUDIO_CODEC = "opus";
+  private static final int SAMPLE_RATE = 48000;
+  private static final int AUDIO_CHANNELS = 2;
+  private static final String LANGUAGE = "en";
+
+  private static final List<Class<?>> MODELS = List.of(
+    DownloaderOptions.class,
+    Format.class,
+    Fragment.class,
+    Heatmap.class,
+    HttpHeaders.class,
+    Thumbnail.class,
+    UrlParseDump.class,
+    Version.class
+  );
+
+  private static final String BASE_TEXT = "a";
+  private static final String CHANGED_TEXT = "b";
+  private static final int BASE_NUMBER = 1;
+  private static final int CHANGED_NUMBER = 2;
+  private static final double BASE_FRACTION = 1.5;
+  private static final double CHANGED_FRACTION = 2.5;
+
+  private static final String GETTER_PREFIX = "get";
+  private static final String BOOLEAN_GETTER_PREFIX = "is";
+
+  private static final String TITLE = "Clip";
+  private static final String DESCRIPTION = "Video from a file";
+
+  private static final String ABSENT = "none";
+
+  private static final ReflectionAccessFilter MODEL_FIELDS_BLOCKED = FormatModelTest::blockModels;
+
+  private static UrlParseDump fixture() throws IOException {
+    final String json = fixtureText();
+    final Gson gson = GsonProvider.getSimple();
+    return gson.fromJson(json, UrlParseDump.class);
+  }
+
+  private static String fixtureText() throws IOException {
+    try (final InputStream stream = FormatModelTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
+
       final byte[] bytes = stream.readAllBytes();
-      final String json = new String(bytes, StandardCharsets.UTF_8);
-      final Gson gson = GsonProvider.getSimple();
-      return gson.fromJson(json, URLParseDump.class);
+      return new String(bytes, StandardCharsets.UTF_8);
     }
   }
 
@@ -58,208 +126,214 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsTheVideoMetadata() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<String> categories = dump.categories;
-    final List<String> tags = dump.tags;
-    final List<String> sortFields = dump._format_sort_fields;
-    assertEquals("dQw4w9WgXcQ", dump.id);
-    assertEquals("Example Video", dump.title);
-    assertEquals("Example Video", dump.fulltitle);
-    assertEquals("An example description\nwith two lines", dump.description);
-    assertEquals("https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", dump.thumbnail);
-    assertEquals("UCuAXFkgsw1L7xaCfnd5JJOw", dump.channel_id);
-    assertEquals("https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw", dump.channel_url);
-    assertEquals("Example Channel", dump.channel);
-    assertTrue(dump.channel_is_verified);
-    assertEquals("Example Uploader", dump.uploader);
-    assertEquals("@example", dump.uploader_id);
-    assertEquals("https://www.youtube.com/@example", dump.uploader_url);
-    assertEquals("20091025", dump.upload_date);
-    assertEquals(1256453732, dump.timestamp);
-    assertEquals(212, dump.duration);
-    assertEquals("3:32", dump.duration_string);
-    assertEquals(1700000000, dump.view_count);
-    assertEquals(18000000, dump.like_count);
-    assertEquals(0, dump.age_limit);
-    assertEquals("https://www.youtube.com/watch?v=dQw4w9WgXcQ", dump.webpage_url);
-    assertEquals("https://youtu.be/dQw4w9WgXcQ", dump.original_url);
-    assertEquals("watch", dump.webpage_url_basename);
-    assertEquals("youtube.com", dump.webpage_url_domain);
-    assertEquals("youtube", dump.extractor);
-    assertEquals("Youtube", dump.extractor_key);
-    assertEquals("dQw4w9WgXcQ", dump.display_id);
-    assertEquals("public", dump.availability);
-    assertEquals("not_live", dump.live_status);
-    assertTrue(dump.playable_in_embed);
-    assertFalse(dump.is_live);
-    assertFalse(dump.was_live);
+  void shouldReadTheVideoMetadata() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<String> categories = dump.getCategories();
+    final List<String> tags = dump.getTags();
+    final List<String> sortFields = dump.getFormatSortFields();
+    assertEquals(Optional.of("dQw4w9WgXcQ"), dump.getId());
+    assertEquals(Optional.of("Example Video"), dump.getTitle());
+    assertEquals(Optional.of("Example Video"), dump.getFullTitle());
+    assertEquals(Optional.of("An example description\nwith two lines"), dump.getDescription());
+    assertEquals(Optional.of(THUMBNAIL_URL), dump.getThumbnail());
+    assertEquals(Optional.of("UCuAXFkgsw1L7xaCfnd5JJOw"), dump.getChannelId());
+    assertEquals(Optional.of("https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw"), dump.getChannelUrl());
+    assertEquals(Optional.of("Example Channel"), dump.getChannel());
+    assertTrue(dump.isChannelVerified());
+    assertEquals(Optional.of("Example Uploader"), dump.getUploader());
+    assertEquals(Optional.of("@example"), dump.getUploaderId());
+    assertEquals(Optional.of("https://www.youtube.com/@example"), dump.getUploaderUrl());
+    assertEquals(Optional.of("20091025"), dump.getUploadDate());
+    assertEquals(1256453732, dump.getTimestamp());
+    assertEquals(212, dump.getDuration());
+    assertEquals(Optional.of("3:32"), dump.getDurationString());
+    assertEquals(1700000000, dump.getViewCount());
+    assertEquals(18000000, dump.getLikeCount());
+    assertEquals(0, dump.getAgeLimit());
+    assertEquals(Optional.of("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), dump.getWebpageUrl());
+    assertEquals(Optional.of("https://youtu.be/dQw4w9WgXcQ"), dump.getOriginalUrl());
+    assertEquals(Optional.of("watch"), dump.getWebpageUrlBasename());
+    assertEquals(Optional.of("youtube.com"), dump.getWebpageUrlDomain());
+    assertEquals(Optional.of("youtube"), dump.getExtractor());
+    assertEquals(Optional.of("Youtube"), dump.getExtractorKey());
+    assertEquals(Optional.of("dQw4w9WgXcQ"), dump.getDisplayId());
+    assertEquals(Optional.of("public"), dump.getAvailability());
+    assertEquals(Optional.of("not_live"), dump.getLiveStatus());
+    assertTrue(dump.isPlayableInEmbed());
+    assertFalse(dump.isLive());
+    assertFalse(dump.wasLive());
+
     final List<String> expectedCategories = List.of("Music");
     final List<String> expectedTags = List.of("example", "video");
     final List<String> expectedSortFields = List.of("quality", "res", "fps");
     assertEquals(expectedCategories, categories);
     assertEquals(expectedTags, tags);
     assertEquals(expectedSortFields, sortFields);
-    assertEquals(1757808000, dump.epoch);
-    assertEquals("video", dump._type);
-    assertEquals("Example Video [dQw4w9WgXcQ].mp4", dump._filename);
-    assertEquals("Example Video [dQw4w9WgXcQ].mp4", dump.filename);
+    assertEquals(1757808000, dump.getEpoch());
+    assertEquals(Optional.of("video"), dump.getType());
+    assertEquals(Optional.of("Example Video [dQw4w9WgXcQ].mp4"), dump.getFileName());
+    assertEquals(Optional.of("Example Video [dQw4w9WgXcQ].mp4"), dump.getFileNameAlias());
   }
 
   @Test
-  void readsTheRequestedFormatAtTheTopLevel() throws IOException {
-    final URLParseDump dump = fixture();
-    final DownloaderOptions options = dump.downloader_options;
-    final HttpHeaders headers = dump.http_headers;
-    assertEquals("137+251", dump.format_id);
-    assertEquals("1080p+medium", dump.format_note);
-    assertEquals("mp4", dump.ext);
-    assertEquals("avc1.640028", dump.vcodec);
-    assertEquals("opus", dump.acodec);
-    assertEquals("https+https", dump.protocol);
-    assertEquals("1920x1080", dump.resolution);
-    assertEquals(1920, dump.width);
-    assertEquals(1080, dump.height);
-    assertEquals(29.97, dump.fps, DELTA);
-    assertEquals(9.0, dump.quality, DELTA);
-    assertEquals(4530.189, dump.tbr, DELTA);
-    assertEquals(1.78, dump.aspect_ratio, DELTA);
-    assertEquals(48000, dump.asr);
-    assertEquals(2, dump.audio_channels);
-    assertEquals(-1, dump.source_preference);
-    assertEquals(-1, dump.language_preference);
-    assertEquals("en", dump.language);
-    assertEquals("SDR", dump.dynamic_range);
-    assertEquals("mp4", dump.video_ext);
-    assertEquals("none", dump.audio_ext);
-    assertEquals("137 - 1920x1080 (1080p)+251 - audio only (medium)", dump.format);
-    assertFalse(dump.has_drm);
-    assertNull(dump.url);
-    assertNotNull(options);
-    assertEquals(10485760, options.http_chunk_size);
-    assertNotNull(headers);
-    assertEquals("Mozilla/5.0 (X11; Linux x86_64)", headers.userAgent);
+  void shouldReadTheRequestedFormatAtTheTopLevel() throws IOException {
+    final UrlParseDump dump = fixture();
+    final DownloaderOptions options = dump.getDownloaderOptions().orElseThrow();
+    final HttpHeaders headers = dump.getHttpHeaders().orElseThrow();
+    assertEquals(Optional.of("137+251"), dump.getFormatId());
+    assertEquals(Optional.of("1080p+medium"), dump.getFormatNote());
+    assertEquals(Optional.of("mp4"), dump.getExtension());
+    assertEquals(Optional.of("avc1.640028"), dump.getVideoCodec());
+    assertEquals(Optional.of(AUDIO_CODEC), dump.getAudioCodec());
+    assertEquals(Optional.of("https+https"), dump.getProtocol());
+    assertEquals(Optional.of("1920x1080"), dump.getResolution());
+    assertEquals(VIDEO_WIDTH, dump.getWidth());
+    assertEquals(VIDEO_HEIGHT, dump.getHeight());
+    assertEquals(FRAMES_PER_SECOND, dump.getFramesPerSecond(), DELTA);
+    assertEquals(9.0, dump.getQuality(), DELTA);
+    assertEquals(4530.189, dump.getTotalBitrate(), DELTA);
+    assertEquals(1.78, dump.getAspectRatio(), DELTA);
+    assertEquals(SAMPLE_RATE, dump.getAudioSampleRate());
+    assertEquals(AUDIO_CHANNELS, dump.getAudioChannels());
+    assertEquals(-1, dump.getSourcePreference());
+    assertEquals(-1, dump.getLanguagePreference());
+    assertEquals(Optional.of(LANGUAGE), dump.getLanguage());
+    assertEquals(Optional.of(DYNAMIC_RANGE), dump.getDynamicRange());
+    assertEquals(Optional.of("mp4"), dump.getVideoExtension());
+    assertEquals(Optional.of(ABSENT), dump.getAudioExtension());
+    assertEquals(Optional.of("137 - 1920x1080 (1080p)+251 - audio only (medium)"), dump.getFormat());
+    assertFalse(dump.isDrmProtected());
+    assertEquals(Optional.empty(), dump.getUrl());
+    assertEquals(HTTP_CHUNK_SIZE, options.getHttpChunkSize());
+    assertEquals(Optional.of(USER_AGENT), headers.getUserAgent());
   }
 
   @Test
-  void readsCountsAndSizesBeyondTheIntRange() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Format> formats = dump.formats;
-    assertNotNull(formats);
-    final Format video = formats.get(2);
-    assertEquals(2300000000L, dump.comment_count);
-    assertEquals(4100000000L, dump.channel_follower_count);
-    assertEquals(5403437753L, dump.filesize_approx);
-    assertEquals(5368709120L, video.filesize);
-    assertEquals(5400000000L, video.filesize_approx);
+  void shouldReadCountsAndSizesBeyondTheIntRange() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+
+    final Format video = formats.get(VIDEO_FORMAT_INDEX);
+    assertEquals(2300000000L, dump.getCommentCount());
+    assertEquals(4100000000L, dump.getChannelFollowerCount());
+    assertEquals(5403437753L, dump.getApproximateFileSize());
+    assertEquals(5368709120L, video.getFileSize());
+    assertEquals(5400000000L, video.getApproximateFileSize());
   }
 
   @Test
-  void leavesUnknownValuesNullOrZero() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Format> formats = dump.formats;
-    assertNotNull(formats);
+  void shouldLeaveUnknownValuesNullOrZero() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+
     final Format audio = formats.get(1);
-    assertNull(dump.average_rating);
-    assertNull(dump.release_timestamp);
-    assertNull(dump.chapters);
-    assertNull(dump.playlist);
-    assertNull(dump.playlist_index);
-    assertNull(dump.release_year);
-    assertNull(dump.requested_subtitles);
-    assertNull(dump._has_drm);
-    assertNull(dump.filesize);
-    assertNull(dump.preference);
-    assertNull(dump.vbr);
-    assertNull(dump.abr);
-    assertEquals(0, audio.width);
-    assertEquals(0, audio.height);
-    assertEquals(0.0, audio.fps, DELTA);
-    assertEquals(0.0, audio.aspect_ratio, DELTA);
-    assertNull(audio.preference);
-    assertNull(audio.dynamic_range);
-    assertNull(audio.fragments);
-    final URLParseDump empty = new URLParseDump();
-    assertNull(empty.id);
-    assertNull(empty.formats);
-    assertEquals(0, empty.duration);
+    assertEquals(Optional.empty(), dump.getAverageRating());
+    assertEquals(Optional.empty(), dump.getReleaseTimestamp());
+    assertEquals(Optional.empty(), dump.getChapters());
+    assertEquals(Optional.empty(), dump.getPlaylist());
+    assertEquals(Optional.empty(), dump.getPlaylistIndex());
+    assertEquals(Optional.empty(), dump.getReleaseYear());
+    assertEquals(Optional.empty(), dump.getRequestedSubtitles());
+    assertEquals(Optional.empty(), dump.getAnyStreamDrmProtected());
+    assertEquals(Optional.empty(), dump.getFileSize());
+    assertEquals(Optional.empty(), dump.getPreference());
+    assertEquals(Optional.empty(), dump.getVideoBitrate());
+    assertEquals(Optional.empty(), dump.getAudioBitrate());
+    assertEquals(0, audio.getWidth());
+    assertEquals(0, audio.getHeight());
+    assertEquals(0.0, audio.getFramesPerSecond(), DELTA);
+    assertEquals(0.0, audio.getAspectRatio(), DELTA);
+    assertEquals(Optional.empty(), audio.getPreference());
+    assertEquals(Optional.empty(), audio.getDynamicRange());
+    assertEquals(List.of(), audio.getFragments());
+
+    final Gson gson = GsonProvider.getSimple();
+    final UrlParseDump empty = gson.fromJson("{}", UrlParseDump.class);
+    assertEquals(Optional.empty(), empty.getId());
+    assertEquals(List.of(), empty.getFormats());
+    assertEquals(0, empty.getDuration());
+
+    final boolean channelVerified = empty.isChannelVerified();
+    final boolean playableInEmbed = empty.isPlayableInEmbed();
+    assertFalse(channelVerified);
+    assertFalse(playableInEmbed);
   }
 
   @Test
-  void readsEveryFormatField() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Format> formats = dump.formats;
-    assertNotNull(formats);
+  void shouldReadEveryFormatField() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+
     final Format audio = formats.get(1);
-    final Format video = formats.get(2);
-    final DownloaderOptions options = audio.downloader_options;
-    assertEquals("251", audio.format_id);
-    assertEquals("medium", audio.format_note);
-    assertEquals("webm", audio.ext);
-    assertEquals("https", audio.protocol);
-    assertEquals("opus", audio.acodec);
-    assertEquals("none", audio.vcodec);
-    assertEquals("https://rr1---sn.example.googlevideo.com/videoplayback?itag=251", audio.url);
-    assertEquals(2, audio.audio_channels);
-    assertEquals(3.0, audio.quality, DELTA);
-    assertFalse(audio.has_drm);
-    assertEquals(-1, audio.source_preference);
-    assertEquals(48000, audio.asr);
-    assertEquals(3437753L, audio.filesize);
-    assertEquals("en", audio.language);
-    assertEquals(-1, audio.language_preference);
-    assertEquals("webm_dash", audio.container);
-    assertEquals("webm", audio.audio_ext);
-    assertEquals("none", audio.video_ext);
-    assertEquals(0.0, audio.vbr, DELTA);
-    assertEquals(129.689, audio.abr, DELTA);
-    assertEquals(129.689, audio.tbr, DELTA);
-    assertEquals("audio only", audio.resolution);
-    assertEquals("251 - audio only (medium)", audio.format);
-    assertNotNull(options);
-    assertEquals(10485760, options.http_chunk_size);
-    assertEquals(1920, video.width);
-    assertEquals(1080, video.height);
-    assertEquals(29.97, video.fps, DELTA);
-    assertEquals(4400.5, video.vbr, DELTA);
-    assertEquals("SDR", video.dynamic_range);
-    assertEquals("mp4_dash", video.container);
-    assertNull(video.format_index);
-    assertNull(video.manifest_url);
+    final Format video = formats.get(VIDEO_FORMAT_INDEX);
+    final DownloaderOptions options = audio.getDownloaderOptions().orElseThrow();
+    assertEquals(Optional.of("251"), audio.getFormatId());
+    assertEquals(Optional.of("medium"), audio.getFormatNote());
+    assertEquals(Optional.of("webm"), audio.getExtension());
+    assertEquals(Optional.of("https"), audio.getProtocol());
+    assertEquals(Optional.of(AUDIO_CODEC), audio.getAudioCodec());
+    assertEquals(Optional.of(ABSENT), audio.getVideoCodec());
+    assertEquals(Optional.of("https://rr1---sn.example.googlevideo.com/videoplayback?itag=251"), audio.getUrl());
+    assertEquals(AUDIO_CHANNELS, audio.getAudioChannels());
+    assertEquals(3.0, audio.getQuality(), DELTA);
+    assertFalse(audio.isDrmProtected());
+    assertEquals(-1, audio.getSourcePreference());
+    assertEquals(SAMPLE_RATE, audio.getAudioSampleRate());
+    assertEquals(3437753L, audio.getFileSize());
+    assertEquals(Optional.of(LANGUAGE), audio.getLanguage());
+    assertEquals(-1, audio.getLanguagePreference());
+    assertEquals(Optional.of("webm_dash"), audio.getContainer());
+    assertEquals(Optional.of("webm"), audio.getAudioExtension());
+    assertEquals(Optional.of(ABSENT), audio.getVideoExtension());
+    assertEquals(0.0, audio.getVideoBitrate(), DELTA);
+    assertEquals(129.689, audio.getAudioBitrate(), DELTA);
+    assertEquals(129.689, audio.getTotalBitrate(), DELTA);
+    assertEquals(Optional.of("audio only"), audio.getResolution());
+    assertEquals(Optional.of("251 - audio only (medium)"), audio.getFormat());
+    assertEquals(HTTP_CHUNK_SIZE, options.getHttpChunkSize());
+    assertEquals(VIDEO_WIDTH, video.getWidth());
+    assertEquals(VIDEO_HEIGHT, video.getHeight());
+    assertEquals(FRAMES_PER_SECOND, video.getFramesPerSecond(), DELTA);
+    assertEquals(4400.5, video.getVideoBitrate(), DELTA);
+    assertEquals(Optional.of(DYNAMIC_RANGE), video.getDynamicRange());
+    assertEquals(Optional.of("mp4_dash"), video.getContainer());
+    assertEquals(Optional.empty(), video.getFormatIndex());
+    assertEquals(Optional.empty(), video.getManifestUrl());
   }
 
   @Test
-  void readsStoryboardFragments() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Format> formats = dump.formats;
-    assertNotNull(formats);
+  void shouldReadStoryboardFragments() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+
     final Format storyboard = formats.getFirst();
-    final List<Fragment> fragments = storyboard.fragments;
-    assertNotNull(fragments);
+    final List<Fragment> fragments = storyboard.getFragments();
+
     final Fragment fragment = fragments.getFirst();
-    assertEquals("mhtml", storyboard.protocol);
-    assertEquals(10, storyboard.rows);
-    assertEquals(10, storyboard.columns);
-    assertEquals(0.5, storyboard.fps, DELTA);
-    assertEquals(0L, storyboard.filesize_approx);
+    assertEquals(Optional.of("mhtml"), storyboard.getProtocol());
+    assertEquals(10, storyboard.getRows());
+    assertEquals(10, storyboard.getColumns());
+    assertEquals(0.5, storyboard.getFramesPerSecond(), DELTA);
+    assertEquals(0L, storyboard.getApproximateFileSize());
+
     final int fragmentsCount = fragments.size();
     assertEquals(1, fragmentsCount);
-    assertEquals("https://i.ytimg.com/sb/dQw4w9WgXcQ/storyboard3_L0/default.jpg?sqp=a", fragment.url);
-    assertEquals(212.0, fragment.duration, DELTA);
+    assertEquals(Optional.of("https://i.ytimg.com/sb/dQw4w9WgXcQ/storyboard3_L0/default.jpg?sqp=a"), fragment.getUrl());
+    assertEquals(212.0, fragment.getDuration(), DELTA);
   }
 
   @Test
-  void mapsTheHttpHeaderNames() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Format> formats = dump.formats;
-    assertNotNull(formats);
+  void shouldMapTheHttpHeaderNames() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+
     final Format storyboard = formats.getFirst();
-    final HttpHeaders headers = storyboard.http_headers;
-    assertNotNull(headers);
-    assertEquals("Mozilla/5.0 (X11; Linux x86_64)", headers.userAgent);
-    assertEquals("text/html,application/xhtml+xml", headers.accept);
-    assertEquals("en-us,en;q=0.5", headers.acceptLanguage);
-    assertEquals("navigate", headers.secFetchMode);
+    final HttpHeaders headers = storyboard.getHttpHeaders().orElseThrow();
+    assertEquals(Optional.of(USER_AGENT), headers.getUserAgent());
+    assertEquals(Optional.of("text/html,application/xhtml+xml"), headers.getAccept());
+    assertEquals(Optional.of("en-us,en;q=0.5"), headers.getAcceptLanguage());
+    assertEquals(Optional.of("navigate"), headers.getSecFetchMode());
+
     final Gson gson = GsonProvider.getSimple();
     final String json = gson.toJson(headers);
     assertEquals(
@@ -269,33 +343,31 @@ final class FormatModelTest {
   }
 
   @Test
-  void readsThumbnailsHeatmapAndVersion() throws IOException {
-    final URLParseDump dump = fixture();
-    final List<Thumbnail> thumbnails = dump.thumbnails;
-    final List<Heatmap> heatmap = dump.heatmap;
-    final Version version = dump._version;
-    assertNotNull(thumbnails);
-    assertNotNull(heatmap);
-    assertNotNull(version);
+  void shouldReadThumbnailsHeatmapAndVersion() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Thumbnail> thumbnails = dump.getThumbnails();
+    final List<Heatmap> heatmap = dump.getHeatmap();
+    final Version version = dump.getVersion().orElseThrow();
+
     final Thumbnail thumbnail = thumbnails.getFirst();
     final Heatmap marker = heatmap.getFirst();
-    assertEquals("https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", thumbnail.url);
-    assertEquals(-1, thumbnail.preference);
-    assertEquals("40", thumbnail.id);
-    assertEquals(1080, thumbnail.height);
-    assertEquals(1920, thumbnail.width);
-    assertEquals("1920x1080", thumbnail.resolution);
-    assertEquals(0.0, marker.start_time, DELTA);
-    assertEquals(2.12, marker.end_time, DELTA);
-    assertEquals(1.0, marker.value, DELTA);
-    assertEquals("2025.09.05", version.version);
-    assertNull(version.current_git_head);
-    assertEquals("abc123def456", version.release_git_head);
-    assertEquals("yt-dlp/yt-dlp", version.repository);
+    assertEquals(Optional.of(THUMBNAIL_URL), thumbnail.getUrl());
+    assertEquals(-1, thumbnail.getPreference());
+    assertEquals(Optional.of("40"), thumbnail.getId());
+    assertEquals(1080, thumbnail.getHeight());
+    assertEquals(1920, thumbnail.getWidth());
+    assertEquals(Optional.of("1920x1080"), thumbnail.getResolution());
+    assertEquals(0.0, marker.getStartTime(), DELTA);
+    assertEquals(2.12, marker.getEndTime(), DELTA);
+    assertEquals(1.0, marker.getValue(), DELTA);
+    assertEquals(Optional.of("2025.09.05"), version.getVersion());
+    assertEquals(Optional.empty(), version.getCurrentGitHead());
+    assertEquals(Optional.of("abc123def456"), version.getReleaseGitHead());
+    assertEquals(Optional.of("yt-dlp/yt-dlp"), version.getRepository());
   }
 
   @Test
-  void convertsTheStreamUrlIntoASource() {
+  void shouldConvertTheStreamUrlIntoASource() {
     final Format format = format("{\"url\": \"https://cdn.example.com/video.mp4?token=a%20b\"}");
     final UriSource source = format.toUriSource();
     final URI uri = source.getUri();
@@ -304,10 +376,288 @@ final class FormatModelTest {
   }
 
   @Test
-  void rejectsStreamsWithoutUrl() {
+  void shouldRejectStreamsWithoutUrl() {
     final Format format = format("{\"format_id\": \"sb0\"}");
     final IllegalStateException exception = assertThrows(IllegalStateException.class, format::toUriSource);
     final String message = exception.getMessage();
-    assertEquals("Stream has no URL", message);
+    assertEquals("Stream has no URL!", message);
+  }
+
+  static Stream<Named<Class<?>>> models() {
+    return MODELS.stream().map(FormatModelTest::named);
+  }
+
+  static Stream<Arguments> modelFields() {
+    return MODELS.stream().flatMap(FormatModelTest::fieldsOf);
+  }
+
+  private static Named<Class<?>> named(final Class<?> clazz) {
+    return Named.of(clazz.getSimpleName(), clazz);
+  }
+
+  private static Stream<Arguments> fieldsOf(final Class<?> clazz) {
+    final List<Field> fields = instanceFields(clazz);
+    return fields.stream().map(field -> Arguments.of(named(clazz), field.getName()));
+  }
+
+  private static List<Field> instanceFields(final Class<?> clazz) {
+    final Field[] fields = clazz.getDeclaredFields();
+    return Arrays.stream(fields)
+      .filter(field -> !Modifier.isStatic(field.getModifiers()))
+      .toList();
+  }
+
+  private static Object parse(final Class<?> clazz, final JsonObject json) {
+    final Gson gson = GsonProvider.getSimple();
+    return gson.fromJson(json, clazz);
+  }
+
+  private static JsonObject baseJson(final Class<?> clazz) {
+    final JsonObject json = new JsonObject();
+    for (final Field field : instanceFields(clazz)) {
+      final Type type = field.getGenericType();
+      final JsonElement value = baseValue(type);
+      json.add(jsonName(field), value);
+    }
+
+    return json;
+  }
+
+  private static JsonObject changedJson(final Class<?> clazz, final String fieldName) throws NoSuchFieldException {
+    final JsonObject json = baseJson(clazz);
+    final Field field = clazz.getDeclaredField(fieldName);
+    final Type type = field.getGenericType();
+    final JsonElement value = changedValue(type);
+    json.add(jsonName(field), value);
+    return json;
+  }
+
+  private static String jsonName(final Field field) {
+    final Field component = findComponentField(field);
+    final SerializedName serializedName = component.getAnnotation(SerializedName.class);
+    if (serializedName == null) {
+      return field.getName();
+    }
+
+    return serializedName.value();
+  }
+
+  private static FilterResult blockModels(final Class<?> rawClass) {
+    if (MODELS.contains(rawClass)) {
+      return FilterResult.BLOCK_ALL;
+    }
+
+    return FilterResult.INDECISIVE;
+  }
+
+  private static Field findComponentField(final Field field) {
+    final Class<?> owner = field.getDeclaringClass();
+    final Class<?>[] nestedTypes = owner.getDeclaredClasses();
+    return Arrays.stream(nestedTypes)
+      .filter(Class::isRecord)
+      .map(Class::getDeclaredFields)
+      .flatMap(Arrays::stream)
+      .filter(component -> component.getName().equals(field.getName()))
+      .findFirst()
+      .orElseThrow();
+  }
+
+  private static JsonElement baseValue(final Type type) {
+    if (type instanceof final ParameterizedType listType) {
+      final Type[] elementTypes = listType.getActualTypeArguments();
+      final JsonElement element = baseValue(elementTypes[0]);
+      final JsonArray array = new JsonArray();
+      array.add(element);
+      return array;
+    }
+
+    if (MODELS.contains(type)) {
+      return new JsonObject();
+    }
+
+    return basePrimitive(type);
+  }
+
+  private static JsonElement basePrimitive(final Type type) {
+    if (type == int.class || type == long.class) {
+      return new JsonPrimitive(BASE_NUMBER);
+    }
+
+    if (type == double.class) {
+      return new JsonPrimitive(BASE_FRACTION);
+    }
+
+    if (type == boolean.class) {
+      return new JsonPrimitive(true);
+    }
+
+    return new JsonPrimitive(BASE_TEXT);
+  }
+
+  private static JsonElement changedValue(final Type type) {
+    if (type instanceof ParameterizedType) {
+      return new JsonArray();
+    }
+
+    if (type instanceof final Class<?> clazz && MODELS.contains(clazz)) {
+      final List<Field> fields = instanceFields(clazz);
+      final Field first = fields.getFirst();
+      final Type firstType = first.getGenericType();
+      final JsonObject json = new JsonObject();
+      json.add(jsonName(first), baseValue(firstType));
+      return json;
+    }
+
+    return changedPrimitive(type);
+  }
+
+  private static JsonElement changedPrimitive(final Type type) {
+    if (type == int.class || type == long.class) {
+      return new JsonPrimitive(CHANGED_NUMBER);
+    }
+
+    if (type == double.class) {
+      return new JsonPrimitive(CHANGED_FRACTION);
+    }
+
+    if (type == boolean.class) {
+      return new JsonPrimitive(false);
+    }
+
+    return new JsonPrimitive(CHANGED_TEXT);
+  }
+
+  private static Method findGetter(final Class<?> clazz, final String fieldName) throws NoSuchMethodException {
+    final char first = Character.toUpperCase(fieldName.charAt(0));
+    final String capitalized = first + fieldName.substring(1);
+    final Set<String> names = Set.of(GETTER_PREFIX + capitalized, BOOLEAN_GETTER_PREFIX + capitalized, fieldName);
+    for (final Method method : clazz.getMethods()) {
+      if (names.contains(method.getName()) && method.getParameterCount() == 0) {
+        return method;
+      }
+    }
+
+    final String message = "%s has no getter for %s!".formatted(clazz, fieldName);
+    throw new NoSuchMethodException(message);
+  }
+
+  private static @Nullable Object unwrap(final @Nullable Object value) {
+    if (value instanceof final Optional<?> optional) {
+      return optional.orElseThrow();
+    }
+
+    return value;
+  }
+
+  @ParameterizedTest(name = "{0}.{1}")
+  @MethodSource("modelFields")
+  void shouldReturnEveryReportedValue(final Class<?> clazz, final String fieldName) throws ReflectiveOperationException {
+    final Object model = parse(clazz, baseJson(clazz));
+    final Field field = clazz.getDeclaredField(fieldName);
+    field.setAccessible(true);
+    final Object expected = field.get(model);
+    final Method getter = findGetter(clazz, fieldName);
+    final Object value = getter.invoke(model);
+    final Object reported = unwrap(value);
+    assertEquals(expected, reported);
+  }
+
+  @ParameterizedTest(name = "{0}.{1}")
+  @MethodSource("modelFields")
+  void shouldTellModelsApartByEveryValue(final Class<?> clazz, final String fieldName) throws NoSuchFieldException {
+    final Object model = parse(clazz, baseJson(clazz));
+    final Object changed = parse(clazz, changedJson(clazz, fieldName));
+    assertNotEquals(model, changed);
+
+    final int modelHash = model.hashCode();
+    final int changedHash = changed.hashCode();
+    assertNotEquals(modelHash, changedHash);
+
+    final String text = model.toString();
+    final boolean named = text.contains(fieldName + "=");
+    assertTrue(named);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("models")
+  void shouldEqualAModelWithTheSameValues(final Class<?> clazz) {
+    final Object model = parse(clazz, baseJson(clazz));
+    final Object same = parse(clazz, baseJson(clazz));
+    final Object identical = model;
+    assertEquals(model, same);
+    assertEquals(model, identical);
+    assertNotEquals(model, BASE_TEXT);
+
+    final int modelHash = model.hashCode();
+    final int sameHash = same.hashCode();
+    assertEquals(modelHash, sameHash);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("models")
+  void shouldReadWhatItWrites(final Class<?> clazz) {
+    final Object model = parse(clazz, baseJson(clazz));
+    final Gson gson = GsonProvider.getSimple();
+    final String json = gson.toJson(model);
+    final Object read = gson.fromJson(json, clazz);
+    assertEquals(model, read);
+  }
+
+  @Test
+  void shouldBuildTheModelsWithoutWritingTheirFieldsByReflection() throws IOException {
+    final String json = fixtureText();
+    final GsonBuilder builder = new GsonBuilder();
+    final Gson gson = builder.addReflectionAccessFilter(MODEL_FIELDS_BLOCKED).create();
+    final UrlParseDump dump = gson.fromJson(json, UrlParseDump.class);
+    final UrlParseDump expected = fixture();
+    assertEquals(expected, dump);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("models")
+  void shouldReturnEmptyListsForUnreportedLists(final Class<?> clazz) throws ReflectiveOperationException {
+    final Object model = parse(clazz, new JsonObject());
+    for (final Field field : instanceFields(clazz)) {
+      this.assertEmptyWhenAList(clazz, field, model);
+    }
+  }
+
+  private void assertEmptyWhenAList(final Class<?> clazz, final Field field, final Object model) throws ReflectiveOperationException {
+    if (field.getType() != List.class) {
+      return;
+    }
+
+    final Method getter = findGetter(clazz, field.getName());
+    final Object value = getter.invoke(model);
+    assertEquals(List.of(), value);
+  }
+
+  @Test
+  void shouldNotLetCallersChangeTheLists() throws IOException {
+    final UrlParseDump dump = fixture();
+    final List<Format> formats = dump.getFormats();
+    assertThrows(UnsupportedOperationException.class, formats::clear);
+  }
+
+  @Test
+  void shouldCreateMetadataWithATitle() {
+    final UrlParseDump dump = UrlParseDump.of(TITLE);
+    assertEquals(Optional.of(TITLE), dump.getTitle());
+    assertEquals(Optional.empty(), dump.getDescription());
+    assertEquals(List.of(), dump.getFormats());
+  }
+
+  @Test
+  void shouldCreateMetadataWithATitleAndADescription() {
+    final UrlParseDump dump = UrlParseDump.of(TITLE, DESCRIPTION);
+    assertEquals(Optional.of(TITLE), dump.getTitle());
+    assertEquals(Optional.of(DESCRIPTION), dump.getDescription());
+  }
+
+  @Test
+  void shouldRejectMissingTitlesAndDescriptions() {
+    assertThrows(NullPointerException.class, () -> UrlParseDump.of(null));
+    assertThrows(NullPointerException.class, () -> UrlParseDump.of(null, DESCRIPTION));
+    assertThrows(NullPointerException.class, () -> UrlParseDump.of(TITLE, null));
   }
 }

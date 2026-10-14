@@ -31,8 +31,8 @@ import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -77,7 +77,7 @@ public final class CaptureDevices {
    * @return the devices, by number
    */
   public static List<Device> list() {
-    return list(OSUtils.getOS(), SYSFS, CaptureDevices::opens);
+    return list(OsUtils.getOs(), SYSFS, CaptureDevices::opens);
   }
 
   /**
@@ -88,8 +88,8 @@ public final class CaptureDevices {
    * @param opens whether the device of a number opens
    * @return the devices, by number
    */
-  static List<Device> list(final OS os, final Path sysfs, final IntPredicate opens) {
-    return os == OS.LINUX ? listSysfs(sysfs) : probe(PROBED, opens);
+  static List<Device> list(final Os os, final Path sysfs, final IntPredicate opens) {
+    return os == Os.LINUX ? listSysfs(sysfs) : probe(PROBED, opens);
   }
 
   /**

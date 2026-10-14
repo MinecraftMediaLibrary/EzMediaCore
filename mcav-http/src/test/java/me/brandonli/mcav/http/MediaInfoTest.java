@@ -21,12 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.GsonProvider;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -34,25 +36,29 @@ import org.junit.jupiter.api.Test;
  */
 final class MediaInfoTest {
 
-  static URLParseDump completeDump() {
-    final URLParseDump dump = new URLParseDump();
-    dump.title = "Song";
-    dump.uploader = "Artist";
-    dump.channel = "Artist Channel";
-    dump.uploader_id = "@artist";
-    dump.description = "A description";
-    dump.thumbnail = "https://example.com/thumbnail.jpg";
-    dump.duration = 215.2;
-    dump.view_count = 3_000_000_000L;
-    dump.like_count = 50;
-    dump.upload_date = "20240101";
-    dump.webpage_url = "https://example.com/watch";
-    return dump;
+  static UrlParseDump completeDump() {
+    final String json = """
+    {
+      "title": "Song",
+      "uploader": "Artist",
+      "channel": "Artist Channel",
+      "uploader_id": "@artist",
+      "description": "A description",
+      "thumbnail": "https://example.com/thumbnail.jpg",
+      "duration": 215.2,
+      "view_count": 3000000000,
+      "like_count": 50,
+      "upload_date": "20240101",
+      "webpage_url": "https://example.com/watch"
+    }
+    """;
+    final Gson gson = GsonProvider.getSimple();
+    return gson.fromJson(json, UrlParseDump.class);
   }
 
   @Test
   void takesTheShownFieldsFromYtDlpInYtDlpOrderAndNames() {
-    final URLParseDump dump = completeDump();
+    final UrlParseDump dump = completeDump();
     final MediaInfo info = MediaInfo.of(dump);
     final Map<String, Object> json = info.toJson();
     final Map<String, Object> expected = new LinkedHashMap<>();
@@ -78,8 +84,8 @@ final class MediaInfoTest {
 
   @Test
   void leavesOutUnknownTextFieldsButKeepsTheNumbers() {
-    final URLParseDump dump = new URLParseDump();
-    dump.uploader = "Artist";
+    final Gson gson = GsonProvider.getSimple();
+    final UrlParseDump dump = gson.fromJson("{\"uploader\": \"Artist\"}", UrlParseDump.class);
     final MediaInfo info = MediaInfo.of(dump);
     final Map<String, Object> json = info.toJson();
     final Map<String, Object> expected = new LinkedHashMap<>();

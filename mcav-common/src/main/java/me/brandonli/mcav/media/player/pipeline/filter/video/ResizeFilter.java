@@ -35,6 +35,10 @@ import org.bytedeco.opencv.opencv_core.Size;
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}. A player that refills the frame at the size of
  * the video every frame gets the spare back, so resizing reuses native frame storage once the sizes are settled. The
  * filter keeps no state besides its target size, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class ResizeFilter extends MatVideoFilter {
 
@@ -48,9 +52,11 @@ public class ResizeFilter extends MatVideoFilter {
    * @param width  the target width in pixels
    * @param height the target height in pixels
    * @throws IllegalArgumentException if either target dimension is nonpositive
+   * @since 1.0.0
    */
   public ResizeFilter(final int width, final int height) {
-    Preconditions.checkArgument(width > 0 && height > 0, "Target size must be positive but was %sx%s", width, height);
+    Preconditions.checkArgument(width > 0 && height > 0, "Target size %sx%s must be positive!", width, height);
+
     this.width = width;
     this.height = height;
     this.size = new Size(width, height);
@@ -62,6 +68,7 @@ public class ResizeFilter extends MatVideoFilter {
    * @param width  the width in pixels
    * @param height the height in pixels
    * @return true if the target size is identical
+   * @since 1.0.0
    */
   public boolean matches(final int width, final int height) {
     return this.width == width && this.height == height;
@@ -73,6 +80,7 @@ public class ResizeFilter extends MatVideoFilter {
    *
    * @param image the frame to resize
    * @return true if the frame was resized, false if it already had the target size and was left untouched
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
@@ -82,10 +90,12 @@ public class ResizeFilter extends MatVideoFilter {
     if (sameSize) {
       return false;
     }
+
     final boolean downscaling = this.width < currentWidth || this.height < currentHeight;
     final int interpolation = downscaling ? opencv_imgproc.INTER_AREA : opencv_imgproc.INTER_LINEAR;
     final Size target = this.size;
     image.transformMat((source, resized) -> opencv_imgproc.resize(source, resized, target, 0, 0, interpolation));
+
     return true;
   }
 
@@ -96,9 +106,10 @@ public class ResizeFilter extends MatVideoFilter {
    * @param mat the matrix of the frame
    * @return never returns normally
    * @throws UnsupportedOperationException always
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
-    throw new UnsupportedOperationException("Resizing cannot be done in place");
+    throw new UnsupportedOperationException("Resizing cannot be done in place!");
   }
 }

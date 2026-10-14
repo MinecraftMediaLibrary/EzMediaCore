@@ -47,17 +47,29 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>A source that goes quiet sends nothing, so its sound would reach the players with every pause cut out. After
  * {@link #quiet()} the output hands over silence in real time instead: every gap from the end of the sound handed over
- * to the next samples due is filled in chunks of {@value #SILENCE_CHUNK_MILLIS} ms, until samples that arrived after the
- * call are due, for {@value #SILENCE_MILLIS} ms at most; a longer pause is not filled, and nothing is filled while the
+ * to the next samples due is filled in chunks of {@value #SILENCE_CHUNK_MILLISECONDS} ms, until samples that arrived after the
+ * call are due, for {@value #SILENCE_MILLISECONDS} ms at most; a longer pause is not filled, and nothing is filled while the
  * output is paused.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class DelayedAudioOutput implements AutoCloseable {
 
+  private static final String PCM_CODEC = "pcm_s16le";
+
+  private static final String UNSTARTED_THREAD_NAME = "mcav-audio-output-not-started";
+
+  private static final int MILLISECONDS_PER_SECOND = 1000;
+
   /**
    * The format of the samples: 16-bit little-endian PCM in the rate and the channels of the audio pipeline.
+   *
+   * @since 1.0.0
    */
   public static final OriginalAudioMetadata METADATA = OriginalAudioMetadata.of(
-    "pcm_s16le",
+    PCM_CODEC,
     AudioFilter.SAMPLE_RATE * AudioFilter.FRAME_SIZE * Byte.SIZE,
     AudioFilter.SAMPLE_RATE,
     AudioFilter.CHANNELS,
@@ -66,137 +78,141 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * The name of the thread of every output, which hands the samples over.
+   *
+   * @since 1.0.0
    */
   public static final String THREAD_NAME = "mcav-audio-output";
 
+  static final int JOIN_TIMEOUT_MILLISECONDS = 5_000;
+
   /**
-   * How long closing waits for the thread at most, in milliseconds, should the pipeline hold it.
+   * How much silence follows {@link #quiet()} at most, in milliseconds.
+   *
+   * @since 1.0.0
    */
-  static final int JOIN_TIMEOUT_MILLIS = 5_000;
+  public static final int SILENCE_MILLISECONDS = 2_000;
 
-  /** How much silence follows {@link #quiet()} at most, in milliseconds. */
-  public static final int SILENCE_MILLIS = 2_000;
+  private static final int SILENCE_CHUNK_MILLISECONDS = 20;
 
-  /** How long each chunk of silence is, in milliseconds. */
-  private static final int SILENCE_CHUNK_MILLIS = 20;
+  private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / MILLISECONDS_PER_SECOND) * AudioFilter.FRAME_SIZE;
 
-  private static final int BYTES_PER_MILLISECOND = (AudioFilter.SAMPLE_RATE / 1000) * AudioFilter.FRAME_SIZE;
-
-  /** The longest queue whose size in bytes, 192 to a millisecond of 48 kHz stereo, still fits in an {@code int}. */
-  public static final int MAX_QUEUED_MILLIS = Integer.MAX_VALUE / ((AudioFilter.SAMPLE_RATE / 1000) * AudioFilter.FRAME_SIZE);
+  /**
+   * The longest queue whose size in bytes, 192 to a millisecond of 48 kHz stereo, still fits in an {@code int}.
+   *
+   * @since 1.0.0
+   */
+  public static final int MAXIMUM_QUEUED_MILLISECONDS = Integer.MAX_VALUE / BYTES_PER_MILLISECOND;
 
   private final String source;
-  private final long joinTimeoutMillis;
-  private final long delayNanos;
-  private final int maxQueuedBytes;
+  private final long joinTimeoutMilliseconds;
+  private final long delayNanoseconds;
+  private final int maximumQueuedBytes;
   private final Supplier<AudioPipelineStep> pipeline;
   private final BiConsumer<String, Throwable> failures;
   private final LongSupplier clock;
-  private final long silenceNanos;
+  private final long silenceNanoseconds;
   private final Deque<Chunk> queue;
   private volatile Thread thread;
   private int queuedBytes;
   private boolean paused;
   private boolean closed;
   private long streamEnd;
-  private long silenceLeftNanos;
+  private long silenceLeftNanoseconds;
 
   private DelayedAudioOutput(
     final String source,
-    final int delayMillis,
-    final int maxQueuedMillis,
+    final int delayMilliseconds,
+    final int maximumQueuedMilliseconds,
     final Supplier<AudioPipelineStep> pipeline,
     final BiConsumer<String, Throwable> failures,
     final LongSupplier clock,
-    final long joinTimeoutMillis,
-    final int silenceMillis
+    final long joinTimeoutMilliseconds,
+    final int silenceMilliseconds
   ) {
     this.source = source;
-    this.joinTimeoutMillis = joinTimeoutMillis;
-    this.delayNanos = TimeUnit.MILLISECONDS.toNanos(delayMillis);
-    this.maxQueuedBytes = (AudioFilter.SAMPLE_RATE / 1000) * maxQueuedMillis * AudioFilter.FRAME_SIZE;
+    this.joinTimeoutMilliseconds = joinTimeoutMilliseconds;
+    this.delayNanoseconds = TimeUnit.MILLISECONDS.toNanos(delayMilliseconds);
+    this.maximumQueuedBytes = BYTES_PER_MILLISECOND * maximumQueuedMilliseconds;
     this.pipeline = pipeline;
     this.failures = failures;
     this.clock = clock;
-    this.silenceNanos = TimeUnit.MILLISECONDS.toNanos(silenceMillis);
+    this.silenceNanoseconds = TimeUnit.MILLISECONDS.toNanos(silenceMilliseconds);
     this.queue = new ArrayDeque<>();
-    this.thread = new Thread("mcav-audio-output-not-started");
+    this.thread = new Thread(UNSTARTED_THREAD_NAME);
   }
 
   /**
    * Creates an output and starts its thread.
    *
-   * @param source          names the source in the failures it reports, such as {@code "the virtual machine"}
-   * @param delayMillis     how long every chunk is held before the pipeline gets it, in milliseconds
-   * @param maxQueuedMillis the queue duration in milliseconds, strictly greater than {@code delayMillis} and at most
-   *                        {@link #MAX_QUEUED_MILLIS}, so its 192-bytes-per-millisecond size fits in an {@code int}
-   * @param pipeline        gives the audio pipeline of the player for every chunk, so a pipeline attached later is
-   *                        used
-   * @param failures        receives a failure of the pipeline
+   * @param source                    names the source in the failures it reports, such as {@code "the virtual machine"}
+   * @param delayMilliseconds         how long every chunk is held before the pipeline gets it, in milliseconds
+   * @param maximumQueuedMilliseconds the queue duration in milliseconds, strictly greater than {@code delayMilliseconds} and at most
+   *                                  {@link #MAXIMUM_QUEUED_MILLISECONDS}, so its 192-bytes-per-millisecond size fits in an {@code int}
+   * @param pipeline                  gives the audio pipeline of the player for every chunk, so a pipeline attached later is
+   *                                  used
+   * @param failures                  receives a failure of the pipeline
    * @return the running output
    * @throws IllegalArgumentException if the delay is negative or leaves no room in the queue, or the queue is longer
-   *                                  than {@link #MAX_QUEUED_MILLIS}
-   * @throws NullPointerException if {@code source}, {@code pipeline} or {@code failures} is null
+   *                                  than {@link #MAXIMUM_QUEUED_MILLISECONDS}
+   * @throws NullPointerException     if {@code source}, {@code pipeline} or {@code failures} is null
+   * @since 1.0.0
    */
   public static DelayedAudioOutput start(
     final String source,
-    final int delayMillis,
-    final int maxQueuedMillis,
+    final int delayMilliseconds,
+    final int maximumQueuedMilliseconds,
     final Supplier<AudioPipelineStep> pipeline,
     final BiConsumer<String, Throwable> failures
   ) {
-    return start(source, delayMillis, maxQueuedMillis, pipeline, failures, System::nanoTime, JOIN_TIMEOUT_MILLIS, SILENCE_MILLIS);
+    return start(
+      source,
+      delayMilliseconds,
+      maximumQueuedMilliseconds,
+      pipeline,
+      failures,
+      System::nanoTime,
+      JOIN_TIMEOUT_MILLISECONDS,
+      SILENCE_MILLISECONDS
+    );
   }
 
-  /**
-   * Creates an output with another clock, so tests can check the delay, and starts its thread.
-   *
-   * @param source          names the source in the failures it reports
-   * @param delayMillis     how long every chunk is held, in milliseconds
-   * @param maxQueuedMillis the most sound that waits, the delay included, in milliseconds
-   * @param pipeline        gives the audio pipeline of the player for every chunk
-   * @param failures        receives a failure of the pipeline
-   * @param clock             a monotonic clock in nanoseconds
-   * @param joinTimeoutMillis how long closing waits for a pipeline that holds the thread, in milliseconds
-   * @param silenceMillis     how much silence follows {@link #quiet()} at most, in milliseconds
-   * @return the running output
-   */
+  // Creates an output with another clock, so tests can check the delay, and starts its thread.
   @VisibleForTesting
   static DelayedAudioOutput start(
     final String source,
-    final int delayMillis,
-    final int maxQueuedMillis,
+    final int delayMilliseconds,
+    final int maximumQueuedMilliseconds,
     final Supplier<AudioPipelineStep> pipeline,
     final BiConsumer<String, Throwable> failures,
     final LongSupplier clock,
-    final long joinTimeoutMillis,
-    final int silenceMillis
+    final long joinTimeoutMilliseconds,
+    final int silenceMilliseconds
   ) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(pipeline, "Pipeline must not be null");
-    Preconditions.checkNotNull(failures, "Failure handler must not be null");
-    Preconditions.checkArgument(delayMillis >= 0, "The delay must not be negative but was %s", delayMillis);
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(pipeline, "Pipeline must not be null!");
+    Preconditions.checkNotNull(failures, "Failure handler must not be null!");
+    Preconditions.checkArgument(delayMilliseconds >= 0, "Delay %s must not be negative!", delayMilliseconds);
     Preconditions.checkArgument(
-      maxQueuedMillis > delayMillis,
-      "At most %s ms may wait, which leaves no room past the delay of %s ms",
-      maxQueuedMillis,
-      delayMillis
+      maximumQueuedMilliseconds > delayMilliseconds,
+      "At most %s ms may wait, which leaves no room past the delay of %s ms!",
+      maximumQueuedMilliseconds,
+      delayMilliseconds
     );
     Preconditions.checkArgument(
-      maxQueuedMillis <= MAX_QUEUED_MILLIS,
-      "At most %s ms of sound may wait, but %s ms were asked for",
-      MAX_QUEUED_MILLIS,
-      maxQueuedMillis
+      maximumQueuedMilliseconds <= MAXIMUM_QUEUED_MILLISECONDS,
+      "At most %s ms of sound may wait, but %s ms were asked for!",
+      MAXIMUM_QUEUED_MILLISECONDS,
+      maximumQueuedMilliseconds
     );
     final DelayedAudioOutput output = new DelayedAudioOutput(
       source,
-      delayMillis,
-      maxQueuedMillis,
+      delayMilliseconds,
+      maximumQueuedMilliseconds,
       pipeline,
       failures,
       clock,
-      joinTimeoutMillis,
-      silenceMillis
+      joinTimeoutMilliseconds,
+      silenceMilliseconds
     );
     final Thread thread = new Thread(output::deliver, THREAD_NAME);
     thread.setDaemon(true);
@@ -211,25 +227,28 @@ public final class DelayedAudioOutput implements AutoCloseable {
    * @param samples the buffer, which the caller may reuse
    * @param length  the byte count at the start of the array, from 0 through its length and a multiple of
    *                four for complete stereo frames; frame alignment is a caller precondition
-   * @throws NullPointerException if samples are actually queued and {@code samples} is null
-   * @throws IllegalArgumentException if samples are queued with a negative length
+   * @throws NullPointerException      if samples are actually queued and {@code samples} is null
+   * @throws IllegalArgumentException  if samples are queued with a negative length
    * @throws IndexOutOfBoundsException if the requested byte range exceeds the array while queuing
+   * @since 1.0.0
    */
   public synchronized void accept(final byte[] samples, final int length) {
     if (this.paused || this.closed || length == 0) {
       return;
     }
-    final int kept = Math.min(length, this.maxQueuedBytes);
+
+    final int kept = Math.min(length, this.maximumQueuedBytes);
     final ByteBuffer copy = ByteBuffer.allocate(kept).order(ByteOrder.LITTLE_ENDIAN);
     copy.put(samples, length - kept, kept);
     copy.flip();
-    final long due = this.clock.getAsLong() + this.delayNanos;
-    final boolean endsQuiet = this.silenceLeftNanos > 0;
+    final long due = this.clock.getAsLong() + this.delayNanoseconds;
+    final boolean endsQuiet = this.silenceLeftNanoseconds > 0;
     // Make room before addition so even the largest accepted queue cannot wrap its byte counter.
-    while (this.queuedBytes > this.maxQueuedBytes - kept) {
+    while (this.queuedBytes > this.maximumQueuedBytes - kept) {
       final Chunk dropped = this.queue.removeFirst();
       this.queuedBytes -= dropped.samples().remaining();
     }
+
     this.queue.addLast(new Chunk(copy, due, endsQuiet));
     this.queuedBytes += kept;
     this.notifyAll();
@@ -237,23 +256,28 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * Drops the queued samples and every sample that arrives until {@link #resume()}.
+   *
+   * @since 1.0.0
    */
   public synchronized void pause() {
     this.paused = true;
-    this.silenceLeftNanos = 0;
+    this.silenceLeftNanoseconds = 0;
     this.dropQueued();
   }
 
   /**
    * Tells the output that its source went quiet and sends nothing until it plays again: the pause is filled with
-   * silence in real time, for {@value #SILENCE_MILLIS} ms at most, until the samples that arrive next are due. Nothing
+   * silence in real time, for {@value #SILENCE_MILLISECONDS} ms at most, until the samples that arrive next are due. Nothing
    * happens while the output is paused, and a closed output hands nothing over.
+   *
+   * @since 1.0.0
    */
   public synchronized void quiet() {
     if (this.paused) {
       return;
     }
-    this.silenceLeftNanos = this.silenceNanos;
+
+    this.silenceLeftNanoseconds = this.silenceNanoseconds;
     this.notifyAll();
   }
 
@@ -264,95 +288,78 @@ public final class DelayedAudioOutput implements AutoCloseable {
 
   /**
    * Queues samples again after a pause. Calling this after close does not reopen the output.
+   *
+   * @since 1.0.0
    */
   public synchronized void resume() {
     this.paused = false;
   }
 
-  /**
-   * Gets the number of bytes that wait for the pipeline.
-   *
-   * @return the queued bytes
-   */
-  @VisibleForTesting
-  synchronized int getQueuedBytes() {
-    return this.queuedBytes;
-  }
-
-  /**
-   * Gets the thread that hands the samples over, so tests can interrupt it.
-   *
-   * @return the thread
-   */
-  @VisibleForTesting
-  Thread getThread() {
-    return this.thread;
-  }
-
-  /**
-   * Waits until the oldest chunk is due, and takes it.
-   *
-   * @return the samples, or null once the output is closed
-   * @throws InterruptedException if the thread is interrupted
-   */
   private synchronized @Nullable ByteBuffer take() throws InterruptedException {
     while (!this.closed) {
       final long now = this.clock.getAsLong();
       final Chunk next = this.queue.peekFirst();
       if (next != null && next.due() - now <= 0) {
-        this.queue.removeFirst();
-        final ByteBuffer samples = next.samples();
-        this.queuedBytes -= samples.remaining();
-        if (next.endsQuiet()) {
-          this.silenceLeftNanos = 0;
-        }
-        this.streamEnd = Math.max(this.streamEnd, now) + nanosOf(samples.remaining());
-        return samples;
+        return this.takeDue(next, now);
       }
       final ByteBuffer silence = this.silence(now, next);
       if (silence != null) {
         return silence;
       }
-      if (next == null && this.silenceLeftNanos <= 0) {
+      if (next == null && this.silenceLeftNanoseconds <= 0) {
         this.wait();
         continue;
       }
       final long nextDue = next == null ? Long.MAX_VALUE : next.due();
-      final long wake = this.silenceLeftNanos > 0 ? Math.min(nextDue, this.streamEnd) : nextDue;
+      final long wake = this.silenceLeftNanoseconds > 0 ? Math.min(nextDue, this.streamEnd) : nextDue;
       TimeUnit.NANOSECONDS.timedWait(this, Math.max(1, wake - now));
     }
+
     return null;
   }
 
-  /**
-   * Makes the next chunk of silence of a quiet source, once the sound handed over has played: it ends when the next
-   * samples are due, or after a chunk, or when the silence allowed is used up.
-   *
-   * @return the silence, or null if none is due now
-   */
+  private ByteBuffer takeDue(final Chunk next, final long now) {
+    this.queue.removeFirst();
+    final ByteBuffer samples = next.samples();
+    this.queuedBytes -= samples.remaining();
+
+    if (next.endsQuiet()) {
+      this.silenceLeftNanoseconds = 0;
+    }
+
+    this.streamEnd = Math.max(this.streamEnd, now) + nanosecondsOf(samples.remaining());
+
+    return samples;
+  }
+
   private @Nullable ByteBuffer silence(final long now, final @Nullable Chunk next) {
-    if (this.silenceLeftNanos <= 0 || this.streamEnd - now > 0) {
+    if (this.silenceLeftNanoseconds <= 0 || this.streamEnd - now > 0) {
       return null;
     }
+
     final long start = Math.max(this.streamEnd, now);
-    long nanos = Math.min(TimeUnit.MILLISECONDS.toNanos(SILENCE_CHUNK_MILLIS), this.silenceLeftNanos);
+    long nanoseconds = Math.min(TimeUnit.MILLISECONDS.toNanos(SILENCE_CHUNK_MILLISECONDS), this.silenceLeftNanoseconds);
     if (next != null) {
-      nanos = Math.min(nanos, next.due() - start);
+      nanoseconds = Math.min(nanoseconds, next.due() - start);
     }
+
     final int bytes =
-      ((int) ((nanos * BYTES_PER_MILLISECOND) / TimeUnit.MILLISECONDS.toNanos(1)) / AudioFilter.FRAME_SIZE) * AudioFilter.FRAME_SIZE;
+      ((int) ((nanoseconds * BYTES_PER_MILLISECOND) / TimeUnit.MILLISECONDS.toNanos(1)) / AudioFilter.FRAME_SIZE) * AudioFilter.FRAME_SIZE;
     if (bytes <= 0) {
       if (next == null) {
-        this.silenceLeftNanos = 0;
+        this.silenceLeftNanoseconds = 0;
       }
+
       return null;
     }
-    this.silenceLeftNanos -= nanosOf(bytes);
-    this.streamEnd = start + nanosOf(bytes);
+
+    this.silenceLeftNanoseconds -= nanosecondsOf(bytes);
+    this.streamEnd = start + nanosecondsOf(bytes);
+
     return ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN);
   }
 
-  private static long nanosOf(final int bytes) {
+  private static long nanosecondsOf(final int bytes) {
     return (bytes * TimeUnit.MILLISECONDS.toNanos(1)) / BYTES_PER_MILLISECOND;
   }
 
@@ -360,7 +367,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     try {
       ByteBuffer next = this.take();
       while (next != null) {
-        this.process(next);
+        this.sendToPipeline(next);
         next = this.take();
       }
     } catch (final InterruptedException exception) {
@@ -368,32 +375,34 @@ public final class DelayedAudioOutput implements AutoCloseable {
     }
   }
 
-  private void process(final ByteBuffer samples) {
+  private void sendToPipeline(final ByteBuffer samples) {
     try {
       final AudioPipelineStep step = this.pipeline.get();
       if (!step.isNoOp()) {
         step.processAll(samples, METADATA);
       }
-    } catch (final RuntimeException | Error failure) {
+    } catch (final RuntimeException | Error exception) {
       // filters are user code and native code, which can fail with any Error; only errors of the JVM are thrown
-      ThrowableUtils.throwIfFatal(failure);
-      this.report(failure);
+      ThrowableUtils.throwIfFatal(exception);
+      this.report(exception);
     }
   }
 
   private void report(final Throwable failure) {
     try {
       this.failures.accept("Failed to process the audio of " + this.source, failure);
-    } catch (final RuntimeException | Error handlerFailure) {
-      ThrowableUtils.throwIfFatal(handlerFailure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
       // the exception handler is user code too; the sound goes on, and nothing else is left to tell
     }
   }
 
   /**
    * Stops the thread, dropping the queued samples, and waits for it; a pipeline that holds the thread is waited for
-   * {@value #JOIN_TIMEOUT_MILLIS} ms at most and then interrupted, so it can end on its own. Called from the pipeline
+   * {@value #JOIN_TIMEOUT_MILLISECONDS} ms at most and then interrupted, so it can end on its own. Called from the pipeline
    * itself, it does not wait.
+   *
+   * @since 1.0.0
    */
   @Override
   public void close() {
@@ -402,22 +411,33 @@ public final class DelayedAudioOutput implements AutoCloseable {
       this.dropQueued();
       this.notifyAll();
     }
+
     final Thread current = this.thread;
     final Thread caller = Thread.currentThread();
     if (current.equals(caller)) {
       return;
     }
+
     try {
-      current.join(this.joinTimeoutMillis);
+      current.join(this.joinTimeoutMilliseconds);
     } catch (final InterruptedException exception) {
       caller.interrupt();
     }
+
     current.interrupt();
   }
 
-  /**
-   * Samples and the time they are due at the pipeline.
-   */
+  @VisibleForTesting
+  synchronized int getQueuedBytes() {
+    return this.queuedBytes;
+  }
+
+  // Returns the thread that hands the samples over, so tests can interrupt it.
+  @VisibleForTesting
+  Thread getThread() {
+    return this.thread;
+  }
+
   private static final class Chunk {
 
     private final ByteBuffer samples;

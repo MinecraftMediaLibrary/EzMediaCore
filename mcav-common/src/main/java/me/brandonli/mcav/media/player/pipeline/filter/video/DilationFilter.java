@@ -25,6 +25,10 @@ import org.bytedeco.opencv.opencv_core.Size;
 /**
  * Grows the bright regions of frames with a rectangular structuring element, which thickens light features and
  * closes small dark gaps.
+ *
+ * <p>This class is thread-safe, because it only reads the matrix it holds.
+ *
+ * @since 1.0.0
  */
 public class DilationFilter extends MatVideoFilter {
 
@@ -35,9 +39,11 @@ public class DilationFilter extends MatVideoFilter {
    *
    * @param kernelSize the size of the structuring element in pixels, which must be positive
    * @throws IllegalArgumentException if {@code kernelSize} is nonpositive
+   * @since 1.0.0
    */
   public DilationFilter(final int kernelSize) {
-    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive");
+    Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive!");
+
     final Size size = new Size(kernelSize, kernelSize);
     this.kernel = opencv_imgproc.getStructuringElement(opencv_imgproc.MORPH_RECT, size);
   }
@@ -47,10 +53,12 @@ public class DilationFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.dilate(mat, mat, this.kernel);
+
     return true;
   }
 }

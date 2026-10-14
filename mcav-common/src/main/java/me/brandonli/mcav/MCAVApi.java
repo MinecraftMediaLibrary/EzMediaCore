@@ -38,21 +38,23 @@ import me.brandonli.mcav.module.MCAVModule;
  *   <li>{@link #whenCapabilityReady(Capability)} returns a future that completes once the preparation finished;
  *   <li>the features behind the capability refuse with an {@link IllegalStateException} that says the program is
  *   still being prepared: {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#vlc(String...)} and the default
- *   {@link me.brandonli.mcav.json.ytdlp.YTDLPParser}.
+ *   {@link me.brandonli.mcav.json.ytdlp.YtdlpParser}.
  * </ul>
  * {@link #release()} cancels a preparation that is still running.
  *
- * <pre><code>
- *   final MCAVApi api = MCAV.api();
- *   api.install();
- *   // FFmpeg players can be used right away
- *   final CompletableFuture&lt;Boolean&gt; vlcReady = api.whenCapabilityReady(Capability.VLC);
- *   vlcReady.thenAccept(available -&gt; {
- *     // VLC players can be created from now on if available is true
- *   });
- *   // at shutdown
- *   api.release();
- * </code></pre>
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install();
+ * // FFmpeg players can be used right away
+ * final CompletableFuture<Boolean> vlcReady = api.whenCapabilityReady(Capability.VLC);
+ * vlcReady.thenAccept(this::enableVlcPlayers);
+ * // at shutdown
+ * api.release();
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface MCAVApi {
   /**
@@ -64,11 +66,12 @@ public interface MCAVApi {
    * @return true if the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   boolean hasCapability(final Capability capability);
 
   /**
-   * Gets a future that completes once a capability is ready, without polling. It completes with true when the
+   * Returns a future that completes once a capability is ready, without polling. It completes with true when the
    * capability is available, and with false when it cannot be provided: the system does not support it, its
    * installation failed, or {@link #release()} cancelled the installation first. Once the future completed with
    * true, {@link #hasCapability(Capability)} reports the capability as available for that installation until
@@ -83,6 +86,7 @@ public interface MCAVApi {
    * @return a future that completes with whether the capability is available
    * @throws MCAVLoadingException if the library has not been installed yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   CompletableFuture<Boolean> whenCapabilityReady(final Capability capability);
 
@@ -100,6 +104,7 @@ public interface MCAVApi {
    * @throws MCAVLoadingException if the library cannot be installed, is installed already, or is being installed by
    *                              another thread
    * @throws NullPointerException if the module array itself is null
+   * @since 1.0.0
    */
   void install(final Class<?>... modules);
 
@@ -113,17 +118,20 @@ public interface MCAVApi {
    * unless it ignores the interruption for more than ten seconds, which is logged. The futures of
    * {@link #whenCapabilityReady(Capability)} for the cancelled programs complete with false. Releasing a library that
    * is not installed does nothing.
+   *
+   * @since 1.0.0
    */
   void release();
 
   /**
-   * Gets a module that was started by {@link #install(Class[])}.
+   * Returns a module that was started by {@link #install(Class[])}.
    *
-   * @param moduleClass the class of the module
-   * @param <T>         the type of the module
+   * @param moduleClass  the class of the module
+   * @param <ModuleType> the type of the module
    * @return the module instance
    * @throws me.brandonli.mcav.module.ModuleException if the module was not installed
-   * @throws NullPointerException if {@code moduleClass} is null
+   * @throws NullPointerException                     if {@code moduleClass} is null
+   * @since 1.0.0
    */
-  <T extends MCAVModule> T getModule(final Class<T> moduleClass);
+  <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass);
 }

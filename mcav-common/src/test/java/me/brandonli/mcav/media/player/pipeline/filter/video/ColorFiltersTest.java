@@ -37,12 +37,40 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the filters that change the colors of frames.
- */
 final class ColorFiltersTest {
 
   private static final double[] BLUE = { 255.0, 0.0, 0.0 };
+  private static final double[] WHITE_CHANNELS = { 255.0, 255.0, 255.0 };
+
+  private static final int BLACK = 0xFF000000;
+  private static final int WHITE = 0xFFFFFFFF;
+  private static final int SAMPLE_COLOR = 0xFF102030;
+  private static final int SAMPLE_GRAY = 0xFF1D1D1D;
+
+  private static final int RED_SHIFT = 16;
+  private static final int CHANNEL_MASK = 0xFF;
+
+  private static final int LOWER_HALF_LEVEL = 127;
+  private static final int UPPER_HALF_LEVEL = 128;
+
+  private static final int SOLID_SIDE = 3;
+
+  private static final int SPOT_SIDE = 5;
+  private static final int SPOT_CENTER = 2;
+
+  private static final int KERNEL_SIZE = 3;
+
+  private static final int BILATERAL_DIAMETER = 5;
+  private static final double BILATERAL_SIGMA = 50.0;
+  private static final double WIDE_BILATERAL_SIGMA = 1.0e9;
+
+  private static final double THRESHOLD_MAXIMUM_VALUE = 255.0;
+
+  private static final double TINT_STRENGTH = 0.5;
+  private static final double BLEND_ALPHA = 0.5;
+
+  private static final double TOO_LOW_WEIGHT = -0.1;
+  private static final double TOO_HIGH_WEIGHT = 1.1;
 
   private static int pixelAt(final ImageBuffer image, final int column, final int row) {
     final int[] pixels = image.getPixels();
@@ -51,33 +79,34 @@ final class ColorFiltersTest {
   }
 
   private static int applyToSolid(final VideoFilter filter, final int argb) {
-    try (final ImageBuffer image = Images.solid(3, 3, argb)) {
+    try (final ImageBuffer image = Images.solid(SOLID_SIDE, SOLID_SIDE, argb)) {
       final boolean modified = filter.applyFilter(image);
       assertTrue(modified);
+
       return pixelAt(image, 1, 1);
     }
   }
 
   @Test
-  void grayscaleMakesAllChannelsEqual() {
-    final int gray = applyToSolid(new GrayscaleFilter(), 0xFF102030);
-    final int red = (gray >> 16) & 0xFF;
-    final int green = (gray >> 8) & 0xFF;
-    final int blue = gray & 0xFF;
+  void shouldMakeAllChannelsEqualWithGrayscale() {
+    final int gray = applyToSolid(new GrayscaleFilter(), SAMPLE_COLOR);
+    final int red = (gray >> RED_SHIFT) & CHANNEL_MASK;
+    final int green = (gray >> 8) & CHANNEL_MASK;
+    final int blue = gray & CHANNEL_MASK;
     assertEquals(red, green);
     assertEquals(green, blue);
-    assertEquals(0xFF1D1D1D, gray, "0.299 * 0x10 + 0.587 * 0x20 + 0.114 * 0x30 = 29, with red read from the third byte");
+    assertEquals(SAMPLE_GRAY, gray, "0.299 * 0x10 + 0.587 * 0x20 + 0.114 * 0x30 = 29, with red read from the third byte");
   }
 
   @Test
-  void invertFlipsEveryChannel() {
-    final int inverted = applyToSolid(new InvertFilter(), 0xFF102030);
+  void shouldFlipEveryChannelWhenInverting() {
+    final int inverted = applyToSolid(new InvertFilter(), SAMPLE_COLOR);
     assertEquals(0xFFEFDFCF, inverted);
   }
 
   @Test
-  void luminanceScalesAndShiftsEveryChannel() {
-    final int adjusted = applyToSolid(new LuminanceFilter(2.0, 10.0), 0xFF102030);
+  void shouldScaleAndShiftEveryChannelWithLuminance() {
+    final int adjusted = applyToSolid(new LuminanceFilter(2.0, 10.0), SAMPLE_COLOR);
     assertEquals(0xFF2A4A6A, adjusted);
     assertThrows(IllegalArgumentException.class, () -> new LuminanceFilter(-1.0, 0.0));
     assertThrows(IllegalArgumentException.class, () -> new LuminanceFilter(1.0, 300.0));
@@ -85,47 +114,44 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void thresholdKeepsOnlyBrightChannels() {
-    final ThresholdFilter filter = new ThresholdFilter(127.0, 255.0, opencv_imgproc.THRESH_BINARY);
+  void shouldKeepOnlyBrightChannelsWithAThreshold() {
+    final ThresholdFilter filter = new ThresholdFilter(127.0, THRESHOLD_MAXIMUM_VALUE, opencv_imgproc.THRESH_BINARY);
     final int thresholded = applyToSolid(filter, 0xFF80107F);
     assertEquals(0xFFFF0000, thresholded);
-    assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(-1.0, 255.0, 0));
-    assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(256.0, 255.0, 0));
+    assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(-1.0, THRESHOLD_MAXIMUM_VALUE, 0));
+    assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(256.0, THRESHOLD_MAXIMUM_VALUE, 0));
     assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(0.0, -1.0, 0));
     assertThrows(IllegalArgumentException.class, () -> new ThresholdFilter(0.0, 256.0, 0));
   }
 
   @Test
-  void tintMixesTheColorIn() {
-    final int tinted = applyToSolid(new TintFilter(BLUE, 0.5), 0xFF000000);
-    final int red = (tinted >> 16) & 0xFF;
-    final int blue = tinted & 0xFF;
-    final boolean isHalfBlue = blue == 127 || blue == 128;
+  void shouldMixTheColorInWhenTinting() {
+    final int tinted = applyToSolid(new TintFilter(BLUE, TINT_STRENGTH), BLACK);
+    final int red = (tinted >> RED_SHIFT) & CHANNEL_MASK;
+    final int blue = tinted & CHANNEL_MASK;
+    final boolean isHalfBlue = blue == LOWER_HALF_LEVEL || blue == UPPER_HALF_LEVEL;
     final String hexadecimal = Integer.toHexString(tinted);
     assertEquals(0, red);
     assertTrue(isHalfBlue, hexadecimal);
-    assertThrows(IllegalArgumentException.class, () -> new TintFilter(BLUE, -0.1));
-    assertThrows(IllegalArgumentException.class, () -> new TintFilter(BLUE, 1.1));
+    assertThrows(IllegalArgumentException.class, () -> new TintFilter(BLUE, TOO_LOW_WEIGHT));
+    assertThrows(IllegalArgumentException.class, () -> new TintFilter(BLUE, TOO_HIGH_WEIGHT));
   }
 
-  /**
-   * Tints a black frame of the given size and returns the blue channel of its first pixel.
-   */
   private static int tintedBlue(final TintFilter filter, final int width, final int height) {
-    try (final ImageBuffer image = Images.solid(width, height, 0xFF000000)) {
+    try (final ImageBuffer image = Images.solid(width, height, BLACK)) {
       filter.applyFilter(image);
       final int tinted = pixelAt(image, 0, 0);
-      return tinted & 0xFF;
+      return tinted & CHANNEL_MASK;
     }
   }
 
   private static boolean isHalf(final int level) {
-    return level == 127 || level == 128;
+    return level == LOWER_HALF_LEVEL || level == UPPER_HALF_LEVEL;
   }
 
   @Test
-  void tintRebuildsItsColorOnlyForFramesOfAnotherSizeOrType() throws ReflectiveOperationException {
-    final TintFilter filter = new TintFilter(BLUE, 0.5);
+  void shouldRebuildTheTintColorOnlyForFramesOfAnotherSizeOrType() throws ReflectiveOperationException {
+    final TintFilter filter = new TintFilter(BLUE, TINT_STRENGTH);
     final int first = tintedBlue(filter, 3, 3);
     final Field holderField = TintFilter.class.getDeclaredField("tint");
     holderField.setAccessible(true);
@@ -134,75 +160,89 @@ final class ColorFiltersTest {
     final AtomicReference<?> idle = (AtomicReference<?>) idleField.get(holderField.get(filter));
     final Object kept = idle.get();
     final int sameSize = tintedBlue(filter, 3, 3);
-    assertSame(kept, idle.get(), "a stable frame size reuses the cached tint matrix");
+    final Object reused = idle.get();
+    assertSame(kept, reused, "a stable frame size reuses the cached tint matrix");
+
     final int otherWidth = tintedBlue(filter, 2, 3);
     final int otherHeight = tintedBlue(filter, 2, 2);
     final int grayLevel;
     try (final Mat gray = new Mat(2, 2, opencv_core.CV_8UC1, new Scalar(0.0))) {
       filter.modifyMat(gray);
       final ByteBuffer levels = gray.createBuffer();
-      grayLevel = levels.get(0) & 0xFF;
+      grayLevel = levels.get(0) & CHANNEL_MASK;
     }
+
     final int afterGray = tintedBlue(filter, 2, 2);
-    assertTrue(isHalf(first), "first " + first);
-    assertTrue(isHalf(sameSize), "the kept color is reused " + sameSize);
-    assertTrue(isHalf(otherWidth), "another width " + otherWidth);
-    assertTrue(isHalf(otherHeight), "another height " + otherHeight);
-    assertTrue(isHalf(grayLevel), "a single channel is tinted with the first component " + grayLevel);
-    assertTrue(isHalf(afterGray), "and the next color frame gets three channels again " + afterGray);
+    final boolean firstHalf = isHalf(first);
+    assertTrue(firstHalf, "first " + first);
+
+    final boolean sameSizeHalf = isHalf(sameSize);
+    assertTrue(sameSizeHalf, "the kept color is reused " + sameSize);
+
+    final boolean otherWidthHalf = isHalf(otherWidth);
+    assertTrue(otherWidthHalf, "another width " + otherWidth);
+
+    final boolean otherHeightHalf = isHalf(otherHeight);
+    assertTrue(otherHeightHalf, "another height " + otherHeight);
+
+    final boolean grayHalf = isHalf(grayLevel);
+    assertTrue(grayHalf, "a single channel is tinted with the first component " + grayLevel);
+
+    final boolean afterGrayHalf = isHalf(afterGray);
+    assertTrue(afterGrayHalf, "and the next color frame gets three channels again " + afterGray);
   }
 
   @Test
-  void acceptsTheBoundaryValuesOfEveryColorFilter() {
+  void shouldAcceptTheBoundaryValuesOfEveryColorFilter() {
     final LuminanceFilter darkest = new LuminanceFilter(0.0, -255.0);
     final LuminanceFilter brightest = new LuminanceFilter(1.0, 255.0);
     final ThresholdFilter lowest = new ThresholdFilter(0.0, 0.0, opencv_imgproc.THRESH_BINARY);
-    final ThresholdFilter highest = new ThresholdFilter(255.0, 255.0, opencv_imgproc.THRESH_BINARY);
+    final ThresholdFilter highest = new ThresholdFilter(255.0, THRESHOLD_MAXIMUM_VALUE, opencv_imgproc.THRESH_BINARY);
     final TintFilter untinted = new TintFilter(BLUE, 0.0);
     final TintFilter solidTint = new TintFilter(BLUE, 1.0);
-    final int dimmed = applyToSolid(darkest, 0xFF102030);
-    final int lifted = applyToSolid(brightest, 0xFF102030);
-    final int lowThreshold = applyToSolid(lowest, 0xFF102030);
-    final int highThreshold = applyToSolid(highest, 0xFF102030);
-    final int keptColor = applyToSolid(untinted, 0xFF102030);
-    final int fullTint = applyToSolid(solidTint, 0xFF102030);
-    assertEquals(0xFF000000, dimmed, "a contrast of 0 and the lowest brightness are allowed and leave black");
-    assertEquals(0xFFFFFFFF, lifted, "the highest brightness is allowed and saturates every channel");
-    assertEquals(0xFF000000, lowThreshold, "a threshold and a max value of 0 are allowed");
-    assertEquals(0xFF000000, highThreshold, "a threshold of 255 is allowed and lets no channel pass");
-    assertEquals(0xFF102030, keptColor, "a strength of 0 is allowed and keeps the frame");
+    final int dimmed = applyToSolid(darkest, SAMPLE_COLOR);
+    final int lifted = applyToSolid(brightest, SAMPLE_COLOR);
+    final int lowThreshold = applyToSolid(lowest, SAMPLE_COLOR);
+    final int highThreshold = applyToSolid(highest, SAMPLE_COLOR);
+    final int keptColor = applyToSolid(untinted, SAMPLE_COLOR);
+    final int fullTint = applyToSolid(solidTint, SAMPLE_COLOR);
+    assertEquals(BLACK, dimmed, "a contrast of 0 and the lowest brightness are allowed and leave black");
+    assertEquals(WHITE, lifted, "the highest brightness is allowed and saturates every channel");
+    assertEquals(BLACK, lowThreshold, "a threshold and a max value of 0 are allowed");
+    assertEquals(BLACK, highThreshold, "a threshold of 255 is allowed and lets no channel pass");
+    assertEquals(SAMPLE_COLOR, keptColor, "a strength of 0 is allowed and keeps the frame");
     assertEquals(0xFF0000FF, fullTint, "a strength of 1 is allowed and replaces the frame with the tint color");
   }
 
   @Test
-  void blendAcceptsTheHighestWeight() {
-    try (final ImageBuffer white = Images.solid(3, 3, 0xFFFFFFFF)) {
+  void shouldBlendWithTheHighestWeight() {
+    try (final ImageBuffer white = Images.solid(SOLID_SIDE, SOLID_SIDE, WHITE)) {
       final BlendFilter filter = new BlendFilter(white, 1.0);
-      final int blended = applyToSolid(filter, 0xFF000000);
-      assertEquals(0xFF000000, blended, "an alpha of 1 is allowed and keeps the frame");
+      final int blended = applyToSolid(filter, BLACK);
+      assertEquals(BLACK, blended, "an alpha of 1 is allowed and keeps the frame");
     }
   }
 
   @Test
-  void grayscaleReusesItsMatrixAcrossFrameSizes() {
+  void shouldReuseTheGrayscaleMatrixAcrossFrameSizes() {
     final GrayscaleFilter filter = new GrayscaleFilter();
-    final int small = applyToSolid(filter, 0xFF102030);
-    try (final ImageBuffer large = Images.solid(5, 4, 0xFF102030)) {
+    final int small = applyToSolid(filter, SAMPLE_COLOR);
+    try (final ImageBuffer large = Images.solid(5, 4, SAMPLE_COLOR)) {
       filter.applyFilter(large);
       final int largeGray = pixelAt(large, 4, 3);
-      assertEquals(0xFF1D1D1D, small);
-      assertEquals(0xFF1D1D1D, largeGray);
+      assertEquals(SAMPLE_GRAY, small);
+      assertEquals(SAMPLE_GRAY, largeGray);
     }
   }
 
   @Test
-  void bilateralFiltersBareMatricesInPlace() {
-    final BilateralFilter filter = new BilateralFilter(5, 50.0, 50.0);
+  void shouldFilterBareMatricesInPlaceWithBilateral() {
+    final BilateralFilter filter = new BilateralFilter(BILATERAL_DIAMETER, BILATERAL_SIGMA, BILATERAL_SIGMA);
     try (final Mat mat = new Mat(3, 3, opencv_core.CV_8UC3, new Scalar(0x60, 0x50, 0x40, 0.0))) {
       final boolean modified = filter.modifyMat(mat);
       final ByteBuffer pixels = mat.createBuffer();
-      final int blue = pixels.get(12) & 0xFF;
-      final int red = pixels.get(14) & 0xFF;
+      final int blue = pixels.get(12) & CHANNEL_MASK;
+      final int red = pixels.get(14) & CHANNEL_MASK;
       assertTrue(modified);
       assertEquals(0x60, blue, "flat areas stay flat");
       assertEquals(0x40, red);
@@ -210,41 +250,44 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void bilateralAveragesANonuniformCrossInTheImageBuffer() {
-    final BilateralFilter filter = new BilateralFilter(3, 1.0e9, 1.0e9);
-    try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
-      image.setPixel(2, 2, new double[] { 0.0, 0.0, 100.0 });
+  void shouldAverageANonuniformCrossInTheImageBufferWithBilateral() {
+    final BilateralFilter filter = new BilateralFilter(KERNEL_SIZE, WIDE_BILATERAL_SIGMA, WIDE_BILATERAL_SIGMA);
+    try (final ImageBuffer image = Images.solid(SPOT_SIDE, SPOT_SIDE, BLACK)) {
+      image.setPixel(SPOT_CENTER, SPOT_CENTER, new double[] { 0.0, 0.0, 100.0 });
       final boolean modified = filter.applyFilter(image);
-      final int center = pixelAt(image, 2, 2);
-      final int neighbor = pixelAt(image, 1, 2);
+      final int center = pixelAt(image, SPOT_CENTER, SPOT_CENTER);
+      final int neighbor = pixelAt(image, 1, SPOT_CENTER);
       final int distant = pixelAt(image, 0, 0);
       assertTrue(modified);
       assertEquals(0xFF140000, center);
       assertEquals(0xFF140000, neighbor);
-      assertEquals(0xFF000000, distant);
+      assertEquals(BLACK, distant);
     }
   }
 
   @Test
-  void bilateralWritesTheSmoothedPixelsBackToABareMatrix() {
-    final BilateralFilter filter = new BilateralFilter(3, 1.0e9, 1.0e9);
-    try (final Scalar black = new Scalar(0.0); final Mat mat = new Mat(5, 5, opencv_core.CV_8UC3, black)) {
+  void shouldWriteTheSmoothedPixelsBackToABareMatrixWithBilateral() {
+    final BilateralFilter filter = new BilateralFilter(KERNEL_SIZE, WIDE_BILATERAL_SIGMA, WIDE_BILATERAL_SIGMA);
+    try (final Scalar black = new Scalar(0.0); final Mat mat = new Mat(SPOT_SIDE, SPOT_SIDE, opencv_core.CV_8UC3, black)) {
       final ByteBuffer original = mat.createBuffer();
       original.put(3 * 12 + 2, (byte) 100);
       final boolean modified = filter.modifyMat(mat);
       final ByteBuffer pixels = mat.createBuffer();
       assertTrue(modified);
-      assertEquals(20, pixels.get(3 * 12 + 2) & 0xFF);
-      assertEquals(20, pixels.get(3 * 11 + 2) & 0xFF);
-      assertEquals(0, pixels.get(2) & 0xFF);
+      final int center = pixels.get(3 * 12 + 2) & CHANNEL_MASK;
+      assertEquals(20, center);
+      final int neighbor = pixels.get(3 * 11 + 2) & CHANNEL_MASK;
+      assertEquals(20, neighbor);
+      final int corner = pixels.get(2) & CHANNEL_MASK;
+      assertEquals(0, corner);
     }
   }
 
   @Test
-  void colorMapRecolorsEveryPixelByItsBrightness() {
+  void shouldRecolorEveryPixelByItsBrightnessWithAColorMap() {
     final ColorMapFilter filter = new ColorMapFilter(opencv_imgproc.COLORMAP_JET);
-    final int fromGray = applyToSolid(filter, 0xFF1D1D1D);
-    final int fromColor = applyToSolid(filter, 0xFF102030);
+    final int fromGray = applyToSolid(filter, SAMPLE_GRAY);
+    final int fromColor = applyToSolid(filter, SAMPLE_COLOR);
     final int fromMidGray = applyToSolid(filter, 0xFF808080);
     assertEquals(fromGray, fromColor, "0x102030 has the luma 0x1D of the gray, so both get the same color");
     assertNotEquals(fromGray, fromMidGray, "other brightness levels get other colors");
@@ -252,41 +295,51 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void blendMixesTwoFramesOfTheSameSize() {
-    try (final ImageBuffer white = Images.solid(3, 3, 0xFFFFFFFF)) {
+  void shouldBlendTwoFramesOfTheSameSize() {
+    try (final ImageBuffer white = Images.solid(SOLID_SIDE, SOLID_SIDE, WHITE)) {
       final BlendFilter filter = new BlendFilter(white, 0.25);
-      final int blended = applyToSolid(filter, 0xFF000000);
+      final int blended = applyToSolid(filter, BLACK);
       assertEquals(0xFFBFBFBF, blended);
     }
   }
 
   @Test
-  void blendIgnoresFramesOfAnotherSize() {
-    try (final ImageBuffer other = Images.solid(2, 2, 0xFFFFFFFF); final ImageBuffer image = Images.solid(3, 3, 0xFF000000)) {
-      final BlendFilter filter = new BlendFilter(other, 0.5);
+  void shouldNotBlendFramesOfAnotherSize() {
+    try (final ImageBuffer other = Images.solid(2, 2, WHITE); final ImageBuffer image = Images.solid(SOLID_SIDE, SOLID_SIDE, BLACK)) {
+      final BlendFilter filter = new BlendFilter(other, BLEND_ALPHA);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean modified = filter.applyFilter(image);
       assertFalse(modified);
-      assertEquals(before, image.getData());
-      assertEquals(3, image.getWidth());
-      assertEquals(3, image.getHeight());
+      final ByteBuffer after = image.getData();
+      assertEquals(before, after);
+      final int width = image.getWidth();
+      assertEquals(SOLID_SIDE, width);
+      final int height = image.getHeight();
+      assertEquals(SOLID_SIDE, height);
     }
-    try (final ImageBuffer tall = Images.solid(3, 4, 0xFFFFFFFF); final ImageBuffer image = Images.solid(3, 3, 0xFF000000)) {
-      final BlendFilter filter = new BlendFilter(tall, 0.5);
+
+    try (
+      final ImageBuffer tall = Images.solid(SOLID_SIDE, 4, WHITE);
+      final ImageBuffer image = Images.solid(SOLID_SIDE, SOLID_SIDE, BLACK)
+    ) {
+      final BlendFilter filter = new BlendFilter(tall, BLEND_ALPHA);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean modified = filter.applyFilter(image);
       assertFalse(modified);
-      assertEquals(before, image.getData());
-      assertEquals(3, image.getWidth());
-      assertEquals(3, image.getHeight());
+      final ByteBuffer after = image.getData();
+      assertEquals(before, after);
+      final int width = image.getWidth();
+      assertEquals(SOLID_SIDE, width);
+      final int height = image.getHeight();
+      assertEquals(SOLID_SIDE, height);
     }
   }
 
   @Test
-  void blendAcceptsImagesThatAreNotBackedByAMat() {
+  void shouldBlendImagesThatAreNotBackedByAMat() {
     final ImageBuffer other = mock(ImageBuffer.class);
-    when(other.getWidth()).thenReturn(3);
-    when(other.getHeight()).thenReturn(3);
+    when(other.getWidth()).thenReturn(SOLID_SIDE);
+    when(other.getHeight()).thenReturn(SOLID_SIDE);
     when(other.getPixels()).thenReturn(new int[] {
       0xFFFFFFFF,
       0xFFFFFFFF,
@@ -299,16 +352,16 @@ final class ColorFiltersTest {
       0xFFFFFFFF,
     });
     final BlendFilter filter = new BlendFilter(other, 0.0);
-    final int blended = applyToSolid(filter, 0xFF000000);
-    assertEquals(0xFFFFFFFF, blended);
-    assertThrows(IllegalArgumentException.class, () -> new BlendFilter(other, -0.1));
-    assertThrows(IllegalArgumentException.class, () -> new BlendFilter(other, 1.1));
-    assertThrows(NullPointerException.class, () -> new BlendFilter(null, 0.5));
+    final int blended = applyToSolid(filter, BLACK);
+    assertEquals(WHITE, blended);
+    assertThrows(IllegalArgumentException.class, () -> new BlendFilter(other, TOO_LOW_WEIGHT));
+    assertThrows(IllegalArgumentException.class, () -> new BlendFilter(other, TOO_HIGH_WEIGHT));
+    assertThrows(NullPointerException.class, () -> new BlendFilter(null, BLEND_ALPHA));
   }
 
   @Test
-  void bilateralKeepsFlatAreasFlat() {
-    final int filtered = applyToSolid(new BilateralFilter(5, 50.0, 50.0), 0xFF405060);
+  void shouldKeepFlatAreasFlatWithBilateral() {
+    final int filtered = applyToSolid(new BilateralFilter(BILATERAL_DIAMETER, BILATERAL_SIGMA, BILATERAL_SIGMA), 0xFF405060);
     assertEquals(0xFF405060, filtered);
     assertThrows(IllegalArgumentException.class, () -> new BilateralFilter(0, 1.0, 1.0));
     assertThrows(IllegalArgumentException.class, () -> new BilateralFilter(1, 0.0, 1.0));
@@ -316,82 +369,87 @@ final class ColorFiltersTest {
   }
 
   @Test
-  void everySmoothingBlurSpreadsASinglePixelToItsNeighbors() {
+  void shouldSpreadASinglePixelToItsNeighborsWithEverySmoothingBlur() {
     final BlurFilter.BlurType[] smoothing = { BlurFilter.BlurType.NORMAL, BlurFilter.BlurType.GAUSSIAN, BlurFilter.BlurType.STACK };
     for (final BlurFilter.BlurType type : smoothing) {
-      try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
-        image.setPixel(2, 2, new double[] { 255.0, 255.0, 255.0 });
-        final BlurFilter filter = new BlurFilter(type, 3, 1.0, 1.0);
+      try (final ImageBuffer image = Images.solid(SPOT_SIDE, SPOT_SIDE, BLACK)) {
+        image.setPixel(SPOT_CENTER, SPOT_CENTER, WHITE_CHANNELS);
+        final BlurFilter filter = new BlurFilter(type, KERNEL_SIZE, 1.0, 1.0);
         final boolean modified = filter.applyFilter(image);
-        final int center = pixelAt(image, 2, 2);
-        final int neighbor = pixelAt(image, 1, 2);
-        final int neighborBlue = neighbor & 0xFF;
+        final int center = pixelAt(image, SPOT_CENTER, SPOT_CENTER);
+        final int neighbor = pixelAt(image, 1, SPOT_CENTER);
+        final int neighborBlue = neighbor & CHANNEL_MASK;
         final String name = type.name();
         assertTrue(modified, name);
-        assertNotEquals(0xFFFFFFFF, center, name + " darkens the bright pixel");
-        assertTrue(neighborBlue > 0, name + " brightens its neighbors");
+        assertNotEquals(WHITE, center, name + " darkens the bright pixel");
+
+        final boolean brightened = neighborBlue > 0;
+        assertTrue(brightened, name + " brightens its neighbors");
       }
     }
   }
 
   @Test
-  void medianBlurRemovesASinglePixel() {
-    try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
-      image.setPixel(2, 2, new double[] { 255.0, 255.0, 255.0 });
-      final BlurFilter filter = new BlurFilter(BlurFilter.BlurType.MEDIAN, 3);
+  void shouldRemoveASinglePixelWithAMedianBlur() {
+    try (final ImageBuffer image = Images.solid(SPOT_SIDE, SPOT_SIDE, BLACK)) {
+      image.setPixel(SPOT_CENTER, SPOT_CENTER, WHITE_CHANNELS);
+      final BlurFilter filter = new BlurFilter(BlurFilter.BlurType.MEDIAN, KERNEL_SIZE);
       final boolean modified = filter.applyFilter(image);
-      final int center = pixelAt(image, 2, 2);
-      final int neighbor = pixelAt(image, 1, 2);
+      final int center = pixelAt(image, SPOT_CENTER, SPOT_CENTER);
+      final int neighbor = pixelAt(image, 1, SPOT_CENTER);
       assertTrue(modified);
-      assertEquals(0xFF000000, center, "the median of eight black pixels and one white pixel is black");
-      assertEquals(0xFF000000, neighbor, "the median does not spread the pixel");
+      assertEquals(BLACK, center, "the median of eight black pixels and one white pixel is black");
+      assertEquals(BLACK, neighbor, "the median does not spread the pixel");
     }
   }
 
   @Test
-  void blurRejectsInvalidKernels() {
-    final BlurFilter simple = new BlurFilter(BlurFilter.BlurType.NORMAL, 3);
-    final int blurred = applyToSolid(simple, 0xFF102030);
-    assertEquals(0xFF102030, blurred);
+  void shouldRejectInvalidBlurKernels() {
+    final BlurFilter simple = new BlurFilter(BlurFilter.BlurType.NORMAL, KERNEL_SIZE);
+    final int blurred = applyToSolid(simple, SAMPLE_COLOR);
+    assertEquals(SAMPLE_COLOR, blurred);
+
     final BlurFilter evenBox = new BlurFilter(BlurFilter.BlurType.NORMAL, 2);
-    final int evenBlurred = applyToSolid(evenBox, 0xFF102030);
-    assertEquals(0xFF102030, evenBlurred, "the box blur accepts even kernels, as OpenCV does");
+    final int evenBlurred = applyToSolid(evenBox, SAMPLE_COLOR);
+    assertEquals(SAMPLE_COLOR, evenBlurred, "the box blur accepts even kernels, as OpenCV does");
     assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.NORMAL, 0));
     assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.MEDIAN, 2));
     assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.GAUSSIAN, 2));
     assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.STACK, 2));
-    assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.GAUSSIAN, 3, -1.0, 0.0));
-    assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.GAUSSIAN, 3, 0.0, -1.0));
-    assertThrows(NullPointerException.class, () -> new BlurFilter(null, 3));
+    assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.GAUSSIAN, KERNEL_SIZE, -1.0, 0.0));
+    assertThrows(IllegalArgumentException.class, () -> new BlurFilter(BlurFilter.BlurType.GAUSSIAN, KERNEL_SIZE, 0.0, -1.0));
+    assertThrows(NullPointerException.class, () -> new BlurFilter(null, KERNEL_SIZE));
   }
 
   @Test
-  void dilationGrowsBrightAreas() {
-    try (final ImageBuffer image = Images.solid(5, 5, 0xFF000000)) {
-      image.setPixel(2, 2, new double[] { 255.0, 255.0, 255.0 });
-      final DilationFilter filter = new DilationFilter(3);
+  void shouldGrowBrightAreasWithDilation() {
+    try (final ImageBuffer image = Images.solid(SPOT_SIDE, SPOT_SIDE, BLACK)) {
+      image.setPixel(SPOT_CENTER, SPOT_CENTER, WHITE_CHANNELS);
+      final DilationFilter filter = new DilationFilter(KERNEL_SIZE);
       final boolean modified = filter.applyFilter(image);
       final int neighbor = pixelAt(image, 1, 1);
       final int corner = pixelAt(image, 0, 0);
       assertTrue(modified, "the filter reports the change, which decides whether the result is written back");
-      assertEquals(0xFFFFFFFF, neighbor);
-      assertEquals(0xFF000000, corner);
+      assertEquals(WHITE, neighbor);
+      assertEquals(BLACK, corner);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new DilationFilter(0));
   }
 
   @Test
-  void erosionGrowsDarkAreas() {
-    try (final ImageBuffer image = Images.solid(5, 5, 0xFFFFFFFF)) {
-      image.setPixel(2, 2, new double[] { 0.0, 0.0, 0.0 });
-      final ErosionFilter filter = new ErosionFilter(3);
+  void shouldGrowDarkAreasWithErosion() {
+    try (final ImageBuffer image = Images.solid(SPOT_SIDE, SPOT_SIDE, WHITE)) {
+      image.setPixel(SPOT_CENTER, SPOT_CENTER, new double[] { 0.0, 0.0, 0.0 });
+      final ErosionFilter filter = new ErosionFilter(KERNEL_SIZE);
       final boolean modified = filter.applyFilter(image);
       final int neighbor = pixelAt(image, 1, 1);
       final int corner = pixelAt(image, 0, 0);
       assertTrue(modified, "the filter reports the change, which decides whether the result is written back");
-      assertEquals(0xFF000000, neighbor);
-      assertEquals(0xFFFFFFFF, corner);
+      assertEquals(BLACK, neighbor);
+      assertEquals(WHITE, corner);
     }
+
     assertThrows(IllegalArgumentException.class, () -> new ErosionFilter(0));
   }
 }

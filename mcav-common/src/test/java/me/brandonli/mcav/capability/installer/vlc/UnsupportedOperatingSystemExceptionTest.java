@@ -21,27 +21,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link UnsupportedOperatingSystemException}.
- */
 final class UnsupportedOperatingSystemExceptionTest {
 
   @Test
-  void keepsTheMessage() {
+  void shouldKeepTheMessage() {
     final UnsupportedOperatingSystemException exception = new UnsupportedOperatingSystemException(
-      "VLC cannot be installed automatically on FREEBSD"
+      "Operating system FREEBSD does not support installing VLC automatically!"
     );
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("VLC cannot be installed automatically on FREEBSD", message);
+    assertEquals("Operating system FREEBSD does not support installing VLC automatically!", message);
     assertNull(cause);
   }
 
   @Test
-  void isAnUnsupportedOperationException() {
-    final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("failure");
-    assertInstanceOf(UnsupportedOperationException.class, exception, "an unsupported system is recoverable, so it is no Error");
+  void shouldBeAnMCAVException() {
+    final UnsupportedOperatingSystemException exception = VlcInstallerFailures.unsupportedSystem("Failure!");
+    assertInstanceOf(MCAVException.class, exception, "an unsupported system is recoverable, so it is no Error");
   }
 }

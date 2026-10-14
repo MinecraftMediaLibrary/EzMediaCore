@@ -31,10 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ExecutorUtils}.
- */
 final class ExecutorUtilsTest {
+
+  private static final long TERMINATION_TIMEOUT_SECONDS = 5L;
 
   private static void spinUntil(final AtomicBoolean release) {
     while (!release.get()) {
@@ -43,7 +42,7 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void returnsTrueWhenTheTasksFinishInTime() {
+  void shouldReturnTrueWhenTheTasksFinishInTime() {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch ran = new CountDownLatch(1);
     executor.execute(ran::countDown);
@@ -56,64 +55,69 @@ final class ExecutorUtilsTest {
   }
 
   @Test
-  void interruptsTasksThatDoNotFinishInTime() throws InterruptedException {
+  void shouldInterruptTasksThatDoNotFinishInTime() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final AtomicBoolean release = new AtomicBoolean();
-    executor.execute(() -> {
-      started.countDown();
-      spinUntil(release);
-    });
+    executor.execute(() -> this.signalStartAndSpin(started, release));
     final AtomicBoolean queuedRan = new AtomicBoolean();
     executor.execute(() -> queuedRan.set(true));
     started.await();
     final Duration timeout = Duration.ofMillis(50);
     final boolean terminated = ExecutorUtils.shutdownExecutorGracefully(executor, timeout);
     release.set(true);
-    final boolean finished = executor.awaitTermination(5, TimeUnit.SECONDS);
+    final boolean finished = executor.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean ranQueued = queuedRan.get();
     assertFalse(terminated);
     assertTrue(finished);
     assertFalse(ranQueued, "tasks that had not started are cancelled");
   }
 
+  private void signalStartAndSpin(final CountDownLatch started, final AtomicBoolean release) {
+    started.countDown();
+    spinUntil(release);
+  }
+
   @Test
-  void keepsTheInterruptWhenInterruptedWhileWaiting() throws InterruptedException {
+  void shouldKeepTheInterruptWhenInterruptedWhileWaiting() throws InterruptedException {
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     final CountDownLatch started = new CountDownLatch(1);
     final CountDownLatch blocker = new CountDownLatch(1);
-    executor.execute(() -> {
-      started.countDown();
-      try {
-        blocker.await();
-      } catch (final InterruptedException exception) {
-        final Thread current = Thread.currentThread();
-        current.interrupt();
-      }
-    });
+    executor.execute(() -> this.signalStartAndAwaitBlocker(started, blocker));
     started.await();
     final Thread current = Thread.currentThread();
     current.interrupt();
     final boolean terminated = ExecutorUtils.shutdownExecutorGracefully(executor);
     final boolean interrupted = Thread.interrupted();
-    final boolean finished = executor.awaitTermination(5, TimeUnit.SECONDS);
+    final boolean finished = executor.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertFalse(terminated);
     assertTrue(interrupted, "the interrupt must be restored");
     assertTrue(finished, "shutdownNow must interrupt the running task");
   }
 
+  private void signalStartAndAwaitBlocker(final CountDownLatch started, final CountDownLatch blocker) {
+    started.countDown();
+    try {
+      blocker.await();
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
+  }
+
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final Duration timeout = Duration.ofSeconds(1);
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null));
     assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(null, timeout));
+
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       assertThrows(NullPointerException.class, () -> ExecutorUtils.shutdownExecutorGracefully(executor, null));
     }
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(ExecutorUtils.class);
   }
 }

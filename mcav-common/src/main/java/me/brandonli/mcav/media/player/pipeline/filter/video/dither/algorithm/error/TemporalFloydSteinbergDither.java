@@ -22,11 +22,17 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Floyd-Steinberg error diffusion that stays stable between video frames, see {@link TemporalDitherAlgorithm}.
  * This is the recommended algorithm for video on maps, especially together with delta encoding.
+ *
+ * <p>This class is not thread-safe, because it keeps the previous frame; use one instance per stream.
+ *
+ * @since 1.0.0
  */
 public final class TemporalFloydSteinbergDither extends TemporalDitherAlgorithm {
 
   /**
    * Constructs a new algorithm for the Minecraft map palette with default settings.
+   *
+   * @since 1.0.0
    */
   public TemporalFloydSteinbergDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -37,6 +43,7 @@ public final class TemporalFloydSteinbergDither extends TemporalDitherAlgorithm 
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public TemporalFloydSteinbergDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.FLOYD_STEINBERG);
@@ -50,9 +57,10 @@ public final class TemporalFloydSteinbergDither extends TemporalDitherAlgorithm 
    *                          recomputed
    * @param errorThreshold    the total error at or below which no error is diffused
    * @param errorStrength     the fraction of the error that is diffused, from 0 to 1
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
    * @throws IllegalArgumentException if the temporal threshold is outside 0 through 255, the error
    *                                  threshold is negative, or the strength is outside 0 through 1 or NaN
+   * @since 1.0.0
    */
   public TemporalFloydSteinbergDither(
     final DitherPalette palette,

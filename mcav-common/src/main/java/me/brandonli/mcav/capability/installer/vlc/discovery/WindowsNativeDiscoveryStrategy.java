@@ -36,53 +36,60 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
  * Copyright 2009-2025 Caprica Software Limited.
  */
 
+import java.nio.file.Path;
 import java.util.List;
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 
 /**
  * Finds {@code libvlc.dll} and {@code libvlccore.dll} in the installation directory of VLC on Windows and the other
  * directories vlcj knows about.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
+ *
+ * @since 1.0.0
  */
 public class WindowsNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.dll", "libvlccore\\.dll" };
-  private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s\\plugins", "%s\\vlc\\plugins" };
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("plugins"), Path.of("vlc", "plugins"));
+
+  private final Os operatingSystem;
 
   /**
    * Constructs a strategy that searches vlcj's directories and publishes the plugin path with {@code _putenv}.
+   *
+   * @since 1.0.0
    */
   public WindowsNativeDiscoveryStrategy() {
     final EnvironmentSetter windowsSetter = nativeSetter();
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, windowsSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, windowsSetter);
+    this.operatingSystem = OsUtils.getOs();
   }
 
-  /**
-   * Constructs a strategy with custom directories and a custom way of publishing the plugin path.
-   *
-   * @param searchProviders   the providers of the directories to search
-   * @param environmentSetter sets the plugin path variable
-   */
-  WindowsNativeDiscoveryStrategy(final List<SearchProvider> searchProviders, final EnvironmentSetter environmentSetter) {
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
+  WindowsNativeDiscoveryStrategy(
+    final List<SearchProvider> searchProviders,
+    final EnvironmentSetter environmentSetter,
+    final Os operatingSystem
+  ) {
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
+    this.operatingSystem = operatingSystem;
   }
 
-  /**
-   * Creates the setter that publishes variables with {@code _putenv} of the C runtime of this process.
-   *
-   * @return the setter
-   */
   static EnvironmentSetter nativeSetter() {
     final EnvironmentVariables variables = EnvironmentVariables.nativeVariables();
     return variables::setWindowsVariable;
   }
 
   /**
-   * Checks whether the system is Windows.
+   * Returns whether the running operating system is Windows.
    *
    * @return true on Windows
+   * @since 1.0.0
    */
   @Override
   public boolean supported() {
-    return RuntimeUtil.isWindows();
+    return this.operatingSystem == Os.WINDOWS;
   }
 }

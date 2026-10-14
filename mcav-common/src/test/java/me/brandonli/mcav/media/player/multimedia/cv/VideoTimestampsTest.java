@@ -22,16 +22,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VideoTimestamps} with a clock the test moves by hand.
- */
 final class VideoTimestampsTest {
 
-  private final AtomicLong nanos = new AtomicLong(1_000_000_000L);
+  private static final double FRAMES_PER_SECOND = 30.0;
+
+  private final AtomicLong nanoseconds = new AtomicLong(1_000_000_000L);
 
   @Test
-  void keepsTimestampsThatComeAfterThePreviousFrame() {
-    final VideoTimestamps timestamps = new VideoTimestamps(30.0, false, this.nanos::get);
+  void shouldKeepTimestampsThatComeAfterThePreviousFrame() {
+    final VideoTimestamps timestamps = VideoTimestamps.recorded(FRAMES_PER_SECOND, this.nanoseconds::get);
     final long first = timestamps.next(5_000L);
     final long second = timestamps.next(38_333L);
     final long jump = timestamps.next(9_000_000L);
@@ -41,8 +40,8 @@ final class VideoTimestampsTest {
   }
 
   @Test
-  void advancesMediaOfAKnownLengthByOneFramePeriod() {
-    final VideoTimestamps timestamps = new VideoTimestamps(25.0, false, this.nanos::get);
+  void shouldAdvanceMediaOfAKnownLengthByOneFramePeriod() {
+    final VideoTimestamps timestamps = VideoTimestamps.recorded(25.0, this.nanoseconds::get);
     final long first = timestamps.next(0L);
     final long second = timestamps.next(0L);
     final long third = timestamps.next(0L);
@@ -54,14 +53,14 @@ final class VideoTimestampsTest {
   }
 
   @Test
-  void usesTheArrivalTimeOfLiveFramesAndOfMediaWithoutAFrameRate() {
-    final VideoTimestamps live = new VideoTimestamps(30.0, true, this.nanos::get);
-    final VideoTimestamps noRate = new VideoTimestamps(0.0, false, this.nanos::get);
-    final VideoTimestamps infiniteRate = new VideoTimestamps(Double.POSITIVE_INFINITY, false, this.nanos::get);
+  void shouldUseTheArrivalTimeOfLiveFramesAndOfMediaWithoutAFrameRate() {
+    final VideoTimestamps live = VideoTimestamps.live(this.nanoseconds::get);
+    final VideoTimestamps noRate = VideoTimestamps.recorded(0.0, this.nanoseconds::get);
+    final VideoTimestamps infiniteRate = VideoTimestamps.recorded(Double.POSITIVE_INFINITY, this.nanoseconds::get);
     live.next(0L);
     noRate.next(0L);
     infiniteRate.next(0L);
-    this.nanos.addAndGet(50_000_000L);
+    this.nanoseconds.addAndGet(50_000_000L);
     final long liveSecond = live.next(0L);
     final long noRateSecond = noRate.next(0L);
     final long infiniteSecond = infiniteRate.next(0L);

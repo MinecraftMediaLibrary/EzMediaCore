@@ -22,23 +22,21 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import me.brandonli.mcav.utils.natives.NativeLoadingException;
+import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests how {@link FaceDetectionFilter} reports machines that cannot load the object detection natives. The tests
- * never load those natives, so they run everywhere.
- */
+// Tests how FaceDetectionFilter reports machines that cannot load the object detection natives. The tests never load
+// those natives, so they run everywhere.
 final class FaceDetectionAvailabilityTest {
 
   private static final Path CASCADE = Path.of("haarcascade_frontalface_default.xml");
 
   @Test
-  void explainsThatFaceDetectionIsUnavailableWhenTheNativesCannotBeLinked() {
-    final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file");
-    final IllegalStateException exception = assertThrowsWhileOpening(IllegalStateException.class, () ->
-      FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
-        throw missingGtk;
-      })
+  void shouldExplainThatFaceDetectionIsUnavailableWhenTheNativesCannotBeLinked() {
+    final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file!");
+    final NativeLoadingException exception = assertThrowsWhileOpening(NativeLoadingException.class, () ->
+      FaceDetectionFilter.loadClassifier(CASCADE, _ -> this.failClassifierLoad(missingGtk))
     );
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -49,13 +47,15 @@ final class FaceDetectionAvailabilityTest {
     assertSame(missingGtk, cause);
   }
 
+  private <FailureType extends Throwable> CascadeClassifier failClassifierLoad(final FailureType failure) throws FailureType {
+    throw failure;
+  }
+
   @Test
-  void reportsFilesThatAreNotCascades() {
-    final RuntimeException openCvError = new RuntimeException("Can't open file");
+  void shouldReportFilesThatAreNotCascades() {
+    final RuntimeException openCvError = new RuntimeException("Can't open file!");
     final IllegalArgumentException exception = assertThrowsWhileOpening(IllegalArgumentException.class, () ->
-      FaceDetectionFilter.loadClassifier(CASCADE, _ -> {
-        throw openCvError;
-      })
+      FaceDetectionFilter.loadClassifier(CASCADE, _ -> this.failClassifierLoad(openCvError))
     );
     final Throwable cause = exception.getCause();
     assertSame(openCvError, cause);

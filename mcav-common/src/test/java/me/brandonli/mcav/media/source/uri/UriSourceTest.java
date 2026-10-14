@@ -23,17 +23,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
+import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link UriSource}, {@link UriSourceImpl} and {@link UriSourceDetector}.
- */
 final class UriSourceTest {
 
+  private static final String MEDIA_URL = "https://example.com/a.mp4";
+
+  private static final String DRIVE_PATH = "c:/videos/clip.mp4";
+
   @Test
-  void describesTheUri() {
+  void shouldDescribeTheUri() {
     final URI uri = URI.create("https://example.com/clip.mp4");
     final UriSource source = UriSource.uri(uri);
     final URI storedUri = source.getUri();
@@ -45,11 +47,11 @@ final class UriSourceTest {
     assertEquals("https://example.com/clip.mp4", resource);
     assertEquals("uri", name);
     assertTrue(isDynamic);
-    assertEquals("UriSource[https://example.com/clip.mp4]", text);
+    assertEquals("DefaultUriSource{uri=https://example.com/clip.mp4, direct=true}", text);
   }
 
   @Test
-  void knowsWhetherTheUriPointsAtAMediaFile() {
+  void shouldKnowWhetherTheUriPointsAtAMediaFile() {
     final URI file = URI.create("https://example.com/live/stream.m3u8");
     final URI page = URI.create("https://www.youtube.com/watch?v=abc");
     final UriSource fileSource = UriSource.uri(file);
@@ -61,8 +63,8 @@ final class UriSourceTest {
   }
 
   @Test
-  void followsTheEqualityContract() {
-    final URI uri = URI.create("https://example.com/a.mp4");
+  void shouldFollowTheEqualityContract() {
+    final URI uri = URI.create(MEDIA_URL);
     final URI otherUri = URI.create("https://example.com/b.mp4");
     final UriSource source = UriSource.uri(uri);
     final UriSource equalSource = UriSource.uri(uri);
@@ -71,12 +73,22 @@ final class UriSourceTest {
   }
 
   @Test
-  void detectsUrisWithSchemeAndHost() {
+  void shouldHashTheUri() {
+    final URI uri = URI.create("https://example.com/video.mp4");
+    final UriSource source = UriSource.uri(uri);
+
+    final int hash = source.hashCode();
+    final int expected = Objects.hash(uri);
+    assertEquals(expected, hash);
+  }
+
+  @Test
+  void shouldDetectUrisWithSchemeAndHost() {
     final UriSourceDetector detector = new UriSourceDetector();
     final boolean isWebUri = detector.isDetectedSource("rtsp://camera.local/stream");
-    final boolean isDrivePath = detector.isDetectedSource("c:/videos/clip.mp4");
-    final UriSource created = detector.createSource("https://example.com/a.mp4");
-    final URI expectedUri = URI.create("https://example.com/a.mp4");
+    final boolean isDrivePath = detector.isDetectedSource(DRIVE_PATH);
+    final UriSource created = detector.createSource(MEDIA_URL);
+    final URI expectedUri = URI.create(MEDIA_URL);
     final UriSource expected = UriSource.uri(expectedUri);
     final int priority = detector.getPriority();
     assertTrue(isWebUri);
@@ -86,7 +98,7 @@ final class UriSourceTest {
   }
 
   @Test
-  void rejectsNullInput() {
+  void shouldRejectNullInput() {
     final UriSourceDetector detector = new UriSourceDetector();
     assertThrows(NullPointerException.class, () -> UriSource.uri(null));
     assertThrows(NullPointerException.class, () -> detector.isDetectedSource(null));

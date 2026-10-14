@@ -23,24 +23,32 @@ package me.brandonli.mcav.module;
  *
  * <p>Modules are created by {@link ModuleLoader} through a no-argument constructor, which may be package-private,
  * and are passed to {@link me.brandonli.mcav.MCAVApi#install(Class[])} by class.
+ *
+ * <p>The module loader starts and stops modules one at a time, so implementations need not synchronize their lifecycle.
+ *
+ * @since 1.0.0
  */
 public interface MCAVModule {
   /**
    * Starts the module. Called once while the library is installed.
    *
    * @throws ModuleException if the module cannot start
+   * @since 1.0.0
    */
   void start();
 
   /**
    * Stops the module and releases every resource it holds. Called once while the library is released.
+   *
+   * @since 1.0.0
    */
   void stop();
 
   /**
-   * Gets a short, unique name of the module for log messages, such as {@code bukkit}.
+   * Returns a short, unique name of the module for log messages, such as {@code bukkit}.
    *
    * @return the name of the module
+   * @since 1.0.0
    */
   String getModuleName();
 }

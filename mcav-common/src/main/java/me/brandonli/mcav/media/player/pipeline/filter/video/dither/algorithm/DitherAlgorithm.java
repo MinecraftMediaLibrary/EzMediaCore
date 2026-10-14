@@ -19,22 +19,16 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.ErrorDiffusionDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FilterLiteDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.FloydDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalDitherAlgorithm;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDitherImpl;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomNumberProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
@@ -67,6 +61,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  *       thread, so it is only thread-safe if the provider is. Random dithering built without a provider uses a
  *       generator per thread and can be shared.</li>
  * </ul>
+ *
+ * @since 1.0.0
  */
 public interface DitherAlgorithm {
   /**
@@ -74,8 +70,9 @@ public interface DitherAlgorithm {
    *
    * @param buffer the image to dither
    * @return a new caller-owned array containing the palette index of every pixel; alpha is ignored
-   * @throws NullPointerException if {@code buffer} is null
+   * @throws NullPointerException  if {@code buffer} is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   byte[] ditherIntoBytes(final ImageBuffer buffer);
 
@@ -84,15 +81,17 @@ public interface DitherAlgorithm {
    *
    * @param buffer the ARGB pixels laid out row by row, which are replaced with palette colors
    * @param width  the strictly positive width, which must divide the buffer length; an empty buffer is allowed
-   * @throws NullPointerException if {@code buffer} is null
+   * @throws NullPointerException     if {@code buffer} is null
    * @throws IllegalArgumentException if width is nonpositive or does not divide the buffer length
+   * @since 1.0.0
    */
   void dither(final int[] buffer, final int width);
 
   /**
-   * Gets the palette the algorithm reduces images to.
+   * Returns the palette the algorithm reduces images to.
    *
    * @return the palette
+   * @since 1.0.0
    */
   DitherPalette getPalette();
 
@@ -101,18 +100,20 @@ public interface DitherAlgorithm {
    * neighbors and give the highest quality.
    *
    * @return the builder, which defaults to Filter Lite on the map palette
+   * @since 1.0.0
    */
-  static ErrorDiffusionDitherBuilder<ErrorDiffusionDither, ErrorDiffusionDitherBuilderImpl> errorDiffusion() {
-    return new ErrorDiffusionDitherBuilderImpl();
+  static ErrorDiffusionDitherBuilder errorDiffusion() {
+    return new DefaultErrorDiffusionDitherBuilder();
   }
 
   /**
    * Creates a builder for random dithering, which adds noise before picking the closest color.
    *
    * @return the builder, which defaults to a normal weight on the map palette
+   * @since 1.0.0
    */
-  static RandomDitherBuilder<RandomDither, RandomDitherBuilderImpl> random() {
-    return new RandomDitherBuilderImpl();
+  static RandomDitherBuilder random() {
+    return new DefaultRandomDitherBuilder();
   }
 
   /**
@@ -120,18 +121,20 @@ public interface DitherAlgorithm {
    * color.
    *
    * @return the builder, which defaults to a 2x2 Bayer matrix on the map palette
+   * @since 1.0.0
    */
-  static OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> ordered() {
-    return new OrderedDitherBuilderImpl();
+  static OrderedDitherBuilder ordered() {
+    return new DefaultOrderedDitherBuilder();
   }
 
   /**
    * Creates a builder for nearest color mapping, which does not dither at all.
    *
    * @return the builder, which defaults to the map palette
+   * @since 1.0.0
    */
-  static NearestDitherBuilder<NearestDither, NearestDitherBuilderImpl> nearest() {
-    return new NearestDitherBuilderImpl();
+  static NearestDitherBuilder nearest() {
+    return new DefaultNearestDitherBuilder();
   }
 
   /**
@@ -139,6 +142,7 @@ public interface DitherAlgorithm {
    * diffusion and looks almost identical to Floyd-Steinberg.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static ErrorDiffusionDither filterLite() {
     return new FilterLiteDither(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -148,6 +152,7 @@ public interface DitherAlgorithm {
    * Creates a Floyd-Steinberg error diffusion algorithm on the map palette.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static ErrorDiffusionDither floydSteinberg() {
     return new FloydDither(DitherPalette.DEFAULT_MAP_PALETTE);
@@ -157,9 +162,10 @@ public interface DitherAlgorithm {
    * Creates a nearest color algorithm on the map palette, which is the fastest option.
    *
    * @return the algorithm
+   * @since 1.0.0
    */
   static NearestDither nearestColor() {
-    return new NearestDitherImpl(DitherPalette.DEFAULT_MAP_PALETTE);
+    return new ColorMapNearestDither(DitherPalette.DEFAULT_MAP_PALETTE);
   }
 
   /**
@@ -168,6 +174,7 @@ public interface DitherAlgorithm {
    * flickering and lets {@code CompressedMapResult} skip unchanged parts of the picture.
    *
    * @return a new algorithm, which holds the state of one video and must not be shared between players
+   * @since 1.0.0
    */
   static TemporalDitherAlgorithm temporalFloydSteinberg() {
     return new TemporalFloydSteinbergDither();
@@ -182,9 +189,10 @@ public interface DitherAlgorithm {
    * @param errorThreshold    the total error below which no error is diffused, which suppresses noise
    * @param errorStrength     the fraction of the error that is diffused, from 0 to 1
    * @return a new algorithm, which holds the state of one video and must not be shared between players
-   * @throws NullPointerException if {@code palette} is null
+   * @throws NullPointerException     if {@code palette} is null
    * @throws IllegalArgumentException if the temporal threshold is outside 0 through 255, the error
    *                                  threshold is negative, or the strength is outside 0 through 1 or NaN
+   * @since 1.0.0
    */
   static TemporalDitherAlgorithm temporalFloydSteinberg(
     final DitherPalette palette,

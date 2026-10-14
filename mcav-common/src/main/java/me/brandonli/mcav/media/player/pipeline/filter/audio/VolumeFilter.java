@@ -26,42 +26,36 @@ import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
  * Makes the audio louder or quieter: every sample is multiplied by the volume and clipped to the range of a 16-bit
  * sample, so above 1 quiet media gets louder and loud media clips. The volume may be changed from any thread while
  * the filter runs; a change applies from the next chunk on.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VolumeFilter implements AudioFilter {
 
-  /** The volume that leaves the audio as it is. */
+  /**
+   * The volume that leaves the audio as it is.
+   *
+   * @since 1.0.0
+   */
   public static final double UNCHANGED = 1.0;
 
-  /** The largest amplitude multiplier, 2.0; this doubles sample values before clipping, not perceived loudness. */
-  public static final double MAX_VOLUME = 2.0;
+  /**
+   * The largest amplitude multiplier, 2.0; this doubles sample values before clipping, not perceived loudness.
+   *
+   * @since 1.0.0
+   */
+  public static final double MAXIMUM_VOLUME = 2.0;
 
   private volatile double volume;
 
   /**
    * Constructs a filter that leaves the audio as it is until {@link #setVolume(double)} is called.
+   *
+   * @since 1.0.0
    */
   public VolumeFilter() {
     this.volume = UNCHANGED;
-  }
-
-  /**
-   * Sets the volume.
-   *
-   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAX_VOLUME}
-   * @throws IllegalArgumentException if the volume is outside that range or not a number
-   */
-  public void setVolume(final double volume) {
-    Preconditions.checkArgument(volume >= 0 && volume <= MAX_VOLUME, "Volume must be between 0 and %s: %s", MAX_VOLUME, volume);
-    this.volume = volume;
-  }
-
-  /**
-   * Gets the volume.
-   *
-   * @return the factor every sample is multiplied by
-   */
-  public double getVolume() {
-    return this.volume;
   }
 
   /**
@@ -72,20 +66,47 @@ public final class VolumeFilter implements AudioFilter {
    * @param metadata the metadata of the original stream
    * @return true if the samples were scaled
    * @throws java.nio.ReadOnlyBufferException if scaling writes to a read-only buffer
-   * @throws NullPointerException if {@code samples} is null
+   * @throws NullPointerException             if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     final double factor = this.volume;
     if (factor == UNCHANGED) {
       return false;
     }
+
     final ByteBuffer view = samples.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     for (int at = view.position(); at + Short.BYTES <= view.limit(); at += Short.BYTES) {
       final long scaled = Math.round(view.getShort(at) * factor);
       view.putShort(at, (short) Math.clamp(scaled, Short.MIN_VALUE, Short.MAX_VALUE));
     }
+
     return true;
+  }
+
+  /**
+   * Sets the volume.
+   *
+   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAXIMUM_VOLUME}
+   * @throws IllegalArgumentException if the volume is outside that range or not a number
+   * @since 1.0.0
+   */
+  public void setVolume(final double volume) {
+    Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
+
+    this.volume = volume;
+  }
+
+  /**
+   * Returns the volume.
+   *
+   * @return the factor every sample is multiplied by
+   * @since 1.0.0
+   */
+  public double getVolume() {
+    return this.volume;
   }
 }

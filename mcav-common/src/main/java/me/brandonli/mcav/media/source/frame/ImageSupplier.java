@@ -26,13 +26,18 @@ import java.awt.image.WritableRaster;
  * <p>Images of type {@link BufferedImage#TYPE_INT_ARGB} or {@link BufferedImage#TYPE_INT_RGB} are the fastest to
  * supply, because they already store packed ARGB pixels, which are copied out row by row. Every other type is converted
  * pixel by pixel.
+ *
+ * <p>Implementations are called from the player thread only and need not be thread-safe.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface ImageSupplier {
   /**
-   * Gets the next frame.
+   * Returns the next frame.
    *
    * @return a non-null frame matching the source dimensions, stable until its pixels have been copied
+   * @since 1.0.0
    */
   BufferedImage getImage();
 
@@ -40,23 +45,21 @@ public interface ImageSupplier {
    * Adapts this supplier to supply packed ARGB pixels.
    *
    * @return a sample supplier that copies the pixels of every image into a new array
+   * @since 1.0.0
    */
   default SampleSupplier toSampleSupplier() {
-    return () -> {
-      final BufferedImage image = this.getImage();
-      return readArgb(image);
-    };
+    return this::readImageArgb;
   }
 
-  /**
-   * Reads the pixels of an image as packed ARGB, exactly as {@link BufferedImage#getRGB} does. The integer RGB types
-   * store that layout already, so their rows are copied out of the raster in bulk, without the per-pixel conversion
-   * through the color model; the raster copies rows through its own data array, which keeps sub-images correct and
-   * the image eligible for hardware acceleration. {@code TYPE_INT_RGB} stores no alpha, so the pixels are made opaque.
-   *
-   * @param image the image
-   * @return a new array with the pixels of the image laid out row by row
-   */
+  private int[] readImageArgb() {
+    final BufferedImage image = this.getImage();
+    return readArgb(image);
+  }
+
+  // Reads the pixels of an image as packed ARGB, exactly as BufferedImage.getRGB does. The integer RGB types store that
+  // layout already, so their rows are copied out of the raster in bulk, without the per-pixel conversion through the
+  // color model; the raster copies rows through its own data array, which keeps sub-images correct and the image
+  // eligible for hardware acceleration. TYPE_INT_RGB stores no alpha, so the pixels are made opaque.
   private static int[] readArgb(final BufferedImage image) {
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -67,14 +70,17 @@ public interface ImageSupplier {
       image.getRGB(0, 0, width, height, pixels, 0, width);
       return pixels;
     }
+
     final WritableRaster raster = image.getRaster();
     raster.getDataElements(0, 0, width, height, pixels);
+
     if (type == BufferedImage.TYPE_INT_RGB) {
       final int opaqueAlpha = 0xFF << 24;
       for (int index = 0; index < pixels.length; index++) {
         pixels[index] |= opaqueAlpha;
       }
     }
+
     return pixels;
   }
 }

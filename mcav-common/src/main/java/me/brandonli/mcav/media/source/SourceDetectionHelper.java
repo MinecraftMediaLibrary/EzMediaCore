@@ -22,7 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import me.brandonli.mcav.media.source.device.DeviceSourceDetector;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSourceDetector;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSourceDetector;
 import me.brandonli.mcav.media.source.file.FileSourceDetector;
 import me.brandonli.mcav.media.source.uri.UriSourceDetector;
 
@@ -32,16 +32,21 @@ import me.brandonli.mcav.media.source.uri.UriSourceDetector;
  * <p>The default detectors recognize existing file or directory paths, URLs with a scheme and host, plain numbers as capture
  * device indices, and {@code format||input} pairs as raw FFmpeg inputs.
  *
- * <pre><code>
- *   final SourceDetectionHelper helper = new SourceDetectionHelper();
- *   final Optional&lt;Source&gt; source = helper.detectSource("videos/intro.mp4");
- * </code></pre>
+ * {@snippet :
+ * final String resource = "videos/intro.mp4";
+ * final SourceDetectionHelper helper = new SourceDetectionHelper();
+ * final Optional<Source> source = helper.detectSource(resource);
+ * }
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class SourceDetectionHelper {
 
   private static final Collection<SourceDetector<? extends Source>> DEFAULT_DETECTORS = List.of(
     new DeviceSourceDetector(),
-    new FFmpegDirectSourceDetector(),
+    new FfmpegDirectSourceDetector(),
     new FileSourceDetector(),
     new UriSourceDetector()
   );
@@ -54,14 +59,18 @@ public class SourceDetectionHelper {
    * @param detectors the non-null detectors to consult in iteration order; the collection is copied and
    *                  must contain no null elements. Detectors themselves are shared, not copied
    * @throws NullPointerException if the collection or any detector is null
+   * @since 1.0.0
    */
   public SourceDetectionHelper(final Collection<SourceDetector<? extends Source>> detectors) {
-    Preconditions.checkNotNull(detectors, "Detectors must not be null");
+    Preconditions.checkNotNull(detectors, "Detectors must not be null!");
+
     this.detectors = List.copyOf(detectors);
   }
 
   /**
    * Constructs a helper with the default detectors.
+   *
+   * @since 1.0.0
    */
   public SourceDetectionHelper() {
     this(DEFAULT_DETECTORS);
@@ -73,12 +82,14 @@ public class SourceDetectionHelper {
    * @param resource the string entered by a user
    * @return the source created by the accepting detector with the highest priority, or empty if no detector
    * accepts the string; the first detector wins a priority tie
-   * @throws RuntimeException if a detector fails while testing or creating the source; failures propagate
-   *                          and no lower-priority detector is tried as a fallback
+   * @throws RuntimeException     if a detector fails while testing or creating the source; failures propagate
+   *                              and no lower-priority detector is tried as a fallback
    * @throws NullPointerException if {@code resource} is null
+   * @since 1.0.0
    */
   public Optional<Source> detectSource(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     SourceDetector<? extends Source> best = null;
     int bestPriority = Integer.MIN_VALUE;
     for (final SourceDetector<? extends Source> detector : this.detectors) {
@@ -92,9 +103,11 @@ public class SourceDetectionHelper {
         best = detector;
       }
     }
+
     if (best == null) {
       return Optional.empty();
     }
+
     final Source source = best.createSource(resource);
     return Optional.of(source);
   }

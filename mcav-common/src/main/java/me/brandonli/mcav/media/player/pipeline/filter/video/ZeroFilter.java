@@ -22,6 +22,10 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Turns every frame black.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class ZeroFilter extends MatVideoFilter {
 
@@ -29,6 +33,8 @@ public class ZeroFilter extends MatVideoFilter {
 
   /**
    * Constructs a new zero filter.
+   *
+   * @since 1.0.0
    */
   public ZeroFilter() {}
 
@@ -37,10 +43,12 @@ public class ZeroFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have had other colors before
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
     mat.put(BLACK);
+
     return true;
   }
 }

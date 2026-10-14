@@ -18,17 +18,19 @@
 package me.brandonli.mcav.utils.natives;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when a native library cannot be extracted or loaded.
  *
- * <p>This is an {@link IllegalStateException}: the environment of the library is not in a state that lets it work,
+ * <p>This is an {@link MCAVException}: the environment of the library is not in a state that lets it work,
  * because the natives for this platform are missing or cannot be linked. The caller did nothing wrong, and retrying
  * the same call in the same environment fails again. It can be caught as a {@link RuntimeException}, rather than as the {@link LinkageError} it usually wraps,
  * so applications can report an unavailable feature separately from fatal virtual-machine failures.
+ *
+ * @since 1.0.0
  */
-public class NativeLoadingException extends IllegalStateException {
+public class NativeLoadingException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = -1718334825313639127L;
@@ -36,19 +38,21 @@ public class NativeLoadingException extends IllegalStateException {
   /**
    * Constructs a new exception with a detail message and no cause.
    *
-   * @param message the detail message naming the library that could not be loaded, or null
+   * @param message the detail message naming the library that could not be loaded
+   * @since 1.0.0
    */
-  public NativeLoadingException(final @Nullable String message) {
+  public NativeLoadingException(final String message) {
     super(message);
   }
 
   /**
    * Constructs a new exception with a detail message and the failure that caused it.
    *
-   * @param message the detail message naming the library that could not be loaded, or null
-   * @param cause   the underlying failure, usually a {@link LinkageError}, or null if it is unknown
+   * @param message the detail message naming the library that could not be loaded
+   * @param cause   the underlying failure, usually a {@link LinkageError}
+   * @since 1.0.0
    */
-  public NativeLoadingException(final @Nullable String message, final @Nullable Throwable cause) {
+  public NativeLoadingException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

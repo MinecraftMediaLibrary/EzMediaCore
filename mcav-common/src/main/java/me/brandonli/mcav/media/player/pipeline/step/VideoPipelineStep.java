@@ -18,6 +18,7 @@
 package me.brandonli.mcav.media.player.pipeline.step;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
@@ -26,11 +27,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A link of a video pipeline. Each frame passes through the filters of the chain in order; filters may modify
  * the frame in place for the filters that follow.
+ *
+ * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
+ *
+ * @since 1.0.0
  */
 public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVideoMetadata, VideoPipelineStep> {
   /**
    * A pipeline that does nothing, attached while no pipeline is set. It is the only video step whose
    * {@link #isNoOp()} returns true.
+   *
+   * @since 1.0.0
    */
   VideoPipelineStep NO_OP = new NoOperationStep();
 
@@ -41,10 +48,12 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @param filter the filter of the step
    * @return the step
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   static VideoPipelineStep of(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
-    return new VideoPipelineStepImpl(next, filter);
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
+
+    return new DefaultVideoPipelineStep(next, filter);
   }
 
   /**
@@ -53,23 +62,27 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * @param filter the filter of the step
    * @return the step
    * @throws NullPointerException if {@code filter} is null
+   * @since 1.0.0
    */
   static VideoPipelineStep of(final VideoFilter filter) {
-    Preconditions.checkNotNull(filter, "Filter must not be null");
-    return new VideoPipelineStepImpl(null, filter);
+    Preconditions.checkNotNull(filter, "Filter must not be null!");
+
+    return new DefaultVideoPipelineStep(null, filter);
   }
 
   /**
-   * Gets the filter of this step.
+   * Returns the filter of this step.
    *
    * @return the filter
+   * @since 1.0.0
    */
   VideoFilter getFilter();
 
   /**
-   * Gets this step typed as a video step.
+   * Returns this step typed as a video step.
    *
    * @return this step
+   * @since 1.0.0
    */
   @Override
   default VideoPipelineStep self() {
@@ -80,29 +93,24 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * The step behind {@link #NO_OP}. Its constructor is private, so {@link #NO_OP} is its only instance, and the class
    * can only be initialized together with this interface, which rules out a deadlock between the initialization of the
    * two classes.
+   *
+   * <p>This class is immutable and thread-safe.
+   *
+   * @since 1.0.0
    */
   final class NoOperationStep implements VideoPipelineStep {
 
     private NoOperationStep() {}
 
     /**
-     * Gets the step that follows this one, which is none.
+     * Returns an empty optional, because the empty video pipeline has no following step.
      *
-     * @return null
+     * @return an empty optional
+     * @since 1.0.0
      */
     @Override
-    public @Nullable VideoPipelineStep next() {
-      return null;
-    }
-
-    /**
-     * Gets the filter of this step, which does nothing.
-     *
-     * @return {@link VideoFilter#NO_OP}
-     */
-    @Override
-    public VideoFilter getFilter() {
-      return VideoFilter.NO_OP;
+    public Optional<VideoPipelineStep> next() {
+      return Optional.empty();
     }
 
     /**
@@ -111,17 +119,30 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
      * @param buffer   the frame
      * @param metadata the metadata of the original video stream
      * @throws NullPointerException if the frame or the metadata is null
+     * @since 1.0.0
      */
     @Override
     public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
-      Preconditions.checkNotNull(buffer, "Buffer must not be null");
-      Preconditions.checkNotNull(metadata, "Metadata must not be null");
+      Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+      Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     }
 
     /**
-     * Checks whether this step is the empty pipeline, which it is.
+     * Returns {@link VideoFilter#NO_OP}, the filter of the empty video pipeline.
+     *
+     * @return {@link VideoFilter#NO_OP}
+     * @since 1.0.0
+     */
+    @Override
+    public VideoFilter getFilter() {
+      return VideoFilter.NO_OP;
+    }
+
+    /**
+     * Returns {@code true}, because this step is the empty video pipeline.
      *
      * @return true
+     * @since 1.0.0
      */
     @Override
     public boolean isNoOp() {

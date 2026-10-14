@@ -22,15 +22,24 @@ package me.brandonli.mcav.media.player.pipeline.filter.audio;
  *
  * <p>Call {@link #start()} before the first samples are processed and {@link #release()} after the last ones. The
  * pipeline steps do not call these methods automatically, because a filter may be shared between pipelines.
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
+ *
+ * @since 1.0.0
  */
 public interface FunctionalAudioFilter extends AudioFilter {
   /**
    * Acquires the resources of the filter. Must be called before samples are processed.
+   *
+   * @since 1.0.0
    */
   void start();
 
   /**
    * Releases the resources of the filter. The filter must not be used afterward unless it is started again.
+   *
+   * @since 1.0.0
    */
   void release();
 }

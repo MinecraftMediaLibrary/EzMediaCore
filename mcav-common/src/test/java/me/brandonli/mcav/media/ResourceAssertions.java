@@ -23,33 +23,29 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.function.ThrowingSupplier;
 
-/**
- * Assertions for factories that return a resource, such as an image buffer or a frame grabber, and that should throw
- * instead. A resource the factory returns by mistake is closed before the test fails, so no native memory leaks.
- */
+// Assertions for factories that return a resource, such as an image buffer or a frame grabber, and that should throw
+// instead. A resource the factory returns by mistake is closed before the test fails, so no native memory leaks.
 public final class ResourceAssertions {
 
   private ResourceAssertions() {
-    throw new UnsupportedOperationException("utility class");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that opening a resource throws the expected exception.
-   *
-   * @param expected the type of exception the factory should throw
-   * @param opening  the factory that opens the resource
-   * @param <T>      the type of exception
-   * @return the exception the factory threw
-   */
-  public static <T extends Throwable> T assertThrowsWhileOpening(
-    final Class<T> expected,
+  public static <ExceptionType extends Throwable> ExceptionType assertThrowsWhileOpening(
+    final Class<ExceptionType> expected,
     final ThrowingSupplier<? extends AutoCloseable> opening
   ) {
-    final Executable openAndClose = () -> {
-      try (final AutoCloseable opened = opening.get()) {
-        fail("expected " + expected + " but the factory opened " + opened);
-      }
-    };
+    final Executable openAndClose = () -> openExpectingFailure(expected, opening);
     return assertThrows(expected, openAndClose);
+  }
+
+  private static void openExpectingFailure(
+    final Class<? extends Throwable> expected,
+    final ThrowingSupplier<? extends AutoCloseable> opening
+  ) throws Throwable {
+    try (final AutoCloseable opened = opening.get()) {
+      final String message = "Factory opened %s, but %s was expected!".formatted(opened, expected);
+      fail(message);
+    }
   }
 }

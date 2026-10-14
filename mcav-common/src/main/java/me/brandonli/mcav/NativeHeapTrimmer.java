@@ -33,60 +33,38 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import me.brandonli.mcav.utils.ThrowableUtils;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Hands the memory that the C library holds free for later allocations back to the system once a minute, on Linux.
- *
- * <p>FFmpeg, OpenCV and the encoders allocate and free large buffers on many threads. glibc keeps what is freed in its
- * arenas for later allocations, and in a server that plays for days the arenas keep growing although little of them is
- * in use: after 31 hours of a soak test, the arenas of the server held 2.1 GB of free memory beside 0.3 GB in use, and
- * its resident memory grew by about 20 MB an hour. The JDK's {@code System.trim_native_heap} command returns the free
- * pages inside every arena to the system, but not the free memory at the top of an arena of a thread, which glibc keeps
- * until it exceeds its trim threshold; glibc raises that threshold to twice the largest block it has freed, up to
- * 64 MiB, so the arena of every thread that frees frames keeps up to that much. When it starts, the trimmer therefore
- * fixes the threshold at {@value #TRIM_THRESHOLD_BYTES} bytes, glibc's default, for the life of the JVM: glibc then
- * returns the top of an arena as soon as a large block is freed. A JVM started with {@code -XX:TrimNativeHeapInterval}
- * trims on its own and is left to it, and so is a JVM other than HotSpot, or a runtime without the jdk.management
- * module, which have neither that option nor the command.
- *
- * <p>The interval is the system property {@value #INTERVAL_PROPERTY}, in seconds, {@value #DEFAULT_INTERVAL_SECONDS} by
- * default; zero or less turns trimming off.
- */
+// Hands the memory that the C library holds free for later allocations back to the system once a minute, on Linux.
+// FFmpeg, OpenCV and the encoders allocate and free large buffers on many threads. glibc keeps what is freed in its
+// arenas for later allocations, and in a server that plays for days the arenas keep growing although little of them is
+// in use: after 31 hours of a soak test, the arenas of the server held 2.1 GB of free memory beside 0.3 GB in use, and
+// its resident memory grew by about 20 MB an hour. The JDK's System.trim_native_heap command returns the free pages
+// inside every arena to the system, but not the free memory at the top of an arena of a thread, which glibc keeps until
+// it exceeds its trim threshold; glibc raises that threshold to twice the largest block it has freed, up to 64 MiB, so
+// the arena of every thread that frees frames keeps up to that much. When it starts, the trimmer therefore fixes the
+// threshold at TRIM_THRESHOLD_BYTES bytes, glibc's default, for the life of the JVM: glibc then returns the top of an
+// arena as soon as a large block is freed. A JVM started with -XX:TrimNativeHeapInterval trims on its own and is left
+// to it, and so is a JVM other than HotSpot, or a runtime without the jdk.management module, which have neither that
+// option nor the command. The interval is the system property INTERVAL_PROPERTY, in seconds, DEFAULT_INTERVAL_SECONDS
+// by default; zero or less turns trimming off.
 final class NativeHeapTrimmer implements AutoCloseable {
 
-  /**
-   * The system property with the interval of the trims, in seconds.
-   */
   static final String INTERVAL_PROPERTY = "mcav.nativeTrimSeconds";
 
-  /**
-   * The interval of the trims when the system property does not set one, in seconds.
-   */
   static final long DEFAULT_INTERVAL_SECONDS = 60L;
 
-  /**
-   * The name of the thread that trims.
-   */
   static final String THREAD_NAME = "mcav-native-trim";
 
-  /**
-   * The interval of the JVM's own trims in a JVM that has no such option, as no HotSpot JVM.
-   */
   static final long NO_JVM_INTERVAL = -1L;
 
-  /**
-   * The trim threshold the trimmer fixes in glibc, in bytes.
-   */
   static final int TRIM_THRESHOLD_BYTES = 128 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NativeHeapTrimmer.class);
-  private static final String TRIM_FAILED = "Could not trim the native heap";
-  private static final String THRESHOLD_FAILED = "Could not fix the trim threshold of the native heap";
   // mallopt's parameter for the trim threshold, from glibc's malloc.h
   private static final int M_TRIM_THRESHOLD = -1;
   private static final String GLIBC_SYMBOL = "gnu_get_libc_version";
@@ -101,13 +79,6 @@ final class NativeHeapTrimmer implements AutoCloseable {
 
   private @Nullable Thread thread;
 
-  /**
-   * Creates a trimmer.
-   *
-   * @param interval     the time between two trims; the trimmer trims never at zero or less
-   * @param trim         trims the native heap once
-   * @param fixThreshold fixes the trim threshold of the native heap, once when trimming starts
-   */
   @VisibleForTesting
   NativeHeapTrimmer(final Duration interval, final Runnable trim, final Runnable fixThreshold) {
     this.interval = interval;
@@ -115,66 +86,40 @@ final class NativeHeapTrimmer implements AutoCloseable {
     this.fixThreshold = fixThreshold;
   }
 
-  /**
-   * Creates the trimmer of this JVM, which trims with the JDK's command and fixes glibc's trim threshold.
-   *
-   * @return the trimmer, which trims never off Linux, in a JVM that trims itself or is no HotSpot JVM, or when the
-   *         system property turns trimming off
-   */
+  // Creates the trimmer of this JVM, which trims with the JDK's command and fixes glibc's trim threshold.
   static NativeHeapTrimmer forThisJvm() {
-    final OS os = OSUtils.getOS();
-    final long jvmIntervalMillis = readJvmIntervalMillis();
+    final Os os = OsUtils.getOs();
+    final long jvmIntervalMilliseconds = readJvmIntervalMilliseconds();
     final long seconds = Long.getLong(INTERVAL_PROPERTY, DEFAULT_INTERVAL_SECONDS);
-    return create(os, jvmIntervalMillis, seconds, NativeHeapTrimmer::trimThisJvm, NativeHeapTrimmer::fixGlibcTrimThreshold);
+    return create(os, jvmIntervalMilliseconds, seconds, NativeHeapTrimmer::trimThisJvm, NativeHeapTrimmer::fixGlibcTrimThreshold);
   }
 
-  /**
-   * Creates a trimmer that trims at the interval, unless the system is no Linux or the JVM trims itself or is no HotSpot
-   * JVM.
-   *
-   * @param os                the operating system
-   * @param jvmIntervalMillis the interval of the JVM's own trims, in milliseconds, zero if it trims never, or
-   *                          {@link #NO_JVM_INTERVAL} if it has no such option
-   * @param seconds           the interval of the trims, in seconds; zero or less trims never
-   * @param trim              trims the native heap once
-   * @param fixThreshold      fixes the trim threshold of the native heap, once when trimming starts
-   * @return the trimmer
-   */
   @VisibleForTesting
   static NativeHeapTrimmer create(
-    final OS os,
-    final long jvmIntervalMillis,
+    final Os os,
+    final long jvmIntervalMilliseconds,
     final long seconds,
     final Runnable trim,
     final Runnable fixThreshold
   ) {
-    final boolean trims = os == OS.LINUX && jvmIntervalMillis == 0;
+    final boolean trims = os == Os.LINUX && jvmIntervalMilliseconds == 0;
     final Duration interval = trims ? Duration.ofSeconds(seconds) : Duration.ZERO;
     return new NativeHeapTrimmer(interval, trim, fixThreshold);
   }
 
-  /**
-   * Fixes the trim threshold and starts trimming on a daemon thread of its own, unless the trimmer trims never.
-   */
+  // Fixes the trim threshold and starts trimming on a daemon thread of its own, unless the trimmer trims never.
   void start() {
     if (!this.interval.isPositive()) {
       return;
     }
+
     try {
       this.fixThreshold.run();
     } catch (final RuntimeException exception) {
-      LOGGER.warn(THRESHOLD_FAILED, exception);
+      LOGGER.warn("Could not fix the trim threshold of the native heap.", exception);
     }
-    this.thread = Thread.ofPlatform().name(THREAD_NAME).daemon().start(this::trimUntilInterrupted);
-  }
 
-  /**
-   * Checks whether the trimmer trims.
-   *
-   * @return true between {@link #start()} and {@link #close()}, unless it trims never
-   */
-  boolean isTrimming() {
-    return this.thread != null;
+    this.thread = Thread.ofPlatform().name(THREAD_NAME).daemon().start(this::trimUntilInterrupted);
   }
 
   private void trimUntilInterrupted() {
@@ -187,21 +132,20 @@ final class NativeHeapTrimmer implements AutoCloseable {
       try {
         this.trim.run();
       } catch (final RuntimeException exception) {
-        LOGGER.warn(TRIM_FAILED, exception);
+        LOGGER.warn("Could not trim the native heap.", exception);
       }
     }
   }
 
-  /**
-   * Stops trimming and waits for the thread to end.
-   */
   @Override
   public void close() {
     final Thread running = this.thread;
     this.thread = null;
+
     if (running == null) {
       return;
     }
+
     running.interrupt();
     try {
       running.join();
@@ -211,19 +155,14 @@ final class NativeHeapTrimmer implements AutoCloseable {
     }
   }
 
-  /**
-   * Reads the interval of the JVM's own trims.
-   *
-   * @return the interval in milliseconds, zero if the JVM trims never, or {@link #NO_JVM_INTERVAL} if the JVM has no
-   *         such option
-   */
   @VisibleForTesting
-  static long readJvmIntervalMillis() {
+  static long readJvmIntervalMilliseconds() {
     try {
       final @Nullable HotSpotDiagnosticMXBean hotspot = ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
       if (hotspot == null) {
         return NO_JVM_INTERVAL;
       }
+
       final VMOption option = hotspot.getVMOption(JVM_INTERVAL_OPTION);
       final String value = option.getValue();
       return Long.parseLong(value);
@@ -234,73 +173,40 @@ final class NativeHeapTrimmer implements AutoCloseable {
     }
   }
 
-  /**
-   * Trims the native heap of this JVM with the JDK's {@code System.trim_native_heap} command.
-   *
-   * @return the answer of the command
-   * @throws IllegalStateException if the command cannot be run
-   */
   @VisibleForTesting
   static String trimThisJvm() {
     final MBeanServer server = ManagementFactory.getPlatformMBeanServer();
     return trimWithJdk(server);
   }
 
-  /**
-   * Fixes glibc's trim threshold at {@value #TRIM_THRESHOLD_BYTES} bytes with {@code mallopt}, where the C library is
-   * glibc.
-   *
-   * @return whether glibc took the threshold; false where the C library is no glibc
-   * @throws IllegalStateException if the C library cannot be called
-   */
   @VisibleForTesting
   static boolean fixGlibcTrimThreshold() {
     return fixGlibcTrimThreshold(Linker.nativeLinker().defaultLookup());
   }
 
-  /**
-   * Fixes glibc's trim threshold with the {@code mallopt} of a C library, if the library is glibc.
-   *
-   * @param library the symbols of the C library
-   * @return whether glibc took the threshold; false if the library is no glibc
-   * @throws IllegalStateException if the C library cannot be called
-   */
   @VisibleForTesting
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   static boolean fixGlibcTrimThreshold(final SymbolLookup library) {
     final Optional<MemorySegment> mallopt = library.find(GLIBC_SYMBOL).flatMap(_ -> library.find(MALLOPT_SYMBOL));
-    if (mallopt.isEmpty()) {
+    final @Nullable MemorySegment malloptAddress = mallopt.orElse(null);
+    if (malloptAddress == null) {
       return false;
     }
+
     final FunctionDescriptor descriptor = FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT);
-    return setTrimThreshold(Linker.nativeLinker().downcallHandle(mallopt.get(), descriptor));
+    return setTrimThreshold(Linker.nativeLinker().downcallHandle(malloptAddress, descriptor));
   }
 
-  /**
-   * Sets the trim threshold at {@value #TRIM_THRESHOLD_BYTES} bytes with glibc's {@code mallopt}.
-   *
-   * @param mallopt {@code mallopt}, which takes a parameter and its value and returns 1 if it took the value
-   * @return whether {@code mallopt} took the threshold
-   * @throws IllegalStateException if {@code mallopt} cannot be called
-   */
   @VisibleForTesting
   static boolean setTrimThreshold(final MethodHandle mallopt) {
     try {
       return (int) mallopt.invokeExact(M_TRIM_THRESHOLD, TRIM_THRESHOLD_BYTES) == 1;
-    } catch (final Throwable failure) {
-      ThrowableUtils.throwIfFatal(failure);
-      throw new IllegalStateException(THRESHOLD_FAILED, failure);
+    } catch (final Throwable exception) {
+      ThrowableUtils.throwIfFatal(exception);
+      throw new MCAVException("Could not fix the trim threshold of the native heap!", exception);
     }
   }
 
-  /**
-   * Trims the native heap with the JDK's {@code System.trim_native_heap} command.
-   *
-   * @param server the server of the JDK's diagnostic commands
-   * @return the answer of the command, which says how much memory went back to the system, or that the C library of the
-   *         system cannot trim
-   * @throws IllegalStateException if the command cannot be run
-   */
   @VisibleForTesting
   static String trimWithJdk(final MBeanServer server) {
     try {
@@ -310,7 +216,11 @@ final class NativeHeapTrimmer implements AutoCloseable {
       final Object answer = server.invoke(commands, TRIM_OPERATION, arguments, signature);
       return String.valueOf(answer);
     } catch (final JMException exception) {
-      throw new IllegalStateException(TRIM_FAILED, exception);
+      throw new MCAVException("Could not trim the native heap!", exception);
     }
+  }
+
+  boolean isTrimming() {
+    return this.thread != null;
   }
 }

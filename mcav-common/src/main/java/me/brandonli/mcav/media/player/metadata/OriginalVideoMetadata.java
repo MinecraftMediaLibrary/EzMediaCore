@@ -22,17 +22,25 @@ import com.google.common.base.Preconditions;
 /**
  * Size, bitrate, and frame rate of a video stream as decoded. Bitrate and frame rate are {@link #UNKNOWN} when
  * the source does not report them.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface OriginalVideoMetadata extends OriginalMetadata {
   /**
    * The value of a property the source does not report.
+   *
+   * @since 1.0.0
    */
   int UNKNOWN = -1;
 
   /**
    * Metadata with every property unknown.
+   *
+   * @since 1.0.0
    */
-  OriginalVideoMetadata EMPTY = new OriginalVideoMetadataImpl(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
+  OriginalVideoMetadata EMPTY = new DefaultOriginalVideoMetadata(UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN);
 
   /**
    * Creates metadata with every property.
@@ -43,10 +51,12 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param videoFrameRate the frame rate in frames per second, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
-    Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size must be positive but was %sx%s", videoWidth, videoHeight);
-    return new OriginalVideoMetadataImpl(videoWidth, videoHeight, videoBitrate, videoFrameRate);
+    Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size %sx%s must be positive!", videoWidth, videoHeight);
+
+    return new DefaultOriginalVideoMetadata(videoWidth, videoHeight, videoBitrate, videoFrameRate);
   }
 
   /**
@@ -57,6 +67,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param videoFrameRate the frame rate in frames per second, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final float videoFrameRate) {
     return of(videoWidth, videoHeight, UNKNOWN, videoFrameRate);
@@ -69,36 +80,41 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    * @param height the height in pixels
    * @return the metadata
    * @throws IllegalArgumentException if either dimension is nonpositive
+   * @since 1.0.0
    */
   static OriginalVideoMetadata of(final int width, final int height) {
     return of(width, height, UNKNOWN, UNKNOWN);
   }
 
   /**
-   * Gets the width of the decoded frames.
+   * Returns the width of the decoded frames.
    *
    * @return the width in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   int getVideoWidth();
 
   /**
-   * Gets the height of the decoded frames.
+   * Returns the height of the decoded frames.
    *
    * @return the height in pixels, or {@link #UNKNOWN} in {@link #EMPTY}
+   * @since 1.0.0
    */
   int getVideoHeight();
 
   /**
-   * Gets the bitrate of the video stream.
+   * Returns the bitrate of the video stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getVideoBitrate();
 
   /**
-   * Gets the frame rate of the video stream.
+   * Returns the frame rate of the video stream.
    *
    * @return the frame rate in frames per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   float getVideoFrameRate();
 }

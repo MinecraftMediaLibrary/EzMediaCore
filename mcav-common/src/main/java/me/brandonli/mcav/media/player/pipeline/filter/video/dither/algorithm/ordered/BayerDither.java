@@ -33,45 +33,61 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  *
  * <p>The matrices are {@link ThresholdMatrix immutable}, so the shared constants cannot be changed by anyone; use
  * {@link ThresholdMatrix#toArray()} for a copy of the entries.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #NORMAL_2X2}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int NORMAL_2X2_MAX = 4;
+  int NORMAL_2X2_MAXIMUM = 4;
 
   /**
    * The 2x2 Bayer matrix, the smallest ordered dither pattern.
    *
    * <p>It only produces five gray levels, but its fine checkerboard hides best on small map screens, which is why the
    * ordered dither builder uses it by default.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix NORMAL_2X2 = ThresholdMatrix.of(new int[][] { { 1, 3 }, { 4, 2 } });
 
   /**
    * The number of threshold levels of {@link #NORMAL_4X4}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int NORMAL_4X4_MAX = 16;
+  int NORMAL_4X4_MAXIMUM = 16;
 
   /**
    * The 4x4 Bayer matrix, which produces 17 gray levels with a regular crosshatch.
    *
    * <p>It is the usual choice for ordered dithering: smooth enough for gradients and still fine-grained.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix NORMAL_4X4 = ThresholdMatrix.of(new int[][] { { 1, 9, 3, 11 }, { 13, 5, 15, 7 }, { 4, 12, 2, 10 }, { 16, 8, 14, 6 } });
 
   /**
    * The number of threshold levels of {@link #NORMAL_8X8}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int NORMAL_8X8_MAX = 64;
+  int NORMAL_8X8_MAXIMUM = 64;
 
   /**
    * The 8x8 Bayer matrix, which produces 65 gray levels.
    *
    * <p>Use it for smooth gradients on large screens; its pattern is coarser than the 4x4 matrix.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix NORMAL_8X8 = ThresholdMatrix.of(new int[][] {
     { 1, 33, 9, 41, 3, 35, 11, 43 },
@@ -87,8 +103,10 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_4X4}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_4X4_MAX = 16;
+  int CLUSTERED_DOT_4X4_MAXIMUM = 16;
 
   /**
    * A 4x4 clustered dot matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a>, which grows
@@ -96,6 +114,8 @@ public interface BayerDither extends DitherAlgorithm {
    * every tile like the halftone screens of newspapers.
    *
    * <p>The dots are aligned with the pixel grid rather than diagonal. Use it for a printed look.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_4X4 = ThresholdMatrix.of(new int[][] {
     { 12, 5, 6, 13 },
@@ -107,8 +127,10 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_MAX = 64;
+  int CLUSTERED_DOT_DIAGONAL_8X8_MAXIMUM = 64;
 
   /**
    * An 8x8 diagonal clustered dot matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a>,
@@ -116,6 +138,8 @@ public interface BayerDither extends DitherAlgorithm {
    * 45-degree angle like newspaper halftones.
    *
    * <p>It represents 65 gray levels and is the best of the diagonal clustered dot matrices.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_DIAGONAL_8X8 = ThresholdMatrix.of(new int[][] {
     { 24, 10, 12, 26, 35, 47, 49, 37 },
@@ -131,40 +155,52 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #VERTICAL_5X3}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix, int,
    * float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int VERTICAL_5X3_MAX = 15;
+  int VERTICAL_5X3_MAXIMUM = 15;
 
   /**
    * A 5x3 matrix from <a href="http://caca.zoy.org/study/part2.html">the libcaca study</a> that orders its
    * thresholds in vertical lines.
    *
    * <p>It produces vertical stripes, an artistic effect rather than a faithful reproduction.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix VERTICAL_5X3 = ThresholdMatrix.of(new int[][] { { 9, 3, 0, 6, 12 }, { 10, 4, 1, 7, 13 }, { 11, 5, 2, 8, 14 } });
 
   /**
    * The number of threshold levels of {@link #HORIZONTAL_3X5}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int HORIZONTAL_3X5_MAX = 15;
+  int HORIZONTAL_3X5_MAXIMUM = 15;
 
   /**
    * A 3x5 matrix that orders its thresholds in horizontal lines, the rotated version of {@link #VERTICAL_5X3}.
    *
    * <p>It produces horizontal stripes, an artistic effect rather than a faithful reproduction.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix HORIZONTAL_3X5 = ThresholdMatrix.of(new int[][] { { 9, 10, 11 }, { 3, 4, 5 }, { 0, 1, 2 }, { 6, 7, 8 }, { 12, 13, 14 } });
 
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_6X6}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_DIAGONAL_6X6_MAX = 18;
+  int CLUSTERED_DOT_DIAGONAL_6X6_MAXIMUM = 18;
 
   /**
    * A 6x6 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 3 there.
    *
    * <p>It represents 19 gray levels with dots at a 45-degree angle, for a coarse halftone look.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_DIAGONAL_6X6 = ThresholdMatrix.of(new int[][] {
     { 8, 6, 7, 9, 11, 10 },
@@ -178,13 +214,17 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8_2}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_2_MAX = 32;
+  int CLUSTERED_DOT_DIAGONAL_8X8_2_MAXIMUM = 32;
 
   /**
    * An 8x8 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 4 there.
    *
    * <p>It represents only 33 gray levels, so {@link #CLUSTERED_DOT_DIAGONAL_8X8} is almost always the better choice.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_DIAGONAL_8X8_2 = ThresholdMatrix.of(new int[][] {
     { 13, 11, 12, 15, 18, 20, 19, 16 },
@@ -200,13 +240,17 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_16X16}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_DIAGONAL_16X16_MAX = 128;
+  int CLUSTERED_DOT_DIAGONAL_16X16_MAXIMUM = 128;
 
   /**
    * A 16x16 diagonal clustered dot matrix from figure 5.4 of Digital Halftoning by Robert Ulichney, called M = 8 there.
    *
    * <p>It represents 129 gray levels with large dots at a 45-degree angle, which suits large screens.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_DIAGONAL_16X16 = ThresholdMatrix.of(new int[][] {
     { 63, 58, 50, 40, 41, 51, 59, 60, 64, 69, 77, 87, 86, 76, 68, 67 },
@@ -230,13 +274,17 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_6X6_MAX = 36;
+  int CLUSTERED_DOT_6X6_MAXIMUM = 36;
 
   /**
    * A 6x6 clustered dot matrix from figure 5.9 of Digital Halftoning by Robert Ulichney.
    *
    * <p>It represents 37 gray levels with dots aligned with the pixel grid.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_6X6 = ThresholdMatrix.of(new int[][] {
     { 34, 29, 17, 21, 30, 35 },
@@ -250,14 +298,18 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_SPIRAL_5X5}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_SPIRAL_5X5_MAX = 25;
+  int CLUSTERED_DOT_SPIRAL_5X5_MAXIMUM = 25;
 
   /**
    * A 5x5 spiral matrix from figure 5.13 of Digital Halftoning by Robert Ulichney.
    *
    * <p>It represents 26 gray levels; instead of alternating dark and light dots, the dark areas spiral outward until
    * <p>they fill the tile.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_SPIRAL_5X5 = ThresholdMatrix.of(new int[][] {
     { 20, 21, 22, 23, 24 },
@@ -270,13 +322,17 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_HORIZONTAL_LINE}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_HORIZONTAL_LINE_MAX = 36;
+  int CLUSTERED_DOT_HORIZONTAL_LINE_MAXIMUM = 36;
 
   /**
    * A 6x6 matrix from figure 5.13 of Digital Halftoning by Robert Ulichney that clusters pixels about horizontal lines.
    *
    * <p>It represents 37 gray levels as horizontal line screens.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_HORIZONTAL_LINE = ThresholdMatrix.of(new int[][] {
     { 35, 33, 31, 30, 32, 34 },
@@ -290,14 +346,18 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_VERTICAL_LINE}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_VERTICAL_LINE_MAX = 36;
+  int CLUSTERED_DOT_VERTICAL_LINE_MAXIMUM = 36;
 
   /**
    * A 6x6 matrix that clusters pixels about vertical lines, the rotated version of {@link
    * #CLUSTERED_DOT_HORIZONTAL_LINE}.
    *
    * <p>It represents 37 gray levels as vertical line screens.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_VERTICAL_LINE = ThresholdMatrix.of(new int[][] {
     { 35, 23, 11, 5, 17, 29 },
@@ -311,8 +371,10 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_8X8}; pass it to {@link PixelMapper#ofPixelMapper(ThresholdMatrix,
    * int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_8X8_MAX = 64;
+  int CLUSTERED_DOT_8X8_MAXIMUM = 64;
 
   /**
    * An 8x8 clustered dot matrix from figure 1.5 of Modern Digital Halftoning by Daniel L. Lau and Gonzalo R. Arce.
@@ -320,6 +382,8 @@ public interface BayerDither extends DitherAlgorithm {
    * <p>It is like {@link #CLUSTERED_DOT_DIAGONAL_8X8} with dots aligned with the pixel grid and represents 65 gray
    * <p>levels. The published matrix repeats 63 and skips 32, so its entries from 33 up are renumbered by one; the order
    * <p>of the thresholds is unchanged.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_8X8 = ThresholdMatrix.of(new int[][] {
     { 3, 9, 17, 27, 25, 15, 7, 1 },
@@ -335,14 +399,18 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6_2}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_6X6_2_MAX = 36;
+  int CLUSTERED_DOT_6X6_2_MAXIMUM = 36;
 
   /**
    * A variant of {@link #CLUSTERED_DOT_6X6} from <a href="https://archive.is/71e9G">a halftoning article</a>, called
    * central white point there.
    *
    * <p>It looks nearly identical to {@link #CLUSTERED_DOT_6X6}.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_6X6_2 = ThresholdMatrix.of(new int[][] {
     { 34, 25, 21, 17, 29, 33 },
@@ -356,14 +424,18 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_6X6_3}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_6X6_3_MAX = 36;
+  int CLUSTERED_DOT_6X6_3_MAXIMUM = 36;
 
   /**
    * A variant of {@link #CLUSTERED_DOT_6X6} from <a href="https://archive.is/71e9G">a halftoning article</a>, called
    * balanced centered point there.
    *
    * <p>It looks nearly identical to {@link #CLUSTERED_DOT_6X6}.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_6X6_3 = ThresholdMatrix.of(new int[][] {
     { 30, 22, 16, 21, 33, 35 },
@@ -377,14 +449,18 @@ public interface BayerDither extends DitherAlgorithm {
   /**
    * The number of threshold levels of {@link #CLUSTERED_DOT_DIAGONAL_8X8_3}; pass it to {@link
    * PixelMapper#ofPixelMapper(ThresholdMatrix, int, float)} together with the matrix.
+   *
+   * @since 1.0.0
    */
-  int CLUSTERED_DOT_DIAGONAL_8X8_3_MAX = 32;
+  int CLUSTERED_DOT_DIAGONAL_8X8_3_MAXIMUM = 32;
 
   /**
    * A diagonal 8x8 clustered dot matrix from <a href="https://archive.is/71e9G">a halftoning article</a>, called
    * diagonal ordered matrix with balanced centered points there.
    *
    * <p>It represents only 33 gray levels, so {@link #CLUSTERED_DOT_DIAGONAL_8X8} is almost always the better choice.
+   *
+   * @since 1.0.0
    */
   ThresholdMatrix CLUSTERED_DOT_DIAGONAL_8X8_3 = ThresholdMatrix.of(new int[][] {
     { 13, 9, 5, 12, 18, 22, 26, 19 },
@@ -404,24 +480,19 @@ public interface BayerDither extends DitherAlgorithm {
    * @param size the width and height of the matrix, which must be a power of two
    * @return the matrix
    * @throws IllegalArgumentException if {@code size} is not a positive power of two
+   * @since 1.0.0
    */
   static int[][] createBayerMatrix(final int size) {
-    Preconditions.checkArgument(size > 0 && (size & (size - 1)) == 0, "Size must be a power of two");
+    Preconditions.checkArgument(size > 0 && (size & (size - 1)) == 0, "Size must be a power of two!");
 
     int[][] matrix = { { 0 } };
     while (matrix.length < size) {
       matrix = doubleBayerMatrix(matrix);
     }
+
     return matrix;
   }
 
-  /**
-   * Builds the Bayer matrix of twice the size from a Bayer matrix, by replacing every entry with a 2x2 block of the
-   * entry times four plus the offsets of the 2x2 Bayer pattern.
-   *
-   * @param matrix the square matrix to double
-   * @return the matrix of twice the width and height
-   */
   private static int[][] doubleBayerMatrix(final int[][] matrix) {
     final int current = matrix.length;
     final int next = current * 2;
@@ -435,6 +506,7 @@ public interface BayerDither extends DitherAlgorithm {
         expanded[row + current][column + current] = base + 1;
       }
     }
+
     return expanded;
   }
 }

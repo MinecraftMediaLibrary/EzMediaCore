@@ -29,31 +29,46 @@ import me.brandonli.mcav.media.player.pipeline.filter.Filter;
  * thread of the player, and the same buffer is passed to every filter of the pipeline: a filter must read from the
  * buffer without changing its position, for example through {@link ByteBuffer#duplicate()}, or restore the
  * position before it returns.
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
+ *
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface AudioFilter extends Filter<ByteBuffer, OriginalAudioMetadata> {
   /**
    * A filter that leaves every buffer untouched.
+   *
+   * @since 1.0.0
    */
   AudioFilter NO_OP = (_, _) -> false;
 
   /**
    * The sample rate of the audio every player delivers, in hertz.
+   *
+   * @since 1.0.0
    */
   int SAMPLE_RATE = 48_000;
 
   /**
    * The number of interleaved channels of the audio every player delivers.
+   *
+   * @since 1.0.0
    */
   int CHANNELS = 2;
 
   /**
    * The size of one sample of one channel in bytes.
+   *
+   * @since 1.0.0
    */
   int BYTES_PER_SAMPLE = 2;
 
   /**
    * The size of one sample of every channel in bytes.
+   *
+   * @since 1.0.0
    */
   int FRAME_SIZE = CHANNELS * BYTES_PER_SAMPLE;
 }

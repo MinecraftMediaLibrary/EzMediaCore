@@ -17,26 +17,32 @@
  */
 package me.brandonli.mcav.media.player.multimedia.cv;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.FrameGrabber;
 import org.bytedeco.javacv.OpenCVFrameGrabber;
+import org.bytedeco.opencv.global.opencv_core;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
 
-/**
- * Tests {@link OpenCvVideoBackends} against the build information of the platforms the library supports, so both
- * answers are covered wherever the tests run.
- */
+// Tests OpenCvVideoBackends against the build information of the platforms the library supports, so both answers are
+// covered wherever the tests run.
 final class OpenCvVideoBackendsTest {
 
-  /**
-   * The video section of the Linux build of the JavaCPP presets: cameras only.
-   */
+  private static final String VIDEO_FILE_NAME = "file.mp4";
+
   private static final String LINUX = """
   General configuration for OpenCV 4.14.0 =====================================
 
@@ -47,9 +53,6 @@ final class OpenCvVideoBackendsTest {
   Parallel framework:             pthreads
   """;
 
-  /**
-   * The video section of the Windows build, which has FFmpeg and Media Foundation.
-   */
   private static final String WINDOWS = """
   General configuration for OpenCV 4.14.0 =====================================
 
@@ -63,9 +66,6 @@ final class OpenCvVideoBackendsTest {
   Parallel framework:             Concurrency
   """;
 
-  /**
-   * The video section of the macOS build, which has AVFoundation.
-   */
   private static final String MACOS = """
   General configuration for OpenCV 4.14.0 =====================================
 
@@ -75,21 +75,39 @@ final class OpenCvVideoBackendsTest {
   """;
 
   @Test
-  void findsNoFileBackendInTheLinuxBuild() {
-    final boolean canDecodeFiles = OpenCvVideoBackends.decideFromBuildInformation(LINUX);
-    assertFalse(canDecodeFiles, "the Linux build of the presets only captures from cameras");
+  void shouldFindNoFileBackendInTheLinuxBuild() {
+    final VideoFileReader reader = OpenCvVideoBackends.decideFromBuildInformation(LINUX);
+    assertEquals(VideoFileReader.FFMPEG, reader, "the Linux build of the presets only captures from cameras");
   }
 
   @Test
-  void findsTheFileBackendsOfTheOtherBuilds() {
-    final boolean canDecodeFilesOnWindows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
-    final boolean macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
-    assertTrue(canDecodeFilesOnWindows);
-    assertTrue(macOs);
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldSayWhereFilesAreReadWhenTheBuildHasNoFileBackend() {
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      OpenCvVideoBackends.decideFromBuildInformation(LINUX);
+    } finally {
+      System.setErr(standardError);
+    }
+
+    final String log = captured.toString(StandardCharsets.UTF_8);
+
+    final boolean explained = log.contains("files are read with the FFmpeg reader of JavaCV instead");
+    assertTrue(explained, log);
   }
 
   @Test
-  void readsOnlyTheVideoSection() {
+  void shouldFindTheFileBackendsOfTheOtherBuilds() {
+    final VideoFileReader windows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
+    final VideoFileReader macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
+    assertEquals(VideoFileReader.OPENCV, windows);
+    assertEquals(VideoFileReader.OPENCV, macOs);
+  }
+
+  @Test
+  void shouldReadOnlyTheVideoSection() {
     final String elsewhere = """
     General configuration for OpenCV 4.14.0 =====================================
 
@@ -104,7 +122,7 @@ final class OpenCvVideoBackendsTest {
   }
 
   @Test
-  void needsAnEnabledBackendAndAVideoSection() {
+  void shouldNeedAnEnabledBackendAndAVideoSection() {
     final String disabled = """
     Video I/O:
         FFMPEG:                      NO
@@ -119,30 +137,37 @@ final class OpenCvVideoBackendsTest {
     assertTrue(lastSection, "the section may be the last one, without a blank line after it");
   }
 
+  // only the first call works the answer out, so the test that asks first has to check the answer as well
   @Test
-  void answersTheSameEveryTime() {
-    final boolean firstAnswer = OpenCvVideoBackends.canDecodeFiles();
-    final boolean secondAnswer = OpenCvVideoBackends.canDecodeFiles();
-    assertTrue(firstAnswer == secondAnswer, "the answer cannot change while the library runs");
+  void shouldDecideOnceFromTheBuildOfThisMachine() {
+    final BytePointer information = opencv_core.getBuildInformation();
+    final String text = information.getString();
+    final VideoFileReader expected = OpenCvVideoBackends.decideFromBuildInformation(text);
+
+    final VideoFileReader firstAnswer = OpenCvVideoBackends.chooseFileReader();
+    final VideoFileReader secondAnswer = OpenCvVideoBackends.chooseFileReader();
+    assertEquals(expected, firstAnswer);
+    assertSame(firstAnswer, secondAnswer, "the answer cannot change while the library runs");
   }
 
   @Test
-  void picksTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
-    try (final FrameGrabber reader = OpenCVPlayer.createFrameGrabber("file.mp4", true)) {
+  void shouldPickTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
+    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, VideoFileReader.OPENCV)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
-    try (final FrameGrabber fallback = OpenCVPlayer.createFrameGrabber("file.mp4", false)) {
+
+    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, VideoFileReader.FFMPEG)) {
       assertInstanceOf(FFmpegFrameGrabber.class, fallback, "a build without a file backend reads the file with FFmpeg");
     }
   }
 
   @Test
-  void refusesNullBuildInformation() {
+  void shouldRefuseNullBuildInformation() {
     assertThrows(NullPointerException.class, () -> OpenCvVideoBackends.listsEnabledFileBackend(null));
   }
 
   @Test
-  void isNotInstantiable() throws ReflectiveOperationException {
+  void shouldNotBeInstantiable() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(OpenCvVideoBackends.class);
   }
 }

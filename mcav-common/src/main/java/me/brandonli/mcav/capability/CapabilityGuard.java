@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * refused.
  *
  * <p>All methods are thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class CapabilityGuard {
 
@@ -43,16 +45,19 @@ public final class CapabilityGuard {
   /**
    * Constructs a guard that knows nothing about any capability and is independent of {@link #shared()}. The library
    * itself always uses the shared guard; separate guards are for tests and custom bootstraps.
+   *
+   * @since 1.0.0
    */
   public CapabilityGuard() {
     this.states = new ConcurrentHashMap<>();
   }
 
   /**
-   * Gets the guard of the JVM, which the library records its background installations in and which VLC players and
+   * Returns the guard of the JVM, which the library records its background installations in and which VLC players and
    * the default yt-dlp parser consult.
    *
    * @return the shared guard
+   * @since 1.0.0
    */
   public static CapabilityGuard shared() {
     return SHARED;
@@ -63,9 +68,11 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public void markPreparing(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     this.states.put(capability, State.PREPARING);
   }
 
@@ -74,16 +81,20 @@ public final class CapabilityGuard {
    * unavailable one is refused by {@link #checkUsable(Capability)} until it is {@linkplain #forget(Capability)
    * forgotten}.
    *
-   * @param capability the capability
-   * @param available  true if the capability can be used now
-   * @throws NullPointerException if {@code capability} is null
+   * @param capability   the capability
+   * @param availability whether the capability can be used now
+   * @throws NullPointerException if an argument is null
+   * @since 1.0.0
    */
-  public void markPrepared(final Capability capability, final boolean available) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
-    if (available) {
+  public void markPrepared(final Capability capability, final Availability availability) {
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+    Preconditions.checkNotNull(availability, "Availability must not be null!");
+
+    if (availability == Availability.AVAILABLE) {
       this.states.remove(capability);
       return;
     }
+
     this.states.put(capability, State.UNAVAILABLE);
   }
 
@@ -92,9 +103,11 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public void forget(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     this.states.remove(capability);
   }
 
@@ -104,9 +117,11 @@ public final class CapabilityGuard {
    * @param capability the capability
    * @return true if its preparation has not finished yet
    * @throws NullPointerException if {@code capability} is null
+   * @since 1.0.0
    */
   public boolean isPreparing(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final State state = this.states.get(capability);
     return state == State.PREPARING;
   }
@@ -117,10 +132,12 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared
-   * @throws NullPointerException if {@code capability} is null
+   * @throws NullPointerException  if {@code capability} is null
+   * @since 1.0.0
    */
   public void checkNotPreparing(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final boolean preparing = this.isPreparing(capability);
     if (preparing) {
       final String message = describePreparing(capability);
@@ -134,32 +151,34 @@ public final class CapabilityGuard {
    *
    * @param capability the capability
    * @throws IllegalStateException if the capability is still being prepared or is not available on this system
-   * @throws NullPointerException if {@code capability} is null
+   * @throws NullPointerException  if {@code capability} is null
+   * @since 1.0.0
    */
   public void checkUsable(final Capability capability) {
-    Preconditions.checkNotNull(capability, "Capability must not be null");
+    Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final State state = this.states.get(capability);
     if (state == State.PREPARING) {
       throw new IllegalStateException(describePreparing(capability));
     }
+
     if (state == State.UNAVAILABLE) {
       final String name = capability.getDisplayName();
-      throw new IllegalStateException(name + " is not available on this system");
+      final String message = "%s is not available on this system!".formatted(name);
+      throw new IllegalStateException(message);
     }
   }
 
   private static String describePreparing(final Capability capability) {
     final String name = capability.getDisplayName();
     final String constant = capability.name();
-    return "%s is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.%s) or try again shortly".formatted(
+    return "%s is still being prepared in the background; wait for MCAVApi.whenCapabilityReady(Capability.%s) or try again shortly!".formatted(
       name,
       constant
     );
   }
 
-  /**
-   * What the guard knows about a capability. A capability without a state is not guarded.
-   */
+  // What the guard knows about a capability. A capability without a state is not guarded.
   private enum State {
     PREPARING,
     UNAVAILABLE,

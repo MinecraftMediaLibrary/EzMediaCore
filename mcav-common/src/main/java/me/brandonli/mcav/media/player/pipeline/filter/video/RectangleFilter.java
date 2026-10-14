@@ -26,6 +26,10 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Draws a rectangle outline onto every frame.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class RectangleFilter extends MatVideoFilter {
 
@@ -42,10 +46,12 @@ public class RectangleFilter extends MatVideoFilter {
    * @param height the height of the rectangle, which must be positive
    * @param color  the blue, green, and red components of the color, normally 0 to 255; the non-null array is copied
    * @throws IllegalArgumentException if either size is nonpositive
-   * @throws NullPointerException if {@code color} is null
+   * @throws NullPointerException     if {@code color} is null
+   * @since 1.0.0
    */
   public RectangleFilter(final int left, final int top, final int width, final int height, final double[] color) {
-    Preconditions.checkArgument(width > 0 && height > 0, "Rectangle size must be positive");
+    Preconditions.checkArgument(width > 0 && height > 0, "Rectangle size must be positive!");
+
     this.topLeft = new Point(left, top);
     // OpenCV draws both corners, so the opposite corner is the last pixel inside the rectangle
     this.bottomRight = new Point(left + width - 1, top + height - 1);
@@ -57,10 +63,12 @@ public class RectangleFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.rectangle(mat, this.topLeft, this.bottomRight, this.color);
+
     return true;
   }
 }

@@ -18,14 +18,16 @@
 package me.brandonli.mcav.capability.installer.vlc.installation;
 
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Installs VLC on Linux by extracting an AppImage.
@@ -33,6 +35,10 @@ import me.brandonli.mcav.utils.IOUtils;
  * <p>The AppImage is extracted with its built-in {@code --appimage-extract} option, which needs no FUSE support
  * and writes a {@code squashfs-root} directory next to the AppImage. That directory is moved to the installation
  * directory, and the directory containing {@code libvlccore.so} inside it is returned.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class LinuxInstallationStrategy extends ManualInstallationStrategy {
 
@@ -46,18 +52,13 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    *
    * @param installer the installer whose installation directory is used
    * @throws NullPointerException if {@code installer} is null
+   * @since 1.0.0
    */
-  public LinuxInstallationStrategy(final VLCInstaller installer) {
+  public LinuxInstallationStrategy(final VlcInstaller installer) {
     super(installer);
   }
 
-  /**
-   * Constructs a new strategy that runs the AppImage through the specified runner.
-   *
-   * @param installer     the installer whose installation directory is used
-   * @param processRunner runs the AppImage extraction
-   */
-  LinuxInstallationStrategy(final VLCInstaller installer, final ProcessRunner processRunner) {
+  LinuxInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     super(installer, processRunner);
   }
 
@@ -65,10 +66,11 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    * Looks for nonempty {@code libvlc.so} and {@code libvlccore.so} in the same installation directory.
    *
    * @return the directory that contains the library, or empty if VLC has not been installed
-   * @throws IOException if the installation directory cannot be searched
+   * @throws InstallationException if the installation directory cannot be searched
+   * @since 1.0.0
    */
   @Override
-  public Optional<Path> getInstalledPath() throws IOException {
+  public Optional<Path> getInstalledPath() {
     final Path installDirectory = this.getInstallDirectory();
     return findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
   }
@@ -78,36 +80,45 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
    *
    * @param archive the downloaded AppImage
    * @return the directory that contains {@code libvlccore.so}
-   * @throws IOException if the AppImage cannot be extracted or does not contain the library
-   * @throws NullPointerException if {@code archive} is null
+   * @throws InstallationException  if the AppImage cannot be extracted or does not contain the library
+   * @throws FileOperationException if an earlier installation, the extracted tree or the AppImage cannot be moved or
+   *                                deleted
+   * @throws NullPointerException   if {@code archive} is null
+   * @since 1.0.0
    */
   @Override
-  public Path execute(final Path archive) throws IOException {
-    Preconditions.checkNotNull(archive, "Archive must not be null");
+  public Path execute(final Path archive) {
+    Preconditions.checkNotNull(archive, "Archive must not be null!");
+
     final Path absoluteArchive = archive.toAbsolutePath();
     final Path parentOrNull = absoluteArchive.getParent();
-    final Path workingDirectory = Objects.requireNonNull(parentOrNull, "A downloaded file lies in a directory");
+    final Path workingDirectory = Objects.requireNonNull(parentOrNull, "A downloaded file lies in a directory!");
     final Path extracted = workingDirectory.resolve(EXTRACTED_DIRECTORY);
     final Path installDirectory = this.getInstallDirectory();
     deleteRecursively(extracted);
     deleteRecursively(installDirectory);
     this.extractAppImage(absoluteArchive, workingDirectory, extracted);
-    Files.move(extracted, installDirectory);
-    Files.deleteIfExists(absoluteArchive);
+    IoUtils.moveReplacing(extracted, installDirectory);
+    this.deleteFile(absoluteArchive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
-    if (libraryDirectory.isEmpty()) {
-      throw new IOException("The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory");
+    final @Nullable Path directory = libraryDirectory.orElse(null);
+    if (directory == null) {
+      throw new InstallationException(
+        "The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory!"
+      );
     }
-    return libraryDirectory.get();
+
+    return directory;
   }
 
-  private void extractAppImage(final Path archive, final Path workingDirectory, final Path extracted) throws IOException {
-    IOUtils.markExecutable(archive);
+  private void extractAppImage(final Path archive, final Path workingDirectory, final Path extracted) {
+    IoUtils.markExecutable(archive);
     final String rawArchive = archive.toString();
     this.runProcess(workingDirectory, rawArchive, EXTRACT_OPTION);
     final boolean extractedExists = Files.isDirectory(extracted);
     if (!extractedExists) {
-      throw new IOException("Extracting the VLC AppImage did not produce " + extracted);
+      final String message = "Directory %s was not produced by extracting the VLC AppImage!".formatted(extracted);
+      throw new InstallationException(message);
     }
   }
 }

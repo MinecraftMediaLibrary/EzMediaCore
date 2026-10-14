@@ -32,12 +32,14 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +125,7 @@ final class JcefNatives {
   }
 
   private static Path defaultFolder() {
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     return cache.resolve("jcef");
   }
 
@@ -135,7 +137,7 @@ final class JcefNatives {
    * @param bits the width of the processor
    * @return the natives, or empty if jcefmaven has none mcav can use there
    */
-  static Optional<NativePlatform> detect(final OS os, final Arch arch, final Bits bits) {
+  static Optional<NativePlatform> detect(final Os os, final Arch arch, final Bits bits) {
     for (final NativePlatform platform : NativePlatform.values()) {
       final boolean matches = platform.getOs() == os && platform.getArch() == arch && bits == Bits.BITS_64;
       if (matches) {
@@ -209,7 +211,7 @@ final class JcefNatives {
    * @return true if the natives of this machine exist
    */
   static boolean isSupported() {
-    return isSupported(OSUtils.getOS(), OSUtils.getArch(), OSUtils.getBits());
+    return isSupported(OsUtils.getOs(), OsUtils.getArch(), OsUtils.getBits());
   }
 
   /**
@@ -220,7 +222,7 @@ final class JcefNatives {
    * @param bits the address width
    * @return true if the natives of the machine exist
    */
-  static boolean isSupported(final OS os, final Arch arch, final Bits bits) {
+  static boolean isSupported(final Os os, final Arch arch, final Bits bits) {
     try {
       detectOrFail(os, arch, bits);
       return true;
@@ -236,9 +238,9 @@ final class JcefNatives {
    * @throws IOException if jcefmaven has no CEF build for this machine
    */
   static NativePlatform detectCurrent() throws IOException {
-    final OS os = OSUtils.getOS();
-    final Arch arch = OSUtils.getArch();
-    final Bits bits = OSUtils.getBits();
+    final Os os = OsUtils.getOs();
+    final Arch arch = OsUtils.getArch();
+    final Bits bits = OsUtils.getBits();
     return detectOrFail(os, arch, bits);
   }
 
@@ -251,7 +253,7 @@ final class JcefNatives {
    * @return the platform
    * @throws IOException if jcefmaven has no CEF build for the machine
    */
-  static NativePlatform detectOrFail(final OS os, final Arch arch, final Bits bits) throws IOException {
+  static NativePlatform detectOrFail(final Os os, final Arch arch, final Bits bits) throws IOException {
     final Optional<NativePlatform> platform = detect(os, arch, bits);
     if (platform.isEmpty()) {
       throw new IOException("jcefmaven has no CEF build for " + os + " " + arch + " " + bits + "; the browser cannot run here");
@@ -289,11 +291,11 @@ final class JcefNatives {
       this.extractArchive(download, staging);
       final Path stagedMarker = staging.resolve(INSTALL_MARKER);
       Files.createFile(stagedMarker);
-      IOUtils.deleteRecursively(installation);
+      IoUtils.deleteRecursively(installation);
       Files.move(staging, installation, StandardCopyOption.ATOMIC_MOVE);
     } finally {
       Files.deleteIfExists(download);
-      IOUtils.deleteRecursively(staging);
+      IoUtils.deleteRecursively(staging);
     }
     final long elapsed = System.currentTimeMillis() - start;
     LOGGER.info(NATIVES_INSTALLED, identifier, elapsed);
@@ -337,7 +339,11 @@ final class JcefNatives {
      * @param destination the file to write
      * @param sha256      the expected SHA-256 hash in hexadecimal
      * @param size        the pinned size of the file, beyond which the download stops
-     * @throws IOException if the download fails, is larger than its size, or the hash does not match
+     * @throws IOException            if the download fails, is larger than its size, or the hash does not match
+     * @throws DownloadException      if the download over HTTP fails, is larger than its size, or the hash does not
+     *                                match
+     * @throws FileOperationException if the part file cannot be created or deleted, or the download cannot be moved
+     *                                into place
      */
     void download(URI uri, Path destination, String sha256, long size) throws IOException;
   }
@@ -349,25 +355,25 @@ final class JcefNatives {
    */
   enum NativePlatform {
     /** Linux on x86-64. */
-    LINUX_AMD64("linux-amd64", OS.LINUX, Arch.X86, "83f427992cd783fb6f3d499fdf275675187818aa7ca9c4a2a4d43af534a8bdfc", 152_141_475L),
+    LINUX_AMD64("linux-amd64", Os.LINUX, Arch.X86, "83f427992cd783fb6f3d499fdf275675187818aa7ca9c4a2a4d43af534a8bdfc", 152_141_475L),
     /** Linux on 64-bit ARM. */
-    LINUX_ARM64("linux-arm64", OS.LINUX, Arch.ARM, "a653d2cbdac487663ac52957511c022a6c5dd7bf9c99f79c6d1d732ab4138a24", 167_953_639L),
+    LINUX_ARM64("linux-arm64", Os.LINUX, Arch.ARM, "a653d2cbdac487663ac52957511c022a6c5dd7bf9c99f79c6d1d732ab4138a24", 167_953_639L),
     /** Windows on x86-64. */
-    WINDOWS_AMD64("windows-amd64", OS.WINDOWS, Arch.X86, "0dc2ce28766d267f551398e24af7a9bec244b888e651bd97a14ac2d128550875", 171_200_308L),
+    WINDOWS_AMD64("windows-amd64", Os.WINDOWS, Arch.X86, "0dc2ce28766d267f551398e24af7a9bec244b888e651bd97a14ac2d128550875", 171_200_308L),
     /** Windows on 64-bit ARM; mcav's browser does not need JOGL, which jcefmaven lacks there. */
-    WINDOWS_ARM64("windows-arm64", OS.WINDOWS, Arch.ARM, "ec77b5798dfb53c4804b69eda5144d31e20e0e17b6291c98f7b4a66533ce6504", 168_690_639L),
+    WINDOWS_ARM64("windows-arm64", Os.WINDOWS, Arch.ARM, "ec77b5798dfb53c4804b69eda5144d31e20e0e17b6291c98f7b4a66533ce6504", 168_690_639L),
     /** macOS on Intel. */
-    MACOS_AMD64("macosx-amd64", OS.MAC, Arch.X86, "0a49f85ebc8f942fae81bc0120950ce83a629696352338f000856ee72580908a", 153_880_493L),
+    MACOS_AMD64("macosx-amd64", Os.MAC, Arch.X86, "0a49f85ebc8f942fae81bc0120950ce83a629696352338f000856ee72580908a", 153_880_493L),
     /** macOS on Apple silicon. */
-    MACOS_ARM64("macosx-arm64", OS.MAC, Arch.ARM, "685b27b3dc7f6899a7d4a3a3d58978c95c36ebd1afd571c7027a66fe6f1252a0", 142_331_980L);
+    MACOS_ARM64("macosx-arm64", Os.MAC, Arch.ARM, "685b27b3dc7f6899a7d4a3a3d58978c95c36ebd1afd571c7027a66fe6f1252a0", 142_331_980L);
 
     private final String identifier;
-    private final OS os;
+    private final Os os;
     private final Arch arch;
     private final String sha256;
     private final long size;
 
-    NativePlatform(final String identifier, final OS os, final Arch arch, final String sha256, final long size) {
+    NativePlatform(final String identifier, final Os os, final Arch arch, final String sha256, final long size) {
       this.identifier = identifier;
       this.os = os;
       this.arch = arch;
@@ -384,7 +390,7 @@ final class JcefNatives {
       return this.identifier;
     }
 
-    private OS getOs() {
+    private Os getOs() {
       return this.os;
     }
 

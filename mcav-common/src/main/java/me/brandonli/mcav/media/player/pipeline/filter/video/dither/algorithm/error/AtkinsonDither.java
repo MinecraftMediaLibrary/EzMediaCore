@@ -22,6 +22,10 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Atkinson error diffusion, the algorithm of the original Macintosh. It diffuses only three quarters of the error,
  * which increases contrast and gives a distinctive, slightly washed-out look in very light and very dark areas.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class AtkinsonDither extends ErrorDiffusionDither {
 
@@ -30,6 +34,7 @@ public final class AtkinsonDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public AtkinsonDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.ATKINSON);
@@ -37,6 +42,8 @@ public final class AtkinsonDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Atkinson algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public AtkinsonDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

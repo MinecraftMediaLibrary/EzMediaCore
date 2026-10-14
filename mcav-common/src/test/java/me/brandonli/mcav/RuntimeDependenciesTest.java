@@ -27,19 +27,23 @@ import org.junit.jupiter.api.Test;
 
 final class RuntimeDependenciesTest {
 
+  private static final String NATIVE_BRIDGE_CLASS = "com/sun/jna/Native.class";
+  private static final String NATIVE_PLATFORM_TYPES_CLASS = "com/sun/jna/platform/win32/WinDef.class";
+
   @Test
-  void theNativeBridgeHasOneRuntimeDefinition() throws IOException {
-    assertSingleDefinition("com/sun/jna/Native.class");
+  void shouldHaveOneRuntimeDefinitionOfTheNativeBridge() throws IOException {
+    assertSingleDefinition(NATIVE_BRIDGE_CLASS);
   }
 
   @Test
-  void theNativePlatformTypesHaveOneRuntimeDefinition() throws IOException {
-    assertSingleDefinition("com/sun/jna/platform/win32/WinDef.class");
+  void shouldHaveOneRuntimeDefinitionOfTheNativePlatformTypes() throws IOException {
+    assertSingleDefinition(NATIVE_PLATFORM_TYPES_CLASS);
   }
 
   private static void assertSingleDefinition(final String name) throws IOException {
     final ClassLoader loader = RuntimeDependenciesTest.class.getClassLoader();
     final List<URL> definitions = Collections.list(loader.getResources(name));
-    assertEquals(1, definitions.size(), "one runtime definition of " + name + ": " + definitions);
+    final int definitionCount = definitions.size();
+    assertEquals(1, definitionCount, "one runtime definition of " + name + ": " + definitions);
   }
 }

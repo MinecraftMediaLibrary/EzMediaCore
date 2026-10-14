@@ -39,26 +39,44 @@ import java.util.concurrent.TimeoutException;
  * failures are reported as an empty result or {@code false} instead. If the calling thread is interrupted while
  * waiting, the method gives up and the interrupt flag of the thread stays set.
  *
- * <pre>{@code
+ * {@snippet :
  * final Optional<String> publicAddress = NetworkUtils.lookUpPublicAddress();
- * final URI download = URI.create("https://example.com/pack.zip");
+ * final String address = "https://example.com/pack.zip";
+ * final URI download = URI.create(address);
  * final boolean reachable = NetworkUtils.isReachable(download);
- * }</pre>
+ * }
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class NetworkUtils {
 
   /**
    * The service {@link #lookUpPublicAddress()} asks for the public address, {@code https://ipv4.icanhazip.com/}.
    * It answers with the public IPv4 address of the caller as plain text.
+   *
+   * @since 1.0.0
    */
   public static final URI DEFAULT_ADDRESS_SERVICE = URI.create("https://ipv4.icanhazip.com/");
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
-  private static final long MAX_ADDRESS_ANSWER_BYTES = 256;
+  private static final long MAXIMUM_ADDRESS_ANSWER_BYTES = 256;
   private static final int HTTP_OK = 200;
 
+  private static final String GET_METHOD = "GET";
+  private static final String HEAD_METHOD = "HEAD";
+  private static final String HTTP_SCHEME = "http";
+  private static final String HTTPS_SCHEME = "https";
+
+  private static final String IPV6_SEPARATOR = ":";
+  private static final String ZONE_SEPARATOR = "%";
+  private static final String ESCAPED_ZONE_SEPARATOR = "%25";
+  private static final String IPV6_HOST_START = "[";
+  private static final String IPV6_HOST_END = "]";
+
   private NetworkUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -72,16 +90,19 @@ public final class NetworkUtils {
    * @param address the host name or IP address
    * @return the address as it may appear before the colon of the port
    * @throws NullPointerException if the address is null
+   * @since 1.0.0
    */
   public static String formatHostForUrl(final String address) {
-    Preconditions.checkNotNull(address, "Address must not be null");
+    Preconditions.checkNotNull(address, "Address must not be null!");
+
     final boolean ipAddress = InetAddresses.isInetAddress(address);
-    final boolean isIpv6 = ipAddress && address.contains(":");
+    final boolean isIpv6 = ipAddress && address.contains(IPV6_SEPARATOR);
     if (!isIpv6) {
       return address;
     }
-    final String escaped = address.replace("%", "%25");
-    return "[" + escaped + "]";
+
+    final String escaped = address.replace(ZONE_SEPARATOR, ESCAPED_ZONE_SEPARATOR);
+    return IPV6_HOST_START + escaped + IPV6_HOST_END;
   }
 
   /**
@@ -92,6 +113,7 @@ public final class NetworkUtils {
    *
    * @return the public address, or an empty optional if the service cannot be reached, fails, or answers with
    *     anything but an IP address, or if the thread is interrupted
+   * @since 1.0.0
    */
   public static Optional<String> lookUpPublicAddress() {
     return lookUpPublicAddress(DEFAULT_ADDRESS_SERVICE);
@@ -111,13 +133,15 @@ public final class NetworkUtils {
    * @throws NullPointerException     if the service URI is null
    * @throws IllegalArgumentException if the service URI is not an absolute {@code http} or {@code https} URI with
    *                                  a host
+   * @since 1.0.0
    */
   public static Optional<String> lookUpPublicAddress(final URI addressService) {
-    Preconditions.checkNotNull(addressService, "Address service must not be null");
-    final HttpRequest request = createRequest(addressService, "GET");
+    Preconditions.checkNotNull(addressService, "Address service must not be null!");
+
+    final HttpRequest request = createRequest(addressService, GET_METHOD);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.limiting(
       HttpResponse.BodyHandlers.ofString(),
-      MAX_ADDRESS_ANSWER_BYTES
+      MAXIMUM_ADDRESS_ANSWER_BYTES
     );
 
     try (final HttpClient client = createClient(HttpClient.Redirect.NEVER)) {
@@ -151,9 +175,11 @@ public final class NetworkUtils {
    *     is not an absolute {@code http} or {@code https} URI with a host, if the server cannot be reached, or if the
    *     thread is interrupted
    * @throws NullPointerException if the URI is null
+   * @since 1.0.0
    */
   public static boolean isReachable(final URI uri) {
-    Preconditions.checkNotNull(uri, "URI must not be null");
+    Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final boolean usesHttpScheme = isHttpScheme(uri);
     if (!usesHttpScheme) {
       return false;
@@ -161,7 +187,7 @@ public final class NetworkUtils {
 
     final HttpResponse.BodyHandler<Void> bodyHandler = HttpResponse.BodyHandlers.discarding();
     try (final HttpClient client = createClient(HttpClient.Redirect.NORMAL)) {
-      final HttpRequest request = createRequest(uri, "HEAD");
+      final HttpRequest request = createRequest(uri, HEAD_METHOD);
       final HttpResponse<Void> response = client.send(request, bodyHandler);
       final int status = response.statusCode();
       return status == HTTP_OK;
@@ -169,6 +195,7 @@ public final class NetworkUtils {
       return false;
     } catch (final InterruptedException exception) {
       restoreInterruptFlag();
+
       return false;
     }
   }
@@ -181,6 +208,7 @@ public final class NetworkUtils {
     if (status != HTTP_OK || !validAddress) {
       return Optional.empty();
     }
+
     return Optional.of(address);
   }
 
@@ -189,7 +217,8 @@ public final class NetworkUtils {
     if (scheme == null) {
       return false;
     }
-    return scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https");
+
+    return scheme.equalsIgnoreCase(HTTP_SCHEME) || scheme.equalsIgnoreCase(HTTPS_SCHEME);
   }
 
   private static HttpClient createClient(final HttpClient.Redirect redirectPolicy) {

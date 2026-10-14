@@ -28,38 +28,39 @@ import java.util.concurrent.locks.LockSupport;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.FrameGrabber;
 
-/**
- * A frame grabber that plays a prepared script, so playback sessions can be tested without decoding real media.
- *
- * <p>The script holds frames, which are returned in order, {@link FrameGrabber.Exception checked grabber exceptions}
- * and runtime exceptions, which are thrown when reached, and {@link Delay delays}, which block the decoding thread
- * without reacting to interrupts. The grabber reports the end of the media once the script is used up. The media has
- * no known length, like a live stream, unless one is set.
- */
+// A frame grabber that plays a prepared script, so playback sessions can be tested without decoding real media. The
+// script holds frames, which are returned in order, checked grabber exceptions and runtime exceptions, which are thrown
+// when reached, and delays, which block the decoding thread without reacting to interrupts. The grabber reports the end
+// of the media once the script is used up. The media has no known length, like a live stream, unless one is set.
 final class ScriptedFrameGrabber extends FrameGrabber {
+
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+
+  private static final int SAMPLE_RATE = 48_000;
+  private static final int AUDIO_CHANNELS = 2;
 
   private final Deque<Object> script;
   private final AtomicBoolean closed;
   private final AtomicLong requestedTimestamp;
-  private final boolean failOnStop;
   private boolean failOnStart;
+  private boolean failOnStop;
   private boolean failOnSeek;
   private long length;
 
-  ScriptedFrameGrabber(final int width, final int height, final boolean failOnStop, final List<?> steps) {
+  ScriptedFrameGrabber(final int width, final int height, final List<?> steps) {
     this.script = new ArrayDeque<>(steps);
     this.closed = new AtomicBoolean();
     this.requestedTimestamp = new AtomicLong(-1L);
-    this.failOnStop = failOnStop;
     this.imageWidth = width;
     this.imageHeight = height;
-    this.sampleRate = 48_000;
-    this.audioChannels = 2;
+    this.sampleRate = SAMPLE_RATE;
+    this.audioChannels = AUDIO_CHANNELS;
   }
 
   static ScriptedFrameGrabber of(final Object... steps) {
     final List<Object> script = List.of(steps);
-    return new ScriptedFrameGrabber(4, 2, false, script);
+    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, script);
   }
 
   static ScriptedFrameGrabber failingToStart() {
@@ -69,65 +70,39 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   }
 
   static ScriptedFrameGrabber failingToStartAndStop() {
-    final List<Object> noSteps = List.of();
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, true, noSteps);
+    final ScriptedFrameGrabber grabber = of();
     grabber.failOnStart = true;
+    grabber.failOnStop = true;
     return grabber;
   }
 
-  static Frame video(final long timestampMicros) {
-    final Frame frame = new Frame(4, 2, Frame.DEPTH_UBYTE, 3);
-    frame.timestamp = timestampMicros;
+  static Frame video(final long timestampMicroseconds) {
+    final Frame frame = new Frame(FRAME_WIDTH, FRAME_HEIGHT, Frame.DEPTH_UBYTE, 3);
+    frame.timestamp = timestampMicroseconds;
     return frame;
   }
 
-  static Frame audio(final long timestampMicros) {
+  static Frame audio(final long timestampMicroseconds) {
     final Frame frame = new Frame();
     frame.samples = new Buffer[] { ShortBuffer.allocate(960) };
-    frame.sampleRate = 48_000;
-    frame.audioChannels = 2;
-    frame.timestamp = timestampMicros;
+    frame.sampleRate = SAMPLE_RATE;
+    frame.audioChannels = AUDIO_CHANNELS;
+    frame.timestamp = timestampMicroseconds;
     return frame;
   }
 
-  boolean isClosed() {
-    return this.closed.get();
-  }
-
-  long getRequestedTimestamp() {
-    return this.requestedTimestamp.get();
-  }
-
-  /**
-   * Gets the number of steps of the script that have not been reached yet.
-   *
-   * @return the remaining steps
-   */
   int getRemainingSteps() {
     synchronized (this.script) {
       return this.script.size();
     }
   }
 
-  /**
-   * Gives the media a known length, which makes it seekable.
-   *
-   * @param lengthMicros the length in microseconds
-   */
-  void setLength(final long lengthMicros) {
-    this.length = lengthMicros;
-  }
-
-  /**
-   * Makes every seek fail, like a source that cannot seek at all.
-   */
   void failOnSeek() {
     this.failOnSeek = true;
   }
 
-  @Override
-  public long getLengthInTime() {
-    return this.length;
+  void failOnStop() {
+    this.failOnStop = true;
   }
 
   @Override
@@ -147,35 +122,34 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   @Override
   public void trigger() {}
 
-  /**
-   * Plays the script up to its next frame.
-   *
-   * @return the next frame, or {@code null} once the script is used up
-   * @throws FrameGrabber.Exception if the script reached a checked grabber exception
-   */
   @Override
   public Frame grab() throws FrameGrabber.Exception {
-    while (true) {
-      final Object next = this.takeNextStep();
-      switch (next) {
-        case null -> {
-          return null;
-        }
-        case final Frame frame -> {
-          return frame;
-        }
-        case final FrameGrabber.Exception exception -> throw exception;
-        case final RuntimeException exception -> throw exception;
-        case final Delay delay -> delay.block();
-        default -> throw new IllegalStateException("Unknown step in the script: " + next);
-      }
+    Object next = this.takeNextStep();
+    while (next instanceof final Delay delay) {
+      delay.block();
+      next = this.takeNextStep();
     }
+
+    return this.playStep(next);
   }
 
   private Object takeNextStep() {
     synchronized (this.script) {
       return this.script.poll();
     }
+  }
+
+  private Frame playStep(final Object next) throws FrameGrabber.Exception {
+    return switch (next) {
+      case null -> null;
+      case final Frame frame -> frame;
+      case final FrameGrabber.Exception exception -> throw exception;
+      case final RuntimeException exception -> throw exception;
+      default -> {
+        final String message = "Script step %s is unknown!".formatted(next);
+        throw new IllegalStateException(message);
+      }
+    };
   }
 
   @Override
@@ -186,33 +160,46 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   @Override
   public void setTimestamp(final long timestamp) throws FrameGrabber.Exception {
     this.requestedTimestamp.set(timestamp);
+
     if (this.failOnSeek) {
       throw new FrameGrabber.Exception("seek failed on purpose");
     }
   }
 
-  /**
-   * Blocks the grabbing thread for a while and ignores interrupts meanwhile, like a decoder stuck in native code.
-   */
+  boolean isClosed() {
+    return this.closed.get();
+  }
+
+  long getRequestedTimestamp() {
+    return this.requestedTimestamp.get();
+  }
+
+  void setLength(final long lengthMicroseconds) {
+    this.length = lengthMicroseconds;
+  }
+
+  @Override
+  public long getLengthInTime() {
+    return this.length;
+  }
+
   static final class Delay {
 
-    private static final long NANOS_PER_MILLI = 1_000_000L;
+    private static final long NANOSECONDS_PER_MILLISECOND = 1_000_000L;
 
-    private final long millis;
+    private final long milliseconds;
 
-    Delay(final long millis) {
-      this.millis = millis;
+    Delay(final long milliseconds) {
+      this.milliseconds = milliseconds;
     }
 
-    /**
-     * Blocks for the whole delay. An interrupt wakes the thread up early, so it is cleared, the thread goes back to
-     * sleep for the rest of the delay, and the interrupt is restored at the end.
-     */
+    // Blocks for the whole delay. An interrupt wakes the thread up early, so it is cleared, the thread goes back to
+    // sleep for the rest of the delay, and the interrupt is restored at the end.
     void block() {
-      final long delayNanos = this.millis * NANOS_PER_MILLI;
-      final long end = System.nanoTime() + delayNanos;
+      final long delayNanoseconds = this.milliseconds * NANOSECONDS_PER_MILLISECOND;
+      final long end = System.nanoTime() + delayNanoseconds;
       boolean interrupted = false;
-      long remaining = delayNanos;
+      long remaining = delayNanoseconds;
       while (remaining > 0) {
         LockSupport.parkNanos(remaining);
         interrupted |= Thread.interrupted();

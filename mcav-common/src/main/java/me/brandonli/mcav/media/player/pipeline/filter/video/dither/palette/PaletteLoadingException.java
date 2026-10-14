@@ -18,36 +18,27 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette;
 
 import java.io.Serial;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import me.brandonli.mcav.MCAVException;
 
 /**
  * Thrown when the map palette resource is missing or malformed.
  *
- * <p>This is an {@link IllegalStateException}: the palette ships inside the library, so a missing or malformed
+ * <p>This is an {@link MCAVException}: the palette ships inside the library, so a missing or malformed
  * resource means the library itself is packaged in a broken state. No argument of the caller is at fault, and the
  * failure persists for as long as the same library jar is used.
+ *
+ * @since 1.0.0
  */
-public class PaletteLoadingException extends IllegalStateException {
+public class PaletteLoadingException extends MCAVException {
 
   @Serial
   private static final long serialVersionUID = 3449385531808176439L;
 
-  /**
-   * Constructs a new exception with a detail message and no cause.
-   *
-   * @param message the detail message, which describes what is wrong with the palette
-   */
-  PaletteLoadingException(final @Nullable String message) {
+  PaletteLoadingException(final String message) {
     super(message);
   }
 
-  /**
-   * Constructs a new exception with a detail message and the failure that caused it.
-   *
-   * @param message the detail message, which describes what is wrong with the palette
-   * @param cause   the underlying failure, such as the JSON parser error, or null if it is unknown
-   */
-  PaletteLoadingException(final @Nullable String message, final @Nullable Throwable cause) {
+  PaletteLoadingException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

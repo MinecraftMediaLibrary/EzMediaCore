@@ -17,68 +17,46 @@
  */
 package me.brandonli.mcav.media.player.multimedia.vlc;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstallationKit;
-import me.brandonli.mcav.capability.installer.vlc.VLCInstaller;
+import me.brandonli.mcav.MCAVException;
+import me.brandonli.mcav.capability.installer.vlc.DownloadedVlc;
 import me.brandonli.mcav.testing.GeneratedMedia;
 import org.junit.jupiter.api.Assumptions;
-import org.mockito.Mockito;
 
-/**
- * Loads the VLC installed on the machine for the integration tests and generates media for them.
- */
 final class VlcTestSupport {
 
   private static final String UNAVAILABLE = loadVlc();
 
+  private static final String VIDEO_EXTENSION = ".mp4";
+  private static final String SIZE_SEPARATOR = "x";
+
   private VlcTestSupport() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Loads VLC through the installation kit of the library, with an installer that refuses to download, so the tests
-   * never need the internet.
-   *
-   * @return null if VLC was loaded, otherwise why not
-   */
+  // Loads the VLC the installer of the library downloads, never the one installed on this machine, so the tests behave
+  // alike on every host.
   private static String loadVlc() {
-    final VLCInstaller installer = Mockito.mock(VLCInstaller.class);
-    Mockito.when(installer.isSupported()).thenReturn(false);
-    final VLCInstallationKit kit = VLCInstallationKit.create(installer);
     try {
-      final Optional<Path> directory = kit.start();
+      final Optional<Path> directory = DownloadedVlc.load();
       final Optional<String> location = directory.map(Path::toString);
-      final String description = location.orElse("the libvlc found by vlcj");
+      final String description = location.orElse("the libvlc vlcj loaded earlier");
       System.out.println("VLC integration tests use " + description);
       return null;
-    } catch (final IOException | UnsupportedOperatingSystemException | LinkageError exception) {
-      return "VLC is not installed: " + exception;
+    } catch (final MCAVException | LinkageError exception) {
+      return "VLC could not be downloaded or loaded: " + exception;
     }
   }
 
-  /**
-   * Skips the calling tests when VLC cannot be loaded.
-   */
   static void assumeVlc() {
     Assumptions.assumeTrue(UNAVAILABLE == null, UNAVAILABLE);
   }
 
-  /**
-   * Generates a video of one color with a stereo sine tone.
-   *
-   * @param directory the directory to write into
-   * @param color     an FFmpeg color name
-   * @param width     the width in pixels
-   * @param height    the height in pixels
-   * @return the video file
-   */
   static Path solidVideo(final Path directory, final String color, final int width, final int height) {
-    final Path output = directory.resolve(color + "-" + width + "x" + height + ".mp4");
+    final Path output = directory.resolve(color + "-" + width + SIZE_SEPARATOR + height + VIDEO_EXTENSION);
     return GeneratedMedia.generate(output, temporary -> solidVideoCommand(color, width, height, temporary));
   }
 
@@ -94,7 +72,7 @@ final class VlcTestSupport {
   }
 
   private static List<String> solidVideoArguments(final String color, final int width, final int height, final String outputPath) {
-    final String colorSource = "color=c=" + color + ":size=" + width + "x" + height + ":rate=30";
+    final String colorSource = "color=c=" + color + ":size=" + width + SIZE_SEPARATOR + height + ":rate=30";
     return List.of(
       "-hide_banner",
       "-loglevel",

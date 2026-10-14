@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import javax.imageio.ImageIO;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.BilateralFilter;
@@ -41,8 +42,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.BlurFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.ColorMapFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.DilationFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.ErosionFilter;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FlipFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.GrayscaleFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.InvertFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.LuminanceFilter;
@@ -132,7 +133,7 @@ final class FilterChainTest {
     ).create();
     assertInstanceOf(ErosionFilter.class, rest.get(0));
     assertInstanceOf(TextFilter.class, rest.get(1));
-    assertInstanceOf(FPSFilter.class, rest.get(2));
+    assertInstanceOf(FramesPerSecondFilter.class, rest.get(2));
     assertInstanceOf(OverlayImageFilter.class, rest.get(3));
     assertEquals(6, rest.size());
     assertNotEquals(filters.getFirst(), chain.create().getFirst(), "every video gets filters of its own");
@@ -143,9 +144,12 @@ final class FilterChainTest {
     final VideoPipelineStep output = VideoPipelineStep.of(VideoFilter.NO_OP);
     final VideoPipelineStep first = this.parse("grayscale,invert").prepend(output);
     assertInstanceOf(GrayscaleFilter.class, first.getFilter());
-    final VideoPipelineStep second = Objects.requireNonNull(first.next());
+    final Optional<VideoPipelineStep> afterFirst = first.next();
+    final VideoPipelineStep second = afterFirst.orElseThrow();
     assertInstanceOf(InvertFilter.class, second.getFilter());
-    assertSame(output, second.next());
+    final Optional<VideoPipelineStep> afterSecond = second.next();
+    final Optional<VideoPipelineStep> expectedOutput = Optional.of(output);
+    assertEquals(expectedOutput, afterSecond);
   }
 
   @ParameterizedTest

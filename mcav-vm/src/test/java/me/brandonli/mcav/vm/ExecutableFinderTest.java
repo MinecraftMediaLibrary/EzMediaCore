@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import me.brandonli.mcav.utils.os.OS;
-import me.brandonli.mcav.utils.os.OSUtils;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
@@ -115,13 +115,13 @@ final class ExecutableFinderTest {
     return this.directory.resolve("empty-root");
   }
 
-  private ExecutableFinder finder(final OS os, final String path) {
+  private ExecutableFinder finder(final Os os, final String path) {
     final Map<String, String> environment = Map.of("PATH", path);
     final Path root = this.emptyRoot();
     return new ExecutableFinder(os, environment, root);
   }
 
-  private ExecutableFinder finderWithoutPath(final OS os) {
+  private ExecutableFinder finderWithoutPath(final Os os) {
     final Map<String, String> environment = Map.of();
     final Path root = this.emptyRoot();
     return new ExecutableFinder(os, environment, root);
@@ -151,7 +151,7 @@ final class ExecutableFinderTest {
     final Path program = this.createProgram("second", "qemu-system-x86_64");
     final Path second = program.getParent();
     final String path = pathOf(first, second);
-    final ExecutableFinder finder = this.finder(OS.LINUX, path);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find("qemu-system-x86_64");
     final Optional<Path> expected = absolute(program);
     assertEquals(expected, found);
@@ -164,7 +164,7 @@ final class ExecutableFinderTest {
     final Path earlyFolder = early.getParent();
     final Path lateFolder = late.getParent();
     final String path = pathOf(earlyFolder, lateFolder);
-    final ExecutableFinder finder = this.finder(OS.LINUX, path);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find("tool");
     final Optional<Path> expected = absolute(early);
     assertEquals(expected, found);
@@ -179,8 +179,8 @@ final class ExecutableFinderTest {
     final Path batchFolder = batch.getParent();
     final Path commandFolder = command.getParent();
     final String path = pathOf(exeFolder, batchFolder, commandFolder);
-    final ExecutableFinder windows = this.finder(OS.WINDOWS, path);
-    final ExecutableFinder linux = this.finder(OS.LINUX, path);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
+    final ExecutableFinder linux = this.finder(Os.LINUX, path);
     final Optional<Path> windowsExe = windows.find("qemu");
     final Optional<Path> windowsBatch = windows.find("script");
     final Optional<Path> windowsCommand = windows.find("legacy");
@@ -201,7 +201,7 @@ final class ExecutableFinderTest {
     this.createProgram("both", "tool.exe");
     final Path folder = com.getParent();
     final String path = pathOf(folder);
-    final ExecutableFinder windows = this.finder(OS.WINDOWS, path);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
     final Optional<Path> found = windows.find("tool");
     final Optional<Path> expected = absolute(com);
     assertEquals(expected, found);
@@ -214,7 +214,7 @@ final class ExecutableFinderTest {
     final Path named = this.createProgram("planted", "named.EXE");
     final Path folder = bare.getParent();
     final String path = pathOf(folder);
-    final ExecutableFinder windows = this.finder(OS.WINDOWS, path);
+    final ExecutableFinder windows = this.finder(Os.WINDOWS, path);
     final Optional<Path> bareName = windows.find("qemu");
     final Optional<Path> fullName = windows.find("named.EXE");
     final boolean bareIsEmpty = bareName.isEmpty();
@@ -230,7 +230,7 @@ final class ExecutableFinderTest {
     final String path = pathOf(folder);
     final Map<String, String> environment = Map.of("HOME", "/home/user", "Path", path);
     final Path root = this.emptyRoot();
-    final ExecutableFinder finder = new ExecutableFinder(OS.WINDOWS, environment, root);
+    final ExecutableFinder finder = new ExecutableFinder(Os.WINDOWS, environment, root);
     final Optional<Path> found = finder.find("tool");
     final Optional<Path> expected = absolute(program);
     assertEquals(expected, found);
@@ -240,7 +240,7 @@ final class ExecutableFinderTest {
   void findsNothingWithoutAPathVariable() {
     final Map<String, String> environment = Map.of("HOME", "/home/user");
     final Path root = this.emptyRoot();
-    final ExecutableFinder finder = new ExecutableFinder(OS.LINUX, environment, root);
+    final ExecutableFinder finder = new ExecutableFinder(Os.LINUX, environment, root);
     final Optional<Path> found = finder.find("qemu-system-x86_64");
     final boolean foundIsEmpty = found.isEmpty();
     assertTrue(foundIsEmpty);
@@ -252,7 +252,7 @@ final class ExecutableFinderTest {
     final Path folder = program.getParent();
     final String validFolder = folder.toString();
     final String path = String.join(File.pathSeparator, "", "  ", "bro\0ken", validFolder);
-    final ExecutableFinder finder = this.finder(OS.LINUX, path);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find("tool");
     final Optional<Path> expected = absolute(program);
     assertEquals(expected, found);
@@ -266,7 +266,7 @@ final class ExecutableFinderTest {
     assertFalse(executable, "the test needs a file without execute permission");
     final Path folder = program.getParent();
     final String path = pathOf(folder);
-    final ExecutableFinder finder = this.finder(OS.LINUX, path);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find("notes");
     final boolean foundIsEmpty = found.isEmpty();
     assertTrue(foundIsEmpty);
@@ -278,7 +278,7 @@ final class ExecutableFinderTest {
     final Path lookalike = folder.resolve("tool");
     Files.createDirectories(lookalike);
     final String path = pathOf(folder);
-    final ExecutableFinder finder = this.finder(OS.LINUX, path);
+    final ExecutableFinder finder = this.finder(Os.LINUX, path);
     final Optional<Path> found = finder.find("tool");
     final boolean foundIsEmpty = found.isEmpty();
     assertTrue(foundIsEmpty);
@@ -291,7 +291,7 @@ final class ExecutableFinderTest {
     final Path workingDirectory = workingDirectory();
     final Path relativeProgram = workingDirectory.relativize(program);
     final String relativeName = relativeProgram.toString();
-    final ExecutableFinder finder = this.finderWithoutPath(OS.LINUX);
+    final ExecutableFinder finder = this.finderWithoutPath(Os.LINUX);
     final Optional<Path> fromAbsolute = finder.find(absoluteName);
     final Optional<Path> fromRelative = finder.find(relativeName);
     final Optional<Path> expected = absolute(program);
@@ -309,7 +309,7 @@ final class ExecutableFinderTest {
     final Path folder = program.getParent();
     final Path withoutExtension = folder.resolve("qemu");
     final String name = withoutExtension.toString();
-    final ExecutableFinder finder = this.finderWithoutPath(OS.WINDOWS);
+    final ExecutableFinder finder = this.finderWithoutPath(Os.WINDOWS);
     final Optional<Path> found = finder.find(name);
     final Optional<Path> expected = absolute(program);
     assertEquals(expected, found);
@@ -322,8 +322,8 @@ final class ExecutableFinderTest {
     Files.writeString(planted, "planted");
     try {
       makeExecutable(planted);
-      final ExecutableFinder windows = this.finderWithoutPath(OS.WINDOWS);
-      final ExecutableFinder linux = this.finderWithoutPath(OS.LINUX);
+      final ExecutableFinder windows = this.finderWithoutPath(Os.WINDOWS);
+      final ExecutableFinder linux = this.finderWithoutPath(Os.LINUX);
       final Optional<Path> onWindows = windows.find("mcav-planted-program");
       final Optional<Path> onLinux = linux.find("mcav-planted-program.exe");
       final boolean windowsIsEmpty = onWindows.isEmpty();
@@ -344,8 +344,8 @@ final class ExecutableFinderTest {
     final Path root = this.createMacRoot(listedFolder, pathsDFolder);
 
     final Map<String, String> environment = Map.of("PATH", "");
-    final ExecutableFinder mac = new ExecutableFinder(OS.MAC, environment, root);
-    final ExecutableFinder linux = new ExecutableFinder(OS.LINUX, environment, root);
+    final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
+    final ExecutableFinder linux = new ExecutableFinder(Os.LINUX, environment, root);
     final Optional<Path> listedOnMac = mac.find("qemu-system-aarch64");
     final Optional<Path> pathsDOnMac = mac.find("qemu-img");
     final Optional<Path> listedOnLinux = linux.find("qemu-system-aarch64");
@@ -396,7 +396,7 @@ final class ExecutableFinderTest {
     writeLines(secondFile, secondName);
     writeLines(firstFile, firstName);
     final Map<String, String> environment = Map.of("PATH", "");
-    final ExecutableFinder mac = new ExecutableFinder(OS.MAC, environment, root);
+    final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> found = mac.find("tool");
     final Optional<Path> expected = absolute(first);
     assertEquals(expected, found);
@@ -411,7 +411,7 @@ final class ExecutableFinderTest {
     final Path x86 = writeProgram(intel, "qemu-system-x86_64");
 
     final Map<String, String> environment = Map.of("PATH", "");
-    final ExecutableFinder mac = new ExecutableFinder(OS.MAC, environment, root);
+    final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> armFound = mac.find("qemu-system-aarch64");
     final Optional<Path> x86Found = mac.find("qemu-system-x86_64");
     final Optional<Path> expectedArm = absolute(arm);
@@ -429,9 +429,9 @@ final class ExecutableFinderTest {
     final Path local = writeProgram(usrLocalBin, "qemu-system-riscv64");
 
     final Map<String, String> environment = Map.of("PATH", "");
-    final ExecutableFinder linux = new ExecutableFinder(OS.LINUX, environment, root);
-    final ExecutableFinder freeBsd = new ExecutableFinder(OS.FREEBSD, environment, root);
-    final ExecutableFinder mac = new ExecutableFinder(OS.MAC, environment, root);
+    final ExecutableFinder linux = new ExecutableFinder(Os.LINUX, environment, root);
+    final ExecutableFinder freeBsd = new ExecutableFinder(Os.FREEBSD, environment, root);
+    final ExecutableFinder mac = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> onLinux = linux.find("qemu-system-x86_64");
     final Optional<Path> localOnFreeBsd = freeBsd.find("qemu-system-riscv64");
     final Optional<Path> systemOnMac = mac.find("qemu-system-x86_64");
@@ -453,7 +453,7 @@ final class ExecutableFinderTest {
     final String path = pathOf(pathFolder);
 
     final Map<String, String> environment = Map.of("PATH", path);
-    final ExecutableFinder other = new ExecutableFinder(OS.OTHER, environment, root);
+    final ExecutableFinder other = new ExecutableFinder(Os.OTHER, environment, root);
     final Optional<Path> inSystemFolder = other.find("qemu-system-x86_64");
     final Optional<Path> inPath = other.find("qemu-system-arm");
 
@@ -471,7 +471,7 @@ final class ExecutableFinderTest {
     final String programFilesName = programFiles.toString();
     final Map<String, String> environment = Map.of("PATH", "", "ProgramFiles", programFilesName);
     final Path root = this.emptyRoot();
-    final ExecutableFinder windows = new ExecutableFinder(OS.WINDOWS, environment, root);
+    final ExecutableFinder windows = new ExecutableFinder(Os.WINDOWS, environment, root);
     final Optional<Path> found = windows.find("qemu-system-x86_64");
     final Optional<Path> expected = absolute(program);
     assertEquals(expected, found);
@@ -482,7 +482,7 @@ final class ExecutableFinderTest {
     final Path program = this.createProgram("default-program-files/qemu", "qemu-system-x86_64.exe");
     final Path qemu = program.getParent();
     final Optional<Path> expected = absolute(program);
-    final ExecutableFinder windows = this.finderWithoutPath(OS.WINDOWS);
+    final ExecutableFinder windows = this.finderWithoutPath(Os.WINDOWS);
     try (final MockedStatic<Path> paths = Mockito.mockStatic(Path.class, Mockito.CALLS_REAL_METHODS)) {
       paths.when(() -> assertNotNull(Path.of("C:\\Program Files", "qemu"))).thenReturn(qemu);
       assertEquals(expected, windows.find("qemu-system-x86_64"), "the default Program Files folder is searched without the variable");
@@ -491,14 +491,14 @@ final class ExecutableFinderTest {
 
   @Test
   void ignoresAMissingOrUnreadablePathsFile() throws IOException {
-    final ExecutableFinder missing = this.finder(OS.MAC, "");
+    final ExecutableFinder missing = this.finder(Os.MAC, "");
     final Path root = this.directory.resolve("broken-root");
     final Path etc = root.resolve("etc");
     Files.createDirectories(etc);
     final Path invalid = etc.resolve("paths");
     Files.write(invalid, new byte[] { (byte) 0xC3, (byte) 0x28, '\n' });
     final Map<String, String> environment = Map.of("PATH", "");
-    final ExecutableFinder unreadable = new ExecutableFinder(OS.MAC, environment, root);
+    final ExecutableFinder unreadable = new ExecutableFinder(Os.MAC, environment, root);
     final Optional<Path> fromMissing = missing.find("tool");
     final Optional<Path> fromUnreadable = unreadable.find("tool");
     final boolean fromMissingIsEmpty = fromMissing.isEmpty();
@@ -510,8 +510,8 @@ final class ExecutableFinderTest {
   @Test
   void findsProgramsWithTheRealEnvironment() {
     final ExecutableFinder finder = new ExecutableFinder();
-    final OS os = OSUtils.getOS();
-    final String shell = os == OS.WINDOWS ? "cmd" : "sh";
+    final Os os = OsUtils.getOs();
+    final String shell = os == Os.WINDOWS ? "cmd" : "sh";
     final Optional<Path> found = finder.find(shell);
     final Optional<Path> missing = finder.find("mcav-program-that-does-not-exist");
     final boolean foundIsPresent = found.isPresent();
@@ -522,7 +522,7 @@ final class ExecutableFinderTest {
 
   @Test
   void rejectsInvalidNames() {
-    final ExecutableFinder finder = this.finderWithoutPath(OS.LINUX);
+    final ExecutableFinder finder = this.finderWithoutPath(Os.LINUX);
     assertThrows(NullPointerException.class, () -> finder.find(null));
     final IllegalArgumentException blank = assertThrows(IllegalArgumentException.class, () -> finder.find(" "));
     final String message = blank.getMessage();

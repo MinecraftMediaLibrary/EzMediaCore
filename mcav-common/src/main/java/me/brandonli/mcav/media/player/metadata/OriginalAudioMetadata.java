@@ -23,10 +23,16 @@ import com.google.common.base.Preconditions;
  * Properties of an audio stream as decoded. Note that the audio pipeline always receives samples converted to
  * the format described by {@link me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter}; this metadata
  * describes the source.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface OriginalAudioMetadata extends OriginalMetadata {
   /**
    * The value of a property the source does not report.
+   *
+   * @since 1.0.0
    */
   int UNKNOWN = -1;
 
@@ -40,7 +46,8 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
    * @param samplingFormat  the FFmpeg sample format identifier, or {@link #UNKNOWN}
    * @return the metadata
    * @throws IllegalArgumentException if the sample rate or channel count is nonpositive
-   * @throws NullPointerException if {@code codec} is null
+   * @throws NullPointerException     if {@code codec} is null
+   * @since 1.0.0
    */
   static OriginalAudioMetadata of(
     final String codec,
@@ -49,44 +56,50 @@ public interface OriginalAudioMetadata extends OriginalMetadata {
     final int audioChannels,
     final int samplingFormat
   ) {
-    Preconditions.checkNotNull(codec, "Codec must not be null");
-    Preconditions.checkArgument(audioSampleRate > 0, "Sample rate must be positive but was %s", audioSampleRate);
-    Preconditions.checkArgument(audioChannels > 0, "Channel count must be positive but was %s", audioChannels);
-    return new OriginalAudioMetadataImpl(codec, audioBitrate, audioSampleRate, audioChannels, samplingFormat);
+    Preconditions.checkNotNull(codec, "Codec must not be null!");
+    Preconditions.checkArgument(audioSampleRate > 0, "Sample rate %s must be positive!", audioSampleRate);
+    Preconditions.checkArgument(audioChannels > 0, "Channel count %s must be positive!", audioChannels);
+
+    return new DefaultOriginalAudioMetadata(codec, audioBitrate, audioSampleRate, audioChannels, samplingFormat);
   }
 
   /**
-   * Gets the bitrate of the audio stream.
+   * Returns the bitrate of the audio stream.
    *
    * @return the bitrate in bits per second, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getAudioBitrate();
 
   /**
-   * Gets the sample rate of the audio stream.
+   * Returns the sample rate of the audio stream.
    *
    * @return the sample rate in hertz
+   * @since 1.0.0
    */
   int getAudioSampleRate();
 
   /**
-   * Gets the number of channels of the audio stream.
+   * Returns the number of channels of the audio stream.
    *
    * @return the channel count
+   * @since 1.0.0
    */
   int getAudioChannels();
 
   /**
-   * Gets the name of the codec of the audio stream.
+   * Returns the name of the codec of the audio stream.
    *
    * @return the codec name
+   * @since 1.0.0
    */
   String getAudioCodec();
 
   /**
-   * Gets the FFmpeg sample format identifier of the audio stream.
+   * Returns the FFmpeg sample format identifier of the audio stream.
    *
    * @return the sample format, or {@link #UNKNOWN}
+   * @since 1.0.0
    */
   int getSamplingFormat();
 }

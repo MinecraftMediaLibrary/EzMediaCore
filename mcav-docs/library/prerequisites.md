@@ -24,11 +24,30 @@ dependencies {
 MCAV targets the following platforms. Everything MCAV downloads is stored in the cache folder of the current user;
 optional native features can also need system libraries, a display, or an audio device.
 
-| Operating System | Architectures             | Notes                                                              |
-|------------------|---------------------------|--------------------------------------------------------------------|
-| Windows          | x86-64                    | VLC and yt-dlp are downloaded automatically when missing.          |
-| macOS            | x86-64, ARM64 (Apple)     | VLC is downloaded and mounted without administrator rights.        |
-| Linux            | x86-64, ARM64             | VLC is used from the system, or downloaded as an AppImage on x86-64. |
+| Platform       | VLC                                                               | yt-dlp        | FFmpeg and OpenCV |
+|----------------|-------------------------------------------------------------------|---------------|-------------------|
+| Windows x86-64 | Downloaded from VideoLAN when missing                             | Downloaded    | Bundled           |
+| Windows ARM64  | Downloaded from VideoLAN when missing                             | Downloaded    | Not available     |
+| macOS x86-64   | Downloaded from VideoLAN and mounted without administrator rights | Downloaded    | Bundled           |
+| macOS ARM64    | Downloaded from VideoLAN and mounted without administrator rights | Downloaded    | Bundled           |
+| Linux x86-64   | Used from the system, or downloaded as an AppImage                | Downloaded    | Bundled           |
+| Linux ARM64    | Used from the system, or installed from Debian packages           | Downloaded    | Bundled           |
+| FreeBSD (any)  | Not available                                                     | Not available | Not available     |
+
+MCAV builds, tests and runs as an ordinary user on every platform in the table: it needs no administrator rights. It
+never runs `sudo`, `pkexec` or `doas`, a system package manager such as `apt` or `brew`, or an installer that asks for
+elevation, and it writes only to the cache folder of the current user, the JavaCPP cache and the temporary directory.
+Every tool it fetches is unpacked into the cache and loaded from there: the macOS disk image is attached with `hdiutil`,
+which needs no administrator rights, and copied into the cache, never into `/Applications`. The package manager
+commands below are an option you can run yourself, never a step MCAV takes.
+
+FFmpeg and OpenCV come from the JavaCPP builds MCAV depends on, which have none for Windows on ARM64 or for FreeBSD on
+any processor. MCAV needs them to install, so on those platforms `install()` fails with an `MCAVLoadingException` caused
+by a `NativeLoadingException` that names the platform, and MCAV cannot be used there; the VLC and yt-dlp columns only
+matter once JavaCPP publishes builds for them. When VLC is missing and the platform has no download, starting it fails
+with an `UnsupportedOperatingSystemException` that names the platform; yt-dlp is then marked unavailable with a warning
+that names the platform, and downloading it directly fails with an `InstallationException` that does. 32-bit x86 is not
+listed, because Java 25, which MCAV needs, has no port for it.
 
 On Windows and macOS the download is VLC 3.0.24 from VideoLAN, checked against the SHA-256 hash MCAV ships. VideoLAN
 publishes no Linux build, so on x86-64 Linux MCAV downloads an AppImage built from the VLC package of Arch Linux
@@ -38,11 +57,25 @@ project's weekly tag points to later; a newer VLC there needs a new pin in MCAV.
 third party installs VLC from its distribution (`apt install vlc`, `dnf install vlc`): MCAV then uses that VLC and
 downloads nothing.
 
-FFmpeg and OpenCV are bundled with the library for every platform above. The OpenCV build differs per platform: the
-Windows and macOS builds read video files themselves, the Linux build has no file backend and only captures from
-cameras. `VideoPlayer.opencv()` therefore reads files with the bundled FFmpeg where OpenCV cannot, so a file plays on
-every platform. OpenCV capture still depends on a working capture backend and device. VLC and yt-dlp are optional: when one of them cannot be installed, only the features that need it are
+No one publishes a portable VLC for ARM64 Linux, so there MCAV installs the Debian 12 (bookworm) packages of VLC 3.0.23:
+`libvlc5`, `libvlccore9` and `vlc-plugin-base` with every library they depend on, apart from the C and C++ runtimes of
+the system. Each package comes from `snapshot.debian.org` and is checked against the SHA-256 hash MCAV ships. MCAV
+unpacks the packages itself into the cache folder, without `dpkg`, a package manager or administrator rights, and loads
+their libraries in dependency order before VLC. The libraries need glibc 2.36 or newer; on an older system, install VLC
+from your distribution instead. How to regenerate the pinned packages is described in
+[compiling MCAV](compile.md).
+
+FFmpeg and OpenCV are bundled with the library for every platform marked so above. The OpenCV build differs per
+platform: the Windows and macOS builds read video files themselves, the Linux build has no file backend and only
+captures from cameras. `VideoPlayer.opencv()` therefore reads files with the bundled FFmpeg where OpenCV cannot, so a
+file plays on every platform where they are bundled. OpenCV capture still depends on a working capture backend and
+device. VLC and yt-dlp are optional: when one of them cannot be installed, only the features that need it are
 unavailable, which you can check with [capabilities](instance.md#capabilities).
+
+Face detection loads the object detection module of OpenCV, which links GTK 2 on Linux. When the system has no GTK 2,
+MCAV installs the Debian 12 packages of `libgtk2.0-0` and its dependencies on x86-64 and ARM64 Linux, the same way as
+VLC above: pinned, checked against their hashes, unpacked into the cache without administrator rights, and loaded before
+OpenCV. When that installation fails, only face detection is unavailable.
 
 QEMU is never installed by MCAV. To use the [virtual machine module](vm.md), install QEMU yourself and make sure it is
 on the `PATH`.

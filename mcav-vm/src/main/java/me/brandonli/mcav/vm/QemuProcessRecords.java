@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongFunction;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,7 +203,7 @@ final class QemuProcessRecords {
   }
 
   private static Optional<ProcessRecord> parse(final Path record) throws IOException {
-    final String name = IOUtils.getName(record);
+    final String name = IoUtils.getName(record);
     final List<String> lines = Files.readAllLines(record, StandardCharsets.US_ASCII);
     try {
       final long pid = Long.parseLong(name.substring(0, name.length() - SUFFIX.length()));

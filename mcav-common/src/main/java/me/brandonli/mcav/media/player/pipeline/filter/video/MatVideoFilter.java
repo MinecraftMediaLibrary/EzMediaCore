@@ -36,11 +36,17 @@ import org.bytedeco.opencv.opencv_core.Mat;
  *
  * <p>Image buffers that are not backed by OpenCV are copied into a temporary matrix through their raw BGR pixels,
  * filtered, and copied back the same way if the filter changed them, which costs two copies per frame.
+ *
+ * <p>The base class keeps no state; each subclass states its own thread safety.
+ *
+ * @since 1.0.0
  */
 public abstract class MatVideoFilter implements VideoFilter {
 
   /**
    * Constructs a new filter.
+   *
+   * @since 1.0.0
    */
   protected MatVideoFilter() {}
 
@@ -52,26 +58,24 @@ public abstract class MatVideoFilter implements VideoFilter {
    * @param samples  the frame to process
    * @param metadata the metadata of the original video, which OpenCV filters do not use
    * @return true if the filter changed the frame or may have changed it, false if it left the frame untouched
-   * @throws NullPointerException if the frame is null
+   * @throws NullPointerException  if the frame is null
    * @throws IllegalStateException if the image has been released
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     if (samples instanceof final MatImageBuffer matBuffer) {
       return this.modifyImage(matBuffer);
     }
+
     return this.applyToTemporaryMat(samples);
   }
 
-  /**
-   * Applies the filter to a frame that is not backed by OpenCV, through a temporary copy of the frame that is released
-   * afterward. Both copies go through the raw BGR pixels every image buffer stores, see {@link ImageBuffer#getData()},
-   * so neither needs a conversion or an intermediate array.
-   *
-   * @param samples the frame to process
-   * @return true if the filter changed the frame, false if it left the frame untouched
-   */
+  // Applies the filter to a frame that is not backed by OpenCV, through a temporary copy of the frame that is released
+  // afterward. Both copies go through the raw BGR pixels every image buffer stores, see ImageBuffer.getData(), so
+  // neither needs a conversion or an intermediate array.
   private boolean applyToTemporaryMat(final ImageBuffer samples) {
     final int width = samples.getWidth();
     final int height = samples.getHeight();
@@ -86,13 +90,11 @@ public abstract class MatVideoFilter implements VideoFilter {
       if (modified) {
         writeBack(temporaryMat, samples);
       }
+
       return modified;
     }
   }
 
-  /**
-   * Copies the raw BGR pixels of a filtered temporary image into the frame, which takes the size of the result.
-   */
   private static void writeBack(final MatImageBuffer result, final ImageBuffer samples) {
     final int width = result.getWidth();
     final int height = result.getHeight();
@@ -100,19 +102,15 @@ public abstract class MatVideoFilter implements VideoFilter {
     samples.updateData(data, width, height);
   }
 
-  /**
-   * Copies an image into a new 8-bit BGR matrix owned by the caller, for filters that keep an image, such as an
-   * overlay, beyond the lifetime of the buffer it came from. Images that are not backed by OpenCV are converted
-   * through a temporary buffer, which is released before this method returns.
-   *
-   * @param image the image to copy
-   * @return a new matrix with the pixels of the image, which the caller must release
-   */
+  // Copies an image into a new 8-bit BGR matrix owned by the caller, for filters that keep an image, such as an
+  // overlay, beyond the lifetime of the buffer it came from. Images that are not backed by OpenCV are converted through
+  // a temporary buffer, which is released before this method returns.
   static Mat copyToMat(final ImageBuffer image) {
     if (image instanceof final MatImageBuffer matBuffer) {
       final Mat mat = matBuffer.getMat();
       return mat.clone();
     }
+
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] pixels = image.getPixels();
@@ -129,6 +127,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    *
    * @param image the frame to modify
    * @return true if the frame was modified, false if it was left untouched
+   * @since 1.0.0
    */
   protected boolean modifyImage(final MatImageBuffer image) {
     final Mat mat = image.getMat();
@@ -136,6 +135,7 @@ public abstract class MatVideoFilter implements VideoFilter {
     if (modified) {
       image.invalidateCache();
     }
+
     return modified;
   }
 
@@ -145,6 +145,7 @@ public abstract class MatVideoFilter implements VideoFilter {
    *
    * @param mat the matrix of the frame
    * @return true if the matrix was modified, false if it was left untouched
+   * @since 1.0.0
    */
   protected abstract boolean modifyMat(final Mat mat);
 }

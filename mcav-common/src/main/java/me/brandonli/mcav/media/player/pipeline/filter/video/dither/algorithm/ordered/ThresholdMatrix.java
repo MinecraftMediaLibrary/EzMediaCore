@@ -26,6 +26,10 @@ import com.google.common.base.Preconditions;
  *
  * <p>A matrix copies the rows it is created from and hands out copies, so nobody can change a matrix once it exists,
  * including the shared matrices of {@link BayerDither}.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ThresholdMatrix {
 
@@ -42,12 +46,15 @@ public final class ThresholdMatrix {
    * @return the matrix
    * @throws NullPointerException     if the rows or one of them is null
    * @throws IllegalArgumentException if there are no rows, or the rows are empty or differ in length
+   * @since 1.0.0
    */
   public static ThresholdMatrix of(final int[]... rows) {
-    Preconditions.checkNotNull(rows, "Rows must not be null");
-    Preconditions.checkArgument(rows.length > 0, "A matrix needs at least one row");
+    Preconditions.checkNotNull(rows, "Rows must not be null!");
+    Preconditions.checkArgument(rows.length > 0, "A matrix needs at least one row!");
+
     final int[][] copy = copyRows(rows);
     checkRectangular(copy);
+
     return new ThresholdMatrix(copy);
   }
 
@@ -55,44 +62,49 @@ public final class ThresholdMatrix {
     final int[][] copy = new int[rows.length][];
     for (int index = 0; index < rows.length; index++) {
       final int[] row = rows[index];
-      Preconditions.checkNotNull(row, "Row %s must not be null", index);
+      Preconditions.checkNotNull(row, "Row %s must not be null!", index);
       copy[index] = row.clone();
     }
+
     return copy;
   }
 
   private static void checkRectangular(final int[][] rows) {
     final int columns = rows[0].length;
-    Preconditions.checkArgument(columns > 0, "The rows of a matrix must not be empty");
+    Preconditions.checkArgument(columns > 0, "The rows of a matrix must not be empty!");
+
     for (final int[] row : rows) {
-      Preconditions.checkArgument(row.length == columns, "Every row of a matrix must have %s entries", columns);
+      Preconditions.checkArgument(row.length == columns, "Every row of a matrix must have %s entries!", columns);
     }
   }
 
   /**
-   * Gets the number of rows, which is the height of the pattern.
+   * Returns a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
+   *
+   * @return a new array with the entries
+   * @since 1.0.0
+   */
+  public int[][] toArray() {
+    return copyRows(this.rows);
+  }
+
+  /**
+   * Returns the number of rows, which is the height of the pattern.
    *
    * @return the number of rows
+   * @since 1.0.0
    */
   public int getRowCount() {
     return this.rows.length;
   }
 
   /**
-   * Gets the number of entries of every row, which is the width of the pattern.
+   * Returns the number of entries of every row, which is the width of the pattern.
    *
    * @return the number of columns
+   * @since 1.0.0
    */
   public int getColumnCount() {
     return this.rows[0].length;
-  }
-
-  /**
-   * Gets a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
-   *
-   * @return a new array with the entries
-   */
-  public int[][] toArray() {
-    return copyRows(this.rows);
   }
 }

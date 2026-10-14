@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.bukkit.testing.LogCapture;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,11 +134,11 @@ final class MCPackHostingTest {
   private static String sha1(final byte[] bytes) throws NoSuchAlgorithmException {
     final MessageDigest digest = MessageDigest.getInstance("SHA-1");
     final byte[] hash = digest.digest(bytes);
-    return IOUtils.bytesToHex(hash);
+    return IoUtils.bytesToHex(hash);
   }
 
   private static Path getCacheFile() {
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     return cache.resolve("mc-packs-cache.json");
   }
 

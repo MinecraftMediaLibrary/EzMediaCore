@@ -37,8 +37,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.ColorMapFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.CropFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.DilationFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.ErosionFilter;
-import me.brandonli.mcav.media.player.pipeline.filter.video.FPSFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.FlipFilter;
+import me.brandonli.mcav.media.player.pipeline.filter.video.FramesPerSecondFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.GrayscaleFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.InvertFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.LuminanceFilter;
@@ -254,7 +254,7 @@ public final class FilterChain {
     if (!isVideo) {
       throw new IllegalArgumentException("fps counts the frames of a video, and an image has one");
     }
-    return noArguments("fps", args, FPSFilter::new);
+    return noArguments("fps", args, FramesPerSecondFilter::new);
   }
 
   private static Supplier<VideoFilter> blur(final List<String> args) {

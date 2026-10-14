@@ -24,23 +24,23 @@ import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes the key names players type into the chat of a browser or virtual machine screen: whatever the text, the
- * replacement ends, never makes the text longer, since a key name and an escaped brace both become one character, and
- * leaves a text without braces as it is. The seeds are the texts of the tests of {@link KeyUtils}.
- */
+// Fuzzes the key names players type into the chat of a browser or virtual machine screen: whatever the text, the
+// replacement ends, never makes the text longer, since a key name and an escaped brace both become one character, and
+// leaves a text without braces as it is. The seeds are the texts of the tests of KeyUtils.
 @Tag("fuzz")
 final class KeyUtilsFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void replacesKeyNamesWithoutGrowingTheText(final byte[] input) {
+  void shouldReplaceKeyNamesWithoutGrowingTheText(final byte[] input) {
     final String typed = new String(input, StandardCharsets.UTF_8);
 
     final String replaced = KeyUtils.replaceKeysWithKeyCodes(typed);
 
     final int typedLength = typed.length();
     final int replacedLength = replaced.length();
-    assertTrue(replacedLength <= typedLength, () -> "'" + typed + "' grew to '" + replaced + "'");
+    final boolean notLonger = replacedLength <= typedLength;
+    assertTrue(notLonger, () -> "'" + typed + "' grew to '" + replaced + "'");
+
     final boolean braces = typed.indexOf('{') >= 0;
     if (!braces) {
       assertEquals(typed, replaced, "a text without braces stays as it is");

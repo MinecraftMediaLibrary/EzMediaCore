@@ -29,6 +29,10 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * <p>OpenCV cannot filter bilaterally in place, so the result is written into the spare matrix of the frame, see
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}, which reuses the frame-sized output storage once dimensions have settled. The
  * filter keeps no state of its own, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class BilateralFilter extends MatVideoFilter {
 
@@ -43,11 +47,13 @@ public class BilateralFilter extends MatVideoFilter {
    * @param sigmaColor how far apart colors may be to still be mixed; larger values blur more
    * @param sigmaSpace how far apart pixels may be to still influence each other; larger values blur more
    * @throws IllegalArgumentException if the diameter is nonpositive, or a sigma is nonpositive or NaN
+   * @since 1.0.0
    */
   public BilateralFilter(final int diameter, final double sigmaColor, final double sigmaSpace) {
-    Preconditions.checkArgument(diameter > 0, "Diameter must be positive");
-    Preconditions.checkArgument(sigmaColor > 0, "Sigma color must be positive");
-    Preconditions.checkArgument(sigmaSpace > 0, "Sigma space must be positive");
+    Preconditions.checkArgument(diameter > 0, "Diameter must be positive!");
+    Preconditions.checkArgument(sigmaColor > 0, "Sigma color must be positive!");
+    Preconditions.checkArgument(sigmaSpace > 0, "Sigma space must be positive!");
+
     this.diameter = diameter;
     this.sigmaColor = sigmaColor;
     this.sigmaSpace = sigmaSpace;
@@ -58,10 +64,12 @@ public class BilateralFilter extends MatVideoFilter {
    *
    * @param image the frame to smooth
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
     image.transformMat(this::smooth);
+
     return true;
   }
 
@@ -71,6 +79,7 @@ public class BilateralFilter extends MatVideoFilter {
    *
    * @param mat the 8-bit BGR matrix of the frame
    * @return true, because the frame may have changed
+   * @since 1.0.0
    */
   @Override
   protected boolean modifyMat(final Mat mat) {
@@ -78,6 +87,7 @@ public class BilateralFilter extends MatVideoFilter {
       this.smooth(mat, filtered);
       filtered.copyTo(mat);
     }
+
     return true;
   }
 

@@ -35,11 +35,10 @@ import javax.swing.WindowConstants;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.utils.ThrowableUtils;
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
 
-/**
- * A window that shows frames, shared by the examples. The {@link #asFilter()} method turns it into a video filter
- * that can be attached at the end of a pipeline.
- */
+// A window that shows frames, shared by the examples. The asFilter() method turns it into a video filter that can be
+// attached at the end of a pipeline.
 public final class SwingVideoWindow implements AutoCloseable {
 
   private static final Equivalence<Object> IDENTITY = Equivalence.identity();
@@ -48,10 +47,8 @@ public final class SwingVideoWindow implements AutoCloseable {
   private final JFrame frame;
   private final CountDownLatch closed = new CountDownLatch(1);
 
-  /**
-   * Creates an exit-on-close window. Call this constructor on the Swing event dispatch thread; the examples use
-   * {@link #open(String, int, int)} to create a disposable window safely from their main thread.
-   */
+  // Creates an exit-on-close window. Call this constructor on the Swing event dispatch thread; the examples use
+  // open(String, int, int) to create a disposable window safely from their main thread.
   public SwingVideoWindow(final String title, final int width, final int height) {
     this(title, width, height, WindowConstants.EXIT_ON_CLOSE);
   }
@@ -71,61 +68,71 @@ public final class SwingVideoWindow implements AutoCloseable {
       final BorderLayout layout = new BorderLayout();
       this.frame.setLayout(layout);
       this.frame.add(this.label, BorderLayout.CENTER);
-      final WindowAdapter listener = new WindowAdapter() {
-        @Override
-        public void windowClosed(final WindowEvent event) {
-          closed.countDown();
-        }
-      };
+      final WindowAdapter listener = new ClosingListener(this.closed);
       this.frame.addWindowListener(listener);
       this.frame.setVisible(true);
-    } catch (final RuntimeException | Error failure) {
-      ThrowableUtils.throwIfFatal(failure);
+    } catch (final RuntimeException | Error exception) {
+      ThrowableUtils.throwIfFatal(exception);
       try {
         this.frame.dispose();
-      } catch (final RuntimeException | Error cleanupFailure) {
-        ThrowableUtils.throwIfFatal(cleanupFailure);
-        if (!IDENTITY.equivalent(failure, cleanupFailure)) {
-          failure.addSuppressed(cleanupFailure);
-        }
+      } catch (final RuntimeException | Error cleanupException) {
+        ThrowableUtils.throwIfFatal(cleanupException);
+
+        this.suppressCleanupFailure(exception, cleanupException);
       }
-      throw failure;
+
+      throw exception;
     }
   }
 
-  /** Creates a window on the Swing event dispatch thread, preserving interruption until the caller owns it. */
   public static SwingVideoWindow open(final String title, final int width, final int height) {
     final CompletableFuture<SwingVideoWindow> result = new CompletableFuture<>();
-    final Runnable create = () -> {
-      try {
-        final SwingVideoWindow window = new SwingVideoWindow(title, width, height, WindowConstants.DISPOSE_ON_CLOSE);
-        result.complete(window);
-      } catch (final RuntimeException | Error failure) {
-        // Publish the failure before propagating it on Swing's thread, so the caller cannot be stranded.
-        result.completeExceptionally(failure);
-        ThrowableUtils.throwIfFatal(failure);
-      }
-    };
+    final Runnable create = () -> createAndPublish(title, width, height, result);
     if (SwingUtilities.isEventDispatchThread()) {
       create.run();
     } else {
       SwingUtilities.invokeLater(create);
     }
+
     try {
       return result.join();
-    } catch (final CompletionException failure) {
+    } catch (final CompletionException exception) {
       final Throwable cause = result.exceptionNow();
       ThrowableUtils.throwIfFatal(cause);
-      throw failure;
+      throw exception;
     }
   }
 
-  /** Waits until the window is disposed; call this from the example's main thread, not from Swing callbacks. */
+  private static void createAndPublish(
+    final String title,
+    final int width,
+    final int height,
+    final CompletableFuture<SwingVideoWindow> result
+  ) {
+    try {
+      final SwingVideoWindow window = new SwingVideoWindow(title, width, height, WindowConstants.DISPOSE_ON_CLOSE);
+      result.complete(window);
+    } catch (final RuntimeException | Error exception) {
+      // Publish the failure before propagating it on Swing's thread, so the caller cannot be stranded.
+      result.completeExceptionally(exception);
+      ThrowableUtils.throwIfFatal(exception);
+    }
+  }
+
+  private void suppressCleanupFailure(
+    @UnderInitialization SwingVideoWindow this,
+    final Throwable exception,
+    final Throwable cleanupException
+  ) {
+    if (!IDENTITY.equivalent(exception, cleanupException)) {
+      exception.addSuppressed(cleanupException);
+    }
+  }
+
   public void awaitClosed() throws InterruptedException {
     this.closed.await();
   }
 
-  /** Disposes the window on Swing's thread without joining that thread from a JVM shutdown hook. */
   @Override
   public void close() {
     if (SwingUtilities.isEventDispatchThread()) {
@@ -136,15 +143,32 @@ public final class SwingVideoWindow implements AutoCloseable {
   }
 
   public VideoFilter asFilter() {
-    return (samples, _) -> {
-      this.show(samples);
-      return false;
-    };
+    return (samples, _) -> this.showWithoutChanging(samples);
+  }
+
+  private boolean showWithoutChanging(final ImageBuffer samples) {
+    this.show(samples);
+
+    return false;
   }
 
   private void show(final ImageBuffer samples) {
     final BufferedImage image = samples.toBufferedImage();
     final ImageIcon icon = new ImageIcon(image);
     SwingUtilities.invokeLater(() -> this.label.setIcon(icon));
+  }
+
+  private static final class ClosingListener extends WindowAdapter {
+
+    private final CountDownLatch closed;
+
+    ClosingListener(final CountDownLatch closed) {
+      this.closed = closed;
+    }
+
+    @Override
+    public void windowClosed(final WindowEvent event) {
+      this.closed.countDown();
+    }
   }
 }

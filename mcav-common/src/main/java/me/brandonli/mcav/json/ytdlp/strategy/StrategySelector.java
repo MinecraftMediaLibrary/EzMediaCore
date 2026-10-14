@@ -19,29 +19,35 @@ package me.brandonli.mcav.json.ytdlp.strategy;
 
 import com.google.common.base.Preconditions;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 
 /**
  * Pairs an audio strategy with a video strategy, so both streams of a video can be selected together.
  *
- * <pre><code>
- *   final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
- *   final Format audio = selector.getAudioSource(dump);
- *   final Format video = selector.getVideoSource(dump);
- * </code></pre>
+ * {@snippet :
+ * final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
+ * final Format audio = selector.getAudioSource(dump);
+ * final Format video = selector.getVideoSource(dump);
+ * }
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface StrategySelector {
   /**
-   * Gets the strategy used for audio.
+   * Returns the strategy used for audio.
    *
    * @return the audio strategy
+   * @since 1.0.0
    */
   FormatStrategy getAudioStrategy();
 
   /**
-   * Gets the strategy used for video.
+   * Returns the strategy used for video.
    *
    * @return the video strategy
+   * @since 1.0.0
    */
   FormatStrategy getVideoStrategy();
 
@@ -51,9 +57,10 @@ public interface StrategySelector {
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the audio strategy
-   * @throws NullPointerException if {@code dump} is null
+   * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
-  Format getAudioSource(final URLParseDump dump);
+  Format getAudioSource(final UrlParseDump dump);
 
   /**
    * Selects the video stream.
@@ -61,9 +68,10 @@ public interface StrategySelector {
    * @param dump the metadata yt-dlp produced
    * @return the selected format object from the dump, borrowed rather than copied
    * @throws NoMatchingFormatException if no stream matches the video strategy
-   * @throws NullPointerException if {@code dump} is null
+   * @throws NullPointerException      if {@code dump} is null
+   * @since 1.0.0
    */
-  Format getVideoSource(final URLParseDump dump);
+  Format getVideoSource(final UrlParseDump dump);
 
   /**
    * Creates a selector.
@@ -72,10 +80,12 @@ public interface StrategySelector {
    * @param video the strategy for video
    * @return the selector
    * @throws NullPointerException if {@code audio} or {@code video} is null
+   * @since 1.0.0
    */
   static StrategySelector of(final FormatStrategy audio, final FormatStrategy video) {
-    Preconditions.checkNotNull(audio, "Audio strategy must not be null");
-    Preconditions.checkNotNull(video, "Video strategy must not be null");
-    return new StrategySelectorImpl(audio, video);
+    Preconditions.checkNotNull(audio, "Audio strategy must not be null!");
+    Preconditions.checkNotNull(video, "Video strategy must not be null!");
+
+    return new DefaultStrategySelector(audio, video);
   }
 }

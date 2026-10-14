@@ -27,13 +27,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link FrameSource}, {@link FrameSourceImpl}, {@link ImageSupplier} and {@link SampleSupplier}.
- */
 final class FrameSourceTest {
 
   @Test
-  void describesTheFrames() {
+  void shouldDescribeTheFrames() {
     final SampleSupplier supplier = () -> new int[16 * 8];
     final FrameSource source = FrameSource.supplier(supplier, 16, 8, 50.0f);
     final SampleSupplier storedSupplier = source.supplyFrameSamples();
@@ -53,7 +50,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void usesTheDefaultFrameRateWhenNoneIsGiven() {
+  void shouldUseTheDefaultFrameRateWhenNoneIsGiven() {
     final SampleSupplier supplier = () -> new int[4];
     final FrameSource source = FrameSource.supplier(supplier, 2, 2);
     final float frameRate = source.getFrameRate();
@@ -61,7 +58,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void interfaceDefaultsToTheDefaultFrameRate() {
+  void shouldDefaultTheInterfaceToTheDefaultFrameRate() {
     final FrameSource minimal = new MinimalFrameSource();
     final float frameRate = minimal.getFrameRate();
     final String resource = minimal.getResource();
@@ -70,7 +67,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void readsThePixelsOfSuppliedImages() {
+  void shouldReadThePixelsOfSuppliedImages() {
     final BufferedImage image = new BufferedImage(4, 2, BufferedImage.TYPE_INT_ARGB);
     image.setRGB(3, 1, 0xFF123456);
     final FrameSource source = FrameSource.image(() -> image, 4, 2);
@@ -98,7 +95,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void readsEveryImageTypeExactlyLikeGetRgb() {
+  void shouldReadEveryImageTypeExactlyLikeGetRgb() {
     final int[] types = { BufferedImage.TYPE_INT_ARGB, BufferedImage.TYPE_INT_RGB, BufferedImage.TYPE_3BYTE_BGR };
     for (final int type : types) {
       final BufferedImage image = new BufferedImage(3, 2, type);
@@ -111,7 +108,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void makesIntegerRgbPixelsOpaqueWhateverTheirUnusedByteHolds() {
+  void shouldMakeIntegerRgbPixelsOpaqueWhateverTheirUnusedByteHolds() {
     final BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
     final WritableRaster raster = image.getRaster();
     raster.setDataElements(0, 0, new int[] { 0x12345678 });
@@ -122,7 +119,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void readsOnlyThePixelsOfSubImages() {
+  void shouldReadOnlyThePixelsOfSubImages() {
     final int[] types = { BufferedImage.TYPE_INT_ARGB, BufferedImage.TYPE_INT_RGB };
     for (final int type : types) {
       final BufferedImage parent = new BufferedImage(4, 4, type);
@@ -137,7 +134,7 @@ final class FrameSourceTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final SampleSupplier supplier = () -> new int[1];
     assertThrows(IllegalArgumentException.class, () -> FrameSource.supplier(supplier, 0, 1));
     assertThrows(IllegalArgumentException.class, () -> FrameSource.supplier(supplier, 1, 0));
@@ -148,9 +145,6 @@ final class FrameSourceTest {
     assertThrows(NullPointerException.class, () -> FrameSource.image(null, 1, 1));
   }
 
-  /**
-   * A frame source that relies on every default method of the interface.
-   */
   private static final class MinimalFrameSource implements FrameSource {
 
     @Override

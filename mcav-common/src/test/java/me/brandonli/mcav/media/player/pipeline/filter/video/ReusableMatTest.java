@@ -33,27 +33,25 @@ import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link ReusableMat}.
- */
 final class ReusableMatTest {
 
   private static final int THREADS = 4;
   private static final int ROUNDS = 2_000;
 
   @Test
-  void lendsTheSameMatrixFrameAfterFrame() {
+  void shouldLendTheSameMatrixFrameAfterFrame() {
     final ReusableMat reusable = new ReusableMat();
     final Mat first = reusable.borrow();
     final boolean kept = reusable.giveBack(first);
     final Mat second = reusable.borrow();
     assertTrue(kept);
     assertSame(first, second, "a matrix handed back is lent again instead of allocating a new one");
+
     reusable.giveBack(second);
   }
 
   @Test
-  void lendsAnotherMatrixWhileTheFirstIsInUseAndFreesTheSurplus() {
+  void shouldLendAnotherMatrixWhileTheFirstIsInUseAndFreeTheSurplus() {
     final ReusableMat reusable = new ReusableMat();
     final Mat first = reusable.borrow();
     final Mat second = reusable.borrow();
@@ -66,11 +64,12 @@ final class ReusableMatTest {
     assertFalse(secondKept);
     assertTrue(secondFreed, "a matrix that is not kept is freed right away");
     assertSame(first, next);
+
     reusable.giveBack(next);
   }
 
   @Test
-  void neverLendsOneMatrixToTwoThreadsAtOnce() throws Exception {
+  void shouldNeverLendOneMatrixToTwoThreadsAtOnce() throws Exception {
     final ReusableMat reusable = new ReusableMat();
     final List<Future<Integer>> results = new ArrayList<>();
     try (final ExecutorService executor = Executors.newFixedThreadPool(THREADS)) {
@@ -79,6 +78,7 @@ final class ReusableMatTest {
         final Future<Integer> result = executor.submit(() -> countForeignWrites(reusable, marker));
         results.add(result);
       }
+
       for (final Future<Integer> result : results) {
         final int foreignWrites = result.get();
         assertEquals(0, foreignWrites, "every borrower sees only its own writes");
@@ -86,10 +86,6 @@ final class ReusableMatTest {
     }
   }
 
-  /**
-   * Borrows the matrix many times, writes a marker into it, pauses briefly while the other threads run, and counts how often the
-   * marker was overwritten before the matrix was handed back, which would mean two threads used it at once.
-   */
   private static int countForeignWrites(final ReusableMat reusable, final byte marker) {
     int foreignWrites = 0;
     for (int round = 0; round < ROUNDS; round++) {
@@ -104,6 +100,7 @@ final class ReusableMatTest {
       }
       reusable.giveBack(matrix);
     }
+
     return foreignWrites;
   }
 }

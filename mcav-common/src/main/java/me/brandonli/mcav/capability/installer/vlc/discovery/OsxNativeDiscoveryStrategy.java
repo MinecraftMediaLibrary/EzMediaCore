@@ -38,8 +38,11 @@ package me.brandonli.mcav.capability.installer.vlc.discovery;
 
 import com.google.common.base.Preconditions;
 import com.sun.jna.NativeLibrary;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.OsUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
@@ -50,53 +53,56 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
  *
  * <p>On recent macOS versions {@code libvlc} fails to load unless {@code libvlccore} was loaded first, so the core
  * library is loaded from the found directory before vlcj loads {@code libvlc}.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
+ *
+ * @since 1.0.0
  */
 public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OsxNativeDiscoveryStrategy.class);
-  private static final String CORE_LIBRARY_NOT_LOADED =
-    "The VLC core library in {} cannot be loaded, for example because it was built for another processor: {}";
   private static final String[] FILENAME_PATTERNS = new String[] { "libvlc\\.dylib", "libvlccore\\.dylib" };
-  private static final String[] PLUGIN_PATH_FORMATS = new String[] { "%s/../plugins" };
+  private static final List<Path> PLUGIN_DIRECTORIES = List.of(Path.of("..", "plugins"));
 
   private final Consumer<String> corePreloader;
+  private final Os operatingSystem;
 
   /**
    * Constructs a strategy that searches vlcj's directories, publishes the plugin path with {@code setenv}, and
    * preloads the core library through JNA.
+   *
+   * @since 1.0.0
    */
   public OsxNativeDiscoveryStrategy() {
     final EnvironmentSetter posixSetter = LinuxNativeDiscoveryStrategy.nativeSetter();
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, posixSetter);
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, posixSetter);
     this.corePreloader = OsxNativeDiscoveryStrategy::preloadCoreLibrary;
+    this.operatingSystem = OsUtils.getOs();
   }
 
-  /**
-   * Constructs a strategy with custom directories, a custom way of publishing the plugin path, and a custom way of
-   * preloading the core library.
-   *
-   * @param searchProviders   the providers of the directories to search
-   * @param environmentSetter sets the plugin path variable
-   * @param corePreloader     loads the core library from the found directory
-   */
   OsxNativeDiscoveryStrategy(
     final List<SearchProvider> searchProviders,
     final EnvironmentSetter environmentSetter,
-    final Consumer<String> corePreloader
+    final Consumer<String> corePreloader,
+    final Os operatingSystem
   ) {
-    super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
-    Preconditions.checkNotNull(corePreloader, "Core preloader must not be null");
+    super(FILENAME_PATTERNS, PLUGIN_DIRECTORIES, searchProviders, environmentSetter);
+    Preconditions.checkNotNull(corePreloader, "Core preloader must not be null!");
+
     this.corePreloader = corePreloader;
+    this.operatingSystem = operatingSystem;
   }
 
   /**
-   * Checks whether the system is macOS.
+   * Returns whether the running operating system is macOS.
    *
    * @return true on macOS
+   * @since 1.0.0
    */
   @Override
   public boolean supported() {
-    return RuntimeUtil.isMac();
+    return this.operatingSystem == Os.MAC;
   }
 
   /**
@@ -108,25 +114,28 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
    * @return {@code true} to let vlcj add the directory to the JNA search path, {@code false} if the core library
    * cannot be loaded from it
    * @throws NullPointerException if {@code path} is null
+   * @since 1.0.0
    */
   @Override
   public boolean onFound(final String path) {
-    Preconditions.checkNotNull(path, "Path must not be null");
+    Preconditions.checkNotNull(path, "Path must not be null!");
+
     try {
       this.corePreloader.accept(path);
+
       return true;
-    } catch (final UnsatisfiedLinkError error) {
-      final String reason = error.getMessage();
-      LOGGER.warn(CORE_LIBRARY_NOT_LOADED, path, reason);
+    } catch (final UnsatisfiedLinkError exception) {
+      final String reason = exception.getMessage();
+      LOGGER.warn(
+        "The VLC core library in {} failed with \"{}\" while loading, for example because it was built for another processor.",
+        path,
+        reason
+      );
+
       return false;
     }
   }
 
-  /**
-   * Adds a directory to the JNA search path of the core library and loads the library from it.
-   *
-   * @param path the directory that contains the core library
-   */
   static void preloadCoreLibrary(final String path) {
     final String coreLibraryName = RuntimeUtil.getLibVlcCoreLibraryName();
     NativeLibrary.addSearchPath(coreLibraryName, path);

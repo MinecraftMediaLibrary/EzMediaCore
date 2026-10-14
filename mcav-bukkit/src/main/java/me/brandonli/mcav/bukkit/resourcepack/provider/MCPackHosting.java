@@ -44,7 +44,7 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import me.brandonli.mcav.json.GsonProvider;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.http.NetworkUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
@@ -167,7 +167,7 @@ public class MCPackHosting implements WebsiteHosting {
     try {
       final MessageDigest digest = MessageDigest.getInstance(algorithm);
       final byte[] hash = digest.digest(bytes);
-      return IOUtils.bytesToHex(hash);
+      return IoUtils.bytesToHex(hash);
     } catch (final NoSuchAlgorithmException exception) {
       final String message = "Hash algorithm %s is not available".formatted(algorithm);
       throw new IllegalStateException(message, exception);
@@ -323,7 +323,7 @@ public class MCPackHosting implements WebsiteHosting {
   }
 
   private static Path getCacheFile() {
-    final Path cacheFolder = IOUtils.getCachedFolder();
+    final Path cacheFolder = IoUtils.getCachedFolder();
     return cacheFolder.resolve(CACHE_FILE);
   }
 

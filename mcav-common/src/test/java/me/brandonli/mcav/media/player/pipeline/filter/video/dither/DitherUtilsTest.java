@@ -26,18 +26,21 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DitherUtils}.
- */
 final class DitherUtilsTest {
 
   private static final DitherPalette BLACK_WHITE = DitherPalette.colors(0x000000, 0xFFFFFF);
   private static final DitherPalette BLACK_RED_GREEN = DitherPalette.colors(0x000000, 0xFF0000, 0x00FF00);
 
+  private static final int OPAQUE_BLACK = 0xFF000000;
+  private static final int OPAQUE_WHITE = 0xFFFFFFFF;
+  private static final int TRANSPARENT_WHITE = 0x00FFFFFF;
+
+  private static final int CHANNEL_MAXIMUM = 255;
+
   @Test
-  void dropsTheLowestBitOfEveryChannelForTheLookup() {
+  void shouldDropTheLowestBitOfEveryChannelForTheLookup() {
     final int black = DitherUtils.getLookupIndex(0, 0, 0);
-    final int white = DitherUtils.getLookupIndex(255, 255, 255);
+    final int white = DitherUtils.getLookupIndex(CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM);
     final int mixed = DitherUtils.getLookupIndex(2, 4, 6);
     final int roundedDown = DitherUtils.getLookupIndex(3, 5, 7);
     assertEquals(0, black);
@@ -47,7 +50,7 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void findsTheClosestPaletteEntry() {
+  void shouldFindTheClosestPaletteEntry() {
     final byte dark = DitherUtils.getBestColor(BLACK_WHITE, 10, 10, 10);
     final byte bright = DitherUtils.getBestColor(BLACK_WHITE, 250, 250, 250);
     final int darkColor = DitherUtils.getBestFullColor(BLACK_WHITE, 10, 10, 10);
@@ -55,13 +58,13 @@ final class DitherUtilsTest {
     final int indexedColor = DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) 1);
     assertEquals(0, dark);
     assertEquals(1, bright);
-    assertEquals(0xFF000000, darkColor);
-    assertEquals(0xFFFFFFFF, brightColor);
-    assertEquals(0xFFFFFFFF, indexedColor);
+    assertEquals(OPAQUE_BLACK, darkColor);
+    assertEquals(OPAQUE_WHITE, brightColor);
+    assertEquals(OPAQUE_WHITE, indexedColor);
   }
 
   @Test
-  void rejectsColorComponentsOutsideTheChannelRange() {
+  void shouldRejectColorComponentsOutsideTheChannelRange() {
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestColor(BLACK_WHITE, -1, 0, 0));
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestColor(BLACK_WHITE, 0, 256, 0));
     assertThrows(IllegalArgumentException.class, () -> DitherUtils.getBestFullColor(BLACK_WHITE, 0, 0, 256));
@@ -69,25 +72,25 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void rejectsMissingPalettes() {
+  void shouldRejectMissingPalettes() {
     assertThrows(NullPointerException.class, () -> DitherUtils.getBestColor(null, 0, 0, 0));
     assertThrows(NullPointerException.class, () -> DitherUtils.getBestFullColor(null, 0, 0, 0));
     assertThrows(NullPointerException.class, () -> DitherUtils.getColorFromMinecraftPalette(null, (byte) 0));
-    assertThrows(NullPointerException.class, () -> DitherUtils.getBestColorIncludingTransparent(null, 0xFFFFFFFF));
+    assertThrows(NullPointerException.class, () -> DitherUtils.getBestColorIncludingTransparent(null, OPAQUE_WHITE));
   }
 
   @Test
-  void rejectsPaletteIndicesThePaletteDoesNotHave() {
+  void shouldRejectPaletteIndicesThePaletteDoesNotHave() {
     final int lastColor = DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) 1);
-    assertEquals(0xFFFFFFFF, lastColor);
+    assertEquals(OPAQUE_WHITE, lastColor);
     assertThrows(IndexOutOfBoundsException.class, () -> DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) 2));
     assertThrows(IndexOutOfBoundsException.class, () -> DitherUtils.getColorFromMinecraftPalette(BLACK_WHITE, (byte) -1));
   }
 
   @Test
-  void mapsFullyTransparentPixelsToIndexZero() {
-    final byte transparent = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0x00FFFFFF);
-    final byte opaque = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0xFFFFFFFF);
+  void shouldMapFullyTransparentPixelsToIndexZero() {
+    final byte transparent = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, TRANSPARENT_WHITE);
+    final byte opaque = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, OPAQUE_WHITE);
     final byte translucent = DitherUtils.getBestColorIncludingTransparent(BLACK_WHITE, 0x01FFFFFF);
     assertEquals(0, transparent);
     assertEquals(1, opaque);
@@ -95,18 +98,20 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void keepsTheTransparentIndexOfTheMapPaletteForTransparentPixelsOnly() {
+  void shouldKeepTheTransparentIndexOfTheMapPaletteForTransparentPixelsOnly() {
     final DitherPalette mapPalette = DitherPalette.DEFAULT_MAP_PALETTE;
-    final byte transparent = DitherUtils.getBestColorIncludingTransparent(mapPalette, 0x00FFFFFF);
-    final byte opaque = DitherUtils.getBestColorIncludingTransparent(mapPalette, 0xFFFFFFFF);
+    final byte transparent = DitherUtils.getBestColorIncludingTransparent(mapPalette, TRANSPARENT_WHITE);
+    final byte opaque = DitherUtils.getBestColorIncludingTransparent(mapPalette, OPAQUE_WHITE);
     final int opaqueIndex = opaque & 0xFF;
     final int reserved = mapPalette.getReservedIndices();
     assertEquals(0, transparent, "index 0 of the map palette is transparent");
-    assertTrue(opaqueIndex >= reserved, "opaque pixels never get a transparent index, got " + opaqueIndex);
+
+    final boolean opaqueIndexReserved = opaqueIndex >= reserved;
+    assertTrue(opaqueIndexReserved, "opaque pixels never get a transparent index, got " + opaqueIndex);
   }
 
   @Test
-  void readsEveryChannelFromItsOwnPlaceInThePackedColor() {
+  void shouldReadEveryChannelFromItsOwnPlaceInThePackedColor() {
     final byte red = DitherUtils.getBestColorIncludingTransparent(BLACK_RED_GREEN, 0xFFFF0000);
     final byte green = DitherUtils.getBestColorIncludingTransparent(BLACK_RED_GREEN, 0xFF00FF00);
     final int[] pixels = { 0xFFFF0000, 0xFF00FF00 };
@@ -117,29 +122,29 @@ final class DitherUtilsTest {
   }
 
   @Test
-  void simplifiesWholeImages() {
-    final byte[] indices = DitherUtils.simplify(BLACK_WHITE, new int[] { 0xFF000000, 0xFFFFFFFF, 0xFF101010 });
+  void shouldSimplifyWholeImages() {
+    final byte[] indices = DitherUtils.simplify(BLACK_WHITE, new int[] { OPAQUE_BLACK, OPAQUE_WHITE, 0xFF101010 });
     assertArrayEquals(new byte[] { 0, 1, 0 }, indices);
     assertThrows(NullPointerException.class, () -> DitherUtils.simplify(null, new int[0]));
     assertThrows(NullPointerException.class, () -> DitherUtils.simplify(BLACK_WHITE, null));
   }
 
   @Test
-  void clampsToTheChannelRange() {
+  void shouldClampToTheChannelRange() {
     final int below = DitherUtils.clamp(-5);
     final int inside = DitherUtils.clamp(128);
     final int above = DitherUtils.clamp(300);
     final int lowest = DitherUtils.clamp(0);
-    final int highest = DitherUtils.clamp(255);
+    final int highest = DitherUtils.clamp(CHANNEL_MAXIMUM);
     assertEquals(0, below);
     assertEquals(128, inside);
-    assertEquals(255, above);
+    assertEquals(CHANNEL_MAXIMUM, above);
     assertEquals(0, lowest);
-    assertEquals(255, highest);
+    assertEquals(CHANNEL_MAXIMUM, highest);
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(DitherUtils.class);
   }
 }

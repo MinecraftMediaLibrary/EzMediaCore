@@ -27,11 +27,17 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * webcam. Devices are opened through OpenCV, which uses the native capture API of every operating system. Create
  * instances with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()} and start them with a
  * {@link me.brandonli.mcav.media.source.device.DeviceSource}.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
-public class VideoInputPlayer extends AbstractVideoPlayerCV {
+public class VideoInputPlayer extends AbstractVideoPlayerCv {
 
   /**
    * Constructs a new capture device player.
+   *
+   * @since 1.0.0
    */
   public VideoInputPlayer() {}
 
@@ -42,13 +48,16 @@ public class VideoInputPlayer extends AbstractVideoPlayerCV {
    * @return a new, unstarted OpenCV grabber of the device
    * @throws NullPointerException     if the resource is null
    * @throws IllegalArgumentException if the resource is not a non-negative number
+   * @since 1.0.0
    */
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {
-    Preconditions.checkNotNull(resource, "Resource must not be null");
+    Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     final Integer parsedIndex = Ints.tryParse(resource);
     if (parsedIndex == null || parsedIndex < 0) {
-      throw new IllegalArgumentException("Device index must be a non-negative number but was " + resource);
+      final String message = "Device index %s must be a non-negative number!".formatted(resource);
+      throw new IllegalArgumentException(message);
     }
 
     final int deviceIndex = parsedIndex;

@@ -51,7 +51,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
@@ -232,7 +234,7 @@ final class LinuxLibraries {
   }
 
   private static Path defaultFolder() {
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     return cache.resolve("jcef-libraries");
   }
 
@@ -354,24 +356,24 @@ final class LinuxLibraries {
         Files.delete(download);
       }
       Files.createFile(staging.resolve(INSTALL_MARKER));
-      IOUtils.deleteRecursively(installation);
+      IoUtils.deleteRecursively(installation);
       Files.move(staging, installation, StandardCopyOption.ATOMIC_MOVE);
     } finally {
       Files.deleteIfExists(download);
-      IOUtils.deleteRecursively(staging);
+      IoUtils.deleteRecursively(staging);
     }
     LOGGER.info(LIBRARIES_INSTALLED, installation);
   }
 
   private void download(final Pin pin, final Path destination) throws IOException {
-    IOException failure = null;
+    Exception failure = null;
     final List<String> bases = pin.pool().startsWith(SECURITY_POOL) ? this.securityMirrors : this.mirrors;
     for (final String mirror : bases) {
       final URI uri = URI.create(mirror + pin.pool());
       try {
         this.downloader.download(uri, destination, pin.sha256(), pin.size());
         return;
-      } catch (final IOException exception) {
+      } catch (final IOException | DownloadException | FileOperationException exception) {
         Files.deleteIfExists(destination);
         if (failure == null) {
           failure = exception;

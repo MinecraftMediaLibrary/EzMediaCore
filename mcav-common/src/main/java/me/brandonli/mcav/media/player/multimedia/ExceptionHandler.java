@@ -23,17 +23,22 @@ import java.util.function.BiConsumer;
  * A player that reports failures on its background threads to a handler instead of dying silently. The handler
  * receives a short description of what failed and the exception; the default handler logs both.
  *
- * <pre><code>
- *   final VideoPlayerMultiplexer player = VideoPlayer.ffmpeg();
- *   final Logger logger = plugin.getLogger();
- *   player.setExceptionHandler((message, error) -&gt; logger.log(Level.SEVERE, message, error));
- * </code></pre>
+ * {@snippet :
+ * final VideoPlayerMultiplexer player = VideoPlayer.ffmpeg();
+ * final Logger logger = plugin.getLogger();
+ * player.setExceptionHandler((message, error) -> logger.log(Level.SEVERE, message, error));
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface ExceptionHandler {
   /**
-   * Gets the handler that receives failures.
+   * Returns the handler that receives failures.
    *
    * @return the handler
+   * @since 1.0.0
    */
   BiConsumer<String, Throwable> getExceptionHandler();
 
@@ -43,6 +48,7 @@ public interface ExceptionHandler {
    *
    * @param exceptionHandler the handler
    * @throws NullPointerException if {@code exceptionHandler} is null
+   * @since 1.0.0
    */
   void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler);
 
@@ -51,6 +57,7 @@ public interface ExceptionHandler {
    * it to implement this interface by delegation.
    *
    * @return a new handler holder
+   * @since 1.0.0
    */
   static ExceptionHandler createDefault() {
     return new DefaultExceptionHandler();

@@ -1,0 +1,53 @@
+/*
+ * This file is part of mcav, a media playback library for Java
+ * Copyright (C) Brandon Li <https://brandonli.me/>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package me.brandonli.mcav.media.player.attachable;
+
+import com.google.common.base.Preconditions;
+import me.brandonli.mcav.utils.immutable.Dimension;
+
+/**
+ * The default {@link DimensionAttachableCallback}.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
+ */
+public final class DefaultDimensionAttachableCallback extends AbstractAttachableCallback<Dimension> implements DimensionAttachableCallback {
+
+  DefaultDimensionAttachableCallback() {
+    super(Dimension.NONE);
+  }
+
+  /**
+   * Stores a non-empty dimension in this callback's slot, replacing the dimension attached before.
+   *
+   * @param value the non-null value, retained by reference; replacing a value does not release it
+   * @throws IllegalArgumentException if either dimension is zero
+   * @throws NullPointerException     if {@code value} is null
+   * @since 1.0.0
+   */
+  @Override
+  public void attach(final Dimension value) {
+    Preconditions.checkNotNull(value, "Dimension must not be null!");
+
+    final boolean empty = value.isEmpty();
+    Preconditions.checkArgument(!empty, "Dimension %s must not be empty!", value);
+
+    super.attach(value);
+  }
+}

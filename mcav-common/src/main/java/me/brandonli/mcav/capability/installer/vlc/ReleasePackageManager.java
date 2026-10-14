@@ -19,7 +19,7 @@ package me.brandonli.mcav.capability.installer.vlc;
 
 import com.google.common.base.Preconditions;
 import me.brandonli.mcav.capability.installer.Download;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 
 /**
  * Resolves the VLC downloads for every platform: the releases listed in the {@code mcav/common/installers/vlc.json} resource, each
@@ -30,11 +30,15 @@ import me.brandonli.mcav.utils.IOUtils;
  * pinned to one dated release whose hash was checked when it was pinned. The AppImage is run to extract it, so only that
  * reviewed build runs, never whatever the weekly tag of a third party's account points to later; a newer build needs a
  * new pin. 32-bit x86 Linux gets none: Java 25, which mcav needs, has no port for it.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ReleasePackageManager {
 
   private ReleasePackageManager() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -43,9 +47,11 @@ public final class ReleasePackageManager {
    * @param resourcePath the full path from the classpath root, such as {@code mcav/common/installers/vlc.json}
    * @return the downloads for every supported platform
    * @throws NullPointerException if {@code resourcePath} is null
+   * @since 1.0.0
    */
-  public static Download[] readVLCDownloadsFromJsonResource(final String resourcePath) {
-    Preconditions.checkNotNull(resourcePath, "Resource path must not be null");
-    return IOUtils.readDownloadsFromJsonResource(resourcePath);
+  public static Download[] readVlcDownloadsFromJsonResource(final String resourcePath) {
+    Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
+
+    return IoUtils.readDownloadsFromJsonResource(resourcePath);
   }
 }

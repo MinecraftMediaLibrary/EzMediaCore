@@ -27,6 +27,10 @@ import me.brandonli.mcav.media.source.Source;
 /**
  * A full-featured player that can play, pause, resume, seek, and release, and that can take its video and audio
  * from two different sources. Every backend created by the factories of {@link VideoPlayer} is a multiplexer.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer, SeekablePlayer, ReleasablePlayer {
   /**
@@ -39,6 +43,7 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
    * another start is in progress, or a required source could not be opened;
    * the reason is passed to the exception handler of the player
    * @throws NullPointerException if either source is null
+   * @since 1.0.0
    */
   boolean start(final Source video, final Source audio);
 
@@ -50,13 +55,15 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
    * @param executor the executor that opens the sources
    * @return a future that completes with the result of {@link #start(Source, Source)}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code video}, {@code audio} or {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code video}, {@code audio} or {@code executor} is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final Source video, final Source audio, final ExecutorService executor) {
-    Preconditions.checkNotNull(video, "Video source must not be null");
-    Preconditions.checkNotNull(audio, "Audio source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(video, "Video source must not be null!");
+    Preconditions.checkNotNull(audio, "Audio source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(video, audio), executor);
   }
 
@@ -68,6 +75,7 @@ public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer,
    * @return a future that completes with the result of {@link #start(Source, Source)}
    * @throws NullPointerException if either source is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final Source video, final Source audio) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();

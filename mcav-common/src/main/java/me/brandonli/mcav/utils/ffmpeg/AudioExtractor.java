@@ -20,12 +20,12 @@ package me.brandonli.mcav.utils.ffmpeg;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 import me.brandonli.mcav.media.source.Source;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
 
@@ -35,10 +35,16 @@ import me.brandonli.mcav.utils.runtime.ProcessException;
  * <p>The audio is written as stereo Ogg Vorbis, a compact and royalty-free format that is played by Minecraft
  * resource packs, web browsers, game engines and most media players.
  *
- * <pre>{@code
- * final Source media = UriSource.uri(URI.create("https://example.com/video.mp4"));
+ * {@snippet :
+ * final String address = "https://example.com/video.mp4";
+ * final URI uri = URI.create(address);
+ * final Source media = UriSource.uri(uri);
  * final Path audio = AudioExtractor.extractOggVorbis(media);
- * }</pre>
+ * }
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class AudioExtractor {
 
@@ -47,7 +53,7 @@ public final class AudioExtractor {
   private static final String OGG_EXTENSION = ".ogg";
 
   private AudioExtractor() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -62,37 +68,42 @@ public final class AudioExtractor {
    *
    * @param source the media to extract the audio from, such as a file or a URL
    * @return the absolute path of the new Ogg Vorbis file
-   * @throws NullPointerException  if the source is null
-   * @throws IOException           if FFmpeg cannot be started, its output cannot be read, or the thread is
-   *                               interrupted while waiting for FFmpeg
-   * @throws ProcessException      if FFmpeg exits with a non-zero exit code, for example because the source does
-   *                               not exist, cannot be decoded, or has no audio track
-   * @throws UncheckedIOException  if the cache folder cannot be created
-   * @throws UnsatisfiedLinkError  if the bundled FFmpeg is not available for this platform
+   * @throws NullPointerException   if the source is null
+   * @throws ProcessException       if FFmpeg cannot be started, its output cannot be read, the thread is interrupted
+   *                                while waiting for FFmpeg, or FFmpeg exits with a non-zero exit code, for example
+   *                                because the source does not exist, cannot be decoded, or has no audio track
+   * @throws FileOperationException if the cache folder cannot be created
+   * @throws UnsatisfiedLinkError   if the bundled FFmpeg is not available for this platform
+   * @since 1.0.0
    */
-  public static Path extractOggVorbis(final Source source) throws IOException {
-    Preconditions.checkNotNull(source, "Source must not be null");
+  public static Path extractOggVorbis(final Source source) {
+    Preconditions.checkNotNull(source, "Source must not be null!");
+
     final String input = source.getResource();
-    final Path outputDirectory = IOUtils.getCachedFolder();
+    final Path outputDirectory = IoUtils.getCachedFolder();
     final UUID id = UUID.randomUUID();
     final String fileName = id + OGG_EXTENSION;
     final Path outputFile = outputDirectory.resolve(fileName);
     final String output = outputFile.toString();
 
-    final FFmpegCommand command = FFmpegTemplates.extractOggVorbis(input, output);
+    final FfmpegCommand command = FfmpegTemplates.extractOggVorbis(input, output);
     final CommandTask task = command.createTask();
     try {
       task.runChecked();
       return outputFile;
-    } catch (final IOException | RuntimeException failure) {
-      try {
-        Files.deleteIfExists(outputFile);
-      } catch (final IOException | RuntimeException cleanupFailure) {
-        if (!FAILURE_IDENTITY.equivalent(failure, cleanupFailure)) {
-          failure.addSuppressed(cleanupFailure);
-        }
+    } catch (final RuntimeException exception) {
+      deletePartialOutput(outputFile, exception);
+      throw exception;
+    }
+  }
+
+  private static void deletePartialOutput(final Path outputFile, final Exception failure) {
+    try {
+      Files.deleteIfExists(outputFile);
+    } catch (final IOException | RuntimeException cleanupException) {
+      if (!FAILURE_IDENTITY.equivalent(failure, cleanupException)) {
+        failure.addSuppressed(cleanupException);
       }
-      throw failure;
     }
   }
 }

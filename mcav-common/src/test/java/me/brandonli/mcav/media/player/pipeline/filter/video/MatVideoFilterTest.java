@@ -42,15 +42,12 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link MatVideoFilter} and the defaults of {@link VideoFilter}.
- */
 final class MatVideoFilterTest {
 
-  /**
-   * Creates an image that is not backed by a matrix and whose pixels all have the same color, and records what the
-   * filter writes back into it.
-   */
+  private static final int BLACK = 0xFF000000;
+
+  private static final int IMAGE_SIDE = 2;
+
   private static ImageBuffer foreignImage(final int width, final int height, final int argb, final WrittenPixels written) {
     final byte[] bgr = new byte[width * height * 3];
     for (int index = 0; index < bgr.length; index += 3) {
@@ -58,6 +55,7 @@ final class MatVideoFilterTest {
       bgr[index + 1] = (byte) (argb >> 8);
       bgr[index + 2] = (byte) (argb >> 16);
     }
+
     final ByteBuffer data = ByteBuffer.wrap(bgr);
     final ImageBuffer image = mock(ImageBuffer.class);
     when(image.getWidth()).thenReturn(width);
@@ -68,9 +66,9 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void copiesResultsBackIntoImagesThatAreNotBackedByAMat() {
+  void shouldCopyResultsBackIntoImagesThatAreNotBackedByAMat() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
+    final ImageBuffer image = foreignImage(1, 1, BLACK, written);
     final InvertFilter filter = new InvertFilter();
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     final byte[] bytes = written.getBytes();
@@ -82,9 +80,9 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void writesResultsOfAnotherSizeBackWithTheirSize() {
+  void shouldWriteResultsOfAnotherSizeBackWithTheirSize() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(2, 2, 0xFF102030, written);
+    final ImageBuffer image = foreignImage(IMAGE_SIDE, IMAGE_SIDE, 0xFF102030, written);
     final CropFilter filter = new CropFilter(1, 0, 1, 1);
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     final byte[] bytes = written.getBytes();
@@ -94,9 +92,9 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void leavesForeignImagesAloneWhenNothingChanged() {
+  void shouldLeaveForeignImagesAloneWhenNothingChanged() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
+    final ImageBuffer image = foreignImage(1, 1, BLACK, written);
     final CropFilter filter = new CropFilter(0, 0, 1, 1);
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     assertFalse(modified);
@@ -105,8 +103,8 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void keepsTheCacheWhenTheMatWasNotModified() {
-    try (final ImageBuffer image = Images.solid(2, 2, 0xFF123456)) {
+  void shouldKeepTheCacheWhenTheMatWasNotModified() {
+    try (final ImageBuffer image = Images.solid(IMAGE_SIDE, IMAGE_SIDE, 0xFF123456)) {
       final int[] before = image.getPixels();
       final UnchangedFilter filter = new UnchangedFilter();
       final boolean modified = filter.applyFilter(image);
@@ -117,13 +115,10 @@ final class MatVideoFilterTest {
   }
 
   @Test
-  void singleArgumentApplyUsesEmptyMetadata() {
+  void shouldUseEmptyMetadataInTheSingleArgumentApply() {
     final AtomicReference<OriginalVideoMetadata> received = new AtomicReference<>();
-    final VideoFilter recorder = (_, metadata) -> {
-      received.set(metadata);
-      return true;
-    };
-    try (final ImageBuffer image = Images.indexed(2, 2)) {
+    final VideoFilter recorder = (_, metadata) -> this.recordMetadata(received, metadata);
+    try (final ImageBuffer image = Images.indexed(IMAGE_SIDE, IMAGE_SIDE)) {
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean changed = recorder.applyFilter(image);
       final OriginalVideoMetadata metadata = received.get();
@@ -131,37 +126,46 @@ final class MatVideoFilterTest {
       assertTrue(changed);
       assertFalse(noOp, "the no-op filter leaves every frame untouched");
       assertSame(OriginalVideoMetadata.EMPTY, metadata);
-      assertEquals(before, image.getData());
-      assertEquals(2, image.getWidth());
-      assertEquals(2, image.getHeight());
+
+      final ByteBuffer data = image.getData();
+      assertEquals(before, data);
+
+      final int width = image.getWidth();
+      assertEquals(IMAGE_SIDE, width);
+
+      final int height = image.getHeight();
+      assertEquals(IMAGE_SIDE, height);
     }
   }
 
+  private boolean recordMetadata(final AtomicReference<OriginalVideoMetadata> received, final OriginalVideoMetadata metadata) {
+    received.set(metadata);
+
+    return true;
+  }
+
   @Test
-  void rejectsMissingImages() {
+  void shouldRejectMissingImages() {
     final InvertFilter filter = new InvertFilter();
     assertThrows(NullPointerException.class, () -> filter.applyFilter(null, OriginalVideoMetadata.EMPTY));
     assertThrows(NullPointerException.class, () -> VideoFilter.NO_OP.applyFilter(null));
   }
 
-  /**
-   * Keeps a copy of the pixels written back into a foreign image, taken while the call runs, because the buffer
-   * belongs to a temporary image that is released afterward.
-   */
+  // Keeps a copy of the pixels written back into a foreign image, taken while the call runs, because the buffer belongs
+  // to a temporary image that is released afterward.
   private static final class WrittenPixels {
 
     private byte[] bytes = new byte[0];
 
-    /**
-     * Copies the pixels an update call receives; the result of the answer is ignored, because the update returns
-     * nothing.
-     */
+    // Copies the pixels an update call receives; the result of the answer is ignored, because the update returns
+    // nothing.
     private Object record(final InvocationOnMock invocation) {
       final ByteBuffer data = invocation.getArgument(0);
       final ByteBuffer view = data.duplicate();
       final byte[] copy = new byte[view.remaining()];
       view.get(copy);
       this.bytes = copy;
+
       return invocation;
     }
 
@@ -170,9 +174,7 @@ final class MatVideoFilterTest {
     }
   }
 
-  /**
-   * A filter that never changes anything.
-   */
+  // A filter that never changes anything.
   private static final class UnchangedFilter extends MatVideoFilter {
 
     @Override

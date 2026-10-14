@@ -25,6 +25,10 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * A player that can jump to a position in its media. Seeking only works for sources with a known length, such
  * as files; live streams ignore it.
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface SeekablePlayer {
   /**
@@ -33,6 +37,7 @@ public interface SeekablePlayer {
    * @param time the position in milliseconds from the start of the media, not negative
    * @return true if the player seeked, false if nothing is playing or the source cannot be seeked
    * @throws IllegalArgumentException if {@code time} is negative
+   * @since 1.0.0
    */
   boolean seek(final long time);
 
@@ -42,6 +47,7 @@ public interface SeekablePlayer {
    * @param time the position in milliseconds from the start of the media, not negative
    * @return a future that completes with the result of {@link #seek(long)}
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> seekAsync(final long time) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -55,11 +61,13 @@ public interface SeekablePlayer {
    * @param time     the position in milliseconds from the start of the media, not negative
    * @return a future that completes with the result of {@link #seek(long)}
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
+   * @throws NullPointerException                            if {@code executor} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
-   * @throws NullPointerException if {@code executor} is null
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> seekAsync(final ExecutorService executor, final long time) {
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.seek(time), executor);
   }
 }

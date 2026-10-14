@@ -17,34 +17,40 @@
  */
 package me.brandonli.mcav.capability.installer;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import me.brandonli.mcav.utils.http.DownloadException;
 
 /**
  * Downloads and installs an external program the library depends on, such as VLC or yt-dlp.
  *
- * <p>Installers are idempotent: once a program is installed, calling {@link #download(boolean)} again returns the
+ * <p>Installers are idempotent: once a program is installed, calling {@link #download(FileMode)} again returns the
  * existing installation immediately. Installations live in the cache folder of the library and are remembered in
  * a small configuration file, so they survive restarts.
+ *
+ * <p>Implementations in this library serialize the downloads of each installer, see {@link AbstractInstaller}.
+ *
+ * @since 1.0.0
  */
 public interface Installer {
   /**
    * Installs the program, or returns the existing installation if it was installed before. This method blocks
    * while the program is downloaded, which can take a while for large programs such as VLC.
    *
-   * @param executable true to mark the downloaded file as executable, which is required for programs that are
-   *                   run directly and has no effect on Windows
+   * @param mode {@link FileMode#EXECUTABLE} for programs that are run directly, which has no effect on Windows
    * @return the installation path chosen by the implementation: an executable file or an extracted directory
-   * @throws IOException if the download fails, the file cannot be written, or the hash does not match
+   * @throws InstallationException if the program cannot be installed on this platform, or its files cannot be written
+   * @throws DownloadException     if the download fails or its hash does not match
+   * @since 1.0.0
    */
-  Path download(final boolean executable) throws IOException;
+  Path download(final FileMode mode);
 
   /**
    * Checks whether a download exists for the current platform. Unsupported platforms can still use the program if
    * it is installed on the system by other means.
    *
    * @return true if the program can be installed on this platform
+   * @since 1.0.0
    */
   boolean isSupported();
 
@@ -54,16 +60,18 @@ public interface Installer {
    * download links. The default implementation finds nothing.
    *
    * @return the path of the existing installation, or empty if the program has not been installed
-   * @throws IOException if the installation folder cannot be searched
+   * @throws InstallationException if the installation folder cannot be searched
+   * @since 1.0.0
    */
-  default Optional<Path> findInstallation() throws IOException {
+  default Optional<Path> findInstallation() {
     return Optional.empty();
   }
 
   /**
-   * Gets the path the program is installed to, whether or not it has been installed yet.
+   * Returns the path the program is installed to, whether or not it has been installed yet.
    *
    * @return the installation path
+   * @since 1.0.0
    */
   Path getPath();
 }

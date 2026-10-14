@@ -45,17 +45,16 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OpenCVPlayer}, {@link VideoInputPlayer} and the player factories of {@link VideoPlayer}.
- */
 final class OpenCvPlayersTest {
 
   private static final Duration PLAYBACK_TIMEOUT = Duration.ofSeconds(10);
 
-  /**
-   * Loads the natives of OpenCV ahead of the timed tests, because loading them on the decoding thread takes seconds on
-   * a busy machine.
-   */
+  private static final int DECODED_FRAMES_THRESHOLD = 10;
+
+  private static final String UNOPENED_FILE_NAME = "unopened-file.mp4";
+
+  // Loads the natives of OpenCV ahead of the timed tests, because loading them on the decoding thread takes seconds on
+  // a busy machine.
   @BeforeAll
   static void loadTheNativeLibrariesAheadOfTheTimedTests() {
     final ImageBuffer warmUp = ImageBuffer.bytes(new byte[3], 1, 1);
@@ -65,15 +64,16 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void createsTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
-    final OpenCVPlayer player = new OpenCVPlayer();
-    final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
-    try (final FrameGrabber grabber = player.createFrameGrabber("unopened-file.mp4")) {
+  void shouldCreateTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
+    final OpenCvPlayer player = new OpenCvPlayer();
+    final boolean openCvReadsFiles = OpenCvVideoBackends.chooseFileReader() == VideoFileReader.OPENCV;
+    try (final FrameGrabber grabber = player.createFrameGrabber(UNOPENED_FILE_NAME)) {
       if (openCvReadsFiles) {
         assertInstanceOf(OpenCVFrameGrabber.class, grabber, "a build with a file backend reads the file itself");
       } else {
         assertInstanceOf(FFmpegFrameGrabber.class, grabber, "a build without a file backend reads the file with FFmpeg");
       }
+
       assertThrows(NullPointerException.class, () -> player.createFrameGrabber(null));
     } finally {
       player.release();
@@ -81,9 +81,9 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void readsFilesWithTheGrabberThatCanOpenThem() throws Exception {
+  void shouldReadFilesWithTheGrabberThatCanOpenThem() throws Exception {
     final Path video = TestMedia.video();
-    final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
+    final boolean openCvReadsFiles = OpenCvVideoBackends.chooseFileReader() == VideoFileReader.OPENCV;
     final boolean openCvOpenedTheFile = opensWithOpenCv(video);
     assertEquals(
       openCvReadsFiles,
@@ -98,10 +98,8 @@ final class OpenCvPlayersTest {
     }
   }
 
-  /**
-   * Whether the reader of OpenCV opens a video file on this machine. A build without a file backend either refuses to
-   * start or starts without a picture size, and both mean the same: it cannot read the file.
-   */
+  // Whether the reader of OpenCV opens a video file on this machine. A build without a file backend either refuses to
+  // start or starts without a picture size, and both mean the same: it cannot read the file.
   private static boolean opensWithOpenCv(final Path video) {
     final String path = video.toString();
     final OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(path);
@@ -109,7 +107,7 @@ final class OpenCvPlayersTest {
       grabber.start();
       final int width = grabber.getImageWidth();
       return width > 0;
-    } catch (final FrameGrabber.Exception refused) {
+    } catch (final FrameGrabber.Exception exception) {
       return false;
     } finally {
       releaseQuietly(grabber);
@@ -119,28 +117,17 @@ final class OpenCvPlayersTest {
   private static void releaseQuietly(final OpenCVFrameGrabber grabber) {
     try {
       grabber.release();
-    } catch (final FrameGrabber.Exception failure) {
+    } catch (final FrameGrabber.Exception exception) {
       // a grabber that never opened has nothing to release
     }
   }
 
-  /**
-   * Plays the test video with the OpenCV player until more than ten frames arrived, and records the width of every
-   * frame.
-   *
-   * @param size the size attached to the player, or {@code null} for none
-   * @return an array of two elements, the number of frames followed by the width of the last frame
-   */
   private static int[] playTestVideo(final Dimension size) throws InterruptedException {
     final AtomicInteger frames = new AtomicInteger();
     final AtomicInteger width = new AtomicInteger();
-    final OpenCVPlayer player = new OpenCVPlayer();
+    final OpenCvPlayer player = new OpenCvPlayer();
     player.neverDropLateFrames();
-    final VideoFilter counter = (image, _) -> {
-      final int frameWidth = image.getWidth();
-      width.set(frameWidth);
-      return frames.incrementAndGet() > 0;
-    };
+    final VideoFilter counter = (image, _) -> recordWidth(image, frames, width);
     attach(player, counter, size);
 
     final Path video = TestMedia.video();
@@ -148,7 +135,8 @@ final class OpenCvPlayersTest {
     try {
       final boolean started = player.start(source);
       assertTrue(started);
-      Polling.pollUntil(PLAYBACK_TIMEOUT, () -> frames.get() > 10);
+
+      Polling.pollUntil(PLAYBACK_TIMEOUT, () -> frames.get() > DECODED_FRAMES_THRESHOLD);
     } finally {
       player.release();
     }
@@ -158,10 +146,17 @@ final class OpenCvPlayersTest {
     return new int[] { frameCount, lastWidth };
   }
 
+  private static boolean recordWidth(final ImageBuffer image, final AtomicInteger frames, final AtomicInteger width) {
+    final int frameWidth = image.getWidth();
+    width.set(frameWidth);
+    return frames.incrementAndGet() > 0;
+  }
+
   private static void attach(final VideoPlayerMultiplexer player, final VideoFilter filter, final Dimension size) {
     final VideoPipelineStep step = VideoPipelineStep.of(filter);
     final VideoAttachableCallback callback = player.getVideoAttachableCallback();
     callback.attach(step);
+
     if (size != null) {
       final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
       dimension.attach(size);
@@ -169,29 +164,31 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void openCvPlayerDecodesFiles() throws Exception {
+  void shouldDecodeFilesWithTheOpenCvPlayer() throws Exception {
     final int[] result = playTestVideo(null);
     final int frames = result[0];
     final int width = result[1];
-    assertTrue(frames > 10, "frames " + frames);
+    final boolean decoded = frames > DECODED_FRAMES_THRESHOLD;
+    assertTrue(decoded, "frames " + frames);
     assertEquals(TestMedia.VIDEO_WIDTH, width);
 
-    final OpenCVPlayer openCv = new OpenCVPlayer();
+    final OpenCvPlayer openCv = new OpenCvPlayer();
     assertThrowsWhileOpening(NullPointerException.class, () -> openCv.createFrameGrabber(null));
   }
 
   @Test
-  void openCvPlayerScalesFilesToTheAttachedSize() throws Exception {
+  void shouldScaleFilesToTheAttachedSizeWithTheOpenCvPlayer() throws Exception {
     final Dimension size = Dimension.of(160, 120);
     final int[] result = playTestVideo(size);
     final int frames = result[0];
     final int width = result[1];
-    assertTrue(frames > 10, "frames " + frames);
+    final boolean decoded = frames > DECODED_FRAMES_THRESHOLD;
+    assertTrue(decoded, "frames " + frames);
     assertEquals(160, width, "the frames arrive at the attached size, whether the reader scales them or the pipeline does");
   }
 
   @Test
-  void devicePlayerOpensCamerasByIndex() {
+  void shouldOpenCamerasByIndexInTheDevicePlayer() {
     final VideoPlayerMultiplexer player = VideoPlayer.device();
     final VideoInputPlayer device = assertInstanceOf(VideoInputPlayer.class, player);
     final FrameGrabber grabber = device.createFrameGrabber("0");
@@ -202,11 +199,11 @@ final class OpenCvPlayersTest {
   }
 
   @Test
-  void factoriesCreateEveryKindOfPlayer() {
+  void shouldCreateEveryKindOfPlayerFromTheFactories() {
     final VideoPlayerMultiplexer ffmpeg = VideoPlayer.ffmpeg();
     final VideoPlayerMultiplexer openCv = VideoPlayer.opencv();
-    assertInstanceOf(FFmpegPlayer.class, ffmpeg);
-    assertInstanceOf(OpenCVPlayer.class, openCv);
+    assertInstanceOf(FfmpegPlayer.class, ffmpeg);
+    assertInstanceOf(OpenCvPlayer.class, openCv);
     assertThrows(NullPointerException.class, () -> VideoPlayer.vlc((String[]) null));
   }
 }

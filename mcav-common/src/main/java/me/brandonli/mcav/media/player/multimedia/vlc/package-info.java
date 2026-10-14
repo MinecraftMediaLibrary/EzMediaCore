@@ -19,7 +19,7 @@
  * Implements multimedia playback through VLC and vlcj with a shared native engine.
  *
  * <p>Wait for the VLC capability to become ready before constructing a
- * {@link me.brandonli.mcav.media.player.multimedia.vlc.VLCPlayer}. Opening waits for playback events for up to
+ * {@link me.brandonli.mcav.media.player.multimedia.vlc.VlcPlayer}. Opening waits for playback events for up to
  * five seconds. A timeout alone is accepted as a pending slow open; a later VLC error is sent to the player's
  * exception handler. Thus a true start result does not guarantee that a frame has arrived.
  *
@@ -30,5 +30,7 @@
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.media.player.multimedia.vlc;

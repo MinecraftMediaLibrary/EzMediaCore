@@ -53,25 +53,28 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import uk.co.caprica.vlcj.player.base.MediaPlayer;
 
-/**
- * Tests {@link AudioRenderer}.
- */
 final class AudioRendererTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+  private static final long QUIET_PERIOD_MILLISECONDS = 200L;
+
+  private static final int SURVIVING_CHUNK_COUNT = 2;
+
   private final MockVlc vlc = new MockVlc();
-  private final VLCPlayer owner = this.vlc.newPlayer(1_000L);
+  private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final AudioRenderer renderer = new AudioRenderer(this.owner);
   private final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
 
   AudioRendererTest() {
-    this.owner.setExceptionHandler((message, error) -> {
-      this.messages.add(message);
-      this.errors.add(error);
-    });
+    this.owner.setExceptionHandler(this::recordFailure);
+  }
+
+  private void recordFailure(final String message, final Throwable error) {
+    this.messages.add(message);
+    this.errors.add(error);
   }
 
   @AfterEach
@@ -85,58 +88,72 @@ final class AudioRendererTest {
     callback.attach(step);
   }
 
-  /**
-   * Creates a filter that records the first sample of every chunk without changing the chunk.
-   */
   private static AudioFilter firstSampleRecorder(final BlockingQueue<Short> firstSamples) {
-    return (samples, _) -> {
-      final short first = samples.getShort(0);
-      firstSamples.add(first);
-      return false;
-    };
+    return (samples, _) -> recordFirstSample(samples, firstSamples);
   }
 
-  /**
-   * Attaches a filter that records the first sample of every chunk, then blocks the render thread until the test
-   * lets it proceed, so later chunks queue up.
-   */
+  private static boolean recordFirstSample(final ByteBuffer samples, final BlockingQueue<Short> firstSamples) {
+    final short first = samples.getShort(0);
+    firstSamples.add(first);
+
+    return false;
+  }
+
+  // Attaches a filter that records the first sample of every chunk, then blocks the render thread until the test lets
+  // it proceed, so later chunks queue up.
   private void attachBlockingRecorder(final List<Short> received, final CountDownLatch blocked, final CountDownLatch proceed) {
-    this.attach((samples, _) -> {
-      final short first = samples.getShort(0);
-      received.add(first);
-      blocked.countDown();
-      awaitRelease(proceed);
-      return false;
-    });
+    this.attach((samples, _) -> this.recordFirstSampleAndBlock(samples, received, blocked, proceed));
   }
 
-  /**
-   * Creates a filter that copies every chunk and its metadata, and counts down the latch.
-   */
+  private boolean recordFirstSampleAndBlock(
+    final ByteBuffer samples,
+    final List<Short> received,
+    final CountDownLatch blocked,
+    final CountDownLatch proceed
+  ) {
+    final short first = samples.getShort(0);
+    received.add(first);
+    blocked.countDown();
+    awaitRelease(proceed);
+
+    return false;
+  }
+
   private static AudioFilter copyingRecorder(
     final AtomicReference<ByteBuffer> received,
     final AtomicReference<OriginalAudioMetadata> receivedMetadata,
     final CountDownLatch done
   ) {
-    return (samples, metadata) -> {
-      final int remaining = samples.remaining();
-      final ByteOrder order = samples.order();
-      final ByteBuffer copy = ByteBuffer.allocate(remaining);
-      copy.order(order);
-      copy.put(samples);
-      copy.flip();
-      received.set(copy);
-      receivedMetadata.set(metadata);
-      done.countDown();
-      return false;
-    };
+    return (samples, metadata) -> copyChunk(samples, metadata, received, receivedMetadata, done);
+  }
+
+  private static boolean copyChunk(
+    final ByteBuffer samples,
+    final OriginalAudioMetadata metadata,
+    final AtomicReference<ByteBuffer> received,
+    final AtomicReference<OriginalAudioMetadata> receivedMetadata,
+    final CountDownLatch done
+  ) {
+    final int remaining = samples.remaining();
+    final ByteOrder order = samples.order();
+    final ByteBuffer copy = ByteBuffer.allocate(remaining);
+    copy.order(order);
+    copy.put(samples);
+    copy.flip();
+    received.set(copy);
+    receivedMetadata.set(metadata);
+    done.countDown();
+
+    return false;
   }
 
   private static BiConsumer<String, Throwable> reportingHandler(final List<String> reported) {
-    return (message, error) -> {
-      final String reason = error.getMessage();
-      reported.add(message + ": " + reason);
-    };
+    return (message, error) -> reportFailure(reported, message, error);
+  }
+
+  private static void reportFailure(final List<String> reported, final String message, final Throwable error) {
+    final String reason = error.getMessage();
+    reported.add(message + ": " + reason);
   }
 
   private static Memory samples(final short... values) {
@@ -164,7 +181,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void copiesTheSamplesVlcDecodedIntoThePipeline() throws Exception {
+  void shouldCopyTheSamplesVlcDecodedIntoThePipeline() throws Exception {
     final AtomicReference<ByteBuffer> received = new AtomicReference<>();
     final AtomicReference<OriginalAudioMetadata> receivedMetadata = new AtomicReference<>();
     final CountDownLatch done = new CountDownLatch(1);
@@ -175,7 +192,7 @@ final class AudioRendererTest {
     final Memory memory = samples(interleaved);
     this.renderer.play(this.mediaPlayer, memory, 3, 1234L);
     memory.clear();
-    final boolean delivered = done.await(5, TimeUnit.SECONDS);
+    final boolean delivered = done.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(delivered);
 
     final ByteBuffer buffer = received.get();
@@ -193,17 +210,17 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsSamplesBeforeItIsStartedAndAfterItIsStopped() throws Exception {
+  void shouldDropSamplesBeforeItIsStartedAndAfterItIsStopped() throws Exception {
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);
     this.attach(recorder);
     this.play((short) 1, (short) 1);
     this.renderer.start();
     this.play((short) 2, (short) 2);
-    final Short second = firstSamples.poll(5, TimeUnit.SECONDS);
+    final Short second = firstSamples.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     this.renderer.stop();
     this.play((short) 3, (short) 3);
-    final Short third = firstSamples.poll(200, TimeUnit.MILLISECONDS);
+    final Short third = firstSamples.poll(QUIET_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
     final boolean nothingElse = firstSamples.isEmpty();
     final Short expectedSecond = 2;
     assertEquals(expectedSecond, second);
@@ -212,7 +229,7 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsSamplesWithoutAPipeline() throws Exception {
+  void shouldDropSamplesWithoutAPipeline() throws Exception {
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);
     final AudioPipelineStep recording = AudioPipelineStep.of(recorder);
@@ -225,7 +242,7 @@ final class AudioRendererTest {
     try {
       final Memory memory = samples((short) 1, (short) 1);
       detached.play(this.mediaPlayer, memory, 1, 0L);
-      final Short received = firstSamples.poll(200, TimeUnit.MILLISECONDS);
+      final Short received = firstSamples.poll(QUIET_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertNull(received, "samples played without a pipeline are never queued");
       verify(callback, times(1)).retrieve();
     } finally {
@@ -234,19 +251,20 @@ final class AudioRendererTest {
   }
 
   @Test
-  void dropsTheOldestChunksWhenThePipelineFallsBehind() throws Exception {
+  void shouldDropTheOldestChunksWhenThePipelineFallsBehind() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     for (short chunk = 1; chunk <= 70; chunk++) {
       this.play(chunk, chunk);
     }
+
     proceed.countDown();
     awaitSize(received, 65);
 
@@ -255,18 +273,19 @@ final class AudioRendererTest {
     for (short chunk = 7; chunk <= 70; chunk++) {
       expected.add(chunk);
     }
+
     assertEquals(expected, received, "the 64 newest chunks are kept");
   }
 
   @Test
-  void flushingDropsTheQueuedChunks() throws Exception {
+  void shouldDropTheQueuedChunksWhenFlushing() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.play((short) 1, (short) 1);
@@ -274,28 +293,21 @@ final class AudioRendererTest {
     this.renderer.flush(this.mediaPlayer, 0L);
     this.play((short) 3, (short) 3);
     proceed.countDown();
-    awaitSize(received, 2);
+    awaitSize(received, SURVIVING_CHUNK_COUNT);
     final List<Short> expected = List.of((short) 0, (short) 3);
     assertEquals(expected, received);
   }
 
   @Test
-  void fatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
-    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory");
+  void shouldLetFatalFilterFailuresEscapeWithoutBeingReported() throws Exception {
+    final OutOfMemoryError failure = new OutOfMemoryError("filter exhausted memory!");
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch escaped = new CountDownLatch(1);
-    this.attach((_, _) -> {
-      final Thread worker = Thread.currentThread();
-      worker.setUncaughtExceptionHandler((_, thrown) -> {
-        uncaught.set(thrown);
-        escaped.countDown();
-      });
-      throw failure;
-    });
+    this.attach((_, _) -> this.escapeWithFailure(failure, uncaught, escaped));
 
     this.renderer.start();
     this.play((short) 1, (short) 1);
-    final boolean ended = escaped.await(5L, TimeUnit.SECONDS);
+    final boolean ended = escaped.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     final Throwable observed = uncaught.get();
     final boolean reportedNothing = this.errors.isEmpty();
     assertTrue(ended);
@@ -303,28 +315,33 @@ final class AudioRendererTest {
     assertTrue(reportedNothing, "fatal VM failures must not be converted to ordinary filter reports");
   }
 
+  private boolean escapeWithFailure(
+    final OutOfMemoryError failure,
+    final AtomicReference<Throwable> uncaught,
+    final CountDownLatch escaped
+  ) {
+    final Thread worker = Thread.currentThread();
+    worker.setUncaughtExceptionHandler((_, thrown) -> this.recordEscape(thrown, uncaught, escaped));
+    throw failure;
+  }
+
+  private void recordEscape(final Throwable thrown, final AtomicReference<Throwable> uncaught, final CountDownLatch escaped) {
+    uncaught.set(thrown);
+    escaped.countDown();
+  }
+
   @Test
-  void reportsPipelineFailuresAndKeepsPlaying() throws Exception {
+  void shouldReportPipelineFailuresAndKeepPlaying() throws Exception {
     final AtomicInteger calls = new AtomicInteger();
-    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug");
-    final AssertionError errorFailure = new AssertionError("filter assertion");
+    final IllegalStateException runtimeFailure = new IllegalStateException("filter bug!");
+    final AssertionError errorFailure = new AssertionError("filter assertion!");
     final CountDownLatch third = new CountDownLatch(1);
-    this.attach((_, _) -> {
-      final int call = calls.incrementAndGet();
-      if (call == 1) {
-        throw runtimeFailure;
-      }
-      if (call == 2) {
-        throw errorFailure;
-      }
-      third.countDown();
-      return false;
-    });
+    this.attach((_, _) -> this.failTwiceThenCount(calls, runtimeFailure, errorFailure, third));
     this.renderer.start();
     this.play((short) 1, (short) 1);
     this.play((short) 2, (short) 2);
     this.play((short) 3, (short) 3);
-    final boolean keptPlaying = third.await(5, TimeUnit.SECONDS);
+    final boolean keptPlaying = third.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     final List<String> expectedMessages = List.of("Audio filter failed", "Audio filter failed");
     final List<Throwable> expectedErrors = List.of(runtimeFailure, errorFailure);
     assertTrue(keptPlaying);
@@ -332,15 +349,35 @@ final class AudioRendererTest {
     assertEquals(expectedErrors, this.errors);
   }
 
+  private boolean failTwiceThenCount(
+    final AtomicInteger calls,
+    final IllegalStateException runtimeFailure,
+    final AssertionError errorFailure,
+    final CountDownLatch third
+  ) {
+    final int call = calls.incrementAndGet();
+    if (call == 1) {
+      throw runtimeFailure;
+    }
+
+    if (call == 2) {
+      throw errorFailure;
+    }
+
+    third.countDown();
+
+    return false;
+  }
+
   @Test
-  void pausingDropsTheQueuedChunks() throws Exception {
+  void shouldDropTheQueuedChunksWhenPausing() throws Exception {
     final CountDownLatch blocked = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final List<Short> received = Collections.synchronizedList(new ArrayList<>());
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.play((short) 1, (short) 1);
@@ -348,13 +385,13 @@ final class AudioRendererTest {
     this.renderer.pause(this.mediaPlayer, 0L);
     this.play((short) 3, (short) 3);
     proceed.countDown();
-    awaitSize(received, 2);
+    awaitSize(received, SURVIVING_CHUNK_COUNT);
     final List<Short> expected = List.of((short) 0, (short) 3);
     assertEquals(expected, received, "audio queued before the pause does not play after it");
   }
 
   @Test
-  void copiesSamplesOfEitherByteOrderIntoLittleEndianOrder() {
+  void shouldCopySamplesOfEitherByteOrderIntoLittleEndianOrder() {
     final ByteBuffer bigEndian = ByteBuffer.wrap(new byte[] { 0x01, 0x02, (byte) 0xFF, (byte) 0xFE });
     final ByteBuffer littleEndian = ByteBuffer.wrap(new byte[] { 0x02, 0x01, (byte) 0xFE, (byte) 0xFF });
     final ByteBuffer fromBigEndian = AudioRenderer.copySamples(bigEndian, ByteOrder.BIG_ENDIAN);
@@ -371,9 +408,6 @@ final class AudioRendererTest {
     assertEquals(0, bigEndianPosition, "the native samples are not consumed");
   }
 
-  /**
-   * Creates an owner whose render thread fails to look up the pipeline of the first chunk it renders.
-   */
   private static VideoPlayerMultiplexer ownerFailingOnce(
     final AudioAttachableCallback callback,
     final RuntimeException failure,
@@ -387,14 +421,14 @@ final class AudioRendererTest {
   }
 
   @Test
-  void reportsRenderingFailuresAndKeepsRendering() throws Exception {
+  void shouldReportRenderingFailuresAndKeepRendering() throws Exception {
     final List<String> reported = Collections.synchronizedList(new ArrayList<>());
     final BlockingQueue<Short> firstSamples = new LinkedBlockingQueue<>();
     final AudioFilter recorder = firstSampleRecorder(firstSamples);
     final AudioPipelineStep recording = AudioPipelineStep.of(recorder);
     final AudioAttachableCallback callback = AudioAttachableCallback.create();
     callback.attach(recording);
-    final IllegalStateException failure = new IllegalStateException("native failure");
+    final IllegalStateException failure = new IllegalStateException("native failure!");
     final VideoPlayerMultiplexer failingOwner = ownerFailingOnce(callback, failure, reported);
     final AudioRenderer failing = new AudioRenderer(failingOwner);
     failing.start();
@@ -404,8 +438,8 @@ final class AudioRendererTest {
       Polling.awaitCondition("the rendering failure was reported", TIMEOUT, () -> !reported.isEmpty());
       final Memory second = samples((short) 2, (short) 2);
       failing.play(this.mediaPlayer, second, 1, 0L);
-      final Short received = firstSamples.poll(5, TimeUnit.SECONDS);
-      final List<String> expectedReports = List.of("Audio rendering failed: native failure");
+      final Short received = firstSamples.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
+      final List<String> expectedReports = List.of("Audio rendering failed: native failure!");
       final Short expectedSample = 2;
       assertEquals(expectedReports, reported);
       assertEquals(expectedSample, received, "the render thread survived the failure");
@@ -420,13 +454,11 @@ final class AudioRendererTest {
     assertTrue(reached, "expected " + size + " chunks but got " + actual);
   }
 
-  /**
-   * Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
-   * reports to the exception handler.
-   */
+  // Blocks a filter until the test lets it proceed. A filter that is never released fails, which the render thread
+  // reports to the exception handler.
   private static void awaitRelease(final CountDownLatch proceed) {
     try {
-      final boolean released = proceed.await(5, TimeUnit.SECONDS);
+      final boolean released = proceed.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
       assertTrue(released, "the test released the blocked filter");
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();

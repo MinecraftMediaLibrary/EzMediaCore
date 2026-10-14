@@ -37,16 +37,18 @@ import net.jqwik.api.arbitraries.ByteArbitrary;
 import net.jqwik.api.arbitraries.IntegerArbitrary;
 import net.jqwik.api.arbitraries.ListArbitrary;
 
-/**
- * Properties of the sample conversions of the audio paths for every layout a buffer can have: heap or native memory,
- * a view that starts inside a larger buffer, bytes that do not belong to the samples around it, read-only, and either
- * byte order flag. The samples must come out unchanged, the caller's buffer must be left as it was, and the result must
- * be a copy the caller's buffer cannot change afterwards.
- */
+// Properties of the sample conversions of the audio paths for every layout a buffer can have: heap or native memory, a
+// view that starts inside a larger buffer, bytes that do not belong to the samples around it, read-only, and either
+// byte order flag. The samples must come out unchanged, the caller's buffer must be left as it was, and the result must
+// be a copy the caller's buffer cannot change afterwards.
 final class SampleBytesPropertyTest {
 
   private static final String SEED = "20260925";
   private static final byte JUNK = 0x5A;
+
+  private static final String BUFFERS_SOURCE = "buffers";
+
+  private static final int SAMPLE_BYTES = 2;
 
   @Provide
   Arbitrary<SampleBuffer> buffers() {
@@ -66,17 +68,15 @@ final class SampleBytesPropertyTest {
     return buffers.as(SampleBuffer::new);
   }
 
-  /**
-   * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
-   * configured from it, so one base configured twice would hand every user the last range.
-   */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  // Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
+  // configured from it, so one base configured twice would hand every user the last range.
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Property(seed = SEED)
-  void bigEndianSamplesAreTheSamplesOfTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadBigEndianSamplesInTheSourceOrder(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -85,12 +85,13 @@ final class SampleBytesPropertyTest {
     final ByteOrder convertedOrder = converted.order();
     assertSame(ByteOrder.BIG_ENDIAN, convertedOrder);
     assertSameSamples(sample, sourceOrder, converted);
+
     sample.assertUnchanged(source);
     assertIndependentCopy(sample, source, converted);
   }
 
   @Property(seed = SEED)
-  void littleEndianSamplesAreTheSamplesOfTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadLittleEndianSamplesInTheSourceOrder(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -99,12 +100,13 @@ final class SampleBytesPropertyTest {
     final ByteOrder convertedOrder = converted.order();
     assertSame(ByteOrder.LITTLE_ENDIAN, convertedOrder);
     assertSameSamples(sample, sourceOrder, converted);
+
     sample.assertUnchanged(source);
     assertIndependentCopy(sample, source, converted);
   }
 
   @Property(seed = SEED)
-  void shortAndFloatViewsKeepEveryValue(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldKeepEveryValueInShortAndFloatViews(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer bytes = sample.create();
     final ShortBuffer shorts = bytes.asShortBuffer();
     final FloatBuffer floats = bytes.asFloatBuffer();
@@ -119,12 +121,15 @@ final class SampleBytesPropertyTest {
     final int shortStart = shorts.position();
     final int floatStart = floats.position();
     assertEquals(shortCount * Short.BYTES, shortBytes);
+
     for (int index = 0; index < shortCount; index++) {
       final short expected = shorts.get(shortStart + index);
       final short actual = fromShorts.getShort(index * Short.BYTES);
       assertEquals(expected, actual, "short " + index);
     }
+
     assertEquals(floatCount * Float.BYTES, floatBytes);
+
     for (int index = 0; index < floatCount; index++) {
       final float expectedValue = floats.get(floatStart + index);
       final float actualValue = fromFloats.getFloat(index * Float.BYTES);
@@ -135,7 +140,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void monoIsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldMixMonoAsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer stereo = sample.create();
     final byte[] content = sample.getContent();
 
@@ -143,12 +148,15 @@ final class SampleBytesPropertyTest {
 
     final int frames = content.length / 4;
     assertEquals(frames, mono.length, "one sample per whole stereo frame");
+
     for (int frame = 0; frame < frames; frame++) {
       final int left = littleEndianShort(content, frame * 4);
       final int right = littleEndianShort(content, frame * 4 + 2);
       final int expected = Math.floorDiv(left + right, 2);
-      assertEquals(expected, mono[frame], "frame " + frame);
+      final short downmixed = mono[frame];
+      assertEquals(expected, downmixed, "frame " + frame);
     }
+
     sample.assertUnchanged(stereo);
   }
 
@@ -158,38 +166,34 @@ final class SampleBytesPropertyTest {
     return (high << 8) | low;
   }
 
-  /**
-   * Asserts that the converted buffer holds the samples of the source read in the source's own order, and keeps a
-   * trailing odd byte as it is.
-   */
   private static void assertSameSamples(final SampleBuffer sample, final ByteOrder sourceOrder, final ByteBuffer converted) {
     final byte[] content = sample.getContent();
-    final int sampleCount = content.length / 2;
+    final int sampleCount = content.length / SAMPLE_BYTES;
     final int position = converted.position();
     final int remaining = converted.remaining();
     assertEquals(0, position, "the result starts at its beginning");
     assertEquals(content.length, remaining, "every byte is converted");
+
     final ByteBuffer expected = ByteBuffer.wrap(content);
     expected.order(sourceOrder);
     for (int index = 0; index < sampleCount; index++) {
-      final short wanted = expected.getShort(index * 2);
-      final short actual = converted.getShort(index * 2);
+      final short wanted = expected.getShort(index * SAMPLE_BYTES);
+      final short actual = converted.getShort(index * SAMPLE_BYTES);
       assertEquals(wanted, actual, "sample " + index);
     }
-    if (content.length % 2 == 1) {
+
+    if (content.length % SAMPLE_BYTES == 1) {
       final byte last = content[content.length - 1];
       final byte convertedLast = converted.get(content.length - 1);
       assertEquals(last, convertedLast, "the odd trailing byte");
     }
   }
 
-  /**
-   * Asserts that changing the source afterwards does not change the result.
-   */
   private static void assertIndependentCopy(final SampleBuffer sample, final ByteBuffer source, final ByteBuffer converted) {
     if (source.isReadOnly()) {
       return;
     }
+
     final byte[] before = new byte[converted.remaining()];
     final ByteBuffer view = converted.duplicate();
     view.get(before);
@@ -198,15 +202,13 @@ final class SampleBytesPropertyTest {
       final byte current = source.get(index);
       source.put(index, (byte) ~current);
     }
+
     final byte[] after = new byte[converted.remaining()];
     final ByteBuffer again = converted.duplicate();
     again.get(after);
     assertArrayEquals(before, after, () -> "the result shares memory with the source: " + sample);
   }
 
-  /**
-   * Where the bytes of a buffer live.
-   */
   enum Layout {
     HEAP,
     DIRECT,
@@ -215,9 +217,6 @@ final class SampleBytesPropertyTest {
     READ_ONLY,
   }
 
-  /**
-   * Samples in a buffer of some layout, with bytes that are not samples before and after them.
-   */
   private static final class SampleBuffer {
 
     private final byte[] content;
@@ -231,14 +230,11 @@ final class SampleBytesPropertyTest {
       for (int index = 0; index < this.content.length; index++) {
         this.content[index] = content.get(index);
       }
+
       this.before = before;
       this.after = after;
       this.layout = layout;
       this.order = order;
-    }
-
-    private byte[] getContent() {
-      return this.content.clone();
     }
 
     ByteBuffer create() {
@@ -248,6 +244,7 @@ final class SampleBytesPropertyTest {
       for (int index = 0; index < capacity; index++) {
         whole.put(index, JUNK);
       }
+
       whole.put(this.before, this.content);
       whole.position(this.before);
       whole.limit(this.before + this.content.length);
@@ -260,9 +257,6 @@ final class SampleBytesPropertyTest {
       return buffer;
     }
 
-    /**
-     * Asserts that a conversion left the position, the limit, the order and the bytes of the buffer as they were.
-     */
     private void assertUnchanged(final ByteBuffer buffer) {
       final boolean sliced = this.layout == Layout.SLICED_HEAP || this.layout == Layout.SLICED_DIRECT;
       final int start = sliced ? 0 : this.before;
@@ -272,10 +266,15 @@ final class SampleBytesPropertyTest {
       assertEquals(start, position, "position");
       assertEquals(start + this.content.length, limit, "limit");
       assertSame(this.order, bufferOrder, "order");
+
       final byte[] left = new byte[this.content.length];
       final ByteBuffer view = buffer.duplicate();
       view.get(left);
       assertArrayEquals(this.content, left, "bytes");
+    }
+
+    private byte[] getContent() {
+      return this.content.clone();
     }
 
     @Override

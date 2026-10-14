@@ -27,14 +27,21 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  * A video filter that hands every frame together with a dithering algorithm to a {@link DitherResultStep}, which
  * dithers the frame and displays the result. This is how frames reach map displays.
  *
- * <pre><code>
+ * <p>The result step can be any {@link DitherResultStep}, such as the map results of mcav-bukkit:
+ *
+ * {@snippet :
+ * VideoPipelineStep createPipeline(final DitherResultStep maps) {
  *   final DitherAlgorithm algorithm = DitherAlgorithm.filterLite();
- *   final DitherResultStep maps = new CompressedMapResult(configuration);
  *   final FunctionalVideoFilter display = DitherFilter.dither(algorithm, maps);
  *   final VideoPipelineStepBuilder builder = PipelineBuilder.video();
  *   builder.then(display);
- *   final VideoPipelineStep pipeline = builder.build();
- * </code></pre>
+ *   return builder.build();
+ * }
+ * }
+ *
+ * <p>This class is immutable; it is thread-safe when its algorithm and result step are.
+ *
+ * @since 1.0.0
  */
 public final class DitherFilter implements FunctionalVideoFilter {
 
@@ -53,29 +60,13 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * @param result    the step that receives the frames
    * @return the filter
    * @throws NullPointerException if {@code algorithm} or {@code result} is null
+   * @since 1.0.0
    */
   public static FunctionalVideoFilter dither(final DitherAlgorithm algorithm, final DitherResultStep result) {
-    Preconditions.checkNotNull(algorithm, "Algorithm must not be null");
-    Preconditions.checkNotNull(result, "Result step must not be null");
+    Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
+    Preconditions.checkNotNull(result, "Result step must not be null!");
+
     return new DitherFilter(algorithm, result);
-  }
-
-  /**
-   * Gets the dithering algorithm.
-   *
-   * @return the algorithm
-   */
-  public DitherAlgorithm getAlgorithm() {
-    return this.algorithm;
-  }
-
-  /**
-   * Gets the step that receives the frames.
-   *
-   * @return the result step
-   */
-  public DitherResultStep getResult() {
-    return this.result;
   }
 
   /**
@@ -85,17 +76,22 @@ public final class DitherFilter implements FunctionalVideoFilter {
    * @param metadata the metadata of the original video
    * @return true, because the result step may modify the frame
    * @throws NullPointerException if {@code samples} is null
+   * @since 1.0.0
    */
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     this.result.process(samples, this.algorithm);
+
     return true;
   }
 
   /**
    * Prepares the result step, which for example creates the maps of the display. The owner must call this before
    * playback; attaching a filter to a pipeline does not manage its lifecycle.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {
@@ -105,9 +101,31 @@ public final class DitherFilter implements FunctionalVideoFilter {
   /**
    * Releases the result step, which for example removes the maps of the display. The owner must call this after
    * playback has stopped, including when playback fails.
+   *
+   * @since 1.0.0
    */
   @Override
   public void release() {
     this.result.release();
+  }
+
+  /**
+   * Returns the dithering algorithm.
+   *
+   * @return the algorithm
+   * @since 1.0.0
+   */
+  public DitherAlgorithm getAlgorithm() {
+    return this.algorithm;
+  }
+
+  /**
+   * Returns the step that receives the frames.
+   *
+   * @return the result step
+   * @since 1.0.0
+   */
+  public DitherResultStep getResult() {
+    return this.result;
   }
 }

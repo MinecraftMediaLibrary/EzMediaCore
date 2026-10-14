@@ -18,6 +18,9 @@
 /**
  * Selects color-reduction algorithms and defines serial and parallel dithering contracts.
  *
+ * <p>Start from the factories of {@link DitherAlgorithm}, such as {@link DitherAlgorithm#errorDiffusion()}. Algorithms
+ * that split an image across threads implement {@link ParallelDitherAlgorithm}.
+ *
  * <p>In-place dithering replaces ARGB pixels in the caller's array; palette-index methods leave the image
  * unchanged and return a new byte array owned by the caller. Built-in algorithms ignore alpha. Widths are
  * positive and must divide the array length; an empty array is permitted by the in-place methods.
@@ -29,5 +32,7 @@
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;

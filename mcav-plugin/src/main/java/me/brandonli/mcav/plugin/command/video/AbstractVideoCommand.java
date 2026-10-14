@@ -19,7 +19,6 @@ package me.brandonli.mcav.plugin.command.video;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -32,9 +31,10 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
-import me.brandonli.mcav.json.ytdlp.YTDLPParser;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.json.ytdlp.strategy.FormatStrategy;
 import me.brandonli.mcav.json.ytdlp.strategy.StrategySelector;
 import me.brandonli.mcav.media.player.attachable.AudioAttachableCallback;
@@ -47,8 +47,8 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.media.source.Source;
 import me.brandonli.mcav.media.source.SourceDetectionHelper;
 import me.brandonli.mcav.media.source.device.DeviceSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSource;
-import me.brandonli.mcav.media.source.ffmpeg.FFmpegDirectSourceDetector;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSource;
+import me.brandonli.mcav.media.source.ffmpeg.FfmpegDirectSourceDetector;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.plugin.MCAVSandbox;
@@ -62,11 +62,14 @@ import me.brandonli.mcav.plugin.utils.CaptureDevices;
 import me.brandonli.mcav.plugin.utils.FilterChain;
 import me.brandonli.mcav.plugin.utils.PlayerArgument;
 import me.brandonli.mcav.plugin.utils.TaskUtils;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.SourceUtils;
 import me.brandonli.mcav.utils.ThrowableUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.immutable.Dimension;
 import me.brandonli.mcav.utils.immutable.Pair;
+import me.brandonli.mcav.utils.runtime.ProcessException;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -89,7 +92,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
   private static final String PLAYBACK_FAILED = "Failed to play a video";
 
   /** Recognises a raw FFmpeg input, {@code format||input}, as the media argument. */
-  private static final FFmpegDirectSourceDetector RAW_INPUTS = new FFmpegDirectSourceDetector();
+  private static final FfmpegDirectSourceDetector RAW_INPUTS = new FfmpegDirectSourceDetector();
 
   /**
    * The plugin.
@@ -463,7 +466,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
 
     this.manager.clearCurrentVideo();
     this.manager.checkStart();
-    final URLParseDump dump = selection.getDump();
+    final UrlParseDump dump = selection.getDump();
     try {
       final VideoPlayerMultiplexer player = this.createPlayer(request, dump);
       final boolean playing = this.startPlayback(player, selection);
@@ -490,7 +493,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
    *
    * @return the player, which has not started yet
    */
-  private VideoPlayerMultiplexer createPlayer(final PlaybackRequest request, final URLParseDump dump) {
+  private VideoPlayerMultiplexer createPlayer(final PlaybackRequest request, final UrlParseDump dump) {
     final Pair<Integer, Integer> resolution = request.getResolution();
     final VideoConfigurationProvider configurationProvider = request.getConfigurationProvider();
     final VideoPipelineStep videoPipeline = request.getFilters().prepend(this.createVideoFilter(resolution, configurationProvider));
@@ -553,7 +556,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
     }
   }
 
-  private void showHologram(final URLParseDump dump) {
+  private void showHologram(final UrlParseDump dump) {
     final Hologram existing = this.manager.getHologram();
     if (existing != null) {
       existing.kill();
@@ -602,7 +605,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
     if (source instanceof final UriSource page && !page.isDirect()) {
       return resolveWithYtdlp(page, ytdlpArguments);
     }
-    final URLParseDump dump = describeDirectSource(source, mrl);
+    final UrlParseDump dump = describeDirectSource(source, mrl);
     return new SourceSelection(source, null, dump);
   }
 
@@ -612,8 +615,8 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
    *
    * @return the description
    */
-  private static URLParseDump describeDirectSource(final Source source, final String mrl) {
-    if (source instanceof final FFmpegDirectSource ffmpegSource) {
+  private static UrlParseDump describeDirectSource(final Source source, final String mrl) {
+    if (source instanceof final FfmpegDirectSource ffmpegSource) {
       final String input = ffmpegSource.getMrl();
       final String format = ffmpegSource.getFormat();
       return createDump(input, "FFmpeg input " + format);
@@ -624,26 +627,23 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
     }
     if (source instanceof final FileSource file) {
       final Path path = file.getPath();
-      final String fileName = IOUtils.getName(path);
+      final String fileName = IoUtils.getName(path);
       return createDump(fileName, "Video from a file");
     }
-    final String fileName = IOUtils.getFileNameFromUrl(mrl);
+    final String fileName = IoUtils.getFileNameFromUrl(mrl);
     return createDump(fileName, "Video from a URL");
   }
 
-  private static URLParseDump createDump(final String title, final String description) {
-    final URLParseDump dump = new URLParseDump();
-    dump.title = title;
-    dump.description = description;
-    return dump;
+  private static UrlParseDump createDump(final String title, final String description) {
+    return UrlParseDump.of(title, description);
   }
 
   private static SourceSelection resolveWithYtdlp(final UriSource page, final String[] ytdlpArguments) {
-    final YTDLPParser parser = YTDLPParser.simple();
-    final URLParseDump dump;
+    final YtdlpParser parser = YtdlpParser.simple();
+    final UrlParseDump dump;
     try {
       dump = parser.parse(page, ytdlpArguments);
-    } catch (final IOException exception) {
+    } catch (final InstallationException | DownloadException | FileOperationException | ProcessException exception) {
       final String message = exception.getMessage();
       final URI uri = page.getUri();
       throw new IllegalStateException("yt-dlp could not resolve " + uri + ": " + message, exception);
@@ -681,9 +681,9 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
 
     private final Source video;
     private final @Nullable Source audio;
-    private final URLParseDump dump;
+    private final UrlParseDump dump;
 
-    SourceSelection(final Source video, final @Nullable Source audio, final URLParseDump dump) {
+    SourceSelection(final Source video, final @Nullable Source audio, final UrlParseDump dump) {
       this.video = video;
       this.audio = audio;
       this.dump = dump;
@@ -697,7 +697,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
       return this.audio;
     }
 
-    private URLParseDump getDump() {
+    private UrlParseDump getDump() {
       return this.dump;
     }
   }

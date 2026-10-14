@@ -20,7 +20,7 @@ package me.brandonli.mcav.plugin.command.video;
 import com.google.common.base.Preconditions;
 import java.util.concurrent.CompletableFuture;
 import me.brandonli.mcav.media.player.multimedia.VideoPlayerMultiplexer;
-import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCV;
+import me.brandonli.mcav.media.player.multimedia.cv.AbstractVideoPlayerCv;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.VolumeFilter;
 import me.brandonli.mcav.plugin.MCAVSandbox;
 import me.brandonli.mcav.plugin.command.AnnotationCommandFeature;
@@ -95,12 +95,12 @@ public final class VideoPlaybackCommand implements AnnotationCommandFeature {
       sender.sendMessage(Message.SEEK_FAILED.build());
       return;
     }
-    final boolean decoded = player instanceof AbstractVideoPlayerCV;
+    final boolean decoded = player instanceof AbstractVideoPlayerCv;
     if (parsed.relative() && !decoded) {
       sender.sendMessage(Message.SEEK_RELATIVE_UNSUPPORTED.build());
       return;
     }
-    final long current = player instanceof final AbstractVideoPlayerCV cvPlayer ? cvPlayer.getPositionMillis() : 0L;
+    final long current = player instanceof final AbstractVideoPlayerCv cvPlayer ? cvPlayer.getPositionMilliseconds() : 0L;
     final long target = parsed.resolve(current);
     final CompletableFuture<Boolean> seek = CompletableFuture.supplyAsync(() -> player.seek(target), this.manager.getService());
     TaskUtils.whenComplete(seek, (seeked, error) -> this.reportSeek(sender, target, seeked, error));
@@ -151,9 +151,9 @@ public final class VideoPlaybackCommand implements AnnotationCommandFeature {
     Preconditions.checkNotNull(sender, "Sender must not be null");
     final VideoPlayerMultiplexer player = this.manager.getPlayer();
     final Component message;
-    if (player != null && !(player instanceof AbstractVideoPlayerCV)) {
+    if (player != null && !(player instanceof AbstractVideoPlayerCv)) {
       message = Message.VLC_UNSUPPORTED.build();
-    } else if (player instanceof final AbstractVideoPlayerCV decoded && decoded.setSpeed(factor)) {
+    } else if (player instanceof final AbstractVideoPlayerCv decoded && decoded.setSpeed(factor)) {
       message = Message.SPEED_SET.build(Double.toString(factor));
     } else {
       message = Message.SPEED_FAILED.build();
@@ -179,7 +179,7 @@ public final class VideoPlaybackCommand implements AnnotationCommandFeature {
     this.manager.setLooping(enabled);
     sender.sendMessage(enabled ? Message.LOOP_ON.build() : Message.LOOP_OFF.build());
     final VideoPlayerMultiplexer player = this.manager.getPlayer();
-    if (enabled && player != null && !(player instanceof AbstractVideoPlayerCV)) {
+    if (enabled && player != null && !(player instanceof AbstractVideoPlayerCv)) {
       sender.sendMessage(Message.VLC_UNSUPPORTED.build());
     }
   }

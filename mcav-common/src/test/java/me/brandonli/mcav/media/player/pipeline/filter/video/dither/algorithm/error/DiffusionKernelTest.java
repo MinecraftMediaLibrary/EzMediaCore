@@ -23,10 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link DiffusionKernel}.
- */
 final class DiffusionKernelTest {
+
+  private static final String KERNEL_NAME = "x";
 
   private static int weightSum(final DiffusionKernel kernel) {
     int sum = 0;
@@ -34,11 +33,12 @@ final class DiffusionKernelTest {
     for (int tap = 0; tap < taps; tap++) {
       sum += kernel.getWeight(tap);
     }
+
     return sum;
   }
 
   @Test
-  void conservingKernelsSpreadTheWholeError() {
+  void shouldSpreadTheWholeErrorWithConservingKernels() {
     final List<DiffusionKernel> kernels = List.of(
       DiffusionKernel.FLOYD_STEINBERG,
       DiffusionKernel.FILTER_LITE,
@@ -56,7 +56,7 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void atkinsonSpreadsThreeQuartersOfTheError() {
+  void shouldSpreadThreeQuartersOfTheErrorWithAtkinson() {
     final int sum = weightSum(DiffusionKernel.ATKINSON);
     final int divisor = DiffusionKernel.ATKINSON.getDivisor();
     assertEquals(6, sum);
@@ -64,75 +64,73 @@ final class DiffusionKernelTest {
   }
 
   @Test
-  void describesItsTaps() {
+  void shouldDescribeItsTaps() {
     final DiffusionKernel kernel = DiffusionKernel.FLOYD_STEINBERG;
     final int taps = kernel.getTapCount();
     final int firstX = kernel.getOffsetX(0);
     final int firstY = kernel.getOffsetY(0);
     final int secondX = kernel.getOffsetX(1);
-    final int maxX = kernel.getMaxOffsetX();
-    final int maxY = kernel.getMaxOffsetY();
-    final int wideMaxX = DiffusionKernel.STEVENSON_ARCE.getMaxOffsetX();
-    final int wideMaxY = DiffusionKernel.STEVENSON_ARCE.getMaxOffsetY();
+    final int maximumX = kernel.getMaximumOffsetX();
+    final int maximumY = kernel.getMaximumOffsetY();
+    final int wideMaximumX = DiffusionKernel.STEVENSON_ARCE.getMaximumOffsetX();
+    final int wideMaximumY = DiffusionKernel.STEVENSON_ARCE.getMaximumOffsetY();
     final String name = kernel.getName();
     final String text = kernel.toString();
     assertEquals(4, taps);
     assertEquals(1, firstX);
     assertEquals(0, firstY);
     assertEquals(-1, secondX);
-    assertEquals(1, maxX);
-    assertEquals(1, maxY);
-    assertEquals(3, wideMaxX);
-    assertEquals(3, wideMaxY);
+    assertEquals(1, maximumX);
+    assertEquals(1, maximumY);
+    assertEquals(3, wideMaximumX);
+    assertEquals(3, wideMaximumY);
     assertEquals("Floyd-Steinberg", name);
     assertEquals(name, text);
   }
 
   @Test
-  void acceptsCustomKernels() {
+  void shouldAcceptCustomKernels() {
     final DiffusionKernel kernel = new DiffusionKernel("Right", 2, new int[][] { { 1, 0, 1 }, { 0, 1, 1 } });
     final int taps = kernel.getTapCount();
-    final int maxX = kernel.getMaxOffsetX();
+    final int maximumX = kernel.getMaximumOffsetX();
     assertEquals(2, taps);
-    assertEquals(1, maxX);
+    assertEquals(1, maximumX);
   }
 
   @Test
-  void rejectsInvalidKernels() {
+  void shouldRejectInvalidKernels() {
     final int[][] valid = { { 1, 0, 1 } };
     assertThrows(NullPointerException.class, () -> new DiffusionKernel(null, 1, valid));
-    assertThrows(NullPointerException.class, () -> new DiffusionKernel("x", 1, null));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 0, valid));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[0][]));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, -1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, -1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { -1, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0, 0 } }));
-    assertThrows(NullPointerException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0, 1 }, null }));
+    assertThrows(NullPointerException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, null));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 0, valid));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[0][]));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, -1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, -1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { -1, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0, 0 } }));
+    assertThrows(NullPointerException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0, 1 }, null }));
   }
 
-  /**
-   * Found by {@code DitherFuzzTest}: a kernel accepted taps of any reach, and the error rows of a pass are as wide and
-   * as many as the kernel reaches, so a tap far away made dithering allocate until the heap ran out, and one at
-   * {@link Integer#MIN_VALUE} made the reach negative. A tap may reach at most {@value DiffusionKernel#MAX_OFFSET} pixels.
-   */
+  // Found by DitherFuzzTest: a kernel accepted taps of any reach, and the error rows of a pass are as wide and as many
+  // as the kernel reaches, so a tap far away made dithering allocate until the heap ran out, and one at
+  // Integer.MIN_VALUE made the reach negative. A tap may reach at most DiffusionKernel#MAXIMUM_OFFSET pixels.
   @Test
-  void refusesTapsThatReachFartherThanAnyNeighbourhood() {
-    final int limit = DiffusionKernel.MAX_OFFSET;
+  void shouldRefuseTapsThatReachFartherThanAnyNeighbourhood() {
+    final int limit = DiffusionKernel.MAXIMUM_OFFSET;
     final int[][] widest = { { limit, 0, 1 }, { -limit, limit, 1 } };
     final DiffusionKernel kernel = new DiffusionKernel("widest", 2, widest);
-    final int maxX = kernel.getMaxOffsetX();
-    final int maxY = kernel.getMaxOffsetY();
+    final int maximumX = kernel.getMaximumOffsetX();
+    final int maximumY = kernel.getMaximumOffsetY();
 
-    assertEquals(limit, maxX);
-    assertEquals(limit, maxY);
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { limit + 1, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { -limit - 1, 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, limit + 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { Integer.MIN_VALUE, 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { Integer.MAX_VALUE, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, Integer.MAX_VALUE, 1 } }));
+    assertEquals(limit, maximumX);
+    assertEquals(limit, maximumY);
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { limit + 1, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { -limit - 1, 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, limit + 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { Integer.MIN_VALUE, 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { Integer.MAX_VALUE, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, Integer.MAX_VALUE, 1 } }));
   }
 }

@@ -39,7 +39,8 @@ public final class PackBuilderExample {
    * Downloads the example video, extracts its audio, and writes the resource pack to {@code pack.zip}.
    *
    * @param args one argument: the resource-pack format required by the target Minecraft client
-   * @throws IOException if the audio cannot be extracted or the pack cannot be written
+   * @throws IOException if the pack cannot be written
+   * @throws me.brandonli.mcav.utils.runtime.ProcessException if the audio cannot be extracted
    * @throws IllegalArgumentException if the resource-pack format is missing or invalid
    */
   static void main(final String[] args) throws IOException {

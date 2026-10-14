@@ -42,9 +42,10 @@ import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
-import me.brandonli.mcav.utils.IOUtils;
+import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
 import org.junit.jupiter.api.AfterEach;
@@ -54,32 +55,33 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
-/**
- * Tests {@link AudioExtractor} with the bundled FFmpeg. The tests change {@code user.home}, so they run in
- * isolation.
- */
+// Tests AudioExtractor with the bundled FFmpeg. The tests change user.home, so they run in isolation.
 @Isolated
 final class AudioExtractorTest {
 
   private static final float SAMPLE_RATE = 8000;
+
+  private static final String TONE_FILE_NAME = "tone.wav";
+  private static final String MISSING_FILE_NAME = "missing.wav";
+  private static final String INPUT_FILE_NAME = "input.wav";
+  private static final String KEPT_FILE_NAME = "keep.ogg";
+  private static final String OGG_EXTENSION = ".ogg";
 
   @TempDir
   private Path directory;
 
   private String previousHome;
 
-  /**
-   * Extracts the bundled FFmpeg into the real JavaCPP cache before any test moves the home directory, because the
-   * native libraries stay locked for the lifetime of the JVM and would keep the temporary directory from being
-   * deleted.
-   */
+  // Extracts the bundled FFmpeg into the real JavaCPP cache before any test moves the home directory, because the
+  // native libraries stay locked for the lifetime of the JVM and would keep the temporary directory from being deleted.
   @BeforeAll
-  static void extractFFmpeg() {
-    final Path executable = FFmpegExecutableProvider.getFFmpegPath();
+  static void extractFfmpeg() {
+    final Path executable = FfmpegExecutableProvider.getFfmpegPath();
     final boolean exists = Files.isRegularFile(executable);
     assertTrue(exists, "the bundled FFmpeg is available");
   }
@@ -105,8 +107,9 @@ final class AudioExtractorTest {
       samples[index * 2] = (byte) sample;
       samples[index * 2 + 1] = (byte) (sample >> 8);
     }
+
     final AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
-    final Path wave = this.directory.resolve("tone.wav");
+    final Path wave = this.directory.resolve(TONE_FILE_NAME);
     final File waveFile = wave.toFile();
     try (
       final ByteArrayInputStream input = new ByteArrayInputStream(samples);
@@ -114,16 +117,17 @@ final class AudioExtractorTest {
     ) {
       AudioSystem.write(stream, AudioFileFormat.Type.WAVE, waveFile);
     }
+
     return wave;
   }
 
   @Test
-  void extractsTheAudioIntoANewOggVorbisFileInTheCache() throws IOException {
+  void shouldExtractTheAudioIntoANewOggVorbisFileInTheCache() throws IOException {
     final Path wave = this.writeTone();
     final FileSource source = FileSource.path(wave);
     final Path first = AudioExtractor.extractOggVorbis(source);
     final Path second = AudioExtractor.extractOggVorbis(source);
-    final Path cache = IOUtils.getCachedFolder();
+    final Path cache = IoUtils.getCachedFolder();
     final Path parent = first.getParent();
     final Path fileName = first.getFileName();
     final String name = fileName.toString();
@@ -132,7 +136,7 @@ final class AudioExtractorTest {
     final String magicText = new String(magic, StandardCharsets.US_ASCII);
     final String content = new String(bytes, StandardCharsets.ISO_8859_1);
     final boolean mentionsVorbis = content.contains("vorbis");
-    final boolean endsWithOgg = name.endsWith(".ogg");
+    final boolean endsWithOgg = name.endsWith(OGG_EXTENSION);
     assertEquals(cache, parent);
     assertTrue(endsWithOgg);
     assertEquals("OggS", magicText);
@@ -141,71 +145,101 @@ final class AudioExtractorTest {
   }
 
   @Test
-  void reportsMediaThatFFmpegCannotRead() {
-    final Path missing = this.directory.resolve("missing.wav");
+  void shouldReportMediaThatFfmpegCannotRead() {
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final FileSource source = FileSource.path(missing);
     assertThrows(ProcessException.class, () -> AudioExtractor.extractOggVorbis(source));
     assertThrows(NullPointerException.class, () -> AudioExtractor.extractOggVorbis(null));
   }
 
   @Test
-  void removesOnlyThePartialOutputWhenExtractionFails() throws IOException {
-    this.checkFailedExtraction(false, false);
+  void shouldRemoveOnlyThePartialOutputWhenExtractionFails() throws IOException {
+    this.checkFailedExtraction(Cleanup.SUCCEEDS);
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { false, true })
-  void keepsTheExtractionFailureWhenDeletingThePartialFileFails(final boolean sameFailure) throws IOException {
-    this.checkFailedExtraction(true, sameFailure);
+  @EnumSource(value = Cleanup.class, mode = EnumSource.Mode.EXCLUDE, names = "SUCCEEDS")
+  void shouldKeepTheExtractionFailureWhenDeletingThePartialFileFails(final Cleanup cleanup) throws IOException {
+    this.checkFailedExtraction(cleanup);
   }
 
-  private void checkFailedExtraction(final boolean cleanupFails, final boolean sameFailure) throws IOException {
-    final Path cache = IOUtils.getCachedFolder();
-    final Path existing = Files.writeString(cache.resolve("keep.ogg"), "existing audio");
+  private void checkFailedExtraction(final Cleanup cleanup) throws IOException {
+    final boolean cleanupFails = cleanup != Cleanup.SUCCEEDS;
+    final boolean sameFailure = cleanup == Cleanup.FAILS_WITH_THE_EXTRACTION_EXCEPTION;
+    final Path cache = IoUtils.getCachedFolder();
+    final Path existing = Files.writeString(cache.resolve(KEPT_FILE_NAME), "existing audio");
     final AtomicReference<Path> partial = new AtomicReference<>();
-    final FFmpegCommand command = mock(FFmpegCommand.class);
+    final FfmpegCommand command = mock(FfmpegCommand.class);
     final CommandTask task = mock(CommandTask.class);
-    final IOException failure = new IOException("output failed after writing bytes");
-    final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted");
+    final MCAVException failure = new MCAVException("output failed after writing bytes!");
+    final Exception cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
     when(command.createTask()).thenReturn(task);
-    doAnswer(_ -> {
-      Files.writeString(partial.get(), "partial audio");
-      throw failure;
-    })
+    doAnswer(_ -> this.writePartialOutputAndFail(partial, failure))
       .when(task)
       .runChecked();
     try (
-      final MockedStatic<FFmpegTemplates> templates = Mockito.mockStatic(FFmpegTemplates.class);
+      final MockedStatic<FfmpegTemplates> templates = Mockito.mockStatic(FfmpegTemplates.class);
       final MockedStatic<Files> files = Mockito.mockStatic(Files.class, Mockito.CALLS_REAL_METHODS)
     ) {
       templates
-        .when(() -> FFmpegTemplates.extractOggVorbis(anyString(), anyString()))
-        .thenAnswer(invocation -> {
-          final String output = invocation.getArgument(1);
-          final Path outputPath = Path.of(output);
-          partial.set(outputPath);
-          if (cleanupFails) {
-            files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
-          }
-          return command;
-        });
-      final FileSource source = FileSource.path(this.directory.resolve("input.wav"));
-      final IOException thrown = assertThrows(IOException.class, () -> AudioExtractor.extractOggVorbis(source));
+        .when(() -> FfmpegTemplates.extractOggVorbis(anyString(), anyString()))
+        .thenAnswer(invocation -> this.recordPartialOutput(invocation, partial, files, cleanup, cleanupFailure, command));
+      final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));
+      final MCAVException thrown = assertThrows(MCAVException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
-      assertEquals(cleanupFails, Files.exists(partial.get()), "only a cleanup failure can leave the unowned partial output");
+      final boolean partialLeft = Files.exists(partial.get());
+      assertEquals(cleanupFails, partialLeft, "only a cleanup failure can leave the unowned partial output");
       final Throwable[] expectedFailures = cleanupFails && !sameFailure ? new Throwable[] { cleanupFailure } : new Throwable[0];
-      assertArrayEquals(expectedFailures, failure.getSuppressed());
-      assertEquals("existing audio", Files.readString(existing));
+      final Throwable[] suppressedFailures = failure.getSuppressed();
+      assertArrayEquals(expectedFailures, suppressedFailures);
+      final String existingText = Files.readString(existing);
+      assertEquals("existing audio", existingText);
       if (!cleanupFails) {
-        try (final Stream<Path> cacheFiles = Files.list(cache)) {
-          assertEquals(List.of(existing), cacheFiles.toList());
-        }
+        this.assertCacheHoldsOnly(cache, existing);
       }
     }
   }
 
+  private Object writePartialOutputAndFail(final AtomicReference<Path> partial, final MCAVException failure) throws IOException {
+    Files.writeString(partial.get(), "partial audio");
+
+    throw failure;
+  }
+
+  private FfmpegCommand recordPartialOutput(
+    final InvocationOnMock invocation,
+    final AtomicReference<Path> partial,
+    final MockedStatic<Files> files,
+    final Cleanup cleanup,
+    final Exception cleanupFailure,
+    final FfmpegCommand command
+  ) {
+    final String output = invocation.getArgument(1);
+    final Path outputPath = Path.of(output);
+    partial.set(outputPath);
+
+    if (cleanup != Cleanup.SUCCEEDS) {
+      files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
+    }
+
+    return command;
+  }
+
+  private void assertCacheHoldsOnly(final Path cache, final Path existing) throws IOException {
+    try (final Stream<Path> cacheFiles = Files.list(cache)) {
+      final List<Path> cachedFiles = cacheFiles.toList();
+      assertEquals(List.of(existing), cachedFiles);
+    }
+  }
+
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiated() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(AudioExtractor.class);
+  }
+
+  private enum Cleanup {
+    SUCCEEDS,
+    FAILS_WITH_ITS_OWN_EXCEPTION,
+    FAILS_WITH_THE_EXTRACTION_EXCEPTION,
   }
 }

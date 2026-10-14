@@ -22,35 +22,33 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import me.brandonli.mcav.MCAVException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link NativeLoadingException}.
- */
 final class NativeLoadingExceptionTest {
 
   @Test
-  void keepsTheMessage() {
-    final NativeLoadingException exception = new NativeLoadingException("no natives for this platform");
+  void shouldKeepTheMessage() {
+    final NativeLoadingException exception = new NativeLoadingException("no natives for this platform!");
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("no natives for this platform", message);
+    assertEquals("no natives for this platform!", message);
     assertNull(cause);
   }
 
   @Test
-  void keepsTheMessageAndTheCause() {
-    final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniavcodec");
-    final NativeLoadingException exception = new NativeLoadingException("FFmpeg could not be loaded", linkError);
+  void shouldKeepTheMessageAndTheCause() {
+    final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniavcodec!");
+    final NativeLoadingException exception = new NativeLoadingException("FFmpeg could not be loaded!", linkError);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    assertEquals("FFmpeg could not be loaded", message);
+    assertEquals("FFmpeg could not be loaded!", message);
     assertSame(linkError, cause);
   }
 
   @Test
-  void isAnIllegalStateException() {
-    final NativeLoadingException exception = new NativeLoadingException("failure");
-    assertInstanceOf(IllegalStateException.class, exception, "missing natives are an environment state, not an Error");
+  void shouldBeAnMCAVException() {
+    final NativeLoadingException exception = new NativeLoadingException("failure!");
+    assertInstanceOf(MCAVException.class, exception, "missing natives are an environment state, not an Error");
   }
 }

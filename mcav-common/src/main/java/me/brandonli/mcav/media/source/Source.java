@@ -26,20 +26,26 @@ package me.brandonli.mcav.media.source;
  * factories of the subtypes, such as {@link me.brandonli.mcav.media.source.file.FileSource#path(java.nio.file.Path)}
  * or {@link me.brandonli.mcav.media.source.uri.UriSource#uri(java.net.URI)}, or detect the right type from a
  * string with {@link SourceDetectionHelper}.
+ *
+ * <p>The sources of this library are thread-safe; frame sources are as thread-safe as their suppliers.
+ *
+ * @since 1.0.0
  */
 public interface Source {
   /**
-   * Gets the resource description, such as a file path, a URL, or a device index. Generated and specialized
+   * Returns the resource description, such as a file path, a URL, or a device index. Generated and specialized
    * sources may return a diagnostic string that cannot be opened by an arbitrary backend.
    *
    * @return the resource string
+   * @since 1.0.0
    */
   String getResource();
 
   /**
-   * Gets a short name of the source type, such as {@code file} or {@code uri}, for log messages.
+   * Returns a short name of the source type, such as {@code file} or {@code uri}, for log messages.
    *
    * @return the type name
+   * @since 1.0.0
    */
   String getName();
 
@@ -48,6 +54,7 @@ public interface Source {
    * This does not probe its actual duration or whether the selected decoder supports seeking.
    *
    * @return true for files and similar finite media
+   * @since 1.0.0
    */
   boolean isStatic();
 
@@ -55,6 +62,7 @@ public interface Source {
    * Checks whether the source is a live or endless stream, the opposite of {@link #isStatic()}.
    *
    * @return true for streams, devices, and generated frames
+   * @since 1.0.0
    */
   default boolean isDynamic() {
     return !this.isStatic();

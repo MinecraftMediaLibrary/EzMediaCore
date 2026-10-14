@@ -22,6 +22,10 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Stucki error diffusion, which spreads the error over twelve neighbors in three rows. It is a sharper variant of
  * Jarvis, Judice, and Ninke.
+ *
+ * <p>This class is immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class StuckiDither extends ErrorDiffusionDither {
 
@@ -30,6 +34,7 @@ public final class StuckiDither extends ErrorDiffusionDither {
    *
    * @param palette the palette to reduce images to
    * @throws NullPointerException if {@code palette} is null
+   * @since 1.0.0
    */
   public StuckiDither(final DitherPalette palette) {
     super(palette, DiffusionKernel.STUCKI);
@@ -37,6 +42,8 @@ public final class StuckiDither extends ErrorDiffusionDither {
 
   /**
    * Constructs a new Stucki algorithm for the Minecraft map palette.
+   *
+   * @since 1.0.0
    */
   public StuckiDither() {
     this(DitherPalette.DEFAULT_MAP_PALETTE);

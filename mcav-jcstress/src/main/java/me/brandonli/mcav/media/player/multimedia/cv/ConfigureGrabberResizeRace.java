@@ -33,7 +33,7 @@ import org.openjdk.jcstress.infra.results.II_Result;
 
 /**
  * The players of OpenCV and FFmpeg tell a new grabber the size to scale to while that size changes. Pass 1 made
- * {@link AbstractVideoPlayerCV#configureGrabber} read the attached size once instead of asking the callback twice, and
+ * {@link AbstractVideoPlayerCv#configureGrabber} read the attached size once instead of asking the callback twice, and
  * that is what this holds on to: a size read twice lets a change in between give the grabber the width of one size and
  * the height of the other. The actor runs the real method of a real player on a grabber that decodes nothing, which
  * needs no native library; the copier that scales frames on the decoding thread reads the same callback, but writes
@@ -88,7 +88,7 @@ public class ConfigureGrabberResizeRace {
   /**
    * A player that exposes the configuration of its grabbers and never creates one of its own.
    */
-  private static final class ConfiguringPlayer extends AbstractVideoPlayerCV {
+  private static final class ConfiguringPlayer extends AbstractVideoPlayerCv {
 
     private void configure(final FrameGrabber grabber, final Source source) {
       this.configureGrabber(grabber, source);

@@ -18,7 +18,6 @@
 package me.brandonli.mcav.browser;
 
 import me.brandonli.mcav.media.player.PlayerException;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Thrown by the start of a browser when the browser cannot run on this machine: there is no CEF build for its operating
@@ -43,9 +42,9 @@ public final class BrowserUnavailableException extends PlayerException {
    * Constructs the exception.
    *
    * @param message why the browser cannot run
-   * @param cause   the underlying failure, or null if no cause is available
+   * @param cause   the underlying failure
    */
-  public BrowserUnavailableException(final String message, final @Nullable Throwable cause) {
+  public BrowserUnavailableException(final String message, final Throwable cause) {
     super(message, cause);
   }
 }

@@ -24,37 +24,58 @@ import me.brandonli.mcav.utils.SourceUtils;
 
 /**
  * Detects URLs with a scheme and a host.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public class UriSourceDetector implements SourceDetector<UriSource> {
 
   /**
    * Constructs a new detector.
+   *
+   * @since 1.0.0
    */
   public UriSourceDetector() {}
 
   /**
-   * {@inheritDoc}
+   * Checks whether the string parses as a URI with a scheme and a host.
+   *
+   * @param raw the string entered by a user
+   * @return true if {@link #createSource(String)} can create a source from it
    * @throws NullPointerException if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public boolean isDetectedSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     return SourceUtils.isUri(raw);
   }
 
   /**
-   * {@inheritDoc}
+   * Creates a URI source for the URI the string holds.
    *
+   * @param raw the string entered by a user
+   * @return the source
    * @throws IllegalArgumentException if the string is not syntactically a URI
-   * @throws NullPointerException if {@code raw} is null
+   * @throws NullPointerException     if {@code raw} is null
+   * @since 1.0.0
    */
   @Override
   public UriSource createSource(final String raw) {
-    Preconditions.checkNotNull(raw, "Raw must not be null");
+    Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     final URI uri = URI.create(raw);
     return UriSource.uri(uri);
   }
 
+  /**
+   * Returns {@link SourceDetector#NORMAL_PRIORITY}, so device, FFmpeg and file detectors are asked first.
+   *
+   * @return the priority, higher wins
+   * @since 1.0.0
+   */
   @Override
   public int getPriority() {
     return SourceDetector.NORMAL_PRIORITY;

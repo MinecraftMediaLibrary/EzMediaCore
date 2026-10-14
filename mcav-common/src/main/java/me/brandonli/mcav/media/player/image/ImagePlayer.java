@@ -31,22 +31,27 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
  * {@link me.brandonli.mcav.media.image.DynamicImageBuffer} or live captures, through a video pipeline at the
  * frame rate of the source.
  *
- * <pre><code>
- *   final ImagePlayer player = ImagePlayer.player();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(pipeline);
- *   final RepeatingFrameSource source = RepeatingFrameSource.repeating(gif);
- *   player.start(source);
- * </code></pre>
+ * {@snippet :
+ * final ImagePlayer player = ImagePlayer.player();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(pipeline);
+ * final RepeatingFrameSource source = RepeatingFrameSource.repeating(animation);
+ * player.start(source);
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
+   * @since 1.0.0
    */
   static ImagePlayer player() {
-    return new ImagePlayerImpl();
+    return new ThreadedImagePlayer();
   }
 
   /**
@@ -56,8 +61,9 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    *
    * @param source the source of frames
    * @return true if playback started, false if the player is already playing or released
-   * @throws NullPointerException if {@code source} is null
+   * @throws NullPointerException     if {@code source} is null
    * @throws IllegalArgumentException if the source frame rate is nonpositive or nonfinite
+   * @since 1.0.0
    */
   boolean start(final FrameSource source);
 
@@ -67,13 +73,15 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @param source   the source of frames
    * @param executor the executor that runs the call
    * @return a future that completes with the result of {@link #start(FrameSource)}
-   * @throws NullPointerException if {@code source} or {@code executor} is null
+   * @throws NullPointerException                            if {@code source} or {@code executor} is null
    * @throws java.util.concurrent.RejectedExecutionException if the executor rejects the task
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final FrameSource source, final ExecutorService executor) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
+
     return CompletableFuture.supplyAsync(() -> this.start(source), executor);
   }
 
@@ -84,6 +92,7 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
    * @return a future that completes with the result of {@link #start(FrameSource)}
    * @throws NullPointerException if {@code source} is null
    * @see java.util.concurrent.CompletableFuture#supplyAsync(java.util.function.Supplier, java.util.concurrent.Executor)
+   * @since 1.0.0
    */
   default CompletableFuture<Boolean> startAsync(final FrameSource source) {
     final ForkJoinPool pool = ForkJoinPool.commonPool();
@@ -91,9 +100,10 @@ public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
   }
 
   /**
-   * Gets the slot that holds the video pipeline.
+   * Returns the slot that holds the video pipeline.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 }

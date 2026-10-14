@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilderImpl;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
@@ -37,15 +36,20 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ord
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link OrderedDither}, {@link BayerDither}, {@link PixelMapper} and the ordered dither builder.
- */
 final class OrderedDitherTest {
 
-  /**
-   * Asserts that a threshold matrix has the size its name promises, and that every one of its levels occupies the
-   * same number of cells, so no threshold is missing or repeated by mistake.
-   */
+  private static final int MID_GRAY = 0xFF808080;
+
+  private static final int GRADIENT_WIDTH = 64;
+  private static final int TALL_GRADIENT_HEIGHT = 80;
+
+  private static final int SMALL_IMAGE_WIDTH = 2;
+  private static final int SMALL_IMAGE_HEIGHT = 2;
+
+  private static final float UNIT_STRENGTH = 1.0f;
+
+  // Asserts that a threshold matrix has the size its name promises, and that every one of its levels occupies the same
+  // number of cells, so no threshold is missing or repeated by mistake.
   private static void assertEvenRanking(
     final String name,
     final ThresholdMatrix thresholds,
@@ -55,6 +59,7 @@ final class OrderedDitherTest {
   ) {
     final int[][] matrix = thresholds.toArray();
     assertEquals(rows, matrix.length, name + " rows");
+
     int minimum = Integer.MAX_VALUE;
     final Map<Integer, Integer> counts = new HashMap<>();
     for (final int[] row : matrix) {
@@ -68,6 +73,7 @@ final class OrderedDitherTest {
     final int repetitions = (rows * columns) / levels;
     final int distinct = counts.size();
     assertEquals(levels, distinct, name + " levels");
+
     for (int level = 0; level < levels; level++) {
       final int value = minimum + level;
       final int count = counts.getOrDefault(value, 0);
@@ -76,23 +82,27 @@ final class OrderedDitherTest {
   }
 
   private static OrderedDither blackWhite4x4() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_4X4, BayerDither.NORMAL_4X4_MAX, PixelMapper.NORMAL_STRENGTH);
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final OrderedDitherBuilderImpl blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
-    final OrderedDitherBuilderImpl configured = blackWhite.withDitherMatrix(mapper);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(
+      BayerDither.NORMAL_4X4,
+      BayerDither.NORMAL_4X4_MAXIMUM,
+      PixelMapper.NORMAL_STRENGTH
+    );
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final OrderedDitherBuilder configured = blackWhite.withDitherMatrix(mapper);
     return configured.build();
   }
 
   private static byte[] ditherMidGray(final BayerDither dither, final int width, final int height) {
     final int[] gray = new int[width * height];
-    Arrays.fill(gray, 0xFF808080);
+    Arrays.fill(gray, MID_GRAY);
     try (final ImageBuffer grayImage = ImageBuffer.buffer(gray, width, height)) {
       return dither.ditherIntoBytes(grayImage);
     }
   }
 
   @Test
-  void turnsMidGrayIntoAPatternOfHalfBlackHalfWhite() {
+  void shouldTurnMidGrayIntoAPatternOfHalfBlackHalfWhite() {
     final OrderedDither dither = blackWhite4x4();
     final byte[] indices = ditherMidGray(dither, 64, 64);
     final double ratio = DitherTestImages.whiteRatio(indices);
@@ -100,12 +110,15 @@ final class OrderedDitherTest {
   }
 
   @Test
-  void parallelDitheringMatchesSerialDithering() {
-    final int[] tall = DitherTestImages.gradient(64, 80);
-    final int[] flat = DitherTestImages.gradient(64, 4);
+  void shouldMatchSerialDitheringWhenDitheringInParallel() {
+    final int[] tall = DitherTestImages.gradient(GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
+    final int[] flat = DitherTestImages.gradient(GRADIENT_WIDTH, 4);
     final OrderedDither dither = blackWhite4x4();
     final ForkJoinPool pool = new ForkJoinPool(3);
-    try (final ImageBuffer tallImage = ImageBuffer.buffer(tall, 64, 80); final ImageBuffer shortImage = ImageBuffer.buffer(flat, 64, 4)) {
+    try (
+      final ImageBuffer tallImage = ImageBuffer.buffer(tall, GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
+      final ImageBuffer shortImage = ImageBuffer.buffer(flat, GRADIENT_WIDTH, 4)
+    ) {
       final byte[] tallSerial = dither.ditherIntoBytes(tallImage);
       final byte[] tallParallel = dither.ditherIntoBytes(tallImage, pool);
       final byte[] shortSerial = dither.ditherIntoBytes(shortImage);
@@ -118,7 +131,46 @@ final class OrderedDitherTest {
   }
 
   @Test
-  void ditherInPlaceMatchesTheIndices() {
+  void shouldMatchSerialDitheringWhenTheRowsDoNotSplitEvenlyAcrossTasks() {
+    final int height = TALL_GRADIENT_HEIGHT + 1;
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, height);
+    final OrderedDither dither = blackWhite4x4();
+    try (final ForkJoinPool pool = new ForkJoinPool(3); final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, height)) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
+  void shouldMatchSerialDitheringWhenThePixelCountTimesTheWidthOverflowsAnInt() {
+    final int width = 2048;
+    final int height = 512;
+    final int[] pixels = DitherTestImages.gradient(width, height);
+    final OrderedDither dither = blackWhite4x4();
+    try (final ForkJoinPool pool = new ForkJoinPool(3); final ImageBuffer image = ImageBuffer.buffer(pixels, width, height)) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
+  void shouldMatchSerialDitheringWhenDitheringOnASingleThread() {
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
+    final OrderedDither dither = blackWhite4x4();
+    try (
+      final ForkJoinPool pool = new ForkJoinPool(1);
+      final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT)
+    ) {
+      final byte[] serial = dither.ditherIntoBytes(image);
+      final byte[] parallel = dither.ditherIntoBytes(image, pool);
+      assertArrayEquals(serial, parallel);
+    }
+  }
+
+  @Test
+  void shouldMatchTheIndicesWhenDitheringInPlace() {
     final int[] pixels = DitherTestImages.gradient(32, 8);
     final OrderedDither dither = blackWhite4x4();
     final byte[] indices;
@@ -130,22 +182,23 @@ final class OrderedDitherTest {
     dither.dither(inPlace, 32);
     final int[] colors = DitherTestImages.BLACK_WHITE.getPalette();
     for (int index = 0; index < inPlace.length; index++) {
-      assertEquals(colors[indices[index]], inPlace[index]);
+      final int ditheredColor = inPlace[index];
+      assertEquals(colors[indices[index]], ditheredColor);
     }
   }
 
   @Test
-  void defaultBuilderUsesTheMapPalette() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
+  void shouldUseTheMapPaletteInTheDefaultBuilder() {
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
     final BayerDither dither = builder.build();
     final DitherPalette palette = dither.getPalette();
     assertSame(DitherPalette.DEFAULT_MAP_PALETTE, palette);
   }
 
   @Test
-  void defaultBuilderUsesA2x2Matrix() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final OrderedDitherBuilderImpl blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
+  void shouldUseA2x2MatrixInTheDefaultBuilder() {
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder blackWhite = builder.withPalette(DitherTestImages.BLACK_WHITE);
     final BayerDither dither = blackWhite.build();
     final byte[] indices = ditherMidGray(dither, 8, 8);
     final byte[] expected = new byte[64];
@@ -154,7 +207,9 @@ final class OrderedDitherTest {
         expected[row * 8 + column] = (byte) ((row + column) % 2);
       }
     }
+
     assertArrayEquals(expected, indices, "the default 2x2 ranks darken the diagonal and brighten the other cells");
+
     for (int row = 0; row < 6; row++) {
       for (int column = 0; column < 6; column++) {
         final int index = indices[row * 8 + column];
@@ -167,80 +222,91 @@ final class OrderedDitherTest {
   }
 
   @Test
-  void builderMethodsReturnTheBuilderForChaining() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, PixelMapper.MIN_STRENGTH);
-    final OrderedDitherBuilderImpl withPalette = builder.withPalette(DitherTestImages.BLACK_WHITE);
-    final OrderedDitherBuilderImpl withMatrix = builder.withDitherMatrix(mapper);
+  void shouldReturnTheBuilderFromBuilderMethodsForChaining() {
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_8X8, PixelMapper.MINIMUM_STRENGTH);
+    final OrderedDitherBuilder withPalette = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final OrderedDitherBuilder withMatrix = builder.withDitherMatrix(mapper);
     assertSame(builder, withPalette);
     assertSame(builder, withMatrix);
   }
 
   @Test
-  void builderRejectsMissingArguments() {
-    final OrderedDitherBuilder<BayerDither, OrderedDitherBuilderImpl> builder = DitherAlgorithm.ordered();
+  void shouldRejectMissingArgumentsInTheBuilder() {
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
     assertThrows(NullPointerException.class, () -> builder.withPalette(null));
     assertThrows(NullPointerException.class, () -> builder.withDitherMatrix(null));
     assertThrows(NullPointerException.class, () -> new OrderedDither(DitherTestImages.BLACK_WHITE, null));
   }
 
   @Test
-  void rejectsInvalidInput() {
+  void shouldRejectInvalidInput() {
     final OrderedDither dither = blackWhite4x4();
     final NullPointerException missingImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null));
-    assertEquals("Image must not be null", missingImage.getMessage());
+    final String missingImageMessage = missingImage.getMessage();
+    assertEquals("Image must not be null!", missingImageMessage);
+
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final NullPointerException missingParallelImage = assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(null, pool));
-      assertEquals("Image must not be null", missingParallelImage.getMessage());
+      final String missingParallelImageMessage = missingParallelImage.getMessage();
+      assertEquals("Image must not be null!", missingParallelImageMessage);
     }
+
     try (final ImageBuffer image = ImageBuffer.buffer(new int[1], 1, 1)) {
       assertThrows(NullPointerException.class, () -> dither.ditherIntoBytes(image, null));
     }
+
     assertThrows(IllegalArgumentException.class, () -> dither.dither(new int[3], 2));
   }
 
   @Test
-  void normalizesThresholdMatricesAroundZero() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAX, 1.0f);
+  void shouldNormalizeThresholdMatricesAroundZero() {
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, UNIT_STRENGTH);
     final PixelMapper doubled = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 2.0f);
     final float[][] matrix = mapper.getMatrix();
     final float[][] doubledMatrix = doubled.getMatrix();
     final float strength = doubled.getStrength();
-    assertArrayEquals(new float[] { -0.375f, 0.125f }, matrix[0]);
-    assertArrayEquals(new float[] { 0.375f, -0.125f }, matrix[1]);
-    assertArrayEquals(new float[] { -0.75f, 0.25f }, doubledMatrix[0]);
+    final float[] firstRow = matrix[0];
+    assertArrayEquals(new float[] { -0.375f, 0.125f }, firstRow);
+
+    final float[] secondRow = matrix[1];
+    assertArrayEquals(new float[] { 0.375f, -0.125f }, secondRow);
+
+    final float[] doubledFirstRow = doubledMatrix[0];
+    assertArrayEquals(new float[] { -0.75f, 0.25f }, doubledFirstRow);
     assertEquals(2.0f, strength);
   }
 
   @Test
-  void normalizesThresholdsAcrossTheEntireIntegerRange() {
+  void shouldNormalizeThresholdsAcrossTheEntireIntegerRange() {
     final int[][] thresholds = { { Integer.MIN_VALUE, 0, Integer.MAX_VALUE } };
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(thresholds, 1.0f);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(thresholds, UNIT_STRENGTH);
     final float[][] matrix = mapper.getMatrix();
-    assertArrayEquals(new float[] { -0.5f, 0x1.0p-33f, 0.5f }, matrix[0]);
+    final float[] firstRow = matrix[0];
+    assertArrayEquals(new float[] { -0.5f, 0x1.0p-33f, 0.5f }, firstRow);
   }
 
   @Test
-  void aLargeStrengthPushesEveryPixelAllTheWayItsOffsetPoints() {
+  void shouldPushEveryPixelAllTheWayItsOffsetPointsWithALargeStrength() {
     final PixelMapper strong = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1e30f);
     final OrderedDither dither = new OrderedDither(DitherPalette.colors(0x000000, 0xFFFFFF), strong);
-    final int[] gray = new int[4];
-    Arrays.fill(gray, 0xFF808080);
-    try (final ImageBuffer image = ImageBuffer.buffer(gray, 2, 2)) {
+    final int[] gray = new int[SMALL_IMAGE_WIDTH * SMALL_IMAGE_HEIGHT];
+    Arrays.fill(gray, MID_GRAY);
+    try (final ImageBuffer image = ImageBuffer.buffer(gray, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] indices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1, 1, 0 }, indices, "a positive offset brightens to white, a negative one darkens to black");
     }
   }
 
   @Test
-  void rejectsNonFiniteStrengths() {
+  void shouldRejectNonFiniteStrengths() {
     assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, Float.POSITIVE_INFINITY));
     assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, Float.NEGATIVE_INFINITY));
     assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, Float.NaN));
   }
 
   @Test
-  void pixelMapperAcceptsAStrengthOfZero() {
+  void shouldAcceptAStrengthOfZeroInThePixelMapper() {
     final PixelMapper flat = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 0.0f);
     final float[][] matrix = flat.getMatrix();
     final float strength = flat.getStrength();
@@ -248,26 +314,27 @@ final class OrderedDitherTest {
     // every threshold is (value / max - 0.5) * strength, so the entries below the middle of the pattern come out as
     // negative zero; the tolerance compares the numbers rather than the sign of a zero
     final float exactly = 0.0f;
-    assertArrayEquals(new float[] { 0.0f, 0.0f }, matrix[0], exactly, "and flattens every threshold of the pattern");
+    final float[] firstRow = matrix[0];
+    assertArrayEquals(new float[] { 0.0f, 0.0f }, firstRow, exactly, "and flattens every threshold of the pattern");
   }
 
   @Test
-  void pixelMapperRejectsInvalidMatrices() {
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 0, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[0][], 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { {} }, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1, 2 }, { 3 } }, 1.0f));
+  void shouldRejectInvalidMatricesInThePixelMapper() {
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 0, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[0][], UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { {} }, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1, 2 }, { 3 } }, UNIT_STRENGTH));
     assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, -1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { null }, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1 }, null }, 1.0f));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { null }, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1 }, null }, UNIT_STRENGTH));
   }
 
   @Test
-  void generatesBayerMatricesOfAnyPowerOfTwo() {
+  void shouldGenerateBayerMatricesOfAnyPowerOfTwo() {
     final int[][] one = BayerDither.createBayerMatrix(1);
     final int[][] four = BayerDither.createBayerMatrix(4);
     final int[][] eight = BayerDither.createBayerMatrix(8);
@@ -279,57 +346,66 @@ final class OrderedDitherTest {
     }
 
     assertArrayEquals(new int[][] { { 0 } }, one);
-    assertArrayEquals(new int[] { 0, 8, 2, 10 }, four[0]);
+
+    final int[] firstRowOfFour = four[0];
+    assertArrayEquals(new int[] { 0, 8, 2, 10 }, firstRowOfFour);
+
     for (final boolean wasSeen : seen) {
       assertTrue(wasSeen, "every threshold appears exactly once");
     }
+
     assertThrows(IllegalArgumentException.class, () -> BayerDither.createBayerMatrix(0));
     assertThrows(IllegalArgumentException.class, () -> BayerDither.createBayerMatrix(3));
   }
 
   @Test
-  void orderedSpreadDoesNotOverBrightenADarkGray() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1.0f);
+  void shouldNotOverBrightenADarkGrayWithTheOrderedSpread() {
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, UNIT_STRENGTH);
     final OrderedDither dither = new OrderedDither(DitherTestImages.BLACK_WHITE, mapper);
     final int[] pixels = { 0xFF5A5A5A, 0xFF5A5A5A, 0xFF5A5A5A, 0xFF5A5A5A };
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 2, 2)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] actual = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 0, 1, 0 }, actual);
     }
   }
 
   @Test
-  void addsTheCenteredPatternScaledToThePaletteSpacing() {
+  void shouldAddTheCenteredPatternScaledToThePaletteSpacing() {
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, PixelMapper.NORMAL_STRENGTH);
     final OrderedDither dither = new OrderedDither(DitherTestImages.BLACK_WHITE, mapper);
-    final int[] pixels = new int[4];
+    final int[] pixels = new int[SMALL_IMAGE_WIDTH * SMALL_IMAGE_HEIGHT];
     Arrays.fill(pixels, 0xFF6E6E6E);
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 2, 2)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] indices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1, 1, 0 }, indices);
     }
   }
 
   @Test
-  void bayerMatricesHaveTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("NORMAL_2X2", BayerDither.NORMAL_2X2, 2, 2, BayerDither.NORMAL_2X2_MAX);
-    assertEvenRanking("NORMAL_4X4", BayerDither.NORMAL_4X4, 4, 4, BayerDither.NORMAL_4X4_MAX);
-    assertEvenRanking("NORMAL_8X8", BayerDither.NORMAL_8X8, 8, 8, BayerDither.NORMAL_8X8_MAX);
+  void shouldGiveBayerMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
+    assertEvenRanking("NORMAL_2X2", BayerDither.NORMAL_2X2, 2, 2, BayerDither.NORMAL_2X2_MAXIMUM);
+    assertEvenRanking("NORMAL_4X4", BayerDither.NORMAL_4X4, 4, 4, BayerDither.NORMAL_4X4_MAXIMUM);
+    assertEvenRanking("NORMAL_8X8", BayerDither.NORMAL_8X8, 8, 8, BayerDither.NORMAL_8X8_MAXIMUM);
   }
 
   @Test
-  void theBayerConstantsAreExactlyTheMatricesOfTheRecursion() {
+  void shouldMakeTheBayerConstantsExactlyTheMatricesOfTheRecursion() {
     final ThresholdMatrix generatedTwo = oneBasedBayerMatrix(2);
     final ThresholdMatrix generatedFour = oneBasedBayerMatrix(4);
     final ThresholdMatrix generatedEight = oneBasedBayerMatrix(8);
 
-    assertArrayEquals(generatedTwo.toArray(), BayerDither.NORMAL_2X2.toArray(), "NORMAL_2X2");
-    assertArrayEquals(generatedFour.toArray(), BayerDither.NORMAL_4X4.toArray(), "NORMAL_4X4");
-    assertArrayEquals(generatedEight.toArray(), BayerDither.NORMAL_8X8.toArray(), "NORMAL_8X8");
+    final int[][] normalTwo = BayerDither.NORMAL_2X2.toArray();
+    assertArrayEquals(generatedTwo.toArray(), normalTwo, "NORMAL_2X2");
+
+    final int[][] normalFour = BayerDither.NORMAL_4X4.toArray();
+    assertArrayEquals(generatedFour.toArray(), normalFour, "NORMAL_4X4");
+
+    final int[][] normalEight = BayerDither.NORMAL_8X8.toArray();
+    assertArrayEquals(generatedEight.toArray(), normalEight, "NORMAL_8X8");
   }
 
   @Test
-  void theEightByEightMatrixIsTheOneOfTheLiterature() {
+  void shouldMakeTheEightByEightMatrixTheOneOfTheLiterature() {
     // the canonical 8x8 Bayer matrix, one-based; see https://en.wikipedia.org/wiki/Ordered_dithering
     final int[][] published = {
       { 1, 33, 9, 41, 3, 35, 11, 43 },
@@ -352,79 +428,80 @@ final class OrderedDitherTest {
         row[column] = row[column] + 1;
       }
     }
+
     return ThresholdMatrix.of(generated);
   }
 
   @Test
-  void clusteredDotMatricesHaveTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("CLUSTERED_DOT_4X4", BayerDither.CLUSTERED_DOT_4X4, 4, 4, BayerDither.CLUSTERED_DOT_4X4_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6", BayerDither.CLUSTERED_DOT_6X6, 6, 6, BayerDither.CLUSTERED_DOT_6X6_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6_2", BayerDither.CLUSTERED_DOT_6X6_2, 6, 6, BayerDither.CLUSTERED_DOT_6X6_2_MAX);
-    assertEvenRanking("CLUSTERED_DOT_6X6_3", BayerDither.CLUSTERED_DOT_6X6_3, 6, 6, BayerDither.CLUSTERED_DOT_6X6_3_MAX);
-    assertEvenRanking("CLUSTERED_DOT_SPIRAL_5X5", BayerDither.CLUSTERED_DOT_SPIRAL_5X5, 5, 5, BayerDither.CLUSTERED_DOT_SPIRAL_5X5_MAX);
-    assertEvenRanking("CLUSTERED_DOT_8X8", BayerDither.CLUSTERED_DOT_8X8, 8, 8, BayerDither.CLUSTERED_DOT_8X8_MAX);
+  void shouldGiveClusteredDotMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
+    assertEvenRanking("CLUSTERED_DOT_4X4", BayerDither.CLUSTERED_DOT_4X4, 4, 4, BayerDither.CLUSTERED_DOT_4X4_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6", BayerDither.CLUSTERED_DOT_6X6, 6, 6, BayerDither.CLUSTERED_DOT_6X6_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6_2", BayerDither.CLUSTERED_DOT_6X6_2, 6, 6, BayerDither.CLUSTERED_DOT_6X6_2_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_6X6_3", BayerDither.CLUSTERED_DOT_6X6_3, 6, 6, BayerDither.CLUSTERED_DOT_6X6_3_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_SPIRAL_5X5", BayerDither.CLUSTERED_DOT_SPIRAL_5X5, 5, 5, BayerDither.CLUSTERED_DOT_SPIRAL_5X5_MAXIMUM);
+    assertEvenRanking("CLUSTERED_DOT_8X8", BayerDither.CLUSTERED_DOT_8X8, 8, 8, BayerDither.CLUSTERED_DOT_8X8_MAXIMUM);
   }
 
   @Test
-  void lineMatricesHaveTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
-    assertEvenRanking("VERTICAL_5X3", BayerDither.VERTICAL_5X3, 3, 5, BayerDither.VERTICAL_5X3_MAX);
-    assertEvenRanking("HORIZONTAL_3X5", BayerDither.HORIZONTAL_3X5, 5, 3, BayerDither.HORIZONTAL_3X5_MAX);
+  void shouldGiveLineMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
+    assertEvenRanking("VERTICAL_5X3", BayerDither.VERTICAL_5X3, 3, 5, BayerDither.VERTICAL_5X3_MAXIMUM);
+    assertEvenRanking("HORIZONTAL_3X5", BayerDither.HORIZONTAL_3X5, 5, 3, BayerDither.HORIZONTAL_3X5_MAXIMUM);
     assertEvenRanking(
       "CLUSTERED_DOT_HORIZONTAL_LINE",
       BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE_MAX
+      BayerDither.CLUSTERED_DOT_HORIZONTAL_LINE_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_VERTICAL_LINE",
       BayerDither.CLUSTERED_DOT_VERTICAL_LINE,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_VERTICAL_LINE_MAX
+      BayerDither.CLUSTERED_DOT_VERTICAL_LINE_MAXIMUM
     );
   }
 
   @Test
-  void diagonalClusteredDotMatricesHaveTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
+  void shouldGiveDiagonalClusteredDotMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_6X6",
       BayerDither.CLUSTERED_DOT_DIAGONAL_6X6,
       6,
       6,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_6X6_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_6X6_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_8X8",
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_8X8_2",
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_2_MAXIMUM
     );
   }
 
   @Test
-  void largerDiagonalClusteredDotMatricesHaveTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
+  void shouldGiveLargerDiagonalClusteredDotMatricesTheSizeOfTheirNamesAndRankTheirCellsEvenly() {
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_8X8_3",
       BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3,
       8,
       8,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_8X8_3_MAXIMUM
     );
     assertEvenRanking(
       "CLUSTERED_DOT_DIAGONAL_16X16",
       BayerDither.CLUSTERED_DOT_DIAGONAL_16X16,
       16,
       16,
-      BayerDither.CLUSTERED_DOT_DIAGONAL_16X16_MAX
+      BayerDither.CLUSTERED_DOT_DIAGONAL_16X16_MAXIMUM
     );
   }
 }

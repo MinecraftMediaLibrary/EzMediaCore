@@ -39,15 +39,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-/**
- * Tests {@link IdleTimeoutInputStream}.
- */
 final class IdleTimeoutInputStreamTest {
 
   private static final Duration GENEROUS_TIMEOUT = Duration.ofSeconds(10);
 
   @Test
-  void passesTheDataThroughByteByByteAndInBlocks() throws IOException {
+  void shouldPassTheDataThroughByteByByteAndInBlocks() throws IOException {
     final byte[] content = { 1, 2, (byte) 200, 4 };
     final ByteArrayInputStream source = new ByteArrayInputStream(content);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT)) {
@@ -70,7 +67,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void failsAndClosesTheSourceWhenNoDataArrives() throws IOException {
+  void shouldFailAndCloseTheSourceWhenNoDataArrives() throws IOException {
     final BlockingSource source = new BlockingSource();
     final Duration idleTimeout = Duration.ofMillis(100);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, idleTimeout)) {
@@ -81,13 +78,15 @@ final class IdleTimeoutInputStreamTest {
       final boolean namesTheTimeout = message.contains("100 ms");
       assertTrue(namesTheTimeout, message);
       assertTrue(closed, "the stalled source is closed, which releases its connection");
-      assertInstanceOf(TimeoutException.class, exception.getCause(), "the timeout it came from is kept");
+
+      final Throwable timeoutCause = exception.getCause();
+      assertInstanceOf(TimeoutException.class, timeoutCause, "the timeout it came from is kept");
     }
   }
 
   @Test
-  void reportsFailuresOfTheSource() throws IOException {
-    final IOException failure = new IOException("connection reset");
+  void shouldReportFailuresOfTheSource() throws IOException {
+    final IOException failure = new IOException("connection reset!");
     final InputStream broken = new InputStream() {
       @Override
       public int read() throws IOException {
@@ -104,13 +103,14 @@ final class IdleTimeoutInputStreamTest {
       final Throwable cause = thrown.getCause();
       final String message = thrown.getMessage();
       assertSame(failure, cause);
+
       final boolean namesTheFailure = message.contains("connection reset");
       assertTrue(namesTheFailure, message);
     }
   }
 
   @Test
-  void stopsWaitingWhenInterrupted() throws IOException {
+  void shouldStopWaitingWhenInterrupted() throws IOException {
     final BlockingSource source = new BlockingSource();
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT)) {
       final Thread currentThread = Thread.currentThread();
@@ -118,16 +118,18 @@ final class IdleTimeoutInputStreamTest {
       final InterruptedIOException thrown = assertThrows(InterruptedIOException.class, stream::read);
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted, "the interrupt must be restored");
-      assertInstanceOf(InterruptedException.class, thrown.getCause(), "the interrupt it came from is kept");
+
+      final Throwable interruptCause = thrown.getCause();
+      assertInstanceOf(InterruptedException.class, interruptCause, "the interrupt it came from is kept");
     }
   }
 
   @Test
-  void validatesArgumentsAndReturnsZeroWithoutReadingTheSource() throws IOException {
+  void shouldValidateArgumentsAndReturnZeroWithoutReadingTheSource() throws IOException {
     final InputStream unused = new InputStream() {
       @Override
       public int read() {
-        throw new AssertionError("An empty or invalid read must not access the source");
+        throw new AssertionError("An empty or invalid read must not access the source!");
       }
 
       @Override
@@ -149,29 +151,16 @@ final class IdleTimeoutInputStreamTest {
 
   static Stream<Throwable> uncheckedReadFailures() {
     return Stream.of(
-      new IllegalStateException("source closed"),
-      new AssertionError("source invariant"),
-      new OutOfMemoryError("source allocation")
+      new IllegalStateException("source closed!"),
+      new AssertionError("source invariant!"),
+      new OutOfMemoryError("source allocation!")
     );
   }
 
   @ParameterizedTest
   @MethodSource("uncheckedReadFailures")
-  void preservesUncheckedFailuresAcrossTheWorkerThread(final Throwable failure) throws IOException {
-    final InputStream broken = new InputStream() {
-      @Override
-      public int read() {
-        if (failure instanceof final RuntimeException exception) {
-          throw exception;
-        }
-        throw (Error) failure;
-      }
-
-      @Override
-      public int read(final byte[] bytes, final int offset, final int length) {
-        return this.read();
-      }
-    };
+  void shouldPreserveUncheckedFailuresAcrossTheWorkerThread(final Throwable failure) throws IOException {
+    final InputStream broken = new UncheckedFailingSource(failure);
     try (final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(broken, GENEROUS_TIMEOUT)) {
       final Class<? extends Throwable> failureType = failure.getClass();
       final Throwable thrown = assertThrows(failureType, stream::read);
@@ -180,7 +169,7 @@ final class IdleTimeoutInputStreamTest {
   }
 
   @Test
-  void closesTheSource() throws IOException {
+  void shouldCloseTheSource() throws IOException {
     final BlockingSource source = new BlockingSource();
     final IdleTimeoutInputStream stream = new IdleTimeoutInputStream(source, GENEROUS_TIMEOUT);
     stream.close();
@@ -188,9 +177,6 @@ final class IdleTimeoutInputStreamTest {
     assertTrue(closed);
   }
 
-  /**
-   * A source that delivers no data until it is closed, like a server that stopped sending.
-   */
   private static final class BlockingSource extends InputStream {
 
     private final CountDownLatch closed = new CountDownLatch(1);
@@ -205,9 +191,6 @@ final class IdleTimeoutInputStreamTest {
       return this.awaitClosing();
     }
 
-    /**
-     * Blocks until the source is closed and then reports its end, like a connection that ends without sending.
-     */
     private int awaitClosing() throws IOException {
       final boolean closedInTime;
       try {
@@ -215,11 +198,13 @@ final class IdleTimeoutInputStreamTest {
       } catch (final InterruptedException exception) {
         final Thread currentThread = Thread.currentThread();
         currentThread.interrupt();
-        throw new InterruptedIOException("interrupted");
+        throw new InterruptedIOException("interrupted!");
       }
+
       if (!closedInTime) {
-        throw new IOException("the source was never closed");
+        throw new IOException("the source was never closed!");
       }
+
       return -1;
     }
 
@@ -230,6 +215,29 @@ final class IdleTimeoutInputStreamTest {
 
     private boolean isClosed() {
       return this.closed.getCount() == 0;
+    }
+  }
+
+  private static final class UncheckedFailingSource extends InputStream {
+
+    private final Throwable failure;
+
+    UncheckedFailingSource(final Throwable failure) {
+      this.failure = failure;
+    }
+
+    @Override
+    public int read() {
+      if (this.failure instanceof final RuntimeException exception) {
+        throw exception;
+      }
+
+      throw (Error) this.failure;
+    }
+
+    @Override
+    public int read(final byte[] bytes, final int offset, final int length) {
+      return this.read();
     }
   }
 }

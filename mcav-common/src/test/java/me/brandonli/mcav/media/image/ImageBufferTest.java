@@ -30,17 +30,15 @@ import java.nio.IntBuffer;
 import java.nio.ReadOnlyBufferException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the pixel accessors that {@link ImageBuffer} provides on top of the shared {@link ImageBuffer#getPixels()}
- * array: the copying {@link ImageBuffer#copyPixels()} and the read-only {@link ImageBuffer#getReadOnlyPixels()}.
- */
 final class ImageBufferTest {
 
   private static final int[] PIXELS = { 0xFF112233, 0xFF445566, 0xFF778899, 0xFFAABBCC };
   private static final int SIDE = 2;
 
+  private static final int WRITTEN_PIXEL = 0xFF000000;
+
   @Test
-  void closeInvalidatesTheOwnedImage() {
+  void shouldInvalidateTheOwnedImageOnClose() {
     final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE);
     try {
       image.close();
@@ -51,14 +49,14 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsIntoAnArrayTheCallerOwns() {
+  void shouldCopyThePixelsIntoAnArrayTheCallerOwns() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] shared = image.getPixels();
       final int[] copy = image.copyPixels();
       assertNotSame(shared, copy);
       assertArrayEquals(PIXELS, copy);
 
-      copy[0] = 0xFF000000;
+      copy[0] = WRITTEN_PIXEL;
       final int[] sharedAfterWrite = image.getPixels();
       assertSame(shared, sharedAfterWrite, "writing the copy leaves the cache in place");
       assertArrayEquals(PIXELS, sharedAfterWrite, "writing the copy does not reach the shared pixels");
@@ -66,7 +64,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsAgainOnEveryCall() {
+  void shouldCopyThePixelsAgainOnEveryCall() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] first = image.copyPixels();
       final int[] second = image.copyPixels();
@@ -76,7 +74,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void copiesThePixelsOfTheCurrentImage() {
+  void shouldCopyThePixelsOfTheCurrentImage() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final int[] before = image.copyPixels();
       final int[] replacement = { 0xFF010203, 0xFF040506, 0xFF070809, 0xFF0A0B0C };
@@ -88,7 +86,7 @@ final class ImageBufferTest {
   }
 
   @Test
-  void viewsThePixelsWithoutAllowingWrites() {
+  void shouldViewThePixelsWithoutAllowingWrites() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final IntBuffer view = image.getReadOnlyPixels();
       final boolean readOnly = view.isReadOnly();
@@ -102,28 +100,29 @@ final class ImageBufferTest {
       final int[] read = new int[PIXELS.length];
       view.get(read);
       assertArrayEquals(PIXELS, read);
-      assertThrows(ReadOnlyBufferException.class, () -> view.put(0, 0xFF000000));
+      assertThrows(ReadOnlyBufferException.class, () -> view.put(0, WRITTEN_PIXEL));
+
       final int[] shared = image.getPixels();
       assertArrayEquals(PIXELS, shared, "a rejected write leaves the shared pixels intact");
     }
   }
 
   @Test
-  void viewsTheSharedArrayInsteadOfCopyingIt() {
+  void shouldViewTheSharedArrayInsteadOfCopyingIt() {
     final int[] shared = PIXELS.clone();
     try (final ImageBuffer image = mock(ImageBuffer.class)) {
       when(image.getPixels()).thenReturn(shared);
       when(image.getReadOnlyPixels()).thenCallRealMethod();
       final IntBuffer view = image.getReadOnlyPixels();
 
-      shared[1] = 0xFF000000;
+      shared[1] = WRITTEN_PIXEL;
       final int seen = view.get(1);
-      assertEquals(0xFF000000, seen, "the view reads the shared array itself, so building it copies nothing");
+      assertEquals(WRITTEN_PIXEL, seen, "the view reads the shared array itself, so building it copies nothing");
     }
   }
 
   @Test
-  void createsAnIndependentViewOnEveryCall() {
+  void shouldCreateAnIndependentViewOnEveryCall() {
     try (final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE)) {
       final IntBuffer first = image.getReadOnlyPixels();
       final IntBuffer second = image.getReadOnlyPixels();

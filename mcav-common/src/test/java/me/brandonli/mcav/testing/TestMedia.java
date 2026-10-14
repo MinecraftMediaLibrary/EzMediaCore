@@ -27,38 +27,19 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-/**
- * Media files for tests, generated once per test run with the FFmpeg executable bundled with JavaCV, so no binary
- * test files have to be committed.
- *
- * <p>Every file is created the first time it is requested and reused afterwards. The files live in a temporary
- * directory that is deleted when the JVM exits.
- */
+// Media files for tests, generated once per test run with the FFmpeg executable bundled with JavaCV, so no binary test
+// files have to be committed. Every file is created the first time it is requested and reused afterwards. The files
+// live in a temporary directory that is deleted when the JVM exits.
 public final class TestMedia {
 
-  /**
-   * The width of the generated videos.
-   */
   public static final int VIDEO_WIDTH = 320;
 
-  /**
-   * The height of the generated videos.
-   */
   public static final int VIDEO_HEIGHT = 240;
 
-  /**
-   * The frame rate of the generated videos.
-   */
   public static final int VIDEO_FRAME_RATE = 30;
 
-  /**
-   * The sample rate of the generated audio.
-   */
   public static final int AUDIO_SAMPLE_RATE = 44_100;
 
-  /**
-   * The length of the main test video in seconds.
-   */
   public static final int VIDEO_SECONDS = 5;
 
   private static final String TEST_PATTERN_INPUT =
@@ -67,15 +48,23 @@ public final class TestMedia {
   private static final String SINE_INPUT = "-f lavfi -i sine=sample_rate=" + AUDIO_SAMPLE_RATE + ":frequency=";
   private static final String ARGUMENT_SEPARATOR = " ";
 
+  private static final String DIRECTORY_PREFIX = "mcav-test-media";
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+  private static final String SEEK_VIDEO_FILE_NAME = "seek-video.mp4";
+  private static final String SILENT_VIDEO_FILE_NAME = "silent.mp4";
+  private static final String AUDIO_FILE_PREFIX = "audio-";
+  private static final String AUDIO_FILE_EXTENSION = ".m4a";
+  private static final String IMAGE_FILE_NAME = "image.png";
+
   private static final Path DIRECTORY = createDirectory();
 
   private TestMedia() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static Path createDirectory() {
     try {
-      final Path directory = Files.createTempDirectory("mcav-test-media");
+      final Path directory = Files.createTempDirectory(DIRECTORY_PREFIX);
       final Path absolute = directory.toAbsolutePath();
       final Runtime runtime = Runtime.getRuntime();
       final Thread cleanup = new Thread(() -> deleteRecursively(absolute), "mcav-test-media-cleanup");
@@ -99,22 +88,12 @@ public final class TestMedia {
     }
   }
 
-  /**
-   * Gets a five second 320x240 MPEG-4 video at 30 frames per second with a mono AAC sine tone.
-   *
-   * @return the video file
-   */
   public static synchronized Path video() {
     final String arguments =
       TEST_PATTERN_INPUT + " " + SINE_INPUT + "440 -t " + VIDEO_SECONDS + " " + MPEG4_VIDEO_OUTPUT + " -g 30 -c:a aac -ac 1";
-    return generate("video.mp4", arguments);
+    return generate(VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Gets a five second video that changes from red to blue after three seconds.
-   *
-   * @return the video file
-   */
   public static synchronized Path seekVideo() {
     final String arguments =
       "-f lavfi -i color=c=red:size=320x240:rate=30:duration=3 " +
@@ -122,40 +101,25 @@ public final class TestMedia {
       "-filter_complex [0:v][1:v]concat=n=2:v=1:a=0 " +
       MPEG4_VIDEO_OUTPUT +
       " -g 30 -an";
-    return generate("seek-video.mp4", arguments);
+    return generate(SEEK_VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Gets a one second 320x240 video without an audio track.
-   *
-   * @return the video file
-   */
   public static synchronized Path silentVideo() {
     final String arguments = TEST_PATTERN_INPUT + " -t 1 " + MPEG4_VIDEO_OUTPUT + " -an";
-    return generate("silent.mp4", arguments);
+    return generate(SILENT_VIDEO_FILE_NAME, arguments);
   }
 
-  /**
-   * Gets a stereo AAC audio file with an 880 Hz sine tone and no video track.
-   *
-   * @param seconds the length of the audio in seconds, which must be positive
-   * @return the audio file
-   */
   public static synchronized Path audio(final double seconds) {
-    Preconditions.checkArgument(seconds > 0, "Seconds must be positive but was %s", seconds);
+    Preconditions.checkArgument(seconds > 0, "Seconds %s must be positive!", seconds);
+
     final String length = String.valueOf(seconds);
-    final String fileName = "audio-" + length + ".m4a";
+    final String fileName = AUDIO_FILE_PREFIX + length + AUDIO_FILE_EXTENSION;
     final String arguments = SINE_INPUT + "880 -t " + length + " -c:a aac -ac 2";
     return generate(fileName, arguments);
   }
 
-  /**
-   * Gets a white 16x8 PNG image.
-   *
-   * @return the PNG file
-   */
   public static synchronized Path png() {
-    return generate("image.png", "-f lavfi -i color=c=white:size=16x8 -frames:v 1");
+    return generate(IMAGE_FILE_NAME, "-f lavfi -i color=c=white:size=16x8 -frames:v 1");
   }
 
   private static Path generate(final String fileName, final String arguments) {

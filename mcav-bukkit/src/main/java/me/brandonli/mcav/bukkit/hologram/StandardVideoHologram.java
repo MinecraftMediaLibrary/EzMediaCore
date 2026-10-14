@@ -23,8 +23,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 import me.brandonli.mcav.bukkit.BukkitModule;
-import me.brandonli.mcav.json.ytdlp.format.URLParseDump;
+import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -43,7 +44,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * A hologram that shows the title, the uploader, the upload date, and a progress bar of a video. The progress bar
  * advances every 20 server ticks until the metadata duration, rounded up to whole seconds, is reached.
  * It is independent of player position and slows down with the server tick rate. Create an instance with
- * {@link Hologram#basic()}, populate it with {@link #handleRequest(Location, URLParseDump)}, then start it.
+ * {@link Hologram#basic()}, populate it with {@link #handleRequest(Location, UrlParseDump)}, then start it.
  */
 public class StandardVideoHologram extends VideoHologram {
 
@@ -88,7 +89,7 @@ public class StandardVideoHologram extends VideoHologram {
    * @throws IllegalArgumentException if the location has no world
    */
   @Override
-  public void handleRequest(final Location location, final URLParseDump dump) {
+  public void handleRequest(final Location location, final UrlParseDump dump) {
     Preconditions.checkNotNull(location, "Location must not be null");
     Preconditions.checkNotNull(dump, "Video metadata must not be null");
     final World world = location.getWorld();
@@ -100,7 +101,8 @@ public class StandardVideoHologram extends VideoHologram {
     this.setDisplay(entity);
     this.metadataText = metadata;
 
-    final double wholeSeconds = Math.ceil(dump.duration);
+    final double duration = dump.getDuration();
+    final double wholeSeconds = Math.ceil(duration);
     this.durationSeconds = Math.max(0, (int) wholeSeconds);
     this.currentSecond = 0;
   }
@@ -115,10 +117,15 @@ public class StandardVideoHologram extends VideoHologram {
     display.text(text);
   }
 
-  private static Component createMetadataText(final URLParseDump dump) {
-    final String title = dump.title == null ? UNKNOWN_TITLE : dump.title;
-    final String uploader = dump.uploader == null ? UNKNOWN_UPLOADER : dump.uploader;
-    final String uploadDate = formatUploadDate(dump.timestamp);
+  private static Component createMetadataText(final UrlParseDump dump) {
+    final Optional<String> titleValue = dump.getTitle();
+    final Optional<String> uploaderValue = dump.getUploader();
+    final @Nullable String reportedTitle = titleValue.orElse(null);
+    final @Nullable String reportedUploader = uploaderValue.orElse(null);
+    final String title = reportedTitle == null ? UNKNOWN_TITLE : reportedTitle;
+    final String uploader = reportedUploader == null ? UNKNOWN_UPLOADER : reportedUploader;
+    final int timestamp = dump.getTimestamp();
+    final String uploadDate = formatUploadDate(timestamp);
     // the site names its videos and uploaders, so the names are inserted as text that is never parsed: escaping them
     // leaves a backslash at their end, which would escape the closing tag after them
     return MINI_MESSAGE.deserialize(
@@ -158,7 +165,7 @@ public class StandardVideoHologram extends VideoHologram {
 
   /**
    * Starts the progress bar, which advances every 20 server ticks until the duration of the video is reached or the
-   * display is removed. Has no effect before {@link #handleRequest(Location, URLParseDump)} was called or while the
+   * display is removed. Has no effect before {@link #handleRequest(Location, UrlParseDump)} was called or while the
    * progress bar is already running.
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
    */

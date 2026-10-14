@@ -29,33 +29,15 @@ import me.brandonli.mcav.media.player.PlayerException;
  * Converts audio sample buffers between byte orders. The audio pipeline carries signed 16-bit samples in
  * little-endian order; sinks that need big-endian samples, such as Discord, convert with
  * {@link #toBigEndian(ByteBuffer)}.
+ *
+ * <p>This class is stateless and thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class ByteUtils {
 
-  private static final ByteOrder NATIVE_ORDER = ByteOrder.nativeOrder();
-  private static final boolean LITTLE_ENDIAN = NATIVE_ORDER.equals(ByteOrder.LITTLE_ENDIAN);
-  private static final boolean BIG_ENDIAN = NATIVE_ORDER.equals(ByteOrder.BIG_ENDIAN);
-
   private ByteUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
-  }
-
-  /**
-   * Checks whether the native byte order of this machine is little-endian.
-   *
-   * @return true on little-endian machines, which includes x86 and most ARM systems
-   */
-  public static boolean isLittleEndian() {
-    return LITTLE_ENDIAN;
-  }
-
-  /**
-   * Checks whether the native byte order of this machine is big-endian.
-   *
-   * @return true on big-endian machines
-   */
-  public static boolean isBigEndian() {
-    return BIG_ENDIAN;
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -65,18 +47,21 @@ public final class ByteUtils {
    *
    * @param buffer the samples, read from position to limit without changing the buffer
    * @return a new buffer with the samples in little-endian order, ready to read
-   * @throws PlayerException if the buffer is not a short, float, or byte buffer
+   * @throws PlayerException      if the buffer is not a short, float, or byte buffer
    * @throws NullPointerException if {@code buffer} is null
+   * @since 1.0.0
    */
   public static ByteBuffer toLittleEndian(final Buffer buffer) {
-    Preconditions.checkNotNull(buffer, "Buffer must not be null");
+    Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+
     return switch (buffer) {
       case final ShortBuffer shorts -> shortsToLittleEndian(shorts);
       case final FloatBuffer floats -> floatsToLittleEndian(floats);
       case final ByteBuffer bytes -> swapSamples(bytes, ByteOrder.LITTLE_ENDIAN);
       default -> {
         final Class<? extends Buffer> type = buffer.getClass();
-        throw new PlayerException("Unsupported sample buffer type " + type);
+        final String message = "Sample buffer type %s is not supported!".formatted(type);
+        throw new PlayerException(message);
       }
     };
   }
@@ -89,6 +74,7 @@ public final class ByteUtils {
       final short sample = source.get();
       result.putShort(sample);
     }
+
     result.flip();
     return result;
   }
@@ -101,6 +87,7 @@ public final class ByteUtils {
       final float sample = source.get();
       result.putFloat(sample);
     }
+
     result.flip();
     return result;
   }
@@ -112,9 +99,11 @@ public final class ByteUtils {
    * @param samples the samples, read from position to limit without changing the buffer
    * @return a new buffer with the samples in big-endian order, ready to read
    * @throws NullPointerException if {@code samples} is null
+   * @since 1.0.0
    */
   public static ByteBuffer toBigEndian(final ByteBuffer samples) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     return swapSamples(samples, ByteOrder.BIG_ENDIAN);
   }
 
@@ -129,14 +118,17 @@ public final class ByteUtils {
       result.flip();
       return result;
     }
+
     while (source.remaining() >= Short.BYTES) {
       final short sample = source.getShort();
       result.putShort(sample);
     }
+
     if (source.hasRemaining()) {
       final byte odd = source.get();
       result.put(odd);
     }
+
     result.flip();
     return result;
   }

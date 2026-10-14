@@ -19,7 +19,6 @@ package me.brandonli.mcav.media.player.pipeline.step;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
@@ -35,109 +35,122 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests the video and audio pipeline steps.
- */
 final class PipelineStepTest {
 
   private static final OriginalAudioMetadata AUDIO_METADATA = OriginalAudioMetadata.of("pcm", -1, 48_000, 2, -1);
 
+  private static final int SAMPLE_BUFFER_BYTES = 4;
+
   @Test
-  void videoStepsRunTheirFiltersInOrder() {
+  void shouldRunTheFiltersOfVideoStepsInOrder() {
     final List<String> calls = new ArrayList<>();
     final ImageBuffer image = mock(ImageBuffer.class);
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(2, 2);
     final VideoFilter second = (_, _) -> calls.add("second");
-    final VideoFilter first = (buffer, videoMetadata) -> {
-      assertSame(image, buffer);
-      assertSame(metadata, videoMetadata);
-      return calls.add("first");
-    };
+    final VideoFilter first = (buffer, videoMetadata) -> this.checkAndRecordFirst(image, metadata, buffer, videoMetadata, calls);
     final VideoPipelineStep last = VideoPipelineStep.of(second);
     final VideoPipelineStep head = VideoPipelineStep.of(last, first);
     head.processAll(image, metadata);
-    final VideoPipelineStep next = head.next();
+    final Optional<VideoPipelineStep> next = head.next();
+    final Optional<VideoPipelineStep> expectedNext = Optional.of(last);
     final boolean headIsLast = head.isLast();
     final boolean lastIsLast = last.isLast();
     final VideoFilter filter = head.getFilter();
     final VideoPipelineStep self = head.self();
     final List<String> expected = List.of("first", "second");
     assertEquals(expected, calls);
-    assertSame(last, next);
+    assertEquals(expectedNext, next);
     assertFalse(headIsLast);
     assertTrue(lastIsLast);
     assertSame(first, filter);
     assertSame(head, self);
   }
 
+  private boolean checkAndRecordFirst(
+    final ImageBuffer image,
+    final OriginalVideoMetadata metadata,
+    final ImageBuffer buffer,
+    final OriginalVideoMetadata videoMetadata,
+    final List<String> calls
+  ) {
+    assertSame(image, buffer);
+    assertSame(metadata, videoMetadata);
+
+    return calls.add("first");
+  }
+
   @Test
-  void audioStepsRewindTheSamplesBeforeEveryFilter() {
+  void shouldRewindTheSamplesBeforeEveryFilterInAudioSteps() {
     final List<Integer> positions = new ArrayList<>();
-    final AudioFilter consuming = (samples, _) -> {
-      final int position = samples.position();
-      positions.add(position);
-      samples.getInt();
-      return true;
-    };
+    final AudioFilter consuming = (samples, _) -> this.recordPositionAndConsume(positions, samples);
     final AudioPipelineStep last = AudioPipelineStep.of(consuming);
     final AudioPipelineStep head = AudioPipelineStep.of(last, consuming);
     final ByteBuffer samples = ByteBuffer.allocate(8);
     samples.position(4);
     head.processAll(samples, AUDIO_METADATA);
-    final AudioPipelineStep next = head.next();
+    final Optional<AudioPipelineStep> next = head.next();
+    final Optional<AudioPipelineStep> expectedNext = Optional.of(last);
     final AudioFilter filter = head.getFilter();
     final AudioPipelineStep self = head.self();
     final List<Integer> expected = List.of(0, 0);
     assertEquals(expected, positions, "every filter sees the samples from the start");
-    assertSame(last, next);
+    assertEquals(expectedNext, next);
     assertSame(consuming, filter);
     assertSame(head, self);
   }
 
+  private boolean recordPositionAndConsume(final List<Integer> positions, final ByteBuffer samples) {
+    final int position = samples.position();
+    positions.add(position);
+    samples.getInt();
+
+    return true;
+  }
+
   @Test
-  void runsEveryFilterWhateverTheFiltersBeforeItReturned() {
+  void shouldRunEveryFilterWhateverTheFiltersBeforeItReturned() {
     final List<String> calls = new ArrayList<>();
     final ImageBuffer image = mock(ImageBuffer.class);
-    final VideoFilter untouchedVideo = (_, _) -> {
-      calls.add("video left untouched");
-      return false;
-    };
+    final VideoFilter untouchedVideo = (_, _) -> this.recordUntouched(calls, "video left untouched");
     final VideoFilter nextVideo = (_, _) -> calls.add("next video filter");
-    final AudioFilter untouchedAudio = (_, _) -> {
-      calls.add("audio left untouched");
-      return false;
-    };
+    final AudioFilter untouchedAudio = (_, _) -> this.recordUntouched(calls, "audio left untouched");
     final AudioFilter nextAudio = (_, _) -> calls.add("next audio filter");
     final VideoPipelineStep lastVideo = VideoPipelineStep.of(nextVideo);
     final VideoPipelineStep video = VideoPipelineStep.of(lastVideo, untouchedVideo);
     final AudioPipelineStep lastAudio = AudioPipelineStep.of(nextAudio);
     final AudioPipelineStep audio = AudioPipelineStep.of(lastAudio, untouchedAudio);
-    final ByteBuffer samples = ByteBuffer.allocate(4);
+    final ByteBuffer samples = ByteBuffer.allocate(SAMPLE_BUFFER_BYTES);
     video.processAll(image, OriginalVideoMetadata.EMPTY);
     audio.processAll(samples, AUDIO_METADATA);
     final List<String> expected = List.of("video left untouched", "next video filter", "audio left untouched", "next audio filter");
     assertEquals(expected, calls, "false only reports an untouched sample, it never stops the pipeline");
   }
 
+  private boolean recordUntouched(final List<String> calls, final String call) {
+    calls.add(call);
+
+    return false;
+  }
+
   @Test
-  void emptyPipelinesDoNothing() {
+  void shouldDoNothingInEmptyPipelines() {
     final ImageBuffer image = mock(ImageBuffer.class);
-    final ByteBuffer samples = ByteBuffer.allocate(4);
+    final ByteBuffer samples = ByteBuffer.allocate(SAMPLE_BUFFER_BYTES);
     final OriginalVideoMetadata videoMetadata = OriginalVideoMetadata.EMPTY;
     VideoPipelineStep.NO_OP.processAll(image, videoMetadata);
     AudioPipelineStep.NO_OP.processAll(samples, AUDIO_METADATA);
-    final VideoPipelineStep videoNext = VideoPipelineStep.NO_OP.next();
-    final AudioPipelineStep audioNext = AudioPipelineStep.NO_OP.next();
+    final Optional<VideoPipelineStep> videoNext = VideoPipelineStep.NO_OP.next();
+    final Optional<AudioPipelineStep> audioNext = AudioPipelineStep.NO_OP.next();
     final VideoFilter videoFilter = VideoPipelineStep.NO_OP.getFilter();
     final AudioFilter audioFilter = AudioPipelineStep.NO_OP.getFilter();
-    assertNull(videoNext);
-    assertNull(audioNext);
+    assertTrue(videoNext.isEmpty());
+    assertTrue(audioNext.isEmpty());
     assertSame(VideoFilter.NO_OP, videoFilter);
     assertSame(AudioFilter.NO_OP, audioFilter);
   }
 
   @Test
-  void onlyTheEmptyPipelinesAreNoOperations() {
+  void shouldTreatOnlyTheEmptyPipelinesAsNoOperations() {
     final VideoPipelineStep video = VideoPipelineStep.of(VideoFilter.NO_OP);
     final AudioPipelineStep audio = AudioPipelineStep.of(AudioFilter.NO_OP);
     final boolean emptyVideo = VideoPipelineStep.NO_OP.isNoOp();
@@ -151,9 +164,9 @@ final class PipelineStepTest {
   }
 
   @Test
-  void emptyPipelinesRejectMissingData() {
+  void shouldRejectMissingDataInEmptyPipelines() {
     final ImageBuffer image = mock(ImageBuffer.class);
-    final ByteBuffer samples = ByteBuffer.allocate(4);
+    final ByteBuffer samples = ByteBuffer.allocate(SAMPLE_BUFFER_BYTES);
     final VideoPipelineStep video = VideoPipelineStep.NO_OP;
     final AudioPipelineStep audio = AudioPipelineStep.NO_OP;
     assertThrows(NullPointerException.class, () -> video.process(null, OriginalVideoMetadata.EMPTY));
@@ -163,7 +176,7 @@ final class PipelineStepTest {
   }
 
   @Test
-  void rejectsMissingFilters() {
+  void shouldRejectMissingFilters() {
     assertThrows(NullPointerException.class, () -> VideoPipelineStep.of(null));
     assertThrows(NullPointerException.class, () -> VideoPipelineStep.of(null, null));
     assertThrows(NullPointerException.class, () -> AudioPipelineStep.of(null));
@@ -171,8 +184,8 @@ final class PipelineStepTest {
   }
 
   @Test
-  void rejectsMissingSamplesAndMetadata() {
-    final ByteBuffer samples = ByteBuffer.allocate(4);
+  void shouldRejectMissingSamplesAndMetadata() {
+    final ByteBuffer samples = ByteBuffer.allocate(SAMPLE_BUFFER_BYTES);
     final VideoPipelineStep video = VideoPipelineStep.of(VideoFilter.NO_OP);
     final AudioPipelineStep audio = AudioPipelineStep.of(AudioFilter.NO_OP);
     try (final ImageBuffer image = mock(ImageBuffer.class)) {
@@ -181,6 +194,7 @@ final class PipelineStepTest {
       assertThrows(NullPointerException.class, () -> video.processAll(null, OriginalVideoMetadata.EMPTY));
       assertThrows(NullPointerException.class, () -> video.processAll(image, null));
     }
+
     assertThrows(NullPointerException.class, () -> audio.process(null, AUDIO_METADATA));
     assertThrows(NullPointerException.class, () -> audio.process(samples, null));
     assertThrows(NullPointerException.class, () -> audio.processAll(null, AUDIO_METADATA));
