@@ -62,6 +62,7 @@ public class EllipseFilter extends MatVideoFilter {
     final double[] color
   ) {
     Preconditions.checkArgument(axisX > 0 && axisY > 0, "Axes must be positive!");
+
     this.center = new Point(centerX, centerY);
     this.axes = new Size(axisX, axisY);
     this.angle = angle;
@@ -80,6 +81,7 @@ public class EllipseFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.ellipse(mat, this.center, this.axes, this.angle, this.startAngle, this.endAngle, this.color);
+
     return true;
   }
 }

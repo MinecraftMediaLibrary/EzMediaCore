@@ -59,6 +59,7 @@ public class DefaultOrderedDitherBuilder implements OrderedDitherBuilder<BayerDi
   @Override
   public DefaultOrderedDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
+
     this.palette = palette;
     return this;
   }
@@ -73,6 +74,7 @@ public class DefaultOrderedDitherBuilder implements OrderedDitherBuilder<BayerDi
   @Override
   public DefaultOrderedDitherBuilder withDitherMatrix(final PixelMapper mapper) {
     Preconditions.checkNotNull(mapper, "Pixel mapper must not be null!");
+
     this.mapper = mapper;
     return this;
   }

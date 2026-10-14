@@ -50,6 +50,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
   protected ErrorDiffusionDither(final DitherPalette palette, final DiffusionKernel kernel) {
     super(palette);
     Preconditions.checkNotNull(kernel, "Kernel must not be null!");
+
     this.kernel = kernel;
   }
 
@@ -79,9 +80,11 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
   @Override
   public void dither(final int[] buffer, final int width) {
     checkBuffer(buffer, width);
+
     if (buffer.length == 0) {
       return;
     }
+
     this.run(buffer, width, null, true);
   }
 
@@ -166,6 +169,7 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
       if (targetIndices != null) {
         targetIndices[pixelIndex] = this.colorMap[lookup];
       }
+
       if (this.inPlace) {
         this.pixels[pixelIndex] = chosen;
       }

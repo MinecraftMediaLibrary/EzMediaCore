@@ -58,6 +58,7 @@ public class LuminanceFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     mat.convertTo(mat, -1, this.contrast, this.brightness);
+
     return true;
   }
 }

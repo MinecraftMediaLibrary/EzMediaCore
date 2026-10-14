@@ -42,6 +42,7 @@ public class RotationFilter extends MatVideoFilter {
    */
   public RotationFilter(final Rotation rotation) {
     Preconditions.checkNotNull(rotation, "Rotation must not be null!");
+
     this.rotateCode = rotation.getCode();
   }
 
@@ -54,6 +55,7 @@ public class RotationFilter extends MatVideoFilter {
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
     image.transformMat(this::rotate);
+
     return true;
   }
 

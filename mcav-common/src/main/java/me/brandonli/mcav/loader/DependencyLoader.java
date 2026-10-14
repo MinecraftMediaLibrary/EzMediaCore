@@ -105,6 +105,7 @@ public final class DependencyLoader {
    */
   public boolean hasCapability(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     return this.capabilities.contains(capability);
   }
 
@@ -136,6 +137,7 @@ public final class DependencyLoader {
       final String message = "Failed with \"%s\" while loading the JavaCV natives!".formatted(reason);
       throw new NativeLoadingException(message, exception);
     }
+
     final long end = System.currentTimeMillis();
     final long elapsed = end - start;
     LOGGER.info("JavaCV natives loaded in {} ms.", elapsed);
@@ -148,6 +150,7 @@ public final class DependencyLoader {
     for (final Class<?> module : OPENCV_MODULES) {
       Loader.load(module);
     }
+
     configureOpenCvThreads();
     this.loadFaceDetection(DependencyLoader::loadObjectDetection);
   }
@@ -250,6 +253,7 @@ public final class DependencyLoader {
       }
       LOGGER.warn("The FFmpeg device library is not available, capture devices will not work.");
     }
+
     setup.run();
   }
 
@@ -303,6 +307,7 @@ public final class DependencyLoader {
     synchronized (this.preparations) {
       this.preparations.put(capability, preparation);
     }
+
     return preparation;
   }
 
@@ -340,6 +345,7 @@ public final class DependencyLoader {
       final String name = capability.getDisplayName();
       this.logger.info("Preparing {} was cancelled.", name);
     }
+
     return cancelled;
   }
 
@@ -368,6 +374,7 @@ public final class DependencyLoader {
       this.logger.warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
       return;
     }
+
     this.logger.info("Preparing yt-dlp...");
     final long start = System.currentTimeMillis();
     try {

@@ -91,6 +91,7 @@ public class DefaultErrorDiffusionDitherBuilder
   @Override
   public DefaultErrorDiffusionDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
+
     this.palette = palette;
     return this;
   }
@@ -105,6 +106,7 @@ public class DefaultErrorDiffusionDitherBuilder
   @Override
   public DefaultErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm) {
     Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
+
     this.algorithm = algorithm;
     return this;
   }
@@ -120,6 +122,7 @@ public class DefaultErrorDiffusionDitherBuilder
   @Override
   public DefaultErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= MAXIMUM_TEMPORAL_THRESHOLD, "Temporal threshold must be between 0 and 255!");
+
     this.temporalThreshold = threshold;
     return this;
   }
@@ -135,6 +138,7 @@ public class DefaultErrorDiffusionDitherBuilder
   @Override
   public DefaultErrorDiffusionDitherBuilder withErrorThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0, "Error threshold must not be negative!");
+
     this.errorThreshold = threshold;
     return this;
   }
@@ -150,6 +154,7 @@ public class DefaultErrorDiffusionDitherBuilder
   @Override
   public DefaultErrorDiffusionDitherBuilder withErrorStrength(final float strength) {
     Preconditions.checkArgument(strength >= 0 && strength <= 1, "Error strength must be between 0 and 1!");
+
     this.errorStrength = strength;
     return this;
   }

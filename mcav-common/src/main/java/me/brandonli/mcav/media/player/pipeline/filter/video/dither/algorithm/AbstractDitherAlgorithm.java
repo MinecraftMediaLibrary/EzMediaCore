@@ -36,6 +36,7 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    */
   protected AbstractDitherAlgorithm(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
+
     this.palette = palette;
   }
 

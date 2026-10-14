@@ -46,6 +46,7 @@ public final class ReleasePackageManager {
    */
   public static Download[] readVlcDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
+
     return IoUtils.readDownloadsFromJsonResource(resourcePath);
   }
 }

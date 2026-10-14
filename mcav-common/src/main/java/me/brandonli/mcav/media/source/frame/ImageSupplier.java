@@ -67,14 +67,17 @@ public interface ImageSupplier {
       image.getRGB(0, 0, width, height, pixels, 0, width);
       return pixels;
     }
+
     final WritableRaster raster = image.getRaster();
     raster.getDataElements(0, 0, width, height, pixels);
+
     if (type == BufferedImage.TYPE_INT_RGB) {
       final int opaqueAlpha = 0xFF << 24;
       for (int index = 0; index < pixels.length; index++) {
         pixels[index] |= opaqueAlpha;
       }
     }
+
     return pixels;
   }
 }

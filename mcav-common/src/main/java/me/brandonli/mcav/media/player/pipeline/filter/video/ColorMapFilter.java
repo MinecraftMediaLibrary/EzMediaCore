@@ -47,6 +47,7 @@ public class ColorMapFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.applyColorMap(mat, mat, this.colorMap);
+
     return true;
   }
 }

@@ -57,6 +57,7 @@ public final class DitherFilter implements FunctionalVideoFilter {
   public static FunctionalVideoFilter dither(final DitherAlgorithm algorithm, final DitherResultStep result) {
     Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
     Preconditions.checkNotNull(result, "Result step must not be null!");
+
     return new DitherFilter(algorithm, result);
   }
 
@@ -71,7 +72,9 @@ public final class DitherFilter implements FunctionalVideoFilter {
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     this.result.process(samples, this.algorithm);
+
     return true;
   }
 

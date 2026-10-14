@@ -84,6 +84,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
   ) {
     super(FILENAME_PATTERNS, PLUGIN_PATH_FORMATS, searchProviders, environmentSetter);
     Preconditions.checkNotNull(corePreloader, "Core preloader must not be null!");
+
     this.corePreloader = corePreloader;
   }
 
@@ -110,6 +111,7 @@ public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrate
   @Override
   public boolean onFound(final String path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     try {
       this.corePreloader.accept(path);
       return true;

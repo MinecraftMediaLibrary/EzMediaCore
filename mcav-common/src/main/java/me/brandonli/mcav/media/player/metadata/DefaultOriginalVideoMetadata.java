@@ -63,9 +63,11 @@ public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultOriginalVideoMetadata metadata)) {
       return false;
     }
+
     final int frameRateComparison = Float.compare(this.videoFrameRate, metadata.videoFrameRate);
     return (
       this.videoWidth == metadata.videoWidth &&

@@ -122,6 +122,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   @Override
   public boolean start(final Source combined) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
+
     return this.startSources(combined, null, 0L, false);
   }
 
@@ -139,10 +140,12 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   public boolean start(final Source video, final Source audio) {
     Preconditions.checkNotNull(video, "Video source must not be null!");
     Preconditions.checkNotNull(audio, "Audio source must not be null!");
+
     final boolean sameSource = video.equals(audio);
     if (sameSource) {
       return this.startSources(video, null, 0L, false);
     }
+
     return this.startSources(video, audio, 0L, false);
   }
 
@@ -329,6 +332,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   protected void configureGrabber(final FrameGrabber grabber, final Source source) {
     Preconditions.checkNotNull(grabber, "Grabber must not be null!");
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     grabber.setPixelFormat(avutil.AV_PIX_FMT_BGR24);
     grabber.setSampleMode(FrameGrabber.SampleMode.SHORT);
     grabber.setSampleFormat(avutil.AV_SAMPLE_FMT_S16);
@@ -345,6 +349,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       grabber.setImageWidth(width);
       grabber.setImageHeight(height);
     }
+
     if (grabber instanceof final FFmpegFrameGrabber ffmpeg) {
       configureFfmpeg(ffmpeg, source);
     }
@@ -359,6 +364,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     grabber.setOption("reconnect_delay_max", RECONNECT_DELAY_MAXIMUM_SECONDS);
     grabber.setOption("fflags", "discardcorrupt+genpts");
     grabber.setOption("hwaccel", OPTION_AUTOMATIC);
+
     if (source instanceof final FfmpegDirectSource direct) {
       final String format = direct.getFormat();
       grabber.setFormat(format);
@@ -421,6 +427,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   @Override
   public boolean seek(final long time) {
     Preconditions.checkArgument(time >= 0, "Seek time must not be negative!");
+
     final PlaybackSession current;
     final Source video;
     @Nullable Source audio;
@@ -437,6 +444,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     } finally {
       this.lock.unlock();
     }
+
     final long positionMicroseconds = Math.min(time, Long.MAX_VALUE / MICROSECONDS_PER_MILLISECOND) * MICROSECONDS_PER_MILLISECOND;
     return this.startSources(video, audio, positionMicroseconds, paused, current);
   }
@@ -482,6 +490,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     if (current == null) {
       return 0L;
     }
+
     final long microseconds = current.getPositionMicroseconds();
     return microseconds / MICROSECONDS_PER_MILLISECOND;
   }
@@ -521,9 +530,11 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     } finally {
       this.lock.unlock();
     }
+
     if (stopped != null) {
       stopped.stop();
     }
+
     return true;
   }
 
@@ -537,6 +548,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.exceptionHandler = exceptionHandler;
   }
 

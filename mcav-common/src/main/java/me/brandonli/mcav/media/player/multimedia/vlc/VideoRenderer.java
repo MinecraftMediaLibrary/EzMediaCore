@@ -146,6 +146,7 @@ final class VideoRenderer implements RenderCallback {
    */
   void setPaused(final boolean paused) {
     this.paused = paused;
+
     if (paused) {
       this.pendingFrame.clear();
     }
@@ -181,16 +182,19 @@ final class VideoRenderer implements RenderCallback {
     if (!accepting) {
       return;
     }
+
     final VideoAttachableCallback callback = this.owner.getVideoAttachableCallback();
     final VideoPipelineStep step = callback.retrieve();
     final boolean empty = step.isNoOp();
     if (empty) {
       return;
     }
+
     final DecodedFrame decoded = this.copyVisiblePixels(nativeBuffers[0], bufferFormat);
     if (decoded == null) {
       return;
     }
+
     this.offerLatest(decoded);
   }
 
@@ -212,6 +216,7 @@ final class VideoRenderer implements RenderCallback {
     if (!complete) {
       return null;
     }
+
     final int[] pixels = this.acquirePixels(visibleWidth * visibleHeight);
     readVisibleRows(nativeBuffer, bufferWidth, visibleWidth, visibleHeight, pixels);
     return new DecodedFrame(pixels, visibleWidth, visibleHeight);
@@ -245,6 +250,7 @@ final class VideoRenderer implements RenderCallback {
       ints.get(pixels, 0, visibleWidth * visibleHeight);
       return;
     }
+
     for (int row = 0; row < visibleHeight; row++) {
       ints.position(row * bufferWidth);
       ints.get(pixels, row * visibleWidth, visibleWidth);
@@ -263,6 +269,7 @@ final class VideoRenderer implements RenderCallback {
     if (spare != null && spare.length == length) {
       return spare;
     }
+
     return new int[length];
   }
 
@@ -305,6 +312,7 @@ final class VideoRenderer implements RenderCallback {
       final int[] pixels = frame.getPixels();
       this.recyclePixels(pixels);
     }
+
     this.scaleIfRequested(buffer);
     this.runPipeline(buffer);
   }
@@ -318,6 +326,7 @@ final class VideoRenderer implements RenderCallback {
       existing.updateArgb(pixels, frameWidth, frameHeight);
       return existing;
     }
+
     final ImageBuffer created = ImageBuffer.buffer(pixels, frameWidth, frameHeight);
     this.renderBuffer = created;
     return created;
@@ -374,6 +383,7 @@ final class VideoRenderer implements RenderCallback {
   private void releaseRenderBuffer() {
     final ImageBuffer buffer = this.renderBuffer;
     this.renderBuffer = null;
+
     if (buffer != null) {
       buffer.release();
     }

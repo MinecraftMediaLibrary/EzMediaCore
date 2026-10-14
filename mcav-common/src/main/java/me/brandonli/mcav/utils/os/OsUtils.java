@@ -69,6 +69,7 @@ public final class OsUtils {
     if (value == null) {
       return "";
     }
+
     return value.toLowerCase(Locale.ROOT);
   }
 
@@ -77,15 +78,19 @@ public final class OsUtils {
     if (osName.contains(MAC_NAME) || osName.contains(DARWIN_NAME)) {
       return Os.MAC;
     }
+
     if (osName.contains(WINDOWS_NAME)) {
       return Os.WINDOWS;
     }
+
     if (osName.contains(FREEBSD_NAME)) {
       return Os.FREEBSD;
     }
+
     if (osName.contains(LINUX_NAME)) {
       return Os.LINUX;
     }
+
     return Os.OTHER;
   }
 
@@ -94,10 +99,12 @@ public final class OsUtils {
     if (isArm) {
       return Arch.ARM;
     }
+
     final boolean isX86 = osArch.contains(X86_NAME) || osArch.equals(AMD64_NAME);
     if (isX86) {
       return Arch.X86;
     }
+
     return Arch.OTHER;
   }
 
@@ -105,13 +112,16 @@ public final class OsUtils {
     if (dataModel.equals(SIXTY_FOUR_BITS)) {
       return Bits.BITS_64;
     }
+
     if (dataModel.equals(THIRTY_TWO_BITS)) {
       return Bits.BITS_32;
     }
+
     final boolean isSixtyFourBit = osArch.contains(SIXTY_FOUR_BITS);
     if (isSixtyFourBit) {
       return Bits.BITS_64;
     }
+
     return Bits.BITS_32;
   }
 

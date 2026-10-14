@@ -195,11 +195,13 @@ final class DeclaredImageSize {
     if (limit <= 0) {
       return;
     }
+
     final MemorySegment segment = MemorySegment.ofArray(encoded);
     final Size size = read(segment);
     if (size == null) {
       throw new IllegalArgumentException("Bytes are not a supported image format!");
     }
+
     checkLimit(size, limit);
   }
 
@@ -218,6 +220,7 @@ final class DeclaredImageSize {
     if (limit <= 0) {
       return;
     }
+
     final Size size;
     try (final FileChannel channel = FileChannel.open(path, StandardOpenOption.READ); final Arena arena = Arena.ofConfined()) {
       final long length = channel.size();
@@ -227,10 +230,12 @@ final class DeclaredImageSize {
       final String message = UNSUPPORTED_FILE.formatted(path);
       throw new IllegalArgumentException(message, exception);
     }
+
     if (size == null) {
       final String message = UNSUPPORTED_FILE.formatted(path);
       throw new IllegalArgumentException(message);
     }
+
     checkLimit(size, limit);
   }
 
@@ -264,39 +269,50 @@ final class DeclaredImageSize {
     if (header.startsWith(0, BMP_SIGNATURE)) {
       return bmp(header);
     }
+
     if (header.startsWith(0, GIF_SIGNATURE)) {
       return gif(header);
     }
+
     if (header.startsWith(0, HDR_RGBE_SIGNATURE) || header.startsWith(0, HDR_RADIANCE_SIGNATURE)) {
       return hdr(header);
     }
+
     if (header.startsWith(0, JPEG_SIGNATURE)) {
       return jpeg(header);
     }
+
     final Size webp = webp(header);
     if (webp != null) {
       return webp;
     }
+
     if (header.startsWith(0, SUN_RASTER_SIGNATURE)) {
       return of(header.signedBigEndian32(SUN_RASTER_WIDTH_OFFSET), header.signedBigEndian32(SUN_RASTER_HEIGHT_OFFSET));
     }
+
     final int kind = header.unsigned8(NETPBM_KIND_OFFSET);
     final boolean netpbm = header.unsigned8(0) == 'P' && isSpace(header.unsigned8(NETPBM_SEPARATOR_OFFSET));
     if (netpbm && kind >= '1' && kind <= '6') {
       return pnm(header);
     }
+
     if (netpbm && kind == '7') {
       return pam(header);
     }
+
     if (netpbm && (kind == 'f' || kind == 'F')) {
       return pfm(header);
     }
+
     if (header.startsWith(0, TIFF_LITTLE_ENDIAN_SIGNATURE) || header.startsWith(0, TIFF_BIG_ENDIAN_SIGNATURE)) {
       return tiff(header);
     }
+
     if (header.startsWith(0, PNG_SIGNATURE) && header.startsWith(PNG_HEADER_CHUNK_OFFSET, PNG_HEADER_CHUNK)) {
       return of(header.bigEndian(PNG_WIDTH_OFFSET, THIRTY_TWO_BIT_BYTES), header.bigEndian(PNG_HEIGHT_OFFSET, THIRTY_TWO_BIT_BYTES));
     }
+
     return null;
   }
 
@@ -309,9 +325,11 @@ final class DeclaredImageSize {
     if (informationSize >= BMP_MINIMUM_INFORMATION_SIZE) {
       return of(header.signedLittleEndian32(BMP_WIDTH_OFFSET), Math.abs(header.signedLittleEndian32(BMP_HEIGHT_OFFSET)));
     }
+
     if (informationSize == OS2_INFORMATION_SIZE) {
       return of(header.littleEndian(OS2_WIDTH_OFFSET, SIXTEEN_BIT_BYTES), header.littleEndian(OS2_HEIGHT_OFFSET, SIXTEEN_BIT_BYTES));
     }
+
     return null;
   }
 
@@ -322,6 +340,7 @@ final class DeclaredImageSize {
     if (!header.startsWith(0, GIF87_SIGNATURE) && !header.startsWith(0, GIF89_SIGNATURE)) {
       return null;
     }
+
     return of(header.littleEndian(GIF_WIDTH_OFFSET, SIXTEEN_BIT_BYTES), header.littleEndian(GIF_HEIGHT_OFFSET, SIXTEEN_BIT_BYTES));
   }
 
@@ -344,6 +363,7 @@ final class DeclaredImageSize {
     if (resolution == null) {
       return null;
     }
+
     final Scanner scanner = new Scanner(resolution);
     final boolean matched = scanner.literal(HDR_HEIGHT_AXIS) && scanner.number() && scanner.literal(HDR_WIDTH_AXIS) && scanner.number();
     return matched ? of(scanner.second, scanner.first) : null;
@@ -401,24 +421,30 @@ final class DeclaredImageSize {
     if (header.size() < WEBP_SIGNATURE) {
       return null;
     }
+
     if (!header.startsWith(0, RIFF_SIGNATURE)) {
       return lossless(header, 0);
     }
+
     if (!header.startsWith(WEBP_FORMAT_OFFSET, WEBP_FORMAT)) {
       return null;
     }
+
     if (header.startsWith(WEBP_CHUNK_OFFSET, VP8X_CHUNK)) {
       return extended(header);
     }
+
     if (header.startsWith(WEBP_CHUNK_OFFSET, VP8L_CHUNK)) {
       return lossless(header, VP8L_BITSTREAM_OFFSET);
     }
+
     final boolean keyFrame = (header.unsigned8(VP8_FRAME_TAG_OFFSET) & VP8_KEY_FRAME_BIT) == 0;
     final boolean startCode = header.startsWith(VP8_START_CODE_OFFSET, VP8_START_CODE);
     final boolean lossy = header.startsWith(WEBP_CHUNK_OFFSET, VP8_CHUNK) && keyFrame && startCode;
     if (!lossy) {
       return null;
     }
+
     final long width = header.littleEndian(VP8_WIDTH_OFFSET, SIXTEEN_BIT_BYTES) & VP8_DIMENSION_MASK;
     final long height = header.littleEndian(VP8_HEIGHT_OFFSET, SIXTEEN_BIT_BYTES) & VP8_DIMENSION_MASK;
     return of(width, height);
@@ -429,6 +455,7 @@ final class DeclaredImageSize {
     if (!chunk) {
       return null;
     }
+
     // the canvas size is stored minus one
     final long width = header.littleEndian(VP8X_WIDTH_OFFSET, TWENTY_FOUR_BIT_BYTES) + 1;
     final long height = header.littleEndian(VP8X_HEIGHT_OFFSET, TWENTY_FOUR_BIT_BYTES) + 1;
@@ -441,6 +468,7 @@ final class DeclaredImageSize {
     if (!signature) {
       return null;
     }
+
     // the size is stored minus one
     final long width = (bits & VP8_DIMENSION_MASK) + 1;
     final long height = ((bits >>> VP8L_HEIGHT_SHIFT) & VP8_DIMENSION_MASK) + 1;
@@ -474,11 +502,13 @@ final class DeclaredImageSize {
         return -1;
       }
     }
+
     long value = 0;
     while (isDigit(code) && value <= Integer.MAX_VALUE) {
       value = value * DECIMAL_BASE + (code - '0');
       code = header.unsigned8(position[0]++);
     }
+
     return value <= Integer.MAX_VALUE ? value : -1;
   }
 
@@ -525,6 +555,7 @@ final class DeclaredImageSize {
     if (header.unsigned8(NETPBM_SEPARATOR_OFFSET) != '\n') {
       return null;
     }
+
     final long[] position = { PFM_HEADER_OFFSET };
     final String width = header.word(position, PFM_NUMBER);
     final String height = header.word(position, PFM_NUMBER);
@@ -541,6 +572,7 @@ final class DeclaredImageSize {
     if (magic != TIFF_MAGIC && !big) {
       return null;
     }
+
     final long directory = big
       ? header.number(BIG_TIFF_DIRECTORY_OFFSET, SIXTY_FOUR_BIT_BYTES, little)
       : header.number(TIFF_DIRECTORY_OFFSET, THIRTY_TWO_BIT_BYTES, little);
@@ -550,6 +582,7 @@ final class DeclaredImageSize {
     if (count < 0) {
       return null;
     }
+
     long width = -1;
     long length = -1;
     final long entries = Math.min(count, header.size() / entrySize);
@@ -563,6 +596,7 @@ final class DeclaredImageSize {
         length = length == -1 ? tiffValue(header, entry, big, little) : REFUSED;
       }
     }
+
     return of(width, length);
   }
 
@@ -585,6 +619,7 @@ final class DeclaredImageSize {
     } else {
       return REFUSED;
     }
+
     return count == 1 ? header.number(field, bytes, little) : REFUSED;
   }
 
@@ -598,11 +633,13 @@ final class DeclaredImageSize {
     if (word == null) {
       return -1;
     }
+
     final int start = word.startsWith(PLUS_SIGN) || word.startsWith(MINUS_SIGN) ? 1 : 0;
     int end = start;
     while (end < word.length() && end - start <= MAXIMUM_DECIMAL_DIGITS && isDigit(word.charAt(end))) {
       end++;
     }
+
     final String digits = word.substring(start, end);
     final long magnitude = digits.isEmpty() || digits.length() > MAXIMUM_DECIMAL_DIGITS ? -1 : Long.parseLong(digits);
     return word.startsWith(MINUS_SIGN) ? -magnitude : magnitude;
@@ -659,6 +696,7 @@ final class DeclaredImageSize {
       if (negative || this.text.startsWith(PLUS_SIGN, start)) {
         this.position++;
       }
+
       long value = 0;
       int digits = 0;
       while (this.position < this.text.length() && isDigit(this.text.charAt(this.position)) && value <= Integer.MAX_VALUE) {
@@ -666,15 +704,18 @@ final class DeclaredImageSize {
         this.position++;
         digits++;
       }
+
       if (digits == 0 || value > Integer.MAX_VALUE) {
         return false;
       }
+
       final long signed = negative ? -value : value;
       if (this.first == -1) {
         this.first = signed;
       } else {
         this.second = signed;
       }
+
       return true;
     }
 
@@ -711,6 +752,7 @@ final class DeclaredImageSize {
           return false;
         }
       }
+
       return true;
     }
 
@@ -734,6 +776,7 @@ final class DeclaredImageSize {
         }
         value = (value << BITS_PER_BYTE) | code;
       }
+
       return value;
     }
 
@@ -764,6 +807,7 @@ final class DeclaredImageSize {
         piece.append((char) code);
         position[0]++;
       }
+
       return piece.isEmpty() ? null : piece.toString();
     }
 
@@ -779,6 +823,7 @@ final class DeclaredImageSize {
       if (code < 0) {
         return null;
       }
+
       boolean longer = false;
       while (code >= 0 && code != '\n' && code != '\r') {
         if (line.length() < limit) {
@@ -788,6 +833,7 @@ final class DeclaredImageSize {
         }
         code = this.unsigned8(position[0]++);
       }
+
       final String text = line.toString();
       final boolean comment = text.strip().startsWith(COMMENT_START);
       return longer && !comment ? null : text;
@@ -810,6 +856,7 @@ final class DeclaredImageSize {
         }
         word.append((char) code);
       }
+
       return word.toString();
     }
   }

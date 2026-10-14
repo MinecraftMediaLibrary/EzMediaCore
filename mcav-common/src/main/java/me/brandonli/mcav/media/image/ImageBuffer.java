@@ -65,6 +65,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer mat(final Mat mat) {
     Preconditions.checkNotNull(mat, "Mat must not be null!");
+
     return new MatImageBuffer(mat);
   }
 
@@ -82,6 +83,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer bytes(final byte[] data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
+
     return new MatImageBuffer(data, width, height);
   }
 
@@ -100,6 +102,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer bytes(final ByteBuffer data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
+
     return new MatImageBuffer(data, width, height);
   }
 
@@ -115,6 +118,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer bytes(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Bytes must not be null!");
+
     return new MatImageBuffer(bytes);
   }
 
@@ -129,6 +133,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer frame(final Frame frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     return new MatImageBuffer(frame);
   }
 
@@ -144,6 +149,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer uri(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     return new MatImageBuffer(source);
   }
 
@@ -158,6 +164,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer path(final FileSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     return new MatImageBuffer(source);
   }
 
@@ -176,6 +183,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer buffer(final int[] data, final int width, final int height) {
     Preconditions.checkNotNull(data, "Data must not be null!");
+
     return new MatImageBuffer(data, width, height);
   }
 
@@ -190,6 +198,7 @@ public interface ImageBuffer extends Image {
    */
   static ImageBuffer image(final BufferedImage image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     return new MatImageBuffer(image);
   }
 

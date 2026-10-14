@@ -46,6 +46,7 @@ public class ThresholdFilter extends MatVideoFilter {
   public ThresholdFilter(final double threshold, final double maximumValue, final int type) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= CHANNEL_MAXIMUM, "Threshold must be between 0 and 255!");
     Preconditions.checkArgument(maximumValue >= 0 && maximumValue <= CHANNEL_MAXIMUM, "Max value must be between 0 and 255!");
+
     this.threshold = threshold;
     this.maximumValue = maximumValue;
     this.type = type;
@@ -60,6 +61,7 @@ public class ThresholdFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.threshold(mat, mat, this.threshold, this.maximumValue, this.type);
+
     return true;
   }
 }

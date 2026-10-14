@@ -45,6 +45,7 @@ public class CircleFilter extends MatVideoFilter {
    */
   public CircleFilter(final int centerX, final int centerY, final int radius, final double[] color) {
     Preconditions.checkArgument(radius >= 0, "Radius %s must not be negative!", radius);
+
     this.center = new Point(centerX, centerY);
     this.radius = radius;
     this.color = ImageUtils.toScalar(color);
@@ -59,6 +60,7 @@ public class CircleFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.circle(mat, this.center, this.radius, this.color);
+
     return true;
   }
 }

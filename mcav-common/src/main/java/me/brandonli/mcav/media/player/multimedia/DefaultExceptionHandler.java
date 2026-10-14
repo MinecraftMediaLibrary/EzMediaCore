@@ -50,6 +50,7 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.handler = exceptionHandler;
   }
 

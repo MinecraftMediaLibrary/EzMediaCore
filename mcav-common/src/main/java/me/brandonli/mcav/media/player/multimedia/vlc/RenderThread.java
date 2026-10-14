@@ -61,6 +61,7 @@ final class RenderThread {
    */
   void start(final Step step, final Runnable cleanup) {
     Preconditions.checkState(this.thread == null, "Render thread %s was already started!", this.name);
+
     this.running.set(true);
     final AtomicBoolean flag = this.running;
     final Consumer<RuntimeException> failures = this.failureHandler;
@@ -81,6 +82,7 @@ final class RenderThread {
     if (current == null) {
       return;
     }
+
     current.interrupt();
     joinUnlessSelf(current);
   }
@@ -91,6 +93,7 @@ final class RenderThread {
     if (isTargetThread) {
       return;
     }
+
     try {
       target.join(JOIN_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {

@@ -412,6 +412,7 @@ public interface BayerDither extends DitherAlgorithm {
     while (matrix.length < size) {
       matrix = doubleBayerMatrix(matrix);
     }
+
     return matrix;
   }
 
@@ -435,6 +436,7 @@ public interface BayerDither extends DitherAlgorithm {
         expanded[row + current][column + current] = base + 1;
       }
     }
+
     return expanded;
   }
 }

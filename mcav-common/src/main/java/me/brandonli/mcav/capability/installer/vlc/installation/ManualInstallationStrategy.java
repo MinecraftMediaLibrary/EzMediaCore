@@ -67,6 +67,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   protected ManualInstallationStrategy(final VlcInstaller installer, final ProcessRunner processRunner) {
     Preconditions.checkNotNull(installer, "Installer must not be null!");
     Preconditions.checkNotNull(processRunner, "Process runner must not be null!");
+
     this.installer = installer;
     this.processRunner = processRunner;
   }
@@ -101,12 +102,15 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
     Preconditions.checkNotNull(root, "Root must not be null!");
     Preconditions.checkNotNull(pattern, "Pattern must not be null!");
     Preconditions.checkNotNull(companions, "Companion patterns must not be null!");
+
     for (final Pattern companion : companions) {
       Preconditions.checkNotNull(companion, "Companion patterns must not contain null!");
     }
+
     if (!Files.isDirectory(root)) {
       return Optional.empty();
     }
+
     Optional<Path> found = Optional.empty();
     try (final Stream<Path> files = Files.walk(root, MAXIMUM_SEARCH_DEPTH)) {
       final Stream<Path> matching = files.filter(file -> matchesFileName(file, pattern));
@@ -121,6 +125,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
         }
       }
     }
+
     return found;
   }
 
@@ -130,6 +135,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
         return false;
       }
     }
+
     return true;
   }
 
@@ -146,6 +152,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
         }
       }
     }
+
     return found;
   }
 
@@ -190,6 +197,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     IoUtils.deleteRecursively(path);
   }
 
@@ -202,6 +210,7 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    */
   public void deleteFile(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
+
     Files.deleteIfExists(file);
   }
 

@@ -76,8 +76,10 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
       releaseAll(decoded);
       throw exception;
     }
+
     final boolean empty = decoded.isEmpty();
     Preconditions.checkArgument(!empty, "Image %s contains no frames!", path);
+
     final List<ImageBuffer> frames = List.copyOf(decoded);
     return new Animation(frames, frameRate);
   }
@@ -95,6 +97,7 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
       timestamps.add(current.timestamp);
       current = grabber.grabImage();
     }
+
     return timestamps;
   }
 
@@ -129,12 +132,14 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     if (validReported) {
       return reportedRate;
     }
+
     final long span = lastTimestamp - firstTimestamp;
     if (frameCount > 1 && span > 0) {
       final double seconds = span / MICROSECONDS_PER_SECOND;
       final double derived = (frameCount - 1) / seconds;
       return (float) derived;
     }
+
     return DEFAULT_FRAME_RATE;
   }
 
@@ -148,6 +153,7 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
   public ImageBuffer getFrame(final int index) {
     final int count = this.frames.size();
     Preconditions.checkElementIndex(index, count, "Frame index");
+
     return this.frames.get(index);
   }
 
@@ -211,6 +217,7 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
         this.first = timestamp;
         this.empty = false;
       }
+
       this.last = timestamp;
     }
 

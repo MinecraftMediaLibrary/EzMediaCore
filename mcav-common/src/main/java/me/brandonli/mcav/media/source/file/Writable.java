@@ -38,6 +38,7 @@ public interface Writable {
    */
   static Writable path(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     return new DefaultWritable(path);
   }
 

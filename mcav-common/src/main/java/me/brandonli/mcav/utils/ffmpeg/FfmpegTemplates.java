@@ -55,6 +55,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(codec, "Codec must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument(NO_VIDEO_FLAG);
@@ -78,6 +79,7 @@ public final class FfmpegTemplates {
   public static FfmpegCommand extractOggVorbis(final String input, final String output) {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addArgument(NO_VIDEO_FLAG);
@@ -104,6 +106,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(videoBitrate, "Video bitrate must not be null!");
     Preconditions.checkNotNull(audioBitrate, "Audio bitrate must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec(H264_CODEC);
@@ -130,6 +133,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(startTime, "Start time must not be null!");
     Preconditions.checkNotNull(duration, "Duration must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addArguments(SEEK_FLAG, startTime);
     builder.addInput(input);
@@ -154,6 +158,7 @@ public final class FfmpegTemplates {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(timePosition, "Time position must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addArguments(SEEK_FLAG, timePosition);
     builder.addInput(input);
@@ -174,6 +179,7 @@ public final class FfmpegTemplates {
   public static FfmpegCommand remuxVideo(final String input, final String output) {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
+
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
     builder.addInput(input);
     builder.addVideoCodec(COPY_CODEC);

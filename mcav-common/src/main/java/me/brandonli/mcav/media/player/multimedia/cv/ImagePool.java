@@ -79,7 +79,9 @@ final class ImagePool {
     if (this.closed || unused >= this.capacity) {
       return false;
     }
+
     this.free.addFirst(image);
+
     return true;
   }
 

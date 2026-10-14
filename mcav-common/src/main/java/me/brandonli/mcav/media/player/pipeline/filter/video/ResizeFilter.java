@@ -51,6 +51,7 @@ public class ResizeFilter extends MatVideoFilter {
    */
   public ResizeFilter(final int width, final int height) {
     Preconditions.checkArgument(width > 0 && height > 0, "Target size %sx%s must be positive!", width, height);
+
     this.width = width;
     this.height = height;
     this.size = new Size(width, height);
@@ -82,10 +83,12 @@ public class ResizeFilter extends MatVideoFilter {
     if (sameSize) {
       return false;
     }
+
     final boolean downscaling = this.width < currentWidth || this.height < currentHeight;
     final int interpolation = downscaling ? opencv_imgproc.INTER_AREA : opencv_imgproc.INTER_LINEAR;
     final Size target = this.size;
     image.transformMat((source, resized) -> opencv_imgproc.resize(source, resized, target, 0, 0, interpolation));
+
     return true;
   }
 

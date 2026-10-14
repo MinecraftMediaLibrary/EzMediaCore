@@ -73,6 +73,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
   @VisibleForTesting
   DirectAudioOutput(final LineOpener lineOpener) {
     Preconditions.checkNotNull(lineOpener, "Line opener must not be null!");
+
     this.lineOpener = lineOpener;
   }
 
@@ -95,15 +96,18 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     final SourceDataLine currentLine = this.line;
     if (currentLine == null) {
       return false;
     }
+
     final ByteBuffer view = samples.duplicate();
     final int length = view.remaining();
     final byte[] data = this.getChunkArray(length);
     view.get(data, 0, length);
     currentLine.write(data, 0, length);
+
     return false;
   }
 
@@ -119,6 +123,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     if (current != null && current.length >= length) {
       return current;
     }
+
     final byte[] created = new byte[length];
     this.chunk = created;
     return created;
@@ -135,6 +140,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     if (this.line != null) {
       return;
     }
+
     try {
       final int bufferSize = (SAMPLE_RATE * FRAME_SIZE * BUFFER_MILLISECONDS) / MILLISECONDS_PER_SECOND;
       final SourceDataLine opened = this.lineOpener.open(FORMAT, bufferSize);
@@ -170,6 +176,7 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
     if (currentLine == null) {
       return;
     }
+
     this.line = null;
     Throwable failure = null;
     final List<Runnable> cleanup = List.of(currentLine::stop, currentLine::flush, currentLine::close);
@@ -185,9 +192,11 @@ public class DirectAudioOutput implements FunctionalAudioFilter {
         }
       }
     }
+
     if (failure instanceof final RuntimeException runtime) {
       throw runtime;
     }
+
     if (failure instanceof final Error error) {
       throw error;
     }

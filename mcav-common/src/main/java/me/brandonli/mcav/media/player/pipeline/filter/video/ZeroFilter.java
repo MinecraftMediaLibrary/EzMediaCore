@@ -41,6 +41,7 @@ public class ZeroFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     mat.put(BLACK);
+
     return true;
   }
 }

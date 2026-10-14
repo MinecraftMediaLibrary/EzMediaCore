@@ -44,6 +44,7 @@ public class HttpStatusException extends IOException {
    */
   public HttpStatusException(final int statusCode, final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final String message = "Request for %s got status %s, which is not a success!".formatted(uri, statusCode);
     super(message);
     this.statusCode = statusCode;

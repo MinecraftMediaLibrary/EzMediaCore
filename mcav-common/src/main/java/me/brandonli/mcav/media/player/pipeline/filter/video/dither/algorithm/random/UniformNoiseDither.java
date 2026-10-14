@@ -75,6 +75,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
     super(palette);
     checkWeight(weight);
     Preconditions.checkNotNull(random, "Random number provider must not be null!");
+
     this.weight = weight;
     this.providers = ThreadLocal.withInitial(() -> random);
   }
@@ -114,6 +115,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
       final int lookup = this.lookupWithNoise(pixels[index], random);
       indices[index] = colorMap[lookup];
     }
+
     return indices;
   }
 
@@ -151,6 +153,7 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
     if (this.weight == 0) {
       return 0;
     }
+
     return random.nextInt(-this.weight, this.weight + 1);
   }
 

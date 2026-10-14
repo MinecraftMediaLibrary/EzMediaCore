@@ -70,6 +70,7 @@ final class VideoTimestamps {
       this.lastTimestamp = reported;
       return reported;
     }
+
     final long timestamp = reported > this.lastTimestamp ? reported : this.derive(now);
     this.lastTimestamp = timestamp;
     return timestamp;
@@ -79,6 +80,7 @@ final class VideoTimestamps {
     if (this.frameMicroseconds > 0) {
       return this.lastTimestamp + this.frameMicroseconds;
     }
+
     final long elapsedMicroseconds = (now - this.firstNanoseconds) / NANOSECONDS_PER_MICROSECOND;
     final long arrival = this.firstTimestamp + elapsedMicroseconds;
     // two frames of a live source can arrive within the same microsecond, and time must still move forward

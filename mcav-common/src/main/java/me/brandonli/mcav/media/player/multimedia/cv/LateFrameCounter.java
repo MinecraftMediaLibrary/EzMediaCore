@@ -74,14 +74,17 @@ final class LateFrameCounter {
       this.reported = false;
       this.begin(timestampMicroseconds);
     }
+
     if (late) {
       this.dropped++;
     } else {
       this.shown++;
     }
+
     if (timestampMicroseconds - this.windowStartMicroseconds < WINDOW_MICROSECONDS) {
       return;
     }
+
     final boolean behind = this.dropped >= MINIMUM_DROPPED && this.dropped > this.shown;
     final boolean quiet = !this.reported || timestampMicroseconds - this.lastReportMicroseconds >= REPORT_INTERVAL_MICROSECONDS;
     if (behind && quiet) {
@@ -90,6 +93,7 @@ final class LateFrameCounter {
       final int frames = this.shown + this.dropped;
       this.listener.fellBehind(this.dropped, frames);
     }
+
     this.begin(timestampMicroseconds);
   }
 

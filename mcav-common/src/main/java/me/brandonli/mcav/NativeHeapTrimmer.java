@@ -158,11 +158,13 @@ final class NativeHeapTrimmer implements AutoCloseable {
     if (!this.interval.isPositive()) {
       return;
     }
+
     try {
       this.fixThreshold.run();
     } catch (final RuntimeException exception) {
       LOGGER.warn("Could not fix the trim threshold of the native heap.", exception);
     }
+
     this.thread = Thread.ofPlatform().name(THREAD_NAME).daemon().start(this::trimUntilInterrupted);
   }
 
@@ -188,9 +190,11 @@ final class NativeHeapTrimmer implements AutoCloseable {
   public void close() {
     final Thread running = this.thread;
     this.thread = null;
+
     if (running == null) {
       return;
     }
+
     running.interrupt();
     try {
       running.join();
@@ -261,6 +265,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
     if (mallopt.isEmpty()) {
       return false;
     }
+
     final FunctionDescriptor descriptor = FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT);
     return setTrimThreshold(Linker.nativeLinker().downcallHandle(mallopt.get(), descriptor));
   }

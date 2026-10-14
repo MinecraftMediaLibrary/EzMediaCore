@@ -59,6 +59,7 @@ public abstract class AbstractPipelineStepBuilder<
    */
   public BuilderType then(final FilterType filter) {
     Preconditions.checkNotNull(filter, "Filter must not be null!");
+
     this.filters.add(filter);
     return this.self();
   }
@@ -83,6 +84,7 @@ public abstract class AbstractPipelineStepBuilder<
     if (count == 0) {
       return this.createEmptyStep();
     }
+
     final int lastIndex = count - 1;
     final FilterType last = this.filters.get(lastIndex);
     StepType chain = this.createStep(null, last);
@@ -90,6 +92,7 @@ public abstract class AbstractPipelineStepBuilder<
       final FilterType filter = this.filters.get(filterIndex);
       chain = this.createStep(chain, filter);
     }
+
     return chain;
   }
 

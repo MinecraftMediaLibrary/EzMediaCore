@@ -181,6 +181,7 @@ public enum KeyCode {
    */
   public static Optional<KeyCode> fromName(final String name) {
     Preconditions.checkNotNull(name, "Name must not be null!");
+
     final String upper = name.toUpperCase(Locale.ROOT);
     for (final KeyCode key : VALUES) {
       final String keyName = key.name();
@@ -188,6 +189,7 @@ public enum KeyCode {
         return Optional.of(key);
       }
     }
+
     return Optional.empty();
   }
 

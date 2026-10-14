@@ -38,8 +38,10 @@ public final class DefaultDimensionAttachableCallback extends AbstractAttachable
   @Override
   public void attach(final Dimension value) {
     Preconditions.checkNotNull(value, "Dimension must not be null!");
+
     final boolean empty = value.isEmpty();
     Preconditions.checkArgument(!empty, "Dimension %s must not be empty!", value);
+
     super.attach(value);
   }
 }

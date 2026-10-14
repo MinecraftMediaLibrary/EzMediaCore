@@ -58,9 +58,11 @@ public abstract class MatVideoFilter implements VideoFilter {
   @Override
   public boolean applyFilter(final ImageBuffer samples, final OriginalVideoMetadata metadata) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     if (samples instanceof final MatImageBuffer matBuffer) {
       return this.modifyImage(matBuffer);
     }
+
     return this.applyToTemporaryMat(samples);
   }
 
@@ -113,6 +115,7 @@ public abstract class MatVideoFilter implements VideoFilter {
       final Mat mat = matBuffer.getMat();
       return mat.clone();
     }
+
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] pixels = image.getPixels();
@@ -136,6 +139,7 @@ public abstract class MatVideoFilter implements VideoFilter {
     if (modified) {
       image.invalidateCache();
     }
+
     return modified;
   }
 

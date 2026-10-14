@@ -55,11 +55,13 @@ final class SpeedResampler {
     if (frames == 0) {
       return samples;
     }
+
     if (speed == PlaybackClock.NORMAL_SPEED) {
       this.remember(input, frames);
       this.next = 1;
       return samples;
     }
+
     final int capacity = (int) Math.ceil(frames / speed) + 1;
     final ByteBuffer output = ByteBuffer.allocate(capacity * AudioFilter.FRAME_SIZE).order(ByteOrder.LITTLE_ENDIAN);
     double at = this.next;
@@ -73,6 +75,7 @@ final class SpeedResampler {
       }
       at += speed;
     }
+
     this.next = at - frames;
     this.remember(input, frames);
     return output.flip();
@@ -83,6 +86,7 @@ final class SpeedResampler {
     if (frame == 0) {
       return this.previous[channel];
     }
+
     return input.getShort(offset(input, frame - 1, channel));
   }
 

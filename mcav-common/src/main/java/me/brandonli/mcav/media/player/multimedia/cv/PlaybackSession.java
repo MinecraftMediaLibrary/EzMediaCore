@@ -242,6 +242,7 @@ final class PlaybackSession {
     this.positionMicroseconds = startMicroseconds;
     this.videoMetadata = OriginalVideoMetadata.EMPTY;
     this.audioMetadata = DEFAULT_AUDIO_METADATA;
+
     if (startPaused) {
       this.clock.pause();
     }
@@ -289,6 +290,7 @@ final class PlaybackSession {
     if (this.videoGrabber == null) {
       this.open();
     }
+
     this.startThreads();
   }
 
@@ -302,14 +304,17 @@ final class PlaybackSession {
     if (grabber == null) {
       throw new IllegalStateException("The session must be opened first!");
     }
+
     final GrabberFactory audioFactory = this.audioGrabberFactory;
     final boolean hasSeparateAudio = audioFactory != null;
     final Thread videoDecoder = createThread(VIDEO_DECODER_THREAD_NAME, () -> this.decode(grabber, true, !hasSeparateAudio));
     this.threads.add(videoDecoder);
+
     if (audioFactory != null) {
       final Thread audioDecoder = createThread(AUDIO_DECODER_THREAD_NAME, () -> this.decodeSeparateAudio(audioFactory));
       this.threads.add(audioDecoder);
     }
+
     final Thread videoRenderer = createThread(VIDEO_RENDERER_THREAD_NAME, this::renderVideo);
     final Thread audioRenderer = createThread(AUDIO_RENDERER_THREAD_NAME, this::renderAudio);
     this.threads.add(videoRenderer);
@@ -338,6 +343,7 @@ final class PlaybackSession {
       }
       return;
     }
+
     this.decode(grabber, false, true);
   }
 
@@ -418,6 +424,7 @@ final class PlaybackSession {
     if (this.startMicroseconds <= 0) {
       return;
     }
+
     try {
       grabber.setTimestamp(this.startMicroseconds);
     } catch (final FrameGrabber.Exception exception) {
@@ -443,6 +450,7 @@ final class PlaybackSession {
     if (grabber instanceof final FFmpegFrameGrabber ffmpeg && wantsVideo != wantsAudio) {
       return wantsVideo ? ffmpeg.grabImage() : ffmpeg.grabSamples();
     }
+
     return grabber.grab();
   }
 
@@ -457,6 +465,7 @@ final class PlaybackSession {
     if (smallerSide <= 0) {
       return OriginalVideoMetadata.EMPTY;
     }
+
     final int bitrate = grabber.getVideoBitrate();
     final float frameRate = (float) grabber.getFrameRate();
     return OriginalVideoMetadata.of(width, height, bitrate, frameRate);
@@ -473,6 +482,7 @@ final class PlaybackSession {
     if (smaller <= 0) {
       return DEFAULT_AUDIO_METADATA;
     }
+
     final String codec = grabber.getAudioCodecName();
     final String codecName = Objects.requireNonNullElse(codec, "");
     final int bitrate = grabber.getAudioBitrate();
@@ -490,6 +500,7 @@ final class PlaybackSession {
     if (!(plane instanceof ByteBuffer)) {
       return;
     }
+
     final VideoPipelineStep step = this.videoCallback.retrieve();
     final boolean empty = step.isNoOp();
     final MatImageBuffer image = empty ? null : this.frameCopier.copy(frame);
@@ -520,6 +531,7 @@ final class PlaybackSession {
       releaseImage(frame);
       throw exception;
     }
+
     final boolean stopped = !running.getAsBoolean();
     if (stopped && queue.remove(frame)) {
       releaseImage(frame);
@@ -531,6 +543,7 @@ final class PlaybackSession {
     if (!(samples instanceof final ShortBuffer shortSamples)) {
       return;
     }
+
     final ByteBuffer bytes = copySamples(shortSamples);
     final DecodedAudioChunk chunk = new DecodedAudioChunk(bytes, frame.timestamp);
     this.audioMetadata = metadata;
@@ -621,15 +634,18 @@ final class PlaybackSession {
     final long lateNanoseconds = this.awaitDue(timestamp, 0L);
     final boolean late = lateNanoseconds > this.maximumVideoLagNanoseconds;
     this.lateFrames.count(timestamp, late);
+
     if (late) {
       return;
     }
+
     this.positionMicroseconds = timestamp;
     final VideoPipelineStep step = this.videoCallback.retrieve();
     final boolean empty = step.isNoOp();
     if (image == null || empty) {
       return;
     }
+
     this.runVideoPipeline(step, image);
   }
 
@@ -698,6 +714,7 @@ final class PlaybackSession {
     if (empty) {
       return;
     }
+
     final ByteBuffer samples = this.resampler.resample(chunk.getSamples(), this.clock.getSpeed());
     this.runAudioPipeline(step, samples);
   }
@@ -770,11 +787,13 @@ final class PlaybackSession {
     if (!this.running.get()) {
       return false;
     }
+
     for (final Thread thread : this.threads) {
       if (thread.isAlive()) {
         return true;
       }
     }
+
     return false;
   }
 
@@ -832,6 +851,7 @@ final class PlaybackSession {
       }
       return;
     }
+
     this.interruptThreadsExcept(currentThread);
     // A renderer that stops its own session finishes through this marker instead of an interrupt.
     replaceWithEndMarker(this.videoQueue, END_OF_VIDEO, PlaybackSession::releaseImage);
@@ -897,6 +917,7 @@ final class PlaybackSession {
     if (!this.running.get()) {
       return;
     }
+
     this.exceptionHandler.accept(message, error);
   }
 

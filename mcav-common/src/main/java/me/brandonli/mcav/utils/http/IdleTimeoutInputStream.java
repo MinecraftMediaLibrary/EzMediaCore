@@ -67,15 +67,18 @@ final class IdleTimeoutInputStream extends InputStream {
     if (count == -1) {
       return -1;
     }
+
     return single[0] & UNSIGNED_BYTE_MASK;
   }
 
   @Override
   public int read(final byte @NonNull [] buffer, final int offset, final int length) throws IOException {
     Objects.checkFromIndexSize(offset, length, buffer.length);
+
     if (length == 0) {
       return 0;
     }
+
     final Callable<Integer> readTask = () -> this.delegate.read(buffer, offset, length);
     final Future<Integer> pending = this.reader.submit(readTask);
     return this.await(pending);

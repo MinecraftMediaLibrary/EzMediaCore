@@ -76,6 +76,7 @@ public interface StrategySelector {
   static StrategySelector of(final FormatStrategy audio, final FormatStrategy video) {
     Preconditions.checkNotNull(audio, "Audio strategy must not be null!");
     Preconditions.checkNotNull(video, "Video strategy must not be null!");
+
     return new DefaultStrategySelector(audio, video);
   }
 }

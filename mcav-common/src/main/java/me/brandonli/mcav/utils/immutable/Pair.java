@@ -50,6 +50,7 @@ public final class Pair<FirstType, SecondType> {
   public static <FirstType, SecondType> Pair<FirstType, SecondType> pair(final FirstType first, final SecondType second) {
     Preconditions.checkNotNull(first, "First value must not be null!");
     Preconditions.checkNotNull(second, "Second value must not be null!");
+
     return new Pair<>(first, second);
   }
 
@@ -76,9 +77,11 @@ public final class Pair<FirstType, SecondType> {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Pair<?, ?> pair)) {
       return false;
     }
+
     return Objects.equals(this.first, pair.first) && Objects.equals(this.second, pair.second);
   }
 

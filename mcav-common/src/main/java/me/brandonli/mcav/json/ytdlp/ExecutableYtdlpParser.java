@@ -106,9 +106,11 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
   public UrlParseDump parse(final UriSource input, final String... arguments) throws IOException {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(arguments, "Arguments must not be null!");
+
     for (final String argument : arguments) {
       Preconditions.checkNotNull(argument, "Arguments must not contain null!");
     }
+
     final URI uri = input.getUri();
     requireWebUri(uri);
     final String url = uri.toString();
@@ -118,6 +120,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
       final String message = NO_METADATA_MESSAGE.formatted(url);
       throw new YtdlpParseException(message);
     }
+
     return parseDump(json, url);
   }
 
@@ -148,6 +151,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
       final String message = "yt-dlp failed with \"%s\" while URL %s was being resolved!".formatted(strippedReason, url);
       throw new YtdlpParseException(message);
     }
+
     return output;
   }
 
@@ -160,10 +164,12 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
       final String message = "URL %s got invalid metadata from yt-dlp!".formatted(url);
       throw new YtdlpParseException(message, exception);
     }
+
     if (dump == null) {
       final String message = NO_METADATA_MESSAGE.formatted(url);
       throw new YtdlpParseException(message);
     }
+
     return dump;
   }
 
@@ -189,6 +195,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
     if (newline < 0) {
       return trimmed;
     }
+
     final String first = trimmed.substring(0, newline);
     return first.strip();
   }

@@ -133,6 +133,7 @@ public final class AudioResampler implements AutoCloseable {
     checkSampleRate(inputSampleRate, INPUT_LABEL);
     checkChannels(inputChannels, INPUT_LABEL);
     Preconditions.checkNotNull(inputFormat, "Input format must not be null!");
+
     checkSampleRate(outputSampleRate, OUTPUT_LABEL);
     checkChannels(outputChannels, OUTPUT_LABEL);
     Preconditions.checkNotNull(outputFormat, "Output format must not be null!");
@@ -218,6 +219,7 @@ public final class AudioResampler implements AutoCloseable {
    */
   public byte[] resample(final ByteBuffer input) {
     Preconditions.checkNotNull(input, "Input must not be null!");
+
     this.ensureOpen();
 
     final ByteBuffer source = input.duplicate();
@@ -286,6 +288,7 @@ public final class AudioResampler implements AutoCloseable {
     if (result < 0) {
       this.close();
     }
+
     checkResult(result, action);
   }
 
@@ -302,6 +305,7 @@ public final class AudioResampler implements AutoCloseable {
       final String message = describeError(result, action);
       throw new IllegalStateException(message);
     }
+
     return result;
   }
 
@@ -324,6 +328,7 @@ public final class AudioResampler implements AutoCloseable {
     if (this.closed) {
       return;
     }
+
     this.closed = true;
     swresample.swr_free(this.context);
     avutil.av_channel_layout_uninit(this.inputLayout);

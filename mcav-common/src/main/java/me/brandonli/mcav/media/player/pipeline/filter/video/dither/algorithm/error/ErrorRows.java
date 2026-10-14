@@ -78,6 +78,7 @@ final class ErrorRows {
     for (int tap = 0; tap < tapCount; tap++) {
       sum += kernel.getWeight(tap);
     }
+
     return sum;
   }
 
@@ -94,6 +95,7 @@ final class ErrorRows {
         largest = tap;
       }
     }
+
     return largest;
   }
 
@@ -213,6 +215,7 @@ final class ErrorRows {
     if (errorRed == 0 && errorGreen == 0 && errorBlue == 0) {
       return;
     }
+
     final int divisor = this.kernel.getDivisor();
     final int tapCount = this.kernel.getTapCount();
     long spreadRed = 0;
@@ -228,6 +231,7 @@ final class ErrorRows {
       spreadGreen = Math.addExact(spreadGreen, shareGreen);
       spreadBlue = Math.addExact(spreadBlue, shareBlue);
     }
+
     final long remainderRed = Math.multiplyExact((long) errorRed, this.weightSum) / divisor - spreadRed;
     final long remainderGreen = Math.multiplyExact((long) errorGreen, this.weightSum) / divisor - spreadGreen;
     final long remainderBlue = Math.multiplyExact((long) errorBlue, this.weightSum) / divisor - spreadBlue;

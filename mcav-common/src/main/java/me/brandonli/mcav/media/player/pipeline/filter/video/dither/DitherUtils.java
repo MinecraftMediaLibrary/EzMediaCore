@@ -76,6 +76,7 @@ public final class DitherUtils {
    */
   public static byte getBestColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     checkChannels(red, green, blue);
 
     final byte[] colorMap = palette.getColorMap();
@@ -96,6 +97,7 @@ public final class DitherUtils {
    */
   public static int getBestFullColor(final DitherPalette palette, final int red, final int green, final int blue) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     checkChannels(red, green, blue);
 
     final int[] fullColorMap = palette.getFullColorMap();
@@ -136,9 +138,11 @@ public final class DitherUtils {
    */
   public static int getColorFromMinecraftPalette(final DitherPalette palette, final byte index) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     final int[] colors = palette.getPalette();
     final int unsigned = index & CHANNEL_MASK;
     Preconditions.checkElementIndex(unsigned, colors.length, "Palette index");
+
     return colors[unsigned];
   }
 
@@ -153,6 +157,7 @@ public final class DitherUtils {
    */
   public static byte getBestColorIncludingTransparent(final DitherPalette palette, final int argb) {
     Preconditions.checkNotNull(palette, PALETTE_NULL_MESSAGE);
+
     final int alpha = argb >>> ALPHA_SHIFT;
     if (alpha == 0) {
       return 0;
@@ -187,6 +192,7 @@ public final class DitherUtils {
       final int lookup = getLookupIndex(red, green, blue);
       indices[pixelIndex] = colorMap[lookup];
     }
+
     return indices;
   }
 
@@ -201,6 +207,7 @@ public final class DitherUtils {
     if ((value & ~CHANNEL_MASK) == 0) {
       return value;
     }
+
     return value < 0 ? 0 : CHANNEL_MAXIMUM;
   }
 }

@@ -86,11 +86,13 @@ public final class NetworkUtils {
    */
   public static String formatHostForUrl(final String address) {
     Preconditions.checkNotNull(address, "Address must not be null!");
+
     final boolean ipAddress = InetAddresses.isInetAddress(address);
     final boolean isIpv6 = ipAddress && address.contains(IPV6_SEPARATOR);
     if (!isIpv6) {
       return address;
     }
+
     final String escaped = address.replace(ZONE_SEPARATOR, ESCAPED_ZONE_SEPARATOR);
     return IPV6_HOST_START + escaped + IPV6_HOST_END;
   }
@@ -125,6 +127,7 @@ public final class NetworkUtils {
    */
   public static Optional<String> lookUpPublicAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");
+
     final HttpRequest request = createRequest(addressService, GET_METHOD);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.limiting(
       HttpResponse.BodyHandlers.ofString(),
@@ -165,6 +168,7 @@ public final class NetworkUtils {
    */
   public static boolean isReachable(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final boolean usesHttpScheme = isHttpScheme(uri);
     if (!usesHttpScheme) {
       return false;
@@ -192,6 +196,7 @@ public final class NetworkUtils {
     if (status != HTTP_OK || !validAddress) {
       return Optional.empty();
     }
+
     return Optional.of(address);
   }
 
@@ -200,6 +205,7 @@ public final class NetworkUtils {
     if (scheme == null) {
       return false;
     }
+
     return scheme.equalsIgnoreCase(HTTP_SCHEME) || scheme.equalsIgnoreCase(HTTPS_SCHEME);
   }
 

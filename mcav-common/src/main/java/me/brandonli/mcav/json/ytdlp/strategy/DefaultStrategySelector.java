@@ -42,12 +42,14 @@ public final class DefaultStrategySelector implements StrategySelector {
   @Override
   public Format getAudioSource(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
+
     final Optional<Format> selected = this.audio.select(dump);
     if (selected.isEmpty()) {
       final String description = describe(dump);
       final String message = "No audio stream of %s matches the strategy!".formatted(description);
       throw new NoMatchingFormatException(message);
     }
+
     return selected.get();
   }
 
@@ -58,12 +60,14 @@ public final class DefaultStrategySelector implements StrategySelector {
   @Override
   public Format getVideoSource(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
+
     final Optional<Format> selected = this.video.select(dump);
     if (selected.isEmpty()) {
       final String description = describe(dump);
       final String message = "No video stream of %s matches the strategy!".formatted(description);
       throw new NoMatchingFormatException(message);
     }
+
     return selected.get();
   }
 
@@ -73,9 +77,11 @@ public final class DefaultStrategySelector implements StrategySelector {
     if (title != null) {
       return title;
     }
+
     if (url != null) {
       return url;
     }
+
     return "the media";
   }
 

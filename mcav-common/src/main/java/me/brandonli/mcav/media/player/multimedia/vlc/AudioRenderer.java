@@ -110,12 +110,14 @@ final class AudioRenderer extends AudioCallbackAdapter {
     if (!this.thread.isRunning()) {
       return;
     }
+
     final AudioAttachableCallback callback = this.owner.getAudioAttachableCallback();
     final AudioPipelineStep step = callback.retrieve();
     final boolean empty = step.isNoOp();
     if (empty) {
       return;
     }
+
     final int length = sampleCount * AudioFilter.FRAME_SIZE;
     final ByteBuffer nativeBuffer = samples.getByteBuffer(0, length);
     final ByteOrder nativeOrder = ByteOrder.nativeOrder();

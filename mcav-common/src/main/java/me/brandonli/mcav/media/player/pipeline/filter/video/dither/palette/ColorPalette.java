@@ -68,10 +68,12 @@ public class ColorPalette implements DitherPalette {
     Preconditions.checkArgument(colors.length <= MAXIMUM_COLORS, "A palette may hold at most %s colors!", MAXIMUM_COLORS);
     Preconditions.checkArgument(reservedIndices >= 0, "Reserved indices must not be negative!");
     Preconditions.checkArgument(colors.length > reservedIndices, "Palette must contain at least one color!");
+
     this.palette = new int[colors.length];
     for (int index = reservedIndices; index < colors.length; index++) {
       this.palette[index] = OPAQUE | (colors[index] & RGB_MASK);
     }
+
     this.reservedIndices = reservedIndices;
     this.colorMap = new byte[TABLE_SIZE];
     this.fullColorMap = new int[TABLE_SIZE];
@@ -117,6 +119,7 @@ public class ColorPalette implements DitherPalette {
         closest = index;
       }
     }
+
     return closest;
   }
 

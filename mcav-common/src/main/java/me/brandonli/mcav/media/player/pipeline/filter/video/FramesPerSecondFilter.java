@@ -68,6 +68,7 @@ public class FramesPerSecondFilter extends MatVideoFilter {
     final String text = this.displayedFrameRate + " fps";
     drawText(mat, text, BLACK, OUTLINE_THICKNESS);
     drawText(mat, text, WHITE, TEXT_THICKNESS);
+
     return true;
   }
 
@@ -81,6 +82,7 @@ public class FramesPerSecondFilter extends MatVideoFilter {
     if (elapsed < WINDOW_NANOSECONDS) {
       return;
     }
+
     final double seconds = elapsed / (double) WINDOW_NANOSECONDS;
     this.displayedFrameRate = (int) Math.round(this.framesInWindow / seconds);
     this.framesInWindow = 0;

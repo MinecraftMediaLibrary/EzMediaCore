@@ -93,14 +93,17 @@ public final class MapPaletteLoader {
       // Gson reads an empty element of an int array as a null and reports it with an IllegalArgumentException
       throw new PaletteLoadingException("Map palette resource is malformed!", exception);
     }
+
     if (components == null || components.length == 0) {
       throw new PaletteLoadingException("Map palette resource is empty!");
     }
+
     final int[] colors = new int[components.length];
     for (int index = 0; index < components.length; index++) {
       final int[] rgb = components[index];
       colors[index] = toColor(rgb, index);
     }
+
     return colors;
   }
 
@@ -109,6 +112,7 @@ public final class MapPaletteLoader {
       final String message = "Map color %s does not have three components!".formatted(index);
       throw new PaletteLoadingException(message);
     }
+
     final int red = checkComponent(rgb[RED_COMPONENT], index);
     final int green = checkComponent(rgb[GREEN_COMPONENT], index);
     final int blue = checkComponent(rgb[BLUE_COMPONENT], index);
@@ -120,6 +124,7 @@ public final class MapPaletteLoader {
       final String message = "Component %s of map color %s must be between 0 and 255!".formatted(component, index);
       throw new PaletteLoadingException(message);
     }
+
     return component;
   }
 
@@ -151,6 +156,7 @@ public final class MapPaletteLoader {
   public static Color getColor(final byte index) {
     final int unsigned = index & UNSIGNED_BYTE_MASK;
     Preconditions.checkArgument(unsigned < COLORS.length, "Map color %s does not exist!", unsigned);
+
     final int argb = COLORS[unsigned];
     return new Color(argb, true);
   }

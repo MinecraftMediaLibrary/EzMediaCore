@@ -54,6 +54,7 @@ final class ReusableMat {
     if (lent != null) {
       return lent;
     }
+
     return new Mat();
   }
 
@@ -69,6 +70,7 @@ final class ReusableMat {
     if (!kept) {
       matrix.close();
     }
+
     return kept;
   }
 }

@@ -66,6 +66,7 @@ public final class CapabilityGuard {
    */
   public void markPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     this.states.put(capability, State.PREPARING);
   }
 
@@ -80,10 +81,12 @@ public final class CapabilityGuard {
    */
   public void markPrepared(final Capability capability, final boolean available) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     if (available) {
       this.states.remove(capability);
       return;
     }
+
     this.states.put(capability, State.UNAVAILABLE);
   }
 
@@ -95,6 +98,7 @@ public final class CapabilityGuard {
    */
   public void forget(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     this.states.remove(capability);
   }
 
@@ -107,6 +111,7 @@ public final class CapabilityGuard {
    */
   public boolean isPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final State state = this.states.get(capability);
     return state == State.PREPARING;
   }
@@ -121,6 +126,7 @@ public final class CapabilityGuard {
    */
   public void checkNotPreparing(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final boolean preparing = this.isPreparing(capability);
     if (preparing) {
       final String message = describePreparing(capability);
@@ -138,10 +144,12 @@ public final class CapabilityGuard {
    */
   public void checkUsable(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final State state = this.states.get(capability);
     if (state == State.PREPARING) {
       throw new IllegalStateException(describePreparing(capability));
     }
+
     if (state == State.UNAVAILABLE) {
       final String name = capability.getDisplayName();
       final String message = "%s is not available on this system!".formatted(name);

@@ -64,6 +64,7 @@ final class FrameFormatCallback extends BufferFormatCallbackAdapter {
       visibleWidth = Math.min(sourceWidth, trackSize.width);
       visibleHeight = Math.min(sourceHeight, trackSize.height);
     }
+
     return this.renderer.createBufferFormat(sourceWidth, sourceHeight, visibleWidth, visibleHeight);
   }
 }

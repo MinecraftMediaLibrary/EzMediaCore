@@ -46,6 +46,7 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
     final List<ImageBuffer> animationFrames = animation.getFrames();
     final boolean empty = animationFrames.isEmpty();
     Preconditions.checkArgument(!empty, "Animation has no frames!");
+
     final ImageBuffer first = animationFrames.getFirst();
     this.frames = animationFrames;
     this.repeatCount = repeatCount;
@@ -66,14 +67,17 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
       final ImageBuffer last = this.frames.get(frameCount - 1);
       return last.getPixels();
     }
+
     final ImageBuffer frame = this.frames.get(this.nextFrame);
     this.nextFrame++;
+
     if (this.nextFrame >= frameCount) {
       this.nextFrame = 0;
       if (this.repeatCount != Integer.MAX_VALUE) {
         this.completedLoops++;
       }
     }
+
     return frame.getPixels();
   }
 

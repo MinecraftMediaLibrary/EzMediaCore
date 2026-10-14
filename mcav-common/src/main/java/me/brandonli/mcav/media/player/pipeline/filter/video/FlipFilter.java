@@ -36,6 +36,7 @@ public class FlipFilter extends MatVideoFilter {
    */
   public FlipFilter(final FlipDirection direction) {
     Preconditions.checkNotNull(direction, "Direction must not be null!");
+
     this.flipCode = direction.getCode();
   }
 
@@ -48,6 +49,7 @@ public class FlipFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_core.flip(mat, mat, this.flipCode);
+
     return true;
   }
 

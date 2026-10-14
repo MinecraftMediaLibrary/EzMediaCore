@@ -38,6 +38,7 @@ public class DilationFilter extends MatVideoFilter {
    */
   public DilationFilter(final int kernelSize) {
     Preconditions.checkArgument(kernelSize > 0, "Kernel size must be positive!");
+
     final Size size = new Size(kernelSize, kernelSize);
     this.kernel = opencv_imgproc.getStructuringElement(opencv_imgproc.MORPH_RECT, size);
   }
@@ -51,6 +52,7 @@ public class DilationFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.dilate(mat, mat, this.kernel);
+
     return true;
   }
 }

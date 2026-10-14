@@ -114,6 +114,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     );
     Preconditions.checkArgument(errorThreshold >= 0, "Error threshold must not be negative!");
     Preconditions.checkArgument(errorStrength >= 0 && errorStrength <= 1, "Error strength must be between 0 and 1!");
+
     this.temporalThreshold = temporalThreshold;
     this.errorThreshold = errorThreshold;
     this.errorStrength = Math.round(errorStrength * STRENGTH_SCALE);
@@ -138,9 +139,11 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   @Override
   public void dither(final int[] buffer, final int width) {
     checkBuffer(buffer, width);
+
     if (buffer.length == 0) {
       return;
     }
+
     final int height = buffer.length / width;
     final byte[] indices = new byte[buffer.length];
     this.ditherStrip(buffer, width, 0, height, null, indices);
@@ -212,6 +215,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       this.previousIndices = indices.clone();
       return;
     }
+
     System.arraycopy(indices, 0, previous, 0, indices.length);
     this.previousIndices = previous;
   }
@@ -244,6 +248,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     if (previous == null || previous.length != expectedLength) {
       return null;
     }
+
     return previous;
   }
 
@@ -361,6 +366,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
         this.diffuseError(wanted, reusedColor, column, row, step);
         return;
       }
+
       final int lookup = ErrorRows.getLookupIndex(wanted);
       final byte chosenIndex = this.colorMap[lookup];
       final int chosenColor = this.fullColorMap[lookup];
@@ -378,6 +384,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       if (previousFrame == null) {
         return -1;
       }
+
       final int previousIndex = previousFrame[pixelIndex] & UNSIGNED_BYTE_MASK;
       final int previousColor = this.paletteColors[previousIndex];
       final boolean close = TemporalDitherAlgorithm.this.isWithinThreshold(wanted, previousColor);
@@ -398,6 +405,7 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
       if (totalError <= TemporalDitherAlgorithm.this.errorThreshold) {
         return;
       }
+
       final TemporalDitherAlgorithm algorithm = TemporalDitherAlgorithm.this;
       final int scaledRed = algorithm.scale(errorRed);
       final int scaledGreen = algorithm.scale(errorGreen);

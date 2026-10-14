@@ -102,6 +102,7 @@ final class PlaybackClock {
    */
   void setSpeed(final double newSpeed) {
     Preconditions.checkArgument(newSpeed > 0 && Double.isFinite(newSpeed), "Speed %s must be positive!", newSpeed);
+
     synchronized (this.lock) {
       if (this.anchored) {
         final long now = this.paused ? this.pausedAtNanoseconds : this.nanosecondClock.getAsLong();

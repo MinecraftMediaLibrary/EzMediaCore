@@ -107,6 +107,7 @@ public interface FormatStrategy {
    */
   static boolean hasAudio(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");
+
     final String audioExtension = format.audio_ext;
     return audioExtension != null && !audioExtension.equals("none");
   }
@@ -120,6 +121,7 @@ public interface FormatStrategy {
    */
   static boolean hasVideo(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");
+
     final String videoExtension = format.video_ext;
     return videoExtension != null && !videoExtension.equals("none");
   }
@@ -133,15 +135,18 @@ public interface FormatStrategy {
    */
   static boolean isHttps(final Format format) {
     Preconditions.checkNotNull(format, "Format must not be null!");
+
     return "https".equals(format.protocol);
   }
 
   private static List<Format> formats(final UrlParseDump dump) {
     Preconditions.checkNotNull(dump, "Dump must not be null!");
+
     final List<Format> formats = dump.formats;
     if (formats == null) {
       return List.of();
     }
+
     return formats;
   }
 
@@ -152,6 +157,7 @@ public interface FormatStrategy {
         return Optional.of(format);
       }
     }
+
     return Optional.empty();
   }
 
@@ -175,6 +181,7 @@ public interface FormatStrategy {
         picked = format;
       }
     }
+
     return Optional.ofNullable(picked);
   }
 }

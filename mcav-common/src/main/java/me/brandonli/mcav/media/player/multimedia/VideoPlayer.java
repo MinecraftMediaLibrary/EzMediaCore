@@ -69,6 +69,7 @@ public interface VideoPlayer extends ExceptionHandler {
    */
   static VideoPlayerMultiplexer vlc(final String... arguments) {
     Preconditions.checkNotNull(arguments, "Arguments must not be null!");
+
     return new VlcPlayer(arguments);
   }
 

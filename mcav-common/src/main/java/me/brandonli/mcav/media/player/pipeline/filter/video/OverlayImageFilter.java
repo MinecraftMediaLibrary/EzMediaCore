@@ -45,6 +45,7 @@ public class OverlayImageFilter extends MatVideoFilter {
   public OverlayImageFilter(final ImageBuffer overlay, final int left, final int top) {
     Preconditions.checkNotNull(overlay, "Overlay must not be null!");
     Preconditions.checkArgument(left >= 0 && top >= 0, "Overlay position must not be negative!");
+
     this.overlay = copyToMat(overlay);
     this.left = left;
     this.top = top;
@@ -68,6 +69,7 @@ public class OverlayImageFilter extends MatVideoFilter {
     if (width <= 0 || height <= 0) {
       return false;
     }
+
     try (
       final Rect targetRect = new Rect(this.left, this.top, width, height);
       final Rect sourceRect = new Rect(0, 0, width, height);
@@ -76,6 +78,7 @@ public class OverlayImageFilter extends MatVideoFilter {
     ) {
       source.copyTo(target);
     }
+
     return true;
   }
 }

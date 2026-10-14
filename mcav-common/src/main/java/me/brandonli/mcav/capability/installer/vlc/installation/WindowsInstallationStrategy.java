@@ -76,6 +76,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
   @Override
   public Path execute(final Path archive) throws IOException {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
+
     final Path installDirectory = this.getInstallDirectory();
     final Path parentOrNull = installDirectory.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
@@ -87,6 +88,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
     } finally {
       deleteRecursively(temporary);
     }
+
     Files.deleteIfExists(archive);
     return installDirectory;
   }
@@ -97,6 +99,7 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
     if (extractedLibraryDirectory.isEmpty()) {
       throw new IOException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory!");
     }
+
     final Path extractedRoot = extractedLibraryDirectory.get();
     Files.move(extractedRoot, installDirectory);
   }

@@ -45,6 +45,7 @@ final class NativeVlcDiscovery implements VlcDiscovery {
     if (raw == null) {
       return null;
     }
+
     return Path.of(raw);
   }
 

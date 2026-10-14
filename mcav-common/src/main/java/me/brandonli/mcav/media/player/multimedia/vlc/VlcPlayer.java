@@ -109,9 +109,11 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     Preconditions.checkNotNull(sharedFactory, "Shared factory must not be null!");
     Preconditions.checkArgument(openTimeoutMilliseconds >= 0, "Open timeout %s must not be negative!", openTimeoutMilliseconds);
     Preconditions.checkNotNull(mediaOptions, "Media options must not be null!");
+
     for (final String option : mediaOptions) {
       Preconditions.checkNotNull(option, "Media options must not contain null!");
     }
+
     final ExceptionHandler defaultHandler = ExceptionHandler.createDefault();
     this.sharedFactory = sharedFactory;
     this.openTimeoutMilliseconds = openTimeoutMilliseconds;
@@ -136,6 +138,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   @Override
   public boolean start(final Source combined) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
+
     return this.startPlayback(combined, null);
   }
 
@@ -154,10 +157,12 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   public boolean start(final Source video, final Source audio) {
     Preconditions.checkNotNull(video, "Video source must not be null!");
     Preconditions.checkNotNull(audio, "Audio source must not be null!");
+
     final boolean sameSource = video.equals(audio);
     if (sameSource) {
       return this.startPlayback(video, null);
     }
+
     return this.startPlayback(video, audio);
   }
 
@@ -172,6 +177,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       VlcPlayback.attemptAfterFailure(exception, () -> this.cleanFailedPreparation(transition));
       return this.reportFailedStart(video, exception);
     }
+
     try {
       final VlcPlayback previous = transition.previous;
       if (previous != null) {
@@ -184,6 +190,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       }
       throw exception;
     }
+
     return this.startReservedPlayback(transition, video);
   }
 
@@ -221,6 +228,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     } finally {
       this.lock.unlock();
     }
+
     try {
       final VlcPlayback previous = transition.previous;
       if (previous != null) {
@@ -254,9 +262,11 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       VlcPlayback.attemptAfterFailure(exception, () -> this.cleanCandidate(transition));
       return this.reportFailedStart(video, exception);
     }
+
     if (result == OpenResult.FAILED) {
       this.cleanCandidate(transition);
     }
+
     return result == OpenResult.STARTED;
   }
 
@@ -313,6 +323,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
       }
       throw (Error) exception;
     }
+
     return false;
   }
 
@@ -371,6 +382,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   @Override
   public boolean seek(final long time) {
     Preconditions.checkArgument(time >= 0, "Seek time must not be negative!");
+
     this.lock.lock();
     try {
       final VlcPlayback current = this.playback;
@@ -414,9 +426,11 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     } finally {
       this.lock.unlock();
     }
+
     if (current != null) {
       current.stop();
     }
+
     return true;
   }
 
@@ -430,6 +444,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.exceptionHandler = exceptionHandler;
   }
 
@@ -443,6 +458,7 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     if (extra == null) {
       return this.mediaOptions.clone();
     }
+
     final List<String> configured = List.of(this.mediaOptions);
     final List<String> options = new ArrayList<>(configured);
     options.add(extra);

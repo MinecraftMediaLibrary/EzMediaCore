@@ -138,6 +138,7 @@ public final class FfmpegCommand {
      */
     public Builder addInput(final String input) {
       Preconditions.checkNotNull(input, "Input must not be null!");
+
       this.arguments.add("-i");
       this.arguments.add(input);
       return this;
@@ -152,6 +153,7 @@ public final class FfmpegCommand {
      */
     public Builder addOutput(final String output) {
       Preconditions.checkNotNull(output, "Output must not be null!");
+
       this.arguments.add(output);
       return this;
     }
@@ -165,6 +167,7 @@ public final class FfmpegCommand {
      */
     public Builder addVideoCodec(final String codec) {
       Preconditions.checkNotNull(codec, "Codec must not be null!");
+
       this.arguments.add("-c:v");
       this.arguments.add(codec);
       return this;
@@ -179,6 +182,7 @@ public final class FfmpegCommand {
      */
     public Builder addAudioCodec(final String codec) {
       Preconditions.checkNotNull(codec, "Codec must not be null!");
+
       this.arguments.add("-c:a");
       this.arguments.add(codec);
       return this;
@@ -193,6 +197,7 @@ public final class FfmpegCommand {
      */
     public Builder addBitrate(final String bitrate) {
       Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
+
       this.arguments.add("-b:v");
       this.arguments.add(bitrate);
       return this;
@@ -207,6 +212,7 @@ public final class FfmpegCommand {
      */
     public Builder addAudioBitrate(final String bitrate) {
       Preconditions.checkNotNull(bitrate, "Bitrate must not be null!");
+
       this.arguments.add("-b:a");
       this.arguments.add(bitrate);
       return this;
@@ -221,6 +227,7 @@ public final class FfmpegCommand {
      */
     public Builder addFramerate(final int framerate) {
       Preconditions.checkArgument(framerate > 0, "Frame rate %s must be positive!", framerate);
+
       this.arguments.add("-r");
       final String value = String.valueOf(framerate);
       this.arguments.add(value);
@@ -237,6 +244,7 @@ public final class FfmpegCommand {
      */
     public Builder addResolution(final int width, final int height) {
       Preconditions.checkArgument(width > 0 && height > 0, "Resolution %sx%s must be positive!", width, height);
+
       this.arguments.add("-s");
       final String size = width + RESOLUTION_SEPARATOR + height;
       this.arguments.add(size);
@@ -262,6 +270,7 @@ public final class FfmpegCommand {
      */
     public Builder addFilter(final String filter) {
       Preconditions.checkNotNull(filter, "Filter must not be null!");
+
       this.arguments.add("-filter_complex");
       this.arguments.add(filter);
       return this;
@@ -276,6 +285,7 @@ public final class FfmpegCommand {
      */
     public Builder addArgument(final String argument) {
       Preconditions.checkNotNull(argument, "Argument must not be null!");
+
       this.arguments.add(argument);
       return this;
     }
@@ -290,10 +300,12 @@ public final class FfmpegCommand {
      */
     public Builder addArguments(final String... rawArguments) {
       Preconditions.checkNotNull(rawArguments, "Arguments must not be null!");
+
       for (final String argument : rawArguments) {
         Preconditions.checkNotNull(argument, "Argument must not be null!");
         this.arguments.add(argument);
       }
+
       return this;
     }
 

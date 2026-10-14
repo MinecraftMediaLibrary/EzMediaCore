@@ -48,9 +48,11 @@ public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultFfmpegDirectSource source)) {
       return false;
     }
+
     return this.mrl.equals(source.mrl) && this.format.equals(source.format);
   }
 

@@ -46,12 +46,14 @@ public final class KeyUtils {
    */
   public static String replaceKeysWithKeyCodes(final String input) {
     Preconditions.checkNotNull(input, "Input must not be null!");
+
     final int length = input.length();
     final StringBuilder output = new StringBuilder(length);
     int index = 0;
     while (index < length) {
       index = appendNext(input, index, output);
     }
+
     return output.toString();
   }
 
@@ -66,12 +68,14 @@ public final class KeyUtils {
       output.append(current);
       return index + 1;
     }
+
     final int next = index + 1;
     final boolean escaped = next < input.length() && input.charAt(next) == OPEN;
     if (escaped) {
       output.append(OPEN);
       return next + 1;
     }
+
     return appendKey(input, index, output);
   }
 
@@ -87,12 +91,14 @@ public final class KeyUtils {
       output.append(OPEN);
       return index + 1;
     }
+
     final String name = input.substring(index + 1, close);
     final Optional<KeyCode> key = KeyCode.fromName(name);
     if (key.isEmpty()) {
       output.append(OPEN);
       return index + 1;
     }
+
     final KeyCode code = key.get();
     final char character = code.getKeyChar();
     output.append(character);

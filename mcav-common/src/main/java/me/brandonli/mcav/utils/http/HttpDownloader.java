@@ -145,6 +145,7 @@ public final class HttpDownloader {
    */
   public static HttpRequest createRequest(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final HttpRequest.Builder builder = HttpRequest.newBuilder(uri);
     builder.timeout(REQUEST_TIMEOUT);
     builder.header(USER_AGENT_HEADER, USER_AGENT);
@@ -166,6 +167,7 @@ public final class HttpDownloader {
    */
   public static InputStream openStream(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final HttpRequest request = createRequest(uri);
     final HttpClient client = createClient();
     final HttpResponse<InputStream> response = send(client, request, uri);
@@ -240,6 +242,7 @@ public final class HttpDownloader {
     if (port >= 0) {
       return port;
     }
+
     return HTTPS_SCHEME.equalsIgnoreCase(uri.getScheme()) ? HTTPS_PORT : HTTP_PORT;
   }
 
@@ -268,6 +271,7 @@ public final class HttpDownloader {
       client.close();
       throw new HttpStatusException(status, uri);
     }
+
     return new ClientClosingStream(body, client);
   }
 
@@ -317,6 +321,7 @@ public final class HttpDownloader {
    */
   public static void download(final URI uri, final Path destination, final long maximumBytes) throws IOException {
     Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+
     download(uri, destination, null, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes);
   }
 
@@ -340,6 +345,7 @@ public final class HttpDownloader {
     throws IOException {
     Preconditions.checkNotNull(expectedSha256, "Expected SHA-256 must not be null!");
     Preconditions.checkArgument(maximumBytes > 0, SIZE_LIMIT_MESSAGE, maximumBytes);
+
     download(uri, destination, expectedSha256, RETRY_DELAY, IDLE_TIMEOUT, maximumBytes, pinnedDeadline(maximumBytes));
   }
 
@@ -406,9 +412,11 @@ public final class HttpDownloader {
   ) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
     Preconditions.checkNotNull(destination, "Destination must not be null!");
+
     final Path target = destination.toAbsolutePath();
     final Path fileName = target.getFileName();
     Preconditions.checkArgument(fileName != null, "Destination %s must name a file!", destination);
+
     final Path parentOrNull = target.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "A file always has a parent directory!");
     Files.createDirectories(parent);
@@ -477,6 +485,7 @@ public final class HttpDownloader {
         }
       }
     }
+
     final String message = "Download of %s failed after %s attempts!".formatted(uri, MAXIMUM_ATTEMPTS);
     throw new IOException(message, lastFailure);
   }
@@ -490,15 +499,19 @@ public final class HttpDownloader {
     if (exception instanceof ChecksumMismatchException) {
       return false;
     }
+
     if (exception instanceof DownloadTooLargeException) {
       return false;
     }
+
     if (exception instanceof RedirectRefusedException || exception instanceof DownloadTooSlowException) {
       return false;
     }
+
     if (!(exception instanceof final HttpStatusException statusException)) {
       return true;
     }
+
     final int status = statusException.getStatusCode();
     return status >= HTTP_SERVER_ERROR || status == HTTP_REQUEST_TIMEOUT || status == HTTP_TOO_MANY_REQUESTS;
   }
@@ -520,6 +533,7 @@ public final class HttpDownloader {
     ) {
       copy(body, partOutput, digest, uri, maximumBytes, started, pinnedDeadline);
     }
+
     verifyChecksum(uri, digest, expectedSha256);
   }
 
@@ -561,6 +575,7 @@ public final class HttpDownloader {
     if (expectedSha256 == null || expectedSha256.isBlank()) {
       return;
     }
+
     final byte[] hash = digest.digest();
     final HexFormat hexFormat = HexFormat.of();
     final String actualSha256 = hexFormat.formatHex(hash);
@@ -604,6 +619,7 @@ public final class HttpDownloader {
    */
   public static Optional<String> fetchText(final URI uri) throws IOException {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     final HttpRequest request = createRequest(uri);
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
     try (final HttpClient client = createClient()) {
@@ -624,6 +640,7 @@ public final class HttpDownloader {
       LOGGER.warn("Server answered with status {} for {}, which is not a success.", status, uri);
       return Optional.empty();
     }
+
     final String body = response.body();
     return Optional.of(body);
   }

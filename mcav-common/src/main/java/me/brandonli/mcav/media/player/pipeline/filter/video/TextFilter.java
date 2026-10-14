@@ -55,6 +55,7 @@ public class TextFilter extends MatVideoFilter {
   public TextFilter(final String text, final int left, final int baseline, final int font, final double scale, final double[] color) {
     Preconditions.checkNotNull(text, "Text must not be null!");
     Preconditions.checkArgument(scale > 0, "Scale must be positive!");
+
     this.text = text;
     this.position = new Point(left, baseline);
     this.font = font;
@@ -71,6 +72,7 @@ public class TextFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.putText(mat, this.text, this.position, this.font, this.scale, this.color);
+
     return true;
   }
 }

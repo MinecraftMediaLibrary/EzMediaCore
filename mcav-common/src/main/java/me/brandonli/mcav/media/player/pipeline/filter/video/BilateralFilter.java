@@ -48,6 +48,7 @@ public class BilateralFilter extends MatVideoFilter {
     Preconditions.checkArgument(diameter > 0, "Diameter must be positive!");
     Preconditions.checkArgument(sigmaColor > 0, "Sigma color must be positive!");
     Preconditions.checkArgument(sigmaSpace > 0, "Sigma space must be positive!");
+
     this.diameter = diameter;
     this.sigmaColor = sigmaColor;
     this.sigmaSpace = sigmaSpace;
@@ -62,6 +63,7 @@ public class BilateralFilter extends MatVideoFilter {
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
     image.transformMat(this::smooth);
+
     return true;
   }
 
@@ -78,6 +80,7 @@ public class BilateralFilter extends MatVideoFilter {
       this.smooth(mat, filtered);
       filtered.copyTo(mat);
     }
+
     return true;
   }
 

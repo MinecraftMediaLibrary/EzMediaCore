@@ -46,6 +46,7 @@ public class TransposeFilter extends MatVideoFilter {
   @Override
   protected boolean modifyImage(final MatImageBuffer image) {
     image.transformMat(opencv_core::transpose);
+
     return true;
   }
 

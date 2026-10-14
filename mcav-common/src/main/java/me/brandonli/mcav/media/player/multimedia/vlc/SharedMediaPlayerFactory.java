@@ -50,6 +50,7 @@ final class SharedMediaPlayerFactory {
   @VisibleForTesting
   SharedMediaPlayerFactory(final Supplier<MediaPlayerFactory> creator) {
     Preconditions.checkNotNull(creator, "Creator must not be null!");
+
     this.creator = creator;
     this.lock = new Object();
   }

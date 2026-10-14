@@ -89,6 +89,7 @@ public final class VlcInstallationKit {
    */
   public static VlcInstallationKit create(final VlcInstaller installer) {
     Preconditions.checkNotNull(installer, "Installer must not be null!");
+
     final NativeVlcDiscovery discovery = new NativeVlcDiscovery();
     return new VlcInstallationKit(installer, discovery, SHARED_LOAD_STATE);
   }
@@ -115,6 +116,7 @@ public final class VlcInstallationKit {
       logSystemInstallation(systemPath);
       return Optional.ofNullable(systemPath);
     }
+
     // an earlier private installation is used before anything asks the network whether VLC can be downloaded, so a
     // machine keeps working offline, and GitHub is not asked on every start
     final Optional<Path> existing = this.installer.findInstallation();
@@ -122,10 +124,12 @@ public final class VlcInstallationKit {
       final Path existingDirectory = existing.get();
       return this.loadPrivateInstallation(existingDirectory);
     }
+
     final boolean supported = this.installer.isSupported();
     if (!supported) {
       throw new UnsupportedOperatingSystemException("VLC is not installed and cannot be installed automatically on this system!");
     }
+
     final Path libraryDirectory = this.installer.download(true);
     return this.loadPrivateInstallation(libraryDirectory);
   }
@@ -136,6 +140,7 @@ public final class VlcInstallationKit {
       final String message = "VLC was installed to %s but its libraries could not be loaded!".formatted(libraryDirectory);
       throw new UnsupportedOperatingSystemException(message);
     }
+
     LOGGER.info("The VLC installation of the library at {} is used.", libraryDirectory);
     return Optional.of(libraryDirectory);
   }
@@ -145,6 +150,7 @@ public final class VlcInstallationKit {
       LOGGER.info("Using the VLC libraries vlcj loaded earlier in this JVM.");
       return;
     }
+
     LOGGER.info("The VLC installation of the system at {} is used.", systemPath);
   }
 

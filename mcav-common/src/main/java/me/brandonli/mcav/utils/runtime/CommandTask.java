@@ -94,6 +94,7 @@ public final class CommandTask {
   public CommandTask(final @Nullable Path workingDirectory, final String... command) {
     Preconditions.checkNotNull(command, "Command must not be null!");
     Preconditions.checkArgument(command.length > 0, "Command must not be empty!");
+
     this.command = List.of(command);
     this.workingDirectory = workingDirectory;
     this.descendants = new HashSet<>();
@@ -113,6 +114,7 @@ public final class CommandTask {
    */
   public CommandTask(final String[] command, final boolean runOnCreation) throws IOException {
     this(null, command);
+
     if (runOnCreation) {
       this.run();
     }
@@ -149,12 +151,14 @@ public final class CommandTask {
 
   private static void checkTimeout(final Duration timeout) {
     Preconditions.checkNotNull(timeout, "Timeout must not be null!");
+
     final boolean positive = !timeout.isNegative() && !timeout.isZero();
     Preconditions.checkArgument(positive, "Timeout %s must be positive!", timeout);
   }
 
   private int runWithTimeout(final @Nullable Duration timeout) throws IOException {
     Preconditions.checkState(this.process == null, "Command has already been run!");
+
     final long startNanoseconds = System.nanoTime();
     final Process started = this.startProcess();
     this.process = started;
@@ -171,6 +175,7 @@ public final class CommandTask {
       // close() waits indefinitely for blocked pipe readers. Cancellation must not extend the caller's deadline.
       readers.shutdownNow();
     }
+
     LOGGER.debug("Command {} exited with code {}.", this.command, this.exitCode);
     return this.exitCode;
   }
@@ -208,6 +213,7 @@ public final class CommandTask {
     if (code == 0) {
       return;
     }
+
     final String strippedError = this.errorOutput.strip();
     final String message = "Command %s exited with code %s, printing \"%s\" to its error stream!".formatted(
       this.command,
@@ -224,6 +230,7 @@ public final class CommandTask {
       final File directoryFile = directory.toFile();
       builder.directory(directoryFile);
     }
+
     LOGGER.debug("Command {} is running.", this.command);
     return builder.start();
   }
@@ -276,6 +283,7 @@ public final class CommandTask {
     if (timeout == null) {
       return output.get();
     }
+
     final long remaining = remainingNanoseconds(timeout, startNanoseconds);
     return output.get(remaining, TimeUnit.NANOSECONDS);
   }
@@ -287,6 +295,7 @@ public final class CommandTask {
     if (remaining <= 0) {
       throw new TimeoutException("The command and output deadline expired!");
     }
+
     return remaining;
   }
 
@@ -335,6 +344,7 @@ public final class CommandTask {
    */
   public int getExitCode() {
     Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run!");
+
     return this.exitCode;
   }
 

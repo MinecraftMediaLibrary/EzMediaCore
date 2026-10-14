@@ -43,6 +43,7 @@ public class BlendFilter extends MatVideoFilter {
   public BlendFilter(final ImageBuffer other, final double alpha) {
     Preconditions.checkNotNull(other, "Other image must not be null!");
     Preconditions.checkArgument(alpha >= 0 && alpha <= 1, "Alpha must be between 0 and 1!");
+
     this.alpha = alpha;
     this.other = copyToMat(other);
   }
@@ -63,8 +64,10 @@ public class BlendFilter extends MatVideoFilter {
     if (!sameSize) {
       return false;
     }
+
     final double otherWeight = 1.0 - this.alpha;
     opencv_core.addWeighted(mat, this.alpha, this.other, otherWeight, 0.0, mat);
+
     return true;
   }
 }

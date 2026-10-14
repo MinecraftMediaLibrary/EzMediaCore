@@ -39,6 +39,7 @@ public class InvertFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_core.bitwise_not(mat, mat);
+
     return true;
   }
 }

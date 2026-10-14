@@ -38,8 +38,10 @@ public final class OrderedPixelMapper implements PixelMapper {
   OrderedPixelMapper(final int[][] thresholds, final float strength) {
     Preconditions.checkNotNull(thresholds, "Thresholds must not be null!");
     Preconditions.checkArgument(thresholds.length > 0, "Threshold matrix must have at least one row!");
+
     final boolean finite = Float.isFinite(strength);
     Preconditions.checkArgument(finite && strength >= 0, "Strength must be finite and not negative!");
+
     this.strength = strength;
     this.matrix = normalize(thresholds, strength);
   }
@@ -58,6 +60,7 @@ public final class OrderedPixelMapper implements PixelMapper {
         normalized[row][column] = centered * strength;
       }
     }
+
     return normalized;
   }
 
@@ -70,12 +73,15 @@ public final class OrderedPixelMapper implements PixelMapper {
   private static int checkRectangular(final int[][] thresholds) {
     final int[] firstRow = thresholds[0];
     Preconditions.checkNotNull(firstRow, ROW_NULL_MESSAGE);
+
     final int columns = firstRow.length;
     Preconditions.checkArgument(columns > 0, "Threshold matrix must have at least one column!");
+
     for (final int[] row : thresholds) {
       Preconditions.checkNotNull(row, ROW_NULL_MESSAGE);
       Preconditions.checkArgument(row.length == columns, "Threshold matrix rows must have the same length!");
     }
+
     return columns;
   }
 
@@ -86,6 +92,7 @@ public final class OrderedPixelMapper implements PixelMapper {
         minimum = Math.min(minimum, value);
       }
     }
+
     return minimum;
   }
 
@@ -96,6 +103,7 @@ public final class OrderedPixelMapper implements PixelMapper {
         maximum = Math.max(maximum, value);
       }
     }
+
     return maximum;
   }
 

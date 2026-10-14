@@ -57,6 +57,7 @@ public final class DefaultAudioPipelineStep implements AudioPipelineStep {
   public void process(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     this.filter.applyFilter(buffer, metadata);
   }
 

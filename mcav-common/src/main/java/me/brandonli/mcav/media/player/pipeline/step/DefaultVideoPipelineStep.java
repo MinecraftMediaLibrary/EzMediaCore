@@ -57,6 +57,7 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
   public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     this.filter.applyFilter(buffer, metadata);
   }
 

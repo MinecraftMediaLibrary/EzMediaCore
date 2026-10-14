@@ -42,6 +42,7 @@ public final class Platform {
     Preconditions.checkNotNull(os, "OS must not be null!");
     Preconditions.checkNotNull(arch, "Arch must not be null!");
     Preconditions.checkNotNull(bits, "Bits must not be null!");
+
     this.os = os;
     this.arch = arch;
     this.bits = bits;
@@ -118,9 +119,11 @@ public final class Platform {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Platform platform)) {
       return false;
     }
+
     return this.os == platform.os && this.arch == platform.arch && this.bits == platform.bits;
   }
 

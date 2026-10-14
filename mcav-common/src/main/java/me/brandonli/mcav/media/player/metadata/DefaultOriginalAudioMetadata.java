@@ -75,9 +75,11 @@ public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultOriginalAudioMetadata metadata)) {
       return false;
     }
+
     return (
       this.codec.equals(metadata.codec) &&
       this.audioBitrate == metadata.audioBitrate &&

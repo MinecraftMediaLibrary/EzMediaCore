@@ -84,6 +84,7 @@ final class EnvironmentVariables {
     if (library.isEmpty()) {
       return false;
     }
+
     final LibC loaded = library.get();
     final int result = loaded.setenv(name, value, 1);
     return result == 0;
@@ -101,6 +102,7 @@ final class EnvironmentVariables {
     if (library.isEmpty()) {
       return false;
     }
+
     final LibC loaded = library.get();
     final String assignment = name + ASSIGNMENT_SEPARATOR + value;
     final int result = loaded._putenv(assignment);

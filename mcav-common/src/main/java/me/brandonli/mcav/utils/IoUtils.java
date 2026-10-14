@@ -131,11 +131,13 @@ public final class IoUtils {
    */
   public static String getFileNameFromUrl(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");
+
     final URI uri = URI.create(url);
     final String uriPath = uri.getPath();
     if (uriPath == null || uriPath.isEmpty()) {
       return "";
     }
+
     final int lastSlash = uriPath.lastIndexOf('/');
     return uriPath.substring(lastSlash + 1);
   }
@@ -168,6 +170,7 @@ public final class IoUtils {
         // the port is in use, try the next one
       }
     }
+
     final String message = "Port range %s-%s has no free port!".formatted(firstPort, lastPort);
     final BindException noFreePort = new BindException(message);
     throw new UncheckedIOException(message, noFreePort);
@@ -184,10 +187,12 @@ public final class IoUtils {
    */
   public static boolean createDirectoryIfNotExists(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     final boolean exists = Files.isDirectory(path);
     if (exists) {
       return false;
     }
+
     try {
       Files.createDirectories(path);
       return true;
@@ -207,10 +212,12 @@ public final class IoUtils {
    */
   public static boolean createFileIfNotExists(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     final boolean exists = Files.exists(path);
     if (exists) {
       return false;
     }
+
     try {
       final Path parent = path.getParent();
       if (parent != null) {
@@ -234,12 +241,14 @@ public final class IoUtils {
    */
   public static void markExecutable(final Path file) {
     Preconditions.checkNotNull(file, "File must not be null!");
+
     final FileSystem fileSystem = file.getFileSystem();
     final Set<String> views = fileSystem.supportedFileAttributeViews();
     final boolean supportsPosix = views.contains(POSIX_ATTRIBUTE_VIEW);
     if (!supportsPosix) {
       return;
     }
+
     try {
       Files.setPosixFilePermissions(file, EXECUTABLE_PERMISSIONS);
     } catch (final IOException exception) {
@@ -259,11 +268,13 @@ public final class IoUtils {
    */
   public static void deleteRecursively(final Path path) throws IOException {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     // a link whose target is gone does not exist when followed, but still has to be deleted
     final boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
     if (!exists) {
       return;
     }
+
     try (final Stream<Path> files = Files.walk(path)) {
       final Comparator<Path> deepestFirst = Comparator.reverseOrder();
       final Stream<Path> sorted = files.sorted(deepestFirst);
@@ -294,6 +305,7 @@ public final class IoUtils {
   public static void moveReplacing(final Path source, final Path target) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
     Preconditions.checkNotNull(target, "Target must not be null!");
+
     moveReplacing(source, target, Files::move, MOVE_RETRY_DELAY);
   }
 
@@ -354,6 +366,7 @@ public final class IoUtils {
    */
   public static String getSha256Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     return hashFile(path, SHA_256);
   }
 
@@ -368,6 +381,7 @@ public final class IoUtils {
    */
   public static String getSha1Hash(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     return hashFile(path, SHA_1);
   }
 
@@ -384,6 +398,7 @@ public final class IoUtils {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
     }
+
     final byte[] hash = digest.digest();
     final HexFormat hex = HexFormat.of();
     return hex.formatHex(hash);
@@ -408,6 +423,7 @@ public final class IoUtils {
    */
   public static String bytesToHex(final byte[] bytes) {
     Preconditions.checkNotNull(bytes, "Bytes must not be null!");
+
     final StringBuilder hex = new StringBuilder(bytes.length * HEX_DIGITS_PER_BYTE);
     for (final byte value : bytes) {
       final int unsigned = value & UNSIGNED_BYTE_MASK;
@@ -417,6 +433,7 @@ public final class IoUtils {
       }
       hex.append(digits);
     }
+
     return hex.toString();
   }
 
@@ -430,11 +447,13 @@ public final class IoUtils {
    */
   public static String getName(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     final Path fileName = path.getFileName();
     if (fileName == null) {
       final String message = "Path %s has no file name!".formatted(path);
       throw new IllegalArgumentException(message);
     }
+
     return fileName.toString();
   }
 
@@ -454,6 +473,7 @@ public final class IoUtils {
    */
   public static Path downloadImage(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     final String url = source.getResource();
     final byte[] urlBytes = url.getBytes(StandardCharsets.UTF_8);
     final UUID id = UUID.nameUUIDFromBytes(urlBytes);
@@ -467,6 +487,7 @@ public final class IoUtils {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
     }
+
     return destination;
   }
 
@@ -495,6 +516,7 @@ public final class IoUtils {
    */
   public static Download[] readDownloadsFromJsonResource(final String resourcePath) {
     Preconditions.checkNotNull(resourcePath, "Resource path must not be null!");
+
     final Download[] downloads;
     try (final Reader reader = getResourceAsStreamReader(resourcePath)) {
       downloads = parseDownloads(reader);
@@ -502,9 +524,11 @@ public final class IoUtils {
       final String message = exception.getMessage();
       throw new UncheckedIOException(message, exception);
     }
+
     if (downloads == null) {
       return new Download[0];
     }
+
     return downloads;
   }
 
@@ -534,6 +558,7 @@ public final class IoUtils {
    */
   public static Reader getResourceAsStreamReader(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     final InputStream stream = getResourceAsInputStream(resource);
     return new InputStreamReader(stream, StandardCharsets.UTF_8);
   }
@@ -548,6 +573,7 @@ public final class IoUtils {
    */
   public static InputStream getResourceAsInputStream(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     return getResourceAsInputStream(resource, IoUtils.class);
   }
 
@@ -563,6 +589,7 @@ public final class IoUtils {
   public static InputStream getResourceAsInputStream(final String resource, final Class<?> loaderClass) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
     Preconditions.checkNotNull(loaderClass, "Class must not be null!");
+
     final ClassLoader classLoader = loaderClass.getClassLoader();
     final InputStream stream = classLoader == null ? null : classLoader.getResourceAsStream(resource);
     if (stream == null) {
@@ -570,6 +597,7 @@ public final class IoUtils {
       final FileNotFoundException missingResource = new FileNotFoundException(message);
       throw new UncheckedIOException(message, missingResource);
     }
+
     return stream;
   }
 
@@ -592,6 +620,7 @@ public final class IoUtils {
   public static void unzip(final Path archive, final Path destination) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
     Preconditions.checkNotNull(destination, "Destination must not be null!");
+
     unzip(archive, destination, MAXIMUM_ZIP_ENTRY_SIZE, MAXIMUM_ZIP_TOTAL_SIZE);
   }
 
@@ -696,6 +725,7 @@ public final class IoUtils {
       Files.createDirectories(target);
       return 0;
     }
+
     final Path parentOrNull = target.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "An entry inside the destination always has a parent!");
     Files.createDirectories(parent);
@@ -712,17 +742,20 @@ public final class IoUtils {
       refused.initCause(exception);
       throw refused;
     }
+
     final Path target = resolved.normalize();
     final boolean insideDestination = isInside(destination, target);
     if (!insideDestination) {
       final String message = "Zip entry %s escapes the destination directory!".formatted(name);
       throw new ZipEntryIntegrityException(message);
     }
+
     final boolean emptyName = hasEmptyName(destination, target);
     if (emptyName) {
       final String message = "Zip entry %s has an empty name in its path!".formatted(name);
       throw new ZipEntryIntegrityException(message);
     }
+
     rejectSymbolicLinks(destination, target, name);
     return target;
   }
@@ -740,6 +773,7 @@ public final class IoUtils {
         return false;
       }
     }
+
     return true;
   }
 
@@ -750,6 +784,7 @@ public final class IoUtils {
       final String componentName = component.toString();
       rebuilt = rebuilt.resolve(componentName);
     }
+
     // the zip file system keeps an empty name, as in the entry a/\x, which corrupts its directory tree
     return !rebuilt.equals(target);
   }
@@ -802,6 +837,7 @@ public final class IoUtils {
         read = zip.read(buffer);
       }
     }
+
     return entrySize;
   }
 

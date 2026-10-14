@@ -70,9 +70,11 @@ final class PixelCacheKey {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final PixelCacheKey key)) {
       return false;
     }
+
     return this.address == key.address && this.width == key.width && this.height == key.height;
   }
 

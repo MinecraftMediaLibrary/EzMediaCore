@@ -177,6 +177,7 @@ public final class DiffusionKernel {
       this.offsetsY[tapIndex] = tap[1];
       this.weights[tapIndex] = tap[2];
     }
+
     this.maximumOffsetX = getLargestMagnitude(this.offsetsX);
     this.maximumOffsetY = getLargestMagnitude(this.offsetsY);
   }
@@ -187,11 +188,13 @@ public final class DiffusionKernel {
   private static void checkTap(final int[] tap, final int tapIndex) {
     Preconditions.checkNotNull(tap, "Tap %s must not be null!", tapIndex);
     Preconditions.checkArgument(tap.length == 3, "Tap %s must have three values!", tapIndex);
+
     final int offsetX = tap[0];
     final int offsetY = tap[1];
     final int weight = tap[2];
     Preconditions.checkArgument(offsetY >= 0, "Tap %s points to a previous row!", tapIndex);
     Preconditions.checkArgument(offsetY > 0 || offsetX > 0, "Tap %s points to an already processed pixel!", tapIndex);
+
     // widened, because the magnitude of Integer.MIN_VALUE does not fit an int
     final long reachX = Math.abs((long) offsetX);
     final boolean withinReach = reachX <= MAXIMUM_OFFSET && offsetY <= MAXIMUM_OFFSET;
@@ -205,6 +208,7 @@ public final class DiffusionKernel {
       final int magnitude = Math.abs(value);
       largest = Math.max(largest, magnitude);
     }
+
     return largest;
   }
 

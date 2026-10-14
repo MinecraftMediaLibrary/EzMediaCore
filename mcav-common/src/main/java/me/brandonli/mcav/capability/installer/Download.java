@@ -50,6 +50,7 @@ public final class Download {
     Preconditions.checkNotNull(platform, "Platform must not be null!");
     Preconditions.checkNotNull(url, "URL must not be null!");
     Preconditions.checkArgument(!url.isBlank(), "URL must not be blank!");
+
     this.platform = platform;
     this.url = url;
     this.hash = hash;

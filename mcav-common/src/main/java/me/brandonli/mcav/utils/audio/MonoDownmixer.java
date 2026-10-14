@@ -52,6 +52,7 @@ public final class MonoDownmixer {
    */
   public static short[] downmix(final ByteBuffer stereo) {
     Preconditions.checkNotNull(stereo, "Samples must not be null!");
+
     final ByteBuffer source = stereo.duplicate();
     source.order(ByteOrder.LITTLE_ENDIAN);
     final int frames = source.remaining() / AudioFilter.FRAME_SIZE;
@@ -62,6 +63,7 @@ public final class MonoDownmixer {
       final int sum = left + right;
       mono[frame] = (short) (sum >> 1);
     }
+
     return mono;
   }
 }

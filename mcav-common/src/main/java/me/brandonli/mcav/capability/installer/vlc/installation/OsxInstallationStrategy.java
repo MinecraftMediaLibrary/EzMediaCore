@@ -87,6 +87,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
   @Override
   public Path execute(final Path archive) throws IOException {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
+
     final Path installDirectory = this.getInstallDirectory();
     final Path parentOrNull = installDirectory.getParent();
     final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
@@ -100,6 +101,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     if (libraryDirectory.isEmpty()) {
       throw new IOException("The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory!");
     }
+
     return libraryDirectory.get();
   }
 
@@ -120,6 +122,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
       this.detachAfterFailure(mountPoint, exception);
       throw exception;
     }
+
     this.detach(mountPoint);
   }
 
@@ -143,6 +146,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     } catch (final IOException exception) {
       this.forceDetach(rawMountPoint, exception);
     }
+
     deleteRecursively(mountPoint);
   }
 

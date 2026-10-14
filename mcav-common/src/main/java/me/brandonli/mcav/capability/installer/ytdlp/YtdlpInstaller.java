@@ -81,6 +81,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
    */
   public static YtdlpInstaller create(final Path folder) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
+
     return new YtdlpInstaller(folder);
   }
 
@@ -131,6 +132,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
     if (!isArchive) {
       return super.getDefaultPath();
     }
+
     final Path unpackedFolder = this.getUnpackedFolder();
     final String executableName = this.getArchiveExecutableName();
     return unpackedFolder.resolve(executableName);
@@ -154,6 +156,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
     if (!isArchive) {
       return downloaded;
     }
+
     final Path folder = this.getFolder();
     final Path unpacking = folder.resolve(UNPACKING_FOLDER);
     final Path unpacked = this.getUnpackedFolder();
@@ -165,6 +168,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
     } finally {
       IoUtils.deleteRecursively(unpacking);
     }
+
     Files.deleteIfExists(downloaded);
     return this.getDefaultPath();
   }
@@ -178,6 +182,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
       final String message = "The yt-dlp zip does not contain %s at its top level!".formatted(executableName);
       throw new IOException(message);
     }
+
     markExecutable(executable);
   }
 
@@ -233,10 +238,12 @@ public final class YtdlpInstaller extends AbstractInstaller {
     if (!arm64) {
       return List.of();
     }
+
     if (operatingSystem == Os.WINDOWS || operatingSystem == Os.MAC) {
       final Platform x86 = Platform.ofPlatform(operatingSystem, Arch.X86, Bits.BITS_64);
       return List.of(x86);
     }
+
     return List.of();
   }
 

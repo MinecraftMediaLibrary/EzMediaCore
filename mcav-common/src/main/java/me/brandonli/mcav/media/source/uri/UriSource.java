@@ -35,6 +35,7 @@ public interface UriSource extends DynamicSource {
    */
   static UriSource uri(final URI uri) {
     Preconditions.checkNotNull(uri, "URI must not be null!");
+
     return new DefaultUriSource(uri);
   }
 

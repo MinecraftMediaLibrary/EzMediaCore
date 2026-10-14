@@ -45,6 +45,7 @@ public final class Dimension {
   public Dimension(final int width, final int height) {
     Preconditions.checkArgument(width >= 0, "Width %s must not be negative!", width);
     Preconditions.checkArgument(height >= 0, "Height %s must not be negative!", height);
+
     this.width = width;
     this.height = height;
   }
@@ -93,9 +94,11 @@ public final class Dimension {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Dimension dimension)) {
       return false;
     }
+
     return this.width == dimension.width && this.height == dimension.height;
   }
 

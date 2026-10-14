@@ -46,6 +46,7 @@ public interface OriginalVideoMetadata extends OriginalMetadata {
    */
   static OriginalVideoMetadata of(final int videoWidth, final int videoHeight, final int videoBitrate, final float videoFrameRate) {
     Preconditions.checkArgument(videoWidth > 0 && videoHeight > 0, "Video size %sx%s must be positive!", videoWidth, videoHeight);
+
     return new DefaultOriginalVideoMetadata(videoWidth, videoHeight, videoBitrate, videoFrameRate);
   }
 

@@ -65,6 +65,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    */
   public FaceDetectionFilter(final Path cascadeFile, final double[] color) {
     Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
+
     this.classifier = createClassifier(cascadeFile);
     this.color = ImageUtils.toScalar(color);
     this.gray = new Mat();
@@ -84,6 +85,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
    */
   public FaceDetectionFilter(final String cascadeFile, final double[] color) {
     Preconditions.checkNotNull(cascadeFile, CASCADE_FILE_NULL_MESSAGE);
+
     final Path path = Path.of(cascadeFile);
     this.classifier = createClassifier(path);
     this.color = ImageUtils.toScalar(color);
@@ -94,6 +96,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
   private static CascadeClassifier createClassifier(final Path cascadeFile) {
     final boolean exists = Files.isRegularFile(cascadeFile);
     Preconditions.checkArgument(exists, "Cascade file %s does not exist!", cascadeFile);
+
     return loadClassifier(cascadeFile, CascadeClassifier::new);
   }
 
@@ -121,12 +124,14 @@ public class FaceDetectionFilter extends MatVideoFilter {
       final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
       throw new IllegalArgumentException(message, exception);
     }
+
     final boolean empty = classifier.empty();
     if (empty) {
       classifier.close();
       final String message = UNLOADABLE_CASCADE_MESSAGE.formatted(cascadeFile);
       throw new IllegalArgumentException(message);
     }
+
     return classifier;
   }
 
@@ -146,6 +151,7 @@ public class FaceDetectionFilter extends MatVideoFilter {
       final Rect face = this.faces.get(faceIndex);
       opencv_imgproc.rectangle(mat, face, this.color);
     }
+
     return count > 0;
   }
 }

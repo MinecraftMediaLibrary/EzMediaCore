@@ -57,6 +57,7 @@ public class SourceDetectionHelper {
    */
   public SourceDetectionHelper(final Collection<SourceDetector<? extends Source>> detectors) {
     Preconditions.checkNotNull(detectors, "Detectors must not be null!");
+
     this.detectors = List.copyOf(detectors);
   }
 
@@ -79,6 +80,7 @@ public class SourceDetectionHelper {
    */
   public Optional<Source> detectSource(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     SourceDetector<? extends Source> best = null;
     int bestPriority = Integer.MIN_VALUE;
     for (final SourceDetector<? extends Source> detector : this.detectors) {
@@ -92,9 +94,11 @@ public class SourceDetectionHelper {
         best = detector;
       }
     }
+
     if (best == null) {
       return Optional.empty();
     }
+
     final Source source = best.createSource(resource);
     return Optional.of(source);
   }

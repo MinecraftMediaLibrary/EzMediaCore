@@ -98,6 +98,7 @@ public final class VlcInstaller extends AbstractInstaller {
    */
   public static VlcInstaller create(final Path folder) {
     Preconditions.checkNotNull(folder, "Folder must not be null!");
+
     return new VlcInstaller(folder);
   }
 
@@ -133,6 +134,7 @@ public final class VlcInstaller extends AbstractInstaller {
     if (installed) {
       return true;
     }
+
     return super.isSupported();
   }
 
@@ -174,6 +176,7 @@ public final class VlcInstaller extends AbstractInstaller {
     if (!installable) {
       return Optional.empty();
     }
+
     final InstallationStrategy strategy = createStrategy(this, operatingSystem);
     return strategy.getInstalledPath();
   }
@@ -183,6 +186,7 @@ public final class VlcInstaller extends AbstractInstaller {
     if (!first) {
       return;
     }
+
     final Path folder = this.getFolder();
     removeLegacyInstallations(folder);
   }

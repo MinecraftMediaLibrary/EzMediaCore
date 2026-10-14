@@ -80,6 +80,7 @@ final class OpenCvVideoBackends {
         "The OpenCV build of this platform has no video file backend, so files are read with the FFmpeg reader of JavaCV instead."
       );
     }
+
     return backend;
   }
 
@@ -92,10 +93,12 @@ final class OpenCvVideoBackends {
   @VisibleForTesting
   static boolean listsEnabledFileBackend(final String information) {
     Preconditions.checkNotNull(information, "Build information must not be null!");
+
     final int start = information.indexOf(VIDEO_SECTION);
     if (start < 0) {
       return false;
     }
+
     final int end = information.indexOf(SECTION_END, start);
     final int sectionEnd = end < 0 ? information.length() : end;
     final String section = information.substring(start, sectionEnd);
@@ -108,6 +111,7 @@ final class OpenCvVideoBackends {
         return true;
       }
     }
+
     return false;
   }
 
@@ -118,6 +122,7 @@ final class OpenCvVideoBackends {
         return true;
       }
     }
+
     return false;
   }
 }

@@ -67,6 +67,7 @@ public interface PixelMapper {
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final int maximum, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
+
     final int[][] entries = matrix.toArray();
     return ofPixelMapper(entries, maximum, strength);
   }
@@ -82,6 +83,7 @@ public interface PixelMapper {
    */
   static PixelMapper ofPixelMapper(final ThresholdMatrix matrix, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
+
     final int[][] entries = matrix.toArray();
     return ofPixelMapper(entries, strength);
   }
@@ -101,6 +103,7 @@ public interface PixelMapper {
   static PixelMapper ofPixelMapper(final int[][] matrix, final int maximum, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
     Preconditions.checkArgument(maximum > 0, "Max must be positive!");
+
     return new OrderedPixelMapper(matrix, strength);
   }
 
@@ -116,6 +119,7 @@ public interface PixelMapper {
    */
   static PixelMapper ofPixelMapper(final int[][] matrix, final float strength) {
     Preconditions.checkNotNull(matrix, "Matrix must not be null!");
+
     return new OrderedPixelMapper(matrix, strength);
   }
 }

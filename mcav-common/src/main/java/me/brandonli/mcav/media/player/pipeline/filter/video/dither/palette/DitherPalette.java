@@ -61,6 +61,7 @@ public interface DitherPalette {
    */
   static DitherPalette colors(final int... colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
+
     return new ColorPalette(colors, 0);
   }
 
@@ -83,6 +84,7 @@ public interface DitherPalette {
       Preconditions.checkNotNull(color, "Color %s must not be null!", index);
       array[index] = color;
     }
+
     return new ColorPalette(array, 0);
   }
 

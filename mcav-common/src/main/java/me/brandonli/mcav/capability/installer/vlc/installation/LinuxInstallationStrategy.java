@@ -84,6 +84,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
   @Override
   public Path execute(final Path archive) throws IOException {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
+
     final Path absoluteArchive = archive.toAbsolutePath();
     final Path parentOrNull = absoluteArchive.getParent();
     final Path workingDirectory = Objects.requireNonNull(parentOrNull, "A downloaded file lies in a directory!");
@@ -98,6 +99,7 @@ public final class LinuxInstallationStrategy extends ManualInstallationStrategy 
     if (libraryDirectory.isEmpty()) {
       throw new IOException("The extracted VLC AppImage does not contain nonempty libvlc.so and libvlccore.so in the same directory!");
     }
+
     return libraryDirectory.get();
   }
 

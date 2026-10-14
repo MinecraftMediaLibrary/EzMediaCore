@@ -101,6 +101,7 @@ public abstract class AbstractInstaller implements Installer {
     Preconditions.checkNotNull(name, "Name must not be null!");
     Preconditions.checkNotNull(downloads, "Downloads must not be null!");
     Preconditions.checkArgument(!name.isBlank(), "Name must not be blank!");
+
     this.folder = folder;
     this.name = name;
     this.downloadSupplier = downloads;
@@ -119,6 +120,7 @@ public abstract class AbstractInstaller implements Installer {
    */
   protected AbstractInstaller(final Path folder, final String name, final Download[] downloads) {
     Preconditions.checkNotNull(downloads, "Downloads must not be null!");
+
     final Supplier<Download[]> fixedDownloads = () -> downloads;
     this(folder, name, fixedDownloads);
   }
@@ -161,6 +163,7 @@ public abstract class AbstractInstaller implements Installer {
     if (operatingSystem == Os.WINDOWS) {
       return name + WINDOWS_EXECUTABLE_SUFFIX;
     }
+
     return name;
   }
 
@@ -198,6 +201,7 @@ public abstract class AbstractInstaller implements Installer {
     final String hash = download.getHash();
     Files.createDirectories(this.folder);
     HttpDownloader.download(uri, destination, hash);
+
     if (executable) {
       try {
         markExecutable(destination);
@@ -210,6 +214,7 @@ public abstract class AbstractInstaller implements Installer {
         throw exception;
       }
     }
+
     final Path installed = this.install(destination);
     this.writePathToConfiguration(installed);
     return installed;
@@ -226,6 +231,7 @@ public abstract class AbstractInstaller implements Installer {
    */
   protected static void markExecutable(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
+
     try {
       IoUtils.markExecutable(file);
     } catch (final UncheckedIOException exception) {
@@ -249,6 +255,7 @@ public abstract class AbstractInstaller implements Installer {
       final Path existingPath = existing.get();
       this.installedPath = existingPath;
     }
+
     return existing;
   }
 
@@ -288,6 +295,7 @@ public abstract class AbstractInstaller implements Installer {
     if (installed != null) {
       return installed;
     }
+
     return this.getDefaultPath();
   }
 
@@ -313,6 +321,7 @@ public abstract class AbstractInstaller implements Installer {
     if (download.isEmpty()) {
       return "";
     }
+
     final Download resolved = download.get();
     return resolved.getUrl();
   }
@@ -327,6 +336,7 @@ public abstract class AbstractInstaller implements Installer {
     if (download.isEmpty()) {
       return null;
     }
+
     final Download resolved = download.get();
     return resolved.getHash();
   }
@@ -344,12 +354,14 @@ public abstract class AbstractInstaller implements Installer {
       final Os operatingSystem = OsUtils.getOs();
       return getExecutableFileName(this.name, operatingSystem);
     }
+
     final String url = this.getUrl();
     final String urlFileName = IoUtils.getFileNameFromUrl(url);
     final boolean usable = isPlainFileName(urlFileName);
     if (usable) {
       return urlFileName;
     }
+
     return this.name + ARCHIVE_SUFFIX;
   }
 
@@ -372,6 +384,7 @@ public abstract class AbstractInstaller implements Installer {
       final String message = "Platform %s has no %s download available!".formatted(platform, this.name);
       throw new IOException(message);
     }
+
     return download.get();
   }
 
@@ -400,11 +413,13 @@ public abstract class AbstractInstaller implements Installer {
     if (!known) {
       return Optional.empty();
     }
+
     final Download[] downloads = this.downloadSupplier.get();
     final Optional<Download> exact = findDownload(downloads, platform);
     if (exact.isPresent()) {
       return exact;
     }
+
     final List<Platform> fallbacks = this.getFallbackPlatforms(platform);
     for (final Platform fallback : fallbacks) {
       final Optional<Download> compatible = findDownload(downloads, fallback);
@@ -412,6 +427,7 @@ public abstract class AbstractInstaller implements Installer {
         return compatible;
       }
     }
+
     return Optional.empty();
   }
 
@@ -423,6 +439,7 @@ public abstract class AbstractInstaller implements Installer {
         return Optional.of(download);
       }
     }
+
     return Optional.empty();
   }
 
@@ -451,6 +468,7 @@ public abstract class AbstractInstaller implements Installer {
     if (exists) {
       return Optional.of(defaultPath);
     }
+
     return this.findConfiguredInstallation();
   }
 
@@ -460,6 +478,7 @@ public abstract class AbstractInstaller implements Installer {
     if (savedPath == null) {
       return Optional.empty();
     }
+
     final FileSystem fileSystem = this.folder.getFileSystem();
     try {
       final Path configuredPath = fileSystem.getPath(savedPath);
@@ -480,6 +499,7 @@ public abstract class AbstractInstaller implements Installer {
    */
   public void writePathToConfiguration(final Path installedPath) throws IOException {
     Preconditions.checkNotNull(installedPath, "Path must not be null!");
+
     synchronized (CONFIGURATION_LOCK) {
       final Properties properties = this.readConfiguration();
       final Path absolute = installedPath.toAbsolutePath();
@@ -510,6 +530,7 @@ public abstract class AbstractInstaller implements Installer {
     if (!exists) {
       return properties;
     }
+
     try (final InputStream configurationInput = Files.newInputStream(configurationFile)) {
       properties.load(configurationInput);
     } catch (final IllegalArgumentException exception) {
@@ -517,6 +538,7 @@ public abstract class AbstractInstaller implements Installer {
       LOGGER.warn("Configuration {} is malformed and is ignored.", configurationFile, exception);
       return new Properties();
     }
+
     return properties;
   }
 

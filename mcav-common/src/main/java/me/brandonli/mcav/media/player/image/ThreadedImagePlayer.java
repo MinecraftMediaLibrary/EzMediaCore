@@ -82,9 +82,11 @@ public final class ThreadedImagePlayer implements ImagePlayer {
   @Override
   public boolean start(final FrameSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     final float frameRate = source.getFrameRate();
     final boolean finite = Float.isFinite(frameRate);
     Preconditions.checkArgument(frameRate > 0 && finite, "Frame rate %s must be positive and finite!", frameRate);
+
     this.lock.lock();
     try {
       final boolean gone = this.released.get();
@@ -158,6 +160,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
     } finally {
       this.lock.unlock();
     }
+
     if (worker != null) {
       LockSupport.unpark(worker);
       final Thread caller = Thread.currentThread();
@@ -167,6 +170,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
         join(worker);
       }
     }
+
     return true;
   }
 
@@ -189,6 +193,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+
     this.exceptionHandler.setExceptionHandler(exceptionHandler);
   }
 
@@ -276,6 +281,7 @@ public final class ThreadedImagePlayer implements ImagePlayer {
         existing.updateArgb(pixels, this.width, this.height);
         return existing;
       }
+
       final ImageBuffer created = ImageBuffer.buffer(pixels, this.width, this.height);
       this.buffer = created;
       return created;

@@ -52,6 +52,7 @@ public final class FramePixels {
    */
   public static ByteBuffer copyBgr(final Frame frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     final int size = checkedSize(frame);
     final ByteBuffer pixels = ByteBuffer.allocateDirect(size);
     copyBgr(frame, pixels);
@@ -76,6 +77,7 @@ public final class FramePixels {
   public static void copyBgr(final Frame frame, final ByteBuffer target) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
     Preconditions.checkNotNull(target, "Target must not be null!");
+
     final ByteBuffer source = getPlane(frame);
     final int size = checkedSize(frame);
     final int width = frame.imageWidth;
@@ -84,6 +86,7 @@ public final class FramePixels {
     final int rowBytes = width * BGR_CHANNELS;
     final int capacity = target.capacity();
     Preconditions.checkArgument(capacity >= size, "Target capacity of %s bytes must hold the %s bytes of the frame!", capacity, size);
+
     copyRows(source, target, rowBytes, height, stride);
   }
 
@@ -91,19 +94,24 @@ public final class FramePixels {
     final int width = frame.imageWidth;
     final int height = frame.imageHeight;
     Preconditions.checkArgument(width >= 0 && height >= 0, "Frame dimensions %sx%s must not be negative!", width, height);
+
     final long rowBytes = (long) width * BGR_CHANNELS;
     final int stride = frame.imageStride;
     Preconditions.checkArgument(stride >= rowBytes, "Row stride %s is shorter than a row of %s pixels!", stride, width);
+
     final long size = rowBytes * height;
     Preconditions.checkArgument(size <= Integer.MAX_VALUE, "Frame size of %s bytes must fit in a buffer!", size);
+
     return (int) size;
   }
 
   private static ByteBuffer getPlane(final Frame frame) {
     final Buffer[] image = frame.image;
     Preconditions.checkArgument(image != null && image.length > 0, "Frame does not contain an image!");
+
     final Buffer plane = image[0];
     Preconditions.checkArgument(plane instanceof ByteBuffer, "Frame does not contain 8-bit pixels!");
+
     return (ByteBuffer) plane;
   }
 
@@ -111,12 +119,14 @@ public final class FramePixels {
     final ByteBuffer view = source.duplicate();
     final ByteBuffer destination = target.duplicate();
     destination.clear();
+
     if (stride == rowBytes) {
       view.position(0);
       view.limit(rowBytes * height);
       destination.put(view);
       return;
     }
+
     for (int row = 0; row < height; row++) {
       final int start = row * stride;
       view.limit(start + rowBytes);

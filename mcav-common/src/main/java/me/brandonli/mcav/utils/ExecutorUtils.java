@@ -47,6 +47,7 @@ public final class ExecutorUtils {
    */
   public static boolean shutdownExecutorGracefully(final ExecutorService service) {
     Preconditions.checkNotNull(service, "Executor must not be null!");
+
     return shutdownExecutorGracefully(service, DEFAULT_TIMEOUT);
   }
 

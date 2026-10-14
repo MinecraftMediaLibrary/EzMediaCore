@@ -47,6 +47,7 @@ public final class ImageUtils {
    */
   public static Scalar toScalar(final double[] components) {
     Preconditions.checkNotNull(components, "Components must not be null!");
+
     final double[] values = new double[SCALAR_COMPONENTS];
     final int count = Math.min(components.length, SCALAR_COMPONENTS);
     System.arraycopy(components, 0, values, 0, count);
@@ -77,6 +78,7 @@ public final class ImageUtils {
     Preconditions.checkArgument(originalWidth > 0 && originalHeight > 0, "Original size must be positive!");
     Preconditions.checkArgument(newWidth > 0 && newHeight > 0, "New size must be positive!");
     Preconditions.checkArgument(pixels.length == originalWidth * originalHeight, "Pixel count does not match the original size!");
+
     try (final ImageBuffer image = ImageBuffer.buffer(pixels, originalWidth, originalHeight)) {
       final ResizeFilter resize = new ResizeFilter(newWidth, newHeight);
       resize.applyFilter(image);

@@ -50,6 +50,7 @@ public class CropFilter extends MatVideoFilter {
   public CropFilter(final int left, final int top, final int width, final int height) {
     Preconditions.checkArgument(left >= 0 && top >= 0, "Crop origin must not be negative!");
     Preconditions.checkArgument(width > 0 && height > 0, "Crop size must be positive!");
+
     this.left = left;
     this.top = top;
     this.width = width;
@@ -73,13 +74,16 @@ public class CropFilter extends MatVideoFilter {
     if (clampedWidth <= 0 || clampedHeight <= 0) {
       return false;
     }
+
     final boolean wholeFrame = this.left == 0 && this.top == 0 && clampedWidth == frameWidth && clampedHeight == frameHeight;
     if (wholeFrame) {
       return false;
     }
+
     try (final Rect bounds = new Rect(this.left, this.top, clampedWidth, clampedHeight)) {
       image.transformMat((source, cropped) -> copyRegion(source, bounds, cropped));
     }
+
     return true;
   }
 

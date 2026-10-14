@@ -121,6 +121,7 @@ final class BackgroundInstallation {
       final Thread thread = this.createThread(capability, step);
       this.threads.add(thread);
     }
+
     for (final Thread thread : this.threads) {
       thread.start();
     }
@@ -193,6 +194,7 @@ final class BackgroundInstallation {
     if (preparation == null) {
       return this.dependencyLoader.hasCapability(capability);
     }
+
     return preparation.getNow(false);
   }
 
@@ -209,11 +211,13 @@ final class BackgroundInstallation {
       final boolean available = this.dependencyLoader.hasCapability(capability);
       return CompletableFuture.completedFuture(available);
     }
+
     final boolean done = preparation.isDone();
     if (done) {
       final Boolean available = preparation.join();
       return CompletableFuture.completedFuture(available);
     }
+
     // an asynchronous stage, so callbacks of the caller never run on an installation thread
     final Function<Boolean, Boolean> identity = Function.identity();
     return preparation.thenApplyAsync(identity);
@@ -227,9 +231,11 @@ final class BackgroundInstallation {
     synchronized (this.lock) {
       this.cancelled = true;
     }
+
     for (final Thread thread : this.threads) {
       thread.interrupt();
     }
+
     this.awaitThreads();
     synchronized (this.lock) {
       final Set<Map.Entry<@KeyFor("this.preparations") Capability, CompletableFuture<Boolean>>> entries = this.preparations.entrySet();

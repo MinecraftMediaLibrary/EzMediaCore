@@ -39,6 +39,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
    */
   protected AbstractAttachableCallback(final ValueType fallback) {
     Preconditions.checkNotNull(fallback, "Fallback must not be null!");
+
     this.fallback = fallback;
     this.attached = new AtomicReference<>();
   }
@@ -50,6 +51,7 @@ public abstract class AbstractAttachableCallback<ValueType> implements Attachabl
   @Override
   public void attach(final ValueType value) {
     Preconditions.checkNotNull(value, "Attached value must not be null!");
+
     this.attached.set(value);
   }
 

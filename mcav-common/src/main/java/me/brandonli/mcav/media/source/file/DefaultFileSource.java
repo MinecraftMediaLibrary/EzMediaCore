@@ -42,9 +42,11 @@ public final class DefaultFileSource implements FileSource {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultFileSource source)) {
       return false;
     }
+
     return this.path.equals(source.path);
   }
 

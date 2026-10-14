@@ -46,6 +46,7 @@ public class RectangleFilter extends MatVideoFilter {
    */
   public RectangleFilter(final int left, final int top, final int width, final int height, final double[] color) {
     Preconditions.checkArgument(width > 0 && height > 0, "Rectangle size must be positive!");
+
     this.topLeft = new Point(left, top);
     // OpenCV draws both corners, so the opposite corner is the last pixel inside the rectangle
     this.bottomRight = new Point(left + width - 1, top + height - 1);
@@ -61,6 +62,7 @@ public class RectangleFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.rectangle(mat, this.topLeft, this.bottomRight, this.color);
+
     return true;
   }
 }

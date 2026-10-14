@@ -234,6 +234,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     if (this.paused || this.closed || length == 0) {
       return;
     }
+
     final int kept = Math.min(length, this.maximumQueuedBytes);
     final ByteBuffer copy = ByteBuffer.allocate(kept).order(ByteOrder.LITTLE_ENDIAN);
     copy.put(samples, length - kept, kept);
@@ -245,6 +246,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
       final Chunk dropped = this.queue.removeFirst();
       this.queuedBytes -= dropped.samples().remaining();
     }
+
     this.queue.addLast(new Chunk(copy, due, endsQuiet));
     this.queuedBytes += kept;
     this.notifyAll();
@@ -268,6 +270,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
     if (this.paused) {
       return;
     }
+
     this.silenceLeftNanoseconds = this.silenceNanoseconds;
     this.notifyAll();
   }
@@ -316,6 +319,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
       final long wake = this.silenceLeftNanoseconds > 0 ? Math.min(nextDue, this.streamEnd) : nextDue;
       TimeUnit.NANOSECONDS.timedWait(this, Math.max(1, wake - now));
     }
+
     return null;
   }
 
@@ -329,11 +333,13 @@ public final class DelayedAudioOutput implements AutoCloseable {
     if (this.silenceLeftNanoseconds <= 0 || this.streamEnd - now > 0) {
       return null;
     }
+
     final long start = Math.max(this.streamEnd, now);
     long nanoseconds = Math.min(TimeUnit.MILLISECONDS.toNanos(SILENCE_CHUNK_MILLISECONDS), this.silenceLeftNanoseconds);
     if (next != null) {
       nanoseconds = Math.min(nanoseconds, next.due() - start);
     }
+
     final int bytes =
       ((int) ((nanoseconds * BYTES_PER_MILLISECOND) / TimeUnit.MILLISECONDS.toNanos(1)) / AudioFilter.FRAME_SIZE) * AudioFilter.FRAME_SIZE;
     if (bytes <= 0) {
@@ -342,6 +348,7 @@ public final class DelayedAudioOutput implements AutoCloseable {
       }
       return null;
     }
+
     this.silenceLeftNanoseconds -= nanosecondsOf(bytes);
     this.streamEnd = start + nanosecondsOf(bytes);
     return ByteBuffer.allocate(bytes).order(ByteOrder.LITTLE_ENDIAN);
@@ -397,16 +404,19 @@ public final class DelayedAudioOutput implements AutoCloseable {
       this.dropQueued();
       this.notifyAll();
     }
+
     final Thread current = this.thread;
     final Thread caller = Thread.currentThread();
     if (current.equals(caller)) {
       return;
     }
+
     try {
       current.join(this.joinTimeoutMilliseconds);
     } catch (final InterruptedException exception) {
       caller.interrupt();
     }
+
     current.interrupt();
   }
 

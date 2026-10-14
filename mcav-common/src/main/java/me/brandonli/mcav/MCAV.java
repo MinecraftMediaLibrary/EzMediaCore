@@ -101,6 +101,7 @@ public final class MCAV implements MCAVApi {
   @Override
   public boolean hasCapability(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.isAvailable(capability);
   }
@@ -112,6 +113,7 @@ public final class MCAV implements MCAVApi {
   @Override
   public CompletableFuture<Boolean> whenCapabilityReady(final Capability capability) {
     Preconditions.checkNotNull(capability, "Capability must not be null!");
+
     final BackgroundInstallation installation = this.requireInstalled();
     return installation.whenReady(capability);
   }
@@ -121,6 +123,7 @@ public final class MCAV implements MCAVApi {
     if (installation == null) {
       throw new MCAVLoadingException("MCAV has not been installed yet, call install() first!");
     }
+
     return installation;
   }
 
@@ -131,10 +134,12 @@ public final class MCAV implements MCAVApi {
   @Override
   public void install(final Class<?>... modules) {
     Preconditions.checkNotNull(modules, "Modules must not be null!");
+
     final boolean claimed = this.installing.compareAndSet(false, true);
     if (!claimed) {
       throw new MCAVLoadingException("MCAV has already been installed!");
     }
+
     // release() takes this lock and must wait for startup or installation failure.
     synchronized (this.lifecycleLock) {
       this.runInstallation(modules);
@@ -199,6 +204,7 @@ public final class MCAV implements MCAVApi {
   @Override
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
+
     return this.moduleLoader.getModule(moduleClass);
   }
 

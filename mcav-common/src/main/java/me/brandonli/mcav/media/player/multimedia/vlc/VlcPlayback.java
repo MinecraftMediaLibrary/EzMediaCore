@@ -140,6 +140,7 @@ final class VlcPlayback {
     if (audio == null) {
       return null;
     }
+
     try {
       return playerApi.newEmbeddedMediaPlayer();
     } catch (final RuntimeException | Error exception) {
@@ -175,6 +176,7 @@ final class VlcPlayback {
     if (audioPlayer == null) {
       return List.of(videoPlayer);
     }
+
     return List.of(videoPlayer, audioPlayer);
   }
 
@@ -195,6 +197,7 @@ final class VlcPlayback {
     if (separateAudio == null) {
       return this.startCombined();
     }
+
     return this.startSeparate(separateAudio);
   }
 
@@ -218,6 +221,7 @@ final class VlcPlayback {
     if (opened) {
       this.startSynchronizer(separateAudio);
     }
+
     return opened;
   }
 
@@ -254,6 +258,7 @@ final class VlcPlayback {
       final PlayerException exception = new PlayerException(message);
       handler.accept("Failed to start VLC playback of " + resource, exception);
     }
+
     return playing;
   }
 
@@ -313,6 +318,7 @@ final class VlcPlayback {
     if (!this.running.get()) {
       return;
     }
+
     try {
       final StatusApi audioStatus = audioMaster.status();
       final StatusApi videoStatus = this.videoPlayer.status();
@@ -347,6 +353,7 @@ final class VlcPlayback {
       videoControls.setRate(RATE_NORMAL);
       return;
     }
+
     final float rate = chooseRate(drift);
     videoControls.setRate(rate);
   }
@@ -363,9 +370,11 @@ final class VlcPlayback {
     if (drift > DRIFT_NUDGE_MILLISECONDS) {
       return RATE_SLOWER;
     }
+
     if (drift < -DRIFT_NUDGE_MILLISECONDS) {
       return RATE_FASTER;
     }
+
     return RATE_NORMAL;
   }
 
@@ -379,10 +388,12 @@ final class VlcPlayback {
     if (this.paused || !status.isPlaying()) {
       return false;
     }
+
     this.paused = true;
     // VLC keeps repainting the last picture while paused, so the renderer drops those repaints itself
     this.videoRenderer.setPaused(true);
     this.setPause(true);
+
     return true;
   }
 
@@ -396,9 +407,11 @@ final class VlcPlayback {
     if (!this.paused) {
       return false;
     }
+
     this.paused = false;
     this.setPause(false);
     this.videoRenderer.setPaused(false);
+
     return true;
   }
 
@@ -423,10 +436,12 @@ final class VlcPlayback {
         return false;
       }
     }
+
     for (final EmbeddedMediaPlayer player : this.players) {
       final ControlsApi controls = player.controls();
       controls.setTime(timeMilliseconds);
     }
+
     return true;
   }
 
@@ -445,22 +460,26 @@ final class VlcPlayback {
     if (!wasRunning) {
       return;
     }
+
     final StopFailures failures = new StopFailures();
     final Synchronizer currentSynchronizer = this.synchronizer;
     if (currentSynchronizer != null) {
       failures.run(currentSynchronizer::stop);
     }
+
     for (final EmbeddedMediaPlayer player : this.players) {
       failures.run(() -> {
         final ControlsApi controls = player.controls();
         controls.stop();
       });
     }
+
     failures.run(this.videoRenderer::stop);
     failures.run(this.audioRenderer::stop);
     for (final EmbeddedMediaPlayer player : this.players) {
       failures.run(player::release);
     }
+
     failures.run(this.sharedFactory::release);
     failures.rethrow();
   }
@@ -491,6 +510,7 @@ final class VlcPlayback {
       if (failure instanceof final RuntimeException exception) {
         throw exception;
       }
+
       if (failure instanceof final Error error) {
         throw error;
       }

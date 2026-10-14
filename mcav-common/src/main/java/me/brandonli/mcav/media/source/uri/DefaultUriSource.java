@@ -51,9 +51,11 @@ public final class DefaultUriSource implements UriSource {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultUriSource source)) {
       return false;
     }
+
     return this.uri.equals(source.uri);
   }
 

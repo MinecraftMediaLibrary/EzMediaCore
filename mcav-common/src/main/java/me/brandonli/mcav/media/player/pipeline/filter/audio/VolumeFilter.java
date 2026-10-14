@@ -57,15 +57,18 @@ public final class VolumeFilter implements AudioFilter {
   @Override
   public boolean applyFilter(final ByteBuffer samples, final OriginalAudioMetadata metadata) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     final double factor = this.volume;
     if (factor == UNCHANGED) {
       return false;
     }
+
     final ByteBuffer view = samples.duplicate().order(ByteOrder.LITTLE_ENDIAN);
     for (int at = view.position(); at + Short.BYTES <= view.limit(); at += Short.BYTES) {
       final long scaled = Math.round(view.getShort(at) * factor);
       view.putShort(at, (short) Math.clamp(scaled, Short.MIN_VALUE, Short.MAX_VALUE));
     }
+
     return true;
   }
 
@@ -77,6 +80,7 @@ public final class VolumeFilter implements AudioFilter {
    */
   public void setVolume(final double volume) {
     Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
+
     this.volume = volume;
   }
 

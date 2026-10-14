@@ -68,12 +68,14 @@ public final class ModuleLoader {
    */
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
+
     final MCAVModule module = this.modules.get(moduleClass);
     if (module == null) {
       final String name = moduleClass.getSimpleName();
       final String message = "Module %s is not installed!".formatted(name);
       throw new ModuleException(message);
     }
+
     return moduleClass.cast(module);
   }
 
@@ -92,6 +94,7 @@ public final class ModuleLoader {
    */
   public synchronized void loadModules(final Class<?>... moduleClasses) {
     Preconditions.checkNotNull(moduleClasses, "Module classes must not be null!");
+
     for (final Class<?> moduleClass : moduleClasses) {
       Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
       final boolean isModule = MCAVModule.class.isAssignableFrom(moduleClass);
@@ -101,6 +104,7 @@ public final class ModuleLoader {
         throw new ModuleException(message);
       }
     }
+
     final MethodType constructorType = MethodType.methodType(void.class);
     final MethodHandles.Lookup lookup = MethodHandles.lookup();
     for (final Class<?> moduleClass : moduleClasses) {
@@ -182,6 +186,7 @@ public final class ModuleLoader {
         LOGGER.error("Module {} failed to stop.", moduleName, exception);
       }
     }
+
     this.startOrder.clear();
     this.modules.clear();
   }

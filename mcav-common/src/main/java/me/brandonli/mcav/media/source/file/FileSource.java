@@ -34,6 +34,7 @@ public interface FileSource extends StaticSource {
    */
   static FileSource path(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     return new DefaultFileSource(path);
   }
 

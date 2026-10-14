@@ -70,6 +70,7 @@ public final class ByteUtils {
    */
   public static ByteBuffer toLittleEndian(final Buffer buffer) {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
+
     return switch (buffer) {
       case final ShortBuffer shorts -> shortsToLittleEndian(shorts);
       case final FloatBuffer floats -> floatsToLittleEndian(floats);
@@ -90,6 +91,7 @@ public final class ByteUtils {
       final short sample = source.get();
       result.putShort(sample);
     }
+
     result.flip();
     return result;
   }
@@ -102,6 +104,7 @@ public final class ByteUtils {
       final float sample = source.get();
       result.putFloat(sample);
     }
+
     result.flip();
     return result;
   }
@@ -116,6 +119,7 @@ public final class ByteUtils {
    */
   public static ByteBuffer toBigEndian(final ByteBuffer samples) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
+
     return swapSamples(samples, ByteOrder.BIG_ENDIAN);
   }
 
@@ -130,14 +134,17 @@ public final class ByteUtils {
       result.flip();
       return result;
     }
+
     while (source.remaining() >= Short.BYTES) {
       final short sample = source.getShort();
       result.putShort(sample);
     }
+
     if (source.hasRemaining()) {
       final byte odd = source.get();
       result.put(odd);
     }
+
     result.flip();
     return result;
   }

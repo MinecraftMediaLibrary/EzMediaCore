@@ -106,6 +106,7 @@ public final class SourceUtils {
    */
   public static boolean isImageGif(final Source source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     final String resource;
     if (source instanceof final FileSource fileSource) {
       final Path path = fileSource.getPath();
@@ -116,9 +117,11 @@ public final class SourceUtils {
     } else {
       return false;
     }
+
     if (resource == null) {
       return false;
     }
+
     final String extension = getExtension(resource);
     return GIF_EXTENSION.equals(extension);
   }
@@ -132,6 +135,7 @@ public final class SourceUtils {
    */
   public static boolean isUri(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     try {
       final URI uri = URI.create(raw);
       final String scheme = uri.getScheme();
@@ -156,6 +160,7 @@ public final class SourceUtils {
     if (url == null || url.isEmpty()) {
       return false;
     }
+
     try {
       final URI uri = URI.create(url);
       final String path = uri.getPath();
@@ -178,6 +183,7 @@ public final class SourceUtils {
    */
   public static boolean isPath(final String raw) {
     Preconditions.checkNotNull(raw, "Raw must not be null!");
+
     try {
       final Path path = Path.of(raw);
       return Files.exists(path);
@@ -197,6 +203,7 @@ public final class SourceUtils {
    */
   public static boolean isDynamicStream(final String url) {
     Preconditions.checkNotNull(url, "URL must not be null!");
+
     final YtdlpParser parser = YtdlpParser.simple();
     return isDynamicStream(url, parser);
   }
@@ -231,6 +238,7 @@ public final class SourceUtils {
     if (!hasExtension) {
       return null;
     }
+
     final String extension = path.substring(lastDot + 1);
     return extension.toLowerCase(Locale.ROOT);
   }

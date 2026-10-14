@@ -61,6 +61,7 @@ public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDit
   @Override
   public DefaultRandomDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
+
     this.palette = palette;
     return this;
   }
@@ -76,6 +77,7 @@ public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDit
   @Override
   public DefaultRandomDitherBuilder withWeight(final int weight) {
     Preconditions.checkArgument(weight >= 0 && weight <= MAXIMUM_WEIGHT, "Weight must be between 0 and 255!");
+
     this.weight = weight;
     return this;
   }

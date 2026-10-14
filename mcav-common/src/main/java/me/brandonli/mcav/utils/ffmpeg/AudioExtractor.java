@@ -72,6 +72,7 @@ public final class AudioExtractor {
    */
   public static Path extractOggVorbis(final Source source) throws IOException {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     final String input = source.getResource();
     final Path outputDirectory = IoUtils.getCachedFolder();
     final UUID id = UUID.randomUUID();

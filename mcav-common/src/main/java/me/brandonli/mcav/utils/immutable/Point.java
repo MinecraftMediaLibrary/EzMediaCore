@@ -69,9 +69,11 @@ public final class Point {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final Point point)) {
       return false;
     }
+
     final int xComparison = Double.compare(this.xCoordinate, point.xCoordinate);
     final int yComparison = Double.compare(this.yCoordinate, point.yCoordinate);
     return xComparison == 0 && yComparison == 0;

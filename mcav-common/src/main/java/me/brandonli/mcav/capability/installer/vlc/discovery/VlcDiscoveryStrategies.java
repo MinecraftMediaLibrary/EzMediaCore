@@ -59,6 +59,7 @@ public final class VlcDiscoveryStrategies {
    */
   public static NativeDiscoveryStrategy[] createDirectoryStrategies(final Path libraryDirectory) {
     Preconditions.checkNotNull(libraryDirectory, "Library directory must not be null!");
+
     final FixedDirectoryProvider directoryProvider = new FixedDirectoryProvider(libraryDirectory);
     final SearchProvider searchProvider = new SearchProvider(directoryProvider, DIRECT_DEPTH);
     final List<SearchProvider> searchProviders = List.of(searchProvider);

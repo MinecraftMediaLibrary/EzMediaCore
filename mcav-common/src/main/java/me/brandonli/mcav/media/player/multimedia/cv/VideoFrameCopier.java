@@ -107,6 +107,7 @@ final class VideoFrameCopier {
   void release() {
     final MatImageBuffer image = this.unscaled;
     this.unscaled = null;
+
     if (image != null) {
       image.release();
     }
@@ -141,6 +142,7 @@ final class VideoFrameCopier {
         return resize(decoded, pooled, width, height);
       }
     }
+
     final int frameWidth = frame.imageWidth;
     final int frameHeight = frame.imageHeight;
     final MatImageBuffer source = fill(this.unscaled, frame, frameWidth, frameHeight);
@@ -169,10 +171,12 @@ final class VideoFrameCopier {
     if (image == null || image.length == 0) {
       return null;
     }
+
     final Buffer plane = image[0];
     if (plane instanceof final ByteBuffer bytes && bytes.isDirect()) {
       return bytes;
     }
+
     return null;
   }
 
@@ -200,6 +204,7 @@ final class VideoFrameCopier {
     try (final Size size = new Size(width, height)) {
       opencv_imgproc.resize(source, targetMat, size, 0, 0, interpolation);
     }
+
     target.invalidateCache();
     return target;
   }
@@ -213,6 +218,7 @@ final class VideoFrameCopier {
       reusable.setSize(width, height);
       return reusable;
     }
+
     final Mat mat = new Mat(height, width, opencv_core.CV_8UC3);
     final ImageBuffer created = ImageBuffer.mat(mat);
     return (MatImageBuffer) created;

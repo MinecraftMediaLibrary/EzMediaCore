@@ -49,6 +49,7 @@ public class RegionScalarFilter extends MatVideoFilter {
   public RegionScalarFilter(final int left, final int top, final int width, final int height, final double[] color) {
     Preconditions.checkArgument(left >= 0 && top >= 0, "Region origin must not be negative!");
     Preconditions.checkArgument(width > 0 && height > 0, "Region size must be positive!");
+
     this.left = left;
     this.top = top;
     this.width = width;
@@ -72,9 +73,11 @@ public class RegionScalarFilter extends MatVideoFilter {
     if (clampedWidth <= 0 || clampedHeight <= 0) {
       return false;
     }
+
     try (final Rect bounds = new Rect(this.left, this.top, clampedWidth, clampedHeight); final Mat region = new Mat(mat, bounds)) {
       region.put(this.color);
     }
+
     return true;
   }
 }

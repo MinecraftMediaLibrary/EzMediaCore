@@ -54,6 +54,7 @@ public class GrayscaleFilter extends MatVideoFilter {
     } finally {
       this.gray.giveBack(levels);
     }
+
     return true;
   }
 }

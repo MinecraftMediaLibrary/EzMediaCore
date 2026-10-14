@@ -57,6 +57,7 @@ public class LineFilter extends MatVideoFilter {
   @Override
   protected boolean modifyMat(final Mat mat) {
     opencv_imgproc.line(mat, this.start, this.end, this.color);
+
     return true;
   }
 }

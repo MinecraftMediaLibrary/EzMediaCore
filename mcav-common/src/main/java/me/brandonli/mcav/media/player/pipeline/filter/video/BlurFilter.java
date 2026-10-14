@@ -53,9 +53,11 @@ public class BlurFilter extends MatVideoFilter {
   public BlurFilter(final BlurType type, final int kernelSize, final double sigmaX, final double sigmaY) {
     Preconditions.checkNotNull(type, "Blur type must not be null!");
     Preconditions.checkArgument(kernelSize > 0, "Kernel size %s must be positive!", kernelSize);
+
     final boolean odd = kernelSize % 2 == 1;
     Preconditions.checkArgument(odd || type == BlurType.NORMAL, "Kernel size %s of a %s blur must be odd!", kernelSize, type);
     Preconditions.checkArgument(sigmaX >= 0 && sigmaY >= 0, "Sigma values must not be negative!");
+
     this.type = type;
     this.size = new Size(kernelSize, kernelSize);
     this.kernelSize = kernelSize;
@@ -94,21 +96,25 @@ public class BlurFilter extends MatVideoFilter {
 
   private boolean normalBlur(final Mat mat) {
     opencv_imgproc.blur(mat, mat, this.size);
+
     return true;
   }
 
   private boolean medianBlur(final Mat mat) {
     opencv_imgproc.medianBlur(mat, mat, this.kernelSize);
+
     return true;
   }
 
   private boolean gaussianBlur(final Mat mat) {
     opencv_imgproc.GaussianBlur(mat, mat, this.size, this.sigmaX, this.sigmaY, opencv_core.BORDER_DEFAULT, opencv_core.ALGO_HINT_DEFAULT);
+
     return true;
   }
 
   private boolean stackBlur(final Mat mat) {
     opencv_imgproc.stackBlur(mat, mat, this.size);
+
     return true;
   }
 

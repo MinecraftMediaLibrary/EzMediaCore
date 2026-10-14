@@ -46,6 +46,7 @@ public class VideoInputPlayer extends AbstractVideoPlayerCv {
   @Override
   protected FrameGrabber createFrameGrabber(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
+
     final Integer parsedIndex = Ints.tryParse(resource);
     if (parsedIndex == null || parsedIndex < 0) {
       final String message = "Device index %s must be a non-negative number!".formatted(resource);

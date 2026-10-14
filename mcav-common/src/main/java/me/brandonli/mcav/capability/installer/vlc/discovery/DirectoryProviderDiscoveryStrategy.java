@@ -123,6 +123,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     Preconditions.checkNotNull(searchProviders, "Search providers must not be null!");
     Preconditions.checkNotNull(environmentSetter, "Environment setter must not be null!");
     Preconditions.checkArgument(filenamePatterns.length > 0, "At least one filename pattern is required!");
+
     this.filenamePatterns = compilePatterns(filenamePatterns);
     this.pluginPathFormats = pluginPathFormats.clone();
     this.searchProviders = List.copyOf(searchProviders);
@@ -135,6 +136,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       final String expression = expressions[patternIndex];
       patterns[patternIndex] = Pattern.compile(expression);
     }
+
     return patterns;
   }
 
@@ -183,6 +185,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return found.getAbsolutePath();
       }
     }
+
     return null;
   }
 
@@ -201,6 +204,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       final List<String> providedList = List.of(provided);
       directories.addAll(providedList);
     }
+
     return directories;
   }
 
@@ -218,6 +222,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return found;
       }
     }
+
     return null;
   }
 
@@ -241,6 +246,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         enqueueSubdirectories(children, depth + 1, pending);
       }
     }
+
     return null;
   }
 
@@ -254,10 +260,12 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     if (realPath == null) {
       return null;
     }
+
     final Integer searchedDepth = searchedDepths.get(realPath);
     if (searchedDepth != null && searchedDepth >= remainingDepth) {
       return null;
     }
+
     searchedDepths.put(realPath, remainingDepth);
     return directory.listFiles();
   }
@@ -294,6 +302,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         matchCount++;
       }
     }
+
     return matchCount == patternCount;
   }
 
@@ -309,6 +318,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return patternIndex;
       }
     }
+
     return -1;
   }
 
@@ -321,6 +331,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         result.add(provider);
       }
     }
+
     result.sort(HIGHEST_PRIORITY_FIRST);
     return result;
   }
@@ -335,6 +346,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   @Override
   public boolean onFound(final String path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     return true;
   }
 
@@ -350,6 +362,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
   @Override
   public final boolean onSetPluginPath(final String path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
+
     for (final String pathFormat : this.pluginPathFormats) {
       final String pluginPath = pathFormat.formatted(path);
       final File pluginDirectory = new File(pluginPath);
@@ -358,6 +371,7 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
         return this.environmentSetter.set(PLUGIN_ENVIRONMENT_NAME, pluginPath);
       }
     }
+
     return false;
   }
 

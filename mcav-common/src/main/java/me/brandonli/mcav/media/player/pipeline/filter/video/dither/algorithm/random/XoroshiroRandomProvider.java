@@ -116,6 +116,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
   @Override
   public int nextInt(final int minimum, final int maximum) {
     Preconditions.checkArgument(maximum > minimum, "Max must be greater than min!");
+
     final long range = (long) maximum - minimum;
     final long nextBits = this.nextLong();
     final long offset = Math.unsignedMultiplyHigh(nextBits, range);
@@ -147,6 +148,7 @@ public final class XoroshiroRandomProvider implements RandomNumberProvider {
     } else {
       result = minimum + unit * range;
     }
+
     // Floating-point rounding can reach the exclusive bound, especially when the bounds are adjacent doubles.
     return result >= maximum ? Math.nextDown(maximum) : result;
   }
