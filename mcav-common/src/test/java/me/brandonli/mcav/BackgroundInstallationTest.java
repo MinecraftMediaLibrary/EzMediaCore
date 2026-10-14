@@ -50,7 +50,8 @@ import org.slf4j.Logger;
 final class BackgroundInstallationTest {
 
   private static final long WAIT_SECONDS = 10;
-  private static final Duration SHORT_CANCEL_TIMEOUT = Duration.ofMillis(50);
+  private static final long SHORT_CANCEL_MILLISECONDS = 50L;
+  private static final Duration SHORT_CANCEL_TIMEOUT = Duration.ofMillis(SHORT_CANCEL_MILLISECONDS);
   private static final String VLC_THREAD = "MCAV Installer VLC";
   private static final String YTDLP_THREAD = "MCAV Installer yt-dlp";
   private static final String NOT_STOPPED = "{} did not stop within {} ms after it was cancelled.";
@@ -233,7 +234,7 @@ final class BackgroundInstallationTest {
     final Boolean vlcAfterCancel = await(installation, Capability.VLC);
     final boolean preparingAfterCancel = this.guard.isPreparing(Capability.VLC);
     final Logger verifiedLogger = Mockito.verify(this.logger);
-    verifiedLogger.warn(NOT_STOPPED, VLC_THREAD, 50L);
+    verifiedLogger.warn(NOT_STOPPED, VLC_THREAD, SHORT_CANCEL_MILLISECONDS);
     assertFalse(vlcAfterCancel, "the cancelled program is unavailable at once, even while its thread still runs");
     assertFalse(preparingAfterCancel);
 
@@ -261,7 +262,7 @@ final class BackgroundInstallationTest {
     assertTrue(interruptKept, "the interrupt of the cancelling thread is restored");
     assertFalse(hasVlc);
     final Logger verifiedLogger = Mockito.verify(this.logger);
-    verifiedLogger.warn(NOT_STOPPED, VLC_THREAD, 50L);
+    verifiedLogger.warn(NOT_STOPPED, VLC_THREAD, SHORT_CANCEL_MILLISECONDS);
     finishVlc.countDown();
     joinAll(installation);
   }

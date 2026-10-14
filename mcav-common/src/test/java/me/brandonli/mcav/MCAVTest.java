@@ -69,6 +69,9 @@ final class MCAVTest {
 
   private static final long WAIT_SECONDS = 10;
   private static final Duration PROMPT_RELEASE = Duration.ofSeconds(5);
+  private static final long INSTALLATION_TIMEOUT_SECONDS = 30;
+
+  private static final String TRACKED_MODULE_NAME = "tracked";
 
   /**
    * A module that counts how often it was started and stopped.
@@ -115,7 +118,7 @@ final class MCAVTest {
 
     @Override
     public String getModuleName() {
-      return "tracked";
+      return TRACKED_MODULE_NAME;
     }
   }
 
@@ -406,7 +409,7 @@ final class MCAVTest {
     assertTrue(started);
     final MCAVLoadingException exception = assertThrows(MCAVLoadingException.class, () -> this.mcav.install(CountingModule.class));
     finishNatives.countDown();
-    first.get(30, TimeUnit.SECONDS);
+    first.get(INSTALLATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final String message = exception.getMessage();
     final CountingModule module = this.mcav.getModule(CountingModule.class);
     final int starts = module.starts.get();
@@ -435,8 +438,8 @@ final class MCAVTest {
       final boolean releaseWaited = awaitBlocked(releasingThread);
       final boolean releasedEarly = release.isDone();
       finishNatives.countDown();
-      install.get(30, TimeUnit.SECONDS);
-      release.get(30, TimeUnit.SECONDS);
+      install.get(INSTALLATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      release.get(INSTALLATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(releaseWaited, "release() waits for the running installation");
       assertFalse(releasedEarly);
     }
@@ -479,7 +482,7 @@ final class MCAVTest {
     final int startsAfterRetry = TrackedModule.STARTS.get();
     final boolean hasVlc = this.mcav.hasCapability(Capability.VLC);
     final String moduleName = module.getModuleName();
-    assertEquals("tracked", moduleName);
+    assertEquals(TRACKED_MODULE_NAME, moduleName);
     assertEquals(2, startsAfterRetry);
     assertTrue(hasVlc);
   }

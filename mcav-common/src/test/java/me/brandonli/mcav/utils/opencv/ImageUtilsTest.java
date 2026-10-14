@@ -31,6 +31,10 @@ import org.junit.jupiter.api.Test;
  */
 final class ImageUtilsTest {
 
+  private static final int OPAQUE_COLOR = 0xFF123456;
+
+  private static final int VALID_ORIGINAL_SIDE = 2;
+
   /**
    * Converts the components into a scalar, reads its four components back, and frees the native scalar again.
    */
@@ -61,10 +65,10 @@ final class ImageUtilsTest {
   @Test
   void shouldResizPackedPixels() {
     final int[] pixels = new int[4 * 4];
-    Arrays.fill(pixels, 0xFF123456);
+    Arrays.fill(pixels, OPAQUE_COLOR);
     final int[] resized = ImageUtils.resizeIntArrayImage(pixels, 4, 4, 2, 2);
     final int[] expected = new int[4];
-    Arrays.fill(expected, 0xFF123456);
+    Arrays.fill(expected, OPAQUE_COLOR);
     assertEquals(4, resized.length);
     assertArrayEquals(expected, resized);
   }
@@ -86,7 +90,7 @@ final class ImageUtilsTest {
    */
   private static void assertNewSizeRejected(final int[] pixels, final int width, final int height) {
     final IllegalArgumentException rejected = assertThrows(IllegalArgumentException.class, () ->
-      ImageUtils.resizeIntArrayImage(pixels, 2, 2, width, height)
+      ImageUtils.resizeIntArrayImage(pixels, VALID_ORIGINAL_SIDE, VALID_ORIGINAL_SIDE, width, height)
     );
     final String message = rejected.getMessage();
     assertEquals("New size must be positive!", message);
@@ -96,11 +100,11 @@ final class ImageUtilsTest {
   void shouldRejectInvalidArguments() {
     final int[] pixels = new int[4];
     assertThrows(NullPointerException.class, () -> convert(null));
-    assertThrows(NullPointerException.class, () -> ImageUtils.resizeIntArrayImage(null, 2, 2, 1, 1));
-    assertOriginalSizeRejected(pixels, 0, 2);
-    assertOriginalSizeRejected(pixels, 2, 0);
-    assertOriginalSizeRejected(pixels, -1, 2);
-    assertOriginalSizeRejected(pixels, 2, -1);
+    assertThrows(NullPointerException.class, () -> ImageUtils.resizeIntArrayImage(null, VALID_ORIGINAL_SIDE, VALID_ORIGINAL_SIDE, 1, 1));
+    assertOriginalSizeRejected(pixels, 0, VALID_ORIGINAL_SIDE);
+    assertOriginalSizeRejected(pixels, VALID_ORIGINAL_SIDE, 0);
+    assertOriginalSizeRejected(pixels, -1, VALID_ORIGINAL_SIDE);
+    assertOriginalSizeRejected(pixels, VALID_ORIGINAL_SIDE, -1);
     assertNewSizeRejected(pixels, 0, 1);
     assertNewSizeRejected(pixels, 1, 0);
     assertNewSizeRejected(pixels, -1, 1);
@@ -125,7 +129,7 @@ final class ImageUtilsTest {
     final int[] resized = ImageUtils.resizeIntArrayImage(pixels, 4, 2, 2, 1);
     final int[] translucent = { 0x00123456 };
     final int[] enlarged = ImageUtils.resizeIntArrayImage(translucent, 1, 1, 2, 2);
-    final int opaque = 0xFF123456;
+    final int opaque = OPAQUE_COLOR;
     assertArrayEquals(new int[] { red, blue }, resized, "the left and the right half keep their colors");
     assertArrayEquals(new int[] { opaque, opaque, opaque, opaque }, enlarged, "the result is fully opaque");
   }

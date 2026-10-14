@@ -34,36 +34,39 @@ final class DownloadTest {
 
   private static final Platform LINUX = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
 
+  private static final String TOOL_URL = "https://example.com/tool";
+  private static final String HASH = "abc";
+
   @Test
   void shouldStorePlatformUrlAndHash() {
-    final Download download = new Download(LINUX, "https://example.com/tool", "abc");
+    final Download download = new Download(LINUX, TOOL_URL, HASH);
     final Platform platform = download.getPlatform();
     final String url = download.getUrl();
     final String hash = download.getHash();
     assertEquals(LINUX, platform);
-    assertEquals("https://example.com/tool", url);
-    assertEquals("abc", hash);
+    assertEquals(TOOL_URL, url);
+    assertEquals(HASH, hash);
   }
 
   @Test
   void shouldDescribeTheSameDownloadWithEveryConstructor() {
-    final Download withoutHash = new Download(LINUX, "https://example.com/tool");
-    final Download fromPartsWithHash = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool", "abc");
-    final Download fromParts = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, "https://example.com/tool");
+    final Download withoutHash = new Download(LINUX, TOOL_URL);
+    final Download fromPartsWithHash = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL, HASH);
+    final Download fromParts = new Download(Os.LINUX, Arch.X86, Bits.BITS_64, TOOL_URL);
     final String missingHash = withoutHash.getHash();
     final Platform partsPlatform = fromPartsWithHash.getPlatform();
     final String partsHash = fromPartsWithHash.getHash();
     final String partsMissingHash = fromParts.getHash();
     assertNull(missingHash);
     assertEquals(LINUX, partsPlatform);
-    assertEquals("abc", partsHash);
+    assertEquals(HASH, partsHash);
     assertNull(partsMissingHash);
   }
 
   @Test
   void shouldRejectInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> new Download(LINUX, " "));
-    assertThrows(NullPointerException.class, () -> new Download(null, "https://example.com/tool"));
+    assertThrows(NullPointerException.class, () -> new Download(null, TOOL_URL));
     assertThrows(NullPointerException.class, () -> new Download(LINUX, null));
   }
 }

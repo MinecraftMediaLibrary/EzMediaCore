@@ -51,18 +51,31 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class CommandTaskTest {
 
+  private static final String BINARY_DIRECTORY = "bin";
+  private static final String WINDOWS_JAVA_EXECUTABLE = "java.exe";
+  private static final String JAVA_EXECUTABLE = "java";
+  private static final String SLEEPER_SOURCE_FILE = "Sleeper.java";
+
+  private static final String VERSION_OPTION = "-version";
+  private static final String UNKNOWN_OPTION = "-XX:+NoSuchOptionForMcav";
+
+  private static final String SHELL = "sh";
+
+  private static final long EXIT_TIMEOUT_SECONDS = 10L;
+  private static final long RETURN_DEADLINE_NANOSECONDS = 15_000_000_000L;
+
   @TempDir
   private Path directory;
 
   private static String javaExecutable() {
     final String javaHome = System.getProperty("java.home");
-    final String launcherName = File.separatorChar == '\\' ? "java.exe" : "java";
-    final Path launcher = Path.of(javaHome, "bin", launcherName);
+    final String launcherName = File.separatorChar == '\\' ? WINDOWS_JAVA_EXECUTABLE : JAVA_EXECUTABLE;
+    final Path launcher = Path.of(javaHome, BINARY_DIRECTORY, launcherName);
     return launcher.toString();
   }
 
   private String sleeperProgram() throws IOException {
-    final Path program = this.directory.resolve("Sleeper.java");
+    final Path program = this.directory.resolve(SLEEPER_SOURCE_FILE);
     Files.writeString(program, "class Sleeper { public static void main(String[] args) throws Exception { Thread.sleep(30_000L); } }");
     return program.toString();
   }
@@ -83,7 +96,7 @@ final class CommandTaskTest {
   @Test
   void shouldCaptureStandardError() throws IOException {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     task.runChecked();
     final String errorOutput = task.getErrorOutput();
     final boolean errorOutputBlank = errorOutput.isBlank();
@@ -93,9 +106,9 @@ final class CommandTaskTest {
   @Test
   void shouldReportFailingCommands() throws IOException {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(java, "-XX:+NoSuchOptionForMcav");
+    final CommandTask task = new CommandTask(java, UNKNOWN_OPTION);
     final int exitCode = task.run();
-    final CommandTask checked = new CommandTask(java, "-XX:+NoSuchOptionForMcav");
+    final CommandTask checked = new CommandTask(java, UNKNOWN_OPTION);
     final int recordedExitCode = task.getExitCode();
     assertNotEquals(0, exitCode);
     assertEquals(exitCode, recordedExitCode);
@@ -105,7 +118,7 @@ final class CommandTaskTest {
   @Test
   void shouldRunInTheWorkingDirectory() throws IOException {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(this.directory, java, "-XshowSettings:properties", "-version");
+    final CommandTask task = new CommandTask(this.directory, java, "-XshowSettings:properties", VERSION_OPTION);
     task.run();
     final String errorOutput = task.getErrorOutput();
     final Path fileName = this.directory.getFileName();
@@ -117,7 +130,7 @@ final class CommandTaskTest {
   @Test
   void shouldRunOnCreation() throws IOException {
     final String java = javaExecutable();
-    final String[] command = { java, "-version" };
+    final String[] command = { java, VERSION_OPTION };
     final CommandTask ran = new CommandTask(command, true);
     final CommandTask waiting = new CommandTask(command, false);
     final int exitCode = ran.getExitCode();
@@ -130,12 +143,12 @@ final class CommandTaskTest {
   @Test
   void shouldRunOnlyOnce() throws IOException {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     task.run();
     final Process process = task.getProcess();
     final List<String> command = task.getCommand();
     assertNotNull(process);
-    final List<String> expectedCommand = List.of(java, "-version");
+    final List<String> expectedCommand = List.of(java, VERSION_OPTION);
     assertEquals(expectedCommand, command);
     assertThrows(IllegalStateException.class, task::run);
   }
@@ -143,7 +156,7 @@ final class CommandTaskTest {
   @Test
   void shouldStopWaitingWhenInterrupted() {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     final Thread current = Thread.currentThread();
     current.interrupt();
     final IOException exception = assertThrows(IOException.class, task::run);
@@ -156,10 +169,10 @@ final class CommandTaskTest {
   @Test
   void shouldReportOutputThatCannotBeRead() throws IOException, InterruptedException {
     final String java = javaExecutable();
-    final ProcessBuilder builder = new ProcessBuilder(java, "-version");
+    final ProcessBuilder builder = new ProcessBuilder(java, VERSION_OPTION);
     final Process finished = builder.start();
     finished.waitFor();
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     final IOException readFailure = new IOException("broken pipe!");
     final Future<String> failedOutput = CompletableFuture.failedFuture(readFailure);
     final Future<String> errorOutput = CompletableFuture.completedFuture("");
@@ -171,18 +184,18 @@ final class CommandTaskTest {
   @Test
   @EnabledOnOs({ OS.LINUX, OS.MAC })
   void shouldEndTheProgramsThatOutlivedOutputThatCannotBeRead() throws IOException, InterruptedException {
-    final Process shell = new ProcessBuilder("sh", "-c", "sleep 60 & echo $!; sleep 1").start();
+    final Process shell = new ProcessBuilder(SHELL, "-c", "sleep 60 & echo $!; sleep 1").start();
     final String line;
     try (final BufferedReader output = new BufferedReader(new InputStreamReader(shell.getInputStream(), StandardCharsets.US_ASCII))) {
       line = output.readLine();
     }
     final ProcessHandle sleeper = ProcessHandle.of(Long.parseLong(line.strip())).orElseThrow();
     try {
-      final CommandTask task = new CommandTask("sh");
+      final CommandTask task = new CommandTask(SHELL);
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
       assertThrows(IOException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
-      final boolean ended = sleeper.onExit().completeOnTimeout(null, 10, TimeUnit.SECONDS).join() != null;
+      final boolean ended = sleeper.onExit().completeOnTimeout(null, EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
       assertTrue(ended, "the sleep the shell left running is ended with it");
     } finally {
       sleeper.destroyForcibly();
@@ -196,13 +209,13 @@ final class CommandTaskTest {
     try {
       final ProcessHandle sleeperHandle = sleeper.toHandle();
       final Process parent = new LateChildProcess(sleeperHandle);
-      final CommandTask task = new CommandTask("sh");
+      final CommandTask task = new CommandTask(SHELL);
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
 
       assertThrows(IOException.class, () -> task.awaitCompletion(parent, failedOutput, errorOutput, null));
 
-      final boolean ended = sleeper.waitFor(10, TimeUnit.SECONDS);
+      final boolean ended = sleeper.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(ended, "the child that appeared after the last look is ended too");
     } finally {
       sleeper.destroyForcibly();
@@ -246,11 +259,11 @@ final class CommandTaskTest {
     final String message = exception.getMessage();
     final Process process = task.getProcess();
     assertNotNull(process);
-    final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+    final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean reportsTheTimeout = message.contains("did not finish");
     assertTrue(reportsTheTimeout, message);
     assertTrue(exited, "the program is killed instead of being left running");
-    final boolean returnedInTime = elapsed < 15_000_000_000L;
+    final boolean returnedInTime = elapsed < RETURN_DEADLINE_NANOSECONDS;
     assertTrue(returnedInTime, "run returns once the timeout passed, took " + elapsed + " ns");
     assertThrows(IllegalStateException.class, task::getExitCode);
   }
@@ -259,13 +272,13 @@ final class CommandTaskTest {
   void shouldRunProgramsThatFinishWithinTheTimeout() throws IOException {
     final String java = javaExecutable();
     final Duration timeout = Duration.ofMinutes(1);
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     final int exitCode = task.run(timeout);
     final String errorOutput = task.getErrorOutput();
-    final CommandTask checked = new CommandTask(java, "-version");
+    final CommandTask checked = new CommandTask(java, VERSION_OPTION);
     checked.runChecked(timeout);
     final int checkedExitCode = checked.getExitCode();
-    final CommandTask failing = new CommandTask(java, "-XX:+NoSuchOptionForMcav");
+    final CommandTask failing = new CommandTask(java, UNKNOWN_OPTION);
     assertEquals(0, exitCode);
     final boolean errorOutputBlank = errorOutput.isBlank();
     assertFalse(errorOutputBlank);
@@ -276,7 +289,7 @@ final class CommandTaskTest {
   @Test
   void shouldRejectTimeoutsThatAreNotPositive() {
     final String java = javaExecutable();
-    final CommandTask task = new CommandTask(java, "-version");
+    final CommandTask task = new CommandTask(java, VERSION_OPTION);
     final Duration negative = Duration.ofSeconds(-1);
     assertThrows(NullPointerException.class, () -> task.run(null));
     assertThrows(IllegalArgumentException.class, () -> task.run(Duration.ZERO));
@@ -299,10 +312,10 @@ final class CommandTaskTest {
     final boolean interrupted = Thread.interrupted();
     final Process process = task.getProcess();
     assertNotNull(process);
-    final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+    final boolean exited = process.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(interrupted);
     assertTrue(exited, "the program is killed instead of being left running");
-    final boolean returnedInTime = elapsed < 15_000_000_000L;
+    final boolean returnedInTime = elapsed < RETURN_DEADLINE_NANOSECONDS;
     assertTrue(returnedInTime, "run returns without waiting for the program, took " + elapsed + " ns");
   }
 

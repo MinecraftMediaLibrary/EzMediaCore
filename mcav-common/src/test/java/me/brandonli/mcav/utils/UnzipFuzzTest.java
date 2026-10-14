@@ -45,14 +45,24 @@ import org.junit.jupiter.api.Tag;
 @Tag("fuzz")
 final class UnzipFuzzTest {
 
+  private static final String TEMPORARY_DIRECTORY_PREFIX = "mcav-unzip-fuzz";
+
+  private static final String OBSERVED_ARCHIVE_NAME = "observed.zip";
+  private static final String ZIP_ROOT = "/";
+  private static final String NESTED_ROOT = "nested/root";
+
+  private static final String ARCHIVE_NAME = "archive.zip";
+  private static final String NESTING = "1/2/3/4/5/6/7/8";
+  private static final String DESTINATION_NAME = "destination";
+
   @FuzzTest(maxDuration = "30s")
   void shouldExtractOnlyIntoTheDestination(final byte[] archiveBytes) throws IOException {
-    final Path root = Files.createTempDirectory("mcav-unzip-fuzz");
+    final Path root = Files.createTempDirectory(TEMPORARY_DIRECTORY_PREFIX);
     try {
       checkExtraction(root, root, archiveBytes);
-      try (final FileSystem fileSystem = FileSystems.newFileSystem(root.resolve("observed.zip"), Map.of("create", "true"))) {
-        final Path scope = fileSystem.getPath("/");
-        final Path extractionRoot = Files.createDirectories(scope.resolve("nested/root"));
+      try (final FileSystem fileSystem = FileSystems.newFileSystem(root.resolve(OBSERVED_ARCHIVE_NAME), Map.of("create", "true"))) {
+        final Path scope = fileSystem.getPath(ZIP_ROOT);
+        final Path extractionRoot = Files.createDirectories(scope.resolve(NESTED_ROOT));
         checkExtraction(extractionRoot, scope, archiveBytes);
       }
     } finally {
@@ -61,9 +71,9 @@ final class UnzipFuzzTest {
   }
 
   private static void checkExtraction(final Path root, final Path scope, final byte[] archiveBytes) throws IOException {
-    final Path archive = root.resolve("archive.zip");
-    final Path nesting = root.resolve("1/2/3/4/5/6/7/8");
-    final Path destination = nesting.resolve("destination");
+    final Path archive = root.resolve(ARCHIVE_NAME);
+    final Path nesting = root.resolve(NESTING);
+    final Path destination = nesting.resolve(DESTINATION_NAME);
     Files.createDirectories(nesting);
     Files.write(archive, archiveBytes);
     final List<Path> before = listTree(scope);

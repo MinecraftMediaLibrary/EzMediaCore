@@ -31,6 +31,8 @@ final class AnimationRatePropertyTest {
 
   private static final String SEED = "20261003";
 
+  private static final String UNUSABLE_RATES = "unusableReportedRates";
+
   @Provide
   Arbitrary<Double> unusableReportedRates() {
     return Arbitraries.of(
@@ -48,7 +50,7 @@ final class AnimationRatePropertyTest {
 
   @Property(seed = SEED)
   void shouldUseTheDecodedTimestampsForUnusableRates(
-    @ForAll("unusableReportedRates") final double reported,
+    @ForAll(UNUSABLE_RATES) final double reported,
     @ForAll @IntRange(min = 2, max = 101) final int frames
   ) {
     final long first = 1_000_000L;
@@ -58,7 +60,7 @@ final class AnimationRatePropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldStillProduceAPlayableDefaultWithoutAUsableRateOrTimestamp(@ForAll("unusableReportedRates") final double reported) {
+  void shouldStillProduceAPlayableDefaultWithoutAUsableRateOrTimestamp(@ForAll(UNUSABLE_RATES) final double reported) {
     final float rate = FfmpegDynamicImageBuffer.resolveFrameRate(reported, 1, 0, 0);
     assertEquals(10.0f, rate);
     final boolean positiveAndFinite = rate > 0 && Float.isFinite(rate);

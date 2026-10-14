@@ -75,6 +75,8 @@ final class VideoRendererTest {
   private static final int WHITE = 0xFFFFFF;
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+  private static final int ROW_WIDTH = 2;
+
   private final MockVlc vlc = new MockVlc();
   private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final VideoRenderer renderer = new VideoRenderer(this.owner);
@@ -157,8 +159,8 @@ final class VideoRendererTest {
   @Test
   void shouldReadRv32AsPackedArgb() {
     final ByteBuffer buffer = ByteBuffer.wrap(new byte[] { 0x33, 0x22, 0x11, 0x00, 0x66, 0x55, 0x44, (byte) 0xFF });
-    final int[] pixels = new int[2];
-    VideoRenderer.readVisibleRows(buffer, 2, 2, 1, pixels);
+    final int[] pixels = new int[ROW_WIDTH];
+    VideoRenderer.readVisibleRows(buffer, ROW_WIDTH, ROW_WIDTH, 1, pixels);
     assertArrayEquals(new int[] { 0x00112233, 0xFF445566 }, pixels);
   }
 
@@ -180,8 +182,8 @@ final class VideoRendererTest {
   void shouldReadFromTheStartWithoutMovingTheBuffer() {
     final ByteBuffer buffer = rv32(RED, GREEN);
     buffer.position(4);
-    final int[] pixels = new int[2];
-    VideoRenderer.readVisibleRows(buffer, 2, 2, 1, pixels);
+    final int[] pixels = new int[ROW_WIDTH];
+    VideoRenderer.readVisibleRows(buffer, ROW_WIDTH, ROW_WIDTH, 1, pixels);
     final int position = buffer.position();
     assertArrayEquals(new int[] { RED, GREEN }, pixels);
     assertEquals(4, position);
@@ -308,7 +310,7 @@ final class VideoRendererTest {
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.renderer.start();
     this.display(1, 1, RED);
-    final boolean blocking = rendering.await(5, TimeUnit.SECONDS);
+    final boolean blocking = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.display(1, 1, GREEN);
@@ -339,7 +341,7 @@ final class VideoRendererTest {
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.renderer.start();
     this.display(1, 1, RED);
-    final boolean blocking = rendering.await(5, TimeUnit.SECONDS);
+    final boolean blocking = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.display(1, 1, GREEN);
@@ -362,7 +364,7 @@ final class VideoRendererTest {
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.renderer.start();
     this.display(1, 1, RED);
-    final boolean blocked = rendering.await(5, TimeUnit.SECONDS);
+    final boolean blocked = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocked);
     try {
       this.display(1, 1, GREEN);
@@ -384,7 +386,7 @@ final class VideoRendererTest {
     this.renderer.createBufferFormat(1, 1, 1, 1);
     this.renderer.start();
     this.display(1, 1, RED);
-    final boolean blocked = rendering.await(5, TimeUnit.SECONDS);
+    final boolean blocked = rendering.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocked);
     try {
       this.display(1, 1, GREEN);
@@ -507,7 +509,7 @@ final class VideoRendererTest {
     awaitCount(calls, 2);
     this.display(1, 1, BLUE);
 
-    final boolean keptRendering = third.await(5, TimeUnit.SECONDS);
+    final boolean keptRendering = third.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     final List<String> expectedMessages = List.of("Video filter failed", "Video filter failed");
     final List<Throwable> expectedErrors = List.of(runtimeFailure, errorFailure);
     assertTrue(keptRendering, "rendering goes on after failures");
@@ -652,7 +654,7 @@ final class VideoRendererTest {
    */
   private static void awaitRelease(final CountDownLatch proceed) {
     try {
-      final boolean released = proceed.await(5, TimeUnit.SECONDS);
+      final boolean released = proceed.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
       assertTrue(released, "the test released the blocked filter");
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();

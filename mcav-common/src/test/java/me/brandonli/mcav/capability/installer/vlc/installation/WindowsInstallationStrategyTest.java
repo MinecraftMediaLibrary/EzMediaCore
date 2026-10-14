@@ -45,6 +45,24 @@ final class WindowsInstallationStrategyTest {
 
   private static final String TEMPORARY_DIRECTORY = "vlc-extract";
 
+  private static final String ARCHIVE_NAME = "vlc.zip";
+  private static final String PORTABLE_ARCHIVE_NAME = "vlc-3.0.24-win64.zip";
+
+  private static final String ROOT_DIRECTORY = "vlc-3.0.24";
+  private static final String LIBRARY_ENTRY = "vlc-3.0.24/libvlc.dll";
+  private static final String CORE_LIBRARY_ENTRY = "vlc-3.0.24/libvlccore.dll";
+  private static final String PLUGIN_ENTRY = "vlc-3.0.24/plugins/codec/libavcodec_plugin.dll";
+  private static final String README_ENTRY = "vlc-3.0.24/readme.txt";
+  private static final String ESCAPING_ENTRY = "../escaped.dll";
+
+  private static final String LIBRARY_FILE = "libvlc.dll";
+  private static final String CORE_LIBRARY_FILE = "libvlccore.dll";
+  private static final String PLUGIN_DIRECTORY = "plugins";
+  private static final String CODEC_DIRECTORY = "codec";
+  private static final String PLUGIN_FILE = "libavcodec_plugin.dll";
+  private static final String STALE_FILE = "stale.dll";
+  private static final String ESCAPED_FILE = "escaped.dll";
+
   @TempDir
   private Path temporaryDirectory;
 
@@ -52,17 +70,12 @@ final class WindowsInstallationStrategyTest {
   void shouldExtractTheInnerDirectoryIntoTheInstallationDirectory() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
-    final Path archive = this.createZip(
-      "vlc-3.0.24-win64.zip",
-      "vlc-3.0.24/libvlc.dll",
-      "vlc-3.0.24/libvlccore.dll",
-      "vlc-3.0.24/plugins/codec/libavcodec_plugin.dll"
-    );
+    final Path archive = this.createZip(PORTABLE_ARCHIVE_NAME, LIBRARY_ENTRY, CORE_LIBRARY_ENTRY, PLUGIN_ENTRY);
     final Path installed = strategy.execute(archive);
     final Path installDirectory = installer.getInstallDirectory();
-    final boolean hasLibrary = containsFile(installed, "libvlc.dll");
-    final boolean hasCore = containsFile(installed, "libvlccore.dll");
-    final boolean hasPlugin = containsFile(installed, "plugins", "codec", "libavcodec_plugin.dll");
+    final boolean hasLibrary = containsFile(installed, LIBRARY_FILE);
+    final boolean hasCore = containsFile(installed, CORE_LIBRARY_FILE);
+    final boolean hasPlugin = containsFile(installed, PLUGIN_DIRECTORY, CODEC_DIRECTORY, PLUGIN_FILE);
     final boolean archiveExists = Files.exists(archive);
     final boolean temporaryExists = this.temporaryDirectoryExists();
     assertEquals(installDirectory, installed);
@@ -78,13 +91,13 @@ final class WindowsInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path temporary = this.temporaryDirectory.resolve(TEMPORARY_DIRECTORY);
-    final Path previousRoot = temporary.resolve("vlc-3.0.24");
+    final Path previousRoot = temporary.resolve(ROOT_DIRECTORY);
     Files.createDirectories(previousRoot);
-    final Path stale = previousRoot.resolve("stale.dll");
+    final Path stale = previousRoot.resolve(STALE_FILE);
     Files.writeString(stale, "left over from an interrupted extraction");
-    final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/libvlc.dll", "vlc-3.0.24/libvlccore.dll");
+    final Path archive = this.createZip(ARCHIVE_NAME, LIBRARY_ENTRY, CORE_LIBRARY_ENTRY);
     final Path installed = strategy.execute(archive);
-    final Path relocatedStale = installed.resolve("stale.dll");
+    final Path relocatedStale = installed.resolve(STALE_FILE);
     final boolean copied = Files.exists(relocatedStale);
     assertFalse(copied, "only files from the new archive may enter the installation");
   }
@@ -94,7 +107,7 @@ final class WindowsInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Optional<Path> before = strategy.getInstalledPath();
-    final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/libvlc.dll", "vlc-3.0.24/libvlccore.dll");
+    final Path archive = this.createZip(ARCHIVE_NAME, LIBRARY_ENTRY, CORE_LIBRARY_ENTRY);
     final Path installed = strategy.execute(archive);
     final Optional<Path> after = strategy.getInstalledPath();
     final Optional<Path> expected = Optional.of(installed);
@@ -109,12 +122,12 @@ final class WindowsInstallationStrategyTest {
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path installDirectory = installer.getInstallDirectory();
     Files.createDirectories(installDirectory);
-    final Path stale = installDirectory.resolve("stale.dll");
+    final Path stale = installDirectory.resolve(STALE_FILE);
     Files.createFile(stale);
-    final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/libvlc.dll", "vlc-3.0.24/libvlccore.dll");
+    final Path archive = this.createZip(ARCHIVE_NAME, LIBRARY_ENTRY, CORE_LIBRARY_ENTRY);
     strategy.execute(archive);
     final boolean staleExists = Files.exists(stale);
-    final boolean libraryExists = containsFile(installDirectory, "libvlc.dll");
+    final boolean libraryExists = containsFile(installDirectory, LIBRARY_FILE);
     assertFalse(staleExists);
     assertTrue(libraryExists);
   }
@@ -123,10 +136,10 @@ final class WindowsInstallationStrategyTest {
   void shouldFailAndCleanUpWhenTheZipHasNoLibrary() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
-    final Path archive = this.createZip("vlc.zip", "vlc-3.0.24/readme.txt");
+    final Path archive = this.createZip(ARCHIVE_NAME, README_ENTRY);
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
-    final boolean namesTheLibrary = message.contains("libvlc.dll");
+    final boolean namesTheLibrary = message.contains(LIBRARY_FILE);
     final boolean temporaryExists = this.temporaryDirectoryExists();
     final Path installDirectory = installer.getInstallDirectory();
     final boolean installExists = Files.exists(installDirectory);
@@ -139,7 +152,7 @@ final class WindowsInstallationStrategyTest {
   void shouldReportAFileThatIsNotAZipAndCleanUp() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
-    final Path archive = this.temporaryDirectory.resolve("vlc.zip");
+    final Path archive = this.temporaryDirectory.resolve(ARCHIVE_NAME);
     Files.writeString(archive, "this is not a zip", StandardCharsets.US_ASCII);
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
@@ -154,10 +167,10 @@ final class WindowsInstallationStrategyTest {
   void shouldReportUnsafeZipEntriesAsAnInstallationFailure() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
-    final Path archive = this.createZip("vlc.zip", "../escaped.dll");
+    final Path archive = this.createZip(ARCHIVE_NAME, ESCAPING_ENTRY);
     final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
-    final Path escaped = this.temporaryDirectory.resolve("escaped.dll");
+    final Path escaped = this.temporaryDirectory.resolve(ESCAPED_FILE);
     final boolean escapedExists = Files.exists(escaped);
     final boolean temporaryExists = this.temporaryDirectoryExists();
     assertInstanceOf(ZipEntryIntegrityException.class, cause);

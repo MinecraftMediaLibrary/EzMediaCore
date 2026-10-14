@@ -51,6 +51,9 @@ final class VlcInstallationKitTest {
   private static final Path SYSTEM_DIRECTORY = Path.of("system", "vlc");
   private static final Path INSTALLED_DIRECTORY = Path.of("cache", "vlc", "lib");
 
+  private static final String MCAV_DIRECTORY_NAME = ".mcav";
+  private static final String CACHE_DIRECTORY_NAME = "cache";
+
   @Test
   void shouldPreferTheSystemInstallationAndNeverTouchTheInstaller() throws IOException {
     final Installer installer = mock(Installer.class);
@@ -213,8 +216,8 @@ final class VlcInstallationKitTest {
     try (final TemporaryUserHome redirected = TemporaryUserHome.redirectTo(home)) {
       standard = VlcInstallationKit.create();
       final Path redirectedHome = redirected.getHome();
-      final Path mcavFolder = redirectedHome.resolve(".mcav");
-      expectedFolder = mcavFolder.resolve("cache");
+      final Path mcavFolder = redirectedHome.resolve(MCAV_DIRECTORY_NAME);
+      expectedFolder = mcavFolder.resolve(CACHE_DIRECTORY_NAME);
     }
 
     final Installer customInstaller = custom.getInstaller();

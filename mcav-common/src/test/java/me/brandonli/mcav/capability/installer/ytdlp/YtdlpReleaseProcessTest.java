@@ -40,11 +40,21 @@ import org.opentest4j.AssertionFailedError;
 
 final class YtdlpReleaseProcessTest {
 
+  private static final long FORCED_EXIT_WAIT_SECONDS = 10;
+  private static final long REAP_WAIT_SECONDS = 10;
+  private static final Duration VERSION_DEADLINE = Duration.ofMillis(250);
+
+  private static final String WAIT_MODE = "wait";
+  private static final String VERSION = "2026.08.19";
+
+  private static final String JAVA_BINARY_DIRECTORY = "bin";
+  private static final String JAVA_NAME = "java";
+
   @Test
   void shouldReadOutputIndependentlyOfTheDeadlineWaiter() throws Exception {
     final Thread caller = Thread.currentThread();
     final Process process = mock(Process.class);
-    when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
+    when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
     when(process.getInputStream()).thenReturn(
       new InputStream() {
         @Override
@@ -61,7 +71,7 @@ final class YtdlpReleaseProcessTest {
       }
     );
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
-      YtdlpReleaseTest.runVersion(process, Duration.ofMillis(250))
+      YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
     );
     final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
     assertTrue(didNotFinish, failure.getMessage());
@@ -69,11 +79,11 @@ final class YtdlpReleaseProcessTest {
 
   @Test
   void shouldTimeOutAndReapAChildThatKeepsStdoutOpen() throws Exception {
-    final Process process = startChild("wait");
+    final Process process = startChild(WAIT_MODE);
     try {
       assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
         final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
-          YtdlpReleaseTest.runVersion(process, Duration.ofMillis(250))
+          YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
         );
         final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
         assertTrue(didNotFinish);
@@ -82,7 +92,7 @@ final class YtdlpReleaseProcessTest {
       });
     } finally {
       process.destroyForcibly();
-      final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+      final boolean exited = process.waitFor(REAP_WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(exited);
     }
   }
@@ -92,12 +102,12 @@ final class YtdlpReleaseProcessTest {
     final Process process = startChild("version");
     try {
       final String version = YtdlpReleaseTest.runVersion(process, Duration.ofSeconds(10));
-      assertEquals("2026.08.19", version);
+      assertEquals(VERSION, version);
       final boolean alive = process.isAlive();
       assertFalse(alive);
     } finally {
       process.destroyForcibly();
-      final boolean exited = process.waitFor(10, TimeUnit.SECONDS);
+      final boolean exited = process.waitFor(REAP_WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(exited);
     }
   }
@@ -106,12 +116,12 @@ final class YtdlpReleaseProcessTest {
   void shouldBoundTheForcedExitWaitAfterTheVersionDeadline() throws Exception {
     final Process process = mock(Process.class);
     when(process.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
-    when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
+    when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
     when(process.waitFor()).thenAnswer(invocation -> {
       throw new AssertionError("Forced-exit cleanup must not wait without a deadline!");
     });
     final AssertionFailedError failure = assertThrows(AssertionFailedError.class, () ->
-      YtdlpReleaseTest.runVersion(process, Duration.ofMillis(250))
+      YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE)
     );
     final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
     assertTrue(didNotFinish);
@@ -130,8 +140,8 @@ final class YtdlpReleaseProcessTest {
         }
       }
     );
-    when(process.waitFor(10, TimeUnit.SECONDS)).thenReturn(true);
-    assertThrows(AssertionFailedError.class, () -> YtdlpReleaseTest.runVersion(process, Duration.ofMillis(250)));
+    when(process.waitFor(FORCED_EXIT_WAIT_SECONDS, TimeUnit.SECONDS)).thenReturn(true);
+    assertThrows(AssertionFailedError.class, () -> YtdlpReleaseTest.runVersion(process, VERSION_DEADLINE));
     final Thread closingThread = closer.get();
     assertNotSame(caller, closingThread, "closing stdout must not block the deadline waiter");
     final boolean closed = closer.get() != null;
@@ -140,7 +150,7 @@ final class YtdlpReleaseProcessTest {
 
   private static Process startChild(final String mode) throws IOException, URISyntaxException {
     final String javaHome = System.getProperty("java.home");
-    final String executable = Path.of(javaHome, "bin", "java").toString();
+    final String executable = Path.of(javaHome, JAVA_BINARY_DIRECTORY, JAVA_NAME).toString();
     // Gradle loads test classes outside the worker launcher's java.class.path.
     final String classpath = Path.of(Child.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
     final ProcessBuilder builder = new ProcessBuilder(
@@ -166,10 +176,10 @@ final class YtdlpReleaseProcessTest {
     private Child() {}
 
     public static void main(final String[] arguments) throws IOException {
-      if ("wait".equals(arguments[0])) {
+      if (WAIT_MODE.equals(arguments[0])) {
         System.in.read();
       } else {
-        System.out.println("2026.08.19");
+        System.out.println(VERSION);
       }
     }
   }

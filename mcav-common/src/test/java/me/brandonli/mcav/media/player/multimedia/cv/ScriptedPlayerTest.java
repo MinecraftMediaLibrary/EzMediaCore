@@ -58,12 +58,22 @@ import org.junit.jupiter.api.Test;
  */
 final class ScriptedPlayerTest {
 
-  private static final Source VIDEO = file("video.mp4");
-  private static final Source AUDIO = file("audio.m4a");
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+  private static final String AUDIO_FILE_NAME = "audio.m4a";
+
+  private static final Source VIDEO = file(VIDEO_FILE_NAME);
+  private static final Source AUDIO = file(AUDIO_FILE_NAME);
   private static final long TIMEOUT_MILLISECONDS = 10_000L;
   private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLISECONDS);
   private static final long FUTURE_TIMEOUT_SECONDS = 5L;
   private static final String EXECUTOR_THREAD = "the-given-executor";
+
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+
+  private static final long FRAME_INTERVAL_MICROSECONDS = 33_333L;
+
+  private static final long SEEK_POSITION_MILLISECONDS = 1_000L;
 
   private static Source file(final String name) {
     final Path path = Path.of(name);
@@ -73,10 +83,10 @@ final class ScriptedPlayerTest {
   private static ScriptedFrameGrabber endlessVideo() {
     final List<Object> script = new ArrayList<>();
     for (int index = 0; index < 300; index++) {
-      final Object frame = ScriptedFrameGrabber.video(index * 33_333L);
+      final Object frame = ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS);
       script.add(frame);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setLength(10_000_000L);
     return grabber;
   }
@@ -88,7 +98,7 @@ final class ScriptedPlayerTest {
       final Object chunk = ScriptedFrameGrabber.audio(index * 10_000L);
       script.add(chunk);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setLength(30_000_000L);
     return grabber;
   }
@@ -114,7 +124,7 @@ final class ScriptedPlayerTest {
   void shouldPlayAndStopAtTheEndOfTheMedia() throws Exception {
     final Supplier<ScriptedFrameGrabber> twoFrames = () -> {
       final Object first = ScriptedFrameGrabber.video(0L);
-      final Object second = ScriptedFrameGrabber.video(33_333L);
+      final Object second = ScriptedFrameGrabber.video(FRAME_INTERVAL_MICROSECONDS);
       return ScriptedFrameGrabber.of(first, second);
     };
     final ScriptedPlayer player = new ScriptedPlayer(twoFrames);
@@ -129,7 +139,7 @@ final class ScriptedPlayerTest {
     final boolean released = player.release();
     final long positionAfterRelease = player.getPositionMilliseconds();
     final List<String> opened = player.getOpenedResources();
-    final List<String> expected = List.of("video.mp4");
+    final List<String> expected = List.of(VIDEO_FILE_NAME);
     assertTrue(started);
     assertEquals(33L, position);
     assertTrue(released);
@@ -228,8 +238,8 @@ final class ScriptedPlayerTest {
     final List<String> bothSources = player.getOpenedResources();
     player.release();
 
-    final List<String> expectedSameSource = List.of("video.mp4");
-    final List<String> expectedBothSources = List.of("video.mp4", "video.mp4", "audio.m4a");
+    final List<String> expectedSameSource = List.of(VIDEO_FILE_NAME);
+    final List<String> expectedBothSources = List.of(VIDEO_FILE_NAME, VIDEO_FILE_NAME, AUDIO_FILE_NAME);
     assertEquals(expectedSameSource, sameSource);
     assertEquals(expectedBothSources, bothSources);
   }
@@ -239,7 +249,7 @@ final class ScriptedPlayerTest {
     final ScriptedPlayer player = new ScriptedPlayer(ScriptedPlayerTest::endlessVideo);
     final boolean pauseWithoutSession = player.pause();
     final boolean resumeWithoutSession = player.resume();
-    final boolean seekWithoutSession = player.seek(1_000L);
+    final boolean seekWithoutSession = player.seek(SEEK_POSITION_MILLISECONDS);
 
     player.start(VIDEO);
     final boolean paused = player.pause();
@@ -305,7 +315,7 @@ final class ScriptedPlayerTest {
     final ScriptedPlayer player = new ScriptedPlayer(live);
     try {
       player.start(VIDEO);
-      final boolean seeked = player.seek(1_000L);
+      final boolean seeked = player.seek(SEEK_POSITION_MILLISECONDS);
       final boolean playing = player.isPlaying();
       final List<String> opened = player.getOpenedResources();
       final int openCount = opened.size();

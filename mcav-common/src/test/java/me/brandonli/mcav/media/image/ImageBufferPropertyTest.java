@@ -45,6 +45,15 @@ final class ImageBufferPropertyTest {
   private static final int MAXIMUM_SIDE = 24;
   private static final int CHANNELS = 3;
 
+  private static final String IMAGES_PROVIDER = "images";
+  private static final int TRIES = 100;
+
+  private static final int OPAQUE_ALPHA = 0xFF000000;
+  private static final int CHANNEL_MASK = 0xFF;
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   @Provide
   Arbitrary<ImageCase> images() {
     final Arbitrary<Integer> sides = between(1, MAXIMUM_SIDE);
@@ -75,8 +84,8 @@ final class ImageBufferPropertyTest {
     return integers.between(minimum, maximum);
   }
 
-  @Property(seed = SEED, tries = 100)
-  void shouldCopyRawPixelsFromEveryBufferLayout(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldCopyRawPixelsFromEveryBufferLayout(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final byte[] bgr = image.createBgr();
     final ByteBuffer source = image.wrap(bgr);
     final int position = source.position();
@@ -101,8 +110,8 @@ final class ImageBufferPropertyTest {
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void shouldReturnArgbPixelsOpaqueAndAsTheirBgrBytes(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldReturnArgbPixelsOpaqueAndAsTheirBgrBytes(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {
@@ -110,13 +119,13 @@ final class ImageBufferPropertyTest {
       final byte[] bgr = readData(buffer);
       assertEquals(argb.length, pixels.length, "one pixel per pixel");
       for (int pixel = 0; pixel < argb.length; pixel++) {
-        final int expected = argb[pixel] | 0xFF000000;
+        final int expected = argb[pixel] | OPAQUE_ALPHA;
         final int opaquePixel = pixels[pixel];
         assertEquals(expected, opaquePixel, "pixel " + pixel + " is its color, opaque");
-        final int blue = bgr[pixel * CHANNELS] & 0xFF;
-        final int green = bgr[pixel * CHANNELS + 1] & 0xFF;
-        final int red = bgr[pixel * CHANNELS + 2] & 0xFF;
-        final int storedColor = (red << 16) | (green << 8) | blue;
+        final int blue = bgr[pixel * CHANNELS] & CHANNEL_MASK;
+        final int green = bgr[pixel * CHANNELS + 1] & CHANNEL_MASK;
+        final int red = bgr[pixel * CHANNELS + 2] & CHANNEL_MASK;
+        final int storedColor = (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
         assertEquals(expected & 0xFFFFFF, storedColor, "pixel " + pixel + " as blue, green, red");
       }
     } finally {
@@ -124,8 +133,8 @@ final class ImageBufferPropertyTest {
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void shouldShareNothingWithCopiesAndReplaceTheCachedPixelsOnChange(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldShareNothingWithCopiesAndReplaceTheCachedPixelsOnChange(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -150,7 +159,7 @@ final class ImageBufferPropertyTest {
       assertArrayEquals(beforeValues, before, "the array a caller kept still holds the old pixels");
       final int[] after = original.getPixels();
       for (int pixel = 0; pixel < changed.length; pixel++) {
-        final int expected = changed[pixel] | 0xFF000000;
+        final int expected = changed[pixel] | OPAQUE_ALPHA;
         final int afterPixel = after[pixel];
         assertEquals(expected, afterPixel, "the image shows its new pixels");
       }
@@ -160,8 +169,8 @@ final class ImageBufferPropertyTest {
     }
   }
 
-  @Property(seed = SEED, tries = 100)
-  void shouldChangeTheImageOnWritesThroughTheDataView(@ForAll("images") final ImageCase image) {
+  @Property(seed = SEED, tries = TRIES)
+  void shouldChangeTheImageOnWritesThroughTheDataView(@ForAll(IMAGES_PROVIDER) final ImageCase image) {
     final int[] argb = image.createArgb();
     final ImageBuffer buffer = ImageBuffer.buffer(argb, image.getWidth(), image.getHeight());
     try {
@@ -176,10 +185,10 @@ final class ImageBufferPropertyTest {
 
       final int[] pixels = buffer.getPixels();
       for (int pixel = 0; pixel < pixels.length; pixel++) {
-        final int blue = written[pixel * CHANNELS] & 0xFF;
-        final int green = written[pixel * CHANNELS + 1] & 0xFF;
-        final int red = written[pixel * CHANNELS + 2] & 0xFF;
-        final int expected = 0xFF000000 | (red << 16) | (green << 8) | blue;
+        final int blue = written[pixel * CHANNELS] & CHANNEL_MASK;
+        final int green = written[pixel * CHANNELS + 1] & CHANNEL_MASK;
+        final int red = written[pixel * CHANNELS + 2] & CHANNEL_MASK;
+        final int expected = OPAQUE_ALPHA | (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
         final int shownPixel = pixels[pixel];
         assertEquals(expected, shownPixel, "pixel " + pixel + " shows what was written through the view");
       }
@@ -248,8 +257,8 @@ final class ImageBufferPropertyTest {
       final byte[] bgr = new byte[argb.length * CHANNELS];
       for (int pixel = 0; pixel < argb.length; pixel++) {
         bgr[pixel * CHANNELS] = (byte) argb[pixel];
-        bgr[pixel * CHANNELS + 1] = (byte) (argb[pixel] >> 8);
-        bgr[pixel * CHANNELS + 2] = (byte) (argb[pixel] >> 16);
+        bgr[pixel * CHANNELS + 1] = (byte) (argb[pixel] >> GREEN_SHIFT);
+        bgr[pixel * CHANNELS + 2] = (byte) (argb[pixel] >> RED_SHIFT);
       }
       return bgr;
     }

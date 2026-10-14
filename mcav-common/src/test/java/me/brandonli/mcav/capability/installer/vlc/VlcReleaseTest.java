@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.testing.TestMedia;
 import me.brandonli.mcav.utils.IoUtils;
@@ -58,6 +59,14 @@ final class VlcReleaseTest {
 
   private static final int HTTP_OK = 200;
 
+  private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";
+
+  private static final String BINARY_DIRECTORY = "bin";
+  private static final String WINDOWS_JAVA_EXECUTABLE = "java.exe";
+  private static final String JAVA_EXECUTABLE = "java";
+
+  private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
   @BeforeAll
   static void requireNetworkTests() {
     final boolean enabled = Boolean.getBoolean("mcav.networkTests");
@@ -66,7 +75,7 @@ final class VlcReleaseTest {
 
   @Test
   void shouldBundleHashesThatMatchTheChecksumsVideoLanPublishesNextToEveryDownload() throws IOException, InterruptedException {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/vlc.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
     try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
       for (final Download download : downloads) {
         final String url = download.getUrl();
@@ -83,7 +92,7 @@ final class VlcReleaseTest {
     final int statusCode = response.statusCode();
     assertEquals(HTTP_OK, statusCode, url);
     final String body = response.body().strip();
-    return body.split("\\s+", 2)[0];
+    return WHITESPACE_PATTERN.split(body, 2)[0];
   }
 
   @Test
@@ -100,8 +109,8 @@ final class VlcReleaseTest {
   }
 
   private static String runProbe(final Path folder, final Path video) throws IOException, InterruptedException {
-    final String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
-    final Path java = Path.of(System.getProperty("java.home"), "bin", executable);
+    final String executable = System.getProperty("os.name").startsWith("Windows") ? WINDOWS_JAVA_EXECUTABLE : JAVA_EXECUTABLE;
+    final Path java = Path.of(System.getProperty("java.home"), BINARY_DIRECTORY, executable);
     final List<String> command = List.of(
       java.toString(),
       "--enable-native-access=ALL-UNNAMED",

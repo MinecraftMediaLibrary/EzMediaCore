@@ -55,6 +55,12 @@ final class PlaybackSessionFailureTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+  private static final String RECOVERABLE_FAILURES_SOURCE = "recoverableFailures";
+
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+  private static final long FRAME_INTERVAL_MICROSECONDS = 33_333L;
+
   private static Stream<Throwable> recoverableFailures() {
     return Stream.of(
       new IllegalStateException("decoder failed!"),
@@ -117,7 +123,7 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @MethodSource("recoverableFailures")
+  @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldNotStrandTheAudioRendererWhenSeparateAudioFactoriesFail(final Throwable failure) throws Exception {
     final AtomicReference<Throwable> reported = new AtomicReference<>();
     final ScriptedFrameGrabber video = ScriptedFrameGrabber.of();
@@ -171,7 +177,7 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @MethodSource("recoverableFailures")
+  @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldSignalBothEndsFromFailedDecodersEvenWhenTheirHandlerInterruptsAndThrows(final Throwable failure) throws Exception {
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
@@ -205,7 +211,7 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @MethodSource("recoverableFailures")
+  @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldNotStrandEitherRendererOnRecoverableGrabberCloseFailures(final Throwable failure) throws Exception {
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
@@ -231,7 +237,7 @@ final class PlaybackSessionFailureTest {
   }
 
   @ParameterizedTest
-  @MethodSource("recoverableFailures")
+  @MethodSource(RECOVERABLE_FAILURES_SOURCE)
   void shouldCloseTheAcquiredGrabberAndKeepTheOriginalFailureWhenTheLengthLookupFails(final Throwable failure) throws Exception {
     final ScriptedFrameGrabber real = ScriptedFrameGrabber.of();
     final ScriptedFrameGrabber video = spy(real);
@@ -459,10 +465,10 @@ final class PlaybackSessionFailureTest {
   void shouldStopTheProducerAndEscapeWhenRendererHandlersFail(final boolean audioFailure) throws Exception {
     final List<Object> frames = new ArrayList<>();
     for (int index = 0; index < 30; index++) {
-      frames.add(ScriptedFrameGrabber.video(index * 33_333L));
-      frames.add(ScriptedFrameGrabber.audio(index * 33_333L));
+      frames.add(ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS));
+      frames.add(ScriptedFrameGrabber.audio(index * FRAME_INTERVAL_MICROSECONDS));
     }
-    final ScriptedFrameGrabber video = new ScriptedFrameGrabber(4, 2, false, frames);
+    final ScriptedFrameGrabber video = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
     final AudioAttachableCallback sound = AudioAttachableCallback.create();
     final DimensionAttachableCallback dimensions = DimensionAttachableCallback.create();
@@ -516,10 +522,10 @@ final class PlaybackSessionFailureTest {
   void shouldStillTerminateADecoderWaitingToSignalEndToAFullQueueWhenStopping() throws Exception {
     final List<Object> frames = new ArrayList<>();
     for (int index = 0; index < 5; index++) {
-      final Object frame = ScriptedFrameGrabber.video(index * 33_333L);
+      final Object frame = ScriptedFrameGrabber.video(index * FRAME_INTERVAL_MICROSECONDS);
       frames.add(frame);
     }
-    final ScriptedFrameGrabber real = new ScriptedFrameGrabber(4, 2, false, frames);
+    final ScriptedFrameGrabber real = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, frames);
     final ScriptedFrameGrabber video = spy(real);
     final AtomicReference<Thread> decoder = new AtomicReference<>();
     doAnswer(invocation -> {

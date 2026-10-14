@@ -98,12 +98,22 @@ final class VlcPlayerTest {
   private static final int RED = 0xFF0000;
   private static final int GREEN = 0x00FF00;
 
+  private static final String OPTION = "--opt";
+  private static final String VIDEO_RESOURCE = "video.mp4";
+  private static final String AUDIO_RESOURCE = "audio.ogg";
+
+  private static final long WAIT_SECONDS = 5L;
+  private static final long UNBLOCKED_JOIN_MILLISECONDS = 1_000L;
+  private static final long CLEANUP_JOIN_MILLISECONDS = 7_000L;
+
+  private static final int PLAYERS_WITH_REPLACEMENT = 2;
+
   private final MockVlc vlc = new MockVlc();
-  private final VlcPlayer player = this.vlc.newPlayer(1_000L, "--opt");
+  private final VlcPlayer player = this.vlc.newPlayer(1_000L, OPTION);
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
-  private final Source video = source("video.mp4");
-  private final Source audio = source("audio.ogg");
+  private final Source video = source(VIDEO_RESOURCE);
+  private final Source audio = source(AUDIO_RESOURCE);
 
   VlcPlayerTest() {
     this.player.setExceptionHandler((message, error) -> {
@@ -194,8 +204,8 @@ final class VlcPlayerTest {
     final boolean noErrors = this.errors.isEmpty();
     assertTrue(started);
     assertEquals(1, playerCount);
-    assertEquals("video.mp4", resource);
-    assertArrayEquals(new String[] { "--opt" }, options);
+    assertEquals(VIDEO_RESOURCE, resource);
+    assertArrayEquals(new String[] { OPTION }, options);
     verify(audioApi).callback(eq("S16N"), eq(48_000), eq(2), any(AudioCallback.class));
     verify(surface).set(any());
     assertEquals(1, references);
@@ -214,9 +224,9 @@ final class VlcPlayerTest {
     final boolean audioCallbackOnAudioPlayer = audioPlayer.hasAudioCallback();
     final int references = this.references();
     assertTrue(started);
-    assertArrayEquals(new String[] { "--opt", ":no-audio" }, videoOptions);
-    assertArrayEquals(new String[] { "--opt", ":no-video" }, audioOptions);
-    assertEquals("audio.ogg", audioResource);
+    assertArrayEquals(new String[] { OPTION, ":no-audio" }, videoOptions);
+    assertArrayEquals(new String[] { OPTION, ":no-video" }, audioOptions);
+    assertEquals(AUDIO_RESOURCE, audioResource);
     assertTrue(audioCallbackOnAudioPlayer);
     verify(videoAudioApi, never()).callback(anyString(), anyInt(), anyInt(), any(AudioCallback.class));
     assertEquals(1, references, "one playback holds one reference to the shared instance");
@@ -236,7 +246,7 @@ final class VlcPlayerTest {
     final int playerCount = players.size();
     assertTrue(started);
     assertEquals(1, playerCount);
-    assertArrayEquals(new String[] { "--opt" }, options);
+    assertArrayEquals(new String[] { OPTION }, options);
   }
 
   @Test
@@ -535,7 +545,7 @@ final class VlcPlayerTest {
     final List<MockVlc.Player> players = this.vlc.getPlayers();
     final int count = players.size();
     assertSame(failure, thrown);
-    assertEquals(2, count, "the replacement acquired its player before the old playback stopped");
+    assertEquals(PLAYERS_WITH_REPLACEMENT, count, "the replacement acquired its player before the old playback stopped");
     this.assertEverythingReleased();
     this.assertControlsFail();
   }
@@ -666,7 +676,7 @@ final class VlcPlayerTest {
     assertTrue(restarted);
     assertReleased(first);
     verify(secondPlayer, never()).release();
-    assertEquals("audio.ogg", secondResource);
+    assertEquals(AUDIO_RESOURCE, secondResource);
     assertEquals(1, references);
     assertEquals(1, creations, "restarting keeps the shared VLC instance instead of loading it again");
   }
@@ -696,10 +706,10 @@ final class VlcPlayerTest {
       this.startVideo();
       final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
       this.renderFrame(mediaPlayer, 1, 1, RED);
-      final boolean processing = entered.await(5, TimeUnit.SECONDS);
+      final boolean processing = entered.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(processing);
       replacement.start();
-      replacement.join(1_000L);
+      replacement.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = replacement.isAlive();
       assertFalse(blocked, "old render callbacks must acquire the player lock while replacement waits for them");
       final Boolean callback = callbackResult.get();
@@ -708,7 +718,7 @@ final class VlcPlayerTest {
       assertEquals(!releaseInside, started);
       final List<MockVlc.Player> players = this.vlc.getPlayers();
       final int count = players.size();
-      assertEquals(2, count, "callback start must not allocate a third candidate during a pending replacement");
+      assertEquals(PLAYERS_WITH_REPLACEMENT, count, "callback start must not allocate a third candidate during a pending replacement");
       final MockVlc.Player candidate = this.vlc.player(1);
       if (releaseInside) {
         final String resource = candidate.getResource();
@@ -716,11 +726,11 @@ final class VlcPlayerTest {
         this.assertEverythingReleased();
       } else {
         final String resource = candidate.getResource();
-        assertEquals("audio.ogg", resource);
+        assertEquals(AUDIO_RESOURCE, resource);
       }
     } finally {
       escape.countDown();
-      replacement.join(7_000L);
+      replacement.join(CLEANUP_JOIN_MILLISECONDS);
     }
   }
 
@@ -753,10 +763,10 @@ final class VlcPlayerTest {
     competing.setDaemon(true);
     try {
       replacement.start();
-      final boolean stopping = stoppingOld.await(5, TimeUnit.SECONDS);
+      final boolean stopping = stoppingOld.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(stopping);
       competing.start();
-      competing.join(1_000L);
+      competing.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = competing.isAlive();
       assertFalse(blocked, "pending replacement must not hold the player lock while native stop waits");
       final Boolean competingValue = competingResult.get();
@@ -775,7 +785,7 @@ final class VlcPlayerTest {
       assertEquals(!releases, started);
       final List<MockVlc.Player> players = this.vlc.getPlayers();
       final int count = players.size();
-      assertEquals(2, count);
+      assertEquals(PLAYERS_WITH_REPLACEMENT, count);
       if (releases) {
         final String resource = candidate.getResource();
         assertNull(resource, "resuming the cancelled starter must not revive its released candidate");
@@ -783,8 +793,8 @@ final class VlcPlayerTest {
       }
     } finally {
       finishStop.countDown();
-      replacement.join(7_000L);
-      competing.join(7_000L);
+      replacement.join(CLEANUP_JOIN_MILLISECONDS);
+      competing.join(CLEANUP_JOIN_MILLISECONDS);
     }
   }
 
@@ -1021,7 +1031,7 @@ final class VlcPlayerTest {
     final RecordedFrame frame = take(frames);
 
     playSilence(only, mediaPlayer);
-    final Integer chunkSize = chunkSizes.poll(5, TimeUnit.SECONDS);
+    final Integer chunkSize = chunkSizes.poll(WAIT_SECONDS, TimeUnit.SECONDS);
 
     final int[] rgb = frame.getRgb();
     final OriginalVideoMetadata metadata = frame.getMetadata();
@@ -1052,7 +1062,7 @@ final class VlcPlayerTest {
     this.startVideo();
     final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
     this.renderFrame(mediaPlayer, 1, 1, RED);
-    final boolean running = entered.await(5, TimeUnit.SECONDS);
+    final boolean running = entered.await(WAIT_SECONDS, TimeUnit.SECONDS);
     final boolean released = this.player.release();
     final boolean finishedBeforeRelease = finished.get();
     assertTrue(running);
@@ -1085,10 +1095,10 @@ final class VlcPlayerTest {
       this.startVideo();
       final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
       this.renderFrame(mediaPlayer, 1, 1, RED);
-      final boolean processing = entered.await(5, TimeUnit.SECONDS);
+      final boolean processing = entered.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(processing);
       releaser.start();
-      releaser.join(1_000L);
+      releaser.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = releaser.isAlive();
       final long unfinishedCallbacks = finished.getCount();
       assertFalse(blocked, "release must not join while holding the lock needed by the interrupted callback");
@@ -1101,7 +1111,7 @@ final class VlcPlayerTest {
     } finally {
       escape.countDown();
       this.player.release();
-      releaser.join(7_000L);
+      releaser.join(CLEANUP_JOIN_MILLISECONDS);
     }
   }
 
@@ -1118,7 +1128,7 @@ final class VlcPlayerTest {
     this.startVideo();
     final MediaPlayer mediaPlayer = mock(MediaPlayer.class);
     this.renderFrame(mediaPlayer, 1, 1, RED);
-    final boolean finished = done.await(5, TimeUnit.SECONDS);
+    final boolean finished = done.await(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(finished, "releasing from the render thread must not deadlock");
     VlcPlaybackTest.awaitNoPlaybackThreads();
     final Boolean released = releasedFromPipeline.get();
@@ -1248,7 +1258,7 @@ final class VlcPlayerTest {
     };
     assertFalse(controlled);
     final CompletableFuture<Boolean> release = CompletableFuture.supplyAsync(this.player::release);
-    final boolean released = release.get(5L, TimeUnit.SECONDS);
+    final boolean released = release.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(released, "an idle control call must relinquish the player lock");
   }
 
@@ -1262,7 +1272,7 @@ final class VlcPlayerTest {
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> this.player.start(this.audio));
     assertSame(failure, thrown);
     final CompletableFuture<Boolean> restart = CompletableFuture.supplyAsync(() -> this.player.start(this.video));
-    final boolean restarted = restart.get(5L, TimeUnit.SECONDS);
+    final boolean restarted = restart.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(restarted, "failed replacement must clear its reservation and relinquish its lock");
   }
 
@@ -1274,7 +1284,7 @@ final class VlcPlayerTest {
     final boolean started = this.player.start(this.video);
     assertFalse(started);
     final CompletableFuture<Boolean> release = CompletableFuture.supplyAsync(this.player::release);
-    final boolean released = release.get(5L, TimeUnit.SECONDS);
+    final boolean released = release.get(WAIT_SECONDS, TimeUnit.SECONDS);
     assertTrue(released, "failed acquisition must relinquish its lock");
   }
 

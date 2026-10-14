@@ -42,8 +42,27 @@ final class FormatModelTest {
 
   private static final double DELTA = 1.0e-9;
 
+  private static final String FIXTURE_RESOURCE = "/ytdlp/video.json";
+
+  private static final String THUMBNAIL_URL = "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg";
+  private static final String USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64)";
+  private static final int HTTP_CHUNK_SIZE = 10485760;
+
+  private static final int VIDEO_FORMAT_INDEX = 2;
+  private static final int VIDEO_WIDTH = 1920;
+  private static final int VIDEO_HEIGHT = 1080;
+  private static final double FRAMES_PER_SECOND = 29.97;
+  private static final String DYNAMIC_RANGE = "SDR";
+
+  private static final String AUDIO_CODEC = "opus";
+  private static final int SAMPLE_RATE = 48000;
+  private static final int AUDIO_CHANNELS = 2;
+  private static final String LANGUAGE = "en";
+
+  private static final String ABSENT = "none";
+
   private static UrlParseDump fixture() throws IOException {
-    try (final InputStream stream = FormatModelTest.class.getResourceAsStream("/ytdlp/video.json")) {
+    try (final InputStream stream = FormatModelTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
       final byte[] bytes = stream.readAllBytes();
       final String json = new String(bytes, StandardCharsets.UTF_8);
@@ -67,7 +86,7 @@ final class FormatModelTest {
     assertEquals("Example Video", dump.title);
     assertEquals("Example Video", dump.fulltitle);
     assertEquals("An example description\nwith two lines", dump.description);
-    assertEquals("https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", dump.thumbnail);
+    assertEquals(THUMBNAIL_URL, dump.thumbnail);
     assertEquals("UCuAXFkgsw1L7xaCfnd5JJOw", dump.channel_id);
     assertEquals("https://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw", dump.channel_url);
     assertEquals("Example Channel", dump.channel);
@@ -115,30 +134,30 @@ final class FormatModelTest {
     assertEquals("1080p+medium", dump.format_note);
     assertEquals("mp4", dump.ext);
     assertEquals("avc1.640028", dump.vcodec);
-    assertEquals("opus", dump.acodec);
+    assertEquals(AUDIO_CODEC, dump.acodec);
     assertEquals("https+https", dump.protocol);
     assertEquals("1920x1080", dump.resolution);
-    assertEquals(1920, dump.width);
-    assertEquals(1080, dump.height);
-    assertEquals(29.97, dump.fps, DELTA);
+    assertEquals(VIDEO_WIDTH, dump.width);
+    assertEquals(VIDEO_HEIGHT, dump.height);
+    assertEquals(FRAMES_PER_SECOND, dump.fps, DELTA);
     assertEquals(9.0, dump.quality, DELTA);
     assertEquals(4530.189, dump.tbr, DELTA);
     assertEquals(1.78, dump.aspect_ratio, DELTA);
-    assertEquals(48000, dump.asr);
-    assertEquals(2, dump.audio_channels);
+    assertEquals(SAMPLE_RATE, dump.asr);
+    assertEquals(AUDIO_CHANNELS, dump.audio_channels);
     assertEquals(-1, dump.source_preference);
     assertEquals(-1, dump.language_preference);
-    assertEquals("en", dump.language);
-    assertEquals("SDR", dump.dynamic_range);
+    assertEquals(LANGUAGE, dump.language);
+    assertEquals(DYNAMIC_RANGE, dump.dynamic_range);
     assertEquals("mp4", dump.video_ext);
-    assertEquals("none", dump.audio_ext);
+    assertEquals(ABSENT, dump.audio_ext);
     assertEquals("137 - 1920x1080 (1080p)+251 - audio only (medium)", dump.format);
     assertFalse(dump.has_drm);
     assertNull(dump.url);
     assertNotNull(options);
-    assertEquals(10485760, options.http_chunk_size);
+    assertEquals(HTTP_CHUNK_SIZE, options.http_chunk_size);
     assertNotNull(headers);
-    assertEquals("Mozilla/5.0 (X11; Linux x86_64)", headers.userAgent);
+    assertEquals(USER_AGENT, headers.userAgent);
   }
 
   @Test
@@ -146,7 +165,7 @@ final class FormatModelTest {
     final UrlParseDump dump = fixture();
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
-    final Format video = formats.get(2);
+    final Format video = formats.get(VIDEO_FORMAT_INDEX);
     assertEquals(2300000000L, dump.comment_count);
     assertEquals(4100000000L, dump.channel_follower_count);
     assertEquals(5403437753L, dump.filesize_approx);
@@ -191,38 +210,38 @@ final class FormatModelTest {
     final List<Format> formats = dump.formats;
     assertNotNull(formats);
     final Format audio = formats.get(1);
-    final Format video = formats.get(2);
+    final Format video = formats.get(VIDEO_FORMAT_INDEX);
     final DownloaderOptions options = audio.downloader_options;
     assertEquals("251", audio.format_id);
     assertEquals("medium", audio.format_note);
     assertEquals("webm", audio.ext);
     assertEquals("https", audio.protocol);
-    assertEquals("opus", audio.acodec);
-    assertEquals("none", audio.vcodec);
+    assertEquals(AUDIO_CODEC, audio.acodec);
+    assertEquals(ABSENT, audio.vcodec);
     assertEquals("https://rr1---sn.example.googlevideo.com/videoplayback?itag=251", audio.url);
-    assertEquals(2, audio.audio_channels);
+    assertEquals(AUDIO_CHANNELS, audio.audio_channels);
     assertEquals(3.0, audio.quality, DELTA);
     assertFalse(audio.has_drm);
     assertEquals(-1, audio.source_preference);
-    assertEquals(48000, audio.asr);
+    assertEquals(SAMPLE_RATE, audio.asr);
     assertEquals(3437753L, audio.filesize);
-    assertEquals("en", audio.language);
+    assertEquals(LANGUAGE, audio.language);
     assertEquals(-1, audio.language_preference);
     assertEquals("webm_dash", audio.container);
     assertEquals("webm", audio.audio_ext);
-    assertEquals("none", audio.video_ext);
+    assertEquals(ABSENT, audio.video_ext);
     assertEquals(0.0, audio.vbr, DELTA);
     assertEquals(129.689, audio.abr, DELTA);
     assertEquals(129.689, audio.tbr, DELTA);
     assertEquals("audio only", audio.resolution);
     assertEquals("251 - audio only (medium)", audio.format);
     assertNotNull(options);
-    assertEquals(10485760, options.http_chunk_size);
-    assertEquals(1920, video.width);
-    assertEquals(1080, video.height);
-    assertEquals(29.97, video.fps, DELTA);
+    assertEquals(HTTP_CHUNK_SIZE, options.http_chunk_size);
+    assertEquals(VIDEO_WIDTH, video.width);
+    assertEquals(VIDEO_HEIGHT, video.height);
+    assertEquals(FRAMES_PER_SECOND, video.fps, DELTA);
     assertEquals(4400.5, video.vbr, DELTA);
-    assertEquals("SDR", video.dynamic_range);
+    assertEquals(DYNAMIC_RANGE, video.dynamic_range);
     assertEquals("mp4_dash", video.container);
     assertNull(video.format_index);
     assertNull(video.manifest_url);
@@ -256,7 +275,7 @@ final class FormatModelTest {
     final Format storyboard = formats.getFirst();
     final HttpHeaders headers = storyboard.http_headers;
     assertNotNull(headers);
-    assertEquals("Mozilla/5.0 (X11; Linux x86_64)", headers.userAgent);
+    assertEquals(USER_AGENT, headers.userAgent);
     assertEquals("text/html,application/xhtml+xml", headers.accept);
     assertEquals("en-us,en;q=0.5", headers.acceptLanguage);
     assertEquals("navigate", headers.secFetchMode);
@@ -279,7 +298,7 @@ final class FormatModelTest {
     assertNotNull(version);
     final Thumbnail thumbnail = thumbnails.getFirst();
     final Heatmap marker = heatmap.getFirst();
-    assertEquals("https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg", thumbnail.url);
+    assertEquals(THUMBNAIL_URL, thumbnail.url);
     assertEquals(-1, thumbnail.preference);
     assertEquals("40", thumbnail.id);
     assertEquals(1080, thumbnail.height);

@@ -41,6 +41,21 @@ import org.junit.jupiter.params.provider.EnumSource;
 /** Validates structure only: fixture libraries are nonempty markers and are never passed to a native loader. */
 final class VlcInstallationValidationTest {
 
+  private static final String MAC_MAIN_LIBRARY_NAME = "libvlc.dylib";
+  private static final String MAC_CORE_LIBRARY_NAME = "libvlccore.dylib";
+
+  private static final String MAC_MAIN_TARGET_NAME = "libvlc.5.dylib";
+  private static final String MAC_CORE_TARGET_NAME = "libvlccore.9.dylib";
+
+  private static final String COMPLETE_DIRECTORY_NAME = "complete";
+  private static final String OTHER_DIRECTORY_NAME = "other";
+  private static final String EXTRACTED_DIRECTORY_NAME = "squashfs-root";
+
+  private static final String ARCHIVE_NAME = "fixture.archive";
+  private static final String ARCHIVE_ROOT = "vlc-3.0.24/";
+  private static final String OTHER_ARCHIVE_DIRECTORY = "vlc-3.0.24/other/";
+  private static final String DIRECTORY_ENTRY_SUFFIX = "/";
+
   @TempDir
   private Path temporaryDirectory;
 
@@ -49,27 +64,36 @@ final class VlcInstallationValidationTest {
     MAC,
     LINUX;
 
+    private static final String WINDOWS_MAIN_LIBRARY_NAME = "libvlc.dll";
+    private static final String WINDOWS_CORE_LIBRARY_NAME = "libvlccore.dll";
+
+    private static final String LINUX_MAIN_LIBRARY_NAME = "libvlc.so.5.6.1";
+    private static final String LINUX_CORE_LIBRARY_NAME = "libvlccore.so.9.0.1";
+
+    private static final Path MAC_LIBRARY_DIRECTORY = Path.of("VLC.app", "Contents", "MacOS", "lib");
+    private static final Path LINUX_LIBRARY_DIRECTORY = Path.of("usr", "lib", "i386-linux-gnu");
+
     private String mainLibrary() {
       return switch (this) {
-        case WINDOWS -> "libvlc.dll";
-        case MAC -> "libvlc.dylib";
-        case LINUX -> "libvlc.so.5.6.1";
+        case WINDOWS -> WINDOWS_MAIN_LIBRARY_NAME;
+        case MAC -> MAC_MAIN_LIBRARY_NAME;
+        case LINUX -> LINUX_MAIN_LIBRARY_NAME;
       };
     }
 
     private String coreLibrary() {
       return switch (this) {
-        case WINDOWS -> "libvlccore.dll";
-        case MAC -> "libvlccore.dylib";
-        case LINUX -> "libvlccore.so.9.0.1";
+        case WINDOWS -> WINDOWS_CORE_LIBRARY_NAME;
+        case MAC -> MAC_CORE_LIBRARY_NAME;
+        case LINUX -> LINUX_CORE_LIBRARY_NAME;
       };
     }
 
     private Path relativeDirectory() {
       return switch (this) {
         case WINDOWS -> Path.of("");
-        case MAC -> Path.of("VLC.app", "Contents", "MacOS", "lib");
-        case LINUX -> Path.of("usr", "lib", "i386-linux-gnu");
+        case MAC -> MAC_LIBRARY_DIRECTORY;
+        case LINUX -> LINUX_LIBRARY_DIRECTORY;
       };
     }
 
@@ -109,7 +133,7 @@ final class VlcInstallationValidationTest {
       case EMPTY_MAIN -> Files.writeString(main, "");
       case EMPTY_CORE -> Files.writeString(core, "");
       case DIFFERENT_DIRECTORIES -> {
-        final Path other = directory.resolve("other");
+        final Path other = directory.resolve(OTHER_DIRECTORY_NAME);
         Files.createDirectories(other);
         Files.move(core, other.resolve(platform.coreLibrary()));
       }
@@ -148,7 +172,7 @@ final class VlcInstallationValidationTest {
     final Path main = install.resolve(platform.mainLibrary());
     Files.createDirectories(install);
     Files.writeString(main, "orphan library marker");
-    final Path complete = install.resolve("complete");
+    final Path complete = install.resolve(COMPLETE_DIRECTORY_NAME);
     writePair(complete, platform);
     final InstallationStrategy strategy = platform.strategy(installer, (_, _) -> {});
     final Optional<Path> found = strategy.getInstalledPath();
@@ -165,7 +189,7 @@ final class VlcInstallationValidationTest {
       final VlcInstaller installer = VlcInstaller.create(folder);
       final ProcessRunner tools = (workingDirectory, arguments) -> {
         if (platform == Platform.LINUX) {
-          final Path extracted = folder.resolve("squashfs-root").resolve(platform.relativeDirectory());
+          final Path extracted = folder.resolve(EXTRACTED_DIRECTORY_NAME).resolve(platform.relativeDirectory());
           writePair(extracted, platform);
           breakPair(extracted, platform, defect);
         } else if (arguments[0].equals("cp")) {
@@ -175,7 +199,7 @@ final class VlcInstallationValidationTest {
         }
       };
       final InstallationStrategy strategy = platform.strategy(installer, tools);
-      final Path archive = folder.resolve("fixture.archive");
+      final Path archive = folder.resolve(ARCHIVE_NAME);
       if (platform == Platform.WINDOWS) {
         writeWindowsArchive(archive, platform, defect);
       } else {
@@ -191,12 +215,12 @@ final class VlcInstallationValidationTest {
   private static void writeWindowsArchive(final Path archive, final Platform platform, final Defect defect) throws IOException {
     try (final OutputStream file = Files.newOutputStream(archive); final ZipOutputStream zip = new ZipOutputStream(file)) {
       if (defect != Defect.MISSING_MAIN) {
-        final String suffix = defect == Defect.DIRECTORY_MAIN ? "/" : "";
-        writeEntry(zip, "vlc-3.0.24/" + platform.mainLibrary() + suffix, defect == Defect.EMPTY_MAIN || defect == Defect.DIRECTORY_MAIN);
+        final String suffix = defect == Defect.DIRECTORY_MAIN ? DIRECTORY_ENTRY_SUFFIX : "";
+        writeEntry(zip, ARCHIVE_ROOT + platform.mainLibrary() + suffix, defect == Defect.EMPTY_MAIN || defect == Defect.DIRECTORY_MAIN);
       }
       if (defect != Defect.MISSING_CORE) {
-        final String prefix = defect == Defect.DIFFERENT_DIRECTORIES ? "vlc-3.0.24/other/" : "vlc-3.0.24/";
-        final String suffix = defect == Defect.DIRECTORY_CORE ? "/" : "";
+        final String prefix = defect == Defect.DIFFERENT_DIRECTORIES ? OTHER_ARCHIVE_DIRECTORY : ARCHIVE_ROOT;
+        final String suffix = defect == Defect.DIRECTORY_CORE ? DIRECTORY_ENTRY_SUFFIX : "";
         writeEntry(zip, prefix + platform.coreLibrary() + suffix, defect == Defect.EMPTY_CORE || defect == Defect.DIRECTORY_CORE);
       }
     }
@@ -217,13 +241,13 @@ final class VlcInstallationValidationTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final Path directory = installer.getInstallDirectory();
     Files.createDirectories(directory);
-    final Path mainTarget = directory.resolve("libvlc.5.dylib");
-    final Path coreTarget = directory.resolve("libvlccore.9.dylib");
+    final Path mainTarget = directory.resolve(MAC_MAIN_TARGET_NAME);
+    final Path coreTarget = directory.resolve(MAC_CORE_TARGET_NAME);
     Files.writeString(mainTarget, "API target marker");
     Files.writeString(coreTarget, "core target marker");
     try {
-      Files.createSymbolicLink(directory.resolve("libvlc.dylib"), mainTarget.getFileName());
-      Files.createSymbolicLink(directory.resolve("libvlccore.dylib"), coreTarget.getFileName());
+      Files.createSymbolicLink(directory.resolve(MAC_MAIN_LIBRARY_NAME), mainTarget.getFileName());
+      Files.createSymbolicLink(directory.resolve(MAC_CORE_LIBRARY_NAME), coreTarget.getFileName());
     } catch (final IOException | UnsupportedOperationException exception) {
       final String message = "Creating symbolic links failed with \"%s\" here!".formatted(exception);
       Assumptions.abort(message);

@@ -43,12 +43,24 @@ import org.junit.jupiter.api.io.TempDir;
 @Timeout(20)
 final class GeneratedMediaTest {
 
+  private static final String FIXTURE_SOURCE_FILE = "FixtureWriter.java";
+  private static final String OUTPUT_FILE_NAME = "video.mp4";
+  private static final String TEMPORARY_FILE_PREFIX = "mcav-generating-";
+
+  private static final String BINARY_DIRECTORY = "bin";
+  private static final String WINDOWS_JAVA_EXECUTABLE = "java.exe";
+  private static final String JAVA_EXECUTABLE = "java";
+
+  private static final String SUCCESS_MODE = "success";
+
+  private static final String COMPLETED_CONTENT = "completed media";
+
   @TempDir
   private Path directory;
 
   @BeforeEach
   void compileFixtureOutsideTheSubprocessDeadline() throws Exception {
-    final Path source = this.directory.resolve("FixtureWriter.java");
+    final Path source = this.directory.resolve(FIXTURE_SOURCE_FILE);
     Files.writeString(
       source,
       """
@@ -74,32 +86,32 @@ final class GeneratedMediaTest {
 
   private List<String> command(final Path temporary, final String mode) {
     final String home = System.getProperty("java.home");
-    final String executable = File.separatorChar == '\\' ? "java.exe" : "java";
-    final String java = Path.of(home, "bin", executable).toString();
+    final String executable = File.separatorChar == '\\' ? WINDOWS_JAVA_EXECUTABLE : JAVA_EXECUTABLE;
+    final String java = Path.of(home, BINARY_DIRECTORY, executable).toString();
     final String classes = this.directory.toString();
     return List.of(java, "-cp", classes, "FixtureWriter", mode, temporary.toString());
   }
 
   private void assertNoPartialFiles() throws Exception {
     try (final Stream<Path> paths = Files.list(this.directory)) {
-      final boolean hasLeftovers = paths.anyMatch(path -> path.getFileName().toString().startsWith("mcav-generating-"));
+      final boolean hasLeftovers = paths.anyMatch(path -> path.getFileName().toString().startsWith(TEMPORARY_FILE_PREFIX));
       assertFalse(hasLeftovers, "temporary media and process logs are removed");
     }
   }
 
   @Test
   void shouldReplaceUntrustedExistingFilesAndCachOnlySuccessfulGeneration() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(OUTPUT_FILE_NAME);
     Files.writeString(output, "partial from a failed older attempt");
     final AtomicInteger invocations = new AtomicInteger();
     final AtomicReference<Path> temporary = new AtomicReference<>();
     final Path generated = GeneratedMedia.generate(output, path -> {
       invocations.incrementAndGet();
       temporary.set(path);
-      return this.command(path, "success");
+      return this.command(path, SUCCESS_MODE);
     });
     final String content = Files.readString(generated);
-    assertEquals("completed media", content);
+    assertEquals(COMPLETED_CONTENT, content);
     assertEquals(output.toAbsolutePath(), generated);
     final Path staged = temporary.get();
     assertNotNull(staged);
@@ -116,7 +128,7 @@ final class GeneratedMediaTest {
 
   @Test
   void shouldPreserveTheOldDestinationAfterAFailedEncodingAndRetryOnTheNextRequest() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(OUTPUT_FILE_NAME);
     Files.writeString(output, "old complete media");
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
       GeneratedMedia.generate(output, path -> this.command(path, "failure"))
@@ -129,15 +141,15 @@ final class GeneratedMediaTest {
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
     this.assertNoPartialFiles();
-    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, "success"));
+    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, SUCCESS_MODE));
     final String content = Files.readString(retried);
-    assertEquals("completed media", content);
+    assertEquals(COMPLETED_CONTENT, content);
     this.assertNoPartialFiles();
   }
 
   @Test
   void shouldBoundATimedOutEncodingAndNotPublishItsPartialOutput() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(OUTPUT_FILE_NAME);
     final Duration timeout = Duration.ofSeconds(2);
     final long before = System.nanoTime();
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->

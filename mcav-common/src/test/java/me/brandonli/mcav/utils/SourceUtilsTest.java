@@ -56,6 +56,22 @@ import org.mockito.Mockito;
  */
 final class SourceUtilsTest {
 
+  private static final String UPPER_CASE_GIF_PATH = "images/ANIMATION.GIF";
+  private static final String DOUBLE_EXTENSION_PATH = "images/animation.gif.mp4";
+  private static final String GIF_DIRECTORY_PATH = "images.gif/animation";
+  private static final String BACKSLASH_GIF_DIRECTORY_PATH = "images.gif\\animation";
+  private static final String TRAILING_DOT_PATH = "animation.";
+  private static final String BARE_GIF_NAME = "gif";
+  private static final String DRIVE_PATH = "c:/videos/clip.mp4";
+
+  private static final String EXISTING_FILE_NAME = "exists.txt";
+  private static final String MISSING_FILE_NAME = "missing.txt";
+  private static final String INVALID_PATH = "bad\u0000path";
+  private static final String SCRIPT_FILE_NAME = "yt-dlp";
+
+  private static final String LIVE_URL = "https://example.com/live";
+  private static final String INVALID_URL = "http://[";
+
   @TempDir
   private Path directory;
 
@@ -72,11 +88,11 @@ final class SourceUtilsTest {
     final UriSource gifSource = UriSource.uri(gifUri);
     final UriSource opaqueSource = UriSource.uri(opaqueUri);
     final Source device = DeviceSource.device(0);
-    final boolean upperCase = isGif("images/ANIMATION.GIF");
-    final boolean doubleExtension = isGif("images/animation.gif.mp4");
-    final boolean dotInDirectory = isGif("images.gif/animation");
-    final boolean trailingDot = isGif("animation.");
-    final boolean backslashDirectory = isGif("images.gif\\animation");
+    final boolean upperCase = isGif(UPPER_CASE_GIF_PATH);
+    final boolean doubleExtension = isGif(DOUBLE_EXTENSION_PATH);
+    final boolean dotInDirectory = isGif(GIF_DIRECTORY_PATH);
+    final boolean trailingDot = isGif(TRAILING_DOT_PATH);
+    final boolean backslashDirectory = isGif(BACKSLASH_GIF_DIRECTORY_PATH);
     final boolean gifUriDetected = SourceUtils.isImageGif(gifSource);
     final boolean opaqueDetected = SourceUtils.isImageGif(opaqueSource);
     final boolean deviceDetected = SourceUtils.isImageGif(device);
@@ -93,7 +109,7 @@ final class SourceUtilsTest {
 
   @Test
   void shouldNotTakeANameWithoutADotForAnExtension() {
-    final boolean bareName = isGif("gif");
+    final boolean bareName = isGif(BARE_GIF_NAME);
     assertFalse(bareName);
   }
 
@@ -101,8 +117,8 @@ final class SourceUtilsTest {
   void shouldRecognizUrisWithSchemeAndHost() {
     final boolean isWebUri = SourceUtils.isUri("https://example.com/video");
     final boolean stream = SourceUtils.isUri("rtsp://camera.local/live");
-    final boolean isDrivePath = SourceUtils.isUri("c:/videos/clip.mp4");
-    final boolean invalid = SourceUtils.isUri("http://[");
+    final boolean isDrivePath = SourceUtils.isUri(DRIVE_PATH);
+    final boolean invalid = SourceUtils.isUri(INVALID_URL);
     assertTrue(isWebUri);
     assertTrue(stream);
     assertFalse(isDrivePath);
@@ -151,14 +167,14 @@ final class SourceUtilsTest {
 
   @Test
   void shouldRecognizExistingPaths() throws IOException {
-    final Path file = this.directory.resolve("exists.txt");
+    final Path file = this.directory.resolve(EXISTING_FILE_NAME);
     Files.createFile(file);
     final String existingRaw = file.toString();
-    final Path missingFile = this.directory.resolve("missing.txt");
+    final Path missingFile = this.directory.resolve(MISSING_FILE_NAME);
     final String missingRaw = missingFile.toString();
     final boolean existing = SourceUtils.isPath(existingRaw);
     final boolean missing = SourceUtils.isPath(missingRaw);
-    final boolean invalid = SourceUtils.isPath("bad\u0000path");
+    final boolean invalid = SourceUtils.isPath(INVALID_PATH);
     assertTrue(existing);
     assertFalse(missing);
     assertFalse(invalid);
@@ -177,11 +193,11 @@ final class SourceUtilsTest {
     };
     final YtdlpParser recordedParser = (_, _) -> recorded;
 
-    final boolean liveResult = SourceUtils.isDynamicStream("https://example.com/live", liveParser);
+    final boolean liveResult = SourceUtils.isDynamicStream(LIVE_URL, liveParser);
     final boolean recordedResult = SourceUtils.isDynamicStream("https://example.com/recorded", recordedParser);
-    final boolean invalidResult = SourceUtils.isDynamicStream("http://[", liveParser);
+    final boolean invalidResult = SourceUtils.isDynamicStream(INVALID_URL, liveParser);
 
-    final URI expectedUri = URI.create("https://example.com/live");
+    final URI expectedUri = URI.create(LIVE_URL);
     final List<URI> expectedAsked = List.of(expectedUri);
     assertTrue(liveResult);
     assertFalse(recordedResult);
@@ -198,7 +214,7 @@ final class SourceUtilsTest {
       throw new IllegalArgumentException("not a web URL!");
     };
 
-    final boolean offlineResult = SourceUtils.isDynamicStream("https://example.com/live", offlineParser);
+    final boolean offlineResult = SourceUtils.isDynamicStream(LIVE_URL, offlineParser);
     final boolean rejectedResult = SourceUtils.isDynamicStream("ftp://example.com/live", rejectingParser);
 
     assertFalse(offlineResult, "a failing lookup is not a live stream");
@@ -217,7 +233,7 @@ final class SourceUtilsTest {
     Mockito.when(installer.download(true)).thenThrow(offline);
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);
-      final boolean live = SourceUtils.isDynamicStream("https://example.com/live");
+      final boolean live = SourceUtils.isDynamicStream(LIVE_URL);
       assertFalse(live, "yt-dlp that cannot be installed reports no live stream");
     }
     final YtdlpInstaller verifiedInstaller = Mockito.verify(installer);
@@ -230,7 +246,7 @@ final class SourceUtilsTest {
     final boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
     assumeTrue(posix, "A shell script stands in for yt-dlp only on a POSIX file system!");
 
-    final Path script = this.directory.resolve("yt-dlp");
+    final Path script = this.directory.resolve(SCRIPT_FILE_NAME);
     Files.writeString(script, "#!/bin/sh\necho '{\"is_live\": true}'\n", StandardCharsets.UTF_8);
     Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
@@ -238,7 +254,7 @@ final class SourceUtilsTest {
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);
 
-      final boolean live = SourceUtils.isDynamicStream("https://example.com/live");
+      final boolean live = SourceUtils.isDynamicStream(LIVE_URL);
       assertTrue(live);
     }
   }

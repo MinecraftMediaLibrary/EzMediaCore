@@ -77,6 +77,14 @@ final class NativeHeapTrimmerTest {
   private static final int ARENA_THREADS = 8;
   private static final String RESIDENT_PREFIX = "VmRSS:";
 
+  private static final long TRIM_INTERVAL_SECONDS = 60L;
+
+  private static final String GLIBC_VERSION_SYMBOL = "gnu_get_libc_version";
+  private static final String MALLOPT_SYMBOL = "mallopt";
+  private static final String MALLOC_SYMBOL = "malloc";
+
+  private static final String PROCESS_STATUS_PATH = "/proc/self/status";
+
   private static Optional<Thread> trimmingThread() {
     return Thread.getAllStackTraces()
       .keySet()
@@ -142,16 +150,16 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldTrimOnlyOnLinuxInAJvmThatDoesNotTrimItselfAtAPositiveInterval() {
     final Runnable nothing = () -> {};
-    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, 60L, nothing, nothing);
+    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, TRIM_INTERVAL_SECONDS, nothing, nothing);
     trimming.start();
     final boolean trims = trimming.isTrimming();
     trimming.close();
 
     assertTrue(trims);
-    assertNeverTrims(NativeHeapTrimmer.create(Os.WINDOWS, 0L, 60L, nothing, nothing), "off Linux");
-    assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 1L, 60L, nothing, nothing), "in a JVM that trims itself");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.WINDOWS, 0L, TRIM_INTERVAL_SECONDS, nothing, nothing), "off Linux");
+    assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 1L, TRIM_INTERVAL_SECONDS, nothing, nothing), "in a JVM that trims itself");
     assertNeverTrims(
-      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, nothing),
+      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, TRIM_INTERVAL_SECONDS, nothing, nothing),
       "in a JVM other than HotSpot"
     );
     assertNeverTrims(NativeHeapTrimmer.create(Os.LINUX, 0L, 0L, nothing, nothing), "turned off");
@@ -163,15 +171,15 @@ final class NativeHeapTrimmerTest {
     final Runnable nothing = () -> {};
     final AtomicInteger fixes = new AtomicInteger();
     final Runnable fix = fixes::incrementAndGet;
-    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, 60L, nothing, fix);
+    final NativeHeapTrimmer trimming = NativeHeapTrimmer.create(Os.LINUX, 0L, TRIM_INTERVAL_SECONDS, nothing, fix);
     final int created = fixes.get();
     trimming.start();
     final int started = fixes.get();
     trimming.close();
     for (final NativeHeapTrimmer never : List.of(
-      NativeHeapTrimmer.create(Os.WINDOWS, 0L, 60L, nothing, fix),
-      NativeHeapTrimmer.create(Os.LINUX, 1L, 60L, nothing, fix),
-      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, 60L, nothing, fix),
+      NativeHeapTrimmer.create(Os.WINDOWS, 0L, TRIM_INTERVAL_SECONDS, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, 1L, TRIM_INTERVAL_SECONDS, nothing, fix),
+      NativeHeapTrimmer.create(Os.LINUX, NativeHeapTrimmer.NO_JVM_INTERVAL, TRIM_INTERVAL_SECONDS, nothing, fix),
       NativeHeapTrimmer.create(Os.LINUX, 0L, 0L, nothing, fix),
       NativeHeapTrimmer.create(Os.LINUX, 0L, -1L, nothing, fix)
     )) {
@@ -217,14 +225,14 @@ final class NativeHeapTrimmerTest {
   @Test
   void shouldGiveGlibcTheThreshold() {
     final SymbolLookup library = Linker.nativeLinker().defaultLookup();
-    final boolean glibc = OsUtils.getOs() == Os.LINUX && library.find("gnu_get_libc_version").isPresent();
+    final boolean glibc = OsUtils.getOs() == Os.LINUX && library.find(GLIBC_VERSION_SYMBOL).isPresent();
     final boolean fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
     assertEquals(glibc, fixed);
   }
 
   @Test
   void shouldKeepTheThresholdOfACLibraryOtherThanGlibc() {
-    final SymbolLookup musl = name -> name.equals("mallopt") ? Optional.of(MemorySegment.NULL) : Optional.empty();
+    final SymbolLookup musl = name -> name.equals(MALLOPT_SYMBOL) ? Optional.of(MemorySegment.NULL) : Optional.empty();
     final boolean fixedForMusl = NativeHeapTrimmer.fixGlibcTrimThreshold(musl);
     assertFalse(fixedForMusl, "musl has a mallopt that ignores every parameter");
     final boolean fixedWithoutLibrary = NativeHeapTrimmer.fixGlibcTrimThreshold(_ -> Optional.empty());
@@ -273,8 +281,8 @@ final class NativeHeapTrimmerTest {
     final int askedCount = asked.size();
     assertEquals(1, askedCount);
     final SymbolLookup askedLibrary = asked.getFirst();
-    final Optional<MemorySegment> askedMalloc = askedLibrary.find("malloc");
-    assertEquals(ownLibrary.find("malloc"), askedMalloc, "the C library of this JVM is asked");
+    final Optional<MemorySegment> askedMalloc = askedLibrary.find(MALLOC_SYMBOL);
+    assertEquals(ownLibrary.find(MALLOC_SYMBOL), askedMalloc, "the C library of this JVM is asked");
   }
 
   private static IntBinaryOperator recordingMallopt(final List<List<Integer>> calls, final int answer) {
@@ -291,7 +299,7 @@ final class NativeHeapTrimmerTest {
     final MethodHandle operator = MethodHandles.lookup().findVirtual(IntBinaryOperator.class, "applyAsInt", type).bindTo(mallopt);
     final FunctionDescriptor descriptor = FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT);
     final MemorySegment stub = Linker.nativeLinker().upcallStub(operator, descriptor, arena);
-    return name -> name.equals("gnu_get_libc_version") || name.equals("mallopt") ? Optional.of(stub) : Optional.empty();
+    return name -> name.equals(GLIBC_VERSION_SYMBOL) || name.equals(MALLOPT_SYMBOL) ? Optional.of(stub) : Optional.empty();
   }
 
   @Test
@@ -396,9 +404,9 @@ final class NativeHeapTrimmerTest {
   void shouldGiveTheTopOfAThreadArenaBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
     final Linker linker = Linker.nativeLinker();
     final SymbolLookup library = linker.defaultLookup();
-    assumeTrue(OsUtils.getOs() == Os.LINUX && library.find("gnu_get_libc_version").isPresent(), "glibc's thread arenas!");
+    assumeTrue(OsUtils.getOs() == Os.LINUX && library.find(GLIBC_VERSION_SYMBOL).isPresent(), "glibc's thread arenas!");
     final MethodHandle malloc = linker.downcallHandle(
-      library.find("malloc").orElseThrow(),
+      library.find(MALLOC_SYMBOL).orElseThrow(),
       FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.JAVA_LONG)
     );
     final MethodHandle free = linker.downcallHandle(library.find("free").orElseThrow(), FunctionDescriptor.ofVoid(ValueLayout.ADDRESS));
@@ -443,7 +451,7 @@ final class NativeHeapTrimmerTest {
   }
 
   private static long residentKib() throws IOException {
-    for (final String line : Files.readAllLines(Path.of("/proc/self/status"))) {
+    for (final String line : Files.readAllLines(Path.of(PROCESS_STATUS_PATH))) {
       if (line.startsWith(RESIDENT_PREFIX)) {
         return Long.parseLong(line.substring(RESIDENT_PREFIX.length()).replace("kB", "").strip());
       }

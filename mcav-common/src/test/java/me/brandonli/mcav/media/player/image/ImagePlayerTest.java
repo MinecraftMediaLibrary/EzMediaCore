@@ -65,6 +65,16 @@ final class ImagePlayerTest {
   private static final Duration RESTART_TIMEOUT = Duration.ofSeconds(5);
   private static final Duration LOCK_TIMEOUT = Duration.ofSeconds(5);
 
+  private static final long TIMEOUT_SECONDS = 5L;
+  private static final long RENDER_TIMEOUT_SECONDS = 10L;
+
+  private static final int SMALL_FRAME_SIZE = 2;
+  private static final int LARGE_FRAME_SIZE = 4;
+
+  private static final float FRAME_RATE = 30.0f;
+  private static final float QUICK_FRAME_RATE = 50.0f;
+  private static final float FAST_FRAME_RATE = 100.0f;
+
   private static FrameSource solidFrames(final int width, final int height, final float frameRate) {
     return FrameSource.supplier(
       () -> {
@@ -133,7 +143,7 @@ final class ImagePlayerTest {
       final int width = image.getWidth();
       final float frameRate = metadata.getVideoFrameRate();
       assertEquals(16, width);
-      assertEquals(50.0f, frameRate);
+      assertEquals(QUICK_FRAME_RATE, frameRate);
       final long now = System.nanoTime();
       times.add(now);
       final int count = consumed.incrementAndGet();
@@ -156,7 +166,7 @@ final class ImagePlayerTest {
       },
       16,
       8,
-      50.0f
+      QUICK_FRAME_RATE
     );
   }
 
@@ -179,11 +189,11 @@ final class ImagePlayerTest {
       delivered.offer(image);
       return false;
     });
-    final FrameSource source = solidFrames(2, 2, 30.0f);
+    final FrameSource source = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     try {
       final boolean started = player.start(source);
       assertTrue(started);
-      final ImageBuffer image = delivered.poll(5L, TimeUnit.SECONDS);
+      final ImageBuffer image = delivered.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertNotNull(image);
       player.release();
       assertThrows(IllegalStateException.class, image::getPixels);
@@ -235,7 +245,7 @@ final class ImagePlayerTest {
       return true;
     });
 
-    final FrameSource fast = solidFrames(4, 4, 100.0f);
+    final FrameSource fast = solidFrames(LARGE_FRAME_SIZE, LARGE_FRAME_SIZE, FAST_FRAME_RATE);
     player.start(fast);
     awaitCount(consumed, 6);
     player.release();
@@ -262,9 +272,9 @@ final class ImagePlayerTest {
       return true;
     });
     try {
-      final boolean started = player.start(solidFrames(4, 4, 100.0f));
+      final boolean started = player.start(solidFrames(LARGE_FRAME_SIZE, LARGE_FRAME_SIZE, FAST_FRAME_RATE));
       assertTrue(started);
-      final boolean rendered = finished.await(10, TimeUnit.SECONDS);
+      final boolean rendered = finished.await(RENDER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(rendered, "three controlled frames are rendered");
       assertEquals(List.of(0L, 60_000_000L, 70_000_000L), starts);
     } finally {
@@ -291,9 +301,9 @@ final class ImagePlayerTest {
       return true;
     });
     try {
-      final boolean started = player.start(solidFrames(4, 4, 100.0f));
+      final boolean started = player.start(solidFrames(LARGE_FRAME_SIZE, LARGE_FRAME_SIZE, FAST_FRAME_RATE));
       assertTrue(started);
-      final boolean rendered = finished.await(10, TimeUnit.SECONDS);
+      final boolean rendered = finished.await(RENDER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(rendered, "two controlled frames are rendered");
       player.release();
 
@@ -314,7 +324,7 @@ final class ImagePlayerTest {
       }
       return true;
     });
-    final FrameSource source = solidFrames(2, 2, 30.0f);
+    final FrameSource source = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     player.start(source);
     Thread.sleep(50);
 
@@ -331,16 +341,16 @@ final class ImagePlayerTest {
    * that starts the player.
    */
   private static FrameSource recordingStarter(final AtomicReference<String> starter) {
-    final FrameSource delegate = solidFrames(2, 2, 30.0f);
+    final FrameSource delegate = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     final FrameSource source = mock(FrameSource.class);
-    when(source.getFrameWidth()).thenReturn(2);
-    when(source.getFrameHeight()).thenReturn(2);
+    when(source.getFrameWidth()).thenReturn(SMALL_FRAME_SIZE);
+    when(source.getFrameHeight()).thenReturn(SMALL_FRAME_SIZE);
     when(source.supplyFrameSamples()).thenAnswer(_ -> delegate.supplyFrameSamples());
     when(source.getFrameRate()).thenAnswer(_ -> {
       final Thread current = Thread.currentThread();
       final String name = current.getName();
       starter.compareAndSet(null, name);
-      return 30.0f;
+      return FRAME_RATE;
     });
     return source;
   }
@@ -375,8 +385,8 @@ final class ImagePlayerTest {
       final FrameSource poolSource = recordingStarter(poolStarter);
       final CompletableFuture<Boolean> onExecutor = first.startAsync(executorSource, executor);
       final CompletableFuture<Boolean> onCommonPool = second.startAsync(poolSource);
-      final boolean startedOnExecutor = onExecutor.get(5, TimeUnit.SECONDS);
-      final boolean startedOnCommonPool = onCommonPool.get(5, TimeUnit.SECONDS);
+      final boolean startedOnExecutor = onExecutor.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      final boolean startedOnCommonPool = onCommonPool.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
       final FrameSource tiny = solidFrames(1, 1, 1.0f);
       assertStartedOnTheirThreads(startedOnExecutor, startedOnCommonPool, executorStarter, poolStarter);
@@ -418,13 +428,13 @@ final class ImagePlayerTest {
 
   @Test
   void shouldReportSourcesThatFailToStartAndCanBeStartedAgain() throws Exception {
-    final FrameSource working = solidFrames(2, 2, 30.0f);
+    final FrameSource working = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     final SampleSupplier supplier = working.supplyFrameSamples();
     final IllegalStateException failure = new IllegalStateException("the source is gone!");
     final FrameSource source = mock(FrameSource.class);
-    when(source.getFrameWidth()).thenReturn(2);
-    when(source.getFrameHeight()).thenReturn(2);
-    when(source.getFrameRate()).thenReturn(30.0f);
+    when(source.getFrameWidth()).thenReturn(SMALL_FRAME_SIZE);
+    when(source.getFrameHeight()).thenReturn(SMALL_FRAME_SIZE);
+    when(source.getFrameRate()).thenReturn(FRAME_RATE);
     when(source.supplyFrameSamples()).thenThrow(failure).thenReturn(supplier);
     final List<String> failures = Collections.synchronizedList(new ArrayList<>());
     final AtomicInteger delivered = new AtomicInteger();
@@ -480,7 +490,7 @@ final class ImagePlayerTest {
     final AtomicInteger consumed = new AtomicInteger();
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> consumed.incrementAndGet() > 0);
-    final FrameSource source = solidFrames(2, 2, 50.0f);
+    final FrameSource source = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, QUICK_FRAME_RATE);
     try {
       final boolean started = player.start(source);
       awaitCount(consumed, 1);
@@ -499,7 +509,7 @@ final class ImagePlayerTest {
     final AtomicInteger consumed = new AtomicInteger();
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> consumed.incrementAndGet() > 0);
-    final FrameSource slow = solidFrames(2, 2, 0.1f);
+    final FrameSource slow = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, 0.1f);
     // the frame thread of an earlier test may still be ending, and frameThread() must find this player's thread
     Polling.awaitCondition("the earlier frame threads ended", LOCK_TIMEOUT, () -> frameThread() == null);
 
@@ -530,9 +540,9 @@ final class ImagePlayerTest {
         Arrays.fill(pixels, color);
         return pixels;
       },
-      2,
-      2,
-      50.0f
+      SMALL_FRAME_SIZE,
+      SMALL_FRAME_SIZE,
+      QUICK_FRAME_RATE
     );
     final List<Integer> seen = Collections.synchronizedList(new ArrayList<>());
     final ImagePlayer player = ImagePlayer.player();
@@ -564,15 +574,15 @@ final class ImagePlayerTest {
         requestedTwice.countDown();
         return new int[1];
       },
-      4,
-      4,
-      100.0f
+      LARGE_FRAME_SIZE,
+      LARGE_FRAME_SIZE,
+      FAST_FRAME_RATE
     );
     final ImagePlayer player = ImagePlayer.player();
     attach(player, (_, _) -> delivered.incrementAndGet() > 0);
 
     final boolean started = player.start(source);
-    final boolean requested = requestedTwice.await(5, TimeUnit.SECONDS);
+    final boolean requested = requestedTwice.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean released = player.release();
     final int deliveredFrames = delivered.get();
     assertTrue(started);

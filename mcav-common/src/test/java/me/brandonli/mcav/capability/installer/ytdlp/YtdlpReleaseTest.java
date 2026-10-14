@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.utils.IoUtils;
@@ -55,6 +56,10 @@ final class YtdlpReleaseTest {
   private static final URI CHECKSUMS = URI.create("https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/SHA2-256SUMS");
   private static final Duration TIMEOUT = Duration.ofMinutes(2);
 
+  private static final String DOWNLOADS_RESOURCE = "mcav/common/installers/yt-dlp.json";
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
   @BeforeAll
   static void requireNetworkTests() {
     final boolean enabled = Boolean.getBoolean("mcav.networkTests");
@@ -64,7 +69,7 @@ final class YtdlpReleaseTest {
   @Test
   void shouldBundleHashesThatMatchTheChecksumsPublishedWithTheRelease() throws IOException, InterruptedException {
     final Map<String, String> published = downloadChecksums();
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
     for (final Download download : downloads) {
       final String url = download.getUrl();
       final String fileName = IoUtils.getFileNameFromUrl(url);
@@ -99,7 +104,7 @@ final class YtdlpReleaseTest {
     final List<String> lines = lineStream.toList();
     for (final String line : lines) {
       final String trimmed = line.strip();
-      final String[] parts = trimmed.split("\\s+", 2);
+      final String[] parts = WHITESPACE.split(trimmed, 2);
       if (parts.length == 2) {
         final String fileName = parts[1];
         final String hash = parts[0];

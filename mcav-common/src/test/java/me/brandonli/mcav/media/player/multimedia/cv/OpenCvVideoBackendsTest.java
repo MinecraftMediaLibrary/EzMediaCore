@@ -42,6 +42,8 @@ import org.junit.jupiter.api.parallel.Resources;
  */
 final class OpenCvVideoBackendsTest {
 
+  private static final String VIDEO_FILE_NAME = "file.mp4";
+
   /**
    * The video section of the Linux build of the JavaCPP presets: cameras only.
    */
@@ -164,10 +166,10 @@ final class OpenCvVideoBackendsTest {
 
   @Test
   void shouldPickTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
-    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber("file.mp4", true)) {
+    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, true)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
-    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber("file.mp4", false)) {
+    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, false)) {
       assertInstanceOf(FFmpegFrameGrabber.class, fallback, "a build without a file backend reads the file with FFmpeg");
     }
   }

@@ -71,6 +71,38 @@ final class PlatformDiscoveryStrategiesTest {
     "libvlccore.dll",
   };
 
+  private static final String LIBRARY_DIRECTORY_NAME = "lib";
+  private static final String VLC_DIRECTORY_NAME = "vlc";
+  private static final String PLUGINS_DIRECTORY_NAME = "plugins";
+
+  private static final String LINUX_LIBRARY_NAME = "libvlc.so.5";
+  private static final String LINUX_CORE_LIBRARY_NAME = "libvlccore.so.9";
+
+  private static final String OSX_LIBRARY_NAME = "libvlc.dylib";
+  private static final String OSX_CORE_LIBRARY_NAME = "libvlccore.dylib";
+  private static final String APPLICATION_BUNDLE_NAME = "VLC.app";
+  private static final String CONTENTS_DIRECTORY_NAME = "Contents";
+  private static final String MACOS_DIRECTORY_NAME = "MacOS";
+  private static final String OSX_LIBRARY_PATH = "/Applications/VLC.app/Contents/MacOS/lib";
+
+  private static final String WINDOWS_INSTALLATION_DIRECTORY_NAME = "VLC";
+  private static final String WINDOWS_LIBRARY_NAME = "libvlc.dll";
+  private static final String WINDOWS_CORE_LIBRARY_NAME = "libvlccore.dll";
+  private static final String WINDOWS_EXECUTABLE_NAME = "vlc.exe";
+
+  private static final String EMPTY_DIRECTORY_NAME = "empty";
+  private static final String CHILD_DIRECTORY_NAME = "child";
+  private static final String RELATIVE_DIRECTORY_NAME = "relative";
+
+  private static final int STRATEGY_COUNT = 3;
+
+  private static final String PLUGIN_PATH_ASSIGNMENT = "VLC_PLUGIN_PATH=";
+  private static final String ASSIGNMENT_SEPARATOR = "=";
+
+  private static final String GOOD_VARIABLE_NAME = "GOOD";
+  private static final String VARIABLE_NAME = "NAME";
+  private static final String VARIABLE_VALUE = "value";
+
   @TempDir
   private Path temporaryDirectory;
 
@@ -101,7 +133,7 @@ final class PlatformDiscoveryStrategiesTest {
   })
   void shouldRecognizeVersionedSharedLibrariesOnLinux(final String library, final String coreLibrary, final boolean expected)
     throws IOException {
-    final Path directory = createFiles(this.temporaryDirectory, "lib", library, coreLibrary);
+    final Path directory = createFiles(this.temporaryDirectory, LIBRARY_DIRECTORY_NAME, library, coreLibrary);
     final List<SearchProvider> providers = providersFor(directory);
     final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, IGNORING_SETTER);
     final String found = strategy.discover();
@@ -111,8 +143,8 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldPublishThePluginsBelowTheLibraryDirectoryOnLinux() throws IOException {
-    final Path directory = createFiles(this.temporaryDirectory, "lib", "libvlc.so.5", "libvlccore.so.9");
-    final Path relativePlugins = Path.of("vlc", "plugins");
+    final Path directory = createFiles(this.temporaryDirectory, LIBRARY_DIRECTORY_NAME, LINUX_LIBRARY_NAME, LINUX_CORE_LIBRARY_NAME);
+    final Path relativePlugins = Path.of(VLC_DIRECTORY_NAME, PLUGINS_DIRECTORY_NAME);
     final Path plugins = directory.resolve(relativePlugins);
     Files.createDirectories(plugins);
     final List<String> published = new ArrayList<>();
@@ -121,14 +153,14 @@ final class PlatformDiscoveryStrategiesTest {
     final LinuxNativeDiscoveryStrategy strategy = new LinuxNativeDiscoveryStrategy(providers, setter);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of("VLC_PLUGIN_PATH=" + rawDirectory + "/vlc/plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "/vlc/plugins");
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
 
   @Test
   void shouldFindTheDynamicLibrariesAndPreloadTheCoreLibraryOnOsx() throws IOException {
-    final Path directory = createFiles(this.temporaryDirectory, "lib", "libvlc.dylib", "libvlccore.dylib");
+    final Path directory = createFiles(this.temporaryDirectory, LIBRARY_DIRECTORY_NAME, OSX_LIBRARY_NAME, OSX_CORE_LIBRARY_NAME);
     final List<String> preloaded = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, preloaded::add);
@@ -143,10 +175,10 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldPublishThePluginsNextToTheLibraryDirectoryOnOsx() throws IOException {
-    final Path relativeContents = Path.of("VLC.app", "Contents", "MacOS");
+    final Path relativeContents = Path.of(APPLICATION_BUNDLE_NAME, CONTENTS_DIRECTORY_NAME, MACOS_DIRECTORY_NAME);
     final Path contents = this.temporaryDirectory.resolve(relativeContents);
-    final Path directory = createFiles(contents, "lib", "libvlc.dylib", "libvlccore.dylib");
-    final Path plugins = contents.resolve("plugins");
+    final Path directory = createFiles(contents, LIBRARY_DIRECTORY_NAME, OSX_LIBRARY_NAME, OSX_CORE_LIBRARY_NAME);
+    final Path plugins = contents.resolve(PLUGINS_DIRECTORY_NAME);
     Files.createDirectories(plugins);
     final List<String> published = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
@@ -154,7 +186,7 @@ final class PlatformDiscoveryStrategiesTest {
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, setter, _ -> {});
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of("VLC_PLUGIN_PATH=" + rawDirectory + "/../plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "/../plugins");
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -167,7 +199,7 @@ final class PlatformDiscoveryStrategiesTest {
     final OsxNativeDiscoveryStrategy strategy = new OsxNativeDiscoveryStrategy(providers, IGNORING_SETTER, _ -> {
       throw wrongArchitecture;
     });
-    final boolean addsToSearchPath = strategy.onFound("/Applications/VLC.app/Contents/MacOS/lib");
+    final boolean addsToSearchPath = strategy.onFound(OSX_LIBRARY_PATH);
     assertFalse(addsToSearchPath);
   }
 
@@ -181,7 +213,13 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldFindTheDynamicLinkLibrariesOnWindows() throws IOException {
-    final Path directory = createFiles(this.temporaryDirectory, "VLC", "libvlc.dll", "libvlccore.dll", "vlc.exe");
+    final Path directory = createFiles(
+      this.temporaryDirectory,
+      WINDOWS_INSTALLATION_DIRECTORY_NAME,
+      WINDOWS_LIBRARY_NAME,
+      WINDOWS_CORE_LIBRARY_NAME,
+      WINDOWS_EXECUTABLE_NAME
+    );
     final List<SearchProvider> providers = providersFor(directory);
     final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, IGNORING_SETTER);
     final String found = strategy.discover();
@@ -193,8 +231,13 @@ final class PlatformDiscoveryStrategiesTest {
   void shouldPublishThePluginsBelowTheInstallationDirectoryOnWindows() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Windows plugin paths use backslashes!");
-    final Path directory = createFiles(this.temporaryDirectory, "VLC", "libvlc.dll", "libvlccore.dll");
-    final Path plugins = directory.resolve("plugins");
+    final Path directory = createFiles(
+      this.temporaryDirectory,
+      WINDOWS_INSTALLATION_DIRECTORY_NAME,
+      WINDOWS_LIBRARY_NAME,
+      WINDOWS_CORE_LIBRARY_NAME
+    );
+    final Path plugins = directory.resolve(PLUGINS_DIRECTORY_NAME);
     Files.createDirectories(plugins);
     final List<String> published = new ArrayList<>();
     final List<SearchProvider> providers = providersFor(directory);
@@ -202,7 +245,7 @@ final class PlatformDiscoveryStrategiesTest {
     final WindowsNativeDiscoveryStrategy strategy = new WindowsNativeDiscoveryStrategy(providers, setter);
     final String rawDirectory = directory.toString();
     final boolean pathSet = strategy.onSetPluginPath(rawDirectory);
-    final List<String> expected = List.of("VLC_PLUGIN_PATH=" + rawDirectory + "\\plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + rawDirectory + "\\plugins");
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
@@ -210,7 +253,7 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldCoverEveryOperatingSystemWithSystemStrategies() {
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createSystemStrategies();
-    assertEquals(3, strategies.length);
+    assertEquals(STRATEGY_COUNT, strategies.length);
     final NativeDiscoveryStrategy linux = strategies[0];
     assertInstanceOf(LinuxNativeDiscoveryStrategy.class, linux);
     final NativeDiscoveryStrategy osx = strategies[1];
@@ -221,9 +264,9 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldFindTheLibrariesOfEveryPlatformInTheGivenDirectoryWithDirectoryStrategies() throws IOException {
-    final Path directory = createFiles(this.temporaryDirectory, "vlc", EVERY_LIBRARY);
+    final Path directory = createFiles(this.temporaryDirectory, VLC_DIRECTORY_NAME, EVERY_LIBRARY);
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createDirectoryStrategies(directory);
-    assertEquals(3, strategies.length);
+    assertEquals(STRATEGY_COUNT, strategies.length);
     final String rawDirectory = directory.toString();
     final List<String> expectedDirectories = List.of(rawDirectory);
     for (final NativeDiscoveryStrategy strategy : strategies) {
@@ -237,9 +280,9 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldNotLookAnywhereElseWithDirectoryStrategies() throws IOException {
-    final Path empty = this.temporaryDirectory.resolve("empty");
+    final Path empty = this.temporaryDirectory.resolve(EMPTY_DIRECTORY_NAME);
     Files.createDirectories(empty);
-    createFiles(empty, "child", EVERY_LIBRARY);
+    createFiles(empty, CHILD_DIRECTORY_NAME, EVERY_LIBRARY);
     final NativeDiscoveryStrategy[] strategies = VlcDiscoveryStrategies.createDirectoryStrategies(empty);
     for (final NativeDiscoveryStrategy strategy : strategies) {
       final String found = strategy.discover();
@@ -254,7 +297,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   @Test
   void shouldNameOneAbsoluteDirectoryWithTheHighestPriorityInTheFixedDirectoryProvider() {
-    final Path relative = Path.of("relative", "vlc");
+    final Path relative = Path.of(RELATIVE_DIRECTORY_NAME, VLC_DIRECTORY_NAME);
     final FixedDirectoryProvider provider = new FixedDirectoryProvider(relative);
     final Path absolute = relative.toAbsolutePath();
     final String rawAbsolute = absolute.toString();
@@ -270,14 +313,14 @@ final class PlatformDiscoveryStrategiesTest {
   @Test
   void shouldSetPosixVariablesWithSetenvAndReportFailures() {
     final LibC libc = mock(LibC.class);
-    when(libc.setenv("GOOD", "value", 1)).thenReturn(0);
-    when(libc.setenv("", "value", 1)).thenReturn(-1);
+    when(libc.setenv(GOOD_VARIABLE_NAME, VARIABLE_VALUE, 1)).thenReturn(0);
+    when(libc.setenv("", VARIABLE_VALUE, 1)).thenReturn(-1);
     final EnvironmentVariables variables = new EnvironmentVariables(libc);
-    final boolean good = variables.setPosixVariable("GOOD", "value");
-    final boolean bad = variables.setPosixVariable("", "value");
+    final boolean good = variables.setPosixVariable(GOOD_VARIABLE_NAME, VARIABLE_VALUE);
+    final boolean bad = variables.setPosixVariable("", VARIABLE_VALUE);
     assertTrue(good);
     assertFalse(bad);
-    verify(libc).setenv("GOOD", "value", 1);
+    verify(libc).setenv(GOOD_VARIABLE_NAME, VARIABLE_VALUE, 1);
   }
 
   @Test
@@ -286,8 +329,8 @@ final class PlatformDiscoveryStrategiesTest {
     when(libc._putenv("GOOD=value")).thenReturn(0);
     when(libc._putenv("=value")).thenReturn(-1);
     final EnvironmentVariables variables = new EnvironmentVariables(libc);
-    final boolean good = variables.setWindowsVariable("GOOD", "value");
-    final boolean bad = variables.setWindowsVariable("", "value");
+    final boolean good = variables.setWindowsVariable(GOOD_VARIABLE_NAME, VARIABLE_VALUE);
+    final boolean bad = variables.setWindowsVariable("", VARIABLE_VALUE);
     assertTrue(good);
     assertFalse(bad);
     verify(libc)._putenv("GOOD=value");
@@ -302,12 +345,12 @@ final class PlatformDiscoveryStrategiesTest {
       : LinuxNativeDiscoveryStrategy.nativeSetter();
     final String libraryName = isWindows ? "msvcrt" : "c";
     final EnvironmentReader reader = Native.load(libraryName, EnvironmentReader.class);
-    final boolean set = setter.set(TEST_VARIABLE, "value");
+    final boolean set = setter.set(TEST_VARIABLE, VARIABLE_VALUE);
     final String value = reader.getenv(TEST_VARIABLE);
     unsetTestVariable(isWindows);
     final String afterUnset = reader.getenv(TEST_VARIABLE);
     assertTrue(set);
-    assertEquals("value", value, "native code such as libvlc sees the variable");
+    assertEquals(VARIABLE_VALUE, value, "native code such as libvlc sees the variable");
     assertNull(afterUnset);
   }
 
@@ -315,14 +358,14 @@ final class PlatformDiscoveryStrategiesTest {
   void shouldLoadTheCLibraryOnlyWhenTheFirstVariableIsSet() {
     final AtomicInteger loads = new AtomicInteger();
     final LibC libc = mock(LibC.class);
-    when(libc.setenv("NAME", "value", 1)).thenReturn(0);
+    when(libc.setenv(VARIABLE_NAME, VARIABLE_VALUE, 1)).thenReturn(0);
     final EnvironmentVariables variables = new EnvironmentVariables(() -> {
       loads.incrementAndGet();
       return libc;
     });
     final int loadsBeforeUse = loads.get();
-    final boolean firstSet = variables.setPosixVariable("NAME", "value");
-    final boolean secondSet = variables.setPosixVariable("NAME", "value");
+    final boolean firstSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
+    final boolean secondSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
     final int loadsAfterUse = loads.get();
     assertEquals(0, loadsBeforeUse, "creating the setter does not load the C library");
     assertTrue(firstSet);
@@ -336,8 +379,8 @@ final class PlatformDiscoveryStrategiesTest {
     final EnvironmentVariables variables = new EnvironmentVariables(() -> {
       throw missingJna;
     });
-    final boolean posixSet = variables.setPosixVariable("NAME", "value");
-    final boolean windowsSet = variables.setWindowsVariable("NAME", "value");
+    final boolean posixSet = variables.setPosixVariable(VARIABLE_NAME, VARIABLE_VALUE);
+    final boolean windowsSet = variables.setWindowsVariable(VARIABLE_NAME, VARIABLE_VALUE);
     assertFalse(posixSet);
     assertFalse(windowsSet);
   }
@@ -377,7 +420,7 @@ final class PlatformDiscoveryStrategiesTest {
   private static void unsetTestVariable(final boolean isWindows) {
     final LibC libc = LibC.INSTANCE;
     if (isWindows) {
-      libc._putenv(TEST_VARIABLE + "=");
+      libc._putenv(TEST_VARIABLE + ASSIGNMENT_SEPARATOR);
     } else {
       libc.unsetenv(TEST_VARIABLE);
     }
@@ -414,7 +457,7 @@ final class PlatformDiscoveryStrategiesTest {
 
   private static EnvironmentSetter recordingSetter(final List<String> published) {
     return (name, value) -> {
-      published.add(name + "=" + value);
+      published.add(name + ASSIGNMENT_SEPARATOR + value);
       return true;
     };
   }

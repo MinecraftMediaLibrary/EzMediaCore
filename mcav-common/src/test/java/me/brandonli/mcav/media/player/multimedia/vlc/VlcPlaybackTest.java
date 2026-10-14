@@ -59,15 +59,30 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
  */
 final class VlcPlaybackTest {
 
-  private static final List<String> PLAYBACK_THREAD_NAMES = List.of("mcav-vlc-sync", "mcav-vlc-render-video", "mcav-vlc-render-audio");
+  private static final String SYNCHRONIZER_THREAD_NAME = "mcav-vlc-sync";
+  private static final List<String> PLAYBACK_THREAD_NAMES = List.of(
+    SYNCHRONIZER_THREAD_NAME,
+    "mcav-vlc-render-video",
+    "mcav-vlc-render-audio"
+  );
   private static final Duration THREAD_EXIT_TIMEOUT = Duration.ofSeconds(5);
+
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+  private static final String AUDIO_FILE_NAME = "audio.ogg";
+
+  private static final long REFERENCE_AUDIO_TIME_MILLISECONDS = 10_000L;
+
+  private static final long AUDIO_TIME_MILLISECONDS = 1_000L;
+  private static final long FAR_AHEAD_VIDEO_TIME_MILLISECONDS = 9_000L;
+
+  private static final float NORMAL_RATE = 1.0f;
 
   private final MockVlc vlc = new MockVlc();
   private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final List<String> messages = Collections.synchronizedList(new ArrayList<>());
   private final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
-  private final Source video = source("video.mp4");
-  private final Source audio = source("audio.ogg");
+  private final Source video = source(VIDEO_FILE_NAME);
+  private final Source audio = source(AUDIO_FILE_NAME);
 
   VlcPlaybackTest() {
     this.owner.setExceptionHandler((message, error) -> {
@@ -115,7 +130,7 @@ final class VlcPlaybackTest {
   @CsvSource({ "2000, 0.97", "-2000, 1.03", "500, 0.97", "0, 1.0" })
   void shouldCorrectSmallDriftsWithTheRate(final long drift, final float expected) {
     final ControlsApi controls = mock(ControlsApi.class);
-    VlcPlayback.correctDrift(controls, drift, 10_000L);
+    VlcPlayback.correctDrift(controls, drift, REFERENCE_AUDIO_TIME_MILLISECONDS);
     verify(controls).setRate(expected);
     verify(controls, never()).setTime(anyLong());
   }
@@ -124,9 +139,9 @@ final class VlcPlaybackTest {
   @CsvSource({ "2001", "-2001", "60000" })
   void shouldCorrectLargeDriftsBySeekingTheVideoToTheAudio(final long drift) {
     final ControlsApi controls = mock(ControlsApi.class);
-    VlcPlayback.correctDrift(controls, drift, 10_000L);
-    verify(controls).setTime(10_000L);
-    verify(controls).setRate(1.0f);
+    VlcPlayback.correctDrift(controls, drift, REFERENCE_AUDIO_TIME_MILLISECONDS);
+    verify(controls).setTime(REFERENCE_AUDIO_TIME_MILLISECONDS);
+    verify(controls).setRate(NORMAL_RATE);
   }
 
   @Test
@@ -145,7 +160,7 @@ final class VlcPlaybackTest {
 
   @Test
   void shouldSynchronizTheVideoToTheAudio() {
-    final VlcPlayback playback = this.separatePlayback(1_500L, 1_000L);
+    final VlcPlayback playback = this.separatePlayback(1_500L, AUDIO_TIME_MILLISECONDS);
     this.synchronize(playback);
     final ControlsApi controls = this.videoControls();
     verify(controls).setRate(0.97f);
@@ -154,17 +169,17 @@ final class VlcPlaybackTest {
 
   @Test
   void shouldSeekTheVideoWhenItIsFarAhead() {
-    final VlcPlayback playback = this.separatePlayback(9_000L, 1_000L);
+    final VlcPlayback playback = this.separatePlayback(FAR_AHEAD_VIDEO_TIME_MILLISECONDS, AUDIO_TIME_MILLISECONDS);
     this.synchronize(playback);
     final ControlsApi controls = this.videoControls();
-    verify(controls).setTime(1_000L);
-    verify(controls).setRate(1.0f);
+    verify(controls).setTime(AUDIO_TIME_MILLISECONDS);
+    verify(controls).setRate(NORMAL_RATE);
     playback.stop();
   }
 
   @Test
   void shouldLeavePlayersAloneThatAreNotBothPlaying() {
-    final VlcPlayback playback = this.separatePlayback(9_000L, 1_000L);
+    final VlcPlayback playback = this.separatePlayback(FAR_AHEAD_VIDEO_TIME_MILLISECONDS, AUDIO_TIME_MILLISECONDS);
     final MockVlc.Player videoPlayer = this.vlc.player(0);
     final MockVlc.Player audioPlayer = this.vlc.player(1);
     audioPlayer.setPlaying(false);
@@ -195,7 +210,7 @@ final class VlcPlaybackTest {
 
   @Test
   void shouldNotSynchronizeAStoppedPlayback() {
-    final VlcPlayback playback = this.separatePlayback(9_000L, 1_000L);
+    final VlcPlayback playback = this.separatePlayback(FAR_AHEAD_VIDEO_TIME_MILLISECONDS, AUDIO_TIME_MILLISECONDS);
     playback.stop();
     final MockVlc.Player audioPlayer = this.vlc.player(1);
     final EmbeddedMediaPlayer audioMaster = audioPlayer.getPlayer();
@@ -323,7 +338,7 @@ final class VlcPlaybackTest {
       final List<Thread> synchronizers = Thread.getAllStackTraces()
         .keySet()
         .stream()
-        .filter(thread -> thread.getName().equals("mcav-vlc-sync"))
+        .filter(thread -> thread.getName().equals(SYNCHRONIZER_THREAD_NAME))
         .toList();
       final boolean noneRunning = synchronizers.isEmpty();
       assertFalse(noneRunning, "the synchronizer runs");
@@ -348,7 +363,7 @@ final class VlcPlaybackTest {
     final ControlsApi controls = videoPlayer.getControls();
     try {
       verify(controls, timeout(3_000L).atLeastOnce()).setTime(3_000L);
-      final boolean synchronizerAlive = isThreadAlive("mcav-vlc-sync");
+      final boolean synchronizerAlive = isThreadAlive(SYNCHRONIZER_THREAD_NAME);
       assertTrue(started);
       assertTrue(synchronizerAlive);
     } finally {

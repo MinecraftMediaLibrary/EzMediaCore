@@ -62,13 +62,28 @@ final class ExecutableYtdlpParserTest {
   private static final Path EXECUTABLE = Path.of("tools", "yt-dlp");
   private static final Duration TIMEOUT = Duration.ofMinutes(2);
 
+  private static final String FIXTURE_RESOURCE = "/ytdlp/video.json";
+
+  private static final String DUMP_JSON_OPTION = "--dump-json";
+  private static final String NO_CACHE_DIRECTORY_OPTION = "--no-cache-dir";
+  private static final String NO_PLAYLIST_OPTION = "--no-playlist";
+  private static final String PLAYLIST_ITEMS_OPTION = "--playlist-items";
+  private static final String FIRST_PLAYLIST_ITEM = "1";
+  private static final String NO_WARNINGS_OPTION = "--no-warnings";
+  private static final String COOKIES_FROM_BROWSER_OPTION = "--cookies-from-browser";
+  private static final String END_OF_OPTIONS = "--";
+
+  private static final String BIN_DIRECTORY_NAME = "bin";
+  private static final String JAVA_NAME = "java";
+  private static final String WINDOWS_JAVA_NAME = "java.exe";
+
   private static UriSource source() {
     final URI uri = URI.create(URL);
     return UriSource.uri(uri);
   }
 
   private static String fixture() throws IOException {
-    try (final InputStream stream = ExecutableYtdlpParserTest.class.getResourceAsStream("/ytdlp/video.json")) {
+    try (final InputStream stream = ExecutableYtdlpParserTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
       final byte[] bytes = stream.readAllBytes();
       final String content = new String(bytes, StandardCharsets.UTF_8);
@@ -108,19 +123,19 @@ final class ExecutableYtdlpParserTest {
     final AtomicReference<String[]> command = new AtomicReference<>();
     final ExecutableYtdlpParser parser = parser(task, command);
     final UriSource source = source();
-    final UrlParseDump dump = parser.parse(source, "--cookies-from-browser", "firefox");
+    final UrlParseDump dump = parser.parse(source, COOKIES_FROM_BROWSER_OPTION, "firefox");
     final String executable = EXECUTABLE.toString();
     final String[] expected = {
       executable,
-      "--dump-json",
-      "--no-cache-dir",
-      "--no-playlist",
-      "--playlist-items",
-      "1",
-      "--no-warnings",
-      "--cookies-from-browser",
+      DUMP_JSON_OPTION,
+      NO_CACHE_DIRECTORY_OPTION,
+      NO_PLAYLIST_OPTION,
+      PLAYLIST_ITEMS_OPTION,
+      FIRST_PLAYLIST_ITEM,
+      NO_WARNINGS_OPTION,
+      COOKIES_FROM_BROWSER_OPTION,
       "firefox",
-      "--",
+      END_OF_OPTIONS,
       URL,
     };
     final String[] actual = command.get();
@@ -165,7 +180,7 @@ final class ExecutableYtdlpParserTest {
       assertEquals(options[index], option);
     }
     final String separator = actual[19];
-    assertEquals("--", separator);
+    assertEquals(END_OF_OPTIONS, separator);
     final String url = actual[20];
     assertEquals(URL, url);
   }
@@ -180,13 +195,13 @@ final class ExecutableYtdlpParserTest {
     final String executable = EXECUTABLE.toString();
     final String[] expected = {
       executable,
-      "--dump-json",
-      "--no-cache-dir",
-      "--no-playlist",
-      "--playlist-items",
-      "1",
-      "--no-warnings",
-      "--",
+      DUMP_JSON_OPTION,
+      NO_CACHE_DIRECTORY_OPTION,
+      NO_PLAYLIST_OPTION,
+      PLAYLIST_ITEMS_OPTION,
+      FIRST_PLAYLIST_ITEM,
+      NO_WARNINGS_OPTION,
+      END_OF_OPTIONS,
       URL,
     };
     final String[] actual = command.get();
@@ -345,7 +360,7 @@ final class ExecutableYtdlpParserTest {
     final UriSource source = source();
     assertThrows(NullPointerException.class, () -> parser.parse(null));
     assertThrows(NullPointerException.class, () -> parser.parse(source, (String[]) null));
-    assertThrows(NullPointerException.class, () -> parser.parse(source, "--cookies-from-browser", null));
+    assertThrows(NullPointerException.class, () -> parser.parse(source, COOKIES_FROM_BROWSER_OPTION, null));
     final boolean installed = located.get();
     assertFalse(installed);
   }
@@ -404,8 +419,8 @@ final class ExecutableYtdlpParserTest {
   @Test
   void shouldRunTheInstalledExecutableInTheDefaultParser() throws IOException {
     final String javaHome = System.getProperty("java.home");
-    final String launcherName = File.separatorChar == '\\' ? "java.exe" : "java";
-    final Path javaPath = Path.of(javaHome, "bin", launcherName);
+    final String launcherName = File.separatorChar == '\\' ? WINDOWS_JAVA_NAME : JAVA_NAME;
+    final Path javaPath = Path.of(javaHome, BIN_DIRECTORY_NAME, launcherName);
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
     Mockito.when(installer.download(true)).thenReturn(javaPath);
     final UriSource source = source();
@@ -415,7 +430,7 @@ final class ExecutableYtdlpParserTest {
       final YtdlpParseException exception = assertThrows(YtdlpParseException.class, () -> parser.parse(source));
       final String message = exception.getMessage();
       final boolean namesTheUrl = message.endsWith("\" while URL " + URL + " was being resolved!");
-      final boolean namesTheOption = message.contains("--dump-json");
+      final boolean namesTheOption = message.contains(DUMP_JSON_OPTION);
       assertTrue(namesTheUrl, message);
       assertTrue(namesTheOption, message);
     }

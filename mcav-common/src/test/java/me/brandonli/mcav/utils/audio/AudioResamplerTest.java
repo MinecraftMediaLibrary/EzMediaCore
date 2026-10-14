@@ -41,11 +41,19 @@ final class AudioResamplerTest {
 
   private static final int PIPELINE_RATE = 48_000;
   private static final int SPEECH_RATE = 16_000;
+  private static final int NARROWBAND_RATE = 8_000;
   private static final int TONE_FREQUENCY = 1_000;
   private static final int TONE_AMPLITUDE = 10_000;
   private static final int EINVAL = -22;
   private static final int STEADY_STATE_START = 1_000;
   private static final int STEADY_STATE_END = 15_000;
+
+  private static final int STEREO_CHANNELS = 2;
+
+  private static final int SHORT_TONE_FRAMES = 4_800;
+
+  private static final String CONVERT_OPERATION = "convert the samples";
+  private static final String INITIALIZE_OPERATION = "initialize the resampler";
 
   private static ByteBuffer samples16(final short... samples) {
     final ByteBuffer buffer = ByteBuffer.allocate(samples.length * Short.BYTES);
@@ -59,13 +67,13 @@ final class AudioResamplerTest {
   }
 
   private static ByteBuffer stereoTone(final int frames) {
-    final short[] samples = new short[frames * 2];
+    final short[] samples = new short[frames * STEREO_CHANNELS];
     for (int frame = 0; frame < frames; frame++) {
       final double phase = (2.0 * Math.PI * TONE_FREQUENCY * frame) / PIPELINE_RATE + Math.PI / 4.0;
       final double value = Math.sin(phase);
       final short sample = (short) Math.round(value * TONE_AMPLITUDE);
-      samples[frame * 2] = sample;
-      samples[frame * 2 + 1] = sample;
+      samples[frame * STEREO_CHANNELS] = sample;
+      samples[frame * STEREO_CHANNELS + 1] = sample;
     }
     return samples16(samples);
   }
@@ -223,7 +231,7 @@ final class AudioResamplerTest {
 
   @Test
   void shouldDrainTheSamplesHeldBackForLookAheadOnFlush() {
-    final ByteBuffer tone = stereoTone(4_800);
+    final ByteBuffer tone = stereoTone(SHORT_TONE_FRAMES);
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, SampleFormat.SIGNED_16_BIT)) {
       final byte[] converted = resampler.resample(tone);
       final byte[] remaining = resampler.flush();
@@ -239,7 +247,7 @@ final class AudioResamplerTest {
 
   @Test
   void shouldResetTheResamplerForANewStreamOnFlush() {
-    final ByteBuffer tone = stereoTone(4_800);
+    final ByteBuffer tone = stereoTone(SHORT_TONE_FRAMES);
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, SampleFormat.SIGNED_16_BIT)) {
       final byte[] firstConverted = resampler.resample(tone);
       final byte[] firstRemaining = resampler.flush();
@@ -263,7 +271,7 @@ final class AudioResamplerTest {
   @Test
   void shouldMixStereoDownToMonoByAveraging() {
     final short[] frames = new short[200];
-    for (int index = 0; index < frames.length; index += 2) {
+    for (int index = 0; index < frames.length; index += STEREO_CHANNELS) {
       frames[index] = 1_000;
       frames[index + 1] = 3_000;
     }
@@ -297,7 +305,7 @@ final class AudioResamplerTest {
   @Test
   void shouldConvertSigned16BitSamplesToFloatingPoint() {
     final ByteBuffer input = samples16((short) 16_384, (short) -16_384, (short) 0, (short) 8_192, Short.MIN_VALUE, Short.MAX_VALUE);
-    try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(PIPELINE_RATE, 2, SampleFormat.FLOAT_32_BIT)) {
+    try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(PIPELINE_RATE, STEREO_CHANNELS, SampleFormat.FLOAT_32_BIT)) {
       final byte[] converted = resampler.resample(input);
       final float[] samples = toFloats(converted);
       final float[] expected = { 0.5f, -0.5f, 0.0f, 0.25f, -1.0f, 32_767.0f / 32_768.0f };
@@ -318,10 +326,10 @@ final class AudioResamplerTest {
     try (
       final AudioResampler resampler = AudioResampler.create(
         PIPELINE_RATE,
-        2,
+        STEREO_CHANNELS,
         SampleFormat.FLOAT_32_BIT,
         PIPELINE_RATE,
-        2,
+        STEREO_CHANNELS,
         SampleFormat.SIGNED_16_BIT
       )
     ) {
@@ -338,8 +346,15 @@ final class AudioResamplerTest {
     final byte[] original = bytesOf(input);
     for (final SampleFormat format : SampleFormat.values()) {
       try (
-        final AudioResampler there = AudioResampler.fromPipelineFormat(PIPELINE_RATE, 2, format);
-        final AudioResampler back = AudioResampler.create(PIPELINE_RATE, 2, format, PIPELINE_RATE, 2, SampleFormat.SIGNED_16_BIT)
+        final AudioResampler there = AudioResampler.fromPipelineFormat(PIPELINE_RATE, STEREO_CHANNELS, format);
+        final AudioResampler back = AudioResampler.create(
+          PIPELINE_RATE,
+          STEREO_CHANNELS,
+          format,
+          PIPELINE_RATE,
+          STEREO_CHANNELS,
+          SampleFormat.SIGNED_16_BIT
+        )
       ) {
         final byte[] converted = there.resample(input);
         final ByteBuffer convertedBuffer = ByteBuffer.wrap(converted);
@@ -428,7 +443,14 @@ final class AudioResamplerTest {
   @Test
   void shouldReportItsConfiguration() {
     try (
-      final AudioResampler resampler = AudioResampler.create(44_100, 1, SampleFormat.FLOAT_64_BIT, 8_000, 6, SampleFormat.UNSIGNED_8_BIT)
+      final AudioResampler resampler = AudioResampler.create(
+        44_100,
+        1,
+        SampleFormat.FLOAT_64_BIT,
+        NARROWBAND_RATE,
+        6,
+        SampleFormat.UNSIGNED_8_BIT
+      )
     ) {
       final int inputSampleRate = resampler.getInputSampleRate();
       final int inputChannels = resampler.getInputChannels();
@@ -439,7 +461,7 @@ final class AudioResamplerTest {
       assertEquals(44_100, inputSampleRate);
       assertEquals(1, inputChannels);
       assertEquals(SampleFormat.FLOAT_64_BIT, inputFormat);
-      assertEquals(8_000, outputSampleRate);
+      assertEquals(NARROWBAND_RATE, outputSampleRate);
       assertEquals(6, outputChannels);
       assertEquals(SampleFormat.UNSIGNED_8_BIT, outputFormat);
     }
@@ -447,7 +469,7 @@ final class AudioResamplerTest {
 
   @Test
   void shouldMatchThePipelineFormatToWhatThePlayersDeliver() {
-    try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(8_000, 1, SampleFormat.SIGNED_32_BIT)) {
+    try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(NARROWBAND_RATE, 1, SampleFormat.SIGNED_32_BIT)) {
       final int inputSampleRate = resampler.getInputSampleRate();
       final int inputChannels = resampler.getInputChannels();
       final SampleFormat inputFormat = resampler.getInputFormat();
@@ -459,7 +481,7 @@ final class AudioResamplerTest {
       assertEquals(AudioFilter.CHANNELS, inputChannels);
       assertEquals(SampleFormat.SIGNED_16_BIT, inputFormat);
       assertEquals(AudioFilter.BYTES_PER_SAMPLE, bytesPerSample);
-      assertEquals(8_000, outputSampleRate);
+      assertEquals(NARROWBAND_RATE, outputSampleRate);
       assertEquals(1, outputChannels);
       assertEquals(SampleFormat.SIGNED_32_BIT, outputFormat);
     }
@@ -526,10 +548,10 @@ final class AudioResamplerTest {
   @Test
   void shouldRejectInvalidSampleRates() {
     final SampleFormat format = SampleFormat.SIGNED_16_BIT;
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(0, 2, format, PIPELINE_RATE, 2, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(-1, 2, format, PIPELINE_RATE, 2, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 2, format, 0, 2, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 2, format, -1, 2, format));
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(0, STEREO_CHANNELS, format, PIPELINE_RATE, STEREO_CHANNELS, format));
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(-1, STEREO_CHANNELS, format, PIPELINE_RATE, STEREO_CHANNELS, format));
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, 0, STEREO_CHANNELS, format));
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, -1, STEREO_CHANNELS, format));
     assertThrows(IllegalArgumentException.class, () -> createFromPipelineAndClose(0, 1, format));
   }
 
@@ -537,10 +559,14 @@ final class AudioResamplerTest {
   void shouldRejectInvalidChannelCounts() {
     final SampleFormat format = SampleFormat.SIGNED_16_BIT;
     final int tooMany = AudioResampler.MAXIMUM_CHANNELS + 1;
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 0, format, PIPELINE_RATE, 2, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, tooMany, format, PIPELINE_RATE, 2, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 2, format, PIPELINE_RATE, 0, format));
-    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 2, format, PIPELINE_RATE, tooMany, format));
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, 0, format, PIPELINE_RATE, STEREO_CHANNELS, format));
+    assertThrows(IllegalArgumentException.class, () ->
+      createAndClose(PIPELINE_RATE, tooMany, format, PIPELINE_RATE, STEREO_CHANNELS, format)
+    );
+    assertThrows(IllegalArgumentException.class, () -> createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, PIPELINE_RATE, 0, format));
+    assertThrows(IllegalArgumentException.class, () ->
+      createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, PIPELINE_RATE, tooMany, format)
+    );
     assertThrows(IllegalArgumentException.class, () -> createFromPipelineAndClose(PIPELINE_RATE, 0, format));
     assertThrows(IllegalArgumentException.class, () -> createFromPipelineAndClose(PIPELINE_RATE, tooMany, format));
   }
@@ -548,9 +574,13 @@ final class AudioResamplerTest {
   @Test
   void shouldRejectNullArguments() {
     final SampleFormat format = SampleFormat.SIGNED_16_BIT;
-    assertThrows(NullPointerException.class, () -> createAndClose(PIPELINE_RATE, 2, null, PIPELINE_RATE, 2, format));
-    assertThrows(NullPointerException.class, () -> createAndClose(PIPELINE_RATE, 2, format, PIPELINE_RATE, 2, null));
-    assertThrows(NullPointerException.class, () -> createFromPipelineAndClose(PIPELINE_RATE, 2, null));
+    assertThrows(NullPointerException.class, () ->
+      createAndClose(PIPELINE_RATE, STEREO_CHANNELS, null, PIPELINE_RATE, STEREO_CHANNELS, format)
+    );
+    assertThrows(NullPointerException.class, () ->
+      createAndClose(PIPELINE_RATE, STEREO_CHANNELS, format, PIPELINE_RATE, STEREO_CHANNELS, null)
+    );
+    assertThrows(NullPointerException.class, () -> createFromPipelineAndClose(PIPELINE_RATE, STEREO_CHANNELS, null));
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, format)) {
       assertThrows(NullPointerException.class, () -> resampler.resample(null));
     }
@@ -559,7 +589,7 @@ final class AudioResamplerTest {
   @Test
   void shouldPassSuccessfulResultsThroughCheckResult() {
     final int zero = AudioResampler.checkResult(0, "do nothing");
-    final int positive = AudioResampler.checkResult(1_234, "convert the samples");
+    final int positive = AudioResampler.checkResult(1_234, CONVERT_OPERATION);
     assertEquals(0, zero);
     assertEquals(1_234, positive);
   }
@@ -567,7 +597,7 @@ final class AudioResamplerTest {
   @Test
   void shouldDescribeFfmpegErrorsInCheckResult() {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-      AudioResampler.checkResult(EINVAL, "convert the samples")
+      AudioResampler.checkResult(EINVAL, CONVERT_OPERATION)
     );
     final String message = exception.getMessage();
     assertEquals("FFmpeg error -22 (Invalid argument) occurred while trying to convert the samples!", message);
@@ -576,7 +606,7 @@ final class AudioResamplerTest {
   @Test
   void shouldKeepTheResamplerOpenOnSuccessWithCloseOnFailure() {
     try (final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, SampleFormat.SIGNED_16_BIT)) {
-      resampler.closeOnFailure(0, "initialize the resampler");
+      resampler.closeOnFailure(0, INITIALIZE_OPERATION);
       final boolean closed = resampler.isClosed();
       assertFalse(closed);
     }
@@ -586,7 +616,7 @@ final class AudioResamplerTest {
   void shouldReleaseTheResamplerAndReportTheErrorWithCloseOnFailure() {
     final AudioResampler resampler = AudioResampler.fromPipelineFormat(SPEECH_RATE, 1, SampleFormat.SIGNED_16_BIT);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-      resampler.closeOnFailure(EINVAL, "initialize the resampler")
+      resampler.closeOnFailure(EINVAL, INITIALIZE_OPERATION)
     );
     final String message = exception.getMessage();
     final boolean closed = resampler.isClosed();

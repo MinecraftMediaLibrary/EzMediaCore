@@ -47,6 +47,10 @@ import org.mockito.invocation.InvocationOnMock;
  */
 final class MatVideoFilterTest {
 
+  private static final int BLACK = 0xFF000000;
+
+  private static final int IMAGE_SIDE = 2;
+
   /**
    * Creates an image that is not backed by a matrix and whose pixels all have the same color, and records what the
    * filter writes back into it.
@@ -70,7 +74,7 @@ final class MatVideoFilterTest {
   @Test
   void shouldCopyResultsBackIntoImagesThatAreNotBackedByAMat() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
+    final ImageBuffer image = foreignImage(1, 1, BLACK, written);
     final InvertFilter filter = new InvertFilter();
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     final byte[] bytes = written.getBytes();
@@ -84,7 +88,7 @@ final class MatVideoFilterTest {
   @Test
   void shouldWriteResultsOfAnotherSizeBackWithTheirSize() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(2, 2, 0xFF102030, written);
+    final ImageBuffer image = foreignImage(IMAGE_SIDE, IMAGE_SIDE, 0xFF102030, written);
     final CropFilter filter = new CropFilter(1, 0, 1, 1);
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     final byte[] bytes = written.getBytes();
@@ -96,7 +100,7 @@ final class MatVideoFilterTest {
   @Test
   void shouldLeaveForeignImagesAloneWhenNothingChanged() {
     final WrittenPixels written = new WrittenPixels();
-    final ImageBuffer image = foreignImage(1, 1, 0xFF000000, written);
+    final ImageBuffer image = foreignImage(1, 1, BLACK, written);
     final CropFilter filter = new CropFilter(0, 0, 1, 1);
     final boolean modified = filter.applyFilter(image, OriginalVideoMetadata.EMPTY);
     assertFalse(modified);
@@ -106,7 +110,7 @@ final class MatVideoFilterTest {
 
   @Test
   void shouldKeepTheCacheWhenTheMatWasNotModified() {
-    try (final ImageBuffer image = Images.solid(2, 2, 0xFF123456)) {
+    try (final ImageBuffer image = Images.solid(IMAGE_SIDE, IMAGE_SIDE, 0xFF123456)) {
       final int[] before = image.getPixels();
       final UnchangedFilter filter = new UnchangedFilter();
       final boolean modified = filter.applyFilter(image);
@@ -123,7 +127,7 @@ final class MatVideoFilterTest {
       received.set(metadata);
       return true;
     };
-    try (final ImageBuffer image = Images.indexed(2, 2)) {
+    try (final ImageBuffer image = Images.indexed(IMAGE_SIDE, IMAGE_SIDE)) {
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean changed = recorder.applyFilter(image);
       final OriginalVideoMetadata metadata = received.get();
@@ -134,9 +138,9 @@ final class MatVideoFilterTest {
       final ByteBuffer data = image.getData();
       assertEquals(before, data);
       final int width = image.getWidth();
-      assertEquals(2, width);
+      assertEquals(IMAGE_SIDE, width);
       final int height = image.getHeight();
-      assertEquals(2, height);
+      assertEquals(IMAGE_SIDE, height);
     }
   }
 

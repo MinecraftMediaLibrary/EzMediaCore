@@ -34,9 +34,14 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 final class FfmpegDirectSourceTest {
 
+  private static final String DESKTOP_MRL = "desktop";
+
+  private static final String SCREEN_CAPTURE_FORMAT = "gdigrab";
+  private static final String CAMERA_FORMAT = "dshow";
+
   @Test
   void shouldDescribeTheInput() {
-    final FfmpegDirectSource source = FfmpegDirectSource.mrl("desktop", "gdigrab");
+    final FfmpegDirectSource source = FfmpegDirectSource.mrl(DESKTOP_MRL, SCREEN_CAPTURE_FORMAT);
     final String mrl = source.getMrl();
     final String format = source.getFormat();
     final String resource = source.getResource();
@@ -44,9 +49,9 @@ final class FfmpegDirectSourceTest {
     final boolean isStatic = source.isStatic();
     final boolean isDynamic = source.isDynamic();
     final String text = source.toString();
-    assertEquals("desktop", mrl);
-    assertEquals("gdigrab", format);
-    assertEquals("desktop", resource);
+    assertEquals(DESKTOP_MRL, mrl);
+    assertEquals(SCREEN_CAPTURE_FORMAT, format);
+    assertEquals(DESKTOP_MRL, resource);
     assertEquals("ffmpeg", name);
     assertFalse(isStatic, "screen capture and the other raw inputs are live");
     assertTrue(isDynamic);
@@ -55,27 +60,27 @@ final class FfmpegDirectSourceTest {
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final FfmpegDirectSource source = FfmpegDirectSource.mrl("desktop", "gdigrab");
-    final FfmpegDirectSource equalSource = FfmpegDirectSource.mrl("desktop", "gdigrab");
-    final FfmpegDirectSource otherMrl = FfmpegDirectSource.mrl("title=Game", "gdigrab");
-    final FfmpegDirectSource otherFormat = FfmpegDirectSource.mrl("desktop", "dshow");
+    final FfmpegDirectSource source = FfmpegDirectSource.mrl(DESKTOP_MRL, SCREEN_CAPTURE_FORMAT);
+    final FfmpegDirectSource equalSource = FfmpegDirectSource.mrl(DESKTOP_MRL, SCREEN_CAPTURE_FORMAT);
+    final FfmpegDirectSource otherMrl = FfmpegDirectSource.mrl("title=Game", SCREEN_CAPTURE_FORMAT);
+    final FfmpegDirectSource otherFormat = FfmpegDirectSource.mrl(DESKTOP_MRL, CAMERA_FORMAT);
     EqualityAssertions.assertEqualityContract(source, equalSource, otherMrl, otherFormat);
   }
 
   @Test
   void shouldHashTheMrlAndTheFormat() {
-    final FfmpegDirectSource source = FfmpegDirectSource.mrl("desktop", "gdigrab");
+    final FfmpegDirectSource source = FfmpegDirectSource.mrl(DESKTOP_MRL, SCREEN_CAPTURE_FORMAT);
 
     final int hash = source.hashCode();
-    final int expected = Objects.hash("desktop", "gdigrab");
+    final int expected = Objects.hash(DESKTOP_MRL, SCREEN_CAPTURE_FORMAT);
     assertEquals(expected, hash);
   }
 
   @Test
   void shouldRejectInvalidArguments() {
-    assertThrows(IllegalArgumentException.class, () -> FfmpegDirectSource.mrl("desktop", " "));
-    assertThrows(NullPointerException.class, () -> FfmpegDirectSource.mrl(null, "gdigrab"));
-    assertThrows(NullPointerException.class, () -> FfmpegDirectSource.mrl("desktop", null));
+    assertThrows(IllegalArgumentException.class, () -> FfmpegDirectSource.mrl(DESKTOP_MRL, " "));
+    assertThrows(NullPointerException.class, () -> FfmpegDirectSource.mrl(null, SCREEN_CAPTURE_FORMAT));
+    assertThrows(NullPointerException.class, () -> FfmpegDirectSource.mrl(DESKTOP_MRL, null));
   }
 
   @Test
@@ -83,7 +88,7 @@ final class FfmpegDirectSourceTest {
     final FfmpegDirectSourceDetector detector = new FfmpegDirectSourceDetector();
     final boolean detected = detector.isDetectedSource("dshow||video=Camera");
     final FfmpegDirectSource created = detector.createSource("dshow||video=Camera");
-    final FfmpegDirectSource expected = FfmpegDirectSource.mrl("video=Camera", "dshow");
+    final FfmpegDirectSource expected = FfmpegDirectSource.mrl("video=Camera", CAMERA_FORMAT);
     final int priority = detector.getPriority();
     assertTrue(detected);
     assertEquals(expected, created);

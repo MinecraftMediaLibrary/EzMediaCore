@@ -27,11 +27,13 @@ import org.junit.jupiter.api.Test;
  */
 final class VideoTimestampsTest {
 
+  private static final double FRAMES_PER_SECOND = 30.0;
+
   private final AtomicLong nanoseconds = new AtomicLong(1_000_000_000L);
 
   @Test
   void shouldKeepTimestampsThatComeAfterThePreviousFrame() {
-    final VideoTimestamps timestamps = new VideoTimestamps(30.0, false, this.nanoseconds::get);
+    final VideoTimestamps timestamps = new VideoTimestamps(FRAMES_PER_SECOND, false, this.nanoseconds::get);
     final long first = timestamps.next(5_000L);
     final long second = timestamps.next(38_333L);
     final long jump = timestamps.next(9_000_000L);
@@ -55,7 +57,7 @@ final class VideoTimestampsTest {
 
   @Test
   void shouldUseTheArrivalTimeOfLiveFramesAndOfMediaWithoutAFrameRate() {
-    final VideoTimestamps live = new VideoTimestamps(30.0, true, this.nanoseconds::get);
+    final VideoTimestamps live = new VideoTimestamps(FRAMES_PER_SECOND, true, this.nanoseconds::get);
     final VideoTimestamps noRate = new VideoTimestamps(0.0, false, this.nanoseconds::get);
     final VideoTimestamps infiniteRate = new VideoTimestamps(Double.POSITIVE_INFINITY, false, this.nanoseconds::get);
     live.next(0L);

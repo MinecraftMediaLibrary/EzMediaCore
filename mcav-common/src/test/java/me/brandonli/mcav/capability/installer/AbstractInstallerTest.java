@@ -88,6 +88,35 @@ final class AbstractInstallerTest {
   private static final Platform LINUX_X86_64 = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
   private static final int CONCURRENT_DOWNLOADS = 4;
   private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(10);
+  private static final long DOWNLOAD_TIMEOUT_SECONDS = 10L;
+
+  private static final int OK_STATUS = 200;
+
+  private static final String DIGEST_ALGORITHM = "SHA-256";
+
+  private static final String EXECUTABLE_PERMISSIONS = "rwxr-xr-x";
+
+  private static final String WINDOWS_EXECUTABLE_NAME = "tool.exe";
+  private static final String FALLBACK_ARCHIVE_NAME = "tool.archive";
+  private static final String TEMPORARY_FILE_SUFFIX = ".tmp";
+
+  private static final String CONFIGURATION_FILE_NAME = "config.properties";
+  private static final String INVALID_REMEMBERED_PATH = "bad\0path";
+
+  private static final String ELSEWHERE_FILE_NAME = "installed-elsewhere";
+  private static final String GONE_FILE_NAME = "gone";
+  private static final String BUSY_FILE_NAME = "busy";
+  private static final String FIRST_FILE_NAME = "first";
+  private static final String SECOND_FILE_NAME = "second";
+
+  private static final String ARCHIVE_PATH = "/files/pack-1.0.zip";
+  private static final String ARCHIVE_FILE_NAME = "pack-1.0.zip";
+  private static final String EXTRACTED_FOLDER_NAME = "extracted";
+
+  private static final String POSIX_FOLDER_PATH = "/tools";
+
+  private static final String MCAV_FOLDER_NAME = ".mcav";
+  private static final String CACHE_FOLDER_NAME = "cache";
 
   @TempDir
   private Path folder;
@@ -98,7 +127,7 @@ final class AbstractInstallerTest {
     final String linux = AbstractInstaller.getExecutableFileName(NAME, Os.LINUX);
     final String mac = AbstractInstaller.getExecutableFileName(NAME, Os.MAC);
     final String freeBsd = AbstractInstaller.getExecutableFileName(NAME, Os.FREEBSD);
-    assertEquals("tool.exe", windows);
+    assertEquals(WINDOWS_EXECUTABLE_NAME, windows);
     assertEquals(NAME, linux);
     assertEquals(NAME, mac);
     assertEquals(NAME, freeBsd);
@@ -124,8 +153,8 @@ final class AbstractInstallerTest {
       final Path defaultFolder = AbstractInstaller.getDefaultExecutableFolderPath();
       final Path cachedFolder = IoUtils.getCachedFolder();
       final Path redirectedHome = redirected.getHome();
-      final Path mcavFolder = redirectedHome.resolve(".mcav");
-      final Path expected = mcavFolder.resolve("cache");
+      final Path mcavFolder = redirectedHome.resolve(MCAV_FOLDER_NAME);
+      final Path expected = mcavFolder.resolve(CACHE_FOLDER_NAME);
       final boolean created = Files.isDirectory(expected);
       assertEquals(expected, installerFolder);
       assertEquals(defaultFolder, installerFolder);
@@ -232,7 +261,7 @@ final class AbstractInstallerTest {
   @Test
   void shouldDownloadVerifyAndRememberTheProgram() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
       final Path installed = installer.download(true);
       final Path expected = installer.getDefaultPath();
@@ -253,7 +282,7 @@ final class AbstractInstallerTest {
   @Test
   void shouldReuseAnExistingInstallationWithoutDownloadingAgain() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller first = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
       final TestInstaller second = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
       final Path firstPath = first.download(false);
@@ -268,7 +297,7 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldFindAnInstallationRememberedInTheConfiguration() throws IOException {
-    final Path elsewhere = this.createFileInFolder("installed-elsewhere");
+    final Path elsewhere = this.createFileInFolder(ELSEWHERE_FILE_NAME);
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
     writer.writePathToConfiguration(elsewhere);
 
@@ -281,12 +310,12 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldDownloadAgainWhenTheRememberedInstallationIsGone() throws IOException {
-    final Path gone = this.folder.resolve("gone");
+    final Path gone = this.folder.resolve(GONE_FILE_NAME);
     final TestInstaller writer = new TestInstaller(this.folder, NAME, new Download[0]);
     writer.writePathToConfiguration(gone);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final Path installed = installer.download(false);
       final Path expected = installer.getDefaultPath();
@@ -299,11 +328,11 @@ final class AbstractInstallerTest {
   @Test
   void shouldIgnoreARememberedPathThatIsNotAValidPath() throws IOException {
     final Properties configuration = new Properties();
-    configuration.setProperty(NAME, "bad\0path");
+    configuration.setProperty(NAME, INVALID_REMEMBERED_PATH);
     this.writeConfiguration(configuration);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final Path installed = installer.download(false);
       final Path expected = installer.getDefaultPath();
@@ -313,11 +342,11 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldIgnoreAConfigurationWithAMalformedEscapeAndRememberTheNewInstallation() throws IOException {
-    final Path configurationFile = this.folder.resolve("config.properties");
+    final Path configurationFile = this.folder.resolve(CONFIGURATION_FILE_NAME);
     Files.writeString(configurationFile, "tool=\\uZZZZ\n", StandardCharsets.ISO_8859_1);
 
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final Path installed = installer.download(false);
       final Path expected = installer.getDefaultPath();
@@ -334,7 +363,7 @@ final class AbstractInstallerTest {
   @Test
   void shouldRejectADownloadWithTheWrongChecksumAndRememberNothing() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final byte[] otherContent = "something else".getBytes(StandardCharsets.US_ASCII);
       final String otherHash = sha256(otherContent);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, otherHash);
@@ -353,7 +382,7 @@ final class AbstractInstallerTest {
   void shouldDownloadOnlyOnceWhenCalledConcurrently() throws Exception {
     final CountDownLatch releaseResponse = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondWhenOpened(TOOL_PATH, 200, PROGRAM, releaseResponse);
+      server.respondWhenOpened(TOOL_PATH, OK_STATUS, PROGRAM, releaseResponse);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, PROGRAM_HASH);
       final Path expected = installer.getDefaultPath();
       try (final ExecutorService executor = Executors.newFixedThreadPool(CONCURRENT_DOWNLOADS)) {
@@ -372,7 +401,7 @@ final class AbstractInstallerTest {
   void shouldAnswerQuestionsWhileADownloadIsRunning() throws Exception {
     final CountDownLatch releaseResponse = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondWhenOpened(TOOL_PATH, 200, PROGRAM, releaseResponse);
+      server.respondWhenOpened(TOOL_PATH, OK_STATUS, PROGRAM, releaseResponse);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final String url = installer.getUrl();
       final Path defaultPath = installer.getDefaultPath();
@@ -384,7 +413,7 @@ final class AbstractInstallerTest {
         final boolean supportedDuringDownload = assertTimeoutPreemptively(limit, installer::isSupported);
         final String urlDuringDownload = assertTimeoutPreemptively(limit, installer::getUrl);
         releaseResponse.countDown();
-        final Path installed = running.get(10, TimeUnit.SECONDS);
+        final Path installed = running.get(DOWNLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertEquals(defaultPath, pathDuringDownload);
         assertTrue(supportedDuringDownload);
         assertEquals(url, urlDuringDownload);
@@ -401,7 +430,7 @@ final class AbstractInstallerTest {
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       ioUtils.when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class))).thenThrow(chmodFailure);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final IOException thrown = assertThrows(IOException.class, () -> installer.download(true));
@@ -424,7 +453,7 @@ final class AbstractInstallerTest {
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
       final Path destination = installer.getDefaultPath();
       ioUtils
@@ -433,7 +462,7 @@ final class AbstractInstallerTest {
           // A nonempty replacement makes cleanup fail on every platform without relying on OS permissions.
           Files.delete(destination);
           Files.createDirectory(destination);
-          Files.writeString(destination.resolve("busy"), "retained");
+          Files.writeString(destination.resolve(BUSY_FILE_NAME), "retained");
           throw permissionFailure;
         });
       final IOException failure = assertThrows(IOException.class, () -> installer.download(true));
@@ -451,7 +480,7 @@ final class AbstractInstallerTest {
       assertEquals(destination.toString(), suppressedFile);
       final Properties configuration = this.readConfiguration();
       assertEquals(new Properties(), configuration, "a failed installation is not remembered");
-      final String retained = Files.readString(destination.resolve("busy"));
+      final String retained = Files.readString(destination.resolve(BUSY_FILE_NAME));
       assertEquals("retained", retained);
     }
   }
@@ -464,9 +493,9 @@ final class AbstractInstallerTest {
       final LocalHttpServer server = LocalHttpServer.start();
       final MockedStatic<IoUtils> ioUtils = Mockito.mockStatic(IoUtils.class, Mockito.CALLS_REAL_METHODS)
     ) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final Download download = new Download(CURRENT_PLATFORM, server.uri(TOOL_PATH).toString(), null);
-      final Path tools = fileSystem.getPath("/tools");
+      final Path tools = fileSystem.getPath(POSIX_FOLDER_PATH);
       final TestInstaller first = new TestInstaller(tools, NAME, new Download[] { download });
       final AtomicInteger permissionAttempts = new AtomicInteger();
       ioUtils
@@ -481,7 +510,7 @@ final class AbstractInstallerTest {
       final TestInstaller retry = freshInstaller ? new TestInstaller(tools, NAME, new Download[] { download }) : first;
       final Path installed = retry.download(true);
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
-      assertEquals(PosixFilePermissions.fromString("rwxr-xr-x"), permissions);
+      assertEquals(PosixFilePermissions.fromString(EXECUTABLE_PERMISSIONS), permissions);
       final int attempts = permissionAttempts.get();
       assertEquals(2, attempts, "a failed preparation is retried even by a new installer");
       final byte[] content = Files.readAllBytes(installed);
@@ -493,16 +522,16 @@ final class AbstractInstallerTest {
   void shouldMarkTheDownloadedProgramExecutableWithoutGivingOthersWriteAccess() throws IOException {
     final Configuration posix = posixConfiguration();
     try (final FileSystem fileSystem = Jimfs.newFileSystem(posix); final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond(TOOL_PATH, 200, PROGRAM);
+      server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       final URI uri = server.uri(TOOL_PATH);
       final String url = uri.toString();
       final Download download = new Download(CURRENT_PLATFORM, url, null);
-      final Path posixFolder = fileSystem.getPath("/tools");
+      final Path posixFolder = fileSystem.getPath(POSIX_FOLDER_PATH);
       final TestInstaller installer = new TestInstaller(posixFolder, NAME, new Download[] { download });
       final Path installed = installer.download(true);
 
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
-      final Set<PosixFilePermission> expected = PosixFilePermissions.fromString("rwxr-xr-x");
+      final Set<PosixFilePermission> expected = PosixFilePermissions.fromString(EXECUTABLE_PERMISSIONS);
       assertEquals(expected, permissions);
     }
   }
@@ -514,7 +543,7 @@ final class AbstractInstallerTest {
     };
     final TestInstaller installer = new TestInstaller(this.folder, NAME, noDownloads);
     final Optional<Path> before = installer.findInstallation();
-    final Path elsewhere = this.createFileInFolder("installed-elsewhere");
+    final Path elsewhere = this.createFileInFolder(ELSEWHERE_FILE_NAME);
     installer.writePathToConfiguration(elsewhere);
 
     final Optional<Path> after = installer.findInstallation();
@@ -545,8 +574,8 @@ final class AbstractInstallerTest {
 
   @Test
   void shouldKeepTheEntriesOfOtherProgramsAndLeaveNoTemporaryFiles() throws IOException {
-    final Path first = this.createFileInFolder("first");
-    final Path second = this.createFileInFolder("second");
+    final Path first = this.createFileInFolder(FIRST_FILE_NAME);
+    final Path second = this.createFileInFolder(SECOND_FILE_NAME);
     final TestInstaller firstInstaller = new TestInstaller(this.folder, "first-program", new Download[0]);
     final TestInstaller secondInstaller = new TestInstaller(this.folder, "second-program", new Download[0]);
     firstInstaller.writePathToConfiguration(first);
@@ -568,15 +597,15 @@ final class AbstractInstallerTest {
   @Test
   void shouldStoreArchivesUnderTheFileNameOfTheirUrl() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/files/pack-1.0.zip", 200, PROGRAM);
-      final TestInstaller installer = this.installerDownloadingFrom(server, "/files/pack-1.0.zip", null);
+      server.respond(ARCHIVE_PATH, OK_STATUS, PROGRAM);
+      final TestInstaller installer = this.installerDownloadingFrom(server, ARCHIVE_PATH, null);
       installer.markAsArchive();
       final Path installed = installer.download(false);
 
-      final Path expectedArchive = this.folder.resolve("pack-1.0.zip");
+      final Path expectedArchive = this.folder.resolve(ARCHIVE_FILE_NAME);
       final List<Path> expectedArchives = List.of(expectedArchive);
       final List<Path> installedArchives = installer.getInstalledArchives();
-      final Path expectedInstallation = this.folder.resolve("extracted");
+      final Path expectedInstallation = this.folder.resolve(EXTRACTED_FOLDER_NAME);
       assertEquals(expectedArchives, installedArchives);
       assertEquals(expectedInstallation, installed);
     }
@@ -590,7 +619,7 @@ final class AbstractInstallerTest {
       final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[] { download });
       installer.markAsArchive();
       final String fileName = installer.getFileName();
-      assertEquals("tool.archive", fileName, url);
+      assertEquals(FALLBACK_ARCHIVE_NAME, fileName, url);
     }
   }
 
@@ -640,7 +669,7 @@ final class AbstractInstallerTest {
 
   private static void assertEveryResultIs(final Path expected, final List<Future<Path>> results) throws Exception {
     for (final Future<Path> result : results) {
-      final Path path = result.get(10, TimeUnit.SECONDS);
+      final Path path = result.get(DOWNLOAD_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertEquals(expected, path);
     }
   }
@@ -664,7 +693,7 @@ final class AbstractInstallerTest {
 
   private static boolean isTemporaryFile(final Path file) {
     final String rawFile = file.toString();
-    return rawFile.endsWith(".tmp");
+    return rawFile.endsWith(TEMPORARY_FILE_SUFFIX);
   }
 
   private static Configuration posixConfiguration() {
@@ -681,7 +710,7 @@ final class AbstractInstallerTest {
 
   private Properties readConfiguration() throws IOException {
     final Properties properties = new Properties();
-    final Path configurationFile = this.folder.resolve("config.properties");
+    final Path configurationFile = this.folder.resolve(CONFIGURATION_FILE_NAME);
     final boolean exists = Files.exists(configurationFile);
     if (!exists) {
       return properties;
@@ -693,7 +722,7 @@ final class AbstractInstallerTest {
   }
 
   private void writeConfiguration(final Properties properties) throws IOException {
-    final Path configurationFile = this.folder.resolve("config.properties");
+    final Path configurationFile = this.folder.resolve(CONFIGURATION_FILE_NAME);
     try (final OutputStream configurationOutput = Files.newOutputStream(configurationFile)) {
       properties.store(configurationOutput, null);
     }
@@ -701,7 +730,7 @@ final class AbstractInstallerTest {
 
   private static String sha256(final byte[] content) {
     try {
-      final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      final MessageDigest digest = MessageDigest.getInstance(DIGEST_ALGORITHM);
       final byte[] hash = digest.digest(content);
       final HexFormat hex = HexFormat.of();
       return hex.formatHex(hash);
@@ -773,7 +802,7 @@ final class AbstractInstallerTest {
       }
       this.installedArchives.add(downloaded);
       final Path installerFolder = this.getFolder();
-      final Path extracted = installerFolder.resolve("extracted");
+      final Path extracted = installerFolder.resolve(EXTRACTED_FOLDER_NAME);
       Files.createDirectories(extracted);
       return extracted;
     }

@@ -86,10 +86,19 @@ final class DependencyLoaderTest {
   private static final String PATHS_FIRST = "org.bytedeco.javacpp.pathsFirst";
   private static final int CONCURRENT_ROUNDS = 500;
   private static final long MAXIMUM_PLAUSIBLE_MILLISECONDS = 60_000L;
+  private static final long TIMEOUT_SECONDS = 10L;
+
+  private static final String DEFAULT_PATHS_FIRST = "false";
 
   private static final Pattern NATIVES_LOADED = Pattern.compile("JavaCV natives loaded in (\\d+) ms");
 
-  private static final List<String> OBJECT_DETECTION_LOADED = List.of("objdetect");
+  private static final String OBJECT_DETECTION_MODULE = "objdetect";
+  private static final String FACE_DETECTION_MODULE_NAME = "Face detection";
+  private static final List<String> OBJECT_DETECTION_LOADED = List.of(OBJECT_DETECTION_MODULE);
+
+  private static final String VLC_DIRECTORY_NAME = "vlc";
+  private static final String YTDLP_FILE_NAME = "yt-dlp";
+  private static final String PREPARED_FILE_NAME = "prepared";
 
   @Test
   void shouldStartWithEveryCapability() {
@@ -115,7 +124,7 @@ final class DependencyLoaderTest {
     }
     final String openBlas = System.getProperty(OPENBLAS_LOAD);
     final boolean hasFfmpeg = loader.hasCapability(Capability.FFMPEG);
-    assertEquals("false", pathsFirst);
+    assertEquals(DEFAULT_PATHS_FIRST, pathsFirst);
     assertNull(openBlas, "OpenCV links OpenBLAS, so the library must not disable it");
     assertTrue(hasFfmpeg);
   }
@@ -204,7 +213,7 @@ final class DependencyLoaderTest {
       System.setProperty(PATHS_FIRST, "true");
       DependencyLoader.configureJavaCpp();
       final String customPathsFirst = System.getProperty(PATHS_FIRST);
-      assertEquals("false", defaultPathsFirst);
+      assertEquals(DEFAULT_PATHS_FIRST, defaultPathsFirst);
       assertEquals("true", customPathsFirst, "a value set by the application is kept");
     } finally {
       restorePathsFirst(previousPathsFirst);
@@ -356,7 +365,7 @@ final class DependencyLoaderTest {
 
   @Test
   void shouldKeepTheVlcCapabilityWhenVlcIsReady() {
-    final Path libraryDirectory = Path.of("vlc");
+    final Path libraryDirectory = Path.of(VLC_DIRECTORY_NAME);
     final Optional<Path> found = Optional.of(libraryDirectory);
     final boolean hasVlc = vlcAvailableAfter(() -> found);
     assertTrue(hasVlc);
@@ -396,7 +405,7 @@ final class DependencyLoaderTest {
         );
         older.start();
         try {
-          final boolean enteredInTime = entered.await(10, TimeUnit.SECONDS);
+          final boolean enteredInTime = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
           assertTrue(enteredInTime);
           older.interrupt();
           prepareProgram(loader, capability, () -> {
@@ -405,13 +414,13 @@ final class DependencyLoaderTest {
             }
           });
           finish.countDown();
-          final boolean olderEnded = older.join(Duration.ofSeconds(10));
+          final boolean olderEnded = older.join(Duration.ofSeconds(TIMEOUT_SECONDS));
           assertTrue(olderEnded);
           final boolean capable = loader.hasCapability(capability);
           assertEquals(latestSucceeds, capable, capability + " keeps the newest preparation outcome");
         } finally {
           finish.countDown();
-          final boolean ended = older.join(Duration.ofSeconds(10));
+          final boolean ended = older.join(Duration.ofSeconds(TIMEOUT_SECONDS));
           assertTrue(ended);
         }
       }
@@ -430,7 +439,7 @@ final class DependencyLoaderTest {
       try {
         when(installer.download(true)).thenAnswer(_ -> {
           prepare.run();
-          return Path.of("prepared");
+          return Path.of(PREPARED_FILE_NAME);
         });
       } catch (final IOException exception) {
         throw new AssertionError(exception);
@@ -447,7 +456,7 @@ final class DependencyLoaderTest {
     });
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(true)).thenThrow(new IOException("offline!")).thenReturn(Path.of("yt-dlp"));
+    when(installer.download(true)).thenThrow(new IOException("offline!")).thenReturn(Path.of(YTDLP_FILE_NAME));
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {
       throw new UnsatisfiedLinkError("no libgtk-x11-2.0!");
@@ -458,7 +467,7 @@ final class DependencyLoaderTest {
     assertFalse(ytdlpBeforeRetry);
     final boolean faceDetectionBeforeRetry = loader.hasCapability(Capability.FACE_DETECTION);
     assertFalse(faceDetectionBeforeRetry);
-    loader.installVlc(() -> Optional.of(Path.of("vlc")));
+    loader.installVlc(() -> Optional.of(Path.of(VLC_DIRECTORY_NAME)));
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {});
     final boolean vlcAfterRetry = loader.hasCapability(Capability.VLC);
@@ -544,7 +553,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldInstallYtdlpWhenItIsSupported() throws IOException {
     final Installer installer = mock(Installer.class);
-    final Path installed = Path.of("yt-dlp");
+    final Path installed = Path.of(YTDLP_FILE_NAME);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenReturn(installed);
     final DependencyLoader loader = new DependencyLoader();
@@ -597,7 +606,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldUseTheSharedYtdlpInstallerOfTheLibrary() throws IOException {
     final YtdlpInstaller installer = mock(YtdlpInstaller.class);
-    final Path installed = Path.of("yt-dlp");
+    final Path installed = Path.of(YTDLP_FILE_NAME);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(true)).thenReturn(installed);
     try (final MockedStatic<YtdlpInstaller> installers = mockStatic(YtdlpInstaller.class)) {
@@ -643,8 +652,8 @@ final class DependencyLoaderTest {
       loader.installYtdlp(unsupported);
       return null;
     });
-    vlcInstallation.get(10, TimeUnit.SECONDS);
-    ytdlpInstallation.get(10, TimeUnit.SECONDS);
+    vlcInstallation.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    ytdlpInstallation.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     return loader;
   }
 
@@ -652,7 +661,7 @@ final class DependencyLoaderTest {
   void shouldReportFaceDetectionOnlyWhenItsNativesLoad() {
     final List<String> loaded = new ArrayList<>();
     final DependencyLoader available = new DependencyLoader();
-    available.loadFaceDetection(() -> loaded.add("objdetect"));
+    available.loadFaceDetection(() -> loaded.add(OBJECT_DETECTION_MODULE));
     final UnsatisfiedLinkError missingGtk = new UnsatisfiedLinkError("libgtk-x11-2.0.so.0: cannot open shared object file!");
     final DependencyLoader missing = new DependencyLoader();
     missing.loadFaceDetection(() -> {
@@ -670,7 +679,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldReportOptionalModulesThatLoad() {
     final List<String> loaded = new ArrayList<>();
-    final boolean available = DependencyLoader.loadOptionalModule(() -> loaded.add("objdetect"), "Face detection");
+    final boolean available = DependencyLoader.loadOptionalModule(() -> loaded.add(OBJECT_DETECTION_MODULE), FACE_DETECTION_MODULE_NAME);
     assertTrue(available);
     assertEquals(OBJECT_DETECTION_LOADED, loaded);
   }
@@ -681,10 +690,10 @@ final class DependencyLoaderTest {
     final NoClassDefFoundError failedInitializer = new NoClassDefFoundError("Could not initialize class opencv_highgui");
     final boolean withoutGtk = DependencyLoader.loadOptionalModule(() -> {
       throw missingGtk;
-    }, "Face detection");
+    }, FACE_DETECTION_MODULE_NAME);
     final boolean withoutClass = DependencyLoader.loadOptionalModule(() -> {
       throw failedInitializer;
-    }, "Face detection");
+    }, FACE_DETECTION_MODULE_NAME);
     assertFalse(withoutGtk);
     assertFalse(withoutClass);
   }
@@ -746,7 +755,7 @@ final class DependencyLoaderTest {
   void shouldLogHowLongPreparingYtdlpTookAndWhyItFailed() throws IOException {
     final Logger logger = mock(Logger.class);
     final Installer working = mock(Installer.class);
-    final Path installed = Path.of("yt-dlp");
+    final Path installed = Path.of(YTDLP_FILE_NAME);
     when(working.isSupported()).thenReturn(true);
     when(working.download(true)).thenReturn(installed);
     final Installer offline = mock(Installer.class);

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 final class LateFrameCounterTest {
 
   private static final long SECOND_MICROSECONDS = 1_000_000L;
+  private static final long STRETCH_MICROSECONDS = 10 * SECOND_MICROSECONDS;
 
   private final List<String> reports = new ArrayList<>();
   private final LateFrameCounter counter = new LateFrameCounter((dropped, frames) -> this.reports.add(dropped + " of " + frames));
@@ -57,9 +58,9 @@ final class LateFrameCounterTest {
   @Test
   void shouldEndAStretchOnlyOnceItsTenSecondsArePast() {
     this.everySecond(0, 9, true);
-    this.counter.count(10 * SECOND_MICROSECONDS - 1, true);
+    this.counter.count(STRETCH_MICROSECONDS - 1, true);
     final List<String> beforeTheEnd = List.copyOf(this.reports);
-    this.counter.count(10 * SECOND_MICROSECONDS, true);
+    this.counter.count(STRETCH_MICROSECONDS, true);
 
     assertEquals(List.of(), beforeTheEnd);
     assertEquals(List.of("12 of 12"), this.reports);
@@ -78,7 +79,7 @@ final class LateFrameCounterTest {
   void shouldDropOfHalfTheFramesAreNoReason() {
     for (int frame = 0; frame <= 21; frame++) {
       final boolean late = frame % 2 == 0;
-      this.counter.count((frame * 10 * SECOND_MICROSECONDS) / 21, late);
+      this.counter.count((frame * STRETCH_MICROSECONDS) / 21, late);
     }
 
     assertEquals(List.of(), this.reports, "eleven of twenty-two frames were dropped");
@@ -122,7 +123,7 @@ final class LateFrameCounterTest {
     for (int frame = 0; frame < 11; frame++) {
       this.counter.count(0L, true);
     }
-    this.counter.count(10 * SECOND_MICROSECONDS, true);
+    this.counter.count(STRETCH_MICROSECONDS, true);
 
     assertEquals(List.of("12 of 12"), this.reports);
   }

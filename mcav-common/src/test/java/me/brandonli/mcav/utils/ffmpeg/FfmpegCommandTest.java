@@ -36,6 +36,28 @@ import org.junit.jupiter.api.Test;
  */
 final class FfmpegCommandTest {
 
+  private static final String INPUT_FILE_NAME = "in.mp4";
+  private static final String OUTPUT_FILE_NAME = "out.mp4";
+
+  private static final String VIDEO_CODEC = "libx264";
+  private static final String AUDIO_CODEC = "aac";
+
+  private static final String VIDEO_BITRATE = "1M";
+  private static final String AUDIO_BITRATE = "128k";
+
+  private static final int FRAME_RATE = 30;
+
+  private static final int WIDTH = 640;
+  private static final int HEIGHT = 360;
+
+  private static final String FILTER = "scale=320:-1";
+
+  private static final String NO_AUDIO_ARGUMENT = "-an";
+  private static final String DURATION_ARGUMENT = "-t";
+  private static final String DURATION_SECONDS = "5";
+
+  private static final String VERSION_ARGUMENT = "-version";
+
   @Test
   void shouldEmitTheExecutableFromAnEmptyBuilder() {
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
@@ -49,42 +71,42 @@ final class FfmpegCommandTest {
   @Test
   void shouldAddEveryArgumentInOrderInTheBuilder() {
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    final FfmpegCommand.Builder returned = builder.addInput("in.mp4");
-    builder.addVideoCodec("libx264");
-    builder.addAudioCodec("aac");
-    builder.addBitrate("1M");
-    builder.addAudioBitrate("128k");
-    builder.addFramerate(30);
-    builder.addResolution(640, 360);
-    builder.addFilter("scale=320:-1");
-    builder.addArgument("-an");
-    builder.addArguments("-t", "5");
+    final FfmpegCommand.Builder returned = builder.addInput(INPUT_FILE_NAME);
+    builder.addVideoCodec(VIDEO_CODEC);
+    builder.addAudioCodec(AUDIO_CODEC);
+    builder.addBitrate(VIDEO_BITRATE);
+    builder.addAudioBitrate(AUDIO_BITRATE);
+    builder.addFramerate(FRAME_RATE);
+    builder.addResolution(WIDTH, HEIGHT);
+    builder.addFilter(FILTER);
+    builder.addArgument(NO_AUDIO_ARGUMENT);
+    builder.addArguments(DURATION_ARGUMENT, DURATION_SECONDS);
     builder.addOverwrite();
-    builder.addOutput("out.mp4");
+    builder.addOutput(OUTPUT_FILE_NAME);
     final FfmpegCommand command = builder.build();
     final List<String> arguments = command.getArguments();
     final List<String> expected = List.of(
       "-i",
-      "in.mp4",
+      INPUT_FILE_NAME,
       "-c:v",
-      "libx264",
+      VIDEO_CODEC,
       "-c:a",
-      "aac",
+      AUDIO_CODEC,
       "-b:v",
-      "1M",
+      VIDEO_BITRATE,
       "-b:a",
-      "128k",
+      AUDIO_BITRATE,
       "-r",
       "30",
       "-s",
       "640x360",
       "-filter_complex",
-      "scale=320:-1",
-      "-an",
-      "-t",
-      "5",
+      FILTER,
+      NO_AUDIO_ARGUMENT,
+      DURATION_ARGUMENT,
+      DURATION_SECONDS,
       "-y",
-      "out.mp4"
+      OUTPUT_FILE_NAME
     );
     assertSame(builder, returned);
     assertEquals(expected, arguments);
@@ -93,18 +115,18 @@ final class FfmpegCommandTest {
   @Test
   void shouldReturnTheSameBuilderFromEveryBuilderMethod() {
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    final FfmpegCommand.Builder afterInput = builder.addInput("in.mp4");
-    final FfmpegCommand.Builder afterOutput = builder.addOutput("out.mp4");
-    final FfmpegCommand.Builder afterVideoCodec = builder.addVideoCodec("libx264");
-    final FfmpegCommand.Builder afterAudioCodec = builder.addAudioCodec("aac");
-    final FfmpegCommand.Builder afterBitrate = builder.addBitrate("1M");
-    final FfmpegCommand.Builder afterAudioBitrate = builder.addAudioBitrate("128k");
-    final FfmpegCommand.Builder afterFramerate = builder.addFramerate(30);
-    final FfmpegCommand.Builder afterResolution = builder.addResolution(640, 360);
+    final FfmpegCommand.Builder afterInput = builder.addInput(INPUT_FILE_NAME);
+    final FfmpegCommand.Builder afterOutput = builder.addOutput(OUTPUT_FILE_NAME);
+    final FfmpegCommand.Builder afterVideoCodec = builder.addVideoCodec(VIDEO_CODEC);
+    final FfmpegCommand.Builder afterAudioCodec = builder.addAudioCodec(AUDIO_CODEC);
+    final FfmpegCommand.Builder afterBitrate = builder.addBitrate(VIDEO_BITRATE);
+    final FfmpegCommand.Builder afterAudioBitrate = builder.addAudioBitrate(AUDIO_BITRATE);
+    final FfmpegCommand.Builder afterFramerate = builder.addFramerate(FRAME_RATE);
+    final FfmpegCommand.Builder afterResolution = builder.addResolution(WIDTH, HEIGHT);
     final FfmpegCommand.Builder afterOverwrite = builder.addOverwrite();
-    final FfmpegCommand.Builder afterFilter = builder.addFilter("scale=320:-1");
-    final FfmpegCommand.Builder afterArgument = builder.addArgument("-an");
-    final FfmpegCommand.Builder afterArguments = builder.addArguments("-t", "5");
+    final FfmpegCommand.Builder afterFilter = builder.addFilter(FILTER);
+    final FfmpegCommand.Builder afterArgument = builder.addArgument(NO_AUDIO_ARGUMENT);
+    final FfmpegCommand.Builder afterArguments = builder.addArguments(DURATION_ARGUMENT, DURATION_SECONDS);
     assertSame(builder, afterInput);
     assertSame(builder, afterOutput);
     assertSame(builder, afterVideoCodec);
@@ -122,7 +144,7 @@ final class FfmpegCommandTest {
   @Test
   void shouldStartTheCommandWithTheBundledExecutable() throws IOException {
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    builder.addArgument("-version");
+    builder.addArgument(VERSION_ARGUMENT);
     final FfmpegCommand command = builder.build();
     final Path executable = command.getExecutable();
     final String executablePath = executable.toString();
@@ -134,7 +156,7 @@ final class FfmpegCommandTest {
     final String output = task.getOutput();
     final List<String> expectedTaskCommand = List.of(commandArray);
     final boolean printsTheVersion = output.startsWith("ffmpeg version");
-    assertArrayEquals(new String[] { executablePath, "-version" }, commandArray);
+    assertArrayEquals(new String[] { executablePath, VERSION_ARGUMENT }, commandArray);
     assertEquals(executablePath + " -version", text);
     assertEquals(expectedTaskCommand, taskCommand);
     assertEquals(0, exitCode);
@@ -144,11 +166,11 @@ final class FfmpegCommandTest {
   @Test
   void shouldCommandAreImmutable() {
     final FfmpegCommand.Builder builder = FfmpegCommand.builder();
-    builder.addArgument("-version");
+    builder.addArgument(VERSION_ARGUMENT);
     final FfmpegCommand command = builder.build();
     builder.addArgument("-h");
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-version");
+    final List<String> expected = List.of(VERSION_ARGUMENT);
     assertEquals(expected, arguments);
     assertThrows(UnsupportedOperationException.class, () -> arguments.add("-x"));
   }
@@ -168,7 +190,7 @@ final class FfmpegCommandTest {
     assertThrows(NullPointerException.class, () -> builder.addFilter(null));
     assertThrows(NullPointerException.class, () -> builder.addArgument(null));
     assertThrows(NullPointerException.class, () -> builder.addArguments((String[]) null));
-    assertThrows(NullPointerException.class, () -> builder.addArguments("-t", null));
+    assertThrows(NullPointerException.class, () -> builder.addArguments(DURATION_ARGUMENT, null));
   }
 
   @Test

@@ -43,21 +43,33 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class FfmpegTemplatesTest {
 
+  private static final String INPUT_NAME = "in.mp4";
+  private static final String MATROSKA_INPUT_NAME = "in.mkv";
+  private static final String OUTPUT_NAME = "out.mp4";
+  private static final String AUDIO_OUTPUT_NAME = "out.opus";
+  private static final String OGG_OUTPUT_NAME = "audio.ogg";
+  private static final String THUMBNAIL_NAME = "thumb.png";
+
+  private static final String PLACEHOLDER_INPUT = "i";
+  private static final String PLACEHOLDER_OUTPUT = "o";
+
+  private static final String VIDEO_BITRATE = "1M";
+
   @TempDir
   private Path directory;
 
   @Test
   void shouldKeepOnlyTheAudioTrackWhenExtractingAudio() {
-    final FfmpegCommand command = FfmpegTemplates.extractAudio("in.mp4", "libopus", "out.opus");
+    final FfmpegCommand command = FfmpegTemplates.extractAudio(INPUT_NAME, "libopus", AUDIO_OUTPUT_NAME);
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-i", "in.mp4", "-vn", "-strict", "-2", "-c:a", "libopus", "-y", "out.opus");
+    final List<String> expected = List.of("-i", INPUT_NAME, "-vn", "-strict", "-2", "-c:a", "libopus", "-y", AUDIO_OUTPUT_NAME);
     assertEquals(expected, arguments);
   }
 
   @Test
   void shouldProduceAPlayableFileWhenExtractingOggVorbis() throws IOException {
     final Path video = TestMedia.video();
-    final Path output = this.directory.resolve("audio.ogg");
+    final Path output = this.directory.resolve(OGG_OUTPUT_NAME);
     final String videoPath = video.toString();
     final String outputPath = output.toString();
     final FfmpegCommand command = FfmpegTemplates.extractOggVorbis(videoPath, outputPath);
@@ -104,56 +116,84 @@ final class FfmpegTemplatesTest {
 
   @Test
   void shouldSetBothBitratesWhenCompressingVideo() {
-    final FfmpegCommand command = FfmpegTemplates.compressVideo("in.mp4", "out.mp4", "1M", "96k");
+    final FfmpegCommand command = FfmpegTemplates.compressVideo(INPUT_NAME, OUTPUT_NAME, VIDEO_BITRATE, "96k");
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-i", "in.mp4", "-c:v", "libx264", "-b:v", "1M", "-c:a", "aac", "-b:a", "96k", "-y", "out.mp4");
+    final List<String> expected = List.of(
+      "-i",
+      INPUT_NAME,
+      "-c:v",
+      "libx264",
+      "-b:v",
+      VIDEO_BITRATE,
+      "-c:a",
+      "aac",
+      "-b:a",
+      "96k",
+      "-y",
+      OUTPUT_NAME
+    );
     assertEquals(expected, arguments);
   }
 
   @Test
   void shouldSeekBeforeTheInputWhenExtractingAClip() {
-    final FfmpegCommand command = FfmpegTemplates.extractClip("in.mp4", "out.mp4", "00:00:10", "5");
+    final FfmpegCommand command = FfmpegTemplates.extractClip(INPUT_NAME, OUTPUT_NAME, "00:00:10", "5");
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-ss", "00:00:10", "-i", "in.mp4", "-t", "5", "-c:v", "copy", "-c:a", "copy", "-y", "out.mp4");
+    final List<String> expected = List.of(
+      "-ss",
+      "00:00:10",
+      "-i",
+      INPUT_NAME,
+      "-t",
+      "5",
+      "-c:v",
+      "copy",
+      "-c:a",
+      "copy",
+      "-y",
+      OUTPUT_NAME
+    );
     assertEquals(expected, arguments);
   }
 
   @Test
   void shouldWriteOneFrameWhenCreatingAThumbnail() {
-    final FfmpegCommand command = FfmpegTemplates.createThumbnail("in.mp4", "thumb.png", "3");
+    final FfmpegCommand command = FfmpegTemplates.createThumbnail(INPUT_NAME, THUMBNAIL_NAME, "3");
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-ss", "3", "-i", "in.mp4", "-frames:v", "1", "-y", "thumb.png");
+    final List<String> expected = List.of("-ss", "3", "-i", INPUT_NAME, "-frames:v", "1", "-y", THUMBNAIL_NAME);
     assertEquals(expected, arguments);
   }
 
   @Test
   void shouldCopyBothStreamsWhenRemuxingVideo() {
-    final FfmpegCommand command = FfmpegTemplates.remuxVideo("in.mkv", "out.mp4");
+    final FfmpegCommand command = FfmpegTemplates.remuxVideo(MATROSKA_INPUT_NAME, OUTPUT_NAME);
     final List<String> arguments = command.getArguments();
-    final List<String> expected = List.of("-i", "in.mkv", "-c:v", "copy", "-c:a", "copy", "-y", "out.mp4");
+    final List<String> expected = List.of("-i", MATROSKA_INPUT_NAME, "-c:v", "copy", "-c:a", "copy", "-y", OUTPUT_NAME);
     assertEquals(expected, arguments);
   }
 
   @Test
   void shouldRejectMissingArguments() {
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio(null, "aac", "o"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio("i", null, "o"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio("i", "aac", null));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractOggVorbis(null, "o"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractOggVorbis("i", null));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo(null, "o", "1M", "1k"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo("i", null, "1M", "1k"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo("i", "o", null, "1k"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo("i", "o", "1M", null));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip(null, "o", "0", "1"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip("i", null, "0", "1"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip("i", "o", null, "1"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip("i", "o", "0", null));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail(null, "o", "0"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail("i", null, "0"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail("i", "o", null));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.remuxVideo(null, "o"));
-    assertThrows(NullPointerException.class, () -> FfmpegTemplates.remuxVideo("i", null));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio(null, "aac", PLACEHOLDER_OUTPUT));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio(PLACEHOLDER_INPUT, null, PLACEHOLDER_OUTPUT));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractAudio(PLACEHOLDER_INPUT, "aac", null));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractOggVorbis(null, PLACEHOLDER_OUTPUT));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractOggVorbis(PLACEHOLDER_INPUT, null));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo(null, PLACEHOLDER_OUTPUT, VIDEO_BITRATE, "1k"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo(PLACEHOLDER_INPUT, null, VIDEO_BITRATE, "1k"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.compressVideo(PLACEHOLDER_INPUT, PLACEHOLDER_OUTPUT, null, "1k"));
+    assertThrows(NullPointerException.class, () ->
+      FfmpegTemplates.compressVideo(PLACEHOLDER_INPUT, PLACEHOLDER_OUTPUT, VIDEO_BITRATE, null)
+    );
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip(null, PLACEHOLDER_OUTPUT, "0", "1"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip(PLACEHOLDER_INPUT, null, "0", "1"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip(PLACEHOLDER_INPUT, PLACEHOLDER_OUTPUT, null, "1"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.extractClip(PLACEHOLDER_INPUT, PLACEHOLDER_OUTPUT, "0", null));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail(null, PLACEHOLDER_OUTPUT, "0"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail(PLACEHOLDER_INPUT, null, "0"));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.createThumbnail(PLACEHOLDER_INPUT, PLACEHOLDER_OUTPUT, null));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.remuxVideo(null, PLACEHOLDER_OUTPUT));
+    assertThrows(NullPointerException.class, () -> FfmpegTemplates.remuxVideo(PLACEHOLDER_INPUT, null));
   }
 
   @Test

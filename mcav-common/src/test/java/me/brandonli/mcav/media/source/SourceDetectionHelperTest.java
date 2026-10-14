@@ -40,12 +40,16 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class SourceDetectionHelperTest {
 
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+
+  private static final String ANY_RESOURCE = "anything";
+
   @TempDir
   private Path directory;
 
   @Test
   void shouldDetectExistingFiles() throws IOException {
-    final Path file = this.directory.resolve("video.mp4");
+    final Path file = this.directory.resolve(VIDEO_FILE_NAME);
     Files.createFile(file);
     final SourceDetectionHelper helper = new SourceDetectionHelper();
     final String raw = file.toString();
@@ -92,7 +96,7 @@ final class SourceDetectionHelperTest {
     final SourceDetector<Source> refusing = new FixedDetector(tiedSource, Integer.MAX_VALUE, false);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, refusing, high, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
-    final Optional<Source> detected = helper.detectSource("anything");
+    final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
     final Source source = detected.orElseThrow();
     assertSame(highSource, source, "the first detector with the highest priority wins");
   }
@@ -105,7 +109,7 @@ final class SourceDetectionHelperTest {
     final SourceDetector<Source> tied = new FixedDetector(second, Integer.MIN_VALUE, true);
     final List<SourceDetector<? extends Source>> detectors = List.of(low, tied);
     final SourceDetectionHelper helper = new SourceDetectionHelper(detectors);
-    final Optional<Source> detected = helper.detectSource("anything");
+    final Optional<Source> detected = helper.detectSource(ANY_RESOURCE);
     final Source source = detected.orElseThrow();
     assertSame(first, source);
   }

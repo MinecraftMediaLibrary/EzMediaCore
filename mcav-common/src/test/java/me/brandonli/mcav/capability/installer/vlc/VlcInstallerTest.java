@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
@@ -68,6 +69,44 @@ final class VlcInstallerTest {
   private static final String ZIP_PATH = "/" + ZIP_NAME;
   private static final String[] ZIP_ENTRIES = { "vlc-3.0.24/libvlc.dll", "vlc-3.0.24/libvlccore.dll", "vlc-3.0.24/plugins/x.dll" };
 
+  private static final String VLC_DIRECTORY = "vlc";
+  private static final String LEFTOVER_DIRECTORY = "half-extracted";
+  private static final String SOURCE_ZIP_NAME = "vlc-source.zip";
+  private static final String APP_IMAGE_FILE = "fixture.AppImage";
+
+  private static final String MCAV_DIRECTORY = ".mcav";
+  private static final String CACHE_DIRECTORY = "cache";
+
+  private static final String JUNEST_DIRECTORY = "vlc-junest";
+  private static final String APP_DIRECTORY = "VLC.app";
+  private static final String UNRELATED_DIRECTORY = "vlc-other";
+
+  private static final String OUTSIDE_DIRECTORY = "outside";
+  private static final String KEPT_FILE = "kept.txt";
+  private static final String INNER_LINK_NAME = "link-to-outside";
+
+  private static final String NESTED_DIRECTORY = "nested";
+  private static final String TREE_FILE = "file.txt";
+  private static final String NESTED_FILE = "nested.txt";
+  private static final String FILE_CONTENT = "content";
+
+  private static final String CONTENTS_DIRECTORY = "Contents";
+  private static final String MAC_OS_DIRECTORY = "MacOS";
+  private static final String USR_DIRECTORY = "usr";
+  private static final String LIBRARY_DIRECTORY = "lib";
+  private static final String LINUX_LIBRARY_PATH = "usr/lib";
+
+  private static final String WINDOWS_LIBRARY = "libvlc.dll";
+  private static final String WINDOWS_CORE_LIBRARY = "libvlccore.dll";
+  private static final String MAC_LIBRARY = "libvlc.dylib";
+  private static final String MAC_CORE_LIBRARY = "libvlccore.dylib";
+  private static final String LINUX_LIBRARY = "libvlc.so.5";
+  private static final String LINUX_CORE_LIBRARY = "libvlccore.so.9";
+
+  private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";
+
+  private static final Pattern SHA256_PATTERN = Pattern.compile("[0-9a-f]{64}");
+
   @TempDir
   private Path folder;
 
@@ -86,7 +125,7 @@ final class VlcInstallerTest {
     final Path path = installer.getPath();
     final String name = installer.getName();
     final boolean isArchive = installer.isArchive();
-    final Path expected = this.folder.resolve("vlc");
+    final Path expected = this.folder.resolve(VLC_DIRECTORY);
     assertEquals(expected, installDirectory);
     assertEquals(expected, path);
     assertEquals("vlc", name);
@@ -100,8 +139,8 @@ final class VlcInstallerTest {
       final Path installerFolder = installer.getFolder();
       final Path defaultFolder = AbstractInstaller.getDefaultExecutableFolderPath();
       final Path redirectedHome = redirected.getHome();
-      final Path mcavFolder = redirectedHome.resolve(".mcav");
-      final Path expected = mcavFolder.resolve("cache");
+      final Path mcavFolder = redirectedHome.resolve(MCAV_DIRECTORY);
+      final Path expected = mcavFolder.resolve(CACHE_DIRECTORY);
       assertEquals(defaultFolder, installerFolder);
       assertEquals(expected, installerFolder);
     }
@@ -219,9 +258,9 @@ final class VlcInstallerTest {
 
   @Test
   void shouldDeleteTheInstallationsOfEarlierVersionsOnce() throws IOException {
-    final Path junest = createTree(this.folder, "vlc-junest");
-    final Path app = createTree(this.folder, "VLC.app");
-    final Path unrelated = createTree(this.folder, "vlc-other");
+    final Path junest = createTree(this.folder, JUNEST_DIRECTORY);
+    final Path app = createTree(this.folder, APP_DIRECTORY);
+    final Path unrelated = createTree(this.folder, UNRELATED_DIRECTORY);
     final VlcInstaller installer = VlcInstaller.create(this.folder);
     final Optional<Path> found = installer.findInstallation();
     final boolean nothingFound = found.isEmpty();
@@ -241,7 +280,7 @@ final class VlcInstallerTest {
 
   @Test
   void shouldLeaveFilesNamedLikeOldInstallationsAlone() throws IOException {
-    final Path file = this.folder.resolve("vlc-junest");
+    final Path file = this.folder.resolve(JUNEST_DIRECTORY);
     Files.writeString(file, "not a directory");
     VlcInstaller.removeLegacyInstallations(this.folder);
     final String content = Files.readString(file);
@@ -250,12 +289,12 @@ final class VlcInstallerTest {
 
   @Test
   void shouldNeverFollowLinksWhileDeletingOldInstallations() throws IOException {
-    final Path outside = createTree(this.folder, "outside");
-    final Path kept = outside.resolve("kept.txt");
-    Files.writeString(kept, "content");
-    final Path appLink = this.folder.resolve("VLC.app");
-    final Path junest = createTree(this.folder, "vlc-junest");
-    final Path innerLink = junest.resolve("link-to-outside");
+    final Path outside = createTree(this.folder, OUTSIDE_DIRECTORY);
+    final Path kept = outside.resolve(KEPT_FILE);
+    Files.writeString(kept, FILE_CONTENT);
+    final Path appLink = this.folder.resolve(APP_DIRECTORY);
+    final Path junest = createTree(this.folder, JUNEST_DIRECTORY);
+    final Path innerLink = junest.resolve(INNER_LINK_NAME);
     final boolean linksCreated = createSymbolicLink(appLink, outside) && createSymbolicLink(innerLink, outside);
     Assumptions.assumeTrue(linksCreated, "Symbolic links cannot be created here!");
 
@@ -272,8 +311,8 @@ final class VlcInstallerTest {
   void shouldKeepGoingWhenAnOldInstallationCannotBeDeleted() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Only Windows refuses to delete a file that is open!");
-    final Path app = createTree(this.folder, "VLC.app");
-    final Path locked = app.resolve("file.txt");
+    final Path app = createTree(this.folder, APP_DIRECTORY);
+    final Path locked = app.resolve(TREE_FILE);
     final File lockedFile = locked.toFile();
     try (final RandomAccessFile open = new RandomAccessFile(lockedFile, "r")) {
       VlcInstaller.removeLegacyInstallations(this.folder);
@@ -299,8 +338,8 @@ final class VlcInstallerTest {
   void shouldDownloadAndExtractTheWindowsZip() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     Assumptions.assumeTrue(operatingSystem == Os.WINDOWS, "Only the Windows installation can run without external tools!");
-    final Path vlcDirectory = this.folder.resolve("vlc");
-    final Path leftover = vlcDirectory.resolve("half-extracted");
+    final Path vlcDirectory = this.folder.resolve(VLC_DIRECTORY);
+    final Path leftover = vlcDirectory.resolve(LEFTOVER_DIRECTORY);
     Files.createDirectories(leftover);
     final byte[] zip = this.createVlcZip();
 
@@ -318,7 +357,7 @@ final class VlcInstallerTest {
   void shouldInstallALinuxArchiveThroughItsExecutableExtractionProtocol() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     Assumptions.assumeTrue(operatingSystem == Os.LINUX, "The executable fixture uses a POSIX shell!");
-    final Path archive = this.folder.resolve("fixture.AppImage");
+    final Path archive = this.folder.resolve(APP_IMAGE_FILE);
     // Model the AppImage extraction protocol, not the VLC binary: the returned library must never be loaded.
     final String script = """
     #!/bin/sh
@@ -333,8 +372,8 @@ final class VlcInstallerTest {
     final VlcInstaller installer = VlcInstaller.create(this.folder);
     final Path installed = installer.install(archive);
     final Path installDirectory = installer.getInstallDirectory();
-    final Path expected = installDirectory.resolve("usr/lib");
-    final Path core = installed.resolve("libvlccore.so.9");
+    final Path expected = installDirectory.resolve(LINUX_LIBRARY_PATH);
+    final Path core = installed.resolve(LINUX_CORE_LIBRARY);
     final String content = Files.readString(core);
     final boolean archiveRemains = Files.exists(archive);
     assertEquals(expected, installed);
@@ -346,7 +385,7 @@ final class VlcInstallerTest {
   void shouldKeepGoingWhenPosixPermissionsPreventLegacyDeletion() throws IOException {
     final Os operatingSystem = OsUtils.getOs();
     Assumptions.assumeTrue(operatingSystem == Os.LINUX, "This fixture exercises POSIX directory permissions!");
-    final Path legacy = createTree(this.folder, "VLC.app");
+    final Path legacy = createTree(this.folder, APP_DIRECTORY);
     final Set<PosixFilePermission> original = Files.getPosixFilePermissions(legacy);
     final Set<PosixFilePermission> readOnly = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE);
     try {
@@ -387,7 +426,7 @@ final class VlcInstallerTest {
 
   @Test
   void shouldBundleVerifiedDownloadsOfTheAdvertisedVersion() {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/vlc.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
     final String versionDirectory = "/" + VlcInstaller.VERSION + "/";
     final boolean anyDownloads = downloads.length > 0;
     assertTrue(anyDownloads);
@@ -407,7 +446,7 @@ final class VlcInstallerTest {
     assertNotNull(hash, url);
     final int length = hash.length();
     assertEquals(64, length, url);
-    final boolean hexadecimal = hash.matches("[0-9a-f]{64}");
+    final boolean hexadecimal = SHA256_PATTERN.matcher(hash).matches();
     assertTrue(hexadecimal, "a SHA-256 digest must be hexadecimal: " + url);
   }
 
@@ -420,7 +459,7 @@ final class VlcInstallerTest {
   }
 
   private void assertInstalledWithoutLeftovers(final Path installed, final Path leftover) {
-    final Path library = installed.resolve("libvlc.dll");
+    final Path library = installed.resolve(WINDOWS_LIBRARY);
     final Path archive = this.folder.resolve(ZIP_NAME);
     final boolean hasLibrary = Files.isRegularFile(library);
     final boolean leftoverExists = Files.exists(leftover);
@@ -432,12 +471,12 @@ final class VlcInstallerTest {
 
   private static Path createTree(final Path parent, final String name) throws IOException {
     final Path root = parent.resolve(name);
-    final Path nested = root.resolve("nested");
+    final Path nested = root.resolve(NESTED_DIRECTORY);
     Files.createDirectories(nested);
-    final Path file = root.resolve("file.txt");
-    Files.writeString(file, "content");
-    final Path nestedFile = nested.resolve("nested.txt");
-    Files.writeString(nestedFile, "content");
+    final Path file = root.resolve(TREE_FILE);
+    Files.writeString(file, FILE_CONTENT);
+    final Path nestedFile = nested.resolve(NESTED_FILE);
+    Files.writeString(nestedFile, FILE_CONTENT);
     return root;
   }
 
@@ -455,7 +494,7 @@ final class VlcInstallerTest {
     final boolean installable = VlcInstaller.hasStrategy(operatingSystem);
     final String message = "Operating system %s does not support installing VLC automatically!".formatted(operatingSystem);
     Assumptions.assumeTrue(installable, message);
-    final Path installDirectory = this.folder.resolve("vlc");
+    final Path installDirectory = this.folder.resolve(VLC_DIRECTORY);
     final Path relativeLibraryDirectory = relativeLibraryDirectory(operatingSystem);
     final Path libraryDirectory = installDirectory.resolve(relativeLibraryDirectory);
     final String libraryName = libraryName(operatingSystem);
@@ -463,9 +502,9 @@ final class VlcInstallerTest {
     Files.createDirectories(libraryDirectory);
     Files.writeString(library, "structural library fixture, never loaded");
     final String counterpart = switch (operatingSystem) {
-      case WINDOWS -> "libvlccore.dll";
-      case MAC -> "libvlccore.dylib";
-      case LINUX, FREEBSD, OTHER -> "libvlc.so.5";
+      case WINDOWS -> WINDOWS_CORE_LIBRARY;
+      case MAC -> MAC_CORE_LIBRARY;
+      case LINUX, FREEBSD, OTHER -> LINUX_LIBRARY;
     };
     final Path companion = libraryDirectory.resolve(counterpart);
     Files.writeString(companion, "structural companion fixture, never loaded");
@@ -475,21 +514,21 @@ final class VlcInstallerTest {
   private static Path relativeLibraryDirectory(final Os operatingSystem) {
     return switch (operatingSystem) {
       case WINDOWS -> Path.of("");
-      case MAC -> Path.of("VLC.app", "Contents", "MacOS", "lib");
-      case LINUX, FREEBSD, OTHER -> Path.of("usr", "lib");
+      case MAC -> Path.of(APP_DIRECTORY, CONTENTS_DIRECTORY, MAC_OS_DIRECTORY, LIBRARY_DIRECTORY);
+      case LINUX, FREEBSD, OTHER -> Path.of(USR_DIRECTORY, LIBRARY_DIRECTORY);
     };
   }
 
   private static String libraryName(final Os operatingSystem) {
     return switch (operatingSystem) {
-      case WINDOWS -> "libvlc.dll";
-      case MAC -> "libvlc.dylib";
-      case LINUX, FREEBSD, OTHER -> "libvlccore.so.9";
+      case WINDOWS -> WINDOWS_LIBRARY;
+      case MAC -> MAC_LIBRARY;
+      case LINUX, FREEBSD, OTHER -> LINUX_CORE_LIBRARY;
     };
   }
 
   private byte[] createVlcZip() throws IOException {
-    final Path zip = this.folder.resolve("vlc-source.zip");
+    final Path zip = this.folder.resolve(SOURCE_ZIP_NAME);
     try {
       writeZip(zip);
       return Files.readAllBytes(zip);

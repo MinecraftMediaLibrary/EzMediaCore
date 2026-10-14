@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
  */
 final class InstallerTest {
 
+  private static final String PROGRAM_NAME = "program";
+
   @Test
   void shouldFindNoInstallationUnlessTheInstallerKnowsHowToLookForOne() throws IOException {
     final Installer installer = new Installer() {
@@ -44,7 +46,7 @@ final class InstallerTest {
 
       @Override
       public Path getPath() {
-        return Path.of("program");
+        return Path.of(PROGRAM_NAME);
       }
     };
     final Optional<Path> installation = installer.findInstallation();

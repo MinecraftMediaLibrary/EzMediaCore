@@ -60,6 +60,10 @@ final class AudioRendererTest {
 
   private static final Duration TIMEOUT = Duration.ofSeconds(5);
 
+  private static final long QUIET_PERIOD_MILLISECONDS = 200L;
+
+  private static final int SURVIVING_CHUNK_COUNT = 2;
+
   private final MockVlc vlc = new MockVlc();
   private final VlcPlayer owner = this.vlc.newPlayer(1_000L);
   private final AudioRenderer renderer = new AudioRenderer(this.owner);
@@ -175,7 +179,7 @@ final class AudioRendererTest {
     final Memory memory = samples(interleaved);
     this.renderer.play(this.mediaPlayer, memory, 3, 1234L);
     memory.clear();
-    final boolean delivered = done.await(5, TimeUnit.SECONDS);
+    final boolean delivered = done.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(delivered);
 
     final ByteBuffer buffer = received.get();
@@ -200,10 +204,10 @@ final class AudioRendererTest {
     this.play((short) 1, (short) 1);
     this.renderer.start();
     this.play((short) 2, (short) 2);
-    final Short second = firstSamples.poll(5, TimeUnit.SECONDS);
+    final Short second = firstSamples.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     this.renderer.stop();
     this.play((short) 3, (short) 3);
-    final Short third = firstSamples.poll(200, TimeUnit.MILLISECONDS);
+    final Short third = firstSamples.poll(QUIET_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
     final boolean nothingElse = firstSamples.isEmpty();
     final Short expectedSecond = 2;
     assertEquals(expectedSecond, second);
@@ -225,7 +229,7 @@ final class AudioRendererTest {
     try {
       final Memory memory = samples((short) 1, (short) 1);
       detached.play(this.mediaPlayer, memory, 1, 0L);
-      final Short received = firstSamples.poll(200, TimeUnit.MILLISECONDS);
+      final Short received = firstSamples.poll(QUIET_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertNull(received, "samples played without a pipeline are never queued");
       verify(callback, times(1)).retrieve();
     } finally {
@@ -241,7 +245,7 @@ final class AudioRendererTest {
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     for (short chunk = 1; chunk <= 70; chunk++) {
@@ -266,7 +270,7 @@ final class AudioRendererTest {
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.play((short) 1, (short) 1);
@@ -274,7 +278,7 @@ final class AudioRendererTest {
     this.renderer.flush(this.mediaPlayer, 0L);
     this.play((short) 3, (short) 3);
     proceed.countDown();
-    awaitSize(received, 2);
+    awaitSize(received, SURVIVING_CHUNK_COUNT);
     final List<Short> expected = List.of((short) 0, (short) 3);
     assertEquals(expected, received);
   }
@@ -295,7 +299,7 @@ final class AudioRendererTest {
 
     this.renderer.start();
     this.play((short) 1, (short) 1);
-    final boolean ended = escaped.await(5L, TimeUnit.SECONDS);
+    final boolean ended = escaped.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     final Throwable observed = uncaught.get();
     final boolean reportedNothing = this.errors.isEmpty();
     assertTrue(ended);
@@ -324,7 +328,7 @@ final class AudioRendererTest {
     this.play((short) 1, (short) 1);
     this.play((short) 2, (short) 2);
     this.play((short) 3, (short) 3);
-    final boolean keptPlaying = third.await(5, TimeUnit.SECONDS);
+    final boolean keptPlaying = third.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     final List<String> expectedMessages = List.of("Audio filter failed", "Audio filter failed");
     final List<Throwable> expectedErrors = List.of(runtimeFailure, errorFailure);
     assertTrue(keptPlaying);
@@ -340,7 +344,7 @@ final class AudioRendererTest {
     this.attachBlockingRecorder(received, blocked, proceed);
     this.renderer.start();
     this.play((short) 0, (short) 0);
-    final boolean blocking = blocked.await(5, TimeUnit.SECONDS);
+    final boolean blocking = blocked.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
     assertTrue(blocking);
 
     this.play((short) 1, (short) 1);
@@ -348,7 +352,7 @@ final class AudioRendererTest {
     this.renderer.pause(this.mediaPlayer, 0L);
     this.play((short) 3, (short) 3);
     proceed.countDown();
-    awaitSize(received, 2);
+    awaitSize(received, SURVIVING_CHUNK_COUNT);
     final List<Short> expected = List.of((short) 0, (short) 3);
     assertEquals(expected, received, "audio queued before the pause does not play after it");
   }
@@ -404,7 +408,7 @@ final class AudioRendererTest {
       Polling.awaitCondition("the rendering failure was reported", TIMEOUT, () -> !reported.isEmpty());
       final Memory second = samples((short) 2, (short) 2);
       failing.play(this.mediaPlayer, second, 1, 0L);
-      final Short received = firstSamples.poll(5, TimeUnit.SECONDS);
+      final Short received = firstSamples.poll(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
       final List<String> expectedReports = List.of("Audio rendering failed: native failure!");
       final Short expectedSample = 2;
       assertEquals(expectedReports, reported);
@@ -426,7 +430,7 @@ final class AudioRendererTest {
    */
   private static void awaitRelease(final CountDownLatch proceed) {
     try {
-      final boolean released = proceed.await(5, TimeUnit.SECONDS);
+      final boolean released = proceed.await(TIMEOUT.toSeconds(), TimeUnit.SECONDS);
       assertTrue(released, "the test released the blocked filter");
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();

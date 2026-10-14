@@ -27,22 +27,26 @@ import org.junit.jupiter.api.Test;
  */
 final class PixelCacheKeyTest {
 
+  private static final long ADDRESS = 0x1000L;
+
+  private static final int WIDTH = 4;
+
   @Test
   void shouldFollowTheEqualityContract() {
-    final PixelCacheKey key = new PixelCacheKey(0x1000L, 4, 2);
-    final PixelCacheKey equalKey = new PixelCacheKey(0x1000L, 4, 2);
-    final PixelCacheKey otherAddress = new PixelCacheKey(0x2000L, 4, 2);
-    final PixelCacheKey otherWidth = new PixelCacheKey(0x1000L, 2, 2);
-    final PixelCacheKey otherHeight = new PixelCacheKey(0x1000L, 4, 1);
+    final PixelCacheKey key = new PixelCacheKey(ADDRESS, WIDTH, 2);
+    final PixelCacheKey equalKey = new PixelCacheKey(ADDRESS, WIDTH, 2);
+    final PixelCacheKey otherAddress = new PixelCacheKey(0x2000L, WIDTH, 2);
+    final PixelCacheKey otherWidth = new PixelCacheKey(ADDRESS, 2, 2);
+    final PixelCacheKey otherHeight = new PixelCacheKey(ADDRESS, WIDTH, 1);
     EqualityAssertions.assertEqualityContract(key, equalKey, otherAddress, otherWidth, otherHeight);
   }
 
   @Test
   void shouldHashTheAddressThenTheWidthThenTheHeight() {
-    final PixelCacheKey key = new PixelCacheKey(0x1000L, 4, 3);
+    final PixelCacheKey key = new PixelCacheKey(ADDRESS, WIDTH, 3);
 
     final int hash = key.hashCode();
-    final int expected = (Long.hashCode(0x1000L) * 31 + 4) * 31 + 3;
+    final int expected = (Long.hashCode(ADDRESS) * 31 + WIDTH) * 31 + 3;
     assertEquals(expected, hash);
   }
 

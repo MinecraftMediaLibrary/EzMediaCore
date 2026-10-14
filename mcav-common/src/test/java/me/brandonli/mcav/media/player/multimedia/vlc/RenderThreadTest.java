@@ -41,6 +41,8 @@ final class RenderThreadTest {
   private static final long TIMEOUT_SECONDS = 5L;
   private static final String THREAD_NAME = "test-render";
 
+  private static final int THIRD_STEP = 3;
+
   private final List<RuntimeException> unexpectedFailures = Collections.synchronizedList(new ArrayList<>());
   private final List<RenderThread> strictThreads = new ArrayList<>();
 
@@ -74,7 +76,7 @@ final class RenderThreadTest {
       if (step == 1) {
         throw failure;
       }
-      if (step == 3) {
+      if (step == THIRD_STEP) {
         third.countDown();
       }
       Thread.sleep(5);
@@ -116,7 +118,7 @@ final class RenderThreadTest {
       final Thread current = Thread.currentThread();
       worker.set(current);
       final int step = steps.incrementAndGet();
-      if (step >= 3) {
+      if (step >= THIRD_STEP) {
         blocked.countDown();
         never.await();
       }
@@ -158,7 +160,7 @@ final class RenderThreadTest {
     assertFalse(runningAfterStop);
     assertTrue(cleaned, "stop waits until the thread has cleaned up");
     assertWorkerExited(workerThread);
-    assertEquals(3, stepCount);
+    assertEquals(THIRD_STEP, stepCount);
   }
 
   @Test

@@ -51,17 +51,25 @@ import org.mockito.Mockito;
 
 final class ExampleResourcesTest {
 
+  private static final String API_RESOURCE = "api";
+  private static final String PLAYER_RESOURCE = "player";
+  private static final String SPEAKERS_RESOURCE = "speakers";
+
+  private static final long TIMEOUT_SECONDS = 5;
+
+  private static final String WINDOW_TITLE = "test";
+
   @Test
   void shouldReleaseInReverseAcquisitionOrderExactlyOnce() {
     final List<String> closed = new ArrayList<>();
     final ExampleResources resources = new ExampleResources();
-    resources.add(() -> closed.add("api"));
+    resources.add(() -> closed.add(API_RESOURCE));
     resources.add(() -> closed.add("window"));
-    resources.add(() -> closed.add("speakers"));
-    resources.add(() -> closed.add("player"));
+    resources.add(() -> closed.add(SPEAKERS_RESOURCE));
+    resources.add(() -> closed.add(PLAYER_RESOURCE));
     resources.close();
     resources.close();
-    final List<String> expected = List.of("player", "speakers", "window", "api");
+    final List<String> expected = List.of(PLAYER_RESOURCE, SPEAKERS_RESOURCE, "window", API_RESOURCE);
     assertEquals(expected, closed);
   }
 
@@ -71,13 +79,13 @@ final class ExampleResourcesTest {
     final IllegalStateException first = new IllegalStateException("player!");
     final AssertionError second = new AssertionError("speakers!");
     final ExampleResources resources = new ExampleResources();
-    resources.add(() -> closed.add("api"));
+    resources.add(() -> closed.add(API_RESOURCE));
     resources.add(() -> {
-      closed.add("speakers");
+      closed.add(SPEAKERS_RESOURCE);
       throw second;
     });
     resources.add(() -> {
-      closed.add("player");
+      closed.add(PLAYER_RESOURCE);
       throw first;
     });
     final IllegalStateException thrown = assertThrows(IllegalStateException.class, resources::close);
@@ -85,7 +93,7 @@ final class ExampleResourcesTest {
     final Throwable[] suppressed = thrown.getSuppressed();
     final Throwable[] expectedFailures = { second };
     assertArrayEquals(expectedFailures, suppressed);
-    final List<String> expected = List.of("player", "speakers", "api");
+    final List<String> expected = List.of(PLAYER_RESOURCE, SPEAKERS_RESOURCE, API_RESOURCE);
     assertEquals(expected, closed);
     resources.close();
   }
@@ -95,7 +103,7 @@ final class ExampleResourcesTest {
     final List<String> closed = new ArrayList<>();
     final AssertionError failure = new AssertionError("native cleanup!");
     final ExampleResources resources = new ExampleResources();
-    resources.add(() -> closed.add("api"));
+    resources.add(() -> closed.add(API_RESOURCE));
     resources.add(() -> {
       throw failure;
     });
@@ -106,7 +114,7 @@ final class ExampleResourcesTest {
     assertSame(failure, thrown);
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(0, suppressed.length, "repeated failure instances cannot be suppressed onto themselves");
-    final List<String> expected = List.of("api");
+    final List<String> expected = List.of(API_RESOURCE);
     assertEquals(expected, closed);
   }
 
@@ -133,22 +141,22 @@ final class ExampleResourcesTest {
     });
     final CompletableFuture<Void> owner = CompletableFuture.runAsync(resources::close);
     try {
-      final boolean started = entered.await(5, TimeUnit.SECONDS);
+      final boolean started = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started, "the owner must reenter close without joining itself");
       final CountDownLatch otherEntered = new CountDownLatch(1);
       final CompletableFuture<Void> other = CompletableFuture.runAsync(() -> {
         otherEntered.countDown();
         resources.close();
       });
-      final boolean otherStarted = otherEntered.await(5, TimeUnit.SECONDS);
+      final boolean otherStarted = otherEntered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(otherStarted, "the competing closer must run before testing that it waits");
       assertThrows(TimeoutException.class, () -> other.get(100, TimeUnit.MILLISECONDS));
       resume.complete(null);
-      owner.get(5, TimeUnit.SECONDS);
-      other.get(5, TimeUnit.SECONDS);
+      owner.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      other.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     } finally {
       resume.complete(null);
-      owner.get(5, TimeUnit.SECONDS);
+      owner.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       resources.close();
     }
   }
@@ -158,7 +166,7 @@ final class ExampleResourcesTest {
     final List<String> closed = new ArrayList<>();
     final OutOfMemoryError fatal = new OutOfMemoryError("synthetic cleanup failure!");
     final ExampleResources resources = new ExampleResources();
-    resources.add(() -> closed.add("api"));
+    resources.add(() -> closed.add(API_RESOURCE));
     resources.add(() -> {
       throw fatal;
     });
@@ -178,7 +186,7 @@ final class ExampleResourcesTest {
         doThrow(fatal).when(frame).dispose();
       })
     ) {
-      final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> new SwingVideoWindow("test", 1, 1));
+      final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, () -> new SwingVideoWindow(WINDOW_TITLE, 1, 1));
       assertSame(fatal, thrown);
       final List<JFrame> constructed = frames.constructed();
       final int constructedCount = constructed.size();
@@ -230,7 +238,7 @@ final class ExampleResourcesTest {
             dispatcher.start();
             return null;
           });
-        SwingVideoWindow.open("test", 1, 1);
+        SwingVideoWindow.open(WINDOW_TITLE, 1, 1);
         callerFailure.complete(new AssertionError("fatal creation unexpectedly returned!"));
       } catch (final Throwable exception) {
         callerFailure.complete(exception);
@@ -239,8 +247,8 @@ final class ExampleResourcesTest {
     caller.setDaemon(true);
     caller.start();
     try {
-      final Throwable received = callerFailure.get(5, TimeUnit.SECONDS);
-      final Throwable dispatched = dispatchFailure.get(5, TimeUnit.SECONDS);
+      final Throwable received = callerFailure.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      final Throwable dispatched = dispatchFailure.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertSame(fatal, received, "the main-thread caller must receive the fatal error, not a CompletionException wrapper");
       assertSame(fatal, dispatched, "the dispatch task must publish before propagating its fatal error");
     } finally {

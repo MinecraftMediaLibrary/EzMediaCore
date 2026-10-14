@@ -27,14 +27,17 @@ import org.junit.jupiter.api.Test;
 
 final class RuntimeDependenciesTest {
 
+  private static final String NATIVE_BRIDGE_CLASS = "com/sun/jna/Native.class";
+  private static final String NATIVE_PLATFORM_TYPES_CLASS = "com/sun/jna/platform/win32/WinDef.class";
+
   @Test
   void shouldHaveOneRuntimeDefinitionOfTheNativeBridge() throws IOException {
-    assertSingleDefinition("com/sun/jna/Native.class");
+    assertSingleDefinition(NATIVE_BRIDGE_CLASS);
   }
 
   @Test
   void shouldHaveOneRuntimeDefinitionOfTheNativePlatformTypes() throws IOException {
-    assertSingleDefinition("com/sun/jna/platform/win32/WinDef.class");
+    assertSingleDefinition(NATIVE_PLATFORM_TYPES_CLASS);
   }
 
   private static void assertSingleDefinition(final String name) throws IOException {

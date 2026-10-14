@@ -36,6 +36,9 @@ final class VlcTestSupport {
 
   private static final String UNAVAILABLE = loadVlc();
 
+  private static final String VIDEO_EXTENSION = ".mp4";
+  private static final String SIZE_SEPARATOR = "x";
+
   private VlcTestSupport() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -78,7 +81,7 @@ final class VlcTestSupport {
    * @return the video file
    */
   static Path solidVideo(final Path directory, final String color, final int width, final int height) {
-    final Path output = directory.resolve(color + "-" + width + "x" + height + ".mp4");
+    final Path output = directory.resolve(color + "-" + width + SIZE_SEPARATOR + height + VIDEO_EXTENSION);
     return GeneratedMedia.generate(output, temporary -> solidVideoCommand(color, width, height, temporary));
   }
 
@@ -94,7 +97,7 @@ final class VlcTestSupport {
   }
 
   private static List<String> solidVideoArguments(final String color, final int width, final int height, final String outputPath) {
-    final String colorSource = "color=c=" + color + ":size=" + width + "x" + height + ":rate=30";
+    final String colorSource = "color=c=" + color + ":size=" + width + SIZE_SEPARATOR + height + ":rate=30";
     return List.of(
       "-hide_banner",
       "-loglevel",

@@ -51,18 +51,38 @@ final class TemporalDitherTest {
   private static final int DIM = 1;
   private static final int BRIGHTEST = 2;
 
+  private static final int OPAQUE_BLACK = 0xFF000000;
+  private static final int OPAQUE_RED = 0xFFFF0000;
+  private static final int OPAQUE_GREEN = 0xFF00FF00;
+  private static final int DARK_RED = 0xFF400000;
+  private static final int DARK_GRAY = 0xFF606060;
+  private static final int MIDDLE_GRAY = 0xFF808080;
+
+  private static final int SMALL_THRESHOLD = 8;
+  private static final int DARK_RED_DRIFT = 191;
+  private static final int MAXIMUM_THRESHOLD = 255;
+
+  private static final int DARK_GRAY_ERROR = 288;
+
+  private static final int SOLID_FRAME_SIDE = 16;
+
+  private static final int GRADIENT_WIDTH = 320;
+  private static final int GRADIENT_HEIGHT = 180;
+
+  private static final int PARALLELISM = 4;
+
   private static byte[] ditherSolid(final TemporalDitherAlgorithm dither, final int argb) {
-    final int[] pixels = new int[16 * 16];
+    final int[] pixels = new int[SOLID_FRAME_SIDE * SOLID_FRAME_SIDE];
     Arrays.fill(pixels, argb);
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 16, 16)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SOLID_FRAME_SIDE, SOLID_FRAME_SIDE)) {
       return dither.ditherIntoBytes(image);
     }
   }
 
   private static byte[] ditherSolidInParallel(final TemporalDitherAlgorithm dither, final int argb, final ForkJoinPool pool) {
-    final int[] pixels = new int[16 * 16];
+    final int[] pixels = new int[SOLID_FRAME_SIDE * SOLID_FRAME_SIDE];
     Arrays.fill(pixels, argb);
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 16, 16)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SOLID_FRAME_SIDE, SOLID_FRAME_SIDE)) {
       return dither.ditherIntoBytes(image, pool);
     }
   }
@@ -109,9 +129,9 @@ final class TemporalDitherTest {
 
   @Test
   void shouldDitherIdenticalFramesIdentically() {
-    final int[] pixels = DitherTestImages.gradient(320, 180);
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, GRADIENT_HEIGHT);
     final TemporalDitherAlgorithm dither = DitherAlgorithm.temporalFloydSteinberg();
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 320, 180)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, GRADIENT_HEIGHT)) {
       final byte[] first = dither.ditherIntoBytes(image);
       final byte[] second = dither.ditherIntoBytes(image);
       assertArrayEquals(first, second);
@@ -120,11 +140,11 @@ final class TemporalDitherTest {
 
   @Test
   void shouldDitherDeterministicallyInParallelAndMatchTheSerialBrightness() {
-    final int width = 320;
-    final int height = 180;
+    final int width = GRADIENT_WIDTH;
+    final int height = GRADIENT_HEIGHT;
     final int[] pixels = DitherTestImages.gradient(width, height);
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE);
-    final ForkJoinPool pool = new ForkJoinPool(4);
+    final ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
     try (final ImageBuffer image = ImageBuffer.buffer(pixels, width, height)) {
       final byte[] serial = dither.ditherIntoBytes(image);
       dither.resetTemporalState();
@@ -142,9 +162,12 @@ final class TemporalDitherTest {
 
   @Test
   void shouldSplitTheFrameIntoOneStripPerThread() {
-    final int[] pixels = DitherTestImages.gradient(320, 180);
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, GRADIENT_HEIGHT);
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE);
-    try (final ForkJoinPool pool = new ForkJoinPool(4); final ImageBuffer image = ImageBuffer.buffer(pixels, 320, 180)) {
+    try (
+      final ForkJoinPool pool = new ForkJoinPool(PARALLELISM);
+      final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, GRADIENT_HEIGHT)
+    ) {
       final byte[] indices = dither.ditherIntoBytes(image, pool);
       final CRC32 checksum = new CRC32();
       checksum.update(indices);
@@ -156,11 +179,11 @@ final class TemporalDitherTest {
 
   @Test
   void shouldKeepThePreviousColorWhileTheWantedColorStaysClose() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 191, NO_DIFFUSION, 1.0f);
-    final TemporalDitherAlgorithm fresh = new TemporalFloydSteinbergDither(PRIMARIES, 191, NO_DIFFUSION, 1.0f);
-    final byte[] exact = ditherSolid(dither, 0xFFFF0000);
-    final byte[] darkRed = ditherSolid(dither, 0xFF400000);
-    final byte[] freshDarkRed = ditherSolid(fresh, 0xFF400000);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, DARK_RED_DRIFT, NO_DIFFUSION, 1.0f);
+    final TemporalDitherAlgorithm fresh = new TemporalFloydSteinbergDither(PRIMARIES, DARK_RED_DRIFT, NO_DIFFUSION, 1.0f);
+    final byte[] exact = ditherSolid(dither, OPAQUE_RED);
+    final byte[] darkRed = ditherSolid(dither, DARK_RED);
+    final byte[] freshDarkRed = ditherSolid(fresh, DARK_RED);
     assertAll(exact, RED, "pure red is red");
     assertAll(freshDarkRed, BLACK, "without a previous frame, a dark red is closest to black");
     assertAll(darkRed, RED, "a drift of exactly the threshold, 0xFF - 0x40 = 191, keeps the previous color");
@@ -168,8 +191,8 @@ final class TemporalDitherTest {
 
   @Test
   void shouldDiffuseTheRemainingErrorOfKeptPixels() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 8, 4, 1.0f);
-    ditherSolid(dither, 0xFFFF0000);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, SMALL_THRESHOLD, 4, 1.0f);
+    ditherSolid(dither, OPAQUE_RED);
     final byte[] slightlyDarker = ditherSolid(dither, 0xFFF70000);
     final int red = countRed(slightlyDarker);
     final boolean almostAllRed = red > (slightlyDarker.length * 9) / 10;
@@ -182,7 +205,7 @@ final class TemporalDitherTest {
   void shouldDiffuseOnlyTheConfiguredShareOfTheErrorOfKeptPixels() {
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 100, 0, 0.0f);
     final byte[] dark = ditherSolid(dither, 0xFF404040);
-    final byte[] lighter = ditherSolid(dither, 0xFF606060);
+    final byte[] lighter = ditherSolid(dither, DARK_GRAY);
     final double darkRatio = DitherTestImages.whiteRatio(dark);
     assertEquals(0.0, darkRatio, "a dark gray is black");
     final double lighterRatio = DitherTestImages.whiteRatio(lighter);
@@ -193,8 +216,8 @@ final class TemporalDitherTest {
   void shouldRecomputePixelsWhenAnyChannelDriftsTooFar() {
     final int[][] drifts = { { 0xFFFFFF00, YELLOW }, { 0xFFFF00FF, MAGENTA }, { 0xFF00FF00, GREEN } };
     for (final int[] drift : drifts) {
-      final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 8, NO_DIFFUSION, 1.0f);
-      ditherSolid(dither, 0xFFFF0000);
+      final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, SMALL_THRESHOLD, NO_DIFFUSION, 1.0f);
+      ditherSolid(dither, OPAQUE_RED);
       final byte[] indices = ditherSolid(dither, drift[0]);
       final String target = Integer.toHexString(drift[0]);
       assertAll(indices, drift[1], "drifting to " + target);
@@ -203,18 +226,18 @@ final class TemporalDitherTest {
 
   @Test
   void shouldForgetThePreviousFrameWhenTheSizeChangesOrOnReset() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 255, NO_DIFFUSION, 1.0f);
-    final byte[] red = ditherSolid(dither, 0xFFFF0000);
-    final byte[] greenKeptRed = ditherSolid(dither, 0xFF00FF00);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, MAXIMUM_THRESHOLD, NO_DIFFUSION, 1.0f);
+    final byte[] red = ditherSolid(dither, OPAQUE_RED);
+    final byte[] greenKeptRed = ditherSolid(dither, OPAQUE_GREEN);
     dither.resetTemporalState();
-    final byte[] greenAfterReset = ditherSolid(dither, 0xFF00FF00);
+    final byte[] greenAfterReset = ditherSolid(dither, OPAQUE_GREEN);
     final int[] smallRedPixels = new int[8 * 8];
-    Arrays.fill(smallRedPixels, 0xFFFF0000);
+    Arrays.fill(smallRedPixels, OPAQUE_RED);
     final byte[] smallRed;
     try (final ImageBuffer smaller = ImageBuffer.buffer(smallRedPixels, 8, 8)) {
       smallRed = dither.ditherIntoBytes(smaller);
     }
-    final byte[] greenAfterResize = ditherSolid(dither, 0xFF00FF00);
+    final byte[] greenAfterResize = ditherSolid(dither, OPAQUE_GREEN);
     assertAll(red, RED, "the first frame is red");
     assertAll(greenKeptRed, RED, "a threshold of 255 keeps every previous color");
     assertAll(greenAfterReset, GREEN, "a reset forgets the previous frame");
@@ -225,27 +248,32 @@ final class TemporalDitherTest {
 
   @Test
   void shouldLetCallersOwnTheReturnedIndices() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 255, NO_DIFFUSION, 1.0f);
-    final byte[] first = ditherSolid(dither, 0xFFFF0000);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, MAXIMUM_THRESHOLD, NO_DIFFUSION, 1.0f);
+    final byte[] first = ditherSolid(dither, OPAQUE_RED);
     Arrays.fill(first, (byte) GREEN);
-    final byte[] second = ditherSolid(dither, 0xFF00FF00);
+    final byte[] second = ditherSolid(dither, OPAQUE_GREEN);
     final byte[] secondCopy = second.clone();
     Arrays.fill(second, (byte) BLACK);
-    final byte[] third = ditherSolid(dither, 0xFF00FF00);
+    final byte[] third = ditherSolid(dither, OPAQUE_GREEN);
     assertAll(secondCopy, RED, "changing the returned indices does not change what the algorithm remembers");
     assertAll(third, RED, "not even once the algorithm reuses the array of the frame before");
   }
 
   @Test
   void shouldIgnoreTinyErrorsAndScaleTheRest() {
-    final TemporalDitherAlgorithm damped = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, NO_DIFFUSION, 0.5f);
-    final TemporalDitherAlgorithm halfStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 0, 0.5f);
-    final TemporalDitherAlgorithm fullStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 0, 1.0f);
-    final byte[] dampedIndices = ditherSolid(damped, 0xFF606060);
-    final byte[] halfIndices = ditherSolid(halfStrength, 0xFF606060);
+    final TemporalDitherAlgorithm damped = new TemporalFloydSteinbergDither(
+      DitherTestImages.BLACK_WHITE,
+      SMALL_THRESHOLD,
+      NO_DIFFUSION,
+      0.5f
+    );
+    final TemporalDitherAlgorithm halfStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, SMALL_THRESHOLD, 0, 0.5f);
+    final TemporalDitherAlgorithm fullStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, SMALL_THRESHOLD, 0, 1.0f);
+    final byte[] dampedIndices = ditherSolid(damped, DARK_GRAY);
+    final byte[] halfIndices = ditherSolid(halfStrength, DARK_GRAY);
     final double dampedRatio = DitherTestImages.whiteRatio(dampedIndices);
     final double halfRatio = DitherTestImages.whiteRatio(halfIndices);
-    final byte[] fullIndices = ditherSolid(fullStrength, 0xFF606060);
+    final byte[] fullIndices = ditherSolid(fullStrength, DARK_GRAY);
     final double fullRatio = DitherTestImages.whiteRatio(fullIndices);
     final float strength = halfStrength.getErrorStrength();
     assertEquals(0.0, dampedRatio, "without diffusion a dark gray is all black");
@@ -258,42 +286,47 @@ final class TemporalDitherTest {
 
   @Test
   void shouldHonorTheErrorThresholdAndStrengthWhenDitheringInPlace() {
-    final TemporalDitherAlgorithm threshold = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 288, 1.0f);
-    final TemporalDitherAlgorithm zeroStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 0, 0.0f);
-    final int[] expected = new int[16 * 16];
-    Arrays.fill(expected, 0xFF000000);
+    final TemporalDitherAlgorithm threshold = new TemporalFloydSteinbergDither(
+      DitherTestImages.BLACK_WHITE,
+      SMALL_THRESHOLD,
+      DARK_GRAY_ERROR,
+      1.0f
+    );
+    final TemporalDitherAlgorithm zeroStrength = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, SMALL_THRESHOLD, 0, 0.0f);
+    final int[] expected = new int[SOLID_FRAME_SIDE * SOLID_FRAME_SIDE];
+    Arrays.fill(expected, OPAQUE_BLACK);
     for (final TemporalDitherAlgorithm dither : new TemporalDitherAlgorithm[] { threshold, zeroStrength }) {
-      final int[] pixels = new int[16 * 16];
-      Arrays.fill(pixels, 0xFF606060);
-      dither.dither(pixels, 16);
+      final int[] pixels = new int[SOLID_FRAME_SIDE * SOLID_FRAME_SIDE];
+      Arrays.fill(pixels, DARK_GRAY);
+      dither.dither(pixels, SOLID_FRAME_SIDE);
       assertArrayEquals(expected, pixels);
     }
   }
 
   @Test
   void shouldNotReadOrReplaceTheRememberedVideoFrameWhenDitheringInPlace() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 255, NO_DIFFUSION, 1.0f);
-    ditherSolid(dither, 0xFFFF0000);
-    final int[] green = new int[16 * 16];
-    Arrays.fill(green, 0xFF00FF00);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, MAXIMUM_THRESHOLD, NO_DIFFUSION, 1.0f);
+    ditherSolid(dither, OPAQUE_RED);
+    final int[] green = new int[SOLID_FRAME_SIDE * SOLID_FRAME_SIDE];
+    Arrays.fill(green, OPAQUE_GREEN);
     final int[] expected = green.clone();
-    dither.dither(green, 16);
+    dither.dither(green, SOLID_FRAME_SIDE);
     assertArrayEquals(expected, green, "in-place still images do not reuse the video frame");
-    final byte[] remembered = ditherSolid(dither, 0xFF00FF00);
+    final byte[] remembered = ditherSolid(dither, OPAQUE_GREEN);
     assertAll(remembered, RED, "in-place still images do not replace video history");
   }
 
   @Test
   void shouldAcceptTheBoundaryValuesOfItsSettings() {
     final TemporalDitherAlgorithm lowest = new TemporalFloydSteinbergDither(PRIMARIES, 0, 0, 0.0f);
-    final TemporalDitherAlgorithm highest = new TemporalFloydSteinbergDither(PRIMARIES, 255, 0, 1.0f);
+    final TemporalDitherAlgorithm highest = new TemporalFloydSteinbergDither(PRIMARIES, MAXIMUM_THRESHOLD, 0, 1.0f);
     final int lowestThreshold = lowest.getTemporalThreshold();
     final float lowestStrength = lowest.getErrorStrength();
     final int highestThreshold = highest.getTemporalThreshold();
     final float highestStrength = highest.getErrorStrength();
     assertEquals(0, lowestThreshold, "a threshold of 0 is allowed");
     assertEquals(0.0f, lowestStrength, "and so is a strength of 0");
-    assertEquals(255, highestThreshold);
+    assertEquals(MAXIMUM_THRESHOLD, highestThreshold);
     assertEquals(1.0f, highestStrength);
   }
 
@@ -301,7 +334,7 @@ final class TemporalDitherTest {
   void shouldRememberTheIndicesOfTheFrameBeforeAndNotOfAnOlderOne() {
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(NEAR_BLACK, 40, NO_DIFFUSION, 1.0f);
     final byte[] white = ditherSolid(dither, 0xFFFFFFFF);
-    final byte[] black = ditherSolid(dither, 0xFF000000);
+    final byte[] black = ditherSolid(dither, OPAQUE_BLACK);
     final byte[] slightlyBrighter = ditherSolid(dither, 0xFF181818);
     assertAll(white, BRIGHTEST, "the first frame has no previous frame");
     assertAll(black, DARKEST, "a drift of 255 recomputes the color");
@@ -310,11 +343,11 @@ final class TemporalDitherTest {
 
   @Test
   void shouldRememberTheIndicesOfFramesThatWereDitheredInParallel() {
-    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, 191, NO_DIFFUSION, 1.0f);
+    final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES, DARK_RED_DRIFT, NO_DIFFUSION, 1.0f);
     final ForkJoinPool pool = new ForkJoinPool(2);
     try {
-      final byte[] red = ditherSolidInParallel(dither, 0xFFFF0000, pool);
-      final byte[] darkRed = ditherSolidInParallel(dither, 0xFF400000, pool);
+      final byte[] red = ditherSolidInParallel(dither, OPAQUE_RED, pool);
+      final byte[] darkRed = ditherSolidInParallel(dither, DARK_RED, pool);
       assertAll(red, RED, "pure red is red");
       assertAll(darkRed, RED, "the parallel path remembers its frame, so a drift of exactly 191 keeps red");
     } finally {
@@ -334,7 +367,7 @@ final class TemporalDitherTest {
   @Test
   void shouldReuseThePreviousColorEvenWhenItIsTheFirstOfThePalette() {
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(NEAR_BLACK, 13, NO_DIFFUSION, 1.0f);
-    final byte[] black = ditherSolid(dither, 0xFF000000);
+    final byte[] black = ditherSolid(dither, OPAQUE_BLACK);
     final byte[] slightlyBrighter = ditherSolid(dither, 0xFF0C0C0C);
     assertAll(black, DARKEST, "black is the first color of the palette");
     assertAll(slightlyBrighter, DARKEST, "index 0 is reused like every other index");
@@ -342,10 +375,15 @@ final class TemporalDitherTest {
 
   @Test
   void shouldDiffuseNothingWhenTheErrorIsExactlyTheThreshold() {
-    final TemporalDitherAlgorithm atThreshold = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 288, 1.0f);
-    final TemporalDitherAlgorithm justBelow = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, 8, 287, 1.0f);
-    final byte[] uniform = ditherSolid(atThreshold, 0xFF606060);
-    final byte[] diffused = ditherSolid(justBelow, 0xFF606060);
+    final TemporalDitherAlgorithm atThreshold = new TemporalFloydSteinbergDither(
+      DitherTestImages.BLACK_WHITE,
+      SMALL_THRESHOLD,
+      DARK_GRAY_ERROR,
+      1.0f
+    );
+    final TemporalDitherAlgorithm justBelow = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE, SMALL_THRESHOLD, 287, 1.0f);
+    final byte[] uniform = ditherSolid(atThreshold, DARK_GRAY);
+    final byte[] diffused = ditherSolid(justBelow, DARK_GRAY);
     final double uniformRatio = DitherTestImages.whiteRatio(uniform);
     final double diffusedRatio = DitherTestImages.whiteRatio(diffused);
     assertEquals(0.0, uniformRatio, "an error of exactly the threshold is not diffused");
@@ -358,7 +396,7 @@ final class TemporalDitherTest {
     final int width = 64;
     final int height = 64;
     final int[] gray = new int[width * height];
-    Arrays.fill(gray, 0xFF808080);
+    Arrays.fill(gray, MIDDLE_GRAY);
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(DitherTestImages.BLACK_WHITE);
     final ForkJoinPool pool = new ForkJoinPool(3);
     try (final ImageBuffer image = ImageBuffer.buffer(gray, width, height)) {
@@ -373,7 +411,7 @@ final class TemporalDitherTest {
   @Test
   void shouldRejectAnIncompleteFinalRowBeforeChangingAnyPixels() {
     final TemporalDitherAlgorithm dither = new TemporalFloydSteinbergDither(PRIMARIES);
-    final int[] pixels = { 0xFF808080, 0xFF808080, 0xFF808080 };
+    final int[] pixels = { MIDDLE_GRAY, MIDDLE_GRAY, MIDDLE_GRAY };
     final int[] original = pixels.clone();
     assertThrows(IllegalArgumentException.class, () -> dither.dither(pixels, 2));
     assertArrayEquals(original, pixels);

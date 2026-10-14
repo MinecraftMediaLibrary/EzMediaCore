@@ -37,6 +37,19 @@ import org.junit.jupiter.api.Test;
  */
 final class GeometryFiltersTest {
 
+  private static final int SQUARE_SIDE = 4;
+  private static final int SHRUNK_SIDE = 2;
+
+  private static final int SMALL_SQUARE_SIDE = 2;
+
+  private static final int RECTANGLE_WIDTH = 3;
+  private static final int RECTANGLE_HEIGHT = 2;
+
+  private static final int ENLARGED_WIDTH = 8;
+  private static final int ENLARGED_HEIGHT = 6;
+
+  private static final int BLACK = 0xFF000000;
+
   private static int[] indices(final ImageBuffer image) {
     final int[] pixels = image.getPixels();
     final int[] indices = new int[pixels.length];
@@ -47,7 +60,7 @@ final class GeometryFiltersTest {
   }
 
   private static boolean crop(final int left, final int top, final int width, final int height) {
-    try (final ImageBuffer image = Images.indexed(4, 4)) {
+    try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
       final CropFilter filter = new CropFilter(left, top, width, height);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
       final boolean changed = filter.applyFilter(image);
@@ -55,9 +68,9 @@ final class GeometryFiltersTest {
         final ByteBuffer imageData = image.getData();
         assertEquals(before, imageData);
         final int imageWidth = image.getWidth();
-        assertEquals(4, imageWidth);
+        assertEquals(SQUARE_SIDE, imageWidth);
         final int imageHeight = image.getHeight();
-        assertEquals(4, imageHeight);
+        assertEquals(SQUARE_SIDE, imageHeight);
       }
       return changed;
     }
@@ -65,7 +78,7 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldCropToTheRequestedRegion() {
-    try (final ImageBuffer image = Images.indexed(4, 4)) {
+    try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
       final CropFilter filter = new CropFilter(1, 1, 2, 2);
       final boolean modified = filter.applyFilter(image);
       final int width = image.getWidth();
@@ -78,7 +91,7 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldClampCropsThatReachBeyondTheFrame() {
-    try (final ImageBuffer image = Images.indexed(4, 4)) {
+    try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
       final CropFilter filter = new CropFilter(2, 2, 10, 10);
       filter.applyFilter(image);
       final int[] indices = indices(image);
@@ -120,11 +133,11 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldResizUpAndDown() {
-    try (final ImageBuffer image = Images.indexed(4, 4)) {
-      final ResizeFilter same = new ResizeFilter(4, 4);
-      final ResizeFilter shorter = new ResizeFilter(4, 2);
-      final ResizeFilter narrower = new ResizeFilter(2, 2);
-      final ResizeFilter larger = new ResizeFilter(8, 6);
+    try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
+      final ResizeFilter same = new ResizeFilter(SQUARE_SIDE, SQUARE_SIDE);
+      final ResizeFilter shorter = new ResizeFilter(SQUARE_SIDE, SHRUNK_SIDE);
+      final ResizeFilter narrower = new ResizeFilter(SHRUNK_SIDE, SHRUNK_SIDE);
+      final ResizeFilter larger = new ResizeFilter(ENLARGED_WIDTH, ENLARGED_HEIGHT);
       final boolean sameModified = same.applyFilter(image);
       final boolean shorterModified = shorter.applyFilter(image);
       final int shorterHeight = image.getHeight();
@@ -137,12 +150,12 @@ final class GeometryFiltersTest {
       final int pixelCount = largerPixels.length;
       assertFalse(sameModified);
       assertTrue(shorterModified);
-      assertEquals(2, shorterHeight);
+      assertEquals(SHRUNK_SIDE, shorterHeight);
       assertTrue(narrowerModified);
-      assertEquals(2, narrowerWidth);
+      assertEquals(SHRUNK_SIDE, narrowerWidth);
       assertTrue(largerModified);
-      assertEquals(8, largerWidth);
-      assertEquals(6, largerHeight);
+      assertEquals(ENLARGED_WIDTH, largerWidth);
+      assertEquals(ENLARGED_HEIGHT, largerHeight);
       assertEquals(48, pixelCount);
     }
   }
@@ -152,7 +165,7 @@ final class GeometryFiltersTest {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 3 : 1;
       final int height = horizontal ? 1 : 3;
-      try (final ImageBuffer image = Images.solid(width, height, 0xFF000000)) {
+      try (final ImageBuffer image = Images.solid(width, height, BLACK)) {
         image.setPixel(horizontal ? 1 : 0, horizontal ? 0 : 1, new double[] { 90.0, 90.0, 90.0 });
         final ResizeFilter filter = new ResizeFilter(1, 1);
         final boolean modified = filter.applyFilter(image);
@@ -168,7 +181,7 @@ final class GeometryFiltersTest {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 2 : 1;
       final int height = horizontal ? 1 : 2;
-      try (final ImageBuffer image = Images.solid(width, height, 0xFF000000)) {
+      try (final ImageBuffer image = Images.solid(width, height, BLACK)) {
         image.setPixel(horizontal ? 1 : 0, horizontal ? 0 : 1, new double[] { 80.0, 80.0, 80.0 });
         final ResizeFilter filter = new ResizeFilter(horizontal ? 4 : 1, horizontal ? 1 : 4);
         final boolean modified = filter.applyFilter(image);
@@ -181,10 +194,10 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldKnowTheTargetSizeOfAResize() {
-    final ResizeFilter filter = new ResizeFilter(8, 6);
-    final boolean exact = filter.matches(8, 6);
-    final boolean otherHeight = filter.matches(8, 7);
-    final boolean otherWidth = filter.matches(7, 6);
+    final ResizeFilter filter = new ResizeFilter(ENLARGED_WIDTH, ENLARGED_HEIGHT);
+    final boolean exact = filter.matches(ENLARGED_WIDTH, ENLARGED_HEIGHT);
+    final boolean otherHeight = filter.matches(ENLARGED_WIDTH, 7);
+    final boolean otherWidth = filter.matches(7, ENLARGED_HEIGHT);
     assertTrue(exact);
     assertFalse(otherHeight);
     assertFalse(otherWidth);
@@ -198,9 +211,9 @@ final class GeometryFiltersTest {
   @Test
   void shouldRotateInEveryDirection() {
     try (
-      final ImageBuffer clockwise = Images.indexed(3, 2);
-      final ImageBuffer halfTurn = Images.indexed(3, 2);
-      final ImageBuffer counterClockwise = Images.indexed(3, 2)
+      final ImageBuffer clockwise = Images.indexed(RECTANGLE_WIDTH, RECTANGLE_HEIGHT);
+      final ImageBuffer halfTurn = Images.indexed(RECTANGLE_WIDTH, RECTANGLE_HEIGHT);
+      final ImageBuffer counterClockwise = Images.indexed(RECTANGLE_WIDTH, RECTANGLE_HEIGHT)
     ) {
       final RotationFilter clockwiseFilter = new RotationFilter(RotationFilter.Rotation.ROTATE_90_CLOCKWISE);
       final RotationFilter halfTurnFilter = new RotationFilter(RotationFilter.Rotation.ROTATE_180);
@@ -239,7 +252,7 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldTransposeRowsAndColumns() {
-    try (final ImageBuffer image = Images.indexed(3, 2)) {
+    try (final ImageBuffer image = Images.indexed(RECTANGLE_WIDTH, RECTANGLE_HEIGHT)) {
       final TransposeFilter filter = new TransposeFilter();
       final boolean modified = filter.applyFilter(image);
       final int width = image.getWidth();
@@ -257,9 +270,9 @@ final class GeometryFiltersTest {
   @Test
   void shouldFlipInEveryDirection() {
     try (
-      final ImageBuffer horizontal = Images.indexed(2, 2);
-      final ImageBuffer vertical = Images.indexed(2, 2);
-      final ImageBuffer both = Images.indexed(2, 2)
+      final ImageBuffer horizontal = Images.indexed(SMALL_SQUARE_SIDE, SMALL_SQUARE_SIDE);
+      final ImageBuffer vertical = Images.indexed(SMALL_SQUARE_SIDE, SMALL_SQUARE_SIDE);
+      final ImageBuffer both = Images.indexed(SMALL_SQUARE_SIDE, SMALL_SQUARE_SIDE)
     ) {
       final FlipFilter horizontalFilter = new FlipFilter(FlipFilter.FlipDirection.HORIZONTAL);
       final FlipFilter verticalFilter = new FlipFilter(FlipFilter.FlipDirection.VERTICAL);
@@ -288,19 +301,19 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldAllocateNoMatrixOnceTheSizesAreSettledWhenResizingEveryFrame() {
-    try (final ImageBuffer image = Images.indexed(4, 4)) {
+    try (final ImageBuffer image = Images.indexed(SQUARE_SIDE, SQUARE_SIDE)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
-      final ResizeFilter filter = new ResizeFilter(2, 2);
-      final int[] frame = Images.indexedPixels(4, 4);
+      final ResizeFilter filter = new ResizeFilter(SHRUNK_SIDE, SHRUNK_SIDE);
+      final int[] frame = Images.indexedPixels(SQUARE_SIDE, SQUARE_SIDE);
       filter.applyFilter(image);
       final Mat firstResult = buffer.getMat();
       final int[] firstPixels = image.getPixels();
-      image.updateArgb(frame, 4, 4);
+      image.updateArgb(frame, SQUARE_SIDE, SQUARE_SIDE);
       final Mat firstFrame = buffer.getMat();
       filter.applyFilter(image);
       final Mat secondResult = buffer.getMat();
       final int[] secondPixels = image.getPixels();
-      image.updateArgb(frame, 4, 4);
+      image.updateArgb(frame, SQUARE_SIDE, SQUARE_SIDE);
       final Mat secondFrame = buffer.getMat();
       assertSame(firstResult, secondResult, "the result goes into the matrix of the previous result");
       assertSame(firstFrame, secondFrame, "and the player refills the frame into the matrix of the previous frame");
@@ -310,7 +323,7 @@ final class GeometryFiltersTest {
 
   @Test
   void shouldSwapBetweenTwoMatricesForSizePreservingRotations() {
-    try (final ImageBuffer image = Images.indexed(2, 2)) {
+    try (final ImageBuffer image = Images.indexed(SMALL_SQUARE_SIDE, SMALL_SQUARE_SIDE)) {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final RotationFilter filter = new RotationFilter(RotationFilter.Rotation.ROTATE_180);
       final Mat original = buffer.getMat();

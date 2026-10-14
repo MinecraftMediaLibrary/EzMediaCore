@@ -78,11 +78,114 @@ final class IoUtilsTest {
   private static final byte[] ABC = "abc".getBytes(StandardCharsets.US_ASCII);
   private static final Duration SHORT_RETRY_DELAY = Duration.ofMillis(1);
 
+  private static final Map<String, String> CREATE_ENVIRONMENT = Map.of("create", "true");
+
+  private static final int MAXIMUM_MOVE_ATTEMPTS = 3;
+
+  private static final int GENEROUS_LIMIT = 100;
+
+  private static final String FILLER_CHARACTER = "x";
+
+  private static final String FILE_CONTENT = "content";
+  private static final String EVIL_CONTENT = "evil";
+  private static final String ORIGINAL_CONTENT = "original";
+  private static final String OVERWRITTEN_CONTENT = "overwritten";
+  private static final String ONE_CONTENT = "1234";
+  private static final String TWO_CONTENT = "5678";
+
+  private static final String SAMPLE_DOWNLOADS_RESOURCE = "installers/sample.json";
+  private static final String EMPTY_DOWNLOADS_RESOURCE = "installers/empty.json";
+  private static final String INVALID_DOWNLOADS_RESOURCE = "installers/invalid.json";
+  private static final String MISSING_DOWNLOADS_RESOURCE = "installers/missing.json";
+  private static final String ANY_RESOURCE = "x";
+
+  private static final String NESTED_DIRECTORIES_PATH = "a/b/c";
+  private static final String FILE_NAME = "file.txt";
+  private static final String CHILD_NAME = "child";
+  private static final String NESTED_NEW_FILE_PATH = "x/y/file.txt";
+  private static final String CHILD_FILE_NAME = "child.txt";
+  private static final String RELATIVE_FILE_NAME = "relative.txt";
+  private static final String TOOL_PATH = "/tool";
+  private static final String MISSING_TOOL_PATH = "/missing";
+  private static final String WINDOWS_TOOL_PATH = "C:\\tool.exe";
+  private static final String HASHED_FILE_NAME = "abc.txt";
+  private static final String MISSING_FILE_NAME = "missing.txt";
+  private static final String NAMED_FILE_NAME = "name.txt";
+  private static final String NEW_FILE_NAME = "new.txt";
+  private static final String REPLACED_FILE_NAME = "target.txt";
+  private static final String SOURCE_NAME = "source";
+  private static final String TARGET_NAME = "target";
+  private static final String TREE_DIRECTORY = "tree";
+  private static final String NESTED_DIRECTORY = "nested";
+  private static final String MISSING_NAME = "missing";
+
+  private static final String FOLDER_ENTRY = "folder/";
+  private static final String INNER_FILE_PATH = "folder/inner.txt";
+  private static final String TOP_FILE_NAME = "top.txt";
+  private static final String ESCAPE_FILE_NAME = "escape.txt";
+  private static final String PARENT_ESCAPE_PATH = "../escape.txt";
+  private static final String NESTED_ESCAPE_PATH = "nested/../../escape.txt";
+  private static final String SIBLING_ESCAPE_PATH = "../safe-sibling/escape.txt";
+  private static final String ABSOLUTE_ESCAPE_PATH = "/escape.txt";
+  private static final String NUL_ESCAPE_PATH = "../\u0000escape.txt";
+  private static final String BACKSLASH_ESCAPE_PATH = "../\\escape.txt";
+  private static final String FOLDER_BACKSLASH_ESCAPE_PATH = "folder/\\escape.txt";
+  private static final String SAFE_SIBLING_DIRECTORY = "safe-sibling";
+  private static final String LINKED_KEPT_PATH = "linked/kept.txt";
+  private static final String LINKED_CREATED_ENTRY = "linked/created/";
+  private static final String ENTRY_FILE_NAME = "entry.txt";
+  private static final String NESTED_FILE_PATH = "nested/file.txt";
+  private static final String INSIDE_DOT_DOT_PATH = "folder/../inside.txt";
+  private static final String INSIDE_FILE_NAME = "inside.txt";
+  private static final String ONE_FILE_NAME = "one.txt";
+  private static final String TWO_FILE_NAME = "two.txt";
+  private static final String FIRST_FILE_NAME = "first.txt";
+  private static final String SECOND_FILE_NAME = "second.txt";
+  private static final String LARGE_FILE_NAME = "large.txt";
+  private static final String EMPTY_FILE_NAME = "empty.txt";
+
+  private static final String SAFE_DIRECTORY = "safe";
+  private static final String EXTRACTED_DIRECTORY = "extracted";
+  private static final String OUTSIDE_DIRECTORY = "outside";
+  private static final String KEPT_FILE_NAME = "kept.txt";
+  private static final String LINKED_DIRECTORY = "linked";
+  private static final String CREATED_DIRECTORY = "created";
+  private static final String OUTSIDE_FILE_NAME = "outside.txt";
+  private static final String REAL_DIRECTORY = "real";
+  private static final String ALIAS_DIRECTORY = "alias";
+  private static final String INSIDE_DIRECTORY = "inside";
+  private static final String ENTRY_LIMIT_DIRECTORY = "entry-limit";
+  private static final String TOTAL_LIMIT_DIRECTORY = "total-limit";
+  private static final String LIMITED_DIRECTORY = "limited";
+  private static final String MULTI_READ_DIRECTORY = "multi-read-entry";
+  private static final String ZERO_LIMIT_DIRECTORY = "zero-limit";
+  private static final String INVALID_LIMIT_DIRECTORY = "invalid-limit";
+  private static final String EXACT_DIRECTORY = "exact";
+  private static final String OUTPUT_DIRECTORY = "out";
+  private static final String TRUNCATED_OUTPUT_DIRECTORY = "truncated-output";
+  private static final String COMMENTED_OUTPUT_DIRECTORY = "commented-output";
+  private static final String LONG_COMMENT_OUTPUT_DIRECTORY = "long-comment-output";
+  private static final String EMPTY_OUTPUT_DIRECTORY = "empty-out";
+
+  private static final String ZIP_ROOT = "/";
+  private static final String ARCHIVE_NAME = "archive.zip";
+  private static final String CONTAINER_ARCHIVE_NAME = "container.zip";
+  private static final String MISSING_ARCHIVE_NAME = "missing.zip";
+  private static final String NOT_A_ZIP_ARCHIVE_NAME = "not-a-zip.zip";
+  private static final String TRUNCATED_ARCHIVE_NAME = "truncated.zip";
+  private static final String COMMENTED_ARCHIVE_NAME = "commented.zip";
+  private static final String COMMENT_TRUNCATED_ARCHIVE_NAME = "comment-truncated.zip";
+  private static final String LONG_COMMENT_ARCHIVE_NAME = "long-comment.zip";
+  private static final String LONG_COMMENT_TRUNCATED_ARCHIVE_NAME = "long-comment-truncated.zip";
+  private static final String TRUNCATED_HEADER_PREFIX = "header-";
+  private static final String NAME_SEPARATOR = "-";
+  private static final String ZIP_EXTENSION = ".zip";
+
   @TempDir
   private Path directory;
 
   private Path writeZip(final String... namesAndContents) throws IOException {
-    final Path archive = this.directory.resolve("archive.zip");
+    final Path archive = this.directory.resolve(ARCHIVE_NAME);
     try (final OutputStream fileOutput = Files.newOutputStream(archive); final ZipOutputStream zip = new ZipOutputStream(fileOutput)) {
       for (int index = 0; index < namesAndContents.length; index += 2) {
         final String name = namesAndContents[index];
@@ -141,13 +244,13 @@ final class IoUtilsTest {
 
   @Test
   void shouldCreateMissingDirectoriesOnly() throws IOException {
-    final Path nested = this.directory.resolve("a/b/c");
+    final Path nested = this.directory.resolve(NESTED_DIRECTORIES_PATH);
     final boolean created = IoUtils.createDirectoryIfNotExists(nested);
     final boolean createdAgain = IoUtils.createDirectoryIfNotExists(nested);
     final boolean isDirectory = Files.isDirectory(nested);
-    final Path file = this.directory.resolve("file.txt");
+    final Path file = this.directory.resolve(FILE_NAME);
     Files.createFile(file);
-    final Path belowFile = file.resolve("child");
+    final Path belowFile = file.resolve(CHILD_NAME);
     assertTrue(created);
     assertFalse(createdAgain);
     assertTrue(isDirectory);
@@ -157,11 +260,11 @@ final class IoUtilsTest {
 
   @Test
   void shouldCreateMissingFilesAndTheirParents() {
-    final Path nested = this.directory.resolve("x/y/file.txt");
+    final Path nested = this.directory.resolve(NESTED_NEW_FILE_PATH);
     final boolean created = IoUtils.createFileIfNotExists(nested);
     final boolean createdAgain = IoUtils.createFileIfNotExists(nested);
     final boolean isFile = Files.isRegularFile(nested);
-    final Path belowFile = nested.resolve("child.txt");
+    final Path belowFile = nested.resolve(CHILD_FILE_NAME);
     assertTrue(created);
     assertFalse(createdAgain);
     assertTrue(isFile);
@@ -173,7 +276,7 @@ final class IoUtilsTest {
   void shouldCreateFilesWithoutAParentInTheWorkingDirectory() throws IOException {
     final Configuration configuration = Configuration.unix();
     try (final FileSystem fileSystem = Jimfs.newFileSystem(configuration)) {
-      final Path relative = fileSystem.getPath("relative.txt");
+      final Path relative = fileSystem.getPath(RELATIVE_FILE_NAME);
       final boolean created = IoUtils.createFileIfNotExists(relative);
       final boolean exists = Files.exists(relative);
       assertTrue(created);
@@ -188,12 +291,12 @@ final class IoUtilsTest {
     builder.setAttributeViews("basic", "owner", "posix", "unix");
     final Configuration configuration = builder.build();
     try (final FileSystem fileSystem = Jimfs.newFileSystem(configuration)) {
-      final Path tool = fileSystem.getPath("/tool");
+      final Path tool = fileSystem.getPath(TOOL_PATH);
       Files.createFile(tool);
       IoUtils.markExecutable(tool);
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(tool);
       final Set<PosixFilePermission> expected = PosixFilePermissions.fromString("rwxr-xr-x");
-      final Path missing = fileSystem.getPath("/missing");
+      final Path missing = fileSystem.getPath(MISSING_TOOL_PATH);
       assertEquals(expected, permissions);
       assertThrows(UncheckedIOException.class, () -> IoUtils.markExecutable(missing));
     }
@@ -203,7 +306,7 @@ final class IoUtilsTest {
   void shouldLeaveFilesAloneOnOtherFileSystems() throws IOException {
     final Configuration configuration = Configuration.windows();
     try (final FileSystem fileSystem = Jimfs.newFileSystem(configuration)) {
-      final Path tool = fileSystem.getPath("C:\\tool.exe");
+      final Path tool = fileSystem.getPath(WINDOWS_TOOL_PATH);
       IoUtils.markExecutable(tool);
       final boolean exists = Files.exists(tool);
       assertFalse(exists, "nothing is touched without POSIX permissions");
@@ -213,11 +316,11 @@ final class IoUtilsTest {
 
   @Test
   void shouldHashFiles() throws IOException {
-    final Path file = this.directory.resolve("abc.txt");
+    final Path file = this.directory.resolve(HASHED_FILE_NAME);
     Files.write(file, ABC);
     final String sha256 = IoUtils.getSha256Hash(file);
     final String sha1 = IoUtils.getSha1Hash(file);
-    final Path missing = this.directory.resolve("missing.txt");
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", sha256);
     assertEquals("a9993e364706816aba3e25717850c26c9cd0d89d", sha1);
     assertThrows(UncheckedIOException.class, () -> IoUtils.getSha256Hash(missing));
@@ -235,10 +338,10 @@ final class IoUtilsTest {
 
   @Test
   void shouldGetTheNameOfPaths() {
-    final Path file = this.directory.resolve("name.txt");
+    final Path file = this.directory.resolve(NAMED_FILE_NAME);
     final Path root = this.directory.getRoot();
     final String name = IoUtils.getName(file);
-    assertEquals("name.txt", name);
+    assertEquals(NAMED_FILE_NAME, name);
     assertThrows(IllegalArgumentException.class, () -> IoUtils.getName(root));
     assertThrows(NullPointerException.class, () -> IoUtils.getName(null));
   }
@@ -272,8 +375,8 @@ final class IoUtilsTest {
 
   @Test
   void shouldReadDownloadListsFromResources() {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("installers/sample.json");
-    final Download[] none = IoUtils.readDownloadsFromJsonResource("installers/empty.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(SAMPLE_DOWNLOADS_RESOURCE);
+    final Download[] none = IoUtils.readDownloadsFromJsonResource(EMPTY_DOWNLOADS_RESOURCE);
     final Download linux = downloads[0];
     final Platform platform = linux.getPlatform();
     final Platform expectedPlatform = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
@@ -282,20 +385,20 @@ final class IoUtilsTest {
     assertEquals(0, none.length);
     assertEquals(expectedPlatform, platform);
     assertEquals("https://example.com/tool-linux", url);
-    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource("installers/invalid.json"));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource("installers/missing.json"));
+    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(INVALID_DOWNLOADS_RESOURCE));
+    assertThrows(UncheckedIOException.class, () -> IoUtils.readDownloadsFromJsonResource(MISSING_DOWNLOADS_RESOURCE));
     assertThrows(NullPointerException.class, () -> IoUtils.readDownloadsFromJsonResource(null));
   }
 
   @Test
   void shouldOpenResources() throws IOException {
     final String content;
-    try (final Reader reader = IoUtils.getResourceAsStreamReader("installers/empty.json")) {
+    try (final Reader reader = IoUtils.getResourceAsStreamReader(EMPTY_DOWNLOADS_RESOURCE)) {
       final char[] buffer = new char[16];
       final int read = reader.read(buffer);
       content = new String(buffer, 0, read);
     }
-    try (final InputStream stream = IoUtils.getResourceAsInputStream("installers/empty.json")) {
+    try (final InputStream stream = IoUtils.getResourceAsInputStream(EMPTY_DOWNLOADS_RESOURCE)) {
       final byte[] bytes = stream.readAllBytes();
       final String text = new String(bytes, StandardCharsets.UTF_8);
       assertEquals(content, text);
@@ -305,9 +408,9 @@ final class IoUtilsTest {
 
   @Test
   void shouldReportResourcesThatCannotBeFound() {
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream("installers/empty.json", String.class));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream("installers/missing.json"));
-    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsStreamReader("installers/missing.json"));
+    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream(EMPTY_DOWNLOADS_RESOURCE, String.class));
+    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsInputStream(MISSING_DOWNLOADS_RESOURCE));
+    assertThrows(UncheckedIOException.class, () -> IoUtils.getResourceAsStreamReader(MISSING_DOWNLOADS_RESOURCE));
   }
 
   @Test
@@ -315,16 +418,16 @@ final class IoUtilsTest {
     assertThrows(NullPointerException.class, () -> IoUtils.getResourceAsStreamReader(null));
     assertThrows(NullPointerException.class, () -> IoUtils.getResourceAsInputStream(null));
     assertThrows(NullPointerException.class, () -> IoUtils.getResourceAsInputStream(null, IoUtils.class));
-    assertThrows(NullPointerException.class, () -> IoUtils.getResourceAsInputStream("x", null));
+    assertThrows(NullPointerException.class, () -> IoUtils.getResourceAsInputStream(ANY_RESOURCE, null));
   }
 
   @Test
   void shouldExtractZipArchives() throws IOException {
-    final Path archive = this.writeZip("folder/", "", "folder/inner.txt", "inner", "top.txt", "top");
-    final Path destination = this.directory.resolve("extracted");
+    final Path archive = this.writeZip(FOLDER_ENTRY, "", INNER_FILE_PATH, "inner", TOP_FILE_NAME, "top");
+    final Path destination = this.directory.resolve(EXTRACTED_DIRECTORY);
     IoUtils.unzip(archive, destination);
-    final Path inner = destination.resolve("folder/inner.txt");
-    final Path top = destination.resolve("top.txt");
+    final Path inner = destination.resolve(INNER_FILE_PATH);
+    final Path top = destination.resolve(TOP_FILE_NAME);
     final String innerContent = Files.readString(inner);
     final String topContent = Files.readString(top);
     assertEquals("inner", innerContent);
@@ -333,8 +436,8 @@ final class IoUtilsTest {
 
   @Test
   void shouldRefuseADirectoryEntryThatCarriesData() throws IOException {
-    final Path archive = this.writeZip("folder/", "x".repeat(1 << 16));
-    final Path destination = this.directory.resolve("extracted");
+    final Path archive = this.writeZip(FOLDER_ENTRY, FILLER_CHARACTER.repeat(1 << 16));
+    final Path destination = this.directory.resolve(EXTRACTED_DIRECTORY);
     final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
     final String message = refused.getMessage();
     assertEquals("Zip directory entry folder/ must not carry data!", message);
@@ -342,21 +445,21 @@ final class IoUtilsTest {
 
   @Test
   void shouldRejectEntriesThatEscapeTheDestination() throws IOException {
-    final Path archive = this.writeZip("../escape.txt", "evil");
-    final Path destination = this.directory.resolve("safe");
+    final Path archive = this.writeZip(PARENT_ESCAPE_PATH, EVIL_CONTENT);
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
   }
 
   @Test
   void shouldRejectEveryFormOfPathTraversal() throws IOException {
-    final Path destination = this.directory.resolve("safe");
-    final String[] names = { "nested/../../escape.txt", "../safe-sibling/escape.txt", "/escape.txt" };
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
+    final String[] names = { NESTED_ESCAPE_PATH, SIBLING_ESCAPE_PATH, ABSOLUTE_ESCAPE_PATH };
     for (final String name : names) {
-      final Path archive = this.writeZip(name, "evil");
+      final Path archive = this.writeZip(name, EVIL_CONTENT);
       assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination), name);
     }
-    final Path escaped = this.directory.resolve("escape.txt");
-    final Path sibling = this.directory.resolve("safe-sibling");
+    final Path escaped = this.directory.resolve(ESCAPE_FILE_NAME);
+    final Path sibling = this.directory.resolve(SAFE_SIBLING_DIRECTORY);
     final boolean escapedExists = Files.exists(escaped);
     final boolean siblingExists = Files.exists(sibling);
     assertFalse(escapedExists);
@@ -370,8 +473,8 @@ final class IoUtilsTest {
    */
   @Test
   void shouldRefuseAnEntryWhoseNameTheFileSystemCannotHold() throws IOException {
-    final Path archive = this.writeZip("../\u0000escape.txt", "evil");
-    final Path destination = this.directory.resolve("safe");
+    final Path archive = this.writeZip(NUL_ESCAPE_PATH, EVIL_CONTENT);
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
   }
@@ -382,14 +485,14 @@ final class IoUtilsTest {
    */
   @Test
   void shouldRefuseAnEntryThatClimbsOutOfADestinationInAZipFileSystem() throws IOException {
-    final Path archive = this.writeZip("../\\escape.txt", "evil");
-    final Path container = this.directory.resolve("container.zip");
-    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, Map.of("create", "true"))) {
-      final Path root = fileSystem.getPath("/");
-      final Path destination = root.resolve("safe");
+    final Path archive = this.writeZip(BACKSLASH_ESCAPE_PATH, EVIL_CONTENT);
+    final Path container = this.directory.resolve(CONTAINER_ARCHIVE_NAME);
+    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, CREATE_ENVIRONMENT)) {
+      final Path root = fileSystem.getPath(ZIP_ROOT);
+      final Path destination = root.resolve(SAFE_DIRECTORY);
 
       assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
-      final Path escaped = root.resolve("escape.txt");
+      final Path escaped = root.resolve(ESCAPE_FILE_NAME);
       final boolean escapedExists = Files.exists(escaped);
       assertFalse(escapedExists);
     }
@@ -401,11 +504,11 @@ final class IoUtilsTest {
    */
   @Test
   void shouldRefuseAnEntryWithAnEmptyNameInAZipFileSystem() throws IOException {
-    final Path archive = this.writeZip("folder/\\escape.txt", "evil");
-    final Path container = this.directory.resolve("container.zip");
-    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, Map.of("create", "true"))) {
-      final Path root = fileSystem.getPath("/");
-      final Path destination = root.resolve("safe");
+    final Path archive = this.writeZip(FOLDER_BACKSLASH_ESCAPE_PATH, EVIL_CONTENT);
+    final Path container = this.directory.resolve(CONTAINER_ARCHIVE_NAME);
+    try (final FileSystem fileSystem = FileSystems.newFileSystem(container, CREATE_ENVIRONMENT)) {
+      final Path root = fileSystem.getPath(ZIP_ROOT);
+      final Path destination = root.resolve(SAFE_DIRECTORY);
 
       final ZipEntryIntegrityException refused = assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
       final String message = refused.getMessage();
@@ -424,64 +527,64 @@ final class IoUtilsTest {
 
   @Test
   void shouldRejectZipEntriesUnderExistingDirectoryLinks() throws IOException {
-    final Path outside = this.directory.resolve("outside");
+    final Path outside = this.directory.resolve(OUTSIDE_DIRECTORY);
     Files.createDirectories(outside);
-    final Path kept = outside.resolve("kept.txt");
-    Files.writeString(kept, "original");
-    final Path destination = this.directory.resolve("safe");
+    final Path kept = outside.resolve(KEPT_FILE_NAME);
+    Files.writeString(kept, ORIGINAL_CONTENT);
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
     Files.createDirectories(destination);
-    final Path link = destination.resolve("linked");
+    final Path link = destination.resolve(LINKED_DIRECTORY);
     createSymbolicLinkOrSkip(link, outside);
-    final Path archive = this.writeZip("linked/kept.txt", "overwritten");
+    final Path archive = this.writeZip(LINKED_KEPT_PATH, OVERWRITTEN_CONTENT);
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
     final String content = Files.readString(kept);
     final boolean stillLinked = Files.isSymbolicLink(link);
-    assertEquals("original", content);
+    assertEquals(ORIGINAL_CONTENT, content);
     assertTrue(stillLinked);
   }
 
   @Test
   void shouldRejectDirectoryEntriesUnderExistingLinks() throws IOException {
-    final Path outside = this.directory.resolve("outside");
+    final Path outside = this.directory.resolve(OUTSIDE_DIRECTORY);
     Files.createDirectories(outside);
-    final Path destination = this.directory.resolve("safe");
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
     Files.createDirectories(destination);
-    final Path link = destination.resolve("linked");
+    final Path link = destination.resolve(LINKED_DIRECTORY);
     createSymbolicLinkOrSkip(link, outside);
-    final Path archive = this.writeZip("linked/created/", "");
+    final Path archive = this.writeZip(LINKED_CREATED_ENTRY, "");
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
-    final Path escaped = outside.resolve("created");
+    final Path escaped = outside.resolve(CREATED_DIRECTORY);
     final boolean escapedExists = Files.exists(escaped);
     assertFalse(escapedExists);
   }
 
   @Test
   void shouldRejectZipEntriesThatReplaceExistingFileLinks() throws IOException {
-    final Path kept = this.directory.resolve("outside.txt");
-    Files.writeString(kept, "original");
-    final Path destination = this.directory.resolve("safe");
+    final Path kept = this.directory.resolve(OUTSIDE_FILE_NAME);
+    Files.writeString(kept, ORIGINAL_CONTENT);
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
     Files.createDirectories(destination);
-    final Path link = destination.resolve("entry.txt");
+    final Path link = destination.resolve(ENTRY_FILE_NAME);
     createSymbolicLinkOrSkip(link, kept);
-    final Path archive = this.writeZip("entry.txt", "overwritten");
+    final Path archive = this.writeZip(ENTRY_FILE_NAME, OVERWRITTEN_CONTENT);
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
     final String content = Files.readString(kept);
     final boolean stillLinked = Files.isSymbolicLink(link);
-    assertEquals("original", content);
+    assertEquals(ORIGINAL_CONTENT, content);
     assertTrue(stillLinked);
   }
 
   @Test
   void shouldRejectZipEntriesThatReplaceDanglingLinks() throws IOException {
-    final Path outside = this.directory.resolve("outside.txt");
-    final Path destination = this.directory.resolve("safe");
+    final Path outside = this.directory.resolve(OUTSIDE_FILE_NAME);
+    final Path destination = this.directory.resolve(SAFE_DIRECTORY);
     Files.createDirectories(destination);
-    final Path link = destination.resolve("entry.txt");
+    final Path link = destination.resolve(ENTRY_FILE_NAME);
     createSymbolicLinkOrSkip(link, outside);
-    final Path archive = this.writeZip("entry.txt", "escaped");
+    final Path archive = this.writeZip(ENTRY_FILE_NAME, "escaped");
 
     assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
     final boolean outsideExists = Files.exists(outside);
@@ -492,38 +595,38 @@ final class IoUtilsTest {
 
   @Test
   void shouldResolveTheDestinationItselfToItsRealDirectory() throws IOException {
-    final Path realDestination = this.directory.resolve("real");
+    final Path realDestination = this.directory.resolve(REAL_DIRECTORY);
     Files.createDirectories(realDestination);
-    final Path destination = this.directory.resolve("alias");
+    final Path destination = this.directory.resolve(ALIAS_DIRECTORY);
     createSymbolicLinkOrSkip(destination, realDestination);
-    final Path archive = this.writeZip("nested/file.txt", "content");
+    final Path archive = this.writeZip(NESTED_FILE_PATH, FILE_CONTENT);
 
     IoUtils.unzip(archive, destination);
-    final Path extracted = realDestination.resolve("nested/file.txt");
+    final Path extracted = realDestination.resolve(NESTED_FILE_PATH);
     final String content = Files.readString(extracted);
-    assertEquals("content", content);
+    assertEquals(FILE_CONTENT, content);
   }
 
   @Test
   void shouldAllowDotDotSegmentsThatStayInside() throws IOException {
-    final Path archive = this.writeZip("folder/../inside.txt", "fine");
-    final Path destination = this.directory.resolve("inside");
+    final Path archive = this.writeZip(INSIDE_DOT_DOT_PATH, "fine");
+    final Path destination = this.directory.resolve(INSIDE_DIRECTORY);
     IoUtils.unzip(archive, destination);
-    final Path extracted = destination.resolve("inside.txt");
+    final Path extracted = destination.resolve(INSIDE_FILE_NAME);
     final String content = Files.readString(extracted);
     assertEquals("fine", content);
   }
 
   @Test
   void shouldRejectArchivesThatAreTooLarge() throws IOException {
-    final Path archive = this.writeZip("one.txt", "1234", "two.txt", "5678");
-    final Path entryDestination = this.directory.resolve("entry-limit");
-    final Path totalDestination = this.directory.resolve("total-limit");
+    final Path archive = this.writeZip(ONE_FILE_NAME, ONE_CONTENT, TWO_FILE_NAME, TWO_CONTENT);
+    final Path entryDestination = this.directory.resolve(ENTRY_LIMIT_DIRECTORY);
+    final Path totalDestination = this.directory.resolve(TOTAL_LIMIT_DIRECTORY);
     final ZipEntryIntegrityException entryFailure = assertThrows(ZipEntryIntegrityException.class, () ->
-      IoUtils.unzip(archive, entryDestination, 3, 100)
+      IoUtils.unzip(archive, entryDestination, 3, GENEROUS_LIMIT)
     );
     final ZipEntryIntegrityException totalFailure = assertThrows(ZipEntryIntegrityException.class, () ->
-      IoUtils.unzip(archive, totalDestination, 100, 5)
+      IoUtils.unzip(archive, totalDestination, GENEROUS_LIMIT, 5)
     );
     final String entryMessage = entryFailure.getMessage();
     final String totalMessage = totalFailure.getMessage();
@@ -535,15 +638,15 @@ final class IoUtilsTest {
   void shouldNeverWriteMoreThanTheTotalLimitAcrossEntryChunks() throws IOException {
     final String firstContent = "a".repeat(20_000);
     final String secondContent = "b".repeat(160_000);
-    final Path archive = this.writeZip("first.txt", firstContent, "second.txt", secondContent);
-    final Path destination = this.directory.resolve("limited");
+    final Path archive = this.writeZip(FIRST_FILE_NAME, firstContent, SECOND_FILE_NAME, secondContent);
+    final Path destination = this.directory.resolve(LIMITED_DIRECTORY);
     final long totalLimit = 100_000;
 
     final ZipEntryIntegrityException failure = assertThrows(ZipEntryIntegrityException.class, () ->
       IoUtils.unzip(archive, destination, 200_000, totalLimit)
     );
-    final Path first = destination.resolve("first.txt");
-    final Path second = destination.resolve("second.txt");
+    final Path first = destination.resolve(FIRST_FILE_NAME);
+    final Path second = destination.resolve(SECOND_FILE_NAME);
     final long firstSize = Files.size(first);
     final long secondSize = Files.size(second);
     final long written = firstSize + secondSize;
@@ -556,13 +659,13 @@ final class IoUtilsTest {
 
   @Test
   void shouldEnforceTheEntryLimitAcrossMultipleReads() throws IOException {
-    final String content = "x".repeat(200_000);
-    final Path archive = this.writeZip("large.txt", content);
-    final Path destination = this.directory.resolve("multi-read-entry");
+    final String content = FILLER_CHARACTER.repeat(200_000);
+    final Path archive = this.writeZip(LARGE_FILE_NAME, content);
+    final Path destination = this.directory.resolve(MULTI_READ_DIRECTORY);
     final ZipEntryIntegrityException failure = assertThrows(ZipEntryIntegrityException.class, () ->
       IoUtils.unzip(archive, destination, 100_000, 1_000_000)
     );
-    final Path extracted = destination.resolve("large.txt");
+    final Path extracted = destination.resolve(LARGE_FILE_NAME);
     final long written = Files.size(extracted);
     final String message = failure.getMessage();
     final boolean withinEntryLimit = written <= 100_000;
@@ -572,10 +675,10 @@ final class IoUtilsTest {
 
   @Test
   void shouldAcceptEmptyFilesWithZeroSizeLimits() throws IOException {
-    final Path archive = this.writeZip("empty.txt", "");
-    final Path destination = this.directory.resolve("zero-limit");
+    final Path archive = this.writeZip(EMPTY_FILE_NAME, "");
+    final Path destination = this.directory.resolve(ZERO_LIMIT_DIRECTORY);
     IoUtils.unzip(archive, destination, 0, 0);
-    final Path extracted = destination.resolve("empty.txt");
+    final Path extracted = destination.resolve(EMPTY_FILE_NAME);
     final long size = Files.size(extracted);
     assertEquals(0, size);
   }
@@ -583,25 +686,25 @@ final class IoUtilsTest {
   @Test
   void shouldRejectNegativeExtractionLimits() throws IOException {
     final Path archive = this.writeZip();
-    final Path destination = this.directory.resolve("invalid-limit");
-    assertThrows(IllegalArgumentException.class, () -> IoUtils.unzip(archive, destination, -1, 100));
-    assertThrows(IllegalArgumentException.class, () -> IoUtils.unzip(archive, destination, 100, -1));
+    final Path destination = this.directory.resolve(INVALID_LIMIT_DIRECTORY);
+    assertThrows(IllegalArgumentException.class, () -> IoUtils.unzip(archive, destination, -1, GENEROUS_LIMIT));
+    assertThrows(IllegalArgumentException.class, () -> IoUtils.unzip(archive, destination, GENEROUS_LIMIT, -1));
   }
 
   @Test
   void shouldAcceptArchivesThatReachTheLimitsExactly() throws IOException {
-    final Path archive = this.writeZip("one.txt", "1234", "two.txt", "5678");
-    final Path destination = this.directory.resolve("exact");
+    final Path archive = this.writeZip(ONE_FILE_NAME, ONE_CONTENT, TWO_FILE_NAME, TWO_CONTENT);
+    final Path destination = this.directory.resolve(EXACT_DIRECTORY);
     IoUtils.unzip(archive, destination, 4, 8);
-    final Path second = destination.resolve("two.txt");
+    final Path second = destination.resolve(TWO_FILE_NAME);
     final String content = Files.readString(second);
-    assertEquals("5678", content, "an entry of exactly 4 bytes and a total of exactly 8 bytes are allowed");
+    assertEquals(TWO_CONTENT, content, "an entry of exactly 4 bytes and a total of exactly 8 bytes are allowed");
   }
 
   @Test
   void shouldReportArchivesThatCannotBeRead() {
-    final Path missing = this.directory.resolve("missing.zip");
-    final Path destination = this.directory.resolve("out");
+    final Path missing = this.directory.resolve(MISSING_ARCHIVE_NAME);
+    final Path destination = this.directory.resolve(OUTPUT_DIRECTORY);
     assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(missing, destination));
     assertThrows(NullPointerException.class, () -> IoUtils.unzip(null, destination));
     assertThrows(NullPointerException.class, () -> IoUtils.unzip(missing, null));
@@ -610,11 +713,11 @@ final class IoUtilsTest {
   @Test
   void shouldRejectFilesThatAreNotZipArchives() throws IOException {
     // ZipInputStream reads any other file as an archive without entries, which would hide a broken download
-    final Path text = this.directory.resolve("not-a-zip.zip");
+    final Path text = this.directory.resolve(NOT_A_ZIP_ARCHIVE_NAME);
     Files.writeString(text, "this is not a zip", StandardCharsets.US_ASCII);
-    final Path truncated = this.directory.resolve("truncated.zip");
+    final Path truncated = this.directory.resolve(TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, new byte[] { 0x50, 0x4B });
-    final Path destination = this.directory.resolve("out");
+    final Path destination = this.directory.resolve(OUTPUT_DIRECTORY);
     final UncheckedIOException textFailure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(text, destination));
     final UncheckedIOException truncatedFailure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable textCause = textFailure.getCause();
@@ -625,16 +728,16 @@ final class IoUtilsTest {
 
   @Test
   void shouldRejectArchivesTruncatedAfterTheCompleteSignature() throws IOException {
-    final Path populated = this.writeZip("file.txt", "content");
+    final Path populated = this.writeZip(FILE_NAME, FILE_CONTENT);
     final byte[] populatedBytes = Files.readAllBytes(populated);
     final Path empty = this.writeZip();
     final byte[] emptyBytes = Files.readAllBytes(empty);
     for (final byte[] archiveBytes : List.of(populatedBytes, emptyBytes)) {
       final int headerSize = archiveBytes[2] == 5 ? 22 : 30;
       for (int retained = 4; retained < headerSize; retained++) {
-        final Path truncated = this.directory.resolve("header-" + headerSize + "-" + retained + ".zip");
+        final Path truncated = this.directory.resolve(TRUNCATED_HEADER_PREFIX + headerSize + NAME_SEPARATOR + retained + ZIP_EXTENSION);
         Files.write(truncated, Arrays.copyOf(archiveBytes, retained));
-        final Path destination = this.directory.resolve("truncated-output");
+        final Path destination = this.directory.resolve(TRUNCATED_OUTPUT_DIRECTORY);
         final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
         final Throwable cause = failure.getCause();
         assertInstanceOf(ZipException.class, cause);
@@ -646,14 +749,14 @@ final class IoUtilsTest {
 
   @Test
   void shouldRequireEmptyArchiveCommentsToBeComplete() throws IOException {
-    final Path archive = this.directory.resolve("commented.zip");
+    final Path archive = this.directory.resolve(COMMENTED_ARCHIVE_NAME);
     try (final ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
       output.setComment("archive comment");
     }
-    final Path destination = this.directory.resolve("commented-output");
+    final Path destination = this.directory.resolve(COMMENTED_OUTPUT_DIRECTORY);
     IoUtils.unzip(archive, destination);
     final byte[] bytes = Files.readAllBytes(archive);
-    final Path truncated = this.directory.resolve("comment-truncated.zip");
+    final Path truncated = this.directory.resolve(COMMENT_TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
     final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable cause = failure.getCause();
@@ -664,14 +767,14 @@ final class IoUtilsTest {
 
   @Test
   void shouldReadBothBytesOfTheCommentLengthOfAnEmptyArchive() throws IOException {
-    final Path archive = this.directory.resolve("long-comment.zip");
+    final Path archive = this.directory.resolve(LONG_COMMENT_ARCHIVE_NAME);
     try (final ZipOutputStream output = new ZipOutputStream(Files.newOutputStream(archive))) {
-      output.setComment("x".repeat(300));
+      output.setComment(FILLER_CHARACTER.repeat(300));
     }
     final byte[] bytes = Files.readAllBytes(archive);
-    final Path truncated = this.directory.resolve("long-comment-truncated.zip");
+    final Path truncated = this.directory.resolve(LONG_COMMENT_TRUNCATED_ARCHIVE_NAME);
     Files.write(truncated, Arrays.copyOf(bytes, bytes.length - 1));
-    final Path destination = this.directory.resolve("long-comment-output");
+    final Path destination = this.directory.resolve(LONG_COMMENT_OUTPUT_DIRECTORY);
 
     final UncheckedIOException failure = assertThrows(UncheckedIOException.class, () -> IoUtils.unzip(truncated, destination));
     final Throwable cause = failure.getCause();
@@ -681,7 +784,7 @@ final class IoUtilsTest {
   @Test
   void shouldExtractEmptyArchives() throws IOException {
     final Path archive = this.writeZip();
-    final Path destination = this.directory.resolve("empty-out");
+    final Path destination = this.directory.resolve(EMPTY_OUTPUT_DIRECTORY);
     IoUtils.unzip(archive, destination);
     final boolean created = Files.isDirectory(destination);
     final long entries;
@@ -694,9 +797,9 @@ final class IoUtilsTest {
 
   @Test
   void shouldMoveFilesIntoPlaceReplacingTheTarget() throws IOException {
-    final Path newFile = this.directory.resolve("new.txt");
+    final Path newFile = this.directory.resolve(NEW_FILE_NAME);
     final Path source = Files.writeString(newFile, "new version");
-    final Path oldFile = this.directory.resolve("target.txt");
+    final Path oldFile = this.directory.resolve(REPLACED_FILE_NAME);
     final Path target = Files.writeString(oldFile, "old version");
     IoUtils.moveReplacing(source, target);
     final String content = Files.readString(target);
@@ -709,8 +812,8 @@ final class IoUtilsTest {
 
   @Test
   void shouldFallBackToARegularMoveWhereAtomicMovesAreNotSupported() throws IOException {
-    final Path source = this.directory.resolve("source");
-    final Path target = this.directory.resolve("target");
+    final Path source = this.directory.resolve(SOURCE_NAME);
+    final Path target = this.directory.resolve(TARGET_NAME);
     final List<List<CopyOption>> attempts = new ArrayList<>();
     IoUtils.moveReplacing(
       source,
@@ -734,8 +837,8 @@ final class IoUtilsTest {
 
   @Test
   void shouldReportOtherMoveFailuresWithoutFallingBack() {
-    final Path source = this.directory.resolve("source");
-    final Path target = this.directory.resolve("target");
+    final Path source = this.directory.resolve(SOURCE_NAME);
+    final Path target = this.directory.resolve(TARGET_NAME);
     final IOException failure = new IOException("disk full!");
     final AtomicInteger attempts = new AtomicInteger();
     final IOException thrown = assertThrows(IOException.class, () ->
@@ -757,15 +860,15 @@ final class IoUtilsTest {
   @Test
   void shouldRetryAMoveThatIsDeniedForAMoment() throws IOException {
     // on Windows a virus scanner or the search indexer may hold a freshly written file for a moment
-    final Path source = this.directory.resolve("source");
-    final Path target = this.directory.resolve("target");
+    final Path source = this.directory.resolve(SOURCE_NAME);
+    final Path target = this.directory.resolve(TARGET_NAME);
     final AtomicInteger attempts = new AtomicInteger();
     IoUtils.moveReplacing(
       source,
       target,
       (_, to, _) -> {
         final int attempt = attempts.incrementAndGet();
-        if (attempt < 3) {
+        if (attempt < MAXIMUM_MOVE_ATTEMPTS) {
           final String rawTo = to.toString();
           throw new AccessDeniedException(rawTo);
         }
@@ -773,14 +876,14 @@ final class IoUtilsTest {
       SHORT_RETRY_DELAY
     );
     final int attemptCount = attempts.get();
-    assertEquals(3, attemptCount);
+    assertEquals(MAXIMUM_MOVE_ATTEMPTS, attemptCount);
   }
 
   @Test
   void shouldGiveUpOnAMoveThatStaysDenied() {
-    final Path source = this.directory.resolve("source");
-    final Path target = this.directory.resolve("target");
-    final AccessDeniedException denied = new AccessDeniedException("target");
+    final Path source = this.directory.resolve(SOURCE_NAME);
+    final Path target = this.directory.resolve(TARGET_NAME);
+    final AccessDeniedException denied = new AccessDeniedException(TARGET_NAME);
     final AtomicInteger attempts = new AtomicInteger();
     final AccessDeniedException thrown = assertThrows(AccessDeniedException.class, () ->
       IoUtils.moveReplacing(
@@ -795,14 +898,14 @@ final class IoUtilsTest {
     );
     final int attemptCount = attempts.get();
     assertSame(denied, thrown);
-    assertEquals(3, attemptCount, "a move is tried three times in total");
+    assertEquals(MAXIMUM_MOVE_ATTEMPTS, attemptCount, "a move is tried three times in total");
   }
 
   @Test
   void shouldStopRetryingADeniedMoveWhenInterrupted() {
-    final Path source = this.directory.resolve("source");
-    final Path target = this.directory.resolve("target");
-    final AccessDeniedException denied = new AccessDeniedException("target");
+    final Path source = this.directory.resolve(SOURCE_NAME);
+    final Path target = this.directory.resolve(TARGET_NAME);
+    final AccessDeniedException denied = new AccessDeniedException(TARGET_NAME);
     final AtomicInteger attempts = new AtomicInteger();
     final Thread currentThread = Thread.currentThread();
     currentThread.interrupt();
@@ -827,11 +930,11 @@ final class IoUtilsTest {
 
   @Test
   void shouldDeleteADirectoryTree() throws IOException {
-    final Path tree = this.directory.resolve("tree");
-    final Path nested = tree.resolve("nested");
-    final Path file = nested.resolve("file.txt");
+    final Path tree = this.directory.resolve(TREE_DIRECTORY);
+    final Path nested = tree.resolve(NESTED_DIRECTORY);
+    final Path file = nested.resolve(FILE_NAME);
     Files.createDirectories(nested);
-    Files.writeString(file, "content");
+    Files.writeString(file, FILE_CONTENT);
     IoUtils.deleteRecursively(tree);
     final boolean treeExists = Files.exists(tree);
     assertFalse(treeExists);
@@ -839,8 +942,8 @@ final class IoUtilsTest {
 
   @Test
   void shouldDeleteASingleFile() throws IOException {
-    final Path file = this.directory.resolve("file.txt");
-    Files.writeString(file, "content");
+    final Path file = this.directory.resolve(FILE_NAME);
+    Files.writeString(file, FILE_CONTENT);
     IoUtils.deleteRecursively(file);
     final boolean fileExists = Files.exists(file);
     assertFalse(fileExists);
@@ -848,7 +951,7 @@ final class IoUtilsTest {
 
   @Test
   void shouldIgnoreAMissingPathWhenDeleting() throws IOException {
-    final Path missing = this.directory.resolve("missing");
+    final Path missing = this.directory.resolve(MISSING_NAME);
     IoUtils.deleteRecursively(missing);
     final boolean missingExists = Files.exists(missing);
     final boolean directoryExists = Files.isDirectory(this.directory);

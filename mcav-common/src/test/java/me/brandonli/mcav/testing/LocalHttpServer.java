@@ -51,6 +51,10 @@ public final class LocalHttpServer implements AutoCloseable {
 
   private static final long MAXIMUM_WAIT_SECONDS = 60;
 
+  private static final String ROOT_PATH = "/";
+
+  private static final int NOT_FOUND_STATUS = 404;
+
   private final HttpServer server;
   private final ExecutorService executor;
   private final Map<String, Deque<Response>> responses;
@@ -80,7 +84,7 @@ public final class LocalHttpServer implements AutoCloseable {
       final ExecutorService executor = Executors.newCachedThreadPool();
       httpServer.setExecutor(executor);
       final LocalHttpServer localServer = new LocalHttpServer(httpServer, executor);
-      httpServer.createContext("/", localServer::handle);
+      httpServer.createContext(ROOT_PATH, localServer::handle);
       httpServer.start();
       return localServer;
     } catch (final IOException exception) {
@@ -366,14 +370,14 @@ public final class LocalHttpServer implements AutoCloseable {
   private Response nextResponse(final String path) {
     final Deque<Response> queue = this.responses.get(path);
     if (queue == null) {
-      return new Response(404, new byte[0], null, -1);
+      return new Response(NOT_FOUND_STATUS, new byte[0], null, -1);
     }
     synchronized (queue) {
       if (queue.size() > 1) {
         return queue.removeFirst();
       }
       final Response last = queue.peekFirst();
-      return last == null ? new Response(404, new byte[0], null, -1) : last;
+      return last == null ? new Response(NOT_FOUND_STATUS, new byte[0], null, -1) : last;
     }
   }
 

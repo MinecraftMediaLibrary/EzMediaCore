@@ -29,30 +29,51 @@ import org.junit.jupiter.api.Test;
  */
 final class OriginalAudioMetadataTest {
 
+  private static final String CODEC = "aac";
+  private static final int BITRATE = 128_000;
+  private static final int SAMPLE_RATE = 44_100;
+
+  private static final String UNCOMPRESSED_CODEC = "pcm";
+  private static final int UNCOMPRESSED_SAMPLE_RATE = 48_000;
+
+  private static final int STEREO_CHANNELS = 2;
+
   @Test
   void shouldStoreEveryProperty() {
-    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 128_000, 44_100, 2, 1);
+    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of(CODEC, BITRATE, SAMPLE_RATE, STEREO_CHANNELS, 1);
     final String codec = metadata.getAudioCodec();
     final int bitrate = metadata.getAudioBitrate();
     final int sampleRate = metadata.getAudioSampleRate();
     final int channels = metadata.getAudioChannels();
     final int samplingFormat = metadata.getSamplingFormat();
-    assertEquals("aac", codec);
-    assertEquals(128_000, bitrate);
-    assertEquals(44_100, sampleRate);
-    assertEquals(2, channels);
+    assertEquals(CODEC, codec);
+    assertEquals(BITRATE, bitrate);
+    assertEquals(SAMPLE_RATE, sampleRate);
+    assertEquals(STEREO_CHANNELS, channels);
     assertEquals(1, samplingFormat);
   }
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("pcm", 1, 48_000, 2, 1);
-    final OriginalAudioMetadata equalMetadata = OriginalAudioMetadata.of("pcm", 1, 48_000, 2, 1);
-    final OriginalAudioMetadata otherCodec = OriginalAudioMetadata.of("opus", 1, 48_000, 2, 1);
-    final OriginalAudioMetadata otherBitrate = OriginalAudioMetadata.of("pcm", 2, 48_000, 2, 1);
-    final OriginalAudioMetadata otherSampleRate = OriginalAudioMetadata.of("pcm", 1, 44_100, 2, 1);
-    final OriginalAudioMetadata otherChannels = OriginalAudioMetadata.of("pcm", 1, 48_000, 1, 1);
-    final OriginalAudioMetadata otherFormat = OriginalAudioMetadata.of("pcm", 1, 48_000, 2, 2);
+    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, UNCOMPRESSED_SAMPLE_RATE, STEREO_CHANNELS, 1);
+    final OriginalAudioMetadata equalMetadata = OriginalAudioMetadata.of(
+      UNCOMPRESSED_CODEC,
+      1,
+      UNCOMPRESSED_SAMPLE_RATE,
+      STEREO_CHANNELS,
+      1
+    );
+    final OriginalAudioMetadata otherCodec = OriginalAudioMetadata.of("opus", 1, UNCOMPRESSED_SAMPLE_RATE, STEREO_CHANNELS, 1);
+    final OriginalAudioMetadata otherBitrate = OriginalAudioMetadata.of(
+      UNCOMPRESSED_CODEC,
+      2,
+      UNCOMPRESSED_SAMPLE_RATE,
+      STEREO_CHANNELS,
+      1
+    );
+    final OriginalAudioMetadata otherSampleRate = OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, SAMPLE_RATE, STEREO_CHANNELS, 1);
+    final OriginalAudioMetadata otherChannels = OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, UNCOMPRESSED_SAMPLE_RATE, 1, 1);
+    final OriginalAudioMetadata otherFormat = OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, UNCOMPRESSED_SAMPLE_RATE, STEREO_CHANNELS, 2);
     EqualityAssertions.assertEqualityContract(
       metadata,
       equalMetadata,
@@ -66,23 +87,23 @@ final class OriginalAudioMetadataTest {
 
   @Test
   void shouldHashEveryProperty() {
-    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 128_000, 44_100, 2, 1);
+    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of(CODEC, BITRATE, SAMPLE_RATE, STEREO_CHANNELS, 1);
 
     final int hash = metadata.hashCode();
-    final int expected = Objects.hash("aac", 128_000, 44_100, 2, 1);
+    final int expected = Objects.hash(CODEC, BITRATE, SAMPLE_RATE, STEREO_CHANNELS, 1);
     assertEquals(expected, hash);
   }
 
   @Test
   void shouldRejectInvalidArguments() {
-    assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of("pcm", 1, 0, 2, 1));
-    assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of("pcm", 1, 48_000, 0, 1));
-    assertThrows(NullPointerException.class, () -> OriginalAudioMetadata.of(null, 1, 48_000, 2, 1));
+    assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, 0, STEREO_CHANNELS, 1));
+    assertThrows(IllegalArgumentException.class, () -> OriginalAudioMetadata.of(UNCOMPRESSED_CODEC, 1, UNCOMPRESSED_SAMPLE_RATE, 0, 1));
+    assertThrows(NullPointerException.class, () -> OriginalAudioMetadata.of(null, 1, UNCOMPRESSED_SAMPLE_RATE, STEREO_CHANNELS, 1));
   }
 
   @Test
   void shouldRenderTheMainProperties() {
-    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of("aac", 96_000, 44_100, 1, 1);
+    final OriginalAudioMetadata metadata = OriginalAudioMetadata.of(CODEC, 96_000, SAMPLE_RATE, 1, 1);
     final String text = metadata.toString();
     assertEquals("AudioMetadata[aac, 44100 Hz, 1 ch, 96000 bps]", text);
   }

@@ -44,6 +44,10 @@ public final class GeneratedMedia {
   private static final int LOG_LIMIT_BYTES = 65_536;
   private static final Set<Path> COMPLETED = new HashSet<>();
 
+  private static final String TEMPORARY_FILE_PREFIX = "mcav-generating-";
+  private static final String DEFAULT_EXTENSION = ".tmp";
+  private static final String LOG_EXTENSION = ".log";
+
   private GeneratedMedia() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -89,12 +93,12 @@ public final class GeneratedMedia {
     Files.createDirectories(parent);
     final String name = destination.getFileName().toString();
     final int dot = name.lastIndexOf('.');
-    final String extension = dot >= 0 ? name.substring(dot) : ".tmp";
-    final Path temporary = Files.createTempFile(parent, "mcav-generating-", extension);
+    final String extension = dot >= 0 ? name.substring(dot) : DEFAULT_EXTENSION;
+    final Path temporary = Files.createTempFile(parent, TEMPORARY_FILE_PREFIX, extension);
     Path log = null;
     Throwable primary = null;
     try {
-      log = Files.createTempFile(parent, "mcav-generating-", ".log");
+      log = Files.createTempFile(parent, TEMPORARY_FILE_PREFIX, LOG_EXTENSION);
       final List<String> arguments = command.apply(temporary);
       runProcess(arguments, log, timeout);
       if (!Files.isRegularFile(temporary) || Files.size(temporary) == 0) {

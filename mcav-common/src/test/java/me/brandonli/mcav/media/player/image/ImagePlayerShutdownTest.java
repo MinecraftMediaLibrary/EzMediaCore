@@ -36,6 +36,9 @@ import org.junit.jupiter.api.Timeout;
 @Timeout(15)
 final class ImagePlayerShutdownTest {
 
+  private static final long CALLBACK_TIMEOUT_SECONDS = 10L;
+  private static final long JOIN_TIMEOUT_MILLISECONDS = 1_000L;
+
   private static FrameSource source() {
     return FrameSource.supplier(() -> new int[] { 0xFF102030 }, 1, 1, 0.1f);
   }
@@ -64,7 +67,7 @@ final class ImagePlayerShutdownTest {
     });
     try {
       final boolean started = player.start(source());
-      final boolean completed = finished.await(10, TimeUnit.SECONDS);
+      final boolean completed = finished.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(completed);
       final Long releaseNanoseconds = elapsed.get();
@@ -75,7 +78,7 @@ final class ImagePlayerShutdownTest {
       assertEquals(true, firstRelease);
       final Thread thread = worker.get();
       assertNotNull(thread);
-      thread.join(1_000L);
+      thread.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean alive = thread.isAlive();
       assertFalse(alive, "the self-released worker exits and releases its frame");
     } finally {
@@ -109,11 +112,11 @@ final class ImagePlayerShutdownTest {
     releaser.setDaemon(true);
     try {
       final boolean started = player.start(source());
-      final boolean processing = entered.await(10, TimeUnit.SECONDS);
+      final boolean processing = entered.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(processing);
       releaser.start();
-      releaser.join(1_000L);
+      releaser.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean releaseBlocked = releaser.isAlive();
       final long unfinishedCallbacks = completed.getCount();
       assertFalse(releaseBlocked, "release must interrupt the callback and leave its lifecycle lock available");

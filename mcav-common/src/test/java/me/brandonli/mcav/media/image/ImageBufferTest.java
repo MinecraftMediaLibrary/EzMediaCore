@@ -39,6 +39,8 @@ final class ImageBufferTest {
   private static final int[] PIXELS = { 0xFF112233, 0xFF445566, 0xFF778899, 0xFFAABBCC };
   private static final int SIDE = 2;
 
+  private static final int WRITTEN_PIXEL = 0xFF000000;
+
   @Test
   void shouldInvalidateTheOwnedImageOnClose() {
     final ImageBuffer image = ImageBuffer.buffer(PIXELS, SIDE, SIDE);
@@ -58,7 +60,7 @@ final class ImageBufferTest {
       assertNotSame(shared, copy);
       assertArrayEquals(PIXELS, copy);
 
-      copy[0] = 0xFF000000;
+      copy[0] = WRITTEN_PIXEL;
       final int[] sharedAfterWrite = image.getPixels();
       assertSame(shared, sharedAfterWrite, "writing the copy leaves the cache in place");
       assertArrayEquals(PIXELS, sharedAfterWrite, "writing the copy does not reach the shared pixels");
@@ -102,7 +104,7 @@ final class ImageBufferTest {
       final int[] read = new int[PIXELS.length];
       view.get(read);
       assertArrayEquals(PIXELS, read);
-      assertThrows(ReadOnlyBufferException.class, () -> view.put(0, 0xFF000000));
+      assertThrows(ReadOnlyBufferException.class, () -> view.put(0, WRITTEN_PIXEL));
       final int[] shared = image.getPixels();
       assertArrayEquals(PIXELS, shared, "a rejected write leaves the shared pixels intact");
     }
@@ -116,9 +118,9 @@ final class ImageBufferTest {
       when(image.getReadOnlyPixels()).thenCallRealMethod();
       final IntBuffer view = image.getReadOnlyPixels();
 
-      shared[1] = 0xFF000000;
+      shared[1] = WRITTEN_PIXEL;
       final int seen = view.get(1);
-      assertEquals(0xFF000000, seen, "the view reads the shared array itself, so building it copies nothing");
+      assertEquals(WRITTEN_PIXEL, seen, "the view reads the shared array itself, so building it copies nothing");
     }
   }
 

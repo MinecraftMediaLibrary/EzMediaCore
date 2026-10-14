@@ -65,6 +65,13 @@ import org.mockito.Mockito;
 /** Exercises callback reentry and cancellation at the session boundary; real decoding has separate integration tests. */
 final class CvPlayerTransitionTest {
 
+  private static final String TRANSITION_FILE_NAME = "transition.mp4";
+
+  private static final long CALLBACK_TIMEOUT_SECONDS = 2L;
+  private static final long LATCH_TIMEOUT_SECONDS = 10L;
+
+  private static final long SEEK_TIME = 100L;
+
   @BeforeAll
   static void loadImageBuffersBeforeTheTimedCallbacks() {
     try (final ImageBuffer image = ImageBuffer.bytes(new byte[3], 1, 1)) {
@@ -74,7 +81,7 @@ final class CvPlayerTransitionTest {
   }
 
   private static Source source() {
-    final Path path = Path.of("transition.mp4");
+    final Path path = Path.of(TRANSITION_FILE_NAME);
     return FileSource.path(path);
   }
 
@@ -195,7 +202,7 @@ final class CvPlayerTransitionTest {
       final PlaybackSession previous = created.getFirst();
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::pause);
-        final boolean paused = callback.get(2, TimeUnit.SECONDS);
+        final boolean paused = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertFalse(paused, "the previous playback was detached before its renderer was joined");
         final boolean competing = player.start(source);
         assertFalse(competing, "a replacement retains ownership while previous workers shut down");
@@ -224,13 +231,13 @@ final class CvPlayerTransitionTest {
       when(previous.isSeekable()).thenReturn(true);
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::resume);
-        final boolean resumed = callback.get(2, TimeUnit.SECONDS);
+        final boolean resumed = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertFalse(resumed);
         return null;
       })
         .when(previous)
         .stop();
-      final boolean seeked = player.seek(100);
+      final boolean seeked = player.seek(SEEK_TIME);
       assertTrue(seeked);
       player.release();
     }
@@ -250,7 +257,7 @@ final class CvPlayerTransitionTest {
         assertTrue(restarted);
         return false;
       });
-      final boolean seeked = player.seek(100);
+      final boolean seeked = player.seek(SEEK_TIME);
       assertFalse(seeked, "a seek whose observed session was replaced must not replace the new one");
       final int sessionCount = sessions.constructed().size();
       assertEquals(2, sessionCount);
@@ -268,7 +275,7 @@ final class CvPlayerTransitionTest {
       final PlaybackSession previous = sessions.constructed().getFirst();
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::release);
-        final boolean released = callback.get(2, TimeUnit.SECONDS);
+        final boolean released = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(released);
         return null;
       })
@@ -375,12 +382,12 @@ final class CvPlayerTransitionTest {
         final boolean started = player.start(source);
         assertTrue(started);
         startReturned.countDown();
-        final boolean wasRestarted = restarted.await(10, TimeUnit.SECONDS);
+        final boolean wasRestarted = restarted.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(wasRestarted);
         final boolean enteredEarly = secondEntered.await(200, TimeUnit.MILLISECONDS);
         assertFalse(enteredEarly, "the replacement entered a pipeline still processing the old session");
         releaseFirst.countDown();
-        final boolean bothDelivered = delivered.await(10, TimeUnit.SECONDS);
+        final boolean bothDelivered = delivered.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(bothDelivered);
         final int concurrentDeliveries = maximum.get();
         assertEquals(1, concurrentDeliveries);
@@ -437,7 +444,7 @@ final class CvPlayerTransitionTest {
       try {
         synchronized (delivery) {
           session.start();
-          final boolean pipelineRetrieved = retrieved.await(10, TimeUnit.SECONDS);
+          final boolean pipelineRetrieved = retrieved.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
           assertTrue(pipelineRetrieved, "the renderer must retrieve its pipeline");
           stopper.start();
           Polling.awaitCondition("the session stops", Duration.ofSeconds(10), () -> !session.isActive());
@@ -483,7 +490,7 @@ final class CvPlayerTransitionTest {
 
   private static void await(final CountDownLatch latch) {
     try {
-      final boolean released = latch.await(10, TimeUnit.SECONDS);
+      final boolean released = latch.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(released, "fixture latch must be released");
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();

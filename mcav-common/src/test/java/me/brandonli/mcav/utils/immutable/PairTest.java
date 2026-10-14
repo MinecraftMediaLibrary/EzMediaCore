@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Test;
  */
 final class PairTest {
 
+  private static final String FIRST_VALUE = "a";
+
   @Test
   void shouldStoreBothValues() {
     final Pair<String, Integer> pair = Pair.pair("width", 42);
@@ -40,19 +42,19 @@ final class PairTest {
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final Pair<String, Integer> pair = Pair.pair("a", 1);
-    final Pair<String, Integer> equalPair = Pair.pair("a", 1);
+    final Pair<String, Integer> pair = Pair.pair(FIRST_VALUE, 1);
+    final Pair<String, Integer> equalPair = Pair.pair(FIRST_VALUE, 1);
     final Pair<String, Integer> otherFirst = Pair.pair("b", 1);
-    final Pair<String, Integer> otherSecond = Pair.pair("a", 2);
+    final Pair<String, Integer> otherSecond = Pair.pair(FIRST_VALUE, 2);
     EqualityAssertions.assertEqualityContract(pair, equalPair, otherFirst, otherSecond);
   }
 
   @Test
   void shouldHashBothValues() {
-    final Pair<String, Integer> pair = Pair.pair("a", 1);
+    final Pair<String, Integer> pair = Pair.pair(FIRST_VALUE, 1);
 
     final int hash = pair.hashCode();
-    final int expected = Objects.hash("a", 1);
+    final int expected = Objects.hash(FIRST_VALUE, 1);
     assertEquals(expected, hash);
   }
 

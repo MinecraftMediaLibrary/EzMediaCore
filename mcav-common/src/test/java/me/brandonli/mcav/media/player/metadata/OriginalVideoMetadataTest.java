@@ -28,6 +28,11 @@ import org.junit.jupiter.api.Test;
  */
 final class OriginalVideoMetadataTest {
 
+  private static final int WIDTH = 4;
+  private static final int HEIGHT = 3;
+  private static final int BITRATE = 100;
+  private static final float FRAME_RATE = 30.0f;
+
   @Test
   void shouldStoreEveryProperty() {
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(1920, 1080, 4_000_000, 29.97f);
@@ -64,21 +69,21 @@ final class OriginalVideoMetadataTest {
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
-    final OriginalVideoMetadata equalMetadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
-    final OriginalVideoMetadata otherWidth = OriginalVideoMetadata.of(5, 3, 100, 30.0f);
-    final OriginalVideoMetadata otherHeight = OriginalVideoMetadata.of(4, 5, 100, 30.0f);
-    final OriginalVideoMetadata otherBitrate = OriginalVideoMetadata.of(4, 3, 200, 30.0f);
-    final OriginalVideoMetadata otherFrameRate = OriginalVideoMetadata.of(4, 3, 100, 60.0f);
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata equalMetadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherWidth = OriginalVideoMetadata.of(5, HEIGHT, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherHeight = OriginalVideoMetadata.of(WIDTH, 5, BITRATE, FRAME_RATE);
+    final OriginalVideoMetadata otherBitrate = OriginalVideoMetadata.of(WIDTH, HEIGHT, 200, FRAME_RATE);
+    final OriginalVideoMetadata otherFrameRate = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, 60.0f);
     EqualityAssertions.assertEqualityContract(metadata, equalMetadata, otherWidth, otherHeight, otherBitrate, otherFrameRate);
   }
 
   @Test
   void shouldHashTheWidthThenTheHeightThenTheBitrateThenTheFrameRate() {
-    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(4, 3, 100, 30.0f);
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(WIDTH, HEIGHT, BITRATE, FRAME_RATE);
 
     final int hash = metadata.hashCode();
-    final int expected = ((4 * 31 + 3) * 31 + 100) * 31 + Float.hashCode(30.0f);
+    final int expected = ((WIDTH * 31 + HEIGHT) * 31 + BITRATE) * 31 + Float.hashCode(FRAME_RATE);
     assertEquals(expected, hash);
   }
 
@@ -90,7 +95,7 @@ final class OriginalVideoMetadataTest {
 
   @Test
   void shouldRenderEveryProperty() {
-    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, 30.0f);
+    final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(320, 240, 1000, FRAME_RATE);
     final String text = metadata.toString();
     assertEquals("VideoMetadata[320x240, 30.0 fps, 1000 bps]", text);
   }

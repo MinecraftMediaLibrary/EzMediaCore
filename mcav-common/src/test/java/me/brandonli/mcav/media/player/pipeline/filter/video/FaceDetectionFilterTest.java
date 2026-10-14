@@ -52,6 +52,16 @@ final class FaceDetectionFilterTest {
 
   private static final double[] RED = { 0.0, 0.0, 255.0 };
 
+  private static final int IMAGE_SIDE = 96;
+
+  private static final String CASCADE_RESOURCE_DIRECTORY = "cascades/";
+  private static final String ACCEPTING_CASCADE_NAME = "accept-everything.xml";
+  private static final String REJECTING_CASCADE_NAME = "reject-everything.xml";
+  private static final String REJECTED_CASCADE_NAME = "rejected.xml";
+  private static final String MISSING_CASCADE_NAME = "missing.xml";
+  private static final String UNPARSABLE_CASCADE_NAME = "unparsable.xml";
+  private static final String WITHOUT_CASCADE_NAME = "without-cascade.xml";
+
   @TempDir
   private Path directory;
 
@@ -64,7 +74,7 @@ final class FaceDetectionFilterTest {
   private Path copyCascade(final String name) throws IOException {
     final Path target = this.directory.resolve(name);
     final ClassLoader loader = FaceDetectionFilterTest.class.getClassLoader();
-    try (final InputStream stream = loader.getResourceAsStream("cascades/" + name)) {
+    try (final InputStream stream = loader.getResourceAsStream(CASCADE_RESOURCE_DIRECTORY + name)) {
       assertNotNull(stream, "missing test resource " + name);
       Files.copy(stream, target);
     }
@@ -73,9 +83,9 @@ final class FaceDetectionFilterTest {
 
   @Test
   void shouldMarkDetectionsWithRectangles() throws IOException {
-    final Path cascade = this.copyCascade("accept-everything.xml");
+    final Path cascade = this.copyCascade(ACCEPTING_CASCADE_NAME);
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascade, RED);
-    try (final ImageBuffer image = Images.noise(96, 96, 42L)) {
+    try (final ImageBuffer image = Images.noise(IMAGE_SIDE, IMAGE_SIDE, 42L)) {
       final int[] original = image.getPixels();
       final int[] before = original.clone();
       final int[] expected = before.clone();
@@ -94,10 +104,10 @@ final class FaceDetectionFilterTest {
           final int top = rectangle.y();
           final int right = left + rectangle.width() - 1;
           final int bottom = top + rectangle.height() - 1;
-          for (int row = Math.max(0, top); row <= Math.min(95, bottom); row++) {
-            for (int column = Math.max(0, left); column <= Math.min(95, right); column++) {
+          for (int row = Math.max(0, top); row <= Math.min(IMAGE_SIDE - 1, bottom); row++) {
+            for (int column = Math.max(0, left); column <= Math.min(IMAGE_SIDE - 1, right); column++) {
               if (row == top || row == bottom || column == left || column == right) {
-                expected[row * 96 + column] = 0xFFFF0000;
+                expected[row * IMAGE_SIDE + column] = 0xFFFF0000;
               }
             }
           }
@@ -114,10 +124,10 @@ final class FaceDetectionFilterTest {
 
   @Test
   void shouldReportFramesWithoutDetections() throws IOException {
-    final Path cascade = this.copyCascade("reject-everything.xml");
+    final Path cascade = this.copyCascade(REJECTING_CASCADE_NAME);
     final String cascadePath = cascade.toString();
     final FaceDetectionFilter filter = new FaceDetectionFilter(cascadePath, RED);
-    try (final ImageBuffer image = Images.noise(96, 96, 7L)) {
+    try (final ImageBuffer image = Images.noise(IMAGE_SIDE, IMAGE_SIDE, 7L)) {
       final int[] original = image.getPixels();
       final int[] before = original.clone();
       final boolean detected = filter.applyFilter(image);
@@ -130,7 +140,7 @@ final class FaceDetectionFilterTest {
 
   @Test
   void shouldRejectAndCloseAClassifierWhoseLoadReturnedFalse() {
-    final Path path = this.directory.resolve("rejected.xml");
+    final Path path = this.directory.resolve(REJECTED_CASCADE_NAME);
     try (final CascadeClassifier classifier = new CascadeClassifier()) {
       assertThrows(IllegalArgumentException.class, () -> FaceDetectionFilter.loadClassifier(path, _ -> classifier));
       final boolean closed = classifier.isNull();
@@ -140,9 +150,9 @@ final class FaceDetectionFilterTest {
 
   @Test
   void shouldRejectCascadesThatCannotBeLoaded() throws IOException {
-    final Path missing = this.directory.resolve("missing.xml");
-    final Path unparsable = this.directory.resolve("unparsable.xml");
-    final Path withoutCascade = this.directory.resolve("without-cascade.xml");
+    final Path missing = this.directory.resolve(MISSING_CASCADE_NAME);
+    final Path unparsable = this.directory.resolve(UNPARSABLE_CASCADE_NAME);
+    final Path withoutCascade = this.directory.resolve(WITHOUT_CASCADE_NAME);
     Files.writeString(unparsable, "");
     Files.writeString(withoutCascade, "<?xml version=\"1.0\"?>\n<opencv_storage>\n<unrelated>1</unrelated>\n</opencv_storage>\n");
     final IllegalArgumentException missingFailure = assertThrows(IllegalArgumentException.class, () ->

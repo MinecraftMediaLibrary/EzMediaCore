@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
  */
 final class ExecutorUtilsTest {
 
+  private static final long TERMINATION_TIMEOUT_SECONDS = 5L;
+
   private static void spinUntil(final AtomicBoolean release) {
     while (!release.get()) {
       Thread.onSpinWait();
@@ -70,7 +72,7 @@ final class ExecutorUtilsTest {
     final Duration timeout = Duration.ofMillis(50);
     final boolean terminated = ExecutorUtils.shutdownExecutorGracefully(executor, timeout);
     release.set(true);
-    final boolean finished = executor.awaitTermination(5, TimeUnit.SECONDS);
+    final boolean finished = executor.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final boolean ranQueued = queuedRan.get();
     assertFalse(terminated);
     assertTrue(finished);
@@ -96,7 +98,7 @@ final class ExecutorUtilsTest {
     current.interrupt();
     final boolean terminated = ExecutorUtils.shutdownExecutorGracefully(executor);
     final boolean interrupted = Thread.interrupted();
-    final boolean finished = executor.awaitTermination(5, TimeUnit.SECONDS);
+    final boolean finished = executor.awaitTermination(TERMINATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertFalse(terminated);
     assertTrue(interrupted, "the interrupt must be restored");
     assertTrue(finished, "shutdownNow must interrupt the running task");

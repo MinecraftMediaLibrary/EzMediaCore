@@ -67,6 +67,14 @@ public final class TestMedia {
   private static final String SINE_INPUT = "-f lavfi -i sine=sample_rate=" + AUDIO_SAMPLE_RATE + ":frequency=";
   private static final String ARGUMENT_SEPARATOR = " ";
 
+  private static final String DIRECTORY_PREFIX = "mcav-test-media";
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+  private static final String SEEK_VIDEO_FILE_NAME = "seek-video.mp4";
+  private static final String SILENT_VIDEO_FILE_NAME = "silent.mp4";
+  private static final String AUDIO_FILE_PREFIX = "audio-";
+  private static final String AUDIO_FILE_EXTENSION = ".m4a";
+  private static final String IMAGE_FILE_NAME = "image.png";
+
   private static final Path DIRECTORY = createDirectory();
 
   private TestMedia() {
@@ -75,7 +83,7 @@ public final class TestMedia {
 
   private static Path createDirectory() {
     try {
-      final Path directory = Files.createTempDirectory("mcav-test-media");
+      final Path directory = Files.createTempDirectory(DIRECTORY_PREFIX);
       final Path absolute = directory.toAbsolutePath();
       final Runtime runtime = Runtime.getRuntime();
       final Thread cleanup = new Thread(() -> deleteRecursively(absolute), "mcav-test-media-cleanup");
@@ -107,7 +115,7 @@ public final class TestMedia {
   public static synchronized Path video() {
     final String arguments =
       TEST_PATTERN_INPUT + " " + SINE_INPUT + "440 -t " + VIDEO_SECONDS + " " + MPEG4_VIDEO_OUTPUT + " -g 30 -c:a aac -ac 1";
-    return generate("video.mp4", arguments);
+    return generate(VIDEO_FILE_NAME, arguments);
   }
 
   /**
@@ -122,7 +130,7 @@ public final class TestMedia {
       "-filter_complex [0:v][1:v]concat=n=2:v=1:a=0 " +
       MPEG4_VIDEO_OUTPUT +
       " -g 30 -an";
-    return generate("seek-video.mp4", arguments);
+    return generate(SEEK_VIDEO_FILE_NAME, arguments);
   }
 
   /**
@@ -132,7 +140,7 @@ public final class TestMedia {
    */
   public static synchronized Path silentVideo() {
     final String arguments = TEST_PATTERN_INPUT + " -t 1 " + MPEG4_VIDEO_OUTPUT + " -an";
-    return generate("silent.mp4", arguments);
+    return generate(SILENT_VIDEO_FILE_NAME, arguments);
   }
 
   /**
@@ -144,7 +152,7 @@ public final class TestMedia {
   public static synchronized Path audio(final double seconds) {
     Preconditions.checkArgument(seconds > 0, "Seconds %s must be positive!", seconds);
     final String length = String.valueOf(seconds);
-    final String fileName = "audio-" + length + ".m4a";
+    final String fileName = AUDIO_FILE_PREFIX + length + AUDIO_FILE_EXTENSION;
     final String arguments = SINE_INPUT + "880 -t " + length + " -c:a aac -ac 2";
     return generate(fileName, arguments);
   }
@@ -155,7 +163,7 @@ public final class TestMedia {
    * @return the PNG file
    */
   public static synchronized Path png() {
-    return generate("image.png", "-f lavfi -i color=c=white:size=16x8 -frames:v 1");
+    return generate(IMAGE_FILE_NAME, "-f lavfi -i color=c=white:size=16x8 -frames:v 1");
   }
 
   private static Path generate(final String fileName, final String arguments) {

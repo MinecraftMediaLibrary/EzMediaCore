@@ -52,10 +52,59 @@ import uk.co.caprica.vlcj.factory.discovery.provider.WindowsInstallDirectoryProv
  */
 final class DirectoryProviderDiscoveryStrategyTest {
 
-  private static final String[] PATTERNS = { "libvlc\\.dll", "libvlccore\\.dll" };
+  private static final String LIBRARY_PATTERN = "libvlc\\.dll";
+  private static final String CORE_LIBRARY_PATTERN = "libvlccore\\.dll";
+  private static final String LIBRARY_PREFIX_PATTERN = "libvlc.*";
+  private static final String UNMATCHED_PATTERN = "nothing-matches-this";
+
+  private static final String[] PATTERNS = { LIBRARY_PATTERN, CORE_LIBRARY_PATTERN };
   private static final String[] PLUGIN_FORMATS = { "%s/plugins", "%s/vlc/plugins" };
   private static final EnvironmentSetter IGNORING_SETTER = (_, _) -> true;
   private static final String JNA_LIBRARY_PATH = "jna.library.path";
+
+  private static final String LIBRARY_FILE = "libvlc.dll";
+  private static final String CORE_LIBRARY_FILE = "libvlccore.dll";
+  private static final String BACKUP_LIBRARY_FILE = "libvlc.dll.bak";
+  private static final String PREFIXED_CORE_LIBRARY_FILE = "xlibvlccore.dll";
+  private static final String README_FILE = "readme.txt";
+  private static final String REGULAR_FILE = "file.txt";
+
+  private static final String VLC_DIRECTORY = "vlc";
+  private static final String ROOT_DIRECTORY = "root";
+  private static final String CHILD_DIRECTORY = "child";
+  private static final String GRANDCHILD_DIRECTORY = "grandchild";
+  private static final String DEEP_DIRECTORY = "deep";
+  private static final String FIRST_BRANCH_DIRECTORY = "a";
+  private static final String SECOND_BRANCH_DIRECTORY = "b";
+  private static final String LOOP_LINK = "loop";
+  private static final String EMPTY_DIRECTORY = "empty";
+  private static final String CROWDED_DIRECTORY = "crowded";
+  private static final String EMPTY_CHILD_PREFIX = "empty-";
+  private static final String SECOND_ONLY_DIRECTORY = "second-only";
+  private static final String PARTIAL_DIRECTORY = "partial";
+  private static final String FAKE_DIRECTORY = "fake";
+  private static final String SIMILAR_DIRECTORY = "similar";
+  private static final String SINGLE_DIRECTORY = "single";
+  private static final String MISSING_DIRECTORY = "missing";
+  private static final String INVALID_DIRECTORY = "bad\0directory";
+  private static final String JNA_DIRECTORY = "jna";
+  private static final String FOUND_DIRECTORY = "anywhere";
+
+  private static final String HIGH_DIRECTORY = "high";
+  private static final String LOW_DIRECTORY = "low";
+  private static final String FIRST_LOW_DIRECTORY = "low-a";
+  private static final String SECOND_LOW_DIRECTORY = "low-b";
+  private static final String SUPPORTED_DIRECTORY = "supported";
+  private static final String UNSUPPORTED_DIRECTORY = "unsupported";
+
+  private static final int HIGH_PRIORITY = 5;
+  private static final int UNSUPPORTED_PRIORITY = 9;
+
+  private static final String PLUGIN_DIRECTORY = "plugins";
+  private static final String PLUGIN_PARENT_DIRECTORY = "vlc";
+  private static final String PLUGIN_PATH_ASSIGNMENT = "VLC_PLUGIN_PATH=";
+  private static final String PLUGIN_SUFFIX = "/plugins";
+  private static final String NESTED_PLUGIN_SUFFIX = "/vlc/plugins";
 
   @TempDir
   private Path temporaryDirectory;
@@ -91,9 +140,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldNeverCountOneFileForSeveralPatterns() throws IOException {
-    final Path directory = createDirectory(this.temporaryDirectory, "second-only");
-    createFile(directory, "libvlccore.dll");
-    createFile(directory, "readme.txt");
+    final Path directory = createDirectory(this.temporaryDirectory, SECOND_ONLY_DIRECTORY);
+    createFile(directory, CORE_LIBRARY_FILE);
+    createFile(directory, README_FILE);
     final TestStrategy strategy = singleSearch(directory, 0);
     final String found = strategy.discover();
     assertNull(found, "a file that matches no pattern never stands in for one that is missing");
@@ -101,7 +150,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldFindTheDirectoryThatContainsEveryLibrary() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     final TestStrategy strategy = singleSearch(libraries, 0);
     final String found = strategy.discover();
     final String expected = libraries.toString();
@@ -110,8 +159,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldIgnoreDirectoriesWithOnlySomeOfTheLibraries() throws IOException {
-    final Path partial = createDirectory(this.temporaryDirectory, "partial");
-    createFile(partial, "libvlc.dll");
+    final Path partial = createDirectory(this.temporaryDirectory, PARTIAL_DIRECTORY);
+    createFile(partial, LIBRARY_FILE);
     final TestStrategy strategy = singleSearch(partial, 0);
     final String found = strategy.discover();
     assertNull(found);
@@ -119,9 +168,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldIgnoreDirectoriesNamedLikeTheLibraries() throws IOException {
-    final Path fake = this.temporaryDirectory.resolve("fake");
-    createDirectory(fake, "libvlc.dll");
-    createDirectory(fake, "libvlccore.dll");
+    final Path fake = this.temporaryDirectory.resolve(FAKE_DIRECTORY);
+    createDirectory(fake, LIBRARY_FILE);
+    createDirectory(fake, CORE_LIBRARY_FILE);
     final TestStrategy strategy = singleSearch(fake, 0);
     final String found = strategy.discover();
     assertNull(found);
@@ -129,9 +178,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldMatchWholeFileNamesOnly() throws IOException {
-    final Path similar = createDirectory(this.temporaryDirectory, "similar");
-    createFile(similar, "libvlc.dll.bak");
-    createFile(similar, "xlibvlccore.dll");
+    final Path similar = createDirectory(this.temporaryDirectory, SIMILAR_DIRECTORY);
+    createFile(similar, BACKUP_LIBRARY_FILE);
+    createFile(similar, PREFIXED_CORE_LIBRARY_FILE);
     final TestStrategy strategy = singleSearch(similar, 0);
     final String found = strategy.discover();
     assertNull(found);
@@ -139,9 +188,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldNeedEveryPatternToMatchADifferentFile() throws IOException {
-    final Path directory = createDirectory(this.temporaryDirectory, "single");
-    createFile(directory, "libvlc.dll");
-    final String[] overlapping = { "libvlc\\.dll", "libvlc.*" };
+    final Path directory = createDirectory(this.temporaryDirectory, SINGLE_DIRECTORY);
+    createFile(directory, LIBRARY_FILE);
+    final String[] overlapping = { LIBRARY_PATTERN, LIBRARY_PREFIX_PATTERN };
     final SearchProvider provider = search(1, directory, 0);
     final List<SearchProvider> providers = List.of(provider);
     final TestStrategy strategy = new TestStrategy(overlapping, PLUGIN_FORMATS, providers, IGNORING_SETTER);
@@ -151,8 +200,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldOnlyCheckTheProvidedDirectoryAtDepthZero() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    createLibraries(root, "child");
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    createLibraries(root, CHILD_DIRECTORY);
     final TestStrategy strategy = singleSearch(root, 0);
     final String found = strategy.discover();
     assertNull(found);
@@ -160,9 +209,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldCheckChildDirectoriesAtDepthOne() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    final Path child = createLibraries(root, "child");
-    createFile(root, "readme.txt");
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    final Path child = createLibraries(root, CHILD_DIRECTORY);
+    createFile(root, README_FILE);
     final TestStrategy strategy = singleSearch(root, 1);
     final String found = strategy.discover();
     final String expected = child.toString();
@@ -171,8 +220,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldNeverSearchDeeperThanTheMaximumDepth() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    createLibraries(root, "child", "grandchild");
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    createLibraries(root, CHILD_DIRECTORY, GRANDCHILD_DIRECTORY);
     final TestStrategy strategy = singleSearch(root, 1);
     final String found = strategy.discover();
     assertNull(found);
@@ -180,9 +229,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldPreferTheShallowestMatch() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    createLibraries(root, "a", "deep");
-    final Path shallow = createLibraries(root, "b");
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    createLibraries(root, FIRST_BRANCH_DIRECTORY, DEEP_DIRECTORY);
+    final Path shallow = createLibraries(root, SECOND_BRANCH_DIRECTORY);
     final TestStrategy strategy = singleSearch(root, 2);
     final String found = strategy.discover();
     final String expected = shallow.toString();
@@ -191,10 +240,10 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldPreferProvidersWithAHigherPriority() throws IOException {
-    final Path low = createLibraries(this.temporaryDirectory, "low");
-    final Path high = createLibraries(this.temporaryDirectory, "high");
+    final Path low = createLibraries(this.temporaryDirectory, LOW_DIRECTORY);
+    final Path high = createLibraries(this.temporaryDirectory, HIGH_DIRECTORY);
     final SearchProvider lowSearch = search(1, low, 0);
-    final SearchProvider highSearch = search(5, high, 0);
+    final SearchProvider highSearch = search(HIGH_PRIORITY, high, 0);
     final TestStrategy strategy = strategy(lowSearch, highSearch);
     final String found = strategy.discover();
     final String expected = high.toString();
@@ -203,10 +252,10 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldSkipUnsupportedProviders() throws IOException {
-    final Path unsupported = createLibraries(this.temporaryDirectory, "unsupported");
-    final Path supported = createLibraries(this.temporaryDirectory, "supported");
+    final Path unsupported = createLibraries(this.temporaryDirectory, UNSUPPORTED_DIRECTORY);
+    final Path supported = createLibraries(this.temporaryDirectory, SUPPORTED_DIRECTORY);
     final String rawUnsupported = unsupported.toString();
-    final StaticDirectoryProvider unsupportedProvider = new StaticDirectoryProvider(9, false, rawUnsupported);
+    final StaticDirectoryProvider unsupportedProvider = new StaticDirectoryProvider(UNSUPPORTED_PRIORITY, false, rawUnsupported);
     final SearchProvider unsupportedSearch = new SearchProvider(unsupportedProvider, 0);
     final SearchProvider supportedSearch = search(1, supported, 0);
     final TestStrategy strategy = strategy(unsupportedSearch, supportedSearch);
@@ -217,13 +266,13 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldSkipBlankMissingAndInvalidDirectoryEntries() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
-    final Path regularFile = createFile(this.temporaryDirectory, "file.txt");
-    final Path missing = this.temporaryDirectory.resolve("missing");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
+    final Path regularFile = createFile(this.temporaryDirectory, REGULAR_FILE);
+    final Path missing = this.temporaryDirectory.resolve(MISSING_DIRECTORY);
     final String rawMissing = missing.toString();
     final String rawRegularFile = regularFile.toString();
     final String rawLibraries = libraries.toString();
-    final String[] entries = { null, "", "   ", rawMissing, rawRegularFile, "bad\0directory", rawLibraries };
+    final String[] entries = { null, "", "   ", rawMissing, rawRegularFile, INVALID_DIRECTORY, rawLibraries };
     final StaticDirectoryProvider provider = new StaticDirectoryProvider(1, true, entries);
     final SearchProvider providerSearch = new SearchProvider(provider, 0);
     final TestStrategy strategy = strategy(providerSearch);
@@ -233,9 +282,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldSearchADirectoryAgainWhenAProviderAllowsADeeperSearch() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    final Path child = createLibraries(root, "child");
-    final SearchProvider shallowFirst = search(5, root, 0);
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    final Path child = createLibraries(root, CHILD_DIRECTORY);
+    final SearchProvider shallowFirst = search(HIGH_PRIORITY, root, 0);
     final SearchProvider deeperSecond = search(1, root, 1);
     final TestStrategy strategy = strategy(shallowFirst, deeperSecond);
     final String found = strategy.discover();
@@ -245,13 +294,13 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldSkipADirectoryAlreadySearchedAtLeastAsDeep() throws IOException {
-    final Path root = this.temporaryDirectory.resolve("root");
-    final Path child = createDirectory(root, "child");
-    createFile(child, "libvlc.dll");
-    final Path missingCore = child.resolve("libvlccore.dll");
+    final Path root = this.temporaryDirectory.resolve(ROOT_DIRECTORY);
+    final Path child = createDirectory(root, CHILD_DIRECTORY);
+    createFile(child, LIBRARY_FILE);
+    final Path missingCore = child.resolve(CORE_LIBRARY_FILE);
     final String rawChild = child.toString();
     final CompletingDirectoryProvider completing = new CompletingDirectoryProvider(missingCore, rawChild);
-    final SearchProvider rootSearch = search(5, root, 1);
+    final SearchProvider rootSearch = search(HIGH_PRIORITY, root, 1);
     final SearchProvider completingSearch = new SearchProvider(completing, 0);
     final TestStrategy strategy = strategy(rootSearch, completingSearch);
     final String found = strategy.discover();
@@ -262,9 +311,9 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldFindADirectoryThatIsCompleteWhenItIsFirstSearched() throws IOException {
-    final Path child = createDirectory(this.temporaryDirectory, "child");
-    createFile(child, "libvlc.dll");
-    final Path missingCore = child.resolve("libvlccore.dll");
+    final Path child = createDirectory(this.temporaryDirectory, CHILD_DIRECTORY);
+    createFile(child, LIBRARY_FILE);
+    final Path missingCore = child.resolve(CORE_LIBRARY_FILE);
     final String rawChild = child.toString();
     final CompletingDirectoryProvider completing = new CompletingDirectoryProvider(missingCore, rawChild);
     final SearchProvider completingSearch = new SearchProvider(completing, 0);
@@ -275,12 +324,12 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldSurviveSymbolicLinkLoops() throws IOException {
-    final Path root = createDirectory(this.temporaryDirectory, "root");
-    final Path loop = root.resolve("loop");
+    final Path root = createDirectory(this.temporaryDirectory, ROOT_DIRECTORY);
+    final Path loop = root.resolve(LOOP_LINK);
     createLinkOrAbort(loop, root);
-    final Path libraries = createLibraries(root, "deep", "vlc");
-    final Path empty = createDirectory(this.temporaryDirectory, "empty");
-    final Path emptyLoop = empty.resolve("loop");
+    final Path libraries = createLibraries(root, DEEP_DIRECTORY, VLC_DIRECTORY);
+    final Path empty = createDirectory(this.temporaryDirectory, EMPTY_DIRECTORY);
+    final Path emptyLoop = empty.resolve(LOOP_LINK);
     Files.createSymbolicLink(emptyLoop, empty);
 
     final TestStrategy finding = singleSearch(root, 5);
@@ -295,13 +344,13 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldGiveUpAfterTheMaximumNumberOfDirectories() throws IOException {
-    final Path crowded = this.temporaryDirectory.resolve("crowded");
+    final Path crowded = this.temporaryDirectory.resolve(CROWDED_DIRECTORY);
     final int childCount = DirectoryProviderDiscoveryStrategy.MAXIMUM_VISITED_DIRECTORIES - 1;
     for (int index = 0; index < childCount; index++) {
-      createDirectory(crowded, "empty-" + index);
+      createDirectory(crowded, EMPTY_CHILD_PREFIX + index);
     }
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
-    final SearchProvider crowdedSearch = search(5, crowded, 1);
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
+    final SearchProvider crowdedSearch = search(HIGH_PRIORITY, crowded, 1);
     final SearchProvider librarySearch = search(1, libraries, 0);
     final TestStrategy exhausted = strategy(crowdedSearch, librarySearch);
     final TestStrategy control = strategy(librarySearch);
@@ -315,21 +364,21 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldListTheDirectoriesOfTheSupportedProvidersByPriority() {
-    final StaticDirectoryProvider low = new StaticDirectoryProvider(1, true, "low-a", "low-b");
-    final StaticDirectoryProvider high = new StaticDirectoryProvider(7, true, "high");
-    final StaticDirectoryProvider unsupported = new StaticDirectoryProvider(9, false, "unsupported");
+    final StaticDirectoryProvider low = new StaticDirectoryProvider(1, true, FIRST_LOW_DIRECTORY, SECOND_LOW_DIRECTORY);
+    final StaticDirectoryProvider high = new StaticDirectoryProvider(7, true, HIGH_DIRECTORY);
+    final StaticDirectoryProvider unsupported = new StaticDirectoryProvider(UNSUPPORTED_PRIORITY, false, UNSUPPORTED_DIRECTORY);
     final SearchProvider lowSearch = new SearchProvider(low, 0);
     final SearchProvider highSearch = new SearchProvider(high, 0);
     final SearchProvider unsupportedSearch = new SearchProvider(unsupported, 0);
     final TestStrategy strategy = strategy(lowSearch, highSearch, unsupportedSearch);
     final List<String> directories = strategy.discoveryDirectories();
-    final List<String> expected = List.of("high", "low-a", "low-b");
+    final List<String> expected = List.of(HIGH_DIRECTORY, FIRST_LOW_DIRECTORY, SECOND_LOW_DIRECTORY);
     assertEquals(expected, directories);
   }
 
   @Test
   void shouldReadTheJnaLibraryPathInTheDefaultProviders() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "jna");
+    final Path libraries = createLibraries(this.temporaryDirectory, JNA_DIRECTORY);
     final String rawLibraries = libraries.toString();
     final String previous = System.getProperty(JNA_LIBRARY_PATH);
     System.setProperty(JNA_LIBRARY_PATH, rawLibraries);
@@ -353,13 +402,13 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldCopyTheArgumentsItIsConstructedWith() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     final String[] patterns = PATTERNS.clone();
     final SearchProvider librarySearch = search(1, libraries, 0);
     final List<SearchProvider> providers = new ArrayList<>();
     providers.add(librarySearch);
     final TestStrategy strategy = new TestStrategy(patterns, PLUGIN_FORMATS, providers, IGNORING_SETTER);
-    patterns[0] = "nothing-matches-this";
+    patterns[0] = UNMATCHED_PATTERN;
     providers.clear();
     final String found = strategy.discover();
     final String expected = libraries.toString();
@@ -368,35 +417,35 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldPublishTheFirstExistingPluginDirectory() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
-    createDirectory(libraries, "plugins");
-    createDirectory(libraries, "vlc", "plugins");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
+    createDirectory(libraries, PLUGIN_DIRECTORY);
+    createDirectory(libraries, PLUGIN_PARENT_DIRECTORY, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
     final TestStrategy strategy = recordingStrategy(published, true);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
-    final List<String> expected = List.of("VLC_PLUGIN_PATH=" + libraryPath + "/plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + libraryPath + PLUGIN_SUFFIX);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
 
   @Test
   void shouldFallBackToTheNextPluginDirectoryFormat() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
-    createDirectory(libraries, "vlc", "plugins");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
+    createDirectory(libraries, PLUGIN_PARENT_DIRECTORY, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
     final TestStrategy strategy = recordingStrategy(published, true);
     final String libraryPath = libraries.toString();
     final boolean pathSet = strategy.onSetPluginPath(libraryPath);
-    final List<String> expected = List.of("VLC_PLUGIN_PATH=" + libraryPath + "/vlc/plugins");
+    final List<String> expected = List.of(PLUGIN_PATH_ASSIGNMENT + libraryPath + NESTED_PLUGIN_SUFFIX);
     assertTrue(pathSet);
     assertEquals(expected, published);
   }
 
   @Test
   void shouldReportWhenThePluginPathCouldNotBeSet() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
-    createDirectory(libraries, "plugins");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
+    createDirectory(libraries, PLUGIN_DIRECTORY);
     final List<String> published = new ArrayList<>();
     final TestStrategy strategy = recordingStrategy(published, false);
     final String libraryPath = libraries.toString();
@@ -408,7 +457,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   @Test
   void shouldPublishNothingWithoutAPluginDirectory() throws IOException {
-    final Path libraries = createLibraries(this.temporaryDirectory, "vlc");
+    final Path libraries = createLibraries(this.temporaryDirectory, VLC_DIRECTORY);
     final List<String> published = new ArrayList<>();
     final TestStrategy strategy = recordingStrategy(published, true);
     final String libraryPath = libraries.toString();
@@ -421,7 +470,7 @@ final class DirectoryProviderDiscoveryStrategyTest {
   @Test
   void shouldLetVlcjAddTheFoundDirectoryToTheSearchPath() {
     final TestStrategy strategy = strategy();
-    final boolean addsToSearchPath = strategy.onFound("anywhere");
+    final boolean addsToSearchPath = strategy.onFound(FOUND_DIRECTORY);
     assertTrue(addsToSearchPath);
   }
 
@@ -451,8 +500,8 @@ final class DirectoryProviderDiscoveryStrategyTest {
 
   private static Path createLibraries(final Path parent, final String... names) throws IOException {
     final Path directory = createDirectory(parent, names);
-    createFile(directory, "libvlc.dll");
-    createFile(directory, "libvlccore.dll");
+    createFile(directory, LIBRARY_FILE);
+    createFile(directory, CORE_LIBRARY_FILE);
     return directory;
   }
 

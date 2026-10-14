@@ -33,6 +33,10 @@ import org.junit.jupiter.api.Test;
  */
 final class UriSourceTest {
 
+  private static final String MEDIA_URL = "https://example.com/a.mp4";
+
+  private static final String DRIVE_PATH = "c:/videos/clip.mp4";
+
   @Test
   void shouldDescribeTheUri() {
     final URI uri = URI.create("https://example.com/clip.mp4");
@@ -63,7 +67,7 @@ final class UriSourceTest {
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final URI uri = URI.create("https://example.com/a.mp4");
+    final URI uri = URI.create(MEDIA_URL);
     final URI otherUri = URI.create("https://example.com/b.mp4");
     final UriSource source = UriSource.uri(uri);
     final UriSource equalSource = UriSource.uri(uri);
@@ -85,9 +89,9 @@ final class UriSourceTest {
   void shouldDetectUrisWithSchemeAndHost() {
     final UriSourceDetector detector = new UriSourceDetector();
     final boolean isWebUri = detector.isDetectedSource("rtsp://camera.local/stream");
-    final boolean isDrivePath = detector.isDetectedSource("c:/videos/clip.mp4");
-    final UriSource created = detector.createSource("https://example.com/a.mp4");
-    final URI expectedUri = URI.create("https://example.com/a.mp4");
+    final boolean isDrivePath = detector.isDetectedSource(DRIVE_PATH);
+    final UriSource created = detector.createSource(MEDIA_URL);
+    final URI expectedUri = URI.create(MEDIA_URL);
     final UriSource expected = UriSource.uri(expectedUri);
     final int priority = detector.getPriority();
     assertTrue(isWebUri);

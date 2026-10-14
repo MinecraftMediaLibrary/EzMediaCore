@@ -26,10 +26,12 @@ import me.brandonli.mcav.utils.os.Platform;
  */
 public final class VlcDownloadExample {
 
+  private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";
+
   private VlcDownloadExample() {}
 
   static void main() {
-    final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json");
+    final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
     for (final Download download : downloads) {
       final Platform platform = download.getPlatform();
       final String url = download.getUrl();

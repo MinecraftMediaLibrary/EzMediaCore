@@ -67,6 +67,12 @@ final class AudioExtractorTest {
 
   private static final float SAMPLE_RATE = 8000;
 
+  private static final String TONE_FILE_NAME = "tone.wav";
+  private static final String MISSING_FILE_NAME = "missing.wav";
+  private static final String INPUT_FILE_NAME = "input.wav";
+  private static final String KEPT_FILE_NAME = "keep.ogg";
+  private static final String OGG_EXTENSION = ".ogg";
+
   @TempDir
   private Path directory;
 
@@ -106,7 +112,7 @@ final class AudioExtractorTest {
       samples[index * 2 + 1] = (byte) (sample >> 8);
     }
     final AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
-    final Path wave = this.directory.resolve("tone.wav");
+    final Path wave = this.directory.resolve(TONE_FILE_NAME);
     final File waveFile = wave.toFile();
     try (
       final ByteArrayInputStream input = new ByteArrayInputStream(samples);
@@ -132,7 +138,7 @@ final class AudioExtractorTest {
     final String magicText = new String(magic, StandardCharsets.US_ASCII);
     final String content = new String(bytes, StandardCharsets.ISO_8859_1);
     final boolean mentionsVorbis = content.contains("vorbis");
-    final boolean endsWithOgg = name.endsWith(".ogg");
+    final boolean endsWithOgg = name.endsWith(OGG_EXTENSION);
     assertEquals(cache, parent);
     assertTrue(endsWithOgg);
     assertEquals("OggS", magicText);
@@ -142,7 +148,7 @@ final class AudioExtractorTest {
 
   @Test
   void shouldReportMediaThatFfmpegCannotRead() {
-    final Path missing = this.directory.resolve("missing.wav");
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final FileSource source = FileSource.path(missing);
     assertThrows(ProcessException.class, () -> AudioExtractor.extractOggVorbis(source));
     assertThrows(NullPointerException.class, () -> AudioExtractor.extractOggVorbis(null));
@@ -161,7 +167,7 @@ final class AudioExtractorTest {
 
   private void checkFailedExtraction(final boolean cleanupFails, final boolean sameFailure) throws IOException {
     final Path cache = IoUtils.getCachedFolder();
-    final Path existing = Files.writeString(cache.resolve("keep.ogg"), "existing audio");
+    final Path existing = Files.writeString(cache.resolve(KEPT_FILE_NAME), "existing audio");
     final AtomicReference<Path> partial = new AtomicReference<>();
     final FfmpegCommand command = mock(FfmpegCommand.class);
     final CommandTask task = mock(CommandTask.class);
@@ -189,7 +195,7 @@ final class AudioExtractorTest {
           }
           return command;
         });
-      final FileSource source = FileSource.path(this.directory.resolve("input.wav"));
+      final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));
       final IOException thrown = assertThrows(IOException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
       final boolean partialLeft = Files.exists(partial.get());

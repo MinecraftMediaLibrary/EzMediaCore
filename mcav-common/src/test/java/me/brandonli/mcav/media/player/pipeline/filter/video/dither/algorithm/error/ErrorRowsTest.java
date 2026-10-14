@@ -30,6 +30,9 @@ final class ErrorRowsTest {
 
   private static final int GRAY = 0x808080;
 
+  private static final int ROW_WIDTH = 4;
+  private static final int NARROW_ROW_WIDTH = 2;
+
   @Test
   void shouldScanEvenRowsForwardAndOddRowsBackward() {
     final int evenStart = ErrorRows.getScanStart(0, 5);
@@ -61,7 +64,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldSpreadErrorsToTheNeighborsNamedByTheKernel() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
     rows.diffuse(1, 0, 1, 160, -32, 16);
     final int right = rows.applyPendingError(GRAY, 2, 0);
     final int belowLeft = rows.applyPendingError(GRAY, 0, 1);
@@ -77,7 +80,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldMirrorTheKernelOnRowsScannedBackward() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
     rows.diffuse(2, 1, -1, 16, 16, 16);
     final int ahead = rows.applyPendingError(0, 1, 1);
     final int behind = rows.applyPendingError(0, 3, 1);
@@ -93,9 +96,9 @@ final class ErrorRowsTest {
 
   @Test
   void shouldSpreadAnErrorThatOnlyOneChannelHas() {
-    final ErrorRows redOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
-    final ErrorRows greenOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
-    final ErrorRows blueOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
+    final ErrorRows redOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
+    final ErrorRows greenOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
+    final ErrorRows blueOnly = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
     redOnly.diffuse(1, 0, 1, 160, 0, 0);
     greenOnly.diffuse(1, 0, 1, 0, 160, 0);
     blueOnly.diffuse(1, 0, 1, 0, 0, 160);
@@ -113,7 +116,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldClampTheWantedColorToTheChannelRange() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 2);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, -160, 160, 0);
     final int clamped = rows.applyPendingError(0x20F010, 1, 0);
     assertEquals(0x00FF10, clamped, "0x20 - 70 clamps to 0 and 0xF0 + 70 clamps to 0xFF");
@@ -121,7 +124,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldClearFinishedRowsForReuse() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 2);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 64, 64, 64);
     rows.finishRow(0);
     final int nextRow = rows.applyPendingError(0x101010, 0, 1);
@@ -132,7 +135,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldAddWhatRoundingCutsOffToTheTapWithTheLargestWeight() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, 4);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.FLOYD_STEINBERG, ROW_WIDTH);
     rows.diffuse(1, 0, 1, 10, -10, 0);
     final int right = rows.applyPendingError(GRAY, 2, 0);
     final int belowLeft = rows.applyPendingError(GRAY, 0, 1);
@@ -146,7 +149,7 @@ final class ErrorRowsTest {
 
   @Test
   void shouldSpreadOnlyTheFractionTheWeightsDescribe() {
-    final ErrorRows rows = new ErrorRows(DiffusionKernel.ATKINSON, 4);
+    final ErrorRows rows = new ErrorRows(DiffusionKernel.ATKINSON, ROW_WIDTH);
     rows.diffuse(0, 0, 1, 10, 10, 10);
     final int right = rows.applyPendingError(0, 1, 0);
     final int twoRight = rows.applyPendingError(0, 2, 0);
@@ -163,7 +166,7 @@ final class ErrorRowsTest {
   @Test
   void shouldFindTheLargestTapWhereverItIs() {
     final DiffusionKernel kernel = new DiffusionKernel("Mostly down", 4, new int[][] { { 1, 0, 1 }, { 0, 1, 3 } });
-    final ErrorRows rows = new ErrorRows(kernel, 2);
+    final ErrorRows rows = new ErrorRows(kernel, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 10, 10, 10);
     final int right = rows.applyPendingError(0, 1, 0);
     final int below = rows.applyPendingError(0, 0, 1);
@@ -174,7 +177,7 @@ final class ErrorRowsTest {
   @Test
   void shouldPreserveAUnitFractionWithLargeEquivalentWeights() {
     final DiffusionKernel kernel = new DiffusionKernel("Scaled unit", Integer.MAX_VALUE, new int[][] { { 1, 0, Integer.MAX_VALUE } });
-    final ErrorRows rows = new ErrorRows(kernel, 2);
+    final ErrorRows rows = new ErrorRows(kernel, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 100, -100, 1);
     final int right = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(0xE41C81, right, "MAX/MAX is one; scaling a fraction must not change any channel");
@@ -186,7 +189,7 @@ final class ErrorRowsTest {
       { 1, 0, Integer.MAX_VALUE },
       { 0, 1, Integer.MAX_VALUE },
     });
-    final ErrorRows rows = new ErrorRows(kernel, 2);
+    final ErrorRows rows = new ErrorRows(kernel, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 50, -50, 3);
     final int right = rows.applyPendingError(GRAY, 1, 0);
     final int below = rows.applyPendingError(GRAY, 0, 1);
@@ -197,7 +200,7 @@ final class ErrorRowsTest {
   @Test
   void shouldKeepTheSignUntilColorClampingWithALargeAmplification() {
     final DiffusionKernel kernel = new DiffusionKernel("Amplified right", 1, new int[][] { { 1, 0, Integer.MAX_VALUE } });
-    final ErrorRows rows = new ErrorRows(kernel, 2);
+    final ErrorRows rows = new ErrorRows(kernel, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 100, -100, 1);
     final int amplifiedColor = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(0xFF00FF, amplifiedColor);
@@ -212,7 +215,7 @@ final class ErrorRowsTest {
       { 1, 0, 1_000_000_000 },
       { 1, 0, 1_000_000_000 },
     });
-    final ErrorRows rows = new ErrorRows(kernel, 2);
+    final ErrorRows rows = new ErrorRows(kernel, NARROW_ROW_WIDTH);
     rows.diffuse(0, 0, 1, 2, -2, 2);
     final int accumulatedColor = rows.applyPendingError(GRAY, 1, 0);
     assertEquals(0xFF00FF, accumulatedColor);

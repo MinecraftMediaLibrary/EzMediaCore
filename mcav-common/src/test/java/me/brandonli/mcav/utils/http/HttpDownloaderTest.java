@@ -65,9 +65,61 @@ import org.mockito.Mockito;
  */
 final class HttpDownloaderTest {
 
-  private static final byte[] CONTENT = "hello download".getBytes(StandardCharsets.UTF_8);
+  private static final String CONTENT_TEXT = "hello download";
+  private static final byte[] CONTENT = CONTENT_TEXT.getBytes(StandardCharsets.UTF_8);
   private static final String CONTENT_SHA256 = "f13fd89cc6417f1028614173a449ca08607af977ad51d788e8749198273fa7c1";
   private static final Duration NO_DELAY = Duration.ofMillis(1);
+
+  private static final String SHA256_ALGORITHM = "SHA-256";
+
+  private static final int MAXIMUM_ATTEMPTS = 3;
+
+  private static final long WAIT_TIMEOUT_SECONDS = 10L;
+
+  private static final int HTTP_OK = 200;
+  private static final int HTTP_FOUND = 302;
+  private static final int HTTP_NOT_FOUND = 404;
+  private static final int HTTP_SERVER_ERROR = 500;
+
+  private static final int BIG_BODY_LENGTH = 256 * 1024;
+
+  private static final long ANNOUNCED_LENGTH_FACTOR = 10L;
+
+  private static final String FILE_ROUTE = "/file";
+  private static final String BROKEN_ROUTE = "/broken";
+  private static final String SLOW_ROUTE = "/slow";
+  private static final String STALLED_ROUTE = "/stalled";
+  private static final String BIG_ROUTE = "/big";
+  private static final String MISSING_ROUTE = "/missing";
+  private static final String MOVED_ROUTE = "/moved";
+
+  private static final String NESTED_DIRECTORY = "nested";
+  private static final String NESTED_FILE_PATH = "nested/file.bin";
+  private static final String VERIFIED_FILE_NAME = "verified.bin";
+  private static final String UPPER_CASE_FILE_NAME = "upper.bin";
+  private static final String BLANK_FILE_NAME = "blank.bin";
+  private static final String MISMATCH_FILE_NAME = "mismatch.bin";
+  private static final String FLAKY_FILE_NAME = "flaky.bin";
+  private static final String BROKEN_FILE_NAME = "broken.bin";
+  private static final String STALLED_FILE_NAME = "stalled.bin";
+  private static final String EXISTING_FILE_NAME = "existing.bin";
+  private static final String MISSING_FILE_NAME = "missing.bin";
+  private static final String BIG_FILE_NAME = "big.bin";
+  private static final String SMALL_FILE_NAME = "small.bin";
+  private static final String PINNED_FILE_NAME = "pinned.bin";
+  private static final String OTHER_FILE_NAME = "other.bin";
+  private static final String UNUSED_FILE_NAME = "unused.bin";
+  private static final String MOVED_FILE_NAME = "moved.bin";
+  private static final String AWAY_FILE_NAME = "away.bin";
+  private static final String SLOW_FILE_NAME = "slow.bin";
+  private static final String UNBOUNDED_FILE_NAME = "unbounded.bin";
+  private static final String INTERRUPTED_FILE_NAME = "interrupted.bin";
+  private static final String BARE_FILE_NAME = "file";
+  private static final String FILE_NAME = "file.bin";
+  private static final String SHARED_FILE_NAME = "shared.bin";
+  private static final String OCCUPIED_DIRECTORY = "occupied";
+  private static final String KEPT_FILE_NAME = "kept.txt";
+  private static final String PART_FILE_EXTENSION = ".part";
 
   @TempDir
   private Path directory;
@@ -77,11 +129,11 @@ final class HttpDownloaderTest {
     try (final ServerSocket socket = new ServerSocket(0)) {
       port = socket.getLocalPort();
     }
-    return URI.create("http://127.0.0.1:" + port + "/file");
+    return URI.create("http://127.0.0.1:" + port + FILE_ROUTE);
   }
 
   private static String contentSha256() throws IOException {
-    final MessageDigest digest = HttpDownloader.createDigest("SHA-256");
+    final MessageDigest digest = HttpDownloader.createDigest(SHA256_ALGORITHM);
     final byte[] hash = digest.digest(CONTENT);
     final HexFormat hex = HexFormat.of();
     return hex.formatHex(hash);
@@ -99,12 +151,12 @@ final class HttpDownloaderTest {
   @Test
   void shouldDownloadFilesAtomically() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
-      final Path destination = this.directory.resolve("nested/file.bin");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path destination = this.directory.resolve(NESTED_FILE_PATH);
       HttpDownloader.download(uri, destination);
       final byte[] content = Files.readAllBytes(destination);
-      final Path nested = this.directory.resolve("nested");
+      final Path nested = this.directory.resolve(NESTED_DIRECTORY);
       final List<Path> partFiles = partFiles(nested);
       assertArrayEquals(CONTENT, content);
       final boolean partFilesEmpty = partFiles.isEmpty();
@@ -117,20 +169,20 @@ final class HttpDownloaderTest {
     final String expected = contentSha256();
     assertEquals(CONTENT_SHA256, expected, "the constant is the SHA-256 of the content");
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
-      final Path verified = this.directory.resolve("verified.bin");
-      final Path upperCase = this.directory.resolve("upper.bin");
-      final Path blank = this.directory.resolve("blank.bin");
-      final Path mismatch = this.directory.resolve("mismatch.bin");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path verified = this.directory.resolve(VERIFIED_FILE_NAME);
+      final Path upperCase = this.directory.resolve(UPPER_CASE_FILE_NAME);
+      final Path blank = this.directory.resolve(BLANK_FILE_NAME);
+      final Path mismatch = this.directory.resolve(MISMATCH_FILE_NAME);
       final String upperExpected = expected.toUpperCase(Locale.ROOT);
       HttpDownloader.download(uri, verified, expected);
       HttpDownloader.download(uri, upperCase, upperExpected);
       HttpDownloader.download(uri, blank, " ");
-      final int requestsBeforeMismatch = server.getRequestCount("/file");
+      final int requestsBeforeMismatch = server.getRequestCount(FILE_ROUTE);
       final String wrongHash = CONTENT_SHA256.replace('c', 'd');
       assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(uri, mismatch, wrongHash));
-      final int requestsAfterMismatch = server.getRequestCount("/file");
+      final int requestsAfterMismatch = server.getRequestCount(FILE_ROUTE);
       final boolean mismatchExists = Files.exists(mismatch);
       final List<Path> partFiles = partFiles(this.directory);
       assertEquals(requestsBeforeMismatch + 1, requestsAfterMismatch, "a checksum mismatch is not retried");
@@ -144,23 +196,23 @@ final class HttpDownloaderTest {
   void shouldRetryServerErrorsAndGiveUpAfterThreeAttempts() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       server.respond("/flaky", 503, CONTENT);
-      server.respond("/flaky", 200, CONTENT);
-      server.respond("/broken", 500, CONTENT);
+      server.respond("/flaky", HTTP_OK, CONTENT);
+      server.respond(BROKEN_ROUTE, HTTP_SERVER_ERROR, CONTENT);
       final URI flaky = server.uri("/flaky");
-      final URI broken = server.uri("/broken");
-      final Path flakyDestination = this.directory.resolve("flaky.bin");
-      final Path brokenDestination = this.directory.resolve("broken.bin");
+      final URI broken = server.uri(BROKEN_ROUTE);
+      final Path flakyDestination = this.directory.resolve(FLAKY_FILE_NAME);
+      final Path brokenDestination = this.directory.resolve(BROKEN_FILE_NAME);
       HttpDownloader.download(flaky, flakyDestination, null, NO_DELAY);
       final IOException exception = assertThrows(IOException.class, () ->
         HttpDownloader.download(broken, brokenDestination, null, NO_DELAY)
       );
       final Throwable cause = exception.getCause();
       final int flakyRequests = server.getRequestCount("/flaky");
-      final int brokenRequests = server.getRequestCount("/broken");
+      final int brokenRequests = server.getRequestCount(BROKEN_ROUTE);
       final boolean flakyExists = Files.exists(flakyDestination);
       assertTrue(flakyExists);
       assertEquals(2, flakyRequests);
-      assertEquals(3, brokenRequests);
+      assertEquals(MAXIMUM_ATTEMPTS, brokenRequests);
       assertInstanceOf(HttpStatusException.class, cause);
     }
   }
@@ -168,16 +220,16 @@ final class HttpDownloaderTest {
   @Test
   void shouldWaitBetweenAttemptsButNotAfterTheLast() throws Exception {
     try (final LocalHttpServer server = LocalHttpServer.start(); final ExecutorService executor = Executors.newSingleThreadExecutor()) {
-      server.respond("/broken", 500, CONTENT);
-      final URI broken = server.uri("/broken");
-      final Path destination = this.directory.resolve("broken.bin");
+      server.respond(BROKEN_ROUTE, HTTP_SERVER_ERROR, CONTENT);
+      final URI broken = server.uri(BROKEN_ROUTE);
+      final Path destination = this.directory.resolve(BROKEN_FILE_NAME);
       final Duration retryDelay = Duration.ofMillis(500);
       final Future<Long> failedAt = executor.submit(() -> failAndTime(broken, destination, retryDelay));
 
-      final boolean secondAttemptEarly = server.awaitRequests("/broken", 2, Duration.ofMillis(250));
+      final boolean secondAttemptEarly = server.awaitRequests(BROKEN_ROUTE, 2, Duration.ofMillis(250));
       assertFalse(secondAttemptEarly, "the second attempt waits for the retry delay");
 
-      final boolean thirdAttempt = server.awaitRequests("/broken", 3, Duration.ofSeconds(10));
+      final boolean thirdAttempt = server.awaitRequests(BROKEN_ROUTE, MAXIMUM_ATTEMPTS, Duration.ofSeconds(WAIT_TIMEOUT_SECONDS));
       final long thirdAttemptAt = System.nanoTime();
       final Duration afterLastAttempt = Duration.ofNanos(failedAt.get() - thirdAttemptAt);
       final boolean failedPromptly = afterLastAttempt.compareTo(retryDelay) < 0;
@@ -194,11 +246,11 @@ final class HttpDownloaderTest {
   @Test
   void shouldGiveUpOnAnErrorWhoseBodyStalls() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondStalling("/stalled", 500, CONTENT, CONTENT.length + 1);
-      final URI stalled = server.uri("/stalled");
-      final Path destination = this.directory.resolve("stalled.bin");
+      server.respondStalling(STALLED_ROUTE, HTTP_SERVER_ERROR, CONTENT, CONTENT.length + 1);
+      final URI stalled = server.uri(STALLED_ROUTE);
+      final Path destination = this.directory.resolve(STALLED_FILE_NAME);
 
-      final IOException failure = assertTimeoutPreemptively(Duration.ofSeconds(10), () ->
+      final IOException failure = assertTimeoutPreemptively(Duration.ofSeconds(WAIT_TIMEOUT_SECONDS), () ->
         assertThrows(IOException.class, () -> HttpDownloader.download(stalled, destination, null, NO_DELAY))
       );
       final Throwable cause = failure.getCause();
@@ -209,9 +261,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldKeepTheExistingFileWhenADownloadFails() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/broken", 500, CONTENT);
-      final URI broken = server.uri("/broken");
-      final Path destination = this.directory.resolve("existing.bin");
+      server.respond(BROKEN_ROUTE, HTTP_SERVER_ERROR, CONTENT);
+      final URI broken = server.uri(BROKEN_ROUTE);
+      final Path destination = this.directory.resolve(EXISTING_FILE_NAME);
       Files.writeString(destination, "previous version");
       assertThrows(IOException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
       final String content = Files.readString(destination);
@@ -225,12 +277,12 @@ final class HttpDownloaderTest {
   @Test
   void shouldNotRetryClientErrors() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final URI missing = server.uri("/missing");
-      final Path destination = this.directory.resolve("missing.bin");
+      final URI missing = server.uri(MISSING_ROUTE);
+      final Path destination = this.directory.resolve(MISSING_FILE_NAME);
       final HttpStatusException exception = assertThrows(HttpStatusException.class, () -> HttpDownloader.download(missing, destination));
       final int statusCode = exception.getStatusCode();
-      final int requests = server.getRequestCount("/missing");
-      assertEquals(404, statusCode);
+      final int requests = server.getRequestCount(MISSING_ROUTE);
+      assertEquals(HTTP_NOT_FOUND, statusCode);
       assertEquals(1, requests);
     }
   }
@@ -238,10 +290,10 @@ final class HttpDownloaderTest {
   @Test
   void shouldStopADownloadThatIsLargerThanAllowed() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final byte[] big = new byte[256 * 1024];
-      server.respond("/big", 200, big);
-      final URI uri = server.uri("/big");
-      final Path destination = this.directory.resolve("big.bin");
+      final byte[] big = new byte[BIG_BODY_LENGTH];
+      server.respond(BIG_ROUTE, HTTP_OK, big);
+      final URI uri = server.uri(BIG_ROUTE);
+      final Path destination = this.directory.resolve(BIG_FILE_NAME);
 
       final DownloadTooLargeException failure = assertThrows(DownloadTooLargeException.class, () ->
         HttpDownloader.download(uri, destination, 64L * 1024L)
@@ -255,7 +307,7 @@ final class HttpDownloaderTest {
       final List<Path> leftovers = partFiles(this.directory);
       final boolean noLeftovers = leftovers.isEmpty();
       assertTrue(noLeftovers, leftovers::toString);
-      final int requests = server.getRequestCount("/big");
+      final int requests = server.getRequestCount(BIG_ROUTE);
       assertEquals(1, requests, "a download that is too large is not retried");
     }
   }
@@ -263,9 +315,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldDownloadAFileThatFitsTheLimit() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
-      final Path destination = this.directory.resolve("small.bin");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path destination = this.directory.resolve(SMALL_FILE_NAME);
 
       HttpDownloader.download(uri, destination, CONTENT.length);
 
@@ -277,22 +329,22 @@ final class HttpDownloaderTest {
   @Test
   void shouldCheckTheHashAndTheSizeOfAPinnedDownload() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      server.respond("/big", 200, new byte[256 * 1024]);
-      final String sha256 = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(CONTENT));
-      final Path destination = this.directory.resolve("pinned.bin");
-      HttpDownloader.download(server.uri("/file"), destination, sha256, CONTENT.length);
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      server.respond(BIG_ROUTE, HTTP_OK, new byte[BIG_BODY_LENGTH]);
+      final String sha256 = HexFormat.of().formatHex(MessageDigest.getInstance(SHA256_ALGORITHM).digest(CONTENT));
+      final Path destination = this.directory.resolve(PINNED_FILE_NAME);
+      HttpDownloader.download(server.uri(FILE_ROUTE), destination, sha256, CONTENT.length);
       final byte[] content = Files.readAllBytes(destination);
       assertArrayEquals(CONTENT, content);
-      final Path big = this.directory.resolve("big.bin");
-      assertThrows(DownloadTooLargeException.class, () -> HttpDownloader.download(server.uri("/big"), big, sha256, CONTENT.length));
+      final Path big = this.directory.resolve(BIG_FILE_NAME);
+      assertThrows(DownloadTooLargeException.class, () -> HttpDownloader.download(server.uri(BIG_ROUTE), big, sha256, CONTENT.length));
       final boolean bigKept = Files.exists(big);
       assertFalse(bigKept, "nothing larger than the pin is kept");
-      final Path other = this.directory.resolve("other.bin");
+      final Path other = this.directory.resolve(OTHER_FILE_NAME);
       final String wrong = "0".repeat(64);
-      assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(server.uri("/file"), other, wrong, CONTENT.length));
-      assertThrows(IllegalArgumentException.class, () -> HttpDownloader.download(server.uri("/file"), other, sha256, 0));
-      assertThrows(NullPointerException.class, () -> HttpDownloader.download(server.uri("/file"), other, (String) null, 1));
+      assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(server.uri(FILE_ROUTE), other, wrong, CONTENT.length));
+      assertThrows(IllegalArgumentException.class, () -> HttpDownloader.download(server.uri(FILE_ROUTE), other, sha256, 0));
+      assertThrows(NullPointerException.class, () -> HttpDownloader.download(server.uri(FILE_ROUTE), other, (String) null, 1));
     } catch (final NoSuchAlgorithmException exception) {
       throw new IllegalStateException(exception);
     }
@@ -301,7 +353,7 @@ final class HttpDownloaderTest {
   @Test
   void shouldRefuseANonPositiveSizeLimit() {
     final URI uri = URI.create("http://example.com/file");
-    final Path destination = this.directory.resolve("unused.bin");
+    final Path destination = this.directory.resolve(UNUSED_FILE_NAME);
     assertThrows(IllegalArgumentException.class, () -> HttpDownloader.download(uri, destination, 0));
   }
 
@@ -314,10 +366,10 @@ final class HttpDownloaderTest {
     final boolean networkRetryable = HttpDownloader.isRetryable(network);
     final boolean checksumRetryable = HttpDownloader.isRetryable(checksum);
     final boolean tooLargeRetryable = HttpDownloader.isRetryable(tooLarge);
-    final boolean serverRetryable = HttpDownloader.isRetryable(new HttpStatusException(500, uri));
+    final boolean serverRetryable = HttpDownloader.isRetryable(new HttpStatusException(HTTP_SERVER_ERROR, uri));
     final boolean timeoutRetryable = HttpDownloader.isRetryable(new HttpStatusException(408, uri));
     final boolean throttledRetryable = HttpDownloader.isRetryable(new HttpStatusException(429, uri));
-    final boolean notFoundRetryable = HttpDownloader.isRetryable(new HttpStatusException(404, uri));
+    final boolean notFoundRetryable = HttpDownloader.isRetryable(new HttpStatusException(HTTP_NOT_FOUND, uri));
     final boolean redirectRetryable = HttpDownloader.isRetryable(new RedirectRefusedException("elsewhere!"));
     final boolean slowRetryable = HttpDownloader.isRetryable(new DownloadTooSlowException("trickling!"));
     assertTrue(networkRetryable);
@@ -334,22 +386,22 @@ final class HttpDownloaderTest {
   @Test
   void shouldFollowARedirectOfAPinnedDownloadWithinItsOwnHostOnly() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start(); final LocalHttpServer other = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      server.respondRedirect("/moved", 302, "/file");
-      other.respond("/file", 200, CONTENT);
-      server.respondRedirect("/away", 302, other.uri("/file").toString());
-      final Path moved = this.directory.resolve("moved.bin");
-      HttpDownloader.download(server.uri("/moved"), moved, CONTENT_SHA256, CONTENT.length);
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      server.respondRedirect(MOVED_ROUTE, HTTP_FOUND, FILE_ROUTE);
+      other.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      server.respondRedirect("/away", HTTP_FOUND, other.uri(FILE_ROUTE).toString());
+      final Path moved = this.directory.resolve(MOVED_FILE_NAME);
+      HttpDownloader.download(server.uri(MOVED_ROUTE), moved, CONTENT_SHA256, CONTENT.length);
       final byte[] movedContent = Files.readAllBytes(moved);
       assertArrayEquals(CONTENT, movedContent);
-      final Path away = this.directory.resolve("away.bin");
+      final Path away = this.directory.resolve(AWAY_FILE_NAME);
       final IOException refused = assertThrows(IOException.class, () ->
         HttpDownloader.download(server.uri("/away"), away, CONTENT_SHA256, CONTENT.length)
       );
       assertInstanceOf(RedirectRefusedException.class, refused);
       final int awayRequests = server.getRequestCount("/away");
       assertEquals(1, awayRequests, "not tried again");
-      final int otherRequests = other.getRequestCount("/file");
+      final int otherRequests = other.getRequestCount(FILE_ROUTE);
       assertEquals(0, otherRequests, "the other host is never asked");
       final boolean awayKept = Files.exists(away);
       assertFalse(awayKept);
@@ -362,9 +414,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldFollowEveryKindOfRedirectOfAPinnedDownloadFiveTimesAtMost() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
       for (final int status : new int[] { 301, 302, 303, 307, 308 }) {
-        server.respondRedirect("/" + status, status, "/file");
+        server.respondRedirect("/" + status, status, FILE_ROUTE);
         try (final InputStream body = HttpDownloader.openPinnedStream(server.uri("/" + status))) {
           final byte[] content = body.readAllBytes();
           assertArrayEquals(CONTENT, content, "after a " + status);
@@ -375,11 +427,11 @@ final class HttpDownloaderTest {
       assertInstanceOf(RedirectRefusedException.class, loop);
       final int loopRequests = server.getRequestCount("/loop");
       assertEquals(6, loopRequests, "the first request and five redirects");
-      server.respond("/nowhere", 302, new byte[0]);
+      server.respond("/nowhere", HTTP_FOUND, new byte[0]);
       final HttpStatusException nowhere = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/nowhere")));
       final int nowhereStatus = nowhere.getStatusCode();
-      assertEquals(302, nowhereStatus);
-      server.respondRedirect("/choices", 300, "/file");
+      assertEquals(HTTP_FOUND, nowhereStatus);
+      server.respondRedirect("/choices", 300, FILE_ROUTE);
       final HttpStatusException choices = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/choices")));
       final int choicesStatus = choices.getStatusCode();
       assertEquals(300, choicesStatus);
@@ -389,11 +441,11 @@ final class HttpDownloaderTest {
   @Test
   void shouldFollowARedirectWhoseBodyStalls() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      server.respondStallingRedirect("/moved", 302, "/file", CONTENT, CONTENT.length + 1);
-      final URI moved = server.uri("/moved");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      server.respondStallingRedirect(MOVED_ROUTE, HTTP_FOUND, FILE_ROUTE, CONTENT, CONTENT.length + 1);
+      final URI moved = server.uri(MOVED_ROUTE);
 
-      final byte[] content = assertTimeoutPreemptively(Duration.ofSeconds(10), () -> readPinned(moved));
+      final byte[] content = assertTimeoutPreemptively(Duration.ofSeconds(WAIT_TIMEOUT_SECONDS), () -> readPinned(moved));
       assertArrayEquals(CONTENT, content);
     }
   }
@@ -407,9 +459,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldRefuseARedirectOfAPinnedDownloadToALocationThatIsNotAUri() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondRedirect("/broken", 302, "http://[not-a-host");
+      server.respondRedirect(BROKEN_ROUTE, HTTP_FOUND, "http://[not-a-host");
 
-      final URI broken = server.uri("/broken");
+      final URI broken = server.uri(BROKEN_ROUTE);
       final IOException refused = assertThrows(IOException.class, () -> openAndClosePinned(broken));
       assertInstanceOf(RedirectRefusedException.class, refused);
 
@@ -452,14 +504,14 @@ final class HttpDownloaderTest {
   @Test
   void shouldGiveUpAPinnedDownloadThatTricklesAtItsDeadlineWithoutAnotherAttempt() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondTrickling("/slow", 200, CONTENT, 50);
-      final Path slow = this.directory.resolve("slow.bin");
+      server.respondTrickling(SLOW_ROUTE, HTTP_OK, CONTENT, 50);
+      final Path slow = this.directory.resolve(SLOW_FILE_NAME);
       final Duration deadline = Duration.ofMillis(200);
       final IOException failure = assertThrows(IOException.class, () ->
-        HttpDownloader.download(server.uri("/slow"), slow, CONTENT_SHA256, NO_DELAY, Duration.ofSeconds(10), CONTENT.length, deadline)
+        HttpDownloader.download(server.uri(SLOW_ROUTE), slow, CONTENT_SHA256, NO_DELAY, Duration.ofSeconds(10), CONTENT.length, deadline)
       );
       assertInstanceOf(DownloadTooSlowException.class, failure);
-      final int requests = server.getRequestCount("/slow");
+      final int requests = server.getRequestCount(SLOW_ROUTE);
       assertEquals(1, requests);
       final boolean slowKept = Files.exists(slow);
       assertFalse(slowKept);
@@ -469,9 +521,9 @@ final class HttpDownloaderTest {
   @Test
   void shouldGiveAPinnedDownloadOfTheLargestSizeADeadlineFarAway() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final Path destination = this.directory.resolve("unbounded.bin");
-      HttpDownloader.download(server.uri("/file"), destination, CONTENT_SHA256, HttpDownloader.NO_SIZE_LIMIT);
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final Path destination = this.directory.resolve(UNBOUNDED_FILE_NAME);
+      HttpDownloader.download(server.uri(FILE_ROUTE), destination, CONTENT_SHA256, HttpDownloader.NO_SIZE_LIMIT);
       final byte[] content = Files.readAllBytes(destination);
       assertArrayEquals(CONTENT, content);
     }
@@ -490,7 +542,7 @@ final class HttpDownloaderTest {
   @Test
   void shouldStopRetryingWhenInterrupted() throws IOException {
     final URI unreachable = unusedPort();
-    final Path destination = this.directory.resolve("interrupted.bin");
+    final Path destination = this.directory.resolve(INTERRUPTED_FILE_NAME);
     final Thread current = Thread.currentThread();
     current.interrupt();
     final IOException exception = assertThrows(IOException.class, () -> HttpDownloader.download(unreachable, destination, null, NO_DELAY));
@@ -505,7 +557,7 @@ final class HttpDownloaderTest {
   void shouldRejectDestinationsWithoutAFileName() {
     final URI uri = URI.create("http://127.0.0.1/file");
     final Path root = this.directory.getRoot();
-    final Path destination = this.directory.resolve("file");
+    final Path destination = this.directory.resolve(BARE_FILE_NAME);
     assertThrows(IllegalArgumentException.class, () -> HttpDownloader.download(uri, root));
     assertThrows(NullPointerException.class, () -> HttpDownloader.download(null, destination));
     assertThrows(NullPointerException.class, () -> HttpDownloader.download(uri, null));
@@ -514,8 +566,8 @@ final class HttpDownloaderTest {
   @Test
   void shouldOpenStreamsThatCloseTheirClient() throws IOException, InterruptedException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
       final InputStream stream = HttpDownloader.openStream(uri);
       final HttpDownloader.ClientClosingStream closingStream = assertInstanceOf(HttpDownloader.ClientClosingStream.class, stream);
       final HttpClient client = closingStream.getClient();
@@ -535,14 +587,14 @@ final class HttpDownloaderTest {
   @Test
   void shouldUseAFreshTemporaryFileForEveryDownload() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
-      final Path destination = this.directory.resolve("file.bin");
-      final Path oldPartName = this.directory.resolve("file.bin.part");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path destination = this.directory.resolve(FILE_NAME);
+      final Path oldPartName = this.directory.resolve(FILE_NAME + PART_FILE_EXTENSION);
       Files.createDirectories(oldPartName);
       HttpDownloader.download(uri, destination, null, NO_DELAY);
       final byte[] content = Files.readAllBytes(destination);
-      final int requests = server.getRequestCount("/file");
+      final int requests = server.getRequestCount(FILE_ROUTE);
       assertArrayEquals(CONTENT, content);
       assertEquals(1, requests);
     }
@@ -552,9 +604,9 @@ final class HttpDownloaderTest {
   void shouldDownloadTheSameFileConcurrentlyWithoutMixingTheDownloads() throws Exception {
     final CountDownLatch releaseResponses = new CountDownLatch(1);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respondWhenOpened("/file", 200, CONTENT, releaseResponses);
-      final URI uri = server.uri("/file");
-      final Path destination = this.directory.resolve("shared.bin");
+      server.respondWhenOpened(FILE_ROUTE, HTTP_OK, CONTENT, releaseResponses);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path destination = this.directory.resolve(SHARED_FILE_NAME);
       try (final ExecutorService executor = Executors.newFixedThreadPool(2)) {
         final Future<?> first = executor.submit(() -> {
           HttpDownloader.download(uri, destination, CONTENT_SHA256, NO_DELAY);
@@ -564,12 +616,12 @@ final class HttpDownloaderTest {
           HttpDownloader.download(uri, destination, CONTENT_SHA256, NO_DELAY);
           return null;
         });
-        final Duration requestWait = Duration.ofSeconds(10);
-        final boolean bothArrived = server.awaitRequests("/file", 2, requestWait);
+        final Duration requestWait = Duration.ofSeconds(WAIT_TIMEOUT_SECONDS);
+        final boolean bothArrived = server.awaitRequests(FILE_ROUTE, 2, requestWait);
         assertTrue(bothArrived, "the server did not receive the requests in time");
         releaseResponses.countDown();
-        first.get(10, TimeUnit.SECONDS);
-        second.get(10, TimeUnit.SECONDS);
+        first.get(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        second.get(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       }
       final byte[] content = Files.readAllBytes(destination);
       final List<Path> partFiles = partFiles(this.directory);
@@ -582,14 +634,14 @@ final class HttpDownloaderTest {
   @Test
   void shouldNotRetryAFileThatCannotBeMovedIntoPlace() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/file", 200, CONTENT);
-      final URI uri = server.uri("/file");
-      final Path occupied = this.directory.resolve("occupied");
+      server.respond(FILE_ROUTE, HTTP_OK, CONTENT);
+      final URI uri = server.uri(FILE_ROUTE);
+      final Path occupied = this.directory.resolve(OCCUPIED_DIRECTORY);
       Files.createDirectories(occupied);
-      final Path keptPath = occupied.resolve("kept.txt");
+      final Path keptPath = occupied.resolve(KEPT_FILE_NAME);
       final Path kept = Files.createFile(keptPath);
       assertThrows(IOException.class, () -> HttpDownloader.download(uri, occupied, null, NO_DELAY));
-      final int requests = server.getRequestCount("/file");
+      final int requests = server.getRequestCount(FILE_ROUTE);
       final boolean keptExists = Files.exists(kept);
       final List<Path> partFiles = partFiles(this.directory);
       assertEquals(1, requests, "a failed move is not a network failure and is not retried");
@@ -602,10 +654,10 @@ final class HttpDownloaderTest {
   @Test
   void shouldGiveUpOnABodyThatStopsArriving() {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final long announcedLength = CONTENT.length * 10L;
-      server.respondStalling("/stalled", 200, CONTENT, announcedLength);
-      final URI uri = server.uri("/stalled");
-      final Path destination = this.directory.resolve("stalled.bin");
+      final long announcedLength = CONTENT.length * ANNOUNCED_LENGTH_FACTOR;
+      server.respondStalling(STALLED_ROUTE, HTTP_OK, CONTENT, announcedLength);
+      final URI uri = server.uri(STALLED_ROUTE);
+      final Path destination = this.directory.resolve(STALLED_FILE_NAME);
       final Duration idleTimeout = Duration.ofMillis(300);
       final Duration limit = Duration.ofSeconds(30);
       final IOException exception = assertTimeoutPreemptively(limit, () ->
@@ -614,10 +666,10 @@ final class HttpDownloaderTest {
         )
       );
       final Throwable cause = exception.getCause();
-      final int requests = server.getRequestCount("/stalled");
+      final int requests = server.getRequestCount(STALLED_ROUTE);
       final boolean destinationExists = Files.exists(destination);
       assertInstanceOf(HttpTimeoutException.class, cause);
-      assertEquals(3, requests, "a stalled body is a network failure and is retried");
+      assertEquals(MAXIMUM_ATTEMPTS, requests, "a stalled body is a network failure and is retried");
       assertFalse(destinationExists);
     }
   }
@@ -625,10 +677,10 @@ final class HttpDownloaderTest {
   @Test
   void shouldStopAtOnceWhenInterruptedWhileTheBodyArrives() throws Exception {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final long announcedLength = CONTENT.length * 10L;
-      server.respondStalling("/slow", 200, CONTENT, announcedLength);
-      final URI uri = server.uri("/slow");
-      final Path destination = this.directory.resolve("slow.bin");
+      final long announcedLength = CONTENT.length * ANNOUNCED_LENGTH_FACTOR;
+      server.respondStalling(SLOW_ROUTE, HTTP_OK, CONTENT, announcedLength);
+      final URI uri = server.uri(SLOW_ROUTE);
+      final Path destination = this.directory.resolve(SLOW_FILE_NAME);
       final Duration longRetryDelay = Duration.ofMinutes(1);
       final Duration longIdleTimeout = Duration.ofMinutes(1);
       final AtomicReference<IOException> failure = new AtomicReference<>();
@@ -641,14 +693,14 @@ final class HttpDownloaderTest {
       };
       final Thread downloader = new Thread(download, "interrupted download");
       downloader.start();
-      final Duration wait = Duration.ofSeconds(10);
-      final boolean requested = server.awaitRequests("/slow", 1, wait);
+      final Duration wait = Duration.ofSeconds(WAIT_TIMEOUT_SECONDS);
+      final boolean requested = server.awaitRequests(SLOW_ROUTE, 1, wait);
 
       downloader.interrupt();
 
       final boolean ended = downloader.join(wait);
       final IOException exception = failure.get();
-      final int requests = server.getRequestCount("/slow");
+      final int requests = server.getRequestCount(SLOW_ROUTE);
       final List<Path> parts = partFiles(this.directory);
       final boolean partsEmpty = parts.isEmpty();
       final boolean destinationExists = Files.exists(destination);
@@ -666,7 +718,7 @@ final class HttpDownloaderTest {
       final Stream<Path> parts = files.filter(file -> {
         final Path fileName = file.getFileName();
         final String name = fileName.toString();
-        return name.endsWith(".part") && Files.isRegularFile(file);
+        return name.endsWith(PART_FILE_EXTENSION) && Files.isRegularFile(file);
       });
       return parts.toList();
     }
@@ -703,7 +755,7 @@ final class HttpDownloaderTest {
   void shouldReportFailuresOfOpenStream() throws IOException {
     final URI unreachable = unusedPort();
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final URI missing = server.uri("/missing");
+      final URI missing = server.uri(MISSING_ROUTE);
       assertThrows(HttpStatusException.class, () -> openAndClose(missing));
     }
     assertThrows(IOException.class, () -> openAndClose(unreachable));
@@ -720,12 +772,12 @@ final class HttpDownloaderTest {
   @Test
   void shouldFetchText() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/text", 200, CONTENT);
+      server.respond("/text", HTTP_OK, CONTENT);
       final URI text = server.uri("/text");
-      final URI missing = server.uri("/missing");
+      final URI missing = server.uri(MISSING_ROUTE);
       final Optional<String> fetched = HttpDownloader.fetchText(text);
       final Optional<String> notFound = HttpDownloader.fetchText(missing);
-      final Optional<String> expectedText = Optional.of("hello download");
+      final Optional<String> expectedText = Optional.of(CONTENT_TEXT);
       final boolean notFoundEmpty = notFound.isEmpty();
       assertEquals(expectedText, fetched);
       assertTrue(notFoundEmpty);

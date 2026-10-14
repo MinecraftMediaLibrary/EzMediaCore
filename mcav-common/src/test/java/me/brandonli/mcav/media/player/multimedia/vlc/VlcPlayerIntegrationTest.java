@@ -65,6 +65,13 @@ final class VlcPlayerIntegrationTest {
   private static final Duration TIMEOUT = Duration.ofSeconds(10);
   private static final long HALF_A_SECOND_OF_AUDIO_BYTES = 96_000L;
 
+  private static final int FEW_FRAMES = 5;
+  private static final int MANY_FRAMES = 10;
+
+  private static final long SILENCE_MILLISECONDS = 400L;
+
+  private static final String MISSING_FILE_NAME = "missing.mp4";
+
   @TempDir
   private static Path directory;
 
@@ -145,7 +152,7 @@ final class VlcPlayerIntegrationTest {
    * Waits until neither frames nor samples arrived for 400 ms, and fails if they keep arriving for ten seconds.
    */
   private void awaitSilence() throws InterruptedException {
-    final QuietPeriod quiet = new QuietPeriod(this::totalActivity, 400L);
+    final QuietPeriod quiet = new QuietPeriod(this::totalActivity, SILENCE_MILLISECONDS);
     Polling.awaitCondition("neither frames nor samples arrived for 400 ms", TIMEOUT, quiet::hasElapsed);
   }
 
@@ -213,7 +220,7 @@ final class VlcPlayerIntegrationTest {
     final Path red = VlcTestSupport.solidVideo(directory, "red", 100, 60);
     final boolean started = this.startFile(red);
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
 
     final int[] pixels = this.lastFrame.get();
     final int center = pixels[30 * 100 + 50];
@@ -233,7 +240,7 @@ final class VlcPlayerIntegrationTest {
   void shouldPauseAndResumePlayback() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
-    this.awaitFrames(10);
+    this.awaitFrames(MANY_FRAMES);
 
     final boolean paused = this.player.pause();
     final boolean pausedAgain = this.player.pause();
@@ -246,14 +253,14 @@ final class VlcPlayerIntegrationTest {
     final boolean resumedAgain = this.player.resume();
     assertTrue(resumed);
     assertFalse(resumedAgain, "not paused anymore");
-    this.awaitFrames(pausedFrames + 10);
+    this.awaitFrames(pausedFrames + MANY_FRAMES);
   }
 
   @Test
   void shouldResumeRightAfterPausing() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
     final boolean paused = this.player.pause();
     final boolean resumed = this.player.resume();
     assertTrue(paused);
@@ -266,7 +273,7 @@ final class VlcPlayerIntegrationTest {
   void shouldSeekNearTheEndAndStopThere() throws Exception {
     final boolean started = this.player.start(FileSource.path(TestMedia.seekVideo()));
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
 
     final int framesBeforeSeek = this.frames.get();
     final long seekedAt = System.nanoTime();
@@ -303,7 +310,7 @@ final class VlcPlayerIntegrationTest {
     final Source audio = FileSource.path(sound);
     final boolean started = this.player.start(video, audio);
     assertTrue(started);
-    this.awaitFrames(10);
+    this.awaitFrames(MANY_FRAMES);
     this.awaitHalfASecondOfAudio("audio of the separate source arrived");
 
     final boolean paused = this.player.pause();
@@ -316,7 +323,7 @@ final class VlcPlayerIntegrationTest {
 
   @Test
   void shouldReportFilesThatCannotBeOpened() {
-    final Path missing = directory.resolve("missing.mp4");
+    final Path missing = directory.resolve(MISSING_FILE_NAME);
     final boolean started = this.startFile(missing);
     final boolean noErrors = this.errors.isEmpty();
     assertFalse(started);
@@ -334,7 +341,7 @@ final class VlcPlayerIntegrationTest {
     dimension.attach(size);
     final boolean started = this.startTestVideo();
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
 
     final OriginalVideoMetadata metadata = this.videoMetadata.get();
     final int width = this.frameWidth.get();
@@ -349,7 +356,7 @@ final class VlcPlayerIntegrationTest {
   void shouldDeliverNothingAfterRelease() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
 
     final boolean released = this.player.release();
     final int releasedFrames = this.frames.get();
@@ -370,14 +377,14 @@ final class VlcPlayerIntegrationTest {
   void shouldSwitchToAnotherSource() throws Exception {
     final boolean started = this.startTestVideo();
     assertTrue(started);
-    this.awaitFrames(5);
+    this.awaitFrames(FEW_FRAMES);
 
     final Path green = VlcTestSupport.solidVideo(directory, "lime", 64, 48);
     final boolean switched = this.startFile(green);
     assertTrue(switched);
     Polling.awaitCondition("frames of the new source arrived", TIMEOUT, () -> this.frameWidth.get() == 64);
     final int switchedAt = this.frames.get();
-    this.awaitFrames(switchedAt + 5);
+    this.awaitFrames(switchedAt + FEW_FRAMES);
     final int height = this.frameHeight.get();
     assertEquals(48, height);
   }

@@ -38,6 +38,12 @@ import org.bytedeco.javacv.FrameGrabber;
  */
 final class ScriptedFrameGrabber extends FrameGrabber {
 
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+
+  private static final int SAMPLE_RATE = 48_000;
+  private static final int AUDIO_CHANNELS = 2;
+
   private final Deque<Object> script;
   private final AtomicBoolean closed;
   private final AtomicLong requestedTimestamp;
@@ -53,13 +59,13 @@ final class ScriptedFrameGrabber extends FrameGrabber {
     this.failOnStop = failOnStop;
     this.imageWidth = width;
     this.imageHeight = height;
-    this.sampleRate = 48_000;
-    this.audioChannels = 2;
+    this.sampleRate = SAMPLE_RATE;
+    this.audioChannels = AUDIO_CHANNELS;
   }
 
   static ScriptedFrameGrabber of(final Object... steps) {
     final List<Object> script = List.of(steps);
-    return new ScriptedFrameGrabber(4, 2, false, script);
+    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
   }
 
   static ScriptedFrameGrabber failingToStart() {
@@ -70,13 +76,13 @@ final class ScriptedFrameGrabber extends FrameGrabber {
 
   static ScriptedFrameGrabber failingToStartAndStop() {
     final List<Object> noSteps = List.of();
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, true, noSteps);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, true, noSteps);
     grabber.failOnStart = true;
     return grabber;
   }
 
   static Frame video(final long timestampMicroseconds) {
-    final Frame frame = new Frame(4, 2, Frame.DEPTH_UBYTE, 3);
+    final Frame frame = new Frame(FRAME_WIDTH, FRAME_HEIGHT, Frame.DEPTH_UBYTE, 3);
     frame.timestamp = timestampMicroseconds;
     return frame;
   }
@@ -84,8 +90,8 @@ final class ScriptedFrameGrabber extends FrameGrabber {
   static Frame audio(final long timestampMicroseconds) {
     final Frame frame = new Frame();
     frame.samples = new Buffer[] { ShortBuffer.allocate(960) };
-    frame.sampleRate = 48_000;
-    frame.audioChannels = 2;
+    frame.sampleRate = SAMPLE_RATE;
+    frame.audioChannels = AUDIO_CHANNELS;
     frame.timestamp = timestampMicroseconds;
     return frame;
   }

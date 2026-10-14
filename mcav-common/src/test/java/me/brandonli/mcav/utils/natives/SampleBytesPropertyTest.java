@@ -48,6 +48,10 @@ final class SampleBytesPropertyTest {
   private static final String SEED = "20260925";
   private static final byte JUNK = 0x5A;
 
+  private static final String BUFFERS_SOURCE = "buffers";
+
+  private static final int SAMPLE_BYTES = 2;
+
   @Provide
   Arbitrary<SampleBuffer> buffers() {
     final ByteArbitrary bytes = Arbitraries.bytes();
@@ -76,7 +80,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldReadBigEndianSamplesInTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadBigEndianSamplesInTheSourceOrder(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -90,7 +94,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldReadLittleEndianSamplesInTheSourceOrder(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldReadLittleEndianSamplesInTheSourceOrder(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer source = sample.create();
     final ByteOrder sourceOrder = source.order();
 
@@ -104,7 +108,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldKeepEveryValueInShortAndFloatViews(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldKeepEveryValueInShortAndFloatViews(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer bytes = sample.create();
     final ShortBuffer shorts = bytes.asShortBuffer();
     final FloatBuffer floats = bytes.asFloatBuffer();
@@ -135,7 +139,7 @@ final class SampleBytesPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldMixMonoAsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll("buffers") final SampleBuffer sample) {
+  void shouldMixMonoAsTheRoundedDownAverageOfTheLittleEndianChannels(@ForAll(BUFFERS_SOURCE) final SampleBuffer sample) {
     final ByteBuffer stereo = sample.create();
     final byte[] content = sample.getContent();
 
@@ -165,7 +169,7 @@ final class SampleBytesPropertyTest {
    */
   private static void assertSameSamples(final SampleBuffer sample, final ByteOrder sourceOrder, final ByteBuffer converted) {
     final byte[] content = sample.getContent();
-    final int sampleCount = content.length / 2;
+    final int sampleCount = content.length / SAMPLE_BYTES;
     final int position = converted.position();
     final int remaining = converted.remaining();
     assertEquals(0, position, "the result starts at its beginning");
@@ -173,11 +177,11 @@ final class SampleBytesPropertyTest {
     final ByteBuffer expected = ByteBuffer.wrap(content);
     expected.order(sourceOrder);
     for (int index = 0; index < sampleCount; index++) {
-      final short wanted = expected.getShort(index * 2);
-      final short actual = converted.getShort(index * 2);
+      final short wanted = expected.getShort(index * SAMPLE_BYTES);
+      final short actual = converted.getShort(index * SAMPLE_BYTES);
       assertEquals(wanted, actual, "sample " + index);
     }
-    if (content.length % 2 == 1) {
+    if (content.length % SAMPLE_BYTES == 1) {
       final byte last = content[content.length - 1];
       final byte convertedLast = converted.get(content.length - 1);
       assertEquals(last, convertedLast, "the odd trailing byte");

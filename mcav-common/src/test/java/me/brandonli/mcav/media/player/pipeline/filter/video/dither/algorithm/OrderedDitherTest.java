@@ -42,6 +42,16 @@ import org.junit.jupiter.api.Test;
  */
 final class OrderedDitherTest {
 
+  private static final int MID_GRAY = 0xFF808080;
+
+  private static final int GRADIENT_WIDTH = 64;
+  private static final int TALL_GRADIENT_HEIGHT = 80;
+
+  private static final int SMALL_IMAGE_WIDTH = 2;
+  private static final int SMALL_IMAGE_HEIGHT = 2;
+
+  private static final float UNIT_STRENGTH = 1.0f;
+
   /**
    * Asserts that a threshold matrix has the size its name promises, and that every one of its levels occupies the
    * same number of cells, so no threshold is missing or repeated by mistake.
@@ -89,7 +99,7 @@ final class OrderedDitherTest {
 
   private static byte[] ditherMidGray(final BayerDither dither, final int width, final int height) {
     final int[] gray = new int[width * height];
-    Arrays.fill(gray, 0xFF808080);
+    Arrays.fill(gray, MID_GRAY);
     try (final ImageBuffer grayImage = ImageBuffer.buffer(gray, width, height)) {
       return dither.ditherIntoBytes(grayImage);
     }
@@ -105,11 +115,14 @@ final class OrderedDitherTest {
 
   @Test
   void shouldMatchSerialDitheringWhenDitheringInParallel() {
-    final int[] tall = DitherTestImages.gradient(64, 80);
-    final int[] flat = DitherTestImages.gradient(64, 4);
+    final int[] tall = DitherTestImages.gradient(GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
+    final int[] flat = DitherTestImages.gradient(GRADIENT_WIDTH, 4);
     final OrderedDither dither = blackWhite4x4();
     final ForkJoinPool pool = new ForkJoinPool(3);
-    try (final ImageBuffer tallImage = ImageBuffer.buffer(tall, 64, 80); final ImageBuffer shortImage = ImageBuffer.buffer(flat, 64, 4)) {
+    try (
+      final ImageBuffer tallImage = ImageBuffer.buffer(tall, GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
+      final ImageBuffer shortImage = ImageBuffer.buffer(flat, GRADIENT_WIDTH, 4)
+    ) {
       final byte[] tallSerial = dither.ditherIntoBytes(tallImage);
       final byte[] tallParallel = dither.ditherIntoBytes(tallImage, pool);
       final byte[] shortSerial = dither.ditherIntoBytes(shortImage);
@@ -123,9 +136,12 @@ final class OrderedDitherTest {
 
   @Test
   void shouldMatchSerialDitheringWhenDitheringOnASingleThread() {
-    final int[] pixels = DitherTestImages.gradient(64, 80);
+    final int[] pixels = DitherTestImages.gradient(GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT);
     final OrderedDither dither = blackWhite4x4();
-    try (final ForkJoinPool pool = new ForkJoinPool(1); final ImageBuffer image = ImageBuffer.buffer(pixels, 64, 80)) {
+    try (
+      final ForkJoinPool pool = new ForkJoinPool(1);
+      final ImageBuffer image = ImageBuffer.buffer(pixels, GRADIENT_WIDTH, TALL_GRADIENT_HEIGHT)
+    ) {
       final byte[] serial = dither.ditherIntoBytes(image);
       final byte[] parallel = dither.ditherIntoBytes(image, pool);
       assertArrayEquals(serial, parallel);
@@ -219,7 +235,7 @@ final class OrderedDitherTest {
 
   @Test
   void shouldNormalizThresholdMatricesAroundZero() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, 1.0f);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, UNIT_STRENGTH);
     final PixelMapper doubled = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 2.0f);
     final float[][] matrix = mapper.getMatrix();
     final float[][] doubledMatrix = doubled.getMatrix();
@@ -236,7 +252,7 @@ final class OrderedDitherTest {
   @Test
   void shouldNormalizThresholdsAcrossTheEntireIntegerRange() {
     final int[][] thresholds = { { Integer.MIN_VALUE, 0, Integer.MAX_VALUE } };
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(thresholds, 1.0f);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(thresholds, UNIT_STRENGTH);
     final float[][] matrix = mapper.getMatrix();
     final float[] firstRow = matrix[0];
     assertArrayEquals(new float[] { -0.5f, 0x1.0p-33f, 0.5f }, firstRow);
@@ -246,9 +262,9 @@ final class OrderedDitherTest {
   void shouldPushEveryPixelAllTheWayItsOffsetPointsWithALargeStrength() {
     final PixelMapper strong = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1e30f);
     final OrderedDither dither = new OrderedDither(DitherPalette.colors(0x000000, 0xFFFFFF), strong);
-    final int[] gray = new int[4];
-    Arrays.fill(gray, 0xFF808080);
-    try (final ImageBuffer image = ImageBuffer.buffer(gray, 2, 2)) {
+    final int[] gray = new int[SMALL_IMAGE_WIDTH * SMALL_IMAGE_HEIGHT];
+    Arrays.fill(gray, MID_GRAY);
+    try (final ImageBuffer image = ImageBuffer.buffer(gray, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] indices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1, 1, 0 }, indices, "a positive offset brightens to white, a negative one darkens to black");
     }
@@ -276,17 +292,17 @@ final class OrderedDitherTest {
 
   @Test
   void shouldRejectInvalidMatricesInThePixelMapper() {
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 0, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[0][], 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { {} }, 1.0f));
-    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1, 2 }, { 3 } }, 1.0f));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, 1, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((int[][]) null, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, 1, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper((ThresholdMatrix) null, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 0, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[0][], UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { {} }, UNIT_STRENGTH));
+    assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1, 2 }, { 3 } }, UNIT_STRENGTH));
     assertThrows(IllegalArgumentException.class, () -> PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, -1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { null }, 1.0f));
-    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1 }, null }, 1.0f));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { null }, UNIT_STRENGTH));
+    assertThrows(NullPointerException.class, () -> PixelMapper.ofPixelMapper(new int[][] { { 1 }, null }, UNIT_STRENGTH));
   }
 
   @Test
@@ -313,10 +329,10 @@ final class OrderedDitherTest {
 
   @Test
   void shouldNotOverBrightenADarkGrayWithTheOrderedSpread() {
-    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, 1.0f);
+    final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, UNIT_STRENGTH);
     final OrderedDither dither = new OrderedDither(DitherTestImages.BLACK_WHITE, mapper);
     final int[] pixels = { 0xFF5A5A5A, 0xFF5A5A5A, 0xFF5A5A5A, 0xFF5A5A5A };
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 2, 2)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] actual = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 0, 1, 0 }, actual);
     }
@@ -326,9 +342,9 @@ final class OrderedDitherTest {
   void shouldAddTheCenteredPatternScaledToThePaletteSpacing() {
     final PixelMapper mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, PixelMapper.NORMAL_STRENGTH);
     final OrderedDither dither = new OrderedDither(DitherTestImages.BLACK_WHITE, mapper);
-    final int[] pixels = new int[4];
+    final int[] pixels = new int[SMALL_IMAGE_WIDTH * SMALL_IMAGE_HEIGHT];
     Arrays.fill(pixels, 0xFF6E6E6E);
-    try (final ImageBuffer image = ImageBuffer.buffer(pixels, 2, 2)) {
+    try (final ImageBuffer image = ImageBuffer.buffer(pixels, SMALL_IMAGE_WIDTH, SMALL_IMAGE_HEIGHT)) {
       final byte[] indices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1, 1, 0 }, indices);
     }

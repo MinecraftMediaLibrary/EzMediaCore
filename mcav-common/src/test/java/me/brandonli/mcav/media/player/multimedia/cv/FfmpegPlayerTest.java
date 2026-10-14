@@ -55,6 +55,14 @@ final class FfmpegPlayerTest {
   private static final Duration TIMEOUT = Duration.ofSeconds(15L);
   private static final double NANOSECONDS_PER_SECOND = 1e9;
 
+  private static final String SIZE_SEPARATOR = "/";
+
+  private static final int SCALED_WIDTH = 160;
+
+  private static final double AUDIO_SECONDS = 2.0;
+
+  private static final String MISSING_NAME = "missing.mp4";
+
   @TempDir
   private Path directory;
 
@@ -91,7 +99,7 @@ final class FfmpegPlayerTest {
     return (image, metadata) -> {
       final int width = image.getWidth();
       final int originalWidth = metadata.getVideoWidth();
-      sizes.add(width + "/" + originalWidth);
+      sizes.add(width + SIZE_SEPARATOR + originalWidth);
       final long now = System.nanoTime();
       frameTimes.add(now);
       return frames.incrementAndGet() > 0;
@@ -191,7 +199,7 @@ final class FfmpegPlayerTest {
       final double frameRate = (frameCount - 1) / frameSpan;
       final boolean noErrors = this.errors.isEmpty();
       final Set<String> distinctSizes = Set.copyOf(this.sizes);
-      final Set<String> expectedSizes = Set.of(TestMedia.VIDEO_WIDTH + "/" + TestMedia.VIDEO_WIDTH);
+      final Set<String> expectedSizes = Set.of(TestMedia.VIDEO_WIDTH + SIZE_SEPARATOR + TestMedia.VIDEO_WIDTH);
 
       assertTrue(started);
       assertTrue(noErrors, "errors: " + this.errors);
@@ -212,7 +220,7 @@ final class FfmpegPlayerTest {
     final AtomicInteger width = new AtomicInteger();
     final FfmpegPlayer player = neverDroppingPlayer();
     final DimensionAttachableCallback dimension = player.getDimensionAttachableCallback();
-    final Dimension size = Dimension.of(160, 120);
+    final Dimension size = Dimension.of(SCALED_WIDTH, 120);
     dimension.attach(size);
     final VideoFilter video = recordingWidth(frames, width);
     attach(player, video, AudioFilter.NO_OP);
@@ -247,7 +255,7 @@ final class FfmpegPlayerTest {
     final boolean playingAgain = player.isPlaying();
     final boolean released = player.release();
     final boolean playingAfterRelease = player.isPlaying();
-    assertEquals(160, lastWidth);
+    assertEquals(SCALED_WIDTH, lastWidth);
     assertFalse(resumedAfterEnd, "resuming does not start the media over after its end");
     assertTrue(restarted, "starting the source again plays it again");
     assertTrue(playingAgain);
@@ -285,7 +293,7 @@ final class FfmpegPlayerTest {
     attach(player, (_, _) -> frames.incrementAndGet() > 0, audioCounter);
 
     final Path silent = TestMedia.silentVideo();
-    final Path sound = TestMedia.audio(2.0);
+    final Path sound = TestMedia.audio(AUDIO_SECONDS);
     final Source video = file(silent);
     final Source audio = file(sound);
     try {
@@ -308,7 +316,7 @@ final class FfmpegPlayerTest {
     final AudioFilter audioCounter = countingBytes(audioBytes);
     attach(player, (_, _) -> frames.incrementAndGet() > 0, audioCounter);
 
-    final Path sound = TestMedia.audio(2.0);
+    final Path sound = TestMedia.audio(AUDIO_SECONDS);
     final Source source = file(sound);
     try {
       final boolean started = player.start(source);
@@ -354,7 +362,7 @@ final class FfmpegPlayerTest {
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
     final FfmpegPlayer player = neverDroppingPlayer();
     player.setExceptionHandler((_, error) -> errors.add(error));
-    final Path missing = this.directory.resolve("missing.mp4");
+    final Path missing = this.directory.resolve(MISSING_NAME);
     final Source source = file(missing);
     try {
       final boolean started = player.start(source);

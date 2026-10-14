@@ -30,11 +30,13 @@ import org.junit.jupiter.api.Test;
  */
 final class ThresholdMatrixTest {
 
+  private static final int OVERWRITTEN_ENTRY = 99;
+
   @Test
   void shouldKeepItsOwnCopyOfTheRows() {
     final int[][] rows = { { 1, 2, 3 }, { 4, 5, 6 } };
     final ThresholdMatrix matrix = ThresholdMatrix.of(rows);
-    rows[0][0] = 99;
+    rows[0][0] = OVERWRITTEN_ENTRY;
     final int[][] entries = matrix.toArray();
     final int[][] expected = { { 1, 2, 3 }, { 4, 5, 6 } };
     assertArrayEquals(expected, entries, "changing the rows it was created from does not change the matrix");
@@ -43,7 +45,7 @@ final class ThresholdMatrixTest {
   @Test
   void shouldHandOutCopiesOfItsEntries() {
     final int[][] first = BayerDither.NORMAL_2X2.toArray();
-    first[0][0] = 99;
+    first[0][0] = OVERWRITTEN_ENTRY;
     final int[][] second = BayerDither.NORMAL_2X2.toArray();
     final int[][] expected = { { 1, 3 }, { 4, 2 } };
     assertArrayEquals(expected, second, "the shared matrices of BayerDither cannot be changed through a copy");

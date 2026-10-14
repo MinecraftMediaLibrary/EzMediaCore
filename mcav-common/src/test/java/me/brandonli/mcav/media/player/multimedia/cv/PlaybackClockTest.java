@@ -33,6 +33,12 @@ import org.junit.jupiter.api.Test;
  */
 final class PlaybackClockTest {
 
+  private static final long LONG_RESUME_TIMEOUT_MILLISECONDS = 10_000L;
+  private static final long PROMPT_NANOSECONDS = 1_000_000_000L;
+
+  private static final double FASTER_SPEED = 2;
+  private static final double SLOWER_SPEED = 0.5;
+
   @Test
   void shouldAnchorOnTheFirstTimestamp() {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
@@ -54,7 +60,7 @@ final class PlaybackClockTest {
     final long beforeJump = System.nanoTime();
     final long afterForwardJump = clock.dueAt(60_000_000L);
     final long afterBackwardJump = clock.dueAt(0L);
-    final boolean forwardJumpIsDueSoon = afterForwardJump - beforeJump < 1_000_000_000L;
+    final boolean forwardJumpIsDueSoon = afterForwardJump - beforeJump < PROMPT_NANOSECONDS;
     assertTrue(forwardJumpIsDueSoon, "a jump ahead does not wait a minute");
     final boolean backwardJumpIsNotRushed = afterBackwardJump >= afterForwardJump;
     assertTrue(backwardJumpIsNotRushed, "a jump back does not rush through the media");
@@ -139,7 +145,7 @@ final class PlaybackClockTest {
     final CountDownLatch released = new CountDownLatch(1);
     final Thread waiter = new Thread(() -> {
       try {
-        clock.awaitResume(10_000L);
+        clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
         released.countDown();
       } catch (final InterruptedException exception) {
         final Thread currentThread = Thread.currentThread();
@@ -163,13 +169,13 @@ final class PlaybackClockTest {
   void shouldNotWaitWhileRunningAndWaitsAtMostTheTimeout() throws InterruptedException {
     final PlaybackClock clock = new PlaybackClock(System::nanoTime);
     final long start = System.nanoTime();
-    clock.awaitResume(10_000L);
+    clock.awaitResume(LONG_RESUME_TIMEOUT_MILLISECONDS);
     final long running = System.nanoTime() - start;
     clock.pause();
     final long pausedStart = System.nanoTime();
     clock.awaitResume(30L);
     final long paused = System.nanoTime() - pausedStart;
-    final boolean runningDidNotWait = running < 1_000_000_000L;
+    final boolean runningDidNotWait = running < PROMPT_NANOSECONDS;
     assertTrue(runningDidNotWait);
     final boolean stillPaused = clock.isPaused();
     final boolean waitedTheTimeout = paused >= 25_000_000L;
@@ -198,15 +204,15 @@ final class PlaybackClockTest {
     final PlaybackClock clock = new PlaybackClock(now::get);
     final double initialSpeed = clock.getSpeed();
     assertEquals(PlaybackClock.NORMAL_SPEED, initialSpeed);
-    clock.setSpeed(2);
+    clock.setSpeed(FASTER_SPEED);
     final double doubledSpeed = clock.getSpeed();
-    assertEquals(2, doubledSpeed);
+    assertEquals(FASTER_SPEED, doubledSpeed);
     final long anchor = clock.dueAt(0L);
     assertEquals(1_000_000_000L, anchor);
     final long fasterDue = clock.dueAt(1_000_000L);
     assertEquals(1_500_000_000L, fasterDue);
     now.set(1_250_000_000L);
-    clock.setSpeed(0.5);
+    clock.setSpeed(SLOWER_SPEED);
     final long changedDue = clock.dueAt(500_000L);
     assertEquals(1_250_000_000L, changedDue);
     final long slowerDue = clock.dueAt(600_000L);
@@ -216,18 +222,18 @@ final class PlaybackClockTest {
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.NaN));
     assertThrows(IllegalArgumentException.class, () -> clock.setSpeed(Double.POSITIVE_INFINITY));
     final double halvedSpeed = clock.getSpeed();
-    assertEquals(0.5, halvedSpeed);
+    assertEquals(SLOWER_SPEED, halvedSpeed);
   }
 
   @Test
   void shouldKeepTheMediaDueNowWhenTheSpeedChangesWhilePlaying() {
     final AtomicLong now = new AtomicLong(100_000_000L);
     final PlaybackClock clock = new PlaybackClock(now::get);
-    clock.setSpeed(2);
+    clock.setSpeed(FASTER_SPEED);
     final long anchor = clock.dueAt(0L);
     assertEquals(100_000_000L, anchor);
     now.set(350_000_000L);
-    clock.setSpeed(0.5);
+    clock.setSpeed(SLOWER_SPEED);
     final long slowerDue = clock.dueAt(600_000L);
     assertEquals(550_000_000L, slowerDue);
   }
@@ -240,7 +246,7 @@ final class PlaybackClockTest {
     now.set(400_000_000L);
     clock.pause();
     now.set(900_000_000L);
-    clock.setSpeed(2);
+    clock.setSpeed(FASTER_SPEED);
     now.set(1_000_000_000L);
     clock.resume();
     final long resumedDue = clock.dueAt(400_000L);

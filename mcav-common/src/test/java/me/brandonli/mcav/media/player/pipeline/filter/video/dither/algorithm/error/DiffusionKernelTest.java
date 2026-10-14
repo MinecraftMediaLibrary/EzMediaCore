@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test;
  */
 final class DiffusionKernelTest {
 
+  private static final String KERNEL_NAME = "x";
+
   private static int weightSum(final DiffusionKernel kernel) {
     int sum = 0;
     final int taps = kernel.getTapCount();
@@ -101,16 +103,16 @@ final class DiffusionKernelTest {
   void shouldRejectInvalidKernels() {
     final int[][] valid = { { 1, 0, 1 } };
     assertThrows(NullPointerException.class, () -> new DiffusionKernel(null, 1, valid));
-    assertThrows(NullPointerException.class, () -> new DiffusionKernel("x", 1, null));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 0, valid));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[0][]));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, -1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, -1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { -1, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0, 0 } }));
-    assertThrows(NullPointerException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, 0, 1 }, null }));
+    assertThrows(NullPointerException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, null));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 0, valid));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[0][]));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, -1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, -1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { -1, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0, 0 } }));
+    assertThrows(NullPointerException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, 0, 1 }, null }));
   }
 
   /**
@@ -128,11 +130,11 @@ final class DiffusionKernelTest {
 
     assertEquals(limit, maximumX);
     assertEquals(limit, maximumY);
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { limit + 1, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { -limit - 1, 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 0, limit + 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { Integer.MIN_VALUE, 1, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { Integer.MAX_VALUE, 0, 1 } }));
-    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel("x", 1, new int[][] { { 1, Integer.MAX_VALUE, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { limit + 1, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { -limit - 1, 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 0, limit + 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { Integer.MIN_VALUE, 1, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { Integer.MAX_VALUE, 0, 1 } }));
+    assertThrows(IllegalArgumentException.class, () -> new DiffusionKernel(KERNEL_NAME, 1, new int[][] { { 1, Integer.MAX_VALUE, 1 } }));
   }
 }

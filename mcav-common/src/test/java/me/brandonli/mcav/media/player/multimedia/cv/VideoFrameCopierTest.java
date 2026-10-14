@@ -41,7 +41,18 @@ import org.mockito.Mockito;
  */
 final class VideoFrameCopierTest {
 
+  private static final int FRAME_WIDTH = 4;
   private static final int FRAME_HEIGHT = 2;
+
+  private static final int NARROW_FRAME_WIDTH = 2;
+  private static final int SHRUNK_WIDTH = 2;
+
+  private static final int BGR_CHANNELS = 3;
+
+  private static final byte SOLID_BLUE = (byte) 0x30;
+  private static final byte SOLID_GREEN = (byte) 0x20;
+  private static final byte SOLID_RED = (byte) 0x10;
+  private static final int SOLID_ARGB = 0xFF102030;
 
   private final ImagePool pool = new ImagePool(4);
   private final DimensionAttachableCallback dimension = DimensionAttachableCallback.create();
@@ -57,12 +68,12 @@ final class VideoFrameCopierTest {
    * Creates a BGR frame of two rows in native memory whose pixels all have the same color, the way decoders do.
    */
   private static Frame solidFrame(final int width, final byte blue, final byte green, final byte red) {
-    final Frame frame = new Frame(width, FRAME_HEIGHT, Frame.DEPTH_UBYTE, 3);
+    final Frame frame = new Frame(width, FRAME_HEIGHT, Frame.DEPTH_UBYTE, BGR_CHANNELS);
     final ByteBuffer pixels = (ByteBuffer) frame.image[0];
     final int stride = frame.imageStride;
     for (int row = 0; row < FRAME_HEIGHT; row++) {
       for (int column = 0; column < width; column++) {
-        final int index = row * stride + column * 3;
+        final int index = row * stride + column * BGR_CHANNELS;
         pixels.put(index, blue);
         pixels.put(index + 1, green);
         pixels.put(index + 2, red);
@@ -92,19 +103,19 @@ final class VideoFrameCopierTest {
    */
   private static List<Frame> invalidFrames() {
     final Frame withoutImage = new Frame();
-    final Frame withoutPlanes = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final Frame withoutPlanes = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     withoutPlanes.image = new Buffer[0];
-    final Frame sixteenBit = new Frame(4, FRAME_HEIGHT, Frame.DEPTH_USHORT, 3);
-    final Frame withoutWidth = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final Frame sixteenBit = new Frame(FRAME_WIDTH, FRAME_HEIGHT, Frame.DEPTH_USHORT, BGR_CHANNELS);
+    final Frame withoutWidth = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     withoutWidth.imageWidth = 0;
-    final Frame withoutHeight = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final Frame withoutHeight = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     withoutHeight.imageHeight = 0;
-    final Frame shortRows = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final Frame shortRows = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     shortRows.imageStride = 3;
-    final Frame truncated = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
+    final Frame truncated = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     truncated.image[0] = ByteBuffer.allocateDirect(10);
-    final Frame lastRowCut = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
-    final int lastRowEnd = lastRowCut.imageStride + 4 * 3;
+    final Frame lastRowCut = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
+    final int lastRowEnd = lastRowCut.imageStride + FRAME_WIDTH * BGR_CHANNELS;
     lastRowCut.image[0] = ByteBuffer.allocateDirect(lastRowEnd - 1);
     return List.of(withoutImage, withoutPlanes, sixteenBit, withoutWidth, withoutHeight, shortRows, truncated, lastRowCut);
   }
@@ -116,24 +127,24 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldCopyFramesIntoImagesOfTheirSize() {
-    final Frame frame = solidFrame(3, (byte) 0x30, (byte) 0x20, (byte) 0x10);
+    final Frame frame = solidFrame(3, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer image = this.copier.copy(frame);
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] pixels = image.getPixels();
     final int[] expected = new int[6];
-    Arrays.fill(expected, 0xFF102030);
+    Arrays.fill(expected, SOLID_ARGB);
 
     assertEquals(3, width);
-    assertEquals(2, height);
+    assertEquals(FRAME_HEIGHT, height);
     assertArrayEquals(expected, pixels);
     image.release();
   }
 
   @Test
   void shouldReuseAnImageHandedBackToThePoolAndRefreshItsPixels() {
-    final Frame black = solidFrame(2, (byte) 0, (byte) 0, (byte) 0);
-    final Frame white = solidFrame(2, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF);
+    final Frame black = solidFrame(NARROW_FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
+    final Frame white = solidFrame(NARROW_FRAME_WIDTH, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF);
     final MatImageBuffer first = this.copier.copy(black);
     final int[] blackPixels = first.getPixels();
     final int blackPixel = blackPixels[0];
@@ -150,18 +161,18 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldResizPooledImagesOfAnotherSizeInPlace() {
-    final Frame wide = solidFrame(4, (byte) 0, (byte) 0, (byte) 0);
-    final Frame small = solidFrame(2, (byte) 0x30, (byte) 0x20, (byte) 0x10);
+    final Frame wide = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
+    final Frame small = solidFrame(NARROW_FRAME_WIDTH, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer wideImage = this.copier.copy(wide);
     this.pool.recycle(wideImage);
     final MatImageBuffer smallImage = this.copier.copy(small);
     final int width = smallImage.getWidth();
     final int[] pixels = smallImage.getPixels();
     final int[] expected = new int[4];
-    Arrays.fill(expected, 0xFF102030);
+    Arrays.fill(expected, SOLID_ARGB);
 
     assertSame(wideImage, smallImage, "the pooled image is resized instead of being replaced");
-    assertEquals(2, width);
+    assertEquals(NARROW_FRAME_WIDTH, width);
     assertArrayEquals(expected, pixels);
     smallImage.release();
   }
@@ -171,12 +182,12 @@ final class VideoFrameCopierTest {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 3 : 1;
       final int height = horizontal ? 1 : 3;
-      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, 3)) {
+      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
         final ByteBuffer data = (ByteBuffer) frame.image[0];
         for (int index = 0; index < data.capacity(); index++) {
           data.put(index, (byte) 0);
         }
-        final int middle = horizontal ? 3 : frame.imageStride;
+        final int middle = horizontal ? BGR_CHANNELS : frame.imageStride;
         data.put(middle, (byte) 90);
         this.attachSize(1, 1);
         try (final MatImageBuffer image = this.copier.copy(frame)) {
@@ -192,12 +203,12 @@ final class VideoFrameCopierTest {
     for (final boolean horizontal : new boolean[] { true, false }) {
       final int width = horizontal ? 2 : 1;
       final int height = horizontal ? 1 : 2;
-      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, 3)) {
+      try (final Frame frame = new Frame(width, height, Frame.DEPTH_UBYTE, BGR_CHANNELS)) {
         final ByteBuffer data = (ByteBuffer) frame.image[0];
         for (int index = 0; index < data.capacity(); index++) {
           data.put(index, (byte) 0);
         }
-        final int secondPixel = horizontal ? 3 : frame.imageStride;
+        final int secondPixel = horizontal ? BGR_CHANNELS : frame.imageStride;
         data.put(secondPixel, (byte) 80);
         this.attachSize(horizontal ? 4 : 1, horizontal ? 1 : 4);
         final MatImageBuffer first = this.copier.copy(frame);
@@ -216,17 +227,17 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldShrinkFramesThatDoNotHaveTheAttachedSize() {
-    this.attachSize(2, 1);
-    final Frame frame = solidFrame(4, (byte) 0x30, (byte) 0x20, (byte) 0x10);
+    this.attachSize(SHRUNK_WIDTH, 1);
+    final Frame frame = solidFrame(FRAME_WIDTH, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer image = this.copier.copy(frame);
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] pixels = image.getPixels();
     final boolean copied = this.copier.hasUnscaledCopy();
 
-    assertEquals(2, width);
+    assertEquals(SHRUNK_WIDTH, width);
     assertEquals(1, height);
-    assertArrayEquals(new int[] { 0xFF102030, 0xFF102030 }, pixels, "area averaging keeps a solid color");
+    assertArrayEquals(new int[] { SOLID_ARGB, SOLID_ARGB }, pixels, "area averaging keeps a solid color");
     assertFalse(copied, "frames in native memory are scaled straight from the memory of the decoder");
 
     this.pool.recycle(image);
@@ -238,7 +249,7 @@ final class VideoFrameCopierTest {
   @Test
   void shouldEnlargeFramesThatAreSmallerThanTheAttachedSize() {
     this.attachSize(8, 4);
-    final Frame frame = solidFrame(4, (byte) 0x30, (byte) 0x20, (byte) 0x10);
+    final Frame frame = solidFrame(FRAME_WIDTH, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer image = this.copier.copy(frame);
     final int width = image.getWidth();
     final int height = image.getHeight();
@@ -247,23 +258,23 @@ final class VideoFrameCopierTest {
 
     assertEquals(8, width);
     assertEquals(4, height);
-    assertEquals(0xFF102030, corner);
+    assertEquals(SOLID_ARGB, corner);
     image.release();
   }
 
   @Test
   void shouldScaleFramesThatOnlyDifferInHeight() {
-    final Frame frame = solidFrame(4, (byte) 0, (byte) 0, (byte) 0x40);
+    final Frame frame = solidFrame(FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0x40);
     final MatImageBuffer unscaled = this.copier.copy(frame);
     this.pool.recycle(unscaled);
-    this.attachSize(4, 1);
+    this.attachSize(FRAME_WIDTH, 1);
     final MatImageBuffer scaled = this.copier.copy(frame);
     final int width = scaled.getWidth();
     final int height = scaled.getHeight();
     final int[] pixels = scaled.getPixels();
     final int first = pixels[0];
 
-    assertEquals(4, width);
+    assertEquals(FRAME_WIDTH, width);
     assertEquals(1, height);
     assertEquals(0xFF400000, first);
     assertSame(unscaled, scaled, "the pooled image of the old height is resized in place");
@@ -272,14 +283,14 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldCopyFramesThatAlreadyHaveTheAttachedSizeWithoutScaling() {
-    this.attachSize(4, 2);
-    final Frame frame = solidFrame(4, (byte) 1, (byte) 2, (byte) 3);
+    this.attachSize(FRAME_WIDTH, FRAME_HEIGHT);
+    final Frame frame = solidFrame(FRAME_WIDTH, (byte) 1, (byte) 2, (byte) 3);
     final MatImageBuffer image = this.copier.copy(frame);
     final int width = image.getWidth();
     final int[] pixels = image.getPixels();
     final int first = pixels[0];
 
-    assertEquals(4, width);
+    assertEquals(FRAME_WIDTH, width);
     assertEquals(0xFF030201, first);
     image.release();
   }
@@ -291,14 +302,14 @@ final class VideoFrameCopierTest {
     Mockito.when(detachedMidFrame.retrieve()).thenReturn(Dimension.NONE);
     final VideoFrameCopier racingCopier = new VideoFrameCopier(this.pool, detachedMidFrame);
 
-    final Frame frame = solidFrame(4, (byte) 1, (byte) 2, (byte) 3);
+    final Frame frame = solidFrame(FRAME_WIDTH, (byte) 1, (byte) 2, (byte) 3);
     final MatImageBuffer image = racingCopier.copy(frame);
     final int width = image.getWidth();
     final int height = image.getHeight();
     final int[] pixels = image.getPixels();
     final int first = pixels[0];
 
-    assertEquals(4, width);
+    assertEquals(FRAME_WIDTH, width);
     assertEquals(FRAME_HEIGHT, height);
     assertEquals(0xFF030201, first);
     image.release();
@@ -307,13 +318,13 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldHandThePooledImageBackWhenAFrameCannotBeCopied() {
-    final Frame usable = solidFrame(4, (byte) 1, (byte) 2, (byte) 3);
+    final Frame usable = solidFrame(FRAME_WIDTH, (byte) 1, (byte) 2, (byte) 3);
     final MatImageBuffer pooled = this.copier.copy(usable);
     this.pool.recycle(pooled);
     final int unusedBefore = this.pool.getUnusedCount();
     assertEquals(1, unusedBefore);
 
-    final Frame broken = new Frame(4, FRAME_HEIGHT, Frame.DEPTH_UBYTE, 3);
+    final Frame broken = new Frame(FRAME_WIDTH, FRAME_HEIGHT, Frame.DEPTH_UBYTE, BGR_CHANNELS);
     broken.image = new Buffer[0];
     assertThrows(RuntimeException.class, () -> this.copier.copy(broken));
     final int unusedAfter = this.pool.getUnusedCount();
@@ -327,7 +338,7 @@ final class VideoFrameCopierTest {
       frame.imageWidth = 2;
       frame.imageHeight = 2;
       frame.imageDepth = Frame.DEPTH_UBYTE;
-      frame.imageChannels = 3;
+      frame.imageChannels = BGR_CHANNELS;
       frame.imageStride = 6;
       final ByteBuffer pixels = ByteBuffer.allocateDirect(12);
       for (int index = 0; index < 12; index++) {
@@ -345,20 +356,20 @@ final class VideoFrameCopierTest {
 
   @Test
   void shouldScaleFramesOutsideOfNativeMemoryThroughACopy() {
-    this.attachSize(2, 1);
-    final Frame frame = heapFrame(4, (byte) 0x30, (byte) 0x20, (byte) 0x10);
+    this.attachSize(SHRUNK_WIDTH, 1);
+    final Frame frame = heapFrame(FRAME_WIDTH, SOLID_BLUE, SOLID_GREEN, SOLID_RED);
     final MatImageBuffer image = this.copier.copy(frame);
     final int[] pixels = image.getPixels();
     final boolean copied = this.copier.hasUnscaledCopy();
 
-    assertArrayEquals(new int[] { 0xFF102030, 0xFF102030 }, pixels);
+    assertArrayEquals(new int[] { SOLID_ARGB, SOLID_ARGB }, pixels);
     assertTrue(copied, "OpenCV cannot read the heap, so the frame is copied into native memory first");
     image.release();
   }
 
   @Test
   void shouldRejectFramesWithoutUsableBgrPixelsWhileScaling() {
-    this.attachSize(2, 1);
+    this.attachSize(SHRUNK_WIDTH, 1);
     final List<Frame> frames = invalidFrames();
     for (final Frame frame : frames) {
       assertThrows(IllegalArgumentException.class, () -> this.copier.copy(frame));
@@ -368,7 +379,7 @@ final class VideoFrameCopierTest {
   @Test
   void shouldReleaseTwiceHarmlessly() {
     this.attachSize(1, 1);
-    final Frame frame = heapFrame(2, (byte) 0, (byte) 0, (byte) 0);
+    final Frame frame = heapFrame(NARROW_FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     final MatImageBuffer image = this.copier.copy(frame);
     final boolean copiedBeforeRelease = this.copier.hasUnscaledCopy();
     this.copier.release();
@@ -387,13 +398,13 @@ final class VideoFrameCopierTest {
   @Test
   void shouldFreeTheUnscaledCopyOnReleaseRatherThanLeavingItToTheGarbageCollector() {
     this.attachSize(1, 1);
-    final Frame frame = heapFrame(2, (byte) 0, (byte) 0, (byte) 0);
+    final Frame frame = heapFrame(NARROW_FRAME_WIDTH, (byte) 0, (byte) 0, (byte) 0);
     final MatImageBuffer image = this.copier.copy(frame);
     final MatImageBuffer unscaled = this.copier.getUnscaledCopy();
     final int unscaledWidth = unscaled.getWidth();
     this.copier.release();
 
-    assertEquals(2, unscaledWidth, "the copy has the size of the frame");
+    assertEquals(NARROW_FRAME_WIDTH, unscaledWidth, "the copy has the size of the frame");
     assertThrows(IllegalStateException.class, unscaled::getWidth, "the copy was released");
     image.release();
   }

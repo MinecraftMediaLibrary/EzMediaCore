@@ -52,6 +52,10 @@ final class OpenCvPlayersTest {
 
   private static final Duration PLAYBACK_TIMEOUT = Duration.ofSeconds(10);
 
+  private static final int DECODED_FRAMES_THRESHOLD = 10;
+
+  private static final String UNOPENED_FILE_NAME = "unopened-file.mp4";
+
   /**
    * Loads the natives of OpenCV ahead of the timed tests, because loading them on the decoding thread takes seconds on
    * a busy machine.
@@ -68,7 +72,7 @@ final class OpenCvPlayersTest {
   void shouldCreateTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
     final OpenCvPlayer player = new OpenCvPlayer();
     final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
-    try (final FrameGrabber grabber = player.createFrameGrabber("unopened-file.mp4")) {
+    try (final FrameGrabber grabber = player.createFrameGrabber(UNOPENED_FILE_NAME)) {
       if (openCvReadsFiles) {
         assertInstanceOf(OpenCVFrameGrabber.class, grabber, "a build with a file backend reads the file itself");
       } else {
@@ -148,7 +152,7 @@ final class OpenCvPlayersTest {
     try {
       final boolean started = player.start(source);
       assertTrue(started);
-      Polling.pollUntil(PLAYBACK_TIMEOUT, () -> frames.get() > 10);
+      Polling.pollUntil(PLAYBACK_TIMEOUT, () -> frames.get() > DECODED_FRAMES_THRESHOLD);
     } finally {
       player.release();
     }
@@ -173,7 +177,7 @@ final class OpenCvPlayersTest {
     final int[] result = playTestVideo(null);
     final int frames = result[0];
     final int width = result[1];
-    final boolean decoded = frames > 10;
+    final boolean decoded = frames > DECODED_FRAMES_THRESHOLD;
     assertTrue(decoded, "frames " + frames);
     assertEquals(TestMedia.VIDEO_WIDTH, width);
 
@@ -187,7 +191,7 @@ final class OpenCvPlayersTest {
     final int[] result = playTestVideo(size);
     final int frames = result[0];
     final int width = result[1];
-    final boolean decoded = frames > 10;
+    final boolean decoded = frames > DECODED_FRAMES_THRESHOLD;
     assertTrue(decoded, "frames " + frames);
     assertEquals(160, width, "the frames arrive at the attached size, whether the reader scales them or the pipeline does");
   }

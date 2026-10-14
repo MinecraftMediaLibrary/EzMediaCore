@@ -41,7 +41,22 @@ import org.junit.jupiter.api.io.TempDir;
  */
 final class DynamicImageBufferTest {
 
-  private static final byte[] ANIMATION = Images.animatedGif(8, 4, 4, 0xFF0000, 0x00FF00, 0x0000FF);
+  private static final int ANIMATION_WIDTH = 8;
+  private static final int ANIMATION_HEIGHT = 4;
+  private static final int FRAME_COUNT = 3;
+  private static final int SECOND_FRAME_COLOR = 0xFF00FF00;
+
+  private static final String ANIMATION_NAME = "animation.gif";
+  private static final String ANIMATION_URL_PATH = "/animation.gif";
+  private static final String MISSING_NAME = "missing.gif";
+
+  private static final int TIMESTAMPED_FRAMES = 3;
+  private static final long ONE_SECOND = 1_000_000L;
+  private static final long TWO_SECONDS = 2_000_000L;
+
+  private static final float DEFAULT_FRAME_RATE = 10.0f;
+
+  private static final byte[] ANIMATION = Images.animatedGif(ANIMATION_WIDTH, ANIMATION_HEIGHT, 4, 0xFF0000, 0x00FF00, 0x0000FF);
 
   @TempDir
   private Path directory;
@@ -52,7 +67,7 @@ final class DynamicImageBufferTest {
   }
 
   private Path writeAnimation() throws IOException {
-    final Path gif = this.directory.resolve("animation.gif");
+    final Path gif = this.directory.resolve(ANIMATION_NAME);
     Files.write(gif, ANIMATION);
     return gif;
   }
@@ -70,10 +85,10 @@ final class DynamicImageBufferTest {
     final int firstColor = firstPixel(first);
     final int secondColor = firstPixel(second);
     final int thirdColor = firstPixel(third);
-    assertEquals(3, count);
+    assertEquals(FRAME_COUNT, count);
     assertSame(listedSecond, second);
     assertEquals(0xFFFF0000, firstColor);
-    assertEquals(0xFF00FF00, secondColor);
+    assertEquals(SECOND_FRAME_COLOR, secondColor);
     assertEquals(0xFF0000FF, thirdColor);
   }
 
@@ -90,12 +105,12 @@ final class DynamicImageBufferTest {
       final float frameRate = animation.getFrameRate();
       final int width = second.getWidth();
       final int height = second.getHeight();
-      assertEquals(0xFF00FF00, lastPixel, "rows are not shifted by the row padding of the decoder");
+      assertEquals(SECOND_FRAME_COLOR, lastPixel, "rows are not shifted by the row padding of the decoder");
       assertEquals(25.0f, frameRate, 0.01f, "every frame is shown for four hundredths of a second");
-      assertEquals(8, width);
-      assertEquals(4, height);
+      assertEquals(ANIMATION_WIDTH, width);
+      assertEquals(ANIMATION_HEIGHT, height);
       assertThrows(UnsupportedOperationException.class, () -> frames.add(second));
-      assertThrows(IndexOutOfBoundsException.class, () -> animation.getFrame(3));
+      assertThrows(IndexOutOfBoundsException.class, () -> animation.getFrame(FRAME_COUNT));
       assertThrows(IndexOutOfBoundsException.class, () -> animation.getFrame(-1));
     }
   }
@@ -116,12 +131,12 @@ final class DynamicImageBufferTest {
     final String temporaryHome = this.directory.toString();
     System.setProperty("user.home", temporaryHome);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      server.respond("/animation.gif", 200, ANIMATION);
-      final URI uri = server.uri("/animation.gif");
+      server.respond(ANIMATION_URL_PATH, 200, ANIMATION);
+      final URI uri = server.uri(ANIMATION_URL_PATH);
       final UriSource source = UriSource.uri(uri);
       try (final DynamicImageBuffer animation = DynamicImageBuffer.uri(source)) {
         final int count = animation.getFrameCount();
-        assertEquals(3, count);
+        assertEquals(FRAME_COUNT, count);
       }
     } finally {
       System.setProperty("user.home", previousHome);
@@ -132,7 +147,7 @@ final class DynamicImageBufferTest {
   void shouldRejectFilesWithoutImages() {
     final Path audio = TestMedia.audio(0.5);
     final FileSource audioSource = FileSource.path(audio);
-    final Path missing = this.directory.resolve("missing.gif");
+    final Path missing = this.directory.resolve(MISSING_NAME);
     final FileSource missingSource = FileSource.path(missing);
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> DynamicImageBuffer.path(audioSource));
     assertThrowsWhileOpening(IOException.class, () -> DynamicImageBuffer.path(missingSource));
@@ -142,15 +157,15 @@ final class DynamicImageBufferTest {
 
   @Test
   void shouldPreferTheReportedFrameRate() {
-    final float reported = FfmpegDynamicImageBuffer.resolveFrameRate(25.0, 3, 0L, 1_000_000L);
+    final float reported = FfmpegDynamicImageBuffer.resolveFrameRate(25.0, TIMESTAMPED_FRAMES, 0L, ONE_SECOND);
     assertEquals(25.0f, reported);
   }
 
   @Test
   void shouldDeriveTheFrameRateFromTimestampsWhenNoneIsReported() {
-    final float zero = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 0L, 2_000_000L);
-    final float notANumber = FfmpegDynamicImageBuffer.resolveFrameRate(Double.NaN, 5, 0L, 1_000_000L);
-    final float infinite = FfmpegDynamicImageBuffer.resolveFrameRate(Double.POSITIVE_INFINITY, 3, 0L, 1_000_000L);
+    final float zero = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, TIMESTAMPED_FRAMES, 0L, TWO_SECONDS);
+    final float notANumber = FfmpegDynamicImageBuffer.resolveFrameRate(Double.NaN, 5, 0L, ONE_SECOND);
+    final float infinite = FfmpegDynamicImageBuffer.resolveFrameRate(Double.POSITIVE_INFINITY, TIMESTAMPED_FRAMES, 0L, ONE_SECOND);
     assertEquals(1.0f, zero);
     assertEquals(4.0f, notANumber);
     assertEquals(2.0f, infinite);
@@ -158,18 +173,18 @@ final class DynamicImageBufferTest {
 
   @Test
   void shouldDeriveTheFrameRateFromTheTimeBetweenTheFirstAndTheLastFrame() {
-    final float lateStart = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 1_000_000L, 2_000_000L);
-    final float sameTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 1_000_000L, 1_000_000L);
+    final float lateStart = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, TIMESTAMPED_FRAMES, ONE_SECOND, TWO_SECONDS);
+    final float sameTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, TIMESTAMPED_FRAMES, ONE_SECOND, ONE_SECOND);
     assertEquals(2.0f, lateStart, "two frame periods fit between one and two seconds, however late the first frame is");
-    assertEquals(10.0f, sameTimestamps);
+    assertEquals(DEFAULT_FRAME_RATE, sameTimestamps);
   }
 
   @Test
   void shouldFallBackToTheDefaultFrameRate() {
-    final float singleFrame = FfmpegDynamicImageBuffer.resolveFrameRate(-1.0, 1, 0L, 1_000_000L);
-    final float noTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, 3, 0L, 0L);
-    assertEquals(10.0f, singleFrame);
-    assertEquals(10.0f, noTimestamps);
+    final float singleFrame = FfmpegDynamicImageBuffer.resolveFrameRate(-1.0, 1, 0L, ONE_SECOND);
+    final float noTimestamps = FfmpegDynamicImageBuffer.resolveFrameRate(0.0, TIMESTAMPED_FRAMES, 0L, 0L);
+    assertEquals(DEFAULT_FRAME_RATE, singleFrame);
+    assertEquals(DEFAULT_FRAME_RATE, noTimestamps);
     final boolean positive = singleFrame > 0;
     assertTrue(positive);
   }

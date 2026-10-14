@@ -30,6 +30,9 @@ import org.junit.jupiter.api.Test;
  */
 final class DimensionTest {
 
+  private static final int WIDTH = 3;
+  private static final int HEIGHT = 4;
+
   @Test
   void shouldStoreWidthAndHeight() {
     final Dimension dimension = Dimension.of(640, 360);
@@ -41,19 +44,19 @@ final class DimensionTest {
 
   @Test
   void shouldFollowTheEqualityContract() {
-    final Dimension dimension = new Dimension(3, 4);
-    final Dimension equalDimension = Dimension.of(3, 4);
-    final Dimension otherWidth = Dimension.of(5, 4);
-    final Dimension otherHeight = Dimension.of(3, 5);
+    final Dimension dimension = new Dimension(WIDTH, HEIGHT);
+    final Dimension equalDimension = Dimension.of(WIDTH, HEIGHT);
+    final Dimension otherWidth = Dimension.of(5, HEIGHT);
+    final Dimension otherHeight = Dimension.of(WIDTH, 5);
     EqualityAssertions.assertEqualityContract(dimension, equalDimension, otherWidth, otherHeight);
   }
 
   @Test
   void shouldHashTheWidthThenTheHeight() {
-    final Dimension dimension = Dimension.of(3, 4);
+    final Dimension dimension = Dimension.of(WIDTH, HEIGHT);
 
     final int hash = dimension.hashCode();
-    assertEquals(3 * 31 + 4, hash);
+    assertEquals(WIDTH * 31 + HEIGHT, hash);
   }
 
   @Test

@@ -41,9 +41,20 @@ import org.junit.jupiter.api.Test;
  */
 final class DrawingFiltersTest {
 
-  private static final double[] WHITE = { 255.0, 255.0, 255.0 };
+  private static final double CHANNEL_MAXIMUM = 255.0;
+  private static final double[] WHITE = { CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM };
   private static final int BLACK_ARGB = 0xFF000000;
   private static final int WHITE_ARGB = 0xFFFFFFFF;
+  private static final int RED_ARGB = 0xFFFF0000;
+  private static final int BLUE_ARGB = 0xFF0000FF;
+
+  private static final int SHAPE_IMAGE_SIZE = 11;
+
+  private static final int REGION_IMAGE_WIDTH = 3;
+  private static final int REGION_IMAGE_HEIGHT = 2;
+
+  private static final int OVERLAY_SIZE = 2;
+  private static final int OVERLAY_FRAME_SIZE = 4;
 
   private static int pixelAt(final ImageBuffer image, final int column, final int row) {
     final int[] pixels = image.getPixels();
@@ -64,7 +75,7 @@ final class DrawingFiltersTest {
 
   @Test
   void shouldDrawCircles() {
-    try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
+    try (final ImageBuffer image = Images.solid(SHAPE_IMAGE_SIZE, SHAPE_IMAGE_SIZE, BLACK_ARGB)) {
       final CircleFilter filter = new CircleFilter(4, 6, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
       final int right = pixelAt(image, 7, 6);
@@ -97,7 +108,7 @@ final class DrawingFiltersTest {
 
   @Test
   void shouldDrawEllipses() {
-    try (final ImageBuffer image = Images.solid(11, 11, BLACK_ARGB)) {
+    try (final ImageBuffer image = Images.solid(SHAPE_IMAGE_SIZE, SHAPE_IMAGE_SIZE, BLACK_ARGB)) {
       final EllipseFilter filter = new EllipseFilter(5, 5, 4, 2, 0, 0, 360, WHITE);
       final boolean modified = filter.applyFilter(image);
       final int right = pixelAt(image, 9, 5);
@@ -160,7 +171,7 @@ final class DrawingFiltersTest {
     try (
       final ImageBuffer image = Images.solid(80, 30, BLACK_ARGB);
       final Scalar black = new Scalar(0.0);
-      final Scalar white = new Scalar(255.0, 255.0, 255.0, 0.0);
+      final Scalar white = new Scalar(CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, 0.0);
       final Point baseline = new Point(2, 20);
       final Mat expected = new Mat(30, 80, opencv_core.CV_8UC3, black)
     ) {
@@ -206,7 +217,7 @@ final class DrawingFiltersTest {
   private static void assertFrameRateLabel(final ImageBuffer image, final String label) {
     try (
       final Scalar black = new Scalar(0.0);
-      final Scalar white = new Scalar(255.0, 255.0, 255.0, 0.0);
+      final Scalar white = new Scalar(CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, CHANNEL_MAXIMUM, 0.0);
       final Point baseline = new Point(10, 24);
       final Mat expected = new Mat(40, 120, opencv_core.CV_8UC3, black)
     ) {
@@ -220,7 +231,7 @@ final class DrawingFiltersTest {
 
   @Test
   void shouldFillRegionsClampedToTheFrame() {
-    try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
+    try (final ImageBuffer image = Images.solid(REGION_IMAGE_WIDTH, REGION_IMAGE_HEIGHT, BLACK_ARGB)) {
       final RegionScalarFilter topLeft = new RegionScalarFilter(0, 0, 2, 1, WHITE);
       final RegionScalarFilter clamped = new RegionScalarFilter(2, 1, 5, 5, WHITE);
       final boolean topLeftModified = topLeft.applyFilter(image);
@@ -242,7 +253,7 @@ final class DrawingFiltersTest {
 
   @Test
   void shouldChangeNothingForRegionsOutsideTheFrame() {
-    try (final ImageBuffer image = Images.solid(3, 2, BLACK_ARGB)) {
+    try (final ImageBuffer image = Images.solid(REGION_IMAGE_WIDTH, REGION_IMAGE_HEIGHT, BLACK_ARGB)) {
       final RegionScalarFilter right = new RegionScalarFilter(3, 0, 1, 1, WHITE);
       final RegionScalarFilter below = new RegionScalarFilter(0, 2, 1, 1, WHITE);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();
@@ -263,20 +274,26 @@ final class DrawingFiltersTest {
 
   @Test
   void shouldOverlayImagesClampedToTheFrame() {
-    try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
+    try (
+      final ImageBuffer overlay = Images.solid(OVERLAY_SIZE, OVERLAY_SIZE, RED_ARGB);
+      final ImageBuffer image = Images.solid(OVERLAY_FRAME_SIZE, OVERLAY_FRAME_SIZE, BLUE_ARGB)
+    ) {
       final OverlayImageFilter filter = new OverlayImageFilter(overlay, 3, 3);
       final boolean modified = filter.applyFilter(image);
       final int covered = pixelAt(image, 3, 3);
       final int uncovered = pixelAt(image, 2, 3);
       assertTrue(modified);
-      assertEquals(0xFFFF0000, covered);
-      assertEquals(0xFF0000FF, uncovered);
+      assertEquals(RED_ARGB, covered);
+      assertEquals(BLUE_ARGB, uncovered);
     }
   }
 
   @Test
   void shouldOverlayOutsideTheFrameChangeNothing() {
-    try (final ImageBuffer overlay = Images.solid(2, 2, 0xFFFF0000); final ImageBuffer image = Images.solid(4, 4, 0xFF0000FF)) {
+    try (
+      final ImageBuffer overlay = Images.solid(OVERLAY_SIZE, OVERLAY_SIZE, RED_ARGB);
+      final ImageBuffer image = Images.solid(OVERLAY_FRAME_SIZE, OVERLAY_FRAME_SIZE, BLUE_ARGB)
+    ) {
       final OverlayImageFilter right = new OverlayImageFilter(overlay, 4, 0);
       final OverlayImageFilter below = new OverlayImageFilter(overlay, 0, 4);
       final ByteBuffer before = ByteBuffer.allocate(image.getData().remaining()).put(image.getData()).flip();

@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import me.brandonli.mcav.utils.http.HttpDownloader;
@@ -39,8 +40,12 @@ import org.mockito.Mockito;
  */
 final class ReleasePackageManagerTest {
 
+  private static final String VLC_DOWNLOADS_RESOURCE = "mcav/common/installers/vlc.json";
+
+  private static final Pattern HASH_PATTERN = Pattern.compile("[0-9a-f]{64}");
+
   private static List<Download> downloadsFor(final Os operatingSystem, final Arch architecture, final Bits bits) {
-    return Arrays.stream(ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json"))
+    return Arrays.stream(ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE))
       .filter(download -> download.getPlatform().getOs() == operatingSystem)
       .filter(download -> download.getPlatform().getArch() == architecture)
       .filter(download -> download.getPlatform().getBits() == bits)
@@ -65,7 +70,7 @@ final class ReleasePackageManagerTest {
   @Test
   void shouldResolveTheDownloadsWithoutAskingTheNetwork() {
     try (final MockedStatic<HttpDownloader> downloader = Mockito.mockStatic(HttpDownloader.class)) {
-      final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json");
+      final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
       assertEquals(5, downloads.length, "Windows and macOS, two each, and Linux on x86-64");
       downloader.verifyNoInteractions();
     }
@@ -73,10 +78,10 @@ final class ReleasePackageManagerTest {
 
   @Test
   void shouldVerifyEveryDownloadWithAHash() {
-    for (final Download download : ReleasePackageManager.readVlcDownloadsFromJsonResource("mcav/common/installers/vlc.json")) {
+    for (final Download download : ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE)) {
       final String hash = download.getHash();
       assertNotNull(hash, "Every VLC download must be verified with a hash: " + download.getUrl());
-      final boolean hexadecimal = hash.matches("[0-9a-f]{64}");
+      final boolean hexadecimal = HASH_PATTERN.matcher(hash).matches();
       assertTrue(hexadecimal, hash);
     }
   }

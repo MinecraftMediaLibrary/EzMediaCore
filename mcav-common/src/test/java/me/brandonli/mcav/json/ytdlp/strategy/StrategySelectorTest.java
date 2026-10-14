@@ -38,6 +38,10 @@ final class StrategySelectorTest {
   private static final String STREAMS =
     "\"formats\": [{\"format_id\": \"audio\", \"audio_ext\": \"webm\", \"video_ext\": \"none\"}, {\"format_id\": \"video\", \"audio_ext\": \"none\", \"video_ext\": \"mp4\"}]";
 
+  private static final String AUDIO_FORMAT_ID = "audio";
+
+  private static final String PAGE_URL_FIELD = "\"webpage_url\": \"https://example.com/watch\"";
+
   private static UrlParseDump dump(final String json) {
     final Gson gson = GsonProvider.getSimple();
     return gson.fromJson(json, UrlParseDump.class);
@@ -70,7 +74,7 @@ final class StrategySelectorTest {
     final StrategySelector selector = StrategySelector.of(FormatStrategy.FIRST_AUDIO, FormatStrategy.FIRST_VIDEO);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
-    assertEquals("audio", audio.format_id);
+    assertEquals(AUDIO_FORMAT_ID, audio.format_id);
     assertEquals("video", video.format_id);
   }
 
@@ -84,8 +88,8 @@ final class StrategySelectorTest {
     final StrategySelector selector = StrategySelector.of(firstListed, firstListed);
     final Format audio = selector.getAudioSource(dump);
     final Format video = selector.getVideoSource(dump);
-    assertEquals("audio", audio.format_id);
-    assertEquals("audio", video.format_id);
+    assertEquals(AUDIO_FORMAT_ID, audio.format_id);
+    assertEquals(AUDIO_FORMAT_ID, video.format_id);
   }
 
   @Test
@@ -97,7 +101,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldNameTheTitleWhenNoStreamMatches() {
-    final UrlParseDump dump = dump("{\"title\": \"Example Video\", \"webpage_url\": \"https://example.com/watch\"}");
+    final UrlParseDump dump = dump("{\"title\": \"Example Video\", " + PAGE_URL_FIELD + "}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));
@@ -109,7 +113,7 @@ final class StrategySelectorTest {
 
   @Test
   void shouldNameThePageUrlWhenTheTitleIsUnknown() {
-    final UrlParseDump dump = dump("{\"webpage_url\": \"https://example.com/watch\"}");
+    final UrlParseDump dump = dump("{" + PAGE_URL_FIELD + "}");
     final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
     final NoMatchingFormatException audio = assertThrows(NoMatchingFormatException.class, () -> selector.getAudioSource(dump));
     final NoMatchingFormatException video = assertThrows(NoMatchingFormatException.class, () -> selector.getVideoSource(dump));

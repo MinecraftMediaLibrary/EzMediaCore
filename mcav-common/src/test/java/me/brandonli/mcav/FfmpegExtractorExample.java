@@ -37,6 +37,8 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  */
 public final class FfmpegExtractorExample {
 
+  private static final String OUTPUT_FILE_NAME = "output.ogg";
+
   private FfmpegExtractorExample() {}
 
   static void main() throws IOException {
@@ -58,7 +60,7 @@ public final class FfmpegExtractorExample {
       final UriSource audioSource = audioFormat.toUriSource();
       final String input = audioSource.getResource();
 
-      final Path output = Path.of("output.ogg");
+      final Path output = Path.of(OUTPUT_FILE_NAME);
       final Path absolute = output.toAbsolutePath();
       final String outputPath = absolute.toString();
       final FfmpegCommand command = FfmpegTemplates.extractOggVorbis(input, outputPath);

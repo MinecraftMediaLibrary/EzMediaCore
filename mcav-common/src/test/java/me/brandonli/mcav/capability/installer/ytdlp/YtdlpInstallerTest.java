@@ -75,12 +75,46 @@ final class YtdlpInstallerTest {
   private static final byte[] LAUNCHER = "launcher".getBytes(StandardCharsets.UTF_8);
   private static final byte[] LIBRARY = "library".getBytes(StandardCharsets.UTF_8);
 
+  private static final String DOWNLOADS_RESOURCE = "mcav/common/installers/yt-dlp.json";
+
+  private static final String ZIPPED_URL = "https://example.com/files/yt-dlp_linux_armv7l.zip";
+  private static final String UPPER_CASE_ZIPPED_URL = "https://example.com/files/YT-DLP.ZIP";
+  private static final String STANDALONE_URL = "https://example.com/files/yt-dlp_linux";
+
+  private static final String NAMELESS_ZIP_PATH = "/.zip";
+  private static final String STANDALONE_PATH = "/yt-dlp_linux";
+
+  private static final int OK_STATUS = 200;
+
+  private static final String DIGEST_ALGORITHM = "SHA-256";
+
+  private static final String PROGRAM_NAME = "yt-dlp";
+  private static final String WINDOWS_EXECUTABLE_NAME = "yt-dlp.exe";
+  private static final String POSIX_EXECUTABLE_NAME = "yt-dlp";
+  private static final String ZIPPED_EXECUTABLE_NAME = "yt-dlp_linux_armv7l";
+  private static final String UPPER_CASE_EXECUTABLE_NAME = "YT-DLP";
+
+  private static final String ZIP_FILE_NAME = "yt-dlp_test.zip";
+  private static final String UNPACKED_FOLDER_NAME = "yt-dlp-unpacked";
+  private static final String UNPACKING_FOLDER_NAME = "yt-dlp-unpacking";
+
+  private static final String LIBRARY_ENTRY_NAME = "_internal/library.so";
+  private static final String NESTED_EXECUTABLE_NAME = "_internal/yt-dlp_test";
+  private static final String ESCAPING_ENTRY_NAME = "../escaped";
+  private static final String ESCAPED_FILE_NAME = "escaped";
+
+  private static final String STALE_FILE_NAME = "stale.txt";
+  private static final String LEFTOVER_FILE_NAME = "leftover.txt";
+
+  private static final String MCAV_FOLDER_NAME = ".mcav";
+  private static final String CACHE_FOLDER_NAME = "cache";
+
   @TempDir
   private Path folder;
 
   @Test
   void shouldPinEveryBundledDownloadToRelease20260819() {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
     assertEquals(8, downloads.length);
     for (final Download download : downloads) {
       final String url = download.getUrl();
@@ -96,7 +130,7 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldBundleOneDownloadPerPlatform() {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
     final Set<Platform> platforms = new HashSet<>();
     for (final Download download : downloads) {
       final Platform platform = download.getPlatform();
@@ -133,7 +167,7 @@ final class YtdlpInstallerTest {
   }
 
   private static Download findBundledDownload(final Platform platform) {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource("mcav/common/installers/yt-dlp.json");
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(DOWNLOADS_RESOURCE);
     for (final Download download : downloads) {
       final Platform downloadPlatform = download.getPlatform();
       final boolean matches = downloadPlatform.equals(platform);
@@ -147,9 +181,9 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldTreatOnlyZipDownloadsAsArchives() {
-    final YtdlpInstaller zipped = installerFor("https://example.com/files/yt-dlp_linux_armv7l.zip");
-    final YtdlpInstaller upperCase = installerFor("https://example.com/files/YT-DLP.ZIP");
-    final YtdlpInstaller standalone = installerFor("https://example.com/files/yt-dlp_linux");
+    final YtdlpInstaller zipped = installerFor(ZIPPED_URL);
+    final YtdlpInstaller upperCase = installerFor(UPPER_CASE_ZIPPED_URL);
+    final YtdlpInstaller standalone = installerFor(STANDALONE_URL);
     final YtdlpInstaller unsupported = new YtdlpInstaller(this.folder, new Download[0]);
     final boolean zippedArchive = zipped.isArchive();
     final boolean upperCaseArchive = upperCase.isArchive();
@@ -163,14 +197,14 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldFindTheExecutableOfAZipInTheUnpackedFolder() {
-    final YtdlpInstaller zipped = installerFor("https://example.com/files/yt-dlp_linux_armv7l.zip");
-    final YtdlpInstaller upperCase = installerFor("https://example.com/files/YT-DLP.ZIP");
-    final YtdlpInstaller standalone = installerFor("https://example.com/files/yt-dlp_linux");
-    final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
-    final Path zippedExecutable = unpacked.resolve("yt-dlp_linux_armv7l");
-    final Path upperCaseExecutable = unpacked.resolve("YT-DLP");
+    final YtdlpInstaller zipped = installerFor(ZIPPED_URL);
+    final YtdlpInstaller upperCase = installerFor(UPPER_CASE_ZIPPED_URL);
+    final YtdlpInstaller standalone = installerFor(STANDALONE_URL);
+    final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
+    final Path zippedExecutable = unpacked.resolve(ZIPPED_EXECUTABLE_NAME);
+    final Path upperCaseExecutable = unpacked.resolve(UPPER_CASE_EXECUTABLE_NAME);
     final Os operatingSystem = OsUtils.getOs();
-    final String standaloneName = operatingSystem == Os.WINDOWS ? "yt-dlp.exe" : "yt-dlp";
+    final String standaloneName = operatingSystem == Os.WINDOWS ? WINDOWS_EXECUTABLE_NAME : POSIX_EXECUTABLE_NAME;
     final Path standaloneExecutable = this.folder.resolve(standaloneName);
     final Path zippedPath = zipped.getPath();
     final Path upperCasePath = upperCase.getPath();
@@ -182,14 +216,14 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldUnpackAZipAndMarkItsExecutable() throws IOException {
-    final Map<String, byte[]> entries = Map.of(EXECUTABLE, LAUNCHER, "_internal/library.so", LIBRARY);
+    final Map<String, byte[]> entries = Map.of(EXECUTABLE, LAUNCHER, LIBRARY_ENTRY_NAME, LIBRARY);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
       final Path installed = installer.download(true);
-      final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
+      final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final Path expected = unpacked.resolve(EXECUTABLE);
-      final Path library = unpacked.resolve("_internal/library.so");
+      final Path library = unpacked.resolve(LIBRARY_ENTRY_NAME);
       final byte[] launcher = Files.readAllBytes(installed);
       final byte[] libraryContent = Files.readAllBytes(library);
       assertEquals(expected, installed);
@@ -201,8 +235,8 @@ final class YtdlpInstallerTest {
   }
 
   private void assertOnlyTheUnpackedFolderIsLeft() {
-    final Path zipFile = this.folder.resolve("yt-dlp_test.zip");
-    final Path unpacking = this.folder.resolve("yt-dlp-unpacking");
+    final Path zipFile = this.folder.resolve(ZIP_FILE_NAME);
+    final Path unpacking = this.folder.resolve(UNPACKING_FOLDER_NAME);
     final boolean zipLeft = Files.exists(zipFile);
     final boolean unpackingLeft = Files.exists(unpacking);
     assertFalse(zipLeft, "the zip is deleted once it has been unpacked");
@@ -237,10 +271,10 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldReplaceAStaleUnpackedFolderAndLeftoversOfAFailedUnpacking() throws IOException {
-    final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
-    final Path unpacking = this.folder.resolve("yt-dlp-unpacking");
-    final Path stale = unpacked.resolve("stale.txt");
-    final Path leftover = unpacking.resolve("leftover.txt");
+    final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
+    final Path unpacking = this.folder.resolve(UNPACKING_FOLDER_NAME);
+    final Path stale = unpacked.resolve(STALE_FILE_NAME);
+    final Path leftover = unpacking.resolve(LEFTOVER_FILE_NAME);
     Files.createDirectories(unpacked);
     Files.createDirectories(unpacking);
     Files.writeString(stale, "stale");
@@ -251,7 +285,7 @@ final class YtdlpInstallerTest {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
       final Path installed = installer.download(true);
       final boolean staleLeft = Files.exists(stale);
-      final Path relocatedLeftover = unpacked.resolve("leftover.txt");
+      final Path relocatedLeftover = unpacked.resolve(LEFTOVER_FILE_NAME);
       final boolean leftoverCopied = Files.exists(relocatedLeftover);
       final boolean installedExists = Files.isRegularFile(installed);
       assertFalse(leftoverCopied, "stale extraction files must not be promoted into the new installation");
@@ -263,14 +297,14 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldRejectAZipWithoutTheExecutableAtItsTopLevel() throws IOException {
-    final Map<String, byte[]> entries = Map.of("_internal/yt-dlp_test", LAUNCHER);
+    final Map<String, byte[]> entries = Map.of(NESTED_EXECUTABLE_NAME, LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
       final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
       final String message = exception.getMessage();
-      final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
-      final Path unpacking = this.folder.resolve("yt-dlp-unpacking");
+      final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
+      final Path unpacking = this.folder.resolve(UNPACKING_FOLDER_NAME);
       final boolean unpackedLeft = Files.exists(unpacked);
       final boolean unpackingLeft = Files.exists(unpacking);
       assertEquals("The yt-dlp zip does not contain yt-dlp_test at its top level!", message);
@@ -295,13 +329,13 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldRejectAZipWhoseEntriesEscapeTheFolder() throws IOException {
-    final Map<String, byte[]> entries = Map.of("../escaped", LAUNCHER);
+    final Map<String, byte[]> entries = Map.of(ESCAPING_ENTRY_NAME, LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
       final IOException exception = assertThrows(IOException.class, () -> installer.download(true));
       final Throwable cause = exception.getCause();
-      final Path escaped = this.folder.resolve("escaped");
+      final Path escaped = this.folder.resolve(ESCAPED_FILE_NAME);
       final boolean escapedExists = Files.exists(escaped);
       assertInstanceOf(ZipEntryIntegrityException.class, cause);
       assertFalse(escapedExists);
@@ -310,13 +344,13 @@ final class YtdlpInstallerTest {
 
   @Test
   void shouldNameTheExecutableAfterTheProgramWhenTheZipHasNoName() throws IOException {
-    final Map<String, byte[]> entries = Map.of("yt-dlp", LAUNCHER);
+    final Map<String, byte[]> entries = Map.of(PROGRAM_NAME, LAUNCHER);
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final YtdlpInstaller installer = this.serveZip(server, "/.zip", archive);
+      final YtdlpInstaller installer = this.serveZip(server, NAMELESS_ZIP_PATH, archive);
       final Path installed = installer.download(true);
-      final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
-      final Path expected = unpacked.resolve("yt-dlp");
+      final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
+      final Path expected = unpacked.resolve(PROGRAM_NAME);
       assertEquals(expected, installed);
     }
   }
@@ -324,13 +358,13 @@ final class YtdlpInstallerTest {
   @Test
   void shouldInstallAStandaloneExecutableAsDownloaded() throws IOException {
     try (final LocalHttpServer server = LocalHttpServer.start()) {
-      final YtdlpInstaller installer = this.serveZip(server, "/yt-dlp_linux", LAUNCHER);
+      final YtdlpInstaller installer = this.serveZip(server, STANDALONE_PATH, LAUNCHER);
       final Path installed = installer.download(true);
       final Os operatingSystem = OsUtils.getOs();
-      final String executableName = operatingSystem == Os.WINDOWS ? "yt-dlp.exe" : "yt-dlp";
+      final String executableName = operatingSystem == Os.WINDOWS ? WINDOWS_EXECUTABLE_NAME : POSIX_EXECUTABLE_NAME;
       final Path expected = this.folder.resolve(executableName);
       final byte[] content = Files.readAllBytes(installed);
-      final Path unpacked = this.folder.resolve("yt-dlp-unpacked");
+      final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final boolean unpackedExists = Files.exists(unpacked);
       assertEquals(expected, installed);
       assertArrayEquals(LAUNCHER, content);
@@ -346,7 +380,7 @@ final class YtdlpInstallerTest {
   }
 
   private YtdlpInstaller serveZip(final LocalHttpServer server, final String path, final byte[] body) {
-    server.respond(path, 200, body);
+    server.respond(path, OK_STATUS, body);
     final URI uri = server.uri(path);
     final String url = uri.toString();
     final String hash = sha256(body);
@@ -379,7 +413,7 @@ final class YtdlpInstallerTest {
 
   private static MessageDigest createSha256Digest() {
     try {
-      return MessageDigest.getInstance("SHA-256");
+      return MessageDigest.getInstance(DIGEST_ALGORITHM);
     } catch (final NoSuchAlgorithmException exception) {
       throw new IllegalStateException("Every Java runtime supports SHA-256!", exception);
     }
@@ -421,10 +455,10 @@ final class YtdlpInstallerTest {
     final boolean isArchive = installer.isArchive();
     final Path path = installer.getPath();
     final Os operatingSystem = OsUtils.getOs();
-    final String executableName = operatingSystem == Os.WINDOWS ? "yt-dlp.exe" : "yt-dlp";
+    final String executableName = operatingSystem == Os.WINDOWS ? WINDOWS_EXECUTABLE_NAME : POSIX_EXECUTABLE_NAME;
     final Path expectedPath = this.folder.resolve(executableName);
     assertEquals(this.folder, installerFolder);
-    assertEquals("yt-dlp", name);
+    assertEquals(PROGRAM_NAME, name);
     assertFalse(isArchive);
     assertEquals(expectedPath, path);
   }
@@ -436,8 +470,8 @@ final class YtdlpInstallerTest {
       final Path installerFolder = installer.getFolder();
       final Path defaultFolder = AbstractInstaller.getDefaultExecutableFolderPath();
       final Path redirectedHome = redirected.getHome();
-      final Path mcavFolder = redirectedHome.resolve(".mcav");
-      final Path expected = mcavFolder.resolve("cache");
+      final Path mcavFolder = redirectedHome.resolve(MCAV_FOLDER_NAME);
+      final Path expected = mcavFolder.resolve(CACHE_FOLDER_NAME);
       assertEquals(defaultFolder, installerFolder);
       assertEquals(expected, installerFolder);
     }
@@ -451,7 +485,7 @@ final class YtdlpInstallerTest {
     final Path folderName = sharedFolder.getFileName();
     final String name = folderName.toString();
     assertSame(first, second, "every user of yt-dlp goes through one installer, so it is downloaded once");
-    assertEquals("cache", name);
+    assertEquals(CACHE_FOLDER_NAME, name);
   }
 
   @Test
@@ -464,7 +498,7 @@ final class YtdlpInstallerTest {
     final boolean supported = installer.isSupported();
     final String url = installer.getUrl();
     final boolean secure = url.startsWith("https://");
-    final boolean namesYtDlp = url.contains("yt-dlp");
+    final boolean namesYtDlp = url.contains(PROGRAM_NAME);
     assertTrue(supported);
     assertTrue(secure, url);
     assertTrue(namesYtDlp, url);

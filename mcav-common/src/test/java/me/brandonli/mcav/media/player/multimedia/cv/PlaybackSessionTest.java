@@ -79,6 +79,30 @@ final class PlaybackSessionTest {
   private static final long TIMEOUT_MILLISECONDS = 10_000L;
   private static final Duration TIMEOUT = Duration.ofMillis(TIMEOUT_MILLISECONDS);
 
+  private static final int FRAME_WIDTH = 4;
+  private static final int FRAME_HEIGHT = 2;
+
+  private static final String SIZE_SEPARATOR = "x";
+  private static final int SCALED_WIDTH = 2;
+  private static final String SCALED_SIZE = "2x1";
+
+  private static final int SAMPLE_RATE = 44_100;
+
+  private static final long REQUESTED_POSITION = 5_000_000L;
+
+  private static final long LAST_FRAME_POSITION = 400_000L;
+  private static final long PACED_NANOSECONDS = 350_000_000L;
+
+  private static final long PROMPT_STOP_NANOSECONDS = 1_000_000_000L;
+  private static final long STALL_MILLISECONDS = 1_000L;
+
+  private static final long EARLY_AUDIO_NANOSECONDS = 400_000_000L;
+  private static final long LATER_SOUND_TIMESTAMP = 500_000L;
+
+  private static final String LATE_FRAME = "late frame";
+
+  private static final int SOUND_COUNT = 100;
+
   private final VideoAttachableCallback videoCallback = VideoAttachableCallback.create();
   private final AudioAttachableCallback audioCallback = AudioAttachableCallback.create();
   private final DimensionAttachableCallback dimensionCallback = DimensionAttachableCallback.create();
@@ -203,7 +227,7 @@ final class PlaybackSessionTest {
       final Frame frame = ScriptedFrameGrabber.video(timestamp);
       script.add(frame);
     }
-    return new ScriptedFrameGrabber(4, 2, false, script);
+    return new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
   }
 
   /**
@@ -227,7 +251,7 @@ final class PlaybackSessionTest {
     return (image, metadata) -> {
       final int width = image.getWidth();
       final int height = image.getHeight();
-      imageSizes.add(width + "x" + height);
+      imageSizes.add(width + SIZE_SEPARATOR + height);
       videoMetadata.set(metadata);
       return frames.incrementAndGet() > 0;
     };
@@ -263,7 +287,7 @@ final class PlaybackSessionTest {
     final Frame secondSound = ScriptedFrameGrabber.audio(20_000L);
     final Frame thirdPicture = ScriptedFrameGrabber.video(2 * FRAME_MICROSECONDS);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(firstPicture, firstSound, secondPicture, secondSound, thirdPicture);
-    grabber.setSampleRate(44_100);
+    grabber.setSampleRate(SAMPLE_RATE);
     return grabber;
   }
 
@@ -278,8 +302,8 @@ final class PlaybackSessionTest {
     final OriginalAudioMetadata audio = audioMetadata.get();
     final int sampleRate = audio.getAudioSampleRate();
     final int videoWidth = video.getVideoWidth();
-    assertEquals(4, videoWidth);
-    assertEquals(44_100, sampleRate, "the metadata describes the audio track of the grabber");
+    assertEquals(FRAME_WIDTH, videoWidth);
+    assertEquals(SAMPLE_RATE, sampleRate, "the metadata describes the audio track of the grabber");
   }
 
   /**
@@ -423,7 +447,7 @@ final class PlaybackSessionTest {
     awaitEnd(first);
 
     final List<Object> crash = List.of(new IllegalStateException("bug!"));
-    final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(4, 2, true, crash);
+    final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, true, crash);
     final PlaybackSession second = this.session(crashing, 0L, false);
     second.start();
     awaitEnd(second);
@@ -462,16 +486,16 @@ final class PlaybackSessionTest {
 
   @Test
   void shouldStartAtTheRequestedPosition() throws Exception {
-    final ScriptedFrameGrabber grabber = videoAt(5_000_000L);
-    final PlaybackSession session = this.session(grabber, 5_000_000L, false);
+    final ScriptedFrameGrabber grabber = videoAt(REQUESTED_POSITION);
+    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, false);
     final long initialPosition = session.getPositionMicroseconds();
     session.start();
     awaitEnd(session);
 
     final long requested = grabber.getRequestedTimestamp();
     final boolean noReports = this.reports.isEmpty();
-    assertEquals(5_000_000L, initialPosition);
-    assertEquals(5_000_000L, requested);
+    assertEquals(REQUESTED_POSITION, initialPosition);
+    assertEquals(REQUESTED_POSITION, requested);
     assertTrue(noReports, this.reports::toString);
   }
 
@@ -481,7 +505,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
     grabber.failOnSeek();
-    final PlaybackSession session = this.session(grabber, 5_000_000L, false);
+    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, false);
     session.start();
     awaitEnd(session);
 
@@ -564,7 +588,7 @@ final class PlaybackSessionTest {
   void shouldNotCopyPicturesWhileNoPipelineIsAttached() throws Exception {
     final Frame unreadable = ScriptedFrameGrabber.video(0L);
     unreadable.imageStride = 3;
-    final Frame last = ScriptedFrameGrabber.video(400_000L);
+    final Frame last = ScriptedFrameGrabber.video(LAST_FRAME_POSITION);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(unreadable, last);
     final PlaybackSession session = this.session(grabber, 0L, false);
     final long start = System.nanoTime();
@@ -576,8 +600,8 @@ final class PlaybackSessionTest {
     final long position = session.getPositionMicroseconds();
     final boolean noReports = this.reports.isEmpty();
     assertTrue(noReports, "the picture was never copied: " + this.reports);
-    assertEquals(400_000L, position, "the frames still move the position");
-    final boolean keptTime = elapsedNanoseconds >= 350_000_000L;
+    assertEquals(LAST_FRAME_POSITION, position, "the frames still move the position");
+    final boolean keptTime = elapsedNanoseconds >= PACED_NANOSECONDS;
     assertTrue(keptTime, "the frames still keep time, took " + elapsedNanoseconds);
   }
 
@@ -604,7 +628,7 @@ final class PlaybackSessionTest {
       return frames.incrementAndGet() > 0;
     });
     final List<Object> script = frames(24, 5_000L);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
     awaitEnd(session);
@@ -623,16 +647,16 @@ final class PlaybackSessionTest {
     this.onVideo((image, _) -> {
       final int width = image.getWidth();
       final int height = image.getHeight();
-      return sizes.add(width + "x" + height);
+      return sizes.add(width + SIZE_SEPARATOR + height);
     });
-    final Dimension size = Dimension.of(2, 1);
+    final Dimension size = Dimension.of(SCALED_WIDTH, 1);
     this.dimensionCallback.attach(size);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
     awaitEnd(session);
 
-    final List<String> expected = List.of("2x1", "2x1");
+    final List<String> expected = List.of(SCALED_SIZE, SCALED_SIZE);
     assertEquals(expected, sizes);
   }
 
@@ -641,7 +665,7 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final List<Object> script = frames(5, 0L);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setFrameRate(10.0);
     grabber.setLength(500_000L);
     final PlaybackSession session = this.session(grabber, 0L, false);
@@ -654,8 +678,8 @@ final class PlaybackSessionTest {
     final long position = session.getPositionMicroseconds();
     final int frameCount = frames.get();
     assertEquals(5, frameCount, "every frame is shown");
-    assertEquals(400_000L, position, "every frame is one period of 10 frames per second after the previous one");
-    final boolean paced = elapsedNanoseconds >= 350_000_000L;
+    assertEquals(LAST_FRAME_POSITION, position, "every frame is one period of 10 frames per second after the previous one");
+    final boolean paced = elapsedNanoseconds >= PACED_NANOSECONDS;
     assertTrue(paced, "the frames are paced instead of racing by, took " + elapsedNanoseconds);
   }
 
@@ -669,7 +693,7 @@ final class PlaybackSessionTest {
       script.add(frame);
       script.add(new ScriptedFrameGrabber.Delay(40L));
     }
-    final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     camera.setFrameRate(30.0);
     final PlaybackSession session = this.session(camera, 0L, false);
     session.start();
@@ -703,7 +727,7 @@ final class PlaybackSessionTest {
     final Field poolField = PlaybackSession.class.getDeclaredField("imagePool");
     poolField.setAccessible(true);
     final ImagePool pool = (ImagePool) poolField.get(session);
-    try (final ImageBuffer retained = ImageBuffer.bytes(new byte[4 * 2 * 3], 4, 2)) {
+    try (final ImageBuffer retained = ImageBuffer.bytes(new byte[FRAME_WIDTH * FRAME_HEIGHT * 3], FRAME_WIDTH, FRAME_HEIGHT)) {
       pool.recycle((MatImageBuffer) retained);
       session.start();
       awaitEnd(session);
@@ -737,7 +761,7 @@ final class PlaybackSessionTest {
     });
     final Timing controlled = new Timing(PlaybackSession.AUDIO_LEAD_NANOSECONDS, PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS, now::get);
     final List<Object> script = frames(6, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
     final PlaybackSession session = this.session(factory, null, this.videoCallback, controlled, 0L, false);
     session.start();
@@ -813,7 +837,7 @@ final class PlaybackSessionTest {
     assertTrue(activeBeforeStop);
     assertFalse(activeAfterStop);
     assertEquals(1, frameCount);
-    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "stopping interrupts the waiting threads");
   }
 
@@ -841,7 +865,7 @@ final class PlaybackSessionTest {
     final VideoFilter blocking = blockingUntilInterrupted(rendering);
     this.onVideo(blocking);
     final List<Object> script = frames(20, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
     final boolean rendered = rendering.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -855,7 +879,7 @@ final class PlaybackSessionTest {
     awaitCondition("the decoder closed its grabber", grabber::isClosed);
     final boolean active = session.isActive();
     assertFalse(active);
-    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "the blocked decoder is interrupted, took " + stopTime);
   }
 
@@ -898,7 +922,7 @@ final class PlaybackSessionTest {
     final int frameCount = frames.get();
     assertFalse(active);
     assertTrue(closed, "the decoder finished");
-    final boolean stoppedPromptly = stopTime < 1_000_000_000L;
+    final boolean stoppedPromptly = stopTime < PROMPT_STOP_NANOSECONDS;
     assertTrue(stoppedPromptly, "stopping from a filter does not wait for its own thread, took " + stopTime);
     assertEquals(1, frameCount, "frames queued before the stop are discarded");
   }
@@ -917,7 +941,7 @@ final class PlaybackSessionTest {
     final VideoFilter stopping = stoppingItsOwnSession(holder, frames, stopNanoseconds);
     this.onVideo(stopping);
     final Frame picture = ScriptedFrameGrabber.video(0L);
-    final ScriptedFrameGrabber.Delay stuck = new ScriptedFrameGrabber.Delay(1_000L);
+    final ScriptedFrameGrabber.Delay stuck = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture, stuck);
     final PlaybackSession session = this.session(grabber, 0L, false);
     holder.set(session);
@@ -1060,7 +1084,7 @@ final class PlaybackSessionTest {
    * due.
    */
   private PlaybackSession sessionWithAudioLead(final ScriptedFrameGrabber grabber) {
-    final long audioLeadNanoseconds = 400_000_000L;
+    final long audioLeadNanoseconds = EARLY_AUDIO_NANOSECONDS;
     final Timing earlyAudio = new Timing(audioLeadNanoseconds, Long.MAX_VALUE, System::nanoTime);
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
     return this.session(factory, null, this.videoCallback, earlyAudio, 0L, false);
@@ -1074,7 +1098,7 @@ final class PlaybackSessionTest {
       return deliveries.add(now);
     });
     final Frame firstSound = ScriptedFrameGrabber.audio(0L);
-    final Frame laterSound = ScriptedFrameGrabber.audio(500_000L);
+    final Frame laterSound = ScriptedFrameGrabber.audio(LATER_SOUND_TIMESTAMP);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(firstSound, laterSound);
     final PlaybackSession session = this.sessionWithAudioLead(grabber);
     session.start();
@@ -1092,8 +1116,11 @@ final class PlaybackSessionTest {
     final AtomicLong virtualTime = new AtomicLong();
     final List<Long> deliveredAt = Collections.synchronizedList(new ArrayList<>());
     this.onAudio((_, _) -> deliveredAt.add(virtualTime.get()));
-    final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(ScriptedFrameGrabber.audio(0L), ScriptedFrameGrabber.audio(500_000L));
-    final Timing timing = new Timing(400_000_000L, Long.MAX_VALUE, () -> virtualTime.getAndAdd(10_000_000L));
+    final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(
+      ScriptedFrameGrabber.audio(0L),
+      ScriptedFrameGrabber.audio(LATER_SOUND_TIMESTAMP)
+    );
+    final Timing timing = new Timing(EARLY_AUDIO_NANOSECONDS, Long.MAX_VALUE, () -> virtualTime.getAndAdd(10_000_000L));
     final PlaybackSession session = this.session(factoryOf(grabber), null, this.videoCallback, timing, 0L, false);
     session.start();
     awaitEnd(session);
@@ -1114,7 +1141,7 @@ final class PlaybackSessionTest {
 
     final List<String> remaining = new ArrayList<>(queue);
     final List<String> expectedRemaining = List.of("end");
-    final List<String> expectedDiscarded = List.of("frame", "late frame");
+    final List<String> expectedDiscarded = List.of("frame", LATE_FRAME);
     assertEquals(expectedRemaining, remaining);
     assertEquals(expectedDiscarded, discarded, "every removed element is handed on, so it can be released");
   }
@@ -1214,9 +1241,9 @@ final class PlaybackSessionTest {
     this.onVideo((image, _) -> {
       final int width = image.getWidth();
       final int height = image.getHeight();
-      return sizes.add(width + "x" + height);
+      return sizes.add(width + SIZE_SEPARATOR + height);
     });
-    final Dimension size = Dimension.of(2, 1);
+    final Dimension size = Dimension.of(SCALED_WIDTH, 1);
     this.dimensionCallback.attach(size);
     final Frame picture = heapPicture(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture);
@@ -1225,7 +1252,7 @@ final class PlaybackSessionTest {
     awaitEnd(session);
 
     final boolean copyKept = session.hasUnscaledCopy();
-    assertEquals(List.of("2x1"), sizes);
+    assertEquals(List.of(SCALED_SIZE), sizes);
     assertFalse(copyKept, "the decoder releases its copy of the unscaled picture once it is done");
   }
 
@@ -1233,10 +1260,10 @@ final class PlaybackSessionTest {
   void shouldKeepTheCopyOfAnUnscaledPictureWhileDecoding() throws Exception {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
-    final Dimension size = Dimension.of(2, 1);
+    final Dimension size = Dimension.of(SCALED_WIDTH, 1);
     this.dimensionCallback.attach(size);
     final Frame picture = heapPicture(0L);
-    final ScriptedFrameGrabber.Delay stall = new ScriptedFrameGrabber.Delay(1_000L);
+    final ScriptedFrameGrabber.Delay stall = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture, stall);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
@@ -1275,7 +1302,7 @@ final class PlaybackSessionTest {
       return true;
     });
     final List<Object> pictures = frames(20, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, pictures);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, pictures);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
 
@@ -1304,11 +1331,11 @@ final class PlaybackSessionTest {
       return true;
     });
     final List<Object> sounds = new ArrayList<>();
-    for (int index = 0; index < 100; index++) {
+    for (int index = 0; index < SOUND_COUNT; index++) {
       final Frame sound = ScriptedFrameGrabber.audio(0L);
       sounds.add(sound);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, sounds);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
     final PlaybackSession session = this.session(grabber, 0L, false);
     session.start();
 
@@ -1332,11 +1359,11 @@ final class PlaybackSessionTest {
       return true;
     });
     final List<Object> sounds = new ArrayList<>();
-    for (int index = 0; index < 100; index++) {
+    for (int index = 0; index < SOUND_COUNT; index++) {
       final Frame sound = ScriptedFrameGrabber.audio(0L);
       sounds.add(sound);
     }
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, sounds);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
     final PlaybackSession session = this.session(grabber, 0L, false);
     holder.set(session);
     session.start();
@@ -1358,7 +1385,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> shown.incrementAndGet() > 0);
     final List<String> reports = Collections.synchronizedList(new ArrayList<>());
     final List<Object> script = frames(320, FRAME_MICROSECONDS);
-    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(4, 2, false, script);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     final PlaybackSession session = new PlaybackSession(
       factoryOf(grabber),
       null,
@@ -1424,7 +1451,7 @@ final class PlaybackSessionTest {
       final int drained = super.drainTo(target);
       if (!this.refilled) {
         this.refilled = true;
-        this.offer("late frame");
+        this.offer(LATE_FRAME);
       }
       return drained;
     }
