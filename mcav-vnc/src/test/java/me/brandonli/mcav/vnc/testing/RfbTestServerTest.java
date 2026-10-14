@@ -39,7 +39,7 @@ final class RfbTestServerTest {
 
   @ParameterizedTest
   @CsvSource({ "32,true,00ff8040", "32,false,4080ff00", "16,true,fbe7", "16,false,e7fb", "8,true,ec", "8,false,ec" })
-  void encodesRawPixelsInTheNegotiatedByteOrder(final int bits, final boolean bigEndian, final String expectedHex) throws IOException {
+  void shouldEncodeRawPixelsInTheNegotiatedByteOrder(final int bits, final boolean bigEndian, final String expectedHex) throws IOException {
     try (final RfbTestServer server = RfbTestServer.start(1, 1); final Socket socket = connect(server)) {
       server.setColor(COLOR);
       final DataInputStream input = new DataInputStream(socket.getInputStream());
@@ -54,7 +54,7 @@ final class RfbTestServerTest {
   }
 
   @Test
-  void restoresTheAdvertisedDefaultFormatForTheNextClient() throws IOException {
+  void shouldRestoreTheAdvertisedDefaultFormatForTheNextClient() throws IOException {
     try (final RfbTestServer server = RfbTestServer.start(1, 1)) {
       server.setColor(COLOR);
       try (final Socket first = connect(server)) {
@@ -63,14 +63,16 @@ final class RfbTestServerTest {
         handshake(input, output);
         setPixelFormat(output, 16, false);
         final byte[] pixel = requestPixel(input, output, 2);
-        assertArrayEquals(new byte[] { (byte) 0xE7, (byte) 0xFB }, pixel);
+        final byte[] expected = { (byte) 0xE7, (byte) 0xFB };
+        assertArrayEquals(expected, pixel);
       }
       try (final Socket second = connect(server)) {
         final DataInputStream input = new DataInputStream(second.getInputStream());
         final DataOutputStream output = new DataOutputStream(second.getOutputStream());
         handshake(input, output);
         final byte[] pixel = requestPixel(input, output, 4);
-        assertArrayEquals(new byte[] { 0, (byte) 0xFF, (byte) 0x80, 0x40 }, pixel);
+        final byte[] expected = { 0, (byte) 0xFF, (byte) 0x80, 0x40 };
+        assertArrayEquals(expected, pixel);
       }
     }
   }

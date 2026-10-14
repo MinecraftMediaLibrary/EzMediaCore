@@ -38,14 +38,14 @@ final class RfbGuardFuzzTest {
   private static final int MAX_CHUNK = 512;
 
   @FuzzTest(maxDuration = "30s")
-  void checksWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
+  void shouldCheckWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
     final RfbSession session = new RfbSession();
     session.handshake(8, NONE, SIDE, SIDE);
     feed(session, data);
   }
 
   @FuzzTest(maxDuration = "30s")
-  void checksAHandshakeFromTheFirstByte(final FuzzedDataProvider data) {
+  void shouldCheckAHandshakeFromTheFirstByte(final FuzzedDataProvider data) {
     final RfbSession session = new RfbSession();
     final int minor = data.pickValue(new int[] { 3, 7, 8 });
     try {

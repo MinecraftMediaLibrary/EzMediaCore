@@ -53,7 +53,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void avoidsAConstantHashAcrossRepresentativeSourceKeys() {
+  void shouldAvoidAConstantHashAcrossRepresentativeSourceKeys() {
     final Set<Integer> hashes = new HashSet<>();
     for (int index = 0; index < 64; index++) {
       final VNCSource.Builder builder = fullBuilder();
@@ -69,7 +69,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void buildsSourcesWithEverySetting() {
+  void shouldBuildSourcesWithEverySetting() {
     final VNCSource.Builder builder = fullBuilder();
     final VNCSource source = builder.build();
     final String host = source.getHost();
@@ -89,7 +89,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void usesTheDefaultPortFrameRateAndRemoteSize() {
+  void shouldUseTheDefaultPortFrameRateAndRemoteSize() {
     final VNCSource.Builder builder = VNCSource.builder();
     builder.host("localhost");
     final VNCSource source = builder.build();
@@ -109,7 +109,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void describesTheServerAsAVncUri() {
+  void shouldDescribeTheServerAsAVncUri() {
     final VNCSource.Builder builder = fullBuilder();
     final VNCSource source = builder.build();
     final String resource = source.getResource();
@@ -121,7 +121,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void acceptsTheLimitsOfEveryRange() {
+  void shouldAcceptTheLimitsOfEveryRange() {
     final VNCSource.Builder builder = VNCSource.builder();
     final VNCSource.Builder hostResult = builder.host("h");
     final VNCSource.Builder lowPort = builder.port(1);
@@ -145,7 +145,7 @@ final class VNCSourceTest {
   }
 
   @Test
-  void rejectsInvalidSettings() {
+  void shouldRejectInvalidSettings() {
     final VNCSource.Builder builder = VNCSource.builder();
     assertThrows(NullPointerException.class, () -> builder.host(null));
     assertThrows(IllegalArgumentException.class, () -> builder.host(" "));
@@ -159,14 +159,14 @@ final class VNCSourceTest {
   }
 
   @Test
-  void requiresAHost() {
+  void shouldRequireAHost() {
     final VNCSource.Builder builder = VNCSource.builder();
     builder.port(5901);
     assertThrows(IllegalStateException.class, builder::build);
   }
 
   @Test
-  void comparesEverySetting() {
+  void shouldCompareEverySetting() {
     final VNCSource.Builder sourceBuilder = fullBuilder();
     final VNCSource source = sourceBuilder.build();
     final VNCSource.Builder equalBuilder = fullBuilder();

@@ -35,20 +35,29 @@ import org.junit.jupiter.api.Test;
 final class GuardedSocketTest {
 
   @Test
-  void answersForTheSocketItGuardsAndClosesIt() throws IOException {
+  void shouldAnswerForTheSocketItGuardsAndClosesIt() throws IOException {
     final Socket socket = mock(Socket.class);
     when(socket.getInputStream()).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(socket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
     final GuardedSocket guarded = new GuardedSocket(socket);
-    assertFalse(guarded.getTcpNoDelay());
-    assertFalse(guarded.isConnected());
-    assertFalse(guarded.isClosed());
+
+    final boolean noDelayBefore = guarded.getTcpNoDelay();
+    final boolean connectedBefore = guarded.isConnected();
+    final boolean closedBefore = guarded.isClosed();
+    assertFalse(noDelayBefore);
+    assertFalse(connectedBefore);
+    assertFalse(closedBefore);
+
     when(socket.getTcpNoDelay()).thenReturn(true);
     when(socket.isConnected()).thenReturn(true);
     when(socket.isClosed()).thenReturn(true);
-    assertTrue(guarded.getTcpNoDelay());
-    assertTrue(guarded.isConnected());
-    assertTrue(guarded.isClosed());
+    final boolean noDelay = guarded.getTcpNoDelay();
+    final boolean connected = guarded.isConnected();
+    final boolean closed = guarded.isClosed();
+    assertTrue(noDelay);
+    assertTrue(connected);
+    assertTrue(closed);
+
     guarded.close();
     verify(socket).close();
   }

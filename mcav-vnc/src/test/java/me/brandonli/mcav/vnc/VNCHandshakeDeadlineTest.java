@@ -44,7 +44,7 @@ import org.junit.jupiter.api.io.TempDir;
 final class VNCHandshakeDeadlineTest {
 
   @Test
-  void concurrentAsyncStartsStillHaveIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
+  void shouldGiveConcurrentAsyncStartsIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
     final Path javaFolder = Path.of(System.getProperty("java.home"), "bin");
     final Path windowsJava = javaFolder.resolve("java.exe");
     final Path executable = Files.isRegularFile(windowsJava) ? windowsJava : javaFolder.resolve("java");
@@ -60,11 +60,15 @@ final class VNCHandshakeDeadlineTest {
       .redirectOutput(output.toFile())
       .start();
     try {
-      assertTrue(child.waitFor(30, TimeUnit.SECONDS), "the isolated deadline probe terminates");
-      assertEquals(0, child.exitValue(), () -> readOutput(output));
+      final boolean terminated = child.waitFor(30, TimeUnit.SECONDS);
+      assertTrue(terminated, "the isolated deadline probe terminates");
+
+      final int exitValue = child.exitValue();
+      assertEquals(0, exitValue, () -> readOutput(output));
     } finally {
       child.destroyForcibly();
-      assertTrue(child.waitFor(10, TimeUnit.SECONDS), "the child is reaped");
+      final boolean reaped = child.waitFor(10, TimeUnit.SECONDS);
+      assertTrue(reaped, "the child is reaped");
     }
   }
 
@@ -88,7 +92,9 @@ final class VNCHandshakeDeadlineTest {
      */
     public static void main(final String[] arguments) throws Exception {
       final ForkJoinPool pool = ForkJoinPool.commonPool();
-      assertEquals(2, pool.getParallelism());
+      final int parallelism = pool.getParallelism();
+      assertEquals(2, parallelism);
+
       final CountDownLatch entered = new CountDownLatch(2);
       final List<CountDownLatch> closed = new ArrayList<>();
       final List<VNCPlayerImpl> players = new ArrayList<>();
@@ -107,8 +113,10 @@ final class VNCHandshakeDeadlineTest {
           .close();
         doAnswer(_ -> {
           entered.countDown();
-          assertTrue(entered.await(10, TimeUnit.SECONDS));
-          assertTrue(stopped.await(10, TimeUnit.SECONDS), "the handshake is closed");
+          final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
+          final boolean closedByDeadline = stopped.await(10, TimeUnit.SECONDS);
+          assertTrue(bothEntered);
+          assertTrue(closedByDeadline, "the handshake is closed");
           throw new IllegalStateException("socket closed");
         })
           .when(client)
@@ -120,17 +128,19 @@ final class VNCHandshakeDeadlineTest {
         for (final VNCPlayerImpl player : players) {
           starts.add(player.startAsync(VNCSource.builder().host("127.0.0.1").build()));
         }
-        assertTrue(entered.await(10, TimeUnit.SECONDS), "both common-pool workers are in their handshakes");
+        final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
+        assertTrue(bothEntered, "both common-pool workers are in their handshakes");
+
         final long limit = System.nanoTime() + Duration.ofSeconds(10).toNanos();
         while (!starts.stream().allMatch(CompletableFuture::isDone) && pool.getQueuedSubmissionCount() < 2 && System.nanoTime() < limit) {
           LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
         }
-        assertTrue(
-          starts.stream().allMatch(CompletableFuture::isCompletedExceptionally),
-          "deadline actions must not queue behind the two handshakes: queued=" + pool.getQueuedSubmissionCount()
-        );
+        final boolean allFailed = starts.stream().allMatch(CompletableFuture::isCompletedExceptionally);
+        assertTrue(allFailed, "deadline actions must not queue behind the two handshakes: queued=" + pool.getQueuedSubmissionCount());
+
         for (final CountDownLatch stopped : closed) {
-          assertEquals(0L, stopped.getCount());
+          final long remaining = stopped.getCount();
+          assertEquals(0L, remaining);
         }
       } finally {
         closed.forEach(CountDownLatch::countDown);

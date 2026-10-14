@@ -53,7 +53,7 @@ final class RfbGuardPropertyTest {
   private static final int MESSAGES = 12;
 
   @Property(seed = SEED, tries = 300)
-  void passesEveryValidSessionInAnyChunks(@ForAll final long seed) throws IOException {
+  void shouldPassEveryValidSessionInAnyChunks(@ForAll final long seed) throws IOException {
     final Random random = new Random(seed);
     final byte[] messages = messages(random);
     final RfbSession session = new RfbSession();
@@ -66,11 +66,12 @@ final class RfbGuardPropertyTest {
       at += chunk;
     }
     final IOException boundary = assertThrows(IOException.class, () -> session.server(new byte[] { (byte) 255 }));
-    assertEquals("The VNC server broke the protocol or a bound: message type 255", boundary.getMessage());
+    final String message = boundary.getMessage();
+    assertEquals("The VNC server broke the protocol or a bound: message type 255", message);
   }
 
   @Property(seed = SEED, tries = 300)
-  void refusesAChangedSessionOnlyWithAnIoException(@ForAll final long seed) throws IOException {
+  void shouldRefuseAChangedSessionOnlyWithAnIoException(@ForAll final long seed) throws IOException {
     final Random random = new Random(seed);
     final byte[] messages = messages(random);
     messages[random.nextInt(messages.length)] ^= (byte) (1 + random.nextInt(255));

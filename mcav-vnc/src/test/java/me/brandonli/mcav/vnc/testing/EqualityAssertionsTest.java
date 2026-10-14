@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 final class EqualityAssertionsTest {
 
   @Test
-  void unequalValuesMayHaveTheSameHashCode() {
+  void shouldAllowUnequalValuesToHaveTheSameHashCode() {
     final String first = "Aa";
     final String equal = String.valueOf(new char[] { 'A', 'a' });
     final String different = "BB";

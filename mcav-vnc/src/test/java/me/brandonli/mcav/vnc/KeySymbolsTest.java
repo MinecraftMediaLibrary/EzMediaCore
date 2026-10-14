@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 final class KeySymbolsTest {
 
   @Test
-  void looksUpTheKeysymsOfKeyNames() {
+  void shouldLookUpTheKeysymsOfKeyNames() {
     final OptionalInt enter = KeySymbols.lookup("Return");
     final OptionalInt escape = KeySymbols.lookup("Escape");
     final OptionalInt backSpace = KeySymbols.lookup("BackSpace");
@@ -52,7 +52,7 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void findsNothingForTextThatIsNotAKeyName() {
+  void shouldFindNothingForTextThatIsNotAKeyName() {
     final OptionalInt text = KeySymbols.lookup("hello world");
     final OptionalInt lowerCase = KeySymbols.lookup("return");
     final boolean textIsEmpty = text.isEmpty();
@@ -62,12 +62,12 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void rejectsNullNames() {
+  void shouldRejectNullNames() {
     assertThrows(NullPointerException.class, () -> KeySymbols.lookup(null));
   }
 
   @Test
-  void parsesHexadecimalCodesAndClosesTheReader() {
+  void shouldParseHexadecimalCodesAndClosesTheReader() {
     final ClosingReader reader = new ClosingReader("{\"A\": \"0x41\", \"F1\": \"0xffbe\"}", false);
     final Map<String, Integer> symbols = KeySymbols.parse(reader);
     final int letter = symbols.get("A");
@@ -85,7 +85,7 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void rejectsEmptyTables() {
+  void shouldRejectEmptyTables() {
     final Reader reader = new StringReader("");
     final PlayerException exception = assertThrows(PlayerException.class, () -> KeySymbols.parse(reader));
     final String message = exception.getMessage();
@@ -94,7 +94,7 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void wrapsReadFailures() {
+  void shouldWrapReadFailures() {
     final PlayerException exception = assertThrows(PlayerException.class, () -> {
       final ClosingReader reader = new ClosingReader("{}", true);
       KeySymbols.parse(reader);
@@ -107,7 +107,7 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(KeySymbols.class);
   }
 

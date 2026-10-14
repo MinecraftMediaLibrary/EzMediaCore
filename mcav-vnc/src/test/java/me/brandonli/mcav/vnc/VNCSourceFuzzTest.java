@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Tag;
 final class VNCSourceFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void keepsEveryAcceptedSettingAsGiven(final FuzzedDataProvider data) {
+  void shouldKeepEveryAcceptedSettingAsGiven(final FuzzedDataProvider data) {
     final String host = data.consumeString(64);
     final int port = data.consumeInt();
     final String username = data.consumeString(32);
@@ -55,17 +55,29 @@ final class VNCSourceFuzzTest {
       assertTrue(documented, () -> "settings refused without a documented reason: " + refused.getMessage());
       return;
     }
-    assertEquals(host, first.getHost());
-    assertEquals(port, first.getPort());
-    assertEquals(username, first.getUsername());
-    assertEquals(password, first.getPassword());
-    assertEquals(width, first.getScreenWidth());
-    assertEquals(height, first.getScreenHeight());
-    assertEquals(frameRate, first.getTargetFrameRate());
+    final String builtHost = first.getHost();
+    final int builtPort = first.getPort();
+    final String builtUsername = first.getUsername();
+    final String builtPassword = first.getPassword();
+    final int builtWidth = first.getScreenWidth();
+    final int builtHeight = first.getScreenHeight();
+    final int builtFrameRate = first.getTargetFrameRate();
+    assertEquals(host, builtHost);
+    assertEquals(port, builtPort);
+    assertEquals(username, builtUsername);
+    assertEquals(password, builtPassword);
+    assertEquals(width, builtWidth);
+    assertEquals(height, builtHeight);
+    assertEquals(frameRate, builtFrameRate);
+
+    final int firstHash = first.hashCode();
+    final int secondHash = second.hashCode();
     assertEquals(first, second, "two sources of the same settings are equal");
-    assertEquals(first.hashCode(), second.hashCode(), "and have the same hash");
+    assertEquals(firstHash, secondHash, "and have the same hash");
+
     final String resource = first.getResource();
-    assertTrue(resource.contains(host) && resource.endsWith(":" + port), () -> "the resource " + resource + " names the host and the port");
+    final boolean named = resource.contains(host) && resource.endsWith(":" + port);
+    assertTrue(named, () -> "the resource " + resource + " names the host and the port");
   }
 
   private static VNCSource build(

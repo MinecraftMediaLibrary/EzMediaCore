@@ -29,14 +29,14 @@ import org.junit.jupiter.api.Test;
 final class VNCModuleTest {
 
   @Test
-  void isNamedVnc() {
+  void shouldBeNamedVnc() {
     final VNCModule module = new VNCModule();
     final String name = module.getModuleName();
     assertEquals("vnc", name);
   }
 
   @Test
-  void startsAndStopsWithoutPreparingAnything() {
+  void shouldStartAndStopsWithoutPreparingAnything() {
     final MCAVModule module = new VNCModule();
     module.start();
     module.stop();
@@ -47,7 +47,7 @@ final class VNCModuleTest {
   }
 
   @Test
-  void canBeCreatedByTheModuleLoader() throws ReflectiveOperationException {
+  void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
     final Constructor<VNCModule> constructor = VNCModule.class.getConstructor();
     final VNCModule module = constructor.newInstance();
     final String name = module.getModuleName();
