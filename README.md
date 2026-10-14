@@ -105,7 +105,7 @@ Here is a list of all the modules that are included in MCAV.
 | [`mcav-bukkit`](mcav-docs/bukkit/bukkit.md) | Video and images in Minecraft, audio resource packs, and the MCV2 codec. |
 | [`mcav-installer`](mcav-docs/library/installer.md) | Downloads and loads the libraries each module needs. |
 | [`mcav-discord`](mcav-docs/library/discord.md) | Audio in Discord voice channels through the Java Discord API. |
-| [`mcav-http`](mcav-docs/library/http.md) | Streams PCM audio to a web page, with a Spring Boot back-end and a Typescript front-end. |
+| [`mcav-http`](mcav-docs/library/http.md) | Streams PCM audio to a web page, with a Spring Boot back-end and a TypeScript front-end. |
 | [`mcav-browser`](mcav-docs/library/browser.md) | Web pages and their sound through embedded Chromium, with no JVM options. |
 | [`mcav-vnc`](mcav-docs/library/vnc.md) | Captures video and controls remote VNC desktops. |
 | [`mcav-vm`](mcav-docs/library/vm.md) | Runs QEMU virtual machines with their display and sound. |
@@ -177,7 +177,7 @@ mutation testing, the end-to-end test of the plugin and publishing.
 
 MCAV is looking for contributors to help improve the library and plugin. It needs
 
-- Web Developers (Typescript, React, NextJS) to help improve the front-end of the HTTP module.
+- Web Developers (TypeScript, React, Next.js) to help improve the front-end of the HTTP module.
 - Back-end Developers (Java, Spring Boot) to help improve the back-end of the HTTP module.
 - Java Developers to help improve the core library.
 - Bukkit Developers to help improve the Bukkit module and the MCAV plugin.
