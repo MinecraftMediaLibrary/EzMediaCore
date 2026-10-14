@@ -199,14 +199,12 @@ threads that must stay responsive, such as the main thread of a Minecraft server
 | Exception                     | Meaning                                                                                                   |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------|
 | `NullPointerException`        | The source is `null`.                                                                                     |
-| `IOException`                 | FFmpeg cannot be started, its output cannot be read, or the thread was interrupted while waiting for it. |
-| `ProcessException`            | FFmpeg exited with a non-zero exit code, for example because the source does not exist, cannot be decoded, or has no audio track. |
+| `ProcessException`            | FFmpeg cannot be started, its output cannot be read, the thread was interrupted while waiting for it, or FFmpeg exited with a non-zero exit code, for example because the source does not exist, cannot be decoded, or has no audio track. |
 | `java.io.UncheckedIOException` | The cache folder cannot be created.                                                                      |
 | `UnsatisfiedLinkError`        | The bundled FFmpeg is not available for this platform.                                                    |
 
-`IOException` is the only checked exception. `ProcessException` extends `MCAVException`, the unchecked base of every
-MCAV failure, and `UncheckedIOException` is an ordinary unchecked exception, so `catch (RuntimeException exception)`
-catches both. Catch
+None of them is checked. `ProcessException` extends `MCAVException`, the unchecked base of every MCAV failure, and
+`UncheckedIOException` is an ordinary unchecked exception, so `catch (RuntimeException exception)` catches both. Catch
 `ProcessException` (in `me.brandonli.mcav.utils.runtime`) explicitly if you want to handle a source that FFmpeg cannot
 convert:
 
@@ -219,9 +217,7 @@ convert:
       final Path oggFile = AudioExtractor.extractOggVorbis(media);
       // ... use the Ogg Vorbis file, then delete it
     } catch (final ProcessException exception) {
-      // the source does not exist, cannot be decoded, or has no audio track
-    } catch (final IOException exception) {
-      // FFmpeg could not be run
+      // FFmpeg could not be run, or the source does not exist, cannot be decoded, or has no audio track
     }
   });
 ```

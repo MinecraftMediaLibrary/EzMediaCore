@@ -20,7 +20,6 @@ package me.brandonli.mcav.loader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -262,7 +261,7 @@ public final class DependencyLoader {
       final long end = System.currentTimeMillis();
       final long elapsed = end - start;
       this.logger.info("VLC ready in {} ms.", elapsed);
-    } catch (final IOException | RuntimeException | LinkageError exception) {
+    } catch (final RuntimeException | LinkageError exception) {
       this.recordPreparation(Capability.VLC, preparation, Availability.UNAVAILABLE);
       final boolean cancelled = this.logCancellation(Capability.VLC);
       if (!cancelled) {
@@ -296,7 +295,7 @@ public final class DependencyLoader {
     }
   }
 
-  private static Optional<Path> startInstallationKit() throws IOException {
+  private static Optional<Path> startInstallationKit() {
     final VlcInstallationKit kit = VlcInstallationKit.create();
     return kit.start();
   }
@@ -344,7 +343,7 @@ public final class DependencyLoader {
       final long end = System.currentTimeMillis();
       final long elapsed = end - start;
       this.logger.info("yt-dlp ready in {} ms.", elapsed);
-    } catch (final IOException | RuntimeException exception) {
+    } catch (final RuntimeException exception) {
       this.recordPreparation(Capability.YT_DLP, preparation, Availability.UNAVAILABLE);
       final boolean cancelled = this.logCancellation(Capability.YT_DLP);
       if (!cancelled) {
@@ -356,6 +355,6 @@ public final class DependencyLoader {
 
   @FunctionalInterface
   interface VlcStarter {
-    Optional<Path> start() throws IOException;
+    Optional<Path> start();
   }
 }

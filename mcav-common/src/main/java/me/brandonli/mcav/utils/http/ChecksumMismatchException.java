@@ -17,7 +17,6 @@
  */
 package me.brandonli.mcav.utils.http;
 
-import java.io.IOException;
 import java.io.Serial;
 
 /**
@@ -26,7 +25,7 @@ import java.io.Serial;
  *
  * @since 1.0.0
  */
-public class ChecksumMismatchException extends IOException {
+public class ChecksumMismatchException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = -6_142_310_774_902_315_786L;

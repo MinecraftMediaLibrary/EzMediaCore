@@ -30,8 +30,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy.ProcessRunner;
+import me.brandonli.mcav.testing.IoActions;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -109,7 +111,7 @@ final class LinuxInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> {});
     final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
     final boolean namesTheDirectory = message.contains(EXTRACTED_DIRECTORY);
     assertTrue(namesTheDirectory, message);
@@ -118,10 +120,10 @@ final class LinuxInstallationStrategyTest {
   @Test
   void shouldFailWhenTheAppImageHasNoCoreLibrary() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final ProcessRunner extractor = (workingDirectory, _) -> this.extractWithoutCoreLibrary(workingDirectory);
+    final ProcessRunner extractor = (workingDirectory, _) -> IoActions.runUnchecked(() -> this.extractWithoutCoreLibrary(workingDirectory));
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, extractor);
     final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
     final boolean namesTheLibrary = message.contains(CORE_LIBRARY_FILE_NAME);
     assertTrue(namesTheLibrary, message);
@@ -137,14 +139,14 @@ final class LinuxInstallationStrategyTest {
   @Test
   void shouldPropagateExtractionFailures() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
-    final IOException failure = new IOException("not an AppImage!");
+    final InstallationException failure = new InstallationException("not an AppImage!");
     final LinuxInstallationStrategy strategy = new LinuxInstallationStrategy(installer, (_, _) -> this.failToExtract(failure));
     final Path archive = this.createAppImage();
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     assertSame(failure, thrown);
   }
 
-  private void failToExtract(final IOException failure) throws IOException {
+  private void failToExtract(final InstallationException failure) {
     throw failure;
   }
 
@@ -165,7 +167,8 @@ final class LinuxInstallationStrategyTest {
   }
 
   private static ProcessRunner recordingExtractor(final List<String> commands, final List<Path> workingDirectories) {
-    return (workingDirectory, arguments) -> extractRecording(commands, workingDirectories, workingDirectory, arguments);
+    return (workingDirectory, arguments) ->
+      IoActions.runUnchecked(() -> extractRecording(commands, workingDirectories, workingDirectory, arguments));
   }
 
   private static void extractRecording(
@@ -188,7 +191,7 @@ final class LinuxInstallationStrategyTest {
   }
 
   private static ProcessRunner leftoverCheckingExtractor(final Path staleFile) {
-    return (workingDirectory, _) -> extractAfterCheckingTheLeftover(staleFile, workingDirectory);
+    return (workingDirectory, _) -> IoActions.runUnchecked(() -> extractAfterCheckingTheLeftover(staleFile, workingDirectory));
   }
 
   private static void extractAfterCheckingTheLeftover(final Path staleFile, final @Nullable Path workingDirectory) throws IOException {

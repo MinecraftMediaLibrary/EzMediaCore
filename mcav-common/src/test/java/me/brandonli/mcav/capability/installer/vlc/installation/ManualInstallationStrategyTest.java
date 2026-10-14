@@ -19,17 +19,25 @@ package me.brandonli.mcav.capability.installer.vlc.installation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import org.junit.jupiter.api.Assumptions;
@@ -66,6 +74,8 @@ final class ManualInstallationStrategyTest {
 
   private static final String WORK_DIRECTORY_NAME = "work";
   private static final String MARKER_NAME = "marker.txt";
+
+  private static final Set<PosixFilePermission> OWNER_PERMISSIONS = PosixFilePermissions.fromString("rwx------");
 
   @TempDir
   private Path temporaryDirectory;
@@ -193,6 +203,40 @@ final class ManualInstallationStrategyTest {
   }
 
   @Test
+  void shouldReportADirectoryThatCannotBeDeletedAsAFile() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
+    final TestStrategy strategy = new TestStrategy(installer);
+    final Path tree = Files.createDirectory(this.temporaryDirectory.resolve(TREE_DIRECTORY_NAME));
+    createFile(tree, FILE_NAME);
+    final FileOperationException thrown = assertThrows(FileOperationException.class, () -> strategy.deleteFile(tree));
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(DirectoryNotEmptyException.class, cause);
+  }
+
+  @Test
+  void shouldReportADirectoryThatCannotBeSearched() throws IOException {
+    final Path locked = Files.createDirectory(this.temporaryDirectory.resolve(VLC_DIRECTORY_NAME));
+    final Set<PosixFilePermission> noPermissions = Set.of();
+    final Os operatingSystem = OsUtils.getOs();
+    final boolean posix = operatingSystem != Os.WINDOWS;
+    Assumptions.assumeTrue(posix, "Directory permissions need a POSIX file system!");
+
+    Files.setPosixFilePermissions(locked, noPermissions);
+    try {
+      final boolean readable = Files.isReadable(locked);
+      Assumptions.assumeFalse(readable, "The user can read every directory!");
+
+      final InstallationException thrown = assertThrows(InstallationException.class, () ->
+        ManualInstallationStrategy.findLibraryDirectory(locked, LIBRARY)
+      );
+      final Throwable cause = thrown.getCause();
+      assertInstanceOf(AccessDeniedException.class, cause);
+    } finally {
+      Files.setPosixFilePermissions(locked, OWNER_PERMISSIONS);
+    }
+  }
+
+  @Test
   void shouldRunToolsAsChildProcesses() throws IOException {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
@@ -212,8 +256,9 @@ final class ManualInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final TestStrategy strategy = new TestStrategy(installer);
     final String[] failing = shellCommand("exit 3");
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.runProcess(null, failing));
-    final String message = thrown.getMessage();
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.runProcess(null, failing));
+    final Throwable cause = thrown.getCause();
+    final String message = cause.getMessage();
     final boolean namesTheExitCode = message.contains("exited with code 3");
     assertTrue(namesTheExitCode, message);
   }

@@ -30,8 +30,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
@@ -47,8 +50,10 @@ import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import me.brandonli.mcav.utils.os.Arch;
@@ -103,6 +108,10 @@ final class YtdlpInstallerTest {
 
   private static final String STALE_FILE_NAME = "stale.txt";
   private static final String LEFTOVER_FILE_NAME = "leftover.txt";
+  private static final String DOWNLOADS_FOLDER_NAME = "downloads";
+
+  private static final String READ_ONLY_PERMISSIONS = "r-x------";
+  private static final Set<PosixFilePermission> OWNER_PERMISSIONS = PosixFilePermissions.fromString("rwx------");
 
   private static final String MCAV_FOLDER_NAME = ".mcav";
   private static final String CACHE_FOLDER_NAME = "cache";
@@ -306,7 +315,7 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final InstallationException exception = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
       final String message = exception.getMessage();
       final Path unpacked = this.folder.resolve(UNPACKED_FOLDER_NAME);
       final Path unpacking = this.folder.resolve(UNPACKING_FOLDER_NAME);
@@ -323,7 +332,7 @@ final class YtdlpInstallerTest {
     final byte[] notAZip = "not a zip".getBytes(StandardCharsets.UTF_8);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, notAZip);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final InstallationException exception = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
       final boolean explained = message.endsWith("\" while extracting the yt-dlp zip!");
@@ -338,12 +347,37 @@ final class YtdlpInstallerTest {
     final byte[] archive = zip(entries);
     try (final LocalHttpServer server = LocalHttpServer.start()) {
       final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
-      final IOException exception = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final InstallationException exception = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
       final Throwable cause = exception.getCause();
       final Path escaped = this.folder.resolve(ESCAPED_FILE_NAME);
       final boolean escapedExists = Files.exists(escaped);
       assertInstanceOf(ZipEntryIntegrityException.class, cause);
       assertFalse(escapedExists);
+    }
+  }
+
+  @Test
+  void shouldReportAZipThatCannotBeDeletedAfterUnpacking() throws IOException {
+    final Map<String, byte[]> entries = Map.of(EXECUTABLE, LAUNCHER);
+    final byte[] archive = zip(entries);
+    final Path downloads = Files.createDirectory(this.folder.resolve(DOWNLOADS_FOLDER_NAME));
+    final Path downloaded = Files.write(downloads.resolve(ZIP_FILE_NAME), archive);
+    final Set<PosixFilePermission> readOnly = PosixFilePermissions.fromString(READ_ONLY_PERMISSIONS);
+    final Os operatingSystem = OsUtils.getOs();
+    final boolean posix = operatingSystem != Os.WINDOWS;
+    Assumptions.assumeTrue(posix, "Directory permissions need a POSIX file system!");
+
+    try (final LocalHttpServer server = LocalHttpServer.start()) {
+      final YtdlpInstaller installer = this.serveZip(server, ZIP_PATH, archive);
+      Files.setPosixFilePermissions(downloads, readOnly);
+      final boolean writable = Files.isWritable(downloads);
+      Assumptions.assumeFalse(writable, "The user can write every directory!");
+
+      final FileOperationException thrown = assertThrows(FileOperationException.class, () -> installer.install(downloaded));
+      final Throwable cause = thrown.getCause();
+      assertInstanceOf(AccessDeniedException.class, cause);
+    } finally {
+      Files.setPosixFilePermissions(downloads, OWNER_PERMISSIONS);
     }
   }
 

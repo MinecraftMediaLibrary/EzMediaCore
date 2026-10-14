@@ -24,7 +24,9 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -68,11 +70,11 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
    * Looks for nonempty {@code libvlc.dylib} and {@code libvlccore.dylib} in the same installation directory.
    *
    * @return the directory that contains the library, or empty if VLC has not been installed
-   * @throws IOException if the installation directory cannot be searched
+   * @throws InstallationException if the installation directory cannot be searched
    * @since 1.0.0
    */
   @Override
-  public Optional<Path> getInstalledPath() throws IOException {
+  public Optional<Path> getInstalledPath() {
     final Path installDirectory = this.getInstallDirectory();
     return findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
   }
@@ -82,12 +84,14 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
    *
    * @param archive the downloaded disk image
    * @return the directory that contains {@code libvlc.dylib}
-   * @throws IOException          if the disk image cannot be mounted or copied, or does not contain the library
-   * @throws NullPointerException if {@code archive} is null
+   * @throws InstallationException  if the disk image cannot be mounted or copied, or does not contain the library
+   * @throws FileOperationException if an earlier installation or the disk image cannot be deleted, or the installation
+   *                                directory or the mount point cannot be created
+   * @throws NullPointerException   if {@code archive} is null
    * @since 1.0.0
    */
   @Override
-  public Path execute(final Path archive) throws IOException {
+  public Path execute(final Path archive) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
 
     final Path installDirectory = this.getInstallDirectory();
@@ -95,22 +99,33 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     final Path parent = Objects.requireNonNull(parentOrNull, "The installation directory lies in the installer folder!");
     final Path mountPoint = parent.resolve(MOUNT_DIRECTORY);
     deleteRecursively(installDirectory);
-    Files.createDirectories(installDirectory);
-    Files.createDirectories(mountPoint);
+    createDirectories(installDirectory, mountPoint);
     this.copyFromDiskImage(archive, mountPoint, installDirectory);
-    Files.deleteIfExists(archive);
+    this.deleteFile(archive);
     final Optional<Path> libraryDirectory = findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
     final @Nullable Path directory = libraryDirectory.orElse(null);
     if (directory == null) {
-      throw new IOException("The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory!");
+      throw new InstallationException(
+        "The VLC disk image does not contain nonempty libvlc.dylib and libvlccore.dylib in the same directory!"
+      );
     }
 
     return directory;
   }
 
+  private static void createDirectories(final Path installDirectory, final Path mountPoint) {
+    try {
+      Files.createDirectories(installDirectory);
+      Files.createDirectories(mountPoint);
+    } catch (final IOException exception) {
+      final String message = "Directories %s and %s could not be created!".formatted(installDirectory, mountPoint);
+      throw new FileOperationException(message, exception);
+    }
+  }
+
   // Mounts the disk image read-only, copies VLC.app out of it, and unmounts it again. When the copy fails, the image is
   // still detached, and a failure to detach is attached to the copy failure instead of hiding it.
-  private void copyFromDiskImage(final Path archive, final Path mountPoint, final Path installDirectory) throws IOException {
+  private void copyFromDiskImage(final Path archive, final Path mountPoint, final Path installDirectory) {
     final String rawArchive = archive.toString();
     final String rawMountPoint = mountPoint.toString();
     final String rawInstallDirectory = installDirectory.toString();
@@ -119,7 +134,7 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
       final Path mountedApp = mountPoint.resolve(VLC_APP);
       final String rawMountedApp = mountedApp.toString();
       this.runProcess(null, "cp", "-R", rawMountedApp, rawInstallDirectory);
-    } catch (final IOException exception) {
+    } catch (final InstallationException exception) {
       this.detachAfterFailure(mountPoint, exception);
       throw exception;
     }
@@ -127,10 +142,10 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
     this.detach(mountPoint);
   }
 
-  private void detachAfterFailure(final Path mountPoint, final IOException copyFailure) {
+  private void detachAfterFailure(final Path mountPoint, final InstallationException copyFailure) {
     try {
       this.detach(mountPoint);
-    } catch (final IOException exception) {
+    } catch (final InstallationException | FileOperationException exception) {
       copyFailure.addSuppressed(exception);
     }
   }
@@ -138,21 +153,21 @@ public final class OsxInstallationStrategy extends ManualInstallationStrategy {
   // Detaches the disk image, forcing it when a regular detach fails, for example because a process still has a file of
   // the image open. The mount point is only deleted once the image is detached, because deleting it while mounted would
   // reach into the image.
-  private void detach(final Path mountPoint) throws IOException {
+  private void detach(final Path mountPoint) {
     final String rawMountPoint = mountPoint.toString();
     try {
       this.runProcess(null, DISK_IMAGE_TOOL, DETACH_COMMAND, rawMountPoint);
-    } catch (final IOException exception) {
+    } catch (final InstallationException exception) {
       this.forceDetach(rawMountPoint, exception);
     }
 
     deleteRecursively(mountPoint);
   }
 
-  private void forceDetach(final String rawMountPoint, final IOException detachFailure) throws IOException {
+  private void forceDetach(final String rawMountPoint, final InstallationException detachFailure) {
     try {
       this.runProcess(null, DISK_IMAGE_TOOL, DETACH_COMMAND, "-force", rawMountPoint);
-    } catch (final IOException exception) {
+    } catch (final InstallationException exception) {
       detachFailure.addSuppressed(exception);
       throw detachFailure;
     }

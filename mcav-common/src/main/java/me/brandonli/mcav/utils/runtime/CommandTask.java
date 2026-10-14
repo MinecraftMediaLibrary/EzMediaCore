@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -115,12 +116,12 @@ public final class CommandTask {
    *
    * @param command the program followed by its arguments
    * @param mode    when to run the command
-   * @throws IOException              if the program cannot be started
+   * @throws ProcessException         if the program cannot be started or its output cannot be read
    * @throws NullPointerException     if the command array or any argument is null
    * @throws IllegalArgumentException if the command array is empty
    * @since 1.0.0
    */
-  public CommandTask(final String[] command, final RunMode mode) throws IOException {
+  public CommandTask(final String[] command, final RunMode mode) {
     this(null, command);
 
     if (mode == RunMode.IMMEDIATELY) {
@@ -133,11 +134,11 @@ public final class CommandTask {
    * that may hang, such as programs that talk to a network.
    *
    * @return the exit code of the program
-   * @throws IOException           if the program cannot be started or its output cannot be read
+   * @throws ProcessException     if the program cannot be started or its output cannot be read
    * @throws IllegalStateException if the task was already run
    * @since 1.0.0
    */
-  public int run() throws IOException {
+  public int run() {
     return this.runWithTimeout(null);
   }
 
@@ -147,14 +148,14 @@ public final class CommandTask {
    *
    * @param timeout how long to wait for the program, which must be positive
    * @return the exit code of the program
-   * @throws IOException              if the program cannot be started, its output cannot be read, or it does not exit
+   * @throws ProcessException         if the program cannot be started, its output cannot be read, or it does not exit
    *                                  in time
    * @throws IllegalStateException    if the task was already run
    * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
    * @since 1.0.0
    */
-  public int run(final Duration timeout) throws IOException {
+  public int run(final Duration timeout) {
     checkTimeout(timeout);
 
     return this.runWithTimeout(timeout);
@@ -167,7 +168,7 @@ public final class CommandTask {
     Preconditions.checkArgument(positive, "Timeout %s must be positive!", timeout);
   }
 
-  private int runWithTimeout(final @Nullable Duration timeout) throws IOException {
+  private int runWithTimeout(final @Nullable Duration timeout) {
     Preconditions.checkState(this.process == null, "Command has already been run!");
 
     final long startNanoseconds = System.nanoTime();
@@ -194,12 +195,12 @@ public final class CommandTask {
   /**
    * Runs the program, waits until it exits, and fails if the exit code is not zero.
    *
-   * @throws IOException           if the program cannot be started or its output cannot be read
-   * @throws ProcessException      if the program exits with a non-zero exit code
+   * @throws ProcessException     if the program cannot be started, its output cannot be read, or it exits with a
+   *                               non-zero exit code
    * @throws IllegalStateException if a process was already launched by this task
    * @since 1.0.0
    */
-  public void runChecked() throws IOException {
+  public void runChecked() {
     final int code = this.run();
     this.checkExitCode(code);
   }
@@ -209,15 +210,14 @@ public final class CommandTask {
    * When the timeout passes, termination of the program and its observed descendants is requested.
    *
    * @param timeout how long to wait for the program, which must be positive
-   * @throws IOException              if the program cannot be started, its output cannot be read, or it does not exit in
-   *                                  time
-   * @throws ProcessException         if the program exits with a non-zero exit code
+   * @throws ProcessException         if the program cannot be started, its output cannot be read, it does not exit in
+   *                                  time, or it exits with a non-zero exit code
    * @throws NullPointerException     if {@code timeout} is null
    * @throws IllegalArgumentException if the timeout is zero or negative
    * @throws IllegalStateException    if a process was already launched by this task
    * @since 1.0.0
    */
-  public void runChecked(final Duration timeout) throws IOException {
+  public void runChecked(final Duration timeout) {
     final int code = this.run(timeout);
     this.checkExitCode(code);
   }
@@ -236,7 +236,7 @@ public final class CommandTask {
     throw new ProcessException(message);
   }
 
-  private Process startProcess() throws IOException {
+  private Process startProcess() {
     final ProcessBuilder builder = new ProcessBuilder(this.command);
     final Path directory = this.workingDirectory;
     if (directory != null) {
@@ -245,7 +245,12 @@ public final class CommandTask {
     }
 
     LOGGER.debug("Command {} is running.", this.command);
-    return builder.start();
+    try {
+      return builder.start();
+    } catch (final IOException exception) {
+      final String message = "Command %s could not be started!".formatted(this.command);
+      throw new ProcessException(message, exception);
+    }
   }
 
   @VisibleForTesting
@@ -254,7 +259,7 @@ public final class CommandTask {
     final Future<String> outputFuture,
     final Future<String> errorFuture,
     final @Nullable Duration timeout
-  ) throws IOException {
+  ) {
     final long startNanoseconds = System.nanoTime();
     this.awaitCompletion(started, outputFuture, errorFuture, timeout, startNanoseconds);
   }
@@ -265,7 +270,7 @@ public final class CommandTask {
     final Future<String> errorFuture,
     final @Nullable Duration timeout,
     final long startNanoseconds
-  ) throws IOException {
+  ) {
     try {
       this.exitCode = this.waitForExit(started, timeout, startNanoseconds);
       this.output = awaitOutput(outputFuture, timeout, startNanoseconds);
@@ -275,16 +280,17 @@ public final class CommandTask {
       currentThread.interrupt();
       this.destroyProcessTree(started);
       final String message = "Waiting for command %s was interrupted!".formatted(this.command);
-      throw new IOException(message, exception);
+      throw new ProcessException(message, exception);
     } catch (final TimeoutException exception) {
       this.destroyProcessTree(started);
       final String message = "Command %s did not finish within %s; termination was requested!".formatted(this.command, timeout);
-      throw new IOException(message, exception);
+      throw new ProcessException(message, exception);
     } catch (final ExecutionException exception) {
       this.destroyProcessTree(started);
-      final Throwable cause = exception.getCause();
+      final Throwable reason = exception.getCause();
+      final Throwable cause = Objects.requireNonNullElse(reason, exception);
       final String message = "Output of command %s could not be read!".formatted(this.command);
-      throw new IOException(message, cause);
+      throw new ProcessException(message, cause);
     } finally {
       outputFuture.cancel(true);
       errorFuture.cancel(true);

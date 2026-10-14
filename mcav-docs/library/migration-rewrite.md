@@ -282,6 +282,29 @@ extend `MCAVException`, an unchecked base for failures outside the caller's cont
 `PaletteLoadingException` are no longer an `IllegalStateException`, and `UnsupportedOperatingSystemException` is no
 longer an `UnsupportedOperationException`.
 
+## Operational failures
+
+Public methods of `mcav-common` no longer declare `IOException`. A failure outside the caller's control is reported as
+an unchecked subtype of `MCAVException`, so remove `throws IOException` clauses that only existed for these calls and
+replace catches of `IOException` around them with the exception below:
+
+| Failure | Exception |
+| --- | --- |
+| An HTTP request or download fails | `DownloadException` in `me.brandonli.mcav.utils.http` |
+| A file cannot be opened, moved or deleted | `FileOperationException` in `me.brandonli.mcav.utils` |
+| A process cannot be started or read, times out or is interrupted | `ProcessException` in `me.brandonli.mcav.utils.runtime` |
+| VLC or yt-dlp cannot be installed or located | `InstallationException` in `me.brandonli.mcav.capability.installer` |
+| An animated image cannot be decoded | `ImageDecodingException` in `me.brandonli.mcav.media.image` |
+
+`HttpStatusException`, `ChecksumMismatchException`, `DownloadTooLargeException`, `DownloadTooSlowException` and
+`RedirectRefusedException` now extend `DownloadException` instead of `IOException`. The affected calls are
+`HttpDownloader.download`, `openStream` and `fetchText`; `IoUtils.deleteRecursively` and `moveReplacing`; the
+`CommandTask` constructor, `run` and `runChecked`; `AudioExtractor.extractOggVorbis`; `Installer.download` and
+`findInstallation`; `VlcInstallationKit.start`; `YtdlpParser.parse`; `DynamicImageBuffer.path` and `uri`; and
+`Writable.newInputStream` and `newOutputStream`. Implementations of `Installer`, `InstallationStrategy`,
+`ProcessRunner` and `YtdlpParser` drop `throws IOException` from their overrides and report failures with the
+exceptions above.
+
 ## Bundled dependencies
 
 The Maven installer bundles its resolver dependencies under `me.brandonli.mcav.libs`. Those classes change with the

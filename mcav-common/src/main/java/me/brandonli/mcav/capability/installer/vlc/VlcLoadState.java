@@ -17,7 +17,6 @@
  */
 package me.brandonli.mcav.capability.installer.vlc;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -37,7 +36,7 @@ final class VlcLoadState {
 
   // Runs the loader unless an earlier call succeeded, in which case the earlier result is returned. Concurrent calls
   // are serialized, so the loader never runs twice at the same time.
-  Optional<Path> loadOnce(final Loader loader) throws IOException {
+  Optional<Path> loadOnce(final Loader loader) {
     synchronized (this.lock) {
       if (!this.loaded) {
         final Optional<Path> result = loader.load();
@@ -51,6 +50,6 @@ final class VlcLoadState {
 
   @FunctionalInterface
   interface Loader {
-    Optional<Path> load() throws IOException;
+    Optional<Path> load();
   }
 }

@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.http.DownloadException;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.opencv.opencv_core.Mat;
 
@@ -149,10 +151,12 @@ public interface ImageBuffer extends Image {
    *
    * @param source the URL of the image
    * @return the image buffer
-   * @throws java.io.UncheckedIOException if the image cannot be downloaded
-   * @throws IllegalArgumentException     if the file is not a supported image format, or its header declares more
-   *                                      pixels than the system property {@code mcav.image.maxPixels} allows
-   * @throws NullPointerException         if {@code source} is null
+   * @throws DownloadException       if the image cannot be downloaded, including when it is larger than
+   *                                  {@link me.brandonli.mcav.utils.IoUtils#MAXIMUM_IMAGE_BYTES}
+   * @throws FileOperationException   if the downloaded image cannot be moved into the cache folder
+   * @throws IllegalArgumentException if the file is not a supported image format, or its header declares more
+   *                                  pixels than the system property {@code mcav.image.maxPixels} allows
+   * @throws NullPointerException     if {@code source} is null
    * @since 1.0.0
    */
   static ImageBuffer uri(final UriSource source) {

@@ -20,6 +20,7 @@ package me.brandonli.mcav.media.source.file;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -27,10 +28,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Objects;
 import me.brandonli.mcav.media.source.SourceDetector;
 import me.brandonli.mcav.testing.EqualityAssertions;
+import me.brandonli.mcav.utils.FileOperationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -112,6 +115,20 @@ final class FileSourceTest {
 
     assertEquals(path, writablePath);
     assertArrayEquals(content, read);
+  }
+
+  @Test
+  void shouldReportFilesThatCannotBeOpened() {
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
+    final Path unreachable = missing.resolve(OUTPUT_FILE_NAME);
+    final Writable missingFile = Writable.path(missing);
+    final Writable unreachableFile = Writable.path(unreachable);
+    final FileOperationException reading = assertThrows(FileOperationException.class, missingFile::newInputStream);
+    final FileOperationException writing = assertThrows(FileOperationException.class, unreachableFile::newOutputStream);
+    final Throwable readingCause = reading.getCause();
+    final Throwable writingCause = writing.getCause();
+    assertInstanceOf(NoSuchFileException.class, readingCause);
+    assertInstanceOf(NoSuchFileException.class, writingCause);
   }
 
   @Test

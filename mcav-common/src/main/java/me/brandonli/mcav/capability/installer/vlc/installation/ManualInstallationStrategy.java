@@ -23,12 +23,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.runtime.CommandTask;
 import me.brandonli.mcav.utils.runtime.ProcessException;
@@ -84,11 +87,11 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param root    the directory to search
    * @param pattern the complete library file-name pattern
    * @return the parent directory of a matching library, or empty if none exists
-   * @throws IOException          if a candidate directory or library cannot be read
-   * @throws NullPointerException if {@code root} or {@code pattern} is null
+   * @throws InstallationException if a candidate directory or library cannot be read
+   * @throws NullPointerException  if {@code root} or {@code pattern} is null
    * @since 1.0.0
    */
-  protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern) throws IOException {
+  protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern) {
     return findLibraryDirectory(root, pattern, new Pattern[0]);
   }
 
@@ -101,12 +104,11 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * @param pattern    the pattern for the main library file name
    * @param companions additional library patterns that must match files in the same directory
    * @return the first complete library directory, or empty if no complete directory exists
-   * @throws IOException          if a candidate directory or library cannot be read
-   * @throws NullPointerException if {@code root}, {@code pattern}, the companion array or a companion pattern is null
+   * @throws InstallationException if a candidate directory or library cannot be read
+   * @throws NullPointerException  if {@code root}, {@code pattern}, the companion array or a companion pattern is null
    * @since 1.0.0
    */
-  protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern, final Pattern... companions)
-    throws IOException {
+  protected static Optional<Path> findLibraryDirectory(final Path root, final Pattern pattern, final Pattern... companions) {
     Preconditions.checkNotNull(root, "Root must not be null!");
     Preconditions.checkNotNull(pattern, "Pattern must not be null!");
     Preconditions.checkNotNull(companions, "Companion patterns must not be null!");
@@ -123,6 +125,9 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
       final Stream<Path> matching = files.filter(file -> matchesFileName(file, pattern));
       final Iterator<Path> candidates = matching.iterator();
       return findCompleteDirectory(candidates, companions);
+    } catch (final IOException exception) {
+      final String message = "Directory %s could not be searched for the VLC libraries!".formatted(root);
+      throw new InstallationException(message, exception);
     }
   }
 
@@ -182,20 +187,21 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    *
    * @param workingDirectory the working directory of the tool, or null for the working directory of the JVM
    * @param arguments        the tool followed by its arguments
-   * @throws IOException if the tool cannot be run or exits with an error
+   * @throws InstallationException if the tool cannot be run or exits with an error
    * @since 1.0.0
    */
-  protected void runProcess(final @Nullable Path workingDirectory, final String... arguments) throws IOException {
+  protected void runProcess(final @Nullable Path workingDirectory, final String... arguments) {
     this.processRunner.run(workingDirectory, arguments);
   }
 
-  private static void runCommand(final @Nullable Path workingDirectory, final String... arguments) throws IOException {
+  private static void runCommand(final @Nullable Path workingDirectory, final String... arguments) {
     final CommandTask task = new CommandTask(workingDirectory, arguments);
     try {
       task.runChecked(TOOL_TIMEOUT);
     } catch (final ProcessException exception) {
-      final String reason = exception.getMessage();
-      throw new IOException(reason, exception);
+      final List<String> command = task.getCommand();
+      final String message = "Installation tool %s failed!".formatted(command);
+      throw new InstallationException(message, exception);
     }
   }
 
@@ -204,12 +210,12 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * them, including links whose target no longer exists.
    *
    * @param path the file or directory to delete
-   * @throws IOException          if a file cannot be deleted
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if a file cannot be deleted
+   * @throws NullPointerException   if {@code path} is null
    * @see IoUtils#deleteRecursively(Path)
    * @since 1.0.0
    */
-  public static void deleteRecursively(final Path path) throws IOException {
+  public static void deleteRecursively(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
 
     IoUtils.deleteRecursively(path);
@@ -219,14 +225,19 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
    * Deletes a single file if it exists.
    *
    * @param file the file to delete
-   * @throws IOException          if the file cannot be deleted
-   * @throws NullPointerException if {@code file} is null
+   * @throws FileOperationException if the file cannot be deleted
+   * @throws NullPointerException   if {@code file} is null
    * @since 1.0.0
    */
-  public void deleteFile(final Path file) throws IOException {
+  public void deleteFile(final Path file) {
     Preconditions.checkNotNull(file, "File must not be null!");
 
-    Files.deleteIfExists(file);
+    try {
+      Files.deleteIfExists(file);
+    } catch (final IOException exception) {
+      final String message = "File %s could not be deleted!".formatted(file);
+      throw new FileOperationException(message, exception);
+    }
   }
 
   /**
@@ -263,9 +274,9 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
      *
      * @param workingDirectory the directory to run the tool in, or {@code null} for the working directory of the JVM
      * @param arguments        the tool followed by its arguments
-     * @throws IOException if the tool cannot be started or exits with an error
+     * @throws InstallationException if the tool cannot be started or exits with an error
      * @since 1.0.0
      */
-    void run(@Nullable Path workingDirectory, String... arguments) throws IOException;
+    void run(@Nullable Path workingDirectory, String... arguments);
   }
 }

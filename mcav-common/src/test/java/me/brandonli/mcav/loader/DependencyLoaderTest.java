@@ -59,6 +59,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
@@ -373,7 +374,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldRemoveOnlyTheVlcCapabilityWhenTheDownloadFails() {
     final DependencyLoader loader = new DependencyLoader();
-    loader.installVlc(() -> this.failVlcStart(new IOException("offline!")));
+    loader.installVlc(() -> this.failVlcStart(new InstallationException("offline!")));
     final boolean hasVlc = loader.hasCapability(Capability.VLC);
     final boolean hasYtdlp = loader.hasCapability(Capability.YT_DLP);
     final boolean hasFfmpeg = loader.hasCapability(Capability.FFMPEG);
@@ -436,11 +437,7 @@ final class DependencyLoaderTest {
     } else {
       final Installer installer = mock(Installer.class);
       when(installer.isSupported()).thenReturn(true);
-      try {
-        when(installer.download(FileMode.EXECUTABLE)).thenAnswer(_ -> this.prepareDownload(prepare));
-      } catch (final IOException exception) {
-        throw new AssertionError(exception);
-      }
+      when(installer.download(FileMode.EXECUTABLE)).thenAnswer(_ -> this.prepareDownload(prepare));
 
       loader.installYtdlp(installer);
     }
@@ -467,10 +464,10 @@ final class DependencyLoaderTest {
   @Test
   void shouldRestoreTheCapabilitiesWhenALaterPreparationSucceeds() throws IOException {
     final DependencyLoader loader = new DependencyLoader();
-    loader.installVlc(() -> this.failVlcStart(new IOException("offline!")));
+    loader.installVlc(() -> this.failVlcStart(new InstallationException("offline!")));
     final Installer installer = mock(Installer.class);
     when(installer.isSupported()).thenReturn(true);
-    when(installer.download(FileMode.EXECUTABLE)).thenThrow(new IOException("offline!")).thenReturn(Path.of(YTDLP_FILE_NAME));
+    when(installer.download(FileMode.EXECUTABLE)).thenThrow(new InstallationException("offline!")).thenReturn(Path.of(YTDLP_FILE_NAME));
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> this.throwError(new UnsatisfiedLinkError("no libgtk-x11-2.0!")));
     final boolean vlcBeforeRetry = loader.hasCapability(Capability.VLC);
@@ -585,7 +582,7 @@ final class DependencyLoaderTest {
   @Test
   void shouldRemoveTheYtdlpCapabilityWhenTheDownloadFails() throws IOException {
     final Installer installer = mock(Installer.class);
-    final IOException offline = new IOException("offline!");
+    final InstallationException offline = new InstallationException("offline!");
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(FileMode.EXECUTABLE)).thenThrow(offline);
     final DependencyLoader loader = new DependencyLoader();
@@ -656,7 +653,7 @@ final class DependencyLoaderTest {
   private @Nullable Void failVlcInstallationAfter(final CyclicBarrier barrier, final DependencyLoader loader)
     throws InterruptedException, BrokenBarrierException {
     barrier.await();
-    loader.installVlc(() -> this.failVlcStart(new IOException("offline!")));
+    loader.installVlc(() -> this.failVlcStart(new InstallationException("offline!")));
 
     return null;
   }
@@ -726,7 +723,7 @@ final class DependencyLoaderTest {
   void shouldWarnWhenVlcCannotBePrepared() {
     final Logger logger = mock(Logger.class);
     final DependencyLoader offline = new DependencyLoader(logger);
-    offline.installVlc(() -> this.failVlcStart(new IOException("offline!")));
+    offline.installVlc(() -> this.failVlcStart(new InstallationException("offline!")));
     final UnsupportedOperatingSystemException unsupported = VlcInstallerFailures.unsupportedSystem(
       "Operating system FREEBSD does not support installing VLC automatically!"
     );
@@ -750,10 +747,10 @@ final class DependencyLoaderTest {
     verify(logger, never()).warn(anyString(), any(Object.class));
   }
 
-  private Optional<Path> interruptAndFailVlcStart() throws IOException {
+  private Optional<Path> interruptAndFailVlcStart() {
     final Thread current = Thread.currentThread();
     current.interrupt();
-    throw new IOException("Interrupted while downloading!");
+    throw new InstallationException("Interrupted while downloading!");
   }
 
   @Test
@@ -764,7 +761,7 @@ final class DependencyLoaderTest {
     when(working.isSupported()).thenReturn(true);
     when(working.download(FileMode.EXECUTABLE)).thenReturn(installed);
     final Installer offline = mock(Installer.class);
-    final IOException offlineFailure = new IOException("offline!");
+    final InstallationException offlineFailure = new InstallationException("offline!");
     when(offline.isSupported()).thenReturn(true);
     when(offline.download(FileMode.EXECUTABLE)).thenThrow(offlineFailure);
     final Installer unsupported = mock(Installer.class);
@@ -796,10 +793,10 @@ final class DependencyLoaderTest {
     verify(logger, never()).warn(anyString(), any(Object.class));
   }
 
-  private Path interruptAndFailDownload() throws IOException {
+  private Path interruptAndFailDownload() {
     final Thread current = Thread.currentThread();
     current.interrupt();
-    throw new IOException("Interrupted while downloading!");
+    throw new InstallationException("Interrupted while downloading!");
   }
 
   private static boolean vlcAvailableAfter(final DependencyLoader.VlcStarter starter) {

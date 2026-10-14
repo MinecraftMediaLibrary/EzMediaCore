@@ -18,7 +18,6 @@
 package me.brandonli.mcav.utils.http;
 
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.io.Serial;
 import java.net.URI;
 
@@ -27,7 +26,7 @@ import java.net.URI;
  *
  * @since 1.0.0
  */
-public class HttpStatusException extends IOException {
+public class HttpStatusException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = 4_319_027_551_202_837_465L;

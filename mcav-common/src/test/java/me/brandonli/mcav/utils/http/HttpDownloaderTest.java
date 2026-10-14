@@ -38,6 +38,7 @@ import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -57,6 +58,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import me.brandonli.mcav.utils.FileOperationException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -121,6 +123,7 @@ final class HttpDownloaderTest {
   private static final String SHARED_FILE_NAME = "shared.bin";
   private static final String OCCUPIED_DIRECTORY = "occupied";
   private static final String KEPT_FILE_NAME = "kept.txt";
+  private static final String BLOCKER_FILE_NAME = "blocker";
   private static final String PART_FILE_EXTENSION = ".part";
 
   @TempDir
@@ -211,7 +214,7 @@ final class HttpDownloaderTest {
       final Path flakyDestination = this.directory.resolve(FLAKY_FILE_NAME);
       final Path brokenDestination = this.directory.resolve(BROKEN_FILE_NAME);
       HttpDownloader.download(flaky, flakyDestination, null, NO_DELAY);
-      final IOException exception = assertThrows(IOException.class, () ->
+      final DownloadException exception = assertThrows(DownloadException.class, () ->
         HttpDownloader.download(broken, brokenDestination, null, NO_DELAY)
       );
       final Throwable cause = exception.getCause();
@@ -247,7 +250,7 @@ final class HttpDownloaderTest {
   }
 
   private static long failAndTime(final URI uri, final Path destination, final Duration retryDelay) {
-    assertThrows(IOException.class, () -> HttpDownloader.download(uri, destination, null, retryDelay));
+    assertThrows(DownloadException.class, () -> HttpDownloader.download(uri, destination, null, retryDelay));
 
     return System.nanoTime();
   }
@@ -259,8 +262,8 @@ final class HttpDownloaderTest {
       final URI stalled = server.uri(STALLED_ROUTE);
       final Path destination = this.directory.resolve(STALLED_FILE_NAME);
 
-      final IOException failure = assertTimeoutPreemptively(Duration.ofSeconds(WAIT_TIMEOUT_SECONDS), () ->
-        assertThrows(IOException.class, () -> HttpDownloader.download(stalled, destination, null, NO_DELAY))
+      final DownloadException failure = assertTimeoutPreemptively(Duration.ofSeconds(WAIT_TIMEOUT_SECONDS), () ->
+        assertThrows(DownloadException.class, () -> HttpDownloader.download(stalled, destination, null, NO_DELAY))
       );
       final Throwable cause = failure.getCause();
       assertInstanceOf(HttpStatusException.class, cause);
@@ -274,7 +277,7 @@ final class HttpDownloaderTest {
       final URI broken = server.uri(BROKEN_ROUTE);
       final Path destination = this.directory.resolve(EXISTING_FILE_NAME);
       Files.writeString(destination, "previous version");
-      assertThrows(IOException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
+      assertThrows(DownloadException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
 
       final String content = Files.readString(destination);
       final List<Path> partFiles = partFiles(this.directory);
@@ -295,7 +298,7 @@ final class HttpDownloaderTest {
       server.respond(BROKEN_ROUTE, HTTP_SERVER_ERROR, CONTENT);
       final URI broken = server.uri(BROKEN_ROUTE);
       final Path destination = this.directory.resolve(BROKEN_FILE_NAME);
-      assertThrows(IOException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
+      assertThrows(DownloadException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
     } finally {
       System.setErr(standardError);
     }
@@ -398,8 +401,8 @@ final class HttpDownloaderTest {
   void shouldDecideWhichFailuresAreWorthRetrying() {
     final URI uri = URI.create("http://example.com/");
     final IOException network = new IOException("connection reset!");
-    final IOException checksum = new ChecksumMismatchException("bad hash!");
-    final IOException tooLarge = new DownloadTooLargeException("too large!");
+    final DownloadException checksum = new ChecksumMismatchException("bad hash!");
+    final DownloadException tooLarge = new DownloadTooLargeException("too large!");
     final boolean networkRetryable = HttpDownloader.isRetryable(network);
     final boolean checksumRetryable = HttpDownloader.isRetryable(checksum);
     final boolean tooLargeRetryable = HttpDownloader.isRetryable(tooLarge);
@@ -432,7 +435,7 @@ final class HttpDownloaderTest {
       final byte[] movedContent = Files.readAllBytes(moved);
       assertArrayEquals(CONTENT, movedContent);
       final Path away = this.directory.resolve(AWAY_FILE_NAME);
-      final IOException refused = assertThrows(IOException.class, () ->
+      final DownloadException refused = assertThrows(DownloadException.class, () ->
         HttpDownloader.download(server.uri("/away"), away, CONTENT_SHA256, CONTENT.length)
       );
       assertInstanceOf(RedirectRefusedException.class, refused);
@@ -457,7 +460,7 @@ final class HttpDownloaderTest {
       }
 
       server.respondRedirect("/loop", 307, "/loop");
-      final IOException loop = assertThrows(IOException.class, () -> openAndClosePinned(server.uri("/loop")));
+      final DownloadException loop = assertThrows(DownloadException.class, () -> openAndClosePinned(server.uri("/loop")));
       assertInstanceOf(RedirectRefusedException.class, loop);
 
       final int loopRequests = server.getRequestCount("/loop");
@@ -507,7 +510,7 @@ final class HttpDownloaderTest {
       server.respondRedirect(BROKEN_ROUTE, HTTP_FOUND, "http://[not-a-host");
 
       final URI broken = server.uri(BROKEN_ROUTE);
-      final IOException refused = assertThrows(IOException.class, () -> openAndClosePinned(broken));
+      final DownloadException refused = assertThrows(DownloadException.class, () -> openAndClosePinned(broken));
       assertInstanceOf(RedirectRefusedException.class, refused);
 
       final Throwable cause = refused.getCause();
@@ -556,7 +559,7 @@ final class HttpDownloaderTest {
       server.respondTrickling(SLOW_ROUTE, HTTP_OK, CONTENT, 50);
       final Path slow = this.directory.resolve(SLOW_FILE_NAME);
       final Duration deadline = Duration.ofMillis(200);
-      final IOException failure = assertThrows(IOException.class, () ->
+      final DownloadException failure = assertThrows(DownloadException.class, () ->
         HttpDownloader.download(server.uri(SLOW_ROUTE), slow, CONTENT_SHA256, NO_DELAY, Duration.ofSeconds(10), CONTENT.length, deadline)
       );
       assertInstanceOf(DownloadTooSlowException.class, failure);
@@ -598,7 +601,9 @@ final class HttpDownloaderTest {
     final Path destination = this.directory.resolve(INTERRUPTED_FILE_NAME);
     final Thread current = Thread.currentThread();
     current.interrupt();
-    final IOException exception = assertThrows(IOException.class, () -> HttpDownloader.download(unreachable, destination, null, NO_DELAY));
+    final DownloadException exception = assertThrows(DownloadException.class, () ->
+      HttpDownloader.download(unreachable, destination, null, NO_DELAY)
+    );
     final boolean interrupted = Thread.interrupted();
     final String message = exception.getMessage();
     assertTrue(interrupted, "the interrupt must be restored");
@@ -698,7 +703,7 @@ final class HttpDownloaderTest {
       Files.createDirectories(occupied);
       final Path keptPath = occupied.resolve(KEPT_FILE_NAME);
       final Path kept = Files.createFile(keptPath);
-      assertThrows(IOException.class, () -> HttpDownloader.download(uri, occupied, null, NO_DELAY));
+      assertThrows(FileOperationException.class, () -> HttpDownloader.download(uri, occupied, null, NO_DELAY));
 
       final int requests = server.getRequestCount(FILE_ROUTE);
       final boolean keptExists = Files.exists(kept);
@@ -720,7 +725,9 @@ final class HttpDownloaderTest {
       final Path destination = this.directory.resolve(STALLED_FILE_NAME);
       final Duration idleTimeout = Duration.ofMillis(300);
       final Duration limit = Duration.ofSeconds(30);
-      final IOException exception = assertTimeoutPreemptively(limit, () -> this.assertStalledDownloadFails(uri, destination, idleTimeout));
+      final DownloadException exception = assertTimeoutPreemptively(limit, () ->
+        this.assertStalledDownloadFails(uri, destination, idleTimeout)
+      );
       final Throwable cause = exception.getCause();
       final int requests = server.getRequestCount(STALLED_ROUTE);
       final boolean destinationExists = Files.exists(destination);
@@ -730,8 +737,8 @@ final class HttpDownloaderTest {
     }
   }
 
-  private IOException assertStalledDownloadFails(final URI uri, final Path destination, final Duration idleTimeout) {
-    return assertThrows(IOException.class, () ->
+  private DownloadException assertStalledDownloadFails(final URI uri, final Path destination, final Duration idleTimeout) {
+    return assertThrows(DownloadException.class, () ->
       HttpDownloader.download(uri, destination, null, NO_DELAY, idleTimeout, HttpDownloader.NO_SIZE_LIMIT)
     );
   }
@@ -745,7 +752,7 @@ final class HttpDownloaderTest {
       final Path destination = this.directory.resolve(SLOW_FILE_NAME);
       final Duration longRetryDelay = Duration.ofMinutes(1);
       final Duration longIdleTimeout = Duration.ofMinutes(1);
-      final AtomicReference<IOException> failure = new AtomicReference<>();
+      final AtomicReference<DownloadException> failure = new AtomicReference<>();
       final Runnable download = () -> this.downloadRecordingFailure(uri, destination, longRetryDelay, longIdleTimeout, failure);
       final Thread downloader = new Thread(download, "interrupted download");
       downloader.start();
@@ -755,7 +762,7 @@ final class HttpDownloaderTest {
       downloader.interrupt();
 
       final boolean ended = downloader.join(wait);
-      final IOException exception = failure.get();
+      final DownloadException exception = failure.get();
       final int requests = server.getRequestCount(SLOW_ROUTE);
       final List<Path> parts = partFiles(this.directory);
       final boolean partsEmpty = parts.isEmpty();
@@ -774,11 +781,11 @@ final class HttpDownloaderTest {
     final Path destination,
     final Duration retryDelay,
     final Duration idleTimeout,
-    final AtomicReference<IOException> failure
+    final AtomicReference<DownloadException> failure
   ) {
     try {
       HttpDownloader.download(uri, destination, null, retryDelay, idleTimeout, HttpDownloader.NO_SIZE_LIMIT);
-    } catch (final IOException exception) {
+    } catch (final DownloadException exception) {
       failure.set(exception);
     }
   }
@@ -830,16 +837,36 @@ final class HttpDownloaderTest {
       assertThrows(HttpStatusException.class, () -> openAndClose(missing));
     }
 
-    assertThrows(IOException.class, () -> openAndClose(unreachable));
+    assertThrows(DownloadException.class, () -> openAndClose(unreachable));
     assertThrows(NullPointerException.class, () -> openAndClose(null));
 
     final Thread current = Thread.currentThread();
     current.interrupt();
-    final IOException exception = assertThrows(IOException.class, () -> openAndClose(unreachable));
+    final DownloadException exception = assertThrows(DownloadException.class, () -> openAndClose(unreachable));
     final boolean interrupted = Thread.interrupted();
     final Throwable cause = exception.getCause();
     assertTrue(interrupted);
     assertInstanceOf(InterruptedException.class, cause);
+  }
+
+  @Test
+  void shouldReportAPartFileThatCannotBeCreated() throws IOException {
+    final Path blocker = Files.createFile(this.directory.resolve(BLOCKER_FILE_NAME));
+    final Path destination = blocker.resolve(FILE_NAME);
+    final URI unreachable = unusedPort();
+    final FileOperationException thrown = assertThrows(FileOperationException.class, () ->
+      HttpDownloader.download(unreachable, destination)
+    );
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(FileAlreadyExistsException.class, cause);
+  }
+
+  @Test
+  void shouldReportAFetchThatCannotConnect() throws IOException {
+    final URI unreachable = unusedPort();
+    final DownloadException thrown = assertThrows(DownloadException.class, () -> HttpDownloader.fetchText(unreachable));
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(IOException.class, cause);
   }
 
   @Test
@@ -857,7 +884,7 @@ final class HttpDownloaderTest {
 
       final Thread current = Thread.currentThread();
       current.interrupt();
-      assertThrows(IOException.class, () -> HttpDownloader.fetchText(text));
+      assertThrows(DownloadException.class, () -> HttpDownloader.fetchText(text));
 
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted);
@@ -883,7 +910,7 @@ final class HttpDownloaderTest {
     final boolean userAgentPresent = userAgent.isPresent();
     assertTrue(userAgentPresent);
     assertThrows(NullPointerException.class, () -> HttpDownloader.createRequest(null));
-    assertThrows(IOException.class, () -> HttpDownloader.createDigest("NO-SUCH-ALGORITHM"));
+    assertThrows(DownloadException.class, () -> HttpDownloader.createDigest("NO-SUCH-ALGORITHM"));
   }
 
   @Test

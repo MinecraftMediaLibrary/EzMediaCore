@@ -17,7 +17,6 @@
  */
 package me.brandonli.mcav.utils.http;
 
-import java.io.IOException;
 import java.io.Serial;
 
 /**
@@ -27,7 +26,7 @@ import java.io.Serial;
  *
  * @since 1.0.0
  */
-public class DownloadTooLargeException extends IOException {
+public class DownloadTooLargeException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = 4_268_314_709_812_553_311L;

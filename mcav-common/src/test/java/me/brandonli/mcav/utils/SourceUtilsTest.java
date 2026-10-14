@@ -34,6 +34,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
@@ -218,8 +219,8 @@ final class SourceUtilsTest {
     assertFalse(rejectedResult, "a URL the parser rejects is not a live stream");
   }
 
-  private UrlParseDump failOffline() throws IOException {
-    throw new IOException("offline!");
+  private UrlParseDump failOffline() {
+    throw new InstallationException("offline!");
   }
 
   private UrlParseDump rejectUrl() {
@@ -234,7 +235,7 @@ final class SourceUtilsTest {
   @Test
   void shouldAskTheSharedYtdlpInstallationWithoutTouchingTheNetwork() throws IOException {
     final YtdlpInstaller installer = Mockito.mock(YtdlpInstaller.class);
-    final IOException offline = new IOException("offline!");
+    final InstallationException offline = new InstallationException("offline!");
     Mockito.when(installer.download(FileMode.EXECUTABLE)).thenThrow(offline);
     try (final MockedStatic<YtdlpInstaller> installers = Mockito.mockStatic(YtdlpInstaller.class)) {
       installers.when(YtdlpInstaller::shared).thenReturn(installer);

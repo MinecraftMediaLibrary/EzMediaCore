@@ -17,9 +17,12 @@
  */
 package me.brandonli.mcav.json.ytdlp;
 
-import java.io.IOException;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.http.DownloadException;
+import me.brandonli.mcav.utils.runtime.ProcessException;
 
 /**
  * Resolves the streams behind a web page URL, such as a YouTube video, with yt-dlp.
@@ -53,7 +56,10 @@ public interface YtdlpParser {
    * @param arguments a non-null array of non-null extra yt-dlp options, passed verbatim after defaults and
    *                  before the URL, which yt-dlp always reads as a URL and never as an option
    * @return the parsed metadata and streams
-   * @throws IOException              if yt-dlp cannot be installed or run, or does not finish within two minutes
+   * @throws InstallationException    if yt-dlp cannot be installed
+   * @throws DownloadException         if the download of yt-dlp fails
+   * @throws FileOperationException    if the downloaded yt-dlp cannot be moved into place
+   * @throws ProcessException          if yt-dlp cannot be run, or does not finish within two minutes
    * @throws YtdlpParseException      if yt-dlp reports an error or prints no usable JSON
    * @throws IllegalArgumentException if the input is not an absolute {@code http} or {@code https} URL
    * @throws IllegalStateException    if the parser runs the yt-dlp of the library, as {@link #simple()} does, and the
@@ -63,7 +69,7 @@ public interface YtdlpParser {
    * @throws NullPointerException     if {@code input}, the argument array or an argument is null
    * @since 1.0.0
    */
-  UrlParseDump parse(final UriSource input, final String... arguments) throws IOException;
+  UrlParseDump parse(final UriSource input, final String... arguments);
 
   /**
    * Returns the shared parser, which uses the yt-dlp installed by the library. It refuses to parse while the library

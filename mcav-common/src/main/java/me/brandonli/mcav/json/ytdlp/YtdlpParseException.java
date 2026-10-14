@@ -25,7 +25,8 @@ import me.brandonli.mcav.MCAVException;
  *
  * <p>A nonzero exit reports the URL and yt-dlp's error output, falling back to its standard output when stderr
  * is blank. Invalid JSON reports the URL and retains the parse failure as its cause. This {@link MCAVException}
- * is separate from {@link java.io.IOException} for installation/process I/O and from
+ * is separate from the exceptions of installing and running yt-dlp, such as
+ * {@link me.brandonli.mcav.utils.runtime.ProcessException}, and from
  * {@link IllegalArgumentException} for an invalid input scheme.
  *
  * @since 1.0.0

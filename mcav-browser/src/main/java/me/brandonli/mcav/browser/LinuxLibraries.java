@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import org.apache.commons.compress.archivers.ar.ArArchiveEntry;
 import org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
@@ -364,14 +365,14 @@ final class LinuxLibraries {
   }
 
   private void download(final Pin pin, final Path destination) throws IOException {
-    IOException failure = null;
+    Exception failure = null;
     final List<String> bases = pin.pool().startsWith(SECURITY_POOL) ? this.securityMirrors : this.mirrors;
     for (final String mirror : bases) {
       final URI uri = URI.create(mirror + pin.pool());
       try {
         this.downloader.download(uri, destination, pin.sha256(), pin.size());
         return;
-      } catch (final IOException exception) {
+      } catch (final IOException | DownloadException exception) {
         Files.deleteIfExists(destination);
         if (failure == null) {
           failure = exception;

@@ -17,9 +17,9 @@
  */
 package me.brandonli.mcav.capability.installer;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import me.brandonli.mcav.utils.http.DownloadException;
 
 /**
  * Downloads and installs an external program the library depends on, such as VLC or yt-dlp.
@@ -39,10 +39,11 @@ public interface Installer {
    *
    * @param mode {@link FileMode#EXECUTABLE} for programs that are run directly, which has no effect on Windows
    * @return the installation path chosen by the implementation: an executable file or an extracted directory
-   * @throws IOException if the download fails, the file cannot be written, or the hash does not match
+   * @throws InstallationException if the program cannot be installed on this platform, or its files cannot be written
+   * @throws DownloadException     if the download fails or its hash does not match
    * @since 1.0.0
    */
-  Path download(final FileMode mode) throws IOException;
+  Path download(final FileMode mode);
 
   /**
    * Checks whether a download exists for the current platform. Unsupported platforms can still use the program if
@@ -59,10 +60,10 @@ public interface Installer {
    * download links. The default implementation finds nothing.
    *
    * @return the path of the existing installation, or empty if the program has not been installed
-   * @throws IOException if the installation folder cannot be searched
+   * @throws InstallationException if the installation folder cannot be searched
    * @since 1.0.0
    */
-  default Optional<Path> findInstallation() throws IOException {
+  default Optional<Path> findInstallation() {
     return Optional.empty();
   }
 

@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -33,11 +32,15 @@ import java.util.function.Function;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.runtime.CommandTask;
+import me.brandonli.mcav.utils.runtime.ProcessException;
 
 /**
  * The default {@link YtdlpParser}, which runs the yt-dlp executable installed by the library with
@@ -86,7 +89,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
 
   // Finds the yt-dlp executable, installing it first if needed. While the library prepares yt-dlp in the background,
   // this fails at once instead of waiting behind the download of the background installation.
-  private static Path installYtdlp() throws IOException {
+  private static Path installYtdlp() {
     final CapabilityGuard guard = CapabilityGuard.shared();
     guard.checkNotPreparing(Capability.YT_DLP);
     final YtdlpInstaller installer = YtdlpInstaller.shared();
@@ -101,7 +104,10 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
    * @param arguments a non-null array of non-null extra yt-dlp options, passed verbatim after defaults and
    *                  before the URL, which yt-dlp always reads as a URL and never as an option
    * @return the parsed metadata and streams
-   * @throws IOException              if yt-dlp cannot be installed or run, or does not finish within two minutes
+   * @throws InstallationException    if yt-dlp cannot be installed
+   * @throws DownloadException         if the download of yt-dlp fails
+   * @throws FileOperationException    if the downloaded yt-dlp cannot be moved into place
+   * @throws ProcessException          if yt-dlp cannot be run, or does not finish within two minutes
    * @throws YtdlpParseException      if yt-dlp reports an error or prints no usable JSON
    * @throws IllegalArgumentException if the input is not an absolute {@code http} or {@code https} URL
    * @throws IllegalStateException    if the parser runs the yt-dlp of the library, as {@link #simple()} does, and the
@@ -112,7 +118,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
    * @since 1.0.0
    */
   @Override
-  public UrlParseDump parse(final UriSource input, final String... arguments) throws IOException {
+  public UrlParseDump parse(final UriSource input, final String... arguments) {
     Preconditions.checkNotNull(input, "Input must not be null!");
     Preconditions.checkNotNull(arguments, "Arguments must not be null!");
 
@@ -140,7 +146,7 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
     Preconditions.checkArgument(isWebUri, "URI %s must be an absolute http or https URL for yt-dlp!", uri);
   }
 
-  private String runYtdlp(final String url, final String[] arguments) throws IOException {
+  private String runYtdlp(final String url, final String[] arguments) {
     final Path executablePath = this.locator.locate();
     final String executable = executablePath.toString();
     final String[] command = buildCommand(executable, url, arguments);
@@ -206,6 +212,6 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
   @FunctionalInterface
   @VisibleForTesting
   interface ExecutableLocator {
-    Path locate() throws IOException;
+    Path locate();
   }
 }

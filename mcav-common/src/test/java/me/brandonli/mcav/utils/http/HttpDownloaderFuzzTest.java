@@ -87,7 +87,7 @@ final class HttpDownloaderFuzzTest {
     final byte[] content;
     try (final InputStream body = HttpDownloader.openPinnedStream(uri)) {
       content = body.readAllBytes();
-    } catch (final IOException exception) {
+    } catch (final IOException | DownloadException exception) {
       this.assertOtherNeverAsked();
       return;
     }

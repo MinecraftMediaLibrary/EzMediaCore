@@ -38,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import org.junit.jupiter.api.Test;
@@ -123,13 +124,13 @@ final class VlcInstallationKitTest {
   void shouldPropagateDownloadFailuresAndRetryOnTheNextStart() throws IOException {
     final Installer installer = mock(Installer.class);
     final VlcDiscovery discovery = mock(VlcDiscovery.class);
-    final IOException failure = new IOException("offline!");
+    final InstallationException failure = new InstallationException("offline!");
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(true);
     when(installer.download(FileMode.EXECUTABLE)).thenThrow(failure).thenReturn(INSTALLED_DIRECTORY);
     when(discovery.loadInstalledLibraries(INSTALLED_DIRECTORY)).thenReturn(true);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
-    final IOException thrown = assertThrows(IOException.class, kit::start);
+    final InstallationException thrown = assertThrows(InstallationException.class, kit::start);
     assertSame(failure, thrown);
 
     final Optional<Path> retried = kit.start();

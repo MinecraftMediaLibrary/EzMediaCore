@@ -18,14 +18,14 @@
 package me.brandonli.mcav.capability.installer.vlc.installation;
 
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -62,11 +62,11 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
    * Looks for nonempty {@code libvlc.dll} and {@code libvlccore.dll} in the same installation directory.
    *
    * @return the directory that contains the library, or empty if VLC has not been installed
-   * @throws IOException if the installation directory cannot be searched
+   * @throws InstallationException if the installation directory cannot be searched
    * @since 1.0.0
    */
   @Override
-  public Optional<Path> getInstalledPath() throws IOException {
+  public Optional<Path> getInstalledPath() {
     final Path installDirectory = this.getInstallDirectory();
     return findLibraryDirectory(installDirectory, LIBRARY, CORE_LIBRARY);
   }
@@ -77,12 +77,14 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
    *
    * @param archive the downloaded zip
    * @return the installation directory, which contains {@code libvlc.dll}
-   * @throws IOException          if the zip cannot be extracted or does not contain the library
-   * @throws NullPointerException if {@code archive} is null
+   * @throws InstallationException  if the zip cannot be extracted or does not contain the library
+   * @throws FileOperationException if an earlier installation, the extracted tree or the zip cannot be moved or
+   *                                deleted
+   * @throws NullPointerException   if {@code archive} is null
    * @since 1.0.0
    */
   @Override
-  public Path execute(final Path archive) throws IOException {
+  public Path execute(final Path archive) {
     Preconditions.checkNotNull(archive, "Archive must not be null!");
 
     final Path installDirectory = this.getInstallDirectory();
@@ -97,31 +99,31 @@ public final class WindowsInstallationStrategy extends ManualInstallationStrateg
       deleteRecursively(temporary);
     }
 
-    Files.deleteIfExists(archive);
+    this.deleteFile(archive);
     return installDirectory;
   }
 
-  private static void extractInto(final Path archive, final Path temporary, final Path installDirectory) throws IOException {
+  private static void extractInto(final Path archive, final Path temporary, final Path installDirectory) {
     unzip(archive, temporary);
     final Optional<Path> extractedLibraryDirectory = findLibraryDirectory(temporary, LIBRARY, CORE_LIBRARY);
     final @Nullable Path extractedRoot = extractedLibraryDirectory.orElse(null);
     if (extractedRoot == null) {
-      throw new IOException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory!");
+      throw new InstallationException("The VLC zip does not contain nonempty libvlc.dll and libvlccore.dll in the same directory!");
     }
 
-    Files.move(extractedRoot, installDirectory);
+    IoUtils.moveReplacing(extractedRoot, installDirectory);
   }
 
   // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as an UncheckedIOException for an archive
   // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
-  // fail with an IOException like every other installation failure.
-  private static void unzip(final Path archive, final Path temporary) throws IOException {
+  // fail with an InstallationException like every other installation failure.
+  private static void unzip(final Path archive, final Path temporary) {
     try {
       IoUtils.unzip(archive, temporary);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while extracting the VLC zip!".formatted(reason);
-      throw new IOException(message, exception);
+      throw new InstallationException(message, exception);
     }
   }
 }

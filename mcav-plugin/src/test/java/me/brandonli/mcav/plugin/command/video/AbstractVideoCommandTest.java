@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
@@ -571,8 +572,8 @@ final class AbstractVideoCommandTest {
   }
 
   @Test
-  void reportsWebPagesThatYtdlpCannotResolve() throws IOException {
-    when(this.parser.parse(any(UriSource.class))).thenThrow(new IOException("offline"));
+  void reportsWebPagesThatYtdlpCannotResolve() {
+    when(this.parser.parse(any(UriSource.class))).thenThrow(new InstallationException("offline"));
 
     this.play(PlayerArgument.FFMPEG, AudioArgument.NONE, WEB_PAGE, "");
 

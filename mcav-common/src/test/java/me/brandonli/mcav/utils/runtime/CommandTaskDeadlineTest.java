@@ -80,7 +80,7 @@ final class CommandTaskDeadlineTest {
     final CommandTask task = new CommandTask(FINISHED_COMMAND);
     final Duration timeout = Duration.ofMillis(80);
     final long before = System.nanoTime();
-    final IOException thrown = assertThrows(IOException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
+    final ProcessException thrown = assertThrows(ProcessException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
     final long elapsed = System.nanoTime() - before;
     final Throwable cause = thrown.getCause();
     final boolean cancelled = pending.isCancelled();
@@ -116,7 +116,7 @@ final class CommandTaskDeadlineTest {
     when(errors.get(anyLong(), eq(TimeUnit.NANOSECONDS))).thenAnswer(invocation -> this.recordBudgetAndTimeOut(invocation, secondBudget));
     final CommandTask task = new CommandTask(FINISHED_COMMAND);
     final Duration timeout = OUTPUT_TIMEOUT;
-    assertThrows(IOException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
+    assertThrows(ProcessException.class, () -> task.awaitCompletion(finished, output, errors, timeout));
 
     final long first = firstBudget.get();
     final long second = secondBudget.get();
@@ -165,7 +165,7 @@ final class CommandTaskDeadlineTest {
     final Duration timeout = Duration.ofSeconds(5);
     final long before = System.nanoTime();
     try {
-      final IOException thrown = assertThrows(IOException.class, () -> task.run(timeout));
+      final ProcessException thrown = assertThrows(ProcessException.class, () -> task.run(timeout));
       final long elapsed = System.nanoTime() - before;
       final Throwable cause = thrown.getCause();
       final boolean pidWritten = Files.exists(childPid);

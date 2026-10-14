@@ -43,14 +43,14 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
   private final List<ImageBuffer> frames;
   private final float frameRate;
 
-  FfmpegDynamicImageBuffer(final FileSource source) throws IOException {
+  FfmpegDynamicImageBuffer(final FileSource source) {
     final Path path = source.getPath();
     final Animation animation = decode(path);
     this.frames = animation.getFrames();
     this.frameRate = animation.getFrameRate();
   }
 
-  FfmpegDynamicImageBuffer(final UriSource source) throws IOException {
+  FfmpegDynamicImageBuffer(final UriSource source) {
     final FileSource downloaded = download(source);
     final Path path = downloaded.getPath();
     final Animation animation = decode(path);
@@ -58,19 +58,12 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
     this.frameRate = animation.getFrameRate();
   }
 
-  private static Animation decode(final Path path) throws IOException {
-    final String raw = path.toString();
+  private static Animation decode(final Path path) {
     final List<ImageBuffer> decoded = new ArrayList<>();
     final float frameRate;
-    try (final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(raw)) {
-      grabber.start();
-      final TimestampRange timestamps = decodeFrames(grabber, decoded);
-      final double reportedFrameRate = grabber.getFrameRate();
-      final int frameCount = decoded.size();
-      final long first = timestamps.getFirst();
-      final long last = timestamps.getLast();
-      frameRate = resolveFrameRate(reportedFrameRate, frameCount, first, last);
-    } catch (final IOException | RuntimeException exception) {
+    try {
+      frameRate = decodeInto(path, decoded);
+    } catch (final RuntimeException exception) {
       releaseAll(decoded);
       throw exception;
     }
@@ -80,6 +73,22 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
 
     final List<ImageBuffer> frames = List.copyOf(decoded);
     return new Animation(frames, frameRate);
+  }
+
+  private static float decodeInto(final Path path, final List<ImageBuffer> decoded) {
+    final String raw = path.toString();
+    try (final FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(raw)) {
+      grabber.start();
+      final TimestampRange timestamps = decodeFrames(grabber, decoded);
+      final double reportedFrameRate = grabber.getFrameRate();
+      final int frameCount = decoded.size();
+      final long first = timestamps.getFirst();
+      final long last = timestamps.getLast();
+      return resolveFrameRate(reportedFrameRate, frameCount, first, last);
+    } catch (final IOException exception) {
+      final String message = "Image %s could not be decoded!".formatted(path);
+      throw new ImageDecodingException(message, exception);
+    }
   }
 
   private static FileSource download(final UriSource source) {

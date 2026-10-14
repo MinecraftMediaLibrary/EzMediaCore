@@ -38,13 +38,16 @@ so it blocks for a few seconds; call it off threads that must stay responsive. I
 
 | Exception                  | Meaning                                                                             |
 |----------------------------|-------------------------------------------------------------------------------------|
-| `IOException`              | yt-dlp cannot be installed or run, or does not finish within two minutes.          |
+| `InstallationException`    | yt-dlp cannot be installed.                                                         |
+| `DownloadException`        | The download of yt-dlp fails.                                                       |
+| `FileOperationException`   | The downloaded yt-dlp cannot be moved into place.                                   |
+| `ProcessException`         | yt-dlp cannot be run, or does not finish within two minutes.                        |
 | `YtdlpParseException`      | yt-dlp reports an error, for example because the video is private, or prints no usable JSON. |
 | `IllegalArgumentException` | The source is not an absolute `http` or `https` URL.                                |
 | `IllegalStateException`    | The library is still preparing yt-dlp in the background after `install`; wait for `api.whenCapabilityReady(Capability.YT_DLP)` or try again shortly. |
 
-`YtdlpParseException` and `NoMatchingFormatException` (below) are unchecked exceptions that extend `MCAVException`,
-the base of every MCAV failure.
+All of these are unchecked. `YtdlpParseException`, `NoMatchingFormatException` (below) and the installation, download,
+file and process exceptions extend `MCAVException`, the base of every MCAV failure.
 
 ```java
   final URI pageUri = URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ");

@@ -42,6 +42,7 @@ import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
 import me.brandonli.mcav.utils.IoUtils;
@@ -168,8 +169,8 @@ final class AudioExtractorTest {
     final AtomicReference<Path> partial = new AtomicReference<>();
     final FfmpegCommand command = mock(FfmpegCommand.class);
     final CommandTask task = mock(CommandTask.class);
-    final IOException failure = new IOException("output failed after writing bytes!");
-    final IOException cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
+    final MCAVException failure = new MCAVException("output failed after writing bytes!");
+    final Exception cleanupFailure = sameFailure ? failure : new IOException("partial output could not be deleted!");
     when(command.createTask()).thenReturn(task);
     doAnswer(_ -> this.writePartialOutputAndFail(partial, failure))
       .when(task)
@@ -182,7 +183,7 @@ final class AudioExtractorTest {
         .when(() -> FfmpegTemplates.extractOggVorbis(anyString(), anyString()))
         .thenAnswer(invocation -> this.recordPartialOutput(invocation, partial, files, cleanupFails, cleanupFailure, command));
       final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));
-      final IOException thrown = assertThrows(IOException.class, () -> AudioExtractor.extractOggVorbis(source));
+      final MCAVException thrown = assertThrows(MCAVException.class, () -> AudioExtractor.extractOggVorbis(source));
       assertSame(failure, thrown);
       final boolean partialLeft = Files.exists(partial.get());
       assertEquals(cleanupFails, partialLeft, "only a cleanup failure can leave the unowned partial output");
@@ -197,7 +198,7 @@ final class AudioExtractorTest {
     }
   }
 
-  private Object writePartialOutputAndFail(final AtomicReference<Path> partial, final IOException failure) throws IOException {
+  private Object writePartialOutputAndFail(final AtomicReference<Path> partial, final MCAVException failure) throws IOException {
     Files.writeString(partial.get(), "partial audio");
 
     throw failure;
@@ -208,7 +209,7 @@ final class AudioExtractorTest {
     final AtomicReference<Path> partial,
     final MockedStatic<Files> files,
     final boolean cleanupFails,
-    final IOException cleanupFailure,
+    final Exception cleanupFailure,
     final FfmpegCommand command
   ) {
     final String output = invocation.getArgument(1);

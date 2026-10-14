@@ -145,7 +145,7 @@ final class DynamicImageBufferTest {
     final Path missing = this.directory.resolve(MISSING_NAME);
     final FileSource missingSource = FileSource.path(missing);
     assertThrowsWhileOpening(IllegalArgumentException.class, () -> DynamicImageBuffer.path(audioSource));
-    assertThrowsWhileOpening(IOException.class, () -> DynamicImageBuffer.path(missingSource));
+    assertThrowsWhileOpening(ImageDecodingException.class, () -> DynamicImageBuffer.path(missingSource));
     assertThrowsWhileOpening(NullPointerException.class, () -> DynamicImageBuffer.path(null));
     assertThrowsWhileOpening(NullPointerException.class, () -> DynamicImageBuffer.uri(null));
   }

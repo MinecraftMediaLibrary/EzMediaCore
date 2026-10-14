@@ -41,6 +41,7 @@ import java.util.zip.ZipOutputStream;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationStrategy;
@@ -249,7 +250,7 @@ final class VlcInstallerTest {
   void shouldTreatAnInstallationThatCannotBeSearchedAsMissing() throws IOException {
     final VlcInstaller real = new VlcInstaller(this.folder, VlcInstallerTest::noDownloads);
     final VlcInstaller installer = Mockito.spy(real);
-    final IOException failure = new IOException("permission denied!");
+    final InstallationException failure = new InstallationException("permission denied!");
     final Stubber stubber = Mockito.doThrow(failure);
     final VlcInstaller stubbed = stubber.when(installer);
     stubbed.findExistingInstallation();

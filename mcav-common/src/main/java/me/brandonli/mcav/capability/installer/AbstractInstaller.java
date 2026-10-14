@@ -32,7 +32,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Supplier;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
@@ -174,13 +176,15 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @param mode whether to mark the downloaded file as executable
    * @return the path of the installation
-   * @throws IOException              if the download fails, the file cannot be written or marked as executable, or the hash does
-   *                                  not match
+   * @throws InstallationException    if the platform has no download, the folder or the configuration file cannot be
+   *                                  written, the file cannot be marked as executable, or the installation fails
+   * @throws DownloadException        if the download fails or its hash does not match
+   * @throws FileOperationException   if the downloaded file cannot be moved into place
    * @throws IllegalArgumentException if a configured download URL is not a valid URI
    * @since 1.0.0
    */
   @Override
-  public Path download(final FileMode mode) throws IOException {
+  public Path download(final FileMode mode) {
     synchronized (this.installLock) {
       final Optional<Path> existing = this.findExistingInstallation();
       final @Nullable Path existingPath = existing.orElse(null);
@@ -197,7 +201,7 @@ public abstract class AbstractInstaller implements Installer {
     }
   }
 
-  private Path downloadAndInstall(final FileMode mode) throws IOException {
+  private Path downloadAndInstall(final FileMode mode) {
     final Download download = this.requireDownload();
     final String fileName = this.getFileName();
     final Path destination = this.folder.resolve(fileName);
@@ -205,7 +209,7 @@ public abstract class AbstractInstaller implements Installer {
     final URI uri = URI.create(url);
     final Optional<String> hash = download.getHash();
     final @Nullable String expectedHash = hash.orElse(null);
-    Files.createDirectories(this.folder);
+    this.createFolder();
     HttpDownloader.download(uri, destination, expectedHash);
 
     if (mode == FileMode.EXECUTABLE) {
@@ -217,16 +221,25 @@ public abstract class AbstractInstaller implements Installer {
     return installed;
   }
 
-  private void markExecutableOrDelete(final Path destination) throws IOException {
+  private void createFolder() {
+    try {
+      Files.createDirectories(this.folder);
+    } catch (final IOException exception) {
+      final String message = "Installation folder %s could not be created!".formatted(this.folder);
+      throw new InstallationException(message, exception);
+    }
+  }
+
+  private void markExecutableOrDelete(final Path destination) {
     try {
       markExecutable(destination);
-    } catch (final IOException exception) {
+    } catch (final InstallationException exception) {
       this.deleteAfterFailure(destination, exception);
       throw exception;
     }
   }
 
-  private void deleteAfterFailure(final Path destination, final IOException failure) {
+  private void deleteAfterFailure(final Path destination, final InstallationException failure) {
     try {
       Files.deleteIfExists(destination);
     } catch (final IOException cleanupException) {
@@ -235,16 +248,15 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Marks a downloaded or extracted file as executable. {@link IoUtils#markExecutable(Path)} reports failures
-   * unchecked, but a failed installation must be reported as an {@link IOException}, like every other installation
-   * failure.
+   * Marks a downloaded or extracted file as executable. Unlike {@link IoUtils#markExecutable(Path)}, a failure is
+   * reported as an {@link InstallationException}, like every other installation failure.
    *
    * @param file the file to mark
-   * @throws IOException          if the permissions of the file cannot be changed
-   * @throws NullPointerException if {@code file} is null
+   * @throws InstallationException if the permissions of the file cannot be changed
+   * @throws NullPointerException  if {@code file} is null
    * @since 1.0.0
    */
-  protected static void markExecutable(final Path file) throws IOException {
+  protected static void markExecutable(final Path file) {
     Preconditions.checkNotNull(file, "File must not be null!");
 
     try {
@@ -252,7 +264,7 @@ public abstract class AbstractInstaller implements Installer {
     } catch (final UncheckedIOException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while marking %s as executable!".formatted(reason, file);
-      throw new IOException(message, exception);
+      throw new InstallationException(message, exception);
     }
   }
 
@@ -261,11 +273,11 @@ public abstract class AbstractInstaller implements Installer {
    * {@link #getPath()}.
    *
    * @return the path of the existing installation, or empty if the program has not been installed
-   * @throws IOException if the installation folder or the configuration file cannot be read
+   * @throws InstallationException if the configuration file cannot be read
    * @since 1.0.0
    */
   @Override
-  public Optional<Path> findInstallation() throws IOException {
+  public Optional<Path> findInstallation() {
     final Optional<Path> existing = this.findExistingInstallation();
     final @Nullable Path existingPath = existing.orElse(null);
     if (existingPath != null) {
@@ -282,10 +294,10 @@ public abstract class AbstractInstaller implements Installer {
    *
    * @param downloaded the downloaded file
    * @return the path of the installation
-   * @throws IOException if the installation fails
+   * @throws InstallationException if the installation fails
    * @since 1.0.0
    */
-  protected Path install(final Path downloaded) throws IOException {
+  protected Path install(final Path downloaded) {
     return downloaded;
   }
 
@@ -393,16 +405,16 @@ public abstract class AbstractInstaller implements Installer {
    * Returns the download for the current platform.
    *
    * @return the download
-   * @throws IOException if the platform is not supported
+   * @throws InstallationException if the platform is not supported
    * @since 1.0.0
    */
-  protected Download requireDownload() throws IOException {
+  protected Download requireDownload() {
     final Optional<Download> download = this.resolveDownload();
     final @Nullable Download resolved = download.orElse(null);
     if (resolved == null) {
       final Platform platform = Platform.getCurrentPlatform();
       final String message = "Platform %s has no %s download available!".formatted(platform, this.name);
-      throw new IOException(message);
+      throw new InstallationException(message);
     }
 
     return resolved;
@@ -477,10 +489,10 @@ public abstract class AbstractInstaller implements Installer {
    * configuration file.
    *
    * @return the existing installation, or empty if the program has to be downloaded
-   * @throws IOException if the configuration file cannot be read
+   * @throws InstallationException if the configuration file cannot be read
    * @since 1.0.0
    */
-  protected Optional<Path> findExistingInstallation() throws IOException {
+  protected Optional<Path> findExistingInstallation() {
     final Path defaultPath = this.getDefaultPath();
     final boolean exists = Files.exists(defaultPath);
     if (exists) {
@@ -490,7 +502,7 @@ public abstract class AbstractInstaller implements Installer {
     return this.findConfiguredInstallation();
   }
 
-  private Optional<Path> findConfiguredInstallation() throws IOException {
+  private Optional<Path> findConfiguredInstallation() {
     final Properties properties = this.readConfiguration();
     final String savedPath = properties.getProperty(this.name);
     if (savedPath == null) {
@@ -512,11 +524,11 @@ public abstract class AbstractInstaller implements Installer {
    * immediately. The file is replaced atomically, so a crash never leaves a half-written configuration behind.
    *
    * @param installedPath the path of the installation
-   * @throws IOException          if the configuration file cannot be written
-   * @throws NullPointerException if {@code installedPath} is null
+   * @throws InstallationException if the configuration file cannot be read or written
+   * @throws NullPointerException  if {@code installedPath} is null
    * @since 1.0.0
    */
-  public void writePathToConfiguration(final Path installedPath) throws IOException {
+  public void writePathToConfiguration(final Path installedPath) {
     Preconditions.checkNotNull(installedPath, "Path must not be null!");
 
     synchronized (CONFIGURATION_LOCK) {
@@ -528,9 +540,18 @@ public abstract class AbstractInstaller implements Installer {
     }
   }
 
-  private void storeConfiguration(final Properties properties) throws IOException {
-    Files.createDirectories(this.folder);
+  private void storeConfiguration(final Properties properties) {
     final Path configurationFile = this.getConfigurationFile();
+    try {
+      this.writeConfiguration(properties, configurationFile);
+    } catch (final IOException | FileOperationException exception) {
+      final String message = "Configuration %s could not be written!".formatted(configurationFile);
+      throw new InstallationException(message, exception);
+    }
+  }
+
+  private void writeConfiguration(final Properties properties, final Path configurationFile) throws IOException {
+    Files.createDirectories(this.folder);
     final Path temporary = Files.createTempFile(this.folder, CONFIGURATION_FILE_NAME, CONFIGURATION_TEMPORARY_SUFFIX);
     try {
       try (final OutputStream configurationOutput = Files.newOutputStream(temporary)) {
@@ -543,7 +564,7 @@ public abstract class AbstractInstaller implements Installer {
     }
   }
 
-  private Properties readConfiguration() throws IOException {
+  private Properties readConfiguration() {
     final Properties properties = new Properties();
     final Path configurationFile = this.getConfigurationFile();
     final boolean exists = Files.isRegularFile(configurationFile);
@@ -557,6 +578,9 @@ public abstract class AbstractInstaller implements Installer {
       // Properties refuses a malformed unicode escape this way; only remembered paths are lost, so they are forgotten
       LOGGER.warn("Configuration {} is malformed and is ignored.", configurationFile, exception);
       return new Properties();
+    } catch (final IOException exception) {
+      final String message = "Configuration %s could not be read!".formatted(configurationFile);
+      throw new InstallationException(message, exception);
     }
 
     return properties;

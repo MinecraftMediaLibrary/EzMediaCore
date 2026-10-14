@@ -32,7 +32,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
@@ -337,7 +339,11 @@ final class JcefNatives {
      * @param destination the file to write
      * @param sha256      the expected SHA-256 hash in hexadecimal
      * @param size        the pinned size of the file, beyond which the download stops
-     * @throws IOException if the download fails, is larger than its size, or the hash does not match
+     * @throws IOException            if the download fails, is larger than its size, or the hash does not match
+     * @throws DownloadException      if the download over HTTP fails, is larger than its size, or the hash does not
+     *                                match
+     * @throws FileOperationException if the part file cannot be created or deleted, or the download cannot be moved
+     *                                into place
      */
     void download(URI uri, Path destination, String sha256, long size) throws IOException;
   }

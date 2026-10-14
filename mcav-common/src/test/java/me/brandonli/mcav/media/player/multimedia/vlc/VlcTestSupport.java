@@ -17,12 +17,11 @@
  */
 package me.brandonli.mcav.media.player.multimedia.vlc;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.testing.GeneratedMedia;
@@ -52,7 +51,7 @@ final class VlcTestSupport {
       final String description = location.orElse("the libvlc found by vlcj");
       System.out.println("VLC integration tests use " + description);
       return null;
-    } catch (final IOException | UnsupportedOperatingSystemException | LinkageError exception) {
+    } catch (final MCAVException | LinkageError exception) {
       return "VLC is not installed: " + exception;
     }
   }

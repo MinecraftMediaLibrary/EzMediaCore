@@ -151,8 +151,7 @@ The animation must stay open while it plays, so the example below plays it for a
 and only then closes the animation:
 
 ```java
-  public static void playGif(final Path gifFile, final VideoFilter display, final Duration playTime)
-    throws IOException, InterruptedException {
+  public static void playGif(final Path gifFile, final VideoFilter display, final Duration playTime) throws InterruptedException {
     final FileSource file = FileSource.path(gifFile);
     try (final DynamicImageBuffer gif = DynamicImageBuffer.path(file)) {
       final RepeatingFrameSource frameSource = RepeatingFrameSource.repeating(gif); // loops forever

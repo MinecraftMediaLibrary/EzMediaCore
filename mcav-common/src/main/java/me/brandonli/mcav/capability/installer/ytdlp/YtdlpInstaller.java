@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Locale;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
+import me.brandonli.mcav.capability.installer.InstallationException;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import me.brandonli.mcav.utils.os.Arch;
@@ -148,7 +150,7 @@ public final class YtdlpInstaller extends AbstractInstaller {
   // installation is deleted before the new one is moved into place, so a crash in between leaves no installation at
   // all. The next start simply downloads yt-dlp again.
   @Override
-  protected Path install(final Path downloaded) throws IOException {
+  protected Path install(final Path downloaded) {
     final boolean isArchive = this.isArchive();
     if (!isArchive) {
       return downloaded;
@@ -161,23 +163,32 @@ public final class YtdlpInstaller extends AbstractInstaller {
     try {
       this.unpack(downloaded, unpacking);
       IoUtils.deleteRecursively(unpacked);
-      Files.move(unpacking, unpacked);
+      IoUtils.moveReplacing(unpacking, unpacked);
     } finally {
       IoUtils.deleteRecursively(unpacking);
     }
 
-    Files.deleteIfExists(downloaded);
+    deleteDownload(downloaded);
     return this.getDefaultPath();
   }
 
-  private void unpack(final Path archive, final Path destination) throws IOException {
+  private static void deleteDownload(final Path downloaded) {
+    try {
+      Files.deleteIfExists(downloaded);
+    } catch (final IOException exception) {
+      final String message = "Downloaded zip %s could not be deleted!".formatted(downloaded);
+      throw new FileOperationException(message, exception);
+    }
+  }
+
+  private void unpack(final Path archive, final Path destination) {
     extract(archive, destination);
     final String executableName = this.getArchiveExecutableName();
     final Path executable = destination.resolve(executableName);
     final boolean present = Files.isRegularFile(executable, LinkOption.NOFOLLOW_LINKS);
     if (!present) {
       final String message = "The yt-dlp zip does not contain %s at its top level!".formatted(executableName);
-      throw new IOException(message);
+      throw new InstallationException(message);
     }
 
     markExecutable(executable);
@@ -185,14 +196,14 @@ public final class YtdlpInstaller extends AbstractInstaller {
 
   // Extracts the zip. IoUtils.unzip(Path, Path) reports failures unchecked, as an UncheckedIOException for an archive
   // that cannot be read and as a ZipEntryIntegrityException for an archive that is unsafe, but an installation must
-  // fail with an IOException like every other installation failure.
-  private static void extract(final Path archive, final Path destination) throws IOException {
+  // fail with an InstallationException like every other installation failure.
+  private static void extract(final Path archive, final Path destination) {
     try {
       IoUtils.unzip(archive, destination);
     } catch (final UncheckedIOException | ZipEntryIntegrityException exception) {
       final String reason = exception.getMessage();
       final String message = "Failed with \"%s\" while extracting the yt-dlp zip!".formatted(reason);
-      throw new IOException(message, exception);
+      throw new InstallationException(message, exception);
     }
   }
 

@@ -17,12 +17,11 @@
  */
 package me.brandonli.mcav.utils.http;
 
-import java.io.IOException;
 import java.io.Serial;
 
 // Thrown when a pinned download is redirected to another host than its own, to a location that is not a URI, or too
 // often. Another attempt would end the same way, so it is not retried.
-final class RedirectRefusedException extends IOException {
+final class RedirectRefusedException extends DownloadException {
 
   @Serial
   private static final long serialVersionUID = 7_310_484_118_903_542_617L;

@@ -19,7 +19,6 @@ package me.brandonli.mcav.capability.installer.vlc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -30,11 +29,13 @@ import java.util.function.Supplier;
 import me.brandonli.mcav.capability.installer.AbstractInstaller;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.installation.InstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.LinuxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.OsxInstallationStrategy;
 import me.brandonli.mcav.capability.installer.vlc.installation.WindowsInstallationStrategy;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import org.slf4j.Logger;
@@ -147,7 +148,7 @@ public final class VlcInstaller extends AbstractInstaller {
     try {
       final Optional<Path> installation = this.findExistingInstallation();
       return installation.isPresent();
-    } catch (final IOException exception) {
+    } catch (final InstallationException exception) {
       return false;
     }
   }
@@ -156,13 +157,13 @@ public final class VlcInstaller extends AbstractInstaller {
   // libraries, such as one left behind by an interrupted installation, does not count. The first call also deletes the
   // installations that earlier versions of the library left behind.
   @Override
-  protected Optional<Path> findExistingInstallation() throws IOException {
+  protected Optional<Path> findExistingInstallation() {
     final Os operatingSystem = OsUtils.getOs();
     return this.findExistingInstallation(operatingSystem);
   }
 
   @VisibleForTesting
-  Optional<Path> findExistingInstallation(final Os operatingSystem) throws IOException {
+  Optional<Path> findExistingInstallation(final Os operatingSystem) {
     this.removeLegacyInstallationsOnce();
     final boolean installable = hasStrategy(operatingSystem);
     if (!installable) {
@@ -202,7 +203,7 @@ public final class VlcInstaller extends AbstractInstaller {
     try {
       ManualInstallationStrategy.deleteRecursively(legacy);
       LOGGER.info("The old VLC installation at {} was deleted.", legacy);
-    } catch (final IOException exception) {
+    } catch (final FileOperationException exception) {
       final String reason = exception.getMessage();
       LOGGER.warn("Deleting the old VLC installation at {} failed with \"{}\", so it stays in place.", legacy, reason);
     }
@@ -217,7 +218,7 @@ public final class VlcInstaller extends AbstractInstaller {
   }
 
   @Override
-  protected Path install(final Path downloaded) throws IOException {
+  protected Path install(final Path downloaded) {
     final Os operatingSystem = OsUtils.getOs();
     final InstallationStrategy strategy = createStrategy(this, operatingSystem);
     return strategy.execute(downloaded);

@@ -19,19 +19,24 @@ package me.brandonli.mcav.capability.installer.vlc.installation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy.ProcessRunner;
+import me.brandonli.mcav.testing.IoActions;
+import me.brandonli.mcav.utils.FileOperationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -110,7 +115,7 @@ final class OsxInstallationStrategyTest {
     final List<String> commands = new ArrayList<>();
     final OsxInstallationStrategy strategy = strategyWith(installer, commands, COPY_FAILS);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
 
     final String message = thrown.getMessage();
     final Throwable[] suppressed = thrown.getSuppressed();
@@ -133,7 +138,7 @@ final class OsxInstallationStrategyTest {
     final Predicate<String> copyAndDetachFail = COPY_FAILS.or(OsxInstallationStrategyTest::everyDetachFails);
     final OsxInstallationStrategy strategy = strategyWith(installer, commands, copyAndDetachFail);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
 
     final String message = thrown.getMessage();
     final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
@@ -169,7 +174,7 @@ final class OsxInstallationStrategyTest {
     final List<String> commands = new ArrayList<>();
     final OsxInstallationStrategy strategy = strategyWith(installer, commands, OsxInstallationStrategyTest::attachFails);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
-    assertThrows(IOException.class, () -> strategy.execute(archive));
+    assertThrows(InstallationException.class, () -> strategy.execute(archive));
 
     final int commandCount = commands.size();
     assertEquals(1, commandCount);
@@ -181,7 +186,7 @@ final class OsxInstallationStrategyTest {
     final List<String> commands = new ArrayList<>();
     final OsxInstallationStrategy strategy = strategyWith(installer, commands, OsxInstallationStrategyTest::everyDetachFails);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
     final String message = thrown.getMessage();
     final Throwable[] suppressed = thrown.getSuppressed();
@@ -198,10 +203,24 @@ final class OsxInstallationStrategyTest {
     final ProcessRunner emptyTools = (_, _) -> {};
     final OsxInstallationStrategy strategy = new OsxInstallationStrategy(installer, emptyTools);
     final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
     final boolean namesTheLibrary = message.contains(LIBRARY_NAME);
     assertTrue(namesTheLibrary, message);
+  }
+
+  @Test
+  void shouldFailWhenTheMountPointCannotBeCreated() throws IOException {
+    final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
+    final Path mountPoint = this.temporaryDirectory.resolve(MOUNT_DIRECTORY);
+    Files.createFile(mountPoint);
+    final List<String> commands = new ArrayList<>();
+    final OsxInstallationStrategy strategy = strategyWith(installer, commands, OsxInstallationStrategyTest::nothingFails);
+    final Path archive = this.createDiskImage(DISK_IMAGE_NAME);
+    final FileOperationException thrown = assertThrows(FileOperationException.class, () -> strategy.execute(archive));
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(FileAlreadyExistsException.class, cause);
+    assertEquals(List.of(), commands);
   }
 
   @Test
@@ -263,7 +282,7 @@ final class OsxInstallationStrategyTest {
     return List.of(attach, copy, detach);
   }
 
-  private static void assertSuppressedDetachFailure(final IOException thrown, final Path mountPoint) {
+  private static void assertSuppressedDetachFailure(final InstallationException thrown, final Path mountPoint) {
     final Throwable[] suppressed = thrown.getSuppressed();
     assertEquals(1, suppressed.length);
 
@@ -290,7 +309,7 @@ final class OsxInstallationStrategyTest {
   }
 
   private static ProcessRunner simulatedTools(final List<String> commands, final Predicate<String> failing) {
-    return (_, arguments) -> runSimulatedTool(commands, failing, arguments);
+    return (_, arguments) -> IoActions.runUnchecked(() -> runSimulatedTool(commands, failing, arguments));
   }
 
   private static void runSimulatedTool(final List<String> commands, final Predicate<String> failing, final String[] arguments)
@@ -300,7 +319,7 @@ final class OsxInstallationStrategyTest {
     final boolean fails = failing.test(commandLine);
     if (fails) {
       final String message = "Command %s failed!".formatted(commandLine);
-      throw new IOException(message);
+      throw new InstallationException(message);
     }
 
     final String tool = arguments[0];

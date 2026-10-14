@@ -30,8 +30,10 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.capability.installer.vlc.installation.ManualInstallationStrategy.ProcessRunner;
+import me.brandonli.mcav.testing.IoActions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -130,7 +132,8 @@ final class VlcInstallationValidationTest {
       final Path folder = this.temporaryDirectory.resolve(defect.name());
       Files.createDirectories(folder);
       final VlcInstaller installer = VlcInstaller.create(folder);
-      final ProcessRunner tools = (_, arguments) -> this.extractABrokenPair(platform, defect, folder, installer, arguments);
+      final ProcessRunner tools = (_, arguments) ->
+        IoActions.runUnchecked(() -> this.extractABrokenPair(platform, defect, folder, installer, arguments));
       final InstallationStrategy strategy = platform.strategy(installer, tools);
       final Path archive = folder.resolve(ARCHIVE_NAME);
       if (platform == Platform.WINDOWS) {
@@ -138,7 +141,7 @@ final class VlcInstallationValidationTest {
       } else {
         Files.writeString(archive, "simulated archive, never executed");
       }
-      assertThrows(IOException.class, () -> strategy.execute(archive), platform + " " + defect);
+      assertThrows(InstallationException.class, () -> strategy.execute(archive), platform + " " + defect);
       final Optional<Path> cached = strategy.getInstalledPath();
       final boolean accepted = cached.isPresent();
       assertFalse(accepted, "a failed extraction must not become an accepted cached installation");

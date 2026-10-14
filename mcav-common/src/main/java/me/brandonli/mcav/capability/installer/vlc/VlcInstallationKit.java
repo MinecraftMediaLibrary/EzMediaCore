@@ -19,11 +19,13 @@ package me.brandonli.mcav.capability.installer.vlc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.http.DownloadException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,16 +103,18 @@ public final class VlcInstallationKit {
    *
    * @return the directory the native libraries were loaded from, or empty if vlcj had already loaded them without
    * reporting a location
-   * @throws IOException                         if installation discovery, download, verification or extraction fails
+   * @throws InstallationException              if installation discovery or extraction fails
+   * @throws DownloadException                   if the download of VLC fails or does not match its hash
+   * @throws FileOperationException              if a downloaded or extracted file cannot be moved or deleted
    * @throws UnsupportedOperatingSystemException if VLC cannot be found or installed on this system, or
    *                                             the discovered private libraries cannot be loaded
    * @since 1.0.0
    */
-  public Optional<Path> start() throws IOException {
+  public Optional<Path> start() {
     return this.loadState.loadOnce(this::discoverOrInstall);
   }
 
-  private Optional<Path> discoverOrInstall() throws IOException {
+  private Optional<Path> discoverOrInstall() {
     final boolean found = this.discovery.discoverSystemInstallation();
     if (found) {
       final Path systemPath = this.discovery.getDiscoveredPath();

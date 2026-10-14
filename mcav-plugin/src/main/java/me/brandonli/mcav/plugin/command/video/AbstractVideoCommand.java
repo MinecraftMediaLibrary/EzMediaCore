@@ -19,7 +19,6 @@ package me.brandonli.mcav.plugin.command.video;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -32,6 +31,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.bukkit.hologram.Hologram;
 import me.brandonli.mcav.capability.Capability;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
@@ -62,11 +62,14 @@ import me.brandonli.mcav.plugin.utils.CaptureDevices;
 import me.brandonli.mcav.plugin.utils.FilterChain;
 import me.brandonli.mcav.plugin.utils.PlayerArgument;
 import me.brandonli.mcav.plugin.utils.TaskUtils;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.SourceUtils;
 import me.brandonli.mcav.utils.ThrowableUtils;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.immutable.Dimension;
 import me.brandonli.mcav.utils.immutable.Pair;
+import me.brandonli.mcav.utils.runtime.ProcessException;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -643,7 +646,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
     final UrlParseDump dump;
     try {
       dump = parser.parse(page, ytdlpArguments);
-    } catch (final IOException exception) {
+    } catch (final InstallationException | DownloadException | FileOperationException | ProcessException exception) {
       final String message = exception.getMessage();
       final URI uri = page.getUri();
       throw new IllegalStateException("yt-dlp could not resolve " + uri + ": " + message, exception);

@@ -21,8 +21,8 @@ import java.io.Serial;
 import me.brandonli.mcav.MCAVException;
 
 /**
- * Thrown when an external program fails, either because it exits with a non-zero exit code or because its output
- * cannot be read.
+ * Thrown when an external program fails: it cannot be started, it exits with a non-zero exit code, it does not finish
+ * in time, waiting for it is interrupted, or its output cannot be read.
  *
  * <p>This is an {@link MCAVException}: the failure belongs to the external program and its input, such as a
  * source FFmpeg cannot decode, not to the state of the caller or to an unsupported operation. It is unchecked so that

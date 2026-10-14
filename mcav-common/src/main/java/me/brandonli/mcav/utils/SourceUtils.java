@@ -19,14 +19,13 @@ package me.brandonli.mcav.utils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Set;
-import me.brandonli.mcav.json.ytdlp.YtdlpParseException;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.json.ytdlp.YtdlpParser;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.Source;
@@ -225,7 +224,7 @@ public final class SourceUtils {
       final UriSource source = UriSource.uri(uri);
       final UrlParseDump dump = parser.parse(source);
       return dump.is_live;
-    } catch (final IOException | IllegalArgumentException | YtdlpParseException exception) {
+    } catch (final MCAVException | IllegalArgumentException exception) {
       return false;
     }
   }

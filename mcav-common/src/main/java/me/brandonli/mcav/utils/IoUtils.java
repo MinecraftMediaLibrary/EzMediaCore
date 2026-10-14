@@ -63,14 +63,15 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.http.HttpDownloader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * File, hashing, network, and archive helpers used throughout the library.
  *
- * <p>Most I/O failures are wrapped in {@link UncheckedIOException}. Deletion and replacement moves retain
- * checked {@link IOException}s; argument errors and unsafe archive entries use their documented exception types.
+ * <p>Most I/O failures are wrapped in {@link UncheckedIOException}. Deletion and replacement moves report theirs as a
+ * {@link FileOperationException}; argument errors and unsafe archive entries use their documented exception types.
  *
  * <p>This class is thread-safe.
  *
@@ -265,17 +266,25 @@ public final class IoUtils {
 
   /**
    * Deletes a file or a directory tree. Missing paths are ignored, and symbolic links are deleted without following
-   * them, including links whose target no longer exists. Like {@link #moveReplacing(Path, Path)}, this method throws the
-   * checked {@link IOException}, because its callers are installers that report every failure that way.
+   * them, including links whose target no longer exists.
    *
    * @param path the file or directory to delete
-   * @throws IOException          if a file cannot be deleted
-   * @throws NullPointerException if {@code path} is null
+   * @throws FileOperationException if a file cannot be deleted
+   * @throws NullPointerException   if {@code path} is null
    * @since 1.0.0
    */
-  public static void deleteRecursively(final Path path) throws IOException {
+  public static void deleteRecursively(final Path path) {
     Preconditions.checkNotNull(path, "Path must not be null!");
 
+    try {
+      deleteTree(path);
+    } catch (final IOException exception) {
+      final String message = "Path %s could not be deleted!".formatted(path);
+      throw new FileOperationException(message, exception);
+    }
+  }
+
+  private static void deleteTree(final Path path) throws IOException {
     // a link whose target is gone does not exist when followed, but still has to be deleted
     final boolean exists = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
     if (!exists) {
@@ -295,26 +304,30 @@ public final class IoUtils {
   /**
    * Moves a file into place, replacing an existing file. The move is atomic where the file system supports it, so
    * readers see either the old or the new file; file systems without atomic moves replace the file with a regular
-   * move instead. Unlike most methods of this class, this one throws the checked {@link IOException}, because its
-   * callers already handle it.
+   * move instead.
    *
    * <p>A move that is denied access is tried up to three times in total, 100 and 200 milliseconds apart, because on
    * Windows another process such as a virus scanner or the search indexer may hold a freshly written file for a
    * moment. A move that is still denied after that, such as one that lacks the permission for good, fails with the
-   * last {@link AccessDeniedException}. Moves of the same target from several threads are not coordinated here; the
+   * last {@link AccessDeniedException} as its cause. Moves of the same target from several threads are not coordinated here; the
    * callers that need that, such as {@link HttpDownloader}, serialize their moves themselves.
    *
    * @param source the file to move
    * @param target the destination, which is replaced if it exists
-   * @throws IOException          if the file cannot be moved
-   * @throws NullPointerException if {@code source} or {@code target} is null
+   * @throws FileOperationException if the file cannot be moved
+   * @throws NullPointerException   if {@code source} or {@code target} is null
    * @since 1.0.0
    */
-  public static void moveReplacing(final Path source, final Path target) throws IOException {
+  public static void moveReplacing(final Path source, final Path target) {
     Preconditions.checkNotNull(source, "Source must not be null!");
     Preconditions.checkNotNull(target, "Target must not be null!");
 
-    moveReplacing(source, target, Files::move, MOVE_RETRY_DELAY);
+    try {
+      moveReplacing(source, target, Files::move, MOVE_RETRY_DELAY);
+    } catch (final IOException exception) {
+      final String message = "File %s could not be moved to %s!".formatted(source, target);
+      throw new FileOperationException(message, exception);
+    }
   }
 
   @VisibleForTesting
@@ -472,8 +485,9 @@ public final class IoUtils {
    *
    * @param source the URL of the image
    * @return the cached file path; releasing a decoded image does not remove this file
-   * @throws UncheckedIOException     if the image cannot be downloaded, including when it is larger than
+   * @throws DownloadException       if the image cannot be downloaded, including when it is larger than
    *                                  {@link #MAXIMUM_IMAGE_BYTES}
+   * @throws FileOperationException   if the downloaded image cannot be moved into the cache folder
    * @throws IllegalArgumentException if the source does not describe an absolute HTTP or HTTPS URI with a host
    * @throws NullPointerException     if {@code source} is null
    * @since 1.0.0
@@ -488,13 +502,7 @@ public final class IoUtils {
     final Path cache = getCachedFolder();
     final Path destination = cache.resolve(fileName);
     final URI uri = URI.create(url);
-    try {
-      HttpDownloader.download(uri, destination, MAXIMUM_IMAGE_BYTES);
-    } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new UncheckedIOException(message, exception);
-    }
-
+    HttpDownloader.download(uri, destination, MAXIMUM_IMAGE_BYTES);
     return destination;
   }
 

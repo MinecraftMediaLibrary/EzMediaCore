@@ -157,7 +157,7 @@ final class CommandTaskTest {
     final CommandTask task = new CommandTask(java, VERSION_OPTION);
     final Thread current = Thread.currentThread();
     current.interrupt();
-    final IOException exception = assertThrows(IOException.class, task::run);
+    final ProcessException exception = assertThrows(ProcessException.class, task::run);
     final boolean interrupted = Thread.interrupted();
     final Throwable cause = exception.getCause();
     assertTrue(interrupted, "the interrupt must be restored");
@@ -174,7 +174,9 @@ final class CommandTaskTest {
     final IOException readFailure = new IOException("broken pipe!");
     final Future<String> failedOutput = CompletableFuture.failedFuture(readFailure);
     final Future<String> errorOutput = CompletableFuture.completedFuture("");
-    final IOException exception = assertThrows(IOException.class, () -> task.awaitCompletion(finished, failedOutput, errorOutput, null));
+    final ProcessException exception = assertThrows(ProcessException.class, () ->
+      task.awaitCompletion(finished, failedOutput, errorOutput, null)
+    );
     final Throwable cause = exception.getCause();
     assertEquals(readFailure, cause);
   }
@@ -193,7 +195,7 @@ final class CommandTaskTest {
       final CommandTask task = new CommandTask(SHELL);
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
-      assertThrows(IOException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
+      assertThrows(ProcessException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
 
       final boolean ended = sleeper.onExit().completeOnTimeout(null, EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
       assertTrue(ended, "the sleep the shell left running is ended with it");
@@ -213,7 +215,7 @@ final class CommandTaskTest {
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
 
-      assertThrows(IOException.class, () -> task.awaitCompletion(parent, failedOutput, errorOutput, null));
+      assertThrows(ProcessException.class, () -> task.awaitCompletion(parent, failedOutput, errorOutput, null));
 
       final boolean ended = sleeper.waitFor(EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(ended, "the child that appeared after the last look is ended too");
@@ -242,7 +244,7 @@ final class CommandTaskTest {
     final CommandTask task = new CommandTask(java, programPath);
     final Duration timeout = Duration.ofMillis(500);
     final long start = System.nanoTime();
-    final IOException exception = assertThrows(IOException.class, () -> task.run(timeout));
+    final ProcessException exception = assertThrows(ProcessException.class, () -> task.run(timeout));
     final long elapsed = System.nanoTime() - start;
     final String message = exception.getMessage();
     final Optional<Process> launched = task.getProcess();
@@ -300,7 +302,7 @@ final class CommandTaskTest {
     final Thread current = Thread.currentThread();
     final long start = System.nanoTime();
     current.interrupt();
-    assertThrows(IOException.class, task::run);
+    assertThrows(ProcessException.class, task::run);
 
     final long elapsed = System.nanoTime() - start;
     final boolean interrupted = Thread.interrupted();

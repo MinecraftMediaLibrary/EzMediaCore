@@ -38,8 +38,10 @@ import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.multimedia.ExceptionHandler;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
+import me.brandonli.mcav.utils.http.DownloadException;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.utils.os.Os;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -516,7 +518,7 @@ final class CefBrowserPlayer implements BrowserPlayer {
       try {
         installation = this.natives.install();
         current = withLibraries(this.getLauncher(), this.libraries);
-      } catch (final IOException exception) {
+      } catch (final IOException | DownloadException | FileOperationException exception) {
         throw new BrowserUnavailableException("The browser cannot be installed: " + exception.getMessage(), exception);
       }
       return HelperSession.open(current, installation, source, options, listener);

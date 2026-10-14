@@ -62,6 +62,7 @@ import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import me.brandonli.mcav.testing.UtilityClassAssertions;
+import me.brandonli.mcav.utils.http.HttpStatusException;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
@@ -371,7 +372,7 @@ final class IoUtilsTest {
       assertArrayEquals(ABC, content);
       assertTrue(inCache);
       assertTrue(cacheInHome);
-      assertThrows(UncheckedIOException.class, () -> IoUtils.downloadImage(missing));
+      assertThrows(HttpStatusException.class, () -> IoUtils.downloadImage(missing));
       assertThrows(NullPointerException.class, () -> IoUtils.downloadImage(null));
     }
   }

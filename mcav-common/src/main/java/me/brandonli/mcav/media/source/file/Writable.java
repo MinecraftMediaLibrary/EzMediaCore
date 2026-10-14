@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import me.brandonli.mcav.utils.FileOperationException;
 
 /**
  * A file that can be read from and written to, for example to save a downloaded stream.
@@ -60,16 +61,21 @@ public interface Writable {
    *
    * @param options the open options, see {@link Files#newInputStream(Path, OpenOption...)}
    * @return the stream, which the caller must close
-   * @throws IOException                   if the file cannot be opened
+   * @throws FileOperationException        if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
    * @throws NullPointerException          if {@code options} is null
    * @since 1.0.0
    */
-  default InputStream newInputStream(final OpenOption... options) throws IOException {
+  default InputStream newInputStream(final OpenOption... options) {
     Preconditions.checkNotNull(options, "Options must not be null!");
 
     final Path path = this.getPath();
-    return Files.newInputStream(path, options);
+    try {
+      return Files.newInputStream(path, options);
+    } catch (final IOException exception) {
+      final String message = "File %s could not be opened for reading!".formatted(path);
+      throw new FileOperationException(message, exception);
+    }
   }
 
   /**
@@ -77,15 +83,20 @@ public interface Writable {
    *
    * @param options the open options, see {@link Files#newOutputStream(Path, OpenOption...)}
    * @return the stream, which the caller must close
-   * @throws IOException                   if the file cannot be opened
+   * @throws FileOperationException        if the file cannot be opened
    * @throws UnsupportedOperationException if an option is unsupported by the file-system provider
    * @throws NullPointerException          if {@code options} is null
    * @since 1.0.0
    */
-  default OutputStream newOutputStream(final OpenOption... options) throws IOException {
+  default OutputStream newOutputStream(final OpenOption... options) {
     Preconditions.checkNotNull(options, "Options must not be null!");
 
     final Path path = this.getPath();
-    return Files.newOutputStream(path, options);
+    try {
+      return Files.newOutputStream(path, options);
+    } catch (final IOException exception) {
+      final String message = "File %s could not be opened for writing!".formatted(path);
+      throw new FileOperationException(message, exception);
+    }
   }
 }

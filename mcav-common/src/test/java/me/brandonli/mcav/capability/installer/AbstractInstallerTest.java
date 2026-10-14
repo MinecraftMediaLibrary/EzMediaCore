@@ -20,6 +20,7 @@ package me.brandonli.mcav.capability.installer;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
@@ -33,8 +34,10 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -60,12 +63,14 @@ import java.util.stream.Stream;
 import me.brandonli.mcav.testing.LocalHttpServer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
 import me.brandonli.mcav.utils.IoUtils;
+import me.brandonli.mcav.utils.http.ChecksumMismatchException;
 import me.brandonli.mcav.utils.os.Arch;
 import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.OsUtils;
 import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -99,6 +104,8 @@ final class AbstractInstallerTest {
   private static final String TEMPORARY_FILE_SUFFIX = ".tmp";
 
   private static final String CONFIGURATION_FILE_NAME = "config.properties";
+  private static final String BLOCKER_FILE_NAME = "blocker";
+  private static final String TOOLS_FOLDER_NAME = "tools";
   private static final String INVALID_REMEMBERED_PATH = "bad\0path";
 
   private static final String ELSEWHERE_FILE_NAME = "installed-elsewhere";
@@ -242,7 +249,7 @@ final class AbstractInstallerTest {
     assertEquals("", url);
     assertTrue(hash.isEmpty());
 
-    final IOException thrown = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
     final String message = thrown.getMessage();
     final boolean namesTheProgram = message.contains(NAME);
     assertTrue(namesTheProgram, message);
@@ -367,7 +374,7 @@ final class AbstractInstallerTest {
       final byte[] otherContent = "something else".getBytes(StandardCharsets.US_ASCII);
       final String otherHash = sha256(otherContent);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, otherHash);
-      assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      assertThrows(ChecksumMismatchException.class, () -> installer.download(FileMode.EXECUTABLE));
 
       final Path defaultPath = installer.getDefaultPath();
       final boolean exists = Files.exists(defaultPath);
@@ -433,7 +440,7 @@ final class AbstractInstallerTest {
       server.respond(TOOL_PATH, OK_STATUS, PROGRAM);
       ioUtils.when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class))).thenThrow(chmodFailure);
       final TestInstaller installer = this.installerDownloadingFrom(server, TOOL_PATH, null);
-      final IOException thrown = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final InstallationException thrown = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
 
       final Throwable cause = thrown.getCause();
       final String message = thrown.getMessage();
@@ -459,7 +466,7 @@ final class AbstractInstallerTest {
       ioUtils
         .when(() -> IoUtils.markExecutable(destination))
         .thenAnswer(_ -> this.replaceWithANonemptyDirectoryAndFail(destination, permissionFailure));
-      final IOException failure = assertThrows(IOException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final InstallationException failure = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
       final Throwable cause = failure.getCause();
       assertSame(permissionFailure, cause);
       final String message = failure.getMessage();
@@ -504,7 +511,7 @@ final class AbstractInstallerTest {
       ioUtils
         .when(() -> IoUtils.markExecutable(ArgumentMatchers.any(Path.class)))
         .thenAnswer(invocation -> this.failTheFirstPermissionAttempt(invocation, permissionAttempts));
-      assertThrows(IOException.class, () -> first.download(FileMode.EXECUTABLE));
+      assertThrows(InstallationException.class, () -> first.download(FileMode.EXECUTABLE));
       final TestInstaller retry = freshInstaller ? new TestInstaller(tools, NAME, new Download[] { download }) : first;
       final Path installed = retry.download(FileMode.EXECUTABLE);
       final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(installed);
@@ -541,6 +548,38 @@ final class AbstractInstallerTest {
       final Set<PosixFilePermission> expected = PosixFilePermissions.fromString(EXECUTABLE_PERMISSIONS);
       assertEquals(expected, permissions);
     }
+  }
+
+  @Test
+  void shouldReportAFolderThatCannotBeCreated() throws IOException {
+    final Path blocker = this.createFileInFolder(BLOCKER_FILE_NAME);
+    final Path tools = blocker.resolve(TOOLS_FOLDER_NAME);
+    final Download download = new Download(CURRENT_PLATFORM, "https://example.com/tool", PROGRAM_HASH);
+    final TestInstaller installer = new TestInstaller(tools, NAME, new Download[] { download });
+    final InstallationException downloading = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
+    final InstallationException remembering = assertThrows(InstallationException.class, () -> installer.writePathToConfiguration(tools));
+    final Throwable downloadingCause = downloading.getCause();
+    final Throwable rememberingCause = remembering.getCause();
+    assertInstanceOf(FileSystemException.class, downloadingCause);
+    assertInstanceOf(FileSystemException.class, rememberingCause);
+  }
+
+  @Test
+  void shouldReportAConfigurationThatCannotBeRead() throws IOException {
+    final Path configuration = this.createFileInFolder(CONFIGURATION_FILE_NAME);
+    final Set<PosixFilePermission> noPermissions = Set.of();
+    final Os operatingSystem = OsUtils.getOs();
+    final boolean posix = operatingSystem != Os.WINDOWS;
+    Assumptions.assumeTrue(posix, "File permissions need a POSIX file system!");
+
+    Files.setPosixFilePermissions(configuration, noPermissions);
+    final boolean readable = Files.isReadable(configuration);
+    Assumptions.assumeFalse(readable, "The user can read every file!");
+
+    final TestInstaller installer = new TestInstaller(this.folder, NAME, new Download[0]);
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> installer.writePathToConfiguration(this.folder));
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(AccessDeniedException.class, cause);
   }
 
   @Test
@@ -791,7 +830,7 @@ final class AbstractInstallerTest {
     }
 
     @Override
-    protected Path install(final Path downloaded) throws IOException {
+    protected Path install(final Path downloaded) {
       if (!this.isArchive) {
         return super.install(downloaded);
       }
@@ -799,7 +838,7 @@ final class AbstractInstallerTest {
       this.installedArchives.add(downloaded);
       final Path installerFolder = this.getFolder();
       final Path extracted = installerFolder.resolve(EXTRACTED_FOLDER_NAME);
-      Files.createDirectories(extracted);
+      IoUtils.createDirectoryIfNotExists(extracted);
       return extracted;
     }
 

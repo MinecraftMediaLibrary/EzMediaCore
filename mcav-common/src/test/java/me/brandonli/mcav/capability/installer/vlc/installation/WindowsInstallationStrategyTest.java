@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstaller;
 import me.brandonli.mcav.utils.ZipEntryIntegrityException;
 import org.junit.jupiter.api.Test;
@@ -134,7 +135,7 @@ final class WindowsInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.createZip(ARCHIVE_NAME, README_ENTRY);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final String message = thrown.getMessage();
     final boolean namesTheLibrary = message.contains(LIBRARY_FILE);
     final boolean temporaryExists = this.temporaryDirectoryExists();
@@ -151,7 +152,7 @@ final class WindowsInstallationStrategyTest {
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.temporaryDirectory.resolve(ARCHIVE_NAME);
     Files.writeString(archive, "this is not a zip", StandardCharsets.US_ASCII);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
     final UncheckedIOException unzipFailure = assertInstanceOf(UncheckedIOException.class, cause);
     final Throwable zipFailure = unzipFailure.getCause();
@@ -165,7 +166,7 @@ final class WindowsInstallationStrategyTest {
     final VlcInstaller installer = VlcInstaller.create(this.temporaryDirectory);
     final WindowsInstallationStrategy strategy = new WindowsInstallationStrategy(installer);
     final Path archive = this.createZip(ARCHIVE_NAME, ESCAPING_ENTRY);
-    final IOException thrown = assertThrows(IOException.class, () -> strategy.execute(archive));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> strategy.execute(archive));
     final Throwable cause = thrown.getCause();
     final Path escaped = this.temporaryDirectory.resolve(ESCAPED_FILE);
     final boolean escapedExists = Files.exists(escaped);

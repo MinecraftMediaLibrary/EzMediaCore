@@ -18,10 +18,11 @@
 package me.brandonli.mcav.media.image;
 
 import com.google.common.base.Preconditions;
-import java.io.IOException;
 import java.util.List;
 import me.brandonli.mcav.media.source.file.FileSource;
 import me.brandonli.mcav.media.source.uri.UriSource;
+import me.brandonli.mcav.utils.FileOperationException;
+import me.brandonli.mcav.utils.http.DownloadException;
 
 /**
  * An animated image, such as a GIF, decoded into its individual frames.
@@ -75,12 +76,12 @@ public interface DynamicImageBuffer extends Image {
    *
    * @param source the image file
    * @return the decoded animation
-   * @throws IOException              if the file cannot be decoded
+   * @throws ImageDecodingException  if the file cannot be decoded
    * @throws IllegalArgumentException if decoding succeeds but yields no image frames
    * @throws NullPointerException     if {@code source} is null
    * @since 1.0.0
    */
-  static DynamicImageBuffer path(final FileSource source) throws IOException {
+  static DynamicImageBuffer path(final FileSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
 
     return new FfmpegDynamicImageBuffer(source);
@@ -91,13 +92,15 @@ public interface DynamicImageBuffer extends Image {
    *
    * @param source the URL of the image
    * @return the decoded animation
-   * @throws IOException                  if the downloaded file cannot be decoded
-   * @throws java.io.UncheckedIOException if the image cannot be downloaded
-   * @throws IllegalArgumentException     if decoding succeeds but yields no image frames
-   * @throws NullPointerException         if {@code source} is null
+   * @throws ImageDecodingException  if the downloaded file cannot be decoded
+   * @throws DownloadException       if the image cannot be downloaded, including when it is larger than
+   *                                  {@link me.brandonli.mcav.utils.IoUtils#MAXIMUM_IMAGE_BYTES}
+   * @throws FileOperationException   if the downloaded image cannot be moved into the cache folder
+   * @throws IllegalArgumentException if decoding succeeds but yields no image frames
+   * @throws NullPointerException     if {@code source} is null
    * @since 1.0.0
    */
-  static DynamicImageBuffer uri(final UriSource source) throws IOException {
+  static DynamicImageBuffer uri(final UriSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
 
     return new FfmpegDynamicImageBuffer(source);

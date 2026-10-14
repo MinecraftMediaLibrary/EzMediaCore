@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Optional;
@@ -34,6 +33,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import org.junit.jupiter.api.Test;
 
 final class VlcLoadStateTest {
@@ -42,7 +42,7 @@ final class VlcLoadStateTest {
   private static final Duration BLOCK_TIMEOUT = Duration.ofSeconds(10);
 
   @Test
-  void shouldRunTheLoaderOnlyUntilItSucceeds() throws IOException {
+  void shouldRunTheLoaderOnlyUntilItSucceeds() {
     final VlcLoadState state = new VlcLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final VlcLoadState.Loader loader = () -> this.countAndFindTheLibraries(calls);
@@ -61,7 +61,7 @@ final class VlcLoadStateTest {
   }
 
   @Test
-  void shouldRememberThatTheLocationIsUnknown() throws IOException {
+  void shouldRememberThatTheLocationIsUnknown() {
     final VlcLoadState state = new VlcLoadState();
     final AtomicInteger calls = new AtomicInteger();
     final VlcLoadState.Loader loader = () -> this.countAndFindNothing(calls);
@@ -81,10 +81,10 @@ final class VlcLoadStateTest {
   }
 
   @Test
-  void shouldRetryAfterAFailedLoad() throws IOException {
+  void shouldRetryAfterAFailedLoad() {
     final VlcLoadState state = new VlcLoadState();
-    final IOException failure = new IOException("offline!");
-    final IOException thrown = assertThrows(IOException.class, () -> state.loadOnce(() -> this.failToLoad(failure)));
+    final InstallationException failure = new InstallationException("offline!");
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> state.loadOnce(() -> this.failToLoad(failure)));
     assertSame(failure, thrown);
 
     final Optional<Path> retried = state.loadOnce(() -> Optional.of(LIBRARY_DIRECTORY));
@@ -92,12 +92,12 @@ final class VlcLoadStateTest {
     assertEquals(expected, retried);
   }
 
-  private Optional<Path> failToLoad(final IOException failure) throws IOException {
+  private Optional<Path> failToLoad(final InstallationException failure) {
     throw failure;
   }
 
   @Test
-  void shouldRetryAfterAnUnsupportedSystem() throws IOException {
+  void shouldRetryAfterAnUnsupportedSystem() {
     final VlcLoadState state = new VlcLoadState();
     final UnsupportedOperatingSystemException failure = new UnsupportedOperatingSystemException("no VLC!");
     assertThrows(UnsupportedOperatingSystemException.class, () -> state.loadOnce(() -> this.failToLoadOnAnUnsupportedSystem(failure)));
@@ -141,8 +141,7 @@ final class VlcLoadStateTest {
     return () -> loadSlowly(calls, entered, release);
   }
 
-  private static Optional<Path> loadSlowly(final AtomicInteger calls, final CountDownLatch entered, final CountDownLatch release)
-    throws IOException {
+  private static Optional<Path> loadSlowly(final AtomicInteger calls, final CountDownLatch entered, final CountDownLatch release) {
     calls.incrementAndGet();
     entered.countDown();
     awaitInLoader(release);
@@ -153,7 +152,7 @@ final class VlcLoadStateTest {
     final VlcLoadState state,
     final VlcLoadState.Loader loader,
     final AtomicReference<Thread> threadReference
-  ) throws IOException {
+  ) {
     final Thread currentThread = Thread.currentThread();
     threadReference.set(currentThread);
     return state.loadOnce(loader);
@@ -201,14 +200,14 @@ final class VlcLoadStateTest {
     return state == Thread.State.BLOCKED;
   }
 
-  private static void awaitInLoader(final CountDownLatch latch) throws IOException {
+  private static void awaitInLoader(final CountDownLatch latch) {
     try {
       final boolean released = latch.await(5, TimeUnit.SECONDS);
       assertTrue(released);
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new IOException("Waiting was interrupted!", exception);
+      throw new InstallationException("Waiting was interrupted!", exception);
     }
   }
 }

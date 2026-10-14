@@ -42,11 +42,13 @@ import java.util.function.Function;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.CapabilityGuard;
 import me.brandonli.mcav.capability.installer.FileMode;
+import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.json.ytdlp.format.Format;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import me.brandonli.mcav.media.source.uri.UriSource;
 import me.brandonli.mcav.utils.runtime.CommandTask;
+import me.brandonli.mcav.utils.runtime.ProcessException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -324,20 +326,20 @@ final class ExecutableYtdlpParserTest {
 
   @Test
   void shouldPropagateInstallationFailuresWithoutRunningAnything() {
-    final IOException failure = new IOException("no network!");
+    final InstallationException failure = new InstallationException("no network!");
     final AtomicBoolean created = new AtomicBoolean();
     final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(
       () -> this.failToLocate(failure),
       _ -> this.markCreatedAndMockATask(created)
     );
     final UriSource source = source();
-    final IOException thrown = assertThrows(IOException.class, () -> parser.parse(source));
+    final InstallationException thrown = assertThrows(InstallationException.class, () -> parser.parse(source));
     final boolean taskCreated = created.get();
     assertSame(failure, thrown);
     assertFalse(taskCreated);
   }
 
-  private Path failToLocate(final IOException failure) throws IOException {
+  private Path failToLocate(final InstallationException failure) {
     throw failure;
   }
 
@@ -347,15 +349,12 @@ final class ExecutableYtdlpParserTest {
   }
 
   @Test
-  void shouldPropagateFailuresToStartTheProcess() throws IOException {
-    final IOException failure = new IOException("cannot start!");
-    final CommandTask task = Mockito.mock(CommandTask.class);
-    Mockito.when(task.run(ArgumentMatchers.any(Duration.class))).thenThrow(failure);
-    final AtomicReference<String[]> command = new AtomicReference<>();
-    final ExecutableYtdlpParser parser = parser(task, command);
+  void shouldPropagateFailuresToStartTheProcess() {
+    final ExecutableYtdlpParser parser = new ExecutableYtdlpParser(() -> EXECUTABLE, CommandTask::new);
     final UriSource source = source();
-    final IOException thrown = assertThrows(IOException.class, () -> parser.parse(source));
-    assertSame(failure, thrown);
+    final ProcessException thrown = assertThrows(ProcessException.class, () -> parser.parse(source));
+    final Throwable cause = thrown.getCause();
+    assertInstanceOf(IOException.class, cause);
   }
 
   @Test

@@ -69,6 +69,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import me.brandonli.mcav.media.image.ImageBuffer;
 import me.brandonli.mcav.media.player.PlayerException;
+import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.os.Os;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -1051,7 +1052,7 @@ final class HelperSession implements BrowserSession {
   static void deleteFolder(final Path folder) {
     try {
       IoUtils.deleteRecursively(folder);
-    } catch (final IOException exception) {
+    } catch (final FileOperationException exception) {
       LOGGER.warn(FOLDER_NOT_REMOVED, folder, exception.getMessage());
     }
   }
