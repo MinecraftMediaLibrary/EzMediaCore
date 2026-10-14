@@ -42,10 +42,12 @@ public interface ImageSupplier {
    * @return a sample supplier that copies the pixels of every image into a new array
    */
   default SampleSupplier toSampleSupplier() {
-    return () -> {
-      final BufferedImage image = this.getImage();
-      return readArgb(image);
-    };
+    return this::readImageArgb;
+  }
+
+  private int[] readImageArgb() {
+    final BufferedImage image = this.getImage();
+    return readArgb(image);
   }
 
   /**

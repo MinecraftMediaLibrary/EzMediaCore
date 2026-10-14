@@ -130,16 +130,22 @@ public final class OrderedDither extends AbstractDitherAlgorithm implements Baye
   private void ditherInParallel(final int[] pixels, final int width, final byte[] indices, final ForkJoinPool pool, final int taskCount) {
     final int height = pixels.length / width;
     final int rowsPerTask = (height + taskCount - 1) / taskCount;
-    final ForkJoinTask<?> task = pool.submit(() -> {
-      final IntStream tasks = IntStream.range(0, taskCount);
-      final IntStream parallelTasks = tasks.parallel();
-      parallelTasks.forEach(taskIndex -> {
-        final int startY = taskIndex * rowsPerTask;
-        final int endY = Math.min(startY + rowsPerTask, height);
-        this.ditherRows(pixels, width, startY, endY, indices);
-      });
-    });
+    final Runnable work = () -> this.ditherTasks(pixels, width, indices, taskCount, rowsPerTask);
+    final ForkJoinTask<?> task = pool.submit(work);
     task.join();
+  }
+
+  private void ditherTasks(final int[] pixels, final int width, final byte[] indices, final int taskCount, final int rowsPerTask) {
+    final IntStream tasks = IntStream.range(0, taskCount);
+    final IntStream parallelTasks = tasks.parallel();
+    parallelTasks.forEach(taskIndex -> this.ditherTask(pixels, width, indices, taskIndex, rowsPerTask));
+  }
+
+  private void ditherTask(final int[] pixels, final int width, final byte[] indices, final int taskIndex, final int rowsPerTask) {
+    final int height = pixels.length / width;
+    final int startY = taskIndex * rowsPerTask;
+    final int endY = Math.min(startY + rowsPerTask, height);
+    this.ditherRows(pixels, width, startY, endY, indices);
   }
 
   private void ditherRows(final int[] pixels, final int width, final int startY, final int endY, final byte[] indices) {

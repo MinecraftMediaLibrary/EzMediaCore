@@ -231,16 +231,36 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
     final int height = pixels.length / width;
     final int stripHeight = Math.max(1, (height + parallelism - 1) / parallelism);
     final int stripCount = (height + stripHeight - 1) / stripHeight;
-    final ForkJoinTask<?> task = pool.submit(() -> {
-      final IntStream strips = IntStream.range(0, stripCount);
-      final IntStream parallelStrips = strips.parallel();
-      parallelStrips.forEach(strip -> {
-        final int startY = strip * stripHeight;
-        final int endY = Math.min(startY + stripHeight, height);
-        this.ditherStrip(pixels, width, startY, endY, previous, indices);
-      });
-    });
+    final Runnable work = () -> this.ditherAllStrips(pixels, width, previous, indices, stripCount, stripHeight);
+    final ForkJoinTask<?> task = pool.submit(work);
     task.join();
+  }
+
+  private void ditherAllStrips(
+    final int[] pixels,
+    final int width,
+    final byte @Nullable [] previous,
+    final byte[] indices,
+    final int stripCount,
+    final int stripHeight
+  ) {
+    final IntStream strips = IntStream.range(0, stripCount);
+    final IntStream parallelStrips = strips.parallel();
+    parallelStrips.forEach(strip -> this.ditherStripAt(pixels, width, previous, indices, strip, stripHeight));
+  }
+
+  private void ditherStripAt(
+    final int[] pixels,
+    final int width,
+    final byte @Nullable [] previous,
+    final byte[] indices,
+    final int strip,
+    final int stripHeight
+  ) {
+    final int height = pixels.length / width;
+    final int startY = strip * stripHeight;
+    final int endY = Math.min(startY + stripHeight, height);
+    this.ditherStrip(pixels, width, startY, endY, previous, indices);
   }
 
   private byte @Nullable [] getPreviousIndices(final int expectedLength) {

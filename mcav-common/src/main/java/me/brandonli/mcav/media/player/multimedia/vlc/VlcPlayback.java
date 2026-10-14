@@ -471,10 +471,7 @@ final class VlcPlayback {
     }
 
     for (final EmbeddedMediaPlayer player : this.players) {
-      failures.run(() -> {
-        final ControlsApi controls = player.controls();
-        controls.stop();
-      });
+      failures.run(() -> this.stopControls(player));
     }
 
     failures.run(this.videoRenderer::stop);
@@ -485,6 +482,11 @@ final class VlcPlayback {
 
     failures.run(this.sharedFactory::release);
     failures.rethrow();
+  }
+
+  private void stopControls(final EmbeddedMediaPlayer player) {
+    final ControlsApi controls = player.controls();
+    controls.stop();
   }
 
   /** Completes independent cleanup steps before rethrowing the first recoverable failure. */

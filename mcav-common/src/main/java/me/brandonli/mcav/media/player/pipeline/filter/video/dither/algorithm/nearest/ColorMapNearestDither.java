@@ -92,16 +92,21 @@ public final class ColorMapNearestDither extends AbstractDitherAlgorithm impleme
 
   private void mapInParallel(final int[] pixels, final byte[] indices, final ForkJoinPool pool, final int taskCount) {
     final int pixelsPerTask = (pixels.length + taskCount - 1) / taskCount;
-    final ForkJoinTask<?> task = pool.submit(() -> {
-      final IntStream tasks = IntStream.range(0, taskCount);
-      final IntStream parallelTasks = tasks.parallel();
-      parallelTasks.forEach(taskIndex -> {
-        final int start = taskIndex * pixelsPerTask;
-        final int end = Math.min(start + pixelsPerTask, pixels.length);
-        this.mapRange(pixels, start, end, indices);
-      });
-    });
+    final Runnable work = () -> this.mapTasks(pixels, indices, taskCount, pixelsPerTask);
+    final ForkJoinTask<?> task = pool.submit(work);
     task.join();
+  }
+
+  private void mapTasks(final int[] pixels, final byte[] indices, final int taskCount, final int pixelsPerTask) {
+    final IntStream tasks = IntStream.range(0, taskCount);
+    final IntStream parallelTasks = tasks.parallel();
+    parallelTasks.forEach(taskIndex -> this.mapTask(pixels, indices, taskIndex, pixelsPerTask));
+  }
+
+  private void mapTask(final int[] pixels, final byte[] indices, final int taskIndex, final int pixelsPerTask) {
+    final int start = taskIndex * pixelsPerTask;
+    final int end = Math.min(start + pixelsPerTask, pixels.length);
+    this.mapRange(pixels, start, end, indices);
   }
 
   private void mapRange(final int[] pixels, final int start, final int end, final byte[] indices) {

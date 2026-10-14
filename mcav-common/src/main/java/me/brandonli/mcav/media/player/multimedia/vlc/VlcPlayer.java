@@ -340,10 +340,12 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   private boolean reportStartFailure(final Source video, final Throwable exception) {
-    return VlcPlayback.attemptAfterFailure(exception, () -> {
-      final String resource = video.getResource();
-      this.exceptionHandler.accept("Failed to start VLC playback of " + resource, exception);
-    });
+    return VlcPlayback.attemptAfterFailure(exception, () -> this.sendStartFailure(video, exception));
+  }
+
+  private void sendStartFailure(final Source video, final Throwable exception) {
+    final String resource = video.getResource();
+    this.exceptionHandler.accept("Failed to start VLC playback of " + resource, exception);
   }
 
   /**
