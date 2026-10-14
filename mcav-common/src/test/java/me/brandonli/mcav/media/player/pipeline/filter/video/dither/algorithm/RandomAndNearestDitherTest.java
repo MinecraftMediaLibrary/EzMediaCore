@@ -33,8 +33,6 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultNearestDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultRandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
@@ -128,11 +126,11 @@ final class RandomAndNearestDitherTest {
 
   @Test
   void shouldCreateTheConfiguredAlgorithmFromTheRandomBuilder() {
-    final RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> builder = DitherAlgorithm.random();
-    final DefaultRandomDitherBuilder weighted = builder.withWeight(RandomDither.NORMAL_WEIGHT);
-    final DefaultRandomDitherBuilder configured = weighted.withPalette(DitherTestImages.BLACK_WHITE);
+    final RandomDitherBuilder builder = DitherAlgorithm.random();
+    final RandomDitherBuilder weighted = builder.withWeight(RandomDither.NORMAL_WEIGHT);
+    final RandomDitherBuilder configured = weighted.withPalette(DitherTestImages.BLACK_WHITE);
     final RandomDither built = configured.build();
-    final RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> defaultBuilder = DitherAlgorithm.random();
+    final RandomDitherBuilder defaultBuilder = DitherAlgorithm.random();
     final RandomDither defaults = defaultBuilder.build();
     final DitherPalette palette = built.getPalette();
     final DitherPalette defaultPalette = defaults.getPalette();
@@ -144,7 +142,7 @@ final class RandomAndNearestDitherTest {
 
   @Test
   void shouldRejectInvalidSettingsInTheRandomBuilderAndAlgorithm() {
-    final RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> builder = DitherAlgorithm.random();
+    final RandomDitherBuilder builder = DitherAlgorithm.random();
     assertThrows(IllegalArgumentException.class, () -> builder.withWeight(-1));
     assertThrows(IllegalArgumentException.class, () -> builder.withWeight(TOO_HEAVY_WEIGHT));
     assertThrows(NullPointerException.class, () -> builder.withPalette(null));
@@ -163,9 +161,9 @@ final class RandomAndNearestDitherTest {
 
   @Test
   void shouldAcceptTheBoundaryWeights() {
-    final RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> builder = DitherAlgorithm.random();
-    final DefaultRandomDitherBuilder lightest = builder.withWeight(0);
-    final DefaultRandomDitherBuilder heaviest = builder.withWeight(255);
+    final RandomDitherBuilder builder = DitherAlgorithm.random();
+    final RandomDitherBuilder lightest = builder.withWeight(0);
+    final RandomDitherBuilder heaviest = builder.withWeight(255);
     final UniformNoiseDither lowest = new UniformNoiseDither(DitherTestImages.BLACK_WHITE, 0);
     final UniformNoiseDither highest = new UniformNoiseDither(DitherTestImages.BLACK_WHITE, 255);
     final int lowestWeight = lowest.getWeight();
@@ -331,8 +329,8 @@ final class RandomAndNearestDitherTest {
   @Test
   void shouldNearestDitherInPlaceAndThroughBuilders() {
     final int[] pixels = { 0xFF101010, 0xFFF0F0F0 };
-    final NearestDitherBuilder<NearestDither, DefaultNearestDitherBuilder> builder = DitherAlgorithm.nearest();
-    final DefaultNearestDitherBuilder configured = builder.withPalette(DitherTestImages.BLACK_WHITE);
+    final NearestDitherBuilder builder = DitherAlgorithm.nearest();
+    final NearestDitherBuilder configured = builder.withPalette(DitherTestImages.BLACK_WHITE);
     final NearestDither nearest = configured.build();
     nearest.dither(pixels, 2);
     final NearestDither defaults = DitherAlgorithm.nearestColor();

@@ -18,17 +18,30 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
 
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
 /**
  * Builds random dithering algorithms.
- *
- * @param <AlgorithmType> the type of algorithm the builder creates
- * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface RandomDitherBuilder<
-  AlgorithmType extends RandomDither,
-  BuilderType extends RandomDitherBuilder<AlgorithmType, BuilderType>
-> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {
+public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
+  /**
+   * Creates the algorithm.
+   *
+   * @return the algorithm
+   */
+  @Override
+  RandomDither build();
+
+  /**
+   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   *
+   * @param palette the palette
+   * @return this builder
+   * @throws NullPointerException if {@code palette} is null
+   */
+  @Override
+  RandomDitherBuilder withPalette(final DitherPalette palette);
+
   /**
    * Sets the largest noise value added to or subtracted from a channel. Defaults to
    * {@link RandomDither#NORMAL_WEIGHT}.
@@ -37,5 +50,5 @@ public interface RandomDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the weight is outside 0 through 255
    */
-  BuilderType withWeight(final int weight);
+  RandomDitherBuilder withWeight(final int weight);
 }

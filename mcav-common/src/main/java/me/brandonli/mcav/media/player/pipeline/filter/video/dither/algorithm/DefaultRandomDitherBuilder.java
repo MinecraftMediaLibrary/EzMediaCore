@@ -15,67 +15,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
+package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import com.google.common.base.Preconditions;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.UniformNoiseDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
-/**
- * The default {@link RandomDitherBuilder}.
- */
-public class DefaultRandomDitherBuilder implements RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> {
+final class DefaultRandomDitherBuilder implements RandomDitherBuilder {
 
   private static final int MAXIMUM_WEIGHT = 255;
 
   private DitherPalette palette;
   private int weight;
 
-  /**
-   * Constructs a builder that creates a normal-weight random dither on the Minecraft map palette.
-   */
-  public DefaultRandomDitherBuilder() {
+  DefaultRandomDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
     this.weight = RandomDither.NORMAL_WEIGHT;
   }
 
-  /**
-   * Creates a random dithering algorithm with the chosen palette and weight. The algorithm gives every thread its own
-   * random number generator, so it can be shared.
-   *
-   * @return the algorithm
-   */
   @Override
   public RandomDither build() {
     return new UniformNoiseDither(this.palette, this.weight);
   }
 
-  /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
-   *
-   * @param palette the palette
-   * @return this builder
-   * @throws NullPointerException if {@code palette} is null
-   */
   @Override
-  public DefaultRandomDitherBuilder withPalette(final DitherPalette palette) {
+  public RandomDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
 
     this.palette = palette;
     return this;
   }
 
-  /**
-   * Sets the largest noise value added to or subtracted from a channel. Defaults to
-   * {@link RandomDither#NORMAL_WEIGHT}.
-   *
-   * @param weight the weight from 0 to 255
-   * @return this builder
-   * @throws IllegalArgumentException if the weight is outside the range from 0 to 255
-   */
   @Override
-  public DefaultRandomDitherBuilder withWeight(final int weight) {
+  public RandomDitherBuilder withWeight(final int weight) {
     Preconditions.checkArgument(weight >= 0 && weight <= MAXIMUM_WEIGHT, "Weight must be between 0 and 255!");
 
     this.weight = weight;

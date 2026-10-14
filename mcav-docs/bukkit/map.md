@@ -43,7 +43,7 @@ The common algorithms have shortcuts, and every family has a builder for the rem
   final DitherAlgorithm filterLite = DitherAlgorithm.filterLite();
   final DitherAlgorithm temporal = DitherAlgorithm.temporalFloydSteinberg();
 
-  final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
+  final ErrorDiffusionDitherBuilder builder = DitherAlgorithm.errorDiffusion();
   builder.withAlgorithm(ErrorDiffusionDitherBuilder.Algorithm.ATKINSON);
   builder.withPalette(DitherPalette.DEFAULT_MAP_PALETTE);
   final ErrorDiffusionDither atkinson = builder.build();

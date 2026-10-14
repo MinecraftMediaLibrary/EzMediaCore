@@ -105,27 +105,21 @@ Implementation classes are named for how they work, or start with `Default` when
 | Former name | Current name |
 | --- | --- |
 | `AudioAttachableCallbackImpl` | `DefaultAudioAttachableCallback` |
-| `AudioPipelineStepBuilderImpl` | `DefaultAudioPipelineStepBuilder` |
 | `AudioPipelineStepImpl` | `DefaultAudioPipelineStep` |
 | `DeviceSourceImpl` | `DefaultDeviceSource` |
 | `DimensionAttachableCallbackImpl` | `DefaultDimensionAttachableCallback` |
 | `DynamicImageBufferImpl` | `FfmpegDynamicImageBuffer` |
-| `ErrorDiffusionDitherBuilderImpl` | `DefaultErrorDiffusionDitherBuilder` |
 | `FileSourceImpl` | `DefaultFileSource` |
 | `FrameSourceImpl` | `SupplierFrameSource` |
 | `ImagePlayerImpl` | `ThreadedImagePlayer` |
-| `NearestDitherBuilderImpl` | `DefaultNearestDitherBuilder` |
 | `NearestDitherImpl` | `ColorMapNearestDither` |
-| `OrderedDitherBuilderImpl` | `DefaultOrderedDitherBuilder` |
 | `OriginalAudioMetadataImpl` | `DefaultOriginalAudioMetadata` |
 | `OriginalVideoMetadataImpl` | `DefaultOriginalVideoMetadata` |
-| `RandomDitherBuilderImpl` | `DefaultRandomDitherBuilder` |
 | `RandomDitherImpl` | `UniformNoiseDither` |
 | `RepeatingFrameSourceImpl` | `DefaultRepeatingFrameSource` |
 | `StrategySelectorImpl` | `DefaultStrategySelector` |
 | `UriSourceImpl` | `DefaultUriSource` |
 | `VideoAttachableCallbackImpl` | `DefaultVideoAttachableCallback` |
-| `VideoPipelineStepBuilderImpl` | `DefaultVideoPipelineStepBuilder` |
 | `VideoPipelineStepImpl` | `DefaultVideoPipelineStep` |
 | `WritableImpl` | `DefaultWritable` |
 
@@ -180,10 +174,11 @@ also removed: use the metadata factories and their documented values.
 
 Pipeline builders and steps use more specific generic types. Recompile calls to `PipelineBuilder.audio()` and `video()`
 even if their source still compiles. `AudioPipelineStepBuilder` and `VideoPipelineStepBuilder` are now interfaces,
-and their implementations are internal. `PipelineStep.next()` now returns an `Optional` of the next pipeline step rather than `Object`; custom steps
-must also implement `self` and the filter accessors, with the current audio processing contract. Prefer the supplied
-builders and `AudioPipelineStep.of` / `VideoPipelineStep.of` factories. `FrameSource.getFrameSupplier()` is removed; use
-the source's current frame-production interface rather than extracting its implementation supplier.
+and their implementations are internal. `PipelineStep.next()` now returns an `Optional` of the next pipeline step
+rather than `Object`; custom steps must also implement `self` and the filter accessors, with the current audio
+processing contract. Prefer the supplied builders and `AudioPipelineStep.of` / `VideoPipelineStep.of` factories.
+`FrameSource.getFrameSupplier()` is removed; use the source's current frame-production interface rather than
+extracting its implementation supplier.
 
 `BlendFilter` and `OverlayImageFilter` now accept the image interface through their current constructors, and
 `FaceDetectionFilter` has a different construction API. Update callers against those signatures rather than
@@ -194,7 +189,9 @@ constructing concrete image-buffer implementations.
 The types in `media.player.pipeline.filter.video.dither` now use typed builder interfaces and immutable threshold
 matrices. Replace setter calls with the relevant builder's fluent methods, and keep the returned builder. Recompile
 all fluent calls: several return descriptors and generic bounds changed even when the method name stayed the same.
-Error-strength and temporal settings belong to the error-diffusion builder, rather than the general builder.
+Error-strength and temporal settings belong to the error-diffusion builder, rather than the general builder. The
+builder interfaces no longer take type parameters, and their implementations are internal: get a builder from the
+`DitherAlgorithm` factories, such as `DitherAlgorithm.errorDiffusion()`.
 
 `BayerDither` constants now contain `ThresholdMatrix` values instead of `int[][]`. Pass the matrix to the current
 mapper API, or call `toArray()` when an independent array is required; create a custom matrix with

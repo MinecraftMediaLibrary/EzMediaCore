@@ -18,14 +18,27 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
 
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
 /**
  * Builds nearest color algorithms, which have no settings besides the palette.
- *
- * @param <AlgorithmType> the type of algorithm the builder creates
- * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface NearestDitherBuilder<
-  AlgorithmType extends NearestDither,
-  BuilderType extends NearestDitherBuilder<AlgorithmType, BuilderType>
-> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {}
+public interface NearestDitherBuilder extends DitherAlgorithmBuilder {
+  /**
+   * Creates the algorithm.
+   *
+   * @return the algorithm
+   */
+  @Override
+  NearestDither build();
+
+  /**
+   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   *
+   * @param palette the palette
+   * @return this builder
+   * @throws NullPointerException if {@code palette} is null
+   */
+  @Override
+  NearestDitherBuilder withPalette(final DitherPalette palette);
+}

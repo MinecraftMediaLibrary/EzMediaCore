@@ -15,49 +15,43 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
+package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import com.google.common.base.Preconditions;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.OrderedDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
-/**
- * The default {@link NearestDitherBuilder}.
- */
-public class DefaultNearestDitherBuilder implements NearestDitherBuilder<NearestDither, DefaultNearestDitherBuilder> {
+final class DefaultOrderedDitherBuilder implements OrderedDitherBuilder {
 
   private DitherPalette palette;
+  private PixelMapper mapper;
 
-  /**
-   * Constructs a builder that creates a nearest color algorithm on the Minecraft map palette.
-   */
-  public DefaultNearestDitherBuilder() {
+  DefaultOrderedDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
+    this.mapper = PixelMapper.ofPixelMapper(BayerDither.NORMAL_2X2, BayerDither.NORMAL_2X2_MAXIMUM, PixelMapper.NORMAL_STRENGTH);
   }
 
-  /**
-   * Creates a nearest color algorithm for the chosen palette.
-   *
-   * @return the algorithm, which is stateless and can be shared
-   */
   @Override
-  public NearestDither build() {
-    return new ColorMapNearestDither(this.palette);
+  public OrderedDither build() {
+    return new OrderedDither(this.palette, this.mapper);
   }
 
-  /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
-   *
-   * @param palette the palette
-   * @return this builder
-   * @throws NullPointerException if {@code palette} is null
-   */
   @Override
-  public DefaultNearestDitherBuilder withPalette(final DitherPalette palette) {
+  public OrderedDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
 
     this.palette = palette;
+    return this;
+  }
+
+  @Override
+  public OrderedDitherBuilder withDitherMatrix(final PixelMapper mapper) {
+    Preconditions.checkNotNull(mapper, "Pixel mapper must not be null!");
+
+    this.mapper = mapper;
     return this;
   }
 }

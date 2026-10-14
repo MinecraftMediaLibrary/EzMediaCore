@@ -15,9 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
+package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import com.google.common.base.Preconditions;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.AtkinsonDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.BurkesDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.ErrorDiffusionDither;
@@ -30,12 +31,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
-/**
- * The default {@link ErrorDiffusionDitherBuilder}.
- */
-public class DefaultErrorDiffusionDitherBuilder
-  implements ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder>
-{
+final class DefaultErrorDiffusionDitherBuilder implements ErrorDiffusionDitherBuilder {
 
   private static final int MAXIMUM_TEMPORAL_THRESHOLD = 255;
 
@@ -45,10 +41,7 @@ public class DefaultErrorDiffusionDitherBuilder
   private int errorThreshold;
   private float errorStrength;
 
-  /**
-   * Constructs a builder that creates Filter Lite on the Minecraft map palette.
-   */
-  public DefaultErrorDiffusionDitherBuilder() {
+  DefaultErrorDiffusionDitherBuilder() {
     this.palette = DitherPalette.DEFAULT_MAP_PALETTE;
     this.algorithm = Algorithm.FILTER_LITE;
     this.temporalThreshold = TemporalDitherAlgorithm.DEFAULT_TEMPORAL_THRESHOLD;
@@ -56,12 +49,6 @@ public class DefaultErrorDiffusionDitherBuilder
     this.errorStrength = TemporalDitherAlgorithm.DEFAULT_ERROR_STRENGTH;
   }
 
-  /**
-   * Creates the chosen error diffusion algorithm. Every call creates a new algorithm, so a temporal algorithm built
-   * here can be given to exactly one player.
-   *
-   * @return the algorithm
-   */
   @Override
   public ErrorDiffusionDither build() {
     return switch (this.algorithm) {
@@ -81,78 +68,40 @@ public class DefaultErrorDiffusionDitherBuilder
     };
   }
 
-  /**
-   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
-   *
-   * @param palette the palette
-   * @return this builder
-   * @throws NullPointerException if {@code palette} is null
-   */
   @Override
-  public DefaultErrorDiffusionDitherBuilder withPalette(final DitherPalette palette) {
+  public ErrorDiffusionDitherBuilder withPalette(final DitherPalette palette) {
     Preconditions.checkNotNull(palette, "Palette must not be null!");
 
     this.palette = palette;
     return this;
   }
 
-  /**
-   * Sets the error diffusion algorithm. Defaults to {@link Algorithm#FILTER_LITE}.
-   *
-   * @param algorithm the algorithm
-   * @return this builder
-   * @throws NullPointerException if {@code algorithm} is null
-   */
   @Override
-  public DefaultErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm) {
+  public ErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm) {
     Preconditions.checkNotNull(algorithm, "Algorithm must not be null!");
 
     this.algorithm = algorithm;
     return this;
   }
 
-  /**
-   * Sets how far a pixel may drift per channel before its color is recomputed. Only used by
-   * {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}. Defaults to {@link TemporalDitherAlgorithm#DEFAULT_TEMPORAL_THRESHOLD}.
-   *
-   * @param threshold the threshold from 0 to 255
-   * @return this builder
-   * @throws IllegalArgumentException if the threshold is outside the range from 0 to 255
-   */
   @Override
-  public DefaultErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold) {
+  public ErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0 && threshold <= MAXIMUM_TEMPORAL_THRESHOLD, "Temporal threshold must be between 0 and 255!");
 
     this.temporalThreshold = threshold;
     return this;
   }
 
-  /**
-   * Sets the total error below which nothing is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
-   * Defaults to {@link TemporalDitherAlgorithm#DEFAULT_ERROR_THRESHOLD}.
-   *
-   * @param threshold the threshold, which must not be negative
-   * @return this builder
-   * @throws IllegalArgumentException if the threshold is negative
-   */
   @Override
-  public DefaultErrorDiffusionDitherBuilder withErrorThreshold(final int threshold) {
+  public ErrorDiffusionDitherBuilder withErrorThreshold(final int threshold) {
     Preconditions.checkArgument(threshold >= 0, "Error threshold must not be negative!");
 
     this.errorThreshold = threshold;
     return this;
   }
 
-  /**
-   * Sets the fraction of the error that is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
-   * Defaults to {@link TemporalDitherAlgorithm#DEFAULT_ERROR_STRENGTH}.
-   *
-   * @param strength the strength from 0 to 1
-   * @return this builder
-   * @throws IllegalArgumentException if the strength is outside the range from 0 to 1
-   */
   @Override
-  public DefaultErrorDiffusionDitherBuilder withErrorStrength(final float strength) {
+  public ErrorDiffusionDitherBuilder withErrorStrength(final float strength) {
     Preconditions.checkArgument(strength >= 0 && strength <= 1, "Error strength must be between 0 and 1!");
 
     this.errorStrength = strength;

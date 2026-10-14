@@ -18,10 +18,6 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm;
 
 import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultErrorDiffusionDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultNearestDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultOrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultRandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
@@ -33,8 +29,6 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.err
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.TemporalFloydSteinbergDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.ColorMapNearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.random.RandomNumberProvider;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
@@ -102,7 +96,7 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to Filter Lite on the map palette
    */
-  static ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> errorDiffusion() {
+  static ErrorDiffusionDitherBuilder errorDiffusion() {
     return new DefaultErrorDiffusionDitherBuilder();
   }
 
@@ -111,7 +105,7 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to a normal weight on the map palette
    */
-  static RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> random() {
+  static RandomDitherBuilder random() {
     return new DefaultRandomDitherBuilder();
   }
 
@@ -121,7 +115,7 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to a 2x2 Bayer matrix on the map palette
    */
-  static OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> ordered() {
+  static OrderedDitherBuilder ordered() {
     return new DefaultOrderedDitherBuilder();
   }
 
@@ -130,7 +124,7 @@ public interface DitherAlgorithm {
    *
    * @return the builder, which defaults to the map palette
    */
-  static NearestDitherBuilder<NearestDither, DefaultNearestDitherBuilder> nearest() {
+  static NearestDitherBuilder nearest() {
     return new DefaultNearestDitherBuilder();
   }
 

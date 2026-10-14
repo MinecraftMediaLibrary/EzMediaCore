@@ -18,19 +18,32 @@
 package me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder;
 
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.ErrorDiffusionDither;
+import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.DitherPalette;
 
 /**
  * Builds error diffusion algorithms. Every call of {@code build()} creates a new algorithm. The temporal algorithm
  * remembers the previous frame of the video it dithers and must not be shared between players, so build one for
  * every player; the other algorithms are stateless and can be shared.
- *
- * @param <AlgorithmType> the type of algorithm the builder creates
- * @param <BuilderType>   the type of the builder itself, for method chaining
  */
-public interface ErrorDiffusionDitherBuilder<
-  AlgorithmType extends ErrorDiffusionDither,
-  BuilderType extends ErrorDiffusionDitherBuilder<AlgorithmType, BuilderType>
-> extends DitherAlgorithmBuilder<AlgorithmType, BuilderType> {
+public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
+  /**
+   * Creates the algorithm.
+   *
+   * @return the algorithm
+   */
+  @Override
+  ErrorDiffusionDither build();
+
+  /**
+   * Sets the palette the algorithm reduces images to. Defaults to the Minecraft map palette.
+   *
+   * @param palette the palette
+   * @return this builder
+   * @throws NullPointerException if {@code palette} is null
+   */
+  @Override
+  ErrorDiffusionDitherBuilder withPalette(final DitherPalette palette);
+
   /**
    * Sets the error diffusion algorithm. Defaults to {@link Algorithm#FILTER_LITE}.
    *
@@ -38,7 +51,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws NullPointerException if {@code algorithm} is null
    */
-  BuilderType withAlgorithm(final Algorithm algorithm);
+  ErrorDiffusionDitherBuilder withAlgorithm(final Algorithm algorithm);
 
   /**
    * Sets how far a pixel may drift per channel before its color is recomputed. Only used by
@@ -48,7 +61,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the threshold is outside 0 through 255
    */
-  BuilderType withTemporalThreshold(final int threshold);
+  ErrorDiffusionDitherBuilder withTemporalThreshold(final int threshold);
 
   /**
    * Sets the total error below which nothing is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
@@ -57,7 +70,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the threshold is negative
    */
-  BuilderType withErrorThreshold(final int threshold);
+  ErrorDiffusionDitherBuilder withErrorThreshold(final int threshold);
 
   /**
    * Sets the fraction of the error that is diffused. Only used by {@link Algorithm#TEMPORAL_FLOYD_STEINBERG}.
@@ -66,7 +79,7 @@ public interface ErrorDiffusionDitherBuilder<
    * @return this builder
    * @throws IllegalArgumentException if the strength is outside 0 through 1 or is NaN
    */
-  BuilderType withErrorStrength(final float strength);
+  ErrorDiffusionDitherBuilder withErrorStrength(final float strength);
 
   /**
    * The error diffusion algorithms that can be built.

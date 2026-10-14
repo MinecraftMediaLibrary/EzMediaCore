@@ -21,16 +21,10 @@ import com.google.errorprone.annotations.Immutable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.DitherAlgorithm;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultErrorDiffusionDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultNearestDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultOrderedDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.DefaultRandomDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.ErrorDiffusionDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.NearestDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.OrderedDitherBuilder;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.builder.RandomDitherBuilder;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.error.ErrorDiffusionDither;
-import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.nearest.NearestDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.BayerDither;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.PixelMapper;
 import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.ordered.ThresholdMatrix;
@@ -548,24 +542,24 @@ public enum DitheringArgument {
 
   private static DitherAlgorithm bayer(final ThresholdMatrix matrix, final int max, final float strength) {
     final PixelMapper mapper = PixelMapper.ofPixelMapper(matrix, max, strength);
-    final OrderedDitherBuilder<BayerDither, DefaultOrderedDitherBuilder> builder = DitherAlgorithm.ordered();
+    final OrderedDitherBuilder builder = DitherAlgorithm.ordered();
     builder.withDitherMatrix(mapper);
     return builder.build();
   }
 
   private static DitherAlgorithm nearest() {
-    final NearestDitherBuilder<NearestDither, DefaultNearestDitherBuilder> builder = DitherAlgorithm.nearest();
+    final NearestDitherBuilder builder = DitherAlgorithm.nearest();
     return builder.build();
   }
 
   private static DitherAlgorithm random(final int weight) {
-    final RandomDitherBuilder<RandomDither, DefaultRandomDitherBuilder> builder = DitherAlgorithm.random();
+    final RandomDitherBuilder builder = DitherAlgorithm.random();
     builder.withWeight(weight);
     return builder.build();
   }
 
   private static DitherAlgorithm errorDiffusion(final ErrorDiffusionDitherBuilder.Algorithm type) {
-    final ErrorDiffusionDitherBuilder<ErrorDiffusionDither, DefaultErrorDiffusionDitherBuilder> builder = DitherAlgorithm.errorDiffusion();
+    final ErrorDiffusionDitherBuilder builder = DitherAlgorithm.errorDiffusion();
     builder.withAlgorithm(type);
     return builder.build();
   }
