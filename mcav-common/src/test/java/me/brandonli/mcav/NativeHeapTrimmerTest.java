@@ -293,7 +293,7 @@ final class NativeHeapTrimmerTest {
   }
 
   // a glibc whose mallopt is a native stub that calls the operator; the trimmer only looks gnu_get_libc_version up
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   private static SymbolLookup glibcWithMallopt(final Arena arena, final IntBinaryOperator mallopt) throws ReflectiveOperationException {
     final MethodType type = MethodType.methodType(int.class, int.class, int.class);
     final MethodHandle operator = MethodHandles.lookup().findVirtual(IntBinaryOperator.class, "applyAsInt", type).bindTo(mallopt);
@@ -400,7 +400,7 @@ final class NativeHeapTrimmerTest {
   }
 
   @Test
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   void shouldGiveTheTopOfAThreadArenaBackToTheSystemWhileTrimming() throws InterruptedException, IOException {
     final Linker linker = Linker.nativeLinker();
     final SymbolLookup library = linker.defaultLookup();
@@ -436,7 +436,7 @@ final class NativeHeapTrimmerTest {
 
   // glibc maps the first frame on its own and raises its thresholds when it is freed; the second comes from the thread's
   // arena and joins its top when it is freed
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   private static void freeFramesIntoTheArenaTop(final MethodHandle malloc, final MethodHandle free) {
     try {
       for (int frame = 0; frame < 2; frame++) {

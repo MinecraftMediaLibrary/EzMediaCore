@@ -264,7 +264,7 @@ final class NativeHeapTrimmer implements AutoCloseable {
    * @throws IllegalStateException if the C library cannot be called
    */
   @VisibleForTesting
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   static boolean fixGlibcTrimThreshold(final SymbolLookup library) {
     final Optional<MemorySegment> mallopt = library.find(GLIBC_SYMBOL).flatMap(_ -> library.find(MALLOPT_SYMBOL));
     if (mallopt.isEmpty()) {
