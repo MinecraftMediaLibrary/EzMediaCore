@@ -451,6 +451,7 @@ final class PlatformDiscoveryStrategiesTest {
   private static EnvironmentSetter recordingSetter(final List<String> published) {
     return (name, value) -> {
       published.add(name + ASSIGNMENT_SEPARATOR + value);
+
       return true;
     };
   }

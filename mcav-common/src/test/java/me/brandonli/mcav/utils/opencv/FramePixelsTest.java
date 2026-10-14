@@ -72,6 +72,7 @@ final class FramePixelsTest {
       final ByteBuffer actual = FramePixels.copyBgr(compact);
       final byte[] copied = remaining(actual);
       assertArrayEquals(data, copied);
+
       final ByteBuffer tooSmall = ByteBuffer.allocate(11);
       assertThrows(IllegalArgumentException.class, () -> FramePixels.copyBgr(compact, tooSmall));
     }

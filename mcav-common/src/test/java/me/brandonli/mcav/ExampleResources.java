@@ -79,6 +79,7 @@ final class ExampleResources implements AutoCloseable {
         // A shutdown hook must not finish while another thread is still releasing native resources.
         this.completion.join();
       }
+
       return;
     }
 
@@ -102,6 +103,7 @@ final class ExampleResources implements AutoCloseable {
         release.run();
       } catch (final RuntimeException | Error exception) {
         ThrowableUtils.throwIfFatal(exception);
+
         if (first == null) {
           first = exception;
         } else if (!IDENTITY.equivalent(first, exception)) {

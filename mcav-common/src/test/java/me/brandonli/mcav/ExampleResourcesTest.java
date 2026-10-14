@@ -149,6 +149,7 @@ final class ExampleResourcesTest {
     try {
       final boolean started = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started, "the owner must reenter close without joining itself");
+
       final CountDownLatch otherEntered = new CountDownLatch(1);
       final CompletableFuture<Void> other = CompletableFuture.runAsync(() -> {
         otherEntered.countDown();
@@ -157,6 +158,7 @@ final class ExampleResourcesTest {
       final boolean otherStarted = otherEntered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(otherStarted, "the competing closer must run before testing that it waits");
       assertThrows(TimeoutException.class, () -> other.get(100, TimeUnit.MILLISECONDS));
+
       resume.complete(null);
       owner.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       other.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);

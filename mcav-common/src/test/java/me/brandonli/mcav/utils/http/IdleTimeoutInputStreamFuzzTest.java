@@ -58,6 +58,7 @@ final class IdleTimeoutInputStreamFuzzTest {
           count = stream.read(buffer, offset, length);
         } catch (final IndexOutOfBoundsException exception) {
           assertFalse(valid, "a valid range was refused");
+
           continue;
         }
         assertTrue(valid, () -> "an invalid range was accepted: offset " + offset + ", length " + length + " of " + buffer.length);
@@ -68,6 +69,7 @@ final class IdleTimeoutInputStreamFuzzTest {
         assertTrue(withinRange, () -> count + " bytes for a request of " + length);
         received.write(buffer, offset, count);
       }
+
       final byte[] rest = stream.readAllBytes();
       received.write(rest);
     }
@@ -99,6 +101,7 @@ final class IdleTimeoutInputStreamFuzzTest {
 
       final byte next = this.content[this.position];
       this.position++;
+
       return next & 0xFF;
     }
 
@@ -117,6 +120,7 @@ final class IdleTimeoutInputStreamFuzzTest {
       final int count = Math.min(wanted, this.content.length - this.position);
       System.arraycopy(this.content, this.position, buffer, offset, count);
       this.position += count;
+
       return count;
     }
   }

@@ -192,9 +192,11 @@ final class AudioExtractorTest {
           final String output = invocation.getArgument(1);
           final Path outputPath = Path.of(output);
           partial.set(outputPath);
+
           if (cleanupFails) {
             files.when(() -> Files.deleteIfExists(outputPath)).thenThrow(cleanupFailure);
           }
+
           return command;
         });
       final FileSource source = FileSource.path(this.directory.resolve(INPUT_FILE_NAME));

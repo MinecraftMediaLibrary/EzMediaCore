@@ -501,6 +501,7 @@ final class IoUtilsTest {
       final Path destination = root.resolve(SAFE_DIRECTORY);
 
       assertThrows(ZipEntryIntegrityException.class, () -> IoUtils.unzip(archive, destination));
+
       final Path escaped = root.resolve(ESCAPE_FILE_NAME);
       final boolean escapedExists = Files.exists(escaped);
       assertFalse(escapedExists);
@@ -839,6 +840,7 @@ final class IoUtilsTest {
       (from, to, options) -> {
         final List<CopyOption> optionList = List.of(options);
         attempts.add(optionList);
+
         if (optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
           final String rawFrom = from.toString();
           final String rawTo = to.toString();

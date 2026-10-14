@@ -96,6 +96,7 @@ final class ImageBufferPropertyTest {
       final int sourceLimit = source.limit();
       assertEquals(position, sourcePosition, "the position of the source is left alone");
       assertEquals(limit, sourceLimit, "the limit of the source is left alone");
+
       final byte[] held = readData(buffer);
       assertArrayEquals(bgr, held, "the image holds the bytes between position and limit");
 
@@ -103,6 +104,7 @@ final class ImageBufferPropertyTest {
         final byte current = source.get(index);
         source.put(index, (byte) ~current);
       }
+
       final byte[] stillHeld = readData(buffer);
       assertArrayEquals(bgr, stillHeld, "the image does not share memory with the source");
     } finally {
@@ -118,6 +120,7 @@ final class ImageBufferPropertyTest {
       final int[] pixels = buffer.getPixels();
       final byte[] bgr = readData(buffer);
       assertEquals(argb.length, pixels.length, "one pixel per pixel");
+
       for (int pixel = 0; pixel < argb.length; pixel++) {
         final int expected = argb[pixel] | OPAQUE_ALPHA;
         final int opaquePixel = pixels[pixel];
@@ -152,11 +155,13 @@ final class ImageBufferPropertyTest {
       for (int pixel = 0; pixel < changed.length; pixel++) {
         changed[pixel] = ~argb[pixel];
       }
+
       original.updateArgb(changed, width, height);
 
       final int[] copyPixels = copy.getPixels();
       assertArrayEquals(beforeValues, copyPixels, "a copy does not change with its original");
       assertArrayEquals(beforeValues, before, "the array a caller kept still holds the old pixels");
+
       final int[] after = original.getPixels();
       for (int pixel = 0; pixel < changed.length; pixel++) {
         final int expected = changed[pixel] | OPAQUE_ALPHA;
@@ -181,6 +186,7 @@ final class ImageBufferPropertyTest {
         written[index] = (byte) ~written[index];
         data.put(start + index, written[index]);
       }
+
       buffer.invalidateCache();
 
       final int[] pixels = buffer.getPixels();

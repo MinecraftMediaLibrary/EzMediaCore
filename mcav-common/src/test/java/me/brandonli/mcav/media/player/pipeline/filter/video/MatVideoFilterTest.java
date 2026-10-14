@@ -126,6 +126,7 @@ final class MatVideoFilterTest {
     final AtomicReference<OriginalVideoMetadata> received = new AtomicReference<>();
     final VideoFilter recorder = (_, metadata) -> {
       received.set(metadata);
+
       return true;
     };
     try (final ImageBuffer image = Images.indexed(IMAGE_SIDE, IMAGE_SIDE)) {
@@ -136,10 +137,13 @@ final class MatVideoFilterTest {
       assertTrue(changed);
       assertFalse(noOp, "the no-op filter leaves every frame untouched");
       assertSame(OriginalVideoMetadata.EMPTY, metadata);
+
       final ByteBuffer data = image.getData();
       assertEquals(before, data);
+
       final int width = image.getWidth();
       assertEquals(IMAGE_SIDE, width);
+
       final int height = image.getHeight();
       assertEquals(IMAGE_SIDE, height);
     }
@@ -170,6 +174,7 @@ final class MatVideoFilterTest {
       final byte[] copy = new byte[view.remaining()];
       view.get(copy);
       this.bytes = copy;
+
       return invocation;
     }
 

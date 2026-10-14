@@ -184,6 +184,7 @@ final class DeclaredImageSizeTest {
       try {
         final boolean empty = decoded.empty();
         assertFalse(empty, "OpenCV decodes the sample");
+
         return new Size(decoded.cols(), decoded.rows());
       } finally {
         decoded.release();
@@ -209,6 +210,7 @@ final class DeclaredImageSizeTest {
   private static boolean refuses(final byte[] encoded, final long limit) {
     try {
       DeclaredImageSize.checkBytes(encoded, limit);
+
       return false;
     } catch (final IllegalArgumentException exception) {
       return true;
@@ -319,6 +321,7 @@ final class DeclaredImageSizeTest {
       final List<Path> samples = seedFiles.sorted().toList();
       final int sampleCount = samples.size();
       assertEquals(10, sampleCount);
+
       for (final Path sample : samples) {
         assertDeclaresWhatOpenCvDecodes(sample.getFileName().toString(), Files.readAllBytes(sample));
       }
@@ -881,15 +884,19 @@ final class DeclaredImageSizeTest {
       System.clearProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY);
       final long defaultLimit = DeclaredImageSize.limit();
       assertEquals(67_108_864L, defaultLimit);
+
       System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "123");
       final long raisedLimit = DeclaredImageSize.limit();
       assertEquals(123L, raisedLimit);
+
       System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "a lot");
       final long fallbackLimit = DeclaredImageSize.limit();
       assertEquals(67_108_864L, fallbackLimit);
+
       final byte[] unknown = bytes(NOT_AN_IMAGE);
       System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "0");
       assertDoesNotThrow(() -> DeclaredImageSize.checkBytes(unknown));
+
       final Path missing = this.directory.resolve(MISSING_FILE_NAME);
       assertDoesNotThrow(() -> DeclaredImageSize.checkFile(missing));
     } finally {

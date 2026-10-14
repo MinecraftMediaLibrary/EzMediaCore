@@ -145,6 +145,7 @@ final class VideoRendererTest {
       rendered.add(pixels[0] & WHITE);
       rendering.countDown();
       awaitRelease(proceed);
+
       return false;
     });
   }
@@ -469,10 +470,13 @@ final class VideoRendererTest {
       if (call == 1) {
         throw runtimeFailure;
       }
+
       if (call == 2) {
         throw errorFailure;
       }
+
       third.countDown();
+
       return false;
     };
   }

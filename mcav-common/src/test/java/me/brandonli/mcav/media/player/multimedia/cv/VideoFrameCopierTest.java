@@ -191,6 +191,7 @@ final class VideoFrameCopierTest {
         for (int index = 0; index < data.capacity(); index++) {
           data.put(index, (byte) 0);
         }
+
         final int middle = horizontal ? BGR_CHANNELS : frame.imageStride;
         data.put(middle, (byte) 90);
         this.attachSize(1, 1);
@@ -212,12 +213,14 @@ final class VideoFrameCopierTest {
         for (int index = 0; index < data.capacity(); index++) {
           data.put(index, (byte) 0);
         }
+
         final int secondPixel = horizontal ? BGR_CHANNELS : frame.imageStride;
         data.put(secondPixel, (byte) 80);
         this.attachSize(horizontal ? 4 : 1, horizontal ? 1 : 4);
         final MatImageBuffer first = this.copier.copy(frame);
         final int[] actual = first.getPixels();
         assertArrayEquals(new int[] { 0xFF000000, 0xFF000014, 0xFF00003C, 0xFF000050 }, actual);
+
         this.pool.recycle(first);
         data.put(secondPixel, (byte) 0);
         try (final MatImageBuffer second = this.copier.copy(frame)) {
@@ -354,6 +357,7 @@ final class VideoFrameCopierTest {
       for (int index = 0; index < 12; index++) {
         pixels.put(index, (byte) 32);
       }
+
       frame.image = new Buffer[] { pixels };
       try (final MatImageBuffer image = this.copier.copy(frame)) {
         final int[] actual = image.getPixels();

@@ -145,6 +145,7 @@ final class HttpDownloaderTest {
     final URI unsupported = URI.create("file:///tmp/media.mp4");
     try (final MockedStatic<HttpClient> clients = Mockito.mockStatic(HttpClient.class)) {
       assertThrows(IllegalArgumentException.class, () -> HttpDownloader.openStream(unsupported));
+
       clients.verifyNoInteractions();
     }
   }
@@ -160,6 +161,7 @@ final class HttpDownloaderTest {
       final Path nested = this.directory.resolve(NESTED_DIRECTORY);
       final List<Path> partFiles = partFiles(nested);
       assertArrayEquals(CONTENT, content);
+
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
@@ -184,11 +186,13 @@ final class HttpDownloaderTest {
       final int requestsBeforeMismatch = server.getRequestCount(FILE_ROUTE);
       final String wrongHash = CONTENT_SHA256.replace('c', 'd');
       assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(uri, mismatch, wrongHash));
+
       final int requestsAfterMismatch = server.getRequestCount(FILE_ROUTE);
       final boolean mismatchExists = Files.exists(mismatch);
       final List<Path> partFiles = partFiles(this.directory);
       assertEquals(requestsBeforeMismatch + 1, requestsAfterMismatch, "a checksum mismatch is not retried");
       assertFalse(mismatchExists);
+
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, "a failed attempt leaves no partial file behind");
     }
@@ -269,9 +273,11 @@ final class HttpDownloaderTest {
       final Path destination = this.directory.resolve(EXISTING_FILE_NAME);
       Files.writeString(destination, "previous version");
       assertThrows(IOException.class, () -> HttpDownloader.download(broken, destination, null, NO_DELAY));
+
       final String content = Files.readString(destination);
       final List<Path> partFiles = partFiles(this.directory);
       assertEquals("previous version", content, "a failed download never replaces the existing file");
+
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
@@ -305,11 +311,14 @@ final class HttpDownloaderTest {
       final String message = failure.getMessage();
       final boolean namesTheLimit = message.contains("larger than the 65536 bytes");
       assertTrue(namesTheLimit, message);
+
       final boolean written = Files.exists(destination);
       assertFalse(written, "the file is published only after a complete download");
+
       final List<Path> leftovers = partFiles(this.directory);
       final boolean noLeftovers = leftovers.isEmpty();
       assertTrue(noLeftovers, leftovers::toString);
+
       final int requests = server.getRequestCount(BIG_ROUTE);
       assertEquals(1, requests, "a download that is too large is not retried");
     }
@@ -339,10 +348,13 @@ final class HttpDownloaderTest {
       HttpDownloader.download(server.uri(FILE_ROUTE), destination, sha256, CONTENT.length);
       final byte[] content = Files.readAllBytes(destination);
       assertArrayEquals(CONTENT, content);
+
       final Path big = this.directory.resolve(BIG_FILE_NAME);
       assertThrows(DownloadTooLargeException.class, () -> HttpDownloader.download(server.uri(BIG_ROUTE), big, sha256, CONTENT.length));
+
       final boolean bigKept = Files.exists(big);
       assertFalse(bigKept, "nothing larger than the pin is kept");
+
       final Path other = this.directory.resolve(OTHER_FILE_NAME);
       final String wrong = "0".repeat(64);
       assertThrows(ChecksumMismatchException.class, () -> HttpDownloader.download(server.uri(FILE_ROUTE), other, wrong, CONTENT.length));
@@ -425,15 +437,19 @@ final class HttpDownloaderTest {
           assertArrayEquals(CONTENT, content, "after a " + status);
         }
       }
+
       server.respondRedirect("/loop", 307, "/loop");
       final IOException loop = assertThrows(IOException.class, () -> openAndClosePinned(server.uri("/loop")));
       assertInstanceOf(RedirectRefusedException.class, loop);
+
       final int loopRequests = server.getRequestCount("/loop");
       assertEquals(6, loopRequests, "the first request and five redirects");
+
       server.respond("/nowhere", HTTP_FOUND, new byte[0]);
       final HttpStatusException nowhere = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/nowhere")));
       final int nowhereStatus = nowhere.getStatusCode();
       assertEquals(HTTP_FOUND, nowhereStatus);
+
       server.respondRedirect("/choices", 300, FILE_ROUTE);
       final HttpStatusException choices = assertThrows(HttpStatusException.class, () -> openAndClosePinned(server.uri("/choices")));
       final int choicesStatus = choices.getStatusCode();
@@ -518,8 +534,10 @@ final class HttpDownloaderTest {
         HttpDownloader.download(server.uri(SLOW_ROUTE), slow, CONTENT_SHA256, NO_DELAY, Duration.ofSeconds(10), CONTENT.length, deadline)
       );
       assertInstanceOf(DownloadTooSlowException.class, failure);
+
       final int requests = server.getRequestCount(SLOW_ROUTE);
       assertEquals(1, requests);
+
       final boolean slowKept = Files.exists(slow);
       assertFalse(slowKept);
     }
@@ -588,6 +606,7 @@ final class HttpDownloaderTest {
         assertEquals(CONTENT[0], first);
         assertEquals(rest.length, read);
       }
+
       final Duration shutdownLimit = Duration.ofSeconds(5);
       final boolean terminated = client.awaitTermination(shutdownLimit);
       assertTrue(terminated, "closing the stream shuts down its client");
@@ -629,13 +648,16 @@ final class HttpDownloaderTest {
         final Duration requestWait = Duration.ofSeconds(WAIT_TIMEOUT_SECONDS);
         final boolean bothArrived = server.awaitRequests(FILE_ROUTE, 2, requestWait);
         assertTrue(bothArrived, "the server did not receive the requests in time");
+
         releaseResponses.countDown();
         first.get(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         second.get(WAIT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       }
+
       final byte[] content = Files.readAllBytes(destination);
       final List<Path> partFiles = partFiles(this.directory);
       assertArrayEquals(CONTENT, content);
+
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
@@ -651,11 +673,13 @@ final class HttpDownloaderTest {
       final Path keptPath = occupied.resolve(KEPT_FILE_NAME);
       final Path kept = Files.createFile(keptPath);
       assertThrows(IOException.class, () -> HttpDownloader.download(uri, occupied, null, NO_DELAY));
+
       final int requests = server.getRequestCount(FILE_ROUTE);
       final boolean keptExists = Files.exists(kept);
       final List<Path> partFiles = partFiles(this.directory);
       assertEquals(1, requests, "a failed move is not a network failure and is not retried");
       assertTrue(keptExists);
+
       final boolean partFilesEmpty = partFiles.isEmpty();
       assertTrue(partFilesEmpty, partFiles::toString);
     }
@@ -794,9 +818,11 @@ final class HttpDownloaderTest {
       final boolean notFoundEmpty = notFound.isEmpty();
       assertEquals(expectedText, fetched);
       assertTrue(notFoundEmpty);
+
       final Thread current = Thread.currentThread();
       current.interrupt();
       assertThrows(IOException.class, () -> HttpDownloader.fetchText(text));
+
       final boolean interrupted = Thread.interrupted();
       assertTrue(interrupted);
     }

@@ -185,6 +185,7 @@ final class LinuxInstallationStrategyTest {
     return (workingDirectory, _) -> {
       final boolean leftoverStillThere = Files.exists(staleFile);
       assertFalse(leftoverStillThere);
+
       final Path directory = Objects.requireNonNull(workingDirectory, WORKING_DIRECTORY_REQUIRED);
       final Path extracted = directory.resolve(EXTRACTED_DIRECTORY);
       final Path libraryDirectory = extracted.resolve(LIBRARY_DIRECTORY);

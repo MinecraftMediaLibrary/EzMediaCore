@@ -120,10 +120,13 @@ final class MatImageBufferTest {
       assertEquals(2, width);
       assertEquals(2, height);
       assertEquals(4, count);
+
       final int blue = data.get(0) & 0xFF;
       assertEquals(0x33, blue, "blue comes first");
+
       final int green = data.get(1) & 0xFF;
       assertEquals(0x22, green);
+
       final int red = data.get(2) & 0xFF;
       assertEquals(0x11, red);
       assertArrayEquals(new double[] { 0x66, 0x55, 0x44 }, pixel);
@@ -231,9 +234,11 @@ final class MatImageBufferTest {
       final IllegalArgumentException fromBytes = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.bytes(png));
       final String bytesMessage = fromBytes.getMessage();
       assertEquals(expected, bytesMessage);
+
       final IllegalArgumentException fromFile = assertThrowsWhileOpening(IllegalArgumentException.class, () -> ImageBuffer.path(path));
       final String fileMessage = fromFile.getMessage();
       assertEquals(expected, fileMessage);
+
       System.setProperty(DeclaredImageSize.MAXIMUM_PIXELS_PROPERTY, "256");
       try (final ImageBuffer atTheLimit = ImageBuffer.bytes(png); final ImageBuffer fileAtTheLimit = ImageBuffer.path(path)) {
         final int width = atTheLimit.getWidth();
@@ -739,6 +744,7 @@ final class MatImageBufferTest {
       assertArrayEquals(new double[] { 10.0, 0.0, 0.0 }, partial);
       assertArrayEquals(new double[] { 1.0, 2.0, 3.0 }, firstColumn, "the first column and row belong to the image");
       assertEquals(0xFF8000FF, packed, "setting a pixel invalidates the packed cache");
+
       final double[] blackPixel = { 0.0, 0.0, 0.0 };
       assertThrows(IllegalArgumentException.class, () -> image.setPixel(-1, 0, blackPixel));
       assertThrows(IllegalArgumentException.class, () -> image.setPixel(3, 0, blackPixel));
@@ -821,6 +827,7 @@ final class MatImageBufferTest {
       final int width = image.getWidth();
       assertEquals(2, width, "same memory, different shape");
       assertEquals(8, afterReshape.length);
+
       mat.pop_back(1);
       final int[] afterPop = image.getPixels();
       assertEquals(6, afterPop.length, "same memory and width, fewer rows");
@@ -858,9 +865,11 @@ final class MatImageBufferTest {
       assertEquals(3, width);
       assertEquals(0xFF0A0A0A, grayPixel);
       assertTrue(previousReleased, "the matrix that was replaced is released");
+
       try (final Mat empty = new Mat()) {
         assertThrows(IllegalArgumentException.class, () -> buffer.setMat(empty));
       }
+
       assertThrows(NullPointerException.class, () -> buffer.setMat(null));
     }
   }
@@ -982,6 +991,7 @@ final class MatImageBufferTest {
       assertThrows(IllegalStateException.class, () -> buffer.transformMat((_, _) -> failTransformation()));
       assertThrows(IllegalArgumentException.class, () -> buffer.transformMat((_, _) -> leaveTargetEmpty()));
       assertThrows(IllegalArgumentException.class, () -> buffer.transformMat((_, target) -> target.create(2, 2, opencv_core.CV_8UC2)));
+
       final Mat afterFailures = buffer.getMat();
       final int[] pixels = image.getPixels();
       buffer.transformMat(opencv_core::transpose);
@@ -999,6 +1009,7 @@ final class MatImageBufferTest {
       final MatImageBuffer buffer = (MatImageBuffer) image;
       final AtomicReference<Mat> given = new AtomicReference<>();
       assertThrows(IllegalArgumentException.class, () -> buffer.transformMat((_, target) -> given.set(target)));
+
       final Mat target = given.get();
       final boolean freed = target.isNull();
       assertTrue(freed, "the matrix the operation left empty is freed rather than left to the garbage collector");
@@ -1133,6 +1144,7 @@ final class MatImageBufferTest {
       final String updatePixelsMessage = updatePixels.getMessage();
       assertEquals(expectedMessage, updateBytesMessage);
       assertEquals(expectedMessage, updatePixelsMessage);
+
       final int retainedWidth = image.getWidth();
       final int retainedHeight = image.getHeight();
       final int retainedPixel = argbAt(image, 0, 0);

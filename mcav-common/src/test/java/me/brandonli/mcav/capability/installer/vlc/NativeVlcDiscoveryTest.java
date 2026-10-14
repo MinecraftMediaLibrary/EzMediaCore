@@ -110,6 +110,7 @@ final class NativeVlcDiscoveryTest {
         if (pluginsAvailable) {
           return Path.of(directory);
         }
+
         librariesWithoutPlugins = true;
       }
     }

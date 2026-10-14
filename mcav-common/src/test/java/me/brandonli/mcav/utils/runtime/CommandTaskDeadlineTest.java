@@ -165,8 +165,10 @@ final class CommandTaskDeadlineTest {
       final boolean pidWritten = Files.exists(childPid);
       assertInstanceOf(TimeoutException.class, cause);
       assertTrue(pidWritten, "the parent must reach the inherited-pipe fixture before timing out");
+
       final boolean beforeChildEnded = elapsed < 8_000_000_000L;
       assertTrue(beforeChildEnded, "reader executor teardown must not wait for the 30-second child");
+
       final String pidText = Files.readString(childPid);
       final long pid = Long.parseLong(pidText);
       final ProcessHandle child = ProcessHandle.of(pid).orElse(null);
@@ -174,8 +176,10 @@ final class CommandTaskDeadlineTest {
         final Duration cleanupTimeout = Duration.ofSeconds(3);
         Polling.awaitCondition("the remembered child was terminated", cleanupTimeout, () -> !child.isAlive());
       }
+
       final Process parent = task.getProcess();
       assertNotNull(parent);
+
       final boolean parentAlive = parent.isAlive();
       assertFalse(parentAlive);
     } finally {
@@ -184,6 +188,7 @@ final class CommandTaskDeadlineTest {
         final long pid = Long.parseLong(pidText);
         ProcessHandle.of(pid).ifPresent(ProcessHandle::destroyForcibly);
       }
+
       final Process parent = task.getProcess();
       if (parent != null) {
         parent.destroyForcibly();

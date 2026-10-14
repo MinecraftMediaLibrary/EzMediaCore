@@ -121,9 +121,11 @@ final class VlcLoadStateTest {
       final Future<Optional<Path>> first = executor.submit(() -> state.loadOnce(slowLoader));
       final boolean entered = loaderEntered.await(5, TimeUnit.SECONDS);
       assertTrue(entered);
+
       final AtomicReference<Thread> secondThread = new AtomicReference<>();
       final Future<Optional<Path>> second = executor.submit(() -> loadRecordingThread(state, slowLoader, secondThread));
       assertSecondLoadWaits(secondThread, second);
+
       releaseLoader.countDown();
       assertLoaded(first);
       assertLoaded(second);

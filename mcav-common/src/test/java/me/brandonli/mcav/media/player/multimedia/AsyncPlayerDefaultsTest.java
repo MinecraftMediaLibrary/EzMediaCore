@@ -68,6 +68,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
@@ -84,6 +85,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }
@@ -101,6 +103,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(video, audio, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertResult(expected, common);
     }
@@ -118,6 +121,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(video, audio, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(video, audio);
       assertFailure(expected, common);
     }
@@ -134,6 +138,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.seekAsync(executor, position);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertResult(expected, common);
     }
@@ -150,6 +155,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.seekAsync(executor, position);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.seekAsync(position);
       assertFailure(expected, common);
     }
@@ -166,6 +172,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertResult(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertResult(expected, common);
     }
@@ -182,6 +189,7 @@ final class AsyncPlayerDefaultsTest {
     try (final ExecutorService executor = Executors.newSingleThreadExecutor()) {
       final CompletableFuture<Boolean> explicit = player.startAsync(source, executor);
       assertFailure(expected, explicit);
+
       final CompletableFuture<Boolean> common = player.startAsync(source);
       assertFailure(expected, common);
     }

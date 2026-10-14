@@ -254,6 +254,7 @@ public final class LocalHttpServer implements AutoCloseable {
         TimeUnit.NANOSECONDS.timedWait(this.requestSignal, remaining);
         received = this.getRequestCount(path);
       }
+
       return true;
     }
   }
@@ -370,6 +371,7 @@ public final class LocalHttpServer implements AutoCloseable {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
+
       return true;
     }
   }
@@ -384,6 +386,7 @@ public final class LocalHttpServer implements AutoCloseable {
       if (queue.size() > 1) {
         return queue.removeFirst();
       }
+
       final Response last = queue.peekFirst();
       return last == null ? new Response(NOT_FOUND_STATUS, new byte[0], null, -1) : last;
     }

@@ -85,6 +85,7 @@ final class ColorFiltersTest {
     try (final ImageBuffer image = Images.solid(SOLID_SIDE, SOLID_SIDE, argb)) {
       final boolean modified = filter.applyFilter(image);
       assertTrue(modified);
+
       return pixelAt(image, 1, 1);
     }
   }
@@ -387,6 +388,7 @@ final class ColorFiltersTest {
         final String name = type.name();
         assertTrue(modified, name);
         assertNotEquals(WHITE, center, name + " darkens the bright pixel");
+
         final boolean brightened = neighborBlue > 0;
         assertTrue(brightened, name + " brightens its neighbors");
       }

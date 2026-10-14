@@ -72,12 +72,14 @@ final class BufferedImageConversionFuzzTest {
 
     try (final ImageBuffer created = ImageBuffer.image(frame)) {
       assertSamePixels(frame, created);
+
       final BufferedImage replacement = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
       for (int row = 0; row < replacement.getHeight(); row++) {
         for (int column = 0; column < replacement.getWidth(); column++) {
           replacement.setRGB(column, row, ~frame.getRGB(column, row));
         }
       }
+
       created.setAsBufferedImage(replacement);
       assertSamePixels(replacement, created);
     }

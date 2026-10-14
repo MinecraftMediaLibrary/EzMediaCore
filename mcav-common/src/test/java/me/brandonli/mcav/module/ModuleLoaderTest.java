@@ -353,6 +353,7 @@ final class ModuleLoaderTest {
         });
         futures.add(future);
       }
+
       startGate.countDown();
       for (final Future<?> future : futures) {
         future.get(10, TimeUnit.SECONDS);

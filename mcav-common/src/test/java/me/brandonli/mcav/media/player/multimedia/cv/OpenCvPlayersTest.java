@@ -78,6 +78,7 @@ final class OpenCvPlayersTest {
       } else {
         assertInstanceOf(FFmpegFrameGrabber.class, grabber, "a build without a file backend reads the file with FFmpeg");
       }
+
       assertThrows(NullPointerException.class, () -> player.createFrameGrabber(null));
     } finally {
       player.release();
@@ -152,6 +153,7 @@ final class OpenCvPlayersTest {
     try {
       final boolean started = player.start(source);
       assertTrue(started);
+
       Polling.pollUntil(PLAYBACK_TIMEOUT, () -> frames.get() > DECODED_FRAMES_THRESHOLD);
     } finally {
       player.release();

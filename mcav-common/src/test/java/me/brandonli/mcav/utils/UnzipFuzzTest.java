@@ -60,6 +60,7 @@ final class UnzipFuzzTest {
     final Path root = Files.createTempDirectory(TEMPORARY_DIRECTORY_PREFIX);
     try {
       checkExtraction(root, root, archiveBytes);
+
       try (final FileSystem fileSystem = FileSystems.newFileSystem(root.resolve(OBSERVED_ARCHIVE_NAME), Map.of("create", "true"))) {
         final Path scope = fileSystem.getPath(ZIP_ROOT);
         final Path extractionRoot = Files.createDirectories(scope.resolve(NESTED_ROOT));

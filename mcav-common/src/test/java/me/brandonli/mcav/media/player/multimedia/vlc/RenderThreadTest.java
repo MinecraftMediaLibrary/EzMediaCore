@@ -77,9 +77,11 @@ final class RenderThreadTest {
       if (step == 1) {
         throw failure;
       }
+
       if (step == THIRD_STEP) {
         third.countDown();
       }
+
       Thread.sleep(5);
     };
   }
@@ -206,6 +208,7 @@ final class RenderThreadTest {
           // Simulate a renderer that does not stop when interrupted.
         }
       }
+
       throw new InterruptedException("released!");
     };
   }
@@ -256,6 +259,7 @@ final class RenderThreadTest {
     thread.start(idle, () -> {});
     try {
       assertThrows(IllegalStateException.class, () -> thread.start(idle, () -> {}));
+
       thread.stop();
       assertThrows(IllegalStateException.class, () -> thread.start(idle, () -> {}), "a stopped thread cannot be restarted");
     } finally {

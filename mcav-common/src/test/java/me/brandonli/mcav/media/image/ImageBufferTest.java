@@ -105,6 +105,7 @@ final class ImageBufferTest {
       view.get(read);
       assertArrayEquals(PIXELS, read);
       assertThrows(ReadOnlyBufferException.class, () -> view.put(0, WRITTEN_PIXEL));
+
       final int[] shared = image.getPixels();
       assertArrayEquals(PIXELS, shared, "a rejected write leaves the shared pixels intact");
     }

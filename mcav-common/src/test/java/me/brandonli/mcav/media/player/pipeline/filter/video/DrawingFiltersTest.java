@@ -151,6 +151,7 @@ final class DrawingFiltersTest {
       final RectangleFilter filter = new RectangleFilter(1, 1, 3, 3, WHITE);
       final boolean modified = filter.applyFilter(image);
       assertTrue(modified, "the filter reports the change, which decides whether the result is written back");
+
       final int corner = pixelAt(image, 1, 1);
       final int oppositeCorner = pixelAt(image, 3, 3);
       final int center = pixelAt(image, 2, 2);
@@ -243,6 +244,7 @@ final class DrawingFiltersTest {
       final boolean clampedModified = clamped.applyFilter(image);
       assertTrue(topLeftModified, "a region inside the frame reports the change");
       assertTrue(clampedModified, "and so does a region that only reaches into the frame");
+
       final int first = pixelAt(image, 0, 0);
       final int second = pixelAt(image, 1, 0);
       final int third = pixelAt(image, 2, 0);
@@ -265,6 +267,7 @@ final class DrawingFiltersTest {
       final boolean rightModified = right.applyFilter(image);
       final ByteBuffer afterRight = image.getData();
       assertEquals(before, afterRight);
+
       final boolean belowModified = below.applyFilter(image);
       final ByteBuffer afterBelow = image.getData();
       assertEquals(before, afterBelow);

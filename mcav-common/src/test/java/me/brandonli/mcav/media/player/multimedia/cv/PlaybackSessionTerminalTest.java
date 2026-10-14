@@ -70,16 +70,21 @@ final class PlaybackSessionTerminalTest {
       producer.start();
       final boolean retried = queue.timedOut.await(5, TimeUnit.SECONDS);
       assertTrue(retried, "the full queue must cause a real timed offer to return false");
+
       producer.interrupt();
       final boolean interruptCaught = queue.interrupted.await(5, TimeUnit.SECONDS);
       assertTrue(interruptCaught, "interrupt the bounded queue wait, not unrelated decoder work");
+
       final boolean waiting = producer.isAlive();
       assertTrue(waiting, "an interrupt must not discard the terminal marker while playback remains active");
+
       final String frame = queue.take();
       assertEquals("last decoded frame", frame, "end signalling must not discard already queued media");
+
       producer.join(1_000L);
       final boolean alive = producer.isAlive();
       assertFalse(alive, "signalling finishes once the consumer frees a queue slot");
+
       final String terminal = queue.poll();
       final boolean keptInterrupt = restoredInterrupt.get();
       assertEquals("end of media", terminal);
@@ -110,6 +115,7 @@ final class PlaybackSessionTerminalTest {
         if (!accepted) {
           this.timedOut.countDown();
         }
+
         return accepted;
       } catch (final InterruptedException exception) {
         this.interrupted.countDown();

@@ -107,6 +107,7 @@ final class CvPlayerTransitionTest {
       verify(grabber).setOption("reconnect_delay_max", "5");
       verify(grabber).setOption("fflags", "discardcorrupt+genpts");
       verify(grabber).setOption("hwaccel", "auto");
+
       if (directInput) {
         verify(grabber).setFormat("lavfi");
         verify(grabber).setOption("probesize", "32");
@@ -198,24 +199,30 @@ final class CvPlayerTransitionTest {
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
       final boolean started = player.start(source);
       assertTrue(started);
+
       final List<PlaybackSession> created = sessions.constructed();
       final PlaybackSession previous = created.getFirst();
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::pause);
         final boolean paused = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertFalse(paused, "the previous playback was detached before its renderer was joined");
+
         final boolean competing = player.start(source);
         assertFalse(competing, "a replacement retains ownership while previous workers shut down");
+
         return null;
       })
         .when(previous)
         .stop();
       final boolean replaced = player.start(source);
       assertTrue(replaced);
+
       final int sessionCount = created.size();
       assertEquals(2, sessionCount);
+
       final PlaybackSession replacement = created.getLast();
       verify(replacement).startThreads();
+
       player.release();
     }
   }
@@ -227,18 +234,21 @@ final class CvPlayerTransitionTest {
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
       final boolean started = player.start(source);
       assertTrue(started);
+
       final PlaybackSession previous = sessions.constructed().getFirst();
       when(previous.isSeekable()).thenReturn(true);
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::resume);
         final boolean resumed = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertFalse(resumed);
+
         return null;
       })
         .when(previous)
         .stop();
       final boolean seeked = player.seek(SEEK_TIME);
       assertTrue(seeked);
+
       player.release();
     }
   }
@@ -250,17 +260,21 @@ final class CvPlayerTransitionTest {
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
       final boolean started = player.start(source);
       assertTrue(started);
+
       final PlaybackSession previous = sessions.constructed().getFirst();
       when(previous.isSeekable()).thenReturn(true);
       when(previous.isPaused()).thenAnswer(_ -> {
         final boolean restarted = player.start(source);
         assertTrue(restarted);
+
         return false;
       });
       final boolean seeked = player.seek(SEEK_TIME);
       assertFalse(seeked, "a seek whose observed session was replaced must not replace the new one");
+
       final int sessionCount = sessions.constructed().size();
       assertEquals(2, sessionCount);
+
       player.release();
     }
   }
@@ -272,22 +286,27 @@ final class CvPlayerTransitionTest {
     try (final MockedConstruction<PlaybackSession> sessions = Mockito.mockConstruction(PlaybackSession.class)) {
       final boolean started = player.start(source);
       assertTrue(started);
+
       final PlaybackSession previous = sessions.constructed().getFirst();
       doAnswer(_ -> {
         final CompletableFuture<Boolean> callback = CompletableFuture.supplyAsync(player::release);
         final boolean released = callback.get(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(released);
+
         return null;
       })
         .when(previous)
         .stop();
       final boolean replaced = player.start(source);
       assertFalse(replaced);
+
       final PlaybackSession replacement = sessions.constructed().getLast();
       verify(replacement, never()).startThreads();
       verify(replacement).stop();
+
       final boolean startedAfterRelease = player.start(source);
       assertFalse(startedAfterRelease);
+
       final boolean playing = player.isPlaying();
       assertFalse(playing);
     }
@@ -302,8 +321,10 @@ final class CvPlayerTransitionTest {
         doAnswer(_ -> {
           final boolean reentered = player.start(source);
           assertFalse(reentered);
+
           final boolean released = player.release();
           assertTrue(released);
+
           return null;
         })
           .when(session)
@@ -344,11 +365,13 @@ final class CvPlayerTransitionTest {
       };
       final IntConsumer enter = value -> {
         maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
+
         if (value == firstValue) {
           // start() refuses another start until it has returned, and the session can deliver its first frame before that
           await(startReturned);
           final boolean replaced = player.start(source);
           assertTrue(replaced);
+
           restarted.countDown();
           await(releaseFirst);
         } else {
@@ -358,22 +381,26 @@ final class CvPlayerTransitionTest {
       if (audio) {
         final AudioPipelineStep recorder = AudioPipelineStep.of((samples, _) -> {
           record.accept(samples.get(0) & 0xFF);
+
           return false;
         });
         player.getAudioAttachableCallback().attach(
           AudioPipelineStep.of(recorder, (samples, _) -> {
             enter.accept(samples.get(0) & 0xFF);
+
             return false;
           })
         );
       } else {
         final VideoPipelineStep recorder = VideoPipelineStep.of((image, _) -> {
           record.accept(image.getPixels()[0] & 0xFFFFFF);
+
           return false;
         });
         player.getVideoAttachableCallback().attach(
           VideoPipelineStep.of(recorder, (image, _) -> {
             enter.accept(image.getPixels()[0] & 0xFFFFFF);
+
             return false;
           })
         );
@@ -381,14 +408,18 @@ final class CvPlayerTransitionTest {
       try {
         final boolean started = player.start(source);
         assertTrue(started);
+
         startReturned.countDown();
         final boolean wasRestarted = restarted.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(wasRestarted);
+
         final boolean enteredEarly = secondEntered.await(200, TimeUnit.MILLISECONDS);
         assertFalse(enteredEarly, "the replacement entered a pipeline still processing the old session");
+
         releaseFirst.countDown();
         final boolean bothDelivered = delivered.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(bothDelivered);
+
         final int concurrentDeliveries = maximum.get();
         assertEquals(1, concurrentDeliveries);
         assertEquals(List.of(firstValue, secondValue), colors, "the replacement must be delivered after the old session");
@@ -409,10 +440,12 @@ final class CvPlayerTransitionTest {
     final AtomicInteger delivered = new AtomicInteger();
     final VideoPipelineStep picture = VideoPipelineStep.of((_, _) -> {
       delivered.incrementAndGet();
+
       return false;
     });
     final AudioPipelineStep samples = AudioPipelineStep.of((_, _) -> {
       delivered.incrementAndGet();
+
       return false;
     });
     when(video.retrieve()).thenAnswer(_ -> {
@@ -446,12 +479,15 @@ final class CvPlayerTransitionTest {
           session.start();
           final boolean pipelineRetrieved = retrieved.await(LATCH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
           assertTrue(pipelineRetrieved, "the renderer must retrieve its pipeline");
+
           stopper.start();
           Polling.awaitCondition("the session stops", Duration.ofSeconds(10), () -> !session.isActive());
         }
+
         stopper.join(10_000);
         final boolean stopperAlive = stopper.isAlive();
         assertFalse(stopperAlive, "stopping must join the released renderer");
+
         final int deliveredFrames = delivered.get();
         assertEquals(0, deliveredFrames, "an ended session cannot deliver a frame that was waiting for its pipeline");
         assertEquals(List.of(), failures);

@@ -338,6 +338,7 @@ final class PlaybackSessionTest {
     try {
       final Exception reported = failure.get();
       assertEquals(null, reported);
+
       final List<Thread> threads = Thread.getAllStackTraces()
         .keySet()
         .stream()
@@ -345,6 +346,7 @@ final class PlaybackSessionTest {
         .toList();
       final boolean noThreads = threads.isEmpty();
       assertFalse(noThreads, "the session runs its threads");
+
       for (final Thread thread : threads) {
         final boolean daemon = thread.isDaemon();
         assertTrue(daemon, thread.getName() + " would keep the JVM alive");
@@ -766,6 +768,7 @@ final class PlaybackSessionTest {
       if (frameNumber == 1) {
         now.addAndGet(300_000_000L);
       }
+
       return true;
     });
     final Timing controlled = new Timing(PlaybackSession.AUDIO_LEAD_NANOSECONDS, PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS, now::get);
@@ -866,6 +869,7 @@ final class PlaybackSessionTest {
         final Thread currentThread = Thread.currentThread();
         currentThread.interrupt();
       }
+
       return true;
     };
   }
@@ -912,6 +916,7 @@ final class PlaybackSessionTest {
       own.stop();
       final long stopEnd = System.nanoTime();
       stopNanoseconds.set(stopEnd - stopStart);
+
       return true;
     };
   }
@@ -1000,6 +1005,7 @@ final class PlaybackSessionTest {
       entered.countDown();
       final boolean released = Uninterruptibles.awaitUninterruptibly(releaseFailure, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(released);
+
       try {
         return invocation.callRealMethod();
       } catch (final FrameGrabber.Exception exception) {
@@ -1017,18 +1023,23 @@ final class PlaybackSessionTest {
       awaitCondition("the decoder entered grab or closed", () -> entered.getCount() == 0 || grabber.isClosed());
       final long remainingEntries = entered.getCount();
       assertEquals(0, remainingEntries, "the late failure must be in progress before stopping");
+
       stopper.start();
       awaitCondition("the session stopped accepting reports", () -> !session.isActive());
       releaseFailure.countDown();
       stopper.join(TIMEOUT_MILLISECONDS);
       final boolean stopperAlive = stopper.isAlive();
       assertFalse(stopperAlive, "stop waited for the decoder");
+
       final Throwable stopThrown = stopFailure.get();
       assertEquals(null, stopThrown);
+
       final boolean grabberClosed = grabber.isClosed();
       assertTrue(grabberClosed);
+
       final Throwable decoderThrown = thrown.get();
       assertSame(lateFailure, decoderThrown, "the decoder actually threw after stop");
+
       final int remainingSteps = grabber.getRemainingSteps();
       assertEquals(0, remainingSteps);
       assertEquals(List.of(), this.reports);
@@ -1044,6 +1055,7 @@ final class PlaybackSessionTest {
     final AtomicReference<OriginalAudioMetadata> audioMetadata = new AtomicReference<>();
     this.onAudio((_, metadata) -> {
       audioMetadata.set(metadata);
+
       return true;
     });
     final Frame sound = ScriptedFrameGrabber.audio(0L);
@@ -1081,6 +1093,7 @@ final class PlaybackSessionTest {
       final byte[] bytes = new byte[remaining];
       view.get(bytes);
       received.set(bytes);
+
       return true;
     });
     final Frame chunk = ScriptedFrameGrabber.audio(0L);
@@ -1213,6 +1226,7 @@ final class PlaybackSessionTest {
     final BooleanSupplier renderedThenStopped = () -> {
       final DecodedVideoFrame polled = queue.poll();
       taken.set(polled);
+
       return false;
     };
     PlaybackSession.queueFrame(queue, frame, renderedThenStopped);
@@ -1322,6 +1336,7 @@ final class PlaybackSessionTest {
       final Thread renderer = Thread.currentThread();
       rendererHolder.set(renderer);
       renderer.interrupt();
+
       return true;
     });
     final List<Object> pictures = frames(20, FRAME_MICROSECONDS);
@@ -1351,6 +1366,7 @@ final class PlaybackSessionTest {
       final Thread renderer = Thread.currentThread();
       rendererHolder.set(renderer);
       renderer.interrupt();
+
       return true;
     });
     final List<Object> sounds = new ArrayList<>();
@@ -1380,6 +1396,7 @@ final class PlaybackSessionTest {
       rendererHolder.set(renderer);
       final PlaybackSession own = holder.get();
       own.stop();
+
       return true;
     });
     final List<Object> sounds = new ArrayList<>();

@@ -64,6 +64,7 @@ final class FormatModelTest {
   private static UrlParseDump fixture() throws IOException {
     try (final InputStream stream = FormatModelTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
+
       final byte[] bytes = stream.readAllBytes();
       final String json = new String(bytes, StandardCharsets.UTF_8);
       final Gson gson = GsonProvider.getSimple();

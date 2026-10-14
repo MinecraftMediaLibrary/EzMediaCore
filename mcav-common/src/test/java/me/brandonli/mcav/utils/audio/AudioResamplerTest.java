@@ -227,6 +227,7 @@ final class AudioResamplerTest {
         final byte[] converted = resampler.resample(chunk);
         chunked = concat(chunked, converted);
       }
+
       final byte[] remaining = resampler.flush();
       chunked = concat(chunked, remaining);
     }
@@ -244,6 +245,7 @@ final class AudioResamplerTest {
       final int remainingFrames = remaining.length / Short.BYTES;
       final boolean heldBack = convertedFrames < 1_600;
       assertTrue(heldBack, "the resampler must hold back look-ahead samples");
+
       final boolean anyHeldBack = remainingFrames > 0;
       assertTrue(anyHeldBack, "flush must return the held back samples");
       assertWithin(1_600, convertedFrames + remainingFrames, 1);
@@ -302,6 +304,7 @@ final class AudioResamplerTest {
         final short[] samples = toShorts(converted);
         final int loudest = peak(samples, 0, samples.length);
         assertEquals(2 * channels, samples.length, "channels: " + channels);
+
         final boolean quiet = loudest <= 8_000;
         assertTrue(quiet, "channels: " + channels + ", peak: " + loudest);
       }

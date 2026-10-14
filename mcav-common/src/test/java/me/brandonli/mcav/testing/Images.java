@@ -58,6 +58,7 @@ public final class Images {
    */
   public static ImageBuffer solid(final int width, final int height, final int argb) {
     checkDimensions(width, height);
+
     final int[] pixels = new int[width * height];
     Arrays.fill(pixels, argb);
     return ImageBuffer.buffer(pixels, width, height);
@@ -73,6 +74,7 @@ public final class Images {
    */
   public static ImageBuffer noise(final int width, final int height, final long seed) {
     checkDimensions(width, height);
+
     final Random random = new Random(seed);
     final int[] pixels = new int[width * height];
     for (int index = 0; index < pixels.length; index++) {
@@ -105,6 +107,7 @@ public final class Images {
    */
   public static int[] indexedPixels(final int width, final int height) {
     checkDimensions(width, height);
+
     final int count = width * height;
     final int[] pixels = new int[count];
     for (int index = 0; index < count; index++) {
@@ -129,6 +132,7 @@ public final class Images {
     try (final ByteArrayOutputStream output = new ByteArrayOutputStream()) {
       final boolean written = ImageIO.write(image, format, output);
       Preconditions.checkArgument(written, "Format %s cannot be written by ImageIO!", format);
+
       return output.toByteArray();
     } catch (final IOException exception) {
       throw new UncheckedIOException(exception);
@@ -157,8 +161,10 @@ public final class Images {
         for (final int color : colors) {
           writeGifFrame(writer, width, height, delayInHundredths, color);
         }
+
         writer.endWriteSequence();
       }
+
       return output.toByteArray();
     } catch (final IOException exception) {
       throw new UncheckedIOException(exception);

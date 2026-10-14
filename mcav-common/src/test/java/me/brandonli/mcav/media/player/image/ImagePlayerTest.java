@@ -145,12 +145,14 @@ final class ImagePlayerTest {
       final float frameRate = metadata.getVideoFrameRate();
       assertEquals(16, width);
       assertEquals(QUICK_FRAME_RATE, frameRate);
+
       final long now = System.nanoTime();
       times.add(now);
       final int count = consumed.incrementAndGet();
       if (count == 5) {
         throw new IllegalStateException("a failing filter is reported, not fatal!");
       }
+
       return true;
     };
   }
@@ -188,14 +190,17 @@ final class ImagePlayerTest {
     final BlockingQueue<ImageBuffer> delivered = new LinkedBlockingQueue<>();
     attach(player, (image, _) -> {
       delivered.offer(image);
+
       return false;
     });
     final FrameSource source = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
     try {
       final boolean started = player.start(source);
       assertTrue(started);
+
       final ImageBuffer image = delivered.poll(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertNotNull(image);
+
       player.release();
       assertThrows(IllegalStateException.class, image::getPixels);
     } finally {
@@ -245,6 +250,7 @@ final class ImagePlayerTest {
       times.add(now);
       consumed.incrementAndGet();
       workSlowly();
+
       return true;
     });
 
@@ -266,17 +272,20 @@ final class ImagePlayerTest {
     final ImagePlayer player = new ThreadedImagePlayer(clock::get, clock::addAndGet);
     attach(player, (_, _) -> {
       starts.add(clock.get());
+
       if (starts.size() == 1) {
         clock.addAndGet(60_000_000L);
       } else if (starts.size() == 3) {
         player.release();
         finished.countDown();
       }
+
       return true;
     });
     try {
       final boolean started = player.start(solidFrames(LARGE_FRAME_SIZE, LARGE_FRAME_SIZE, FAST_FRAME_RATE));
       assertTrue(started);
+
       final boolean rendered = finished.await(RENDER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(rendered, "three controlled frames are rendered");
       assertEquals(List.of(0L, 60_000_000L, 70_000_000L), starts);
@@ -301,13 +310,16 @@ final class ImagePlayerTest {
         player.release();
         finished.countDown();
       }
+
       return true;
     });
     try {
       final boolean started = player.start(solidFrames(LARGE_FRAME_SIZE, LARGE_FRAME_SIZE, FAST_FRAME_RATE));
       assertTrue(started);
+
       final boolean rendered = finished.await(RENDER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(rendered, "two controlled frames are rendered");
+
       player.release();
 
       final boolean parkedForNothing = parks.contains(0L);
@@ -325,6 +337,7 @@ final class ImagePlayerTest {
       while (System.nanoTime() < end) {
         Thread.onSpinWait();
       }
+
       return true;
     });
     final FrameSource source = solidFrames(SMALL_FRAME_SIZE, SMALL_FRAME_SIZE, FRAME_RATE);
@@ -501,6 +514,7 @@ final class ImagePlayerTest {
       final Thread worker = frameThread();
       assertTrue(started);
       assertNotNull(worker, "the player delivers its frames on a thread of its own");
+
       final boolean isDaemon = worker.isDaemon();
       assertTrue(isDaemon, "the frame thread never keeps the JVM alive");
     } finally {
@@ -554,6 +568,7 @@ final class ImagePlayerTest {
       final int[] pixels = image.getPixels();
       final int pixel = pixels[0];
       seen.add(pixel);
+
       return true;
     });
 

@@ -102,10 +102,12 @@ public final class GeneratedMedia {
       log = Files.createTempFile(parent, TEMPORARY_FILE_PREFIX, LOG_EXTENSION);
       final List<String> arguments = command.apply(temporary);
       runProcess(arguments, log, timeout);
+
       if (!Files.isRegularFile(temporary) || Files.size(temporary) == 0) {
         final String message = "Fixture command %s succeeded without producing nonempty media!".formatted(arguments);
         throw new IOException(message);
       }
+
       publish(temporary, destination);
       COMPLETED.add(destination);
       return destination;
@@ -150,12 +152,14 @@ public final class GeneratedMedia {
           break;
         }
       }
+
       final int code = process.exitValue();
       if (code != 0) {
         final String diagnostic = readLog(log);
         final String message = "Fixture command failed with exit code %s and the diagnostic \"%s\"!".formatted(code, diagnostic);
         throw new IOException(message);
       }
+
       successful = true;
     } finally {
       if (!successful) {

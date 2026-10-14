@@ -119,6 +119,7 @@ final class DependencyLoaderTest {
     final String pathsFirst;
     try {
       assertDoesNotThrow(() -> loader.loadModules());
+
       pathsFirst = System.getProperty(PATHS_FIRST);
     } finally {
       restoreProperty(PATHS_FIRST, previousPathsFirst);
@@ -206,6 +207,7 @@ final class DependencyLoaderTest {
       } else {
         System.setProperty(DependencyLoader.OPENCV_THREADS_PROPERTY, previous);
       }
+
       DependencyLoader.configureOpenCvThreads();
     }
   }
@@ -410,6 +412,7 @@ final class DependencyLoaderTest {
             prepareProgram(loader, capability, () -> {
               entered.countDown();
               Uninterruptibles.awaitUninterruptibly(finish);
+
               if (latestSucceeds) {
                 throw new IllegalStateException("old failure!");
               }
@@ -420,6 +423,7 @@ final class DependencyLoaderTest {
         try {
           final boolean enteredInTime = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
           assertTrue(enteredInTime);
+
           older.interrupt();
           prepareProgram(loader, capability, () -> {
             if (!latestSucceeds) {
@@ -429,6 +433,7 @@ final class DependencyLoaderTest {
           finish.countDown();
           final boolean olderEnded = older.join(Duration.ofSeconds(TIMEOUT_SECONDS));
           assertTrue(olderEnded);
+
           final boolean capable = loader.hasCapability(capability);
           assertEquals(latestSucceeds, capable, capability + " keeps the newest preparation outcome");
         } finally {
@@ -457,6 +462,7 @@ final class DependencyLoaderTest {
       } catch (final IOException exception) {
         throw new AssertionError(exception);
       }
+
       loader.installYtdlp(installer);
     }
   }

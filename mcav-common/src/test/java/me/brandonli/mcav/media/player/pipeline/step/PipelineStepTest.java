@@ -53,6 +53,7 @@ final class PipelineStepTest {
     final VideoFilter first = (buffer, videoMetadata) -> {
       assertSame(image, buffer);
       assertSame(metadata, videoMetadata);
+
       return calls.add("first");
     };
     final VideoPipelineStep last = VideoPipelineStep.of(second);
@@ -79,6 +80,7 @@ final class PipelineStepTest {
       final int position = samples.position();
       positions.add(position);
       samples.getInt();
+
       return true;
     };
     final AudioPipelineStep last = AudioPipelineStep.of(consuming);
@@ -102,11 +104,13 @@ final class PipelineStepTest {
     final ImageBuffer image = mock(ImageBuffer.class);
     final VideoFilter untouchedVideo = (_, _) -> {
       calls.add("video left untouched");
+
       return false;
     };
     final VideoFilter nextVideo = (_, _) -> calls.add("next video filter");
     final AudioFilter untouchedAudio = (_, _) -> {
       calls.add("audio left untouched");
+
       return false;
     };
     final AudioFilter nextAudio = (_, _) -> calls.add("next audio filter");

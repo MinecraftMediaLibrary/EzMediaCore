@@ -76,14 +76,19 @@ final class FramePixelsPropertyTest {
       final byte[] expected = Arrays.copyOf(pixels, destination.length);
       Arrays.fill(expected, pixels.length, expected.length, SENTINEL);
       assertArrayEquals(expected, destination, "only compact pixels are written, starting at target index zero");
+
       final int targetPosition = target.position();
       assertEquals(1, targetPosition);
+
       final int targetLimit = target.limit();
       assertEquals(2, targetLimit);
+
       final int sourcePositionAfterCopy = source.position();
       assertEquals(sourcePosition, sourcePositionAfterCopy);
+
       final int sourceLimit = source.limit();
       assertEquals(stride * height, sourceLimit);
+
       final ByteBuffer allocated = FramePixels.copyBgr(frame);
       final byte[] copy = new byte[allocated.remaining()];
       allocated.get(copy);

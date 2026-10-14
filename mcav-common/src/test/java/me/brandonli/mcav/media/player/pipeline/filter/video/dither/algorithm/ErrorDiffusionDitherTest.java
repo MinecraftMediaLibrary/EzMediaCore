@@ -103,6 +103,7 @@ final class ErrorDiffusionDitherTest {
     try (final ImageBuffer image = ImageBuffer.buffer(source, 2, 1)) {
       final byte[] ditheredIndices = dither.ditherIntoBytes(image);
       assertArrayEquals(new byte[] { 0, 1 }, ditheredIndices);
+
       final int[] untouchedPixels = image.getPixels();
       assertArrayEquals(new int[] { 0xFF646464, 0xFF646464 }, untouchedPixels);
     }
@@ -122,11 +123,15 @@ final class ErrorDiffusionDitherTest {
           leftWhite += indices[row * WIDTH];
           rightWhite += indices[row * WIDTH + WIDTH - 1];
         }
+
         assertEquals(pixels.length, indices.length);
+
         final boolean balanced = ratio > 0.45 && ratio < 0.55;
         assertTrue(balanced, algorithm + " ratio " + ratio);
+
         final boolean leftMostlyBlack = leftWhite < HEIGHT / 4;
         assertTrue(leftMostlyBlack, algorithm + " left edge");
+
         final boolean rightMostlyWhite = rightWhite > (HEIGHT * 3) / 4;
         assertTrue(rightMostlyWhite, algorithm + " right edge");
       }

@@ -191,6 +191,7 @@ final class BackgroundInstallationTest {
         final boolean released = Uninterruptibles.awaitUninterruptibly(finish, WAIT_SECONDS, TimeUnit.SECONDS);
         assertTrue(released);
       }
+
       return null;
     })
       .when(this.dependencies)
@@ -216,12 +217,14 @@ final class BackgroundInstallationTest {
     try {
       final boolean receivedInterrupt = interrupted.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(receivedInterrupt);
+
       final boolean returnedBeforeCleanup = cancelled.await(100, TimeUnit.MILLISECONDS);
       assertFalse(returnedBeforeCleanup, "the cancellation budget lets a worker finish cleanup");
     } finally {
       finish.countDown();
       final boolean ended = cancelling.join(Duration.ofSeconds(WAIT_SECONDS));
       assertTrue(ended);
+
       joinAll(installation);
     }
   }
@@ -301,12 +304,15 @@ final class BackgroundInstallationTest {
       oldInstallation.start();
       final boolean oldHasStarted = oldStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(oldHasStarted);
+
       oldInstallation.cancel();
       final boolean oldReady = await(oldInstallation, Capability.VLC);
       assertFalse(oldReady);
+
       newInstallation.start();
       final boolean newWasRecorded = newRecorded.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(newWasRecorded);
+
       oldFinish.countDown();
       joinAll(oldInstallation);
       newFinish.countDown();
@@ -366,6 +372,7 @@ final class BackgroundInstallationTest {
       vlcStarted.countDown();
       final boolean finished = finishVlc.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(finished);
+
       return null;
     };
     final Stubber stubber = Mockito.doAnswer(blocking);
@@ -378,6 +385,7 @@ final class BackgroundInstallationTest {
       vlcStarted.countDown();
       final boolean finished = Uninterruptibles.awaitUninterruptibly(finishVlc, WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(finished);
+
       return null;
     };
     final Stubber stubber = Mockito.doAnswer(ignoringInterrupts);

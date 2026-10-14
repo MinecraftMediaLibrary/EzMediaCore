@@ -98,6 +98,7 @@ final class DynamicImageBufferTest {
     final FileSource source = FileSource.path(gif);
     try (final DynamicImageBuffer animation = DynamicImageBuffer.path(source)) {
       assertEveryFrameHasItsColor(animation);
+
       final List<ImageBuffer> frames = animation.getFrames();
       final ImageBuffer second = animation.getFrame(1);
       final int[] secondPixels = second.getPixels();

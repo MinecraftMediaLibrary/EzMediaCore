@@ -87,6 +87,7 @@ final class VlcTestFrames {
     return (image, metadata) -> {
       final RecordedFrame frame = new RecordedFrame(image, metadata);
       frames.add(frame);
+
       return false;
     };
   }

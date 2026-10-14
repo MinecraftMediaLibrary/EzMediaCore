@@ -198,6 +198,7 @@ final class CommandTaskTest {
       final Future<String> failedOutput = CompletableFuture.failedFuture(new IOException("broken pipe!"));
       final Future<String> errorOutput = CompletableFuture.completedFuture("");
       assertThrows(IOException.class, () -> task.awaitCompletion(shell, failedOutput, errorOutput, null));
+
       final boolean ended = sleeper.onExit().completeOnTimeout(null, EXIT_TIMEOUT_SECONDS, TimeUnit.SECONDS).join() != null;
       assertTrue(ended, "the sleep the shell left running is ended with it");
     } finally {
@@ -343,6 +344,7 @@ final class CommandTaskTest {
     public Stream<ProcessHandle> descendants() {
       if (!this.looked) {
         this.looked = true;
+
         return Stream.empty();
       }
 

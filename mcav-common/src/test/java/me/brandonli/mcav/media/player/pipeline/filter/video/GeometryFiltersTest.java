@@ -68,11 +68,14 @@ final class GeometryFiltersTest {
       if (!changed) {
         final ByteBuffer imageData = image.getData();
         assertEquals(before, imageData);
+
         final int imageWidth = image.getWidth();
         assertEquals(SQUARE_SIDE, imageWidth);
+
         final int imageHeight = image.getHeight();
         assertEquals(SQUARE_SIDE, imageHeight);
       }
+
       return changed;
     }
   }

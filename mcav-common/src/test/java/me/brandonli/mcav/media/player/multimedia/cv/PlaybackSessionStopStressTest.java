@@ -282,6 +282,7 @@ final class PlaybackSessionStopStressTest {
           ? null
           : () -> {
               this.audioOpened.set(true);
+
               return audio;
             };
       return new PlaybackSession(

@@ -328,6 +328,7 @@ final class VlcPlaybackTest {
     try {
       final OutOfMemoryError thrown = assertThrows(OutOfMemoryError.class, playback::stop);
       assertSame(failure, thrown);
+
       final MockVlc.Player second = this.vlc.player(1);
       final EmbeddedMediaPlayer secondPlayer = second.getPlayer();
       verify(secondPlayer, never()).release();
@@ -347,6 +348,7 @@ final class VlcPlaybackTest {
     try {
       final boolean playbackStarted = started.get();
       assertTrue(playbackStarted);
+
       final List<Thread> synchronizers = Thread.getAllStackTraces()
         .keySet()
         .stream()
@@ -354,6 +356,7 @@ final class VlcPlaybackTest {
         .toList();
       final boolean noneRunning = synchronizers.isEmpty();
       assertFalse(noneRunning, "the synchronizer runs");
+
       for (final Thread thread : synchronizers) {
         final boolean daemon = thread.isDaemon();
         assertTrue(daemon, "the synchronizer would keep the JVM alive");
@@ -376,6 +379,7 @@ final class VlcPlaybackTest {
     final ControlsApi controls = videoPlayer.getControls();
     try {
       verify(controls, timeout(3_000L).atLeastOnce()).setTime(3_000L);
+
       final boolean synchronizerAlive = isThreadAlive(SYNCHRONIZER_THREAD_NAME);
       assertTrue(started);
       assertTrue(synchronizerAlive);

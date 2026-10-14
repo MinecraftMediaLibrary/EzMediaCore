@@ -88,6 +88,7 @@ final class YtdlpReleaseProcessTest {
         );
         final boolean didNotFinish = failure.getMessage().startsWith("yt-dlp --version did not finish");
         assertTrue(didNotFinish);
+
         final boolean alive = process.isAlive();
         assertFalse(alive, "the deadline must reap its child");
       });
@@ -104,6 +105,7 @@ final class YtdlpReleaseProcessTest {
     try {
       final String version = YtdlpReleaseTest.runVersion(process, Duration.ofSeconds(10));
       assertEquals(VERSION, version);
+
       final boolean alive = process.isAlive();
       assertFalse(alive);
     } finally {

@@ -116,6 +116,7 @@ final class FfmpegPlayerTest {
       if (sampleRate == AudioFilter.SAMPLE_RATE) {
         audioBytes.addAndGet(remaining);
       }
+
       return true;
     };
   }
@@ -181,9 +182,11 @@ final class FfmpegPlayerTest {
     try {
       final boolean started = player.start(source);
       assertTrue(started);
+
       await("frames arrived", () -> frames.get() > 10);
       assertPausingHoldsTheFrames(player, frames);
       assertResumingAndSeekingPlayOn(player, frames);
+
       awaitEnd(player);
       assertScaledAndStartsAgainOnlyWhenStartedAgain(player, source, width);
     } finally {
@@ -253,6 +256,7 @@ final class FfmpegPlayerTest {
     try {
       final boolean started = player.start(video, audio);
       assertTrue(started);
+
       await("frames arrived", () -> frames.get() > 20);
       await("audio of the separate source arrived", () -> audioBytes.get() > 150_000);
     } finally {
@@ -280,6 +284,7 @@ final class FfmpegPlayerTest {
       final boolean noErrors = errors.isEmpty();
       assertTrue(started);
       assertEquals(0, frameCount);
+
       final boolean audioPlayed = bytes > 300_000;
       assertTrue(audioPlayed, "audio " + bytes);
       assertTrue(noErrors, "audio files must play: " + errors);
@@ -303,6 +308,7 @@ final class FfmpegPlayerTest {
       final int frameCount = frames.get();
       final int lastWidth = width.get();
       assertTrue(started);
+
       final boolean framesPlayed = frameCount > 20;
       assertTrue(framesPlayed, "frames " + frameCount);
       assertEquals(64, lastWidth);

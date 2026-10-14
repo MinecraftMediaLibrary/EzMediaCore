@@ -555,6 +555,7 @@ final class PlaybackSessionFailureTest {
       final long elapsed = System.nanoTime() - before;
       final boolean active = playback.isActive();
       assertFalse(active);
+
       final boolean stoppedQuickly = elapsed < 1_000_000_000L;
       assertTrue(stoppedQuickly, "terminal marker wait must end when stop takes ownership");
     } finally {

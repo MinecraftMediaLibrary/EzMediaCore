@@ -504,6 +504,7 @@ final class AbstractInstallerTest {
           if (permissionAttempts.getAndIncrement() == 0) {
             throw new UncheckedIOException(new IOException("temporary permission failure!"));
           }
+
           return invocation.callRealMethod();
         });
       assertThrows(IOException.class, () -> first.download(true));

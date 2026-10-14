@@ -58,6 +58,7 @@ final class SourceDetectionFuzzTest {
         final int index = device.getDeviceId();
         final boolean validIndex = index >= 0;
         assertTrue(validIndex, () -> "device " + index + " from '" + resource + "'");
+
         final int written = Integer.parseInt(resource);
         assertEquals(written, index, "a device is the number that was written");
       }

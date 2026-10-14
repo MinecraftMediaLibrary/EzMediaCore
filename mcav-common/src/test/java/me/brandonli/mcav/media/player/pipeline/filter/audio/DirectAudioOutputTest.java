@@ -80,6 +80,7 @@ final class DirectAudioOutputTest {
       assertEquals(2, channels);
       assertEquals(AudioFormat.Encoding.PCM_SIGNED, encoding);
       assertEquals((48_000 * 4) / 5, bufferSize);
+
       opened.incrementAndGet();
       return line;
     });

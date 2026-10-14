@@ -231,6 +231,7 @@ final class YtdlpInstallerTest {
       assertEquals(expected, installed);
       assertArrayEquals(LAUNCHER, launcher);
       assertArrayEquals(LIBRARY, libraryContent);
+
       this.assertOnlyTheUnpackedFolderIsLeft();
       assertExecutableOnPosix(installed);
     }
@@ -294,6 +295,7 @@ final class YtdlpInstallerTest {
       assertFalse(leftoverCopied, "stale extraction files must not be promoted into the new installation");
       assertFalse(staleLeft);
       assertTrue(installedExists);
+
       this.assertOnlyTheUnpackedFolderIsLeft();
     }
   }

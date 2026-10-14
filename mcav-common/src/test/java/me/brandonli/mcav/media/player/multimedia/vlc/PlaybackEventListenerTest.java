@@ -87,6 +87,7 @@ final class PlaybackEventListenerTest {
         final Thread current = Thread.currentThread();
         current.interrupt();
       }
+
       returned.set(true);
     });
     waiter.start();
@@ -145,6 +146,7 @@ final class PlaybackEventListenerTest {
     try {
       final boolean reported = reporting.await(10, TimeUnit.SECONDS);
       assertTrue(reported, "the opening error reached its handler");
+
       final boolean openedAtTimeout = this.listener.awaitOpened(0);
       assertFalse(openedAtTimeout, "a known failure cannot become a successful open at the timeout");
     } finally {

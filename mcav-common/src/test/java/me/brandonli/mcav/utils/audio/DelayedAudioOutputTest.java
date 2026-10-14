@@ -186,9 +186,11 @@ class DelayedAudioOutputTest {
           if (samples.get(0) == 1) {
             throw new IllegalStateException("filter broke!");
           }
+
           final byte[] copy = new byte[samples.remaining()];
           samples.get(copy);
           heard.add(copy);
+
           return true;
         }),
       (message, failure) -> {
@@ -219,10 +221,12 @@ class DelayedAudioOutputTest {
           if (samples.get(0) == 1) {
             throw new IllegalStateException("filter failed!");
           }
+
           final byte[] copy = new byte[samples.remaining()];
           samples.get(copy);
           heard.set(copy);
           settled.countDown();
+
           return true;
         }),
       (message, failure) -> {
@@ -238,10 +242,13 @@ class DelayedAudioOutputTest {
       failing.accept(new byte[] { 2, 3, 4, 5 }, AudioFilter.FRAME_SIZE);
       final boolean observed = settled.await(AWAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(observed, "delivery or an escaped failure must be observed");
+
       final Throwable escapedFailure = escaped.get();
       assertNull(escapedFailure, "a recoverable reporting error must stay inside the delivery boundary");
+
       final byte[] heardSamples = heard.get();
       assertArrayEquals(new byte[] { 2, 3, 4, 5 }, heardSamples);
+
       final boolean alive = failing.getThread().isAlive();
       assertTrue(alive);
     } finally {
@@ -264,8 +271,10 @@ class DelayedAudioOutputTest {
           if (samples.get(0) == 1) {
             throw new IllegalStateException("filter failed!");
           }
+
           continued.set(true);
           settled.countDown();
+
           return true;
         }),
       (message, failure) -> {
@@ -281,10 +290,13 @@ class DelayedAudioOutputTest {
       failing.accept(new byte[] { 2, 0, 0, 0 }, AudioFilter.FRAME_SIZE);
       final boolean observed = settled.await(AWAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(observed, "the failure or the next chunk must be observed");
+
       final Throwable escapedFailure = escaped.get();
       assertSame(reportFailure, escapedFailure, "a fatal reporting error must reach the thread's uncaught handler");
+
       final boolean delivered = continued.get();
       assertFalse(delivered, "a fatal reporting error ends delivery before the next chunk");
+
       failing.getThread().join(JOIN_MILLISECONDS);
       final boolean alive = failing.getThread().isAlive();
       assertFalse(alive);
@@ -303,6 +315,7 @@ class DelayedAudioOutputTest {
           final long start = System.nanoTime();
           self.get().close();
           closeNanoseconds.set(System.nanoTime() - start);
+
           return true;
         }),
       (message, failure) -> this.failures.add(message)
@@ -361,6 +374,7 @@ class DelayedAudioOutputTest {
           } catch (final InterruptedException exception) {
             interrupted.set(true);
           }
+
           return true;
         }),
       (message, failure) -> this.failures.add(message),
@@ -762,8 +776,10 @@ class DelayedAudioOutputTest {
       this.output.accept(new byte[BYTES_PER_MILLISECOND], BYTES_PER_MILLISECOND);
       final int queuedBytes = this.output.getQueuedBytes();
       assertEquals(BYTES_PER_MILLISECOND, queuedBytes, "the oldest chunk must be evicted before the counter wraps");
+
       final int queueSize = ((Deque<?>) queue).size();
       assertEquals(1, queueSize);
+
       final boolean containsChunk = ((Deque<?>) queue).contains(chunk);
       assertFalse(containsChunk);
     }
@@ -813,6 +829,7 @@ class DelayedAudioOutputTest {
       waitUntil(() -> this.processed.size() == 1);
       final byte firstSample = this.processed.getFirst()[0];
       assertEquals(7, firstSample, "no delay hands the samples over at once");
+
       immediate.accept(new byte[400], 400);
       final boolean withinOneMillisecond = immediate.getQueuedBytes() <= BYTES_PER_MILLISECOND;
       assertTrue(withinOneMillisecond, "1 ms holds 48 frames of 4 bytes");

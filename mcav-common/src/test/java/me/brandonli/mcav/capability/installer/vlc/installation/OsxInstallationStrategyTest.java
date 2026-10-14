@@ -308,6 +308,7 @@ final class OsxInstallationStrategyTest {
         final String message = "Command %s failed!".formatted(commandLine);
         throw new IOException(message);
       }
+
       final String tool = arguments[0];
       final boolean copy = tool.equals("cp");
       if (copy) {

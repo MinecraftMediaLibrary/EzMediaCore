@@ -44,6 +44,7 @@ public final class OpenCvModules {
 
     try {
       Loader.load(preset);
+
       return true;
     } catch (final LinkageError exception) {
       return false;

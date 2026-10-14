@@ -63,6 +63,7 @@ final class ImagePlayerShutdownTest {
       released.set(player.release());
       elapsed.set(System.nanoTime() - before);
       finished.countDown();
+
       return false;
     });
     try {
@@ -70,14 +71,18 @@ final class ImagePlayerShutdownTest {
       final boolean completed = finished.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(completed);
+
       final Long releaseNanoseconds = elapsed.get();
       final Boolean firstRelease = released.get();
       assertNotNull(releaseNanoseconds);
+
       final boolean releasedQuickly = releaseNanoseconds < 1_000_000_000L;
       assertTrue(releasedQuickly, "self release must not spend two seconds joining itself");
       assertEquals(true, firstRelease);
+
       final Thread thread = worker.get();
       assertNotNull(thread);
+
       thread.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean alive = thread.isAlive();
       assertFalse(alive, "the self-released worker exits and releases its frame");
@@ -103,8 +108,10 @@ final class ImagePlayerShutdownTest {
       } catch (final InterruptedException exception) {
         current.interrupt();
       }
+
       repeatedRelease.set(player.release());
       completed.countDown();
+
       return false;
     });
     final AtomicReference<Boolean> firstRelease = new AtomicReference<>();
@@ -115,18 +122,22 @@ final class ImagePlayerShutdownTest {
       final boolean processing = entered.await(CALLBACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertTrue(processing);
+
       releaser.start();
       releaser.join(JOIN_TIMEOUT_MILLISECONDS);
       final boolean releaseBlocked = releaser.isAlive();
       final long unfinishedCallbacks = completed.getCount();
       assertFalse(releaseBlocked, "release must interrupt the callback and leave its lifecycle lock available");
       assertEquals(0L, unfinishedCallbacks, "the callback completes before external release returns");
+
       final Boolean first = firstRelease.get();
       final Boolean repeated = repeatedRelease.get();
       assertEquals(true, first);
       assertEquals(false, repeated);
+
       final Thread thread = worker.get();
       assertNotNull(thread);
+
       final boolean alive = thread.isAlive();
       assertFalse(alive);
     } finally {

@@ -119,6 +119,7 @@ final class MockVlc {
       if (failure instanceof final Error error) {
         throw error;
       }
+
       if (failure instanceof final RuntimeException exception) {
         throw exception;
       }
@@ -131,6 +132,7 @@ final class MockVlc {
 
     final Player created = new Player(outcome);
     this.players.add(created);
+
     return created.getPlayer();
   }
 
@@ -139,6 +141,7 @@ final class MockVlc {
     final RenderCallback render = invocation.getArgument(1);
     this.formatCallback.set(format);
     this.renderCallback.set(render);
+
     return mock(CallbackVideoSurface.class);
   }
 
@@ -299,6 +302,7 @@ final class MockVlc {
       doAnswer(_ -> {
         this.playing.set(false);
         this.state.set(State.STOPPED);
+
         return null;
       })
         .when(this.controls)
@@ -314,6 +318,7 @@ final class MockVlc {
     private Object installAudioCallback(final InvocationOnMock invocation) {
       final AudioCallback callback = invocation.getArgument(3);
       this.audioCallback.set(callback);
+
       return null;
     }
 
@@ -321,6 +326,7 @@ final class MockVlc {
       final Object[] arguments = invocation.getRawArguments();
       this.resource.set((String) arguments[0]);
       this.options.set((String[]) arguments[1]);
+
       return switch (this.outcome) {
         case PLAYING -> {
           this.firePlaying();

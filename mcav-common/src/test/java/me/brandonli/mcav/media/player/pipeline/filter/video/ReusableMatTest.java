@@ -81,6 +81,7 @@ final class ReusableMatTest {
         final Future<Integer> result = executor.submit(() -> countForeignWrites(reusable, marker));
         results.add(result);
       }
+
       for (final Future<Integer> result : results) {
         final int foreignWrites = result.get();
         assertEquals(0, foreignWrites, "every borrower sees only its own writes");

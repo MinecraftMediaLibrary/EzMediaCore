@@ -96,6 +96,7 @@ final class AudioRendererTest {
     return (samples, _) -> {
       final short first = samples.getShort(0);
       firstSamples.add(first);
+
       return false;
     };
   }
@@ -110,6 +111,7 @@ final class AudioRendererTest {
       received.add(first);
       blocked.countDown();
       awaitRelease(proceed);
+
       return false;
     });
   }
@@ -132,6 +134,7 @@ final class AudioRendererTest {
       received.set(copy);
       receivedMetadata.set(metadata);
       done.countDown();
+
       return false;
     };
   }
@@ -320,10 +323,13 @@ final class AudioRendererTest {
       if (call == 1) {
         throw runtimeFailure;
       }
+
       if (call == 2) {
         throw errorFailure;
       }
+
       third.countDown();
+
       return false;
     });
     this.renderer.start();

@@ -136,6 +136,7 @@ final class MCAVTest {
       assertFalse(hasVlc);
       assertTrue(hasYtdlp);
       assertFalse(imageCache);
+
       this.verifyEveryInstallationStep();
       final ModuleLoader verifiedModules = Mockito.verify(this.modules);
       verifiedModules.loadModules(CountingModule.class);
@@ -295,6 +296,7 @@ final class MCAVTest {
         vlcInterrupted.countDown();
         current.interrupt();
       }
+
       return null;
     };
     final Stubber stubber = Mockito.doAnswer(blockUntilInterrupted);
@@ -370,6 +372,7 @@ final class MCAVTest {
       final Future<?> install = executor.submit(() -> this.mcav.install(TrackedModule.class));
       final boolean started = nativesStarted.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
+
       final AtomicReference<Thread> releasingThread = new AtomicReference<>();
       final Future<?> release = executor.submit(() -> {
         final Thread currentThread = Thread.currentThread();
@@ -541,6 +544,7 @@ final class MCAVTest {
       started.countDown();
       final boolean finished = finish.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(finished);
+
       return null;
     };
   }

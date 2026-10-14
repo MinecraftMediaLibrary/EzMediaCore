@@ -76,6 +76,7 @@ final class FaceDetectionFilterTest {
     final ClassLoader loader = FaceDetectionFilterTest.class.getClassLoader();
     try (final InputStream stream = loader.getResourceAsStream(CASCADE_RESOURCE_DIRECTORY + name)) {
       assertNotNull(stream, "missing test resource " + name);
+
       Files.copy(stream, target);
     }
 
@@ -114,6 +115,7 @@ final class FaceDetectionFilterTest {
           }
         }
       }
+
       final boolean detected = filter.applyFilter(image);
       final int[] after = image.getPixels();
       final boolean changed = !Arrays.equals(before, after);
@@ -144,6 +146,7 @@ final class FaceDetectionFilterTest {
     final Path path = this.directory.resolve(REJECTED_CASCADE_NAME);
     try (final CascadeClassifier classifier = new CascadeClassifier()) {
       assertThrows(IllegalArgumentException.class, () -> FaceDetectionFilter.loadClassifier(path, _ -> classifier));
+
       final boolean closed = classifier.isNull();
       assertTrue(closed, "failed native classifier ownership must be released before reporting failure");
     }

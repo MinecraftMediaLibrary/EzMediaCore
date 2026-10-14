@@ -48,17 +48,21 @@ final class RenderThreadFailureTest {
         final Thread current = Thread.currentThread();
         worker.set(current);
         current.setUncaughtExceptionHandler((_, thrown) -> uncaught.set(thrown));
+
         if (failureSite == 0) {
           throw failure;
         }
+
         if (failureSite == 1) {
           throw new IllegalStateException("handler will fail!");
         }
+
         throw new InterruptedException("natural loop exit!");
       },
       () -> {
         acceptingDuringCleanup.set(thread.isRunning());
         cleaned.countDown();
+
         if (failureSite == 3) {
           throw failure;
         }
@@ -67,8 +71,10 @@ final class RenderThreadFailureTest {
     try {
       final boolean cleanupReached = cleaned.await(5, TimeUnit.SECONDS);
       assertTrue(cleanupReached);
+
       final Thread current = worker.get();
       assertNotNull(current);
+
       current.join(1_000L);
       final boolean alive = current.isAlive();
       final boolean running = thread.isRunning();
@@ -76,6 +82,7 @@ final class RenderThreadFailureTest {
       assertFalse(alive);
       assertFalse(running, "a failed renderer must not continue accepting queued work");
       assertFalse(accepted, "running is cleared before cleanup, even when cleanup itself fails");
+
       if (failureSite != 2) {
         final Throwable escaped = uncaught.get();
         assertSame(failure, escaped);

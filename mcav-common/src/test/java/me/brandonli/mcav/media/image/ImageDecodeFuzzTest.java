@@ -46,6 +46,7 @@ final class ImageDecodeFuzzTest {
       final int height = image.getHeight();
       final boolean positive = width > 0 && height > 0;
       assertTrue(positive, () -> "a decoded image of " + width + "x" + height);
+
       final int[] pixels = image.getPixels();
       final long expected = (long) width * height;
       assertEquals(expected, pixels.length, "one pixel per pixel");

@@ -85,10 +85,12 @@ public final class SwingVideoWindow implements AutoCloseable {
         this.frame.dispose();
       } catch (final RuntimeException | Error cleanupException) {
         ThrowableUtils.throwIfFatal(cleanupException);
+
         if (!IDENTITY.equivalent(exception, cleanupException)) {
           exception.addSuppressed(cleanupException);
         }
       }
+
       throw exception;
     }
   }
@@ -139,6 +141,7 @@ public final class SwingVideoWindow implements AutoCloseable {
   public VideoFilter asFilter() {
     return (samples, _) -> {
       this.show(samples);
+
       return false;
     };
   }

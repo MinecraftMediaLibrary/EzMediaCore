@@ -377,6 +377,7 @@ final class ScriptedPlayerTest {
       player.start(VIDEO);
       final boolean changed = player.setSpeed(AbstractVideoPlayerCv.MAXIMUM_SPEED);
       assertFalse(changed, "a live stream cannot be played ahead of itself");
+
       final double speed = player.getSpeed();
       assertEquals(1, speed);
     } finally {
@@ -395,6 +396,7 @@ final class ScriptedPlayerTest {
       final int deliveredWidth = samples.getWidth();
       final int deliveredHeight = samples.getHeight();
       delivered.add(Dimension.of(deliveredWidth, deliveredHeight));
+
       return false;
     };
     final VideoPipelineStep step = VideoPipelineStep.of(recording);
@@ -465,9 +467,11 @@ final class ScriptedPlayerTest {
       final boolean anyRecorded = !executorThreads.isEmpty();
       assertTrue(everyCallSucceeded);
       assertTrue(anyRecorded);
+
       for (final String thread : executorThreads) {
         assertEquals(EXECUTOR_THREAD, thread, "every call ran on the given executor: " + executorThreads);
       }
+
       assertTrue(released);
       assertFalse(releasedAgain, "a second release has nothing left to release");
     } finally {
@@ -509,6 +513,7 @@ final class ScriptedPlayerTest {
       final boolean anyRecorded = !commonPoolThreads.isEmpty();
       assertTrue(everyCallSucceeded);
       assertTrue(anyRecorded);
+
       for (final String thread : commonPoolThreads) {
         final boolean onCommonPool = thread.startsWith("ForkJoinPool.commonPool");
         assertTrue(onCommonPool, "the calls without an executor ran on the common pool: " + thread);
@@ -524,6 +529,7 @@ final class ScriptedPlayerTest {
     try {
       final boolean started = player.start(VIDEO, VIDEO);
       assertTrue(started);
+
       player.release();
       final boolean restarted = player.start(VIDEO, VIDEO);
       assertFalse(restarted);
@@ -538,6 +544,7 @@ final class ScriptedPlayerTest {
     try {
       final boolean started = player.start(VIDEO);
       assertTrue(started);
+
       final CompletableFuture<Boolean> pause = CompletableFuture.supplyAsync(player::pause);
       final boolean paused = pause.get(5L, TimeUnit.SECONDS);
       assertTrue(paused, "completed start must relinquish its reservation lock");
@@ -695,12 +702,14 @@ final class ScriptedPlayerTest {
     @Override
     public boolean pause() {
       this.recordCallingThread();
+
       return super.pause();
     }
 
     @Override
     public boolean resume() {
       this.recordCallingThread();
+
       return super.resume();
     }
 

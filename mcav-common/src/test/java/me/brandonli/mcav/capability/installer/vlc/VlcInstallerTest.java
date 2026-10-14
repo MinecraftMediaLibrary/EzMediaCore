@@ -174,6 +174,7 @@ final class VlcInstallerTest {
         final VlcInstaller missing = VlcInstaller.create(this.folder);
         final String missingUrl = missing.getUrl();
         assertEquals("", missingUrl, "an unsupported platform has no download URL");
+
         final boolean supported = missing.isSupported();
         assertFalse(supported);
       }
@@ -352,6 +353,7 @@ final class VlcInstallerTest {
       final Path installed = installer.download(true);
       final Path installDirectory = installer.getInstallDirectory();
       assertEquals(installDirectory, installed);
+
       this.assertInstalledWithoutLeftovers(installed, leftover);
     }
   }
@@ -487,6 +489,7 @@ final class VlcInstallerTest {
   private static boolean createSymbolicLink(final Path link, final Path target) {
     try {
       Files.createSymbolicLink(link, target);
+
       return true;
     } catch (final IOException | UnsupportedOperationException exception) {
       return false;

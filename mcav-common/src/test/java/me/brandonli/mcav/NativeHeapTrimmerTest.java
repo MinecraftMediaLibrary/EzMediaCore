@@ -125,6 +125,7 @@ final class NativeHeapTrimmerTest {
         if (attempts.incrementAndGet() == 1) {
           throw new IllegalStateException("the first trim fails on purpose!");
         }
+
         trims.countDown();
       },
       () -> {}
@@ -282,6 +283,7 @@ final class NativeHeapTrimmerTest {
         .when(() -> NativeHeapTrimmer.fixGlibcTrimThreshold(any(SymbolLookup.class)))
         .thenAnswer(call -> {
           asked.add(call.getArgument(0));
+
           return false;
         });
       fixed = NativeHeapTrimmer.fixGlibcTrimThreshold();
@@ -401,6 +403,7 @@ final class NativeHeapTrimmerTest {
     try {
       System.setProperty(NativeHeapTrimmer.INTERVAL_PROPERTY, "0");
       assertNeverTrims(NativeHeapTrimmer.forThisJvm(), "the property turns trimming off");
+
       System.clearProperty(NativeHeapTrimmer.INTERVAL_PROPERTY);
       final NativeHeapTrimmer trimmer = NativeHeapTrimmer.forThisJvm();
       trimmer.start();
@@ -438,9 +441,11 @@ final class NativeHeapTrimmerTest {
       for (int index = 0; index < ARENA_THREADS; index++) {
         threads.add(Thread.ofPlatform().start(() -> freeFramesIntoTheArenaTop(malloc, free)));
       }
+
       for (final Thread thread : threads) {
         thread.join();
       }
+
       NativeHeapTrimmer.trimThisJvm();
       after = residentKib();
     } finally {
@@ -511,8 +516,10 @@ final class NativeHeapTrimmerTest {
     try (final MockedStatic<ManagementFactory> factory = mockStatic(ManagementFactory.class, CALLS_REAL_METHODS)) {
       factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenReturn(null);
       assertNeverTrims(NativeHeapTrimmer.forThisJvm(), "a JVM without HotSpot's diagnostic bean");
+
       factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenReturn(withoutTheOption);
       assertNeverTrims(NativeHeapTrimmer.forThisJvm(), "a JVM without the option of HotSpot's own trims");
+
       factory.when(() -> ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class)).thenThrow(noBean);
       assertNeverTrims(NativeHeapTrimmer.forThisJvm(), "a JVM that does not know HotSpot's diagnostic bean");
     }

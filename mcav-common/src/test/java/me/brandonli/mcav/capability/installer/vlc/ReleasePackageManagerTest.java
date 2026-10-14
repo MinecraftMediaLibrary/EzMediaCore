@@ -73,6 +73,7 @@ final class ReleasePackageManagerTest {
     try (final MockedStatic<HttpDownloader> downloader = Mockito.mockStatic(HttpDownloader.class)) {
       final Download[] downloads = ReleasePackageManager.readVlcDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
       assertEquals(5, downloads.length, "Windows and macOS, two each, and Linux on x86-64");
+
       downloader.verifyNoInteractions();
     }
   }

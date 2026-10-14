@@ -121,6 +121,7 @@ final class NetworkUtilsTest {
       networkUtils.when(() -> NetworkUtils.lookUpPublicAddress(expectedService)).thenReturn(answer);
       final Optional<String> address = NetworkUtils.lookUpPublicAddress();
       assertEquals(answer, address);
+
       networkUtils.verify(() -> NetworkUtils.lookUpPublicAddress(expectedService));
     }
 

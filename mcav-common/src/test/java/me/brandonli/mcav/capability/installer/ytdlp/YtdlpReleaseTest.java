@@ -90,6 +90,7 @@ final class YtdlpReleaseTest {
       final HttpResponse<String> response = client.send(request, handler);
       final int status = response.statusCode();
       assertEquals(200, status);
+
       final String body = response.body();
       return parseChecksums(body);
     }
@@ -149,11 +150,13 @@ final class YtdlpReleaseTest {
     try {
       final boolean finished = process.waitFor(timeoutNanoseconds, TimeUnit.NANOSECONDS);
       assertTrue(finished, "yt-dlp --version did not finish");
+
       final long remaining = Math.max(1, timeoutNanoseconds - (System.nanoTime() - started));
       final byte[] output = drain.get(remaining, TimeUnit.NANOSECONDS);
       final int exitCode = process.exitValue();
       final String printed = new String(output, StandardCharsets.UTF_8);
       assertEquals(0, exitCode, printed);
+
       return printed.strip();
     } catch (final ExecutionException | TimeoutException exception) {
       throw new IOException("The yt-dlp --version output could not be read!", exception);

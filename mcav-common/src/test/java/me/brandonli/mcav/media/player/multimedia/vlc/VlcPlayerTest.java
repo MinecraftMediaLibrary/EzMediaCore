@@ -312,6 +312,7 @@ final class VlcPlayerTest {
       final MockVlc.Player only = this.vlc.player(0);
       final boolean noErrorsYet = slowErrors.isEmpty();
       assertTrue(started, "a stream that is still opening counts as started");
+
       final boolean waitedForTimeout = elapsedMilliseconds >= 90L;
       assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMilliseconds);
       assertTrue(noErrorsYet);
@@ -338,8 +339,10 @@ final class VlcPlayerTest {
       final boolean started = slow.start(this.video, this.audio);
       final long elapsedMilliseconds = elapsedMillisecondsSince(start);
       assertTrue(started, "sources that are still opening count as started");
+
       final boolean waitedForTimeout = elapsedMilliseconds >= 350L;
       assertTrue(waitedForTimeout, "start waits for the open timeout, took " + elapsedMilliseconds);
+
       final boolean waitedOnce = elapsedMilliseconds < 700L;
       assertTrue(waitedOnce, "both sources open at the same time, so start waits the timeout once, took " + elapsedMilliseconds);
     } finally {
@@ -700,8 +703,10 @@ final class VlcPlayerTest {
         final Thread current = Thread.currentThread();
         current.interrupt();
       }
+
       final boolean succeeded = releaseInside ? this.player.release() : this.player.start(this.video);
       callbackResult.set(succeeded);
+
       return false;
     });
     final AtomicReference<Boolean> replacementResult = new AtomicReference<>();
@@ -713,21 +718,26 @@ final class VlcPlayerTest {
       this.renderFrame(mediaPlayer, 1, 1, RED);
       final boolean processing = entered.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(processing);
+
       replacement.start();
       replacement.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = replacement.isAlive();
       assertFalse(blocked, "old render callbacks must acquire the player lock while replacement waits for them");
+
       final Boolean callback = callbackResult.get();
       final Boolean started = replacementResult.get();
       assertEquals(releaseInside, callback);
       assertEquals(!releaseInside, started);
+
       final List<MockVlc.Player> players = this.vlc.getPlayers();
       final int count = players.size();
       assertEquals(PLAYERS_WITH_REPLACEMENT, count, "callback start must not allocate a third candidate during a pending replacement");
+
       final MockVlc.Player candidate = this.vlc.player(1);
       if (releaseInside) {
         final String resource = candidate.getResource();
         assertNull(resource, "a candidate cancelled by release must never open its media");
+
         this.assertEverythingReleased();
       } else {
         final String resource = candidate.getResource();
@@ -753,6 +763,7 @@ final class VlcPlayerTest {
       if (!allowed) {
         throw new IllegalStateException("test did not release the old native stop!");
       }
+
       return null;
     })
       .when(controls)
@@ -770,30 +781,38 @@ final class VlcPlayerTest {
       replacement.start();
       final boolean stopping = stoppingOld.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(stopping);
+
       competing.start();
       competing.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = competing.isAlive();
       assertFalse(blocked, "pending replacement must not hold the player lock while native stop waits");
+
       final Boolean competingValue = competingResult.get();
       assertEquals(releases, competingValue);
+
       final MockVlc.Player candidate = this.vlc.player(1);
       final String unopened = candidate.getResource();
       assertNull(unopened, "the candidate cannot open before old cleanup finishes");
+
       if (releases) {
         assertReleased(candidate);
       }
+
       finishStop.countDown();
       replacement.join(2_000L);
       final boolean replacementBlocked = replacement.isAlive();
       final Boolean started = replacementResult.get();
       assertFalse(replacementBlocked);
       assertEquals(!releases, started);
+
       final List<MockVlc.Player> players = this.vlc.getPlayers();
       final int count = players.size();
       assertEquals(PLAYERS_WITH_REPLACEMENT, count);
+
       if (releases) {
         final String resource = candidate.getResource();
         assertNull(resource, "resuming the cancelled starter must not revive its released candidate");
+
         this.assertEverythingReleased();
       }
     } finally {
@@ -817,9 +836,11 @@ final class VlcPlayerTest {
     doAnswer(_ -> {
       nestedStart.set(this.player.start(this.video));
       released.set(this.player.release());
+
       if (failCreation) {
         throw new IllegalStateException("creation failed after reentrant release!");
       }
+
       return created;
     })
       .when(api)
@@ -852,6 +873,7 @@ final class VlcPlayerTest {
         final boolean released = this.player.release();
         assertTrue(released);
       }
+
       return "cancelled-during-setup.mp4";
     });
     final boolean started = this.player.start(cancelling);
@@ -1005,6 +1027,7 @@ final class VlcPlayerTest {
     final AudioFilter recorder = (samples, _) -> {
       final int remaining = samples.remaining();
       chunkSizes.add(remaining);
+
       return false;
     };
     final AudioPipelineStep recording = AudioPipelineStep.of(recorder);
@@ -1070,7 +1093,9 @@ final class VlcPlayerTest {
         final Thread renderThread = Thread.currentThread();
         renderThread.interrupt();
       }
+
       finished.set(true);
+
       return false;
     });
     this.startVideo();
@@ -1098,8 +1123,10 @@ final class VlcPlayerTest {
         final Thread current = Thread.currentThread();
         current.interrupt();
       }
+
       repeatedRelease.set(this.player.release());
       finished.countDown();
+
       return false;
     });
     final AtomicReference<Boolean> firstRelease = new AtomicReference<>();
@@ -1111,16 +1138,19 @@ final class VlcPlayerTest {
       this.renderFrame(mediaPlayer, 1, 1, RED);
       final boolean processing = entered.await(WAIT_SECONDS, TimeUnit.SECONDS);
       assertTrue(processing);
+
       releaser.start();
       releaser.join(UNBLOCKED_JOIN_MILLISECONDS);
       final boolean blocked = releaser.isAlive();
       final long unfinishedCallbacks = finished.getCount();
       assertFalse(blocked, "release must not join while holding the lock needed by the interrupted callback");
       assertEquals(0L, unfinishedCallbacks);
+
       final Boolean first = firstRelease.get();
       final Boolean repeated = repeatedRelease.get();
       assertEquals(true, first);
       assertEquals(false, repeated);
+
       this.assertEverythingReleased();
     } finally {
       escape.countDown();
@@ -1137,6 +1167,7 @@ final class VlcPlayerTest {
       final boolean released = this.player.release();
       releasedFromPipeline.set(released);
       done.countDown();
+
       return false;
     });
     this.startVideo();

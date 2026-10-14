@@ -85,6 +85,7 @@ final class ExecutableYtdlpParserTest {
   private static String fixture() throws IOException {
     try (final InputStream stream = ExecutableYtdlpParserTest.class.getResourceAsStream(FIXTURE_RESOURCE)) {
       assertNotNull(stream, "the fixture must be on the test classpath");
+
       final byte[] bytes = stream.readAllBytes();
       final String content = new String(bytes, StandardCharsets.UTF_8);
       return content.strip();
