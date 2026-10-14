@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -58,9 +60,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import me.brandonli.mcav.capability.Capability;
+import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
+import me.brandonli.mcav.capability.installer.debian.DebianLibraryInstaller;
+import me.brandonli.mcav.capability.installer.debian.DebianLibraryInstallers;
 import me.brandonli.mcav.capability.installer.vlc.UnsupportedOperatingSystemException;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallerFailures;
@@ -78,6 +83,7 @@ import org.bytedeco.opencv.global.opencv_core;
 import org.bytedeco.opencv.presets.opencv_objdetect;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -103,6 +109,11 @@ final class DependencyLoaderTest {
   private static final List<String> OBJECT_DETECTION_LOADED = List.of(OBJECT_DETECTION_MODULE);
 
   private static final Platform LINUX_X86_64 = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
+  private static final Platform LINUX_ARM_64 = Platform.ofPlatform(Os.LINUX, Arch.ARM, Bits.BITS_64);
+
+  private static final String LOAD_ORDER_FILE = "load-order.txt";
+  private static final String GTK2_LIBRARY_PATH = "usr/lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0.2400.33";
+  private static final String UNHASHED_PACKAGE_URL = "https://deb.example/pool/libgtk2.0-0.deb";
 
   private static final String YTDLP_FILE_NAME = "yt-dlp";
   private static final String PREPARED_FILE_NAME = "prepared";
@@ -744,6 +755,100 @@ final class DependencyLoaderTest {
     final boolean withoutClass = DependencyLoader.loadOptionalModule(() -> this.throwError(failedInitializer), FACE_DETECTION_MODULE_NAME);
     assertFalse(withoutGtk);
     assertFalse(withoutClass);
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("platformsWithDebianGtk2")
+  void shouldInstallAndLoadGtk2WhereLinuxLacksIt(final Platform platform, @TempDir final Path folder) throws IOException {
+    final Path library = folder.resolve(GTK2_LIBRARY_PATH);
+    final Path libraryDirectory = library.getParent();
+    Files.createDirectories(libraryDirectory);
+    Files.writeString(library, "gtk", StandardCharsets.UTF_8);
+    Files.writeString(folder.resolve(LOAD_ORDER_FILE), GTK2_LIBRARY_PATH, StandardCharsets.UTF_8);
+    final List<String> loaded = new ArrayList<>();
+    final DebianLibraryInstaller installer = DebianLibraryInstallers.create(folder, new Download[0], platform, loaded::add);
+
+    DependencyLoader.provideGtk2(platform, () -> false, () -> installer);
+
+    final List<String> expected = List.of(library.toString());
+    assertEquals(expected, loaded);
+  }
+
+  private static Stream<Platform> platformsWithDebianGtk2() {
+    return Stream.of(LINUX_X86_64, LINUX_ARM_64);
+  }
+
+  @Test
+  @ResourceLock(Resources.SYSTEM_ERR)
+  void shouldWarnWithoutFailingWhenGtk2CannotBeInstalled(@TempDir final Path folder) {
+    final Download[] downloads = { new Download(LINUX_ARM_64, UNHASHED_PACKAGE_URL) };
+    final DebianLibraryInstaller installer = DebianLibraryInstallers.create(folder, downloads, LINUX_ARM_64, this::refuseToLoad);
+    final PrintStream standardError = System.err;
+    final ByteArrayOutputStream captured = new ByteArrayOutputStream();
+    System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
+    try {
+      DependencyLoader.provideGtk2(LINUX_ARM_64, () -> false, () -> installer);
+    } finally {
+      System.setErr(standardError);
+    }
+
+    final String log = captured.toString(StandardCharsets.UTF_8);
+    final boolean warned = log.contains("GTK 2 could not be installed, so face detection is not available.");
+    final boolean namesTheDownload = log.contains("Debian package %s has no pinned hash!".formatted(UNHASHED_PACKAGE_URL));
+    assertTrue(warned, log);
+    assertTrue(namesTheDownload, log);
+  }
+
+  @Test
+  void shouldUseTheGtk2OfTheSystem() {
+    assertDoesNotThrow(() -> DependencyLoader.provideGtk2(LINUX_X86_64, () -> true, this::refuseToInstall));
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("platformsWithoutDebianGtk2")
+  void shouldNotLookForGtk2OffDebianPlatforms(final Platform platform) {
+    assertDoesNotThrow(() -> DependencyLoader.provideGtk2(platform, this::refuseToLookUp, this::refuseToInstall));
+  }
+
+  private static Stream<Platform> platformsWithoutDebianGtk2() {
+    return Stream.of(
+      Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64),
+      Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_32),
+      Platform.ofPlatform(Os.LINUX, Arch.OTHER, Bits.BITS_64)
+    );
+  }
+
+  @Test
+  void shouldFindALibraryTheDynamicLinkerCanLoad() throws IOException {
+    final Path javaHome = Path.of(System.getProperty("java.home"));
+    final String javaLibraryName = System.mapLibraryName("java");
+    final Optional<Path> javaLibrary;
+    try (final Stream<Path> files = Files.walk(javaHome)) {
+      javaLibrary = files.filter(file -> javaLibraryName.equals(String.valueOf(file.getFileName()))).findFirst();
+    }
+
+    final Path library = javaLibrary.orElseThrow();
+    final boolean available = DependencyLoader.isLibraryAvailable(library.toString());
+    assertTrue(available, library.toString());
+  }
+
+  @Test
+  void shouldNotFindALibraryTheSystemLacks() {
+    final boolean available = DependencyLoader.isLibraryAvailable("libmcav-missing.so.0");
+    assertFalse(available);
+  }
+
+  private boolean refuseToLookUp() {
+    return fail("GTK 2 is only looked up on 64-bit Linux!");
+  }
+
+  private DebianLibraryInstaller refuseToInstall() {
+    return fail("GTK 2 is only installed where the system lacks it!");
+  }
+
+  private void refuseToLoad(final String library) {
+    fail("A failed installation loads nothing!");
   }
 
   @Test

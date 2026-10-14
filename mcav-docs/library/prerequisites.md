@@ -65,6 +65,11 @@ file plays on every platform where they are bundled. OpenCV capture still depend
 device. VLC and yt-dlp are optional: when one of them cannot be installed, only the features that need it are
 unavailable, which you can check with [capabilities](instance.md#capabilities).
 
+Face detection loads the object detection module of OpenCV, which links GTK 2 on Linux. When the system has no GTK 2,
+MCAV installs the Debian 12 packages of `libgtk2.0-0` and its dependencies on x86-64 and ARM64 Linux, the same way as
+VLC above: pinned, checked against their hashes, unpacked into the cache without administrator rights, and loaded before
+OpenCV. When that installation fails, only face detection is unavailable.
+
 QEMU is never installed by MCAV. To use the [virtual machine module](vm.md), install QEMU yourself and make sure it is
 on the `PATH`.
 

@@ -20,6 +20,8 @@ package me.brandonli.mcav.loader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import java.lang.foreign.Arena;
+import java.lang.foreign.SymbolLookup;
 import java.nio.file.Path;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -28,14 +30,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
+import me.brandonli.mcav.MCAVException;
 import me.brandonli.mcav.capability.Availability;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.Installer;
+import me.brandonli.mcav.capability.installer.debian.DebianLibraryInstaller;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
 import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Bits;
 import me.brandonli.mcav.utils.os.Os;
 import me.brandonli.mcav.utils.os.Platform;
 import org.bytedeco.ffmpeg.ffmpeg;
@@ -71,6 +78,8 @@ public final class DependencyLoader {
   private static final String PATHS_FIRST_PROPERTY = "org.bytedeco.javacpp.pathsFirst";
   static final String OPENCV_THREADS_PROPERTY = "mcav.opencv.threads";
   private static final String PATHS_FIRST_VALUE = "false";
+
+  private static final String GTK2_LIBRARY = "libgtk-x11-2.0.so.0";
 
   private final Set<Capability> capabilities;
   private final Map<Capability, Object> preparations = new EnumMap<>(Capability.class);
@@ -198,13 +207,73 @@ public final class DependencyLoader {
   }
 
   private static void loadObjectDetection() {
+    final Platform platform = Platform.getCurrentPlatform();
+    provideGtk2(platform, DependencyLoader::hasSystemGtk2, DebianLibraryInstaller::createGtk2Installer);
     Loader.load(opencv_objdetect.class);
+  }
+
+  // The object detection natives link OpenCV's GUI module, which needs GTK 2 on Linux. When the system has none, the
+  // pinned Debian packages of GTK 2 are installed into the cache and loaded first, so the module links against them. A
+  // failed installation only costs face detection, which then fails to link and is reported as unavailable.
+  @VisibleForTesting
+  static void provideGtk2(
+    final Platform platform,
+    final BooleanSupplier systemGtk2,
+    final Supplier<DebianLibraryInstaller> installerFactory
+  ) {
+    final boolean debianPackages = hasDebianGtk2(platform);
+    if (!debianPackages) {
+      return;
+    }
+
+    final boolean installed = systemGtk2.getAsBoolean();
+    if (installed) {
+      return;
+    }
+
+    try {
+      installGtk2(installerFactory);
+    } catch (final MCAVException exception) {
+      LOGGER.warn("GTK 2 could not be installed, so face detection is not available.", exception);
+    }
+  }
+
+  private static boolean hasDebianGtk2(final Platform platform) {
+    final Os os = platform.getOs();
+    final Arch arch = platform.getArch();
+    final Bits bits = platform.getBits();
+    return os == Os.LINUX && bits == Bits.BITS_64 && arch != Arch.OTHER;
+  }
+
+  private static void installGtk2(final Supplier<DebianLibraryInstaller> installerFactory) {
+    final DebianLibraryInstaller installer = installerFactory.get();
+    installer.download(FileMode.EXECUTABLE);
+    installer.loadLibraries();
+  }
+
+  private static boolean hasSystemGtk2() {
+    return isLibraryAvailable(GTK2_LIBRARY);
+  }
+
+  // asks the dynamic linker for the library the same way OpenCV's GUI module does, so the answer matches what linking
+  // the module will find; the lookup is restricted because it loads native code
+  @SuppressWarnings("restricted")
+  @VisibleForTesting
+  static boolean isLibraryAvailable(final String library) {
+    try {
+      final Arena arena = Arena.global();
+      SymbolLookup.libraryLookup(library, arena);
+
+      return true;
+    } catch (final IllegalArgumentException exception) {
+      return false;
+    }
   }
 
   @VisibleForTesting
   void loadFaceDetection(final Runnable objectDetectionLoader) {
-    // the object detection natives link OpenCV's GUI module, which needs GTK 2 on Linux; servers often lack it, and
-    // only face detection needs these natives, so everything else keeps working without them
+    // the object detection natives link OpenCV's GUI module, which needs GTK 2 on Linux; where it cannot be provided,
+    // only face detection is lost, so everything else keeps working without these natives
     final boolean available = loadOptionalModule(objectDetectionLoader, FACE_DETECTION);
     if (available) {
       this.capabilities.add(Capability.FACE_DETECTION);

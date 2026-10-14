@@ -56,7 +56,8 @@ public enum Capability {
 
   /**
    * Face detection with the object detection module of OpenCV. Its native libraries link OpenCV's GUI module, which
-   * needs GTK 2 on Linux, so the feature is missing on many headless servers.
+   * needs GTK 2 on Linux. On 64-bit x86 and ARM Linux systems without GTK 2, MCAV installs it from pinned Debian
+   * packages into its cache; where that fails, the feature is missing.
    *
    * @since 1.0.0
    */
