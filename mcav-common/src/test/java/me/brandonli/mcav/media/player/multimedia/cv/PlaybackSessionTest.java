@@ -1440,6 +1440,51 @@ final class PlaybackSessionTest {
     assertEquals(List.of("302 of 302"), reports, "the frames of the first ten seconds, all dropped");
   }
 
+  // The first frame takes 450 ms, so the ten frames due in the next 350 ms come too late, and the frames after them are
+  // shown while the clock moves on one frame at a time. The last frame of the first ten seconds takes 500 ms, so the
+  // frame that closes the stretch is dropped: eleven dropped frames do not outnumber the 291 shown ones.
+  @Test
+  void shouldStaySilentWhileMostFramesAreShown() throws Exception {
+    final AtomicLong now = new AtomicLong();
+    final AtomicInteger shown = new AtomicInteger();
+    this.onVideo((_, _) -> this.advanceClockByOneFrameOrASlowFrame(shown, now));
+    final List<String> reports = Collections.synchronizedList(new ArrayList<>());
+    final List<Object> script = frames(320, FRAME_MICROSECONDS);
+    final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
+    final PlaybackSession session = new PlaybackSession(
+      factoryOf(grabber),
+      null,
+      this.videoCallback,
+      this.audioCallback,
+      this.dimensionCallback,
+      this::report,
+      0L,
+      StartState.PLAYING,
+      PlaybackSession.AUDIO_LEAD_NANOSECONDS,
+      PlaybackSession.MAXIMUM_VIDEO_LAG_NANOSECONDS,
+      now::get,
+      (dropped, frames) -> reports.add(dropped + " of " + frames)
+    );
+    session.start();
+    awaitEnd(session);
+
+    final int shownCount = shown.get();
+    assertEquals(296, shownCount, "only the frames due during the two slow frames are dropped");
+    assertEquals(List.of(), reports, "a stretch that shows most of its frames is not reported");
+  }
+
+  private boolean advanceClockByOneFrameOrASlowFrame(final AtomicInteger shown, final AtomicLong now) {
+    final int frameNumber = shown.incrementAndGet();
+    final long advance = switch (frameNumber) {
+      case 1 -> 450_000_000L;
+      case 291 -> 500_000_000L;
+      default -> FRAME_MICROSECONDS * 1_000L;
+    };
+    now.addAndGet(advance);
+
+    return true;
+  }
+
   private static final class Timing {
 
     // The wall clock and the audio lead of the players, with a lag no frame can exceed, so frames are never dropped as
