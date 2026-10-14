@@ -454,12 +454,18 @@ final class IoUtilsTest {
     final Path temporary = this.directory.resolve(TEMPORARY_NAME);
     final AtomicBoolean fallbackReported = new AtomicBoolean();
 
+    final long firstWarnings = this.countCacheFallbackWarnings(home, temporary, fallbackReported);
+    final long secondWarnings = this.countCacheFallbackWarnings(home, temporary, fallbackReported);
+    assertEquals(1, firstWarnings, "the first fallback warns");
+    assertEquals(0, secondWarnings, "a later fallback is silent");
+  }
+
+  private long countCacheFallbackWarnings(final Path home, final Path temporary, final AtomicBoolean fallbackReported) {
     final PrintStream original = System.err;
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     final PrintStream capture = new PrintStream(captured, true, StandardCharsets.UTF_8);
     System.setErr(capture);
     try {
-      this.getCachedFolderIn(home, temporary, Files::isExecutable, fallbackReported);
       this.getCachedFolderIn(home, temporary, Files::isExecutable, fallbackReported);
     } finally {
       System.setErr(original);
@@ -467,8 +473,7 @@ final class IoUtilsTest {
 
     final String output = captured.toString(StandardCharsets.UTF_8);
     final Matcher warnings = CACHE_FALLBACK_WARNING.matcher(output);
-    final long warningCount = warnings.results().count();
-    assertEquals(1, warningCount, output);
+    return warnings.results().count();
   }
 
   private Path getCachedFolderIn(final Path home, final Path temporary) {
