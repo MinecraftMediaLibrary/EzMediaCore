@@ -26,6 +26,7 @@ import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.http.DownloadException;
+import me.brandonli.mcav.utils.os.Platform;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +133,9 @@ public final class VlcInstallationKit {
 
     final boolean supported = this.installer.isSupported();
     if (!supported) {
-      throw new UnsupportedOperatingSystemException("VLC is not installed and cannot be installed automatically on this system!");
+      final Platform platform = Platform.getCurrentPlatform();
+      final String message = "VLC is not installed and platform %s has no VLC download!".formatted(platform);
+      throw new UnsupportedOperatingSystemException(message);
     }
 
     final Path libraryDirectory = this.installer.download(FileMode.EXECUTABLE);

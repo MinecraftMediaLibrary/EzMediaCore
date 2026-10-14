@@ -41,6 +41,7 @@ import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.InstallationException;
 import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.testing.TemporaryUserHome;
+import me.brandonli.mcav.utils.os.Platform;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -103,8 +104,14 @@ final class VlcInstallationKitTest {
     when(discovery.discoverSystemInstallation()).thenReturn(false);
     when(installer.isSupported()).thenReturn(false);
     final VlcInstallationKit kit = kitWithOwnState(installer, discovery);
-    assertThrows(UnsupportedOperatingSystemException.class, kit::start);
+    final UnsupportedOperatingSystemException thrown = assertThrows(UnsupportedOperatingSystemException.class, kit::start);
     verify(installer, never()).download(any(FileMode.class));
+
+    final String message = thrown.getMessage();
+    final Platform platform = Platform.getCurrentPlatform();
+    final String platformName = platform.toString();
+    final boolean namesThePlatform = message.contains(platformName);
+    assertTrue(namesThePlatform, message);
   }
 
   @Test
