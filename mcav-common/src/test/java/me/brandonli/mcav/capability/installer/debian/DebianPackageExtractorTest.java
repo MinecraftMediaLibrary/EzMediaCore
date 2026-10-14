@@ -373,6 +373,18 @@ final class DebianPackageExtractorTest {
   }
 
   @Test
+  void shouldIgnoreAPaxRecordWithAnEmptyKey() throws IOException {
+    final DebianPackageBuilder builder = new DebianPackageBuilder();
+    final String record = builder.paxRecord("=value");
+    final byte[] recordBytes = record.getBytes(StandardCharsets.UTF_8);
+    final byte[] debianPackage = builder.rawEntry(PAX_ENTRY, PAX_HEADER, recordBytes).file(LIBRARY, CONTENT).build();
+    this.extract(debianPackage);
+
+    final byte[] library = Files.readAllBytes(this.destination.resolve(LIBRARY_PATH));
+    assertArrayEquals(CONTENT, library);
+  }
+
+  @Test
   void shouldRefuseANameThatIsNoPathOfTheFileSystem() {
     final DebianPackageBuilder builder = new DebianPackageBuilder();
     final String record = builder.paxRecord("path=./usr/lib/a\0b");
