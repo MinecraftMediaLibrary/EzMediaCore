@@ -139,7 +139,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   public boolean start(final Source combined) {
     Preconditions.checkNotNull(combined, "Source must not be null!");
 
-    return this.startSources(combined, null, 0L, false);
+    return this.startSources(combined, null, 0L, StartState.PLAYING);
   }
 
   /**
@@ -160,17 +160,17 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
     final boolean sameSource = video.equals(audio);
     if (sameSource) {
-      return this.startSources(video, null, 0L, false);
+      return this.startSources(video, null, 0L, StartState.PLAYING);
     }
 
-    return this.startSources(video, audio, 0L, false);
+    return this.startSources(video, audio, 0L, StartState.PLAYING);
   }
 
   private PlaybackSession createSession(
     final Source video,
     final @Nullable Source audio,
     final long positionMicroseconds,
-    final boolean paused
+    final StartState startState
   ) {
     final PlaybackSession.GrabberFactory videoFactory = () -> this.createStartedGrabber(video);
     final PlaybackSession.GrabberFactory audioFactory = audio == null ? null : () -> this.createStartedGrabber(audio);
@@ -182,7 +182,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
       this.dimensionCallback,
       this.exceptionHandler,
       positionMicroseconds,
-      paused,
+      startState,
       PlaybackSession.AUDIO_LEAD_NANOSECONDS,
       this.maximumVideoLagNanoseconds,
       System::nanoTime
@@ -199,15 +199,20 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
   // Opens the sources in a new session and only then replaces the current session with it, so a source that cannot be
   // opened leaves the current playback alone.
-  private boolean startSources(final Source video, final @Nullable Source audio, final long positionMicroseconds, final boolean paused) {
-    return this.startSources(video, audio, positionMicroseconds, paused, null);
+  private boolean startSources(
+    final Source video,
+    final @Nullable Source audio,
+    final long positionMicroseconds,
+    final StartState startState
+  ) {
+    return this.startSources(video, audio, positionMicroseconds, startState, null);
   }
 
   private boolean startSources(
     final Source video,
     final @Nullable Source audio,
     final long positionMicroseconds,
-    final boolean paused,
+    final StartState startState,
     final @Nullable PlaybackSession expected
   ) {
     final PlaybackSession created;
@@ -217,7 +222,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
         return false;
       }
 
-      created = this.createSession(video, audio, positionMicroseconds, paused);
+      created = this.createSession(video, audio, positionMicroseconds, startState);
       this.starting = true;
     } finally {
       this.lock.unlock();
@@ -234,18 +239,21 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
         previous.stop();
       }
 
-      started = this.publishSession(created, video, audio, expected != null);
+      final StartKind kind = expected == null ? StartKind.NEW_MEDIA : StartKind.SEEK;
+      started = this.publishSession(created, video, audio, kind);
       return started;
     } finally {
-      this.finishStart(created, started);
+      if (started) {
+        this.clearStartReservation();
+      } else {
+        this.discardStart(created);
+      }
     }
   }
 
-  private void finishStart(final PlaybackSession created, final boolean started) {
+  private void discardStart(final PlaybackSession created) {
     try {
-      if (!started) {
-        created.stop();
-      }
+      created.stop();
     } finally {
       this.clearStartReservation();
     }
@@ -276,14 +284,14 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
   // Release can cancel an acquisition or replacement; its owner then closes the prepared candidate. A seek keeps the
   // speed of the media it seeks in, and new media plays at normal speed.
-  private boolean publishSession(final PlaybackSession created, final Source video, final @Nullable Source audio, final boolean seek) {
+  private boolean publishSession(final PlaybackSession created, final Source video, final @Nullable Source audio, final StartKind kind) {
     this.lock.lock();
     try {
       if (this.released) {
         return false;
       }
 
-      if (!seek) {
+      if (kind == StartKind.NEW_MEDIA) {
         this.speed = PlaybackClock.NORMAL_SPEED;
       }
 
@@ -452,7 +460,7 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
     final PlaybackSession current;
     final Source video;
     @Nullable Source audio;
-    final boolean paused;
+    final StartState startState;
     this.lock.lock();
     try {
       current = this.session;
@@ -462,13 +470,13 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 
       video = Objects.requireNonNull(this.videoSource, "A session always has a video source!");
       audio = this.audioSource;
-      paused = current.isPaused();
+      startState = current.isPaused() ? StartState.PAUSED : StartState.PLAYING;
     } finally {
       this.lock.unlock();
     }
 
     final long positionMicroseconds = Math.min(time, Long.MAX_VALUE / MICROSECONDS_PER_MILLISECOND) * MICROSECONDS_PER_MILLISECOND;
-    return this.startSources(video, audio, positionMicroseconds, paused, current);
+    return this.startSources(video, audio, positionMicroseconds, startState, current);
   }
 
   /**
@@ -637,5 +645,10 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {
     return this.exceptionHandler;
+  }
+
+  private enum StartKind {
+    NEW_MEDIA,
+    SEEK,
   }
 }

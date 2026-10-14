@@ -125,7 +125,7 @@ final class PlaybackSessionStopStressTest {
         DimensionAttachableCallback.create(),
         (_, _) -> {},
         0L,
-        false,
+        StartState.PLAYING,
         PlaybackSession.AUDIO_LEAD_NANOSECONDS,
         Long.MAX_VALUE,
         System::nanoTime
@@ -246,10 +246,11 @@ final class PlaybackSessionStopStressTest {
       this.ownStopReturned = new CountDownLatch(1);
       this.reports = Collections.synchronizedList(new ArrayList<>());
       this.threadsBefore = liveSessionThreads();
-      this.session = this.createSession(point == StopPoint.WHILE_PAUSED);
+      final StartState startState = point == StopPoint.WHILE_PAUSED ? StartState.PAUSED : StartState.PLAYING;
+      this.session = this.createSession(startState);
     }
 
-    private PlaybackSession createSession(final boolean paused) {
+    private PlaybackSession createSession(final StartState startState) {
       final VideoAttachableCallback videoCallback = VideoAttachableCallback.create();
       final AudioAttachableCallback audioCallback = AudioAttachableCallback.create();
       final DimensionAttachableCallback dimensionCallback = DimensionAttachableCallback.create();
@@ -267,7 +268,7 @@ final class PlaybackSessionStopStressTest {
         dimensionCallback,
         (message, _) -> this.reports.add(message),
         0L,
-        paused,
+        startState,
         PlaybackSession.AUDIO_LEAD_NANOSECONDS,
         Long.MAX_VALUE,
         System::nanoTime

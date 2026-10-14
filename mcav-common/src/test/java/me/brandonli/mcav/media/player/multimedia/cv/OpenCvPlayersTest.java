@@ -66,7 +66,7 @@ final class OpenCvPlayersTest {
   @Test
   void shouldCreateTheFileGrabberOfThisPlatformWithoutOpeningTheFile() throws FrameGrabber.Exception {
     final OpenCvPlayer player = new OpenCvPlayer();
-    final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
+    final boolean openCvReadsFiles = OpenCvVideoBackends.chooseFileReader() == VideoFileReader.OPENCV;
     try (final FrameGrabber grabber = player.createFrameGrabber(UNOPENED_FILE_NAME)) {
       if (openCvReadsFiles) {
         assertInstanceOf(OpenCVFrameGrabber.class, grabber, "a build with a file backend reads the file itself");
@@ -83,7 +83,7 @@ final class OpenCvPlayersTest {
   @Test
   void shouldReadFilesWithTheGrabberThatCanOpenThem() throws Exception {
     final Path video = TestMedia.video();
-    final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
+    final boolean openCvReadsFiles = OpenCvVideoBackends.chooseFileReader() == VideoFileReader.OPENCV;
     final boolean openCvOpenedTheFile = opensWithOpenCv(video);
     assertEquals(
       openCvReadsFiles,

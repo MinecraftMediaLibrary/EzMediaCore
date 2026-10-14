@@ -85,7 +85,19 @@ final class PlaybackSessionFailureTest {
     final VideoAttachableCallback pictures = VideoAttachableCallback.create();
     final AudioAttachableCallback sound = AudioAttachableCallback.create();
     final DimensionAttachableCallback dimensions = DimensionAttachableCallback.create();
-    return new PlaybackSession(video, audio, pictures, sound, dimensions, handler, 0L, false, 0L, Long.MAX_VALUE, System::nanoTime);
+    return new PlaybackSession(
+      video,
+      audio,
+      pictures,
+      sound,
+      dimensions,
+      handler,
+      0L,
+      StartState.PLAYING,
+      0L,
+      Long.MAX_VALUE,
+      System::nanoTime
+    );
   }
 
   @Test
@@ -352,7 +364,7 @@ final class PlaybackSessionFailureTest {
       dimensions,
       (_, thrown) -> reported.set(thrown),
       0L,
-      false,
+      StartState.PLAYING,
       0L,
       Long.MAX_VALUE,
       System::nanoTime
@@ -500,7 +512,7 @@ final class PlaybackSessionFailureTest {
       dimensions,
       (_, failure) -> this.reportCaptureUncaughtAndThrow(failure, reported, uncaught, handlerFailure),
       0L,
-      false,
+      StartState.PLAYING,
       0L,
       Long.MAX_VALUE,
       System::nanoTime

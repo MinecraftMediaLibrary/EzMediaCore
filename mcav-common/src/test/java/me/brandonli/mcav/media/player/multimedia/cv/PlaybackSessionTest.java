@@ -118,9 +118,9 @@ final class PlaybackSessionTest {
     final PlaybackSession.GrabberFactory video,
     final PlaybackSession.GrabberFactory audio,
     final long startMicroseconds,
-    final boolean paused
+    final StartState startState
   ) {
-    return this.session(video, audio, this.videoCallback, Timing.NEVER_DROPPING, startMicroseconds, paused);
+    return this.session(video, audio, this.videoCallback, Timing.NEVER_DROPPING, startMicroseconds, startState);
   }
 
   private PlaybackSession session(
@@ -129,7 +129,7 @@ final class PlaybackSessionTest {
     final VideoAttachableCallback videoPipeline,
     final Timing timing,
     final long startMicroseconds,
-    final boolean paused
+    final StartState startState
   ) {
     return new PlaybackSession(
       video,
@@ -139,16 +139,16 @@ final class PlaybackSessionTest {
       this.dimensionCallback,
       this::report,
       startMicroseconds,
-      paused,
+      startState,
       timing.audioLeadNanoseconds,
       timing.maximumVideoLagNanoseconds,
       timing.nanosecondClock
     );
   }
 
-  private PlaybackSession session(final ScriptedFrameGrabber grabber, final long startMicroseconds, final boolean paused) {
+  private PlaybackSession session(final ScriptedFrameGrabber grabber, final long startMicroseconds, final StartState startState) {
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
-    return this.session(factory, null, startMicroseconds, paused);
+    return this.session(factory, null, startMicroseconds, startState);
   }
 
   private static PlaybackSession.GrabberFactory factoryOf(final ScriptedFrameGrabber grabber) {
@@ -296,7 +296,7 @@ final class PlaybackSessionTest {
 
   @Test
   void shouldMakeTheThreadsOfASessionDaemonsWhateverThreadStartsIt() throws Exception {
-    final PlaybackSession session = this.session(threePicturesWithSound(), 0L, true);
+    final PlaybackSession session = this.session(threePicturesWithSound(), 0L, StartState.PAUSED);
     final AtomicReference<Exception> failure = new AtomicReference<>();
     final Thread starter = Thread.ofPlatform()
       .daemon(false)
@@ -341,7 +341,7 @@ final class PlaybackSessionTest {
     this.recordFramesAndChunks(imageSizes, videoMetadata, frames, audioMetadata, chunks);
 
     final ScriptedFrameGrabber grabber = threePicturesWithSound();
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -380,7 +380,7 @@ final class PlaybackSessionTest {
     final Frame ignoredSound = ScriptedFrameGrabber.audio(0L);
     final ScriptedFrameGrabber video = ScriptedFrameGrabber.of(picture, ignoredSound);
     final ScriptedFrameGrabber audio = soundWithAnIgnoredPicture();
-    final PlaybackSession session = this.session(() -> video, () -> audio, 0L, false);
+    final PlaybackSession session = this.session(() -> video, () -> audio, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -403,7 +403,7 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber video = videoAt(0L);
     final PlaybackSession.GrabberFactory videoFactory = factoryOf(video);
     final PlaybackSession.GrabberFactory failingAudio = this::failToOpenAudio;
-    final PlaybackSession session = this.session(videoFactory, failingAudio, 0L, false);
+    final PlaybackSession session = this.session(videoFactory, failingAudio, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -421,13 +421,13 @@ final class PlaybackSessionTest {
   void shouldReportDecodingFailures() throws Exception {
     final FrameGrabber.Exception corrupt = new FrameGrabber.Exception("corrupt");
     final ScriptedFrameGrabber failing = ScriptedFrameGrabber.of(corrupt);
-    final PlaybackSession first = this.session(failing, 0L, false);
+    final PlaybackSession first = this.session(failing, 0L, StartState.PLAYING);
     first.start();
     awaitEnd(first);
 
     final List<Object> crash = List.of(new IllegalStateException("bug!"));
     final ScriptedFrameGrabber crashing = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, true, crash);
-    final PlaybackSession second = this.session(crashing, 0L, false);
+    final PlaybackSession second = this.session(crashing, 0L, StartState.PLAYING);
     second.start();
     awaitEnd(second);
 
@@ -451,7 +451,7 @@ final class PlaybackSessionTest {
     noPlanes.image = new Buffer[0];
     noPlanes.samples = new Buffer[0];
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(shortImage, floatSamples, empty, noPlanes);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -466,7 +466,7 @@ final class PlaybackSessionTest {
   @Test
   void shouldStartAtTheRequestedPosition() throws Exception {
     final ScriptedFrameGrabber grabber = videoAt(REQUESTED_POSITION);
-    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, false);
+    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, StartState.PLAYING);
     final long initialPosition = session.getPositionMicroseconds();
     session.start();
     awaitEnd(session);
@@ -484,7 +484,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
     grabber.failOnSeek();
-    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, false);
+    final PlaybackSession session = this.session(grabber, REQUESTED_POSITION, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -502,7 +502,7 @@ final class PlaybackSessionTest {
     grabber.setLength(10_000_000L);
     final AtomicInteger opened = new AtomicInteger();
     final PlaybackSession.GrabberFactory counting = countingOpens(grabber, opened);
-    final PlaybackSession session = this.session(counting, null, 0L, false);
+    final PlaybackSession session = this.session(counting, null, 0L, StartState.PLAYING);
 
     final boolean seekableBeforeOpening = session.isSeekable();
     session.open();
@@ -521,7 +521,7 @@ final class PlaybackSessionTest {
   @Test
   void shouldRefuseToStartThreadsBeforeTheSourceIsOpened() {
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of();
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     assertThrows(IllegalStateException.class, session::startThreads);
 
     final boolean active = session.isActive();
@@ -534,7 +534,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> this.failAfterCountingFrame(frames));
     this.onAudio((_, _) -> this.failAudioFilter());
     final ScriptedFrameGrabber grabber = pictureSoundPicture();
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -558,7 +558,7 @@ final class PlaybackSessionTest {
   @Test
   void shouldSkipTheWorkWhenNoPipelineIsAttached() throws Exception {
     final ScriptedFrameGrabber grabber = pictureSoundPicture();
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -574,7 +574,7 @@ final class PlaybackSessionTest {
     unreadable.imageStride = 3;
     final Frame last = ScriptedFrameGrabber.video(LAST_FRAME_POSITION);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(unreadable, last);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     final long start = System.nanoTime();
     session.start();
     awaitEnd(session);
@@ -596,7 +596,7 @@ final class PlaybackSessionTest {
     final Frame unreadable = ScriptedFrameGrabber.video(0L);
     unreadable.imageStride = 3;
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(unreadable);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -611,7 +611,7 @@ final class PlaybackSessionTest {
     this.onVideo((image, _) -> this.recordImage(seen, frames, image));
     final List<Object> script = frames(24, 5_000L);
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -636,7 +636,7 @@ final class PlaybackSessionTest {
     final Dimension size = Dimension.of(SCALED_WIDTH, 1);
     this.dimensionCallback.attach(size);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -658,7 +658,7 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     grabber.setFrameRate(10.0);
     grabber.setLength(500_000L);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     final long start = System.nanoTime();
     session.start();
     awaitEnd(session);
@@ -687,7 +687,7 @@ final class PlaybackSessionTest {
 
     final ScriptedFrameGrabber camera = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     camera.setFrameRate(30.0);
-    final PlaybackSession session = this.session(camera, 0L, false);
+    final PlaybackSession session = this.session(camera, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -703,7 +703,7 @@ final class PlaybackSessionTest {
   // instead of the callback of the test.
   private PlaybackSession sessionWithVideoCallback(final ScriptedFrameGrabber grabber, final VideoAttachableCallback callback) {
     final PlaybackSession.GrabberFactory videoFactory = factoryOf(grabber);
-    return this.session(videoFactory, null, callback, Timing.NEVER_DROPPING, 0L, false);
+    return this.session(videoFactory, null, callback, Timing.NEVER_DROPPING, 0L, StartState.PLAYING);
   }
 
   @Test
@@ -748,7 +748,7 @@ final class PlaybackSessionTest {
     final List<Object> script = frames(6, FRAME_MICROSECONDS);
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
-    final PlaybackSession session = this.session(factory, null, this.videoCallback, controlled, 0L, false);
+    final PlaybackSession session = this.session(factory, null, this.videoCallback, controlled, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -770,7 +770,7 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, 30_000_000L);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     final long start = System.nanoTime();
     session.start();
     awaitEnd(session);
@@ -789,7 +789,7 @@ final class PlaybackSessionTest {
     final AtomicInteger frames = new AtomicInteger();
     this.onVideo((_, _) -> frames.incrementAndGet() > 0);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
-    final PlaybackSession session = this.session(grabber, 0L, true);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PAUSED);
     session.start();
     awaitCondition("the decoder queued every frame", grabber::isClosed);
 
@@ -816,7 +816,7 @@ final class PlaybackSessionTest {
     final Frame latePicture = ScriptedFrameGrabber.video(1_500_000L);
     final Frame lateSound = ScriptedFrameGrabber.audio(1_500_000L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(firstPicture, firstSound, latePicture, lateSound);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitCondition("the first frame was rendered", () -> frames.get() == 1);
     awaitCondition("the decoder queued the second frame", grabber::isClosed);
@@ -861,7 +861,7 @@ final class PlaybackSessionTest {
     this.onVideo(blocking);
     final List<Object> script = frames(20, FRAME_MICROSECONDS);
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, script);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     final boolean rendered = rendering.await(TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
     assertTrue(rendered);
@@ -911,7 +911,7 @@ final class PlaybackSessionTest {
     final VideoFilter stopping = stoppingItsOwnSession(holder, frames, stopNanoseconds);
     this.onVideo(stopping);
     final ScriptedFrameGrabber grabber = videoAt(0L, FRAME_MICROSECONDS);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     holder.set(session);
     session.start();
     awaitCondition("the filter stopped the session", () -> stopNanoseconds.get() >= 0 && grabber.isClosed());
@@ -942,7 +942,7 @@ final class PlaybackSessionTest {
     final Frame picture = ScriptedFrameGrabber.video(0L);
     final ScriptedFrameGrabber.Delay stuck = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture, stuck);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     holder.set(session);
     session.start();
     awaitCondition("the filter began to stop the session", () -> !session.isActive());
@@ -961,7 +961,7 @@ final class PlaybackSessionTest {
     final ScriptedFrameGrabber.Delay stuck = new ScriptedFrameGrabber.Delay(500L);
     final Frame picture = ScriptedFrameGrabber.video(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(stuck, picture);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
 
     final Thread currentThread = Thread.currentThread();
@@ -984,7 +984,7 @@ final class PlaybackSessionTest {
     doAnswer(invocation -> this.grabAfterRelease(invocation, entered, releaseFailure, thrown))
       .when(grabber)
       .grab();
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     final Thread stopper = new Thread(session::stop);
     stopper.setUncaughtExceptionHandler((_, failure) -> stopFailure.set(failure));
     try {
@@ -1044,7 +1044,7 @@ final class PlaybackSessionTest {
     final Frame sound = ScriptedFrameGrabber.audio(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(sound);
     grabber.setSampleRate(0);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -1064,7 +1064,7 @@ final class PlaybackSessionTest {
   @Test
   void shouldFailToStartWhenTheVideoGrabberCannotBeCreated() {
     final PlaybackSession.GrabberFactory missing = this::failToCreateVideoGrabber;
-    final PlaybackSession session = this.session(missing, null, 0L, false);
+    final PlaybackSession session = this.session(missing, null, 0L, StartState.PLAYING);
     assertThrows(FrameGrabber.Exception.class, session::start);
 
     final boolean active = session.isActive();
@@ -1084,7 +1084,7 @@ final class PlaybackSessionTest {
     final ShortBuffer sampleBuffer = ShortBuffer.wrap(samples);
     chunk.samples = new Buffer[] { sampleBuffer };
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(chunk);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -1106,7 +1106,7 @@ final class PlaybackSessionTest {
     final long audioLeadNanoseconds = EARLY_AUDIO_NANOSECONDS;
     final Timing earlyAudio = new Timing(audioLeadNanoseconds, Long.MAX_VALUE, System::nanoTime);
     final PlaybackSession.GrabberFactory factory = factoryOf(grabber);
-    return this.session(factory, null, this.videoCallback, earlyAudio, 0L, false);
+    return this.session(factory, null, this.videoCallback, earlyAudio, 0L, StartState.PLAYING);
   }
 
   @Test
@@ -1142,7 +1142,7 @@ final class PlaybackSessionTest {
       ScriptedFrameGrabber.audio(LATER_SOUND_TIMESTAMP)
     );
     final Timing timing = new Timing(EARLY_AUDIO_NANOSECONDS, Long.MAX_VALUE, () -> virtualTime.getAndAdd(10_000_000L));
-    final PlaybackSession session = this.session(factoryOf(grabber), null, this.videoCallback, timing, 0L, false);
+    final PlaybackSession session = this.session(factoryOf(grabber), null, this.videoCallback, timing, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
     final int deliveries = deliveredAt.size();
@@ -1264,7 +1264,7 @@ final class PlaybackSessionTest {
     this.dimensionCallback.attach(size);
     final Frame picture = heapPicture(0L);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -1282,7 +1282,7 @@ final class PlaybackSessionTest {
     final Frame picture = heapPicture(0L);
     final ScriptedFrameGrabber.Delay stall = new ScriptedFrameGrabber.Delay(STALL_MILLISECONDS);
     final ScriptedFrameGrabber grabber = ScriptedFrameGrabber.of(picture, stall);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitCondition("the first picture was shown", () -> frames.get() == 1);
 
@@ -1298,7 +1298,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, metadata) -> seen.compareAndSet(null, metadata));
     final Frame picture = ScriptedFrameGrabber.video(0L);
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(0, 0, false, List.of(picture));
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
     awaitEnd(session);
 
@@ -1314,7 +1314,7 @@ final class PlaybackSessionTest {
     this.onVideo((_, _) -> this.recordAndInterruptRenderer(rendererHolder));
     final List<Object> pictures = frames(20, FRAME_MICROSECONDS);
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, pictures);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
 
     awaitCondition("the session stopped and closed its decoder", () -> !session.isActive() && grabber.isClosed());
@@ -1348,7 +1348,7 @@ final class PlaybackSessionTest {
     }
 
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     session.start();
 
     awaitCondition("the session stopped and closed its decoder", () -> !session.isActive() && grabber.isClosed());
@@ -1369,7 +1369,7 @@ final class PlaybackSessionTest {
     }
 
     final ScriptedFrameGrabber grabber = new ScriptedFrameGrabber(FRAME_WIDTH, FRAME_HEIGHT, false, sounds);
-    final PlaybackSession session = this.session(grabber, 0L, false);
+    final PlaybackSession session = this.session(grabber, 0L, StartState.PLAYING);
     holder.set(session);
     session.start();
     awaitCondition("the pipeline stopped the session", () -> rendererHolder.get() != null && !session.isActive());
@@ -1406,7 +1406,7 @@ final class PlaybackSessionTest {
       this.dimensionCallback,
       this::report,
       0L,
-      false,
+      StartState.PLAYING,
       PlaybackSession.AUDIO_LEAD_NANOSECONDS,
       -1L,
       System::nanoTime,

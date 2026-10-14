@@ -49,18 +49,17 @@ public final class OpenCvPlayer extends AbstractVideoPlayerCv {
   protected FrameGrabber createFrameGrabber(final String resource) {
     Preconditions.checkNotNull(resource, "Resource must not be null!");
 
-    final boolean openCvReadsFiles = OpenCvVideoBackends.canDecodeFiles();
-    return createFrameGrabber(resource, openCvReadsFiles);
+    final VideoFileReader reader = OpenCvVideoBackends.chooseFileReader();
+    return createFrameGrabber(resource, reader);
   }
 
-  // Creates the grabber for a resource, for a build that reads files itself or one that does not. Both cases exist on
-  // the platforms the library supports, so both can be tested wherever the tests run.
+  // Creates the grabber for a resource with either reader. Both cases exist on the platforms the library supports, so
+  // both can be tested wherever the tests run.
   @VisibleForTesting
-  static FrameGrabber createFrameGrabber(final String resource, final boolean openCvReadsFiles) {
-    if (openCvReadsFiles) {
-      return new OpenCVFrameGrabber(resource);
-    }
-
-    return new FFmpegFrameGrabber(resource);
+  static FrameGrabber createFrameGrabber(final String resource, final VideoFileReader reader) {
+    return switch (reader) {
+      case OPENCV -> new OpenCVFrameGrabber(resource);
+      case FFMPEG -> new FFmpegFrameGrabber(resource);
+    };
   }
 }

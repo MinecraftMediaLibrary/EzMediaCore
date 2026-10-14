@@ -45,7 +45,7 @@ final class PlaybackSessionTerminalTest {
       dimensions,
       (_, _) -> {},
       0L,
-      false,
+      StartState.PLAYING,
       0L,
       Long.MAX_VALUE,
       System::nanoTime

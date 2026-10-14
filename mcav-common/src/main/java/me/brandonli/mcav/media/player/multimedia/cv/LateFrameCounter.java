@@ -45,19 +45,29 @@ final class LateFrameCounter {
     this.listener = listener;
   }
 
-  void count(final long timestampMicroseconds, final boolean late) {
-    if (!this.counting || timestampMicroseconds < this.windowStartMicroseconds) {
-      this.counting = true;
-      this.reported = false;
-      this.begin(timestampMicroseconds);
+  void countShown(final long timestampMicroseconds) {
+    this.beginOnFirstOrRewoundFrame(timestampMicroseconds);
+    this.shown++;
+    this.closeFinishedStretch(timestampMicroseconds);
+  }
+
+  void countDropped(final long timestampMicroseconds) {
+    this.beginOnFirstOrRewoundFrame(timestampMicroseconds);
+    this.dropped++;
+    this.closeFinishedStretch(timestampMicroseconds);
+  }
+
+  private void beginOnFirstOrRewoundFrame(final long timestampMicroseconds) {
+    if (this.counting && timestampMicroseconds >= this.windowStartMicroseconds) {
+      return;
     }
 
-    if (late) {
-      this.dropped++;
-    } else {
-      this.shown++;
-    }
+    this.counting = true;
+    this.reported = false;
+    this.begin(timestampMicroseconds);
+  }
 
+  private void closeFinishedStretch(final long timestampMicroseconds) {
     if (timestampMicroseconds - this.windowStartMicroseconds < WINDOW_MICROSECONDS) {
       return;
     }

@@ -25,6 +25,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.LongConsumer;
 import org.junit.jupiter.api.Test;
 
 // Tests LateFrameCounter with frames whose timestamps the test chooses, so every stretch is exact.
@@ -36,26 +37,26 @@ final class LateFrameCounterTest {
   private final List<String> reports = new ArrayList<>();
   private final LateFrameCounter counter = new LateFrameCounter((dropped, frames) -> this.reports.add(dropped + " of " + frames));
 
-  private void everySecond(final int firstSecond, final int lastSecond, final boolean late) {
+  private void everySecond(final int firstSecond, final int lastSecond, final LongConsumer count) {
     for (int second = firstSecond; second <= lastSecond; second++) {
-      this.counter.count(second * SECOND_MICROSECONDS, late);
+      count.accept(second * SECOND_MICROSECONDS);
     }
   }
 
   @Test
   void shouldReportAStretchInWhichMostFramesCameTooLate() {
-    this.counter.count(0L, false);
-    this.everySecond(1, 10, true);
+    this.counter.countShown(0L);
+    this.everySecond(1, 10, this.counter::countDropped);
 
     assertEquals(List.of("10 of 11"), this.reports, "ten seconds of video end with the frame at ten seconds");
   }
 
   @Test
   void shouldEndAStretchOnlyOnceItsTenSecondsArePast() {
-    this.everySecond(0, 9, true);
-    this.counter.count(STRETCH_MICROSECONDS - 1, true);
+    this.everySecond(0, 9, this.counter::countDropped);
+    this.counter.countDropped(STRETCH_MICROSECONDS - 1);
     final List<String> beforeTheEnd = List.copyOf(this.reports);
-    this.counter.count(STRETCH_MICROSECONDS, true);
+    this.counter.countDropped(STRETCH_MICROSECONDS);
 
     assertEquals(List.of(), beforeTheEnd);
     assertEquals(List.of("12 of 12"), this.reports);
@@ -63,9 +64,9 @@ final class LateFrameCounterTest {
 
   @Test
   void shouldNotReportFewerThanTenDroppedFramesAsAReason() {
-    this.counter.count(0L, false);
-    this.counter.count(SECOND_MICROSECONDS, false);
-    this.everySecond(2, 10, true);
+    this.counter.countShown(0L);
+    this.counter.countShown(SECOND_MICROSECONDS);
+    this.everySecond(2, 10, this.counter::countDropped);
 
     assertEquals(List.of(), this.reports, "nine frames were dropped");
   }
@@ -73,8 +74,8 @@ final class LateFrameCounterTest {
   @Test
   void shouldDropOfHalfTheFramesAreNoReason() {
     for (int frame = 0; frame <= 21; frame++) {
-      final boolean late = frame % 2 == 0;
-      this.counter.count((frame * STRETCH_MICROSECONDS) / 21, late);
+      final LongConsumer count = frame % 2 == 0 ? this.counter::countDropped : this.counter::countShown;
+      count.accept((frame * STRETCH_MICROSECONDS) / 21);
     }
 
     assertEquals(List.of(), this.reports, "eleven of twenty-two frames were dropped");
@@ -82,24 +83,24 @@ final class LateFrameCounterTest {
 
   @Test
   void shouldCountOnlyTheOwnFramesOfAStretch() {
-    this.everySecond(0, 10, false);
-    this.everySecond(11, 20, true);
+    this.everySecond(0, 10, this.counter::countShown);
+    this.everySecond(11, 20, this.counter::countDropped);
 
     assertEquals(List.of("10 of 10"), this.reports);
   }
 
   @Test
   void shouldNeverReportFramesOnTime() {
-    this.everySecond(0, 120, false);
+    this.everySecond(0, 120, this.counter::countShown);
 
     assertEquals(List.of(), this.reports);
   }
 
   @Test
   void shouldReportAtMostOnceAMinuteOfVideo() {
-    this.everySecond(0, 69, true);
+    this.everySecond(0, 69, this.counter::countDropped);
     final List<String> withinTheMinute = List.copyOf(this.reports);
-    this.counter.count(70 * SECOND_MICROSECONDS, true);
+    this.counter.countDropped(70 * SECOND_MICROSECONDS);
 
     assertEquals(List.of("11 of 11"), withinTheMinute, "the stretches up to seventy seconds come within a minute of the first report");
     assertEquals(List.of("11 of 11", "10 of 10"), this.reports, "a minute after the first report, the next stretch is reported");
@@ -107,8 +108,8 @@ final class LateFrameCounterTest {
 
   @Test
   void shouldStartCountingAnewAfterAJumpBackInTheTimestamps() {
-    this.everySecond(0, 10, true);
-    this.everySecond(0, 10, true);
+    this.everySecond(0, 10, this.counter::countDropped);
+    this.everySecond(0, 10, this.counter::countDropped);
 
     assertEquals(List.of("11 of 11", "11 of 11"), this.reports);
   }
@@ -116,10 +117,10 @@ final class LateFrameCounterTest {
   @Test
   void shouldCountFramesWithTheTimestampOfTheStartOfAStretchInIt() {
     for (int frame = 0; frame < 11; frame++) {
-      this.counter.count(0L, true);
+      this.counter.countDropped(0L);
     }
 
-    this.counter.count(STRETCH_MICROSECONDS, true);
+    this.counter.countDropped(STRETCH_MICROSECONDS);
 
     assertEquals(List.of("12 of 12"), this.reports);
   }

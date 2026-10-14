@@ -138,7 +138,7 @@ final class PlaybackSession {
     final DimensionAttachableCallback dimensionCallback,
     final BiConsumer<String, Throwable> exceptionHandler,
     final long startMicroseconds,
-    final boolean startPaused,
+    final StartState startState,
     final long audioLeadNanoseconds,
     final long maximumVideoLagNanoseconds,
     final LongSupplier nanosecondClock
@@ -151,7 +151,7 @@ final class PlaybackSession {
       dimensionCallback,
       exceptionHandler,
       startMicroseconds,
-      startPaused,
+      startState,
       audioLeadNanoseconds,
       maximumVideoLagNanoseconds,
       nanosecondClock,
@@ -167,7 +167,7 @@ final class PlaybackSession {
     final DimensionAttachableCallback dimensionCallback,
     final BiConsumer<String, Throwable> exceptionHandler,
     final long startMicroseconds,
-    final boolean startPaused,
+    final StartState startState,
     final long audioLeadNanoseconds,
     final long maximumVideoLagNanoseconds,
     final LongSupplier nanosecondClock,
@@ -195,7 +195,7 @@ final class PlaybackSession {
     this.videoMetadata = OriginalVideoMetadata.EMPTY;
     this.audioMetadata = DEFAULT_AUDIO_METADATA;
 
-    if (startPaused) {
+    if (startState == StartState.PAUSED) {
       this.clock.pause();
     }
   }
@@ -339,7 +339,7 @@ final class PlaybackSession {
     final OriginalVideoMetadata decodedVideoMetadata = createVideoMetadata(grabber);
     final double frameRate = grabber.getFrameRate();
     final long length = grabber.getLengthInTime();
-    final VideoTimestamps timestamps = new VideoTimestamps(frameRate, length <= 0, this.nanosecondClock);
+    final VideoTimestamps timestamps = this.createTimestamps(frameRate, length);
     final OriginalAudioMetadata decodedAudioMetadata = createAudioMetadata(grabber);
     Frame frame = grab(grabber, streams);
     while (frame != null && this.running.get()) {
@@ -365,6 +365,15 @@ final class PlaybackSession {
     } catch (final FrameGrabber.Exception exception) {
       this.report("Failed to seek, playing from the current position instead", exception);
     }
+  }
+
+  // Media of a known length advances by its frame rate; live sources report no length.
+  private VideoTimestamps createTimestamps(final double frameRate, final long length) {
+    if (length <= 0) {
+      return VideoTimestamps.live(this.nanosecondClock);
+    }
+
+    return VideoTimestamps.recorded(frameRate, this.nanosecondClock);
   }
 
   private static boolean hasImage(final Frame frame) {
@@ -565,12 +574,12 @@ final class PlaybackSession {
     final long timestamp = frame.getTimestampMicroseconds();
     final long lateNanoseconds = this.awaitDue(timestamp, 0L);
     final boolean late = lateNanoseconds > this.maximumVideoLagNanoseconds;
-    this.lateFrames.count(timestamp, late);
-
     if (late) {
+      this.lateFrames.countDropped(timestamp);
       return;
     }
 
+    this.lateFrames.countShown(timestamp);
     this.positionMicroseconds = timestamp;
     final VideoPipelineStep step = this.videoCallback.retrieve();
     final boolean empty = step.isNoOp();

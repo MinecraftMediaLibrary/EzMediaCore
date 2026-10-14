@@ -40,34 +40,33 @@ final class OpenCvVideoBackends {
   private static final String SECTION_END = "\n\n";
   private static final String ENABLED = "YES";
   private static final List<String> FILE_BACKENDS = List.of("FFMPEG:", "Media Foundation:", "AVFoundation:", "GStreamer:");
-  private static final Supplier<Boolean> FILE_BACKEND = Suppliers.memoize(OpenCvVideoBackends::detectFileBackend);
+  private static final Supplier<VideoFileReader> FILE_READER = Suppliers.memoize(OpenCvVideoBackends::detectFileReader);
 
   private OpenCvVideoBackends() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  // Whether the OpenCV build of this machine reads video files. The answer is worked out once, because it cannot change
-  // while the library runs.
-  static boolean canDecodeFiles() {
-    return FILE_BACKEND.get();
+  // The reader that opens video files on this machine. The answer is worked out once, because it cannot change while the
+  // library runs.
+  static VideoFileReader chooseFileReader() {
+    return FILE_READER.get();
   }
 
-  private static boolean detectFileBackend() {
+  private static VideoFileReader detectFileReader() {
     final BytePointer information = opencv_core.getBuildInformation();
     final String text = information.getString();
     return decideFromBuildInformation(text);
   }
 
   @VisibleForTesting
-  static boolean decideFromBuildInformation(final String information) {
+  static VideoFileReader decideFromBuildInformation(final String information) {
     final boolean backend = listsEnabledFileBackend(information);
-    if (!backend) {
-      LOGGER.info(
-        "The OpenCV build of this platform has no video file backend, so files are read with the FFmpeg reader of JavaCV instead."
-      );
+    if (backend) {
+      return VideoFileReader.OPENCV;
     }
 
-    return backend;
+    LOGGER.info("The OpenCV build of this platform has no video file backend, so files are read with the FFmpeg reader of JavaCV instead.");
+    return VideoFileReader.FFMPEG;
   }
 
   @VisibleForTesting

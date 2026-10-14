@@ -38,10 +38,19 @@ final class VideoTimestamps {
   private long firstNanoseconds;
   private long lastTimestamp;
 
-  VideoTimestamps(final double frameRate, final boolean live, final LongSupplier nanosecondClock) {
-    final boolean usableRate = !live && frameRate > 0 && Double.isFinite(frameRate);
-    this.frameMicroseconds = usableRate ? Math.round(MICROSECONDS_PER_SECOND / frameRate) : 0L;
+  private VideoTimestamps(final long frameMicroseconds, final LongSupplier nanosecondClock) {
+    this.frameMicroseconds = frameMicroseconds;
     this.nanosecondClock = nanosecondClock;
+  }
+
+  static VideoTimestamps recorded(final double frameRate, final LongSupplier nanosecondClock) {
+    final boolean usableRate = frameRate > 0 && Double.isFinite(frameRate);
+    final long frameMicroseconds = usableRate ? Math.round(MICROSECONDS_PER_SECOND / frameRate) : 0L;
+    return new VideoTimestamps(frameMicroseconds, nanosecondClock);
+  }
+
+  static VideoTimestamps live(final LongSupplier nanosecondClock) {
+    return new VideoTimestamps(0L, nanosecondClock);
   }
 
   long next(final long reported) {

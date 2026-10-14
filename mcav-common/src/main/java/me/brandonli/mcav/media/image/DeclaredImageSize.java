@@ -551,16 +551,17 @@ final class DeclaredImageSize {
   private static @Nullable Size tiff(final Header header) {
     final ByteOrder order = header.unsigned8(0) == 'I' ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
     final long magic = header.number(TIFF_MAGIC_OFFSET, SIXTEEN_BIT_BYTES, order);
-    final boolean big = magic == BIG_TIFF_MAGIC;
-    if (magic != TIFF_MAGIC && !big) {
+    final TiffLayout layout = magic == BIG_TIFF_MAGIC ? TiffLayout.BIG : TiffLayout.CLASSIC;
+    if (magic != TIFF_MAGIC && layout == TiffLayout.CLASSIC) {
       return null;
     }
 
-    final long directory = big
-      ? header.number(BIG_TIFF_DIRECTORY_OFFSET, SIXTY_FOUR_BIT_BYTES, order)
-      : header.number(TIFF_DIRECTORY_OFFSET, THIRTY_TWO_BIT_BYTES, order);
-    final int countSize = big ? SIXTY_FOUR_BIT_BYTES : SIXTEEN_BIT_BYTES;
-    final int entrySize = big ? BIG_TIFF_ENTRY_SIZE : TIFF_ENTRY_SIZE;
+    final long directory =
+      layout == TiffLayout.BIG
+        ? header.number(BIG_TIFF_DIRECTORY_OFFSET, SIXTY_FOUR_BIT_BYTES, order)
+        : header.number(TIFF_DIRECTORY_OFFSET, THIRTY_TWO_BIT_BYTES, order);
+    final int countSize = layout == TiffLayout.BIG ? SIXTY_FOUR_BIT_BYTES : SIXTEEN_BIT_BYTES;
+    final int entrySize = layout == TiffLayout.BIG ? BIG_TIFF_ENTRY_SIZE : TIFF_ENTRY_SIZE;
     final long count = header.number(directory, countSize, order);
     if (count < 0) {
       return null;
@@ -574,26 +575,26 @@ final class DeclaredImageSize {
       final long tag = header.number(entry, SIXTEEN_BIT_BYTES, order);
       // a tag given twice is refused, as which of the two libtiff keeps is not something to rely on
       if (tag == TIFF_IMAGE_WIDTH_TAG) {
-        width = width == -1 ? tiffValue(header, entry, big, order) : REFUSED;
+        width = width == -1 ? tiffValue(header, entry, layout, order) : REFUSED;
       } else if (tag == TIFF_IMAGE_LENGTH_TAG) {
-        length = length == -1 ? tiffValue(header, entry, big, order) : REFUSED;
+        length = length == -1 ? tiffValue(header, entry, layout, order) : REFUSED;
       }
     }
 
     return of(width, length);
   }
 
-  private static long tiffValue(final Header header, final long entry, final boolean big, final ByteOrder order) {
+  private static long tiffValue(final Header header, final long entry, final TiffLayout layout, final ByteOrder order) {
     final long type = header.number(entry + TIFF_TYPE_OFFSET, SIXTEEN_BIT_BYTES, order);
-    final int countBytes = big ? SIXTY_FOUR_BIT_BYTES : THIRTY_TWO_BIT_BYTES;
+    final int countBytes = layout == TiffLayout.BIG ? SIXTY_FOUR_BIT_BYTES : THIRTY_TWO_BIT_BYTES;
     final long count = header.number(entry + TIFF_COUNT_OFFSET, countBytes, order);
-    final long field = entry + (big ? BIG_TIFF_VALUE_OFFSET : TIFF_VALUE_OFFSET);
+    final long field = entry + (layout == TiffLayout.BIG ? BIG_TIFF_VALUE_OFFSET : TIFF_VALUE_OFFSET);
     final int bytes;
     if (type == TIFF_SHORT_TYPE) {
       bytes = SIXTEEN_BIT_BYTES;
     } else if (type == TIFF_LONG_TYPE) {
       bytes = THIRTY_TWO_BIT_BYTES;
-    } else if (type == TIFF_LONG8_TYPE && big) {
+    } else if (type == TIFF_LONG8_TYPE && layout == TiffLayout.BIG) {
       bytes = SIXTY_FOUR_BIT_BYTES;
     } else {
       return REFUSED;
@@ -639,6 +640,11 @@ final class DeclaredImageSize {
   }
 
   record Size(long width, long height) {}
+
+  private enum TiffLayout {
+    CLASSIC,
+    BIG,
+  }
 
   private static final class Scanner {
 

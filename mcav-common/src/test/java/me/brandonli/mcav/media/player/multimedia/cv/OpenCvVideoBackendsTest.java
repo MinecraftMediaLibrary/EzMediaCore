@@ -20,6 +20,7 @@ package me.brandonli.mcav.media.player.multimedia.cv;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -75,8 +76,8 @@ final class OpenCvVideoBackendsTest {
 
   @Test
   void shouldFindNoFileBackendInTheLinuxBuild() {
-    final boolean canDecodeFiles = OpenCvVideoBackends.decideFromBuildInformation(LINUX);
-    assertFalse(canDecodeFiles, "the Linux build of the presets only captures from cameras");
+    final VideoFileReader reader = OpenCvVideoBackends.decideFromBuildInformation(LINUX);
+    assertEquals(VideoFileReader.FFMPEG, reader, "the Linux build of the presets only captures from cameras");
   }
 
   @Test
@@ -99,10 +100,10 @@ final class OpenCvVideoBackendsTest {
 
   @Test
   void shouldFindTheFileBackendsOfTheOtherBuilds() {
-    final boolean canDecodeFilesOnWindows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
-    final boolean macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
-    assertTrue(canDecodeFilesOnWindows);
-    assertTrue(macOs);
+    final VideoFileReader windows = OpenCvVideoBackends.decideFromBuildInformation(WINDOWS);
+    final VideoFileReader macOs = OpenCvVideoBackends.decideFromBuildInformation(MACOS);
+    assertEquals(VideoFileReader.OPENCV, windows);
+    assertEquals(VideoFileReader.OPENCV, macOs);
   }
 
   @Test
@@ -138,29 +139,28 @@ final class OpenCvVideoBackendsTest {
 
   @Test
   void shouldAnswerTheSameEveryTime() {
-    final boolean firstAnswer = OpenCvVideoBackends.canDecodeFiles();
-    final boolean secondAnswer = OpenCvVideoBackends.canDecodeFiles();
-    final boolean sameAnswer = firstAnswer == secondAnswer;
-    assertTrue(sameAnswer, "the answer cannot change while the library runs");
+    final VideoFileReader firstAnswer = OpenCvVideoBackends.chooseFileReader();
+    final VideoFileReader secondAnswer = OpenCvVideoBackends.chooseFileReader();
+    assertSame(firstAnswer, secondAnswer, "the answer cannot change while the library runs");
   }
 
   @Test
   void shouldDecideFromTheBuildOfThisMachine() {
     final BytePointer information = opencv_core.getBuildInformation();
     final String text = information.getString();
-    final boolean expected = OpenCvVideoBackends.listsEnabledFileBackend(text);
+    final VideoFileReader expected = OpenCvVideoBackends.decideFromBuildInformation(text);
 
-    final boolean canDecodeFiles = OpenCvVideoBackends.canDecodeFiles();
-    assertEquals(expected, canDecodeFiles);
+    final VideoFileReader reader = OpenCvVideoBackends.chooseFileReader();
+    assertEquals(expected, reader);
   }
 
   @Test
   void shouldPickTheGrabberThatMatchesTheBuild() throws FrameGrabber.Exception {
-    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, true)) {
+    try (final FrameGrabber reader = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, VideoFileReader.OPENCV)) {
       assertInstanceOf(OpenCVFrameGrabber.class, reader);
     }
 
-    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, false)) {
+    try (final FrameGrabber fallback = OpenCvPlayer.createFrameGrabber(VIDEO_FILE_NAME, VideoFileReader.FFMPEG)) {
       assertInstanceOf(FFmpegFrameGrabber.class, fallback, "a build without a file backend reads the file with FFmpeg");
     }
   }

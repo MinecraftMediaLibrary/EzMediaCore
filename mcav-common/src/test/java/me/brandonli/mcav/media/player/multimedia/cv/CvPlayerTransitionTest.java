@@ -519,7 +519,7 @@ final class CvPlayerTransitionTest {
         DimensionAttachableCallback.create(),
         (_, failure) -> failures.add(failure),
         0L,
-        false,
+        StartState.PLAYING,
         0L,
         Long.MAX_VALUE,
         System::nanoTime
