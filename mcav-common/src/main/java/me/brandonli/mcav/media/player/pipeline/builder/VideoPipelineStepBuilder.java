@@ -17,20 +17,36 @@
  */
 package me.brandonli.mcav.media.player.pipeline.builder;
 
-import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 
 /**
  * Builds a video pipeline from {@link VideoFilter}s; create one with {@link PipelineBuilder#video()}.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
-public abstract class VideoPipelineStepBuilder
-  extends AbstractPipelineStepBuilder<ImageBuffer, OriginalVideoMetadata, VideoFilter, VideoPipelineStep, VideoPipelineStepBuilder>
-{
+public interface VideoPipelineStepBuilder {
+  /**
+   * Adds a filter to the end of the pipeline.
+   *
+   * @param filter the filter
+   * @return this builder
+   * @throws NullPointerException if {@code filter} is null
+   */
+  VideoPipelineStepBuilder then(final VideoFilter filter);
 
   /**
-   * Constructs an empty builder.
+   * Returns the number of filters added so far.
+   *
+   * @return the filter count
    */
-  protected VideoPipelineStepBuilder() {}
+  int size();
+
+  /**
+   * Links the filters into a new chain, first filter first, retaining the filter instances. The builder is
+   * unchanged; appending more filters later does not alter this chain.
+   *
+   * @return the first step, or {@link VideoPipelineStep#NO_OP} if no filter was added
+   */
+  VideoPipelineStep build();
 }

@@ -17,46 +17,31 @@
  */
 package me.brandonli.mcav.media.player.pipeline.builder;
 
+import me.brandonli.mcav.media.image.ImageBuffer;
+import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.video.VideoFilter;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The default {@link VideoPipelineStepBuilder}.
- */
-public final class DefaultVideoPipelineStepBuilder extends VideoPipelineStepBuilder {
+final class DefaultVideoPipelineStepBuilder
+  extends AbstractPipelineStepBuilder<ImageBuffer, OriginalVideoMetadata, VideoFilter, VideoPipelineStep, VideoPipelineStepBuilder>
+  implements VideoPipelineStepBuilder
+{
 
   DefaultVideoPipelineStepBuilder() {}
 
-  /**
-   * Creates a video step that applies a filter and continues with the next step.
-   *
-   * @param next   the step that follows, or null for the last step
-   * @param filter the filter of the step
-   * @return the step
-   */
   @Override
-  protected VideoPipelineStep createStep(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
+  VideoPipelineStep createStep(final @Nullable VideoPipelineStep next, final VideoFilter filter) {
     return VideoPipelineStep.of(next, filter);
   }
 
-  /**
-   * Returns {@link VideoPipelineStep#NO_OP}, the video step built when no filter was added.
-   *
-   * @return the no-op video step
-   */
   @Override
-  protected VideoPipelineStep createEmptyStep() {
+  VideoPipelineStep createEmptyStep() {
     return VideoPipelineStep.NO_OP;
   }
 
-  /**
-   * Returns this builder typed as a video builder.
-   *
-   * @return this builder
-   */
   @Override
-  protected VideoPipelineStepBuilder self() {
+  VideoPipelineStepBuilder self() {
     return this;
   }
 }

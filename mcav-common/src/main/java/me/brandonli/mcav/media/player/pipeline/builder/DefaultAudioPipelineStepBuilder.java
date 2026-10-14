@@ -17,46 +17,31 @@
  */
 package me.brandonli.mcav.media.player.pipeline.builder;
 
+import java.nio.ByteBuffer;
+import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
 import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
 import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The default {@link AudioPipelineStepBuilder}.
- */
-public final class DefaultAudioPipelineStepBuilder extends AudioPipelineStepBuilder {
+final class DefaultAudioPipelineStepBuilder
+  extends AbstractPipelineStepBuilder<ByteBuffer, OriginalAudioMetadata, AudioFilter, AudioPipelineStep, AudioPipelineStepBuilder>
+  implements AudioPipelineStepBuilder
+{
 
   DefaultAudioPipelineStepBuilder() {}
 
-  /**
-   * Creates an audio step that applies a filter and continues with the next step.
-   *
-   * @param next   the step that follows, or null for the last step
-   * @param filter the filter of the step
-   * @return the step
-   */
   @Override
-  protected AudioPipelineStep createStep(final @Nullable AudioPipelineStep next, final AudioFilter filter) {
+  AudioPipelineStep createStep(final @Nullable AudioPipelineStep next, final AudioFilter filter) {
     return AudioPipelineStep.of(next, filter);
   }
 
-  /**
-   * Returns {@link AudioPipelineStep#NO_OP}, the audio step built when no filter was added.
-   *
-   * @return the no-op audio step
-   */
   @Override
-  protected AudioPipelineStep createEmptyStep() {
+  AudioPipelineStep createEmptyStep() {
     return AudioPipelineStep.NO_OP;
   }
 
-  /**
-   * Returns this builder typed as an audio builder.
-   *
-   * @return this builder
-   */
   @Override
-  protected AudioPipelineStepBuilder self() {
+  AudioPipelineStepBuilder self() {
     return this;
   }
 }

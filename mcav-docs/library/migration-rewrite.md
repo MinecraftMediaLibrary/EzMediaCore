@@ -179,8 +179,8 @@ helpers are removed; use the callback interfaces to attach and invoke pipelines.
 also removed: use the metadata factories and their documented values.
 
 Pipeline builders and steps use more specific generic types. Recompile calls to `PipelineBuilder.audio()` and `video()`
-even if their source still compiles. Custom builders need the current `self`, `createStep` and `createEmptyStep`
-methods. `PipelineStep.next()` now returns an `Optional` of the next pipeline step rather than `Object`; custom steps
+even if their source still compiles. `AudioPipelineStepBuilder` and `VideoPipelineStepBuilder` are now interfaces,
+and their implementations are internal. `PipelineStep.next()` now returns an `Optional` of the next pipeline step rather than `Object`; custom steps
 must also implement `self` and the filter accessors, with the current audio processing contract. Prefer the supplied
 builders and `AudioPipelineStep.of` / `VideoPipelineStep.of` factories. `FrameSource.getFrameSupplier()` is removed; use
 the source's current frame-production interface rather than extracting its implementation supplier.
