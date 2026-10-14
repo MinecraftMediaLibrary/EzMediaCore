@@ -643,15 +643,6 @@ public final class HttpDownloader {
       this.client = client;
     }
 
-    /**
-     * Returns the client this stream shuts down when it is closed.
-     *
-     * @return the client
-     */
-    HttpClient getClient() {
-      return this.client;
-    }
-
     @Override
     public int read() throws IOException {
       return this.delegate.read();
@@ -669,6 +660,15 @@ public final class HttpDownloader {
       } finally {
         this.client.shutdownNow();
       }
+    }
+
+    /**
+     * Returns the client this stream shuts down when it is closed.
+     *
+     * @return the client
+     */
+    HttpClient getClient() {
+      return this.client;
     }
   }
 }

@@ -70,6 +70,15 @@ public final class ThresholdMatrix {
   }
 
   /**
+   * Returns a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
+   *
+   * @return a new array with the entries
+   */
+  public int[][] toArray() {
+    return copyRows(this.rows);
+  }
+
+  /**
    * Returns the number of rows, which is the height of the pattern.
    *
    * @return the number of rows
@@ -85,14 +94,5 @@ public final class ThresholdMatrix {
    */
   public int getColumnCount() {
     return this.rows[0].length;
-  }
-
-  /**
-   * Returns a copy of the entries, indexed by row and then column. Changing the copy does not change this matrix.
-   *
-   * @return a new array with the entries
-   */
-  public int[][] toArray() {
-    return copyRows(this.rows);
   }
 }

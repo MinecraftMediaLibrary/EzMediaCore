@@ -166,15 +166,6 @@ final class NativeHeapTrimmer implements AutoCloseable {
     this.thread = Thread.ofPlatform().name(THREAD_NAME).daemon().start(this::trimUntilInterrupted);
   }
 
-  /**
-   * Checks whether the trimmer trims.
-   *
-   * @return true between {@link #start()} and {@link #close()}, unless it trims never
-   */
-  boolean isTrimming() {
-    return this.thread != null;
-  }
-
   private void trimUntilInterrupted() {
     while (true) {
       try {
@@ -310,5 +301,14 @@ final class NativeHeapTrimmer implements AutoCloseable {
     } catch (final JMException exception) {
       throw new IllegalStateException("Could not trim the native heap!", exception);
     }
+  }
+
+  /**
+   * Checks whether the trimmer trims.
+   *
+   * @return true between {@link #start()} and {@link #close()}, unless it trims never
+   */
+  boolean isTrimming() {
+    return this.thread != null;
   }
 }

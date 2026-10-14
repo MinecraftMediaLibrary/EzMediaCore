@@ -61,24 +61,6 @@ public final class DitherFilter implements FunctionalVideoFilter {
   }
 
   /**
-   * Returns the dithering algorithm.
-   *
-   * @return the algorithm
-   */
-  public DitherAlgorithm getAlgorithm() {
-    return this.algorithm;
-  }
-
-  /**
-   * Returns the step that receives the frames.
-   *
-   * @return the result step
-   */
-  public DitherResultStep getResult() {
-    return this.result;
-  }
-
-  /**
    * Hands a frame to the result step.
    *
    * @param samples  the frame
@@ -109,5 +91,23 @@ public final class DitherFilter implements FunctionalVideoFilter {
   @Override
   public void release() {
     this.result.release();
+  }
+
+  /**
+   * Returns the dithering algorithm.
+   *
+   * @return the algorithm
+   */
+  public DitherAlgorithm getAlgorithm() {
+    return this.algorithm;
+  }
+
+  /**
+   * Returns the step that receives the frames.
+   *
+   * @return the result step
+   */
+  public DitherResultStep getResult() {
+    return this.result;
   }
 }

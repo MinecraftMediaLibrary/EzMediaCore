@@ -122,16 +122,6 @@ final class VideoFrameCopier {
     return this.unscaled != null;
   }
 
-  /**
-   * Returns the copy of an unscaled frame the copier holds, see {@link #hasUnscaledCopy()}.
-   *
-   * @return the copy, or null if the copier holds none
-   */
-  @VisibleForTesting
-  @Nullable MatImageBuffer getUnscaledCopy() {
-    return this.unscaled;
-  }
-
   private static MatImageBuffer fill(final @Nullable MatImageBuffer reusable, final Frame frame, final int width, final int height) {
     final MatImageBuffer target = ensureSize(reusable, width, height);
     final ByteBuffer data = target.getData();
@@ -226,5 +216,15 @@ final class VideoFrameCopier {
     final Mat mat = new Mat(height, width, opencv_core.CV_8UC3);
     final ImageBuffer created = ImageBuffer.mat(mat);
     return (MatImageBuffer) created;
+  }
+
+  /**
+   * Returns the copy of an unscaled frame the copier holds, see {@link #hasUnscaledCopy()}.
+   *
+   * @return the copy, or null if the copier holds none
+   */
+  @VisibleForTesting
+  @Nullable MatImageBuffer getUnscaledCopy() {
+    return this.unscaled;
   }
 }

@@ -47,16 +47,6 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
   }
 
   /**
-   * Returns the filter this step applies.
-   *
-   * @return the filter
-   */
-  @Override
-  public VideoFilter getFilter() {
-    return this.filter;
-  }
-
-  /**
    * Applies the filter of this step to the frame. The filter's return value is ignored; this call does not invoke the next step.
    *
    * @param buffer   the frame
@@ -68,5 +58,15 @@ public final class DefaultVideoPipelineStep implements VideoPipelineStep {
     Preconditions.checkNotNull(buffer, "Buffer must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     this.filter.applyFilter(buffer, metadata);
+  }
+
+  /**
+   * Returns the filter this step applies.
+   *
+   * @return the filter
+   */
+  @Override
+  public VideoFilter getFilter() {
+    return this.filter;
   }
 }

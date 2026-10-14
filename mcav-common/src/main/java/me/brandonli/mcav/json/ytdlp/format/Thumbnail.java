@@ -28,8 +28,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class Thumbnail {
 
-  private Thumbnail() {}
-
   /** The URL of the image. */
   public @Nullable String url;
   /** How strongly yt-dlp prefers the thumbnail over the others, where higher is better. */
@@ -42,4 +40,6 @@ public class Thumbnail {
   public int width;
   /** The resolution of the image as text, such as {@code 1920x1080}, or null if unknown. */
   public @Nullable String resolution;
+
+  private Thumbnail() {}
 }

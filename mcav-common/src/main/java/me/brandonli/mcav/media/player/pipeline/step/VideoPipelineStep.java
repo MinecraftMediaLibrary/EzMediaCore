@@ -96,16 +96,6 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     }
 
     /**
-     * Returns the filter of this step, which does nothing.
-     *
-     * @return {@link VideoFilter#NO_OP}
-     */
-    @Override
-    public VideoFilter getFilter() {
-      return VideoFilter.NO_OP;
-    }
-
-    /**
      * Leaves the frame untouched.
      *
      * @param buffer   the frame
@@ -116,6 +106,16 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
     public void process(final ImageBuffer buffer, final OriginalVideoMetadata metadata) {
       Preconditions.checkNotNull(buffer, "Buffer must not be null!");
       Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+    }
+
+    /**
+     * Returns the filter of this step, which does nothing.
+     *
+     * @return {@link VideoFilter#NO_OP}
+     */
+    @Override
+    public VideoFilter getFilter() {
+      return VideoFilter.NO_OP;
     }
 
     /**

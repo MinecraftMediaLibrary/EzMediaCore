@@ -285,26 +285,6 @@ public final class DelayedAudioOutput implements AutoCloseable {
   }
 
   /**
-   * Returns the number of bytes that wait for the pipeline.
-   *
-   * @return the queued bytes
-   */
-  @VisibleForTesting
-  synchronized int getQueuedBytes() {
-    return this.queuedBytes;
-  }
-
-  /**
-   * Returns the thread that hands the samples over, so tests can interrupt it.
-   *
-   * @return the thread
-   */
-  @VisibleForTesting
-  Thread getThread() {
-    return this.thread;
-  }
-
-  /**
    * Waits until the oldest chunk is due, and takes it.
    *
    * @return the samples, or null once the output is closed
@@ -428,6 +408,26 @@ public final class DelayedAudioOutput implements AutoCloseable {
       caller.interrupt();
     }
     current.interrupt();
+  }
+
+  /**
+   * Returns the number of bytes that wait for the pipeline.
+   *
+   * @return the queued bytes
+   */
+  @VisibleForTesting
+  synchronized int getQueuedBytes() {
+    return this.queuedBytes;
+  }
+
+  /**
+   * Returns the thread that hands the samples over, so tests can interrupt it.
+   *
+   * @return the thread
+   */
+  @VisibleForTesting
+  Thread getThread() {
+    return this.thread;
   }
 
   /**

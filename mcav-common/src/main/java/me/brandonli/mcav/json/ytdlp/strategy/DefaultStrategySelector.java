@@ -35,16 +35,6 @@ public final class DefaultStrategySelector implements StrategySelector {
     this.video = video;
   }
 
-  @Override
-  public FormatStrategy getAudioStrategy() {
-    return this.audio;
-  }
-
-  @Override
-  public FormatStrategy getVideoStrategy() {
-    return this.video;
-  }
-
   /**
    * {@inheritDoc}
    * @throws NullPointerException if {@code dump} is null
@@ -87,5 +77,15 @@ public final class DefaultStrategySelector implements StrategySelector {
       return url;
     }
     return "the media";
+  }
+
+  @Override
+  public FormatStrategy getAudioStrategy() {
+    return this.audio;
+  }
+
+  @Override
+  public FormatStrategy getVideoStrategy() {
+    return this.video;
   }
 }

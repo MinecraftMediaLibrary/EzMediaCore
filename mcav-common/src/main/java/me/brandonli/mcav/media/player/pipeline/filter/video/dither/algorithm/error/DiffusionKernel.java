@@ -209,33 +209,6 @@ public final class DiffusionKernel {
   }
 
   /**
-   * Returns the name of the algorithm the kernel belongs to.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return this.name;
-  }
-
-  /**
-   * Returns the number the weights are divided by.
-   *
-   * @return the divisor
-   */
-  public int getDivisor() {
-    return this.divisor;
-  }
-
-  /**
-   * Returns the number of taps.
-   *
-   * @return the tap count
-   */
-  public int getTapCount() {
-    return this.weights.length;
-  }
-
-  /**
    * Returns the horizontal offset of a tap, relative to the scanning direction.
    *
    * @param tap the zero-based tap index, less than {@link #getTapCount()}
@@ -266,6 +239,33 @@ public final class DiffusionKernel {
    */
   public int getWeight(final int tap) {
     return this.weights[tap];
+  }
+
+  /**
+   * Returns the name of the algorithm the kernel belongs to.
+   *
+   * @return the name
+   */
+  public String getName() {
+    return this.name;
+  }
+
+  /**
+   * Returns the number the weights are divided by.
+   *
+   * @return the divisor
+   */
+  public int getDivisor() {
+    return this.divisor;
+  }
+
+  /**
+   * Returns the number of taps.
+   *
+   * @return the tap count
+   */
+  public int getTapCount() {
+    return this.weights.length;
   }
 
   /**

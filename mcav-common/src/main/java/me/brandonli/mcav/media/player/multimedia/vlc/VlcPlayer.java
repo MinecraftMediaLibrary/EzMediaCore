@@ -76,20 +76,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   private @Nullable VlcPlayback playback;
   private @Nullable StartTransition pending;
 
-  /** One candidate and its previous playback; all access to claimed is guarded by the player lock. */
-  private static final class StartTransition {
-
-    private @Nullable VlcPlayback created;
-    private @Nullable VlcPlayback previous;
-    private boolean claimed;
-  }
-
-  private enum OpenResult {
-    CANCELLED,
-    FAILED,
-    STARTED,
-  }
-
   /**
    * Constructs a new VLC player. Create instances with
    * {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#vlc(String...)}.
@@ -435,6 +421,35 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
+   * Sets the handler that receives failures. It is called on VLC's threads and on the render threads, so it must be
+   * thread safe and should return quickly.
+   *
+   * @param exceptionHandler the exception handler, which receives a description of the failure and its cause
+   * @throws NullPointerException if {@code exceptionHandler} is null
+   */
+  @Override
+  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+    this.exceptionHandler = exceptionHandler;
+  }
+
+  /**
+   * Creates the media options for one VLC media player: the options of this player, followed by an extra option.
+   *
+   * @param extra the extra option, or {@code null} for none
+   * @return a new array of options
+   */
+  String[] createMediaOptions(final @Nullable String extra) {
+    if (extra == null) {
+      return this.mediaOptions.clone();
+    }
+    final List<String> configured = List.of(this.mediaOptions);
+    final List<String> options = new ArrayList<>(configured);
+    options.add(extra);
+    return options.toArray(new String[0]);
+  }
+
+  /**
    * Returns the slot of the video pipeline. The render thread looks the pipeline up for every frame, so a pipeline
    * attached while the player plays takes effect with the next frame.
    *
@@ -479,19 +494,6 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Sets the handler that receives failures. It is called on VLC's threads and on the render threads, so it must be
-   * thread safe and should return quickly.
-   *
-   * @param exceptionHandler the exception handler, which receives a description of the failure and its cause
-   * @throws NullPointerException if {@code exceptionHandler} is null
-   */
-  @Override
-  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
-    this.exceptionHandler = exceptionHandler;
-  }
-
-  /**
    * Returns the VLC instance the playbacks of this player use.
    *
    * @return the shared factory
@@ -509,19 +511,17 @@ public final class VlcPlayer implements VideoPlayerMultiplexer {
     return this.openTimeoutMilliseconds;
   }
 
-  /**
-   * Creates the media options for one VLC media player: the options of this player, followed by an extra option.
-   *
-   * @param extra the extra option, or {@code null} for none
-   * @return a new array of options
-   */
-  String[] createMediaOptions(final @Nullable String extra) {
-    if (extra == null) {
-      return this.mediaOptions.clone();
-    }
-    final List<String> configured = List.of(this.mediaOptions);
-    final List<String> options = new ArrayList<>(configured);
-    options.add(extra);
-    return options.toArray(new String[0]);
+  /** One candidate and its previous playback; all access to claimed is guarded by the player lock. */
+  private static final class StartTransition {
+
+    private @Nullable VlcPlayback created;
+    private @Nullable VlcPlayback previous;
+    private boolean claimed;
+  }
+
+  private enum OpenResult {
+    CANCELLED,
+    FAILED,
+    STARTED,
   }
 }

@@ -35,19 +35,6 @@ final class RenderThread {
 
   private static final long JOIN_TIMEOUT_MILLISECONDS = 5_000L;
 
-  /**
-   * One step of a rendering loop.
-   */
-  @FunctionalInterface
-  interface Step {
-    /**
-     * Renders the next piece of media, waiting briefly when none is available.
-     *
-     * @throws InterruptedException if the thread is interrupted while waiting
-     */
-    void render() throws InterruptedException;
-  }
-
   private final String name;
   private final Consumer<RuntimeException> failureHandler;
   private final AtomicBoolean running;
@@ -81,15 +68,6 @@ final class RenderThread {
     created.setDaemon(true);
     this.thread = created;
     created.start();
-  }
-
-  /**
-   * Checks whether the thread is still accepting work; every loop exit clears this state.
-   *
-   * @return true if the thread accepts work
-   */
-  boolean isRunning() {
-    return this.running.get();
   }
 
   /**
@@ -145,5 +123,27 @@ final class RenderThread {
     } catch (final RuntimeException exception) {
       failures.accept(exception);
     }
+  }
+
+  /**
+   * Checks whether the thread is still accepting work; every loop exit clears this state.
+   *
+   * @return true if the thread accepts work
+   */
+  boolean isRunning() {
+    return this.running.get();
+  }
+
+  /**
+   * One step of a rendering loop.
+   */
+  @FunctionalInterface
+  interface Step {
+    /**
+     * Renders the next piece of media, waiting briefly when none is available.
+     *
+     * @throws InterruptedException if the thread is interrupted while waiting
+     */
+    void render() throws InterruptedException;
   }
 }

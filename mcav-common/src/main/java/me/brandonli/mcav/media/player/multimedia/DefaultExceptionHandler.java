@@ -41,16 +41,6 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   }
 
   /**
-   * Returns the handler that receives failures, which logs them at error level until another handler is set.
-   *
-   * @return the current handler
-   */
-  @Override
-  public BiConsumer<String, Throwable> getExceptionHandler() {
-    return this.handler;
-  }
-
-  /**
    * Sets the handler that receives failures, replacing the logging default. The handler is called on the thread that
    * failed, so it must be fast and must not throw.
    *
@@ -61,5 +51,15 @@ public final class DefaultExceptionHandler implements ExceptionHandler {
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
     Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.handler = exceptionHandler;
+  }
+
+  /**
+   * Returns the handler that receives failures, which logs them at error level until another handler is set.
+   *
+   * @return the current handler
+   */
+  @Override
+  public BiConsumer<String, Throwable> getExceptionHandler() {
+    return this.handler;
   }
 }

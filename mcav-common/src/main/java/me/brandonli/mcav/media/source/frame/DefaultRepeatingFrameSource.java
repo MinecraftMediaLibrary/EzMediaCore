@@ -55,11 +55,6 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
   }
 
   @Override
-  public int getRepeatCount() {
-    return this.repeatCount;
-  }
-
-  @Override
   public SampleSupplier supplyFrameSamples() {
     return this::nextSamples;
   }
@@ -80,6 +75,11 @@ public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
       }
     }
     return frame.getPixels();
+  }
+
+  @Override
+  public int getRepeatCount() {
+    return this.repeatCount;
   }
 
   @Override

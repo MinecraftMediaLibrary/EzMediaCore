@@ -145,6 +145,18 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
   }
 
   @Override
+  public ImageBuffer getFrame(final int index) {
+    final int count = this.frames.size();
+    Preconditions.checkElementIndex(index, count, "Frame index");
+    return this.frames.get(index);
+  }
+
+  @Override
+  public void close() {
+    releaseAll(this.frames);
+  }
+
+  @Override
   public List<ImageBuffer> getFrames() {
     return this.frames;
   }
@@ -155,20 +167,8 @@ final class FfmpegDynamicImageBuffer implements DynamicImageBuffer {
   }
 
   @Override
-  public ImageBuffer getFrame(final int index) {
-    final int count = this.frames.size();
-    Preconditions.checkElementIndex(index, count, "Frame index");
-    return this.frames.get(index);
-  }
-
-  @Override
   public int getFrameCount() {
     return this.frames.size();
-  }
-
-  @Override
-  public void close() {
-    releaseAll(this.frames);
   }
 
   /**

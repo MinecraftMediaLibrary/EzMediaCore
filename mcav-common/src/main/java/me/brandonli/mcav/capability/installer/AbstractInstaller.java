@@ -304,24 +304,6 @@ public abstract class AbstractInstaller implements Installer {
   }
 
   /**
-   * Returns the name of the program, which is also the key of the program in the configuration file.
-   *
-   * @return the name
-   */
-  public String getName() {
-    return this.name;
-  }
-
-  /**
-   * Returns the folder the program is installed into.
-   *
-   * @return the installation folder
-   */
-  public Path getFolder() {
-    return this.folder;
-  }
-
-  /**
    * Returns the URL of the download for the current platform.
    *
    * @return the download URL, or an empty string if the platform is not supported
@@ -347,16 +329,6 @@ public abstract class AbstractInstaller implements Installer {
     }
     final Download resolved = download.get();
     return resolved.getHash();
-  }
-
-  /**
-   * Checks whether the download is an archive that has to be extracted, rather than a program that can be run
-   * directly. Archives are stored under their original file name and are never renamed to {@code .exe}.
-   *
-   * @return true if the download is an archive
-   */
-  public boolean isArchive() {
-    return false;
   }
 
   /**
@@ -546,6 +518,34 @@ public abstract class AbstractInstaller implements Installer {
       return new Properties();
     }
     return properties;
+  }
+
+  /**
+   * Returns the name of the program, which is also the key of the program in the configuration file.
+   *
+   * @return the name
+   */
+  public String getName() {
+    return this.name;
+  }
+
+  /**
+   * Returns the folder the program is installed into.
+   *
+   * @return the installation folder
+   */
+  public Path getFolder() {
+    return this.folder;
+  }
+
+  /**
+   * Checks whether the download is an archive that has to be extracted, rather than a program that can be run
+   * directly. Archives are stored under their original file name and are never renamed to {@code .exe}.
+   *
+   * @return true if the download is an archive
+   */
+  public boolean isArchive() {
+    return false;
   }
 
   private Path getConfigurationFile() {

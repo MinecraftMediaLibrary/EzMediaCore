@@ -26,8 +26,8 @@ package me.brandonli.mcav.json.ytdlp.format;
  */
 public class DownloaderOptions {
 
-  private DownloaderOptions() {}
-
   /** The size in bytes of the chunks yt-dlp requests the stream in, which avoids the throttling of some sites, or zero if the stream is requested at once. */
   public int http_chunk_size;
+
+  private DownloaderOptions() {}
 }

@@ -473,15 +473,6 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   }
 
   /**
-   * Returns the speed the media plays at.
-   *
-   * @return the media time that passes per unit of wall time, 1 for normal speed
-   */
-  public double getSpeed() {
-    return this.speed;
-  }
-
-  /**
    * Returns the playback position, which is the timestamp of the last rendered frame.
    *
    * @return the position in milliseconds, or 0 if nothing has been played
@@ -537,6 +528,28 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   }
 
   /**
+   * Sets the handler that receives failures to open, decode, and filter media. Sessions started later use the new
+   * handler. The handler is called on the thread that failed, so it must be fast and must not throw.
+   *
+   * @param exceptionHandler the new handler
+   * @throws NullPointerException if the handler is null
+   */
+  @Override
+  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+    this.exceptionHandler = exceptionHandler;
+  }
+
+  /**
+   * Returns the speed the media plays at.
+   *
+   * @return the media time that passes per unit of wall time, 1 for normal speed
+   */
+  public double getSpeed() {
+    return this.speed;
+  }
+
+  /**
    * Returns the slot that holds the video pipeline. Frames reach the pipeline as 8-bit BGR on the video rendering thread
    * of the playback, and the pipeline can be swapped while playing.
    *
@@ -577,18 +590,5 @@ public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {
     return this.exceptionHandler;
-  }
-
-  /**
-   * Sets the handler that receives failures to open, decode, and filter media. Sessions started later use the new
-   * handler. The handler is called on the thread that failed, so it must be fast and must not throw.
-   *
-   * @param exceptionHandler the new handler
-   * @throws NullPointerException if the handler is null
-   */
-  @Override
-  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
-    this.exceptionHandler = exceptionHandler;
   }
 }

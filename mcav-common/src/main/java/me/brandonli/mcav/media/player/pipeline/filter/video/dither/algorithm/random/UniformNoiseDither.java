@@ -84,15 +84,6 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
   }
 
   /**
-   * Returns the largest noise value added to or subtracted from a channel.
-   *
-   * @return the weight
-   */
-  public int getWeight() {
-    return this.weight;
-  }
-
-  /**
    * Returns the random number provider the calling thread draws its noise from.
    *
    * @return the provider of the calling thread
@@ -161,5 +152,14 @@ public final class UniformNoiseDither extends AbstractDitherAlgorithm implements
       return 0;
     }
     return random.nextInt(-this.weight, this.weight + 1);
+  }
+
+  /**
+   * Returns the largest noise value added to or subtracted from a channel.
+   *
+   * @return the weight
+   */
+  public int getWeight() {
+    return this.weight;
   }
 }

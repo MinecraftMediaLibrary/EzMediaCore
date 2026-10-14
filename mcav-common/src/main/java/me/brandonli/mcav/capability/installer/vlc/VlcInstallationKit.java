@@ -94,26 +94,6 @@ public final class VlcInstallationKit {
   }
 
   /**
-   * Returns the installer this kit uses when the system has no VLC.
-   *
-   * @return the installer
-   */
-  @VisibleForTesting
-  Installer getInstaller() {
-    return this.installer;
-  }
-
-  /**
-   * Returns the state that remembers whether libvlc was loaded, which kits created by the factory methods share.
-   *
-   * @return the load state
-   */
-  @VisibleForTesting
-  VlcLoadState getLoadState() {
-    return this.loadState;
-  }
-
-  /**
    * Finds or installs VLC and loads its native libraries into vlcj. This method blocks while VLC is downloaded,
    * unless an existing installation can be reused. Successful load state is shared by factory-created kits, so after the first successful call
    * every call returns the same result immediately.
@@ -166,5 +146,25 @@ public final class VlcInstallationKit {
       return;
     }
     LOGGER.info("The VLC installation of the system at {} is used.", systemPath);
+  }
+
+  /**
+   * Returns the installer this kit uses when the system has no VLC.
+   *
+   * @return the installer
+   */
+  @VisibleForTesting
+  Installer getInstaller() {
+    return this.installer;
+  }
+
+  /**
+   * Returns the state that remembers whether libvlc was loaded, which kits created by the factory methods share.
+   *
+   * @return the load state
+   */
+  @VisibleForTesting
+  VlcLoadState getLoadState() {
+    return this.loadState;
   }
 }

@@ -47,16 +47,6 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
   }
 
   /**
-   * Returns the palette the algorithm reduces images to.
-   *
-   * @return the palette
-   */
-  @Override
-  public DitherPalette getPalette() {
-    return this.palette;
-  }
-
-  /**
    * Validates the arguments of {@link #dither(int[], int)}.
    *
    * @param buffer the pixels
@@ -83,5 +73,15 @@ public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
    */
   protected static void checkImage(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+  }
+
+  /**
+   * Returns the palette the algorithm reduces images to.
+   *
+   * @return the palette
+   */
+  @Override
+  public DitherPalette getPalette() {
+    return this.palette;
   }
 }

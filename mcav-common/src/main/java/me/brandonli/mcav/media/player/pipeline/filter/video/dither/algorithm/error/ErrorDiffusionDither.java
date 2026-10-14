@@ -54,15 +54,6 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
   }
 
   /**
-   * Returns the kernel of this algorithm.
-   *
-   * @return the kernel
-   */
-  public DiffusionKernel getKernel() {
-    return this.kernel;
-  }
-
-  /**
    * Dithers an image into palette indices with the kernel of this algorithm. The image is not modified.
    *
    * @param image the image to dither
@@ -105,6 +96,15 @@ public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
   private void run(final int[] pixels, final int width, final byte @Nullable [] indices, final boolean inPlace) {
     final DiffusionPass pass = new DiffusionPass(pixels, width, indices, inPlace);
     pass.run();
+  }
+
+  /**
+   * Returns the kernel of this algorithm.
+   *
+   * @return the kernel
+   */
+  public DiffusionKernel getKernel() {
+    return this.kernel;
   }
 
   /**

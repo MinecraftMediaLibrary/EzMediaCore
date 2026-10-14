@@ -268,6 +268,11 @@ final class BackgroundInstallation {
     }
   }
 
+  private CompletableFuture<Boolean> getPreparation(final Capability capability) {
+    final CompletableFuture<Boolean> preparation = this.preparations.get(capability);
+    return Preconditions.checkNotNull(preparation, "Every prepared capability has a future!");
+  }
+
   /**
    * Returns the threads the programs are prepared on.
    *
@@ -276,10 +281,5 @@ final class BackgroundInstallation {
   @VisibleForTesting
   List<Thread> getThreads() {
     return List.copyOf(this.threads);
-  }
-
-  private CompletableFuture<Boolean> getPreparation(final Capability capability) {
-    final CompletableFuture<Boolean> preparation = this.preparations.get(capability);
-    return Preconditions.checkNotNull(preparation, "Every prepared capability has a future!");
   }
 }

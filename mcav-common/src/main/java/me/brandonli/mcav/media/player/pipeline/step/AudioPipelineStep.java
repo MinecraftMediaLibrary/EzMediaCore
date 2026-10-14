@@ -118,16 +118,6 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     }
 
     /**
-     * Returns the filter of this step, which does nothing.
-     *
-     * @return {@link AudioFilter#NO_OP}
-     */
-    @Override
-    public AudioFilter getFilter() {
-      return AudioFilter.NO_OP;
-    }
-
-    /**
      * Leaves the samples untouched.
      *
      * @param buffer   the samples
@@ -138,6 +128,16 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
     public void process(final ByteBuffer buffer, final OriginalAudioMetadata metadata) {
       Preconditions.checkNotNull(buffer, "Buffer must not be null!");
       Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+    }
+
+    /**
+     * Returns the filter of this step, which does nothing.
+     *
+     * @return {@link AudioFilter#NO_OP}
+     */
+    @Override
+    public AudioFilter getFilter() {
+      return AudioFilter.NO_OP;
     }
 
     /**

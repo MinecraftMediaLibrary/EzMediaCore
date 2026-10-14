@@ -180,6 +180,19 @@ public final class ThreadedImagePlayer implements ImagePlayer {
   }
 
   /**
+   * Sets the handler that receives failures of the source and the filters. The handler is called on the frame thread,
+   * so it must be fast and must not throw.
+   *
+   * @param exceptionHandler the new handler
+   * @throws NullPointerException if the handler is null
+   */
+  @Override
+  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
+    this.exceptionHandler.setExceptionHandler(exceptionHandler);
+  }
+
+  /**
    * Returns the slot that holds the video pipeline, which can be swapped while playing.
    *
    * @return the video pipeline slot
@@ -197,19 +210,6 @@ public final class ThreadedImagePlayer implements ImagePlayer {
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {
     return this.exceptionHandler.getExceptionHandler();
-  }
-
-  /**
-   * Sets the handler that receives failures of the source and the filters. The handler is called on the frame thread,
-   * so it must be fast and must not throw.
-   *
-   * @param exceptionHandler the new handler
-   * @throws NullPointerException if the handler is null
-   */
-  @Override
-  public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
-    this.exceptionHandler.setExceptionHandler(exceptionHandler);
   }
 
   /**

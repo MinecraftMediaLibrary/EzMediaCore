@@ -120,33 +120,6 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
   }
 
   /**
-   * Returns the temporal threshold per channel.
-   *
-   * @return the temporal threshold
-   */
-  public int getTemporalThreshold() {
-    return this.temporalThreshold;
-  }
-
-  /**
-   * Returns the total error at or below which nothing is diffused.
-   *
-   * @return the error threshold
-   */
-  public int getErrorThreshold() {
-    return this.errorThreshold;
-  }
-
-  /**
-   * Returns the fraction of the error that is diffused.
-   *
-   * @return the error strength from 0 to 1, rounded to the nearest multiple of 1/256
-   */
-  public float getErrorStrength() {
-    return this.errorStrength / (float) STRENGTH_SCALE;
-  }
-
-  /**
    * Forgets the previous frame, so the next frame is dithered from scratch. Call this when the video source
    * changes, after a seek, or when dimensions change, especially if the pixel count stays the same.
    * Serialize this with dithering; an in-flight call can otherwise publish history after this reset.
@@ -302,6 +275,33 @@ public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither imple
 
   private int scale(final int error) {
     return (error * this.errorStrength) / STRENGTH_SCALE;
+  }
+
+  /**
+   * Returns the temporal threshold per channel.
+   *
+   * @return the temporal threshold
+   */
+  public int getTemporalThreshold() {
+    return this.temporalThreshold;
+  }
+
+  /**
+   * Returns the total error at or below which nothing is diffused.
+   *
+   * @return the error threshold
+   */
+  public int getErrorThreshold() {
+    return this.errorThreshold;
+  }
+
+  /**
+   * Returns the fraction of the error that is diffused.
+   *
+   * @return the error strength from 0 to 1, rounded to the nearest multiple of 1/256
+   */
+  public float getErrorStrength() {
+    return this.errorStrength / (float) STRENGTH_SCALE;
   }
 
   /**

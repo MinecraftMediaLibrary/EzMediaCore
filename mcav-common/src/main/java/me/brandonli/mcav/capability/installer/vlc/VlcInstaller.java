@@ -122,27 +122,6 @@ public final class VlcInstaller extends AbstractInstaller {
   }
 
   /**
-   * Checks whether the download is an archive, which is always the case for VLC.
-   *
-   * @return true
-   */
-  @Override
-  public boolean isArchive() {
-    return true;
-  }
-
-  /**
-   * Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
-   * operating system; {@link #download(boolean)} returns their exact location.
-   *
-   * @return the installation directory
-   */
-  @Override
-  protected Path getDefaultPath() {
-    return this.getInstallDirectory();
-  }
-
-  /**
    * Checks whether VLC can be used from this installer: either an earlier installation exists, which needs no
    * network, or a download exists for the current platform, which may ask GitHub for the Linux download links.
    *
@@ -284,5 +263,26 @@ public final class VlcInstaller extends AbstractInstaller {
         throw new UnsupportedOperatingSystemException(message);
       }
     };
+  }
+
+  /**
+   * Checks whether the download is an archive, which is always the case for VLC.
+   *
+   * @return true
+   */
+  @Override
+  public boolean isArchive() {
+    return true;
+  }
+
+  /**
+   * Returns the directory VLC is extracted into. The libraries themselves live somewhere inside it, depending on the
+   * operating system; {@link #download(boolean)} returns their exact location.
+   *
+   * @return the installation directory
+   */
+  @Override
+  protected Path getDefaultPath() {
+    return this.getInstallDirectory();
   }
 }

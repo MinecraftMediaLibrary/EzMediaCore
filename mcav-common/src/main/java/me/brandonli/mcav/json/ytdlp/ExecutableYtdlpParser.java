@@ -85,21 +85,6 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
   }
 
   /**
-   * Finds the yt-dlp executable.
-   */
-  @FunctionalInterface
-  @VisibleForTesting
-  interface ExecutableLocator {
-    /**
-     * Finds the yt-dlp executable, installing it first if needed.
-     *
-     * @return the path of the executable
-     * @throws IOException if yt-dlp cannot be installed
-     */
-    Path locate() throws IOException;
-  }
-
-  /**
    * Finds the yt-dlp executable, installing it first if needed. While the library prepares yt-dlp in the background,
    * this fails at once instead of waiting behind the download of the background installation.
    *
@@ -206,5 +191,20 @@ public final class ExecutableYtdlpParser implements YtdlpParser {
     }
     final String first = trimmed.substring(0, newline);
     return first.strip();
+  }
+
+  /**
+   * Finds the yt-dlp executable.
+   */
+  @FunctionalInterface
+  @VisibleForTesting
+  interface ExecutableLocator {
+    /**
+     * Finds the yt-dlp executable, installing it first if needed.
+     *
+     * @return the path of the executable
+     * @throws IOException if yt-dlp cannot be installed
+     */
+    Path locate() throws IOException;
   }
 }

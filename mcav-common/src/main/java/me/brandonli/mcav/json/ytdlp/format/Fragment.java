@@ -28,10 +28,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class Fragment {
 
-  private Fragment() {}
-
   /** The URL of the fragment, or null if yt-dlp did not report one. */
   public @Nullable String url;
   /** The length of the fragment in seconds. */
   public double duration;
+
+  private Fragment() {}
 }

@@ -193,16 +193,6 @@ public final class MCAV implements MCAVApi {
   }
 
   /**
-   * Checks whether MCAV trims the native heap, which it does while it is installed on Linux.
-   *
-   * @return true if a trimmer runs
-   */
-  @VisibleForTesting
-  boolean isTrimmingNativeHeap() {
-    return this.trimmer.isTrimming();
-  }
-
-  /**
    * {@inheritDoc}
    * @throws NullPointerException if {@code moduleClass} is null
    */
@@ -210,5 +200,15 @@ public final class MCAV implements MCAVApi {
   public <ModuleType extends MCAVModule> ModuleType getModule(final Class<ModuleType> moduleClass) {
     Preconditions.checkNotNull(moduleClass, "Module class must not be null!");
     return this.moduleLoader.getModule(moduleClass);
+  }
+
+  /**
+   * Checks whether MCAV trims the native heap, which it does while it is installed on Linux.
+   *
+   * @return true if a trimmer runs
+   */
+  @VisibleForTesting
+  boolean isTrimmingNativeHeap() {
+    return this.trimmer.isTrimming();
   }
 }

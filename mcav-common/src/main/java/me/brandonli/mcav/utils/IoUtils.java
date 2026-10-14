@@ -345,23 +345,6 @@ public final class IoUtils {
   }
 
   /**
-   * Moves a file, like {@link Files#move(Path, Path, CopyOption...)}.
-   */
-  @FunctionalInterface
-  @VisibleForTesting
-  interface FileMover {
-    /**
-     * Moves the file.
-     *
-     * @param source  the file to move
-     * @param target  the destination
-     * @param options how the file is moved
-     * @throws IOException if the file cannot be moved
-     */
-    void move(Path source, Path target, CopyOption... options) throws IOException;
-  }
-
-  /**
    * Computes the SHA-256 hash of a file. The file is streamed, so it is never held in memory completely.
    *
    * @param path the file to hash
@@ -820,5 +803,22 @@ public final class IoUtils {
       }
     }
     return entrySize;
+  }
+
+  /**
+   * Moves a file, like {@link Files#move(Path, Path, CopyOption...)}.
+   */
+  @FunctionalInterface
+  @VisibleForTesting
+  interface FileMover {
+    /**
+     * Moves the file.
+     *
+     * @param source  the file to move
+     * @param target  the destination
+     * @param options how the file is moved
+     * @throws IOException if the file cannot be moved
+     */
+    void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 }

@@ -142,34 +142,6 @@ final class PlaybackSession {
   private @Nullable FrameGrabber videoGrabber;
 
   /**
-   * Creates a started frame grabber for a source.
-   */
-  @FunctionalInterface
-  interface GrabberFactory {
-    /**
-     * Creates and starts the grabber.
-     *
-     * @return the started grabber
-     * @throws FrameGrabber.Exception if the source cannot be opened
-     */
-    FrameGrabber create() throws FrameGrabber.Exception;
-  }
-
-  /**
-   * Hears that playback fell behind: most frames of a stretch of video came too late and were dropped.
-   */
-  @FunctionalInterface
-  interface LagListener {
-    /**
-     * Called on the video rendering thread for a stretch in which most frames were dropped.
-     *
-     * @param droppedFrames the number of frames dropped
-     * @param frames        the number of frames of the stretch
-     */
-    void fellBehind(int droppedFrames, int frames);
-  }
-
-  /**
    * Constructs a new session. Nothing is opened until {@link #open()} or {@link #start()} is called.
    *
    * @param videoGrabberFactory        creates the grabber of the video source, which also provides the audio when there is
@@ -775,15 +747,6 @@ final class PlaybackSession {
   }
 
   /**
-   * Plays faster or slower from now on.
-   *
-   * @param speed the media time that passes per unit of wall time, positive
-   */
-  void setSpeed(final double speed) {
-    this.clock.setSpeed(speed);
-  }
-
-  /**
    * Pauses the clock, so the renderers stop at their next frame.
    */
   void pause() {
@@ -795,33 +758,6 @@ final class PlaybackSession {
    */
   void resume() {
     this.clock.resume();
-  }
-
-  /**
-   * Checks whether the session is paused.
-   *
-   * @return true if paused
-   */
-  boolean isPaused() {
-    return this.clock.isPaused();
-  }
-
-  /**
-   * Checks whether the media of the session can be seeked, which {@link #open()} found out from its length.
-   *
-   * @return true for media of a known length, false for live streams and cameras, and before the session is opened
-   */
-  boolean isSeekable() {
-    return this.seekable;
-  }
-
-  /**
-   * Returns the timestamp of the last rendered frame.
-   *
-   * @return the position in microseconds
-   */
-  long getPositionMicroseconds() {
-    return this.positionMicroseconds;
   }
 
   /**
@@ -970,5 +906,69 @@ final class PlaybackSession {
     } catch (final FrameGrabber.Exception | RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);
     }
+  }
+
+  /**
+   * Plays faster or slower from now on.
+   *
+   * @param speed the media time that passes per unit of wall time, positive
+   */
+  void setSpeed(final double speed) {
+    this.clock.setSpeed(speed);
+  }
+
+  /**
+   * Checks whether the session is paused.
+   *
+   * @return true if paused
+   */
+  boolean isPaused() {
+    return this.clock.isPaused();
+  }
+
+  /**
+   * Checks whether the media of the session can be seeked, which {@link #open()} found out from its length.
+   *
+   * @return true for media of a known length, false for live streams and cameras, and before the session is opened
+   */
+  boolean isSeekable() {
+    return this.seekable;
+  }
+
+  /**
+   * Returns the timestamp of the last rendered frame.
+   *
+   * @return the position in microseconds
+   */
+  long getPositionMicroseconds() {
+    return this.positionMicroseconds;
+  }
+
+  /**
+   * Creates a started frame grabber for a source.
+   */
+  @FunctionalInterface
+  interface GrabberFactory {
+    /**
+     * Creates and starts the grabber.
+     *
+     * @return the started grabber
+     * @throws FrameGrabber.Exception if the source cannot be opened
+     */
+    FrameGrabber create() throws FrameGrabber.Exception;
+  }
+
+  /**
+   * Hears that playback fell behind: most frames of a stretch of video came too late and were dropped.
+   */
+  @FunctionalInterface
+  interface LagListener {
+    /**
+     * Called on the video rendering thread for a stretch in which most frames were dropped.
+     *
+     * @param droppedFrames the number of frames dropped
+     * @param frames        the number of frames of the stretch
+     */
+    void fellBehind(int droppedFrames, int frames);
   }
 }

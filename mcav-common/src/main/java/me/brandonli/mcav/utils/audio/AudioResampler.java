@@ -316,6 +316,23 @@ public final class AudioResampler implements AutoCloseable {
   }
 
   /**
+   * Frees the native resampling context. Samples still held back are discarded, so call {@link #flush()} first to
+   * keep them. Closing an already closed resampler does nothing.
+   */
+  @Override
+  public void close() {
+    if (this.closed) {
+      return;
+    }
+    this.closed = true;
+    swresample.swr_free(this.context);
+    avutil.av_channel_layout_uninit(this.inputLayout);
+    avutil.av_channel_layout_uninit(this.outputLayout);
+    this.inputLayout.close();
+    this.outputLayout.close();
+  }
+
+  /**
    * Returns the sample rate of the samples passed to {@link #resample(ByteBuffer)}.
    *
    * @return the input sample rate in hertz
@@ -386,22 +403,5 @@ public final class AudioResampler implements AutoCloseable {
   @VisibleForTesting
   List<Pointer> getNativeObjects() {
     return List.of(this.context, this.inputLayout, this.outputLayout);
-  }
-
-  /**
-   * Frees the native resampling context. Samples still held back are discarded, so call {@link #flush()} first to
-   * keep them. Closing an already closed resampler does nothing.
-   */
-  @Override
-  public void close() {
-    if (this.closed) {
-      return;
-    }
-    this.closed = true;
-    swresample.swr_free(this.context);
-    avutil.av_channel_layout_uninit(this.inputLayout);
-    avutil.av_channel_layout_uninit(this.outputLayout);
-    this.inputLayout.close();
-    this.outputLayout.close();
   }
 }

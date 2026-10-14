@@ -45,26 +45,6 @@ public final class VolumeFilter implements AudioFilter {
   }
 
   /**
-   * Sets the volume.
-   *
-   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAXIMUM_VOLUME}
-   * @throws IllegalArgumentException if the volume is outside that range or not a number
-   */
-  public void setVolume(final double volume) {
-    Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
-    this.volume = volume;
-  }
-
-  /**
-   * Returns the volume.
-   *
-   * @return the factor every sample is multiplied by
-   */
-  public double getVolume() {
-    return this.volume;
-  }
-
-  /**
    * Scales complete 16-bit samples in place, unless the volume leaves them as they are. A trailing unmatched
    * byte is left untouched. Position, limit and the original buffer's byte order do not change.
    *
@@ -87,5 +67,25 @@ public final class VolumeFilter implements AudioFilter {
       view.putShort(at, (short) Math.clamp(scaled, Short.MIN_VALUE, Short.MAX_VALUE));
     }
     return true;
+  }
+
+  /**
+   * Sets the volume.
+   *
+   * @param volume the factor every sample is multiplied by, from 0 (silence) to {@link #MAXIMUM_VOLUME}
+   * @throws IllegalArgumentException if the volume is outside that range or not a number
+   */
+  public void setVolume(final double volume) {
+    Preconditions.checkArgument(volume >= 0 && volume <= MAXIMUM_VOLUME, "Volume %s must be between 0 and %s!", volume, MAXIMUM_VOLUME);
+    this.volume = volume;
+  }
+
+  /**
+   * Returns the volume.
+   *
+   * @return the factor every sample is multiplied by
+   */
+  public double getVolume() {
+    return this.volume;
   }
 }

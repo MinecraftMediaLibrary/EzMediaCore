@@ -72,24 +72,6 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   }
 
   /**
-   * Returns the installer this strategy installs for.
-   *
-   * @return the installer
-   */
-  public VlcInstaller getInstaller() {
-    return this.installer;
-  }
-
-  /**
-   * Returns the directory VLC is installed into.
-   *
-   * @return the installation directory
-   */
-  protected Path getInstallDirectory() {
-    return this.installer.getInstallDirectory();
-  }
-
-  /**
    * Finds the first nonempty library matching one pattern, searching at most eight levels below the root.
    *
    * @param root    the directory to search
@@ -221,6 +203,24 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
   public void deleteFile(final Path file) throws IOException {
     Preconditions.checkNotNull(file, "File must not be null!");
     Files.deleteIfExists(file);
+  }
+
+  /**
+   * Returns the installer this strategy installs for.
+   *
+   * @return the installer
+   */
+  public VlcInstaller getInstaller() {
+    return this.installer;
+  }
+
+  /**
+   * Returns the directory VLC is installed into.
+   *
+   * @return the installation directory
+   */
+  protected Path getInstallDirectory() {
+    return this.installer.getInstallDirectory();
   }
 
   /**

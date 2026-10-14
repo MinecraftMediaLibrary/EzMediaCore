@@ -58,25 +58,6 @@ public final class FfmpegCommand {
   }
 
   /**
-   * Returns the arguments after the executable.
-   *
-   * @return the arguments, which cannot be modified
-   */
-  public List<String> getArguments() {
-    return this.arguments;
-  }
-
-  /**
-   * Returns the FFmpeg executable the command runs with.
-   *
-   * @return the path of the executable
-   * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
-   */
-  public Path getExecutable() {
-    return FfmpegExecutableProvider.getFfmpegPath();
-  }
-
-  /**
    * Returns the complete command line, starting with the executable.
    *
    * @return the command line as separate arguments
@@ -102,6 +83,25 @@ public final class FfmpegCommand {
   public CommandTask createTask() {
     final String[] command = this.toCommandArray();
     return new CommandTask(command);
+  }
+
+  /**
+   * Returns the arguments after the executable.
+   *
+   * @return the arguments, which cannot be modified
+   */
+  public List<String> getArguments() {
+    return this.arguments;
+  }
+
+  /**
+   * Returns the FFmpeg executable the command runs with.
+   *
+   * @return the path of the executable
+   * @throws UnsatisfiedLinkError if the bundled executable cannot be extracted for this platform
+   */
+  public Path getExecutable() {
+    return FfmpegExecutableProvider.getFfmpegPath();
   }
 
   /**

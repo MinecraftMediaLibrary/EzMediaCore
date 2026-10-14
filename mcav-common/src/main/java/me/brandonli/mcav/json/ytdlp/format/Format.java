@@ -32,8 +32,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class Format {
 
-  private Format() {}
-
   /** The identifier of the stream on its site, such as {@code 251}, which yt-dlp accepts in its format option. */
   public @Nullable String format_id;
 
@@ -144,6 +142,8 @@ public class Format {
 
   /** Hints for downloading the stream, such as the size of the chunks to request, or null if there are none. */
   public @Nullable DownloaderOptions downloader_options;
+
+  private Format() {}
 
   /**
    * Wraps the reported URL in a source. This does not open or validate the remote stream and does not transfer

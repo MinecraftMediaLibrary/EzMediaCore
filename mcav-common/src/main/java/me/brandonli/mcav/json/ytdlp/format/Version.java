@@ -28,8 +28,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class Version {
 
-  private Version() {}
-
   /** The version of yt-dlp, such as {@code 2026.08.19}. */
   public @Nullable String version;
   /** The Git commit the running yt-dlp was built from, or null for a release build. */
@@ -38,4 +36,6 @@ public class Version {
   public @Nullable String release_git_head;
   /** The repository the build came from, such as {@code yt-dlp/yt-dlp}. */
   public @Nullable String repository;
+
+  private Version() {}
 }

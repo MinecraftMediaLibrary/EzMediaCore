@@ -32,11 +32,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public class UrlParseDump {
 
-  /**
-   * Creates an empty dump in which every field is null or zero. Gson creates dumps this way before it fills them.
-   */
-  public UrlParseDump() {}
-
   /** The identifier of the video on its site, such as the YouTube video ID. */
   public @Nullable String id;
 
@@ -288,4 +283,9 @@ public class UrlParseDump {
 
   /** The version of yt-dlp that produced the metadata. */
   public @Nullable Version _version;
+
+  /**
+   * Creates an empty dump in which every field is null or zero. Gson creates dumps this way before it fills them.
+   */
+  public UrlParseDump() {}
 }

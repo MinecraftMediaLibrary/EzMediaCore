@@ -328,6 +328,17 @@ public final class CommandTask {
   }
 
   /**
+   * Returns the exit code of the program.
+   *
+   * @return the exit code
+   * @throws IllegalStateException if no exit code was recorded, including after a launch or wait failure
+   */
+  public int getExitCode() {
+    Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run!");
+    return this.exitCode;
+  }
+
+  /**
    * Returns the standard output of the program.
    *
    * @return the standard output, or an empty string if the task has not been run
@@ -343,17 +354,6 @@ public final class CommandTask {
    */
   public String getErrorOutput() {
     return this.errorOutput;
-  }
-
-  /**
-   * Returns the exit code of the program.
-   *
-   * @return the exit code
-   * @throws IllegalStateException if no exit code was recorded, including after a launch or wait failure
-   */
-  public int getExitCode() {
-    Preconditions.checkState(this.exitCode != NOT_RUN, "Command has not been run!");
-    return this.exitCode;
   }
 
   /**

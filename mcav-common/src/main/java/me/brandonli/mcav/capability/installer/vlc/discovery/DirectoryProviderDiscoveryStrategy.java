@@ -312,16 +312,6 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
     return -1;
   }
 
-  /**
-   * Returns the providers this strategy searches, in the order they were created, before any of them is filtered out for
-   * being unsupported on this machine. Visible for testing.
-   *
-   * @return the providers of the strategy
-   */
-  List<SearchProvider> getSearchProviders() {
-    return this.searchProviders;
-  }
-
   private List<SearchProvider> getSupportedProviders() {
     final List<SearchProvider> result = new ArrayList<>();
     for (final SearchProvider provider : this.searchProviders) {
@@ -369,6 +359,16 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
       }
     }
     return false;
+  }
+
+  /**
+   * Returns the providers this strategy searches, in the order they were created, before any of them is filtered out for
+   * being unsupported on this machine. Visible for testing.
+   *
+   * @return the providers of the strategy
+   */
+  List<SearchProvider> getSearchProviders() {
+    return this.searchProviders;
   }
 
   /**

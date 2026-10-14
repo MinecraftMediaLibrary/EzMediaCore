@@ -47,13 +47,6 @@ public final class Platform {
     this.bits = bits;
   }
 
-  private static Platform detectCurrentPlatform() {
-    final Os os = OsUtils.getOs();
-    final Arch arch = OsUtils.getArch();
-    final Bits bits = OsUtils.getBits();
-    return new Platform(os, arch, bits);
-  }
-
   /**
    * Creates a platform.
    *
@@ -74,6 +67,13 @@ public final class Platform {
    */
   public static Platform getCurrentPlatform() {
     return CURRENT_PLATFORM;
+  }
+
+  private static Platform detectCurrentPlatform() {
+    final Os os = OsUtils.getOs();
+    final Arch arch = OsUtils.getArch();
+    final Bits bits = OsUtils.getBits();
+    return new Platform(os, arch, bits);
   }
 
   /**
