@@ -71,7 +71,7 @@ library.
 | `VLC`            | `VideoPlayer.vlc()`                                      | In the background         |
 | `FFMPEG`         | The FFmpeg players and FFmpeg commands                   | Before `install` returns  |
 | `YT_DLP`         | Resolving web pages, such as YouTube videos, with yt-dlp | In the background         |
-| `FACE_DETECTION` | The `FaceDetectionFilter`; its OpenCV natives need GTK 2 on Linux, so it is missing on many headless servers | Before `install` returns |
+| `FACE_DETECTION` | The `FaceDetectionFilter`; its OpenCV natives need GTK 2 on Linux, which MCAV installs on x86-64 and ARM64 Linux when it is missing | Before `install` returns |
 
 `hasCapability` tells whether a capability is available **right now**. A capability that is still being prepared is
 not available yet, so the example below plays with FFmpeg until VLC is ready:

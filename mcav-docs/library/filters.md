@@ -59,9 +59,11 @@ frame, from its top left corner.
 | `FaceDetectionFilter` | `new FaceDetectionFilter(cascadeFile, color)` | A rectangle around every face an OpenCV Haar cascade finds |
 
 ```{warning}
-`FaceDetectionFilter` needs OpenCV's object detection natives, which link GTK 2 on Linux and are missing on many
-headless servers. Check the `FACE_DETECTION` [capability](instance.md#capabilities) before you create one. It needs a
-cascade file too, such as OpenCV's `haarcascade_frontalface_default.xml`, which MCAV does not ship.
+`FaceDetectionFilter` needs OpenCV's object detection natives, which link GTK 2 on Linux. MCAV installs GTK 2 into its
+cache on x86-64 and ARM64 Linux when the system has none (see [prerequisites](prerequisites.md#supported-platforms)),
+but the natives can still be missing elsewhere or when that installation fails. Check the `FACE_DETECTION`
+[capability](instance.md#capabilities) before you create one. It needs a cascade file too, such as OpenCV's
+`haarcascade_frontalface_default.xml`, which MCAV does not ship.
 ```
 
 The display filters that end a pipeline come with their modules: `DitherFilter` of `mcav-common`, the map, block, chat,
