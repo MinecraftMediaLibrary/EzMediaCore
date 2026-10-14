@@ -32,12 +32,15 @@ optional native features can also need system libraries, a display, or an audio 
 | macOS ARM64    | Downloaded from VideoLAN and mounted without administrator rights | Downloaded    | Bundled           |
 | Linux x86-64   | Used from the system, or downloaded as an AppImage                | Downloaded    | Bundled           |
 | Linux ARM64    | Used from the system only (`apt install vlc`)                     | Downloaded    | Bundled           |
-| FreeBSD        | Not available                                                     | Not available | Not available     |
+| FreeBSD (any)  | Not available                                                     | Not available | Not available     |
 
-When VLC is missing and the platform has no download, starting it fails with an `UnsupportedOperatingSystemException`
-that names the platform. FFmpeg and OpenCV come from the JavaCPP builds MCAV depends on, which have none for Windows on
-ARM64 or for FreeBSD; there, the features that need them are not available. 32-bit x86 is not listed, because Java 25,
-which MCAV needs, has no port for it.
+FFmpeg and OpenCV come from the JavaCPP builds MCAV depends on, which have none for Windows on ARM64 or for FreeBSD on
+any processor. MCAV needs them to install, so on those platforms `install()` fails with an `MCAVLoadingException` caused
+by a `NativeLoadingException` that names the platform, and MCAV cannot be used there; the VLC and yt-dlp columns only
+matter once JavaCPP publishes builds for them. When VLC is missing and the platform has no download, starting it fails
+with an `UnsupportedOperatingSystemException` that names the platform; yt-dlp is then marked unavailable with a warning
+that names the platform, and downloading it directly fails with an `InstallationException` that does. 32-bit x86 is not
+listed, because Java 25, which MCAV needs, has no port for it.
 
 On Windows and macOS the download is VLC 3.0.24 from VideoLAN, checked against the SHA-256 hash MCAV ships. VideoLAN
 publishes no Linux build, so on x86-64 Linux MCAV downloads an AppImage built from the VLC package of Arch Linux

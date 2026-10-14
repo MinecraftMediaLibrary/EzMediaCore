@@ -56,6 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import me.brandonli.mcav.capability.Capability;
 import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.capability.installer.InstallationException;
@@ -66,6 +67,10 @@ import me.brandonli.mcav.capability.installer.vlc.VlcInstallerFailures;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.utils.FileOperationException;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
+import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Bits;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.Platform;
 import org.bytedeco.ffmpeg.avutil.Callback_Pointer_int_String_Pointer;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacpp.Loader;
@@ -75,6 +80,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.slf4j.Logger;
@@ -94,6 +101,8 @@ final class DependencyLoaderTest {
   private static final String OBJECT_DETECTION_MODULE = "objdetect";
   private static final String FACE_DETECTION_MODULE_NAME = "Face detection";
   private static final List<String> OBJECT_DETECTION_LOADED = List.of(OBJECT_DETECTION_MODULE);
+
+  private static final Platform LINUX_X86_64 = Platform.ofPlatform(Os.LINUX, Arch.X86, Bits.BITS_64);
 
   private static final String YTDLP_FILE_NAME = "yt-dlp";
   private static final String PREPARED_FILE_NAME = "prepared";
@@ -233,11 +242,11 @@ final class DependencyLoaderTest {
   void shouldReportNativesThatCannotBeLinked() {
     final UnsatisfiedLinkError linkError = new UnsatisfiedLinkError("no jniopencv_core!");
     final NativeLoadingException linkFailure = assertThrows(NativeLoadingException.class, () ->
-      DependencyLoader.loadModules(() -> this.throwError(linkError))
+      DependencyLoader.loadModules(LINUX_X86_64, () -> this.throwError(linkError))
     );
     final NoClassDefFoundError missingClass = new NoClassDefFoundError("org/bytedeco/opencv/global/opencv_core");
     final NativeLoadingException classFailure = assertThrows(NativeLoadingException.class, () ->
-      DependencyLoader.loadModules(() -> this.throwError(missingClass))
+      DependencyLoader.loadModules(LINUX_X86_64, () -> this.throwError(missingClass))
     );
     final Throwable linkCause = linkFailure.getCause();
     final Throwable classCause = classFailure.getCause();
@@ -248,6 +257,49 @@ final class DependencyLoaderTest {
     assertTrue(namesTheLibrary, linkMessage);
   }
 
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("platformsWithoutNatives")
+  void shouldFailNamingThePlatformWhereJavaCvHasNoNatives(final Platform platform) {
+    final AtomicBoolean loaded = new AtomicBoolean();
+    final NativeLoadingException failure = assertThrows(NativeLoadingException.class, () ->
+      DependencyLoader.loadModules(platform, () -> loaded.set(true))
+    );
+    final String message = failure.getMessage();
+    final String expected = "Platform %s has no FFmpeg and OpenCV natives!".formatted(platform);
+    final boolean attempted = loaded.get();
+    assertEquals(expected, message);
+    assertFalse(attempted, "nothing is extracted or loaded where no natives exist");
+  }
+
+  private static Stream<Platform> platformsWithoutNatives() {
+    return Stream.of(
+      Platform.ofPlatform(Os.FREEBSD, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.FREEBSD, Arch.ARM, Bits.BITS_64),
+      Platform.ofPlatform(Os.WINDOWS, Arch.ARM, Bits.BITS_64),
+      Platform.ofPlatform(Os.OTHER, Arch.X86, Bits.BITS_64)
+    );
+  }
+
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("platformsWithNatives")
+  void shouldLoadTheNativesOnEveryPlatformJavaCvSupports(final Platform platform) {
+    final AtomicBoolean loaded = new AtomicBoolean();
+    DependencyLoader.loadModules(platform, () -> loaded.set(true));
+
+    final boolean attempted = loaded.get();
+    assertTrue(attempted);
+  }
+
+  private static Stream<Platform> platformsWithNatives() {
+    return Stream.of(
+      Platform.ofPlatform(Os.WINDOWS, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.X86, Bits.BITS_64),
+      Platform.ofPlatform(Os.MAC, Arch.ARM, Bits.BITS_64),
+      LINUX_X86_64,
+      Platform.ofPlatform(Os.LINUX, Arch.ARM, Bits.BITS_64)
+    );
+  }
+
   @Test
   @ResourceLock(Resources.SYSTEM_ERR)
   void shouldReportHowLongTheNativesTookToLoad() {
@@ -255,7 +307,7 @@ final class DependencyLoaderTest {
     final ByteArrayOutputStream captured = new ByteArrayOutputStream();
     System.setErr(new PrintStream(captured, true, StandardCharsets.UTF_8));
     try {
-      DependencyLoader.loadModules(() -> {});
+      DependencyLoader.loadModules(LINUX_X86_64, () -> {});
     } finally {
       System.setErr(standardError);
     }
@@ -767,7 +819,8 @@ final class DependencyLoaderTest {
     unsupportedLoader.installYtdlp(unsupported);
     assertLoggedAPlausibleTime(logger, "yt-dlp ready in {} ms.");
     verify(logger).warn("yt-dlp could not be installed because of \"{}\", so URL parsing cannot be used.", "offline!");
-    verify(logger).warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
+    final Platform platform = Platform.getCurrentPlatform();
+    verify(logger).warn("yt-dlp is not available for platform {}, URL parsing cannot be used.", platform);
   }
 
   @Test

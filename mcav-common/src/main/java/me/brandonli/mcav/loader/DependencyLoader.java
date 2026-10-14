@@ -35,6 +35,9 @@ import me.brandonli.mcav.capability.installer.Installer;
 import me.brandonli.mcav.capability.installer.vlc.VlcInstallationKit;
 import me.brandonli.mcav.capability.installer.ytdlp.YtdlpInstaller;
 import me.brandonli.mcav.utils.natives.NativeLoadingException;
+import me.brandonli.mcav.utils.os.Arch;
+import me.brandonli.mcav.utils.os.Os;
+import me.brandonli.mcav.utils.os.Platform;
 import org.bytedeco.ffmpeg.ffmpeg;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.javacpp.Loader;
@@ -114,15 +117,25 @@ public final class DependencyLoader {
    * the platform jars into the JavaCPP cache on first use, which takes a few seconds once per machine. Whether face
    * detection is available afterward is reported by {@link Capability#FACE_DETECTION}.
    *
-   * @throws NativeLoadingException if the libraries cannot be loaded on this platform
+   * <p>JavaCV ships no natives for FreeBSD on any processor or for Windows on ARM, so there it fails at once with a
+   * message that names the platform.
+   *
+   * @throws NativeLoadingException if the libraries cannot be loaded on this platform, or it has none
    * @since 1.0.0
    */
   public void loadModules() {
-    loadModules(this::loadNatives);
+    final Platform platform = Platform.getCurrentPlatform();
+    loadModules(platform, this::loadNatives);
   }
 
   @VisibleForTesting
-  static void loadModules(final Runnable nativeLoader) {
+  static void loadModules(final Platform platform, final Runnable nativeLoader) {
+    final boolean bundled = hasBundledNatives(platform);
+    if (!bundled) {
+      final String message = "Platform %s has no FFmpeg and OpenCV natives!".formatted(platform);
+      throw new NativeLoadingException(message);
+    }
+
     final long start = System.currentTimeMillis();
     LOGGER.info("Loading JavaCV natives...");
     try {
@@ -136,6 +149,16 @@ public final class DependencyLoader {
     final long end = System.currentTimeMillis();
     final long elapsed = end - start;
     LOGGER.info("JavaCV natives loaded in {} ms.", elapsed);
+  }
+
+  private static boolean hasBundledNatives(final Platform platform) {
+    final Os os = platform.getOs();
+    final Arch arch = platform.getArch();
+    return switch (os) {
+      case WINDOWS -> arch != Arch.ARM;
+      case MAC, LINUX -> true;
+      case FREEBSD, OTHER -> false;
+    };
   }
 
   private void loadNatives() {
@@ -331,7 +354,8 @@ public final class DependencyLoader {
     final boolean supported = installer.isSupported();
     if (!supported) {
       this.recordPreparation(Capability.YT_DLP, preparation, Availability.UNAVAILABLE);
-      this.logger.warn("yt-dlp is not available for this platform, URL parsing cannot be used.");
+      final Platform platform = Platform.getCurrentPlatform();
+      this.logger.warn("yt-dlp is not available for platform {}, URL parsing cannot be used.", platform);
       return;
     }
 

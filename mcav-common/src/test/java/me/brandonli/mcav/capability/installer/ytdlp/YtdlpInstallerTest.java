@@ -558,6 +558,22 @@ final class YtdlpInstallerTest {
     );
   }
 
+  @ParameterizedTest
+  @EnumSource(value = Arch.class, names = { "X86", "ARM" })
+  void shouldFailNamingFreeBsdWhereYtdlpHasNoBuild(final Arch arch) {
+    final Platform freeBsd = Platform.ofPlatform(Os.FREEBSD, arch, Bits.BITS_64);
+    try (final MockedStatic<Platform> platforms = Mockito.mockStatic(Platform.class, Mockito.CALLS_REAL_METHODS)) {
+      platforms.when(Platform::getCurrentPlatform).thenReturn(freeBsd);
+      final YtdlpInstaller installer = YtdlpInstaller.create(this.folder);
+      final boolean supported = installer.isSupported();
+      final InstallationException failure = assertThrows(InstallationException.class, () -> installer.download(FileMode.EXECUTABLE));
+      final String message = failure.getMessage();
+      final String expected = "Platform %s has no yt-dlp download available!".formatted(freeBsd);
+      assertFalse(supported);
+      assertEquals(expected, message);
+    }
+  }
+
   @Test
   void shouldRejectANullFolder() {
     assertThrows(NullPointerException.class, () -> YtdlpInstaller.create(null));
