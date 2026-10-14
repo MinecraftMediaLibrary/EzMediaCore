@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An immutable point in two dimensions.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class Point {
 

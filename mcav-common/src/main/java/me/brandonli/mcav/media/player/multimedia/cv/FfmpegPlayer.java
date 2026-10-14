@@ -26,6 +26,8 @@ import org.bytedeco.javacv.FrameGrabber;
  * It handles files, HTTP
  * streams, RTSP cameras, and raw device input. Create instances with
  * {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#ffmpeg()}.
+ *
+ * <p>This class is thread-safe.
  */
 public class FfmpegPlayer extends AbstractVideoPlayerCv {
 

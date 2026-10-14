@@ -46,6 +46,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.DitherAlgorithm#temporalFloydSteinberg()}
  * whenever a player is created, and call {@link #resetTemporalState()} when the player changes its source or seeks.
  * Dithering one frame in parallel through {@link #ditherIntoBytes(ImageBuffer, ForkJoinPool)} is safe.
+ *
+ * <p>This class is not thread-safe, because it keeps the previous frame; use one instance per stream.
  */
 public abstract class TemporalDitherAlgorithm extends ErrorDiffusionDither implements ParallelDitherAlgorithm {
 

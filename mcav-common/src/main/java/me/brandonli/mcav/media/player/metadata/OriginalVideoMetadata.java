@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 /**
  * Size, bitrate, and frame rate of a video stream as decoded. Bitrate and frame rate are {@link #UNKNOWN} when
  * the source does not report them.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface OriginalVideoMetadata extends OriginalMetadata {
   /**

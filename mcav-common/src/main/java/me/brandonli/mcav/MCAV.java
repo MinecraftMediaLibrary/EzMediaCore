@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>While MCAV is installed, a {@link NativeHeapTrimmer} hands the memory the C library keeps free back to the system
  * once a minute, on Linux.
+ *
+ * <p>This class is thread-safe.
  */
 public final class MCAV implements MCAVApi {
 

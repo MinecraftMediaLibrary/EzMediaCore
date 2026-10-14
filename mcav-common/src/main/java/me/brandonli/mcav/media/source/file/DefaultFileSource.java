@@ -24,6 +24,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link FileSource}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultFileSource implements FileSource {
 

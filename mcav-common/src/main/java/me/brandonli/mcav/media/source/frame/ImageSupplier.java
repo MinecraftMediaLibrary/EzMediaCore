@@ -26,6 +26,8 @@ import java.awt.image.WritableRaster;
  * <p>Images of type {@link BufferedImage#TYPE_INT_ARGB} or {@link BufferedImage#TYPE_INT_RGB} are the fastest to
  * supply, because they already store packed ARGB pixels, which are copied out row by row. Every other type is converted
  * pixel by pixel.
+ *
+ * <p>Implementations are called from the player thread only and need not be thread-safe.
  */
 @FunctionalInterface
 public interface ImageSupplier {

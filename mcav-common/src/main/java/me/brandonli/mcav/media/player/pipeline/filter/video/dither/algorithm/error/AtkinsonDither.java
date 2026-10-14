@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Atkinson error diffusion, the algorithm of the original Macintosh. It diffuses only three quarters of the error,
  * which increases contrast and gives a distinctive, slightly washed-out look in very light and very dark areas.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class AtkinsonDither extends ErrorDiffusionDither {
 

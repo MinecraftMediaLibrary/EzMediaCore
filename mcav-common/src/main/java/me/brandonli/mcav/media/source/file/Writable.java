@@ -27,6 +27,8 @@ import java.nio.file.Path;
 
 /**
  * A file that can be read from and written to, for example to save a downloaded stream.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface Writable {
   /**

@@ -22,6 +22,8 @@ import me.brandonli.mcav.utils.immutable.Dimension;
 /**
  * The slot of a player that holds the size frames are scaled to. While nothing is attached, frames keep their
  * original size.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface DimensionAttachableCallback extends AttachableCallback<Dimension> {
   /**

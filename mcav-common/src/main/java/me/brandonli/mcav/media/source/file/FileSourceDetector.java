@@ -24,6 +24,8 @@ import me.brandonli.mcav.utils.SourceUtils;
 
 /**
  * Detects paths of existing files or directories. Existence does not establish that a player can decode them.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public class FileSourceDetector implements SourceDetector<FileSource> {
 

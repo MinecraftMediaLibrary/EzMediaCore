@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link OriginalAudioMetadata}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultOriginalAudioMetadata implements OriginalAudioMetadata {
 

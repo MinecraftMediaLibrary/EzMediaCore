@@ -25,6 +25,8 @@ import java.util.Optional;
  * Extracts a downloaded VLC archive into a usable installation. Every operating system ships VLC in a different
  * archive format, so each has its own strategy.
  *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
  * @see LinuxInstallationStrategy
  * @see WindowsInstallationStrategy
  * @see OsxInstallationStrategy

@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 
 /**
  * Builds random dithering algorithms.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface RandomDitherBuilder extends DitherAlgorithmBuilder {
   /**

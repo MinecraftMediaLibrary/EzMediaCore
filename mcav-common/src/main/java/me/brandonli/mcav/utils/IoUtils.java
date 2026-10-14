@@ -71,6 +71,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>Most I/O failures are wrapped in {@link UncheckedIOException}. Deletion and replacement moves retain
  * checked {@link IOException}s; argument errors and unsafe archive entries use their documented exception types.
+ *
+ * <p>This class is thread-safe.
  */
 public final class IoUtils {
 

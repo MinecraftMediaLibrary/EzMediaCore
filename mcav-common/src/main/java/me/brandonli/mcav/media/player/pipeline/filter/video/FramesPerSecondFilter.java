@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * Draws the current frame rate of the pipeline into the top left corner of every frame, which is useful while
  * tuning a pipeline. The count is refreshed after an elapsed window of at least one second. A filter shared by several pipelines
  * counts their combined calls, so use a separate instance when measuring each pipeline.
+ *
+ * <p>This class is thread-safe.
  */
 public class FramesPerSecondFilter extends MatVideoFilter {
 

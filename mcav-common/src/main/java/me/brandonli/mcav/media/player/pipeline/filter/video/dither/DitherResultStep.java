@@ -23,6 +23,9 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 /**
  * A display that shows dithered frames, such as a wall of maps. Result steps receive the raw frame and the
  * algorithm, so they can decide how to dither, for example in parallel or with a byte budget per frame.
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
  */
 public interface DitherResultStep {
   /**

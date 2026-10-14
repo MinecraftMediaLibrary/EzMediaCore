@@ -59,6 +59,8 @@ import org.slf4j.LoggerFactory;
  * their own. Different installer objects are not serialized with each other, so callers must coordinate
  * instances targeting the same program and folder. The installer owns no persistent thread or native resource
  * that needs closing. It keeps downloaded files and the configuration for reuse after process shutdown.
+ *
+ * <p>This class is thread-safe.
  */
 public abstract class AbstractInstaller implements Installer {
 

@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Draws a rectangle outline onto every frame.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class RectangleFilter extends MatVideoFilter {
 

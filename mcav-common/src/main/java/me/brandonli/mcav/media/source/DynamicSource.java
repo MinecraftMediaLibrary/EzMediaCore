@@ -19,6 +19,8 @@ package me.brandonli.mcav.media.source;
 
 /**
  * A source without a fixed length, such as a live stream, a capture device, or generated frames.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface DynamicSource extends Source {
   /**

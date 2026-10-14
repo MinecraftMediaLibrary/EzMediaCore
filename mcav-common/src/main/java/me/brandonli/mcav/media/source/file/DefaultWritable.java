@@ -21,6 +21,8 @@ import java.nio.file.Path;
 
 /**
  * The default {@link Writable}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultWritable implements Writable {
 

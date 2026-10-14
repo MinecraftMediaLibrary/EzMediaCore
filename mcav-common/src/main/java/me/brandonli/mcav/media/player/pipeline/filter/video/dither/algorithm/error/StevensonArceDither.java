@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Stevenson and Arce error diffusion, which spreads the error over twelve neighbors on a hexagonal pattern across
  * four rows. It produces the least visible patterns of all kernels at the highest cost.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class StevensonArceDither extends ErrorDiffusionDither {
 

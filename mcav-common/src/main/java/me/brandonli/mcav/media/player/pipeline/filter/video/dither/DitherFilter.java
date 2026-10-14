@@ -35,6 +35,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  *   builder.then(display);
  *   final VideoPipelineStep pipeline = builder.build();
  * </code></pre>
+ *
+ * <p>This class is immutable; it is thread-safe when its algorithm and result step are.
  */
 public final class DitherFilter implements FunctionalVideoFilter {
 

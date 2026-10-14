@@ -20,6 +20,8 @@ package me.brandonli.mcav.capability.installer;
 /**
  * Whether an {@link Installer} marks the file it downloads as executable.
  *
+ * <p>This enum is immutable and thread-safe.
+ *
  * @since 1.0.0
  */
 public enum FileMode {

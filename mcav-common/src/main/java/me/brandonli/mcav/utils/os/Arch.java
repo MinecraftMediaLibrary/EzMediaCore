@@ -19,6 +19,8 @@ package me.brandonli.mcav.utils.os;
 
 /**
  * The processor family of a machine, as far as the installers care: which binaries to download.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum Arch {
   /**

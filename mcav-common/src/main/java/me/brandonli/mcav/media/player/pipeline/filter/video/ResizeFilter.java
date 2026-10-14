@@ -35,6 +35,8 @@ import org.bytedeco.opencv.opencv_core.Size;
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}. A player that refills the frame at the size of
  * the video every frame gets the spare back, so resizing reuses native frame storage once the sizes are settled. The
  * filter keeps no state besides its target size, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class ResizeFilter extends MatVideoFilter {
 

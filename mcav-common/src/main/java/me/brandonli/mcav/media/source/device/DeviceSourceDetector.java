@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.source.SourceDetector;
 
 /**
  * Detects non-negative whole numbers as capture device indices.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public class DeviceSourceDetector implements SourceDetector<DeviceSource> {
 

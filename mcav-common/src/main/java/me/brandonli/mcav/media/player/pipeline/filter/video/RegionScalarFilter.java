@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 /**
  * Fills a rectangle of every frame with a solid color. Parts of the rectangle that extend past the edge of the
  * frame are ignored.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class RegionScalarFilter extends MatVideoFilter {
 

@@ -41,6 +41,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * after the largest chunk has been accommodated. Use it from one producer at a time. Stop producers before
  * releasing the device; synchronization of start and release does not serialize sample writes with them.
  * Starting again after release opens a new device line.
+ *
+ * <p>Starting and releasing are thread-safe; filtering must happen on one thread at a time, as the player does.
  */
 public class DirectAudioOutput implements FunctionalAudioFilter {
 

@@ -35,6 +35,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Loads the Minecraft map colors from the {@code mcav/common/palette.json} resource, which lists the RGB components of every
  * map color in index order. The resource is generated from the game and has to be updated when Minecraft adds
  * map colors.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class MapPaletteLoader {
 

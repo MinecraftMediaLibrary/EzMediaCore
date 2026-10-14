@@ -37,6 +37,9 @@ import me.brandonli.mcav.media.player.pipeline.filter.Filter;
  *   builder.then(display);
  *   final VideoPipelineStep pipeline = builder.build();
  * </code></pre>
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
  */
 @FunctionalInterface
 public interface VideoFilter extends Filter<ImageBuffer, OriginalVideoMetadata> {

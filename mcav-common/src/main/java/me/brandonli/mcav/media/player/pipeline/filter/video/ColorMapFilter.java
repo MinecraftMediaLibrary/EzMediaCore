@@ -24,6 +24,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * Recolors frames with one of the OpenCV color maps, such as {@link opencv_imgproc#COLORMAP_JET} or
  * {@link opencv_imgproc#COLORMAP_HOT}. The frame is converted to grayscale first, so the color map replaces the
  * original colors completely.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class ColorMapFilter extends MatVideoFilter {
 

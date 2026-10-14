@@ -35,6 +35,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * independent of the image height and no bounds checks are needed at the edges. Subclasses only choose a kernel.
  * The basic kernel implementations hold no state between calls and can be shared. Temporal subclasses retain
  * the history of one stream and must not be shared across streams or threads.
+ *
+ * <p>This class is thread-safe, except for temporal subclasses.
  */
 public abstract class ErrorDiffusionDither extends AbstractDitherAlgorithm {
 

@@ -42,6 +42,8 @@ import org.bytedeco.opencv.opencv_objdetect.CascadeClassifier;
  * <p>The grayscale matrix and the list of detections are kept between frames, so detection allocates no frame-sized
  * matrix per frame; both are freed when the filter is garbage collected. OpenCV's cascade classifier must not be used by
  * two threads at once, so one filter attached to several pipelines detects faces in one frame at a time.
+ *
+ * <p>This class is thread-safe.
  */
 public class FaceDetectionFilter extends MatVideoFilter {
 

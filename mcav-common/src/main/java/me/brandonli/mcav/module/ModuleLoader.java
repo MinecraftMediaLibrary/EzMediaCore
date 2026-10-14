@@ -41,6 +41,8 @@ import org.slf4j.LoggerFactory;
  * Individual module lookup is concurrent and can observe only modules whose startup has finished; a lookup
  * racing with shutdown can return a module that is being stopped. The caller owns the loader and must call
  * {@link #shutdownModules()} when its modules are no longer needed.
+ *
+ * <p>This class is thread-safe.
  */
 public final class ModuleLoader {
 

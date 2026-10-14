@@ -28,6 +28,8 @@ import org.bytedeco.javacv.FrameGrabber;
 
 /**
  * Reads the properties of media with FFmpeg without playing it.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class MetadataUtils {
 

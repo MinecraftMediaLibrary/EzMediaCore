@@ -34,6 +34,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * application bundle is copied into the installation directory with {@code cp -R} to preserve its symbolic links,
  * and the image is detached and deleted afterward. The returned directory is {@code VLC.app/Contents/MacOS/lib},
  * which contains {@code libvlc.dylib}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class OsxInstallationStrategy extends ManualInstallationStrategy {
 

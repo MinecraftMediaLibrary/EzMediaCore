@@ -19,6 +19,8 @@ package me.brandonli.mcav.media.source.frame;
 
 /**
  * The default {@link FrameSource}.
+ *
+ * <p>This class is immutable; it is thread-safe when its supplier is.
  */
 public final class SupplierFrameSource implements FrameSource {
 

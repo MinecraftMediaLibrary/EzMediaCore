@@ -27,6 +27,8 @@ import java.util.stream.IntStream;
  * <p>The lookup tables are built in parallel across all cores when the palette is created. Colors are compared
  * with a perceptual distance that weights the channels by how sensitive the eye is to them, which gives visibly
  * better matches than a plain Euclidean distance.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class ColorPalette implements DitherPalette {
 

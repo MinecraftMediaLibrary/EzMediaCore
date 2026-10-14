@@ -27,6 +27,8 @@ package me.brandonli.mcav.media.player.pipeline.builder;
  *   builder.then(display);
  *   final VideoPipelineStep pipeline = builder.build();
  * </code></pre>
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface PipelineBuilder {
   /**

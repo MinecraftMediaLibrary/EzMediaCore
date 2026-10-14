@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Jarvis, Judice, and Ninke error diffusion, which spreads the error over twelve neighbors in three rows. It
  * produces very smooth results at roughly three times the cost of Floyd-Steinberg.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class JarvisJudiceNinkeDither extends ErrorDiffusionDither {
 

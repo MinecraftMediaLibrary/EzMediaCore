@@ -36,6 +36,8 @@ import me.brandonli.mcav.media.source.uri.UriSourceDetector;
  *   final SourceDetectionHelper helper = new SourceDetectionHelper();
  *   final Optional&lt;Source&gt; source = helper.detectSource("videos/intro.mp4");
  * </code></pre>
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class SourceDetectionHelper {
 

@@ -28,6 +28,8 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
 /**
  * Creates the discovery strategies of the library for vlcj's {@link NativeDiscovery}: one strategy per operating
  * system, of which vlcj uses the one that supports the running system.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class VlcDiscoveryStrategies {
 

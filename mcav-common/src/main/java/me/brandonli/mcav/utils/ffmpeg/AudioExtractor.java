@@ -39,6 +39,8 @@ import me.brandonli.mcav.utils.runtime.ProcessException;
  * final Source media = UriSource.uri(URI.create("https://example.com/video.mp4"));
  * final Path audio = AudioExtractor.extractOggVorbis(media);
  * }</pre>
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class AudioExtractor {
 

@@ -37,6 +37,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * The base class of the VLC installation strategies, with helpers for running external tools and for locating the
  * VLC libraries inside an extracted installation.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public abstract class ManualInstallationStrategy implements InstallationStrategy {
 
@@ -238,6 +240,8 @@ public abstract class ManualInstallationStrategy implements InstallationStrategy
 
   /**
    * Runs an external tool and fails when it exits with an error.
+   *
+   * <p>Implementations in this library are stateless and thread-safe.
    */
   @FunctionalInterface
   public interface ProcessRunner {

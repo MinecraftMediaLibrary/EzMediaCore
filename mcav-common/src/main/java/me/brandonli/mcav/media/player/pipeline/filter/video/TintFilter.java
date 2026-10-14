@@ -29,6 +29,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
  * <p>The matrix of the tint color is kept between frames and only rebuilt when a frame has another size, so tinting
  * reuses native image storage in the usual serial case with stable dimensions. Concurrent calls borrow
  * separate matrices as needed; see {@link ReusableMat}, and freed when the filter is garbage collected.
+ *
+ * <p>This class is not thread-safe, because it reuses one matrix for every frame; give each player its own instance.
  */
 public class TintFilter extends MatVideoFilter {
 

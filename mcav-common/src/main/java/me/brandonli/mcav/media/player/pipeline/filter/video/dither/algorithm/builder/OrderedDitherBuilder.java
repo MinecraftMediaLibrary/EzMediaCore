@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 
 /**
  * Builds ordered dithering algorithms.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface OrderedDitherBuilder extends DitherAlgorithmBuilder {
   /**

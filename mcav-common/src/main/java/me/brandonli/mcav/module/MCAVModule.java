@@ -23,6 +23,8 @@ package me.brandonli.mcav.module;
  *
  * <p>Modules are created by {@link ModuleLoader} through a no-argument constructor, which may be package-private,
  * and are passed to {@link me.brandonli.mcav.MCAVApi#install(Class[])} by class.
+ *
+ * <p>The module loader starts and stops modules one at a time, so implementations need not synchronize their lifecycle.
  */
 public interface MCAVModule {
   /**

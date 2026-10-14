@@ -68,6 +68,8 @@ import org.slf4j.LoggerFactory;
  * download. A move that another process denies for a moment, such as a virus scanner inspecting the new file, is
  * retried briefly by {@link IoUtils#moveReplacing(Path, Path)}. A known limitation: another process that replaces the
  * same destination at the same moment is not coordinated with, and such a move can still fail on Windows.
+ *
+ * <p>This class is thread-safe.
  */
 public final class HttpDownloader {
 

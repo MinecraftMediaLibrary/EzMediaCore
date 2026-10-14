@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Helpers for shutting down executors.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class ExecutorUtils {
 

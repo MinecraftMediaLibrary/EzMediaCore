@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.source.StaticSource;
 
 /**
  * A media file on the local file system.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface FileSource extends StaticSource {
   /**

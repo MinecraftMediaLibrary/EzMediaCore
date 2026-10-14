@@ -21,6 +21,8 @@ import me.brandonli.mcav.media.player.pipeline.step.AudioPipelineStep;
 
 /**
  * The slot of a player that holds its audio pipeline. While nothing is attached, audio is decoded and dropped.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface AudioAttachableCallback extends AttachableCallback<AudioPipelineStep> {
   /**

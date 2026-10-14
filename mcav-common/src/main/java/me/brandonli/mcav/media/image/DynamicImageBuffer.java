@@ -29,6 +29,8 @@ import me.brandonli.mcav.media.source.uri.UriSource;
  * <p>All frames are decoded up front and kept in memory, which makes animations easy to play in a loop but
  * unsuitable for long videos; use a video player for those. The frames are owned by the animation and released
  * together with it.
+ *
+ * <p>Implementations are not thread-safe.
  */
 public interface DynamicImageBuffer extends Image {
   /**

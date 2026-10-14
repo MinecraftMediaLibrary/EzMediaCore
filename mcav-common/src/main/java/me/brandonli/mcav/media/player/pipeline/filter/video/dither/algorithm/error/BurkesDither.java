@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Burkes error diffusion, which spreads the error over seven neighbors in two rows. It is a faster simplification
  * of the Stucki kernel.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class BurkesDither extends ErrorDiffusionDither {
 

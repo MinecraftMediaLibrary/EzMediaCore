@@ -26,6 +26,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * {@link #processAll(Object, Object)} for every frame or sample chunk. Build chains with
  * {@link me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder}.
  *
+ * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
+ *
  * @param <DataType>     the type of data that flows through the pipeline
  * @param <MetadataType> the type of metadata that accompanies the data
  * @param <StepType>     the type of the steps of this pipeline

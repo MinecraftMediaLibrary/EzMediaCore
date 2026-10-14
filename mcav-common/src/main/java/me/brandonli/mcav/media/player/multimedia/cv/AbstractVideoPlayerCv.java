@@ -56,6 +56,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Starting, seeking, and releasing request shutdown of previous playback and wait up to five seconds for each
  * worker. A decoder or callback that ignores interruption can outlive those waits. Call the asynchronous variants, such as
  * {@link #releaseAsync()}, from threads that must not block.
+ *
+ * <p>This class is thread-safe.
  */
 public abstract class AbstractVideoPlayerCv implements VideoPlayerMultiplexer {
 

@@ -27,6 +27,8 @@ import org.bytedeco.ffmpeg.global.avutil;
  * platform. This agrees with the pipeline's little-endian format on little-endian hosts; callers on another
  * byte order must convert the bytes explicitly. Floating point formats use the
  * nominal range {@code -1.0} to {@code 1.0}.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum SampleFormat {
   /**

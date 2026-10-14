@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link FfmpegDirectSource}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultFfmpegDirectSource implements FfmpegDirectSource {
 

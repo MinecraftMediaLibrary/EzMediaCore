@@ -27,6 +27,8 @@ import me.brandonli.mcav.media.source.Source;
 /**
  * A full-featured player that can play, pause, resume, seek, and release, and that can take its video and audio
  * from two different sources. Every backend created by the factories of {@link VideoPlayer} is a multiplexer.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface VideoPlayerMultiplexer extends VideoPlayer, ControllablePlayer, SeekablePlayer, ReleasablePlayer {
   /**

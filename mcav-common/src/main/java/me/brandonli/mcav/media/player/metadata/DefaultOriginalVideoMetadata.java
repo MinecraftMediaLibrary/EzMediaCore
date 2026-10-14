@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link OriginalVideoMetadata}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultOriginalVideoMetadata implements OriginalVideoMetadata {
 

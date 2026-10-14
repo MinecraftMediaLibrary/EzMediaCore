@@ -40,6 +40,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * pipeline on it, and reports failures of the source and the filters to the exception handler without stopping
  * playback. When the source itself cannot be set up, the thread reports it and ends, and the player can be started
  * again.
+ *
+ * <p>This class is thread-safe.
  */
 public final class ThreadedImagePlayer implements ImagePlayer {
 

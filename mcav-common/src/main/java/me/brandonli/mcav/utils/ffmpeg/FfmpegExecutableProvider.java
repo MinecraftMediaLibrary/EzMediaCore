@@ -24,6 +24,8 @@ import org.bytedeco.javacpp.Loader;
 /**
  * Locates the FFmpeg command-line executable bundled with JavaCV. The executable is extracted from the platform
  * jar the first time it is requested, so the first call may take a moment.
+ *
+ * <p>This class is thread-safe.
  */
 public final class FfmpegExecutableProvider {
 

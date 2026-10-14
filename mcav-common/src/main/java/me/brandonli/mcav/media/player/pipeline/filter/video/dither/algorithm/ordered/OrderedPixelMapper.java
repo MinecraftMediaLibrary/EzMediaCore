@@ -25,6 +25,8 @@ import com.google.common.base.Preconditions;
  * <p>Every entry is mapped to the range from -0.5 to 0.5 based on its rank in the matrix, and multiplied by the
  * strength. The minimum and maximum of the matrix are taken from the matrix itself, so matrices that count from
  * zero and matrices that count from one both work.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class OrderedPixelMapper implements PixelMapper {
 

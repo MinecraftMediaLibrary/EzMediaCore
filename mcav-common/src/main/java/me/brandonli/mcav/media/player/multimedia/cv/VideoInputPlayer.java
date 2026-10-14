@@ -27,6 +27,8 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * webcam. Devices are opened through OpenCV, which uses the native capture API of every operating system. Create
  * instances with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()} and start them with a
  * {@link me.brandonli.mcav.media.source.device.DeviceSource}.
+ *
+ * <p>This class is thread-safe.
  */
 public class VideoInputPlayer extends AbstractVideoPlayerCv {
 

@@ -38,6 +38,8 @@ import me.brandonli.mcav.media.source.frame.FrameSource;
  *   final RepeatingFrameSource source = RepeatingFrameSource.repeating(gif);
  *   player.start(source);
  * </code></pre>
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface ImagePlayer extends ReleasablePlayer, ExceptionHandler {
   /**

@@ -40,6 +40,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>yt-dlp lists the streams from worst to best. The quality strategies therefore break ties in that order: among
  * streams of equal quality, the best quality strategies pick the stream listed last and the lowest quality
  * strategies pick the stream listed first.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 @FunctionalInterface
 public interface FormatStrategy {

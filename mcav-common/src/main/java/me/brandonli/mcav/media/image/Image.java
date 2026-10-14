@@ -21,6 +21,8 @@ package me.brandonli.mcav.media.image;
  * The base type of images that hold native memory. Images are closed with {@link #close()}, which declares no checked exceptions,
  * so they can be used in try-with-resources statements without handling exceptions.
  *
+ * <p>Implementations are not thread-safe.
+ *
  * @see ImageBuffer
  * @see DynamicImageBuffer
  */

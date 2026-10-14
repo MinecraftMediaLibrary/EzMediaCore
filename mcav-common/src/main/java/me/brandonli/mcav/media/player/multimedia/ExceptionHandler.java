@@ -28,6 +28,8 @@ import java.util.function.BiConsumer;
  *   final Logger logger = plugin.getLogger();
  *   player.setExceptionHandler((message, error) -&gt; logger.log(Level.SEVERE, message, error));
  * </code></pre>
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface ExceptionHandler {
   /**

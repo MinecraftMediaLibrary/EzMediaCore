@@ -25,6 +25,8 @@ import java.util.Locale;
  *
  * <p>The values describe the JVM, not the machine: a 64-bit x86 JVM running under emulation on an ARM machine is
  * reported as 64-bit x86, which is what matters for loading native libraries.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class OsUtils {
 

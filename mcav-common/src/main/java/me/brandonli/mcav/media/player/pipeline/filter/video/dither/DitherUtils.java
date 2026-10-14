@@ -27,6 +27,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * <p>{@link #getLookupIndex(int, int, int)} and {@link #clamp(int)} run for every channel of every pixel, so they
  * leave their arguments unchecked; the dithering algorithms only pass them values they have already clamped. The
  * other methods check their arguments.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class DitherUtils {
 

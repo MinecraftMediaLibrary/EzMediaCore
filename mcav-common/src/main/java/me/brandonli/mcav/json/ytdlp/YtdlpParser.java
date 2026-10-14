@@ -38,6 +38,8 @@ import me.brandonli.mcav.media.source.uri.UriSource;
  * final StrategySelector selector = StrategySelector.of(FormatStrategy.BEST_QUALITY_AUDIO, FormatStrategy.BEST_QUALITY_VIDEO);
  * final Format video = selector.getVideoSource(dump);
  * }</pre>
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface YtdlpParser {
   /**

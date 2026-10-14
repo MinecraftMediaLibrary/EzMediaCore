@@ -28,6 +28,8 @@ import me.brandonli.mcav.media.image.DynamicImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()}. Use
  * {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} for pixels you may modify and
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()} for a view you can hand to other code.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface RepeatingFrameSource extends FrameSource {
   /**

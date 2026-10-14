@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 
 /**
  * Builds nearest color algorithms, which have no settings besides the palette.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface NearestDitherBuilder extends DitherAlgorithmBuilder {
   /**

@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 /**
  * Helpers for code that catches failures at a thread boundary, such as a render thread that runs user filters, and
  * must keep running after a failure without hiding the failures that no code can recover from.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class ThrowableUtils {
 

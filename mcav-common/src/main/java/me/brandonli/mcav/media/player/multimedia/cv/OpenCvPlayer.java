@@ -31,6 +31,8 @@ import org.bytedeco.javacv.OpenCVFrameGrabber;
  * cameras. Where OpenCV cannot read files, this player reads them with the FFmpeg reader that JavaCV bundles, so a
  * file plays on every platform instead of a video that never shows a frame. The pipelines, the scaling and the
  * playback clock are the same either way.
+ *
+ * <p>This class is thread-safe.
  */
 public final class OpenCvPlayer extends AbstractVideoPlayerCv {
 

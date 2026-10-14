@@ -25,6 +25,8 @@ package me.brandonli.mcav.capability;
  * <p>{@link #FFMPEG} and {@link #FACE_DETECTION} are decided while {@link me.brandonli.mcav.MCAVApi#install(Class[])}
  * runs. {@link #VLC} and {@link #YT_DLP} are external programs that may have to be downloaded first, so they are
  * prepared in the background after {@code install} returned.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum Capability {
   /**

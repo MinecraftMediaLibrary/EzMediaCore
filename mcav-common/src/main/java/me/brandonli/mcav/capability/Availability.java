@@ -20,6 +20,8 @@ package me.brandonli.mcav.capability;
 /**
  * The outcome of preparing a {@link Capability}, as recorded by {@link CapabilityGuard#markPrepared(Capability, Availability)}.
  *
+ * <p>This enum is immutable and thread-safe.
+ *
  * @since 1.0.0
  */
 public enum Availability {

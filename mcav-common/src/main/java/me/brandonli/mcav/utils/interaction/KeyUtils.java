@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Users write special keys by name, such as {@code Hello{ENTER}}, and {@link #replaceKeysWithKeyCodes(String)}
  * turns every {@code {NAME}} into the character of the corresponding {@link KeyCode}. A literal
  * <code>&#123;</code> is written as <code>&#123;&#123;</code>.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class KeyUtils {
 

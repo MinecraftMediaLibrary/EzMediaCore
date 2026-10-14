@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
 /**
  * Blends every frame with a fixed image of the same size. Frames whose size differs from the image are left
  * untouched. The image is copied when the filter is created, so it may be released afterward.
+ *
+ * <p>This class is thread-safe, because it only reads the matrix it holds.
  */
 public class BlendFilter extends MatVideoFilter {
 

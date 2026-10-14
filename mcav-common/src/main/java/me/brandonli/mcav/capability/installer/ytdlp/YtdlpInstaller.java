@@ -50,6 +50,8 @@ import me.brandonli.mcav.utils.os.Platform;
  *
  * <p>Use {@link #shared()} inside the library, so every user of yt-dlp goes through one installer and the program is
  * downloaded at most once, even when several threads need it at the same time.
+ *
+ * <p>This class is thread-safe.
  */
 public final class YtdlpInstaller extends AbstractInstaller {
 

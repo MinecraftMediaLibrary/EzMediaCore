@@ -28,6 +28,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * <p>The result is written into the spare matrix of the frame, see
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}, so no matrix is allocated per frame once the
  * sizes are settled. The filter keeps no state, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class TransposeFilter extends MatVideoFilter {
 

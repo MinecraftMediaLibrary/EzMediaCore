@@ -22,6 +22,8 @@ package me.brandonli.mcav.media.player.attachable;
  * and detached at any time, including while the player is playing. A detached slot holds a harmless default so
  * players never have to check for null.
  *
+ * <p>Implementations in this library are thread-safe.
+ *
  * @param <ValueType> the type of value the slot holds
  */
 public interface AttachableCallback<ValueType> {

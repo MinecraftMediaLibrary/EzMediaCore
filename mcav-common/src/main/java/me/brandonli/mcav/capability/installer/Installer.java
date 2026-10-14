@@ -27,6 +27,8 @@ import java.util.Optional;
  * <p>Installers are idempotent: once a program is installed, calling {@link #download(FileMode)} again returns the
  * existing installation immediately. Installations live in the cache folder of the library and are remembered in
  * a small configuration file, so they survive restarts.
+ *
+ * <p>Implementations in this library serialize the downloads of each installer, see {@link AbstractInstaller}.
  */
 public interface Installer {
   /**

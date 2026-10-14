@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Floyd-Steinberg error diffusion that stays stable between video frames, see {@link TemporalDitherAlgorithm}.
  * This is the recommended algorithm for video on maps, especially together with delta encoding.
+ *
+ * <p>This class is not thread-safe, because it keeps the previous frame; use one instance per stream.
  */
 public final class TemporalFloydSteinbergDither extends TemporalDitherAlgorithm {
 

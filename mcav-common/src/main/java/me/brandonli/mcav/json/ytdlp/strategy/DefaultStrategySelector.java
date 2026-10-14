@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link StrategySelector}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultStrategySelector implements StrategySelector {
 

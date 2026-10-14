@@ -26,6 +26,8 @@ import me.brandonli.mcav.media.player.metadata.OriginalAudioMetadata;
  * Makes the audio louder or quieter: every sample is multiplied by the volume and clipped to the range of a 16-bit
  * sample, so above 1 quiet media gets louder and loud media clips. The volume may be changed from any thread while
  * the filter runs; a change applies from the next chunk on.
+ *
+ * <p>This class is thread-safe.
  */
 public final class VolumeFilter implements AudioFilter {
 

@@ -29,6 +29,8 @@ import org.bytedeco.javacv.Frame;
  * derives {@link Frame#imageChannels} from the padded row length, which reports far too many channels for very
  * narrow frames, such as small animated GIFs. This class therefore trusts only the row stride and the known pixel
  * format of the grabber.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class FramePixels {
 

@@ -25,6 +25,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
  * capture ({@code gdigrab} on Windows, {@code x11grab} on Linux, {@code avfoundation} on macOS) or raw pipes.
  * Only {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#ffmpeg()} understands these sources. Such inputs
  * are live and have no fixed length, so the source is dynamic.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface FfmpegDirectSource extends DynamicSource {
   /**

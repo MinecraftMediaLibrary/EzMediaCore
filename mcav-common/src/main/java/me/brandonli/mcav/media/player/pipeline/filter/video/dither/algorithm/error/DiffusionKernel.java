@@ -32,6 +32,8 @@ import com.google.common.base.Preconditions;
  * largest weight, so exactly the fraction the weights describe is spread and nothing is lost to rounding.
  *
  * <p>Kernels are immutable. The kernels of all common algorithms are available as constants.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DiffusionKernel {
 

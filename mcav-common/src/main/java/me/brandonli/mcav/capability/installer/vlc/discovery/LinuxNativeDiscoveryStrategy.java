@@ -42,6 +42,9 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 /**
  * Finds {@code libvlc.so} and {@code libvlccore.so} in the well-known directories of Linux and other Unix
  * systems. Versioned library names such as {@code libvlc.so.5} and {@code libvlccore.so.9.0.1} are recognized.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
  */
 public class LinuxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 

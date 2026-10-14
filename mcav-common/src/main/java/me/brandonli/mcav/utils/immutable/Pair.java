@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A shallowly immutable pair of two non-null values, retained by reference rather than copied.
  *
+ * <p>This class is immutable, and thread-safe when its values are.
+ *
  * @param <FirstType>  the type of the first value
  * @param <SecondType> the type of the second value
  */

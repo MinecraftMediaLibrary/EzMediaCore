@@ -48,6 +48,8 @@ import me.brandonli.mcav.media.source.Source;
  * </code></pre>
  *
  * <p>Frames are delivered on the player's own threads; the pipelines must not block for long.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface VideoPlayer extends ExceptionHandler {
   /**

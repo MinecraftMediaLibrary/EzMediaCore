@@ -36,6 +36,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  *
  * <p>Image buffers that are not backed by OpenCV are copied into a temporary matrix through their raw BGR pixels,
  * filtered, and copied back the same way if the filter changed them, which costs two copies per frame.
+ *
+ * <p>The base class keeps no state; each subclass states its own thread safety.
  */
 public abstract class MatVideoFilter implements VideoFilter {
 

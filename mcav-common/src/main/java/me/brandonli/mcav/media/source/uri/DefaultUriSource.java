@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link UriSource}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultUriSource implements UriSource {
 

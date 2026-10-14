@@ -21,6 +21,8 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 
 /**
  * The default {@link VideoAttachableCallback}.
+ *
+ * <p>This class is thread-safe.
  */
 public final class DefaultVideoAttachableCallback extends AbstractAttachableCallback<VideoPipelineStep> implements VideoAttachableCallback {
 

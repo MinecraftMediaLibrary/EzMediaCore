@@ -26,6 +26,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link AudioPipelineStep}.
+ *
+ * <p>This class is immutable; it is as thread-safe as its filters.
  */
 public final class DefaultAudioPipelineStep implements AudioPipelineStep {
 

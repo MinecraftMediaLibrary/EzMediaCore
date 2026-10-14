@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 /**
  * The handler holder created by {@link ExceptionHandler#createDefault()}. Failures are logged at error level
  * until a custom handler is set.
+ *
+ * <p>This class is thread-safe.
  */
 public final class DefaultExceptionHandler implements ExceptionHandler {
 

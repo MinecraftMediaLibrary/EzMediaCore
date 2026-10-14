@@ -24,6 +24,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Helpers for working with OpenCV values and packed pixel arrays.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class ImageUtils {
 

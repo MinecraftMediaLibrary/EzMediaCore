@@ -23,6 +23,8 @@ package me.brandonli.mcav.json.ytdlp.format;
  * <p>This is a mutable Gson data model, not a validated media object. Nullable fields may be null when absent;
  * primitive fields default to zero or false, which does not distinguish missing values from reported ones.
  * Instances and their nested lists are not synchronized; copy or coordinate them before concurrent mutation.
+ *
+ * <p>This class is mutable and not thread-safe.
  */
 public class Heatmap {
 

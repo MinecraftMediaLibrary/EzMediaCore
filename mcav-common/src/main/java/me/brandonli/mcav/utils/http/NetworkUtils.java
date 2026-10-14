@@ -44,6 +44,8 @@ import java.util.concurrent.TimeoutException;
  * final URI download = URI.create("https://example.com/pack.zip");
  * final boolean reachable = NetworkUtils.isReachable(download);
  * }</pre>
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class NetworkUtils {
 

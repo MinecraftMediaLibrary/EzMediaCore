@@ -22,5 +22,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 /**
  * A dithering algorithm that maps every pixel to its closest palette color without dithering. Create instances
  * with {@link DitherAlgorithm#nearest()} or {@link DitherAlgorithm#nearestColor()}.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface NearestDither extends DitherAlgorithm {}

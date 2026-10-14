@@ -24,6 +24,8 @@ import java.util.concurrent.ForkJoinPool;
 
 /**
  * A player whose playback can be paused and resumed.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface ControllablePlayer {
   /**

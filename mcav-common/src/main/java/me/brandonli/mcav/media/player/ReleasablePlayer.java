@@ -25,6 +25,8 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * A player that owns threads, native handles, or network connections which must be released when the player is
  * no longer needed. Releasing stops playback; a released player cannot be started again.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 @FunctionalInterface
 public interface ReleasablePlayer {

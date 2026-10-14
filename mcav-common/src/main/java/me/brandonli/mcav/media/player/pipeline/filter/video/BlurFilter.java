@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Size;
  * Blurs frames with one of several blur algorithms; larger kernels blur more. The box blur of
  * {@link BlurType#NORMAL} accepts any positive kernel size, while the median, Gaussian, and stack blurs need odd
  * sizes, as OpenCV does.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class BlurFilter extends MatVideoFilter {
 
@@ -120,6 +122,8 @@ public class BlurFilter extends MatVideoFilter {
 
   /**
    * The blur algorithms supported by {@link BlurFilter}.
+   *
+   * <p>This enum is immutable and thread-safe.
    */
   public enum BlurType {
     /**

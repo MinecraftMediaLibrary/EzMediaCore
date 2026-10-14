@@ -29,6 +29,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * <p>OpenCV cannot filter bilaterally in place, so the result is written into the spare matrix of the frame, see
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}, which reuses the frame-sized output storage once dimensions have settled. The
  * filter keeps no state of its own, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class BilateralFilter extends MatVideoFilter {
 

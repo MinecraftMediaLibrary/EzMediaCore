@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
 /**
  * A camera or capture card, identified by its index; {@code 0} is usually the default webcam. Play device sources
  * with {@link me.brandonli.mcav.media.player.multimedia.VideoPlayer#device()}.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface DeviceSource extends DynamicSource {
   /**

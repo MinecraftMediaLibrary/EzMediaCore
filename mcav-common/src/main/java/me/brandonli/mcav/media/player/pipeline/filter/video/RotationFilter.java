@@ -29,6 +29,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}, so no matrix is allocated per frame once the
  * sizes are settled. The filter keeps no state besides its rotation, so one filter may be attached to several
  * pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class RotationFilter extends MatVideoFilter {
 
@@ -78,6 +80,8 @@ public class RotationFilter extends MatVideoFilter {
 
   /**
    * The rotations {@link RotationFilter} supports.
+   *
+   * <p>This enum is immutable and thread-safe.
    */
   public enum Rotation {
     /**

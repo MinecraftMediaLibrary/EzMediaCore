@@ -25,6 +25,8 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * A player that can jump to a position in its media. Seeking only works for sources with a known length, such
  * as files; live streams ignore it.
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface SeekablePlayer {
   /**

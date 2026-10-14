@@ -20,6 +20,8 @@ package me.brandonli.mcav.utils.runtime;
 /**
  * When a {@link CommandTask} runs its command.
  *
+ * <p>This enum is immutable and thread-safe.
+ *
  * @since 1.0.0
  */
 public enum RunMode {

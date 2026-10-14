@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * Builds error diffusion algorithms. Every call of {@code build()} creates a new algorithm. The temporal algorithm
  * remembers the previous frame of the video it dithers and must not be shared between players, so build one for
  * every player; the other algorithms are stateless and can be shared.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
   /**
@@ -83,6 +85,8 @@ public interface ErrorDiffusionDitherBuilder extends DitherAlgorithmBuilder {
 
   /**
    * The error diffusion algorithms that can be built.
+   *
+   * <p>This enum is immutable and thread-safe.
    */
   enum Algorithm {
     /**

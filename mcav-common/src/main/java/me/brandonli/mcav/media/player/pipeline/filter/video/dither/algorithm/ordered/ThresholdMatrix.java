@@ -26,6 +26,8 @@ import com.google.common.base.Preconditions;
  *
  * <p>A matrix copies the rows it is created from and hands out copies, so nobody can change a matrix once it exists,
  * including the shared matrices of {@link BayerDither}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class ThresholdMatrix {
 

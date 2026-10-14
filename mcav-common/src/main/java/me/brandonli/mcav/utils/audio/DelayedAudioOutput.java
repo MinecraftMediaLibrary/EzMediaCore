@@ -50,6 +50,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * to the next samples due is filled in chunks of {@value #SILENCE_CHUNK_MILLISECONDS} ms, until samples that arrived after the
  * call are due, for {@value #SILENCE_MILLISECONDS} ms at most; a longer pause is not filled, and nothing is filled while the
  * output is paused.
+ *
+ * <p>This class is thread-safe.
  */
 public final class DelayedAudioOutput implements AutoCloseable {
 

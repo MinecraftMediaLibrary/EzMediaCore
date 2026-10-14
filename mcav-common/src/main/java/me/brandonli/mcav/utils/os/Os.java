@@ -19,6 +19,8 @@ package me.brandonli.mcav.utils.os;
 
 /**
  * The operating system family of a machine.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum Os {
   /**

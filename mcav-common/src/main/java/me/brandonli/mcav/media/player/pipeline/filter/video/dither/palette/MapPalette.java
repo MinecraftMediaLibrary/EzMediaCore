@@ -21,6 +21,8 @@ package me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette;
  * The color palette of Minecraft maps, as loaded by {@link MapPaletteLoader}. The first four indices of the map
  * palette are transparent and are therefore reserved. Use {@link DitherPalette#DEFAULT_MAP_PALETTE} instead of
  * creating instances, because every instance builds its own lookup tables.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class MapPalette extends ColorPalette {
 

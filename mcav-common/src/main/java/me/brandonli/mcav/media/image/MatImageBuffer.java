@@ -59,6 +59,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * spare, and reuses it for the next such operation and whenever it is resized back to the size of the spare. A video
  * whose frames are resized every frame therefore allocates no native memory once the sizes are settled, at the cost of
  * a second matrix that is released together with the image.
+ *
+ * <p>This class is not thread-safe.
  */
 public final class MatImageBuffer implements ImageBuffer {
 

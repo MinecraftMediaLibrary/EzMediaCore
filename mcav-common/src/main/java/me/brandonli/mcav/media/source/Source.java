@@ -26,6 +26,8 @@ package me.brandonli.mcav.media.source;
  * factories of the subtypes, such as {@link me.brandonli.mcav.media.source.file.FileSource#path(java.nio.file.Path)}
  * or {@link me.brandonli.mcav.media.source.uri.UriSource#uri(java.net.URI)}, or detect the right type from a
  * string with {@link SourceDetectionHelper}.
+ *
+ * <p>The sources of this library are thread-safe; frame sources are as thread-safe as their suppliers.
  */
 public interface Source {
   /**

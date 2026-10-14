@@ -34,6 +34,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>The AppImage is extracted with its built-in {@code --appimage-extract} option, which needs no FUSE support
  * and writes a {@code squashfs-root} directory next to the AppImage. That directory is moved to the installation
  * directory, and the directory containing {@code libvlccore.so} inside it is returned.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class LinuxInstallationStrategy extends ManualInstallationStrategy {
 

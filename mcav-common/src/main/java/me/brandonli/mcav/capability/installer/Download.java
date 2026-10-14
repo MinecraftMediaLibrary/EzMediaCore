@@ -31,6 +31,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>Installers are given a list of downloads and pick the one whose platform matches the machine they run on.
  * Downloads are usually read from the JSON resources in the {@code installers} folder, but can be created by hand
  * as well. Instances are immutable.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class Download {
 

@@ -27,6 +27,8 @@ import org.bytedeco.opencv.opencv_core.Size;
 
 /**
  * Draws an ellipse outline, or an arc of one, onto every frame.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class EllipseFilter extends MatVideoFilter {
 

@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Stucki error diffusion, which spreads the error over twelve neighbors in three rows. It is a sharper variant of
  * Jarvis, Judice, and Ninke.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class StuckiDither extends ErrorDiffusionDither {
 

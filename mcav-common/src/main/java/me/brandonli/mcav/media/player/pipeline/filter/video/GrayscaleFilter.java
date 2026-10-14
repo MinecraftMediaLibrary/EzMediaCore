@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * <p>The single-channel matrix the gray levels pass through is kept between frames, so converting reuses native image storage
  * in the usual serial case with stable dimensions. Concurrent calls borrow separate matrices as needed; see
  * {@link ReusableMat}, and freed when the filter is garbage collected.
+ *
+ * <p>This class is not thread-safe, because it reuses one matrix for every frame; give each player its own instance.
  */
 public class GrayscaleFilter extends MatVideoFilter {
 

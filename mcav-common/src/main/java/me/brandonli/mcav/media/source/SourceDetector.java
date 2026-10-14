@@ -22,6 +22,8 @@ package me.brandonli.mcav.media.source;
  * are consulted by {@link SourceDetectionHelper}; when several detectors accept a string, the one with the highest
  * priority wins.
  *
+ * <p>Implementations in this library are stateless and thread-safe.
+ *
  * @param <SourceType> the type of source the detector creates
  */
 public interface SourceDetector<SourceType extends Source> {

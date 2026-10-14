@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
  * Applies a fixed threshold independently to every channel of every frame. To obtain black and white with
  * {@link opencv_imgproc#THRESH_BINARY}, use {@link GrayscaleFilter} first; thresholding color channels directly
  * can retain combinations of saturated colors.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class ThresholdFilter extends MatVideoFilter {
 

@@ -19,6 +19,8 @@ package me.brandonli.mcav.utils.interaction;
 
 /**
  * The kinds of mouse events that interactive players such as browsers, VNC sessions, and virtual machines accept.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum MouseClick {
   /**

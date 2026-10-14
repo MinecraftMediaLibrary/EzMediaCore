@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A link of an audio pipeline. Each chunk of samples passes through the filters of the chain in order; the
  * buffer is rewound before every filter, so filters may read it freely.
+ *
+ * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
  */
 public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudioMetadata, AudioPipelineStep> {
   /**
@@ -107,6 +109,8 @@ public interface AudioPipelineStep extends PipelineStep<ByteBuffer, OriginalAudi
    * The step behind {@link #NO_OP}. Its constructor is private, so {@link #NO_OP} is its only instance, and the class
    * can only be initialized together with this interface, which rules out a deadlock between the initialization of the
    * two classes.
+   *
+   * <p>This class is immutable and thread-safe.
    */
   final class NoOperationStep implements AudioPipelineStep {
 

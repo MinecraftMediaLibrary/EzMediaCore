@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
 /**
  * Media behind a URL, such as an HTTP stream, an RTSP camera, or a web page that has to be resolved with yt-dlp
  * first.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface UriSource extends DynamicSource {
   /**

@@ -57,6 +57,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * VLC engine, see {@link SharedMediaPlayerFactory}.
  *
  * <p>Requires VLC to be available, see {@link me.brandonli.mcav.capability.Capability#VLC}.
+ *
+ * <p>This class is thread-safe.
  */
 public final class VlcPlayer implements VideoPlayerMultiplexer {
 

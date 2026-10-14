@@ -25,6 +25,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A combination of operating system, CPU architecture family, and bitness, such as 64-bit x86 Windows. Platforms
  * identify which native build of a program a machine needs. Instances are immutable and compare by value.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class Platform {
 

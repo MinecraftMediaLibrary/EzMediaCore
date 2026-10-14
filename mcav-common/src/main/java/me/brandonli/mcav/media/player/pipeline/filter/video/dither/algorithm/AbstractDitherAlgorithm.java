@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 
 /**
  * The base class of dithering algorithms, which holds the palette and validates inputs.
+ *
+ * <p>The base class keeps no mutable state; each subclass states its own thread safety.
  */
 public abstract class AbstractDitherAlgorithm implements DitherAlgorithm {
 

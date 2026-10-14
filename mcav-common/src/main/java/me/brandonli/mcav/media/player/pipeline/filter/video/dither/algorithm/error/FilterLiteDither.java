@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  * Filter Lite error diffusion, also known as Sierra Lite. It spreads the error over only three neighbors, which
  * makes it the fastest error diffusion while looking almost identical to Floyd-Steinberg. This is the recommended
  * algorithm for video.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class FilterLiteDither extends ErrorDiffusionDither {
 

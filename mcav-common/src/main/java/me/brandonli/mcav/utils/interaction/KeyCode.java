@@ -25,6 +25,8 @@ import java.util.Optional;
  * Special keys that interactive players can type, such as {@link #ENTER} or {@link #ARROW_LEFT}. Each key is
  * represented by a character from the private use area of Unicode, the same convention WebDriver uses, so the
  * characters can be mixed into ordinary text; see {@link KeyUtils}.
+ *
+ * <p>This enum is immutable and thread-safe.
  */
 public enum KeyCode {
   /** Represents a null or undefined key. */

@@ -22,6 +22,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Turns every frame black.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class ZeroFilter extends MatVideoFilter {
 

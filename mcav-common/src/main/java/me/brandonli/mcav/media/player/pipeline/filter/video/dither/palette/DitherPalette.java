@@ -31,6 +31,8 @@ import java.util.Objects;
  *
  * <p>Colors are packed as opaque ARGB integers, {@code 0xFFRRGGBB}. A palette may reserve its first indices for
  * transparency; those indices are never returned by the lookup tables.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface DitherPalette {
   /**

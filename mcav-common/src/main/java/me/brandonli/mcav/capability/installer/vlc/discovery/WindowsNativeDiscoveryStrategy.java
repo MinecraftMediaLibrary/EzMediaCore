@@ -42,6 +42,9 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
 /**
  * Finds {@code libvlc.dll} and {@code libvlccore.dll} in the installation directory of VLC on Windows and the other
  * directories vlcj knows about.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
  */
 public class WindowsNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 

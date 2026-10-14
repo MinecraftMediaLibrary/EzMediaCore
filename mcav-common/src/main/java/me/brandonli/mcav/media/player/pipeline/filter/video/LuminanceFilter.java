@@ -23,6 +23,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
 /**
  * Adjusts the contrast and brightness of frames. Every channel value is multiplied by the contrast factor and
  * the brightness offset is added, with the result clamped to the valid range.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class LuminanceFilter extends MatVideoFilter {
 

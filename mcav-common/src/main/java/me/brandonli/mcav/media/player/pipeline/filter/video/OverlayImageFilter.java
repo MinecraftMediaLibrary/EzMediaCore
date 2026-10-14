@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Rect;
 /**
  * Draws a fixed image on top of every frame at a fixed position. Parts of the image that extend past the edge of
  * the frame are cut off. The image is copied when the filter is created, so it may be released afterward.
+ *
+ * <p>This class is thread-safe, because it only reads the matrix it holds.
  */
 public class OverlayImageFilter extends MatVideoFilter {
 

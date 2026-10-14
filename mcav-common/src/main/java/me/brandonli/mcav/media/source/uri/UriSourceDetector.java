@@ -24,6 +24,8 @@ import me.brandonli.mcav.utils.SourceUtils;
 
 /**
  * Detects URLs with a scheme and a host.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public class UriSourceDetector implements SourceDetector<UriSource> {
 

@@ -33,6 +33,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
  *
  * <p>The matrices are {@link ThresholdMatrix immutable}, so the shared constants cannot be changed by anyone; use
  * {@link ThresholdMatrix#toArray()} for a copy of the entries.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface BayerDither extends DitherAlgorithm {
   /**

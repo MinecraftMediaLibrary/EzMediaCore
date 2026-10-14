@@ -26,6 +26,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Draws a line of text onto every frame with one of the built-in OpenCV fonts.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class TextFilter extends MatVideoFilter {
 

@@ -29,6 +29,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
  *   builder.withPalette(DitherPalette.DEFAULT_MAP_PALETTE);
  *   final ErrorDiffusionDither algorithm = builder.build();
  * </code></pre>
+ *
+ * <p>Builders are not thread-safe; use one per thread.
  */
 public interface DitherAlgorithmBuilder {
   /**

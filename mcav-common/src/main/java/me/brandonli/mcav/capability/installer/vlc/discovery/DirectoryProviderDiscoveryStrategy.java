@@ -59,6 +59,9 @@ import uk.co.caprica.vlcj.factory.discovery.strategy.NativeDiscoveryStrategy;
  *
  * <p>Subclasses describe the platform: the file name patterns of the libraries, where the plugins live relative to
  * them, and how the plugin path is published to libvlc.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
  */
 public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscoveryStrategy {
 
@@ -369,6 +372,8 @@ public abstract class DirectoryProviderDiscoveryStrategy implements NativeDiscov
 
   /**
    * Sets an environment variable of the running process, so native libraries such as libvlc can read it.
+   *
+   * <p>Implementations are called from the discovering thread only and need not be thread-safe.
    */
   @FunctionalInterface
   public interface EnvironmentSetter {

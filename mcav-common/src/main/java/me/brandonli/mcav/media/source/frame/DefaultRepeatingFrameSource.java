@@ -30,6 +30,8 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getPixels()},
  * {@link me.brandonli.mcav.media.image.ImageBuffer#copyPixels()} and
  * {@link me.brandonli.mcav.media.image.ImageBuffer#getReadOnlyPixels()}.
+ *
+ * <p>This class is thread-safe.
  */
 public final class DefaultRepeatingFrameSource implements RepeatingFrameSource {
 

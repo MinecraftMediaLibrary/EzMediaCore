@@ -36,6 +36,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>The zip contains a single {@code vlc-<version>} directory with {@code libvlc.dll} at its root. The zip is
  * extracted into a temporary directory, that inner directory is moved to the installation directory, and the
  * temporary directory and the zip are deleted. The temporary directory is also deleted when the extraction fails.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class WindowsInstallationStrategy extends ManualInstallationStrategy {
 

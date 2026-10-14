@@ -53,6 +53,8 @@ import me.brandonli.mcav.module.MCAVModule;
  *   // at shutdown
  *   api.release();
  * </code></pre>
+ *
+ * <p>Implementations in this library are thread-safe.
  */
 public interface MCAVApi {
   /**

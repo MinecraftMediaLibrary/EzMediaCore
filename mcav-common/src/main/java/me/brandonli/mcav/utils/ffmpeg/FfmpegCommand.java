@@ -35,6 +35,8 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  *   final CommandTask task = command.createTask();
  *   final int exitCode = task.run();
  * </code></pre>
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class FfmpegCommand {
 

@@ -22,6 +22,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Floyd-Steinberg error diffusion, the classic algorithm that spreads the error over four neighbors. It gives fine,
  * evenly distributed dithering at a moderate cost.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class FloydDither extends ErrorDiffusionDither {
 

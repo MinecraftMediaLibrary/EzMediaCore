@@ -29,6 +29,8 @@ import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
  *   final Format audio = selector.getAudioSource(dump);
  *   final Format video = selector.getVideoSource(dump);
  * </code></pre>
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface StrategySelector {
   /**

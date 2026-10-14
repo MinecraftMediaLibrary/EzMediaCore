@@ -29,6 +29,8 @@ import me.brandonli.mcav.media.player.PlayerException;
  * Converts audio sample buffers between byte orders. The audio pipeline carries signed 16-bit samples in
  * little-endian order; sinks that need big-endian samples, such as Discord, convert with
  * {@link #toBigEndian(ByteBuffer)}.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class ByteUtils {
 

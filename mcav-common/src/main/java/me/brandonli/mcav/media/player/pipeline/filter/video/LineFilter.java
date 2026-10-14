@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Scalar;
 
 /**
  * Draws a straight line onto every frame.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class LineFilter extends MatVideoFilter {
 

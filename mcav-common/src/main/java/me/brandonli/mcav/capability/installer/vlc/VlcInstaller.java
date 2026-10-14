@@ -50,6 +50,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>The installation is only used when no VLC is installed on the system. See {@link VlcInstallationKit}, which
  * ties the discovery of a system installation and this installer together.
+ *
+ * <p>This class is thread-safe.
  */
 public final class VlcInstaller extends AbstractInstaller {
 

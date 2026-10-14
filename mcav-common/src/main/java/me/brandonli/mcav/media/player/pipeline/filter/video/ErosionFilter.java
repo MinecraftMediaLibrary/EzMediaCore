@@ -25,6 +25,8 @@ import org.bytedeco.opencv.opencv_core.Size;
 /**
  * Shrinks the bright regions of frames with a rectangular structuring element, which thins light features and
  * removes small bright specks.
+ *
+ * <p>This class is thread-safe, because it only reads the matrix it holds.
  */
 public class ErosionFilter extends MatVideoFilter {
 

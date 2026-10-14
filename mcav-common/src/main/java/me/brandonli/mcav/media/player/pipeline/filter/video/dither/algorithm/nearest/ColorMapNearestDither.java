@@ -30,6 +30,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.palette.Dithe
 /**
  * Maps every pixel to its closest palette color without dithering. This is the fastest algorithm and produces
  * perfectly stable frames, but shows visible color banding in gradients.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class ColorMapNearestDither extends AbstractDitherAlgorithm implements NearestDither, ParallelDitherAlgorithm {
 

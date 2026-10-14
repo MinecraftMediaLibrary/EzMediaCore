@@ -23,6 +23,8 @@ import org.bytedeco.opencv.opencv_core.Mat;
 
 /**
  * Mirrors frames horizontally, vertically, or both.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class FlipFilter extends MatVideoFilter {
 
@@ -55,6 +57,8 @@ public class FlipFilter extends MatVideoFilter {
 
   /**
    * The directions {@link FlipFilter} can mirror in.
+   *
+   * <p>This enum is immutable and thread-safe.
    */
   public enum FlipDirection {
     /**

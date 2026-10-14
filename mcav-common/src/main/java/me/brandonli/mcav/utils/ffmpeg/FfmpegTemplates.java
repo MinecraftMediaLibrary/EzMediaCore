@@ -21,6 +21,8 @@ import com.google.common.base.Preconditions;
 
 /**
  * Ready-made FFmpeg commands for common jobs. Every template returns a command that overwrites its output file.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class FfmpegTemplates {
 

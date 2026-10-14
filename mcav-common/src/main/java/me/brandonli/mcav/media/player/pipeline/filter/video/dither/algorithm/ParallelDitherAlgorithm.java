@@ -24,6 +24,8 @@ import me.brandonli.mcav.media.image.ImageBuffer;
  * A dithering algorithm that can split an image into independent parts and dither them on several threads.
  * Displays that own a thread pool, such as {@code CompressedMapResult}, use this interface to dither large map
  * walls faster.
+ *
+ * <p>Implementations in this library are thread-safe, except for temporal ones, which keep the previous frame.
  */
 public interface ParallelDitherAlgorithm extends DitherAlgorithm {
   /**

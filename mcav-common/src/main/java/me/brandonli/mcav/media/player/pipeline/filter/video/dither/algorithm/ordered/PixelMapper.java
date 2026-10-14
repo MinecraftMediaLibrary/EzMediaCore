@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
  * A threshold pattern for ordered dithering, normalized to the range from -0.5 to 0.5 and scaled by a strength.
  * The pattern is tiled across the image, and the value under each pixel is added to its color before the closest
  * palette color is chosen.
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
  */
 public interface PixelMapper {
   /**

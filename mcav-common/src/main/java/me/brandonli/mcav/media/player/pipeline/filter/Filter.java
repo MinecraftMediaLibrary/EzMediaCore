@@ -20,6 +20,9 @@ package me.brandonli.mcav.media.player.pipeline.filter;
 /**
  * A processing step that is applied to every sample of a media stream.
  *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
+ *
  * @param <SampleType>   the type of sample, such as a video frame or a buffer of audio samples
  * @param <MetadataType> the type of metadata describing the original stream
  */

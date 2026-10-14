@@ -35,6 +35,8 @@ import me.brandonli.mcav.media.player.pipeline.filter.audio.AudioFilter;
  *   return false;
  * });
  * }</pre>
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class MonoDownmixer {
 

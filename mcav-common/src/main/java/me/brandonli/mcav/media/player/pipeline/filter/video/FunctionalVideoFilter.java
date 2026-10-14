@@ -22,6 +22,9 @@ package me.brandonli.mcav.media.player.pipeline.filter.video;
  *
  * <p>Call {@link #start()} before the first frame is processed and {@link #release()} after the last one. The
  * pipeline steps do not call these methods automatically, because a filter may be shared between pipelines.
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
  */
 public interface FunctionalVideoFilter extends VideoFilter {
   /**

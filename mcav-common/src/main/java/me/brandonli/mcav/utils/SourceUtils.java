@@ -37,6 +37,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * Helpers for classifying strings and sources: whether a string is a path or a URL, whether a URL points at a
  * media file, and whether a source is an animated GIF.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public final class SourceUtils {
 

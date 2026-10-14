@@ -46,6 +46,8 @@ import org.slf4j.LoggerFactory;
  *   final VlcInstallationKit kit = VlcInstallationKit.create();
  *   final Optional&lt;Path&gt; libraryDirectory = kit.start();
  * </code></pre>
+ *
+ * <p>This class is thread-safe.
  */
 public final class VlcInstallationKit {
 

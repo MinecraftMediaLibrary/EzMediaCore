@@ -26,6 +26,8 @@ import me.brandonli.mcav.media.source.DynamicSource;
  *
  * <p>The player asks the supplier for a frame at the frame rate of the source. Suppliers that have no new frame
  * may return the previous one or an empty array, which is skipped.
+ *
+ * <p>Implementations in this library are thread-safe, {@link SupplierFrameSource} as far as its supplier is.
  */
 public interface FrameSource extends DynamicSource {
   /**

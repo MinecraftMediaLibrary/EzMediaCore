@@ -22,6 +22,8 @@ import me.brandonli.mcav.utils.immutable.Dimension;
 
 /**
  * The default {@link DimensionAttachableCallback}.
+ *
+ * <p>This class is thread-safe.
  */
 public final class DefaultDimensionAttachableCallback extends AbstractAttachableCallback<Dimension> implements DimensionAttachableCallback {
 

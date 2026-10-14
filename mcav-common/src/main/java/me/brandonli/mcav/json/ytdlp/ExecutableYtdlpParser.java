@@ -47,6 +47,8 @@ import me.brandonli.mcav.utils.runtime.CommandTask;
  * playlist, and {@code --playlist-items 1} limits a playlist page to its first entry. The URL follows the {@code --}
  * marker, so it can never be read as an option, and only absolute {@code http} and {@code https} URLs are accepted.
  * yt-dlp is killed if it takes longer than two minutes.
+ *
+ * <p>This class is immutable and thread-safe; every parse runs its own yt-dlp process.
  */
 public final class ExecutableYtdlpParser implements YtdlpParser {
 

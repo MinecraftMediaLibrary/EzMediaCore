@@ -29,6 +29,9 @@ import me.brandonli.mcav.media.player.pipeline.filter.Filter;
  * thread of the player, and the same buffer is passed to every filter of the pipeline: a filter must read from the
  * buffer without changing its position, for example through {@link ByteBuffer#duplicate()}, or restore the
  * position before it returns.
+ *
+ * <p>Filters run on one render thread of their player, so an implementation needs to be thread-safe only when one
+ * instance serves several players.
  */
 @FunctionalInterface
 public interface AudioFilter extends Filter<ByteBuffer, OriginalAudioMetadata> {

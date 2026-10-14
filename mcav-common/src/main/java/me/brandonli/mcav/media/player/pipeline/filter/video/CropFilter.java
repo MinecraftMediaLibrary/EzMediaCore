@@ -30,6 +30,8 @@ import org.bytedeco.opencv.opencv_core.Rect;
  * {@link MatImageBuffer#transformMat(java.util.function.BiConsumer)}. A player that refills the frame at the size of
  * the video every frame gets the spare back, so cropping allocates no frame-sized matrix per frame once the sizes are
  * settled. The filter keeps no state besides its rectangle, so one filter may be attached to several pipelines at once.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public class CropFilter extends MatVideoFilter {
 

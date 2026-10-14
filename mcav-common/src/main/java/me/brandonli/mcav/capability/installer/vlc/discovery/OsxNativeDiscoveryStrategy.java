@@ -50,6 +50,9 @@ import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil;
  *
  * <p>On recent macOS versions {@code libvlc} fails to load unless {@code libvlccore} was loaded first, so the core
  * library is loaded from the found directory before vlcj loads {@code libvlc}.
+ *
+ * <p>Instances hold no mutable state, but discovery sets environment variables of the process, so run one discovery at
+ * a time.
  */
 public class OsxNativeDiscoveryStrategy extends DirectoryProviderDiscoveryStrategy {
 

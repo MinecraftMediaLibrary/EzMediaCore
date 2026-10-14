@@ -23,6 +23,8 @@ import me.brandonli.mcav.media.source.SourceDetector;
 
 /**
  * Detects raw FFmpeg inputs written as {@code format||input}, such as {@code gdigrab||desktop}.
+ *
+ * <p>This class is stateless and thread-safe.
  */
 public class FfmpegDirectSourceDetector implements SourceDetector<FfmpegDirectSource> {
 

@@ -24,6 +24,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * An immutable width and height in pixels.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class Dimension {
 

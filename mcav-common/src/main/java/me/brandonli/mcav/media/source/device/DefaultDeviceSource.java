@@ -23,6 +23,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The default {@link DeviceSource}.
+ *
+ * <p>This class is immutable and thread-safe.
  */
 public final class DefaultDeviceSource implements DeviceSource {
 

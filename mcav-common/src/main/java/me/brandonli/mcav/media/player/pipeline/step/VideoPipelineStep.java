@@ -27,6 +27,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * A link of a video pipeline. Each frame passes through the filters of the chain in order; filters may modify
  * the frame in place for the filters that follow.
+ *
+ * <p>Implementations in this library are immutable; they are as thread-safe as their filters.
  */
 public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVideoMetadata, VideoPipelineStep> {
   /**
@@ -83,6 +85,8 @@ public interface VideoPipelineStep extends PipelineStep<ImageBuffer, OriginalVid
    * The step behind {@link #NO_OP}. Its constructor is private, so {@link #NO_OP} is its only instance, and the class
    * can only be initialized together with this interface, which rules out a deadlock between the initialization of the
    * two classes.
+   *
+   * <p>This class is immutable and thread-safe.
    */
   final class NoOperationStep implements VideoPipelineStep {
 
