@@ -100,20 +100,20 @@ Here is a list of all the modules that are included in MCAV.
 
 | Module | Description |
 |--------|-------------|
-| [mcav-common](mcav-docs/library/instance.md) | The core library for players, pipelines, filters, dithering, yt-dlp, and audio and FFmpeg utilities. |
-| [mcav-docs](mcav-docs/intro.md) | The documentation and tutorials, built with Sphinx and Jupyter Book. |
-| [mcav-bukkit](mcav-docs/bukkit/bukkit.md) | Video and images in Minecraft, audio resource packs, and the MCV2 codec. |
-| [mcav-installer](mcav-docs/library/installer.md) | Downloads and loads the libraries each module needs. |
-| [mcav-discord](mcav-docs/library/discord.md) | Audio in Discord voice channels through the Java Discord API. |
-| [mcav-http](mcav-docs/library/http.md) | Streams PCM audio to a web page, with a Spring Boot back-end and a Typescript front-end. |
-| [mcav-browser](mcav-docs/library/browser.md) | Web pages and their sound through embedded Chromium, with no JVM options. |
-| [mcav-vnc](mcav-docs/library/vnc.md) | Captures video and controls remote VNC desktops. |
-| [mcav-vm](mcav-docs/library/vm.md) | Runs QEMU virtual machines with their display and sound. |
-| [mcav-lwjgl](mcav-docs/library/lwjgl.md) | Video and images in OpenGL textures through LWJGL. |
-| [mcav-voicechat](mcav-docs/library/voicechat.md) | Audio through Simple Voice Chat. |
-| [mcav-mod](mcav-docs/mcv2.md#the-client-mod-for-iris-shader-players) | The optional Fabric and NeoForge client mod for MCV2 with Iris shaders. |
-| [mcav-jcstress](mcav-docs/library/compile.md) | Concurrency tests on OpenJDK's jcstress harness; this module is not published. |
-| [mcav-plugin](mcav-docs/plugin/plugin.md) | A Paper 26.3 plugin that uses the features of MCAV. |
+| [`mcav-common`](mcav-docs/library/instance.md) | The core library for players, pipelines, filters, dithering, yt-dlp, and audio and FFmpeg utilities. |
+| [`mcav-docs`](mcav-docs/intro.md) | The documentation and tutorials, built with Sphinx and Jupyter Book. |
+| [`mcav-bukkit`](mcav-docs/bukkit/bukkit.md) | Video and images in Minecraft, audio resource packs, and the MCV2 codec. |
+| [`mcav-installer`](mcav-docs/library/installer.md) | Downloads and loads the libraries each module needs. |
+| [`mcav-discord`](mcav-docs/library/discord.md) | Audio in Discord voice channels through the Java Discord API. |
+| [`mcav-http`](mcav-docs/library/http.md) | Streams PCM audio to a web page, with a Spring Boot back-end and a Typescript front-end. |
+| [`mcav-browser`](mcav-docs/library/browser.md) | Web pages and their sound through embedded Chromium, with no JVM options. |
+| [`mcav-vnc`](mcav-docs/library/vnc.md) | Captures video and controls remote VNC desktops. |
+| [`mcav-vm`](mcav-docs/library/vm.md) | Runs QEMU virtual machines with their display and sound. |
+| [`mcav-lwjgl`](mcav-docs/library/lwjgl.md) | Video and images in OpenGL textures through LWJGL. |
+| [`mcav-voicechat`](mcav-docs/library/voicechat.md) | Audio through Simple Voice Chat. |
+| [`mcav-mod`](mcav-docs/mcv2.md#the-client-mod-for-iris-shader-players) | The optional Fabric and NeoForge client mod for MCV2 with Iris shaders. |
+| [`mcav-jcstress`](mcav-docs/library/compile.md) | Concurrency tests on OpenJDK's jcstress harness; this module is not published. |
+| [`mcav-plugin`](mcav-docs/plugin/plugin.md) | A Paper 26.3 plugin that uses the features of MCAV. |
 
 ---
 
@@ -168,7 +168,7 @@ Check the task plans for publishing the library modules and for the plugin's end
 
 Remove `--dry-run` to run either task. Publishing needs repository credentials. The end-to-end test downloads and
 starts Paper and Simple Voice Chat; its EULA flag accepts the [Minecraft EULA](https://aka.ms/MinecraftEULA).
-[CONTRIBUTING.md](CONTRIBUTING.md) describes the tests, the coverage lint, the property, fuzz and concurrency tests,
+[`CONTRIBUTING.md`](CONTRIBUTING.md) describes the tests, the coverage lint, the property, fuzz and concurrency tests,
 mutation testing, the end-to-end test of the plugin and publishing.
 
 ---
@@ -212,7 +212,7 @@ license. You should license your project under the [GPLv3](https://www.gnu.org/l
 license that is compatible with the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) license.
 
 The third-party code that MCAV's jars bundle, with its licences, and what MCAV downloads while it runs, are listed in
-[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), which the library and plugin jars carry in `META-INF/`.
+[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md), which the library and plugin jars carry in `META-INF/`.
 
 ---
 

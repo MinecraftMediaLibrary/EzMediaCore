@@ -10,10 +10,10 @@ MCAV welcomes all contributors, and contributing is easy. Make sure your contrib
 `gradle/libs.versions.toml`, `buildSrc/src/main/resources/tool-checksums.properties` and `requirements.lock`.
 
 Versions live in `gradle/libs.versions.toml`; only the toolchain resolver's stays in `settings.gradle.kts`, whose
-`plugins` block cannot read the catalog. buildSrc's `BuildFilesTest` (`./gradlew :buildSrc:test`) checks the other
+`plugins` block cannot read the catalog. `buildSrc`'s `BuildFilesTest` (`./gradlew :buildSrc:test`) checks the other
 rules of the build files: a module's `build.gradle.kts` only applies `mcav.*` conventions and lists its dependencies,
 the modules in `settings.gradle.kts` and each section of the catalog are sorted by name, every Kotlin source of
-buildSrc starts with the license header of `HEADER` and no build script carries it, and no line is longer than 140
+`buildSrc` starts with the license header of `HEADER` and no build script carries it, and no line is longer than 140
 columns.
 
 ## Documentation
@@ -31,10 +31,10 @@ To change a Python package or the Python, change its version in `gradle/libs.ver
 `./gradlew lockPythonRequirements`, which writes `requirements.lock` with every package pinned and hashed, and commit
 it; the build fails while the lock pins other versions than the catalog. Read the Docs installs the lock through
 `mcav-docs/requirements.txt`. Local builds use `python` 3.13.16; `.readthedocs.yaml` selects the minor version 3.13. A
-buildSrc unit test enforces that minor match, without asserting which patch version the provider installs. To update
+`buildSrc` unit test enforces that minor match, without asserting which patch version the provider installs. To update
 uv or Zig, put the SHA-256 of each of its six archives into `buildSrc/src/main/resources/tool-checksums.properties`,
 under `<tool>/<version>/<archive>`: uv's are in the `.sha256` files of its GitHub release, Zig's in
-`https://ziglang.org/download/index.json`. A buildSrc unit test checks that the file pins the six archives of the
+`https://ziglang.org/download/index.json`. A `buildSrc` unit test checks that the file pins the six archives of the
 catalog's versions and nothing else.
 
 `mcav-docs/_config.yml` is the authored book configuration. Jupyter Book generates `conf.py` at
@@ -50,7 +50,7 @@ and tests check the behavior the code should have, not whatever it happens to do
 the code is wrong. Coverage, property, fuzz and PIT commands below apply to these twelve modules; `<module>` means
 one of their names.
 
-`mcav-docs` builds the book, and buildSrc has separate bootstrap tests (`./gradlew :buildSrc:test`).
+`mcav-docs` builds the book, and `buildSrc` has separate bootstrap tests (`./gradlew :buildSrc:test`).
 `mcav-jcstress` uses the Java-library, formatting and lint conventions through
 `buildSrc/src/main/kotlin/mcav.jcstress.gradle.kts`; it skips Checker Framework and removes `-Werror` from
 `compileJava`. It has no module coverage, property, fuzz or PIT tasks.
