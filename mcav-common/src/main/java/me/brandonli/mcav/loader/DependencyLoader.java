@@ -295,9 +295,9 @@ public final class DependencyLoader {
     }
   }
 
-  private static Optional<Path> startInstallationKit() {
+  private static void startInstallationKit() {
     final VlcInstallationKit kit = VlcInstallationKit.create();
-    return kit.start();
+    final Optional<Path> _ = kit.start();
   }
 
   // Logs that the installation of a program was cancelled, if the current thread was interrupted. The library
@@ -355,6 +355,6 @@ public final class DependencyLoader {
 
   @FunctionalInterface
   interface VlcStarter {
-    Optional<Path> start();
+    void start();
   }
 }

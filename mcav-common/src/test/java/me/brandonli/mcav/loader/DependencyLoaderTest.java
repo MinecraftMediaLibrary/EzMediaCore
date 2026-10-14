@@ -95,7 +95,6 @@ final class DependencyLoaderTest {
   private static final String FACE_DETECTION_MODULE_NAME = "Face detection";
   private static final List<String> OBJECT_DETECTION_LOADED = List.of(OBJECT_DETECTION_MODULE);
 
-  private static final String VLC_DIRECTORY_NAME = "vlc";
   private static final String YTDLP_FILE_NAME = "yt-dlp";
   private static final String PREPARED_FILE_NAME = "prepared";
 
@@ -365,9 +364,7 @@ final class DependencyLoaderTest {
 
   @Test
   void shouldKeepTheVlcCapabilityWhenVlcIsReady() {
-    final Path libraryDirectory = Path.of(VLC_DIRECTORY_NAME);
-    final Optional<Path> found = Optional.of(libraryDirectory);
-    final boolean hasVlc = vlcAvailableAfter(() -> found);
+    final boolean hasVlc = vlcAvailableAfter(() -> {});
     assertTrue(hasVlc);
   }
 
@@ -383,7 +380,7 @@ final class DependencyLoaderTest {
     assertTrue(hasFfmpeg);
   }
 
-  private <FailureType extends Throwable> Optional<Path> failVlcStart(final FailureType failure) throws FailureType {
+  private <FailureType extends Throwable> void failVlcStart(final FailureType failure) throws FailureType {
     throw failure;
   }
 
@@ -433,7 +430,7 @@ final class DependencyLoaderTest {
 
   private void prepareProgram(final DependencyLoader loader, final Capability capability, final Runnable prepare) {
     if (capability == Capability.VLC) {
-      loader.installVlc(() -> this.prepareWithoutVlcDirectory(prepare));
+      loader.installVlc(prepare::run);
     } else {
       final Installer installer = mock(Installer.class);
       when(installer.isSupported()).thenReturn(true);
@@ -441,12 +438,6 @@ final class DependencyLoaderTest {
 
       loader.installYtdlp(installer);
     }
-  }
-
-  private Optional<Path> prepareWithoutVlcDirectory(final Runnable prepare) {
-    prepare.run();
-
-    return Optional.empty();
   }
 
   private Path prepareDownload(final Runnable prepare) {
@@ -479,7 +470,7 @@ final class DependencyLoaderTest {
     final boolean faceDetectionBeforeRetry = loader.hasCapability(Capability.FACE_DETECTION);
     assertFalse(faceDetectionBeforeRetry);
 
-    loader.installVlc(() -> Optional.of(Path.of(VLC_DIRECTORY_NAME)));
+    loader.installVlc(() -> {});
     loader.installYtdlp(installer);
     loader.loadFaceDetection(() -> {});
     final boolean vlcAfterRetry = loader.hasCapability(Capability.VLC);
@@ -705,7 +696,7 @@ final class DependencyLoaderTest {
   void shouldLogHowLongPreparingVlcTook() {
     final Logger logger = mock(Logger.class);
     final DependencyLoader loader = new DependencyLoader(logger);
-    loader.installVlc(Optional::empty);
+    loader.installVlc(() -> {});
     verify(logger).info("Preparing VLC...");
     assertLoggedAPlausibleTime(logger, "VLC ready in {} ms.");
   }
@@ -747,7 +738,7 @@ final class DependencyLoaderTest {
     verify(logger, never()).warn(anyString(), any(Object.class));
   }
 
-  private Optional<Path> interruptAndFailVlcStart() {
+  private void interruptAndFailVlcStart() {
     final Thread current = Thread.currentThread();
     current.interrupt();
     throw new InstallationException("Interrupted while downloading!");
