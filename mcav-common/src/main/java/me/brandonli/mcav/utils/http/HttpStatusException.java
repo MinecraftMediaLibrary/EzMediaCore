@@ -30,6 +30,10 @@ public class HttpStatusException extends IOException {
   @Serial
   private static final long serialVersionUID = 4_319_027_551_202_837_465L;
 
+  // documented because the serialized form of the exception publishes the field
+  /**
+   * The status code the server answered with, such as {@code 404}.
+   */
   private final int statusCode;
 
   /**
