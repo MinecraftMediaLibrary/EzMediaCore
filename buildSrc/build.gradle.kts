@@ -66,7 +66,7 @@ val buildClasses = sourceSets.main.get().output.classesDirs.asFileTree.matching 
     exclude("me/brandonli/mcav/gradle/CatalogVersions*")
 }
 
-tasks.withType<Test>().configureEach {
+tasks.test {
     useJUnitPlatform {
         excludeTags("fuzz")
     }
