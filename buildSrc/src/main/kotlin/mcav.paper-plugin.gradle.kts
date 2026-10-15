@@ -101,8 +101,8 @@ val legacyFormattingWarningProperty: String = "net.kyori.adventure.text.warnWhen
 val voiceChatModrinthProject: String = "simple-voice-chat"
 val sparkJobUrl: String = "https://ci.lucko.me/job/spark"
 
-val minecraftVersion = libs.versionOf(minecraftAlias)
-private val paperVersion = PaperVersion.parse(libs.versionOf(paperAlias))
+val minecraftVersion: String = libs.versionOf(minecraftAlias)
+private val paperVersion: PaperVersion = PaperVersion.parse(libs.versionOf(paperAlias))
 version = "${rootProject.version.toString().removeSuffix(snapshotSuffix)}$minecraftVersionPrefix$minecraftVersion"
 
 configurations.compileOnly {
@@ -119,15 +119,15 @@ configurations.runtimeDownload {
 
 configurations.matching { it.name.endsWith(classpathSuffix) }.configureEach {
     resolutionStrategy.dependencySubstitution.all {
-        val module = requested as? ModuleComponentSelector ?: return@all
-        val project = rootProject.findProject("$projectPathPrefix${module.module}")
+        val module: ModuleComponentSelector = requested as? ModuleComponentSelector ?: return@all
+        val project: Project? = rootProject.findProject("$projectPathPrefix${module.module}")
         if (module.group == rootProject.group.toString() && project != null) {
             useTarget(project)
         }
     }
 }
 
-val nativeResources = configurations.register(nativeResourcesConfiguration) {
+val nativeResources: NamedDomainObjectProvider<Configuration> = configurations.register(nativeResourcesConfiguration) {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
@@ -142,18 +142,18 @@ tasks.assemble {
     dependsOn(tasks.shadowJar)
 }
 
-val downloadedModules = configurations.runtimeDownload.map { configuration ->
+val downloadedModules: Provider<List<String>> = configurations.runtimeDownload.map { configuration ->
     configuration.dependencies
         .filter { it.group == rootProject.group.toString() && rootProject.findProject("$projectPathPrefix${it.name}") != null }
         .map { "$projectPathPrefix${it.name}" }
 }
-val requiredModuleClasses = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
+val requiredModuleClasses: TaskProvider<RequiredModuleClassesTask> = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
     group = "build"
     description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
     pluginClasses.from(sourceSets.main.map { it.output.classesDirs })
     modules.from(
         configurations.compileClasspath.map { classpath ->
-            val downloaded = downloadedModules.get()
+            val downloaded: List<String> = downloadedModules.get()
             classpath.incoming.artifactView {
                 componentFilter { it is ProjectComponentIdentifier && it.projectPath in downloaded }
             }.files
@@ -167,14 +167,14 @@ sourceSets.main {
 }
 
 tasks.processResources {
-    val dependencyManifestPath = dependencyManifestTarget
+    val dependencyManifestPath: String = dependencyManifestTarget
     inputs.property("dependencyManifestPath", dependencyManifestPath)
     filesMatching(dependencyManifestSource) {
         path = dependencyManifestPath
     }
 }
 
-val pluginPermissions = mapOf(
+val pluginPermissions: Map<String, String> = mapOf(
     "mcav.command.help" to "Shows the commands of MCAV and what they do",
     "mcav.command.dump" to "Uploads a report of the server and its logs, with addresses and other commands masked, for a bug report",
     "mcav.command.screen" to "Builds a wall of item frames with maps that images, videos, browsers and virtual machines show on",
@@ -239,16 +239,16 @@ tasks.withType<AbstractRun>().configureEach {
     jvmArgs("-Xms$serverHeapSize", "-Xmx$serverHeapSize", "-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
-val endToEnd = providers.gradleProperty(endToEndProperty).map { it.toBoolean() }.getOrElse(false)
-val endToEndRepository = rootProject.layout.buildDirectory.dir(endToEndRepositoryPath).get().asFile
-val endToEndPort = if (endToEnd) {
+val endToEnd: Boolean = providers.gradleProperty(endToEndProperty).map { it.toBoolean() }.getOrElse(false)
+val endToEndRepository: File = rootProject.layout.buildDirectory.dir(endToEndRepositoryPath).get().asFile
+val endToEndPort: Int = if (endToEnd) {
     providers.gradleProperty(endToEndPortProperty).orNull?.toInt() ?: ServerSocket(anyFreePort).use { it.localPort }
 } else {
     anyFreePort
 }
 
 if (endToEnd) {
-    val repository = repositories.maven {
+    val repository: MavenArtifactRepository = repositories.maven {
         name = endToEndRepositoryName
         url = endToEndRepository.toURI()
     }
@@ -256,14 +256,14 @@ if (endToEnd) {
     repositories.addFirst(repository)
     tasks.named<WriteDependencySet>("writeDependencies") {
         dependsOn(downloadedModules.map { modules -> modules.map { "$it:$endToEndPublishTaskSuffix" } })
-        val publicRepositories = repositories.withType<MavenArtifactRepository>()
+        val publicRepositories: List<String> = repositories.withType<MavenArtifactRepository>()
             .filter { it.url.scheme in publicRepositorySchemes }
             .map { it.url.toString() }
         repos = listOf("$localRepositoryHost:$endToEndPort/") + publicRepositories
     }
 }
 
-val endToEndTestSourceSet = sourceSets.create(endToEndTestName)
+val endToEndTestSourceSet: SourceSet = sourceSets.create(endToEndTestName)
 
 dependencies {
     add(endToEndImplementation, platform(libs.libraryOf(junitBomAlias)))
@@ -277,7 +277,7 @@ tasks.register<Test>(endToEndTestName) {
     description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
     testClassesDirs = endToEndTestSourceSet.output.classesDirs
     classpath = endToEndTestSourceSet.runtimeClasspath
-    val pluginJar = tasks.shadowJar.flatMap { it.archiveFile }
+    val pluginJar: Provider<RegularFile> = tasks.shadowJar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
     outputs.upToDateWhen { false }
     systemProperty(paperFileNameProperty, paperVersion.fileName)
@@ -286,11 +286,11 @@ tasks.register<Test>(endToEndTestName) {
     systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
     systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
     systemProperty(endToEndPortProperty, endToEndPort)
-    val launcher = javaLauncher()
-    val usesThisBuild = endToEnd
+    val launcher: Provider<JavaLauncher> = javaLauncher()
+    val usesThisBuild: Boolean = endToEnd
     doFirst {
         if (!usesThisBuild) {
-            val message = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
+            val message: String = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
             throw GradleException(message)
         }
         systemProperty(pluginJarProperty, pluginJar.get().asFile.absolutePath)
@@ -302,7 +302,7 @@ tasks.runServer {
     systemProperty(legacyFormattingWarningProperty, false)
     downloadPlugins {
         modrinth(voiceChatModrinthProject, libs.versionOf(voiceChatAlias))
-        val spark = libs.versionOf(sparkAlias)
+        val spark: String = libs.versionOf(sparkAlias)
         url("$sparkJobUrl/${libs.versionOf(sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
     }
 }

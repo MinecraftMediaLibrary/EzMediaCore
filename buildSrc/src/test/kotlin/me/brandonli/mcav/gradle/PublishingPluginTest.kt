@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
@@ -25,6 +26,9 @@ import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
 
 class PublishingPluginTest {
 
@@ -55,15 +59,15 @@ class PublishingPluginTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldNameTheProjectItsLicenseAndItsSourceRepositoryInThePublishedPom() {
+    fun shouldNameTheProjectItsLicenseAndItsSourceRepositoryInThePublishedPom(): Unit {
         prepareProject()
         run(POM_TASK)
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(directory.resolve(POM_PATH).toFile())
-        val project = document.documentElement
+        val project: Element = document.documentElement
         fun text(tag: String): String = project.getElementsByTagName(tag).item(0)?.textContent ?: ""
 
-        val license = project.getElementsByTagName("license").item(0)
+        val license: Node = project.getElementsByTagName("license").item(0)
         val licenseName: String? = license?.childNodes?.let { children ->
             (0 until children.length).map { children.item(it) }.single { it.nodeName == "name" }.textContent
         }
@@ -87,7 +91,7 @@ class PublishingPluginTest {
     }
 
     @Test
-    fun shouldCarryTheProjectLicenseAndThirdPartyNoticesInEveryPublishedJar() {
+    fun shouldCarryTheProjectLicenseAndThirdPartyNoticesInEveryPublishedJar(): Unit {
         prepareProject()
         run("jar", "sourcesJar", "javadocJar")
         val classifiers: List<String> = listOf("", "-sources", "-javadoc")
@@ -105,9 +109,9 @@ class PublishingPluginTest {
         }
 
     @Test
-    fun shouldLetTheMutationTestJvmReadTheGeneratedPublication() {
+    fun shouldLetTheMutationTestJvmReadTheGeneratedPublication(): Unit {
         prepareProject()
-        val catalog = directory.resolve(CATALOG_PATH).toFile()
+        val catalog: File = directory.resolve(CATALOG_PATH).toFile()
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
         directory.resolve(BUILD_SCRIPT).toFile().appendText(
@@ -148,28 +152,28 @@ class PublishingPluginTest {
     }
 
     @Test
-    fun shouldFollowTheRootProjectGroupInThePublishedGroup() {
+    fun shouldFollowTheRootProjectGroupInThePublishedGroup(): Unit {
         prepareProject()
         directory.resolve(BUILD_SCRIPT).toFile().appendText("group = 'fixture.changed'\n")
         run(POM_TASK)
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val document: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(directory.resolve(POM_PATH).toFile())
         val groupId: String = document.documentElement.getElementsByTagName(GROUP_ID_ELEMENT).item(0).textContent
         assertEquals("fixture.changed", groupId)
     }
 
-    private fun prepareProject() {
-        val project = directory.toFile()
+    private fun prepareProject(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-fixture'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.publishing' }\ngroup = 'me.brandonli'\nversion = '1.2.3'\n")
         project.resolve(LICENSE_FILE).writeText("Fixture license: preserve the complete root file.\n")
         project.resolve(NOTICES_FILE).writeText("Fixture notices: preserve the complete root file.\n")
-        val source = project.resolve(SOURCE_PATH)
+        val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText("/** A public example for the documentation jar. */ public class Example {}\n")
     }
 
-    private fun run(vararg tasks: String) {
+    private fun run(vararg tasks: String): Unit {
         GradleRunner.create()
             .withProjectDir(directory.toFile())
             .withPluginClasspath()

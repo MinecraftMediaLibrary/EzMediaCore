@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.Base64
@@ -25,6 +26,7 @@ import java.util.HexFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -56,10 +58,10 @@ class DownloadToolArchiveTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldInstallTheVerifiedZipAndMakeItsToolExecutable() {
-        val task = zippedTool()
+    fun shouldInstallTheVerifiedZipAndMakeItsToolExecutable(): Unit {
+        val task: DownloadToolArchive = zippedTool()
         task.install()
-        val installed = directory.resolve(INSTALLED_EXECUTABLE).toFile()
+        val installed: File = directory.resolve(INSTALLED_EXECUTABLE).toFile()
         val content: String = installed.readText()
         assertEquals(EXECUTABLE_CONTENT, content)
 
@@ -68,15 +70,15 @@ class DownloadToolArchiveTest {
     }
 
     @Test
-    fun shouldNeitherExtractUntrustedBytesNorReplaceAnExistingToolOnAChecksumMismatch() {
-        val task = zippedTool()
-        val installed = directory.resolve(INSTALLED_EXECUTABLE).toFile()
+    fun shouldNeitherExtractUntrustedBytesNorReplaceAnExistingToolOnAChecksumMismatch(): Unit {
+        val task: DownloadToolArchive = zippedTool()
+        val installed: File = directory.resolve(INSTALLED_EXECUTABLE).toFile()
         installed.parentFile.mkdirs()
         installed.writeText("previous verified tool\n")
-        val expected = "0".repeat(64)
-        val actual = task.sha256.get()
+        val expected: String = "0".repeat(64)
+        val actual: String = task.sha256.get()
         task.sha256.set(expected)
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals(
             "Tool archive ${task.archiveUrl.get()} has SHA-256 $actual instead of the pinned $expected, so it was not installed!",
@@ -91,10 +93,10 @@ class DownloadToolArchiveTest {
     }
 
     @Test
-    fun shouldFailOnAnInvalidChecksumBeforeDownloading() {
-        val task = zippedTool()
+    fun shouldFailOnAnInvalidChecksumBeforeDownloading(): Unit {
+        val task: DownloadToolArchive = zippedTool()
         task.sha256.set("missing")
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Pinned SHA-256 of ${task.archiveUrl.get()} must be 64 lowercase hexadecimal digits!", message)
 
@@ -103,10 +105,10 @@ class DownloadToolArchiveTest {
     }
 
     @Test
-    fun shouldNameTheUnavailableArchiveWhenTheDownloadFails() {
-        val task = zippedTool()
+    fun shouldNameTheUnavailableArchiveWhenTheDownloadFails(): Unit {
+        val task: DownloadToolArchive = zippedTool()
         task.archiveUrl.set(directory.resolve(MISSING_ARCHIVE).toUri().toString())
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} could not be downloaded!", message)
 
@@ -115,21 +117,21 @@ class DownloadToolArchiveTest {
     }
 
     @Test
-    fun shouldRequireTheRequestedExecutableInAVerifiedArchive() {
-        val task = zippedTool()
+    fun shouldRequireTheRequestedExecutableInAVerifiedArchive(): Unit {
+        val task: DownloadToolArchive = zippedTool()
         task.executablePath.set(MISSING_EXECUTABLE_PATH)
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must contain missing to be installed!", message)
     }
 
     @Test
-    fun shouldNotUnpackAVerifiedArchiveOfAnotherFormat() {
-        val task = zippedTool()
-        val archive = directory.resolve(SEVEN_ZIP_ARCHIVE).toFile()
+    fun shouldNotUnpackAVerifiedArchiveOfAnotherFormat(): Unit {
+        val task: DownloadToolArchive = zippedTool()
+        val archive: File = directory.resolve(SEVEN_ZIP_ARCHIVE).toFile()
         directory.resolve(ARCHIVE_FILE).toFile().copyTo(archive)
         task.archiveUrl.set(archive.toURI().toString())
-        val failure = assertThrows(GradleException::class.java) { task.install() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must be a .zip, .tar.gz or .tar.xz file!", message)
 
@@ -138,8 +140,8 @@ class DownloadToolArchiveTest {
     }
 
     @Test
-    fun shouldExtractGzipAndXzArchivesWithoutAnExternalUnpacker() {
-        val archives = mapOf(
+    fun shouldExtractGzipAndXzArchivesWithoutAnExternalUnpacker(): Unit {
+        val archives: Map<String, String> = mapOf(
             "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLu" +
                 "w3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",
             "tar.xz" to "/Td6WFoAAATm1rRGAgAhARYAAAB0L+Wj4Cf/AHNdADob7NgvJU6bwGN6v5a3JejC7neVC0X31phps0q2DkY/2CgXahtiZSmSEfj8sTJH859ZU5Ir" +
@@ -147,16 +149,16 @@ class DownloadToolArchiveTest {
                 "AAAABFla"
         )
         val installed: Map<String, Pair<String, Boolean>> = archives.mapValues { (extension, encoded) ->
-            val archive = directory.resolve("tool.$extension").toFile()
+            val archive: File = directory.resolve("tool.$extension").toFile()
             archive.writeBytes(Base64.getDecoder().decode(encoded))
-            val project = ProjectBuilder.builder().withProjectDir(directory.resolve(extension).toFile()).build()
-            val task = project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get()
+            val project: Project = ProjectBuilder.builder().withProjectDir(directory.resolve(extension).toFile()).build()
+            val task: DownloadToolArchive = project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get()
             task.archiveUrl.set(archive.toURI().toString())
             task.sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))
             task.executablePath.set(EXECUTABLE_PATH)
             task.installationDirectory.set(directory.resolve("installed-$extension").toFile())
             task.install()
-            val tool = directory.resolve("installed-$extension/tool/bin/tool").toFile()
+            val tool: File = directory.resolve("installed-$extension/tool/bin/tool").toFile()
             tool.readText() to tool.canExecute()
         }
         val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { EXECUTABLE_CONTENT to true }
@@ -164,13 +166,13 @@ class DownloadToolArchiveTest {
     }
 
     private fun zippedTool(): DownloadToolArchive {
-        val archive = directory.resolve(ARCHIVE_FILE).toFile()
+        val archive: File = directory.resolve(ARCHIVE_FILE).toFile()
         ZipOutputStream(archive.outputStream()).use { output ->
             output.putNextEntry(ZipEntry(EXECUTABLE_PATH))
             output.write(EXECUTABLE_CONTENT.toByteArray())
             output.closeEntry()
         }
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         return project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get().apply {
             archiveUrl.set(archive.toURI().toString())
             sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))

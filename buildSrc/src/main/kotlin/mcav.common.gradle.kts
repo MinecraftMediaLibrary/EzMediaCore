@@ -27,7 +27,7 @@ val bytedecoGroup: String = "org.bytedeco"
 val javacvPlatformModule: String = "javacv-platform"
 val platformSuffix: String = "-platform"
 
-val unusedJavacvPresets = listOf(
+val unusedJavacvPresets: List<String> = listOf(
     "flycapture",
     "libdc1394",
     "libfreenect",

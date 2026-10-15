@@ -51,24 +51,24 @@ val jazzerFuzzVariable: String = "JAZZER_FUZZ"
 val enabledValue: String = "1"
 val jazzerDurationProperty: String = "jazzer.max_duration"
 
-val catalogVersions = layout.buildDirectory.dir(catalogVersionsPath)
-val jacocoVersion = libs.versions.jacoco
-val repositoryHeader = layout.projectDirectory.file(repositoryHeaderPath)
-val generateCatalogVersions = tasks.register("generateCatalogVersions") {
+val catalogVersions: Provider<Directory> = layout.buildDirectory.dir(catalogVersionsPath)
+val jacocoVersion: Provider<String> = libs.versions.jacoco
+val repositoryHeader: RegularFile = layout.projectDirectory.file(repositoryHeaderPath)
+val generateCatalogVersions: TaskProvider<Task> = tasks.register("generateCatalogVersions") {
     group = "build"
     description = "Writes the catalog versions the plugins of this build need outside the main build"
     inputs.property("jacoco", jacocoVersion)
     inputs.file(repositoryHeader)
     outputs.dir(catalogVersions)
     doLast {
-        val file = catalogVersions.get().file(catalogVersionsFile).asFile
+        val file: File = catalogVersions.get().file(catalogVersionsFile).asFile
         file.parentFile.mkdirs()
         file.writeText(
             repositoryHeader.asFile.readText() + lineSeparator + """
             |package me.brandonli.mcav.gradle
             |
             |object CatalogVersions {
-            |    const val JACOCO = "${jacocoVersion.get()}"
+            |    const val JACOCO: String = "${jacocoVersion.get()}"
             |}
             |""".trimMargin()
         )
@@ -79,10 +79,10 @@ kotlin.sourceSets.main {
     kotlin.srcDir(generateCatalogVersions)
 }
 
-val testSourceSet = sourceSets.test.get()
-val fuzzSeconds = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
-val fuzzInputs = layout.projectDirectory.dir(fuzzInputsPath)
-val buildClasses = sourceSets.main.get().output.classesDirs.asFileTree.matching {
+val testSourceSet: SourceSet = sourceSets.test.get()
+val fuzzSeconds: Int = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
+val fuzzInputs: Directory = layout.projectDirectory.dir(fuzzInputsPath)
+val buildClasses: FileTree = sourceSets.main.get().output.classesDirs.asFileTree.matching {
     include(buildPackageClasses)
     exclude(generatedClasses)
 }
@@ -94,7 +94,7 @@ tasks.test {
 }
 
 // one fuzz test method per class: forkEvery gives each class, and so each method, the JVM of its own that Jazzer needs
-val fuzzTest = tasks.register<Test>("fuzzTest") {
+val fuzzTest: TaskProvider<Test> = tasks.register<Test>("fuzzTest") {
     group = "verification"
     description = "Replays the committed fuzz inputs of buildSrc, and fuzzes every fuzz test class with -Pfuzz.seconds=<n>"
     testClassesDirs = testSourceSet.output.classesDirs

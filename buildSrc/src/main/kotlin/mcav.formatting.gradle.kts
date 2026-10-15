@@ -48,10 +48,10 @@ val excludedResourcePatterns: List<String> = listOf("**/build/**", "**/node_modu
 
 val spotlessJavaTaskPrefix: String = "spotlessJava"
 
-val node = rootProject.extensions.getByType<NodeExtension>()
-val nodeSetup = rootProject.tasks.named("nodeSetup")
-val host = HostPlatform.current()
-val nodeExecutable = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
+val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
+val host: HostPlatform = HostPlatform.current()
+val nodeExecutable: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 spotless {
     java {

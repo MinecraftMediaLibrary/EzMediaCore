@@ -29,7 +29,7 @@ val outputProperty: String = "benchmark.output"
 val defaultOutputPath: String = "browser-benchmark.md"
 val benchmarkHeapSize: String = "4g"
 
-val benchmark = sourceSets.create(benchmarkSourceSetName)
+val benchmark: SourceSet = sourceSets.create(benchmarkSourceSetName)
 
 configurations.named(benchmark.implementationConfigurationName) {
     extendsFrom(configurations.testImplementation.get())
@@ -48,8 +48,8 @@ tasks.register<JavaExec>("browserBenchmark") {
     description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
     classpath = benchmark.runtimeClasspath
     mainClass = benchmarkMainClass
-    val backend = providers.gradleProperty(backendProperty).orElse("")
-    val output = providers.gradleProperty(outputProperty)
+    val backend: Provider<String> = providers.gradleProperty(backendProperty).orElse("")
+    val output: Provider<String> = providers.gradleProperty(outputProperty)
         .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })
     argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
     javaLauncher = javaLauncher()

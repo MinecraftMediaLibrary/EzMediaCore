@@ -76,17 +76,17 @@ abstract class PythonTests : PythonTask() {
     protected abstract val processes: ExecOperations
 
     @TaskAction
-    fun test() {
-        val reports = reportDirectory.get().asFile
+    fun test(): Unit {
+        val reports: File = reportDirectory.get().asFile
         files.delete { delete(reports) }
-        val parallel = parallelTests.files.sorted()
+        val parallel: List<File> = parallelTests.files.sorted()
         pytest(reports.resolve(PARALLEL_REPORT), listOf("-n", minOf(processCount.get(), parallel.size).toString(), "--dist", "loadfile") +
             parallel.map { it.path })
         pytest(reports.resolve(SERIAL_REPORT), serialTests.files.sorted().map { it.path })
     }
 
-    private fun pytest(report: File, arguments: List<String>) {
-        val directory = testDirectory.get().asFile
+    private fun pytest(report: File, arguments: List<String>): Unit {
+        val directory: File = testDirectory.get().asFile
         processes.exec {
             workingDir(directory)
             commandLine(listOf(pythonExecutable.get().asFile.path, "-m", "pytest", "-p", "no:cacheprovider", "-ra",

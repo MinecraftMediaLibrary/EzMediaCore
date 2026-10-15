@@ -28,27 +28,28 @@ import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
+import org.mockito.invocation.Invocation
 
 class RecordedProcesses(private val versionOutput: String, private val onCommand: (List<String>) -> Unit = {}) {
 
-    val commands = mutableListOf<List<String>>()
+    val commands: MutableList<List<String>> = mutableListOf<List<String>>()
 
-    val environments = mutableListOf<Map<String, Any?>>()
+    val environments: MutableList<Map<String, Any?>> = mutableListOf<Map<String, Any?>>()
 
-    val workingDirectories = mutableListOf<Any?>()
+    val workingDirectories: MutableList<Any?> = mutableListOf<Any?>()
 
     val operations: ExecOperations = mock(ExecOperations::class.java)
 
     init {
         doAnswer { invocation ->
-            val specification = mock(ExecSpec::class.java, RETURNS_SELF)
+            val specification: ExecSpec = mock(ExecSpec::class.java, RETURNS_SELF)
             invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls = mockingDetails(specification).invocations
-            val command = when (val arguments = calls.single { it.method.name == "commandLine" }.rawArguments[0]) {
+            val calls: Collection<Invocation> = mockingDetails(specification).invocations
+            val command: List<String> = when (val arguments: Any = calls.single { it.method.name == "commandLine" }.rawArguments[0]) {
                 is Array<*> -> arguments.toList()
                 else -> (arguments as Iterable<*>).toList()
             }.map { it.toString() }
-            val environment = mutableMapOf<String, Any?>()
+            val environment: MutableMap<String, Any?> = mutableMapOf<String, Any?>()
             calls.filter { it.method.name == "environment" }.forEach { call ->
                 when (call.rawArguments.size) {
                     1 -> (call.rawArguments[0] as Map<*, *>).forEach { (name, value) -> environment[name as String] = value }

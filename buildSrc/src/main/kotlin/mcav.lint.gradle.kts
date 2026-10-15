@@ -31,23 +31,23 @@ val qualifiedNamesReportPath: String = "reports/qualified-names.txt"
 val logMessagesReportPath: String = "reports/log-messages.txt"
 val variableNamesReportPath: String = "reports/variable-names.txt"
 
-val javaSources = layout.projectDirectory.dir(sourcePath).asFileTree.matching { include(javaSourcePattern) }
+val javaSources: FileTree = layout.projectDirectory.dir(sourcePath).asFileTree.matching { include(javaSourcePattern) }
 
-val qualifiedNames = tasks.register<QualifiedNamesTask>("qualifiedNames") {
+val qualifiedNames: TaskProvider<QualifiedNamesTask> = tasks.register<QualifiedNamesTask>("qualifiedNames") {
     group = "verification"
     description = "Fails on fully qualified type names in the Java code of every source set of this module"
     sources.from(javaSources)
     report = layout.buildDirectory.file(qualifiedNamesReportPath)
 }
 
-val logMessages = tasks.register<LogMessagesTask>("logMessages") {
+val logMessages: TaskProvider<LogMessagesTask> = tasks.register<LogMessagesTask>("logMessages") {
     group = "verification"
     description = "Fails on log calls that join strings with + in the Java code of every source set of this module"
     sources.from(javaSources)
     report = layout.buildDirectory.file(logMessagesReportPath)
 }
 
-val variableNames = tasks.register<VariableNamesTask>("variableNames") {
+val variableNames: TaskProvider<VariableNamesTask> = tasks.register<VariableNamesTask>("variableNames") {
     group = "verification"
     description = "Fails on one-letter and abbreviated variable names in the Java code of every source set of this module"
     sources.from(javaSources)

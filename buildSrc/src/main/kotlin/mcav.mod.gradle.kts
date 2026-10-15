@@ -95,7 +95,7 @@ repositories {
 }
 
 tasks.processResources {
-    val modVersion = rootProject.version.toString()
+    val modVersion: String = rootProject.version.toString()
     inputs.property("modVersion", modVersion)
     filesMatching(listOf(fabricMetadata, neoForgeMetadata)) {
         expand("version" to modVersion)
@@ -106,7 +106,7 @@ tasks.jar {
     archiveClassifier = plainClassifier
 }
 
-val fabricJar = tasks.register<Jar>("fabricJar") {
+val fabricJar: TaskProvider<Jar> = tasks.register<Jar>("fabricJar") {
     group = "build"
     description = "Assembles the mod for Fabric"
     archiveClassifier = fabricClassifier
@@ -114,7 +114,7 @@ val fabricJar = tasks.register<Jar>("fabricJar") {
     exclude(neoForgeClasses, neoForgeMetadata)
 }
 
-val neoforgeJar = tasks.register<Jar>("neoforgeJar") {
+val neoforgeJar: TaskProvider<Jar> = tasks.register<Jar>("neoforgeJar") {
     group = "build"
     description = "Assembles the mod for NeoForge"
     archiveClassifier = neoForgeClassifier

@@ -105,20 +105,20 @@ abstract class PythonEnvironment : DefaultTask() {
         installationDirectory.file(VIRTUAL_ENVIRONMENT_DIRECTORY + PATH_SEPARATOR + virtualEnvironmentExecutable(name))
 
     @TaskAction
-    fun install() {
-        val lock = requirements.get().asFile
-        val missing = RequirementsLock.missingPins(lock.readText(), versions.get())
+    fun install(): Unit {
+        val lock: File = requirements.get().asFile
+        val missing: List<String> = RequirementsLock.missingPins(lock.readText(), versions.get())
         if (missing.isNotEmpty()) {
-            val message =
+            val message: String =
                 "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew ${lockTask.get()} to write it!"
             throw GradleException(message)
         }
-        val uv = uvExecutable.get().asFile
+        val uv: File = uvExecutable.get().asFile
         ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
-        val installation = installationDirectory.get().asFile
-        val environment = uvEnvironment(installation, cacheDirectory.get().asFile)
-        val virtualEnvironment = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
-        val python = pythonVersion.get()
+        val installation: File = installationDirectory.get().asFile
+        val environment: Map<String, String> = uvEnvironment(installation, cacheDirectory.get().asFile)
+        val virtualEnvironment: File = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
+        val python: String = pythonVersion.get()
         val virtualEnvironmentPython: File = virtualEnvironment.resolve(virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE))
         listOf(
             listOf("python", "install", python, "--no-bin", "--no-registry"),

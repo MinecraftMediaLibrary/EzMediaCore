@@ -65,8 +65,8 @@ class HostPlatformTest {
     }
 
     @Test
-    fun shouldKeepTheArchiveAndClassifierMappingsOfTheSixDownloadHosts() {
-        val hosts = listOf(
+    fun shouldKeepTheArchiveAndClassifierMappingsOfTheSixDownloadHosts(): Unit {
+        val hosts: List<List<String>> = listOf(
             listOf(LINUX_NAME, AMD64, "x86_64", "linux", "x86_64-unknown-linux-musl", LINUX_CLASSIFIER),
             listOf(LINUX_NAME, ARM64, "aarch64", "linux", LINUX_ARM64_TARGET, "natives-linux-arm64"),
             listOf(WINDOWS_NAME, "x86_64", "x86_64", "windows", WINDOWS_TARGET, WINDOWS_CLASSIFIER),
@@ -75,14 +75,14 @@ class HostPlatformTest {
             listOf(MACOS_NAME, ARM64, "aarch64", "macos", "aarch64-apple-darwin", MACOS_ARM64_CLASSIFIER)
         )
         val mappings: List<List<String?>> = hosts.map { expected ->
-            val host = HostPlatform.normalize(expected[0], expected[1])
+            val host: HostPlatform = HostPlatform.normalize(expected[0], expected[1])
             listOf(expected[0], expected[1], host.architecture, host.zigSystem, host.uvTarget, host.lwjglNatives)
         }
         assertEquals(hosts, mappings)
     }
 
     @Test
-    fun shouldKeepTheAdditionalArchitecturesOfLwjglAndRejectUnknownHosts() {
+    fun shouldKeepTheAdditionalArchitecturesOfLwjglAndRejectUnknownHosts(): Unit {
         val windowsX86: List<String?> = listOf("x86", "i386", "i686").map { HostPlatform.normalize("Windows", it).lwjglNatives }
         assertEquals(List(3) { "natives-windows-x86" }, windowsX86)
 
@@ -118,11 +118,11 @@ class HostPlatformTest {
     }
 
     @Test
-    fun shouldNormalizeTheHostIndependentlyOfTheDefaultLocale() {
-        val previous = Locale.getDefault()
+    fun shouldNormalizeTheHostIndependentlyOfTheDefaultLocale(): Unit {
+        val previous: Locale = Locale.getDefault()
         try {
             Locale.setDefault(Locale.forLanguageTag("tr-TR"))
-            val host = HostPlatform.normalize("WINDOWS", "AMD64")
+            val host: HostPlatform = HostPlatform.normalize("WINDOWS", "AMD64")
             val windows: Boolean = host.isWindows
             assertTrue(windows)
 

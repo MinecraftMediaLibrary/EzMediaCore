@@ -23,10 +23,11 @@ import java.io.File
 abstract class QualifiedNamesTask : JavaLintTask() {
 
     private companion object {
-        const val WRITTEN_OUT = "{}:{}: error: {} is written out; import it, or mark the line // fqn: <why> if its simple name clashes."
+        const val WRITTEN_OUT: String =
+            "{}:{}: error: {} is written out; import it, or mark the line // fqn: <why> if its simple name clashes."
     }
 
-    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
+    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
         files.forEach { file ->
             QualifiedNames.find(file.readText()).forEach { found ->
                 reportViolation(file, found.line, listOf(found.name))

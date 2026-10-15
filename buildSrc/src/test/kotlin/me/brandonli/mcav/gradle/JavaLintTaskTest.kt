@@ -18,8 +18,10 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -43,11 +45,11 @@ class JavaLintTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldKeepTheExactSuccessReportOfEachLint() {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val source = directory.resolve(SOURCE_FILE).toFile()
+    fun shouldKeepTheExactSuccessReportOfEachLint(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val source: File = directory.resolve(SOURCE_FILE).toFile()
         source.writeText("final class Example {}\n")
-        val tasks = listOf(
+        val tasks: List<Pair<JavaLintTask, String>> = listOf(
             project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
             project.tasks.register(QUALIFIED_TASK, QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
             project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
@@ -63,9 +65,9 @@ class JavaLintTaskTest {
     }
 
     @Test
-    fun shouldCountTheViolationsAndKeepTheFailureMessageOfEachLint() {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val tasks = listOf(
+    fun shouldCountTheViolationsAndKeepTheFailureMessageOfEachLint(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val tasks: List<Triple<JavaLintTask, String, String>> = listOf(
             Triple(
                 project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get(),
                 "final class Example { void run() { logger.info(\"joined \" + name); logger.error(\"joined \" + name); } }",
@@ -83,12 +85,12 @@ class JavaLintTaskTest {
             )
         )
         val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) ->
-            val source = directory.resolve(task.name + ".java").toFile()
+            val source: File = directory.resolve(task.name + ".java").toFile()
             source.writeText(input)
             task.sources.from(source)
             task.report.set(directory.resolve(task.name + REPORT_EXTENSION).toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
-            val failure = assertThrows(GradleException::class.java) { task.check() }
+            val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
             failure.message to task.report.get().asFile.exists()
         }
         val expected: List<Pair<String?, Boolean>> = tasks.map { it.third to false }
@@ -96,15 +98,15 @@ class JavaLintTaskTest {
     }
 
     @Test
-    fun shouldKeepAPublishedNameWhileTheOtherNamesFail() {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get()
-        val source = directory.resolve(SOURCE_FILE).toFile()
+    fun shouldKeepAPublishedNameWhileTheOtherNamesFail(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task: VariableNamesTask = project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get()
+        val source: File = directory.resolve(SOURCE_FILE).toFile()
         source.writeText("package me.example;\nfinal class Example { int x; int y; }\n")
         task.sources.from(source)
         task.report.set(directory.resolve(VARIABLES_REPORT).toFile())
         task.publishedNames.set(setOf("me.example.Example#x"))
-        val failure = assertThrows(GradleException::class.java) { task.check() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message
         assertEquals("Found 1 undescriptive variable names!", message)
     }

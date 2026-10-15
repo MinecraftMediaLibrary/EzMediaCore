@@ -26,10 +26,10 @@ plugins {
 
 val testNodeProperty: String = "mcav.testNode"
 
-val node = rootProject.extensions.getByType<NodeExtension>()
-val nodeSetup = rootProject.tasks.named("nodeSetup")
-val host = HostPlatform.current()
-val testNode = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
+val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
+val host: HostPlatform = HostPlatform.current()
+val testNode: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 tasks.withType<Test>().configureEach {
     dependsOn(nodeSetup)

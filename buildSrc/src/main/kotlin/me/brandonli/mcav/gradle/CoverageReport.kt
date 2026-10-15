@@ -20,15 +20,17 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Document
 import org.w3c.dom.Element
+import org.w3c.dom.NodeList
 
 class CoverageException(val path: String, val sourceLine: String, val reason: String) {
-    var used = false
+    var used: Boolean = false
 }
 
 object CoverageExceptions {
 
-    private const val SEPARATOR = " | "
+    private const val SEPARATOR: String = " | "
 
     private const val COMMENT_PREFIX: String = "#"
 
@@ -36,26 +38,26 @@ object CoverageExceptions {
         if (!file.isFile) {
             return emptyList()
         }
-        val entries = file.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
+        val entries: List<String> = file.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
         return entries.map { entry -> parse(file, entry) }
     }
 
     private fun parse(file: File, entry: String): CoverageException {
-        val first = entry.indexOf(SEPARATOR)
-        val last = entry.lastIndexOf(SEPARATOR)
+        val first: Int = entry.indexOf(SEPARATOR)
+        val last: Int = entry.lastIndexOf(SEPARATOR)
         require(first >= 0 && last >= first + SEPARATOR.length) {
             "Coverage exception '$entry' in $file must read 'path | source line | reason'!"
         }
-        val path = entry.substring(0, first)
-        val sourceLine = entry.substring(first + SEPARATOR.length, last)
-        val reason = entry.substring(last + SEPARATOR.length)
+        val path: String = entry.substring(0, first)
+        val sourceLine: String = entry.substring(first + SEPARATOR.length, last)
+        val reason: String = entry.substring(last + SEPARATOR.length)
         return CoverageException(path, sourceLine, reason)
     }
 }
 
 object CoverageReport {
 
-    private const val LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd"
+    private const val LOAD_EXTERNAL_DTD: String = "http://apache.org/xml/features/nonvalidating/load-external-dtd"
 
     private const val JAVA_EXTENSION: String = "java"
     private const val PATH_SEPARATOR: String = "/"
@@ -74,34 +76,34 @@ object CoverageReport {
 
     fun findGaps(report: File, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
         if (!report.isFile) {
-            val hasSources = sourceDirectory.isDirectory && sourceDirectory.walk().any { it.extension == JAVA_EXTENSION }
+            val hasSources: Boolean = sourceDirectory.isDirectory && sourceDirectory.walk().any { it.extension == JAVA_EXTENSION }
             return if (hasSources) listOf("$sourceDirectory: warning: no test ran, so none of this code is covered.") else emptyList()
         }
-        val factory = DocumentBuilderFactory.newInstance()
+        val factory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
         factory.setFeature(LOAD_EXTERNAL_DTD, false)
-        val document = factory.newDocumentBuilder().parse(report)
-        val sourceFiles = document.getElementsByTagName(SOURCE_FILE_TAG)
-        val gaps = mutableListOf<String>()
+        val document: Document = factory.newDocumentBuilder().parse(report)
+        val sourceFiles: NodeList = document.getElementsByTagName(SOURCE_FILE_TAG)
+        val gaps: MutableList<String> = mutableListOf<String>()
         for (index in 0 until sourceFiles.length) {
-            val sourceFile = sourceFiles.item(index) as Element
+            val sourceFile: Element = sourceFiles.item(index) as Element
             gaps += findGapsInFile(sourceFile, sourceDirectory, exceptions)
         }
         return gaps
     }
 
     private fun findGapsInFile(sourceFile: Element, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
-        val packageElement = sourceFile.parentNode as Element
-        val relativePath = packageElement.getAttribute(NAME_ATTRIBUTE) + PATH_SEPARATOR + sourceFile.getAttribute(NAME_ATTRIBUTE)
-        val file = File(sourceDirectory, relativePath)
-        val sourceLines by lazy { if (file.isFile) file.readLines() else emptyList() }
-        val lines = sourceFile.getElementsByTagName(LINE_TAG)
-        val gaps = mutableListOf<String>()
+        val packageElement: Element = sourceFile.parentNode as Element
+        val relativePath: String = packageElement.getAttribute(NAME_ATTRIBUTE) + PATH_SEPARATOR + sourceFile.getAttribute(NAME_ATTRIBUTE)
+        val file: File = File(sourceDirectory, relativePath)
+        val sourceLines: List<String> by lazy { if (file.isFile) file.readLines() else emptyList() }
+        val lines: NodeList = sourceFile.getElementsByTagName(LINE_TAG)
+        val gaps: MutableList<String> = mutableListOf<String>()
         for (index in 0 until lines.length) {
-            val line = lines.item(index) as Element
-            val gap = describeGap(line) ?: continue
-            val number = line.getAttribute(LINE_NUMBER_ATTRIBUTE).toInt()
-            val text = sourceLines.getOrNull(number - FIRST_LINE_NUMBER)?.trim() ?: ""
-            val exception = exceptions.firstOrNull { !it.used && it.path == relativePath && it.sourceLine == text }
+            val line: Element = lines.item(index) as Element
+            val gap: String = describeGap(line) ?: continue
+            val number: Int = line.getAttribute(LINE_NUMBER_ATTRIBUTE).toInt()
+            val text: String = sourceLines.getOrNull(number - FIRST_LINE_NUMBER)?.trim() ?: ""
+            val exception: CoverageException? = exceptions.firstOrNull { !it.used && it.path == relativePath && it.sourceLine == text }
             if (exception == null) {
                 gaps += "$file:$number: warning: $gap."
             } else {
@@ -112,10 +114,10 @@ object CoverageReport {
     }
 
     private fun describeGap(line: Element): String? {
-        val missedInstructions = line.getAttribute(MISSED_INSTRUCTIONS_ATTRIBUTE).toInt()
-        val coveredInstructions = line.getAttribute(COVERED_INSTRUCTIONS_ATTRIBUTE).toInt()
-        val missedBranches = line.getAttribute(MISSED_BRANCHES_ATTRIBUTE).toInt()
-        val coveredBranches = line.getAttribute(COVERED_BRANCHES_ATTRIBUTE).toInt()
+        val missedInstructions: Int = line.getAttribute(MISSED_INSTRUCTIONS_ATTRIBUTE).toInt()
+        val coveredInstructions: Int = line.getAttribute(COVERED_INSTRUCTIONS_ATTRIBUTE).toInt()
+        val missedBranches: Int = line.getAttribute(MISSED_BRANCHES_ATTRIBUTE).toInt()
+        val coveredBranches: Int = line.getAttribute(COVERED_BRANCHES_ATTRIBUTE).toInt()
         return when {
             coveredInstructions == 0 && missedInstructions > 0 -> "line is not covered by any test"
             missedBranches > 0 -> "$missedBranches of ${missedBranches + coveredBranches} branches are not covered by any test"

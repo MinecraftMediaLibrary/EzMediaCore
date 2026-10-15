@@ -35,16 +35,16 @@ object ToolVersions {
         expected: String,
         prefix: String = "$tool ",
         argument: String = VERSION_ARGUMENT
-    ) {
-        val output = ByteArrayOutputStream()
+    ): Unit {
+        val output: ByteArrayOutputStream = ByteArrayOutputStream()
         processes.exec {
             commandLine(executable, argument)
             standardOutput = output
         }
-        val reported = output.toString(Charsets.UTF_8).trim()
-        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(VERSION_GROUP)
+        val reported: String = output.toString(Charsets.UTF_8).trim()
+        val actual: String? = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(VERSION_GROUP)
         if (actual != expected) {
-            val message = "$executable reports $reported, which is not the $tool $expected this build pins!"
+            val message: String = "$executable reports $reported, which is not the $tool $expected this build pins!"
             throw GradleException(message)
         }
     }

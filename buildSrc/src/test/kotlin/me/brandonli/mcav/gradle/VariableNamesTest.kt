@@ -33,8 +33,8 @@ class VariableNamesTest {
     }
 
     @Test
-    fun shouldAcceptDescriptiveNamesTypeParametersAndTheUnnamedVariable() {
-        val source = """
+    fun shouldAcceptDescriptiveNamesTypeParametersAndTheUnnamedVariable(): Unit {
+        val source: String = """
             package example;
             final class Pairs<K, V> {
               private final int count;
@@ -52,8 +52,8 @@ class VariableNamesTest {
     }
 
     @Test
-    fun shouldReportEveryKindOfDeclarationNamedByOneLetter() {
-        val source = """
+    fun shouldReportEveryKindOfDeclarationNamedByOneLetter(): Unit {
+        val source: String = """
             package example;
             final class Shapes {
               private int w;
@@ -70,7 +70,7 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        val kinds = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
+        val kinds: List<String> = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
         assertEquals(
             listOf(
                 "w: field",
@@ -90,8 +90,8 @@ class VariableNamesTest {
     }
 
     @Test
-    fun shouldReportTheShortFormsTheRulesListButNotWordsThatStartWithThem() {
-        val source = """
+    fun shouldReportTheShortFormsTheRulesListButNotWordsThatStartWithThem(): Unit {
+        val source: String = """
             final class Buffers {
               void fill(final byte[] buf, final int idx) {
                 final int bufferSize = buf.length;
@@ -105,8 +105,8 @@ class VariableNamesTest {
     }
 
     @Test
-    fun shouldNameTheMemberAsThePackageTheTypesAndTheName() {
-        val source = """
+    fun shouldNameTheMemberAsThePackageTheTypesAndTheName(): Unit {
+        val source: String = """
             package me.example;
             public final class Frame {
               public record Leaf(int x, int size) {}
@@ -117,7 +117,7 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        val found = VariableNames.find(source)
+        val found: List<UndescriptiveName> = VariableNames.find(source)
         val members: List<String> = found.map { it.member }
         assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), members)
 
@@ -127,7 +127,7 @@ class VariableNamesTest {
 
     @Test
     fun shouldReportAOneLetterStaticFieldOfARecordAsAField(): Unit {
-        val source = """
+        val source: String = """
             package example;
             record Point(int width) {
               static int x;
@@ -140,7 +140,7 @@ class VariableNamesTest {
 
     @Test
     fun shouldNotReportAOneCharacterNameThatIsNoLetter(): Unit {
-        val source = """
+        val source: String = """
             package example;
             final class Dollars {
               private final int $ = 1;

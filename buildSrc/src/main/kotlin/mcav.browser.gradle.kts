@@ -29,10 +29,10 @@ pitest {
     excludedGroups = setOf(cefTestGroup)
 }
 
-val helperCoverage = layout.buildDirectory.file(helperCoveragePath)
+val helperCoverage: Provider<RegularFile> = layout.buildDirectory.file(helperCoveragePath)
 
 tasks.test {
-    val coverage = helperCoverage
+    val coverage: Provider<RegularFile> = helperCoverage
     outputs.file(coverage).withPropertyName("helperCoverage")
     doFirst {
         coverage.get().asFile.delete()

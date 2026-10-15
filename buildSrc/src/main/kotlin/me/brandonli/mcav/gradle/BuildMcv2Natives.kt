@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
@@ -120,15 +121,15 @@ abstract class BuildMcv2Natives : DefaultTask() {
     protected abstract val workers: WorkerExecutor
 
     @get:Input
-    val compilerFlags = listOf(
+    val compilerFlags: List<String> = listOf(
         "-std=c++17", "-O2", "-fPIC", "-fno-exceptions", "-fno-rtti", "-fvisibility=hidden",
         "-ffp-contract=off", "-fwrapv", "-fno-strict-aliasing", "-Wall", "-Wextra", "-Werror"
     )
 
     @TaskAction
-    fun build() {
+    fun build(): Unit {
         ToolVersions.verify(processes, zigExecutable.get().asFile, ZIG_TOOL, zigVersion.get(), prefix = "", argument = ZIG_VERSION_ARGUMENT)
-        val task = this
+        val task: BuildMcv2Natives = this
         workers.noIsolation().submit(Work::class.java) {
             zigExecutable.set(task.zigExecutable)
             sourcesDirectory.set(task.sourcesDirectory)
@@ -155,26 +156,26 @@ abstract class BuildMcv2Natives : DefaultTask() {
         @get:Inject
         protected abstract val processes: ExecOperations
 
-        override fun execute() {
-            val output = parameters.outputDirectory.get().asFile
+        override fun execute(): Unit {
+            val output: File = parameters.outputDirectory.get().asFile
             output.deleteRecursively()
-            val natives = output.resolve(NATIVES_PATH)
-            val objectsDirectory = parameters.objectsDirectory.get().asFile
-            val libraries = mutableListOf<File>()
-            val compiles = mutableListOf<() -> Unit>()
-            val links = mutableListOf<() -> Unit>()
-            val boundary = listOf("-mbranches-within-32B-boundaries")
-            val avx512 = listOf("-mavx512f", "-mavx512dq", "-mavx512bw", "-mavx512vl",
+            val natives: File = output.resolve(NATIVES_PATH)
+            val objectsDirectory: File = parameters.objectsDirectory.get().asFile
+            val libraries: MutableList<File> = mutableListOf<File>()
+            val compiles: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
+            val links: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
+            val boundary: List<String> = listOf("-mbranches-within-32B-boundaries")
+            val avx512: List<String> = listOf("-mavx512f", "-mavx512dq", "-mavx512bw", "-mavx512vl",
                 "-mavx512vbmi", "-mavx512vbmi2", "-mavx512vnni", "-mavx512bitalg")
             for (system in listOf(LINUX, WINDOWS, MACOS)) {
                 for (architecture in listOf(X86_64, AARCH64)) {
-                    val platform = "$system-$architecture"
-                    val target = architecture + when (system) {
+                    val platform: String = "$system-$architecture"
+                    val target: String = architecture + when (system) {
                         LINUX -> LINUX_TARGET_SUFFIX
                         WINDOWS -> WINDOWS_TARGET_SUFFIX
                         else -> MACOS_TARGET_SUFFIX
                     }
-                    val units = linkedMapOf("scalar" to emptyList<String>())
+                    val units: LinkedHashMap<String, List<String>> = linkedMapOf("scalar" to emptyList<String>())
                     if (architecture == X86_64) {
                         units["sse2"] = emptyList()
                         units["sse41"] = listOf("-msse4.1")
@@ -191,8 +192,8 @@ abstract class BuildMcv2Natives : DefaultTask() {
                             }
                         }
                     }
-                    val objects = units.map { (level, flags) ->
-                        val objectFile = objectsDirectory.resolve(platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
+                    val objects: List<String> = units.map { (level, flags) ->
+                        val objectFile: File = objectsDirectory.resolve(platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
                         objectFile.parentFile.mkdirs()
                         compiles += {
                             runZig(listOf("c++", TARGET_OPTION, target, "-mcpu=baseline") + parameters.compilerFlags.get() + flags +
@@ -200,14 +201,14 @@ abstract class BuildMcv2Natives : DefaultTask() {
                         }
                         objectFile.absolutePath
                     }
-                    val name = when (system) {
+                    val name: String = when (system) {
                         WINDOWS -> WINDOWS_LIBRARY
                         MACOS -> MACOS_LIBRARY
                         else -> LINUX_LIBRARY
                     }
-                    val library = natives.resolve(platform).resolve(name)
+                    val library: File = natives.resolve(platform).resolve(name)
                     library.parentFile.mkdirs()
-                    val linkFlags = when (system) {
+                    val linkFlags: List<String> = when (system) {
                         LINUX -> listOf("-Wl,-z,noexecstack")
                         MACOS -> listOf("-Wl,-install_name,@rpath/$MACOS_LIBRARY")
                         else -> emptyList()
@@ -223,18 +224,18 @@ abstract class BuildMcv2Natives : DefaultTask() {
             inParallel(compiles)
             inParallel(links)
             writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
-            val sources = parameters.sourcesDirectory.get().asFile
+            val sources: File = parameters.sourcesDirectory.get().asFile
             writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sources.listFiles()!!.filter { it.name != CLANG_FORMAT_FILE })
         }
 
-        private fun inParallel(steps: List<() -> Unit>) {
-            val pool = Executors.newFixedThreadPool(minOf(parameters.processCount.get(), steps.size))
+        private fun inParallel(steps: List<() -> Unit>): Unit {
+            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(parameters.processCount.get(), steps.size))
             try {
                 pool.invokeAll(steps.map { step -> Callable(step) }).forEach { result ->
                     try {
                         result.get()
                     } catch (exception: ExecutionException) {
-                        val message = "Zig could not build MCV2's natives!"
+                        val message: String = "Zig could not build MCV2's natives!"
                         throw GradleException(message, exception.cause)
                     }
                 }
@@ -243,7 +244,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
             }
         }
 
-        private fun runZig(arguments: List<String>) {
+        private fun runZig(arguments: List<String>): Unit {
             processes.exec {
                 workingDir(parameters.sourcesDirectory.get().asFile)
                 commandLine(listOf(parameters.zigExecutable.get().asFile.absolutePath) + arguments)
@@ -252,9 +253,9 @@ abstract class BuildMcv2Natives : DefaultTask() {
             }
         }
 
-        private fun writeManifest(manifest: File, root: File, files: List<File>) {
+        private fun writeManifest(manifest: File, root: File, files: List<File>): Unit {
             manifest.writeText(files.sortedBy { it.relativeTo(root).invariantSeparatorsPath }.joinToString("", transform = { file ->
-                val digest = ToolDigests.sha256(file)
+                val digest: String = ToolDigests.sha256(file)
                 "$digest$MANIFEST_SEPARATOR${file.relativeTo(root).invariantSeparatorsPath}$LINE_SEPARATOR"
             }))
         }

@@ -122,8 +122,8 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
         fun current(): HostPlatform = normalize(System.getProperty(OPERATING_SYSTEM_PROPERTY), System.getProperty(ARCHITECTURE_PROPERTY))
 
         fun normalize(operatingSystem: String, architecture: String): HostPlatform {
-            val name = architecture.lowercase(Locale.ROOT)
-            val normalizedArchitecture = ARCHITECTURE_ALIASES.getOrDefault(name, name)
+            val name: String = architecture.lowercase(Locale.ROOT)
+            val normalizedArchitecture: String = ARCHITECTURE_ALIASES.getOrDefault(name, name)
             return HostPlatform(operatingSystem.lowercase(Locale.ROOT), normalizedArchitecture)
         }
     }
@@ -137,11 +137,11 @@ fun javaExecutable(javaHome: String): String = HostPlatform.current().javaExecut
 
 fun virtualEnvironmentExecutable(name: String): String = HostPlatform.current().virtualEnvironmentExecutable(name)
 
-fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
+fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
     addLwjglTestNatives(HostPlatform.current(), libraries)
 }
 
-fun DependencyHandler.addLwjglTestNatives(platform: HostPlatform, libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
+fun DependencyHandler.addLwjglTestNatives(platform: HostPlatform, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
     platform.lwjglNatives?.let { natives ->
         libraries.forEach { library ->
             add(TEST_RUNTIME_CONFIGURATION, variantOf(library) { classifier(natives) })

@@ -26,7 +26,7 @@ plugins {
 val nodeAlias: String = "node"
 val nodeToolsPath: String = "tools/node"
 
-val pinnedNodeVersion = libs.versionOf(nodeAlias)
+val pinnedNodeVersion: String = libs.versionOf(nodeAlias)
 
 node {
     download = true

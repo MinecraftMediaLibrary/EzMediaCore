@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -59,10 +60,10 @@ abstract class ClangFormat : DefaultTask() {
     protected abstract val processes: ExecOperations
 
     @TaskAction
-    fun format() {
-        val executable = clangFormat.get().asFile
+    fun format(): Unit {
+        val executable: File = clangFormat.get().asFile
         ToolVersions.verify(processes, executable, TOOL, clangFormatVersion.get(), VERSION_PREFIX)
-        val mode = if (rewrite.get()) listOf("-i") else listOf("--dry-run", "--Werror")
+        val mode: List<String> = if (rewrite.get()) listOf("-i") else listOf("--dry-run", "--Werror")
         processes.exec {
             commandLine(listOf(executable.path) + mode + "--style=file" + sources.files.sorted().map { it.path })
         }

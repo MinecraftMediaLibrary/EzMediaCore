@@ -22,15 +22,15 @@ data class QualifiedName(val line: Int, val name: String)
 
 object QualifiedNames {
 
-    private val ROOTS = listOf(
+    private val ROOTS: List<String> = listOf(
         "java", "javax", "jakarta", "jdk", "sun", "com", "org", "net", "io", "me", "uk", "de", "xyz", "it", "dev", "info"
     )
 
-    private val NAME = Regex("(?<![\\w.$])((?:${ROOTS.joinToString(ROOT_SEPARATOR)})\\.(?:[a-z_][a-z0-9_]*\\.)+[A-Z][\\w$]*)")
+    private val NAME: Regex = Regex("(?<![\\w.$])((?:${ROOTS.joinToString(ROOT_SEPARATOR)})\\.(?:[a-z_][a-z0-9_]*\\.)+[A-Z][\\w$]*)")
 
-    private val MARKER = Regex("//\\s*fqn:\\s*\\S")
+    private val MARKER: Regex = Regex("//\\s*fqn:\\s*\\S")
 
-    private val DECLARATION = Regex("^\\s*(package|import)\\s")
+    private val DECLARATION: Regex = Regex("^\\s*(package|import)\\s")
 
     private const val ROOT_SEPARATOR: String = "|"
     private const val NEW_LINE: Char = '\n'
@@ -38,9 +38,9 @@ object QualifiedNames {
     private const val FIRST_LINE_NUMBER: Int = 1
 
     fun find(source: String): List<QualifiedName> {
-        val lines = source.split(NEW_LINE)
-        val code = JavaSource.mask(source).split(NEW_LINE)
-        val found = mutableListOf<QualifiedName>()
+        val lines: List<String> = source.split(NEW_LINE)
+        val code: List<String> = JavaSource.mask(source).split(NEW_LINE)
+        val found: MutableList<QualifiedName> = mutableListOf<QualifiedName>()
         code.forEachIndexed { index, line ->
             if (DECLARATION.containsMatchIn(line) || MARKER.containsMatchIn(lines[index])) {
                 return@forEachIndexed

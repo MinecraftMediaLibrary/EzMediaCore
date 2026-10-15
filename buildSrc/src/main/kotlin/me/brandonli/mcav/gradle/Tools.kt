@@ -30,15 +30,15 @@ private const val CHECKSUMS_RESOURCE: String = "/tool-checksums.properties"
 private const val NAME_SEPARATOR: Char = '-'
 private const val VARIABLE_SEPARATOR: Char = '_'
 
-private val pinnedChecksums = Properties().apply {
+private val pinnedChecksums: Properties = Properties().apply {
     DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)!!.use { load(it) }
 }
 
 private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
 
 fun Project.pinnedSha256(tool: String, version: String, archive: String): Provider<String> = provider {
-    val key = "$tool/$version/$archive"
-    val message =
+    val key: String = "$tool/$version/$archive"
+    val message: String =
         "tool-checksums.properties pins no SHA-256 for $key, so set ${overrideVariable(tool)} to the path of $tool $version!"
     pinnedChecksums.getProperty(key) ?: throw GradleException(message)
 }
@@ -47,6 +47,6 @@ fun Project.toolOverride(tool: String): Provider<RegularFile> =
     layout.file(providers.environmentVariable(overrideVariable(tool)).map { file(it) })
 
 fun Project.selectTool(tool: String, installed: Provider<RegularFile>): Provider<RegularFile> {
-    val override = toolOverride(tool)
+    val override: Provider<RegularFile> = toolOverride(tool)
     return if (override.isPresent) override else installed
 }

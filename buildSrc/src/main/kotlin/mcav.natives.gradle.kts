@@ -51,15 +51,15 @@ val generatedNativesPath: String = "generated/natives"
 val nativeResourcesConfiguration: String = "mcv2NativeResources"
 val directoryArtifactType: String = "directory"
 
-val host = HostPlatform.current()
-val system = host.zigSystem
-val architecture = host.architecture
-val pinnedZigVersion = libs.versionOf(zigTool)
-val zigFolder = "$zigTool-$architecture-$system-$pinnedZigVersion"
-val zigArchive = zigFolder + if (system == windowsSystem) zipExtension else xzTarExtension
-val zigPath = "$zigFolder/$zigTool" + if (system == windowsSystem) executableExtension else ""
-val zigChecksum = pinnedSha256(zigTool, pinnedZigVersion, zigArchive)
-val downloadZig = tasks.register<DownloadToolArchive>("downloadZig") {
+val host: HostPlatform = HostPlatform.current()
+val system: String = host.zigSystem
+val architecture: String = host.architecture
+val pinnedZigVersion: String = libs.versionOf(zigTool)
+val zigFolder: String = "$zigTool-$architecture-$system-$pinnedZigVersion"
+val zigArchive: String = zigFolder + if (system == windowsSystem) zipExtension else xzTarExtension
+val zigPath: String = "$zigFolder/$zigTool" + if (system == windowsSystem) executableExtension else ""
+val zigChecksum: Provider<String> = pinnedSha256(zigTool, pinnedZigVersion, zigArchive)
+val downloadZig: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadZig") {
     group = "build setup"
     description = "Downloads the pinned Zig and verifies its SHA-256"
     archiveUrl = "$zigDownloadUrl/$pinnedZigVersion/$zigArchive"
@@ -67,8 +67,8 @@ val downloadZig = tasks.register<DownloadToolArchive>("downloadZig") {
     executablePath = zigPath
     installationDirectory = layout.buildDirectory.dir("$zigToolsPath/$pinnedZigVersion")
 }
-val nativeSources = layout.projectDirectory.dir(nativeSourcePath)
-val buildMcv2Natives = tasks.register<BuildMcv2Natives>("buildMcv2Natives") {
+val nativeSources: Directory = layout.projectDirectory.dir(nativeSourcePath)
+val buildMcv2Natives: TaskProvider<BuildMcv2Natives> = tasks.register<BuildMcv2Natives>("buildMcv2Natives") {
     group = "build"
     description = "Compiles MCV2's six native libraries from source"
     sourcesDirectory = nativeSources
@@ -83,7 +83,7 @@ sourceSets.main {
     resources.srcDir(buildMcv2Natives)
 }
 
-val nativeResources = configurations.register(nativeResourcesConfiguration) {
+val nativeResources: NamedDomainObjectProvider<Configuration> = configurations.register(nativeResourcesConfiguration) {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
@@ -92,10 +92,10 @@ artifacts.add(nativeResources.name, buildMcv2Natives.flatMap { it.outputDirector
     type = directoryArtifactType
 }
 
-val pinnedClangFormatVersion = libs.versionOf(clangFormatAlias)
-val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
-val selectedClangFormat = selectTool(clangFormatTool, pythonEnvironment.flatMap { it.executable(clangFormatTool) })
-val formattedSources = fileTree(nativeSources) { include(nativeSourcePattern) }
+val pinnedClangFormatVersion: String = libs.versionOf(clangFormatAlias)
+val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
+val selectedClangFormat: Provider<RegularFile> = selectTool(clangFormatTool, pythonEnvironment.flatMap { it.executable(clangFormatTool) })
+val formattedSources: ConfigurableFileTree = fileTree(nativeSources) { include(nativeSourcePattern) }
 
 tasks.register<ClangFormat>("formatMcv2Natives") {
     group = "formatting"
@@ -105,7 +105,7 @@ tasks.register<ClangFormat>("formatMcv2Natives") {
     clangFormatVersion = pinnedClangFormatVersion
     rewrite = true
 }
-val checkNativesFormat = tasks.register<ClangFormat>("checkMcv2NativesFormat") {
+val checkNativesFormat: TaskProvider<ClangFormat> = tasks.register<ClangFormat>("checkMcv2NativesFormat") {
     group = "verification"
     description = "Checks that the MCV2 native sources are formatted with clang-format $pinnedClangFormatVersion"
     sources.from(formattedSources)

@@ -61,7 +61,7 @@ tasks.named<JavaCompile>("compileJava") {
     }
 }
 
-val jcstressJar = tasks.register<Jar>("jcstressJar") {
+val jcstressJar: TaskProvider<Jar> = tasks.register<Jar>("jcstressJar") {
     group = "build"
     description = "Packs the jcstress tests with everything they run"
     archiveClassifier = jcstressClassifier
@@ -69,7 +69,7 @@ val jcstressJar = tasks.register<Jar>("jcstressJar") {
         attributes("Main-Class" to jcstressMainClass)
     }
     from(sourceSets.main.get().output)
-    val runtimeClasspath = configurations.runtimeClasspath
+    val runtimeClasspath: NamedDomainObjectProvider<Configuration> = configurations.runtimeClasspath
     dependsOn(runtimeClasspath)
     from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
         exclude(signatureFiles)
@@ -77,39 +77,39 @@ val jcstressJar = tasks.register<Jar>("jcstressJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val ITERATION_TIME = "Running {} jcstress tests in {} mode within {} minutes, at {} ms per iteration."
-val mode = providers.gradleProperty(modeProperty).getOrElse(defaultMode)
-val budgetMinutes = providers.gradleProperty(budgetProperty).map { it.toInt() }
-val selection = providers.gradleProperty(selectionProperty)
-val defaultCpus = minOf(maximumDefaultCpus, Runtime.getRuntime().availableProcessors()).toString()
-val cpus = providers.gradleProperty(cpusProperty).getOrElse(defaultCpus)
+val ITERATION_TIME: String = "Running {} jcstress tests in {} mode within {} minutes, at {} ms per iteration."
+val mode: String = providers.gradleProperty(modeProperty).getOrElse(defaultMode)
+val budgetMinutes: Provider<Int> = providers.gradleProperty(budgetProperty).map { it.toInt() }
+val selection: Provider<String> = providers.gradleProperty(selectionProperty)
+val defaultCpus: String = minOf(maximumDefaultCpus, Runtime.getRuntime().availableProcessors()).toString()
+val cpus: String = providers.gradleProperty(cpusProperty).getOrElse(defaultCpus)
 
 tasks.register<JavaExec>("jcstressTest") {
     group = "verification"
     description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
-    val jar = jcstressJar.flatMap { it.archiveFile }
+    val jar: Provider<RegularFile> = jcstressJar.flatMap { it.archiveFile }
     inputs.file(jar)
     classpath = files(jar)
     mainClass = jcstressMainClass
-    val workingDirectory = layout.buildDirectory.dir(workingPath)
+    val workingDirectory: Provider<Directory> = layout.buildDirectory.dir(workingPath)
     workingDir = workingDirectory.get().asFile
-    val arguments = mutableListOf("-m", mode, "-c", cpus, "-r", resultsPath, "-v")
+    val arguments: MutableList<String> = mutableListOf("-m", mode, "-c", cpus, "-r", resultsPath, "-v")
     if (selection.isPresent) {
         arguments += listOf("-t", selection.get())
     }
     args(arguments)
-    val budget = budgetMinutes.orNull
-    val tests = selection.orNull
-    val cpuCount = cpus.toInt()
-    val stressMode = mode
-    val iterationTime = ITERATION_TIME
-    val console = workingDirectory.map { it.file(consolePath) }
+    val budget: Int? = budgetMinutes.orNull
+    val tests: String? = selection.orNull
+    val cpuCount: Int = cpus.toInt()
+    val stressMode: String = mode
+    val iterationTime: String = ITERATION_TIME
+    val console: Provider<RegularFile> = workingDirectory.map { it.file(consolePath) }
     doFirst {
         workingDirectory.get().asFile.mkdirs()
         standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
         if (budget != null) {
-            val testCount = JcstressBudget.countTests(jar.get().asFile, tests)
-            val iterationMilliseconds = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)
+            val testCount: Int = JcstressBudget.countTests(jar.get().asFile, tests)
+            val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)
             logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMilliseconds)
             args("-time", iterationMilliseconds.toString())
         }

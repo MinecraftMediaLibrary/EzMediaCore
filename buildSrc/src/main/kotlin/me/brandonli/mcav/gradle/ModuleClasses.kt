@@ -20,19 +20,20 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import java.util.SortedSet
+import java.util.TreeSet
 import java.util.zip.ZipFile
 
 object ModuleClasses {
 
-    private const val CLASS_SUFFIX = ".class"
+    private const val CLASS_SUFFIX: String = ".class"
 
-    private val NAME = Regex("me/brandonli/mcav/[A-Za-z0-9_$/]+")
+    private val NAME: Regex = Regex("me/brandonli/mcav/[A-Za-z0-9_$/]+")
 
     fun referenced(classFile: ByteArray): Set<String> =
         NAME.findAll(String(classFile, Charsets.ISO_8859_1)).map { it.value }.toSet()
 
     fun available(roots: Iterable<File>): Set<String> {
-        val names = mutableSetOf<String>()
+        val names: MutableSet<String> = mutableSetOf<String>()
         roots.filter { it.exists() }.forEach { root ->
             if (root.isDirectory) {
                 root.walkTopDown().filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }.forEach { file ->
@@ -50,8 +51,8 @@ object ModuleClasses {
     }
 
     fun required(pluginClasses: Iterable<File>, modules: Iterable<File>): SortedSet<String> {
-        val inModules = available(modules)
-        val used = sortedSetOf<String>()
+        val inModules: Set<String> = available(modules)
+        val used: TreeSet<String> = sortedSetOf<String>()
         pluginClasses.filter { it.isDirectory }.forEach { root ->
             root.walkTopDown().filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }.forEach { file ->
                 used.addAll(referenced(file.readBytes()).filter { it in inModules })

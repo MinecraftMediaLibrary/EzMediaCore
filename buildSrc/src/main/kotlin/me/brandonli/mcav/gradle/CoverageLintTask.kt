@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -33,9 +34,10 @@ import org.gradle.api.tasks.TaskAction
 abstract class CoverageLintTask : DefaultTask() {
 
     private companion object {
-        const val FILTERED = "Skipped coverageLint of {}, since the tests ran with a filter and the report covers only part of the code."
-        const val GAP = "{}"
-        const val STALE_EXCEPTION = "{}: warning: '{} | {}' matches no uncovered line, so remove it."
+        const val FILTERED: String =
+            "Skipped coverageLint of {}, since the tests ran with a filter and the report covers only part of the code."
+        const val GAP: String = "{}"
+        const val STALE_EXCEPTION: String = "{}: warning: '{} | {}' matches no uncovered line, so remove it."
     }
 
     @get:InputFiles
@@ -56,22 +58,23 @@ abstract class CoverageLintTask : DefaultTask() {
     abstract val projectPath: Property<String>
 
     @TaskAction
-    fun lint() {
+    fun lint(): Unit {
         if (testsFiltered.get()) {
             logger.warn(FILTERED, projectPath.get())
             return
         }
-        val exceptionFile = exceptionsFile.singleFile
-        val exceptions = CoverageExceptions.read(exceptionFile)
-        val sources = sourceDirectory.get().asFile
-        val gaps = CoverageReport.findGaps(report.singleFile, sources, exceptions)
+        val exceptionFile: File = exceptionsFile.singleFile
+        val exceptions: List<CoverageException> = CoverageExceptions.read(exceptionFile)
+        val sources: File = sourceDirectory.get().asFile
+        val gaps: List<String> = CoverageReport.findGaps(report.singleFile, sources, exceptions)
         gaps.forEach { gap -> logger.error(GAP, gap) }
-        val staleExceptions = exceptions.filterNot { it.used }
+        val staleExceptions: List<CoverageException> = exceptions.filterNot { it.used }
         staleExceptions.forEach { exception ->
             logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
         }
         if (gaps.isNotEmpty() || staleExceptions.isNotEmpty()) {
-            val message = "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale!"
+            val message: String =
+                "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale!"
             throw GradleException(message)
         }
     }

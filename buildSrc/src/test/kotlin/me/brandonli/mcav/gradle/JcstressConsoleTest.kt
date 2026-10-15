@@ -20,6 +20,7 @@ package me.brandonli.mcav.gradle
 
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -42,7 +43,7 @@ class JcstressConsoleTest {
     @TempDir
     lateinit var directory: Path
 
-    private val summary = listOf(
+    private val summary: List<String> = listOf(
         "RUN RESULTS:",
         "  Interesting tests: No matches.",
         "  Failed tests: No matches.",
@@ -53,22 +54,22 @@ class JcstressConsoleTest {
     )
 
     @Test
-    fun shouldFindTheTestsThatARunSkipped() {
+    fun shouldFindTheTestsThatARunSkipped(): Unit {
         val skipped: List<String> = JcstressConsole.skippedTests(this.summary)
         assertEquals(listOf(SKIPPED_TEST), skipped)
     }
 
     @Test
-    fun shouldNameEverySkippedTestOnce() {
-        val twice = this.summary + SKIPPED_LINE
+    fun shouldNameEverySkippedTestOnce(): Unit {
+        val twice: List<String> = this.summary + SKIPPED_LINE
         val skippedCount: Int = JcstressConsole.skippedTests(twice).size
         assertEquals(1, skippedCount)
     }
 
     @Test
-    fun shouldFailARunThatSkippedATest() {
-        val console = this.console(this.summary)
-        val failure = assertThrows(GradleException::class.java) { JcstressConsole.checkNoneSkipped(console) }
+    fun shouldFailARunThatSkippedATest(): Unit {
+        val console: File = this.console(this.summary)
+        val failure: GradleException = assertThrows(GradleException::class.java) { JcstressConsole.checkNoneSkipped(console) }
         val message: String? = failure.message
         assertEquals(
             "jcstress skipped 1 tests that failed their sanity check and never ran!\n" +
@@ -78,20 +79,20 @@ class JcstressConsoleTest {
     }
 
     @Test
-    fun shouldPassARunThatRanEveryTest() {
+    fun shouldPassARunThatRanEveryTest(): Unit {
         JcstressConsole.checkNoneSkipped(this.console(this.summary.dropLast(1)))
     }
 
     @Test
-    fun shouldKeepWhatItShowsAndLeaveTheConsoleOpen() {
-        var closed = false
-        val shown = object : ByteArrayOutputStream() {
-            override fun close() {
+    fun shouldKeepWhatItShowsAndLeaveTheConsoleOpen(): Unit {
+        var closed: Boolean = false
+        val shown: ByteArrayOutputStream = object : ByteArrayOutputStream() {
+            override fun close(): Unit {
                 closed = true
             }
         }
-        val file = this.directory.resolve(CONSOLE_FILE).toFile()
-        val tee = JcstressConsole.tee(shown, file)
+        val file: File = this.directory.resolve(CONSOLE_FILE).toFile()
+        val tee: OutputStream = JcstressConsole.tee(shown, file)
         tee.write("[OK] one\n".toByteArray())
         tee.write('x'.code)
         tee.close()
@@ -107,21 +108,21 @@ class JcstressConsoleTest {
     }
 
     private fun console(lines: List<String>): File {
-        val file = this.directory.resolve(CONSOLE_FILE).toFile()
+        val file: File = this.directory.resolve(CONSOLE_FILE).toFile()
         file.writeText(lines.joinToString("\n"))
         return file
     }
 
     @Test
     fun shouldFlushTheConsoleAndTheFile(): Unit {
-        var flushed = false
-        val shown = object : ByteArrayOutputStream() {
+        var flushed: Boolean = false
+        val shown: ByteArrayOutputStream = object : ByteArrayOutputStream() {
             override fun flush(): Unit {
                 flushed = true
             }
         }
-        val file = this.directory.resolve(CONSOLE_FILE).toFile()
-        val tee = JcstressConsole.tee(shown, file)
+        val file: File = this.directory.resolve(CONSOLE_FILE).toFile()
+        val tee: OutputStream = JcstressConsole.tee(shown, file)
         tee.write("[OK] one".toByteArray())
         tee.flush()
 

@@ -49,9 +49,9 @@ val repositoryUrls: List<String> = listOf(
 val modrinthRepositoryUrl: String = "https://api.modrinth.com/maven"
 val modrinthGroup: String = "maven.modrinth"
 
-val javaRelease = libs.versionOf(javaAlias).toInt()
+val javaRelease: Int = libs.versionOf(javaAlias).toInt()
 
-val enforcedChecks = listOf(
+val enforcedChecks: List<String> = listOf(
     "FieldCanBeFinal",
     "FieldCanBeStatic",
     "FieldCanBeLocal",
@@ -128,7 +128,7 @@ tasks.processResources {
 }
 
 fun stubsArgument(): List<String> {
-    val stubs = rootProject.file(checkerStubsPath)
-    val folders = CheckerStubs.forProject(stubs, project.name)
+    val stubs: File = rootProject.file(checkerStubsPath)
+    val folders: List<File> = CheckerStubs.forProject(stubs, project.name)
     return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
 }

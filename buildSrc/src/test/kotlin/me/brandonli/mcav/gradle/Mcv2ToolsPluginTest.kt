@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -41,15 +43,15 @@ class Mcv2ToolsPluginTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldWriteTheClasspathThatMcv2ToolsTestStartsTheToolsWithBeforeMutationTesting() {
-        val project = directory.toFile()
+    fun shouldWriteTheClasspathThatMcv2ToolsTestStartsTheToolsWithBeforeMutationTesting(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcv2-tools-fixture'\ninclude 'tools'\n")
         Path.of(REPOSITORY_DIRECTORY, KOTLIN_BUILD_SCRIPT).toFile().copyTo(project.resolve(KOTLIN_BUILD_SCRIPT))
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(project.resolve(CATALOG_PATH))
-        val module = project.resolve(TOOLS_PROJECT)
+        val module: File = project.resolve(TOOLS_PROJECT)
         module.mkdirs()
         module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.mutation'; id 'mcav.mcv2-tools' }\n")
-        val result = GradleRunner.create()
+        val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments(":tools:pitest", "--dry-run", "--stacktrace")

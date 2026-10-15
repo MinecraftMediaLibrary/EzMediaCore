@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import javax.inject.Inject
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -59,15 +60,15 @@ abstract class JupyterBook : PythonTask() {
     protected abstract val processes: ExecOperations
 
     @TaskAction
-    fun build() {
-        val staging = temporaryDir
+    fun build(): Unit {
+        val staging: File = temporaryDir
         files.delete { delete(staging) }
-        val book = staging.resolve(BOOK_DIRECTORY)
+        val book: File = staging.resolve(BOOK_DIRECTORY)
         files.sync {
             from(sources)
             into(book)
         }
-        val commands = listOf(
+        val commands: List<List<String>> = listOf(
             listOf("config", "sphinx", BOOK_DIRECTORY),
             listOf("build", BOOK_DIRECTORY, "--path-output", SITE_DIRECTORY, "--warningiserror", "--keep-going", "--all")
         )

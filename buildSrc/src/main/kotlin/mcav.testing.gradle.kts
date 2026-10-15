@@ -17,6 +17,7 @@
  */
 
 import me.brandonli.mcav.gradle.ExclusiveResource
+import me.brandonli.mcav.gradle.FuzzTarget
 import me.brandonli.mcav.gradle.FuzzTargets
 import me.brandonli.mcav.gradle.bundleOf
 import me.brandonli.mcav.gradle.javaExecutable
@@ -75,15 +76,15 @@ dependencies {
     testRuntimeOnly(libs.libraryOf(junitLauncherAlias))
 }
 
-val networkTests = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
-val syncMeasurement = providers.gradleProperty(syncMeasurementProperty).getOrElse(disabledValue)
-val measuresSync = syncMeasurement.toBoolean()
-val testJavaHome = providers.gradleProperty(testJavaHomeProperty)
-val propertyTries = providers.gradleProperty(propertyTriesProperty).getOrElse(defaultPropertyTries)
-val propertySmokeTries = providers.gradleProperty(propertySmokeTriesProperty).getOrElse(defaultPropertySmokeTries)
-val fuzzSeconds = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
-val testSourceSet = sourceSets.test.get()
-val quietMachine = gradle.sharedServices.registerIfAbsent(quietMachineService, ExclusiveResource::class) {
+val networkTests: String = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
+val syncMeasurement: String = providers.gradleProperty(syncMeasurementProperty).getOrElse(disabledValue)
+val measuresSync: Boolean = syncMeasurement.toBoolean()
+val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
+val propertyTries: String = providers.gradleProperty(propertyTriesProperty).getOrElse(defaultPropertyTries)
+val propertySmokeTries: String = providers.gradleProperty(propertySmokeTriesProperty).getOrElse(defaultPropertySmokeTries)
+val fuzzSeconds: Int = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
+val testSourceSet: SourceSet = sourceSets.test.get()
+val quietMachine: Provider<ExclusiveResource> = gradle.sharedServices.registerIfAbsent(quietMachineService, ExclusiveResource::class) {
     maxParallelUsages = 1
 }
 
@@ -118,7 +119,7 @@ tasks.test {
     systemProperty(jqwikDatabaseProperty, noDatabase)
 }
 
-val propertyTest = tasks.register<Test>("propertyTest") {
+val propertyTest: TaskProvider<Test> = tasks.register<Test>("propertyTest") {
     group = "verification"
     description = "Runs the jqwik property tests of this module"
     testClassesDirs = testSourceSet.output.classesDirs
@@ -129,10 +130,10 @@ val propertyTest = tasks.register<Test>("propertyTest") {
     systemProperty(jqwikTriesProperty, propertyTries)
 }
 
-val fuzzInputs = layout.projectDirectory.dir(fuzzInputsPath)
-val fuzzing = fuzzSeconds > 0
-val fuzzTargets = if (fuzzing) FuzzTargets.find(testSourceSet.java.srcDirs) else emptyList()
-val fuzzTaskNames = fuzzTargets.map { it.taskName() }.toSet() + fuzzTestName
+val fuzzInputs: Directory = layout.projectDirectory.dir(fuzzInputsPath)
+val fuzzing: Boolean = fuzzSeconds > 0
+val fuzzTargets: List<FuzzTarget> = if (fuzzing) FuzzTargets.find(testSourceSet.java.srcDirs) else emptyList()
+val fuzzTaskNames: Set<String> = fuzzTargets.map { it.taskName() }.toSet() + fuzzTestName
 
 tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
     testClassesDirs = testSourceSet.output.classesDirs
@@ -150,7 +151,7 @@ tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
     maxHeapSize = fuzzHeapSize
 }
 
-val fuzzTasks = fuzzTargets.map { target ->
+val fuzzTasks: List<TaskProvider<Test>> = fuzzTargets.map { target ->
     tasks.register<Test>(target.taskName()) {
         group = "verification"
         description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
@@ -165,7 +166,7 @@ val fuzzTasks = fuzzTargets.map { target ->
     }
 }
 
-val fuzzTest = tasks.register<Test>(fuzzTestName) {
+val fuzzTest: TaskProvider<Test> = tasks.register<Test>(fuzzTestName) {
     group = "verification"
     description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
     dependsOn(fuzzTasks)

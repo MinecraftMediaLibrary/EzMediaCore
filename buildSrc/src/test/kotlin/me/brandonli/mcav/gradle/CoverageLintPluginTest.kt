@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -39,18 +41,18 @@ class CoverageLintPluginTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered() {
-        val project = directory.toFile()
+    fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
         for (name in listOf("first", "second")) {
-            val module = project.resolve(name)
+            val module: File = project.resolve(name)
             module.mkdirs()
             module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.coverage' }\n")
-            val source = module.resolve(SOURCE_PATH)
+            val source: File = module.resolve(SOURCE_PATH)
             source.parentFile.mkdirs()
             source.writeText("public class Example { public int value() { return 42; } }\n")
         }
-        val result = GradleRunner.create()
+        val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments(":first:test", "--tests", "ExampleTest", ":first:coverageLint", ":second:coverageLint", "--stacktrace")

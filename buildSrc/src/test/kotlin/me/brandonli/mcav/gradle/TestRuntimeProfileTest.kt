@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test as GradleTest
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -32,9 +33,9 @@ class TestRuntimeProfileTest {
     }
 
     @Test
-    fun shouldGiveMutationTheTestArgumentsAndEverySystemPropertyExactlyOnce() {
-        val project = ProjectBuilder.builder().build()
-        val test = project.tasks.register("ordinaryTest", GradleTest::class.java).get()
+    fun shouldGiveMutationTheTestArgumentsAndEverySystemPropertyExactlyOnce(): Unit {
+        val project: Project = ProjectBuilder.builder().build()
+        val test: GradleTest = project.tasks.register("ordinaryTest", GradleTest::class.java).get()
         test.jvmArgs("--enable-native-access=ALL-UNNAMED", "-Dmcav.published.pom=build/pom.xml")
         test.maxHeapSize = "2g"
         test.jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-javaagent:coverage.jar") })

@@ -39,16 +39,16 @@ val docsImagePath: String = "mcav-docs/images/mcv2"
 val pythonReportPath: String = "test-results/pythonTest"
 
 dependencies {
-    val libraries = lwjglAliases.map { libs.libraryOf(it) }
+    val libraries: List<Provider<MinimalExternalModuleDependency>> = lwjglAliases.map { libs.libraryOf(it) }
     libraries.forEach { testImplementation(it) }
     addLwjglTestNatives(libraries)
 }
 
-val writeToolsClasspath = tasks.register("writeMcv2ToolsClasspath") {
+val writeToolsClasspath: TaskProvider<Task> = tasks.register("writeMcv2ToolsClasspath") {
     group = "verification"
     description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
-    val output = layout.buildDirectory.file(toolsClasspathPath)
-    val classpath = sourceSets.test.map { it.runtimeClasspath }
+    val output: Provider<RegularFile> = layout.buildDirectory.file(toolsClasspathPath)
+    val classpath: Provider<FileCollection> = sourceSets.test.map { it.runtimeClasspath }
     inputs.files(classpath)
     outputs.file(output)
     doLast {
@@ -65,9 +65,9 @@ pluginManager.withPlugin("info.solidsoft.pitest") {
     }
 }
 
-val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
-val pythonSources = layout.projectDirectory.dir(pythonSourcePath)
-val pythonTest = tasks.register<PythonTests>("pythonTest") {
+val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
+val pythonSources: Directory = layout.projectDirectory.dir(pythonSourcePath)
+val pythonTest: TaskProvider<PythonTests> = tasks.register<PythonTests>("pythonTest") {
     group = "verification"
     description = "Runs the Python codec tests in parallel processes, then the timing tests alone"
     useEnvironment(pythonEnvironment)

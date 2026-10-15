@@ -47,17 +47,17 @@ val javadocLinePrefix: String = " *"
 val lockCommentPrefix: String = "#"
 val lineSeparator: String = "\n"
 
-val uvTarget = HostPlatform.current().uvTarget
-val pinnedUvVersion = libs.versionOf(uvTool)
-val pinnedPythonVersion = libs.versionOf(pythonAlias)
-val pinnedPackages = pythonPackages.associateWith { libs.versionOf("$pythonPackageAliasPrefix$it") }
-val packageMarkers = mapOf(
+val uvTarget: String = HostPlatform.current().uvTarget
+val pinnedUvVersion: String = libs.versionOf(uvTool)
+val pinnedPythonVersion: String = libs.versionOf(pythonAlias)
+val pinnedPackages: Map<String, String> = pythonPackages.associateWith { libs.versionOf("$pythonPackageAliasPrefix$it") }
+val packageMarkers: Map<String, String> = mapOf(
     "clang-format" to "sys_platform != 'win32' or platform_machine != 'ARM64'",
     "moderngl" to "platform_machine != 'aarch64' and platform_machine != 'ARM64'"
 )
-val uvArchive = "$uvTool-$uvTarget" + if (isWindows) zipExtension else gzipTarExtension
-val uvPath = if (isWindows) windowsUvExecutable else "$uvTool-$uvTarget/$uvTool"
-val downloadUv = tasks.register<DownloadToolArchive>("downloadUv") {
+val uvArchive: String = "$uvTool-$uvTarget" + if (isWindows) zipExtension else gzipTarExtension
+val uvPath: String = if (isWindows) windowsUvExecutable else "$uvTool-$uvTarget/$uvTool"
+val downloadUv: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadUv") {
     group = "build setup"
     description = "Downloads the pinned uv and verifies its SHA-256"
     archiveUrl = "$uvReleasesUrl/$pinnedUvVersion/$uvArchive"
@@ -65,17 +65,17 @@ val downloadUv = tasks.register<DownloadToolArchive>("downloadUv") {
     executablePath = uvPath
     installationDirectory = layout.buildDirectory.dir("$uvToolsPath/$pinnedUvVersion")
 }
-val selectedUv = selectTool(uvTool, downloadUv.flatMap { it.installationDirectory.file(uvPath) })
-val requirementsLock = layout.projectDirectory.file(requirementsLockPath)
-val pythonInstallation = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
-val uvCache = layout.buildDirectory.dir(uvCachePath)
-val lockHeader = providers.fileContents(layout.settingsDirectory.file(licenseHeaderPath)).asText.map { header ->
+val selectedUv: Provider<RegularFile> = selectTool(uvTool, downloadUv.flatMap { it.installationDirectory.file(uvPath) })
+val requirementsLock: RegularFile = layout.projectDirectory.file(requirementsLockPath)
+val pythonInstallation: Provider<Directory> = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
+val uvCache: Provider<Directory> = layout.buildDirectory.dir(uvCachePath)
+val lockHeader: Provider<String> = providers.fileContents(layout.settingsDirectory.file(licenseHeaderPath)).asText.map { header ->
     header.trimEnd().lines().drop(1).dropLast(1).joinToString(lineSeparator, postfix = lineSeparator + lineSeparator) {
         lockCommentPrefix + it.removePrefix(javadocLinePrefix).trimEnd()
     }
 }
 
-val lockRequirements = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
+val lockRequirements: TaskProvider<LockPythonRequirements> = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
     group = "build setup"
     description = "Regenerates requirements.lock from the Python versions in the catalog"
     uvExecutable = selectedUv

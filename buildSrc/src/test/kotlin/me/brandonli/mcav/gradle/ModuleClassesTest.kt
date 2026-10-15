@@ -22,6 +22,7 @@ import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -66,7 +67,7 @@ class ModuleClassesTest {
             .toByteArray(Charsets.ISO_8859_1)
 
     private fun jar(name: String, vararg classes: String): File {
-        val file = folder.resolve(name).toFile()
+        val file: File = folder.resolve(name).toFile()
         ZipOutputStream(file.outputStream()).use { zip ->
             classes.forEach {
                 zip.putNextEntry(ZipEntry("$it.class"))
@@ -79,8 +80,8 @@ class ModuleClassesTest {
     }
 
     @Test
-    fun shouldReadTheModuleClassesThatAClassFileNamesInItsDescriptorsAndSignatures() {
-        val bytes = classBytes(
+    fun shouldReadTheModuleClassesThatAClassFileNamesInItsDescriptorsAndSignatures(): Unit {
+        val bytes: ByteArray = classBytes(
             RESULT_CLASS,
             "(Lme/brandonli/mcav/MCAV;)V",
             "Ljava/util/List<Lme/brandonli/mcav/bukkit/media/mcv2/Mcv2Result\$Statistics;>;",
@@ -98,19 +99,19 @@ class ModuleClassesTest {
     }
 
     @Test
-    fun shouldFindTheModuleClassesOfJarsAndFoldersButNoOthers() {
-        val classes = folder.resolve(CLASSES_DIRECTORY).toFile()
+    fun shouldFindTheModuleClassesOfJarsAndFoldersButNoOthers(): Unit {
+        val classes: File = folder.resolve(CLASSES_DIRECTORY).toFile()
         File(classes, VM_PACKAGE_PATH).mkdirs()
         File(classes, VM_PLAYER_CLASS_FILE).writeBytes(ByteArray(0))
         File(classes, VM_NOTES_FILE).writeText(NOT_A_CLASS)
-        val jar = jar(COMMON_JAR, MCAV_CLASS, "com/google/common/base/Preconditions")
+        val jar: File = jar(COMMON_JAR, MCAV_CLASS, "com/google/common/base/Preconditions")
         val available: Set<String> = ModuleClasses.available(listOf(classes, jar, folder.resolve(MISSING_JAR).toFile()))
         assertEquals(setOf("me/brandonli/mcav/vm/VMPlayer", MCAV_CLASS), available)
     }
 
     @Test
-    fun shouldRequireTheModuleClassesThatThePluginUsesAndTheDownloadedModulesHold() {
-        val plugin = folder.resolve(PLUGIN_DIRECTORY).toFile()
+    fun shouldRequireTheModuleClassesThatThePluginUsesAndTheDownloadedModulesHold(): Unit {
+        val plugin: File = folder.resolve(PLUGIN_DIRECTORY).toFile()
         File(plugin, PLUGIN_PACKAGE_PATH).mkdirs()
         File(plugin, PLUGIN_README_FILE).writeText(NOT_A_CLASS)
         File(plugin, SANDBOX_CLASS_FILE).writeBytes(
@@ -121,7 +122,7 @@ class ModuleClassesTest {
                 PACK_SERVER_CLASS
             )
         )
-        val modules = listOf(
+        val modules: List<File> = listOf(
             jar(COMMON_JAR, MCAV_CLASS),
             jar(BUKKIT_JAR, PACK_SERVER_CLASS)
         )
@@ -130,8 +131,8 @@ class ModuleClassesTest {
     }
 
     @Test
-    fun shouldWriteTheRequiredClassesOneALineIntoTheTaskResource() {
-        val plugin = folder.resolve(PLUGIN_DIRECTORY).toFile()
+    fun shouldWriteTheRequiredClassesOneALineIntoTheTaskResource(): Unit {
+        val plugin: File = folder.resolve(PLUGIN_DIRECTORY).toFile()
         File(plugin, PLUGIN_PACKAGE_PATH).mkdirs()
         File(plugin, SANDBOX_CLASS_FILE).writeBytes(
             classBytes(
@@ -140,8 +141,8 @@ class ModuleClassesTest {
                 PACK_SERVER_CLASS
             )
         )
-        val project = ProjectBuilder.builder().withProjectDir(folder.resolve(PROJECT_DIRECTORY).toFile()).build()
-        val task = project.tasks.register("requiredModuleClasses", RequiredModuleClassesTask::class.java).get()
+        val project: Project = ProjectBuilder.builder().withProjectDir(folder.resolve(PROJECT_DIRECTORY).toFile()).build()
+        val task: RequiredModuleClassesTask = project.tasks.register("requiredModuleClasses", RequiredModuleClassesTask::class.java).get()
         task.pluginClasses.from(plugin)
         task.modules.from(
             jar(COMMON_JAR, MCAV_CLASS),

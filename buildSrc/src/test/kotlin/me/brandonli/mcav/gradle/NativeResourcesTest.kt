@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -52,17 +53,17 @@ class NativeResourcesTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldBuildAndPackageTheGeneratedResourceArtifactIntoAShadowConsumer() {
-        val project = directory.toFile()
+    fun shouldBuildAndPackageTheGeneratedResourceArtifactIntoAShadowConsumer(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.python' }\n")
-        val catalog = project.resolve(CATALOG_PATH)
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
-        val producer = project.resolve(PRODUCER_PROJECT).apply { mkdirs() }
-        val sources = producer.resolve(NATIVE_SOURCES_PATH).apply { mkdirs() }
+        val producer: File = project.resolve(PRODUCER_PROJECT).apply { mkdirs() }
+        val sources: File = producer.resolve(NATIVE_SOURCES_PATH).apply { mkdirs() }
         sources.resolve(NATIVE_SOURCE).writeText("native fixture bytes")
-        val compiler = project.resolve(ZIG_EXECUTABLE).apply { writeText("unused fixture compiler") }
+        val compiler: File = project.resolve(ZIG_EXECUTABLE).apply { writeText("unused fixture compiler") }
         producer.resolve(BUILD_SCRIPT).writeText("""
             plugins { id 'mcav.natives' }
             tasks.named('buildMcv2Natives') {
@@ -74,7 +75,7 @@ class NativeResourcesTest {
                 }
             }
         """.trimIndent())
-        val consumer = project.resolve(CONSUMER_PROJECT).apply { mkdirs() }
+        val consumer: File = project.resolve(CONSUMER_PROJECT).apply { mkdirs() }
         consumer.resolve(BUILD_SCRIPT).writeText("""
             plugins {
                 id 'java'
@@ -88,10 +89,10 @@ class NativeResourcesTest {
             }
             tasks.named('shadowJar') { from(project.configurations.natives) }
         """.trimIndent())
-        val runner = GradleRunner.create().withProjectDir(project).withPluginClasspath()
+        val runner: GradleRunner = GradleRunner.create().withProjectDir(project).withPluginClasspath()
             .withEnvironment(System.getenv() + ("ZIG" to compiler.absolutePath))
             .withArguments(":consumer:shadowJar", "--stacktrace")
-        val first = runner.build()
+        val first: BuildResult = runner.build()
         val download: BuildTask? = first.task(":producer:downloadZig")
         assertNull(download)
 

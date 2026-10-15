@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.nio.file.Path
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -34,6 +35,7 @@ import org.mockito.Mockito.RETURNS_SELF
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.mockingDetails
+import org.mockito.invocation.Invocation
 
 class JupyterBookTest {
 
@@ -62,29 +64,30 @@ class JupyterBookTest {
     }
 
     @Test
-    fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask() {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register(BOOK_DIRECTORY, RecordingBook::class.java).get()
-        val source = directory.resolve(SOURCE_DIRECTORY).toFile()
+    fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task: RecordingBook = project.tasks.register(BOOK_DIRECTORY, RecordingBook::class.java).get()
+        val source: File = directory.resolve(SOURCE_DIRECTORY).toFile()
         source.mkdirs()
         source.resolve(BOOK_CONFIG_FILE).writeText("title: Fixture book\n")
         source.resolve(SPHINX_CONFIG_FILE).writeText("html_title = 'Stale title'\n")
         task.sources.from(project.fileTree(source))
         task.pythonExecutable.set(directory.resolve(MANAGED_PYTHON_DIRECTORY).toFile())
         task.outputDirectory.set(directory.resolve(HTML_DIRECTORY).toFile())
-        val commands = mutableListOf<List<String>>()
-        val processes = mock(ExecOperations::class.java)
-        val expectedConfiguration = "html_title = 'Fixture book'\n"
-        val expectedHtml = "<!doctype html><title>Fixture book</title>\n"
+        val commands: MutableList<List<String>> = mutableListOf<List<String>>()
+        val processes: ExecOperations = mock(ExecOperations::class.java)
+        val expectedConfiguration: String = "html_title = 'Fixture book'\n"
+        val expectedHtml: String = "<!doctype html><title>Fixture book</title>\n"
         doAnswer { invocation ->
-            val specification = mock(ExecSpec::class.java, RETURNS_SELF)
+            val specification: ExecSpec = mock(ExecSpec::class.java, RETURNS_SELF)
             invocation.getArgument<Action<ExecSpec>>(0).execute(specification)
-            val calls = mockingDetails(specification).invocations
-            val command = (calls.single { it.method.name == "commandLine" }.rawArguments[0] as Iterable<*>).map { it.toString() }
-            val staging = calls.single { it.method.name == "workingDir" }.rawArguments[0] as File
-            val arguments = command.drop(3)
+            val calls: Collection<Invocation> = mockingDetails(specification).invocations
+            val command: List<String> =
+                (calls.single { it.method.name == "commandLine" }.rawArguments[0] as Iterable<*>).map { it.toString() }
+            val staging: File = calls.single { it.method.name == "workingDir" }.rawArguments[0] as File
+            val arguments: List<String> = command.drop(3)
             commands += arguments
-            val book = staging.resolve(BOOK_DIRECTORY)
+            val book: File = staging.resolve(BOOK_DIRECTORY)
             val stagedConfiguration: String = book.resolve(BOOK_CONFIG_FILE).readText()
             assertEquals("title: Fixture book\n", stagedConfiguration)
             if (arguments.first() == "config") {
@@ -92,10 +95,10 @@ class JupyterBookTest {
             } else {
                 val generatedConfiguration: String = book.resolve(SPHINX_CONFIG_FILE).readText()
                 assertEquals(expectedConfiguration, generatedConfiguration)
-                val html = staging.resolve(HTML_OUTPUT_PATH)
+                val html: File = staging.resolve(HTML_OUTPUT_PATH)
                 html.mkdirs()
                 html.resolve(INDEX_FILE).writeText(expectedHtml)
-                val epub = staging.resolve(EPUB_OUTPUT_PATH)
+                val epub: File = staging.resolve(EPUB_OUTPUT_PATH)
                 epub.mkdirs()
                 epub.resolve(EPUB_FILE).writeText("not an HTML output")
             }

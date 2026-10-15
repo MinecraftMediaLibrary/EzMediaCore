@@ -20,6 +20,7 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import java.nio.file.Path
+import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -58,15 +59,15 @@ class PythonTestsTest {
     }
 
     @Test
-    fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess() {
-        val task = pythonTests(8)
-        val reports = directory.resolve(REPORTS_DIRECTORY).toFile()
+    fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess(): Unit {
+        val task: RecordingTests = pythonTests(8)
+        val reports: File = directory.resolve(REPORTS_DIRECTORY).toFile()
         reports.mkdirs()
         reports.resolve(STALE_REPORT).writeText("<testsuites/>")
-        val processes = RecordedProcesses("") { assertNoStaleReport(reports) }
+        val processes: RecordedProcesses = RecordedProcesses("") { assertNoStaleReport(reports) }
         task.recordedProcesses = processes.operations
         task.test()
-        val tests = directory.resolve(TESTS_DIRECTORY)
+        val tests: Path = directory.resolve(TESTS_DIRECTORY)
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
@@ -80,7 +81,7 @@ class PythonTestsTest {
         val workingDirectories: List<Any?> = processes.workingDirectories
         assertEquals(listOf(tests.toFile(), tests.toFile()), workingDirectories)
 
-        val variables = mapOf(
+        val variables: Map<String, String> = mapOf(
             "PYTHONNOUSERSITE" to "1",
             "PYTHONDONTWRITEBYTECODE" to "1",
             "PYTHONHASHSEED" to "0",
@@ -93,17 +94,17 @@ class PythonTestsTest {
     }
 
     @Test
-    fun shouldStartNoMoreProcessesThanGradleMayUse() {
-        val task = pythonTests(2)
-        val processes = RecordedProcesses("")
+    fun shouldStartNoMoreProcessesThanGradleMayUse(): Unit {
+        val task: RecordingTests = pythonTests(2)
+        val processes: RecordedProcesses = RecordedProcesses("")
         task.recordedProcesses = processes.operations
         task.test()
-        val parallel = processes.commands.first()
+        val parallel: List<String> = processes.commands.first()
         val processCount: String = parallel[parallel.indexOf(WORKERS_OPTION) + 1]
         assertEquals("2", processCount)
     }
 
-    private fun assertNoStaleReport(reports: File) {
+    private fun assertNoStaleReport(reports: File): Unit {
         val stale: Boolean = reports.resolve(STALE_REPORT).exists()
         assertFalse(stale)
     }
@@ -122,13 +123,13 @@ class PythonTestsTest {
     )
 
     private fun pythonTests(processCount: Int): RecordingTests {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val tests = directory.resolve(TESTS_DIRECTORY).toFile()
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val tests: File = directory.resolve(TESTS_DIRECTORY).toFile()
         tests.mkdirs()
-        val parallel = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
-        val timing = tests.resolve(TIMING_TEST)
+        val parallel: List<File> = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
+        val timing: File = tests.resolve(TIMING_TEST)
         (parallel + timing).forEach { it.writeText("") }
-        val task = project.tasks.register("pythonTest", RecordingTests::class.java).get()
+        val task: RecordingTests = project.tasks.register("pythonTest", RecordingTests::class.java).get()
         task.pythonExecutable.set(directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
         task.testDirectory.set(tests)
         task.parallelTests.from(parallel)

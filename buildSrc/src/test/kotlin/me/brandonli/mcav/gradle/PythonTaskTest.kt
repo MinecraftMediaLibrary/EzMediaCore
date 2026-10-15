@@ -20,7 +20,9 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import java.nio.file.Path
+import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -40,13 +42,13 @@ class PythonTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldRunATaskThatUsesTheEnvironmentAfterItOnItsLockPythonAndHost() {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val environment = project.tasks.register("installPythonEnvironment", PythonEnvironment::class.java)
+    fun shouldRunATaskThatUsesTheEnvironmentAfterItOnItsLockPythonAndHost(): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val environment: TaskProvider<PythonEnvironment> = project.tasks.register("installPythonEnvironment", PythonEnvironment::class.java)
         environment.get().requirements.set(directory.resolve(LOCK_FILE).toFile())
         environment.get().pythonVersion.set("3.13.16")
         environment.get().installationDirectory.set(directory.resolve(PYTHON_DIRECTORY).toFile())
-        val book = project.tasks.register("book", JupyterBook::class.java).get()
+        val book: JupyterBook = project.tasks.register("book", JupyterBook::class.java).get()
         book.useEnvironment(environment)
         val dependencies: Set<Task> = book.taskDependencies.getDependencies(book)
         assertEquals(setOf(environment.get()), dependencies)

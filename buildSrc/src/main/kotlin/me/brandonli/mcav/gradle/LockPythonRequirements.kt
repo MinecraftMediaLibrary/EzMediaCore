@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -82,13 +83,13 @@ abstract class LockPythonRequirements : DefaultTask() {
     protected abstract val processes: ExecOperations
 
     @TaskAction
-    fun lock() {
-        val uv = uvExecutable.get().asFile
+    fun lock(): Unit {
+        val uv: File = uvExecutable.get().asFile
         ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
-        val requirementsInput = temporaryDir.resolve(REQUIREMENTS_INPUT)
+        val requirementsInput: File = temporaryDir.resolve(REQUIREMENTS_INPUT)
         requirementsInput.writeText(requirementLines(versions.get(), markers.get()).joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
-        val lock = lockFile.get().asFile
-        val python = pythonVersion.get()
+        val lock: File = lockFile.get().asFile
+        val python: String = pythonVersion.get()
         processes.exec {
             commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
                 "--python", python, "--python-version", python.substringBeforeLast(VERSION_SEPARATOR), "--only-binary", ":all:",

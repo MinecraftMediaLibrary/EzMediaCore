@@ -55,15 +55,15 @@ val httpResourcePath: String = "mcav/http"
 val builtJarProperty: String = "mcav.http.jar"
 val builtJarPath: String = "libs/mcav-http.jar"
 
-val node = rootProject.extensions.getByType<NodeExtension>()
-val nodeSetup = rootProject.tasks.named("nodeSetup")
-val host = HostPlatform.current()
-val nodeInstallation = node.resolvedNodeDir.get()
-val nodeExecutable = NodeLayout.executable(nodeInstallation, host).asFile
-val corepackScript = NodeLayout.corepackScript(nodeInstallation, host).asFile
-val nodePath = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv(pathVariable)
+val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
+val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
+val host: HostPlatform = HostPlatform.current()
+val nodeInstallation: Directory = node.resolvedNodeDir.get()
+val nodeExecutable: File = NodeLayout.executable(nodeInstallation, host).asFile
+val corepackScript: File = NodeLayout.corepackScript(nodeInstallation, host).asFile
+val nodePath: String = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv(pathVariable)
 
-val pnpmProjectInstall = tasks.register<Exec>("pnpmProjectInstall") {
+val pnpmProjectInstall: TaskProvider<Exec> = tasks.register<Exec>("pnpmProjectInstall") {
     group = "build"
     description = "Installs the pnpm dependencies of the website"
     dependsOn(nodeSetup)
@@ -77,7 +77,7 @@ val pnpmProjectInstall = tasks.register<Exec>("pnpmProjectInstall") {
     outputs.file(installedModulesPath)
 }
 
-val buildWebsite = tasks.register<Exec>("buildWebsite") {
+val buildWebsite: TaskProvider<Exec> = tasks.register<Exec>("buildWebsite") {
     group = "build"
     description = "Builds the Next.js website"
     dependsOn(pnpmProjectInstall)
@@ -96,7 +96,7 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
     outputs.cacheIf { false }
 }
 
-val testWebsite = tasks.register<Exec>("testWebsite") {
+val testWebsite: TaskProvider<Exec> = tasks.register<Exec>("testWebsite") {
     group = "verification"
     description = "Runs the tests of the website"
     dependsOn(pnpmProjectInstall)
@@ -108,7 +108,7 @@ val testWebsite = tasks.register<Exec>("testWebsite") {
     inputs.dir(websiteSourcePath)
     inputs.dir(websiteTestPath)
     inputs.file(packageJsonPath)
-    val passed = layout.buildDirectory.file(websiteTestsPassedPath)
+    val passed: Provider<RegularFile> = layout.buildDirectory.file(websiteTestsPassedPath)
     outputs.file(passed)
     doLast {
         passed.get().asFile.writeText(passedMarker)
@@ -137,7 +137,7 @@ tasks.named<Jar>("sourcesJar") {
     }
 }
 
-val builtJar = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
+val builtJar: String = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
     dependsOn(tasks.jar)
     jvmArgs(builtJar)

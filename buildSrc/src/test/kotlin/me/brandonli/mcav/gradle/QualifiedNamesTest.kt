@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test
 class QualifiedNamesTest {
 
     @Test
-    fun shouldReportAQualifiedNameInCode() {
-        val source = """
+    fun shouldReportAQualifiedNameInCode(): Unit {
+        val source: String = """
             package me.example;
 
             final class Example {
@@ -39,8 +39,8 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldReportEveryOccurrenceAndStopAtTheOuterType() {
-        val source = """
+    fun shouldReportEveryOccurrenceAndStopAtTheOuterType(): Unit {
+        val source: String = """
             final class Example {
               final java.util.Map.Entry<String, java.util.List<String>> entry = null;
             }
@@ -50,8 +50,8 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldAcceptAClashMarkedWithItsReason() {
-        val source = """
+    fun shouldAcceptAClashMarkedWithItsReason(): Unit {
+        val source: String = """
             import org.bukkit.entity.Display;
 
             final class Example {
@@ -63,15 +63,15 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldWantAReasonAfterTheMarker() {
-        val source = "final class Example {\n  net.minecraft.world.entity.Display handle; // fqn:   \n}"
+    fun shouldWantAReasonAfterTheMarker(): Unit {
+        val source: String = "final class Example {\n  net.minecraft.world.entity.Display handle; // fqn:   \n}"
         val found: List<QualifiedName> = QualifiedNames.find(source)
         assertEquals(listOf(QualifiedName(2, "net.minecraft.world.entity.Display")), found)
     }
 
     @Test
-    fun shouldIgnoreCommentsAndJavadoc() {
-        val source = """
+    fun shouldIgnoreCommentsAndJavadoc(): Unit {
+        val source: String = """
             /**
              * Wraps a {@link java.util.List}, see {@link org.bukkit.Bukkit#getServer()}.
              */
@@ -85,9 +85,9 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldIgnoreStringsCharactersAndTextBlocks() {
-        val quotes = "\"\"\""
-        val source = listOf(
+    fun shouldIgnoreStringsCharactersAndTextBlocks(): Unit {
+        val quotes: String = "\"\"\""
+        val source: String = listOf(
             "final class Example {",
             "  final String name = \"java.util.List \\\" org.bukkit.Bukkit\";",
             "  final char quote = '\"';",
@@ -103,8 +103,8 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldIgnorePackageAndImportDeclarations() {
-        val source = """
+    fun shouldIgnorePackageAndImportDeclarations(): Unit {
+        val source: String = """
             package me.example.tool;
 
             import java.util.List;
@@ -117,8 +117,8 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldIgnoreMemberChainsAndOtherPackageRoots() {
-        val source = """
+    fun shouldIgnoreMemberChainsAndOtherPackageRoots(): Unit {
+        val source: String = """
             final class Example {
               int a = this.me.Values.size;
               int b = config.net.Limit;
@@ -130,8 +130,8 @@ class QualifiedNamesTest {
     }
 
     @Test
-    fun shouldKeepTheLineOfCodeAfterAMultilineComment() {
-        val source = "/*\n java.util.List\n*/ java.util.Set<String> set;"
+    fun shouldKeepTheLineOfCodeAfterAMultilineComment(): Unit {
+        val source: String = "/*\n java.util.List\n*/ java.util.Set<String> set;"
         val found: List<QualifiedName> = QualifiedNames.find(source)
         assertEquals(listOf(QualifiedName(3, "java.util.Set")), found)
     }

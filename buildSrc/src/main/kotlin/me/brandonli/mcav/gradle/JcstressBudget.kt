@@ -19,18 +19,19 @@
 package me.brandonli.mcav.gradle
 
 import java.io.File
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import org.gradle.api.GradleException
 
 object JcstressBudget {
 
-    private const val CONFIGURATIONS = 14
-    private const val JVM_START_MILLISECONDS = 2_000L
-    private const val MINIMUM_ITERATION_MILLISECONDS = 50L
-    private const val MAXIMUM_ITERATION_MILLISECONDS = 10_000L
-    private const val MILLISECONDS_PER_MINUTE = 60_000L
+    private const val CONFIGURATIONS: Int = 14
+    private const val JVM_START_MILLISECONDS: Long = 2_000L
+    private const val MINIMUM_ITERATION_MILLISECONDS: Long = 50L
+    private const val MAXIMUM_ITERATION_MILLISECONDS: Long = 10_000L
+    private const val MILLISECONDS_PER_MINUTE: Long = 60_000L
     private const val TEST_LIST_ENTRY: String = "META-INF/TestList"
-    private const val TEST_LINE = "JCTEST"
+    private const val TEST_LINE: String = "JCTEST"
     private const val NAME_LENGTH_TERMINATOR: Char = 'S'
 
     private const val CPUS_PER_RUN: Int = 2
@@ -47,29 +48,29 @@ object JcstressBudget {
     )
 
     fun countTests(jar: File, selection: String?): Int {
-        val pattern = selection?.let { Regex(it) }
+        val pattern: Regex? = selection?.let { Regex(it) }
         ZipFile(jar).use { zip ->
-            val entry = zip.getEntry(TEST_LIST_ENTRY) ?: return 0
-            val lines = zip.getInputStream(entry).reader().readLines()
+            val entry: ZipEntry = zip.getEntry(TEST_LIST_ENTRY) ?: return 0
+            val lines: List<String> = zip.getInputStream(entry).reader().readLines()
             return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(testName(line))) }
         }
     }
 
     private fun testName(line: String): String {
-        val lengthEnd = line.indexOf(NAME_LENGTH_TERMINATOR, TEST_LINE.length)
-        val length = line.substring(TEST_LINE.length, lengthEnd).toInt()
+        val lengthEnd: Int = line.indexOf(NAME_LENGTH_TERMINATOR, TEST_LINE.length)
+        val length: Int = line.substring(TEST_LINE.length, lengthEnd).toInt()
         return line.substring(lengthEnd + 1, lengthEnd + 1 + length)
     }
 
     fun iterationMilliseconds(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
-        val message = "Jcstress mode $mode is unknown!"
-        val preset = PRESETS[mode] ?: throw GradleException(message)
-        val runs = testCount.toLong() * CONFIGURATIONS * (preset.forks + preset.forks * preset.stressMultiplier)
-        val parallelRuns = maxOf(1, cpus / CPUS_PER_RUN)
-        val budgetMilliseconds = budgetMinutes * MILLISECONDS_PER_MINUTE
-        val startMilliseconds = runs * JVM_START_MILLISECONDS / parallelRuns
-        val iterationBudget = budgetMilliseconds / ITERATION_SHARE_OF_BUDGET - startMilliseconds
-        val perIteration = iterationBudget * parallelRuns / maxOf(1L, runs * preset.iterations)
+        val message: String = "Jcstress mode $mode is unknown!"
+        val preset: Preset = PRESETS[mode] ?: throw GradleException(message)
+        val runs: Long = testCount.toLong() * CONFIGURATIONS * (preset.forks + preset.forks * preset.stressMultiplier)
+        val parallelRuns: Int = maxOf(1, cpus / CPUS_PER_RUN)
+        val budgetMilliseconds: Long = budgetMinutes * MILLISECONDS_PER_MINUTE
+        val startMilliseconds: Long = runs * JVM_START_MILLISECONDS / parallelRuns
+        val iterationBudget: Long = budgetMilliseconds / ITERATION_SHARE_OF_BUDGET - startMilliseconds
+        val perIteration: Long = iterationBudget * parallelRuns / maxOf(1L, runs * preset.iterations)
         return perIteration.coerceIn(MINIMUM_ITERATION_MILLISECONDS, MAXIMUM_ITERATION_MILLISECONDS)
     }
 }

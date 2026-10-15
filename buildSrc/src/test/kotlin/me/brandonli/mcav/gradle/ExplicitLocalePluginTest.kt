@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -42,14 +44,14 @@ class ExplicitLocalePluginTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldRequireProductionNumberFormattingToChooseALocale() {
-        val project = directory.toFile()
+    fun shouldRequireProductionNumberFormattingToChooseALocale(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'locale-fixture'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.java-library' }\n")
-        val catalog = project.resolve(CATALOG_PATH)
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
-        val source = project.resolve(SOURCE_PATH)
+        val source: File = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText(
             """
@@ -62,11 +64,11 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
-        val runner = GradleRunner.create()
+        val runner: GradleRunner = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments("compileJava", "--no-parallel", "--max-workers=1")
-        val rejected = runner.buildAndFail()
+        val rejected: BuildResult = runner.buildAndFail()
         val flagged: Boolean = rejected.output.contains("error: [DefaultLocale]")
         assertTrue(flagged, rejected.output)
 
@@ -82,7 +84,7 @@ class ExplicitLocalePluginTest {
             }
             """.trimIndent()
         )
-        val accepted = runner.build()
+        val accepted: BuildResult = runner.build()
         val outcome: TaskOutcome? = accepted.task(":compileJava")?.outcome
         assertEquals(TaskOutcome.SUCCESS, outcome, accepted.output)
     }

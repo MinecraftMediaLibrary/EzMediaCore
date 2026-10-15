@@ -20,7 +20,7 @@ package me.brandonli.mcav.gradle
 
 object JavaSource {
 
-    private const val TEXT_BLOCK_QUOTES = "\"\"\""
+    private const val TEXT_BLOCK_QUOTES: String = "\"\"\""
 
     private const val LINE_COMMENT_START: String = "//"
     private const val BLOCK_COMMENT_START: String = "/*"
@@ -42,9 +42,9 @@ object JavaSource {
 
     private class Masker(private val source: String, private val maskLiterals: Boolean) {
 
-        private val out = StringBuilder(source.length)
-        private var state = State.CODE
-        private var index = 0
+        private val out: StringBuilder = StringBuilder(source.length)
+        private var state: State = State.CODE
+        private var index: Int = 0
 
         fun mask(): String {
             while (index < source.length) {
@@ -60,7 +60,7 @@ object JavaSource {
             return out.toString()
         }
 
-        private fun code() {
+        private fun code(): Unit {
             when {
                 source.startsWith(LINE_COMMENT_START, index) -> enter(State.LINE_COMMENT, LINE_COMMENT_START.length)
                 source.startsWith(BLOCK_COMMENT_START, index) -> enter(State.BLOCK_COMMENT, BLOCK_COMMENT_START.length)
@@ -71,14 +71,14 @@ object JavaSource {
             }
         }
 
-        private fun lineComment() {
+        private fun lineComment(): Unit {
             if (source[index] == NEW_LINE) {
                 state = State.CODE
             }
             blank(1)
         }
 
-        private fun blockComment() {
+        private fun blockComment(): Unit {
             if (source.startsWith(BLOCK_COMMENT_END, index)) {
                 enter(State.CODE, BLOCK_COMMENT_END.length)
             } else {
@@ -86,7 +86,7 @@ object JavaSource {
             }
         }
 
-        private fun textBlock() {
+        private fun textBlock(): Unit {
             when {
                 source[index] == ESCAPE -> literalCharacters(ESCAPE_SEQUENCE_LENGTH)
                 source.startsWith(TEXT_BLOCK_QUOTES, index) -> enter(State.CODE, TEXT_BLOCK_QUOTES.length)
@@ -94,7 +94,7 @@ object JavaSource {
             }
         }
 
-        private fun literal(quote: Char) {
+        private fun literal(quote: Char): Unit {
             when (source[index]) {
                 ESCAPE -> literalCharacters(ESCAPE_SEQUENCE_LENGTH)
                 quote, NEW_LINE -> enter(State.CODE, 1)
@@ -102,14 +102,14 @@ object JavaSource {
             }
         }
 
-        private fun enter(next: State, length: Int) {
-            val comment = state == State.BLOCK_COMMENT ||
+        private fun enter(next: State, length: Int): Unit {
+            val comment: Boolean = state == State.BLOCK_COMMENT ||
                 next == State.LINE_COMMENT || next == State.BLOCK_COMMENT
             state = next
             if (comment) blank(length) else literalCharacters(length)
         }
 
-        private fun literalCharacters(length: Int) {
+        private fun literalCharacters(length: Int): Unit {
             if (maskLiterals) {
                 blank(length)
             } else {
@@ -117,15 +117,15 @@ object JavaSource {
             }
         }
 
-        private fun blank(length: Int) {
-            val end = minOf(index + length, source.length)
+        private fun blank(length: Int): Unit {
+            val end: Int = minOf(index + length, source.length)
             while (index < end) {
                 out.append(if (source[index] == NEW_LINE) NEW_LINE else BLANK)
                 index++
             }
         }
 
-        private fun keep() {
+        private fun keep(): Unit {
             out.append(source[index])
             index++
         }

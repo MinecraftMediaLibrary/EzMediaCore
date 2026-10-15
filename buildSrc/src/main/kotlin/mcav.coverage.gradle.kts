@@ -39,14 +39,14 @@ jacoco {
     toolVersion = CatalogVersions.JACOCO
 }
 
-val jacocoReport = tasks.named<JacocoReport>("jacocoTestReport") {
+val jacocoReport: TaskProvider<JacocoReport> = tasks.named<JacocoReport>("jacocoTestReport") {
     reports {
         xml.required = true
         html.required = true
     }
 }
 
-val instrumentedClasses = listOf("me.brandonli.*", "org.cef.browser.McavOffscreenBrowser*")
+val instrumentedClasses: List<String> = listOf("me.brandonli.*", "org.cef.browser.McavOffscreenBrowser*")
 
 tasks.withType<Test>().configureEach {
     extensions.configure<JacocoTaskExtension> {
@@ -54,11 +54,11 @@ tasks.withType<Test>().configureEach {
     }
 }
 
-val testTask = tasks.named<Test>("test") {
+val testTask: TaskProvider<Test> = tasks.named<Test>("test") {
     finalizedBy(jacocoReport)
 }
 
-val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
+val coverageLint: TaskProvider<CoverageLintTask> = tasks.register<CoverageLintTask>("coverageLint") {
     group = "verification"
     description = "Runs the tests and reports every line and branch of production code that no test covers"
     dependsOn(testTask, jacocoReport)
@@ -66,7 +66,7 @@ val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
     exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
     testsFiltered = testTask.map {
-        val filter = it.filter as DefaultTestFilter
+        val filter: DefaultTestFilter = it.filter as DefaultTestFilter
         filter.commandLineIncludePatterns.isNotEmpty() || filter.includePatterns.isNotEmpty() ||
             filter.excludePatterns.isNotEmpty() || it.includes.isNotEmpty() || it.excludes.isNotEmpty()
     }
@@ -79,7 +79,7 @@ tasks.withType<Test>().named { it == propertyTestName || it.startsWith(fuzzTaskP
     }
 }
 
-val coverageGate = providers.gradleProperty(coverageProperty).map { !it.equals(disabledValue, ignoreCase = true) }.getOrElse(true)
+val coverageGate: Boolean = providers.gradleProperty(coverageProperty).map { !it.equals(disabledValue, ignoreCase = true) }.getOrElse(true)
 if (coverageGate) {
     tasks.check {
         dependsOn(coverageLint)

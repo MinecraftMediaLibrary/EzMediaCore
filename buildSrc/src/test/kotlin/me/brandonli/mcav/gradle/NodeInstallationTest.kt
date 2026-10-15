@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -40,17 +42,17 @@ class NodeInstallationTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldFormatAndTestEveryModuleWithTheOneNodeTheRootInstalls() {
-        val project = directory.toFile()
+    fun shouldFormatAndTestEveryModuleWithTheOneNodeTheRootInstalls(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'node-fixture'\ninclude 'first', 'second'\n")
         Path.of(REPOSITORY_DIRECTORY, KOTLIN_BUILD_SCRIPT).toFile().copyTo(project.resolve(KOTLIN_BUILD_SCRIPT))
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(project.resolve(CATALOG_PATH))
         for (name in listOf("first", "second")) {
-            val module = project.resolve(name)
+            val module: File = project.resolve(name)
             module.mkdirs()
             module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.formatting'; id 'mcav.script-testing' }\n")
         }
-        val result = GradleRunner.create()
+        val result: BuildResult = GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
             .withArguments("spotlessJava", "test", "--dry-run", "--stacktrace")

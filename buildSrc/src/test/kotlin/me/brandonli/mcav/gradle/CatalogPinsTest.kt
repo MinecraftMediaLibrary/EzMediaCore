@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.Properties
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -36,25 +37,25 @@ class CatalogPinsTest {
         val PYTHON_MINOR_VERSION: Regex = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"")
     }
 
-    private val repository = Path.of(REPOSITORY_DIRECTORY).toFile()
+    private val repository: File = Path.of(REPOSITORY_DIRECTORY).toFile()
 
-    private val catalog = repository.resolve(CATALOG_PATH).readText()
+    private val catalog: String = repository.resolve(CATALOG_PATH).readText()
 
     private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
 
     @Test
-    fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog() {
-        val readTheDocs = repository.resolve(READ_THE_DOCS_CONFIG).readText()
-        val minor = PYTHON_MINOR_VERSION.find(readTheDocs)!!.groupValues[1]
+    fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog(): Unit {
+        val readTheDocs: String = repository.resolve(READ_THE_DOCS_CONFIG).readText()
+        val minor: String = PYTHON_MINOR_VERSION.find(readTheDocs)!!.groupValues[1]
         val catalogMinor: String = version("python").split('.').take(2).joinToString(".")
         assertEquals(catalogMinor, minor)
     }
 
     @Test
-    fun shouldPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse() {
-        val zig = version("zig")
-        val uv = version("uv")
-        val archives = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
+    fun shouldPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse(): Unit {
+        val zig: String = version("zig")
+        val uv: String = version("uv")
+        val archives: List<String> = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
             listOf("amd64", "arm64").map { HostPlatform.normalize(system, it) }
         }.flatMap { host ->
             listOf(
@@ -62,7 +63,7 @@ class CatalogPinsTest {
                 "uv/$uv/uv-${host.uvTarget}" + if (host.isWindows) ".zip" else ".tar.gz"
             )
         }
-        val pins = Properties()
+        val pins: Properties = Properties()
         repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use { pins.load(it) }
         val pinnedArchives: Set<String> = pins.stringPropertyNames()
         assertEquals(archives.toSet(), pinnedArchives)

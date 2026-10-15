@@ -22,9 +22,9 @@ data class ConcatenatedLogMessage(val line: Int, val call: String)
 
 object LogMessages {
 
-    private val CALL = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
+    private val CALL: Regex = Regex("""\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*(trace|debug|info|warn|error)\s*\(""")
 
-    private val LOGGER = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
+    private val LOGGER: Regex = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
 
     private const val RECEIVER_GROUP: Int = 1
 
@@ -36,13 +36,13 @@ object LogMessages {
 
     private const val FIRST_LINE_NUMBER: Int = 1
 
-    private val OPENING = setOf('(', '[', '{')
+    private val OPENING: Set<Char> = setOf('(', '[', '{')
 
-    private val CLOSING = setOf(')', ']', '}')
+    private val CLOSING: Set<Char> = setOf(')', ']', '}')
 
     fun find(source: String): List<ConcatenatedLogMessage> {
-        val code = JavaSource.mask(source)
-        val text = JavaSource.withoutComments(source)
+        val code: String = JavaSource.mask(source)
+        val text: String = JavaSource.withoutComments(source)
         return CALL.findAll(code)
             .filter { LOGGER.matches(it.groupValues[RECEIVER_GROUP]) }
             .filter { call -> isConcatenated(arguments(text, code, call.range.last + 1)) }
@@ -55,12 +55,12 @@ object LogMessages {
     }
 
     private fun arguments(source: String, code: String, start: Int): List<Argument> {
-        val arguments = mutableListOf<Argument>()
-        var depth = 0
-        var argumentStart = start
+        val arguments: MutableList<LogMessages.Argument> = mutableListOf<Argument>()
+        var depth: Int = 0
+        var argumentStart: Int = start
         for (index in start until code.length) {
-            val character = code[index]
-            val ends = character in CLOSING && depth == 0
+            val character: Char = code[index]
+            val ends: Boolean = character in CLOSING && depth == 0
             when {
                 character in OPENING -> depth++
                 character in CLOSING && depth > 0 -> depth--
@@ -73,7 +73,7 @@ object LogMessages {
                 break
             }
         }
-        val noArguments = arguments.size == 1 && arguments[0].text.isBlank()
+        val noArguments: Boolean = arguments.size == 1 && arguments[0].text.isBlank()
         return if (noArguments) emptyList() else arguments
     }
 
@@ -82,9 +82,9 @@ object LogMessages {
     private class Argument(val text: String, private val code: String) {
 
         fun joinsStrings(): Boolean {
-            var depth = 0
-            var plus = false
-            var literal = false
+            var depth: Int = 0
+            var plus: Boolean = false
+            var literal: Boolean = false
             code.forEachIndexed { index, character ->
                 when {
                     character in OPENING -> depth++

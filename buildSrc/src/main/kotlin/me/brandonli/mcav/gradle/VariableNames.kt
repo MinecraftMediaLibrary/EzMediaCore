@@ -36,8 +36,10 @@ import com.sun.source.util.Trees
 import java.io.File
 import java.net.URI
 import javax.lang.model.element.Modifier
+import javax.tools.JavaCompiler
 import javax.tools.JavaFileObject
 import javax.tools.SimpleJavaFileObject
+import javax.tools.StandardJavaFileManager
 import javax.tools.ToolProvider
 
 data class UndescriptiveName(val line: Long, val name: String, val kind: String, val member: String)
@@ -50,29 +52,30 @@ object VariableNames {
     private const val PACKAGE_SEPARATOR: String = "."
     private const val MEMBER_SEPARATOR: String = "#"
 
-    private val ABBREVIATIONS = setOf("buf", "tmp", "cfg", "idx", "cnt", "val", "res", "sb", "ctx", "mgr", "str", "arr", "len", "num")
+    private val ABBREVIATIONS: Set<String> =
+        setOf("buf", "tmp", "cfg", "idx", "cnt", "val", "res", "sb", "ctx", "mgr", "str", "arr", "len", "num")
 
     fun find(source: String): List<UndescriptiveName> {
-        val file = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
+        val file: SimpleJavaFileObject = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
         }
         return find(listOf(file)).values.single()
     }
 
     fun findInFiles(files: List<File>): Map<File, List<UndescriptiveName>> {
-        val compiler = ToolProvider.getSystemJavaCompiler()
-        val fileManager = compiler.getStandardFileManager(null, null, Charsets.UTF_8)
+        val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
+        val fileManager: StandardJavaFileManager = compiler.getStandardFileManager(null, null, Charsets.UTF_8)
         fileManager.use {
-            val objects = it.getJavaFileObjectsFromFiles(files).toList()
-            val byUri = files.associateBy { file -> file.toPath().toUri() }
+            val objects: List<JavaFileObject> = it.getJavaFileObjectsFromFiles(files).toList()
+            val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
             return find(objects).mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
         }
     }
 
     private fun find(files: List<JavaFileObject>): Map<URI, List<UndescriptiveName>> {
-        val compiler = ToolProvider.getSystemJavaCompiler()
-        val task = compiler.getTask(null, null, { }, listOf("-proc:none"), null, files) as JavacTask
-        val positions = Trees.instance(task).sourcePositions
+        val compiler: JavaCompiler = ToolProvider.getSystemJavaCompiler()
+        val task: JavacTask = compiler.getTask(null, null, { }, listOf("-proc:none"), null, files) as JavacTask
+        val positions: SourcePositions = Trees.instance(task).sourcePositions
         return task.parse().associate { unit -> unit.sourceFile.toUri() to Scanner(unit, positions).names() }
     }
 
@@ -81,7 +84,7 @@ object VariableNames {
         private val positions: SourcePositions,
     ) : TreePathScanner<Unit, Unit>() {
 
-        private val found = mutableListOf<UndescriptiveName>()
+        private val found: MutableList<UndescriptiveName> = mutableListOf<UndescriptiveName>()
 
         fun names(): List<UndescriptiveName> {
             scan(unit, Unit)
@@ -89,9 +92,9 @@ object VariableNames {
         }
 
         override fun visitVariable(node: VariableTree, unused: Unit?): Unit? {
-            val name = node.name.toString()
+            val name: String = node.name.toString()
             if (isUndescriptive(name)) {
-                val line = unit.lineMap.getLineNumber(positions.getStartPosition(unit, node))
+                val line: Long = unit.lineMap.getLineNumber(positions.getStartPosition(unit, node))
                 found += UndescriptiveName(line, name, kind(node), "${owner()}$MEMBER_SEPARATOR$name")
             }
             return super.visitVariable(node, unused)
@@ -101,7 +104,7 @@ object VariableNames {
             name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
 
         private fun kind(node: VariableTree): String {
-            val parent = currentPath.parentPath.leaf
+            val parent: Tree = currentPath.parentPath.leaf
             return when {
                 parent is ClassTree && parent.kind == Tree.Kind.RECORD && Modifier.STATIC !in node.modifiers.flags -> "record component"
                 parent is ClassTree -> "field"
@@ -116,13 +119,13 @@ object VariableNames {
         }
 
         private fun owner(): String {
-            val types = generateSequence(currentPath) { it.parentPath }
+            val types: List<String> = generateSequence(currentPath) { it.parentPath }
                 .map { it.leaf }
                 .filterIsInstance<ClassTree>()
                 .map { it.simpleName.toString().ifEmpty { ANONYMOUS_CLASS } }
                 .toList()
                 .asReversed()
-            val packageName = unit.packageName?.toString()
+            val packageName: String? = unit.packageName?.toString()
             return (listOfNotNull(packageName) + types).joinToString(PACKAGE_SEPARATOR)
         }
     }

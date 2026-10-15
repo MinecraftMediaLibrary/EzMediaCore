@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Test
 class JavaSourceTest {
 
     @Test
-    fun shouldMaskCommentsAndLiteralsAndKeepEveryOffset() {
-        val quotes = "\"\"\""
-        val source = listOf(
+    fun shouldMaskCommentsAndLiteralsAndKeepEveryOffset(): Unit {
+        val quotes: String = "\"\"\""
+        val source: String = listOf(
             "int a = 1; // note",
             "/* block",
             "   end */ call(\"text, (\", 'c');",
@@ -34,7 +34,7 @@ class JavaSourceTest {
             "  line \\$quotes",
             "  $quotes;",
         ).joinToString("\n")
-        val expected = listOf(
+        val expected: String = listOf(
             "int a = 1;" + " ".repeat(8),
             " ".repeat(8),
             " ".repeat(9) + " call(" + " ".repeat(9) + ", " + " ".repeat(3) + ");",
@@ -47,7 +47,7 @@ class JavaSourceTest {
     }
 
     @Test
-    fun shouldEndALiteralThatLacksItsQuoteAtTheEndOfTheLine() {
+    fun shouldEndALiteralThatLacksItsQuoteAtTheEndOfTheLine(): Unit {
         val masked: String = JavaSource.mask("\"a\nnext")
         assertEquals("  \nnext", masked)
     }

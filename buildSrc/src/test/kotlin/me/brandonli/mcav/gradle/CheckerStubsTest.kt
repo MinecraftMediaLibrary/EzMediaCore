@@ -37,8 +37,8 @@ class CheckerStubsTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldGiveTheSharedGuavaAndPaperStubsOnlyToTheirConsumers() {
-        val projects = listOf("mcav-common", BUKKIT_PROJECT, "mcav-plugin", "mcav-browser", "mcav-discord", "mcav-http",
+    fun shouldGiveTheSharedGuavaAndPaperStubsOnlyToTheirConsumers(): Unit {
+        val projects: List<String> = listOf("mcav-common", BUKKIT_PROJECT, "mcav-plugin", "mcav-browser", "mcav-discord", "mcav-http",
             "mcav-installer", "mcav-lwjgl", MOD_PROJECT, "mcav-vm", "mcav-vnc", "mcav-voicechat", "mcav-jcstress")
         (projects + listOf("shared", GUAVA_STUBS, "shared-paper")).forEach { directory.resolve(it).toFile().mkdirs() }
         val expected: Map<String, List<String>> = projects.associateWith { project ->
@@ -56,7 +56,7 @@ class CheckerStubsTest {
     }
 
     @Test
-    fun shouldNotPassStubFoldersThatDoNotExistToTheChecker() {
+    fun shouldNotPassStubFoldersThatDoNotExistToTheChecker(): Unit {
         val withoutFolders: List<String> = CheckerStubs.forProject(directory.toFile(), BUKKIT_PROJECT).map { it.name }
         assertEquals(emptyList<String>(), withoutFolders)
 

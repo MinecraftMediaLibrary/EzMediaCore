@@ -40,12 +40,12 @@ class TaskDescriptionsTest {
     }
 
     @Test
-    fun shouldStartEveryRegisteredTaskWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
-        val conventions = File(CONVENTIONS_DIRECTORY).listFiles { file -> file.name.endsWith(SCRIPT_EXTENSION) }!!.toList()
-        val scripts = conventions + File(BUILD_SCRIPT)
+    fun shouldStartEveryRegisteredTaskWithItsGroupAndAOneLineDescriptionInTheThirdPerson(): Unit {
+        val conventions: List<File> = File(CONVENTIONS_DIRECTORY).listFiles { file -> file.name.endsWith(SCRIPT_EXTENSION) }!!.toList()
+        val scripts: List<File> = conventions + File(BUILD_SCRIPT)
         val undescribed: List<String> = scripts.sorted()
             .filter { script ->
-                val text = script.readText()
+                val text: String = script.readText()
                 TASK_REGISTRATION.findAll(text).count() != DESCRIBED_REGISTRATION.findAll(text).count()
             }
             .map { it.path }

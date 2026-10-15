@@ -23,11 +23,11 @@ import java.io.File
 abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
-        const val CONCATENATED_MESSAGE =
+        const val CONCATENATED_MESSAGE: String =
             "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead."
     }
 
-    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
+    override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
         files.forEach { file ->
             LogMessages.find(file.readText()).forEach { found ->
                 reportViolation(file, found.line, listOf(found.call))

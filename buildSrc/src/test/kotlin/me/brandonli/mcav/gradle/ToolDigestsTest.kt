@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.security.MessageDigest
 import java.util.HexFormat
@@ -36,8 +37,8 @@ class ToolDigestsTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldStreamEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest() {
-        val file = directory.resolve(CONTENTS_FILE).toFile()
+    fun shouldStreamEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest(): Unit {
+        val file: File = directory.resolve(CONTENTS_FILE).toFile()
         file.writeBytes(byteArrayOf())
         val emptyDigest: String = ToolDigests.sha256(file)
         assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", emptyDigest)
@@ -46,9 +47,9 @@ class ToolDigestsTest {
         val shortDigest: String = ToolDigests.sha256(file)
         assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", shortDigest)
 
-        val contents = ByteArray(196_625) { index -> (index % 251).toByte() }
+        val contents: ByteArray = ByteArray(196_625) { index -> (index % 251).toByte() }
         file.writeBytes(contents)
-        val expected = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
+        val expected: String = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
         val longDigest: String = ToolDigests.sha256(file)
         assertEquals(expected, longDigest)
     }

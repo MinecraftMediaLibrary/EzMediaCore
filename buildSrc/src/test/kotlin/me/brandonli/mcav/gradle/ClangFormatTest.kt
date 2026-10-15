@@ -18,8 +18,10 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -50,8 +52,8 @@ class ClangFormatTest {
     }
 
     @Test
-    fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources() {
-        val processes = RecordedProcesses(VERSION_OUTPUT)
+    fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
         format(false, processes)
         val commands: List<List<String>> = processes.commands
         assertEquals(
@@ -61,18 +63,19 @@ class ClangFormatTest {
     }
 
     @Test
-    fun shouldRewriteTheSourcesInPlace() {
-        val processes = RecordedProcesses(VERSION_OUTPUT)
+    fun shouldRewriteTheSourcesInPlace(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
         format(true, processes)
-        val expected = listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "-i", STYLE_OPTION) + sources())
+        val expected: List<List<String>> =
+            listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "-i", STYLE_OPTION) + sources())
         val commands: List<List<String>> = processes.commands
         assertEquals(expected, commands)
     }
 
     @Test
-    fun shouldTouchNoSourceWithAnotherClangFormatVersion() {
-        val processes = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
-        val failure = assertThrows(GradleException::class.java) { format(true, processes) }
+    fun shouldTouchNoSourceWithAnotherClangFormatVersion(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
+        val failure: GradleException = assertThrows(GradleException::class.java) { format(true, processes) }
         val message: String? = failure.message
         assertEquals(
             "${clangFormat()} reports Ubuntu clang-format version 19.1.1, which is not the clang-format 18.1.8 this build pins!",
@@ -87,10 +90,10 @@ class ClangFormatTest {
 
     private fun sources(): List<String> = listOf(FIRST_SOURCE, SECOND_SOURCE).map { directory.resolve(it).toString() }
 
-    private fun format(rewrite: Boolean, processes: RecordedProcesses) {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register("format", RecordingFormat::class.java).get()
-        val files = listOf(SECOND_SOURCE, FIRST_SOURCE).map { directory.resolve(it).toFile() }
+    private fun format(rewrite: Boolean, processes: RecordedProcesses): Unit {
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task: RecordingFormat = project.tasks.register("format", RecordingFormat::class.java).get()
+        val files: List<File> = listOf(SECOND_SOURCE, FIRST_SOURCE).map { directory.resolve(it).toFile() }
         files.forEach { it.writeText("int main() {}\n") }
         task.clangFormat.set(directory.resolve(CLANG_FORMAT_EXECUTABLE).toFile())
         task.clangFormatVersion.set("18.1.8")

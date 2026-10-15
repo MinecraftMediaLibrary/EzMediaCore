@@ -36,13 +36,13 @@ class ToolVersionsTest {
     }
 
     @Test
-    fun shouldAcceptTheExactUvVersionIncludingItsBuildMetadataAndRejectOtherVersions() {
-        val processes = RecordedProcesses("uv 0.12.23 (build 2026-10-01)\n")
+    fun shouldAcceptTheExactUvVersionIncludingItsBuildMetadataAndRejectOtherVersions(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("uv 0.12.23 (build 2026-10-01)\n")
         ToolVersions.verify(processes.operations, File(UV_TOOL), UV_TOOL, "0.12.23")
         val commands: List<List<String>> = processes.commands
         assertEquals(listOf(listOf(UV_TOOL, VERSION_OPTION)), commands)
 
-        val failure = assertThrows(GradleException::class.java) {
+        val failure: GradleException = assertThrows(GradleException::class.java) {
             ToolVersions.verify(RecordedProcesses("uv 0.12.22\n").operations, File(UV_TOOL), UV_TOOL, "0.12.23")
         }
         val message: String? = failure.message
@@ -50,9 +50,9 @@ class ToolVersionsTest {
     }
 
     @Test
-    fun shouldAcceptTheExactClangFormatVersionWithAProviderPrefixAndRejectOtherToolsOrVersions() {
-        val prefix = "clang-format version "
-        val processes = RecordedProcesses("Ubuntu clang-format version 18.1.8 (distribution)\n")
+    fun shouldAcceptTheExactClangFormatVersionWithAProviderPrefixAndRejectOtherToolsOrVersions(): Unit {
+        val prefix: String = "clang-format version "
+        val processes: RecordedProcesses = RecordedProcesses("Ubuntu clang-format version 18.1.8 (distribution)\n")
         ToolVersions.verify(processes.operations, "clang-format", "clang-format", "18.1.8", prefix)
         val commands: List<List<String>> = processes.commands
         assertEquals(listOf(listOf("clang-format", VERSION_OPTION)), commands)
@@ -69,8 +69,8 @@ class ToolVersionsTest {
     }
 
     @Test
-    fun shouldAcceptTheBareZigVersionAndRejectOtherVersions() {
-        val processes = RecordedProcesses("0.16.0\n")
+    fun shouldAcceptTheBareZigVersionAndRejectOtherVersions(): Unit {
+        val processes: RecordedProcesses = RecordedProcesses("0.16.0\n")
         ToolVersions.verify(processes.operations, File(ZIG_TOOL), ZIG_TOOL, "0.16.0", prefix = "", argument = "version")
         val commands: List<List<String>> = processes.commands
         assertEquals(listOf(listOf(ZIG_TOOL, "version")), commands)

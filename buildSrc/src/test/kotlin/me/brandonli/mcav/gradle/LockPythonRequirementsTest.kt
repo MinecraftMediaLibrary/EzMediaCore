@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -58,8 +59,8 @@ class LockPythonRequirementsTest {
     }
 
     @Test
-    fun shouldSortTheRequirementsByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere() {
-        val marker = "sys_platform != 'win32' or platform_machine != 'ARM64'"
+    fun shouldSortTheRequirementsByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere(): Unit {
+        val marker: String = "sys_platform != 'win32' or platform_machine != 'ARM64'"
         val lines: List<String> = LockPythonRequirements.requirementLines(
             mapOf("pytest" to "9.1.1", NUMPY to NUMPY_VERSION, CLANG_FORMAT to CLANG_FORMAT_VERSION),
             mapOf(CLANG_FORMAT to marker)
@@ -68,11 +69,11 @@ class LockPythonRequirementsTest {
     }
 
     @Test
-    fun shouldCompileAUniversalHashedLockOfWheelsForThePythonMinorBelowTheLicenseHeader() {
-        val task = lockTask()
-        val lock = directory.resolve(LOCK_FILE).toFile()
-        val requirementsInput = task.temporaryDir.resolve(REQUIREMENTS_INPUT_FILE)
-        val processes = RecordedProcesses("uv 0.12.23\n") { command ->
+    fun shouldCompileAUniversalHashedLockOfWheelsForThePythonMinorBelowTheLicenseHeader(): Unit {
+        val task: RecordingLock = lockTask()
+        val lock: File = directory.resolve(LOCK_FILE).toFile()
+        val requirementsInput: File = task.temporaryDir.resolve(REQUIREMENTS_INPUT_FILE)
+        val processes: RecordedProcesses = RecordedProcesses("uv 0.12.23\n") { command ->
             if (command[1] == "pip") {
                 val requirements: String = requirementsInput.readText()
                 assertEquals("clang-format==18.1.8 ; platform_machine != 'ARM64'\nnumpy==2.5.3\n", requirements)
@@ -82,7 +83,7 @@ class LockPythonRequirementsTest {
         }
         task.recordedProcesses = processes.operations
         task.lock()
-        val uv = directory.resolve(UV_EXECUTABLE).toString()
+        val uv: String = directory.resolve(UV_EXECUTABLE).toString()
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
@@ -104,13 +105,13 @@ class LockPythonRequirementsTest {
     }
 
     @Test
-    fun shouldLeaveTheLockAsItIsWithAnUvOfAnotherVersion() {
-        val task = lockTask()
-        val lock = directory.resolve(LOCK_FILE).toFile()
+    fun shouldLeaveTheLockAsItIsWithAnUvOfAnotherVersion(): Unit {
+        val task: RecordingLock = lockTask()
+        val lock: File = directory.resolve(LOCK_FILE).toFile()
         lock.writeText("numpy==2.5.2\n")
-        val processes = RecordedProcesses("uv 0.12.22\n")
+        val processes: RecordedProcesses = RecordedProcesses("uv 0.12.22\n")
         task.recordedProcesses = processes.operations
-        val failure = assertThrows(GradleException::class.java) { task.lock() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.lock() }
         val message: String? = failure.message
         assertEquals("${directory.resolve(UV_EXECUTABLE)} reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
 
@@ -122,8 +123,8 @@ class LockPythonRequirementsTest {
     }
 
     private fun lockTask(): RecordingLock {
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register("lockPythonRequirements", RecordingLock::class.java).get()
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val task: RecordingLock = project.tasks.register("lockPythonRequirements", RecordingLock::class.java).get()
         task.uvExecutable.set(directory.resolve(UV_EXECUTABLE).toFile())
         task.uvVersion.set("0.12.23")
         task.pythonVersion.set(PYTHON_VERSION)

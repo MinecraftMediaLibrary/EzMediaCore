@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -25,11 +26,11 @@ import org.junit.jupiter.api.Test
 class ModuleCoordinatesTest {
 
     @Test
-    fun shouldFollowTheRootGroupAndVersionInDependencyCoordinatesWithoutVersioningLibraryArchives() {
-        val root = ProjectBuilder.builder().withName("mcav").build()
+    fun shouldFollowTheRootGroupAndVersionInDependencyCoordinatesWithoutVersioningLibraryArchives(): Unit {
+        val root: Project = ProjectBuilder.builder().withName("mcav").build()
         root.group = "fixture.changed"
         root.version = "2.3.4-SNAPSHOT"
-        val plugin = ProjectBuilder.builder().withName("mcav-plugin").withParent(root).build()
+        val plugin: Project = ProjectBuilder.builder().withName("mcav-plugin").withParent(root).build()
         val coordinate: String = plugin.moduleCoordinate("mcav-bukkit")
         assertEquals("fixture.changed:mcav-bukkit:2.3.4-SNAPSHOT", coordinate)
 

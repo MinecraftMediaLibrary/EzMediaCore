@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -37,14 +38,14 @@ class GeneratedCatalogTest {
     }
 
     @Test
-    fun shouldKeepThePinOfTheGeneratedCatalogAndOpenItWithTheRepositoryLicense() {
-        val repository = Path.of(REPOSITORY_DIRECTORY).toFile()
-        val source = Path.of(GENERATED_SOURCE_PATH).toFile().readText()
+    fun shouldKeepThePinOfTheGeneratedCatalogAndOpenItWithTheRepositoryLicense(): Unit {
+        val repository: File = Path.of(REPOSITORY_DIRECTORY).toFile()
+        val source: String = Path.of(GENERATED_SOURCE_PATH).toFile().readText()
         val licensed: Boolean = source.startsWith(repository.resolve(HEADER_FILE).readText())
         assertTrue(licensed)
 
-        val catalog = repository.resolve(CATALOG_PATH).readText()
-        val version = JACOCO_VERSION.find(catalog)!!.groupValues[1]
+        val catalog: String = repository.resolve(CATALOG_PATH).readText()
+        val version: String = JACOCO_VERSION.find(catalog)!!.groupValues[1]
         val generatedVersion: String = CatalogVersions.JACOCO
         assertEquals(version, generatedVersion)
 

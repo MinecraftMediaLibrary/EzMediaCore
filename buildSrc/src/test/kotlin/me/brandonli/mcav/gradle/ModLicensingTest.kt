@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipFile
 import org.gradle.testkit.runner.GradleRunner
@@ -51,15 +52,15 @@ class ModLicensingTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate() {
-        val project = directory.toFile()
+    fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate(): Unit {
+        val project: File = directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-mod'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
-        val catalog = project.resolve(CATALOG_PATH)
+        val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
-        val license = "Fixture license: preserve the whole file.\n"
-        val notices = "Fixture third-party notices: preserve the whole file.\n"
+        val license: String = "Fixture license: preserve the whole file.\n"
+        val notices: String = "Fixture third-party notices: preserve the whole file.\n"
         project.resolve(LICENSE_FILE).writeText(license)
         project.resolve(NOTICES_FILE).writeText(notices)
         project.resolve(RESOURCES_META_INF_PATH).mkdirs()

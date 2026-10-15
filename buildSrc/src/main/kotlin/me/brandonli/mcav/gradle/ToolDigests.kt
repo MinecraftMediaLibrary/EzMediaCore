@@ -29,10 +29,10 @@ internal object ToolDigests {
     private const val BUFFER_SIZE: Int = 65_536
 
     fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance(ALGORITHM)
+        val digest: MessageDigest = MessageDigest.getInstance(ALGORITHM)
         file.inputStream().use { input ->
-            val buffer = ByteArray(BUFFER_SIZE)
-            var count = input.read(buffer)
+            val buffer: ByteArray = ByteArray(BUFFER_SIZE)
+            var count: Int = input.read(buffer)
             while (count >= 0) {
                 digest.update(buffer, 0, count)
                 count = input.read(buffer)

@@ -18,8 +18,10 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
+import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -43,47 +45,47 @@ class CoverageLintTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldSkipTheLintOnAFilteredTestRun() {
-        val task = lint(uncoveredLine = true)
+    fun shouldSkipTheLintOnAFilteredTestRun(): Unit {
+        val task: CoverageLintTask = lint(uncoveredLine = true)
         task.testsFiltered.set(true)
         task.lint()
     }
 
     @Test
-    fun shouldFailOnAnUncoveredLine() {
-        val task = lint(uncoveredLine = true)
-        val failure = assertThrows(GradleException::class.java) { task.lint() }
+    fun shouldFailOnAnUncoveredLine(): Unit {
+        val task: CoverageLintTask = lint(uncoveredLine = true)
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale!", message)
     }
 
     @Test
-    fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine() {
-        val task = lint(uncoveredLine = false)
+    fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine(): Unit {
+        val task: CoverageLintTask = lint(uncoveredLine = false)
         directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
-        val failure = assertThrows(GradleException::class.java) { task.lint() }
+        val failure: GradleException = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale!", message)
     }
 
     @Test
-    fun shouldPassWhenAnExceptionExcusesTheOnlyUncoveredLine() {
-        val task = lint(uncoveredLine = true)
+    fun shouldPassWhenAnExceptionExcusesTheOnlyUncoveredLine(): Unit {
+        val task: CoverageLintTask = lint(uncoveredLine = true)
         directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
         task.lint()
     }
 
     private fun lint(uncoveredLine: Boolean): CoverageLintTask {
-        val source = directory.resolve(SOURCE_PATH).toFile()
+        val source: File = directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\n")
-        val coverage = directory.resolve(REPORT_FILE).toFile()
-        val counts = if (uncoveredLine) "mi=\"1\" ci=\"0\"" else "mi=\"0\" ci=\"1\""
+        val coverage: File = directory.resolve(REPORT_FILE).toFile()
+        val counts: String = if (uncoveredLine) "mi=\"1\" ci=\"0\"" else "mi=\"0\" ci=\"1\""
         coverage.writeText(
             "<report name=\"fixture\"><package name=\"sample\"><sourcefile name=\"Example.java\">" +
                 "<line nr=\"1\" $counts mb=\"0\" cb=\"0\"/></sourcefile></package></report>"
         )
-        val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         return project.tasks.register("coverageLint", CoverageLintTask::class.java).get().apply {
             report.from(coverage)
             sourceDirectory.set(directory.resolve(SOURCES_DIRECTORY).toFile())

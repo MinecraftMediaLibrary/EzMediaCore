@@ -34,8 +34,8 @@ class PaperVersionTest {
     }
 
     @Test
-    fun shouldSupplyTheExactServerBuildAndArtifactNameOfThePinnedAlphaVersion() {
-        val version = PaperVersion.parse("26.3.build.49-alpha")
+    fun shouldSupplyTheExactServerBuildAndArtifactNameOfThePinnedAlphaVersion(): Unit {
+        val version: PaperVersion = PaperVersion.parse("26.3.build.49-alpha")
         val minecraft: String = version.minecraft
         assertEquals(MINECRAFT_VERSION, minecraft)
 
@@ -50,7 +50,7 @@ class PaperVersionTest {
     }
 
     @Test
-    fun shouldRejectAVersionWithoutAnExplicitBuild() {
+    fun shouldRejectAVersionWithoutAnExplicitBuild(): Unit {
         val versions: List<String> = listOf(MINECRAFT_VERSION, "26.3.build.latest")
         val messages: Map<String, String?> = versions.associateWith { version ->
             assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message

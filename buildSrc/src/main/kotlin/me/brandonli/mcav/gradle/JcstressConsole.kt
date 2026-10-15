@@ -36,33 +36,34 @@ object JcstressConsole {
     fun skippedTests(lines: List<String>): List<String> =
         lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
 
-    fun checkNoneSkipped(console: File) {
-        val skipped = skippedTests(console.readLines())
+    fun checkNoneSkipped(console: File): Unit {
+        val skipped: List<String> = skippedTests(console.readLines())
         if (skipped.isNotEmpty()) {
             val names: String = skipped.joinToString(LINE_SEPARATOR)
-            val message = "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!$LINE_SEPARATOR$names"
+            val message: String =
+                "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!$LINE_SEPARATOR$names"
             throw GradleException(message)
         }
     }
 
     private class Tee(private val console: OutputStream, private val file: OutputStream) : OutputStream() {
 
-        override fun write(byte: Int) {
+        override fun write(byte: Int): Unit {
             this.console.write(byte)
             this.file.write(byte)
         }
 
-        override fun write(bytes: ByteArray, offset: Int, length: Int) {
+        override fun write(bytes: ByteArray, offset: Int, length: Int): Unit {
             this.console.write(bytes, offset, length)
             this.file.write(bytes, offset, length)
         }
 
-        override fun flush() {
+        override fun flush(): Unit {
             this.console.flush()
             this.file.flush()
         }
 
-        override fun close() {
+        override fun close(): Unit {
             this.console.flush()
             this.file.close()
         }

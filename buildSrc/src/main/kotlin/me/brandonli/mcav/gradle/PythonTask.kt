@@ -58,7 +58,7 @@ abstract class PythonTask : DefaultTask() {
     @get:Internal
     abstract val pythonExecutable: RegularFileProperty
 
-    fun useEnvironment(environment: TaskProvider<PythonEnvironment>) {
+    fun useEnvironment(environment: TaskProvider<PythonEnvironment>): Unit {
         dependsOn(environment)
         requirements.set(environment.flatMap { it.requirements })
         pythonVersion.set(environment.flatMap { it.pythonVersion })

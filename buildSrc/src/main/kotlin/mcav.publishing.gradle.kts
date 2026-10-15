@@ -42,7 +42,7 @@ val scmDeveloperConnection: String = "scm:git:ssh://git@github.com/PulseBeat02/m
 
 val publishedPomProperty: String = "mcav.published.pom"
 
-val settings = extensions.create<MCAVPublishingExtension>(extensionName)
+val settings: MCAVPublishingExtension = extensions.create<MCAVPublishingExtension>(extensionName)
 settings.gradleModuleMetadata.convention(true)
 
 java {
@@ -108,8 +108,8 @@ afterEvaluate {
             suppressAllPomMetadataWarnings()
         }
     }
-    val generatedPom = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
-    val publishedPom = "-D$publishedPomProperty=" + generatedPom.get().destination.absolutePath
+    val generatedPom: TaskProvider<GenerateMavenPom> = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
+    val publishedPom: String = "-D$publishedPomProperty=" + generatedPom.get().destination.absolutePath
     tasks.named<Test>("test") {
         dependsOn(generatedPom)
         jvmArgs(publishedPom)

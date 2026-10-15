@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -44,13 +45,13 @@ class JcstressBudgetTest {
     lateinit var directory: Path
 
     @Test
-    fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun() {
+    fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun(): Unit {
         val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 10, 9, 4)
         assertEquals(76L, iterationMilliseconds)
     }
 
     @Test
-    fun shouldKeepTheIterationTimeWithinItsBounds() {
+    fun shouldKeepTheIterationTimeWithinItsBounds(): Unit {
         val shortest: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 1, 9, 4)
         assertEquals(50L, shortest)
 
@@ -59,19 +60,19 @@ class JcstressBudgetTest {
     }
 
     @Test
-    fun shouldRunOneRunAtATimeOnASingleCpu() {
+    fun shouldRunOneRunAtATimeOnASingleCpu(): Unit {
         val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds("default", 10, 1, 1)
         assertEquals(314L, iterationMilliseconds)
     }
 
     @Test
-    fun shouldRefuseAnUnknownMode() {
+    fun shouldRefuseAnUnknownMode(): Unit {
         assertThrows(GradleException::class.java) { JcstressBudget.iterationMilliseconds("forever", 10, 1, 4) }
     }
 
     @Test
-    fun shouldCountTheTestsThatTheSelectionMatches() {
-        val jar = directory.resolve(TESTS_JAR).toFile()
+    fun shouldCountTheTestsThatTheSelectionMatches(): Unit {
+        val jar: File = directory.resolve(TESTS_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry(TEST_LIST_ENTRY))
             zip.write(listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n").toByteArray())
@@ -88,8 +89,8 @@ class JcstressBudgetTest {
     }
 
     @Test
-    fun shouldCountNoTestsInAJarWithoutTheList() {
-        val jar = directory.resolve(EMPTY_JAR).toFile()
+    fun shouldCountNoTestsInAJarWithoutTheList(): Unit {
+        val jar: File = directory.resolve(EMPTY_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry(OTHER_ENTRY))
             zip.closeEntry()

@@ -39,20 +39,20 @@ abstract class JavaLintTask : DefaultTask() {
     abstract val report: RegularFileProperty
 
     @TaskAction
-    fun check() {
-        var count = 0
+    fun check(): Unit {
+        var count: Int = 0
         findViolations(sources.files.sorted()) { file, line, arguments ->
             count++
             logger.error(diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
         }
         if (count > 0) {
-            val message = failureMessage(count)
+            val message: String = failureMessage(count)
             throw GradleException(message)
         }
         report.get().asFile.writeText(successMessage(sources.files.size))
     }
 
-    protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit)
+    protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit
 
     protected abstract fun diagnosticMessage(): String
 
