@@ -69,6 +69,19 @@ public class StandardVideoHologram extends VideoHologram {
   private static final int PROGRESS_SEGMENTS = 20;
   private static final long TICKS_PER_SECOND = 20L;
 
+  private static final String TITLE_PLACEHOLDER = "title";
+  private static final String UPLOADER_PLACEHOLDER = "uploader";
+  private static final String DATE_PLACEHOLDER = "date";
+
+  private static final int FIRST_TEEN_DAY = 11;
+  private static final int LAST_TEEN_DAY = 13;
+
+  private static final int DECIMAL_BASE = 10;
+
+  private static final String DEFAULT_ORDINAL_SUFFIX = "th";
+
+  private static final int SECONDS_PER_MINUTE = 60;
+
   private Component metadataText;
   private int durationSeconds;
   private int currentSecond;
@@ -130,9 +143,9 @@ public class StandardVideoHologram extends VideoHologram {
     // leaves a backslash at their end, which would escape the closing tag after them
     return MINI_MESSAGE.deserialize(
       METADATA_TEMPLATE,
-      Placeholder.unparsed("title", title),
-      Placeholder.unparsed("uploader", uploader),
-      Placeholder.unparsed("date", uploadDate)
+      Placeholder.unparsed(TITLE_PLACEHOLDER, title),
+      Placeholder.unparsed(UPLOADER_PLACEHOLDER, uploader),
+      Placeholder.unparsed(DATE_PLACEHOLDER, uploadDate)
     );
   }
 
@@ -151,15 +164,15 @@ public class StandardVideoHologram extends VideoHologram {
   }
 
   private static String getOrdinalSuffix(final int day) {
-    if (day >= 11 && day <= 13) {
-      return "th";
+    if (day >= FIRST_TEEN_DAY && day <= LAST_TEEN_DAY) {
+      return DEFAULT_ORDINAL_SUFFIX;
     }
-    final int lastDigit = day % 10;
+    final int lastDigit = day % DECIMAL_BASE;
     return switch (lastDigit) {
       case 1 -> "st";
       case 2 -> "nd";
       case 3 -> "rd";
-      default -> "th";
+      default -> DEFAULT_ORDINAL_SUFFIX;
     };
   }
 
@@ -224,8 +237,8 @@ public class StandardVideoHologram extends VideoHologram {
   }
 
   private static String formatTime(final int seconds) {
-    final int minutes = seconds / 60;
-    final int remainingSeconds = seconds % 60;
+    final int minutes = seconds / SECONDS_PER_MINUTE;
+    final int remainingSeconds = seconds % SECONDS_PER_MINUTE;
     return String.format(Locale.getDefault(Locale.Category.FORMAT), "%02d:%02d", minutes, remainingSeconds);
   }
 

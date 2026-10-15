@@ -130,6 +130,16 @@ public final class Mcv2PackServer {
 
   private static final String FILE_SUFFIX = ".zip";
 
+  private static final String GLOB_WILDCARD = "*";
+
+  private static final String SHA_1_ALGORITHM = "SHA-1";
+
+  private static final String PACK_ID_PREFIX = "mcav-mcv2:";
+
+  private static final String VANILLA_BRAND = "vanilla";
+
+  private static final String LIST_SEPARATOR = ", ";
+
   private static final int HASH_BUFFER = 8192;
 
   private static final long SHUTDOWN_SECONDS = 10;
@@ -517,8 +527,8 @@ public final class Mcv2PackServer {
     try {
       Mcv2Pack.write(screens, this.showsDebugView, archivePath);
       // The client checks a downloaded pack against its SHA-1.
-      final String archiveHash = hash(archivePath, "SHA-1");
-      final UUID packId = UUID.nameUUIDFromBytes(("mcav-mcv2:" + archiveHash).getBytes(StandardCharsets.UTF_8));
+      final String archiveHash = hash(archivePath, SHA_1_ALGORITHM);
+      final UUID packId = UUID.nameUUIDFromBytes((PACK_ID_PREFIX + archiveHash).getBytes(StandardCharsets.UTF_8));
       final PackHosting host = this.host(archivePath);
       final ResourcePackInfo pack = ResourcePackInfo.resourcePackInfo(packId, URI.create(host.getRawUrl()), archiveHash);
       final ResourcePackRequest request = ResourcePackRequest.resourcePackRequest().packs(pack).required(false).replace(false).build();
@@ -639,7 +649,7 @@ public final class Mcv2PackServer {
 
   private void adviseModdedViewer(final Player player) {
     final String brand = player.getClientBrandName();
-    if (brand == null || "vanilla".equals(brand) || this.viewers.hasShaderReport(player.getUniqueId())) {
+    if (brand == null || VANILLA_BRAND.equals(brand) || this.viewers.hasShaderReport(player.getUniqueId())) {
       return;
     }
     LOGGER.warn(MODDED_CLIENT_LOADED, player.getName(), brand);
@@ -674,7 +684,9 @@ public final class Mcv2PackServer {
   private void clearFolder() {
     try {
       Files.createDirectories(this.folder);
-      try (final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + "*" + FILE_SUFFIX)) {
+      try (
+        final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + GLOB_WILDCARD + FILE_SUFFIX)
+      ) {
         for (final Path file : previousArchives) {
           Files.deleteIfExists(file);
         }
@@ -727,7 +739,7 @@ public final class Mcv2PackServer {
           screen.getVideoHeight()
         )
       )
-      .collect(Collectors.joining(", ", "slots ", ""));
+      .collect(Collectors.joining(LIST_SEPARATOR, "slots ", ""));
   }
 
   static String hash(final Path file, final String algorithm) {

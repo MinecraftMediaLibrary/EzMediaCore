@@ -42,6 +42,13 @@ public final class ChatUtils {
   private static final char HEXADECIMAL_COLOR_MARKER = 'x';
   private static final int RGB_MASK = 0xFFFFFF;
   private static final int HEXADECIMAL_COLOR_LENGTH = 14;
+
+  private static final int CHARACTERS_PER_DIGIT = 2;
+
+  private static final int HIGHEST_NIBBLE_SHIFT = 20;
+  private static final int BITS_PER_NIBBLE = 4;
+  private static final int NIBBLE_MASK = 0xF;
+
   private static final int CHAT_HISTORY_LINES = 100;
   private static final String CLEAR_CHAT_MESSAGE = "\n".repeat(CHAT_HISTORY_LINES - 1);
 
@@ -61,7 +68,7 @@ public final class ChatUtils {
     Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
     final String hexadecimal = Integer.toHexString(index);
     final char[] digits = hexadecimal.toCharArray();
-    final StringBuilder entry = new StringBuilder(digits.length * 2);
+    final StringBuilder entry = new StringBuilder(digits.length * CHARACTERS_PER_DIGIT);
     for (final char digit : digits) {
       entry.append(COLOR_CHAR);
       entry.append(digit);
@@ -144,8 +151,8 @@ public final class ChatUtils {
   private static void appendHexadecimalColor(final StringBuilder builder, final int color) {
     builder.append(COLOR_CHAR);
     builder.append(HEXADECIMAL_COLOR_MARKER);
-    for (int shift = 20; shift >= 0; shift -= 4) {
-      final int nibble = (color >> shift) & 0xF;
+    for (int shift = HIGHEST_NIBBLE_SHIFT; shift >= 0; shift -= BITS_PER_NIBBLE) {
+      final int nibble = (color >> shift) & NIBBLE_MASK;
       final char digit = HEX_DIGITS[nibble];
       builder.append(COLOR_CHAR);
       builder.append(digit);

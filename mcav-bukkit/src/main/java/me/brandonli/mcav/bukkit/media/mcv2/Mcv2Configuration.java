@@ -87,6 +87,11 @@ public final class Mcv2Configuration {
    */
   public static final int DEFAULT_UNSENT_LIMIT = 32 * 1024;
 
+  private static final int FACING_EAST = 0;
+  private static final int FACING_SOUTH = 1;
+  private static final int FACING_WEST = 2;
+  private static final int FACING_NORTH = 3;
+
   private final Collection<UUID> viewers;
 
   private final Location origin;
@@ -211,10 +216,10 @@ public final class Mcv2Configuration {
    */
   public int getFacingCode() {
     return switch (this.getRight()) {
-      case EAST -> 0;
-      case SOUTH -> 1;
-      case WEST -> 2;
-      default -> 3;
+      case EAST -> FACING_EAST;
+      case SOUTH -> FACING_SOUTH;
+      case WEST -> FACING_WEST;
+      default -> FACING_NORTH;
     };
   }
 

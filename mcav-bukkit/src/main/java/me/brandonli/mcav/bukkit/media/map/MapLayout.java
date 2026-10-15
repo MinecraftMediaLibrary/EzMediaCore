@@ -51,6 +51,8 @@ public final class MapLayout {
    */
   public static final int PATCH_OVERHEAD = 16;
 
+  private static final int CENTERING_DIVISOR = 2;
+
   private final int startMapId;
   private final int columns;
   private final int rows;
@@ -83,8 +85,8 @@ public final class MapLayout {
 
     final int gridWidth = columns * MAP_SIZE;
     final int gridHeight = rows * MAP_SIZE;
-    this.offsetX = (gridWidth - imageWidth) / 2;
-    this.offsetY = (gridHeight - imageHeight) / 2;
+    this.offsetX = (gridWidth - imageWidth) / CENTERING_DIVISOR;
+    this.offsetY = (gridHeight - imageHeight) / CENTERING_DIVISOR;
     this.regions = this.computeRegions();
   }
 

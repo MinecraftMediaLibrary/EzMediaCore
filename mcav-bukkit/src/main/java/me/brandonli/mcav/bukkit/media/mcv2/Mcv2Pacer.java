@@ -79,6 +79,12 @@ public final class Mcv2Pacer {
 
   private static final int[] DIVISORS = { 1, 2, 3, 4, 6 };
 
+  private static final int FULL_RATE_DIVISOR = 1;
+
+  private static final int SIZE_COMPONENTS = 2;
+
+  private static final int BACKOFF_FACTOR = 2;
+
   private static final long NANOSECONDS_PER_SECOND = 1_000_000_000L;
 
   private static final double NANOSECONDS_PER_MILLISECOND = 1e6;
@@ -321,9 +327,9 @@ public final class Mcv2Pacer {
     final Preset fastest = presets.getLast();
     final List<Rung> rungs = new ArrayList<>();
     for (final int[] size : sizes) {
-      Preconditions.checkArgument(size.length == 2 && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height!");
+      Preconditions.checkArgument(size.length == SIZE_COMPONENTS && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height!");
       for (final Preset preset : presets.subList(0, presets.size() - 1)) {
-        rungs.add(new Rung(size[0], size[1], 1, preset));
+        rungs.add(new Rung(size[0], size[1], FULL_RATE_DIVISOR, preset));
       }
       for (final int divisor : DIVISORS) {
         rungs.add(new Rung(size[0], size[1], divisor, fastest));
@@ -458,7 +464,7 @@ public final class Mcv2Pacer {
   private @Nullable Change stepDown(final long now, final double frameMilliseconds) {
     final int left = this.current;
     this.blockedUntil[left] = now + seconds(this.blockSeconds[left]);
-    this.blockSeconds[left] = Math.min(MAXIMUM_RETRY_SECONDS, this.blockSeconds[left] * 2);
+    this.blockSeconds[left] = Math.min(MAXIMUM_RETRY_SECONDS, this.blockSeconds[left] * BACKOFF_FACTOR);
     final int encoded = this.encodedRungs();
 
     final Rung from = this.getRung();
@@ -478,7 +484,7 @@ public final class Mcv2Pacer {
     }
     final Change change = this.move(this.ladder.size() - 1, true, this.smoothed, frameMilliseconds);
     this.retryAt = now + seconds(this.retrySeconds);
-    this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * 2);
+    this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
     return change;
   }
 
@@ -516,7 +522,10 @@ public final class Mcv2Pacer {
   }
 
   private boolean isAllowed(final Rung rung) {
-    return rung.divisor() == 1 || rung.framesPerSecond(this.getVideoFramesPerSecond()) >= MINIMUM_FRAME_RATE * MINIMUM_FRAME_RATE_TOLERANCE;
+    return (
+      rung.divisor() == FULL_RATE_DIVISOR ||
+      rung.framesPerSecond(this.getVideoFramesPerSecond()) >= MINIMUM_FRAME_RATE * MINIMUM_FRAME_RATE_TOLERANCE
+    );
   }
 
   private int bestAbove(final long now) {

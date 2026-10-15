@@ -89,6 +89,32 @@ public final class Mcv2Pack {
 
   private static final String SCREEN_INCLUDE = "#include <mcav:mcv2_screen.glsl>";
 
+  private static final String INCLUDE_DIRECTIVE_PREFIX = "#include <mcav:";
+  private static final String INCLUDE_DIRECTIVE_SUFFIX = ">";
+
+  private static final String SCREEN_INCLUDE_PREFIX = "mcv2_screen_";
+  private static final String GLSL_EXTENSION = ".glsl";
+
+  private static final String CONFIG_INCLUDE = "mcv2_config.glsl";
+
+  private static final String ALPHABET_INCLUDE = "mcv2_alphabet.glsl";
+
+  private static final String MANIFEST_FILE = "mcav_mcv2.json";
+
+  private static final String SCREEN_DIRECTORY_PREFIX = "s";
+
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String CONFIG_GUARD = "MCAV_MCV2_CONFIG_GLSL";
+
+  private static final String SCREEN_GUARD = "MCAV_MCV2_SCREEN_GLSL";
+
+  private static final String ALPHABET_GUARD = "MCAV_MCV2_ALPHABET_GLSL";
+
+  private static final String TARGETS_KEY = "targets";
+
+  private static final String CODEC = "MCV2";
+
   private static final List<String> FILES = List.of(
     "assets/minecraft/shaders/core/text.vsh",
     "assets/minecraft/shaders/core/text.fsh",
@@ -131,6 +157,31 @@ public final class Mcv2Pack {
 
   // The map palette needs a multiplier of about 83,000.
   private static final int MAXIMUM_SYMBOL_HASH = 1 << 24;
+
+  private static final int ENTRIES_PER_LINE = 8;
+
+  private static final String LINE_INDENT = "    ";
+
+  private static final String ENTRY_GAP = " ";
+
+  private static final String ENTRY_SEPARATOR = ",";
+
+  private static final int MULTIPLIER_STEP = 2;
+
+  private static final char UNSIGNED_SUFFIX = 'u';
+
+  private static final String LINE_SEPARATOR = "\n";
+
+  private static final String LIST_SEPARATOR = ", ";
+
+  private static final String SIZE_SEPARATOR = "x";
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
+  private static final int CHANNEL_MASK = 255;
+
+  private static final int RGB_MASK = 0xFFFFFF;
 
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -179,7 +230,10 @@ public final class Mcv2Pack {
     for (int screen = 0; screen < screens.size(); screen++) {
       final Mcv2Configuration configuration = screens.get(screen);
       for (final String file : SCREEN_FILES) {
-        pack.data(POST + "s" + screen + "/" + file, screenCopy(resource(POST + file), screen).getBytes(StandardCharsets.UTF_8));
+        pack.data(
+          POST + SCREEN_DIRECTORY_PREFIX + screen + PATH_SEPARATOR + file,
+          screenCopy(resource(POST + file), screen).getBytes(StandardCharsets.UTF_8)
+        );
       }
       final String include = screenConstants(configuration, screen, firstSlot, debugTop);
       pack.data(INCLUDE + screenInclude(screen), include.getBytes(StandardCharsets.UTF_8));
@@ -187,9 +241,9 @@ public final class Mcv2Pack {
       debugTop += Math.max(configuration.getVideoHeight(), DEBUG_SQUARES) + DEBUG_GAP;
     }
     pack.data(POST_CHAIN, postChain(screens).getBytes(StandardCharsets.UTF_8));
-    pack.data(INCLUDE + "mcv2_config.glsl", packConstants(screens, showsDebugView).getBytes(StandardCharsets.UTF_8));
-    pack.data(INCLUDE + "mcv2_alphabet.glsl", alphabet(palette()).getBytes(StandardCharsets.UTF_8));
-    pack.data("mcav_mcv2.json", manifest(screens).getBytes(StandardCharsets.UTF_8));
+    pack.data(INCLUDE + CONFIG_INCLUDE, packConstants(screens, showsDebugView).getBytes(StandardCharsets.UTF_8));
+    pack.data(INCLUDE + ALPHABET_INCLUDE, alphabet(palette()).getBytes(StandardCharsets.UTF_8));
+    pack.data(MANIFEST_FILE, manifest(screens).getBytes(StandardCharsets.UTF_8));
     pack.zip(archivePath);
   }
 
@@ -205,8 +259,8 @@ public final class Mcv2Pack {
   static String describe(final List<Mcv2Configuration> screens) {
     final String sizes = screens
       .stream()
-      .map(screen -> screen.getVideoWidth() + "x" + screen.getVideoHeight())
-      .collect(Collectors.joining(", "));
+      .map(screen -> screen.getVideoWidth() + SIZE_SEPARATOR + screen.getVideoHeight())
+      .collect(Collectors.joining(LIST_SEPARATOR));
     return String.format(
       Locale.getDefault(Locale.Category.FORMAT),
       "mcav MCV2 decoder, %d %s: %s",
@@ -234,13 +288,13 @@ public final class Mcv2Pack {
   }
 
   private static String screenInclude(final int screen) {
-    return "mcv2_screen_" + screen + ".glsl";
+    return SCREEN_INCLUDE_PREFIX + screen + GLSL_EXTENSION;
   }
 
   static String screenCopy(final byte[] source, final int screen) {
     final String text = new String(source, StandardCharsets.UTF_8);
     Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl!");
-    return text.replace(SCREEN_INCLUDE, "#include <mcav:" + screenInclude(screen) + ">");
+    return text.replace(SCREEN_INCLUDE, INCLUDE_DIRECTIVE_PREFIX + screenInclude(screen) + INCLUDE_DIRECTIVE_SUFFIX);
   }
 
   private static String postChain(final List<Mcv2Configuration> screens) {
@@ -258,7 +312,7 @@ public final class Mcv2Pack {
       decoding.addAll(chain.getAsJsonArray("decode"));
       drawing.addAll(chain.getAsJsonArray("draw"));
     }
-    for (final Map.Entry<String, JsonElement> target : shared.getAsJsonObject("targets").entrySet()) {
+    for (final Map.Entry<String, JsonElement> target : shared.getAsJsonObject(TARGETS_KEY).entrySet()) {
       targets.add(target.getKey(), target.getValue());
     }
     final JsonArray passes = new JsonArray();
@@ -266,7 +320,7 @@ public final class Mcv2Pack {
     passes.addAll(drawing);
     passes.addAll(shared.getAsJsonArray("tail"));
     final JsonObject chain = new JsonObject();
-    chain.add("targets", targets);
+    chain.add(TARGETS_KEY, targets);
     chain.add("passes", passes);
     return GSON.toJson(chain);
   }
@@ -307,16 +361,16 @@ public final class Mcv2Pack {
     int total = 0;
     for (int screen = 0; screen < count; screen++) {
       final Mcv2Configuration configuration = screens.get(screen);
-      final String separator = screen == 0 ? "" : ", ";
-      streams.append(separator).append(configuration.getStreamId()).append('u');
+      final String separator = screen == 0 ? "" : LIST_SEPARATOR;
+      streams.append(separator).append(configuration.getStreamId()).append(UNSIGNED_SUFFIX);
       slots.append(separator).append(configuration.getPageSlots());
       firsts.append(separator).append(total);
       total += configuration.getPageSlots();
     }
     return guarded(
-      "MCAV_MCV2_CONFIG_GLSL",
+      CONFIG_GUARD,
       String.join(
-        "\n",
+        LINE_SEPARATOR,
         String.format(Locale.ROOT, "const int MCV2_SCREENS = %d;", count),
         String.format(Locale.ROOT, "const int MCV2_TOTAL_SLOTS = %d;", total),
         String.format(Locale.ROOT, "const uint MCV2_SCREEN_STREAMS[%d] = uint[%d](%s);", count, count, streams),
@@ -326,9 +380,9 @@ public final class Mcv2Pack {
         String.format(
           Locale.ROOT,
           "const ivec3 MCV2_OUTLINE_COLOR = ivec3(%d, %d, %d);",
-          (color >> 16) & 255,
-          (color >> 8) & 255,
-          color & 255
+          (color >> RED_SHIFT) & CHANNEL_MASK,
+          (color >> GREEN_SHIFT) & CHANNEL_MASK,
+          color & CHANNEL_MASK
         ),
         ""
       )
@@ -337,9 +391,9 @@ public final class Mcv2Pack {
 
   private static String screenConstants(final Mcv2Configuration configuration, final int screen, final int firstSlot, final int debugTop) {
     return guarded(
-      "MCAV_MCV2_SCREEN_GLSL",
+      SCREEN_GUARD,
       String.join(
-        "\n",
+        LINE_SEPARATOR,
         String.format(Locale.ROOT, "const int MCV2_SCREEN_INDEX = %d;", screen),
         String.format(Locale.ROOT, "const int MCV2_PAGE_SLOTS = %d;", configuration.getPageSlots()),
         String.format(Locale.ROOT, "const int MCV2_FIRST_SLOT = %d;", firstSlot),
@@ -359,7 +413,7 @@ public final class Mcv2Pack {
   static int[] palette() {
     final int[] colors = new int[MapAlphabet.SIZE];
     for (int symbol = 0; symbol < colors.length; symbol++) {
-      colors[symbol] = MapColor.getColorFromPackedId(symbol + MapAlphabet.FIRST_COLOR) & 0xFFFFFF;
+      colors[symbol] = MapColor.getColorFromPackedId(symbol + MapAlphabet.FIRST_COLOR) & RGB_MASK;
     }
     return colors;
   }
@@ -387,13 +441,15 @@ public final class Mcv2Pack {
     final StringBuilder table = new StringBuilder();
     for (int entry = 0; entry < entries.length; entry++) {
       table
-        .append(entry % 8 == 0 ? "    " : " ")
+        .append(entry % ENTRIES_PER_LINE == 0 ? LINE_INDENT : ENTRY_GAP)
         .append(Integer.toUnsignedString(entries[entry]))
-        .append('u');
-      table.append(entry < entries.length - 1 ? "," : "").append(entry % 8 == 7 ? "\n" : "");
+        .append(UNSIGNED_SUFFIX);
+      table
+        .append(entry < entries.length - 1 ? ENTRY_SEPARATOR : "")
+        .append(entry % ENTRIES_PER_LINE == ENTRIES_PER_LINE - 1 ? LINE_SEPARATOR : "");
     }
     return guarded(
-      "MCAV_MCV2_ALPHABET_GLSL",
+      ALPHABET_GUARD,
       String.format(
         Locale.ROOT,
         "const uint MCV2_SYMBOL_HASH = %du;\nconst uint MCV2_SYMBOL_SHIFT = %du;\nconst uint MCV2_SYMBOLS[%d] = uint[%d](\n%s);\n",
@@ -413,7 +469,7 @@ public final class Mcv2Pack {
 
   private static int symbolHash(final int[] colors, final int maximumMultiplier) {
     final boolean[] taken = new boolean[SYMBOL_ENTRIES];
-    for (int multiplier = 1; multiplier <= maximumMultiplier; multiplier += 2) {
+    for (int multiplier = 1; multiplier <= maximumMultiplier; multiplier += MULTIPLIER_STEP) {
       Arrays.fill(taken, false);
       boolean distinct = true;
       for (int symbol = 0; symbol < colors.length && distinct; symbol++) {
@@ -440,8 +496,8 @@ public final class Mcv2Pack {
 
   private static String manifest(final List<Mcv2Configuration> screens) {
     final JsonObject manifest = new JsonObject();
-    manifest.addProperty("codec", "MCV2");
-    manifest.addProperty("version", 3);
+    manifest.addProperty("codec", CODEC);
+    manifest.addProperty("version", Mcv2Decoder.VERSION);
     manifest.addProperty("gpu_codec_commit", CODEC_COMMIT);
     final JsonArray list = new JsonArray();
     for (final Mcv2Configuration configuration : screens) {

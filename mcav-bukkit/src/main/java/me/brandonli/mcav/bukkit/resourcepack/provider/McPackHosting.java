@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.utils.IoUtils;
 import me.brandonli.mcav.utils.http.NetworkUtils;
@@ -75,6 +76,16 @@ public class McPackHosting implements WebsiteHosting {
   private static final Duration TIMEOUT = Duration.ofMinutes(5);
   private static final int HTTP_OK = 200;
   private static final Lock CACHE_LOCK = new ReentrantLock();
+
+  private static final String USER_AGENT = "mcav";
+
+  private static final String BOUNDARY_PREFIX = "----mcav-";
+
+  private static final String BOUNDARY_DELIMITER = "--";
+
+  private static final String LINE_TERMINATOR = "\r\n";
+
+  private static final Pattern UNSAFE_FILE_NAME_CHARACTERS = Pattern.compile("[\\p{Cntrl}\"\\\\]");
 
   private final Path zip;
   private final URI uploadUri;
@@ -228,7 +239,7 @@ public class McPackHosting implements WebsiteHosting {
 
   private void upload(final byte[] pack) {
     final UUID boundaryId = UUID.randomUUID();
-    final String boundary = "----mcav-" + boundaryId;
+    final String boundary = BOUNDARY_PREFIX + boundaryId;
     final HttpRequest request = this.createUploadRequest(boundary, pack);
     final HttpClient.Builder clientBuilder = HttpClient.newBuilder();
     clientBuilder.connectTimeout(TIMEOUT);
@@ -245,7 +256,7 @@ public class McPackHosting implements WebsiteHosting {
     requestBuilder.timeout(TIMEOUT);
     requestBuilder.header("Content-Type", "multipart/form-data; boundary=" + boundary);
     requestBuilder.header("Accept", "*/*");
-    requestBuilder.header("User-Agent", "mcav");
+    requestBuilder.header("User-Agent", USER_AGENT);
     requestBuilder.POST(publisher);
     return requestBuilder.build();
   }
@@ -271,7 +282,7 @@ public class McPackHosting implements WebsiteHosting {
 
   private byte[] createMultipartBody(final String boundary, final byte[] pack) {
     final String headText = this.createMultipartHead(boundary);
-    final String tailText = "\r\n--" + boundary + "--\r\n";
+    final String tailText = LINE_TERMINATOR + BOUNDARY_DELIMITER + boundary + BOUNDARY_DELIMITER + LINE_TERMINATOR;
     final byte[] headBytes = headText.getBytes(StandardCharsets.UTF_8);
     final byte[] tailBytes = tailText.getBytes(StandardCharsets.UTF_8);
     return concatenate(headBytes, pack, tailBytes);
@@ -291,11 +302,11 @@ public class McPackHosting implements WebsiteHosting {
     final Path zipFileName = this.zip.getFileName();
     final Path fileNamePath = Objects.requireNonNull(zipFileName, "The resource pack has no file name!");
     final String fileName = fileNamePath.toString();
-    final String safeFileName = fileName.replaceAll("[\\p{Cntrl}\"\\\\]", "");
+    final String safeFileName = UNSAFE_FILE_NAME_CHARACTERS.matcher(fileName).replaceAll("");
     return (
-      "--" +
+      BOUNDARY_DELIMITER +
       boundary +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Disposition: form-data; name=\"file\"; filename=\"" +
       safeFileName +
       "\"\r\n" +

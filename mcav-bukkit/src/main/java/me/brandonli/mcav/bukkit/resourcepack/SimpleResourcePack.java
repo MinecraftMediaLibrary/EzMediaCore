@@ -85,6 +85,14 @@ public final class SimpleResourcePack {
 
   private static final String READABLE_PERMISSIONS = "rw-r--r--";
 
+  private static final char NAMESPACE_SEPARATOR = ':';
+
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String EMPTY_SEGMENT = "//";
+
+  private static final String PARENT_DIRECTORY = "..";
+
   /**
    * The modification time of every entry, fixed so the same pack always zips to the same bytes, and so to the same
    * hash, which lets clients keep the pack they downloaded before. It is a local time in the zip format's range, so the
@@ -145,10 +153,10 @@ public final class SimpleResourcePack {
     final boolean exists = Files.isRegularFile(path);
     Preconditions.checkArgument(exists, "Sound file %s does not exist!", path);
 
-    final int separator = key.indexOf(':');
+    final int separator = key.indexOf(NAMESPACE_SEPARATOR);
     final String namespace = key.substring(0, separator);
     final String value = key.substring(separator + 1);
-    final String soundPath = namespace + "/" + value;
+    final String soundPath = namespace + PATH_SEPARATOR + value;
     checkPathSegments(soundPath);
     final Map<String, Path> namespaceSounds = this.sounds.computeIfAbsent(namespace, _ -> new LinkedHashMap<>());
     namespaceSounds.put(value, path);
@@ -197,10 +205,10 @@ public final class SimpleResourcePack {
 
   private static void checkEntryPath(final String path) {
     final Matcher pathMatcher = FILE_PATTERN.matcher(path);
-    final boolean validPath = pathMatcher.matches() && !path.contains("..");
+    final boolean validPath = pathMatcher.matches() && !path.contains(PARENT_DIRECTORY);
     Preconditions.checkArgument(validPath, "Pack path %s is invalid!", path);
 
-    final boolean relativeFile = !path.startsWith("/") && !path.endsWith("/") && !path.contains("//");
+    final boolean relativeFile = !path.startsWith(PATH_SEPARATOR) && !path.endsWith(PATH_SEPARATOR) && !path.contains(EMPTY_SEGMENT);
     Preconditions.checkArgument(relativeFile, "Pack path %s must be relative to the pack root and name a file!", path);
     checkPathSegments(path);
 

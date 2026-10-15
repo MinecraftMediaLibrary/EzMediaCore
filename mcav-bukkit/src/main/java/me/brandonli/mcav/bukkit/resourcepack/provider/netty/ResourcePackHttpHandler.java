@@ -81,12 +81,19 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourcePackHttpHandler.class);
   private static final String PACK_NOT_READ = "Could not read the resource pack for an HTTP download.";
-  private static final byte[] GET = "GET ".getBytes(StandardCharsets.US_ASCII);
-  private static final byte[] HEAD = "HEAD ".getBytes(StandardCharsets.US_ASCII);
+  private static final String GET_REQUEST_PREFIX = "GET ";
+  private static final String HEAD_REQUEST_PREFIX = "HEAD ";
+  private static final String REQUEST_PATH_TERMINATOR = " ";
+  private static final byte[] GET = GET_REQUEST_PREFIX.getBytes(StandardCharsets.US_ASCII);
+  private static final byte[] HEAD = HEAD_REQUEST_PREFIX.getBytes(StandardCharsets.US_ASCII);
   private static final String STATUS_OK = "200 OK";
   private static final String STATUS_ERROR = "500 Internal Server Error";
   private static final String CONTENT_TYPE_ZIP = "application/zip";
   private static final String CONTENT_TYPE_TEXT = "text/plain";
+
+  private static final String STATUS_LINE_PREFIX = "HTTP/1.1 ";
+
+  private static final String LINE_TERMINATOR = "\r\n";
 
   private final ResourcePackFile packFile;
   private final byte[] getPrefix;
@@ -103,8 +110,8 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
    */
   ResourcePackHttpHandler(final ResourcePackFile packFile, final String requestPath) {
     this.packFile = packFile;
-    this.getPrefix = ("GET " + requestPath + " ").getBytes(StandardCharsets.US_ASCII);
-    this.headPrefix = ("HEAD " + requestPath + " ").getBytes(StandardCharsets.US_ASCII);
+    this.getPrefix = (GET_REQUEST_PREFIX + requestPath + REQUEST_PATH_TERMINATOR).getBytes(StandardCharsets.US_ASCII);
+    this.headPrefix = (HEAD_REQUEST_PREFIX + requestPath + REQUEST_PATH_TERMINATOR).getBytes(StandardCharsets.US_ASCII);
   }
 
   /**
@@ -259,18 +266,18 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
 
   private static ByteBuf createHeaders(final String status, final String contentType, final int contentLength) {
     final String text =
-      "HTTP/1.1 " +
+      STATUS_LINE_PREFIX +
       status +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Type: " +
       contentType +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Length: " +
       contentLength +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Cache-Control: no-store\r\n" +
       "Connection: close\r\n" +
-      "\r\n";
+      LINE_TERMINATOR;
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 

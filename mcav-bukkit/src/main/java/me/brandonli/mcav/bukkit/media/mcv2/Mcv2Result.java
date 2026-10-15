@@ -131,6 +131,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private static final double FAST_COST = 0.9;
 
+  private static final int LAST_CHANNEL_OFFSET = 2;
+
   private final Mcv2Configuration requested;
 
   private final @Nullable Fallback fallback;
@@ -680,8 +682,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     sourceBuffer.get(sourceBuffer.position(), pictureBytes);
     for (int pixelOffset = 0; pixelOffset < pictureBytes.length; pixelOffset += Mcv2Decoder.CHANNELS) {
       final byte blue = pictureBytes[pixelOffset];
-      pictureBytes[pixelOffset] = pictureBytes[pixelOffset + 2];
-      pictureBytes[pixelOffset + 2] = blue;
+      pictureBytes[pixelOffset] = pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET];
+      pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET] = blue;
     }
     return pictureBytes;
   }

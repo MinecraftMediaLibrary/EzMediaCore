@@ -24,6 +24,8 @@ import java.util.HexFormat;
 /** Computes hexadecimal digests for MCV2 resources. */
 public final class Mcv2Resources {
 
+  private static final String SHA_256_ALGORITHM = "SHA-256";
+
   private Mcv2Resources() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -36,7 +38,7 @@ public final class Mcv2Resources {
    * @throws NullPointerException if bytes is null
    */
   public static String sha256(final byte[] bytes) {
-    return digest(bytes, "SHA-256");
+    return digest(bytes, SHA_256_ALGORITHM);
   }
 
   /**

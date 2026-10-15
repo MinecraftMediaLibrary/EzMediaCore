@@ -84,6 +84,10 @@ public class CompressedMapResult implements DitherResultStep {
 
   private static final String DITHERING_THREAD_FAILED = "Map dithering thread {} failed with an uncaught exception.";
 
+  private static final int MINIMUM_PARALLELISM = 1;
+
+  private static final int PROCESSORS_PER_DITHER_THREAD = 2;
+
   private final MapConfiguration configuration;
   private final int maximumBytesPerFrame;
   private final Map<UUID, Object> activeViewers;
@@ -322,7 +326,7 @@ public class CompressedMapResult implements DitherResultStep {
   private static ForkJoinPool createDitherPool() {
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
-    final int parallelism = Math.max(1, processors / 2 - 1);
+    final int parallelism = Math.max(MINIMUM_PARALLELISM, processors / PROCESSORS_PER_DITHER_THREAD - 1);
     final ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = CompressedMapResult::createDitherThread;
     final Thread.UncaughtExceptionHandler exceptionHandler = CompressedMapResult::logUncaughtException;
     return new ForkJoinPool(parallelism, threadFactory, exceptionHandler, false);

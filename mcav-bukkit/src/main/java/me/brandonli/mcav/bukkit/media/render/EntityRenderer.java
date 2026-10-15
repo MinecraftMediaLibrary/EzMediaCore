@@ -61,6 +61,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class EntityRenderer extends MainThreadRenderer<Component> {
 
+  private static final int CHUNK_SHIFT = 4;
+
   private final EntityConfiguration configuration;
   private final Set<UUID> shownTo;
 
@@ -261,8 +263,8 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
 
     final int blockX = position.getBlockX();
     final int blockZ = position.getBlockZ();
-    final int chunkX = blockX >> 4;
-    final int chunkZ = blockZ >> 4;
+    final int chunkX = blockX >> CHUNK_SHIFT;
+    final int chunkZ = blockZ >> CHUNK_SHIFT;
     final boolean loaded = world.isChunkLoaded(chunkX, chunkZ);
     if (!loaded) {
       return null;

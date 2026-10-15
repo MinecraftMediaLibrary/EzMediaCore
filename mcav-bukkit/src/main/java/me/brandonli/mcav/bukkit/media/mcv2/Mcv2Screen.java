@@ -89,6 +89,18 @@ public final class Mcv2Screen {
 
   private static final int CHUNK_SHIFT = 4;
 
+  private static final int BLOCKS_BEHIND = 2;
+
+  private static final int ROW_SYMBOL = 1;
+  private static final int COLUMNS_SYMBOL = 2;
+  private static final int ROWS_SYMBOL = 3;
+  private static final int FACING_SYMBOL = 4;
+  private static final int STREAM_LOW_SYMBOL = 5;
+  private static final int STREAM_HIGH_SYMBOL = 6;
+  private static final int CHECKSUM_SYMBOL = 7;
+
+  private static final int ANCHOR_ROWS = 1;
+
   // Bukkit holds one plugin ticket per chunk, so overlapping screens must share ownership.
   private static final Map<HeldChunk, Integer> HELD_CHUNKS = new HashMap<>();
 
@@ -107,7 +119,7 @@ public final class Mcv2Screen {
   public Mcv2Screen(final Mcv2Configuration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     this.configuration = configuration;
-    this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), 36);
+    this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), Character.MAX_RADIX);
     this.frames = new ArrayList<>();
     this.chunks = new LinkedHashSet<>();
   }
@@ -133,7 +145,7 @@ public final class Mcv2Screen {
       for (int column = 0; column < this.configuration.getColumns(); column++) {
         final Location behind = origin
           .clone()
-          .add(right.getModX() * column + back.getModX() * 2, -row, right.getModZ() * column + back.getModZ() * 2);
+          .add(right.getModX() * column + back.getModX() * BLOCKS_BEHIND, -row, right.getModZ() * column + back.getModZ() * BLOCKS_BEHIND);
         final int slot = slot(column, row, this.configuration.getColumns(), this.configuration.getPageSlots());
         final ItemStack page = pageItem(this.configuration.getPageMap() + slot);
         final HeldChunk chunk = new HeldChunk(world, behind.getBlockX() >> CHUNK_SHIFT, behind.getBlockZ() >> CHUNK_SHIFT);
@@ -262,16 +274,17 @@ public final class Mcv2Screen {
         }
         final int symbolOffset = SIGNATURE.length;
         symbols[symbolOffset] = (byte) column;
-        symbols[symbolOffset + 1] = (byte) row;
-        symbols[symbolOffset + 2] = (byte) columns;
-        symbols[symbolOffset + 3] = (byte) rows;
-        symbols[symbolOffset + 4] = (byte) facing;
-        symbols[symbolOffset + 5] = (byte) streamLow;
-        symbols[symbolOffset + 6] = (byte) streamHigh;
+        symbols[symbolOffset + ROW_SYMBOL] = (byte) row;
+        symbols[symbolOffset + COLUMNS_SYMBOL] = (byte) columns;
+        symbols[symbolOffset + ROWS_SYMBOL] = (byte) rows;
+        symbols[symbolOffset + FACING_SYMBOL] = (byte) facing;
+        symbols[symbolOffset + STREAM_LOW_SYMBOL] = (byte) streamLow;
+        symbols[symbolOffset + STREAM_HIGH_SYMBOL] = (byte) streamHigh;
 
-        symbols[symbolOffset + 7] = (byte) ((column + row + columns + rows + facing + streamLow + streamHigh) % MapAlphabet.SIZE);
+        symbols[symbolOffset + CHECKSUM_SYMBOL] = (byte) ((column + row + columns + rows + facing + streamLow + streamHigh) %
+          MapAlphabet.SIZE);
         final int mapId = this.configuration.getMap() + row * columns + column;
-        patches.add(new MapTilePatch(mapId, 0, 0, MapLayout.MAP_SIZE, 1, MapAlphabet.toMapColors(symbols)));
+        patches.add(new MapTilePatch(mapId, 0, 0, MapLayout.MAP_SIZE, ANCHOR_ROWS, MapAlphabet.toMapColors(symbols)));
       }
     }
     return patches;

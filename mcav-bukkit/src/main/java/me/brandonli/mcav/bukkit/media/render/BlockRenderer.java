@@ -76,6 +76,8 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    */
   static final int FULL_RESEND_INTERVAL_TICKS = 20;
 
+  private static final int CENTERING_DIVISOR = 2;
+
   private final BlockConfiguration configuration;
   private final Set<UUID> activeViewers;
 
@@ -193,7 +195,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    */
   private int getBlockX(final int originX, final int index) {
     final int width = this.configuration.getBlockWidth();
-    final int leftX = originX - width / 2;
+    final int leftX = originX - width / CENTERING_DIVISOR;
     final int column = index % width;
     return leftX + column;
   }

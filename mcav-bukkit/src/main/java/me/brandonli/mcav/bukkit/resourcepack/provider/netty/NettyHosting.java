@@ -58,6 +58,16 @@ public final class NettyHosting implements InjectorHosting {
   private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
   private static final String KEY_NAMESPACE = "mcav";
 
+  private static final String KEY_VALUE_PREFIX = "resourcepack_";
+
+  private static final String REQUEST_DIRECTORY = "/mcav/";
+  private static final String PACK_EXTENSION = ".zip";
+
+  private static final String HANDLER_NUMBER_SEPARATOR = "_";
+
+  private static final String URL_SCHEME = "http://";
+  private static final String PORT_SEPARATOR = ":";
+
   private final Path zip;
   private final Key listenerKey;
   private final String handlerName;
@@ -78,13 +88,13 @@ public final class NettyHosting implements InjectorHosting {
     Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
     final int instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     @Subst("resourcepack_1")
-    final String keyValue = "resourcepack_" + instanceNumber;
-    this.requestPath = "/mcav/" + keyValue + ".zip";
+    final String keyValue = KEY_VALUE_PREFIX + instanceNumber;
+    this.requestPath = REQUEST_DIRECTORY + keyValue + PACK_EXTENSION;
     this.zip = zip;
     this.listenerKey = Key.key(KEY_NAMESPACE, keyValue);
     // a Netty pipeline rejects two handlers of the same name, and this class supports several running instances,
     // so the name carries the instance number exactly as the listener key does
-    this.handlerName = ResourcePackHttpHandler.NAME + "_" + instanceNumber;
+    this.handlerName = ResourcePackHttpHandler.NAME + HANDLER_NUMBER_SEPARATOR + instanceNumber;
     this.packFile = new ResourcePackFile(zip);
   }
 
@@ -110,7 +120,7 @@ public final class NettyHosting implements InjectorHosting {
     final String address = ServerAddress.getPublicIpAddress();
     final int port = Bukkit.getPort();
     final String host = formatHost(address);
-    final String builtUrl = "http://" + host + ":" + port + this.requestPath;
+    final String builtUrl = URL_SCHEME + host + PORT_SEPARATOR + port + this.requestPath;
     final boolean fallback = ServerAddress.isFallbackAddress(address);
     if (!fallback) {
       this.url = builtUrl;

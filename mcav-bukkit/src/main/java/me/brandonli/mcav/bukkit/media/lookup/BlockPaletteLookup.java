@@ -54,6 +54,12 @@ public final class BlockPaletteLookup {
   private static final int RGB_MASK = 0xFFFFFF;
   private static final int RGB_COMPONENTS = 3;
 
+  private static final int GREEN_INDEX = 1;
+  private static final int BLUE_INDEX = 2;
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+
   private BlockPaletteLookup() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -214,9 +220,9 @@ public final class BlockPaletteLookup {
       }
 
       final int red = rgb[0];
-      final int green = rgb[1];
-      final int blue = rgb[2];
-      final int color = (red << 16) | (green << 8) | blue;
+      final int green = rgb[GREEN_INDEX];
+      final int blue = rgb[BLUE_INDEX];
+      final int color = (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
       materials.put(color, material);
     }
     return Map.copyOf(materials);

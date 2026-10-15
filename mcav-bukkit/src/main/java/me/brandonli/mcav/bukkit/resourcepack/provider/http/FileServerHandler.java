@@ -35,6 +35,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.regex.Pattern;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,10 +61,25 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   private static final String CLOSE_FAILED = "Could not close a resource pack download connection after an error.";
   private static final ChannelFutureListener LOG_CLOSE_FAILURE = FileServerHandler::logCloseFailure;
   private static final int MAXIMUM_HEADER_BYTES = 8192;
+  private static final int INITIAL_REQUEST_BUFFER_BYTES = 256;
   private static final byte[] HEADER_TERMINATOR = { '\r', '\n', '\r', '\n' };
   private static final String STATUS_OK = "200 OK";
+  private static final String STATUS_NOT_FOUND = "404 Not Found";
+  private static final String STATUS_METHOD_NOT_ALLOWED = "405 Method Not Allowed";
+  private static final String STATUS_HEADER_TOO_LARGE = "431 Request Header Fields Too Large";
   private static final String CONTENT_TYPE = "application/zip";
   private static final String DEFAULT_FILE_NAME = "resourcepack.zip";
+
+  private static final String GET_METHOD = "GET";
+  private static final String HEAD_METHOD = "HEAD";
+
+  private static final String STATUS_LINE_PREFIX = "HTTP/1.1 ";
+
+  private static final String LINE_TERMINATOR = "\r\n";
+
+  private static final String CONNECTION_CLOSE_HEADER = "Connection: close\r\n";
+
+  private static final Pattern UNSAFE_FILE_NAME_CHARACTERS = Pattern.compile("[\\p{Cntrl}\"\\\\]");
 
   private final Path filePath;
   private final String fileName;
@@ -119,7 +135,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   public void handlerAdded(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
     final ByteBufAllocator allocator = context.alloc();
-    this.requestBuffer = allocator.buffer(256, MAXIMUM_HEADER_BYTES);
+    this.requestBuffer = allocator.buffer(INITIAL_REQUEST_BUFFER_BYTES, MAXIMUM_HEADER_BYTES);
   }
 
   /**
@@ -169,7 +185,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     final int headerEnd = indexOfHeaderEnd(buffer);
     if (headerEnd < 0) {
       if (data.isReadable()) {
-        this.respondWithStatus(context, "431 Request Header Fields Too Large");
+        this.respondWithStatus(context, STATUS_HEADER_TOO_LARGE);
       }
       return;
     }
@@ -229,10 +245,10 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   }
 
   private void respond(final ChannelHandlerContext context, final String method) {
-    final boolean isGet = method.equals("GET");
-    final boolean isHead = method.equals("HEAD");
+    final boolean isGet = method.equals(GET_METHOD);
+    final boolean isHead = method.equals(HEAD_METHOD);
     if (!isGet && !isHead) {
-      this.respondWithStatus(context, "405 Method Not Allowed");
+      this.respondWithStatus(context, STATUS_METHOD_NOT_ALLOWED);
       return;
     }
 
@@ -240,7 +256,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     try {
       channel = this.opener.open(this.filePath);
     } catch (final IOException exception) {
-      this.respondWithStatus(context, "404 Not Found");
+      this.respondWithStatus(context, STATUS_NOT_FOUND);
       return;
     }
 
@@ -253,7 +269,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
       fileLength = channel.size();
     } catch (final IOException exception) {
       closeQuietly(channel);
-      this.respondWithStatus(context, "404 Not Found");
+      this.respondWithStatus(context, STATUS_NOT_FOUND);
       return;
     }
 
@@ -296,30 +312,30 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
 
   private void respondWithStatus(final ChannelHandlerContext context, final String status) {
     this.responded = true;
-    final String text = "HTTP/1.1 " + status + "\r\n" + "Content-Length: 0\r\n" + "Connection: close\r\n" + "\r\n";
+    final String text = STATUS_LINE_PREFIX + status + LINE_TERMINATOR + "Content-Length: 0\r\n" + CONNECTION_CLOSE_HEADER + LINE_TERMINATOR;
     final ByteBuf buffer = Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
     final ChannelFuture future = context.writeAndFlush(buffer);
     future.addListener(ChannelFutureListener.CLOSE);
   }
 
   private static ByteBuf createHeaders(final long contentLength, final String fileName) {
-    final String safeFileName = fileName.replaceAll("[\\p{Cntrl}\"\\\\]", "");
+    final String safeFileName = UNSAFE_FILE_NAME_CHARACTERS.matcher(fileName).replaceAll("");
     final String text =
-      "HTTP/1.1 " +
+      STATUS_LINE_PREFIX +
       STATUS_OK +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Type: " +
       CONTENT_TYPE +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Length: " +
       contentLength +
-      "\r\n" +
+      LINE_TERMINATOR +
       "Content-Disposition: attachment; filename=\"" +
       safeFileName +
       "\"\r\n" +
       "Cache-Control: no-store\r\n" +
-      "Connection: close\r\n" +
-      "\r\n";
+      CONNECTION_CLOSE_HEADER +
+      LINE_TERMINATOR;
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 

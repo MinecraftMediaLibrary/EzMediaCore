@@ -35,6 +35,18 @@ final class Mcv2FrameEvent extends Event {
 
   static final int FINGERPRINT_PIXELS = 24;
 
+  private static final int HEX_DIGITS_PER_BYTE = 2;
+
+  private static final int CENTRE_DIVISOR = 2;
+
+  private static final int BYTE_MASK = 0xFF;
+
+  private static final int GREEN_OFFSET = 1;
+  private static final int BLUE_OFFSET = 2;
+
+  private static final int GREEN_WEIGHT = 2;
+  private static final int LUMA_DIVISOR = 4;
+
   @Label("Frame Id")
   long frameId;
 
@@ -80,9 +92,9 @@ final class Mcv2FrameEvent extends Event {
   String fingerprint = "";
 
   static String fingerprint(final byte[] pictureBytes, final int width, final int height) {
-    final StringBuilder builder = new StringBuilder(2 * FINGERPRINT_PIXELS);
+    final StringBuilder builder = new StringBuilder(HEX_DIGITS_PER_BYTE * FINGERPRINT_PIXELS);
 
-    final int centre = Mcv2Decoder.ROOT_SIZE / 2;
+    final int centre = Mcv2Decoder.ROOT_SIZE / CENTRE_DIVISOR;
     for (
       int superblockIndex = 0;
       superblockIndex < FINGERPRINT_PIXELS && centre + Mcv2Decoder.ROOT_SIZE * superblockIndex < width && height > centre;
@@ -90,7 +102,10 @@ final class Mcv2FrameEvent extends Event {
     ) {
       final int pixelOffset = (centre * width + centre + Mcv2Decoder.ROOT_SIZE * superblockIndex) * Mcv2Decoder.CHANNELS;
       final int luma =
-        ((pictureBytes[pixelOffset] & 0xFF) + 2 * (pictureBytes[pixelOffset + 1] & 0xFF) + (pictureBytes[pixelOffset + 2] & 0xFF)) / 4;
+        ((pictureBytes[pixelOffset] & BYTE_MASK) +
+          GREEN_WEIGHT * (pictureBytes[pixelOffset + GREEN_OFFSET] & BYTE_MASK) +
+          (pictureBytes[pixelOffset + BLUE_OFFSET] & BYTE_MASK)) /
+        LUMA_DIVISOR;
       builder.append(HexFormat.of().toHexDigits((byte) luma));
     }
     return builder.toString();

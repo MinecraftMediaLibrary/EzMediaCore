@@ -60,6 +60,10 @@ final class Mcv2ShaderReports implements PluginMessageListener {
 
   private static final int REPORT_BYTES = 4;
 
+  private static final int IRIS_PRESENT_INDEX = 1;
+  private static final int SHADER_PACK_INDEX = 2;
+  private static final int DECODES_UNDER_SHADERS_INDEX = 3;
+
   private static final int NO_SHADER_PACK = 0;
 
   private static final int SHADER_PACK_IN_USE = 1;
@@ -118,11 +122,16 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       LOGGER.debug(UNKNOWN_VERSION, message[0], name);
       return null;
     }
-    if (message.length != REPORT_BYTES || !isFlag(message[1]) || !isFlag(message[3]) || !isShaderPack(message[2], message[1] == 1)) {
+    if (
+      message.length != REPORT_BYTES ||
+      !isFlag(message[IRIS_PRESENT_INDEX]) ||
+      !isFlag(message[DECODES_UNDER_SHADERS_INDEX]) ||
+      !isShaderPack(message[SHADER_PACK_INDEX], message[IRIS_PRESENT_INDEX] == 1)
+    ) {
       LOGGER.debug(MALFORMED, name);
       return null;
     }
-    return new Report(message[1] == 1, message[2], message[3] == 1);
+    return new Report(message[IRIS_PRESENT_INDEX] == 1, message[SHADER_PACK_INDEX], message[DECODES_UNDER_SHADERS_INDEX] == 1);
   }
 
   private static boolean isFlag(final byte value) {
