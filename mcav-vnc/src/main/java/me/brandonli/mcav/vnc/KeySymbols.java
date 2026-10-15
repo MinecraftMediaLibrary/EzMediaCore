@@ -20,6 +20,7 @@ package me.brandonli.mcav.vnc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.Reader;
@@ -60,7 +61,7 @@ final class KeySymbols {
       }
 
       return toCodes(table);
-    } catch (final IOException exception) {
+    } catch (final IOException | JsonParseException exception) {
       final String reason = exception.getMessage();
       final String message = "Keysym resource %s could not be read because of \"%s\"!".formatted(RESOURCE, reason);
       throw new VncException(message, exception);
@@ -71,12 +72,30 @@ final class KeySymbols {
     final Map<String, Integer> symbols = new HashMap<>();
     for (final Map.Entry<String, String> entry : table.entrySet()) {
       final String name = entry.getKey();
-      final String hexadecimalCode = entry.getValue();
-      final int code = Integer.decode(hexadecimalCode);
+      final @Nullable String hexadecimalCode = entry.getValue();
+      final int code = decode(name, hexadecimalCode);
       symbols.put(name, code);
     }
 
     return Map.copyOf(symbols);
+  }
+
+  private static int decode(final String name, final @Nullable String hexadecimalCode) {
+    if (hexadecimalCode == null) {
+      final String message = "Keysym %s in resource %s has no code!".formatted(name, RESOURCE);
+      throw new VncException(message);
+    }
+
+    try {
+      return Integer.decode(hexadecimalCode);
+    } catch (final NumberFormatException exception) {
+      final String message = "Keysym %s in resource %s has the code \"%s\", which is not a number!".formatted(
+        name,
+        RESOURCE,
+        hexadecimalCode
+      );
+      throw new VncException(message, exception);
+    }
   }
 
   static OptionalInt lookup(final String name) {

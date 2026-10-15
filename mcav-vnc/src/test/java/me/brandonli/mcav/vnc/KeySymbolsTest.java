@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -100,6 +101,31 @@ final class KeySymbolsTest {
     assertInstanceOf(IOException.class, cause);
     final boolean messageContains = message.contains("close failed");
     assertTrue(messageContains, message);
+  }
+
+  @Test
+  void shouldRejectMalformedTables() {
+    final Reader reader = new StringReader("{\"A\": ");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(JsonParseException.class, cause);
+  }
+
+  @Test
+  void shouldRejectKeysWithoutACode() {
+    final Reader reader = new StringReader("{\"A\": null}");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final String message = exception.getMessage();
+    final boolean messageContains = message.contains("has no code");
+    assertTrue(messageContains, message);
+  }
+
+  @Test
+  void shouldRejectCodesThatAreNotNumbers() {
+    final Reader reader = new StringReader("{\"A\": \"0xzz\"}");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(NumberFormatException.class, cause);
   }
 
   @Test
