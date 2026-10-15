@@ -34,6 +34,41 @@ final class RfbSession {
 
   static final int MS_LOGON = 113;
 
+  static final int MINOR_VERSION_3_3 = 3;
+  static final int MINOR_VERSION_3_7 = 7;
+  static final int MINOR_VERSION_3_8 = 8;
+
+  static final int VNC_CHALLENGE_BYTES = 16;
+  static final int VNC_RESPONSE_BYTES = 16;
+
+  static final int SECURITY_RESULT_OK = 0;
+
+  static final int SHARE_DESKTOP = 1;
+
+  static final String DESKTOP_NAME = "desktop";
+
+  static final int BITS_PER_PIXEL_32 = 32;
+  static final int BITS_PER_PIXEL_16 = 16;
+  static final int BITS_PER_PIXEL_8 = 8;
+
+  static final int SET_COLOUR_MAP_ENTRIES = 1;
+  static final int BELL = 2;
+  static final int SERVER_CUT_TEXT = 3;
+
+  static final int RAW_ENCODING = 0;
+  static final int COPY_RECTANGLE_ENCODING = 1;
+  static final int RRE_ENCODING = 2;
+  static final int HEXTILE_ENCODING = 5;
+  static final int ZLIB_ENCODING = 6;
+  static final int DESKTOP_SIZE_ENCODING = -223;
+  static final int CURSOR_ENCODING = -239;
+
+  static final int HEXTILE_RAW = 1;
+  static final int HEXTILE_BACKGROUND = 2;
+  static final int HEXTILE_FOREGROUND = 4;
+  static final int HEXTILE_SUBRECTANGLES = 8;
+  static final int HEXTILE_COLOURED = 16;
+
   private final RfbGuard guard = new RfbGuard();
 
   RfbGuard guard() {
@@ -55,14 +90,14 @@ final class RfbSession {
    * pixel.
    */
   void handshake(final int minor, final int security, final int width, final int height) throws IOException {
-    this.handshake(minor, security, width, height, 32);
+    this.handshake(minor, security, width, height, BITS_PER_PIXEL_32);
   }
 
   /** Runs the handshake up to and including the server initialisation and the client's pixel format. */
   void handshake(final int minor, final int security, final int width, final int height, final int clientBits) throws IOException {
     this.server(version(minor));
     this.client(version(minor));
-    if (minor >= 7) {
+    if (minor >= MINOR_VERSION_3_7) {
       this.server(new byte[] { 1, (byte) security });
       this.client(new byte[] { (byte) security });
     } else {
@@ -70,23 +105,23 @@ final class RfbSession {
     }
     switch (security) {
       case VNC -> {
-        this.server(new byte[16]);
-        this.client(new byte[16]);
-        this.server(unsigned32(0));
+        this.server(new byte[VNC_CHALLENGE_BYTES]);
+        this.client(new byte[VNC_RESPONSE_BYTES]);
+        this.server(unsigned32(SECURITY_RESULT_OK));
       }
       case MS_LOGON -> {
         this.server(new byte[24]);
         this.client(new byte[8 + 256 + 64]);
-        this.server(unsigned32(0));
+        this.server(unsigned32(SECURITY_RESULT_OK));
       }
       default -> {
-        if (minor >= 8) {
-          this.server(unsigned32(0));
+        if (minor >= MINOR_VERSION_3_8) {
+          this.server(unsigned32(SECURITY_RESULT_OK));
         }
       }
     }
-    this.client(new byte[] { 1 });
-    this.server(serverInitialization(width, height, 32, "desktop"));
+    this.client(new byte[] { SHARE_DESKTOP });
+    this.server(serverInitialization(width, height, BITS_PER_PIXEL_32, DESKTOP_NAME));
     this.client(setPixelFormat(clientBits));
   }
 
@@ -137,6 +172,6 @@ final class RfbSession {
   }
 
   static byte[] cutText(final int length) {
-    return concat(new byte[] { 3, 0, 0, 0 }, unsigned32(length), new byte[Math.max(length, 0)]);
+    return concat(new byte[] { SERVER_CUT_TEXT, 0, 0, 0 }, unsigned32(length), new byte[Math.max(length, 0)]);
   }
 }

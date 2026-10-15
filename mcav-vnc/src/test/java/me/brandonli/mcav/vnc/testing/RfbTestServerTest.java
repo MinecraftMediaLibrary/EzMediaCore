@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -37,6 +38,19 @@ final class RfbTestServerTest {
   private static final byte[] VERSION = "RFB 003.008\n".getBytes(StandardCharsets.US_ASCII);
   private static final int COLOR = 0xFF8040;
 
+  private static final int PADDING_BYTES = 3;
+
+  private static final int BITS_PER_BYTE = 8;
+
+  private static final Map<Integer, PixelFormat> FORMATS = Map.of(
+    32,
+    new PixelFormat(24, 255, 255, 255, 16, 8),
+    16,
+    new PixelFormat(16, 31, 63, 31, 11, 5),
+    8,
+    new PixelFormat(8, 7, 7, 3, 5, 2)
+  );
+
   @ParameterizedTest
   @CsvSource({ "32,true,00ff8040", "32,false,4080ff00", "16,true,fbe7", "16,false,e7fb", "8,true,ec", "8,false,ec" })
   void shouldEncodeRawPixelsInTheNegotiatedByteOrder(final int bits, final boolean bigEndian, final String expectedHex) throws IOException {
@@ -46,7 +60,7 @@ final class RfbTestServerTest {
       final DataOutputStream output = new DataOutputStream(socket.getOutputStream());
       handshake(input, output);
       setPixelFormat(output, bits, bigEndian);
-      final byte[] actual = requestPixel(input, output, bits / 8);
+      final byte[] actual = requestPixel(input, output, bits / BITS_PER_BYTE);
       final HexFormat hex = HexFormat.of();
       final byte[] expected = hex.parseHex(expectedHex);
       assertArrayEquals(expected, actual);
@@ -113,18 +127,19 @@ final class RfbTestServerTest {
 
   private static void setPixelFormat(final DataOutputStream output, final int bits, final boolean bigEndian) throws IOException {
     output.writeByte(0);
-    output.write(new byte[3]);
+    output.write(new byte[PADDING_BYTES]);
+    final PixelFormat format = FORMATS.get(bits);
     output.writeByte(bits);
-    output.writeByte(bits == 32 ? 24 : bits);
+    output.writeByte(format.depth());
     output.writeByte(bigEndian ? 1 : 0);
     output.writeByte(1);
-    output.writeShort(bits == 32 ? 255 : bits == 16 ? 31 : 7);
-    output.writeShort(bits == 32 ? 255 : bits == 16 ? 63 : 7);
-    output.writeShort(bits == 32 ? 255 : bits == 16 ? 31 : 3);
-    output.writeByte(bits == 32 ? 16 : bits == 16 ? 11 : 5);
-    output.writeByte(bits == 32 ? 8 : bits == 16 ? 5 : 2);
+    output.writeShort(format.redMaximum());
+    output.writeShort(format.greenMaximum());
+    output.writeShort(format.blueMaximum());
+    output.writeByte(format.redShift());
+    output.writeByte(format.greenShift());
     output.writeByte(0);
-    output.write(new byte[3]);
+    output.write(new byte[PADDING_BYTES]);
     output.flush();
   }
 
@@ -154,4 +169,6 @@ final class RfbTestServerTest {
     assertEquals(0, encoding);
     return input.readNBytes(bytes);
   }
+
+  private record PixelFormat(int depth, int redMaximum, int greenMaximum, int blueMaximum, int redShift, int greenShift) {}
 }

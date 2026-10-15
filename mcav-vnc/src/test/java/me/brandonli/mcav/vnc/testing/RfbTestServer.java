@@ -56,6 +56,21 @@ public final class RfbTestServer implements AutoCloseable {
   private static final int SECURITY_UNSUPPORTED = 99;
   private static final String NAME = "mcav-test";
 
+  private static final int CHALLENGE_BYTES = 16;
+
+  private static final int PADDING_BYTES = 3;
+
+  private static final int BITS_PER_PIXEL = 32;
+  private static final int DEPTH = 24;
+  private static final int BITS_PER_BYTE = 8;
+
+  private static final int CHANNEL_MAXIMUM = 255;
+  private static final int BYTE_MASK = 0xFF;
+
+  private static final int RED_SHIFT = 16;
+  private static final int GREEN_SHIFT = 8;
+  private static final int BLUE_SHIFT = 0;
+
   /**
    * How the server treats the security handshake.
    */
@@ -366,12 +381,12 @@ public final class RfbTestServer implements AutoCloseable {
     throws IOException, GeneralSecurityException {
     offerSecurityType(clientOutput, SECURITY_VNC);
     input.readUnsignedByte();
-    final byte[] challenge = new byte[16];
+    final byte[] challenge = new byte[CHALLENGE_BYTES];
     Arrays.fill(challenge, (byte) 7);
     clientOutput.write(challenge);
     clientOutput.flush();
 
-    final byte[] response = new byte[16];
+    final byte[] response = new byte[CHALLENGE_BYTES];
     input.readFully(response);
     final byte[] expected = encryptChallenge(challenge, this.password);
     final boolean correct = Arrays.equals(expected, response);
@@ -411,17 +426,17 @@ public final class RfbTestServer implements AutoCloseable {
   private void writeServerInitialization(final DataOutputStream clientOutput) throws IOException {
     clientOutput.writeShort(this.width);
     clientOutput.writeShort(this.height);
-    clientOutput.writeByte(32);
-    clientOutput.writeByte(24);
+    clientOutput.writeByte(BITS_PER_PIXEL);
+    clientOutput.writeByte(DEPTH);
     clientOutput.writeByte(1);
     clientOutput.writeByte(1);
-    clientOutput.writeShort(255);
-    clientOutput.writeShort(255);
-    clientOutput.writeShort(255);
-    clientOutput.writeByte(16);
-    clientOutput.writeByte(8);
-    clientOutput.writeByte(0);
-    final byte[] padding = new byte[3];
+    clientOutput.writeShort(CHANNEL_MAXIMUM);
+    clientOutput.writeShort(CHANNEL_MAXIMUM);
+    clientOutput.writeShort(CHANNEL_MAXIMUM);
+    clientOutput.writeByte(RED_SHIFT);
+    clientOutput.writeByte(GREEN_SHIFT);
+    clientOutput.writeByte(BLUE_SHIFT);
+    final byte[] padding = new byte[PADDING_BYTES];
     clientOutput.write(padding);
     final byte[] name = NAME.getBytes(StandardCharsets.US_ASCII);
     clientOutput.writeInt(name.length);
@@ -463,7 +478,7 @@ public final class RfbTestServer implements AutoCloseable {
   }
 
   private static void skipCutText(final DataInputStream input) throws IOException {
-    discard(input, 3);
+    discard(input, PADDING_BYTES);
     final int length = input.readInt();
     discard(input, length);
   }
@@ -500,7 +515,7 @@ public final class RfbTestServer implements AutoCloseable {
   }
 
   private void readPixelFormat(final DataInputStream input) throws IOException {
-    discard(input, 3);
+    discard(input, PADDING_BYTES);
     final int bitsPerPixel = input.readUnsignedByte();
     input.readUnsignedByte();
     final boolean bigEndian = input.readUnsignedByte() != 0;
@@ -511,8 +526,17 @@ public final class RfbTestServer implements AutoCloseable {
     final int redShift = input.readUnsignedByte();
     final int greenShift = input.readUnsignedByte();
     final int blueShift = input.readUnsignedByte();
-    discard(input, 3);
-    this.layout = new PixelLayout(bitsPerPixel / 8, bigEndian, redMaximum, greenMaximum, blueMaximum, redShift, greenShift, blueShift);
+    discard(input, PADDING_BYTES);
+    this.layout = new PixelLayout(
+      bitsPerPixel / BITS_PER_BYTE,
+      bigEndian,
+      redMaximum,
+      greenMaximum,
+      blueMaximum,
+      redShift,
+      greenShift,
+      blueShift
+    );
   }
 
   private void answerPendingRequests() {
@@ -581,7 +605,16 @@ public final class RfbTestServer implements AutoCloseable {
    */
   private static final class PixelLayout {
 
-    private static final PixelLayout SERVER = new PixelLayout(4, true, 255, 255, 255, 16, 8, 0);
+    private static final PixelLayout SERVER = new PixelLayout(
+      BITS_PER_PIXEL / BITS_PER_BYTE,
+      true,
+      CHANNEL_MAXIMUM,
+      CHANNEL_MAXIMUM,
+      CHANNEL_MAXIMUM,
+      RED_SHIFT,
+      GREEN_SHIFT,
+      BLUE_SHIFT
+    );
 
     private final int bytesPerPixel;
     private final boolean bigEndian;
@@ -619,9 +652,9 @@ public final class RfbTestServer implements AutoCloseable {
      * @return the bytes of the pixel
      */
     byte[] encode(final int rgb) {
-      final int red = (rgb >> 16) & 0xFF;
-      final int green = (rgb >> 8) & 0xFF;
-      final int blue = rgb & 0xFF;
+      final int red = (rgb >> RED_SHIFT) & BYTE_MASK;
+      final int green = (rgb >> GREEN_SHIFT) & BYTE_MASK;
+      final int blue = (rgb >> BLUE_SHIFT) & BYTE_MASK;
       final long redBits = scaleChannel(red, this.redMaximum, this.redShift);
       final long greenBits = scaleChannel(green, this.greenMaximum, this.greenShift);
       final long blueBits = scaleChannel(blue, this.blueMaximum, this.blueShift);
@@ -630,14 +663,14 @@ public final class RfbTestServer implements AutoCloseable {
       final byte[] bytes = new byte[this.bytesPerPixel];
       for (int index = 0; index < bytes.length; index++) {
         final int byteIndex = this.bigEndian ? bytes.length - 1 - index : index;
-        final int shift = byteIndex * 8;
+        final int shift = byteIndex * BITS_PER_BYTE;
         bytes[index] = (byte) (value >>> shift);
       }
       return bytes;
     }
 
     private static long scaleChannel(final int channel, final int maximum, final int shift) {
-      final int scaled = (channel * maximum) / 255;
+      final int scaled = (channel * maximum) / CHANNEL_MAXIMUM;
       return (long) scaled << shift;
     }
   }

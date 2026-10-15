@@ -43,6 +43,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 final class VncHandshakeDeadlineTest {
 
+  private static final long TIMEOUT_SECONDS = 10;
+
   @Test
   void shouldGiveConcurrentAsyncStartsIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
     final Path javaFolder = Path.of(System.getProperty("java.home"), "bin");
@@ -67,7 +69,7 @@ final class VncHandshakeDeadlineTest {
       assertEquals(0, exitValue, () -> readOutput(output));
     } finally {
       child.destroyForcibly();
-      final boolean reaped = child.waitFor(10, TimeUnit.SECONDS);
+      final boolean reaped = child.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(reaped, "the child is reaped");
     }
   }
@@ -113,8 +115,8 @@ final class VncHandshakeDeadlineTest {
           .close();
         doAnswer(_ -> {
           entered.countDown();
-          final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
-          final boolean closedByDeadline = stopped.await(10, TimeUnit.SECONDS);
+          final boolean bothEntered = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+          final boolean closedByDeadline = stopped.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
           assertTrue(bothEntered);
           assertTrue(closedByDeadline, "the handshake is closed");
           throw new IllegalStateException("socket closed!");
@@ -128,10 +130,10 @@ final class VncHandshakeDeadlineTest {
         for (final VernacularVncPlayer player : players) {
           starts.add(player.startAsync(VncSource.builder().host("127.0.0.1").build()));
         }
-        final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
+        final boolean bothEntered = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(bothEntered, "both common-pool workers are in their handshakes");
 
-        final long limit = System.nanoTime() + Duration.ofSeconds(10).toNanos();
+        final long limit = System.nanoTime() + Duration.ofSeconds(TIMEOUT_SECONDS).toNanos();
         while (!starts.stream().allMatch(CompletableFuture::isDone) && pool.getQueuedSubmissionCount() < 2 && System.nanoTime() < limit) {
           LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
         }
@@ -145,7 +147,7 @@ final class VncHandshakeDeadlineTest {
       } finally {
         closed.forEach(CountDownLatch::countDown);
         for (final CompletableFuture<Boolean> start : starts) {
-          start.handle((result, failure) -> null).get(10, TimeUnit.SECONDS);
+          start.handle((result, failure) -> null).get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }
         players.forEach(VernacularVncPlayer::release);
       }

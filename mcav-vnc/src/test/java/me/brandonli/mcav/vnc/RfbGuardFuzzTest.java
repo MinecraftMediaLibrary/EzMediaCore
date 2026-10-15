@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.vnc;
 
+import static me.brandonli.mcav.vnc.RfbSession.MINOR_VERSION_3_8;
 import static me.brandonli.mcav.vnc.RfbSession.NONE;
 import static me.brandonli.mcav.vnc.RfbSession.version;
 
@@ -40,7 +41,7 @@ final class RfbGuardFuzzTest {
   @FuzzTest(maxDuration = "30s")
   void shouldCheckWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
     final RfbSession session = new RfbSession();
-    session.handshake(8, NONE, SIDE, SIDE);
+    session.handshake(MINOR_VERSION_3_8, NONE, SIDE, SIDE);
     feed(session, data);
   }
 

@@ -28,11 +28,13 @@ import org.junit.jupiter.api.Test;
  */
 final class VncModuleTest {
 
+  private static final String MODULE_NAME = "vnc";
+
   @Test
   void shouldBeNamedVnc() {
     final VncModule module = new VncModule();
     final String name = module.getModuleName();
-    assertEquals("vnc", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
@@ -43,7 +45,7 @@ final class VncModuleTest {
     module.start();
     module.stop();
     final String name = module.getModuleName();
-    assertEquals("vnc", name);
+    assertEquals(MODULE_NAME, name);
   }
 
   @Test
@@ -51,6 +53,6 @@ final class VncModuleTest {
     final Constructor<VncModule> constructor = VncModule.class.getConstructor();
     final VncModule module = constructor.newInstance();
     final String name = module.getModuleName();
-    assertEquals("vnc", name);
+    assertEquals(MODULE_NAME, name);
   }
 }

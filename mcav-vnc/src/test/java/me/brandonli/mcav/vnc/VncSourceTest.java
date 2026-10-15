@@ -34,15 +34,23 @@ import org.junit.jupiter.api.Test;
  */
 final class VncSourceTest {
 
+  private static final String HOST = "example.org";
+  private static final int PORT = 5901;
+
+  private static final int WIDTH = 640;
+  private static final int HEIGHT = 480;
+
+  private static final int FRAME_RATE = 24;
+
   private static VncSource.Builder fullBuilder() {
     final VncSource.Builder builder = VncSource.builder();
-    builder.host("example.org");
-    builder.port(5901);
+    builder.host(HOST);
+    builder.port(PORT);
     builder.username("user");
     builder.password("secret");
-    builder.screenWidth(640);
-    builder.screenHeight(480);
-    builder.targetFrameRate(24);
+    builder.screenWidth(WIDTH);
+    builder.screenHeight(HEIGHT);
+    builder.targetFrameRate(FRAME_RATE);
     return builder;
   }
 
@@ -58,8 +66,8 @@ final class VncSourceTest {
     for (int index = 0; index < 64; index++) {
       final VncSource.Builder builder = fullBuilder();
       builder.host("desktop-" + index + ".example.org");
-      builder.port(5900 + index);
-      builder.screenWidth(640 + index * 16);
+      builder.port(PORT + index);
+      builder.screenWidth(WIDTH + index * 16);
       final VncSource source = builder.build();
       final int hash = source.hashCode();
       hashes.add(hash);
@@ -79,13 +87,13 @@ final class VncSourceTest {
     final int width = source.getScreenWidth();
     final int height = source.getScreenHeight();
     final int frameRate = source.getTargetFrameRate();
-    assertEquals("example.org", host);
-    assertEquals(5901, port);
+    assertEquals(HOST, host);
+    assertEquals(PORT, port);
     assertEquals("user", username);
     assertEquals("secret", password);
-    assertEquals(640, width);
-    assertEquals(480, height);
-    assertEquals(24, frameRate);
+    assertEquals(WIDTH, width);
+    assertEquals(HEIGHT, height);
+    assertEquals(FRAME_RATE, frameRate);
   }
 
   @Test
@@ -161,7 +169,7 @@ final class VncSourceTest {
   @Test
   void shouldRequireAHost() {
     final VncSource.Builder builder = VncSource.builder();
-    builder.port(5901);
+    builder.port(PORT);
     assertThrows(IllegalStateException.class, builder::build);
   }
 
@@ -179,11 +187,11 @@ final class VncSourceTest {
     final VncSource otherHeight = build(builder -> builder.screenHeight(240));
     final VncSource otherFrameRate = build(builder -> builder.targetFrameRate(60));
     final VncSource.Builder anonymousBuilder = VncSource.builder();
-    anonymousBuilder.host("example.org");
-    anonymousBuilder.port(5901);
-    anonymousBuilder.screenWidth(640);
-    anonymousBuilder.screenHeight(480);
-    anonymousBuilder.targetFrameRate(24);
+    anonymousBuilder.host(HOST);
+    anonymousBuilder.port(PORT);
+    anonymousBuilder.screenWidth(WIDTH);
+    anonymousBuilder.screenHeight(HEIGHT);
+    anonymousBuilder.targetFrameRate(FRAME_RATE);
     final VncSource anonymous = anonymousBuilder.build();
     EqualityAssertions.assertEqualityContract(
       source,
