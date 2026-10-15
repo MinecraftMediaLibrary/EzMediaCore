@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
 import me.brandonli.mcav.json.GsonProvider;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -55,7 +54,7 @@ final class KeySymbols {
    *
    * @param reader the reader of the table
    * @return the codes by key name
-   * @throws PlayerException if the table is empty or cannot be read
+   * @throws VncException if the table is empty or cannot be read
    */
   @VisibleForTesting
   static Map<String, Integer> parse(final Reader reader) {
@@ -66,14 +65,14 @@ final class KeySymbols {
       final Map<String, String> table = gson.fromJson(reader, type);
       if (table == null) {
         final String message = "Keysym resource %s is empty!".formatted(RESOURCE);
-        throw new PlayerException(message);
+        throw new VncException(message);
       }
 
       return toCodes(table);
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "Keysym resource %s could not be read because of \"%s\"!".formatted(RESOURCE, reason);
-      throw new PlayerException(message, exception);
+      throw new VncException(message, exception);
     }
   }
 

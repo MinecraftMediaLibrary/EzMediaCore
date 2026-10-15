@@ -28,7 +28,6 @@ import java.io.StringReader;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.vnc.testing.UtilityClassAssertions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
@@ -87,7 +86,7 @@ final class KeySymbolsTest {
   @Test
   void shouldRejectEmptyTables() {
     final Reader reader = new StringReader("");
-    final PlayerException exception = assertThrows(PlayerException.class, () -> KeySymbols.parse(reader));
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
     final String message = exception.getMessage();
     final boolean messageContains = message.contains("empty");
     assertTrue(messageContains, message);
@@ -95,7 +94,7 @@ final class KeySymbolsTest {
 
   @Test
   void shouldWrapReadFailures() {
-    final PlayerException exception = assertThrows(PlayerException.class, () -> {
+    final VncException exception = assertThrows(VncException.class, () -> {
       final ClosingReader reader = new ClosingReader("{}", true);
       KeySymbols.parse(reader);
     });

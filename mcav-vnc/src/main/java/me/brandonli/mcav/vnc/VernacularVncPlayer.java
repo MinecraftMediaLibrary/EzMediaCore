@@ -21,7 +21,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.shinyhut.vernacular.client.VernacularClient;
 import com.shinyhut.vernacular.client.VernacularConfig;
-import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ColorDepth;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -43,7 +42,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.multimedia.ExceptionHandler;
@@ -239,14 +237,14 @@ public final class VernacularVncPlayer implements VncPlayer {
 
     // the client reports handshake failures, such as a rejected password, to the error listener and returns; a
     // failure that arrives after this point is a failure of the running session
-    final @Nullable VncException failure = created.finishStartup();
+    final com.shinyhut.vernacular.client.exceptions.@Nullable VncException failure = created.finishStartup();
     if (failure != null) {
       vncClient.stop();
       this.closeQuietly(socket);
 
       final String reason = failure.getMessage();
       final String message = this.startFailure(source, expired, reason);
-      throw new PlayerException(message, failure);
+      throw new VncException(message, failure);
     }
 
     return vncClient;
@@ -267,7 +265,7 @@ public final class VernacularVncPlayer implements VncPlayer {
 
       final String reason = exception.getMessage();
       final String message = this.startFailure(source, expired, reason);
-      throw new PlayerException(message, exception);
+      throw new VncException(message, exception);
     } finally {
       deadline.cancel(false);
     }
@@ -315,7 +313,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       final String reason = exception.getMessage();
       final String resource = source.getResource();
       final String message = "VNC server %s could not be reached because of \"%s\"!".formatted(resource, reason);
-      throw new PlayerException(message, exception);
+      throw new VncException(message, exception);
     }
   }
 
@@ -379,7 +377,10 @@ public final class VernacularVncPlayer implements VncPlayer {
     LockSupport.unpark(renderWorker);
   }
 
-  private void onError(final Session failed, final VncException error) {
+  private void onError(
+    final Session failed,
+    final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
+  ) {
     final boolean duringStartup = failed.recordStartupError(error);
     if (duringStartup) {
       return;
@@ -775,7 +776,7 @@ public final class VernacularVncPlayer implements VncPlayer {
     private final AtomicBoolean alive;
 
     private boolean starting;
-    private @Nullable VncException startupError;
+    private com.shinyhut.vernacular.client.exceptions.@Nullable VncException startupError;
 
     Session() {
       this.alive = new AtomicBoolean(false);
@@ -788,7 +789,9 @@ public final class VernacularVncPlayer implements VncPlayer {
      * @param error the error
      * @return true if the error belongs to the handshake
      */
-    private synchronized boolean recordStartupError(final VncException error) {
+    private synchronized boolean recordStartupError(
+      final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
+    ) {
       if (!this.starting) {
         return false;
       }
@@ -805,10 +808,10 @@ public final class VernacularVncPlayer implements VncPlayer {
      *
      * @return the first error of the handshake, or null if it succeeded
      */
-    private synchronized @Nullable VncException finishStartup() {
+    private synchronized com.shinyhut.vernacular.client.exceptions.@Nullable VncException finishStartup() {
       this.starting = false;
 
-      final @Nullable VncException failure = this.startupError;
+      final com.shinyhut.vernacular.client.exceptions.@Nullable VncException failure = this.startupError;
       if (failure == null) {
         this.alive.set(true);
       }

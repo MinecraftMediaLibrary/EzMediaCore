@@ -65,9 +65,8 @@ public interface VncPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @param source the non-null server description; credentials and dimensions are read from it
    * @return true if startup succeeded, false if a session is already active (including paused) or the player
    *         has been released; a session that failed may be started again before release
-   * @throws me.brandonli.mcav.media.player.PlayerException if the server cannot be reached or rejects the
-   *                                                        connection
-   * @throws NullPointerException                           if {@code source} is null
+   * @throws VncException         if the server cannot be reached or rejects the connection
+   * @throws NullPointerException if {@code source} is null
    */
   boolean start(final VncSource source);
 

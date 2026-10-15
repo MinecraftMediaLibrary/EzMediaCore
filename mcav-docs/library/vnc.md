@@ -50,7 +50,7 @@ filter is yours and shows the frames; release the returned player to disconnect.
 The frame rate is a request; the server sends fewer frames when the screen does not change.
 ```
 
-`start` throws a `PlayerException` when the server cannot be reached. Pausing keeps the connection open and only stops
+`start` throws a `VncException` when the server cannot be reached. Pausing keeps the connection open and only stops
 delivering frames.
 
 To send input, use `moveMouse`, `sendMouseEvent`, and `sendKeyEvent`. Coordinates are in the coordinate system of the

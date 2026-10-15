@@ -44,7 +44,6 @@ import com.shinyhut.vernacular.client.exceptions.AuthenticationFailedException;
 import com.shinyhut.vernacular.client.exceptions.NoSupportedSecurityTypesException;
 import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.UnknownMessageTypeException;
-import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ColorDepth;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -76,7 +75,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
@@ -303,9 +301,12 @@ final class VernacularVncPlayerTest {
     listener.accept(image);
   }
 
-  private void pushError(final AtomicReference<VernacularConfig> capturedConfiguration, final VncException error) {
+  private void pushError(
+    final AtomicReference<VernacularConfig> capturedConfiguration,
+    final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
+  ) {
     final VernacularConfig configuration = capturedConfiguration.get();
-    final Consumer<VncException> listener = configuration.getErrorListener();
+    final Consumer<com.shinyhut.vernacular.client.exceptions.VncException> listener = configuration.getErrorListener(); // fqn: clashes with the VncException of this module
     listener.accept(error);
   }
 
@@ -534,7 +535,7 @@ final class VernacularVncPlayerTest {
     final VncSourceBuilder builder = this.hostBuilder(server);
     builder.password("wrong");
     final VncSource source = builder.build();
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -552,7 +553,7 @@ final class VernacularVncPlayerTest {
     final RfbTestServer server = this.server(RfbTestServer.Security.UNSUPPORTED, "");
     final VernacularVncPlayer player = this.player();
     final VncSource source = this.source(server, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     assertInstanceOf(NoSupportedSecurityTypesException.class, cause);
     final boolean playing = player.isPlaying();
@@ -566,7 +567,7 @@ final class VernacularVncPlayerTest {
     final VernacularVncPlayer player = this.player();
     final VncSource refusingSource = this.source(refusing, 0, 0);
     final VncSource workingSource = this.source(working, 0, 0);
-    assertThrows(PlayerException.class, () -> player.start(refusingSource));
+    assertThrows(VncException.class, () -> player.start(refusingSource));
     final boolean started = player.start(workingSource);
     assertTrue(started);
     this.awaitFrame("a frame arrives", _ -> true);
@@ -577,7 +578,7 @@ final class VernacularVncPlayerTest {
     final RfbTestServer server = this.server(RfbTestServer.Security.HANG_UP, "");
     final VernacularVncPlayer player = this.player();
     final VncSource source = this.source(server, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final String message = exception.getMessage();
     final boolean messageStartsWith = message.startsWith("VNC session with vnc://127.0.0.1:");
     assertTrue(messageStartsWith, message);
@@ -591,7 +592,7 @@ final class VernacularVncPlayerTest {
     final VncSource source = this.source(closed, 0, 0);
     closed.close();
     final VernacularVncPlayer player = this.player();
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final boolean messageStartsWith = message.startsWith("VNC server vnc://127.0.0.1:");
@@ -612,7 +613,7 @@ final class VernacularVncPlayerTest {
     final VernacularClient client = mock(VernacularClient.class);
     final VernacularVncPlayer created = new VernacularVncPlayer(_ -> client, sockets);
     final VernacularVncPlayer player = this.track(created);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
 
     final String message = exception.getMessage();
     final boolean messageContains = message.contains("refused on purpose");
@@ -856,7 +857,7 @@ final class VernacularVncPlayerTest {
     doThrow(failure).when(client).start(any(Socket.class));
     final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final VncSource source = this.source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     assertSame(failure, cause);
 
@@ -889,7 +890,7 @@ final class VernacularVncPlayerTest {
       .when(client)
       .start(any(Socket.class));
     final VncSource source = this.source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     final boolean pending = player.hasPendingFrame();
     assertSame(failure, cause);
@@ -1184,7 +1185,7 @@ final class VernacularVncPlayerTest {
       .start(any(Socket.class));
     final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final VncSource source = this.source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     final boolean noReports = this.errorMessages.isEmpty();
     assertSame(first, cause);
@@ -1254,7 +1255,7 @@ final class VernacularVncPlayerTest {
     boolean running;
     try {
       running = player.start(source);
-    } catch (final PlayerException exception) {
+    } catch (final VncException exception) {
       final Throwable cause = exception.getCause();
       assertSame(failure, cause, "a refused handshake must carry its injected error");
 
@@ -1821,7 +1822,7 @@ final class VernacularVncPlayerTest {
       final boolean replacementDelivered = delivered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       final int mostAtOnce = maximum.get();
       final List<Integer> expectedColors = List.of(RED, BLUE);
-      final List<VncException> expectedErrors = List.of(failure);
+      final List<com.shinyhut.vernacular.client.exceptions.VncException> expectedErrors = List.of(failure); // fqn: clashes with the VncException of this module
       assertTrue(replacementDelivered);
       assertEquals(1, mostAtOnce);
       assertEquals(expectedColors, colors, "the replacement's frame must remain the last displayed frame");
@@ -1892,7 +1893,7 @@ final class VernacularVncPlayerTest {
     }
 
     final List<Integer> expectedColors = List.of(RED);
-    final List<VncException> expectedErrors = List.of(originalFailure, replacementFailure);
+    final List<com.shinyhut.vernacular.client.exceptions.VncException> expectedErrors = List.of(originalFailure, replacementFailure); // fqn: clashes with the VncException of this module
     assertEquals(expectedColors, colors, "the ended replacement cannot show its waiting frame");
     assertEquals(expectedErrors, this.errors);
   }
@@ -2100,8 +2101,8 @@ final class VernacularVncPlayerTest {
         new VernacularVncPlayer(VernacularClient::new, Socket::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
       );
       final VncSource source = this.source(silent, 0, 0);
-      final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(30), () ->
-        assertThrows(PlayerException.class, () -> player.start(source))
+      final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(30), () ->
+        assertThrows(VncException.class, () -> player.start(source))
       );
       final String message = failure.getMessage();
       final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
@@ -2118,8 +2119,8 @@ final class VernacularVncPlayerTest {
       new VernacularVncPlayer(VernacularClient::new, Socket::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
     );
     final VncSource source = this.source(silent, 0, 0);
-    final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
-      assertThrows(PlayerException.class, () -> player.start(source))
+    final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
+      assertThrows(VncException.class, () -> player.start(source))
     );
     final String message = failure.getMessage();
     final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
@@ -2149,8 +2150,8 @@ final class VernacularVncPlayerTest {
       new VernacularVncPlayer(VernacularClient::new, SlowToClose::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
     );
     final VncSource source = this.source(silent, 0, 0);
-    final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
-      assertThrows(PlayerException.class, () -> player.start(source))
+    final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
+      assertThrows(VncException.class, () -> player.start(source))
     );
     final String message = failure.getMessage();
     final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
