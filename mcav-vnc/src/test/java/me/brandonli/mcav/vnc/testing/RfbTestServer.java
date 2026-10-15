@@ -306,17 +306,22 @@ public final class RfbTestServer implements AutoCloseable {
 
   private void acceptLoop() {
     while (!this.serverSocket.isClosed()) {
-      try (final Socket client = this.serverSocket.accept()) {
-        this.connections.incrementAndGet();
-        if (this.security == Security.HANG_UP) {
-          continue;
-        }
-        this.serve(client);
-      } catch (final IOException | GeneralSecurityException exception) {
-        // the client went away or the server was closed
-      } finally {
-        this.output = null;
+      this.acceptConnection();
+    }
+  }
+
+  private void acceptConnection() {
+    try (final Socket client = this.serverSocket.accept()) {
+      this.connections.incrementAndGet();
+      if (this.security == Security.HANG_UP) {
+        return;
       }
+
+      this.serve(client);
+    } catch (final IOException | GeneralSecurityException exception) {
+      // the client went away or the server was closed
+    } finally {
+      this.output = null;
     }
   }
 
@@ -334,7 +339,7 @@ public final class RfbTestServer implements AutoCloseable {
 
     final boolean accepted = this.negotiateSecurity(input, clientOutput);
     if (!accepted) {
-      drain(input);
+      this.drain(input);
       return;
     }
 
@@ -352,25 +357,25 @@ public final class RfbTestServer implements AutoCloseable {
   private boolean negotiateSecurity(final DataInputStream input, final DataOutputStream clientOutput)
     throws IOException, GeneralSecurityException {
     return switch (this.security) {
-      case UNSUPPORTED -> refuseSecurity(clientOutput);
+      case UNSUPPORTED -> this.refuseSecurity(clientOutput);
       case PASSWORD -> this.negotiatePassword(input, clientOutput);
-      default -> acceptWithoutSecurity(input, clientOutput);
+      default -> this.acceptWithoutSecurity(input, clientOutput);
     };
   }
 
-  private static void offerSecurityType(final DataOutputStream clientOutput, final int type) throws IOException {
+  private void offerSecurityType(final DataOutputStream clientOutput, final int type) throws IOException {
     clientOutput.writeByte(1);
     clientOutput.writeByte(type);
     clientOutput.flush();
   }
 
-  private static boolean refuseSecurity(final DataOutputStream clientOutput) throws IOException {
-    offerSecurityType(clientOutput, SECURITY_UNSUPPORTED);
+  private boolean refuseSecurity(final DataOutputStream clientOutput) throws IOException {
+    this.offerSecurityType(clientOutput, SECURITY_UNSUPPORTED);
     return false;
   }
 
-  private static boolean acceptWithoutSecurity(final DataInputStream input, final DataOutputStream clientOutput) throws IOException {
-    offerSecurityType(clientOutput, SECURITY_NONE);
+  private boolean acceptWithoutSecurity(final DataInputStream input, final DataOutputStream clientOutput) throws IOException {
+    this.offerSecurityType(clientOutput, SECURITY_NONE);
     input.readUnsignedByte();
     clientOutput.writeInt(0);
     clientOutput.flush();
@@ -379,7 +384,7 @@ public final class RfbTestServer implements AutoCloseable {
 
   private boolean negotiatePassword(final DataInputStream input, final DataOutputStream clientOutput)
     throws IOException, GeneralSecurityException {
-    offerSecurityType(clientOutput, SECURITY_VNC);
+    this.offerSecurityType(clientOutput, SECURITY_VNC);
     input.readUnsignedByte();
     final byte[] challenge = new byte[CHALLENGE_BYTES];
     Arrays.fill(challenge, (byte) 7);
@@ -388,7 +393,7 @@ public final class RfbTestServer implements AutoCloseable {
 
     final byte[] response = new byte[CHALLENGE_BYTES];
     input.readFully(response);
-    final byte[] expected = encryptChallenge(challenge, this.password);
+    final byte[] expected = this.encryptChallenge(challenge, this.password);
     final boolean correct = Arrays.equals(expected, response);
     this.authenticated.set(correct);
     if (!correct) {
@@ -405,7 +410,7 @@ public final class RfbTestServer implements AutoCloseable {
     return true;
   }
 
-  private static byte[] encryptChallenge(final byte[] challenge, final String secret) throws GeneralSecurityException {
+  private byte[] encryptChallenge(final byte[] challenge, final String secret) throws GeneralSecurityException {
     final byte[] passwordBytes = secret.getBytes(StandardCharsets.US_ASCII);
     final byte[] key = new byte[8];
     final int copied = Math.min(passwordBytes.length, key.length);
@@ -457,34 +462,34 @@ public final class RfbTestServer implements AutoCloseable {
   private void readMessage(final DataInputStream input, final int type) throws IOException {
     switch (type) {
       case 0 -> this.readPixelFormat(input);
-      case 2 -> skipEncodings(input);
+      case 2 -> this.skipEncodings(input);
       case 3 -> this.readUpdateRequest(input);
       case 4 -> this.readKeyEvent(input);
       case 5 -> this.readPointerEvent(input);
-      case 6 -> skipCutText(input);
+      case 6 -> this.skipCutText(input);
       default -> throw new IOException("Client message %s is unknown!".formatted(type));
     }
   }
 
-  private static void discard(final DataInputStream input, final int count) throws IOException {
+  private void discard(final DataInputStream input, final int count) throws IOException {
     final byte[] skipped = new byte[count];
     input.readFully(skipped);
   }
 
-  private static void skipEncodings(final DataInputStream input) throws IOException {
+  private void skipEncodings(final DataInputStream input) throws IOException {
     input.readUnsignedByte();
     final int count = input.readUnsignedShort();
-    discard(input, count * 4);
+    this.discard(input, count * 4);
   }
 
-  private static void skipCutText(final DataInputStream input) throws IOException {
-    discard(input, PADDING_BYTES);
+  private void skipCutText(final DataInputStream input) throws IOException {
+    this.discard(input, PADDING_BYTES);
     final int length = input.readInt();
-    discard(input, length);
+    this.discard(input, length);
   }
 
   private void readUpdateRequest(final DataInputStream input) throws IOException {
-    discard(input, 9);
+    this.discard(input, 9);
     synchronized (this.outputLock) {
       this.pendingRequests++;
     }
@@ -515,7 +520,7 @@ public final class RfbTestServer implements AutoCloseable {
   }
 
   private void readPixelFormat(final DataInputStream input) throws IOException {
-    discard(input, PADDING_BYTES);
+    this.discard(input, PADDING_BYTES);
     final int bitsPerPixel = input.readUnsignedByte();
     input.readUnsignedByte();
     final boolean bigEndian = input.readUnsignedByte() != 0;
@@ -526,7 +531,7 @@ public final class RfbTestServer implements AutoCloseable {
     final int redShift = input.readUnsignedByte();
     final int greenShift = input.readUnsignedByte();
     final int blueShift = input.readUnsignedByte();
-    discard(input, PADDING_BYTES);
+    this.discard(input, PADDING_BYTES);
     this.layout = new PixelLayout(
       bitsPerPixel / BITS_PER_BYTE,
       bigEndian,
@@ -544,14 +549,19 @@ public final class RfbTestServer implements AutoCloseable {
     if (currentOutput == null) {
       return;
     }
+
+    try {
+      this.writePendingUpdates(currentOutput);
+    } catch (final IOException exception) {
+      // the client went away
+    }
+  }
+
+  private void writePendingUpdates(final DataOutputStream currentOutput) throws IOException {
     synchronized (this.outputLock) {
-      try {
-        while (this.pendingRequests > 0) {
-          this.pendingRequests--;
-          this.writeUpdate(currentOutput);
-        }
-      } catch (final IOException exception) {
-        // the client went away
+      while (this.pendingRequests > 0) {
+        this.pendingRequests--;
+        this.writeUpdate(currentOutput);
       }
     }
   }
@@ -575,7 +585,7 @@ public final class RfbTestServer implements AutoCloseable {
     this.updatesSent.incrementAndGet();
   }
 
-  private static void drain(final InputStream input) {
+  private void drain(final InputStream input) {
     final OutputStream discarded = OutputStream.nullOutputStream();
     try {
       input.transferTo(discarded);
@@ -655,9 +665,9 @@ public final class RfbTestServer implements AutoCloseable {
       final int red = (rgb >> RED_SHIFT) & BYTE_MASK;
       final int green = (rgb >> GREEN_SHIFT) & BYTE_MASK;
       final int blue = (rgb >> BLUE_SHIFT) & BYTE_MASK;
-      final long redBits = scaleChannel(red, this.redMaximum, this.redShift);
-      final long greenBits = scaleChannel(green, this.greenMaximum, this.greenShift);
-      final long blueBits = scaleChannel(blue, this.blueMaximum, this.blueShift);
+      final long redBits = this.scaleChannel(red, this.redMaximum, this.redShift);
+      final long greenBits = this.scaleChannel(green, this.greenMaximum, this.greenShift);
+      final long blueBits = this.scaleChannel(blue, this.blueMaximum, this.blueShift);
       final long value = redBits | greenBits | blueBits;
 
       final byte[] bytes = new byte[this.bytesPerPixel];
@@ -669,7 +679,7 @@ public final class RfbTestServer implements AutoCloseable {
       return bytes;
     }
 
-    private static long scaleChannel(final int channel, final int maximum, final int shift) {
+    private long scaleChannel(final int channel, final int maximum, final int shift) {
       final int scaled = (channel * maximum) / CHANNEL_MAXIMUM;
       return (long) scaled << shift;
     }

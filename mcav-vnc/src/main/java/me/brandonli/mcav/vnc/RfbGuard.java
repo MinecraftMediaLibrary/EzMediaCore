@@ -76,17 +76,22 @@ final class RfbGuard {
 
   private static final int MINIMUM_MINOR_WITH_REASONS = 8;
 
-  private final Object lock = new Object();
+  private final Object lock;
+  private final ServerParser server;
+  private final ClientParser client;
 
-  private final ServerParser server = new ServerParser();
+  private int minorVersion;
+  private int securityType;
+  private int clientBytesPerPixel;
 
-  private final ClientParser client = new ClientParser();
-
-  private int minorVersion = UNKNOWN;
-
-  private int securityType = UNKNOWN;
-
-  private int clientBytesPerPixel = UNKNOWN;
+  RfbGuard() {
+    this.lock = new Object();
+    this.server = new ServerParser();
+    this.client = new ClientParser();
+    this.minorVersion = UNKNOWN;
+    this.securityType = UNKNOWN;
+    this.clientBytesPerPixel = UNKNOWN;
+  }
 
   /**
    * Wraps the stream the server's bytes arrive on.
@@ -132,27 +137,28 @@ final class RfbGuard {
     return this.clientBytesPerPixel > 0 ? this.clientBytesPerPixel : this.server.serverBytesPerPixel;
   }
 
-  private static IOException violation(final String what) {
+  private IOException violation(final String what) {
     final String message = "VNC server sent %s, which breaks the protocol or a bound!".formatted(what);
     return new IOException(message);
   }
 
-  private static int unsigned8(final byte[] field, final int at) {
+  private int unsigned8(final byte[] field, final int at) {
     return field[at] & BYTE_MASK;
   }
 
-  private static int unsigned16(final byte[] field, final int at) {
-    return (unsigned8(field, at) << Byte.SIZE) | unsigned8(field, at + 1);
+  private int unsigned16(final byte[] field, final int at) {
+    return (this.unsigned8(field, at) << Byte.SIZE) | this.unsigned8(field, at + 1);
   }
 
-  private static long unsigned32(final byte[] field, final int at) {
-    return ((long) unsigned16(field, at) << Short.SIZE) | unsigned16(field, at + Short.BYTES);
+  private long unsigned32(final byte[] field, final int at) {
+    return ((long) this.unsigned16(field, at) << Short.SIZE) | this.unsigned16(field, at + Short.BYTES);
   }
 
-  private static int pixelBytes(final int bitsPerPixel) throws IOException {
+  private int pixelBytes(final int bitsPerPixel) throws IOException {
     if (!SUPPORTED_BITS_PER_PIXEL.contains(bitsPerPixel)) {
-      throw violation("%s bits per pixel".formatted(bitsPerPixel));
+      throw this.violation("%s bits per pixel".formatted(bitsPerPixel));
     }
+
     return bitsPerPixel / Byte.SIZE;
   }
 
@@ -171,6 +177,7 @@ final class RfbGuard {
         final byte[] single = { (byte) value };
         RfbGuard.this.acceptServer(single, 0, single.length);
       }
+
       return value;
     }
 
@@ -180,13 +187,17 @@ final class RfbGuard {
       if (count > 0) {
         RfbGuard.this.acceptServer(buffer, offset, count);
       }
+
       return count;
     }
 
     @Override
     public long skip(final long count) throws IOException {
-      final byte[] buffer = new byte[(int) Math.min(Math.max(count, 0), SKIP_BUFFER_BYTES)];
-      return Math.max(this.read(buffer, 0, buffer.length), 0);
+      final long wanted = Math.max(count, 0);
+      final long bufferBytes = Math.min(wanted, SKIP_BUFFER_BYTES);
+      final byte[] buffer = new byte[(int) bufferBytes];
+      final int read = this.read(buffer, 0, buffer.length);
+      return Math.max(read, 0);
     }
 
     @Override
@@ -281,7 +292,9 @@ final class RfbGuard {
     private static final int COLOUR_ENTRY = 6;
     private static final int SUBRECTANGLE_GEOMETRY = 8;
     private static final int HEXTILE_GEOMETRY = 2;
+
     private static final int TILE_SIDE = 16;
+
     private static final int RAW = 0;
     private static final int COPY_RECTANGLE = 1;
     private static final int RRE_ENCODING = 2;
@@ -289,6 +302,7 @@ final class RfbGuard {
     private static final int ZLIB = 6;
     private static final int DESKTOP_SIZE = -223;
     private static final int CURSOR = -239;
+
     private static final int TILE_RAW = 1;
     private static final int TILE_BACKGROUND = 2;
     private static final int TILE_FOREGROUND = 4;
@@ -321,37 +335,35 @@ final class RfbGuard {
 
     private static final int INITIAL_BYTES_PER_PIXEL = 4;
 
-    private final byte[] field = new byte[Server.INITIALIZATION.bytes];
+    private final byte[] field;
 
-    private Mode mode = Mode.FIELD;
-
-    private Server state = Server.VERSION;
-
-    private int need = Server.VERSION.bytes;
-
+    private Mode mode;
+    private Server state;
+    private int need;
     private int have;
-
     private long skip;
+    private Then then;
+    private Server skipTo;
 
-    private Then then = Then.STATE;
-
-    private Server skipTo = Server.MESSAGE;
-
-    private int serverBytesPerPixel = INITIAL_BYTES_PER_PIXEL;
-
+    private int serverBytesPerPixel;
     private int width;
-
     private int height;
 
     private int rectangles;
-
     private int rectangleWidth;
-
     private int rectangleHeight;
-
     private int tile;
-
     private int tileFlags;
+
+    ServerParser() {
+      this.field = new byte[Server.INITIALIZATION.bytes];
+      this.mode = Mode.FIELD;
+      this.state = Server.VERSION;
+      this.need = Server.VERSION.bytes;
+      this.then = Then.STATE;
+      this.skipTo = Server.MESSAGE;
+      this.serverBytesPerPixel = INITIAL_BYTES_PER_PIXEL;
+    }
 
     void accept(final byte[] buffer, final int offset, final int length) throws IOException {
       int at = offset;
@@ -362,7 +374,7 @@ final class RfbGuard {
           case SKIP -> this.skipFrom(at, end);
           case AWAIT_VERSION -> this.afterVersion(at);
           case AWAIT_CHOICE -> this.afterChoice(at);
-          case CLOSED -> throw violation("bytes after the connection ended");
+          case CLOSED -> throw RfbGuard.this.violation("bytes after the connection ended");
         };
       }
     }
@@ -372,23 +384,28 @@ final class RfbGuard {
         this.field[this.have] = buffer[at];
       }
       this.have++;
+
       if (this.have == this.need) {
         this.complete();
       }
+
       return at + 1;
     }
 
     private int skipFrom(final int at, final int end) {
       final long taken = Math.min(this.skip, end - at);
       this.skip -= taken;
+
       if (this.skip == 0) {
         this.continueAfterSkip();
       }
+
       return at + (int) taken;
     }
 
     private void continueAfterSkip() {
       this.mode = Mode.FIELD;
+
       final Runnable next = switch (this.then) {
         case RECTANGLE -> this::nextRectangle;
         case TILE -> this::nextTile;
@@ -405,17 +422,19 @@ final class RfbGuard {
         this.continueAfterSkip();
         return;
       }
+
       this.skip = bytes;
       this.mode = Mode.SKIP;
     }
 
     private void expect(final Server next) {
+      final int pixelBytes = next == Server.RRE ? RfbGuard.this.bytesPerPixel() : 0;
       this.state = next;
       this.have = 0;
-      this.need = next.bytes + (next == Server.RRE ? RfbGuard.this.bytesPerPixel() : 0);
+      this.need = next.bytes + pixelBytes;
     }
 
-    /** The connection ends after this field: any byte after it breaks the protocol. */
+    // the connection ends after this field: any byte after it breaks the protocol
     private void close() {
       this.mode = Mode.CLOSED;
     }
@@ -425,9 +444,9 @@ final class RfbGuard {
         case VERSION -> this::version;
         case SECURITY_TYPE -> this::securityType;
         case SECURITY_COUNT -> this::securityCount;
-        case SECURITY_TYPES -> () -> this.mode = Mode.AWAIT_CHOICE;
+        case SECURITY_TYPES -> this::awaitChoice;
         case REASON_LENGTH -> this::reason;
-        case CHALLENGE, LOGON_KEYS -> () -> this.expect(Server.RESULT);
+        case CHALLENGE, LOGON_KEYS -> this::expectResult;
         case RESULT -> this::result;
         case INITIALIZATION -> this::initialization;
         case MESSAGE -> this::message;
@@ -437,36 +456,304 @@ final class RfbGuard {
         case TILE -> this::tile;
         case SUBRECTANGLES -> this::subrectangles;
         case ZLIB_LENGTH -> this::zlib;
-        case COLOURS -> () -> this.skip((long) COLOUR_ENTRY * unsigned16(this.field, COLOUR_COUNT_OFFSET), Then.STATE, Server.MESSAGE);
-        case TEXT -> () -> this.bounded(unsigned32(this.field, TEXT_LENGTH_OFFSET), MAXIMUM_TEXT, "clipboard text", Server.MESSAGE);
+        case COLOURS -> this::colours;
+        case TEXT -> this::text;
       };
       step.run();
     }
 
-    /** A failure reason, after which the server closes the connection. */
-    private void reason() throws IOException {
-      final long length = unsigned32(this.field, 0);
-      if (length > MAXIMUM_REASON) {
-        throw violation("a failure reason of %s bytes".formatted(length));
+    private void version() throws IOException {
+      final String text = new String(this.field, 0, VERSION_BYTES, StandardCharsets.US_ASCII);
+      final char last = text.charAt(VERSION_BYTES - 1);
+      if (!text.startsWith(VERSION_PREFIX) || last != VERSION_TERMINATOR) {
+        throw RfbGuard.this.violation("a protocol version other than 3.x");
       }
+
+      this.mode = Mode.AWAIT_VERSION;
+    }
+
+    private void securityType() throws IOException {
+      final long type = this.unsigned32(0);
+      if (type == SECURITY_TYPE_INVALID) {
+        this.expect(Server.REASON_LENGTH);
+        return;
+      }
+
+      RfbGuard.this.securityType = (int) Math.min(type, Integer.MAX_VALUE);
+      this.afterSecurity(RfbGuard.this.securityType);
+    }
+
+    private void afterSecurity(final int type) throws IOException {
+      if (type < 0) {
+        throw RfbGuard.this.violation("data before the client chose a security type");
+      }
+
+      switch (type) {
+        case NONE -> this.expectResultOrInitialization();
+        case VNC -> this.expect(Server.CHALLENGE);
+        case MS_LOGON -> this.expect(Server.LOGON_KEYS);
+        default -> throw RfbGuard.this.violation("security type %s that the client does not support".formatted(type));
+      }
+    }
+
+    private void expectResultOrInitialization() {
+      final boolean sendsResult = RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS;
+      final Server next = sendsResult ? Server.RESULT : Server.INITIALIZATION;
+      this.expect(next);
+    }
+
+    private void securityCount() {
+      final int count = this.unsigned8(0);
+      if (count == 0) {
+        this.expect(Server.REASON_LENGTH);
+        return;
+      }
+
+      this.expect(Server.SECURITY_TYPES);
+      this.need = count;
+    }
+
+    private void awaitChoice() {
+      this.mode = Mode.AWAIT_CHOICE;
+    }
+
+    // a failure reason, after which the server closes the connection
+    private void reason() throws IOException {
+      final long length = this.unsigned32(0);
+      if (length > MAXIMUM_REASON) {
+        throw RfbGuard.this.violation("a failure reason of %s bytes".formatted(length));
+      }
+
       this.skip(length, Then.CLOSE, Server.VERSION);
     }
 
-    private void version() throws IOException {
-      final String text = new String(this.field, 0, VERSION_BYTES, StandardCharsets.US_ASCII);
-      if (!text.startsWith(VERSION_PREFIX) || text.charAt(VERSION_BYTES - 1) != VERSION_TERMINATOR) {
-        throw violation("a protocol version other than 3.x");
+    private void expectResult() {
+      this.expect(Server.RESULT);
+    }
+
+    private void result() {
+      final long result = this.unsigned32(0);
+      if (result == SECURITY_RESULT_OK) {
+        this.expect(Server.INITIALIZATION);
+        return;
       }
-      this.mode = Mode.AWAIT_VERSION;
+
+      if (RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS) {
+        this.expect(Server.REASON_LENGTH);
+        return;
+      }
+
+      this.close();
+    }
+
+    private void initialization() throws IOException {
+      final int framebufferWidth = this.unsigned16(FRAMEBUFFER_WIDTH_OFFSET);
+      final int framebufferHeight = this.unsigned16(FRAMEBUFFER_HEIGHT_OFFSET);
+      final int bitsPerPixel = this.unsigned8(BITS_PER_PIXEL_OFFSET);
+      final long nameLength = this.unsigned32(NAME_LENGTH_OFFSET);
+      this.resize(framebufferWidth, framebufferHeight);
+      this.serverBytesPerPixel = RfbGuard.this.pixelBytes(bitsPerPixel);
+      this.bounded(nameLength, MAXIMUM_NAME, "desktop name", Server.MESSAGE);
+    }
+
+    private void resize(final int newWidth, final int newHeight) throws IOException {
+      if (newWidth < 1 || newHeight < 1 || newWidth > MAXIMUM_SIDE || newHeight > MAXIMUM_SIDE) {
+        throw RfbGuard.this.violation("a framebuffer of %sx%s pixels".formatted(newWidth, newHeight));
+      }
+
+      this.width = newWidth;
+      this.height = newHeight;
+    }
+
+    private void bounded(final long length, final int limit, final String what, final Server next) throws IOException {
+      if (length > limit) {
+        throw RfbGuard.this.violation("a %s of %s bytes".formatted(what, length));
+      }
+
+      this.skip(length, Then.STATE, next);
+    }
+
+    private void message() throws IOException {
+      final int type = this.unsigned8(0);
+      switch (type) {
+        case FRAMEBUFFER_UPDATE -> this.expect(Server.UPDATE);
+        case SET_COLOUR_MAP_ENTRIES -> this.expect(Server.COLOURS);
+        case BELL -> this.expect(Server.MESSAGE);
+        case SERVER_CUT_TEXT -> this.expect(Server.TEXT);
+        default -> throw RfbGuard.this.violation("message type %s".formatted(type));
+      }
+    }
+
+    private void update() {
+      this.rectangles = this.unsigned16(RECTANGLE_COUNT_OFFSET);
+      this.nextRectangle();
+    }
+
+    private void nextRectangle() {
+      if (this.rectangles == 0) {
+        this.expect(Server.MESSAGE);
+        return;
+      }
+
+      this.rectangles--;
+      this.expect(Server.RECTANGLE);
+    }
+
+    private void rectangle() throws IOException {
+      final int left = this.unsigned16(RECTANGLE_LEFT_OFFSET);
+      final int top = this.unsigned16(RECTANGLE_TOP_OFFSET);
+      final int width = this.unsigned16(RECTANGLE_WIDTH_OFFSET);
+      final int height = this.unsigned16(RECTANGLE_HEIGHT_OFFSET);
+      final int encoding = (int) this.unsigned32(RECTANGLE_ENCODING_OFFSET);
+      if (encoding == DESKTOP_SIZE) {
+        this.resize(width, height);
+        this.nextRectangle();
+        return;
+      }
+
+      if (encoding == CURSOR) {
+        this.cursor(width, height);
+        return;
+      }
+
+      if (left + width > this.width || top + height > this.height) {
+        throw RfbGuard.this.violation("a rectangle outside the framebuffer");
+      }
+
+      this.rectangleWidth = width;
+      this.rectangleHeight = height;
+      this.encodedRectangle(encoding);
+    }
+
+    private void cursor(final int width, final int height) throws IOException {
+      if (width > MAXIMUM_SIDE || height > MAXIMUM_SIDE) {
+        throw RfbGuard.this.violation("a cursor of %sx%s pixels".formatted(width, height));
+      }
+
+      final int pixel = RfbGuard.this.bytesPerPixel();
+      final int maskRow = (width + Byte.SIZE - 1) / Byte.SIZE;
+      final long mask = (long) maskRow * height;
+      final long image = (long) width * height * pixel;
+      this.skip(image + mask, Then.RECTANGLE, Server.MESSAGE);
+    }
+
+    private void encodedRectangle(final int encoding) throws IOException {
+      switch (encoding) {
+        case RAW -> this.raw();
+        case COPY_RECTANGLE -> this.skip(Integer.BYTES, Then.RECTANGLE, Server.MESSAGE);
+        case RRE_ENCODING -> this.expect(Server.RRE);
+        case HEXTILE -> this.firstTile();
+        case ZLIB -> this.expect(Server.ZLIB_LENGTH);
+        default -> throw RfbGuard.this.violation("encoding %s".formatted(encoding));
+      }
+    }
+
+    private void raw() {
+      final int pixel = RfbGuard.this.bytesPerPixel();
+      final long bytes = (long) this.rectangleWidth * this.rectangleHeight * pixel;
+      this.skip(bytes, Then.RECTANGLE, Server.MESSAGE);
+    }
+
+    private void firstTile() {
+      this.tile = 0;
+      this.nextTile();
+    }
+
+    private void nextTile() {
+      if (this.tile == this.tiles()) {
+        this.nextRectangle();
+        return;
+      }
+
+      this.expect(Server.TILE);
+    }
+
+    private int tiles() {
+      final int across = this.tilesAcross();
+      final int down = (this.rectangleHeight + TILE_SIDE - 1) / TILE_SIDE;
+      return across * down;
+    }
+
+    private int tilesAcross() {
+      return (this.rectangleWidth + TILE_SIDE - 1) / TILE_SIDE;
+    }
+
+    private void rre() throws IOException {
+      final long count = this.unsigned32(0);
+      final long pixels = (long) this.rectangleWidth * this.rectangleHeight;
+      if (count > pixels) {
+        throw RfbGuard.this.violation("%s RRE subrectangles in %sx%s pixels".formatted(count, this.rectangleWidth, this.rectangleHeight));
+      }
+
+      final long each = RfbGuard.this.bytesPerPixel() + (long) SUBRECTANGLE_GEOMETRY;
+      this.skip(count * each, Then.RECTANGLE, Server.MESSAGE);
+    }
+
+    private void tile() {
+      final int flags = this.unsigned8(0);
+      final int pixel = RfbGuard.this.bytesPerPixel();
+      final int across = this.tilesAcross();
+      final int tileWidth = Math.min(TILE_SIDE, this.rectangleWidth - (this.tile % across) * TILE_SIDE);
+      final int tileHeight = Math.min(TILE_SIDE, this.rectangleHeight - (this.tile / across) * TILE_SIDE);
+      this.tile++;
+
+      if ((flags & TILE_RAW) != 0) {
+        this.skip((long) tileWidth * tileHeight * pixel, Then.TILE, Server.MESSAGE);
+        return;
+      }
+
+      this.tileFlags = flags;
+      final int background = (flags & TILE_BACKGROUND) != 0 ? pixel : 0;
+      final int foreground = (flags & TILE_FOREGROUND) != 0 ? pixel : 0;
+      final int colours = background + foreground;
+      if ((flags & TILE_SUBRECTANGLES) != 0) {
+        this.skip(colours, Then.STATE, Server.SUBRECTANGLES);
+        return;
+      }
+
+      this.skip(colours, Then.TILE, Server.MESSAGE);
+    }
+
+    private void subrectangles() {
+      final int count = this.unsigned8(0);
+      final int colour = (this.tileFlags & TILE_COLOURED) != 0 ? RfbGuard.this.bytesPerPixel() : 0;
+      final int each = colour + HEXTILE_GEOMETRY;
+      this.skip((long) count * each, Then.TILE, Server.MESSAGE);
+    }
+
+    private void zlib() throws IOException {
+      final long length = this.unsigned32(0);
+      final long pixels = (long) this.rectangleWidth * this.rectangleHeight;
+      final long limit = pixels * RfbGuard.this.bytesPerPixel() + ZLIB_SLACK;
+      if (length > limit) {
+        throw RfbGuard.this.violation(
+          "zlib data of %s bytes for %sx%s pixels".formatted(length, this.rectangleWidth, this.rectangleHeight)
+        );
+      }
+
+      this.skip(length, Then.RECTANGLE, Server.MESSAGE);
+    }
+
+    private void colours() {
+      final int count = this.unsigned16(COLOUR_COUNT_OFFSET);
+      final long bytes = (long) COLOUR_ENTRY * count;
+      this.skip(bytes, Then.STATE, Server.MESSAGE);
+    }
+
+    private void text() throws IOException {
+      final long length = this.unsigned32(TEXT_LENGTH_OFFSET);
+      this.bounded(length, MAXIMUM_TEXT, "clipboard text", Server.MESSAGE);
     }
 
     private int afterVersion(final int at) throws IOException {
       final int minor = RfbGuard.this.minorVersion;
       if (minor < 0) {
-        throw violation("security data before the client chose a version");
+        throw RfbGuard.this.violation("security data before the client chose a version");
       }
+
+      final Server next = minor >= MINIMUM_MINOR_WITH_TYPE_LIST ? Server.SECURITY_COUNT : Server.SECURITY_TYPE;
       this.mode = Mode.FIELD;
-      this.expect(minor >= MINIMUM_MINOR_WITH_TYPE_LIST ? Server.SECURITY_COUNT : Server.SECURITY_TYPE);
+      this.expect(next);
       return at;
     }
 
@@ -476,190 +763,16 @@ final class RfbGuard {
       return at;
     }
 
-    private void securityType() throws IOException {
-      final long type = unsigned32(this.field, 0);
-      if (type == SECURITY_TYPE_INVALID) {
-        this.expect(Server.REASON_LENGTH);
-        return;
-      }
-      RfbGuard.this.securityType = (int) Math.min(type, Integer.MAX_VALUE);
-      this.afterSecurity(RfbGuard.this.securityType);
+    private int unsigned8(final int offset) {
+      return RfbGuard.this.unsigned8(this.field, offset);
     }
 
-    private void securityCount() {
-      final int count = unsigned8(this.field, 0);
-      if (count == 0) {
-        this.expect(Server.REASON_LENGTH);
-        return;
-      }
-      this.expect(Server.SECURITY_TYPES);
-      this.need = count;
+    private int unsigned16(final int offset) {
+      return RfbGuard.this.unsigned16(this.field, offset);
     }
 
-    private void afterSecurity(final int type) throws IOException {
-      if (type < 0) {
-        throw violation("data before the client chose a security type");
-      }
-      switch (type) {
-        case NONE -> this.expect(RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS ? Server.RESULT : Server.INITIALIZATION);
-        case VNC -> this.expect(Server.CHALLENGE);
-        case MS_LOGON -> this.expect(Server.LOGON_KEYS);
-        default -> throw violation("security type %s that the client does not support".formatted(type));
-      }
-    }
-
-    private void result() {
-      if (unsigned32(this.field, 0) == SECURITY_RESULT_OK) {
-        this.expect(Server.INITIALIZATION);
-      } else if (RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS) {
-        this.expect(Server.REASON_LENGTH);
-      } else {
-        this.close();
-      }
-    }
-
-    private void initialization() throws IOException {
-      this.resize(unsigned16(this.field, FRAMEBUFFER_WIDTH_OFFSET), unsigned16(this.field, FRAMEBUFFER_HEIGHT_OFFSET));
-      this.serverBytesPerPixel = pixelBytes(unsigned8(this.field, BITS_PER_PIXEL_OFFSET));
-      this.bounded(unsigned32(this.field, NAME_LENGTH_OFFSET), MAXIMUM_NAME, "desktop name", Server.MESSAGE);
-    }
-
-    private void resize(final int newWidth, final int newHeight) throws IOException {
-      if (newWidth < 1 || newHeight < 1 || newWidth > MAXIMUM_SIDE || newHeight > MAXIMUM_SIDE) {
-        throw violation("a framebuffer of %sx%s pixels".formatted(newWidth, newHeight));
-      }
-      this.width = newWidth;
-      this.height = newHeight;
-    }
-
-    private void bounded(final long length, final int limit, final String what, final Server next) throws IOException {
-      if (length > limit) {
-        throw violation("a %s of %s bytes".formatted(what, length));
-      }
-      this.skip(length, Then.STATE, next);
-    }
-
-    private void message() throws IOException {
-      final int type = unsigned8(this.field, 0);
-      switch (type) {
-        case FRAMEBUFFER_UPDATE -> this.expect(Server.UPDATE);
-        case SET_COLOUR_MAP_ENTRIES -> this.expect(Server.COLOURS);
-        case BELL -> this.expect(Server.MESSAGE);
-        case SERVER_CUT_TEXT -> this.expect(Server.TEXT);
-        default -> throw violation("message type %s".formatted(type));
-      }
-    }
-
-    private void update() {
-      this.rectangles = unsigned16(this.field, RECTANGLE_COUNT_OFFSET);
-      this.nextRectangle();
-    }
-
-    private void nextRectangle() {
-      if (this.rectangles == 0) {
-        this.expect(Server.MESSAGE);
-        return;
-      }
-      this.rectangles--;
-      this.expect(Server.RECTANGLE);
-    }
-
-    private void rectangle() throws IOException {
-      final int left = unsigned16(this.field, RECTANGLE_LEFT_OFFSET);
-      final int top = unsigned16(this.field, RECTANGLE_TOP_OFFSET);
-      final int width = unsigned16(this.field, RECTANGLE_WIDTH_OFFSET);
-      final int height = unsigned16(this.field, RECTANGLE_HEIGHT_OFFSET);
-      final int encoding = (int) unsigned32(this.field, RECTANGLE_ENCODING_OFFSET);
-      final int pixel = RfbGuard.this.bytesPerPixel();
-      if (encoding == DESKTOP_SIZE) {
-        this.resize(width, height);
-        this.nextRectangle();
-        return;
-      }
-      if (encoding == CURSOR) {
-        if (width > MAXIMUM_SIDE || height > MAXIMUM_SIDE) {
-          throw violation("a cursor of %sx%s pixels".formatted(width, height));
-        }
-        final long mask = (long) ((width + Byte.SIZE - 1) / Byte.SIZE) * height;
-        this.skip((long) width * height * pixel + mask, Then.RECTANGLE, Server.MESSAGE);
-        return;
-      }
-      if (left + width > this.width || top + height > this.height) {
-        throw violation("a rectangle outside the framebuffer");
-      }
-      this.rectangleWidth = width;
-      this.rectangleHeight = height;
-      switch (encoding) {
-        case RAW -> this.skip((long) width * height * pixel, Then.RECTANGLE, Server.MESSAGE);
-        case COPY_RECTANGLE -> this.skip(Integer.BYTES, Then.RECTANGLE, Server.MESSAGE);
-        case RRE_ENCODING -> this.expect(Server.RRE);
-        case HEXTILE -> {
-          this.tile = 0;
-          this.nextTile();
-        }
-        case ZLIB -> this.expect(Server.ZLIB_LENGTH);
-        default -> throw violation("encoding %s".formatted(encoding));
-      }
-    }
-
-    private void rre() throws IOException {
-      final long count = unsigned32(this.field, 0);
-      if (count > (long) this.rectangleWidth * this.rectangleHeight) {
-        throw violation("%s RRE subrectangles in %sx%s pixels".formatted(count, this.rectangleWidth, this.rectangleHeight));
-      }
-      final long each = RfbGuard.this.bytesPerPixel() + (long) SUBRECTANGLE_GEOMETRY;
-      this.skip(count * each, Then.RECTANGLE, Server.MESSAGE);
-    }
-
-    private int tilesAcross() {
-      return (this.rectangleWidth + TILE_SIDE - 1) / TILE_SIDE;
-    }
-
-    private int tiles() {
-      return this.tilesAcross() * ((this.rectangleHeight + TILE_SIDE - 1) / TILE_SIDE);
-    }
-
-    private void nextTile() {
-      if (this.tile == this.tiles()) {
-        this.nextRectangle();
-        return;
-      }
-      this.expect(Server.TILE);
-    }
-
-    private void tile() {
-      final int flags = unsigned8(this.field, 0);
-      final int pixel = RfbGuard.this.bytesPerPixel();
-      final int across = this.tilesAcross();
-      final int tileWidth = Math.min(TILE_SIDE, this.rectangleWidth - (this.tile % across) * TILE_SIDE);
-      final int tileHeight = Math.min(TILE_SIDE, this.rectangleHeight - (this.tile / across) * TILE_SIDE);
-      this.tile++;
-      if ((flags & TILE_RAW) != 0) {
-        this.skip((long) tileWidth * tileHeight * pixel, Then.TILE, Server.MESSAGE);
-        return;
-      }
-      this.tileFlags = flags;
-      final int colours = ((flags & TILE_BACKGROUND) != 0 ? pixel : 0) + ((flags & TILE_FOREGROUND) != 0 ? pixel : 0);
-      if ((flags & TILE_SUBRECTANGLES) != 0) {
-        this.skip(colours, Then.STATE, Server.SUBRECTANGLES);
-        return;
-      }
-      this.skip(colours, Then.TILE, Server.MESSAGE);
-    }
-
-    private void subrectangles() {
-      final int count = unsigned8(this.field, 0);
-      final int colour = (this.tileFlags & TILE_COLOURED) != 0 ? RfbGuard.this.bytesPerPixel() : 0;
-      this.skip((long) count * (colour + HEXTILE_GEOMETRY), Then.TILE, Server.MESSAGE);
-    }
-
-    private void zlib() throws IOException {
-      final long length = unsigned32(this.field, 0);
-      final long limit = (long) this.rectangleWidth * this.rectangleHeight * RfbGuard.this.bytesPerPixel() + ZLIB_SLACK;
-      if (length > limit) {
-        throw violation("zlib data of %s bytes for %sx%s pixels".formatted(length, this.rectangleWidth, this.rectangleHeight));
-      }
-      this.skip(length, Then.RECTANGLE, Server.MESSAGE);
+    private long unsigned32(final int offset) {
+      return RfbGuard.this.unsigned32(this.field, offset);
     }
   }
 
@@ -685,12 +798,14 @@ final class RfbGuard {
     private static final int VNC_RESPONSE = 16;
     private static final int LOGON_RESPONSE = 8 + 256 + 64;
     private static final int CLIENT_INITIALIZATION = 1;
+
     private static final int SET_PIXEL_FORMAT = 0;
     private static final int SET_ENCODINGS = 2;
     private static final int UPDATE_REQUEST = 3;
     private static final int KEY = 4;
     private static final int POINTER = 5;
     private static final int CUT_TEXT = 6;
+
     private static final int PIXEL_FORMAT_BODY = 19;
     private static final int ENCODINGS_BODY = 3;
     private static final int UPDATE_REQUEST_BODY = 9;
@@ -713,19 +828,21 @@ final class RfbGuard {
     private static final int ENCODING_COUNT_OFFSET = 1;
     private static final int CUT_TEXT_LENGTH_OFFSET = 3;
 
-    private final byte[] field = new byte[PIXEL_FORMAT_BODY];
+    private final byte[] field;
 
-    private ClientMode mode = ClientMode.FIELD;
-
-    private Client state = Client.VERSION;
-
-    private int need = VERSION_BYTES;
-
+    private ClientMode mode;
+    private Client state;
+    private int need;
     private int have;
-
     private long skip;
-
     private int type;
+
+    ClientParser() {
+      this.field = new byte[PIXEL_FORMAT_BODY];
+      this.mode = ClientMode.FIELD;
+      this.state = Client.VERSION;
+      this.need = VERSION_BYTES;
+    }
 
     void accept(final byte[] buffer, final int offset, final int length) {
       int at = offset;
@@ -739,27 +856,20 @@ final class RfbGuard {
       }
     }
 
-    private int skipFrom(final int at, final int end) {
-      final long taken = Math.min(this.skip, end - at);
-      this.skip -= taken;
-      if (this.skip == 0) {
-        this.mode = ClientMode.FIELD;
-        this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
-      }
-      return at + (int) taken;
-    }
-
     private int collect(final byte[] buffer, final int at) {
       if (this.state == Client.HANDSHAKE && this.need == PENDING_LENGTH) {
         this.need = this.response() + CLIENT_INITIALIZATION;
       }
+
       if (this.have < this.field.length) {
         this.field[this.have] = buffer[at];
       }
       this.have++;
+
       if (this.have == this.need) {
         this.complete();
       }
+
       return at + 1;
     }
 
@@ -771,48 +881,53 @@ final class RfbGuard {
       };
     }
 
-    private void expect(final Client next, final int bytes) {
-      this.state = next;
-      this.have = 0;
-      this.need = bytes;
-    }
-
     private void complete() {
       final Runnable step = switch (this.state) {
         case VERSION -> this::version;
         case CHOICE -> this::choice;
-        case HANDSHAKE -> () -> this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
+        case HANDSHAKE -> this::expectMessage;
         case MESSAGE -> this::message;
         case BODY -> this::body;
       };
       step.run();
     }
 
-    private void choice() {
-      RfbGuard.this.securityType = unsigned8(this.field, 0);
+    private void version() {
+      final int minor = this.parseMinorVersion();
+      if (minor == UNKNOWN) {
+        this.mode = ClientMode.UNTRACKED;
+        return;
+      }
+
+      RfbGuard.this.minorVersion = minor;
+      if (minor >= MINIMUM_MINOR_WITH_TYPE_LIST) {
+        this.expect(Client.CHOICE, CHOICE_BYTES);
+        return;
+      }
+
       this.expect(Client.HANDSHAKE, PENDING_LENGTH);
     }
 
-    private void version() {
+    private int parseMinorVersion() {
       int minor = 0;
       for (int offset = VERSION_MINOR_OFFSET; offset < VERSION_BYTES - 1; offset++) {
         final int digit = this.field[offset] - ZERO_DIGIT;
         if (digit < 0 || digit > MAXIMUM_DIGIT) {
-          this.mode = ClientMode.UNTRACKED;
-          return;
+          return UNKNOWN;
         }
         minor = minor * DECIMAL_RADIX + digit;
       }
-      RfbGuard.this.minorVersion = minor;
-      if (minor >= MINIMUM_MINOR_WITH_TYPE_LIST) {
-        this.expect(Client.CHOICE, CHOICE_BYTES);
-      } else {
-        this.expect(Client.HANDSHAKE, PENDING_LENGTH);
-      }
+
+      return minor;
+    }
+
+    private void choice() {
+      RfbGuard.this.securityType = this.unsigned8(0);
+      this.expect(Client.HANDSHAKE, PENDING_LENGTH);
     }
 
     private void message() {
-      this.type = unsigned8(this.field, 0);
+      this.type = this.unsigned8(0);
       final int body = switch (this.type) {
         case SET_PIXEL_FORMAT -> PIXEL_FORMAT_BODY;
         case SET_ENCODINGS -> ENCODINGS_BODY;
@@ -826,32 +941,82 @@ final class RfbGuard {
         this.mode = ClientMode.UNTRACKED;
         return;
       }
+
       this.expect(Client.BODY, body);
     }
 
     private void body() {
       switch (this.type) {
-        case SET_PIXEL_FORMAT -> {
-          // three bytes of padding, then the pixel format, whose first byte is its bits per pixel
-          final int bits = unsigned8(this.field, PIXEL_FORMAT_BITS_OFFSET);
-          if (SUPPORTED_BITS_PER_PIXEL.contains(bits)) {
-            RfbGuard.this.clientBytesPerPixel = bits / Byte.SIZE;
-          }
-          this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
-        }
-        case SET_ENCODINGS -> this.skipThenMessage((long) ENCODING_BYTES * unsigned16(this.field, ENCODING_COUNT_OFFSET));
-        case CUT_TEXT -> this.skipThenMessage(unsigned32(this.field, CUT_TEXT_LENGTH_OFFSET));
-        default -> this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
+        case SET_PIXEL_FORMAT -> this.pixelFormat();
+        case SET_ENCODINGS -> this.encodings();
+        case CUT_TEXT -> this.cutText();
+        default -> this.expectMessage();
       }
+    }
+
+    private void pixelFormat() {
+      // three bytes of padding, then the pixel format, whose first byte is its bits per pixel
+      final int bits = this.unsigned8(PIXEL_FORMAT_BITS_OFFSET);
+      if (SUPPORTED_BITS_PER_PIXEL.contains(bits)) {
+        RfbGuard.this.clientBytesPerPixel = bits / Byte.SIZE;
+      }
+
+      this.expectMessage();
+    }
+
+    private void encodings() {
+      final int count = this.unsigned16(ENCODING_COUNT_OFFSET);
+      final long bytes = (long) ENCODING_BYTES * count;
+      this.skipThenMessage(bytes);
+    }
+
+    private void cutText() {
+      final long length = this.unsigned32(CUT_TEXT_LENGTH_OFFSET);
+      this.skipThenMessage(length);
     }
 
     private void skipThenMessage(final long bytes) {
       if (bytes == 0) {
-        this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
+        this.expectMessage();
         return;
       }
+
       this.skip = bytes;
       this.mode = ClientMode.SKIP;
+    }
+
+    private int skipFrom(final int at, final int end) {
+      final long taken = Math.min(this.skip, end - at);
+      this.skip -= taken;
+
+      if (this.skip == 0) {
+        this.mode = ClientMode.FIELD;
+        this.expectMessage();
+      }
+
+      return at + (int) taken;
+    }
+
+    private void expectMessage() {
+      this.expect(Client.MESSAGE, MESSAGE_TYPE_BYTES);
+    }
+
+    private void expect(final Client next, final int bytes) {
+      this.state = next;
+      this.have = 0;
+      this.need = bytes;
+    }
+
+    private int unsigned8(final int offset) {
+      return RfbGuard.this.unsigned8(this.field, offset);
+    }
+
+    private int unsigned16(final int offset) {
+      return RfbGuard.this.unsigned16(this.field, offset);
+    }
+
+    private long unsigned32(final int offset) {
+      return RfbGuard.this.unsigned32(this.field, offset);
     }
   }
 }

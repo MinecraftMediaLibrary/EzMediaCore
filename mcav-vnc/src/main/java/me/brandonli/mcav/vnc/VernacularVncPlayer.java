@@ -67,12 +67,6 @@ public final class VernacularVncPlayer implements VncPlayer {
   private static final String DEADLINE_THREAD_NAME = "mcav-vnc-deadline";
   private static final String RENDER_THREAD_NAME = "mcav-vnc-render";
 
-  private static final Executor HANDSHAKE_DEADLINES = task -> {
-    // Closing may block in a socket implementation; one deadline must not hold up another.
-    final Thread worker = Thread.ofVirtual().name(DEADLINE_THREAD_NAME).unstarted(task);
-    worker.start();
-  };
-
   private static final int LEFT_BUTTON = 1;
   private static final int RIGHT_BUTTON = 3;
 
@@ -152,6 +146,7 @@ public final class VernacularVncPlayer implements VncPlayer {
   ) {
     Preconditions.checkArgument(idleParkNanoseconds > 0, "Idle wait %s must be positive!", idleParkNanoseconds);
     Preconditions.checkArgument(handshakeTimeoutMilliseconds > 0, "Handshake timeout %s must be positive!", handshakeTimeoutMilliseconds);
+
     this.clientFactory = clientFactory;
     this.socketFactory = socketFactory;
     this.handshakeTimeoutMilliseconds = handshakeTimeoutMilliseconds;
@@ -173,6 +168,7 @@ public final class VernacularVncPlayer implements VncPlayer {
   @Override
   public boolean start(final VncSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
+
     this.lock.lock();
     try {
       final boolean gone = this.released.get();
@@ -213,55 +209,80 @@ public final class VernacularVncPlayer implements VncPlayer {
     synchronized (this.frameLock) {
       this.session = created;
     }
+
     try {
       this.client = this.openSession(source, created, renderWorker);
     } catch (final RuntimeException | Error exception) {
-      synchronized (this.frameLock) {
-        created.end();
-        this.session = null;
-        this.latestFrame.set(null);
-      }
+      this.abandonSession(created);
       throw exception;
     }
+
     this.renderThread = renderWorker;
     renderWorker.start();
+  }
+
+  private void abandonSession(final Session created) {
+    synchronized (this.frameLock) {
+      created.end();
+      this.session = null;
+      this.latestFrame.set(null);
+    }
   }
 
   private VernacularClient openSession(final VncSource source, final Session created, final Thread renderWorker) {
     final VernacularConfig configuration = this.createConfiguration(source, created, renderWorker);
     final VernacularClient vncClient = this.clientFactory.apply(configuration);
     final Socket socket = this.connect(source);
-    // The handshake holds the player lock; its deadline also prevents release() from waiting forever.
     final AtomicBoolean expired = new AtomicBoolean();
-    final CompletableFuture<Void> deadline = CompletableFuture.runAsync(
-      () -> {
-        // marked before the close: the handshake can fail on the closed socket before the close returns, and the
-        // cancel below can win against a deadline whose close is still running
-        expired.set(true);
-        closeQuietly(socket);
-      },
-      CompletableFuture.delayedExecutor(this.handshakeTimeoutMilliseconds, TimeUnit.MILLISECONDS, HANDSHAKE_DEADLINES)
-    );
-    try {
-      vncClient.start(socket);
-    } catch (final RuntimeException exception) {
-      closeQuietly(socket);
-      final String message = exception.getMessage();
-      throw new PlayerException(this.startFailure(source, expired.get(), message), exception);
-    } finally {
-      deadline.cancel(false);
-    }
+    this.runHandshake(source, vncClient, socket, expired);
 
     // the client reports handshake failures, such as a rejected password, to the error listener and returns; a
     // failure that arrives after this point is a failure of the running session
-    final VncException failure = created.finishStartup();
+    final @Nullable VncException failure = created.finishStartup();
     if (failure != null) {
       vncClient.stop();
-      closeQuietly(socket);
-      final String message = failure.getMessage();
-      throw new PlayerException(this.startFailure(source, expired.get(), message), failure);
+      this.closeQuietly(socket);
+
+      final String reason = failure.getMessage();
+      final String message = this.startFailure(source, expired.get(), reason);
+      throw new PlayerException(message, failure);
     }
+
     return vncClient;
+  }
+
+  // the handshake holds the player lock; its deadline also prevents release() from waiting forever
+  private void runHandshake(final VncSource source, final VernacularClient vncClient, final Socket socket, final AtomicBoolean expired) {
+    final Executor deadlineExecutor = CompletableFuture.delayedExecutor(
+      this.handshakeTimeoutMilliseconds,
+      TimeUnit.MILLISECONDS,
+      this::startDeadlineThread
+    );
+    final CompletableFuture<Void> deadline = CompletableFuture.runAsync(() -> this.expireHandshake(socket, expired), deadlineExecutor);
+    try {
+      vncClient.start(socket);
+    } catch (final RuntimeException exception) {
+      this.closeQuietly(socket);
+
+      final String reason = exception.getMessage();
+      final String message = this.startFailure(source, expired.get(), reason);
+      throw new PlayerException(message, exception);
+    } finally {
+      deadline.cancel(false);
+    }
+  }
+
+  // closing may block in a socket implementation; one deadline must not hold up another
+  private void startDeadlineThread(final Runnable task) {
+    final Thread worker = Thread.ofVirtual().name(DEADLINE_THREAD_NAME).unstarted(task);
+    worker.start();
+  }
+
+  // marked before the close: the handshake can fail on the closed socket before the close returns, and the cancel
+  // after the handshake can win against a deadline whose close is still running
+  private void expireHandshake(final Socket socket, final AtomicBoolean expired) {
+    expired.set(true);
+    this.closeQuietly(socket);
   }
 
   private String startFailure(final VncSource source, final boolean timedOut, final @Nullable String message) {
@@ -272,6 +293,7 @@ public final class VernacularVncPlayer implements VncPlayer {
         this.handshakeTimeoutMilliseconds
       );
     }
+
     return "VNC session with %s could not start because of \"%s\"!".formatted(resource, message);
   }
 
@@ -287,7 +309,8 @@ public final class VernacularVncPlayer implements VncPlayer {
       socket.setTcpNoDelay(true);
       return new GuardedSocket(socket);
     } catch (final IOException exception) {
-      closeQuietly(socket);
+      this.closeQuietly(socket);
+
       final String reason = exception.getMessage();
       final String resource = source.getResource();
       final String message = "VNC server %s could not be reached because of \"%s\"!".formatted(resource, reason);
@@ -295,7 +318,7 @@ public final class VernacularVncPlayer implements VncPlayer {
     }
   }
 
-  private static void closeQuietly(final Socket socket) {
+  private void closeQuietly(final Socket socket) {
     try {
       socket.close();
     } catch (final IOException exception) {
@@ -313,14 +336,16 @@ public final class VernacularVncPlayer implements VncPlayer {
     configuration.setScreenUpdateListener(image -> this.onScreenUpdate(created, image, renderWorker));
     configuration.setErrorListener(error -> this.onError(created, error));
 
-    final String username = source.getUsername();
+    final @Nullable String username = source.getUsername();
     if (username != null && !username.isEmpty()) {
       configuration.setUsernameSupplier(() -> username);
     }
-    final String password = source.getPassword();
+
+    final @Nullable String password = source.getPassword();
     if (password != null && !password.isEmpty()) {
       configuration.setPasswordSupplier(() -> password);
     }
+
     return configuration;
   }
 
@@ -335,6 +360,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       if (this.session != owner || !owner.acceptsFrames()) {
         return;
       }
+
       final int width = frame.getWidth();
       final int height = frame.getHeight();
       this.remoteWidth = width;
@@ -346,6 +372,7 @@ public final class VernacularVncPlayer implements VncPlayer {
 
       this.latestFrame.set(frame);
     }
+
     LockSupport.unpark(renderWorker);
   }
 
@@ -371,8 +398,8 @@ public final class VernacularVncPlayer implements VncPlayer {
         continue;
       }
 
-      final int width = frameWidth(source, frame);
-      final int height = frameHeight(source, frame);
+      final int width = this.frameWidth(source, frame);
+      final int height = this.frameHeight(source, frame);
       if (resizeFilter == null || !resizeFilter.matches(width, height)) {
         final int frameRate = source.getTargetFrameRate();
         resizeFilter = new ResizeFilter(width, height);
@@ -380,31 +407,41 @@ public final class VernacularVncPlayer implements VncPlayer {
       }
 
       final OriginalVideoMetadata current = Objects.requireNonNull(metadata, "Metadata must exist with the filter!");
-      synchronized (this.deliveryLock) {
-        // A callback can restart playback before it returns; the replacement must deliver after that callback.
-        if (owner.isAlive()) {
-          this.deliver(frame, resizeFilter, current);
-        }
+      this.deliverWhileAlive(owner, frame, resizeFilter, current);
+    }
+  }
+
+  // a callback can restart playback before it returns; the replacement must deliver after that callback
+  private void deliverWhileAlive(
+    final Session owner,
+    final BufferedImage frame,
+    final ResizeFilter resizeFilter,
+    final OriginalVideoMetadata metadata
+  ) {
+    synchronized (this.deliveryLock) {
+      if (owner.isAlive()) {
+        this.deliver(frame, resizeFilter, metadata);
       }
     }
   }
 
-  private static int frameWidth(final VncSource source, final BufferedImage frame) {
+  private int frameWidth(final VncSource source, final BufferedImage frame) {
     final int configuredWidth = source.getScreenWidth();
     final int screenUpdateWidth = frame.getWidth();
-    return sizeOrFallback(configuredWidth, screenUpdateWidth);
+    return this.sizeOrFallback(configuredWidth, screenUpdateWidth);
   }
 
-  private static int frameHeight(final VncSource source, final BufferedImage frame) {
+  private int frameHeight(final VncSource source, final BufferedImage frame) {
     final int configuredHeight = source.getScreenHeight();
     final int screenUpdateHeight = frame.getHeight();
-    return sizeOrFallback(configuredHeight, screenUpdateHeight);
+    return this.sizeOrFallback(configuredHeight, screenUpdateHeight);
   }
 
-  private static int sizeOrFallback(final int configuredSize, final int fallbackSize) {
+  private int sizeOrFallback(final int configuredSize, final int fallbackSize) {
     if (configuredSize > 0) {
       return configuredSize;
     }
+
     return fallbackSize;
   }
 
@@ -458,15 +495,20 @@ public final class VernacularVncPlayer implements VncPlayer {
         return false;
       }
 
-      synchronized (this.frameLock) {
-        final boolean changed = this.paused.compareAndSet(false, true);
-        if (changed) {
-          this.latestFrame.set(null);
-        }
-        return changed;
-      }
+      return this.pauseDelivery();
     } finally {
       this.lock.unlock();
+    }
+  }
+
+  private boolean pauseDelivery() {
+    synchronized (this.frameLock) {
+      final boolean changed = this.paused.compareAndSet(false, true);
+      if (changed) {
+        this.latestFrame.set(null);
+      }
+
+      return changed;
     }
   }
 
@@ -483,6 +525,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       if (!active) {
         return false;
       }
+
       return this.paused.compareAndSet(true, false);
     } finally {
       this.lock.unlock();
@@ -506,15 +549,17 @@ public final class VernacularVncPlayer implements VncPlayer {
         return false;
       }
 
-      final Session current = this.session;
+      final @Nullable Session current = this.session;
       if (current != null) {
         current.end();
       }
+
       this.stopClient();
       this.stopRenderThread();
       synchronized (this.frameLock) {
         this.latestFrame.set(null);
       }
+
       return true;
     } finally {
       this.lock.unlock();
@@ -535,9 +580,11 @@ public final class VernacularVncPlayer implements VncPlayer {
     } catch (final RuntimeException exception) {
       this.report("Failed to close the VNC connection", exception);
     }
+
     if (interrupted) {
       current.interrupt();
     }
+
     this.client = null;
   }
 
@@ -548,16 +595,17 @@ public final class VernacularVncPlayer implements VncPlayer {
     }
 
     LockSupport.unpark(renderWorker);
-    join(renderWorker);
+    this.join(renderWorker);
     this.renderThread = null;
   }
 
-  private static void join(final Thread thread) {
+  private void join(final Thread thread) {
     final Thread caller = Thread.currentThread();
     if (thread.equals(caller)) {
-      // A filter can release or restart its player. Its old renderer exits when that callback returns.
+      // a filter can release or restart its player; its old renderer exits when that callback returns
       return;
     }
+
     try {
       thread.join(STOP_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
@@ -575,7 +623,7 @@ public final class VernacularVncPlayer implements VncPlayer {
 
   @Override
   public void moveMouse(final int frameX, final int frameY) {
-    final VernacularClient vncClient = this.getConnectedClient();
+    final @Nullable VernacularClient vncClient = this.getConnectedClient();
     if (vncClient == null) {
       return;
     }
@@ -591,30 +639,35 @@ public final class VernacularVncPlayer implements VncPlayer {
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
     Preconditions.checkNotNull(type, "Mouse click type must not be null!");
-    final VernacularClient vncClient = this.getConnectedClient();
+
+    final @Nullable VernacularClient vncClient = this.getConnectedClient();
     if (vncClient == null) {
       return;
     }
 
     final int[] translated = this.translateCoordinates(frameX, frameY);
-    this.forward(() -> {
-      vncClient.moveMouse(translated[0], translated[1]);
-      final Runnable press = clickAction(vncClient, type);
-      press.run();
-    });
+    final Runnable press = this.clickAction(vncClient, type);
+    this.forward(() -> this.click(vncClient, translated, press));
   }
 
-  private static Runnable clickAction(final VernacularClient vncClient, final MouseClick type) {
+  private Runnable clickAction(final VernacularClient vncClient, final MouseClick type) {
     return switch (type) {
       case LEFT -> () -> vncClient.click(LEFT_BUTTON);
       case RIGHT -> () -> vncClient.click(RIGHT_BUTTON);
-      case DOUBLE -> () -> {
-        vncClient.click(LEFT_BUTTON);
-        vncClient.click(LEFT_BUTTON);
-      };
+      case DOUBLE -> () -> this.doubleClick(vncClient);
       case HOLD -> () -> vncClient.updateMouseButton(LEFT_BUTTON, true);
       case RELEASE -> () -> vncClient.updateMouseButton(LEFT_BUTTON, false);
     };
+  }
+
+  private void click(final VernacularClient vncClient, final int[] translated, final Runnable press) {
+    vncClient.moveMouse(translated[0], translated[1]);
+    press.run();
+  }
+
+  private void doubleClick(final VernacularClient vncClient) {
+    vncClient.click(LEFT_BUTTON);
+    vncClient.click(LEFT_BUTTON);
   }
 
   /**
@@ -624,21 +677,25 @@ public final class VernacularVncPlayer implements VncPlayer {
   @Override
   public void sendKeyEvent(final String text) {
     Preconditions.checkNotNull(text, "Text must not be null!");
-    final VernacularClient vncClient = this.getConnectedClient();
+
+    final @Nullable VernacularClient vncClient = this.getConnectedClient();
     if (vncClient == null) {
       return;
     }
 
     final OptionalInt symbol = KeySymbols.lookup(text);
-    this.forward(() -> {
-      if (symbol.isPresent()) {
-        final int code = symbol.getAsInt();
-        vncClient.updateKey(code, true);
-        vncClient.updateKey(code, false);
-      } else {
-        vncClient.type(text);
-      }
-    });
+    this.forward(() -> this.typeKey(vncClient, symbol, text));
+  }
+
+  private void typeKey(final VernacularClient vncClient, final OptionalInt symbol, final String text) {
+    if (symbol.isEmpty()) {
+      vncClient.type(text);
+      return;
+    }
+
+    final int code = symbol.getAsInt();
+    vncClient.updateKey(code, true);
+    vncClient.updateKey(code, false);
   }
 
   private @Nullable VernacularClient getConnectedClient() {
@@ -646,6 +703,7 @@ public final class VernacularVncPlayer implements VncPlayer {
     if (!active) {
       return null;
     }
+
     return this.client;
   }
 
@@ -674,8 +732,8 @@ public final class VernacularVncPlayer implements VncPlayer {
 
     final int configuredWidth = current.getScreenWidth();
     final int configuredHeight = current.getScreenHeight();
-    final int frameWidth = sizeOrFallback(configuredWidth, targetWidth);
-    final int frameHeight = sizeOrFallback(configuredHeight, targetHeight);
+    final int frameWidth = this.sizeOrFallback(configuredWidth, targetWidth);
+    final int frameHeight = this.sizeOrFallback(configuredHeight, targetHeight);
     final double widthRatio = (double) targetWidth / frameWidth;
     final double heightRatio = (double) targetHeight / frameHeight;
     final long scaledX = Math.round(frameX * widthRatio);
@@ -712,6 +770,7 @@ public final class VernacularVncPlayer implements VncPlayer {
   private static final class Session {
 
     private final AtomicBoolean alive;
+
     private boolean starting;
     private @Nullable VncException startupError;
 
@@ -730,9 +789,11 @@ public final class VernacularVncPlayer implements VncPlayer {
       if (!this.starting) {
         return false;
       }
+
       if (this.startupError == null) {
         this.startupError = error;
       }
+
       return true;
     }
 
@@ -743,10 +804,12 @@ public final class VernacularVncPlayer implements VncPlayer {
      */
     private synchronized @Nullable VncException finishStartup() {
       this.starting = false;
-      final VncException failure = this.startupError;
+
+      final @Nullable VncException failure = this.startupError;
       if (failure == null) {
         this.alive.set(true);
       }
+
       return failure;
     }
 

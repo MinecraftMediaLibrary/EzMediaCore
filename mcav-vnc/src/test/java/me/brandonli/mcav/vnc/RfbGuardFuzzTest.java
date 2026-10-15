@@ -42,7 +42,7 @@ final class RfbGuardFuzzTest {
   void shouldCheckWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
     final RfbSession session = new RfbSession();
     session.handshake(MINOR_VERSION_3_8, NONE, SIDE, SIDE);
-    feed(session, data);
+    this.feed(session, data);
   }
 
   @FuzzTest(maxDuration = "30s")
@@ -60,10 +60,10 @@ final class RfbGuardFuzzTest {
     } catch (final IOException exception) {
       return;
     }
-    feed(session, data);
+    this.feed(session, data);
   }
 
-  private static void feed(final RfbSession session, final FuzzedDataProvider data) {
+  private void feed(final RfbSession session, final FuzzedDataProvider data) {
     try {
       while (data.remainingBytes() > 0) {
         session.server(data.consumeBytes(data.consumeInt(1, MAXIMUM_CHUNK)));

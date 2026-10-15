@@ -42,7 +42,7 @@ final class VncSourceTest {
 
   private static final int FRAME_RATE = 24;
 
-  private static VncSource.Builder fullBuilder() {
+  private VncSource.Builder fullBuilder() {
     final VncSource.Builder builder = VncSource.builder();
     builder.host(HOST);
     builder.port(PORT);
@@ -54,8 +54,8 @@ final class VncSourceTest {
     return builder;
   }
 
-  private static VncSource build(final Consumer<VncSource.Builder> change) {
-    final VncSource.Builder builder = fullBuilder();
+  private VncSource build(final Consumer<VncSource.Builder> change) {
+    final VncSource.Builder builder = this.fullBuilder();
     change.accept(builder);
     return builder.build();
   }
@@ -64,7 +64,7 @@ final class VncSourceTest {
   void shouldAvoidAConstantHashAcrossRepresentativeSourceKeys() {
     final Set<Integer> hashes = new HashSet<>();
     for (int index = 0; index < 64; index++) {
-      final VncSource.Builder builder = fullBuilder();
+      final VncSource.Builder builder = this.fullBuilder();
       builder.host("desktop-" + index + ".example.org");
       builder.port(PORT + index);
       builder.screenWidth(WIDTH + index * 16);
@@ -78,7 +78,7 @@ final class VncSourceTest {
 
   @Test
   void shouldBuildSourcesWithEverySetting() {
-    final VncSource.Builder builder = fullBuilder();
+    final VncSource.Builder builder = this.fullBuilder();
     final VncSource source = builder.build();
     final String host = source.getHost();
     final int port = source.getPort();
@@ -118,7 +118,7 @@ final class VncSourceTest {
 
   @Test
   void shouldDescribeTheServerAsAVncUri() {
-    final VncSource.Builder builder = fullBuilder();
+    final VncSource.Builder builder = this.fullBuilder();
     final VncSource source = builder.build();
     final String resource = source.getResource();
     final String name = source.getName();
@@ -175,17 +175,17 @@ final class VncSourceTest {
 
   @Test
   void shouldCompareEverySetting() {
-    final VncSource.Builder sourceBuilder = fullBuilder();
+    final VncSource.Builder sourceBuilder = this.fullBuilder();
     final VncSource source = sourceBuilder.build();
-    final VncSource.Builder equalBuilder = fullBuilder();
+    final VncSource.Builder equalBuilder = this.fullBuilder();
     final VncSource equal = equalBuilder.build();
-    final VncSource otherHost = build(builder -> builder.host("example.com"));
-    final VncSource otherPort = build(builder -> builder.port(5902));
-    final VncSource otherUser = build(builder -> builder.username("admin"));
-    final VncSource otherPassword = build(builder -> builder.password("hunter2"));
-    final VncSource otherWidth = build(builder -> builder.screenWidth(320));
-    final VncSource otherHeight = build(builder -> builder.screenHeight(240));
-    final VncSource otherFrameRate = build(builder -> builder.targetFrameRate(60));
+    final VncSource otherHost = this.build(builder -> builder.host("example.com"));
+    final VncSource otherPort = this.build(builder -> builder.port(5902));
+    final VncSource otherUser = this.build(builder -> builder.username("admin"));
+    final VncSource otherPassword = this.build(builder -> builder.password("hunter2"));
+    final VncSource otherWidth = this.build(builder -> builder.screenWidth(320));
+    final VncSource otherHeight = this.build(builder -> builder.screenHeight(240));
+    final VncSource otherFrameRate = this.build(builder -> builder.targetFrameRate(60));
     final VncSource.Builder anonymousBuilder = VncSource.builder();
     anonymousBuilder.host(HOST);
     anonymousBuilder.port(PORT);

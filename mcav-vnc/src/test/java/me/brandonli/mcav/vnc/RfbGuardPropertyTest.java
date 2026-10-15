@@ -69,7 +69,7 @@ final class RfbGuardPropertyTest {
   @Property(seed = SEED, tries = 300)
   void shouldPassEveryValidSessionInAnyChunks(@ForAll final long seed) throws IOException {
     final Random random = new Random(seed);
-    final byte[] messages = messages(random);
+    final byte[] messages = this.messages(random);
     final RfbSession session = new RfbSession();
     session.handshake(MINOR_VERSION_3_8, NONE, SIDE, SIDE);
     int at = 0;
@@ -87,7 +87,7 @@ final class RfbGuardPropertyTest {
   @Property(seed = SEED, tries = 300)
   void shouldRefuseAChangedSessionOnlyWithAnIoException(@ForAll final long seed) throws IOException {
     final Random random = new Random(seed);
-    final byte[] messages = messages(random);
+    final byte[] messages = this.messages(random);
     messages[random.nextInt(messages.length)] ^= (byte) (1 + random.nextInt(255));
     final RfbSession session = new RfbSession();
     session.handshake(MINOR_VERSION_3_8, NONE, SIDE, SIDE);
@@ -99,26 +99,26 @@ final class RfbGuardPropertyTest {
   }
 
   /** A run of valid server messages, each type and encoding the client decodes. */
-  private static byte[] messages(final Random random) {
+  private byte[] messages(final Random random) {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     for (int messageIndex = 0; messageIndex < MESSAGES; messageIndex++) {
       switch (random.nextInt(4)) {
         case 0 -> out.writeBytes(new byte[] { BELL });
         case 1 -> out.writeBytes(cutText(random.nextInt(300)));
-        case 2 -> out.writeBytes(colours(random));
-        default -> out.writeBytes(framebufferUpdate(random));
+        case 2 -> out.writeBytes(this.colours(random));
+        default -> out.writeBytes(this.framebufferUpdate(random));
       }
     }
     out.writeBytes(new byte[] { BELL });
     return out.toByteArray();
   }
 
-  private static byte[] colours(final Random random) {
+  private byte[] colours(final Random random) {
     final int count = random.nextInt(8);
     return concat(new byte[] { SET_COLOUR_MAP_ENTRIES, 0 }, unsigned16(random.nextInt(256)), unsigned16(count), new byte[6 * count]);
   }
 
-  private static byte[] framebufferUpdate(final Random random) {
+  private byte[] framebufferUpdate(final Random random) {
     final int count = 1 + random.nextInt(3);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     out.writeBytes(update(count));
@@ -142,7 +142,7 @@ final class RfbGuardPropertyTest {
             )
           );
         }
-        case 3 -> out.writeBytes(concat(rectangle(left, top, width, height, HEXTILE_ENCODING), hextile(random, width, height)));
+        case 3 -> out.writeBytes(concat(rectangle(left, top, width, height, HEXTILE_ENCODING), this.hextile(random, width, height)));
         case 4 -> {
           final int length = random.nextInt(width * height * PIXEL + 1);
           out.writeBytes(concat(rectangle(left, top, width, height, ZLIB_ENCODING), unsigned32(length), new byte[length]));
@@ -158,31 +158,40 @@ final class RfbGuardPropertyTest {
     return out.toByteArray();
   }
 
-  private static byte[] hextile(final Random random, final int width, final int height) {
+  private byte[] hextile(final Random random, final int width, final int height) {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     for (int tileTop = 0; tileTop < height; tileTop += TILE) {
       for (int tileLeft = 0; tileLeft < width; tileLeft += TILE) {
         final int tileWidth = Math.min(TILE, width - tileLeft);
         final int tileHeight = Math.min(TILE, height - tileTop);
-        final int flags = random.nextInt(32);
-        out.write(flags);
-        if ((flags & HEXTILE_RAW) != 0) {
-          out.writeBytes(new byte[tileWidth * tileHeight * PIXEL]);
-          continue;
-        }
-        if ((flags & HEXTILE_BACKGROUND) != 0) {
-          out.writeBytes(new byte[PIXEL]);
-        }
-        if ((flags & HEXTILE_FOREGROUND) != 0) {
-          out.writeBytes(new byte[PIXEL]);
-        }
-        if ((flags & HEXTILE_SUBRECTANGLES) != 0) {
-          final int count = random.nextInt(6);
-          out.write(count);
-          out.writeBytes(new byte[count * (((flags & HEXTILE_COLOURED) != 0 ? PIXEL : 0) + 2)]);
-        }
+        this.tile(random, out, tileWidth, tileHeight);
       }
     }
+
     return out.toByteArray();
+  }
+
+  private void tile(final Random random, final ByteArrayOutputStream out, final int tileWidth, final int tileHeight) {
+    final int flags = random.nextInt(32);
+    out.write(flags);
+    if ((flags & HEXTILE_RAW) != 0) {
+      out.writeBytes(new byte[tileWidth * tileHeight * PIXEL]);
+      return;
+    }
+
+    if ((flags & HEXTILE_BACKGROUND) != 0) {
+      out.writeBytes(new byte[PIXEL]);
+    }
+
+    if ((flags & HEXTILE_FOREGROUND) != 0) {
+      out.writeBytes(new byte[PIXEL]);
+    }
+
+    if ((flags & HEXTILE_SUBRECTANGLES) != 0) {
+      final int count = random.nextInt(6);
+      final int colour = (flags & HEXTILE_COLOURED) != 0 ? PIXEL : 0;
+      out.write(count);
+      out.writeBytes(new byte[count * (colour + 2)]);
+    }
   }
 }

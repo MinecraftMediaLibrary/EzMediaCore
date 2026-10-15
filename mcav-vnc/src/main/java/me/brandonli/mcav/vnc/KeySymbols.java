@@ -30,6 +30,7 @@ import java.util.OptionalInt;
 import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.IoUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The X11 keysym table used to translate key names such as {@code Return} into the codes the VNC protocol
@@ -68,19 +69,24 @@ final class KeySymbols {
         throw new PlayerException(message);
       }
 
-      final Map<String, Integer> symbols = new HashMap<>();
-      for (final Map.Entry<String, String> entry : table.entrySet()) {
-        final String name = entry.getKey();
-        final String hexadecimalCode = entry.getValue();
-        final int code = Integer.decode(hexadecimalCode);
-        symbols.put(name, code);
-      }
-      return Map.copyOf(symbols);
+      return toCodes(table);
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
       final String message = "Keysym resource %s could not be read because of \"%s\"!".formatted(RESOURCE, reason);
       throw new PlayerException(message, exception);
     }
+  }
+
+  private static Map<String, Integer> toCodes(final Map<String, String> table) {
+    final Map<String, Integer> symbols = new HashMap<>();
+    for (final Map.Entry<String, String> entry : table.entrySet()) {
+      final String name = entry.getKey();
+      final String hexadecimalCode = entry.getValue();
+      final int code = Integer.decode(hexadecimalCode);
+      symbols.put(name, code);
+    }
+
+    return Map.copyOf(symbols);
   }
 
   /**
@@ -91,10 +97,12 @@ final class KeySymbols {
    */
   static OptionalInt lookup(final String name) {
     Preconditions.checkNotNull(name, "Name must not be null!");
-    final Integer code = SYMBOLS.get(name);
+
+    final @Nullable Integer code = SYMBOLS.get(name);
     if (code == null) {
       return OptionalInt.empty();
     }
+
     return OptionalInt.of(code);
   }
 }

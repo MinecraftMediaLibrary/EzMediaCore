@@ -31,9 +31,7 @@ import java.net.SocketException;
 final class GuardedSocket extends Socket {
 
   private final Socket socket;
-
   private final InputStream input;
-
   private final OutputStream output;
 
   /**
@@ -44,10 +42,18 @@ final class GuardedSocket extends Socket {
    */
   GuardedSocket(final Socket socket) throws IOException {
     Preconditions.checkNotNull(socket, "Socket must not be null!");
-    this.socket = socket;
+
     final RfbGuard guard = new RfbGuard();
-    this.input = guard.serverInput(socket.getInputStream());
-    this.output = guard.clientOutput(socket.getOutputStream());
+    final InputStream serverInput = socket.getInputStream();
+    final OutputStream clientOutput = socket.getOutputStream();
+    this.socket = socket;
+    this.input = guard.serverInput(serverInput);
+    this.output = guard.clientOutput(clientOutput);
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    this.socket.close();
   }
 
   @Override
@@ -73,10 +79,5 @@ final class GuardedSocket extends Socket {
   @Override
   public boolean isClosed() {
     return this.socket.isClosed();
-  }
-
-  @Override
-  public synchronized void close() throws IOException {
-    this.socket.close();
   }
 }

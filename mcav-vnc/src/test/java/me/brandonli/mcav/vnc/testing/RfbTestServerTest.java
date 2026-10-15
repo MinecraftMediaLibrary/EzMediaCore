@@ -54,13 +54,13 @@ final class RfbTestServerTest {
   @ParameterizedTest
   @CsvSource({ "32,true,00ff8040", "32,false,4080ff00", "16,true,fbe7", "16,false,e7fb", "8,true,ec", "8,false,ec" })
   void shouldEncodeRawPixelsInTheNegotiatedByteOrder(final int bits, final boolean bigEndian, final String expectedHex) throws IOException {
-    try (final RfbTestServer server = RfbTestServer.start(1, 1); final Socket socket = connect(server)) {
+    try (final RfbTestServer server = RfbTestServer.start(1, 1); final Socket socket = this.connect(server)) {
       server.setColor(COLOR);
       final DataInputStream input = new DataInputStream(socket.getInputStream());
       final DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-      handshake(input, output);
-      setPixelFormat(output, bits, bigEndian);
-      final byte[] actual = requestPixel(input, output, bits / BITS_PER_BYTE);
+      this.handshake(input, output);
+      this.setPixelFormat(output, bits, bigEndian);
+      final byte[] actual = this.requestPixel(input, output, bits / BITS_PER_BYTE);
       final HexFormat hex = HexFormat.of();
       final byte[] expected = hex.parseHex(expectedHex);
       assertArrayEquals(expected, actual);
@@ -71,27 +71,27 @@ final class RfbTestServerTest {
   void shouldRestoreTheAdvertisedDefaultFormatForTheNextClient() throws IOException {
     try (final RfbTestServer server = RfbTestServer.start(1, 1)) {
       server.setColor(COLOR);
-      try (final Socket first = connect(server)) {
+      try (final Socket first = this.connect(server)) {
         final DataInputStream input = new DataInputStream(first.getInputStream());
         final DataOutputStream output = new DataOutputStream(first.getOutputStream());
-        handshake(input, output);
-        setPixelFormat(output, 16, false);
-        final byte[] pixel = requestPixel(input, output, 2);
+        this.handshake(input, output);
+        this.setPixelFormat(output, 16, false);
+        final byte[] pixel = this.requestPixel(input, output, 2);
         final byte[] expected = { (byte) 0xE7, (byte) 0xFB };
         assertArrayEquals(expected, pixel);
       }
-      try (final Socket second = connect(server)) {
+      try (final Socket second = this.connect(server)) {
         final DataInputStream input = new DataInputStream(second.getInputStream());
         final DataOutputStream output = new DataOutputStream(second.getOutputStream());
-        handshake(input, output);
-        final byte[] pixel = requestPixel(input, output, 4);
+        this.handshake(input, output);
+        final byte[] pixel = this.requestPixel(input, output, 4);
         final byte[] expected = { 0, (byte) 0xFF, (byte) 0x80, 0x40 };
         assertArrayEquals(expected, pixel);
       }
     }
   }
 
-  private static Socket connect(final RfbTestServer server) throws IOException {
+  private Socket connect(final RfbTestServer server) throws IOException {
     final InetAddress loopback = InetAddress.getLoopbackAddress();
     final int port = server.getPort();
     final Socket socket = new Socket(loopback, port);
@@ -99,7 +99,7 @@ final class RfbTestServerTest {
     return socket;
   }
 
-  private static void handshake(final DataInputStream input, final DataOutputStream output) throws IOException {
+  private void handshake(final DataInputStream input, final DataOutputStream output) throws IOException {
     final byte[] version = input.readNBytes(12);
     assertArrayEquals(VERSION, version);
     output.write(VERSION);
@@ -125,7 +125,7 @@ final class RfbTestServerTest {
     input.skipNBytes(nameLength);
   }
 
-  private static void setPixelFormat(final DataOutputStream output, final int bits, final boolean bigEndian) throws IOException {
+  private void setPixelFormat(final DataOutputStream output, final int bits, final boolean bigEndian) throws IOException {
     output.writeByte(0);
     output.write(new byte[PADDING_BYTES]);
     final PixelFormat format = FORMATS.get(bits);
@@ -143,7 +143,7 @@ final class RfbTestServerTest {
     output.flush();
   }
 
-  private static byte[] requestPixel(final DataInputStream input, final DataOutputStream output, final int bytes) throws IOException {
+  private byte[] requestPixel(final DataInputStream input, final DataOutputStream output, final int bytes) throws IOException {
     output.writeByte(3);
     output.writeByte(0);
     output.writeShort(0);

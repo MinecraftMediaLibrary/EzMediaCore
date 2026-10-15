@@ -66,7 +66,7 @@ final class VncHandshakeDeadlineTest {
       assertTrue(terminated, "the isolated deadline probe terminates");
 
       final int exitValue = child.exitValue();
-      assertEquals(0, exitValue, () -> readOutput(output));
+      assertEquals(0, exitValue, () -> this.readOutput(output));
     } finally {
       child.destroyForcibly();
       final boolean reaped = child.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -74,7 +74,7 @@ final class VncHandshakeDeadlineTest {
     }
   }
 
-  private static String readOutput(final Path path) {
+  private String readOutput(final Path path) {
     try {
       return Files.readString(path);
     } catch (final Exception exception) {
