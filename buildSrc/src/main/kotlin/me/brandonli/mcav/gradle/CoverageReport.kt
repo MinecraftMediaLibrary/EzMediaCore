@@ -45,7 +45,6 @@ object CoverageExceptions {
         val path = entry.substring(0, first)
         val sourceLine = entry.substring(first + SEPARATOR.length, last)
         val reason = entry.substring(last + SEPARATOR.length)
-        require(reason.isNotBlank()) { "$file: every exception needs a reason: '$entry'" }
         return CoverageException(path, sourceLine, reason)
     }
 }

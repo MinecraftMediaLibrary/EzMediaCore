@@ -64,15 +64,18 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
         else -> null
     }
 
+    fun javaExecutable(javaHome: String): String = javaHome + "/bin/java" + if (isWindows) ".exe" else ""
+
+    fun venvExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
+
     companion object {
+        private val architectureAliases = mapOf("amd64" to "x86_64", "arm64" to "aarch64")
+
         fun current(): HostPlatform = normalize(System.getProperty("os.name"), System.getProperty("os.arch"))
 
         fun normalize(operatingSystem: String, architecture: String): HostPlatform {
-            val normalizedArchitecture = when (val name = architecture.lowercase(Locale.ROOT)) {
-                "amd64", "x86_64" -> "x86_64"
-                "aarch64", "arm64" -> "aarch64"
-                else -> name
-            }
+            val name = architecture.lowercase(Locale.ROOT)
+            val normalizedArchitecture = architectureAliases.getOrDefault(name, name)
             return HostPlatform(operatingSystem.lowercase(Locale.ROOT), normalizedArchitecture)
         }
     }
@@ -80,14 +83,16 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
 
 val isWindows: Boolean = HostPlatform.current().isWindows
 
-fun javaExecutable(javaHome: String): String = javaHome + "/bin/java" + if (isWindows) ".exe" else ""
+fun javaExecutable(javaHome: String): String = HostPlatform.current().javaExecutable(javaHome)
 
-fun venvExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
-
-fun lwjglNatives(): String? = HostPlatform.current().lwjglNatives
+fun venvExecutable(name: String): String = HostPlatform.current().venvExecutable(name)
 
 fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
-    lwjglNatives()?.let { natives ->
+    addLwjglTestNatives(HostPlatform.current(), libraries)
+}
+
+fun DependencyHandler.addLwjglTestNatives(platform: HostPlatform, libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
+    platform.lwjglNatives?.let { natives ->
         libraries.forEach { library ->
             add("testRuntimeOnly", variantOf(library) { classifier(natives) })
         }

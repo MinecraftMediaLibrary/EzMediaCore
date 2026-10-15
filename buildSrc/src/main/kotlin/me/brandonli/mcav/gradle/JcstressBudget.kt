@@ -45,7 +45,7 @@ object JcstressBudget {
         val pattern = selection?.let { Regex(it) }
         ZipFile(jar).use { zip ->
             val entry = zip.getEntry("META-INF/TestList") ?: return 0
-            val lines = zip.getInputStream(entry).bufferedReader().readLines()
+            val lines = zip.getInputStream(entry).reader().readLines()
             return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(testName(line))) }
         }
     }

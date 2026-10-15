@@ -91,7 +91,7 @@ object JavaSource {
         }
 
         private fun enter(next: State, length: Int) {
-            val comment = state == State.LINE_COMMENT || state == State.BLOCK_COMMENT ||
+            val comment = state == State.BLOCK_COMMENT ||
                 next == State.LINE_COMMENT || next == State.BLOCK_COMMENT
             state = next
             if (comment) blank(length) else literalCharacters(length)

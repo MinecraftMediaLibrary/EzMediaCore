@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.OutputStream
 import org.gradle.api.GradleException
@@ -28,7 +29,7 @@ object JcstressConsole {
 
     private val skippedLine = Regex("""\[SKIPPED]\s+(\S+)""")
 
-    fun tee(console: OutputStream, file: File): OutputStream = Tee(console, file.outputStream().buffered())
+    fun tee(console: OutputStream, file: File): OutputStream = Tee(console, BufferedOutputStream(file.outputStream()))
 
     fun skippedTests(lines: List<String>): List<String> =
         lines.mapNotNull { line -> skippedLine.find(line)?.groupValues?.get(1) }.distinct()
