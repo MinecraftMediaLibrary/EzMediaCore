@@ -63,6 +63,9 @@ final class EntityRendererTest {
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
+  private static final String FRAME_TEXT = "frame";
+  private static final String STILL_TEXT = "still";
+
   private FakeServer server;
   private List<UUID> viewers;
   private FakeWorld world;
@@ -139,7 +142,7 @@ final class EntityRendererTest {
   void shouldShowTheDisplayToAViewerWhoComesOnlineAfterTheSpawn() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
     final CraftTextDisplay display = displays.getFirst();
@@ -252,7 +255,7 @@ final class EntityRendererTest {
   void shouldSkipFramesBeforeTheDisplayIsShown() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
 
     renderer.apply(text);
 
@@ -265,7 +268,7 @@ final class EntityRendererTest {
   void shouldRespawnTheDisplayOnTheNextFrameOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -335,7 +338,7 @@ final class EntityRendererTest {
   void shouldBringAStillImageBackWithItsTextOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("still");
+    final Component text = Component.literal(STILL_TEXT);
     renderer.show();
     renderer.apply(text);
     final CraftTextDisplay discarded = this.world.getSpawnedDisplays().getFirst();
@@ -369,7 +372,7 @@ final class EntityRendererTest {
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Plugin plugin = this.server.getPlugin();
     renderer.show();
-    renderer.apply(Component.literal("still"));
+    renderer.apply(Component.literal(STILL_TEXT));
     final CraftTextDisplay discarded = this.world.getSpawnedDisplays().getFirst();
     when(discarded.isValid()).thenReturn(false);
     when(this.world.getWorld().isChunkLoaded(0, 0)).thenReturn(true);
@@ -392,7 +395,7 @@ final class EntityRendererTest {
   void shouldWaitForTheChunkToLoadBeforeRespawningTheDisplay() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -415,7 +418,7 @@ final class EntityRendererTest {
     final Location negative = new Location(configuredWorld, -17, 70, 35);
     final EntityConfiguration configuration = this.createConfiguration(negative);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();
@@ -431,7 +434,7 @@ final class EntityRendererTest {
     final Location movable = this.position.clone();
     final EntityConfiguration configuration = this.createConfiguration(movable);
     final EntityRenderer renderer = new EntityRenderer(configuration);
-    final Component text = Component.literal("frame");
+    final Component text = Component.literal(FRAME_TEXT);
     renderer.show();
     final List<CraftTextDisplay> spawnedBefore = this.world.getSpawnedDisplays();
     final CraftTextDisplay discarded = spawnedBefore.getFirst();

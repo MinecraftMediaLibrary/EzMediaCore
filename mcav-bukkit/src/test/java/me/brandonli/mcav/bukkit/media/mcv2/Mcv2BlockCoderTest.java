@@ -25,6 +25,11 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2BlockCoderTest {
 
+  private static final double LAMBDA = 65.255994022;
+
+  private static final int REFERENCE_LEVEL_BASE = 40;
+  private static final int REFERENCE_LEVEL_SPREAD = 160;
+
   private static byte[] reference(final int low, final int high) {
     final Random random = new Random(8);
     final byte[] rgb = new byte[8 * 8 * 3];
@@ -35,7 +40,7 @@ final class Mcv2BlockCoderTest {
   }
 
   private static Mcv2BlockState code(final byte[] source, final byte[] reference) {
-    final Mcv2BlockState job = new Mcv2BlockState(source, reference, 8, 8, false, false, 65.255994022, null);
+    final Mcv2BlockState job = new Mcv2BlockState(source, reference, 8, 8, false, false, LAMBDA, null);
     job.code(8, 2, 0, 0, 0, 0);
     return job;
   }
@@ -133,7 +138,7 @@ final class Mcv2BlockCoderTest {
       source[offset + 1] = 20;
       source[offset + 2] = 30;
     }
-    final Mcv2BlockState job = new Mcv2BlockState(source, new byte[0], 8, 8, true, false, 65.255994022, null);
+    final Mcv2BlockState job = new Mcv2BlockState(source, new byte[0], 8, 8, true, false, LAMBDA, null);
     job.code(8, 2, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
 
     final int mode = job.mode(2, 0);
@@ -150,7 +155,7 @@ final class Mcv2BlockCoderTest {
     final byte[] reference = new byte[32 * 32 * 3];
     final Random random = new Random(45);
     for (int index = 0; index < reference.length; index++) {
-      reference[index] = (byte) (40 + random.nextInt(160));
+      reference[index] = (byte) (REFERENCE_LEVEL_BASE + random.nextInt(REFERENCE_LEVEL_SPREAD));
     }
     final byte[] source = reference.clone();
     for (int index = 0; index < source.length; index++) {
@@ -158,7 +163,7 @@ final class Mcv2BlockCoderTest {
     }
     // The brightness step reaches motion search past the fixed early SKIP threshold.
     for (final int parent : new int[] { -4 << 16, 0x0000fffc, 4 << 16, -1 }) {
-      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, 65.255994022, null);
+      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
       final Object coder = job.code(8, 2, 5, 8, 8, parent);
       final int vector = Mcv2BlockState.localVector(coder);
       assertEquals(parent, vector);
@@ -170,14 +175,14 @@ final class Mcv2BlockCoderTest {
     final byte[] reference = new byte[32 * 32 * 3];
     final Random random = new Random(658);
     for (int index = 0; index < reference.length; index++) {
-      reference[index] = (byte) (40 + random.nextInt(160));
+      reference[index] = (byte) (REFERENCE_LEVEL_BASE + random.nextInt(REFERENCE_LEVEL_SPREAD));
     }
     final byte[] source = reference.clone();
     for (int index = 0; index < source.length; index++) {
       source[index] = (byte) (source[index] + 16);
     }
     for (final int size : new int[] { 16, 32 }) {
-      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, 65.255994022, null);
+      final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
       final int level = size == 16 ? 1 : 0;
       final int parent = size == 16 ? -4 << 16 : Mcv2BlockState.NO_VECTOR;
       final Object coder = job.code(size, level, 0, 0, 0, parent);

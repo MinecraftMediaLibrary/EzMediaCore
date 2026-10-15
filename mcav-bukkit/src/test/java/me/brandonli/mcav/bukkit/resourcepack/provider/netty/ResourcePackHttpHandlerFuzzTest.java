@@ -56,10 +56,12 @@ final class ResourcePackHttpHandlerFuzzTest {
   private static final int MAXIMUM_SPLITS = 8;
   private static final Path PACK_FILE = writePack();
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+
   private static Path writePack() {
     try {
       final Path directory = Files.createTempDirectory("mcav-pack-fuzz");
-      final Path pack = directory.resolve("pack.zip");
+      final Path pack = directory.resolve(PACK_FILE_NAME);
       Files.write(pack, PACK);
       pack.toFile().deleteOnExit();
       directory.toFile().deleteOnExit();

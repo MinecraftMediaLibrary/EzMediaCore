@@ -34,6 +34,8 @@ final class DeltaMapEncoderTest {
 
   private static final int LARGE_BUDGET = 1 << 20;
 
+  private static final int MAP_SIZE = 128;
+
   /**
    * Changes every pixel inside a rectangle of the image to a different color.
    */
@@ -86,7 +88,7 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldRejectInvalidArguments() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] wrongSize = new byte[10];
 
@@ -98,35 +100,35 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldExposeItsLayoutAndTheDefaultBudget() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final MapLayout encoderLayout = encoder.getLayout();
 
     assertSame(layout, encoderLayout);
-    assertEquals(128 * 1024, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
+    assertEquals(MAP_SIZE * 1024, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
   }
 
   @Test
   void shouldSendEveryCoveredMapCompletelyInTheFirstFrame() {
-    final MapLayout layout = new MapLayout(10, 2, 1, 256, 128);
+    final MapLayout layout = new MapLayout(10, 2, 1, 256, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     final List<MapTilePatch> patches = encoder.encode(image);
     final MapTilePatch left = patches.get(0);
     final MapTilePatch right = patches.get(1);
-    final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, 128, 128);
-    final byte[] rightColors = MapLayoutTest.copyRectangle(image, 256, 128, 0, 128, 128);
+    final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, MAP_SIZE, MAP_SIZE);
+    final byte[] rightColors = MapLayoutTest.copyRectangle(image, 256, MAP_SIZE, 0, MAP_SIZE, MAP_SIZE);
 
     assertPatchCount(2, patches);
-    assertPatch(left, 10, 0, 0, 128, 128, leftColors);
-    assertPatch(right, 11, 0, 0, 128, 128, rightColors);
+    assertPatch(left, 10, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
+    assertPatch(right, 11, 0, 0, MAP_SIZE, MAP_SIZE, rightColors);
   }
 
   @Test
   void shouldSendNothingWhenTheFrameDidNotChange() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
     final byte[] sameImage = image.clone();
     final List<MapTilePatch> patches = encoder.encode(sameImage);
@@ -136,13 +138,13 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendOnlyTheTileThatChanged() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, 128, 20, 35, 8, 1);
+    final byte[] changed = change(image, MAP_SIZE, 20, 35, 8, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 16, 32, 16, 16);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 32, 16, 16);
     final MapTilePatch patch = patches.getFirst();
 
     assertPatchCount(1, patches);
@@ -151,13 +153,13 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMergeAdjacentChangedTilesIntoOneRectangle() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, 128, 10, 10, 20, 20);
+    final byte[] changed = change(image, MAP_SIZE, 10, 10, 20, 20);
     final List<MapTilePatch> patches = encoder.encode(changed);
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 32, 32);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 32);
     final MapTilePatch patch = patches.getFirst();
 
     assertPatchCount(1, patches);
@@ -166,13 +168,13 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMergeHorizontalTileRunsAwayFromTheFirstColumn() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, 128, 32, 16, 32, 16);
+    final byte[] changed = change(image, MAP_SIZE, 32, 16, 32, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 32, 16, 32, 16);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 32, 16, 32, 16);
     assertPatchCount(1, patches);
     final MapTilePatch patch = patches.getFirst();
     assertPatch(patch, 0, 32, 16, 32, 16, expected);
@@ -180,18 +182,18 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendSeparateRectanglesWhenTheyAreSmallerThanTheirBoundingBox() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] topLeft = change(image, 128, 0, 0, 4, 1);
-    final byte[] belowTopLeft = change(topLeft, 128, 0, 16, 4, 1);
-    final byte[] changed = change(belowTopLeft, 128, 16, 16, 4, 1);
+    final byte[] topLeft = change(image, MAP_SIZE, 0, 0, 4, 1);
+    final byte[] belowTopLeft = change(topLeft, MAP_SIZE, 0, 16, 4, 1);
+    final byte[] changed = change(belowTopLeft, MAP_SIZE, 16, 16, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch column = patches.get(0);
     final MapTilePatch single = patches.get(1);
-    final byte[] columnColors = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 16, 32);
-    final byte[] singleColors = MapLayoutTest.copyRectangle(changed, 128, 16, 16, 16, 16);
+    final byte[] columnColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 32);
+    final byte[] singleColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 16, 16, 16);
 
     assertPatchCount(2, patches);
     assertPatch(column, 0, 0, 0, 16, 32, columnColors);
@@ -200,16 +202,16 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendTheBoundingBoxWhenItIsNotLargerThanTheSeparateRectangles() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 2);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, 2);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 2);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 2);
     encoder.encode(image);
-    final byte[] firstRow = change(image, 128, 0, 0, 4, 1);
-    final byte[] secondRow = change(firstRow, 128, 0, 1, 4, 1);
-    final byte[] changed = change(secondRow, 128, 16, 1, 4, 1);
+    final byte[] firstRow = change(image, MAP_SIZE, 0, 0, 4, 1);
+    final byte[] secondRow = change(firstRow, MAP_SIZE, 0, 1, 4, 1);
+    final byte[] changed = change(secondRow, MAP_SIZE, 16, 1, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 32, 2);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 2);
 
     assertPatchCount(1, patches);
     assertPatch(patch, 0, 0, 63, 32, 2, expected);
@@ -217,14 +219,14 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMergeChangesThatReachTheBottomOfTheMap() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, 128, 0, 100, 4, 28);
+    final byte[] changed = change(image, MAP_SIZE, 0, 100, 4, 28);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 0, 96, 16, 32);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 96, 16, 32);
 
     assertPatchCount(1, patches);
     assertPatch(patch, 0, 0, 96, 16, 32, expected);
@@ -251,17 +253,17 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldFindSeveralChangesInOneRowUpToTheRightEdge() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] left = change(image, 128, 0, 10, 4, 1);
-    final byte[] changed = change(left, 128, 124, 10, 4, 1);
+    final byte[] left = change(image, MAP_SIZE, 0, 10, 4, 1);
+    final byte[] changed = change(left, MAP_SIZE, 124, 10, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch leftPatch = patches.get(0);
     final MapTilePatch rightPatch = patches.get(1);
-    final byte[] leftColors = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 16, 16);
-    final byte[] rightColors = MapLayoutTest.copyRectangle(changed, 128, 112, 0, 16, 16);
+    final byte[] leftColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
+    final byte[] rightColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 0, 16, 16);
 
     assertPatchCount(2, patches);
     assertPatch(leftPatch, 0, 0, 0, 16, 16, leftColors);
@@ -270,18 +272,18 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldHoldBackNoiseForSixFramesAndThenSendIt() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, 128, 40, 40, 3, 1);
+    final byte[] noisy = change(image, MAP_SIZE, 40, 40, 3, 1);
     for (int frame = 0; frame < 6; frame++) {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
       assertNothingSent(deferred);
     }
     final List<MapTilePatch> patches = encoder.encode(noisy);
     final MapTilePatch patch = patches.getFirst();
-    final byte[] expected = MapLayoutTest.copyRectangle(noisy, 128, 32, 32, 16, 16);
+    final byte[] expected = MapLayoutTest.copyRectangle(noisy, MAP_SIZE, 32, 32, 16, 16);
     final List<MapTilePatch> afterwards = encoder.encode(noisy);
 
     assertPatchCount(1, patches);
@@ -291,11 +293,11 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldForgetNoiseThatDisappearsOnItsOwn() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, 128, 0, 0, 3, 1);
+    final byte[] noisy = change(image, MAP_SIZE, 0, 0, 3, 1);
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }
@@ -314,15 +316,15 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendRealMotionWhileHoldingBackNoise() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] motion = change(image, 128, 0, 0, 8, 1);
-    final byte[] changed = change(motion, 128, 80, 80, 2, 1);
+    final byte[] motion = change(image, MAP_SIZE, 0, 0, 8, 1);
+    final byte[] changed = change(motion, MAP_SIZE, 80, 80, 2, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 16, 16);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
     final List<MapTilePatch> snapshot = encoder.snapshot();
     final MapTilePatch state = snapshot.getFirst();
     final byte[] stateColors = state.getColors();
@@ -334,9 +336,9 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldAlwaysSendTheMostUrgentMapEvenIfItExceedsTheBudget() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     final List<MapTilePatch> first = encoder.encode(image);
     final List<MapTilePatch> second = encoder.encode(image);
     final List<MapTilePatch> third = encoder.encode(image);
@@ -354,10 +356,10 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendSeveralMapsThatFitIntoTheBudgetTogether() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
-    final int twoMaps = 2 * (128 * 128 + MapLayout.PATCH_OVERHEAD);
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
+    final int twoMaps = 2 * (MAP_SIZE * MAP_SIZE + MapLayout.PATCH_OVERHEAD);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, twoMaps);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     final List<MapTilePatch> patches = encoder.encode(image);
 
     assertPatchCount(2, patches);
@@ -365,13 +367,13 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendMapsThatHaveBeenWaitingBeforeMapsWithMoreChanges() {
-    final MapLayout layout = new MapLayout(20, 2, 1, 256, 128);
+    final MapLayout layout = new MapLayout(20, 2, 1, 256, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 600);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     encoder.encode(image);
     encoder.encode(image);
     final byte[] bigLeftChange = change(image, 256, 0, 0, 32, 16);
-    final byte[] smallRightChange = change(bigLeftChange, 256, 128, 0, 16, 1);
+    final byte[] smallRightChange = change(bigLeftChange, 256, MAP_SIZE, 0, 16, 1);
     final List<MapTilePatch> third = encoder.encode(smallRightChange);
     final MapTilePatch leftPatch = third.getFirst();
     final byte[] leftColors = MapLayoutTest.copyRectangle(smallRightChange, 256, 0, 0, 32, 16);
@@ -382,7 +384,7 @@ final class DeltaMapEncoderTest {
     final byte[] anotherBigLeftChange = change(smallRightChange, 256, 0, 32, 32, 16);
     final List<MapTilePatch> fourth = encoder.encode(anotherBigLeftChange);
     final MapTilePatch rightPatch = fourth.getFirst();
-    final byte[] rightColors = MapLayoutTest.copyRectangle(anotherBigLeftChange, 256, 128, 0, 16, 16);
+    final byte[] rightColors = MapLayoutTest.copyRectangle(anotherBigLeftChange, 256, MAP_SIZE, 0, 16, 16);
 
     assertPatchCount(1, fourth);
     assertPatch(rightPatch, 21, 0, 0, 16, 16, rightColors);
@@ -397,9 +399,9 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldRejectImagesOfTheWrongSizeInEveryFrame() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
     final byte[] tooLong = Arrays.copyOf(image, image.length + 1);
 
@@ -447,17 +449,17 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMergeTilesDownwardsOnlyWhileTheWholeRowChanged() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] block = change(image, 128, 0, 0, 32, 32);
-    final byte[] changed = change(block, 128, 112, 32, 16, 16);
+    final byte[] block = change(image, MAP_SIZE, 0, 0, 32, 32);
+    final byte[] changed = change(block, MAP_SIZE, 112, 32, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch merged = patches.get(0);
     final MapTilePatch distant = patches.get(1);
-    final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 32, 32);
-    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, 128, 112, 32, 16, 16);
+    final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 32);
+    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 32, 16, 16);
 
     assertPatchCount(2, patches);
     assertPatch(merged, 0, 0, 0, 32, 32, mergedColors);
@@ -466,33 +468,33 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMergeTheLastTwoTilesWithoutReadingBeyondTheFinalRow() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] corner = change(image, 128, 0, 0, 16, 16);
-    final byte[] changed = change(corner, 128, 96, 112, 32, 16);
+    final byte[] corner = change(image, MAP_SIZE, 0, 0, 16, 16);
+    final byte[] changed = change(corner, MAP_SIZE, 96, 112, 32, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     assertPatchCount(2, patches);
-    final byte[] first = MapLayoutTest.copyRectangle(changed, 128, 0, 0, 16, 16);
-    final byte[] last = MapLayoutTest.copyRectangle(changed, 128, 96, 112, 32, 16);
+    final byte[] first = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
+    final byte[] last = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 96, 112, 32, 16);
     assertPatch(patches.get(0), 0, 0, 0, 16, 16, first);
     assertPatch(patches.get(1), 0, 96, 112, 32, 16, last);
   }
 
   @Test
   void shouldMergeTilesOfLowerRowsSideways() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] row = change(image, 128, 0, 16, 32, 16);
-    final byte[] changed = change(row, 128, 112, 32, 16, 16);
+    final byte[] row = change(image, MAP_SIZE, 0, 16, 32, 16);
+    final byte[] changed = change(row, MAP_SIZE, 112, 32, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch merged = patches.get(0);
     final MapTilePatch distant = patches.get(1);
-    final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, 128, 0, 16, 32, 16);
-    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, 128, 112, 32, 16, 16);
+    final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 16, 32, 16);
+    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 32, 16, 16);
 
     assertPatchCount(2, patches);
     assertPatch(merged, 0, 0, 16, 32, 16, mergedColors);
@@ -501,20 +503,20 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldNeverMergeARunPastTheRightEdgeIntoTheNextRow() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] rightEdge = change(image, 128, 112, 0, 16, 16);
-    final byte[] nextRow = change(rightEdge, 128, 0, 16, 16, 16);
-    final byte[] changed = change(nextRow, 128, 48, 64, 16, 16);
+    final byte[] rightEdge = change(image, MAP_SIZE, 112, 0, 16, 16);
+    final byte[] nextRow = change(rightEdge, MAP_SIZE, 0, 16, 16, 16);
+    final byte[] changed = change(nextRow, MAP_SIZE, 48, 64, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch edge = patches.get(0);
     final MapTilePatch wrapped = patches.get(1);
     final MapTilePatch distant = patches.get(2);
-    final byte[] edgeColors = MapLayoutTest.copyRectangle(changed, 128, 112, 0, 16, 16);
-    final byte[] wrappedColors = MapLayoutTest.copyRectangle(changed, 128, 0, 16, 16, 16);
-    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, 128, 48, 64, 16, 16);
+    final byte[] edgeColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 0, 16, 16);
+    final byte[] wrappedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 16, 16, 16);
+    final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 48, 64, 16, 16);
 
     assertPatchCount(3, patches);
     assertPatch(edge, 0, 112, 0, 16, 16, edgeColors);
@@ -524,16 +526,16 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldMeasureTheBoundingBoxFromItsLeftEdge() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 2);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, 2);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 2);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 2);
     encoder.encode(image);
-    final byte[] firstRow = change(image, 128, 16, 0, 4, 1);
-    final byte[] secondRow = change(firstRow, 128, 16, 1, 4, 1);
-    final byte[] changed = change(secondRow, 128, 32, 1, 4, 1);
+    final byte[] firstRow = change(image, MAP_SIZE, 16, 0, 4, 1);
+    final byte[] secondRow = change(firstRow, MAP_SIZE, 16, 1, 4, 1);
+    final byte[] changed = change(secondRow, MAP_SIZE, 32, 1, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
-    final byte[] expected = MapLayoutTest.copyRectangle(changed, 128, 16, 0, 32, 2);
+    final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 0, 32, 2);
 
     assertPatchCount(1, patches);
     assertPatch(patch, 0, 16, 63, 32, 2, expected);
@@ -541,7 +543,7 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldReturnAnEmptySnapshotBeforeTheFirstFrame() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final List<MapTilePatch> snapshot = encoder.snapshot();
 
@@ -550,24 +552,24 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldDescribeWhatTheClientsDisplayInTheSnapshot() {
-    final MapLayout layout = new MapLayout(4, 3, 1, 128, 64);
+    final MapLayout layout = new MapLayout(4, 3, 1, MAP_SIZE, 64);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 64);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 64);
     encoder.encode(image);
-    final byte[] changed = change(image, 128, 0, 0, 30, 30);
+    final byte[] changed = change(image, MAP_SIZE, 0, 0, 30, 30);
     encoder.encode(changed);
     final List<MapTilePatch> snapshot = encoder.snapshot();
     final MapTilePatch patch = snapshot.getFirst();
 
     assertPatchCount(1, snapshot);
-    assertPatch(patch, 5, 0, 32, 128, 64, changed);
+    assertPatch(patch, 5, 0, 32, MAP_SIZE, 64, changed);
   }
 
   @Test
   void shouldLeaveMapsThatWereNeverSentOutOfTheSnapshot() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     encoder.encode(image);
     final List<MapTilePatch> snapshot = encoder.snapshot();
     final MapTilePatch patch = snapshot.getFirst();
@@ -579,28 +581,28 @@ final class DeltaMapEncoderTest {
 
   @Test
   void shouldSendTheNextFrameCompletelyAgainAfterAReset() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
-    final byte[] image = MapLayoutTest.createImage(256, 128);
+    final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     encoder.encode(image);
     encoder.reset();
     final List<MapTilePatch> snapshot = encoder.snapshot();
     final List<MapTilePatch> afterReset = encoder.encode(image);
     final MapTilePatch patch = afterReset.getFirst();
-    final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, 128, 128);
+    final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, MAP_SIZE, MAP_SIZE);
 
     assertNothingSent(snapshot);
     assertPatchCount(1, afterReset);
-    assertPatch(patch, 0, 0, 0, 128, 128, leftColors);
+    assertPatch(patch, 0, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
   }
 
   @Test
   void shouldForgetHeldBackNoiseOnReset() {
-    final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
+    final MapLayout layout = new MapLayout(0, 1, 1, MAP_SIZE, MAP_SIZE);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
-    final byte[] image = MapLayoutTest.createImage(128, 128);
+    final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, 128, 0, 0, 3, 1);
+    final byte[] noisy = change(image, MAP_SIZE, 0, 0, 3, 1);
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }

@@ -46,6 +46,12 @@ import org.junit.jupiter.api.Test;
  */
 final class MainThreadRendererTest {
 
+  private static final String FRAME = "frame";
+  private static final String DROPPED_FRAME = "dropped";
+  private static final String PLUGIN_NAME = "MCAV";
+
+  private static final String DISCARDED_MESSAGE = "the pending frame was discarded";
+
   private FakeServer server;
 
   @BeforeEach
@@ -63,13 +69,13 @@ final class MainThreadRendererTest {
   void shouldKeepApplyingFramesForARendererThatDoesNotOverrideOnTick() {
     final PlainRenderer renderer = new PlainRenderer();
     renderer.startRendering();
-    renderer.submit("frame");
+    renderer.submit(FRAME);
 
     this.server.runTasks();
     this.server.runTasks();
 
     final List<String> applied = renderer.getAppliedFrames();
-    final List<String> expected = List.of("frame");
+    final List<String> expected = List.of(FRAME);
     assertEquals(expected, applied, "a renderer without an onTick of its own still applies its frames");
     renderer.stopRendering();
   }
@@ -122,7 +128,7 @@ final class MainThreadRendererTest {
   void shouldCancelTheTaskAndDiscardThePendingFrameWhenStopping() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
-    renderer.submit("dropped");
+    renderer.submit(DROPPED_FRAME);
     renderer.stopRendering();
     final int taskCount = this.server.getScheduledTaskCount();
     renderer.startRendering();
@@ -131,20 +137,20 @@ final class MainThreadRendererTest {
     final BukkitScheduler scheduler = this.server.getScheduler();
     final boolean nothingApplied = applied.isEmpty();
     assertEquals(0, taskCount);
-    assertTrue(nothingApplied, "the pending frame was discarded");
+    assertTrue(nothingApplied, DISCARDED_MESSAGE);
     verify(scheduler, times(2)).runTaskTimer(any(Plugin.class), any(Runnable.class), eq(0L), eq(1L));
   }
 
   @Test
   void shouldOnlyDiscardThePendingFrameWhenStoppingARendererThatNeverStarted() {
     final RecordingRenderer renderer = new RecordingRenderer();
-    renderer.submit("dropped");
+    renderer.submit(DROPPED_FRAME);
     renderer.stopRendering();
     renderer.startRendering();
     this.server.runTasks();
     final List<String> applied = renderer.getAppliedFrames();
     final boolean nothingApplied = applied.isEmpty();
-    assertTrue(nothingApplied, "the pending frame was discarded");
+    assertTrue(nothingApplied, DISCARDED_MESSAGE);
   }
 
   @Test
@@ -178,12 +184,12 @@ final class MainThreadRendererTest {
   void shouldCallTheTickHookEveryTickWithOrWithoutAFrame() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
-    renderer.submit("frame");
+    renderer.submit(FRAME);
     this.server.runTasks();
     this.server.runTasks();
     final List<String> applied = renderer.getAppliedFrames();
     final int ticks = renderer.getTicks();
-    final List<String> expected = List.of("frame");
+    final List<String> expected = List.of(FRAME);
     assertEquals(expected, applied);
     assertEquals(2, ticks);
   }
@@ -193,7 +199,7 @@ final class MainThreadRendererTest {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(false);
-    when(plugin.getName()).thenReturn("MCAV");
+    when(plugin.getName()).thenReturn(PLUGIN_NAME);
     final AtomicInteger runs = new AtomicInteger();
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(MainThreadRenderer.class)) {
@@ -250,7 +256,7 @@ final class MainThreadRendererTest {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(true);
-    when(plugin.getName()).thenReturn("MCAV");
+    when(plugin.getName()).thenReturn(PLUGIN_NAME);
     final BukkitScheduler scheduler = this.server.getScheduler();
     when(scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenThrow(new IllegalPluginAccessException("Disabled after check!"));
     final AtomicInteger runs = new AtomicInteger();

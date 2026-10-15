@@ -34,6 +34,12 @@ import org.junit.jupiter.api.Test;
  */
 final class MapConfigurationTest {
 
+  private static final int MAP_BLOCK_COUNT = 3;
+
+  private static final int NATIVE_RESOLUTION = 384;
+
+  private static final int MAP_SIZE = 128;
+
   private static MapConfiguration.Builder<?> completeBuilder() {
     final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
     builder.viewers(List.of());
@@ -54,7 +60,7 @@ final class MapConfigurationTest {
     builder.viewers(viewers);
     builder.map(12);
     builder.mapBlockWidth(5);
-    builder.mapBlockHeight(3);
+    builder.mapBlockHeight(MAP_BLOCK_COUNT);
 
     final MapConfiguration configuration = builder.build();
 
@@ -68,9 +74,9 @@ final class MapConfigurationTest {
     assertSame(viewers, configuredViewers, "the viewers are not copied");
     assertEquals(12, map);
     assertEquals(5, columns);
-    assertEquals(3, rows);
+    assertEquals(MAP_BLOCK_COUNT, rows);
     assertEquals(640, width);
-    assertEquals(384, height);
+    assertEquals(NATIVE_RESOLUTION, height);
     assertFalse(shouldResize);
   }
 
@@ -165,7 +171,7 @@ final class MapConfigurationTest {
     final MapConfiguration.Builder<?> builder = completeBuilder();
 
     final MapConfiguration small = builder.build();
-    builder.mapBlockWidth(3);
+    builder.mapBlockWidth(MAP_BLOCK_COUNT);
     builder.mapBlockHeight(2);
     final MapConfiguration large = builder.build();
 
@@ -173,30 +179,30 @@ final class MapConfigurationTest {
     final int smallHeight = small.getMapHeightResolution();
     final int largeWidth = large.getMapWidthResolution();
     final int largeHeight = large.getMapHeightResolution();
-    assertEquals(128, smallWidth);
-    assertEquals(128, smallHeight);
-    assertEquals(384, largeWidth, "the default of the first build is not kept in the builder");
+    assertEquals(MAP_SIZE, smallWidth);
+    assertEquals(MAP_SIZE, smallHeight);
+    assertEquals(NATIVE_RESOLUTION, largeWidth, "the default of the first build is not kept in the builder");
     assertEquals(256, largeHeight);
   }
 
   @Test
   void shouldRejectOverflowingNativeResolutions() {
     final MapConfiguration.Builder<?> width = completeBuilder();
-    width.mapBlockWidth(Integer.MAX_VALUE / 128 + 1);
+    width.mapBlockWidth(Integer.MAX_VALUE / MAP_SIZE + 1);
     final MapConfiguration.Builder<?> height = completeBuilder();
-    height.mapBlockHeight(Integer.MAX_VALUE / 128 + 1);
+    height.mapBlockHeight(Integer.MAX_VALUE / MAP_SIZE + 1);
     assertThrows(IllegalArgumentException.class, width::build);
     assertThrows(IllegalArgumentException.class, height::build);
   }
 
   @Test
   void shouldAcceptTheLargestRepresentableNativeResolution() {
-    final int maps = Integer.MAX_VALUE / 128;
+    final int maps = Integer.MAX_VALUE / MAP_SIZE;
     final MapConfiguration.Builder<?> builder = completeBuilder();
     builder.mapBlockWidth(maps);
     final MapConfiguration configuration = builder.build();
     final int resolution = configuration.getMapWidthResolution();
-    final int expected = maps * 128;
+    final int expected = maps * MAP_SIZE;
     assertEquals(expected, resolution);
   }
 }

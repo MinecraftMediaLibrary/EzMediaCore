@@ -61,6 +61,8 @@ final class Mcv2ViewersTest {
 
   private static final UUID PLAYER = UUID.fromString("00000000-0000-0000-0000-000000000021");
 
+  private static final String REFUSED_ONCE_MESSAGE = "the refusal is reported once";
+
   private FakeServer server;
 
   private Player player;
@@ -121,7 +123,7 @@ final class Mcv2ViewersTest {
     final Mcv2Viewers.@Nullable PackState refusedState = viewers.getState(uuid);
     assertEquals(Mcv2Viewers.PackState.REFUSED, refusedState);
     final List<Player> expectedRefusedOnce = List.of(this.player);
-    assertEquals(expectedRefusedOnce, this.refused, "the refusal is reported once");
+    assertEquals(expectedRefusedOnce, this.refused, REFUSED_ONCE_MESSAGE);
 
     viewers.onPlayerQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
     final Mcv2Viewers.@Nullable PackState stateAfterQuit = viewers.getState(uuid);
@@ -245,7 +247,7 @@ final class Mcv2ViewersTest {
     final Mcv2Viewers.@Nullable PackState declinedState = viewers.getState(PLAYER);
     assertEquals(Mcv2Viewers.PackState.DECLINED, declinedState);
     final List<Player> expectedRefused = List.of(this.player);
-    assertEquals(expectedRefused, this.refused, "the refusal is reported once");
+    assertEquals(expectedRefused, this.refused, REFUSED_ONCE_MESSAGE);
 
     viewers.onResourcePackStatus(new PlayerResourcePackStatusEvent(other, PACK, Status.SUCCESSFULLY_LOADED));
     final boolean otherLoaded = viewers.isLoaded(otherId);

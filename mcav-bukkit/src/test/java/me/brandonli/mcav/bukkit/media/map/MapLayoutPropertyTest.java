@@ -42,6 +42,8 @@ final class MapLayoutPropertyTest {
   private static final int MAXIMUM_SIDE_IN_MAPS = 6;
   private static final int MAXIMUM_IMAGE_SIDE = MAXIMUM_SIDE_IN_MAPS * MapLayout.MAP_SIZE + 90;
 
+  private static final String GRIDS = "grids";
+
   /**
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
@@ -71,7 +73,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldKeepEveryMapIdInTheRangeOfItsLayout(@ForAll("grids") final MapGrid grid) {
+  void shouldKeepEveryMapIdInTheRangeOfItsLayout(@ForAll(GRIDS) final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final int mapCount = layout.getMapCount();
     final long firstId = grid.getStartMapId();
@@ -97,7 +99,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldShowEveryVisiblePixelOfTheImageOnTheMapsExactlyOnceAndCentered(@ForAll("grids") final MapGrid grid) {
+  void shouldShowEveryVisiblePixelOfTheImageOnTheMapsExactlyOnceAndCentered(@ForAll(GRIDS) final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final byte[] image = grid.createImage();
     final List<MapTilePatch> patches = layout.extractAll(image);

@@ -38,13 +38,20 @@ final class NettyHostingLocaleTest {
 
   private static final int PORT = 25673;
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+
+  private static final String DOWNLOAD_PATH_PATTERN = "/mcav/resourcepack_[0-9]+\\.zip";
+
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
   void shouldKeepListenerKeysValidInEveryFormattingLocale(final String languageTag) {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
-      final NettyHosting hosting = assertDoesNotThrow(() -> new NettyHosting(Path.of("pack.zip")), "listener keys must use ASCII digits");
+      final NettyHosting hosting = assertDoesNotThrow(
+        () -> new NettyHosting(Path.of(PACK_FILE_NAME)),
+        "listener keys must use ASCII digits"
+      );
       assertDownloadAddress(hosting);
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);
@@ -57,7 +64,7 @@ final class NettyHostingLocaleTest {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.ROOT);
-      final NettyHosting hosting = new NettyHosting(Path.of("pack.zip"));
+      final NettyHosting hosting = new NettyHosting(Path.of(PACK_FILE_NAME));
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
       assertDownloadAddress(hosting);
     } finally {
@@ -78,7 +85,7 @@ final class NettyHostingLocaleTest {
       assertEquals(PORT, port, "resource-pack URLs must keep a parseable ASCII port");
       final String host = uri.getHost();
       assertEquals("127.0.0.1", host);
-      final boolean packPath = uri.getRawPath().matches("/mcav/resourcepack_[0-9]+\\.zip");
+      final boolean packPath = uri.getRawPath().matches(DOWNLOAD_PATH_PATTERN);
       assertTrue(packPath);
     }
   }

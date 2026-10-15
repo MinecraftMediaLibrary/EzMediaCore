@@ -40,6 +40,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 @ResourceLock(Resources.LOCALE)
 final class Mcv2PackLocaleTest {
 
+  private static final String ROOT_PACK_FILE_NAME = "root.zip";
+  private static final String LOCALIZED_PACK_FILE_NAME = "localized.zip";
+
+  private static final String SHADER_LIBRARY_EXTENSION = ".glsl";
+  private static final String VERTEX_SHADER_EXTENSION = ".vsh";
+  private static final String FRAGMENT_SHADER_EXTENSION = ".fsh";
+
   @TempDir
   private Path directory;
 
@@ -50,9 +57,9 @@ final class Mcv2PackLocaleTest {
     final Mcv2Configuration configuration = Mcv2ConfigurationTest.complete().video(320, 180).pageSlots(2).streamId(9).build();
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.ROOT);
-      final Map<String, String> expected = this.shaders(configuration, "root.zip");
+      final Map<String, String> expected = this.shaders(configuration, ROOT_PACK_FILE_NAME);
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
-      final Map<String, String> actual = this.shaders(configuration, "localized.zip");
+      final Map<String, String> actual = this.shaders(configuration, LOCALIZED_PACK_FILE_NAME);
       final boolean empty = expected.isEmpty();
       assertFalse(empty);
       final Set<String> expectedNames = expected.keySet();
@@ -74,7 +81,11 @@ final class Mcv2PackLocaleTest {
     final Map<String, String> shaders = new HashMap<>();
     try (final ZipFile archive = new ZipFile(zip.toFile())) {
       for (final ZipEntry entry : archive.stream().toList()) {
-        if (entry.getName().endsWith(".glsl") || entry.getName().endsWith(".vsh") || entry.getName().endsWith(".fsh")) {
+        if (
+          entry.getName().endsWith(SHADER_LIBRARY_EXTENSION) ||
+          entry.getName().endsWith(VERTEX_SHADER_EXTENSION) ||
+          entry.getName().endsWith(FRAGMENT_SHADER_EXTENSION)
+        ) {
           try (final InputStream input = archive.getInputStream(entry)) {
             shaders.put(entry.getName(), new String(input.readAllBytes(), StandardCharsets.UTF_8));
           }

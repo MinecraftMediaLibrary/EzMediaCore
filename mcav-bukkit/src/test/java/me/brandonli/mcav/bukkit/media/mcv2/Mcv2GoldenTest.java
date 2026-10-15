@@ -40,6 +40,11 @@ final class Mcv2GoldenTest {
 
   private static final int HEIGHT = 180;
 
+  private static final String CROP_DEFAULT_STREAM = "crop-default.mcs";
+
+  private static final String ENCODER_FOLDER = "encoder/";
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+
   @Test
   void shouldPinEightFramesOfThePanningScene() {
     final List<Settings> settings = List.of(Settings.DEFAULT, Settings.FAST);
@@ -80,9 +85,9 @@ final class Mcv2GoldenTest {
     "crop-fast.mcs, 4, false",
   })
   void shouldReproduceTheGoldenEncoder(final String stream, final int threads, final boolean shouldVerify) {
-    final Settings settings = stream.equals("crop-default.mcs") ? Settings.DEFAULT : Settings.FAST;
-    final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read("encoder/" + stream));
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+    final Settings settings = stream.equals(CROP_DEFAULT_STREAM) ? Settings.DEFAULT : Settings.FAST;
+    final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read(ENCODER_FOLDER + stream));
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final ForkJoinPool pool = new ForkJoinPool(threads);
     try {
       final Mcv2 encoder = new Mcv2(settings, pool, threads, shouldVerify);

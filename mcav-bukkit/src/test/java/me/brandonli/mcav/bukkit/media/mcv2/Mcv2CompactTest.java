@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2CompactTest {
 
+  private static final int RECORD_LENGTH = 10;
+
   @Test
   void shouldStoreBothWholePixelVectorsInEveryTenByteRecord() throws Mcv2Exception {
     for (final int motionX : new int[] { -128, -7, 0, 7, 127 }) {
@@ -38,7 +40,7 @@ final class Mcv2CompactTest {
         final byte storedY = data[offset + 1];
         assertEquals(motionY, storedY);
         final int recordLength = data.length - offset;
-        assertEquals(10, recordLength);
+        assertEquals(RECORD_LENGTH, recordLength);
         final byte[] storedRecord = Arrays.copyOfRange(data, offset, data.length);
         assertArrayEquals(record, storedRecord);
       }
@@ -50,9 +52,9 @@ final class Mcv2CompactTest {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int length = 0; length <= 20; length++) {
         final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
-        if (length == 10) {
+        if (length == RECORD_LENGTH) {
           final int payloadLength = data.length - Mcv2Decoder.parse(data).getPayloadStart();
-          assertEquals(10, payloadLength);
+          assertEquals(RECORD_LENGTH, payloadLength);
         } else {
           assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
         }
@@ -63,7 +65,7 @@ final class Mcv2CompactTest {
   @Test
   void shouldRefuseEveryQuantizerAboveTwo() {
     for (int quantizer = 3; quantizer < 8; quantizer++) {
-      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[10], false);
+      final byte[] data = Mcv2WireFrames.block(32, 5, quantizer, new byte[RECORD_LENGTH], false);
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
     }
   }

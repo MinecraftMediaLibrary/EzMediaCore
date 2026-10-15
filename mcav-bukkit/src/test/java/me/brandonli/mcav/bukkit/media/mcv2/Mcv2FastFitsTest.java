@@ -27,6 +27,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 /** The cheap fits of the live search: cell means for grids, a short integer clustering for palettes. */
 final class Mcv2FastFitsTest {
 
+  private static final int ENDPOINTS_LENGTH = 6;
+
   @ParameterizedTest
   @ValueSource(ints = { 8, 16, 32 })
   void shouldClusterTwoColours(final int size) {
@@ -37,7 +39,7 @@ final class Mcv2FastFitsTest {
       source[pixel * 3 + 1] = bright ? 210 : 20;
       source[pixel * 3 + 2] = bright ? 220 : 30;
     }
-    final int[] endpoints = new int[6];
+    final int[] endpoints = new int[ENDPOINTS_LENGTH];
     Mcv2Internals.javaKernels().cluster(source, size, endpoints);
     final int[] expected = new int[] { 10, 20, 30, 200, 210, 220 };
     assertArrayEquals(expected, endpoints);
@@ -48,7 +50,7 @@ final class Mcv2FastFitsTest {
     // one colour everywhere: both seeds are that colour, every pixel joins the first, the second keeps its seed
     final int[] source = new int[8 * 8 * 3];
     Arrays.fill(source, 77);
-    final int[] endpoints = new int[6];
+    final int[] endpoints = new int[ENDPOINTS_LENGTH];
     Mcv2Internals.javaKernels().cluster(source, 8, endpoints);
     final int[] expected = new int[] { 77, 77, 77, 77, 77, 77 };
     assertArrayEquals(expected, endpoints);

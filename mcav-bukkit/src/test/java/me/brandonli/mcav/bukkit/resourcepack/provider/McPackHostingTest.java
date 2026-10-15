@@ -84,6 +84,19 @@ final class McPackHostingTest {
   private static final List<String> ONLY_HEAD = List.of("HEAD");
   private static final Duration LOCK_TIMEOUT = Duration.ofSeconds(10);
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String OTHER_FILE_NAME = "other.zip";
+  private static final String CACHE_FILE_NAME = "mc-packs-cache.json";
+
+  private static final String USER_HOME_PROPERTY = "user.home";
+  private static final String HASH_ALGORITHM = "SHA-1";
+
+  private static final String POST_METHOD = "POST";
+  private static final String UPLOAD_PATH = "/upload";
+  private static final String PACK_PATH = "/pack/";
+
+  private static final String MESSAGE = "Message!";
+
   @TempDir
   private Path directory;
 
@@ -93,14 +106,14 @@ final class McPackHostingTest {
 
   @BeforeEach
   void startService() throws IOException {
-    this.previousHome = System.getProperty("user.home");
+    this.previousHome = System.getProperty(USER_HOME_PROPERTY);
     final Path home = this.directory.resolve("home");
     Files.createDirectory(home);
     final String homePath = home.toString();
-    System.setProperty("user.home", homePath);
+    System.setProperty(USER_HOME_PROPERTY, homePath);
 
     this.service = PackService.start();
-    this.zip = this.directory.resolve("pack.zip");
+    this.zip = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.zip, PACK);
   }
 
@@ -109,7 +122,7 @@ final class McPackHostingTest {
     try {
       this.service.close();
     } finally {
-      System.setProperty("user.home", this.previousHome);
+      System.setProperty(USER_HOME_PROPERTY, this.previousHome);
       final boolean leftInterrupted = Thread.interrupted();
       assertFalse(leftInterrupted, "no test leaves the interrupt flag set");
     }
@@ -133,14 +146,14 @@ final class McPackHostingTest {
   }
 
   private static String sha1(final byte[] bytes) throws NoSuchAlgorithmException {
-    final MessageDigest digest = MessageDigest.getInstance("SHA-1");
+    final MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
     final byte[] hash = digest.digest(bytes);
     return IoUtils.bytesToHex(hash);
   }
 
   private static Path getCacheFile() {
     final Path cache = IoUtils.getCachedFolder();
-    return cache.resolve("mc-packs-cache.json");
+    return cache.resolve(CACHE_FILE_NAME);
   }
 
   private static JsonObject readCache() throws IOException {
@@ -177,7 +190,7 @@ final class McPackHostingTest {
     final String boundary = boundaryMatcher.group(1);
     final byte[] expectedBody = expectedMultipartBody(boundary);
     final String method = upload.method;
-    assertEquals("POST", method);
+    assertEquals(POST_METHOD, method);
     final String userAgent = upload.userAgent;
     assertEquals("mcav", userAgent);
     final String accept = upload.accept;
@@ -444,7 +457,7 @@ final class McPackHostingTest {
   @Test
   void shouldLeaveTheUploadCacheLockFreeForTheNextPack() throws Exception {
     final McPackHosting first = this.createHosting(this.zip);
-    final Path other = this.directory.resolve("other.zip");
+    final Path other = this.directory.resolve(OTHER_FILE_NAME);
     Files.write(other, OTHER_PACK);
     final McPackHosting second = this.createHosting(other);
 
@@ -465,7 +478,7 @@ final class McPackHostingTest {
   void shouldHashBytesAsLowercaseHexadecimal() {
     final byte[] abc = "abc".getBytes(StandardCharsets.US_ASCII);
 
-    final String hash = McPackHosting.hash(abc, "SHA-1");
+    final String hash = McPackHosting.hash(abc, HASH_ALGORITHM);
     final IllegalStateException exception = assertThrows(IllegalStateException.class, () -> McPackHosting.hash(abc, "NO-SUCH-HASH"));
 
     final Throwable cause = exception.getCause();
@@ -505,30 +518,30 @@ final class McPackHostingTest {
 
   @Test
   void shouldKeepTheMessageInExceptions() {
-    final McPacksException exception = new McPacksException("Message!");
+    final McPacksException exception = new McPacksException(MESSAGE);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("Message!", message);
+    assertEquals(MESSAGE, message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseInExceptions() {
     final IOException failure = new IOException("Cause!");
-    final McPacksException exception = new McPacksException("Message!", failure);
+    final McPacksException exception = new McPacksException(MESSAGE, failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("Message!", message);
+    assertEquals(MESSAGE, message);
     assertSame(failure, cause);
   }
 
   @Test
   void shouldMakeExceptionsRuntimeExceptions() {
-    final McPacksException exception = new McPacksException("Message!");
+    final McPacksException exception = new McPacksException(MESSAGE);
     assertInstanceOf(RuntimeException.class, exception, "a failed upload is recoverable, so it is no Error");
   }
 
@@ -585,7 +598,7 @@ final class McPackHostingTest {
       final InetSocketAddress address = new InetSocketAddress(loopback, 0);
       final HttpServer httpServer = HttpServer.create(address, 0);
       final PackService service = new PackService(httpServer);
-      httpServer.createContext("/upload", exchange -> {
+      httpServer.createContext(UPLOAD_PATH, exchange -> {
         try {
           service.recordUpload(exchange);
         } catch (final AssertionError exception) {
@@ -594,7 +607,7 @@ final class McPackHostingTest {
           exchange.close();
         }
       });
-      httpServer.createContext("/pack/", service::answerDownload);
+      httpServer.createContext(PACK_PATH, service::answerDownload);
       httpServer.setExecutor(service.handlers);
       httpServer.start();
       return service;
@@ -614,7 +627,7 @@ final class McPackHostingTest {
       final Upload upload = new Upload(method, contentType, userAgent, accept, body);
       this.uploads.add(upload);
       this.uploadHook.run();
-      assertEquals("POST", method, "a pack is uploaded by POST");
+      assertEquals(POST_METHOD, method, "a pack is uploaded by POST");
 
       final byte[] response = "ok".getBytes(StandardCharsets.US_ASCII);
       exchange.sendResponseHeaders(this.uploadStatus, response.length);

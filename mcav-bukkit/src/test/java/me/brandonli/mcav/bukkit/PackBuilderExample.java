@@ -31,6 +31,8 @@ public final class PackBuilderExample {
 
   private static final URI VIDEO = URI.create("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+
   private PackBuilderExample() {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
@@ -53,7 +55,7 @@ public final class PackBuilderExample {
     final UriSource video = UriSource.uri(VIDEO);
     final Path sound = AudioExtractor.extractOggVorbis(video);
     pack.sound("mcav:example", sound);
-    final Path destination = Path.of("pack.zip");
+    final Path destination = Path.of(PACK_FILE_NAME);
     pack.zip(destination);
   }
 }

@@ -74,6 +74,22 @@ final class StandardVideoHologramTest {
   private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
   private static final String PROGRESS = "■";
 
+  private static final int UPLOAD_YEAR = 2024;
+  private static final int UPLOAD_HOUR = 15;
+  private static final int UPLOAD_MINUTE = 30;
+
+  private static final String TITLE = "t";
+  private static final String UPLOADER = "u";
+
+  private static final int DURATION_SECONDS = 10;
+  private static final String DURATION_TEXT = " 00:10";
+
+  private static final int LONG_DURATION_SECONDS = 100;
+
+  private static final int BAR_LENGTH = 20;
+
+  private static final String UNDATED_TEXT_AT_START = "t\nu (Unknown date)\n00:00 ";
+
   private FakeServer server;
   private TimeZone previousTimeZone;
   // a location refers to its world only weakly, so the test keeps the world reachable until it ends
@@ -120,13 +136,13 @@ final class StandardVideoHologramTest {
   }
 
   private static int epochSecond(final int day) {
-    final LocalDateTime dateTime = LocalDateTime.of(2024, 1, day, 15, 30);
+    final LocalDateTime dateTime = LocalDateTime.of(UPLOAD_YEAR, 1, day, UPLOAD_HOUR, UPLOAD_MINUTE);
     final long seconds = dateTime.toEpochSecond(ZoneOffset.UTC);
     return (int) seconds;
   }
 
   private static String expectedDate(final int day, final String suffix) {
-    final LocalDateTime dateTime = LocalDateTime.of(2024, 1, day, 15, 30);
+    final LocalDateTime dateTime = LocalDateTime.of(UPLOAD_YEAR, 1, day, UPLOAD_HOUR, UPLOAD_MINUTE);
     final DateTimeFormatter monthDay = DateTimeFormatter.ofPattern("MMMM d", Locale.getDefault(Locale.Category.FORMAT));
     final DateTimeFormatter yearTime = DateTimeFormatter.ofPattern(", yyyy h:mm a", Locale.getDefault(Locale.Category.FORMAT));
     final String monthDayText = dateTime.format(monthDay);
@@ -206,7 +222,7 @@ final class StandardVideoHologramTest {
     for (int index = 0; index < days.length; index++) {
       final StandardVideoHologram hologram = new StandardVideoHologram();
       final int timestamp = epochSecond(days[index]);
-      final UrlParseDump dump = createDump("t", "u", timestamp, 1);
+      final UrlParseDump dump = createDump(TITLE, UPLOADER, timestamp, 1);
       hologram.spawn(this.location, dump);
       final TextDisplay display = hologram.getDisplay();
       final Component text = lastText(display);
@@ -247,7 +263,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldReplaceThePreviousDisplayOnANewRequest() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, 1);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, 1);
     hologram.spawn(this.location, dump);
     hologram.spawn(this.location, dump);
     final TextDisplay first = this.spawnedDisplays.get(0);
@@ -261,7 +277,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldRejectInvalidRequests() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, 1);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, 1);
     final Location nowhere = new Location(null, 0, 0, 0);
     assertThrows(NullPointerException.class, () -> hologram.spawn(null, dump));
     assertThrows(NullPointerException.class, () -> hologram.spawn(this.location, null));
@@ -278,7 +294,7 @@ final class StandardVideoHologramTest {
 
   private TextDisplay startHologram(final double duration) {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, duration);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, duration);
     hologram.spawn(this.location, dump);
     hologram.start();
     return this.spawnedDisplays.getLast();
@@ -287,7 +303,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldStartOneProgressTaskThatRunsEverySecond() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, 10);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, DURATION_SECONDS);
     hologram.spawn(this.location, dump);
     hologram.start();
     hologram.start();
@@ -300,7 +316,7 @@ final class StandardVideoHologramTest {
 
   @Test
   void shouldDrawAnEmptyBarAtTheStartAndFillItOncePerSecond() {
-    final TextDisplay display = this.startHologram(10);
+    final TextDisplay display = this.startHologram(DURATION_SECONDS);
     this.server.runTasks();
     final Component start = lastText(display);
     final String startPlain = PLAIN.serialize(start);
@@ -312,20 +328,20 @@ final class StandardVideoHologramTest {
     final String oneSecondPlain = PLAIN.serialize(oneSecond);
     final int oneSecondFilled = countFilled(oneSecond);
 
-    final String bar = PROGRESS.repeat(20);
-    final String expectedStart = "t\nu (Unknown date)\n00:00 " + bar + " 00:10";
+    final String bar = PROGRESS.repeat(BAR_LENGTH);
+    final String expectedStart = UNDATED_TEXT_AT_START + bar + DURATION_TEXT;
     assertEquals(expectedStart, startPlain);
     assertEquals(0, startFilled);
-    assertEquals(20, startEmpty);
-    final String expectedOneSecond = "t\nu (Unknown date)\n00:01 " + bar + " 00:10";
+    assertEquals(BAR_LENGTH, startEmpty);
+    final String expectedOneSecond = "t\nu (Unknown date)\n00:01 " + bar + DURATION_TEXT;
     assertEquals(expectedOneSecond, oneSecondPlain);
     assertEquals(2, oneSecondFilled);
   }
 
   @Test
   void shouldFillTheBarAtTheEndAndStopOnceTheVideoEnded() {
-    final TextDisplay display = this.startHologram(10);
-    for (int second = 0; second <= 10; second++) {
+    final TextDisplay display = this.startHologram(DURATION_SECONDS);
+    for (int second = 0; second <= DURATION_SECONDS; second++) {
       this.server.runTasks();
     }
     final Component end = lastText(display);
@@ -336,10 +352,10 @@ final class StandardVideoHologramTest {
     this.server.runTasks();
     final int tasksAfterFinish = this.server.getScheduledTaskCount();
 
-    final String bar = PROGRESS.repeat(20);
-    final String expectedEnd = "t\nu (Unknown date)\n00:10 " + bar + " 00:10";
+    final String bar = PROGRESS.repeat(BAR_LENGTH);
+    final String expectedEnd = "t\nu (Unknown date)\n00:10 " + bar + DURATION_TEXT;
     assertEquals(expectedEnd, endPlain);
-    assertEquals(20, endFilled);
+    assertEquals(BAR_LENGTH, endFilled);
     assertEquals(1, tasksBeforeFinish);
     assertEquals(0, tasksAfterFinish, "the progress stops after the video ended");
     verify(display, times(12)).text(any(Component.class));
@@ -351,21 +367,21 @@ final class StandardVideoHologramTest {
     this.server.runTasks();
     final Component start = lastText(display);
     final String startPlain = PLAIN.serialize(start);
-    final boolean endsWithDuration = startPlain.endsWith(" 00:10");
+    final boolean endsWithDuration = startPlain.endsWith(DURATION_TEXT);
     assertTrue(endsWithDuration, startPlain);
   }
 
   @Test
   void shouldShowMinutesAndAnEmptyBarForVideosWithoutDuration() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump longDump = createDump("t", "u", 0, 125);
+    final UrlParseDump longDump = createDump(TITLE, UPLOADER, 0, 125);
     hologram.spawn(this.location, longDump);
     hologram.start();
     this.server.runTasks();
     final TextDisplay longDisplay = hologram.getDisplay();
     final Component longText = lastText(longDisplay);
     final String longPlain = PLAIN.serialize(longText);
-    final UrlParseDump negativeDump = createDump("t", "u", 0, -3);
+    final UrlParseDump negativeDump = createDump(TITLE, UPLOADER, 0, -3);
     hologram.spawn(this.location, negativeDump);
     hologram.start();
     this.server.runTasks();
@@ -376,9 +392,9 @@ final class StandardVideoHologramTest {
     this.server.runTasks();
     final int tasks = this.server.getScheduledTaskCount();
     final String bar = PROGRESS.repeat(20);
-    final String expectedLong = "t\nu (Unknown date)\n00:00 " + bar + " 02:05";
+    final String expectedLong = UNDATED_TEXT_AT_START + bar + " 02:05";
     assertEquals(expectedLong, longPlain);
-    final String expectedNegative = "t\nu (Unknown date)\n00:00 " + bar + " 00:00";
+    final String expectedNegative = UNDATED_TEXT_AT_START + bar + " 00:00";
     assertEquals(expectedNegative, negativePlain);
     assertEquals(0, negativeFilled);
     assertEquals(0, tasks);
@@ -387,7 +403,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldStopTheProgressWhenTheDisplayIsGone() {
     final StandardVideoHologram invalid = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, 100);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
     invalid.spawn(this.location, dump);
     final TextDisplay invalidDisplay = this.spawnedDisplays.getFirst();
     when(invalidDisplay.isValid()).thenReturn(false);
@@ -408,7 +424,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldRemoveTheDisplayAndStopTheProgressWhenKilled() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("t", "u", 0, 100);
+    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
     hologram.spawn(this.location, dump);
     hologram.start();
     final TextDisplay display = hologram.getDisplay();

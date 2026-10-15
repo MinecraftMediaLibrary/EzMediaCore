@@ -52,6 +52,8 @@ final class Mcv2ParserPropertyTest {
 
   private static final String SEED = "20260926";
 
+  private static final String PATH_SEPARATOR = "/";
+
   /** Keyframes and P frames of the v3 conformance and edge streams, plus a synthetic two-page frame. */
   private static final List<byte[]> FRAMES = frames();
 
@@ -83,7 +85,7 @@ final class Mcv2ParserPropertyTest {
     final List<byte[]> frames = new ArrayList<>();
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
-        final List<byte[]> all = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
+        final List<byte[]> all = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream));
         frames.addAll(folder.equals("edge") ? all : all.subList(0, Math.min(2, all.size())));
       }
     }

@@ -43,6 +43,8 @@ import org.junit.jupiter.api.Test;
 /** The loop runner of the parallel decode and encode stages. */
 final class Mcv2WorkersTest {
 
+  private static final String BODY_FAILURE_MESSAGE = "body failed!";
+
   @Test
   void shouldRunEveryIndexInOrderOnTheCallingThreadWithOneScratch() {
     final List<Integer> visited = new ArrayList<>();
@@ -121,7 +123,7 @@ final class Mcv2WorkersTest {
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new IllegalStateException("body failed!"));
+    assertFailureWaitsForSibling(false, new IllegalStateException(BODY_FAILURE_MESSAGE));
   }
 
   @Test
@@ -131,7 +133,7 @@ final class Mcv2WorkersTest {
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new AssertionError("body failed!"));
+    assertFailureWaitsForSibling(false, new AssertionError(BODY_FAILURE_MESSAGE));
   }
 
   private static void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {

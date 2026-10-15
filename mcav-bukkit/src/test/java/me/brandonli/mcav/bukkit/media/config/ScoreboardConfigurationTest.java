@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Test;
  */
 final class ScoreboardConfigurationTest {
 
+  private static final String CHARACTER = "x";
+
   private static ScoreboardConfiguration.Builder<?> completeBuilder() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of());
@@ -68,7 +70,7 @@ final class ScoreboardConfigurationTest {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
-    final Object afterCharacter = builder.character("x");
+    final Object afterCharacter = builder.character(CHARACTER);
     final Object afterLines = builder.lines(1);
     final Object afterWidth = builder.width(1);
 
@@ -90,7 +92,7 @@ final class ScoreboardConfigurationTest {
   @Test
   void shouldRejectMissingOrInvalidValues() {
     final ScoreboardConfiguration.Builder<?> noViewers = ScoreboardConfiguration.builder();
-    noViewers.character("x");
+    noViewers.character(CHARACTER);
     noViewers.lines(1);
     noViewers.width(1);
     final ScoreboardConfiguration.Builder<?> noCharacter = ScoreboardConfiguration.builder();

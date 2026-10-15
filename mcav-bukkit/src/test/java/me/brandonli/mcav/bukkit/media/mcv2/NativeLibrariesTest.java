@@ -51,6 +51,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 final class NativeLibrariesTest {
 
+  private static final String SOURCES_RESOURCE = "/mcav/mcv2/natives/SOURCES";
+  private static final String NATIVES_RESOURCE_FOLDER = "/mcav/mcv2/natives/";
+  private static final String PATH_SEPARATOR = "/";
+
   /** The module folder is the working folder of its tests, under Gradle and under PIT alike. */
   private static final Path SOURCES = Path.of("src/main/native/mcv2");
 
@@ -157,7 +161,7 @@ final class NativeLibrariesTest {
   @Test
   void shouldBeBuiltFromTheSourcesInTheTree() throws IOException {
     final Map<String, String> built = new TreeMap<>();
-    try (final InputStream manifest = Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/SOURCES")) {
+    try (final InputStream manifest = Mcv2.class.getResourceAsStream(SOURCES_RESOURCE)) {
       assertNotNull(manifest, "no /mcav/mcv2/natives/SOURCES: " + REBUILD);
       for (final String line : new String(manifest.readAllBytes(), StandardCharsets.US_ASCII).lines().toList()) {
         final List<String> fields = Splitter.on(' ').omitEmptyStrings().splitToList(line);
@@ -194,7 +198,7 @@ final class NativeLibrariesTest {
 
   private static byte[] library(final String platform) {
     final byte[] bytes = Natives.read(
-      Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))
+      Mcv2.class.getResourceAsStream(NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform))
     );
     assertNotNull(bytes, platform);
     return bytes;

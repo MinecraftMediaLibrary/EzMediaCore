@@ -77,6 +77,15 @@ final class DisplayableImageTest {
   private static final int BROWN = (102 << 16) | (76 << 8) | 51;
   private static final String CLEARED_CHAT = "\n".repeat(99);
 
+  private static final int MAP_RESOLUTION = 64;
+
+  private static final int MAP_SIZE = 128;
+
+  private static final String CHARACTER = "#";
+
+  private static final int GRAY = 0xFF808080;
+  private static final int GRAY_RGB = 0x808080;
+
   private FakeServer server;
   private FakeWorld world;
   private CraftPlayer viewer;
@@ -109,8 +118,8 @@ final class DisplayableImageTest {
     builder.map(2);
     builder.mapBlockWidth(1);
     builder.mapBlockHeight(1);
-    builder.mapWidthResolution(64);
-    builder.mapHeightResolution(64);
+    builder.mapWidthResolution(MAP_RESOLUTION);
+    builder.mapHeightResolution(MAP_RESOLUTION);
     configureResize(builder, shouldResize);
     return builder.build();
   }
@@ -132,8 +141,8 @@ final class DisplayableImageTest {
     builder.map(2);
     builder.mapBlockWidth(columns);
     builder.mapBlockHeight(rows);
-    builder.mapWidthResolution(64);
-    builder.mapHeightResolution(64);
+    builder.mapWidthResolution(MAP_RESOLUTION);
+    builder.mapHeightResolution(MAP_RESOLUTION);
     configureResize(builder, false);
     return builder.build();
   }
@@ -147,7 +156,7 @@ final class DisplayableImageTest {
   private static ChatConfiguration createChatConfiguration() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.chatWidth(2);
     builder.chatHeight(1);
     return builder.build();
@@ -158,7 +167,7 @@ final class DisplayableImageTest {
     final Location position = new Location(configuredWorld, 0, 64, 0);
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.position(position);
     builder.entityWidth(1);
     builder.entityHeight(1);
@@ -168,7 +177,7 @@ final class DisplayableImageTest {
   private static ScoreboardConfiguration createScoreboardConfiguration() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.lines(1);
     builder.width(1);
     return builder.build();
@@ -230,7 +239,7 @@ final class DisplayableImageTest {
   void shouldKeepTheSizeOfMapImagesCenterThemAndClearThemAgain() {
     final MapConfiguration configuration = createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
-    final ImageBuffer image = Images.solid(32, 16, 0xFF808080);
+    final ImageBuffer image = Images.solid(32, 16, GRAY);
 
     display.displayImage(image);
     display.release();
@@ -240,13 +249,13 @@ final class DisplayableImageTest {
     final ClientboundMapItemDataPacket shownPacket = shown.getFirst();
     final ClientboundMapItemDataPacket clearedPacket = cleared.getFirst();
     final byte[] colors = MapPackets.pattern(32 * 16, 4);
-    final byte[] transparent = new byte[128 * 128];
+    final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
     final int width = image.getWidth();
     final int height = image.getHeight();
     assertEquals(32, width, "a 2:1 image is not stretched to the square resolution");
     assertEquals(16, height);
     MapPackets.assertMapPacket(shownPacket, 2, 48, 56, 32, 16, colors);
-    MapPackets.assertMapPacket(clearedPacket, 2, 0, 0, 128, 128, transparent);
+    MapPackets.assertMapPacket(clearedPacket, 2, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
   }
 
@@ -260,53 +269,53 @@ final class DisplayableImageTest {
     final List<ClientboundMapItemDataPacket> cleared = this.mapPackets(0);
     final int clearedCount = cleared.size();
     final ClientboundMapItemDataPacket last = cleared.get(3);
-    final byte[] transparent = new byte[128 * 128];
+    final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
 
     assertEquals(4, clearedCount, "every map of the 2x2 grid is cleared");
-    MapPackets.assertMapPacket(last, 5, 0, 0, 128, 128, transparent);
+    MapPackets.assertMapPacket(last, 5, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
   }
 
   @Test
   void shouldCropMapImagesLargerThanTheMapsEquallyOnEverySide() {
     final MapConfiguration configuration = createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
-    final ImageBuffer image = Images.solid(256, 130, 0xFF808080);
+    final ImageBuffer image = Images.solid(256, 130, GRAY);
 
     display.displayImage(image);
 
     final List<ClientboundMapItemDataPacket> shown = this.mapPackets(0);
     final ClientboundMapItemDataPacket shownPacket = shown.getFirst();
     final byte[] source = MapPackets.pattern(256 * 130, 4);
-    final byte[] expected = new byte[128 * 128];
-    for (int row = 0; row < 128; row++) {
+    final byte[] expected = new byte[MAP_SIZE * MAP_SIZE];
+    for (int row = 0; row < MAP_SIZE; row++) {
       final int sourceIndex = (row + 1) * 256 + 64;
-      final int targetIndex = row * 128;
-      System.arraycopy(source, sourceIndex, expected, targetIndex, 128);
+      final int targetIndex = row * MAP_SIZE;
+      System.arraycopy(source, sourceIndex, expected, targetIndex, MAP_SIZE);
     }
-    MapPackets.assertMapPacket(shownPacket, 2, 0, 0, 128, 128, expected);
+    MapPackets.assertMapPacket(shownPacket, 2, 0, 0, MAP_SIZE, MAP_SIZE, expected);
   }
 
   @Test
   void shouldResizeMapImagesWhenTheConfigurationAsksForIt() {
     final MapConfiguration configuration = createMapConfiguration(true);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
-    final ImageBuffer image = Images.solid(128, 128, 0xFF808080);
+    final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, GRAY);
 
     display.displayImage(image);
 
     final List<ClientboundMapItemDataPacket> shown = this.mapPackets(0);
     final ClientboundMapItemDataPacket shownPacket = shown.getFirst();
-    final byte[] colors = MapPackets.pattern(64 * 64, 4);
+    final byte[] colors = MapPackets.pattern(MAP_RESOLUTION * MAP_RESOLUTION, 4);
     final int width = image.getWidth();
-    assertEquals(64, width);
-    MapPackets.assertMapPacket(shownPacket, 2, 32, 32, 64, 64, colors);
+    assertEquals(MAP_RESOLUTION, width);
+    MapPackets.assertMapPacket(shownPacket, 2, 32, 32, MAP_RESOLUTION, MAP_RESOLUTION, colors);
   }
 
   @Test
   void shouldReplaceThePreviousChatImageAndClearTheChatAgain() {
     final ChatConfiguration configuration = createChatConfiguration();
     final DisplayableImage display = DisplayableImage.chat(configuration);
-    final ImageBuffer image = Images.solid(4, 2, 0xFF808080);
+    final ImageBuffer image = Images.solid(4, 2, GRAY);
 
     display.displayImage(image);
     display.release();
@@ -326,7 +335,7 @@ final class DisplayableImageTest {
   void shouldSpawnADisplayForEntityImagesAndRemoveItAgain() {
     final EntityConfiguration configuration = this.createEntityConfiguration();
     final DisplayableImage display = DisplayableImage.entity(configuration);
-    final ImageBuffer image = Images.solid(1, 1, 0xFF808080);
+    final ImageBuffer image = Images.solid(1, 1, GRAY);
 
     display.displayImage(image);
     this.server.runTasks();
@@ -338,7 +347,7 @@ final class DisplayableImageTest {
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
     final String text = textCaptor.getValue().getString();
-    assertEquals("#", text);
+    assertEquals(CHARACTER, text);
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
@@ -346,7 +355,7 @@ final class DisplayableImageTest {
       }
       return Optional.empty();
     }, Style.EMPTY);
-    final List<Integer> expectedColors = List.of(0x808080);
+    final List<Integer> expectedColors = List.of(GRAY_RGB);
     assertEquals(expectedColors, colors, "the submitted image's exact color reaches the display");
     verify(entity).remove();
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
@@ -360,7 +369,7 @@ final class DisplayableImageTest {
     FakeScoreboards.trackScoreboard(this.viewer, previous);
     final ScoreboardConfiguration configuration = createScoreboardConfiguration();
     final DisplayableImage display = DisplayableImage.scoreboard(configuration);
-    final ImageBuffer image = Images.solid(1, 1, 0xFF808080);
+    final ImageBuffer image = Images.solid(1, 1, GRAY);
 
     display.displayImage(image);
     this.server.runTasks();
@@ -373,7 +382,7 @@ final class DisplayableImageTest {
     final Team firstTeam = teams.getFirst();
     assertSame(board, shown);
     assertSame(previous, restored);
-    verify(firstTeam).suffix(Component.text("#", TextColor.color(0x808080)));
+    verify(firstTeam).suffix(Component.text(CHARACTER, TextColor.color(GRAY_RGB)));
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
   }
 

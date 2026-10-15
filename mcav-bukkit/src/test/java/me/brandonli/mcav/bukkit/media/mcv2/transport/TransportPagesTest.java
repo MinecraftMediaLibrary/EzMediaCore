@@ -49,13 +49,17 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 final class TransportPagesTest {
 
+  private static final String PAGES_PATH = "conformance/pages.json";
+
+  private static final String INVALID_METADATA_MESSAGE = "Invalid page metadata!";
+
   @Test
   void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(TransportPages.class);
   }
 
   private static Stream<Arguments> vectors() {
-    final String text = new String(Mcv2Fixtures.read("conformance/pages.json"), StandardCharsets.UTF_8);
+    final String text = new String(Mcv2Fixtures.read(PAGES_PATH), StandardCharsets.UTF_8);
     final JsonObject root = JsonParser.parseString(text).getAsJsonObject();
     final List<Arguments> arguments = new ArrayList<>();
     final int streamId = root.get("stream_id").getAsInt();
@@ -233,21 +237,21 @@ final class TransportPagesTest {
     final byte[] page = page();
     final Mcv2Exception frameBytesFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 24, 10)));
     final String frameBytesMessage = frameBytesFailure.getMessage();
-    assertEquals("Invalid page metadata!", frameBytesMessage);
+    assertEquals(INVALID_METADATA_MESSAGE, frameBytesMessage);
 
     final Mcv2Exception oversizeFrameFailure = assertThrows(Mcv2Exception.class, () ->
       TransportPages.readPage(withHeaderByte(withHeaderByte(page, 26, 0), 27, 1))
     );
     final String oversizeFrameMessage = oversizeFrameFailure.getMessage();
-    assertEquals("Invalid page metadata!", oversizeFrameMessage);
+    assertEquals(INVALID_METADATA_MESSAGE, oversizeFrameMessage);
 
     final Mcv2Exception countFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 18, 2)));
     final String countMessage = countFailure.getMessage();
-    assertEquals("Invalid page metadata!", countMessage);
+    assertEquals(INVALID_METADATA_MESSAGE, countMessage);
 
     final Mcv2Exception numberFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 16, 1)));
     final String numberMessage = numberFailure.getMessage();
-    assertEquals("Invalid page metadata!", numberMessage);
+    assertEquals(INVALID_METADATA_MESSAGE, numberMessage);
 
     final Mcv2Exception checksumFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 8, 8)));
     final String checksumMessage = checksumFailure.getMessage();
@@ -334,7 +338,7 @@ final class TransportPagesTest {
   void shouldRefuseAPageNumberedPastTheLastPage() {
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(100, 1, 1, 100)));
     final String message = exception.getMessage();
-    assertEquals("Invalid page metadata!", message);
+    assertEquals(INVALID_METADATA_MESSAGE, message);
   }
 
   @Test

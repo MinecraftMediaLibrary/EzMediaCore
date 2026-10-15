@@ -37,6 +37,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 /** The page assembler: reordering, duplicates, conflicts, eviction and the frame/page identity check. */
 final class PageAssemblerTest {
 
+  private static final String FRAME_ID_FIELD = "frame id";
+  private static final String REFERENCE_ID_FIELD = "reference id";
+  private static final String FRAME_TYPE_FIELD = "frame type";
+
   /** A two-page keyframe (frame id 0) at six bits. */
   private static final byte[] BIG = Mcv2Trees.twoPages();
 
@@ -110,9 +114,9 @@ final class PageAssemblerTest {
   private static Stream<Arguments> disagreements() {
     return Stream.of(
       Arguments.of("page count", page(1), pages(TINY).get(0)),
-      Arguments.of("reference id", page(0), rewritten(page(1), 20, 9)),
+      Arguments.of(REFERENCE_ID_FIELD, page(0), rewritten(page(1), 20, 9)),
       Arguments.of("frame length", page(1), rewritten(page(0), 24, BIG.length - 1)),
-      Arguments.of("frame type", page(0), rewritten(page(1), 6, 0))
+      Arguments.of(FRAME_TYPE_FIELD, page(0), rewritten(page(1), 6, 0))
     );
   }
 
@@ -166,7 +170,7 @@ final class PageAssemblerTest {
   }
 
   private static Stream<Arguments> contradictions() {
-    return Stream.of(Arguments.of("frame id", 12, 9L), Arguments.of("reference id", 20, 9L), Arguments.of("frame type", 6, 0L));
+    return Stream.of(Arguments.of(FRAME_ID_FIELD, 12, 9L), Arguments.of(REFERENCE_ID_FIELD, 20, 9L), Arguments.of(FRAME_TYPE_FIELD, 6, 0L));
   }
 
   @ParameterizedTest(name = "{0}")

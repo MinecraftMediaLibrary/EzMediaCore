@@ -32,10 +32,14 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2BoundsTest {
 
+  private static final int LARGEST_SIDE = 4096;
+
+  private static final int THREADS = 4;
+
   @Test
   void shouldRetryAndVerifyTheLargestTrivialFrame() throws Mcv2Exception {
-    final int width = 4096;
-    final int height = 4096;
+    final int width = LARGEST_SIDE;
+    final int height = LARGEST_SIDE;
     final byte[] picture = new byte[width * height * 3];
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
@@ -45,7 +49,7 @@ final class Mcv2BoundsTest {
         picture[offset + 1] = (byte) (root >> 8);
       }
     }
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 4, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), THREADS, true);
     encoder.setFrameBudget(1);
     encoder.setFrameLimit(1);
     final byte[] first = encoder.encode(picture, width, height, 0);
@@ -94,7 +98,7 @@ final class Mcv2BoundsTest {
       }
     }
     // Zero lambda cannot reduce the detailed frame by raising its rate cost.
-    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), 4, true);
+    final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), THREADS, true);
     final byte[] data = encoder.encode(picture, width, width, 0);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final boolean withinLimit = data.length <= 131071;
@@ -124,8 +128,8 @@ final class Mcv2BoundsTest {
       null,
       "write",
       new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
-      4096,
-      4096,
+      LARGEST_SIDE,
+      LARGEST_SIDE,
       true,
       roots,
       0L,

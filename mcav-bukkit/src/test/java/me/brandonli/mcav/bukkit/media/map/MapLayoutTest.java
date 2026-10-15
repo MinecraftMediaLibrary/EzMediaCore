@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Test;
  */
 final class MapLayoutTest {
 
+  private static final int MAP_SIZE = 128;
+
   static byte[] createImage(final int width, final int height) {
     final byte[] image = new byte[width * height];
     for (int index = 0; index < image.length; index++) {
@@ -73,7 +75,7 @@ final class MapLayoutTest {
 
   @Test
   void shouldDescribeMapsAndPatchOverhead() {
-    assertEquals(128, MapLayout.MAP_SIZE);
+    assertEquals(MAP_SIZE, MapLayout.MAP_SIZE);
     assertEquals(16, MapLayout.PATCH_OVERHEAD);
   }
 
@@ -94,9 +96,9 @@ final class MapLayoutTest {
     assertEquals(15, lastId);
     assertEquals(384, imageWidth);
     assertEquals(256, imageHeight);
-    assertRegion(secondRowSecondColumn, 0, 0, 128, 128, 128, 128);
-    assertRegion(firstRowSecondColumn, 0, 0, 128, 128, 128, 0);
-    assertRegion(secondRowFirstColumn, 0, 0, 128, 128, 0, 128);
+    assertRegion(secondRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
+    assertRegion(firstRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0);
+    assertRegion(secondRowFirstColumn, 0, 0, MAP_SIZE, MAP_SIZE, 0, MAP_SIZE);
   }
 
   @Test
@@ -109,7 +111,7 @@ final class MapLayoutTest {
 
   @Test
   void shouldLeaveMapsTheImageDoesNotReachEmpty() {
-    final MapLayout layout = new MapLayout(0, 3, 1, 128, 64);
+    final MapLayout layout = new MapLayout(0, 3, 1, MAP_SIZE, 64);
     final MapRegion left = layout.getRegion(0);
     final MapRegion middle = layout.getRegion(1);
     final MapRegion right = layout.getRegion(2);
@@ -120,7 +122,7 @@ final class MapLayoutTest {
     assertTrue(leftEmpty);
     assertFalse(middleEmpty);
     assertTrue(rightEmpty);
-    assertRegion(middle, 0, 32, 128, 64, 0, 0);
+    assertRegion(middle, 0, 32, MAP_SIZE, 64, 0, 0);
   }
 
   @Test
@@ -128,7 +130,7 @@ final class MapLayoutTest {
     final MapLayout layout = new MapLayout(0, 1, 1, 200, 150);
     final MapRegion region = layout.getRegion(0);
 
-    assertRegion(region, 0, 0, 128, 128, 36, 11);
+    assertRegion(region, 0, 0, MAP_SIZE, MAP_SIZE, 36, 11);
   }
 
   @Test
@@ -143,12 +145,12 @@ final class MapLayoutTest {
 
   @Test
   void shouldSplitImagesThatSpanSeveralMapsVertically() {
-    final MapLayout layout = new MapLayout(0, 1, 2, 128, 200);
+    final MapLayout layout = new MapLayout(0, 1, 2, MAP_SIZE, 200);
     final MapRegion top = layout.getRegion(0);
     final MapRegion bottom = layout.getRegion(1);
 
-    assertRegion(top, 0, 28, 128, 100, 0, 0);
-    assertRegion(bottom, 0, 0, 128, 100, 0, 100);
+    assertRegion(top, 0, 28, MAP_SIZE, 100, 0, 0);
+    assertRegion(bottom, 0, 0, MAP_SIZE, 100, 0, 100);
   }
 
   @Test
@@ -234,8 +236,8 @@ final class MapLayoutTest {
 
   @Test
   void shouldRejectMapIndicesOutsideOfTheGrid() {
-    final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
-    final byte[] image = new byte[256 * 128];
+    final MapLayout layout = new MapLayout(0, 2, 1, 256, MAP_SIZE);
+    final byte[] image = new byte[256 * MAP_SIZE];
 
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getRegion(2));
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getRegion(-1));
@@ -286,8 +288,8 @@ final class MapLayoutTest {
 
   @Test
   void shouldExtractOnePatchPerCoveredMap() {
-    final MapLayout layout = new MapLayout(7, 3, 1, 128, 64);
-    final byte[] image = createImage(128, 64);
+    final MapLayout layout = new MapLayout(7, 3, 1, MAP_SIZE, 64);
+    final byte[] image = createImage(MAP_SIZE, 64);
     final List<MapTilePatch> patches = layout.extractAll(image);
     final int patchCount = patches.size();
     final MapTilePatch patch = patches.getFirst();
@@ -302,7 +304,7 @@ final class MapLayoutTest {
     assertEquals(8, mapId);
     assertEquals(0, left);
     assertEquals(32, top);
-    assertEquals(128, width);
+    assertEquals(MAP_SIZE, width);
     assertEquals(64, height);
     assertArrayEquals(image, colors);
   }
@@ -315,7 +317,7 @@ final class MapLayoutTest {
     final int patchCount = patches.size();
     final MapTilePatch lastPatch = patches.getLast();
     final byte[] lastColors = lastPatch.getColors();
-    final byte[] expectedLastColors = copyRectangle(image, 256, 128, 128, 128, 128);
+    final byte[] expectedLastColors = copyRectangle(image, 256, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
     final int lastId = lastPatch.getMapId();
 
     assertEquals(4, patchCount);

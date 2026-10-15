@@ -63,6 +63,30 @@ import org.lwjgl.util.spvc.SpvcReflectedResource;
 
 final class Mcv2Tools {
 
+  private static final String PROXY_DEFAULT_STREAM = "proxy-default.mcs";
+  private static final String PROXY_KEYFRAMES_STREAM = "proxy-keyframes.mcs";
+  private static final String PROXY_ODD_STREAM = "proxy-odd.mcs";
+  private static final String GAMEPLAY_DEFAULT_STREAM = "gameplay-default.mcs";
+  private static final String GAMEPLAY_FAST_STREAM = "gameplay-fast.mcs";
+  private static final String CROP_DEFAULT_STREAM = "crop-default.mcs";
+  private static final String CROP_FAST_STREAM = "crop-fast.mcs";
+
+  private static final String CONFORMANCE_FOLDER = "conformance/";
+  private static final String DIGESTS_PATH = "conformance/digests.json";
+  private static final String PAGES_PATH = "conformance/pages.json";
+  private static final String ENCODER_FOLDER = "encoder/";
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+
+  private static final String ASSETS_FOLDER = "assets/";
+  private static final String INCLUDE_FOLDER = "/shaders/include/";
+  private static final String TEXT_SHADER_PREFIX = "assets/minecraft/shaders/core/text.";
+  private static final String POST_SHADER_FOLDER = "assets/mcav/shaders/post";
+
+  private static final String VERTEX_STAGE = "vsh";
+  private static final String FRAGMENT_STAGE = "fsh";
+
+  private static final String READ_MODE = "r";
+
   private Mcv2Tools() {}
 
   static void main(final String[] arguments) throws Exception {
@@ -222,7 +246,7 @@ final class Mcv2Tools {
     final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION);
     final byte[] buffer = new byte[DEFLATE_BUFFER];
     try (
-      RandomAccessFile input = new RandomAccessFile(source.toFile(), "r");
+      RandomAccessFile input = new RandomAccessFile(source.toFile(), READ_MODE);
       DataOutputStream out = options.containsKey("out")
         ? new DataOutputStream(new BufferedOutputStream(Files.newOutputStream(Path.of(options.get("out")))))
         : null;
@@ -415,6 +439,10 @@ final class Mcv2Tools {
 
   private static final int SOURCE_WIDTH = 1920;
   private static final int SOURCE_HEIGHT = 1080;
+
+  private static final int FIXTURE_WIDTH = 320;
+  private static final int FIXTURE_HEIGHT = 180;
+
   private static final int CHANNELS = 3;
   private static final int MAXIMUM_ARCHIVE_BYTES = 1_000_000;
   private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
@@ -425,16 +453,40 @@ final class Mcv2Tools {
     final Map<String, Object> digests = new LinkedHashMap<>();
     final Map<String, Object> pages = new LinkedHashMap<>();
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      generate(sources, fixtures, pool, "proxy-default.mcs", "proxy", Settings.DEFAULT, 320, 180, 8, digests, pages);
-      generate(sources, fixtures, pool, "gameplay-default.mcs", "gameplay", Settings.DEFAULT, 320, 180, 8, digests, pages);
-      generate(sources, fixtures, pool, "gameplay-fast.mcs", "gameplay", Settings.FAST, 320, 180, 8, digests, pages);
-      generate(sources, fixtures, pool, "proxy-keyframes.mcs", "proxy", Settings.DEFAULT, 320, 180, 4, digests, pages);
-      generate(sources, fixtures, pool, "proxy-odd.mcs", "proxy", Settings.DEFAULT, 319, 179, 6, digests, pages);
-      golden(fixtures, pool, Settings.DEFAULT, "crop-default.mcs");
-      golden(fixtures, pool, Settings.FAST, "crop-fast.mcs");
+      generate(sources, fixtures, pool, PROXY_DEFAULT_STREAM, "proxy", Settings.DEFAULT, FIXTURE_WIDTH, FIXTURE_HEIGHT, 8, digests, pages);
+      generate(
+        sources,
+        fixtures,
+        pool,
+        GAMEPLAY_DEFAULT_STREAM,
+        "gameplay",
+        Settings.DEFAULT,
+        FIXTURE_WIDTH,
+        FIXTURE_HEIGHT,
+        8,
+        digests,
+        pages
+      );
+      generate(sources, fixtures, pool, GAMEPLAY_FAST_STREAM, "gameplay", Settings.FAST, FIXTURE_WIDTH, FIXTURE_HEIGHT, 8, digests, pages);
+      generate(
+        sources,
+        fixtures,
+        pool,
+        PROXY_KEYFRAMES_STREAM,
+        "proxy",
+        Settings.DEFAULT,
+        FIXTURE_WIDTH,
+        FIXTURE_HEIGHT,
+        4,
+        digests,
+        pages
+      );
+      generate(sources, fixtures, pool, PROXY_ODD_STREAM, "proxy", Settings.DEFAULT, 319, 179, 6, digests, pages);
+      golden(fixtures, pool, Settings.DEFAULT, CROP_DEFAULT_STREAM);
+      golden(fixtures, pool, Settings.FAST, CROP_FAST_STREAM);
     }
-    Files.writeString(fixtures.resolve("conformance/digests.json"), JSON.toJson(digests) + "\n");
-    Files.writeString(fixtures.resolve("conformance/pages.json"), JSON.toJson(pages) + "\n");
+    Files.writeString(fixtures.resolve(DIGESTS_PATH), JSON.toJson(digests) + "\n");
+    Files.writeString(fixtures.resolve(PAGES_PATH), JSON.toJson(pages) + "\n");
   }
 
   private static void generate(
@@ -456,10 +508,10 @@ final class Mcv2Tools {
     final List<String> hashes = new ArrayList<>();
     final byte[] rgb = new byte[width * height * CHANNELS];
     final String raw = source + "30_pp600_1920x1080.rgb";
-    try (final RandomAccessFile input = new RandomAccessFile(sources.resolve(raw).toFile(), "r")) {
+    try (final RandomAccessFile input = new RandomAccessFile(sources.resolve(raw).toFile(), READ_MODE)) {
       for (int id = 0; id < count; id++) {
         crop(input, id, rgb, width, height);
-        if (name.equals("proxy-keyframes.mcs")) {
+        if (name.equals(PROXY_KEYFRAMES_STREAM)) {
           encoder.requestKeyframe();
         }
         final byte[] data = encoder.encode(rgb, width, height, id);
@@ -473,7 +525,7 @@ final class Mcv2Tools {
           throw new IllegalStateException(message);
         }
         hashes.add(Mcv2Resources.sha256(picture));
-        if (name.equals("proxy-default.mcs") && id < 4) {
+        if (name.equals(PROXY_DEFAULT_STREAM) && id < 4) {
           final List<byte[]> symbols = TransportPages.makePages(data, 7);
           final List<String> pageHashes = new ArrayList<>();
           for (final byte[] page : symbols) {
@@ -483,11 +535,11 @@ final class Mcv2Tools {
           expected.put("pages", pageHashes);
           expected.put("wire", TransportPages.wireBytes(symbols, false, TransportPages.PACKET_OVERHEAD));
           expected.put("wire_full", TransportPages.wireBytes(symbols, true, TransportPages.PACKET_OVERHEAD));
-          pages.put("conformance/" + name + "#" + id + "@6", expected);
+          pages.put(CONFORMANCE_FOLDER + name + "#" + id + "@6", expected);
         }
       }
     }
-    Files.write(fixtures.resolve("conformance/" + name), archive.toByteArray());
+    Files.write(fixtures.resolve(CONFORMANCE_FOLDER + name), archive.toByteArray());
     final Map<String, Object> expected = new LinkedHashMap<>();
     expected.put("source", raw);
     expected.put("crop", List.of((SOURCE_WIDTH - width) / 2, (SOURCE_HEIGHT - height) / 2, width, height));
@@ -508,17 +560,17 @@ final class Mcv2Tools {
   }
 
   private static void golden(final Path fixtures, final ForkJoinPool pool, final Settings settings, final String name) throws IOException {
-    final byte[] source = Files.readAllBytes(fixtures.resolve("encoder/crop-320x180x4.rgb"));
-    final int bytes = 320 * 180 * CHANNELS;
+    final byte[] source = Files.readAllBytes(fixtures.resolve(CROP_SOURCE_PATH));
+    final int bytes = FIXTURE_WIDTH * FIXTURE_HEIGHT * CHANNELS;
     if (source.length != bytes * 4) {
       throw new IllegalArgumentException("Expected exactly four 320x180 frames!");
     }
     final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     for (int id = 0; id < 4; id++) {
-      frame(archive, encoder.encode(Arrays.copyOfRange(source, id * bytes, (id + 1) * bytes), 320, 180, id));
+      frame(archive, encoder.encode(Arrays.copyOfRange(source, id * bytes, (id + 1) * bytes), FIXTURE_WIDTH, FIXTURE_HEIGHT, id));
     }
-    Files.write(fixtures.resolve("encoder/" + name), archive.toByteArray());
+    Files.write(fixtures.resolve(ENCODER_FOLDER + name), archive.toByteArray());
     System.out.println(name + ": 4 frames, " + archive.size() + " bytes");
   }
 
@@ -592,12 +644,12 @@ final class Mcv2Tools {
     for (final Map.Entry<String, Map<String, String>> variant : postOnly
       ? Map.<String, Map<String, String>>of().entrySet()
       : TEXT_VARIANTS.entrySet()) {
-      for (final String stage : List.of("vsh", "fsh")) {
-        final Path source = pack.resolve("assets/minecraft/shaders/core/text." + stage);
+      for (final String stage : List.of(VERTEX_STAGE, FRAGMENT_STAGE)) {
+        final Path source = pack.resolve(TEXT_SHADER_PREFIX + stage);
         failures += compile(pack, generated, vanilla, source, stage, variant.getValue(), output.resolve(variant.getKey() + "." + stage));
       }
     }
-    final Path post = pack.resolve("assets/mcav/shaders/post");
+    final Path post = pack.resolve(POST_SHADER_FOLDER);
     try (final var files = Files.walk(post)) {
       for (final Path source : files.filter(Files::isRegularFile).sorted().toList()) {
         final String name = post.relativize(source).toString().replace(post.getFileSystem().getSeparator(), "_");
@@ -642,7 +694,7 @@ final class Mcv2Tools {
         ShadercIncludeResultRelease.create((user, result) -> {}),
         0L
       );
-      final int kind = stage.equals("vsh") ? Shaderc.shaderc_vertex_shader : Shaderc.shaderc_fragment_shader;
+      final int kind = stage.equals(VERTEX_STAGE) ? Shaderc.shaderc_vertex_shader : Shaderc.shaderc_fragment_shader;
       final long result = Shaderc.shaderc_compile_into_spv(compiler, text, kind, source.getFileName().toString(), "main", options);
       if (Shaderc.shaderc_result_get_compilation_status(result) != Shaderc.shaderc_compilation_status_success) {
         System.out.println("FAIL " + target.getFileName() + ": " + Shaderc.shaderc_result_get_error_message(result));
@@ -673,10 +725,10 @@ final class Mcv2Tools {
     final String path = requested.substring(colon + 1);
     Path file = generated.resolve(path);
     if (!Files.exists(file)) {
-      file = pack.resolve("assets/" + namespace + "/shaders/include/" + path);
+      file = pack.resolve(ASSETS_FOLDER + namespace + INCLUDE_FOLDER + path);
     }
     if (!Files.exists(file) && vanilla != null) {
-      file = vanilla.resolve("assets/" + namespace + "/shaders/include/" + path);
+      file = vanilla.resolve(ASSETS_FOLDER + namespace + INCLUDE_FOLDER + path);
     }
     final ShadercIncludeResult result = ShadercIncludeResult.calloc();
     try {

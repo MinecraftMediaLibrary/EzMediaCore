@@ -50,6 +50,53 @@ import org.junit.jupiter.api.io.TempDir;
 
 final class Mcv2PackTest {
 
+  private static final int VIDEO_WIDTH = 320;
+  private static final int VIDEO_HEIGHT = 180;
+  private static final int STREAM_ID = 9;
+
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String SCREENS_FILE_NAME = "screens.zip";
+  private static final String REFUSED_FILE_NAME = "refused.zip";
+  private static final String LICENSE_HEADER_PATH = "../HEADER";
+
+  private static final String PACK_METADATA_ENTRY = "pack.mcmeta";
+  private static final String MANIFEST_ENTRY = "mcav_mcv2.json";
+  private static final String POST_EFFECT_ENTRY = "assets/minecraft/post_effect/entity_outline.json";
+  private static final String TEXT_VERTEX_SHADER_ENTRY = "assets/minecraft/shaders/core/text.vsh";
+  private static final String TEXT_FRAGMENT_SHADER_ENTRY = "assets/minecraft/shaders/core/text.fsh";
+  private static final String LIBRARY_ENTRY = "assets/mcav/shaders/include/mcv2.glsl";
+  private static final String CONFIGURATION_ENTRY = "assets/mcav/shaders/include/mcv2_config.glsl";
+  private static final String FIRST_SCREEN_ENTRY = "assets/mcav/shaders/include/mcv2_screen_0.glsl";
+  private static final String SECOND_SCREEN_ENTRY = "assets/mcav/shaders/include/mcv2_screen_1.glsl";
+  private static final String ALPHABET_ENTRY = "assets/mcav/shaders/include/mcv2_alphabet.glsl";
+  private static final String BOOKS_ENTRY = "assets/mcav/shaders/include/mcv2_books.glsl";
+  private static final String CRC_PASS_ENTRY = "assets/mcav/shaders/post/s0/mcv2_crc.fsh";
+  private static final String RESOLVE_PASS_ENTRY = "assets/mcav/shaders/post/s0/mcv2_resolve.fsh";
+  private static final String DECODE_VERTEX_SHADER_ENTRY = "assets/mcav/shaders/post/s0/mcv2_decode.vsh";
+  private static final String DECODE_PASS_ENTRY = "assets/mcav/shaders/post/s0/mcv2_decode.fsh";
+  private static final String SECOND_DECODE_PASS_ENTRY = "assets/mcav/shaders/post/s1/mcv2_decode.fsh";
+  private static final String VIEW_PASS_ENTRY = "assets/mcav/shaders/post/s0/mcv2_view.fsh";
+  private static final String SCREEN_VERTEX_SHADER_ENTRY = "assets/mcav/shaders/post/s0/mcv2_screen.vsh";
+  private static final String SCREEN_PASS_ENTRY = "assets/mcav/shaders/post/s0/mcv2_screen.fsh";
+  private static final String STATE_PASS_ENTRY = "assets/mcav/shaders/post/mcv2_state.fsh";
+  private static final String COPY_PASS_ENTRY = "assets/mcav/shaders/post/mcv2_copy.fsh";
+  private static final String KEYFRAME_PASS_ENTRY = "assets/mcav/shaders/post/mcv2_keyframe.fsh";
+  private static final String POST_SHADER_FOLDER = "assets/mcav/shaders/post/";
+  private static final String FIRST_SCREEN_FOLDER = "/s0/";
+  private static final String SHARED_SCREEN_INCLUDE = "mcv2_screen.glsl";
+
+  private static final String PACK_KEY = "pack";
+  private static final String DESCRIPTION_KEY = "description";
+  private static final String TARGETS_KEY = "targets";
+  private static final String WIDTH_KEY = "width";
+  private static final String HEIGHT_KEY = "height";
+  private static final String PASSES_KEY = "passes";
+  private static final String FRAGMENT_SHADER_KEY = "fragment_shader";
+  private static final String SCREEN_SHADER_ID = "mcav:post/s0/mcv2_screen";
+
+  private static final String SYMBOL_HASH_PATTERN = "MCV2_SYMBOL_HASH = (\\d+)u;\nconst uint MCV2_SYMBOL_SHIFT = (\\d+)u;";
+  private static final String UNSIGNED_LITERAL_PATTERN = "(\\d+)u";
+
   @TempDir
   private Path directory;
 
@@ -71,33 +118,33 @@ final class Mcv2PackTest {
   @Test
   void shouldWriteThePackOfAScreen() throws IOException {
     final Mcv2Configuration configuration = Mcv2ConfigurationTest.complete()
-      .video(320, 180)
+      .video(VIDEO_WIDTH, VIDEO_HEIGHT)
       .pageSlots(2)
-      .streamId(9)
+      .streamId(STREAM_ID)
       .outlineColor(NamedTextColor.GOLD)
       .build();
-    final Path zip = this.directory.resolve("pack.zip");
+    final Path zip = this.directory.resolve(PACK_FILE_NAME);
     Mcv2Pack.write(configuration, true, zip);
     final Map<String, String> entries = read(zip);
     for (final String name : new String[] {
-      "pack.mcmeta",
-      "mcav_mcv2.json",
-      "assets/minecraft/post_effect/entity_outline.json",
-      "assets/minecraft/shaders/core/text.vsh",
-      "assets/minecraft/shaders/core/text.fsh",
-      "assets/mcav/shaders/include/mcv2.glsl",
-      "assets/mcav/shaders/include/mcv2_config.glsl",
-      "assets/mcav/shaders/include/mcv2_screen_0.glsl",
-      "assets/mcav/shaders/include/mcv2_alphabet.glsl",
-      "assets/mcav/shaders/post/s0/mcv2_crc.fsh",
-      "assets/mcav/shaders/post/s0/mcv2_resolve.fsh",
-      "assets/mcav/shaders/post/s0/mcv2_decode.vsh",
-      "assets/mcav/shaders/post/s0/mcv2_decode.fsh",
-      "assets/mcav/shaders/post/s0/mcv2_view.fsh",
-      "assets/mcav/shaders/post/s0/mcv2_screen.vsh",
-      "assets/mcav/shaders/post/s0/mcv2_screen.fsh",
-      "assets/mcav/shaders/post/mcv2_state.fsh",
-      "assets/mcav/shaders/post/mcv2_copy.fsh",
+      PACK_METADATA_ENTRY,
+      MANIFEST_ENTRY,
+      POST_EFFECT_ENTRY,
+      TEXT_VERTEX_SHADER_ENTRY,
+      TEXT_FRAGMENT_SHADER_ENTRY,
+      LIBRARY_ENTRY,
+      CONFIGURATION_ENTRY,
+      FIRST_SCREEN_ENTRY,
+      ALPHABET_ENTRY,
+      CRC_PASS_ENTRY,
+      RESOLVE_PASS_ENTRY,
+      DECODE_VERTEX_SHADER_ENTRY,
+      DECODE_PASS_ENTRY,
+      VIEW_PASS_ENTRY,
+      SCREEN_VERTEX_SHADER_ENTRY,
+      SCREEN_PASS_ENTRY,
+      STATE_PASS_ENTRY,
+      COPY_PASS_ENTRY,
     }) {
       final boolean written = entries.containsKey(name);
       assertTrue(written, name);
@@ -108,13 +155,13 @@ final class Mcv2PackTest {
     final int entryCount = entries.size();
     assertEquals(22, entryCount);
 
-    final JsonObject metadata = JsonParser.parseString(entries.get("pack.mcmeta")).getAsJsonObject().getAsJsonObject("pack");
+    final JsonObject metadata = JsonParser.parseString(entries.get(PACK_METADATA_ENTRY)).getAsJsonObject().getAsJsonObject(PACK_KEY);
     final int packFormat = metadata.get("pack_format").getAsInt();
     assertEquals(Mcv2Pack.PACK_FORMAT, packFormat);
-    final String description = metadata.get("description").getAsString();
+    final String description = metadata.get(DESCRIPTION_KEY).getAsString();
     assertEquals("mcav MCV2 decoder, 1 screen: 320x180", description);
 
-    final String configurationShader = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
+    final String configurationShader = entries.get(CONFIGURATION_ENTRY);
     final boolean declaresOneScreen = configurationShader.contains("const int MCV2_SCREENS = 1;");
     assertTrue(declaresOneScreen, configurationShader);
     final boolean declaresTwoSlots = configurationShader.contains("const int MCV2_TOTAL_SLOTS = 2;");
@@ -130,7 +177,7 @@ final class Mcv2PackTest {
     final boolean declaresTheOutlineColor = configurationShader.contains("const ivec3 MCV2_OUTLINE_COLOR = ivec3(255, 170, 0);");
     assertTrue(declaresTheOutlineColor, configurationShader);
 
-    final String screen = entries.get("assets/mcav/shaders/include/mcv2_screen_0.glsl");
+    final String screen = entries.get(FIRST_SCREEN_ENTRY);
     final boolean declaresTheScreenIndex = screen.contains("const int MCV2_SCREEN_INDEX = 0;");
     assertTrue(declaresTheScreenIndex, screen);
     final boolean declaresThePageSlots = screen.contains("const int MCV2_PAGE_SLOTS = 2;");
@@ -153,62 +200,62 @@ final class Mcv2PackTest {
     final boolean declaresTheCellsHeight = screen.contains("const int MCV2_CELLS_HEIGHT = 23;");
     assertTrue(declaresTheCellsHeight, screen);
 
-    final String pass = entries.get("assets/mcav/shaders/post/s0/mcv2_crc.fsh");
+    final String pass = entries.get(CRC_PASS_ENTRY);
     final boolean includesTheScreen = pass.contains("#include <mcav:mcv2_screen_0.glsl>");
     assertTrue(includesTheScreen, pass);
-    final boolean includesTheSharedScreen = pass.contains("mcv2_screen.glsl");
+    final boolean includesTheSharedScreen = pass.contains(SHARED_SCREEN_INCLUDE);
     assertFalse(includesTheSharedScreen, pass);
 
-    final String chain = entries.get("assets/minecraft/post_effect/entity_outline.json");
+    final String chain = entries.get(POST_EFFECT_ENTRY);
     final boolean hasAnUnfilledToken = chain.contains("@");
     assertFalse(hasAnUnfilledToken, "every token is filled in");
 
     final JsonObject parsed = JsonParser.parseString(chain).getAsJsonObject();
-    final JsonObject targets = parsed.getAsJsonObject("targets");
-    final int previousWidth = targets.getAsJsonObject("mcav:mcv2_previous_0").get("width").getAsInt();
-    assertEquals(320, previousWidth);
-    final int previousHeight = targets.getAsJsonObject("mcav:mcv2_previous_0").get("height").getAsInt();
-    assertEquals(180, previousHeight);
+    final JsonObject targets = parsed.getAsJsonObject(TARGETS_KEY);
+    final int previousWidth = targets.getAsJsonObject("mcav:mcv2_previous_0").get(WIDTH_KEY).getAsInt();
+    assertEquals(VIDEO_WIDTH, previousWidth);
+    final int previousHeight = targets.getAsJsonObject("mcav:mcv2_previous_0").get(HEIGHT_KEY).getAsInt();
+    assertEquals(VIDEO_HEIGHT, previousHeight);
     final boolean persistent = targets.getAsJsonObject("mcav:mcv2_previous_0").get("persistent").getAsBoolean();
     assertTrue(persistent);
     final boolean hasAKeyTarget = targets.has("mcav:mcv2_key_0");
     assertFalse(hasAKeyTarget);
     final boolean hasANextKeyTarget = targets.has("mcav:mcv2_key_next_0");
     assertFalse(hasANextKeyTarget);
-    final boolean writesTheBooks = entries.containsKey("assets/mcav/shaders/include/mcv2_books.glsl");
+    final boolean writesTheBooks = entries.containsKey(BOOKS_ENTRY);
     assertFalse(writesTheBooks);
-    final boolean writesTheKeyframePass = entries.containsKey("assets/mcav/shaders/post/mcv2_keyframe.fsh");
+    final boolean writesTheKeyframePass = entries.containsKey(KEYFRAME_PASS_ENTRY);
     assertFalse(writesTheKeyframePass);
-    final int pagesWidth = targets.getAsJsonObject("mcav:mcv2_pages_0").get("width").getAsInt();
+    final int pagesWidth = targets.getAsJsonObject("mcav:mcv2_pages_0").get(WIDTH_KEY).getAsInt();
     assertEquals(8, pagesWidth);
     // two pages of 12,256 bytes, four to a texel, 128 texels to a row
-    final int bytesHeight = targets.getAsJsonObject("mcav:mcv2_bytes_0").get("height").getAsInt();
+    final int bytesHeight = targets.getAsJsonObject("mcav:mcv2_bytes_0").get(HEIGHT_KEY).getAsInt();
     assertEquals(48, bytesHeight);
     // 64 CRC chunks per page slot
-    final int crcWidth = targets.getAsJsonObject("mcav:mcv2_crc_0").get("width").getAsInt();
+    final int crcWidth = targets.getAsJsonObject("mcav:mcv2_crc_0").get(WIDTH_KEY).getAsInt();
     assertEquals(128, crcWidth);
     // the cells and, after them, the frame row
-    final int cellsWidth = targets.getAsJsonObject("mcav:mcv2_cells_0").get("width").getAsInt();
+    final int cellsWidth = targets.getAsJsonObject("mcav:mcv2_cells_0").get(WIDTH_KEY).getAsInt();
     assertEquals(40, cellsWidth);
-    final int cellsHeight = targets.getAsJsonObject("mcav:mcv2_cells_0").get("height").getAsInt();
+    final int cellsHeight = targets.getAsJsonObject("mcav:mcv2_cells_0").get(HEIGHT_KEY).getAsInt();
     assertEquals(24, cellsHeight);
     final boolean hasTheScreenAndSwapTargets = targets.has("mcav:mcv2_screen") && targets.has("swap");
     assertTrue(hasTheScreenAndSwapTargets);
 
     // ten passes decode, two draw, six are the outline's
-    final JsonArray passes = parsed.getAsJsonArray("passes");
+    final JsonArray passes = parsed.getAsJsonArray(PASSES_KEY);
     final int passCount = passes.size();
     assertEquals(18, passCount);
-    final String firstDecodeShader = passes.get(0).getAsJsonObject().get("fragment_shader").getAsString();
+    final String firstDecodeShader = passes.get(0).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
     assertEquals("mcav:post/s0/mcv2_bytes", firstDecodeShader);
-    final String screenShader = passes.get(10).getAsJsonObject().get("fragment_shader").getAsString();
-    assertEquals("mcav:post/s0/mcv2_screen", screenShader);
-    final String outlineShader = passes.get(12).getAsJsonObject().get("fragment_shader").getAsString();
+    final String screenShader = passes.get(10).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
+    assertEquals(SCREEN_SHADER_ID, screenShader);
+    final String outlineShader = passes.get(12).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
     assertEquals("mcav:post/mcv2_outline", outlineShader);
 
-    final String licenseHeader = Files.readString(Path.of("../HEADER"), StandardCharsets.UTF_8);
+    final String licenseHeader = Files.readString(Path.of(LICENSE_HEADER_PATH), StandardCharsets.UTF_8);
     for (final String name : entries.keySet()) {
-      if (name.startsWith("assets/mcav/shaders/post/")) {
+      if (name.startsWith(POST_SHADER_FOLDER)) {
         final String stub = entries.get(name);
         final boolean startsWithTheHeader = stub.startsWith(
           licenseHeader + "\n#version 330\n#extension GL_ARB_separate_shader_objects : require\n#define MCV2_PASS_"
@@ -216,7 +263,7 @@ final class Mcv2PackTest {
         assertTrue(startsWithTheHeader, name);
         final boolean endsWithTheInclude = stub.endsWith("#include <mcav:mcv2.glsl>\n");
         assertTrue(endsWithTheInclude, name);
-        final long expectedLineCount = name.contains("/s0/") ? 24L : 23L;
+        final long expectedLineCount = name.contains(FIRST_SCREEN_FOLDER) ? 24L : 23L;
         final long lineCount = stub.lines().count();
         assertEquals(expectedLineCount, lineCount, name);
         final boolean declaresAFunction = stub.contains("void ");
@@ -224,7 +271,7 @@ final class Mcv2PackTest {
       }
     }
 
-    final JsonObject manifest = JsonParser.parseString(entries.get("mcav_mcv2.json")).getAsJsonObject();
+    final JsonObject manifest = JsonParser.parseString(entries.get(MANIFEST_ENTRY)).getAsJsonObject();
     final String codec = manifest.get("codec").getAsString();
     assertEquals("MCV2", codec);
     final String codecCommit = manifest.get("gpu_codec_commit").getAsString();
@@ -238,13 +285,13 @@ final class Mcv2PackTest {
     final int describedSize = described.size();
     assertEquals(4, describedSize, "the encoder's profile is not the pack's business");
     final int videoWidth = described.get("video_width").getAsInt();
-    assertEquals(320, videoWidth);
+    assertEquals(VIDEO_WIDTH, videoWidth);
     final int videoHeight = described.get("video_height").getAsInt();
-    assertEquals(180, videoHeight);
+    assertEquals(VIDEO_HEIGHT, videoHeight);
     final int pageSlots = described.get("page_slots").getAsInt();
     assertEquals(2, pageSlots);
     final long streamId = described.get("stream_id").getAsLong();
-    assertEquals(9, streamId);
+    assertEquals(STREAM_ID, streamId);
 
     // every channel of the outline colour, the red one too
     final Mcv2Configuration purple = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.DARK_PURPLE).build();
@@ -256,15 +303,19 @@ final class Mcv2PackTest {
 
   @Test
   void shouldWriteOnePackForSeveralScreens() throws IOException {
-    final Mcv2Configuration small = Mcv2ConfigurationTest.complete().video(320, 180).pageSlots(2).streamId(9).build();
+    final Mcv2Configuration small = Mcv2ConfigurationTest.complete()
+      .video(VIDEO_WIDTH, VIDEO_HEIGHT)
+      .pageSlots(2)
+      .streamId(STREAM_ID)
+      .build();
     final Mcv2Configuration large = Mcv2ConfigurationTest.complete().video(640, 360).pageSlots(8).streamId(3).build();
-    final Path zip = this.directory.resolve("screens.zip");
+    final Path zip = this.directory.resolve(SCREENS_FILE_NAME);
     Mcv2Pack.write(List.of(small, large), false, zip);
     final Map<String, String> entries = read(zip);
     final int entryCount = entries.size();
     assertEquals(33, entryCount);
 
-    final String configurationShader = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
+    final String configurationShader = entries.get(CONFIGURATION_ENTRY);
     final boolean declaresTwoScreens = configurationShader.contains("const int MCV2_SCREENS = 2;");
     assertTrue(declaresTwoScreens, configurationShader);
     final boolean declaresTenSlots = configurationShader.contains("const int MCV2_TOTAL_SLOTS = 10;");
@@ -276,7 +327,7 @@ final class Mcv2PackTest {
     final boolean declaresTheFirstSlotOfEachScreen = configurationShader.contains("const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, 2);");
     assertTrue(declaresTheFirstSlotOfEachScreen, configurationShader);
 
-    final String second = entries.get("assets/mcav/shaders/include/mcv2_screen_1.glsl");
+    final String second = entries.get(SECOND_SCREEN_ENTRY);
     final boolean declaresTheScreenIndex = second.contains("const int MCV2_SCREEN_INDEX = 1;");
     assertTrue(declaresTheScreenIndex, second);
     final boolean declaresTheFirstSlot = second.contains("const int MCV2_FIRST_SLOT = 2;");
@@ -286,24 +337,22 @@ final class Mcv2PackTest {
     // the debug view draws the second screen's picture under the first one's
     final boolean declaresTheDebugTop = second.contains("const int MCV2_DEBUG_TOP = 188;");
     assertTrue(declaresTheDebugTop, second);
-    final boolean includesTheSecondScreen = entries
-      .get("assets/mcav/shaders/post/s1/mcv2_decode.fsh")
-      .contains("#include <mcav:mcv2_screen_1.glsl>");
+    final boolean includesTheSecondScreen = entries.get(SECOND_DECODE_PASS_ENTRY).contains("#include <mcav:mcv2_screen_1.glsl>");
     assertTrue(includesTheSecondScreen);
 
-    final JsonObject chain = JsonParser.parseString(entries.get("assets/minecraft/post_effect/entity_outline.json")).getAsJsonObject();
-    final int previousWidth = chain.getAsJsonObject("targets").getAsJsonObject("mcav:mcv2_previous_1").get("width").getAsInt();
+    final JsonObject chain = JsonParser.parseString(entries.get(POST_EFFECT_ENTRY)).getAsJsonObject();
+    final int previousWidth = chain.getAsJsonObject(TARGETS_KEY).getAsJsonObject("mcav:mcv2_previous_1").get(WIDTH_KEY).getAsInt();
     assertEquals(640, previousWidth);
 
     // each screen decodes before any draws, so no strip is covered before its pages were read
-    final JsonArray passes = chain.getAsJsonArray("passes");
+    final JsonArray passes = chain.getAsJsonArray(PASSES_KEY);
     final int passCount = passes.size();
     assertEquals(30, passCount);
-    final String secondDecodeShader = passes.get(10).getAsJsonObject().get("fragment_shader").getAsString();
+    final String secondDecodeShader = passes.get(10).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
     assertEquals("mcav:post/s1/mcv2_bytes", secondDecodeShader);
-    final String firstScreenShader = passes.get(20).getAsJsonObject().get("fragment_shader").getAsString();
-    assertEquals("mcav:post/s0/mcv2_screen", firstScreenShader);
-    final String secondScreenShader = passes.get(22).getAsJsonObject().get("fragment_shader").getAsString();
+    final String firstScreenShader = passes.get(20).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
+    assertEquals(SCREEN_SHADER_ID, firstScreenShader);
+    final String secondScreenShader = passes.get(22).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
     assertEquals("mcav:post/s1/mcv2_screen", secondScreenShader);
 
     final String description = describe(entries);
@@ -311,12 +360,16 @@ final class Mcv2PackTest {
   }
 
   private static String describe(final Map<String, String> entries) {
-    return JsonParser.parseString(entries.get("pack.mcmeta")).getAsJsonObject().getAsJsonObject("pack").get("description").getAsString();
+    return JsonParser.parseString(entries.get(PACK_METADATA_ENTRY))
+      .getAsJsonObject()
+      .getAsJsonObject(PACK_KEY)
+      .get(DESCRIPTION_KEY)
+      .getAsString();
   }
 
   @Test
   void shouldRefuseScreensThatCannotShareAPack() {
-    final Path zip = this.directory.resolve("refused.zip");
+    final Path zip = this.directory.resolve(REFUSED_FILE_NAME);
     final Mcv2Configuration first = Mcv2ConfigurationTest.complete().streamId(1).build();
     final Mcv2Configuration sameStream = Mcv2ConfigurationTest.complete().streamId(1).build();
     final Mcv2Configuration otherColour = Mcv2ConfigurationTest.complete().streamId(2).outlineColor(NamedTextColor.GOLD).build();
@@ -371,13 +424,13 @@ final class Mcv2PackTest {
       symbols[palette[symbol]] = symbol;
     }
     final String alphabet = Mcv2Pack.alphabet(palette);
-    final Matcher hash = Pattern.compile("MCV2_SYMBOL_HASH = (\\d+)u;\nconst uint MCV2_SYMBOL_SHIFT = (\\d+)u;").matcher(alphabet);
+    final Matcher hash = Pattern.compile(SYMBOL_HASH_PATTERN).matcher(alphabet);
     final boolean declaresTheHash = hash.find();
     assertTrue(declaresTheHash);
 
     final int multiplier = Integer.parseInt(hash.group(1));
     final int shift = Integer.parseInt(hash.group(2));
-    final int[] entries = Pattern.compile("(\\d+)u")
+    final int[] entries = Pattern.compile(UNSIGNED_LITERAL_PATTERN)
       .matcher(alphabet.substring(alphabet.indexOf("MCV2_SYMBOLS")))
       .results()
       .mapToInt(entry -> Integer.parseUnsignedInt(entry.group(1)))

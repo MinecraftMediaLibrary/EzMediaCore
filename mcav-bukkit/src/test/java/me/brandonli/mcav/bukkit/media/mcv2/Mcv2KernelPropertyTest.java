@@ -35,13 +35,15 @@ final class Mcv2KernelPropertyTest {
 
   private static final int[] SIZES = { 8, 16, 32 };
 
+  private static final int BYTE_VALUE_COUNT = 256;
+
   /** A byte biased to the ends of its range. */
   private static byte extremeByte(final Random random) {
     return switch (random.nextInt(4)) {
       case 0 -> Byte.MIN_VALUE;
       case 1 -> Byte.MAX_VALUE;
       case 2 -> (byte) (random.nextBoolean() ? 0 : -1);
-      default -> (byte) random.nextInt(256);
+      default -> (byte) random.nextInt(BYTE_VALUE_COUNT);
     };
   }
 
@@ -59,7 +61,7 @@ final class Mcv2KernelPropertyTest {
       prediction[index] = switch (random.nextInt(3)) {
         case 0 -> 0;
         case 1 -> 255;
-        default -> random.nextInt(256);
+        default -> random.nextInt(BYTE_VALUE_COUNT);
       };
     }
     return prediction;
@@ -143,7 +145,7 @@ final class Mcv2KernelPropertyTest {
   private static void assertMeasured(final Random random, final int size, final Kernel kernel) {
     final int[] source = new int[size * size * 3];
     for (int index = 0; index < source.length; index++) {
-      source[index] = random.nextInt(256);
+      source[index] = random.nextInt(BYTE_VALUE_COUNT);
     }
     final double rate = random.nextInt(4000) / 7.0;
     final Kernels kernels = Mcv2Internals.javaKernels();

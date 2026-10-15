@@ -41,6 +41,11 @@ final class Mcv2PacerPropertyTest {
 
   private static final List<int[]> SIZES = List.of(new int[] { 1920, 1080 }, new int[] { 1280, 720 }, new int[] { 960, 540 });
 
+  private static final double FULL_WIDTH = 1920.0;
+  private static final double FULL_HEIGHT = 1080.0;
+
+  private static final int MILLISECONDS_PER_SECOND = 1000;
+
   /** The presets a screen steps through, when it has more than one. */
   private static final List<Mcv2Pacer.Preset> PRESETS = List.of(
     new Mcv2Pacer.Preset("live", 1),
@@ -95,7 +100,7 @@ final class Mcv2PacerPropertyTest {
 
     private double costOf(final Mcv2Pacer.Rung rung, final double fullMilliseconds) {
       final double scale = 1 + this.noise * (2 * this.random.nextDouble() - 1);
-      return (fullMilliseconds * scale * rung.width() * rung.height() * rung.preset().cost()) / (1920.0 * 1080.0);
+      return (fullMilliseconds * scale * rung.width() * rung.height() * rung.preset().cost()) / (FULL_WIDTH * FULL_HEIGHT);
     }
 
     private void record(final Mcv2Pacer.Change change, final long at) {
@@ -180,11 +185,12 @@ final class Mcv2PacerPropertyTest {
         continue;
       }
       final double rungMilliseconds =
-        (fullMilliseconds * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (1920.0 * 1080.0);
+        (fullMilliseconds * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (FULL_WIDTH * FULL_HEIGHT);
       final double seconds = (stretch.to() - stretch.from()) / (double) SECOND;
       final boolean over = rungMilliseconds * (1 - noise) > frameMilliseconds(stretch.rung(), framesPerSecond);
       // it waits for the rung's first samples (and, on the first rung, for the encoder to warm up), then a second
-      final double frame = Math.max(rungMilliseconds * (1 + noise), frameMilliseconds(stretch.rung(), framesPerSecond)) / 1000;
+      final double frame =
+        Math.max(rungMilliseconds * (1 + noise), frameMilliseconds(stretch.rung(), framesPerSecond)) / MILLISECONDS_PER_SECOND;
       final double allowed =
         Mcv2Pacer.DOWN_SECONDS + (Mcv2Pacer.MINIMUM_SAMPLES + 2) * frame + 1 + (stretchIndex == 0 ? Mcv2Pacer.STARTUP_SECONDS : 0);
       if (over && seconds > allowed) {
@@ -212,7 +218,7 @@ final class Mcv2PacerPropertyTest {
     final Simulation simulation = new Simulation(sizes, presets, framesPerSecond, noise, seed);
     simulation.play(20, heavyMilliseconds);
     // the top rung fits in lightShare of its frame time, with room to spare
-    simulation.play(120, (lightShare * 1000) / framesPerSecond);
+    simulation.play(120, (lightShare * MILLISECONDS_PER_SECOND) / framesPerSecond);
     return simulation.pacer.getRung().equals(simulation.pacer.getLadder().getFirst());
   }
 }

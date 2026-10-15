@@ -43,14 +43,25 @@ final class Mcv2ConfigurationTest {
 
   private static final List<UUID> VIEWERS = List.of(UUID.randomUUID());
 
+  private static final int WALL_MAP = 7;
+  private static final int COLUMNS = 5;
+  private static final int ROWS = 3;
+
+  private static final int STREAM_ID = 7;
+
+  private static final int VIDEO_WIDTH = 320;
+  private static final int VIDEO_HEIGHT = 180;
+
+  private static final int MAXIMUM_VIDEO_SIDE = 4096;
+
   static Mcv2Configuration.Builder complete() {
     return Mcv2Configuration.builder()
       .viewers(VIEWERS)
       .origin(new Location(WORLD, 10.7, 64.2, -3.5))
       .facing(BlockFace.SOUTH)
-      .map(7)
-      .columns(5)
-      .rows(3);
+      .map(WALL_MAP)
+      .columns(COLUMNS)
+      .rows(ROWS);
   }
 
   @Test
@@ -68,11 +79,11 @@ final class Mcv2ConfigurationTest {
     final BlockFace facing = configuration.getFacing();
     assertEquals(BlockFace.SOUTH, facing);
     final int map = configuration.getMap();
-    assertEquals(7, map);
+    assertEquals(WALL_MAP, map);
     final int columns = configuration.getColumns();
-    assertEquals(5, columns);
+    assertEquals(COLUMNS, columns);
     final int rows = configuration.getRows();
-    assertEquals(3, rows);
+    assertEquals(ROWS, rows);
     final int videoWidth = configuration.getVideoWidth();
     assertEquals(640, videoWidth);
     final int videoHeight = configuration.getVideoHeight();
@@ -100,9 +111,9 @@ final class Mcv2ConfigurationTest {
   void shouldCopyItselfAtAnotherVideoSize() {
     try (final Pool budget = new Pool(1)) {
       final Mcv2Configuration original = complete()
-        .video(320, 180)
+        .video(VIDEO_WIDTH, VIDEO_HEIGHT)
         .pageSlots(2)
-        .streamId(7)
+        .streamId(STREAM_ID)
         .firstFrameId(99)
         .settings(Settings.DEFAULT)
         .outlineColor(NamedTextColor.AQUA)
@@ -140,7 +151,7 @@ final class Mcv2ConfigurationTest {
       final int pageSlots = smaller.getPageSlots();
       assertEquals(2, pageSlots);
       final long streamId = smaller.getStreamId();
-      assertEquals(7, streamId);
+      assertEquals(STREAM_ID, streamId);
       final long firstFrameId = smaller.getFirstFrameId();
       assertEquals(99, firstFrameId);
       final Settings settings = smaller.getSettings();
@@ -192,7 +203,7 @@ final class Mcv2ConfigurationTest {
 
   @Test
   void shouldCopyItselfWithTheStreamASlotGaveIt() {
-    final Mcv2Configuration original = complete().video(320, 180).streamId(7).build();
+    final Mcv2Configuration original = complete().video(VIDEO_WIDTH, VIDEO_HEIGHT).streamId(STREAM_ID).build();
     final Mcv2Configuration slotted = original.withSlot(3, Mcv2Configuration.DEFAULT_PAGE_MAP + 16, Mcv2Decoder.MAXIMUM_UNSIGNED_INT);
 
     final long streamId = slotted.getStreamId();
@@ -203,7 +214,7 @@ final class Mcv2ConfigurationTest {
     final long firstFrameId = slotted.getFirstFrameId();
     assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT, firstFrameId);
     final int videoWidth = slotted.getVideoWidth();
-    assertEquals(320, videoWidth);
+    assertEquals(VIDEO_WIDTH, videoWidth);
     final Collection<UUID> expectedViewers = original.getViewers();
     final Collection<UUID> viewers = slotted.getViewers();
     assertSame(expectedViewers, viewers);
@@ -222,7 +233,7 @@ final class Mcv2ConfigurationTest {
   @Test
   void shouldKeepWhatWasSet() {
     final Mcv2Configuration configuration = complete()
-      .video(320, 180)
+      .video(VIDEO_WIDTH, VIDEO_HEIGHT)
       .pageMap(50)
       .pageSlots(2)
       .streamId(Mcv2Configuration.MAXIMUM_STREAM_ID)
@@ -233,9 +244,9 @@ final class Mcv2ConfigurationTest {
       .build();
 
     final int videoWidth = configuration.getVideoWidth();
-    assertEquals(320, videoWidth);
+    assertEquals(VIDEO_WIDTH, videoWidth);
     final int videoHeight = configuration.getVideoHeight();
-    assertEquals(180, videoHeight);
+    assertEquals(VIDEO_HEIGHT, videoHeight);
     final int pageMap = configuration.getPageMap();
     assertEquals(50, pageMap);
     final int pageSlots = configuration.getPageSlots();
@@ -337,11 +348,11 @@ final class Mcv2ConfigurationTest {
     final int fewestColumns = complete().columns(1).build().getColumns();
     assertEquals(1, fewestColumns);
     // a side of 63 maps is 8064 pixels at its native size, so it plays a video the codec can take
-    final int mostColumns = complete().columns(Mcv2Configuration.MAXIMUM_SIDE).video(4096, 0).build().getColumns();
+    final int mostColumns = complete().columns(Mcv2Configuration.MAXIMUM_SIDE).video(MAXIMUM_VIDEO_SIDE, 0).build().getColumns();
     assertEquals(Mcv2Configuration.MAXIMUM_SIDE, mostColumns);
     final int fewestRows = complete().rows(1).build().getRows();
     assertEquals(1, fewestRows);
-    final int mostRows = complete().rows(Mcv2Configuration.MAXIMUM_SIDE).video(0, 4096).build().getRows();
+    final int mostRows = complete().rows(Mcv2Configuration.MAXIMUM_SIDE).video(0, MAXIMUM_VIDEO_SIDE).build().getRows();
     assertEquals(Mcv2Configuration.MAXIMUM_SIDE, mostRows);
     // 0 is the wall's own size, 128 pixels per map
     final int expectedNativeVideoWidth = 5 * 128;
@@ -350,10 +361,10 @@ final class Mcv2ConfigurationTest {
     final int expectedNativeVideoHeight = 3 * 128;
     final int nativeVideoHeight = complete().video(0, 0).build().getVideoHeight();
     assertEquals(expectedNativeVideoHeight, nativeVideoHeight);
-    final int largestVideoWidth = complete().video(4096, 4096).build().getVideoWidth();
-    assertEquals(4096, largestVideoWidth);
-    final int largestVideoHeight = complete().video(4096, 4096).build().getVideoHeight();
-    assertEquals(4096, largestVideoHeight);
+    final int largestVideoWidth = complete().video(MAXIMUM_VIDEO_SIDE, MAXIMUM_VIDEO_SIDE).build().getVideoWidth();
+    assertEquals(MAXIMUM_VIDEO_SIDE, largestVideoWidth);
+    final int largestVideoHeight = complete().video(MAXIMUM_VIDEO_SIDE, MAXIMUM_VIDEO_SIDE).build().getVideoHeight();
+    assertEquals(MAXIMUM_VIDEO_SIDE, largestVideoHeight);
     final int defaultPageSlots = complete().pageSlots(0).build().getPageSlots();
     assertEquals(Mcv2Configuration.MAXIMUM_PAGE_SLOTS, defaultPageSlots);
     final int mostPageSlots = complete().pageSlots(Mcv2Configuration.MAXIMUM_PAGE_SLOTS).build().getPageSlots();
@@ -420,12 +431,12 @@ final class Mcv2ConfigurationTest {
     assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size!", message);
     assertThrows(IllegalArgumentException.class, () -> complete().rows(33).build());
 
-    final int wideVideoWidth = complete().columns(33).video(4096, 0).build().getVideoWidth();
-    assertEquals(4096, wideVideoWidth);
-    final int tallVideoHeight = complete().rows(33).video(0, 4096).build().getVideoHeight();
-    assertEquals(4096, tallVideoHeight);
+    final int wideVideoWidth = complete().columns(33).video(MAXIMUM_VIDEO_SIDE, 0).build().getVideoWidth();
+    assertEquals(MAXIMUM_VIDEO_SIDE, wideVideoWidth);
+    final int tallVideoHeight = complete().rows(33).video(0, MAXIMUM_VIDEO_SIDE).build().getVideoHeight();
+    assertEquals(MAXIMUM_VIDEO_SIDE, tallVideoHeight);
     final int largestNativeVideoWidth = complete().columns(32).rows(32).build().getVideoWidth();
-    assertEquals(4096, largestNativeVideoWidth);
+    assertEquals(MAXIMUM_VIDEO_SIDE, largestNativeVideoWidth);
   }
 
   @Test

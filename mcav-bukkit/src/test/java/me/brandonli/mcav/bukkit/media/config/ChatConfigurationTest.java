@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Test;
  */
 final class ChatConfigurationTest {
 
+  private static final String CHARACTER = "x";
+
   private static ChatConfiguration.Builder<?> completeBuilder() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
     builder.viewers(List.of());
@@ -68,7 +70,7 @@ final class ChatConfigurationTest {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
-    final Object afterCharacter = builder.character("x");
+    final Object afterCharacter = builder.character(CHARACTER);
     final Object afterWidth = builder.chatWidth(1);
     final Object afterHeight = builder.chatHeight(1);
 
@@ -90,7 +92,7 @@ final class ChatConfigurationTest {
   @Test
   void shouldRejectMissingOrInvalidValues() {
     final ChatConfiguration.Builder<?> noViewers = ChatConfiguration.builder();
-    noViewers.character("x");
+    noViewers.character(CHARACTER);
     noViewers.chatWidth(1);
     noViewers.chatHeight(1);
     final ChatConfiguration.Builder<?> noCharacter = ChatConfiguration.builder();

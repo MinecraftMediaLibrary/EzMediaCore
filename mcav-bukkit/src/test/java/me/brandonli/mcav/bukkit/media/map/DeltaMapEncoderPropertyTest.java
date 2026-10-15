@@ -53,6 +53,10 @@ final class DeltaMapEncoderPropertyTest {
   private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
 
+  private static final int PER_MILLE = 1000;
+
+  private static final String SCENARIOS = "scenarios";
+
   /**
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
@@ -93,7 +97,7 @@ final class DeltaMapEncoderPropertyTest {
    */
   private static Arbitrary<List<FrameEdit>> edits() {
     final Arbitrary<Integer> positions = between(0, 999);
-    final Arbitrary<Integer> sizes = between(1, 1000);
+    final Arbitrary<Integer> sizes = between(1, PER_MILLE);
     final Arbitrary<Integer> pixels = Arbitraries.just(1);
     final Arbitrary<Integer> extents = Arbitraries.oneOf(sizes, pixels);
     final Arbitrary<Integer> colors = between(0, 60);
@@ -110,7 +114,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldRespectTheBudgetAndCarryOnlyPixelsOfThatFrameInEveryFrame(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldRespectTheBudgetAndCarryOnlyPixelsOfThatFrameInEveryFrame(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
@@ -128,7 +132,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldShowExactlyTheLastFrameOnTheClientsOnceThePictureStopsChanging(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldShowExactlyTheLastFrameOnTheClientsOnceThePictureStopsChanging(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
@@ -155,7 +159,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void shouldSendEveryCoveredMapCompletelyAgainOnAReset(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldSendEveryCoveredMapCompletelyAgainOnAReset(@ForAll(SCENARIOS) final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1 << 30);
     final List<byte[]> frames = scenario.createFrames();
@@ -282,8 +286,8 @@ final class DeltaMapEncoderPropertyTest {
     }
 
     private void applyTo(final byte[] frame, final int imageWidth, final int imageHeight) {
-      final int left = (this.left * imageWidth) / 1000;
-      final int top = (this.top * imageHeight) / 1000;
+      final int left = (this.left * imageWidth) / PER_MILLE;
+      final int top = (this.top * imageHeight) / PER_MILLE;
       final int right = Math.min(imageWidth, left + scale(this.width, imageWidth));
       final int bottom = Math.min(imageHeight, top + scale(this.height, imageHeight));
       for (int row = top; row < bottom; row++) {
@@ -294,7 +298,7 @@ final class DeltaMapEncoderPropertyTest {
     }
 
     private static int scale(final int size, final int imageSize) {
-      final int scaled = (size * imageSize) / 1000;
+      final int scaled = (size * imageSize) / PER_MILLE;
       return size == 1 ? 1 : Math.max(1, scaled);
     }
 

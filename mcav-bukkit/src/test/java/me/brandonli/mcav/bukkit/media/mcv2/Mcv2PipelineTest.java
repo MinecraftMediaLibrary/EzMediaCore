@@ -52,6 +52,9 @@ final class Mcv2PipelineTest {
 
   private static final String STOPPED = "The encoder stopped after a frame failed its verification!";
 
+  private static final String KERNELS_FIELD = "kernels";
+  private static final String PICTURE_FIELD = "picture";
+
   /** Encodes a panning scene one frame at a time. */
   static List<byte[]> sequential(
     final Settings settings,
@@ -109,7 +112,7 @@ final class Mcv2PipelineTest {
   void shouldNotAdvanceMotionHistoryOnAFailedSearch() throws ReflectiveOperationException {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, true);
     final Mcv2 control = new Mcv2(Settings.DEFAULT, POOL, 1, true);
-    final Field factory = Mcv2.class.getDeclaredField("kernels");
+    final Field factory = Mcv2.class.getDeclaredField(KERNELS_FIELD);
     factory.setAccessible(true);
     final Object original = factory.get(encoder);
     factory.set(
@@ -139,7 +142,7 @@ final class Mcv2PipelineTest {
   @Test
   void shouldRetainRequestsAndSettingsChangedDuringBegin() throws Exception {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 1, true);
-    final Field factory = Mcv2.class.getDeclaredField("kernels");
+    final Field factory = Mcv2.class.getDeclaredField(KERNELS_FIELD);
     factory.setAccessible(true);
     final Supplier<?> original = (Supplier<?>) factory.get(encoder);
     final CountDownLatch searching = new CountDownLatch(1);
@@ -232,7 +235,7 @@ final class Mcv2PipelineTest {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, true);
     final Mcv2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     final Mcv2.Pending next = encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
-    final var picture = Mcv2.Pending.class.getDeclaredField("picture");
+    final var picture = Mcv2.Pending.class.getDeclaredField(PICTURE_FIELD);
     picture.setAccessible(true);
     ((byte[]) picture.get(frame))[0] ^= 1;
     final IllegalStateException finishException = assertThrows(IllegalStateException.class, () -> encoder.finish(frame));
@@ -254,7 +257,7 @@ final class Mcv2PipelineTest {
   void shouldVerifyNothingWithoutVerification() throws ReflectiveOperationException {
     final Mcv2 encoder = new Mcv2(Settings.DEFAULT, POOL, 2, false);
     final Mcv2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
-    final var picture = Mcv2.Pending.class.getDeclaredField("picture");
+    final var picture = Mcv2.Pending.class.getDeclaredField(PICTURE_FIELD);
     picture.setAccessible(true);
     ((byte[]) picture.get(frame))[0] ^= 1;
     final Mcv2.Encoded encoded = encoder.finish(frame);

@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
  */
 final class EntityConfigurationTest {
 
+  private static final String CHARACTER = "x";
+
   // a location refers to its world only weakly, so the test keeps the world itself
   private static final World WORLD = mock(World.class);
   private static final Location POSITION = new Location(WORLD, 1, 2, 3);
@@ -79,7 +81,7 @@ final class EntityConfigurationTest {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
-    final Object afterCharacter = builder.character("x");
+    final Object afterCharacter = builder.character(CHARACTER);
     final Object afterPosition = builder.position(POSITION);
     final Object afterWidth = builder.entityWidth(1);
     final Object afterHeight = builder.entityHeight(1);
@@ -104,7 +106,7 @@ final class EntityConfigurationTest {
   @Test
   void shouldRejectMissingValues() {
     final EntityConfiguration.Builder<?> noViewers = EntityConfiguration.builder();
-    noViewers.character("x");
+    noViewers.character(CHARACTER);
     noViewers.position(POSITION);
     noViewers.entityWidth(1);
     noViewers.entityHeight(1);
@@ -115,7 +117,7 @@ final class EntityConfigurationTest {
     noCharacter.entityHeight(1);
     final EntityConfiguration.Builder<?> noPosition = EntityConfiguration.builder();
     noPosition.viewers(List.of());
-    noPosition.character("x");
+    noPosition.character(CHARACTER);
     noPosition.entityWidth(1);
     noPosition.entityHeight(1);
 

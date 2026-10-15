@@ -34,6 +34,8 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2SettingsTest {
 
+  private static final int LAMBDA = 72;
+
   @Test
   void shouldSearchQuarterSizeMotionOnlyInTheDefaultPreset() throws ReflectiveOperationException {
     for (final Settings settings : new Settings[] { Settings.DEFAULT, Settings.FAST }) {
@@ -104,7 +106,7 @@ final class Mcv2SettingsTest {
 
   @Test
   void shouldKeepTheTwoLivePresetsAsData() {
-    final Settings expectedDefault = new Settings(72, false);
+    final Settings expectedDefault = new Settings(LAMBDA, false);
     assertEquals(expectedDefault, Settings.DEFAULT);
     final Settings expectedFast = new Settings(55, true);
     assertEquals(expectedFast, Settings.FAST);
@@ -112,7 +114,7 @@ final class Mcv2SettingsTest {
 
   @Test
   void shouldCopyWithOneValueChanged() {
-    final Settings settings = new Settings(72, true);
+    final Settings settings = new Settings(LAMBDA, true);
     final Settings expected = new Settings(0, true);
     final Settings copy = settings.withLambda(0);
     assertEquals(expected, copy);

@@ -40,6 +40,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class LocalHttpServer implements AutoCloseable {
 
+  private static final String ROOT_PATH = "/";
+
   private final HttpServer server;
   private final Map<String, Deque<Response>> responses;
   private final Map<String, AtomicInteger> requestCounts;
@@ -61,7 +63,7 @@ public final class LocalHttpServer implements AutoCloseable {
       final InetSocketAddress address = new InetSocketAddress(loopback, 0);
       final HttpServer httpServer = HttpServer.create(address, 0);
       final LocalHttpServer localServer = new LocalHttpServer(httpServer);
-      httpServer.createContext("/", localServer::handle);
+      httpServer.createContext(ROOT_PATH, localServer::handle);
       httpServer.start();
       return localServer;
     } catch (final IOException exception) {

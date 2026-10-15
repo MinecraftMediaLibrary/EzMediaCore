@@ -74,6 +74,18 @@ final class ResourcePackHttpHandlerTest {
   private static final String OK_HEADERS = headers("200 OK", "application/zip", PACK.length);
   private static final String ERROR_HEADERS = headers("500 Internal Server Error", "text/plain", 0);
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String MISSING_FILE_NAME = "missing.zip";
+
+  private static final String ROOT_PATH = "/";
+  private static final String PARTIAL_METHOD = "GE";
+  private static final String HEAD_PREFIX = "HEAD /";
+  private static final String GET_REQUEST = "GET / HTTP/1.1\r\n\r\n";
+  private static final String GET_REQUEST_WITH_HOST = "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n";
+
+  private static final String TIMEOUT_HANDLER_NAME = "timeout";
+  private static final int READ_TIMEOUT_SECONDS = 30;
+
   @TempDir
   private Path directory;
 
@@ -81,13 +93,13 @@ final class ResourcePackHttpHandlerTest {
 
   @BeforeEach
   void writePack() throws IOException {
-    this.packPath = this.directory.resolve("pack.zip");
+    this.packPath = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.packPath, PACK);
   }
 
   private static EmbeddedChannel createChannel(final Path pack) {
     final ResourcePackFile file = new ResourcePackFile(pack);
-    final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, "/");
+    final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, ROOT_PATH);
     final EmbeddedChannel channel = new EmbeddedChannel();
     final ChannelPipeline pipeline = channel.pipeline();
     pipeline.addFirst(ResourcePackHttpHandler.NAME, handler);
@@ -179,7 +191,7 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldWaitForTheWholeTargetAndPassAnUnmatchedRequestUnchanged() {
     final EmbeddedChannel channel = createChannel(this.packPath);
-    writeText(channel, "HEAD /");
+    writeText(channel, HEAD_PREFIX);
     final Object premature = channel.readOutbound();
     assertNull(premature);
     writeText(channel, "other HTTP/1.1\r\n\r\n");
@@ -209,7 +221,7 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldWaitUntilEnoughBytesArrivedToDecide() {
     final EmbeddedChannel channel = createChannel(this.packPath);
-    final ByteBuf firstPart = ascii("GE");
+    final ByteBuf firstPart = ascii(PARTIAL_METHOD);
 
     channel.writeInbound(firstPart);
     final Object earlyResponse = channel.readOutbound();
@@ -284,11 +296,11 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldAnswerWithAnErrorAndLogItWhenThePackCannotBeRead() {
-    final Path missing = this.directory.resolve("missing.zip");
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final EmbeddedChannel channel = createChannel(missing);
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(ResourcePackHttpHandler.class)) {
-      writeText(channel, "GET / HTTP/1.1\r\n\r\n");
+      writeText(channel, GET_REQUEST);
       events = logs.getEvents();
     }
 
@@ -310,7 +322,7 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldReleaseBufferedBytesWhenTheConnectionClosesEarly() {
     final EmbeddedChannel channel = createChannel(this.packPath);
-    final ByteBuf partial = ascii("GE");
+    final ByteBuf partial = ascii(PARTIAL_METHOD);
 
     channel.writeInbound(partial);
     final ChannelFuture closing = channel.close();
@@ -339,14 +351,14 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldDropEverythingThatArrivesAfterThePackWasServed() {
     final ResourcePackFile file = new ResourcePackFile(this.packPath);
-    final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, "/");
+    final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, ROOT_PATH);
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
     final ChannelFuture future = mock(ChannelFuture.class);
     when(context.alloc()).thenReturn(ByteBufAllocator.DEFAULT);
     when(context.pipeline()).thenReturn(mock(ChannelPipeline.class));
     when(context.write(any())).thenReturn(future);
     when(context.writeAndFlush(any())).thenReturn(future);
-    final ByteBuf request = ascii("GET / HTTP/1.1\r\n\r\n");
+    final ByteBuf request = ascii(GET_REQUEST);
     final ByteBuf late = ascii("more data");
 
     handler.channelRead(context, request);
@@ -370,7 +382,7 @@ final class ResourcePackHttpHandlerTest {
   void shouldReleaseBufferedBytesWhenTheConnectionCloses() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ChannelPipeline pipeline = channel.pipeline();
-    final ByteBuf partial = ascii("GE");
+    final ByteBuf partial = ascii(PARTIAL_METHOD);
 
     channel.writeInbound(partial);
     pipeline.fireChannelInactive();
@@ -382,7 +394,7 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldClassifyClientsByTheirFirstBytes() {
     final RequestType get = classifyText("GET /");
-    final RequestType head = classifyText("HEAD /");
+    final RequestType head = classifyText(HEAD_PREFIX);
     final RequestType partialGet = classifyText("GET");
     final RequestType partialHead = classifyText("HEAD");
     final RequestType nothing = ResourcePackHttpHandler.classify(Unpooled.EMPTY_BUFFER);
@@ -454,14 +466,14 @@ final class ResourcePackHttpHandlerTest {
     channel.freezeTime();
     final ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast("client", new SlowClient());
-    pipeline.addLast(ResourcePackHttpHandler.NAME, new ResourcePackHttpHandler(new ResourcePackFile(this.packPath), "/"));
-    pipeline.addLast("timeout", new ReadTimeoutHandler(30));
+    pipeline.addLast(ResourcePackHttpHandler.NAME, new ResourcePackHttpHandler(new ResourcePackFile(this.packPath), ROOT_PATH));
+    pipeline.addLast(TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(READ_TIMEOUT_SECONDS));
     return channel;
   }
 
   private EmbeddedChannel downloading() {
     final EmbeddedChannel channel = this.gameConnection();
-    writeText(channel, "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    writeText(channel, GET_REQUEST_WITH_HOST);
     return channel;
   }
 
@@ -531,14 +543,17 @@ final class ResourcePackHttpHandlerTest {
     final SlowSocket channel = new SlowSocket();
     channel.freezeTime();
     final ChannelPipeline pipeline = channel.pipeline();
-    pipeline.addLast(ResourcePackHttpHandler.NAME, new ResourcePackHttpHandler(new ResourcePackFile(this.packPath), "/"));
-    pipeline.addLast("timeout", new ReadTimeoutHandler(30));
-    writeText(channel, "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    pipeline.addLast(ResourcePackHttpHandler.NAME, new ResourcePackHttpHandler(new ResourcePackFile(this.packPath), ROOT_PATH));
+    pipeline.addLast(TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(READ_TIMEOUT_SECONDS));
+    writeText(channel, GET_REQUEST_WITH_HOST);
     for (int step = 1; step <= 8; step++) {
-      channel.advanceTimeBy(30, TimeUnit.SECONDS);
+      channel.advanceTimeBy(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       final boolean openAfterStep = channel.isOpen();
-      assertTrue(openAfterStep, "a download that took some of the pack in the last 30 s is not cut, after " + step * 30 + " s");
+      assertTrue(
+        openAfterStep,
+        "a download that took some of the pack in the last 30 s is not cut, after " + step * READ_TIMEOUT_SECONDS + " s"
+      );
 
       channel.take(32 * 1024);
     }
@@ -572,7 +587,7 @@ final class ResourcePackHttpHandlerTest {
       }
     );
     channel.pipeline().fireUserEventTriggered("before");
-    writeText(channel, "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    writeText(channel, GET_REQUEST_WITH_HOST);
     channel.pipeline().fireUserEventTriggered(IdleStateEvent.READER_IDLE_STATE_EVENT);
     channel.pipeline().fireUserEventTriggered("during");
     final List<Object> expectedEvents = List.of("before", IdleStateEvent.READER_IDLE_STATE_EVENT, "during");

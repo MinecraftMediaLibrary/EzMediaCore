@@ -38,6 +38,10 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2VerificationTest {
 
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String DECODER_REJECTION_MESSAGE = "The encoder wrote a frame the decoder rejects!";
+
   @Test
   void shouldReuseVerificationStorageUntilThePictureSizeChanges() throws ReflectiveOperationException {
     final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), 3, true);
@@ -61,7 +65,7 @@ final class Mcv2VerificationTest {
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
         final Map<Long, byte[]> pictures = new HashMap<>();
-        for (final byte[] data : Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream))) {
+        for (final byte[] data : Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream))) {
           final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
           final byte[] reference = frame.isKeyframe() ? new byte[0] : pictures.get(frame.getReferenceId());
           final byte[] picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
@@ -172,7 +176,7 @@ final class Mcv2VerificationTest {
     referenceId.setLong(pending, -1);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = failure.getMessage();
-    assertEquals("The encoder wrote a frame the decoder rejects!", message);
+    assertEquals(DECODER_REJECTION_MESSAGE, message);
     final @Nullable Throwable cause = failure.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
     final @Nullable String causeMessage = failure.getCause().getMessage();
@@ -192,7 +196,7 @@ final class Mcv2VerificationTest {
     ((byte[]) data.get(pending))[0] = 0;
     final IllegalStateException error = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = error.getMessage();
-    assertEquals("The encoder wrote a frame the decoder rejects!", message);
+    assertEquals(DECODER_REJECTION_MESSAGE, message);
     final @Nullable Throwable cause = error.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
     final @Nullable String causeMessage = error.getCause().getMessage();

@@ -49,14 +49,22 @@ final class JavadocFormattingExampleTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
+  private static final int PICTURE_WIDTH = 16;
+  private static final int PICTURE_HEIGHT = 15;
+
+  private static final int EVEN_ROW_COLOR = 0x123456;
+  private static final int ODD_ROW_COLOR = 0xABCDEF;
+
+  private static final String PICTURE_FILE_NAME = "picture.png";
+
   private static Path writePicture(final Path directory) throws IOException {
-    final BufferedImage picture = new BufferedImage(16, 15, BufferedImage.TYPE_INT_RGB);
-    for (int row = 0; row < 15; row++) {
-      for (int column = 0; column < 16; column++) {
-        picture.setRGB(column, row, row % 2 == 0 ? 0x123456 : 0xABCDEF);
+    final BufferedImage picture = new BufferedImage(PICTURE_WIDTH, PICTURE_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    for (int row = 0; row < PICTURE_HEIGHT; row++) {
+      for (int column = 0; column < PICTURE_WIDTH; column++) {
+        picture.setRGB(column, row, row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR);
       }
     }
-    final Path file = directory.resolve("picture.png");
+    final Path file = directory.resolve(PICTURE_FILE_NAME);
     final File output = file.toFile();
     ImageIO.write(picture, "png", output);
     return file;
@@ -82,10 +90,10 @@ final class JavadocFormattingExampleTest {
         verify(viewer).setScoreboard(board);
         final List<Team> teams = scoreboards.getTeams();
         final int teamCount = teams.size();
-        assertEquals(15, teamCount);
-        for (int row = 0; row < 15; row++) {
-          final int color = row % 2 == 0 ? 0x123456 : 0xABCDEF;
-          verify(teams.get(row)).suffix(Component.text("█".repeat(16), TextColor.color(color)));
+        assertEquals(PICTURE_HEIGHT, teamCount);
+        for (int row = 0; row < PICTURE_HEIGHT; row++) {
+          final int color = row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR;
+          verify(teams.get(row)).suffix(Component.text("█".repeat(PICTURE_WIDTH), TextColor.color(color)));
         }
       } finally {
         display.release();

@@ -70,6 +70,8 @@ final class RendererResultsTest {
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final int BROWN = (102 << 16) | (76 << 8) | 51;
 
+  private static final String CHARACTER = "#";
+
   private FakeServer server;
   private FakeWorld world;
   private CraftPlayer viewer;
@@ -137,7 +139,7 @@ final class RendererResultsTest {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.position(position);
     builder.entityWidth(1);
     builder.entityHeight(1);
@@ -158,7 +160,7 @@ final class RendererResultsTest {
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
     final String text = textCaptor.getValue().getString();
-    assertEquals("#", text);
+    assertEquals(CHARACTER, text);
 
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
@@ -183,7 +185,7 @@ final class RendererResultsTest {
     FakeScoreboards.trackScoreboard(this.viewer, previous);
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.lines(1);
     builder.width(1);
     final ScoreboardConfiguration configuration = builder.build();
@@ -202,7 +204,7 @@ final class RendererResultsTest {
     assertTrue(handled);
     assertSame(board, shown);
     assertSame(previous, restored);
-    verify(team).suffix(Component.text("#", TextColor.color(0x000000)));
+    verify(team).suffix(Component.text(CHARACTER, TextColor.color(0x000000)));
     assertThrows(NullPointerException.class, () -> new ScoreboardResult(null));
 
     this.assertRejectsMissingFrames(result);

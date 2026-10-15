@@ -42,6 +42,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 final class ConformanceTest {
 
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String REJECTED_STREAMS_PATH = "edge/rejected.json";
+
   private static Stream<Arguments> streams() {
     final List<Arguments> arguments = new ArrayList<>();
     for (final String folder : List.of("conformance", "edge")) {
@@ -55,7 +59,7 @@ final class ConformanceTest {
   @ParameterizedTest(name = "{0}/{1}")
   @MethodSource("streams")
   void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
-    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
+    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream));
     final int expectedFrameCount = digests.size();
     final int frameCount = frames.size();
     assertEquals(expectedFrameCount, frameCount, "frame count");
@@ -71,7 +75,7 @@ final class ConformanceTest {
   }
 
   private static Stream<Arguments> rejected() {
-    final String text = new String(Mcv2Fixtures.read("edge/rejected.json"), StandardCharsets.UTF_8);
+    final String text = new String(Mcv2Fixtures.read(REJECTED_STREAMS_PATH), StandardCharsets.UTF_8);
     final JsonObject root = JsonParser.parseString(text).getAsJsonObject();
     final List<Arguments> arguments = new ArrayList<>();
     for (final Map.Entry<String, JsonElement> entry : root.entrySet()) {

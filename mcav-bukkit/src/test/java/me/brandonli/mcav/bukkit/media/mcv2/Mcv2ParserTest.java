@@ -43,6 +43,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 final class Mcv2ParserTest {
 
+  private static final String INVALID_LENGTH_MESSAGE = "Invalid frame length!";
+  private static final String NOT_A_FRAME_MESSAGE = "Not an MCV2 version 3 frame!";
+  private static final String INVALID_DIMENSIONS_MESSAGE = "Invalid dimensions!";
+
   private static byte[] palette() {
     final byte[] record = new byte[38];
     new Random(7).nextBytes(record);
@@ -127,12 +131,12 @@ final class Mcv2ParserTest {
   void shouldRejectFramesOfTheWrongLength() {
     final byte[] frame = keyframe(8, 8, solid(1, 1, 1));
     final String truncatedMessage = message(Arrays.copyOf(frame, 19));
-    assertEquals("Invalid frame length!", truncatedMessage);
+    assertEquals(INVALID_LENGTH_MESSAGE, truncatedMessage);
 
     final byte[] huge = new byte[Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1];
     System.arraycopy(frame, 0, huge, 0, 4);
     final String hugeMessage = message(huge);
-    assertEquals("Invalid frame length!", hugeMessage);
+    assertEquals(INVALID_LENGTH_MESSAGE, hugeMessage);
   }
 
   @Test
@@ -140,26 +144,26 @@ final class Mcv2ParserTest {
     final byte[] magic = new byte[Integer.BYTES];
     Mcv2Decoder.putU32(magic, 0, Mcv2Decoder.MAGIC);
     final String magicMessage = message(magic);
-    assertEquals("Invalid frame length!", magicMessage);
+    assertEquals(INVALID_LENGTH_MESSAGE, magicMessage);
 
     // the shortest and the longest frames pass the length check and reach the header's
     final String shortestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
-    assertEquals("Not an MCV2 version 3 frame!", shortestMessage);
+    assertEquals(NOT_A_FRAME_MESSAGE, shortestMessage);
     final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
-    assertEquals("Not an MCV2 version 3 frame!", longestMessage);
+    assertEquals(NOT_A_FRAME_MESSAGE, longestMessage);
   }
 
   private static Stream<Arguments> headerRules() {
     final byte[] key = keyframe(40, 40, solid(1, 2, 3), solid(4, 5, 6), solid(1, 2, 3), solid(7, 8, 9));
     return Stream.of(
-      Arguments.of(withWord(key, 4, 0x0104), "Not an MCV2 version 3 frame!"),
-      Arguments.of(withWord(key, 4, 0x0303), "Not an MCV2 version 3 frame!"),
-      Arguments.of(withWord(key, 4, 0x010103), "Not an MCV2 version 3 frame!"),
-      Arguments.of(withWord(key, 4, 0x01000003), "Not an MCV2 version 3 frame!"),
-      Arguments.of(withWord(key, 8, 40L << 16), "Invalid dimensions!"),
-      Arguments.of(withWord(key, 8, 4097 | (40L << 16)), "Invalid dimensions!"),
-      Arguments.of(withWord(key, 8, 40), "Invalid dimensions!"),
-      Arguments.of(withWord(key, 8, 40 | (4097L << 16)), "Invalid dimensions!")
+      Arguments.of(withWord(key, 4, 0x0104), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x0303), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x010103), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 4, 0x01000003), NOT_A_FRAME_MESSAGE),
+      Arguments.of(withWord(key, 8, 40L << 16), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 4097 | (40L << 16)), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 40), INVALID_DIMENSIONS_MESSAGE),
+      Arguments.of(withWord(key, 8, 40 | (4097L << 16)), INVALID_DIMENSIONS_MESSAGE)
     );
   }
 

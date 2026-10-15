@@ -73,6 +73,46 @@ final class SimpleResourcePackTest {
 
   private static final List<CopyOption> REGULAR_MOVE = List.of(StandardCopyOption.REPLACE_EXISTING);
 
+  private static final int PACK_FORMAT = 46;
+
+  private static final String PACK_KEY = "pack";
+  private static final String DESCRIPTION_KEY = "description";
+
+  private static final String AUDIO_SOUND = "mcav:audio";
+  private static final String INTRO_SOUND = "mcav:music/intro";
+  private static final String BEEP_SOUND = "other:beep";
+  private static final String FIRST_SOUND_EVENT = "mcav:first";
+
+  private static final String SHADER_SOURCE = "#version 330";
+  private static final String READABLE_PERMISSIONS = "rw-r--r--";
+
+  private static final String CREDITS_FILE_NAME = "credits.txt";
+  private static final String OUTPUT_FOLDER = "output";
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String GENERATED_FILE_NAME = "generated.zip";
+  private static final String FIRST_FILE_NAME = "first.zip";
+  private static final String SECOND_FILE_NAME = "second.zip";
+  private static final String SOURCE_FILE_NAME = "source.zip";
+  private static final String TARGET_FILE_NAME = "target.zip";
+  private static final String MISSING_FILE_NAME = "missing.txt";
+
+  private static final String METADATA_ENTRY = "pack.mcmeta";
+  private static final String ICON_ENTRY = "pack.png";
+  private static final String GENERATED_ENTRY = "generated.txt";
+  private static final String ASSETS_CREDITS_ENTRY = "assets/credits.txt";
+  private static final String CREDITS_ENTRY = "assets/mcav/texts/credits.txt";
+  private static final String REPLACED_ENTRY = "assets/mcav/texts/replaced.txt";
+  private static final String SHADER_ENTRY = "assets/mcav/shaders/post/a.fsh";
+  private static final String MCAV_SOUNDS_ENTRY = "assets/mcav/sounds.json";
+  private static final String OTHER_SOUNDS_ENTRY = "assets/other/sounds.json";
+  private static final String SOUNDS_TEXT_ENTRY = "assets/mcav/sounds.json.txt";
+  private static final String SOUNDS_README_ENTRY = "assets/mcav/sounds/readme.txt";
+  private static final String AUDIO_ENTRY = "assets/mcav/sounds/audio.ogg";
+  private static final String INTRO_ENTRY = "assets/mcav/sounds/music/intro.ogg";
+  private static final String BEEP_ENTRY = "assets/other/sounds/beep.ogg";
+  private static final String FIRST_SOUND_ENTRY = "assets/mcav/sounds/first.ogg";
+  private static final String SECOND_SOUND_ENTRY = "assets/mcav/sounds/second.ogg";
+
   @TempDir
   private Path directory;
 
@@ -86,7 +126,7 @@ final class SimpleResourcePackTest {
   void writeFiles() throws IOException {
     this.firstSound = this.directory.resolve("first.ogg");
     this.secondSound = this.directory.resolve("second.ogg");
-    this.credits = this.directory.resolve("credits.txt");
+    this.credits = this.directory.resolve(CREDITS_FILE_NAME);
     Files.write(this.firstSound, FIRST_SOUND);
     Files.write(this.secondSound, SECOND_SOUND);
     Files.write(this.credits, CREDITS);
@@ -162,29 +202,29 @@ final class SimpleResourcePackTest {
 
   private Path zipFullPack() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
-    pack.meta(46, DESCRIPTION);
-    pack.sound("mcav:audio", this.firstSound);
-    pack.sound("mcav:music/intro", this.secondSound);
-    pack.sound("other:beep", this.firstSound);
-    pack.external("assets/mcav/texts/credits.txt", this.credits);
+    pack.meta(PACK_FORMAT, DESCRIPTION);
+    pack.sound(AUDIO_SOUND, this.firstSound);
+    pack.sound(INTRO_SOUND, this.secondSound);
+    pack.sound(BEEP_SOUND, this.firstSound);
+    pack.external(CREDITS_ENTRY, this.credits);
 
-    final Path output = this.directory.resolve("output");
-    final Path zip = output.resolve("pack.zip");
+    final Path output = this.directory.resolve(OUTPUT_FOLDER);
+    final Path zip = output.resolve(PACK_FILE_NAME);
     pack.zip(zip);
     return zip;
   }
 
   private static void assertMetadata(final Map<String, byte[]> entries) {
     final JsonObject expectedPack = new JsonObject();
-    expectedPack.addProperty("description", DESCRIPTION);
-    expectedPack.addProperty("pack_format", 46);
-    expectedPack.addProperty("min_format", 46);
-    expectedPack.addProperty("max_format", 46);
+    expectedPack.addProperty(DESCRIPTION_KEY, DESCRIPTION);
+    expectedPack.addProperty("pack_format", PACK_FORMAT);
+    expectedPack.addProperty("min_format", PACK_FORMAT);
+    expectedPack.addProperty("max_format", PACK_FORMAT);
     final JsonObject expectedMeta = new JsonObject();
-    expectedMeta.add("pack", expectedPack);
+    expectedMeta.add(PACK_KEY, expectedPack);
 
-    final JsonObject meta = parseEntry(entries, "pack.mcmeta");
-    final byte[] metaBytes = entries.get("pack.mcmeta");
+    final JsonObject meta = parseEntry(entries, METADATA_ENTRY);
+    final byte[] metaBytes = entries.get(METADATA_ENTRY);
     final String metaText = new String(metaBytes, StandardCharsets.UTF_8);
     final boolean readableDescription = metaText.contains("MCAV <audio> &");
     assertEquals(expectedMeta, meta);
@@ -193,13 +233,13 @@ final class SimpleResourcePackTest {
 
   private static void assertSoundEvents(final Map<String, byte[]> entries) {
     final JsonObject expectedMcavSounds = new JsonObject();
-    addSoundEvent(expectedMcavSounds, "audio", "mcav:audio");
-    addSoundEvent(expectedMcavSounds, "music/intro", "mcav:music/intro");
+    addSoundEvent(expectedMcavSounds, "audio", AUDIO_SOUND);
+    addSoundEvent(expectedMcavSounds, "music/intro", INTRO_SOUND);
     final JsonObject expectedOtherSounds = new JsonObject();
-    addSoundEvent(expectedOtherSounds, "beep", "other:beep");
+    addSoundEvent(expectedOtherSounds, "beep", BEEP_SOUND);
 
-    final JsonObject mcavSounds = parseEntry(entries, "assets/mcav/sounds.json");
-    final JsonObject otherSounds = parseEntry(entries, "assets/other/sounds.json");
+    final JsonObject mcavSounds = parseEntry(entries, MCAV_SOUNDS_ENTRY);
+    final JsonObject otherSounds = parseEntry(entries, OTHER_SOUNDS_ENTRY);
     assertEquals(expectedMcavSounds, mcavSounds);
     assertEquals(expectedOtherSounds, otherSounds);
   }
@@ -211,20 +251,20 @@ final class SimpleResourcePackTest {
     }
 
     final Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(zip);
-    final Set<PosixFilePermission> readable = PosixFilePermissions.fromString("rw-r--r--");
+    final Set<PosixFilePermission> readable = PosixFilePermissions.fromString(READABLE_PERMISSIONS);
     assertEquals(readable, permissions, "a web server running as another user can read the pack");
   }
 
   @Test
   void shouldPackageTheMetadataSoundsAndFilesIntoAZip() throws IOException {
     final List<String> expectedNames = List.of(
-      "pack.mcmeta",
-      "assets/mcav/sounds/audio.ogg",
-      "assets/mcav/sounds/music/intro.ogg",
-      "assets/mcav/sounds.json",
-      "assets/other/sounds/beep.ogg",
-      "assets/other/sounds.json",
-      "assets/mcav/texts/credits.txt"
+      METADATA_ENTRY,
+      AUDIO_ENTRY,
+      INTRO_ENTRY,
+      MCAV_SOUNDS_ENTRY,
+      BEEP_ENTRY,
+      OTHER_SOUNDS_ENTRY,
+      CREDITS_ENTRY
     );
 
     final Path zip = this.zipFullPack();
@@ -237,10 +277,10 @@ final class SimpleResourcePackTest {
     assertEquals(expectedNames, names);
     assertMetadata(entries);
     assertSoundEvents(entries);
-    assertEntry(FIRST_SOUND, entries, "assets/mcav/sounds/audio.ogg");
-    assertEntry(SECOND_SOUND, entries, "assets/mcav/sounds/music/intro.ogg");
-    assertEntry(FIRST_SOUND, entries, "assets/other/sounds/beep.ogg");
-    assertEntry(CREDITS, entries, "assets/mcav/texts/credits.txt");
+    assertEntry(FIRST_SOUND, entries, AUDIO_ENTRY);
+    assertEntry(SECOND_SOUND, entries, INTRO_ENTRY);
+    assertEntry(FIRST_SOUND, entries, BEEP_ENTRY);
+    assertEntry(CREDITS, entries, CREDITS_ENTRY);
     assertEquals(onlyTheZip, outputFiles, "no temporary file is left behind");
     assertReadableByEveryone(zip);
   }
@@ -249,29 +289,24 @@ final class SimpleResourcePackTest {
   void shouldPackageGeneratedContentAndKeepTheLastSourceOfALocation() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(88, "generated");
-    final byte[] shader = "#version 330".getBytes(StandardCharsets.US_ASCII);
-    pack.data("assets/mcav/shaders/post/a.fsh", shader);
+    final byte[] shader = SHADER_SOURCE.getBytes(StandardCharsets.US_ASCII);
+    pack.data(SHADER_ENTRY, shader);
     shader[0] = 'X';
-    pack.data("assets/mcav/texts/credits.txt", new byte[] { 1 });
-    pack.external("assets/mcav/texts/credits.txt", this.credits);
-    pack.external("assets/mcav/texts/replaced.txt", this.credits);
-    pack.data("assets/mcav/texts/replaced.txt", new byte[] { 2 });
-    final Path zip = this.directory.resolve("generated.zip");
+    pack.data(CREDITS_ENTRY, new byte[] { 1 });
+    pack.external(CREDITS_ENTRY, this.credits);
+    pack.external(REPLACED_ENTRY, this.credits);
+    pack.data(REPLACED_ENTRY, new byte[] { 2 });
+    final Path zip = this.directory.resolve(GENERATED_FILE_NAME);
     pack.zip(zip);
 
     final Map<String, byte[]> entries = readZip(zip);
-    final List<String> expectedNames = List.of(
-      "pack.mcmeta",
-      "assets/mcav/texts/credits.txt",
-      "assets/mcav/shaders/post/a.fsh",
-      "assets/mcav/texts/replaced.txt"
-    );
+    final List<String> expectedNames = List.of(METADATA_ENTRY, CREDITS_ENTRY, SHADER_ENTRY, REPLACED_ENTRY);
     final List<String> names = entryNames(entries);
     assertEquals(expectedNames, names);
-    assertEntry("#version 330".getBytes(StandardCharsets.US_ASCII), entries, "assets/mcav/shaders/post/a.fsh");
-    assertEntry(CREDITS, entries, "assets/mcav/texts/credits.txt");
-    assertEntry(new byte[] { 2 }, entries, "assets/mcav/texts/replaced.txt");
-    assertThrows(IllegalArgumentException.class, () -> pack.data("pack.mcmeta", new byte[0]));
+    assertEntry(SHADER_SOURCE.getBytes(StandardCharsets.US_ASCII), entries, SHADER_ENTRY);
+    assertEntry(CREDITS, entries, CREDITS_ENTRY);
+    assertEntry(new byte[] { 2 }, entries, REPLACED_ENTRY);
+    assertThrows(IllegalArgumentException.class, () -> pack.data(METADATA_ENTRY, new byte[0]));
     assertThrows(IllegalArgumentException.class, () -> pack.data("assets/../pack.mcmeta", new byte[0]));
     assertThrows(IllegalArgumentException.class, () -> pack.data("/assets/a.txt", new byte[0]));
   }
@@ -280,11 +315,11 @@ final class SimpleResourcePackTest {
   void shouldZipTheSamePackToTheSameBytes() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(88, "stable");
-    pack.sound("mcav:first", this.firstSound);
-    pack.external("assets/mcav/texts/credits.txt", this.credits);
-    pack.data("assets/mcav/shaders/post/a.fsh", "#version 330".getBytes(StandardCharsets.US_ASCII));
-    final Path first = this.directory.resolve("first.zip");
-    final Path second = this.directory.resolve("second.zip");
+    pack.sound(FIRST_SOUND_EVENT, this.firstSound);
+    pack.external(CREDITS_ENTRY, this.credits);
+    pack.data(SHADER_ENTRY, SHADER_SOURCE.getBytes(StandardCharsets.US_ASCII));
+    final Path first = this.directory.resolve(FIRST_FILE_NAME);
+    final Path second = this.directory.resolve(SECOND_FILE_NAME);
     pack.zip(first);
     pack.zip(second);
     final byte[] expectedBytes = Files.readAllBytes(first);
@@ -322,16 +357,16 @@ final class SimpleResourcePackTest {
   @Test
   void shouldRejectFileLocationsReservedForGeneratedEntries() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
-    final Path zip = this.directory.resolve("pack.zip");
-    final List<String> expectedNames = List.of("pack.mcmeta", "pack.png", "assets/mcav/sounds/readme.txt", "assets/mcav/sounds.json.txt");
+    final Path zip = this.directory.resolve(PACK_FILE_NAME);
+    final List<String> expectedNames = List.of(METADATA_ENTRY, ICON_ENTRY, SOUNDS_README_ENTRY, SOUNDS_TEXT_ENTRY);
 
-    final IllegalArgumentException meta = assertThrows(IllegalArgumentException.class, () -> pack.external("pack.mcmeta", this.credits));
-    assertThrows(IllegalArgumentException.class, () -> pack.external("assets/mcav/sounds.json", this.credits));
-    assertThrows(IllegalArgumentException.class, () -> pack.external("assets/mcav/sounds/audio.ogg", this.credits));
+    final IllegalArgumentException meta = assertThrows(IllegalArgumentException.class, () -> pack.external(METADATA_ENTRY, this.credits));
+    assertThrows(IllegalArgumentException.class, () -> pack.external(MCAV_SOUNDS_ENTRY, this.credits));
+    assertThrows(IllegalArgumentException.class, () -> pack.external(AUDIO_ENTRY, this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("assets/other/sounds/music/intro.ogg", this.credits));
-    pack.external("pack.png", this.credits);
-    pack.external("assets/mcav/sounds/readme.txt", this.credits);
-    pack.external("assets/mcav/sounds.json.txt", this.credits);
+    pack.external(ICON_ENTRY, this.credits);
+    pack.external(SOUNDS_README_ENTRY, this.credits);
+    pack.external(SOUNDS_TEXT_ENTRY, this.credits);
     pack.meta(1, "pack");
     pack.zip(zip);
 
@@ -345,7 +380,7 @@ final class SimpleResourcePackTest {
   @Test
   void shouldMakeFilesReadableByEveryoneOnlyOnPosixFileSystems() throws IOException {
     final PosixFileAttributeView view = mock(PosixFileAttributeView.class);
-    final Set<PosixFilePermission> readable = PosixFilePermissions.fromString("rw-r--r--");
+    final Set<PosixFilePermission> readable = PosixFilePermissions.fromString(READABLE_PERMISSIONS);
 
     SimpleResourcePack.makeReadable(view);
 
@@ -355,8 +390,8 @@ final class SimpleResourcePackTest {
 
   @Test
   void shouldMovePacksIntoPlaceAtomicallyWhereSupported() throws IOException {
-    final Path source = this.directory.resolve("source.zip");
-    final Path target = this.directory.resolve("target.zip");
+    final Path source = this.directory.resolve(SOURCE_FILE_NAME);
+    final Path target = this.directory.resolve(TARGET_FILE_NAME);
     Files.write(source, CREDITS);
     final List<List<CopyOption>> moves = new ArrayList<>();
     final SimpleResourcePack.FileMover mover = recordingMover(moves, true);
@@ -371,8 +406,8 @@ final class SimpleResourcePackTest {
 
   @Test
   void shouldFallBackToARegularMoveWhereAtomicMovesAreNotSupported() throws IOException {
-    final Path source = this.directory.resolve("source.zip");
-    final Path target = this.directory.resolve("target.zip");
+    final Path source = this.directory.resolve(SOURCE_FILE_NAME);
+    final Path target = this.directory.resolve(TARGET_FILE_NAME);
     Files.write(source, CREDITS);
     Files.write(target, FIRST_SOUND);
     final List<List<CopyOption>> moves = new ArrayList<>();
@@ -390,27 +425,27 @@ final class SimpleResourcePackTest {
 
   @Test
   void shouldReplaceSoundsWithTheSameKeyAndPacksThatAlreadyExist() throws IOException {
-    final Path zip = this.directory.resolve("pack.zip");
+    final Path zip = this.directory.resolve(PACK_FILE_NAME);
     final SimpleResourcePack first = SimpleResourcePack.pack();
     final SimpleResourcePack second = SimpleResourcePack.pack();
 
     first.meta(1, "first");
     first.zip(zip);
     second.meta(2, "second");
-    second.sound("mcav:audio", this.firstSound);
-    second.sound("mcav:audio", this.secondSound);
+    second.sound(AUDIO_SOUND, this.firstSound);
+    second.sound(AUDIO_SOUND, this.secondSound);
     second.zip(zip);
 
     final Map<String, byte[]> entries = readZip(zip);
-    final JsonObject meta = parseEntry(entries, "pack.mcmeta");
-    final JsonObject packObject = meta.getAsJsonObject("pack");
-    final JsonElement descriptionElement = packObject.get("description");
+    final JsonObject meta = parseEntry(entries, METADATA_ENTRY);
+    final JsonObject packObject = meta.getAsJsonObject(PACK_KEY);
+    final JsonElement descriptionElement = packObject.get(DESCRIPTION_KEY);
     final String description = descriptionElement.getAsString();
-    final JsonObject sounds = parseEntry(entries, "assets/mcav/sounds.json");
+    final JsonObject sounds = parseEntry(entries, MCAV_SOUNDS_ENTRY);
     final int eventCount = sounds.size();
     assertEquals("second", description);
     assertEquals(1, eventCount);
-    assertEntry(SECOND_SOUND, entries, "assets/mcav/sounds/audio.ogg");
+    assertEntry(SECOND_SOUND, entries, AUDIO_ENTRY);
   }
 
   @Test
@@ -421,68 +456,62 @@ final class SimpleResourcePackTest {
     assertNotSame(first, second);
     first.meta(1, "first");
     second.meta(2, "second");
-    first.external("credits.txt", this.credits);
-    second.external("credits.txt", this.secondSound);
-    first.data("generated.txt", FIRST_SOUND);
-    second.data("generated.txt", SECOND_SOUND);
-    first.sound("mcav:first", this.firstSound);
+    first.external(CREDITS_FILE_NAME, this.credits);
+    second.external(CREDITS_FILE_NAME, this.secondSound);
+    first.data(GENERATED_ENTRY, FIRST_SOUND);
+    second.data(GENERATED_ENTRY, SECOND_SOUND);
+    first.sound(FIRST_SOUND_EVENT, this.firstSound);
     second.sound("mcav:second", this.secondSound);
-    final Path firstZip = this.directory.resolve("first.zip");
-    final Path secondZip = this.directory.resolve("second.zip");
+    final Path firstZip = this.directory.resolve(FIRST_FILE_NAME);
+    final Path secondZip = this.directory.resolve(SECOND_FILE_NAME);
     first.zip(firstZip);
     second.zip(secondZip);
 
     final Map<String, byte[]> firstEntries = readZip(firstZip);
     final Map<String, byte[]> secondEntries = readZip(secondZip);
-    final Set<String> expectedFirstNames = Set.of(
-      "pack.mcmeta",
-      "credits.txt",
-      "generated.txt",
-      "assets/mcav/sounds/first.ogg",
-      "assets/mcav/sounds.json"
-    );
+    final Set<String> expectedFirstNames = Set.of(METADATA_ENTRY, CREDITS_FILE_NAME, GENERATED_ENTRY, FIRST_SOUND_ENTRY, MCAV_SOUNDS_ENTRY);
     final Set<String> firstNames = firstEntries.keySet();
     assertEquals(expectedFirstNames, firstNames);
     final Set<String> expectedSecondNames = Set.of(
-      "pack.mcmeta",
-      "credits.txt",
-      "generated.txt",
-      "assets/mcav/sounds/second.ogg",
-      "assets/mcav/sounds.json"
+      METADATA_ENTRY,
+      CREDITS_FILE_NAME,
+      GENERATED_ENTRY,
+      SECOND_SOUND_ENTRY,
+      MCAV_SOUNDS_ENTRY
     );
     final Set<String> secondNames = secondEntries.keySet();
     assertEquals(expectedSecondNames, secondNames);
     final JsonElement expectedFirstMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"first\",\"pack_format\":1,\"min_format\":1,\"max_format\":1}}"
     );
-    final JsonObject firstMetadata = parseEntry(firstEntries, "pack.mcmeta");
+    final JsonObject firstMetadata = parseEntry(firstEntries, METADATA_ENTRY);
     assertEquals(expectedFirstMetadata, firstMetadata);
     final JsonElement expectedSecondMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"second\",\"pack_format\":2,\"min_format\":2,\"max_format\":2}}"
     );
-    final JsonObject secondMetadata = parseEntry(secondEntries, "pack.mcmeta");
+    final JsonObject secondMetadata = parseEntry(secondEntries, METADATA_ENTRY);
     assertEquals(expectedSecondMetadata, secondMetadata);
 
     final JsonObject firstEvents = new JsonObject();
     final JsonObject secondEvents = new JsonObject();
-    addSoundEvent(firstEvents, "first", "mcav:first");
+    addSoundEvent(firstEvents, "first", FIRST_SOUND_EVENT);
     addSoundEvent(secondEvents, "second", "mcav:second");
-    final JsonObject firstSounds = parseEntry(firstEntries, "assets/mcav/sounds.json");
+    final JsonObject firstSounds = parseEntry(firstEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(firstEvents, firstSounds);
-    final JsonObject secondSounds = parseEntry(secondEntries, "assets/mcav/sounds.json");
+    final JsonObject secondSounds = parseEntry(secondEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(secondEvents, secondSounds);
-    assertEntry(CREDITS, firstEntries, "credits.txt");
-    assertEntry(SECOND_SOUND, secondEntries, "credits.txt");
-    assertEntry(FIRST_SOUND, firstEntries, "generated.txt");
-    assertEntry(SECOND_SOUND, secondEntries, "generated.txt");
-    assertEntry(FIRST_SOUND, firstEntries, "assets/mcav/sounds/first.ogg");
-    assertEntry(SECOND_SOUND, secondEntries, "assets/mcav/sounds/second.ogg");
+    assertEntry(CREDITS, firstEntries, CREDITS_FILE_NAME);
+    assertEntry(SECOND_SOUND, secondEntries, CREDITS_FILE_NAME);
+    assertEntry(FIRST_SOUND, firstEntries, GENERATED_ENTRY);
+    assertEntry(SECOND_SOUND, secondEntries, GENERATED_ENTRY);
+    assertEntry(FIRST_SOUND, firstEntries, FIRST_SOUND_ENTRY);
+    assertEntry(SECOND_SOUND, secondEntries, SECOND_SOUND_ENTRY);
   }
 
   @Test
   void shouldNeedMetadataBeforeZipping() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
-    final Path zip = this.directory.resolve("pack.zip");
+    final Path zip = this.directory.resolve(PACK_FILE_NAME);
 
     assertThrows(IllegalStateException.class, () -> pack.zip(zip));
 
@@ -530,25 +559,25 @@ final class SimpleResourcePackTest {
     assertThrows(IllegalArgumentException.class, () -> pack.sound("mcav:", this.firstSound));
     assertThrows(IllegalArgumentException.class, () -> pack.sound(":audio", this.firstSound));
     assertThrows(IllegalArgumentException.class, () -> pack.sound("mcav:my audio", this.firstSound));
-    assertThrows(IllegalArgumentException.class, () -> pack.sound("mcav:audio", missing));
-    assertThrows(IllegalArgumentException.class, () -> pack.sound("mcav:audio", this.directory));
+    assertThrows(IllegalArgumentException.class, () -> pack.sound(AUDIO_SOUND, missing));
+    assertThrows(IllegalArgumentException.class, () -> pack.sound(AUDIO_SOUND, this.directory));
     assertThrows(NullPointerException.class, () -> pack.sound(null, this.firstSound));
-    assertThrows(NullPointerException.class, () -> pack.sound("mcav:audio", null));
+    assertThrows(NullPointerException.class, () -> pack.sound(AUDIO_SOUND, null));
   }
 
   @Test
   void shouldRejectInvalidFileLocations() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
-    final Path missing = this.directory.resolve("missing.txt");
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
 
     assertThrows(IllegalArgumentException.class, () -> pack.external("../evil.txt", this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("assets/../../evil.txt", this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("with space.txt", this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("C:/absolute.txt", this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("", this.credits));
-    assertThrows(IllegalArgumentException.class, () -> pack.external("assets/credits.txt", missing));
+    assertThrows(IllegalArgumentException.class, () -> pack.external(ASSETS_CREDITS_ENTRY, missing));
     assertThrows(NullPointerException.class, () -> pack.external(null, this.credits));
-    assertThrows(NullPointerException.class, () -> pack.external("assets/credits.txt", null));
+    assertThrows(NullPointerException.class, () -> pack.external(ASSETS_CREDITS_ENTRY, null));
   }
 
   @Test
@@ -572,7 +601,7 @@ final class SimpleResourcePackTest {
   void shouldReportPacksThatCannotBeWritten() throws IOException {
     final SimpleResourcePack blocked = SimpleResourcePack.pack();
     final Path file = this.directory.resolve("file");
-    final Path belowFile = file.resolve("pack.zip");
+    final Path belowFile = file.resolve(PACK_FILE_NAME);
     blocked.meta(1, "pack");
     Files.write(file, CREDITS);
 
@@ -582,10 +611,10 @@ final class SimpleResourcePackTest {
   @Test
   void shouldLeaveNothingBehindWhenASoundVanishesBeforeZipping() throws IOException {
     final SimpleResourcePack vanished = SimpleResourcePack.pack();
-    final Path output = this.directory.resolve("output");
-    final Path zip = output.resolve("pack.zip");
+    final Path output = this.directory.resolve(OUTPUT_FOLDER);
+    final Path zip = output.resolve(PACK_FILE_NAME);
     vanished.meta(1, "pack");
-    vanished.sound("mcav:audio", this.firstSound);
+    vanished.sound(AUDIO_SOUND, this.firstSound);
     Files.delete(this.firstSound);
     Files.createDirectory(output);
 

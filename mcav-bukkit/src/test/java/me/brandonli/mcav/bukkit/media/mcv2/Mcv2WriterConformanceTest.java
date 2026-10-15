@@ -26,12 +26,23 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 final class Mcv2WriterConformanceTest {
 
+  private static final String PATH_SEPARATOR = "/";
+  private static final String EDGE_FOLDER = "edge/";
+  private static final String WRITER_CANONICAL_FOLDER = "writer-canonical/";
+
+  private static final String EDGE_CROPPED_STREAM = "edge-cropped.mcs";
+  private static final String EDGE_DIRECTORY_STREAM = "edge-directory.mcs";
+  private static final String EDGE_MODES_STREAM = "edge-modes.mcs";
+  private static final String EDGE_PATTERNS_STREAM = "edge-patterns.mcs";
+  private static final String EDGE_TINY_STREAM = "edge-tiny.mcs";
+  private static final String EDGE_VERTICAL_STREAM = "edge-vertical.mcs";
+
   private static Stream<String> streams() {
     return Stream.of("conformance", "edge").flatMap(folder ->
       Mcv2Fixtures.digests(folder)
         .keySet()
         .stream()
-        .map(name -> folder + "/" + name)
+        .map(name -> folder + PATH_SEPARATOR + name)
     );
   }
 
@@ -40,16 +51,16 @@ final class Mcv2WriterConformanceTest {
   void shouldRebuildEveryCommittedFrameByteForByte(final String name) throws Mcv2Exception {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(name));
     final List<byte[]> canonical =
-      name.startsWith("edge/") &&
+      name.startsWith(EDGE_FOLDER) &&
       List.of(
-        "edge-cropped.mcs",
-        "edge-directory.mcs",
-        "edge-modes.mcs",
-        "edge-patterns.mcs",
-        "edge-tiny.mcs",
-        "edge-vertical.mcs"
+        EDGE_CROPPED_STREAM,
+        EDGE_DIRECTORY_STREAM,
+        EDGE_MODES_STREAM,
+        EDGE_PATTERNS_STREAM,
+        EDGE_TINY_STREAM,
+        EDGE_VERTICAL_STREAM
       ).contains(name.substring(5))
-        ? Mcv2Fixtures.frames(Mcv2Fixtures.read("writer-canonical/" + name.substring(5)))
+        ? Mcv2Fixtures.frames(Mcv2Fixtures.read(WRITER_CANONICAL_FOLDER + name.substring(5)))
         : frames;
     for (int index = 0; index < frames.size(); index++) {
       final byte[] data = frames.get(index);

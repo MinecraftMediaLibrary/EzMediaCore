@@ -37,6 +37,8 @@ final class Mcv2ParserRulesTest {
   private static final byte[] ENDPOINTS = { 0, 0, 0, -1, -1, -1 };
   private static final byte[] OTHER_ENDPOINTS = { -1, 0, 0, 0, 0, -1 };
 
+  private static final String INVALID_DESCRIPTOR_MESSAGE = "Invalid descriptor!";
+
   private record Layout(int counts, int plane, int walk, int start) {
     private static Layout of(final byte[] frame) {
       final int width = Mcv2Decoder.u16(frame, 8);
@@ -95,7 +97,7 @@ final class Mcv2ParserRulesTest {
     final byte descriptorMode = frame[descriptor];
     assertEquals(Mcv2Decoder.MODE_SPLIT, descriptorMode);
     final String failureMessage = message(withByte(frame, descriptor, Mcv2Decoder.MODE_SPLIT | (1 << 5)));
-    assertEquals("Invalid descriptor!", failureMessage);
+    assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
   }
 
   @Test
@@ -127,7 +129,7 @@ final class Mcv2ParserRulesTest {
     final int descriptor = Layout.of(frame).plane();
     for (int mode = 7; mode < 32; mode++) {
       final String failureMessage = message(withByte(frame, descriptor, mode));
-      assertEquals("Invalid descriptor!", failureMessage);
+      assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
     }
   }
 
@@ -171,7 +173,7 @@ final class Mcv2ParserRulesTest {
       final byte[] frame = predicted(32, 32, node);
       Mcv2Decoder.putU32(frame, 16, 1);
       final String failureMessage = message(frame);
-      assertEquals("Invalid descriptor!", failureMessage);
+      assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
     }
   }
 }

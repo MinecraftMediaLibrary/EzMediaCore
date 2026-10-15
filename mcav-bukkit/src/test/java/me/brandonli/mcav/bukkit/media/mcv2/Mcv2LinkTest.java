@@ -27,9 +27,11 @@ import org.junit.jupiter.api.Test;
 /** A viewer's link: what it can decode, and frames held back while its connection is behind. */
 final class Mcv2LinkTest {
 
+  private static final int LINK_LIMIT = 1000;
+
   @Test
   void shouldStartWithAKeyframe() {
-    final Mcv2Link link = new Mcv2Link(1000);
+    final Mcv2Link link = new Mcv2Link(LINK_LIMIT);
     final boolean decodesBeforeKeyframe = link.canDecode(false, 0);
     assertFalse(decodesBeforeKeyframe);
     // the id no frame has is never a reference, not even before the first frame
@@ -79,7 +81,7 @@ final class Mcv2LinkTest {
 
   @Test
   void shouldRefuseAnOlderKeyframeAfterSendingAPredictedFrame() {
-    final Mcv2Link link = new Mcv2Link(1000);
+    final Mcv2Link link = new Mcv2Link(LINK_LIMIT);
     final boolean sentKeyframe = link.offer(10, 10, true, 1);
     assertTrue(sentKeyframe);
     final boolean sentPredicted = link.offer(11, 10, false, 1);

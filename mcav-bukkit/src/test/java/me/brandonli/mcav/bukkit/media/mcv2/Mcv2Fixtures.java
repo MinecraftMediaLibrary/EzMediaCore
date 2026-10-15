@@ -41,6 +41,8 @@ import java.util.TreeMap;
  */
 public final class Mcv2Fixtures {
 
+  private static final String DIGESTS_FILE = "/digests.json";
+
   /** The resource folder of the fixtures. */
   private static final String ROOT = "/mcv2/";
 
@@ -86,7 +88,7 @@ public final class Mcv2Fixtures {
    * @return the digests of every stream, by file name
    */
   static Map<String, List<String>> digests(final String folder) {
-    final String text = new String(read(folder + "/digests.json"), StandardCharsets.UTF_8);
+    final String text = new String(read(folder + DIGESTS_FILE), StandardCharsets.UTF_8);
     final JsonObject root = JsonParser.parseString(text).getAsJsonObject();
     final Map<String, List<String>> digests = new TreeMap<>();
     for (final Map.Entry<String, JsonElement> entry : root.entrySet()) {

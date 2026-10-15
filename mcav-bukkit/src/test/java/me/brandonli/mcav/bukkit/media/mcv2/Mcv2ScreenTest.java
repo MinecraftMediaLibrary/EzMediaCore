@@ -75,6 +75,11 @@ final class Mcv2ScreenTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000011");
 
+  private static final int WALL_MAP = 100;
+  private static final int PAGE_MAP = 500;
+
+  private static final String TEAM_SUFFIX_PATTERN = "[0-9a-z]{1,7}";
+
   private FakeServer server;
 
   private CraftPlayer player;
@@ -131,10 +136,10 @@ final class Mcv2ScreenTest {
       .viewers(List.of(VIEWER))
       .origin(new Location(this.world, originX, 64, -4))
       .facing(facing)
-      .map(100)
+      .map(WALL_MAP)
       .columns(3)
       .rows(2)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .pageSlots(2)
       .streamId(70)
       .outlineColor(NamedTextColor.GOLD)
@@ -244,7 +249,7 @@ final class Mcv2ScreenTest {
     assertEquals(2, packetCount);
     final Packet<?> teamPacket = packets.get(0);
     final ClientboundSetPlayerTeamPacket team = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, teamPacket);
-    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}");
+    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + TEAM_SUFFIX_PATTERN);
     assertTrue(namedAsScreenTeam);
     final String expectedName = screen.team().getName();
     final String teamName = team.getName();
@@ -410,7 +415,7 @@ final class Mcv2ScreenTest {
     final Optional<TeamColor> expectedColor = Optional.of(TeamColor.GOLD);
     final Optional<TeamColor> color = team.getColor();
     assertEquals(expectedColor, color);
-    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}");
+    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + TEAM_SUFFIX_PATTERN);
     assertTrue(namedAsScreenTeam);
     final String expectedName = screen.team().getName();
     final String teamName = team.getName();
@@ -426,15 +431,15 @@ final class Mcv2ScreenTest {
         .viewers(List.of(VIEWER))
         .origin(new Location(this.world, 10, 64, -4))
         .facing(BlockFace.SOUTH)
-        .map(100)
+        .map(WALL_MAP)
         .columns(wall[0])
         .rows(wall[1])
-        .pageMap(500)
+        .pageMap(PAGE_MAP)
         .build();
       new Mcv2Screen(configuration).build();
       final Set<Integer> absent = new TreeSet<>();
       for (int slot = 0; slot < configuration.getPageSlots(); slot++) {
-        if (!this.items.containsKey(500 + slot)) {
+        if (!this.items.containsKey(PAGE_MAP + slot)) {
           absent.add(slot);
         }
       }

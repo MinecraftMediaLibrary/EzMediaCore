@@ -71,6 +71,25 @@ final class Mcv2ChannelTest {
 
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000033");
 
+  private static final int WALL_MAP = 100;
+  private static final int PAGE_MAP = 500;
+
+  private static final int MAP_SIZE = 128;
+
+  private static final int FRAME_SIZE = 32;
+
+  private static final int GROUND_LEVEL = 64;
+  private static final double STANDING_LEVEL = 64.5;
+  private static final double BLOCK_CENTER = 0.5;
+
+  private static final int BACKLOG_LIMIT = 400;
+
+  private static final int VIEW_DISTANCE = 6;
+
+  private static final String SECOND_VIEWER_ID = "00000000-0000-0000-0000-000000000034";
+  private static final String OVERWORLD_ID = "00000000-0000-0000-0000-00000000a0a0";
+  private static final String NETHER_ID = "00000000-0000-0000-0000-00000000b0b0";
+
   private FakeServer server;
 
   private CraftPlayer player;
@@ -91,15 +110,15 @@ final class Mcv2ChannelTest {
     when(this.viewers.isLoaded(LOADED)).thenReturn(true);
     when(this.viewers.isLoaded(OFFLINE)).thenReturn(true);
     this.screen = mock(Mcv2Screen.class);
-    when(this.screen.anchors()).thenReturn(List.of(new MapTilePatch(100, 0, 0, 128, 1, new byte[128])));
+    when(this.screen.anchors()).thenReturn(List.of(new MapTilePatch(WALL_MAP, 0, 0, MAP_SIZE, 1, new byte[MAP_SIZE])));
     this.configuration = Mcv2Configuration.builder()
       .viewers(new ArrayList<>(List.of(LOADED, WITHOUT, OFFLINE)))
-      .origin(new Location(mock(World.class), 0, 64, 0))
+      .origin(new Location(mock(World.class), 0, GROUND_LEVEL, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .build();
   }
 
@@ -109,11 +128,11 @@ final class Mcv2ChannelTest {
   }
 
   static byte[] keyframe() {
-    return Mcv2Trees.write(32, 32, 0, 0, true, List.of(Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 })));
+    return Mcv2Trees.write(FRAME_SIZE, FRAME_SIZE, 0, 0, true, List.of(Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 })));
   }
 
   private static byte[] predicted() {
-    return Mcv2Trees.write(32, 32, 1, 0, false, List.of(Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 })));
+    return Mcv2Trees.write(FRAME_SIZE, FRAME_SIZE, 1, 0, false, List.of(Node.leaf(Mcv2Decoder.MODE_MOTION, 0, new byte[] { 1, 1 })));
   }
 
   /** A frame of the 32x32 test video: one solid root in a keyframe, one motion root in a P frame. */
@@ -285,7 +304,7 @@ final class Mcv2ChannelTest {
 
   @Test
   void shouldHideEveryViewerRemovedWhileTheScreenCloses() {
-    final UUID second = UUID.fromString("00000000-0000-0000-0000-000000000034");
+    final UUID second = UUID.fromString(SECOND_VIEWER_ID);
     final CraftPlayer secondPlayer = this.server.addPlayer(second);
     when(this.viewers.isLoaded(second)).thenReturn(true);
     this.configuration.getViewers().add(second);
@@ -352,7 +371,7 @@ final class Mcv2ChannelTest {
     this.server.runTasks();
     channel.update();
     final int colors = channel.send(keyframe());
-    final boolean positiveWholeRows = colors > 0 && colors % 128 == 0;
+    final boolean positiveWholeRows = colors > 0 && colors % MAP_SIZE == 0;
     assertTrue(positiveWholeRows);
     final List<ClientboundMapItemDataPacket> first = MapPackets.unbundle(this.server.getSentPackets(LOADED).getFirst());
     final int firstSize = first.size();
@@ -368,20 +387,20 @@ final class Mcv2ChannelTest {
 
   @Test
   void shouldHoldBackAViewerWhoseConnectionFellBehind() throws Exception {
-    final UUID other = UUID.fromString("00000000-0000-0000-0000-000000000034");
+    final UUID other = UUID.fromString(SECOND_VIEWER_ID);
     final CraftPlayer second = this.server.addPlayer(other);
     PacketUtils.initialize();
     when(this.viewers.isLoaded(other)).thenReturn(true);
     // room for one page and its anchor, not for a second frame on top
     final Mcv2Configuration tight = Mcv2Configuration.builder()
       .viewers(List.of(LOADED, other))
-      .origin(new Location(mock(World.class), 0, 64, 0))
+      .origin(new Location(mock(World.class), 0, GROUND_LEVEL, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
-      .pageMap(500)
-      .backlogLimit(400)
+      .pageMap(PAGE_MAP)
+      .backlogLimit(BACKLOG_LIMIT)
       .unsentLimit(0)
       .build();
     final Mcv2Channel channel = new Mcv2Channel(tight, this.viewers, this.screen);
@@ -402,7 +421,7 @@ final class Mcv2ChannelTest {
     final Mcv2Link slow = channel.getLinks().get(LOADED);
     final long behind = slow.getBehind();
     assertEquals(1, behind);
-    final boolean overTheLimit = slow.getBacklog() > 400;
+    final boolean overTheLimit = slow.getBacklog() > BACKLOG_LIMIT;
     assertTrue(overTheLimit);
 
     // once it has written, frame 3 predicts from frame 2, which it missed: it waits for the next keyframe
@@ -429,14 +448,14 @@ final class Mcv2ChannelTest {
   void shouldRecordEverySendForTheFlightRecorder(@TempDir final Path directory) throws Exception {
     final Mcv2Configuration tight = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
-      .origin(new Location(mock(World.class), 0, 64, 0))
+      .origin(new Location(mock(World.class), 0, GROUND_LEVEL, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .pageSlots(1)
-      .backlogLimit(400)
+      .backlogLimit(BACKLOG_LIMIT)
       .build();
     final Mcv2Channel channel = new Mcv2Channel(tight, this.viewers, this.screen);
     channel.update();
@@ -469,7 +488,7 @@ final class Mcv2ChannelTest {
       assertEquals(0, referenceId);
       final int behind = sends.get(2).getInt("behind");
       assertEquals(1, behind);
-      final boolean overTheLimit = sends.get(2).getLong("backlog") > 400;
+      final boolean overTheLimit = sends.get(2).getLong("backlog") > BACKLOG_LIMIT;
       assertTrue(overTheLimit);
       final int waiting = sends.get(3).getInt("waiting");
       assertEquals(1, waiting);
@@ -510,12 +529,12 @@ final class Mcv2ChannelTest {
     // a wall of two maps: a page frame hangs behind each, so it carries two page slots
     final Mcv2Configuration two = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
-      .origin(new Location(mock(World.class), 0, 64, 0))
+      .origin(new Location(mock(World.class), 0, GROUND_LEVEL, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(2)
       .rows(1)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .pageSlots(2)
       .build();
     final Mcv2Channel channel = new Mcv2Channel(two, this.viewers, this.screen);
@@ -527,7 +546,7 @@ final class Mcv2ChannelTest {
 
     // the two pages on maps 500 and 501, then the keyframe's anchor
     final List<ClientboundMapItemDataPacket> sent = MapPackets.unbundle(this.server.getSentPackets(LOADED).getFirst());
-    final List<Integer> expected = List.of(500, 501, 100);
+    final List<Integer> expected = List.of(PAGE_MAP, 501, WALL_MAP);
     final List<Integer> mapIds = sent
       .stream()
       .map(packet -> packet.mapId().id())
@@ -539,12 +558,12 @@ final class Mcv2ChannelTest {
   void shouldDropAFrameWithMorePagesThanSlots() {
     final Mcv2Configuration narrow = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
-      .origin(new Location(mock(World.class), 0, 64, 0))
+      .origin(new Location(mock(World.class), 0, GROUND_LEVEL, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .pageSlots(1)
       .build();
     final Mcv2Channel channel = new Mcv2Channel(narrow, this.viewers, this.screen);
@@ -609,18 +628,18 @@ final class Mcv2ChannelTest {
     final int columns,
     final int rows
   ) {
-    when(world.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000a0a0"));
+    when(world.getUID()).thenReturn(UUID.fromString(OVERWORLD_ID));
     final Mcv2Configuration wall = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
-      .origin(new Location(world, 0, 64, 0))
+      .origin(new Location(world, 0, GROUND_LEVEL, 0))
       .facing(facing)
-      .map(100)
+      .map(WALL_MAP)
       .columns(columns)
       .rows(rows)
-      .pageMap(500)
+      .pageMap(PAGE_MAP)
       .pageSlots(1)
       .build();
-    when(this.player.getViewDistance()).thenReturn(6);
+    when(this.player.getViewDistance()).thenReturn(VIEW_DISTANCE);
     when(this.player.getWorld()).thenAnswer(_ -> position.get().getWorld());
     when(this.player.getLocation()).thenAnswer(_ -> position.get());
     return new Mcv2Channel(wall, this.viewers, this.screen);
@@ -670,7 +689,7 @@ final class Mcv2ChannelTest {
   @Test
   void shouldSendNoFramesToAViewerOutOfSightOfTheWallUntilTheyComeBack() {
     final World world = mock(World.class);
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 400, 64, 0));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, BACKLOG_LIMIT, GROUND_LEVEL, 0));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     this.tick(channel);
@@ -683,7 +702,7 @@ final class Mcv2ChannelTest {
     final List<Packet<?>> sentWhileAway = this.server.getSentPackets(LOADED);
     assertEquals(List.of(), sentWhileAway, "400 blocks away with a view distance of 6 chunks");
 
-    position.set(new Location(world, 0, 64, 4));
+    position.set(new Location(world, 0, GROUND_LEVEL, 4));
     this.tick(channel);
     final boolean keyframeRequested = channel.takeKeyframeRequest();
     assertTrue(keyframeRequested);
@@ -702,12 +721,12 @@ final class Mcv2ChannelTest {
   @Test
   void shouldRecheckTheViewersDistanceInAScheduledShow() {
     final World world = mock(World.class);
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, 64, 4));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, GROUND_LEVEL, 4));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     try {
       channel.update();
-      position.set(new Location(world, 400, 64, 0));
+      position.set(new Location(world, BACKLOG_LIMIT, GROUND_LEVEL, 0));
       channel.measureRange();
       this.server.runTasks();
       final Map<UUID, Mcv2Link> links = channel.getLinks();
@@ -726,8 +745,8 @@ final class Mcv2ChannelTest {
   void shouldSendNoFramesToAViewerInAnotherWorld() {
     final World world = mock(World.class);
     final World nether = mock(World.class);
-    when(nether.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000b0b0"));
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(nether, 0, 64, 4));
+    when(nether.getUID()).thenReturn(UUID.fromString(NETHER_ID));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(nether, 0, GROUND_LEVEL, 4));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     this.tick(channel);
@@ -741,21 +760,21 @@ final class Mcv2ChannelTest {
   @Test
   void shouldHideAViewerRemovedWhileOutOfRange() {
     final World world = this.configuration.getOrigin().getWorld();
-    this.assertHiddenWhenRemovedAt(new Location(world, 400, 64, 0));
+    this.assertHiddenWhenRemovedAt(new Location(world, BACKLOG_LIMIT, GROUND_LEVEL, 0));
   }
 
   @Test
   void shouldHideAViewerRemovedWhileInAnotherWorld() {
     final World nether = mock(World.class);
-    when(nether.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000b0b0"));
-    this.assertHiddenWhenRemovedAt(new Location(nether, 0, 64, 4));
+    when(nether.getUID()).thenReturn(UUID.fromString(NETHER_ID));
+    this.assertHiddenWhenRemovedAt(new Location(nether, 0, GROUND_LEVEL, 4));
   }
 
   /** The screen of one map at (0, 64, 0), seen by the viewer with the pack from wherever the position is. */
   private Mcv2Channel seenFrom(final AtomicReference<Location> position) {
     final World world = this.configuration.getOrigin().getWorld();
-    when(world.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000a0a0"));
-    when(this.player.getViewDistance()).thenReturn(6);
+    when(world.getUID()).thenReturn(UUID.fromString(OVERWORLD_ID));
+    when(this.player.getViewDistance()).thenReturn(VIEW_DISTANCE);
     when(this.player.getWorld()).thenAnswer(_ -> position.get().getWorld());
     when(this.player.getLocation()).thenAnswer(_ -> position.get());
     return new Mcv2Channel(this.configuration, this.viewers, this.screen);
@@ -767,7 +786,7 @@ final class Mcv2ChannelTest {
    */
   private void assertHiddenWhenRemovedAt(final Location elsewhere) {
     final World world = this.configuration.getOrigin().getWorld();
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, 64, 4));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, GROUND_LEVEL, 4));
     final Mcv2Channel channel = this.seenFrom(position);
     channel.open();
     this.tick(channel);
@@ -796,7 +815,7 @@ final class Mcv2ChannelTest {
   @Test
   void shouldHideNothingFromAViewerNeverShownTheScreenWhenRemovedWhileAway() {
     final World world = this.configuration.getOrigin().getWorld();
-    final Mcv2Channel channel = this.seenFrom(new AtomicReference<>(new Location(world, 400, 64, 0)));
+    final Mcv2Channel channel = this.seenFrom(new AtomicReference<>(new Location(world, BACKLOG_LIMIT, GROUND_LEVEL, 0)));
     channel.open();
     this.tick(channel);
     this.configuration.getViewers().remove(LOADED);
@@ -812,7 +831,7 @@ final class Mcv2ChannelTest {
   void shouldNotLetAViewerAtTheEdgeOfTheirViewDistanceComeAndGo() {
     final World world = mock(World.class);
     // 96 blocks from the wall's block: the six chunks of the view distance
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 97, 64, 0));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 97, GROUND_LEVEL, 0));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     this.tick(channel);
@@ -821,24 +840,24 @@ final class Mcv2ChannelTest {
     assertEquals(expectedRecipients, recipients);
 
     // up to 32 blocks farther the viewer stays
-    position.set(new Location(world, 129, 64, 0));
+    position.set(new Location(world, 129, GROUND_LEVEL, 0));
     this.tick(channel);
     final Set<UUID> expectedRecipientsFarther = Set.of(LOADED);
     final Set<UUID> recipientsFarther = channel.getRecipients();
     assertEquals(expectedRecipientsFarther, recipientsFarther);
 
-    position.set(new Location(world, 130, 64, 0));
+    position.set(new Location(world, 130, GROUND_LEVEL, 0));
     this.tick(channel);
     final Set<UUID> recipientsBeyond = channel.getRecipients();
     assertEquals(Set.of(), recipientsBeyond);
 
     // and once gone, comes back only within the view distance
-    position.set(new Location(world, 98, 64, 0));
+    position.set(new Location(world, 98, GROUND_LEVEL, 0));
     this.tick(channel);
     final Set<UUID> recipientsOnTheWayBack = channel.getRecipients();
     assertEquals(Set.of(), recipientsOnTheWayBack);
 
-    position.set(new Location(world, 97, 64, 0));
+    position.set(new Location(world, 97, GROUND_LEVEL, 0));
     this.tick(channel);
     final Set<UUID> expectedRecipientsBack = Set.of(LOADED);
     final Set<UUID> recipientsBack = channel.getRecipients();
@@ -869,34 +888,34 @@ final class Mcv2ChannelTest {
   @Test
   void shouldLetAWideWallReachAsFarAsItsLastColumn() {
     // a view distance of 6 chunks and the margin of a viewer who has not left: 128 blocks from the nearest block
-    final boolean receivesEast = this.receivesFrom(BlockFace.SOUTH, 5, 1, 133, 64.5, 0.5);
+    final boolean receivesEast = this.receivesFrom(BlockFace.SOUTH, 5, 1, 133, STANDING_LEVEL, BLOCK_CENTER);
     assertTrue(receivesEast, "128 blocks east of the fifth column");
-    final boolean receivesSouth = this.receivesFrom(BlockFace.WEST, 5, 1, 0.5, 64.5, 133);
+    final boolean receivesSouth = this.receivesFrom(BlockFace.WEST, 5, 1, BLOCK_CENTER, STANDING_LEVEL, 133);
     assertTrue(receivesSouth, "128 blocks south of the fifth column");
   }
 
   @Test
   void shouldLetATallWallReachDownToItsLowestRow() {
     // the third row from the top is the block at y 62
-    final boolean receivesJustInReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, 0.5, -66, 0.5);
+    final boolean receivesJustInReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, BLOCK_CENTER, -66, BLOCK_CENTER);
     assertTrue(receivesJustInReach, "128 blocks below the lowest row");
-    final boolean receivesJustOutOfReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, 0.5, -67, 0.5);
+    final boolean receivesJustOutOfReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, BLOCK_CENTER, -67, BLOCK_CENTER);
     assertFalse(receivesJustOutOfReach, "129 blocks below it");
   }
 
   @Test
   void shouldPlaceAViewerOffTheWallOnTwoAxesAsFarAsBothTogether() {
     // 100 blocks off on each of two axes: 141 blocks away, though neither alone is out of reach
-    final boolean receivesEastAndAbove = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 165, 0.5);
+    final boolean receivesEastAndAbove = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 165, BLOCK_CENTER);
     assertFalse(receivesEastAndAbove, "east and above");
-    final boolean receivesEastAndSouth = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 64.5, 101);
+    final boolean receivesEastAndSouth = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, STANDING_LEVEL, 101);
     assertFalse(receivesEastAndSouth, "east and south");
   }
 
   @Test
   void shouldKnowAtOnceWhoIsTooFarWhenTheChannelOpens() {
     final World world = mock(World.class);
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 400, 64, 0));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, BACKLOG_LIMIT, GROUND_LEVEL, 0));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     // before the first measurement of the timer the viewer 400 blocks away is in neither group
@@ -911,7 +930,7 @@ final class Mcv2ChannelTest {
   @Test
   void shouldStopMeasuringTheViewersDistancesWhenClosing() {
     final World world = mock(World.class);
-    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, 64, 4));
+    final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, GROUND_LEVEL, 4));
     final Mcv2Channel channel = this.watchedFrom(world, position);
     channel.open();
     final int scheduledTasks = this.server.getScheduledTaskCount();

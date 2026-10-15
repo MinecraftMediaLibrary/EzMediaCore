@@ -43,6 +43,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 final class NativeTesting {
 
+  private static final String OS_NAME_PROPERTY = "os.name";
+  private static final String OS_ARCHITECTURE_PROPERTY = "os.arch";
+
+  private static final String NATIVES_RESOURCE_FOLDER = "/mcav/mcv2/natives/";
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String NATIVE_KERNELS_CLASS = "NativeKernels";
+
   /** The system property that records a platform whose library does not load, so its tests expect Java. */
   private static final String EXPECT = "mcv2.native.expect";
 
@@ -62,7 +70,7 @@ final class NativeTesting {
    * @return whether the native kernels must load
    */
   static boolean expected() {
-    final String platform = Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", ""));
+    final String platform = Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""));
     return !"java".equals(System.getProperty(EXPECT)) && platform != null && Mcv2.NATIVE_DIGESTS.containsKey(platform);
   }
 
@@ -77,9 +85,10 @@ final class NativeTesting {
     if (current == null) {
       current = Natives.resolve(
         Mcv2.NATIVE_AUTO,
-        Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")),
+        Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, "")),
         FOLDER,
-        platform -> Natives.read(Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))),
+        platform ->
+          Natives.read(Mcv2.class.getResourceAsStream(NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform))),
         null
       );
       if (expected() && current.binding() == null) {
@@ -118,7 +127,9 @@ final class NativeTesting {
     if (resolution().binding() == null) {
       throw new IllegalStateException("No MCV2 native library loads on this platform!");
     }
-    final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
+    final String platform = Objects.requireNonNull(
+      Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""))
+    );
     final String digest = Mcv2.NATIVE_DIGESTS.get(platform);
     return SymbolLookup.libraryLookup(FOLDER.resolve("mcv2kernels-" + digest + "-" + Natives.libraryName(platform)), Arena.global());
   }
@@ -138,7 +149,7 @@ final class NativeTesting {
   }
 
   private static Object create(final Binding binding) {
-    return Mcv2Internals.construct(Mcv2Internals.nested("NativeKernels"), new Class<?>[] { Binding.class }, binding);
+    return Mcv2Internals.construct(Mcv2Internals.nested(NATIVE_KERNELS_CLASS), new Class<?>[] { Binding.class }, binding);
   }
 
   /**
@@ -166,7 +177,7 @@ final class NativeTesting {
   }
 
   static NativeKernels view(final Object kernels) {
-    final Class<?> type = Mcv2Internals.nested("NativeKernels");
+    final Class<?> type = Mcv2Internals.nested(NATIVE_KERNELS_CLASS);
     return (NativeKernels) Proxy.newProxyInstance(
       NativeKernels.class.getClassLoader(),
       new Class<?>[] { NativeKernels.class },

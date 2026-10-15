@@ -25,12 +25,22 @@ import org.junit.jupiter.api.Test;
 /** The two-colour palette fit. */
 final class Mcv2PaletteFitTest {
 
+  private static final int ENDPOINTS_LENGTH = 6;
+
+  private static final int DARK_RED = 10;
+  private static final int DARK_GREEN = 20;
+  private static final int DARK_BLUE = 30;
+
+  private static final int LIGHT_RED = 200;
+  private static final int LIGHT_GREEN = 210;
+  private static final int LIGHT_BLUE = 220;
+
   private static void fit(final int[] source, final int count, final int[] colors, final byte[] selectors) {
     final int[] tile = new int[8 * 8 * 3];
     for (int pixel = 0; pixel < 64; pixel++) {
       System.arraycopy(source, (pixel % count) * 3, tile, pixel * 3, 3);
     }
-    final int[] endpoints = new int[6];
+    final int[] endpoints = new int[ENDPOINTS_LENGTH];
     Mcv2Internals.javaKernels().cluster(tile, 8, endpoints);
     Mcv2Internals.javaKernels().finishPalette(source, count, endpoints, colors, selectors);
   }
@@ -45,13 +55,13 @@ final class Mcv2PaletteFitTest {
 
   @Test
   void shouldFitTwoColoursExactly() {
-    final int[] dark = { 10, 20, 30 };
-    final int[] light = { 200, 210, 220 };
+    final int[] dark = { DARK_RED, DARK_GREEN, DARK_BLUE };
+    final int[] light = { LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
     final int[] source = block(light, dark, dark, light, light, dark, light, light);
-    final int[] colors = new int[6];
+    final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[8];
     fit(source, 8, colors, selectors);
-    final int[] expectedColors = { 10, 20, 30, 200, 210, 220 };
+    final int[] expectedColors = { DARK_RED, DARK_GREEN, DARK_BLUE, LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
     assertArrayEquals(expectedColors, colors);
     final byte[] expectedSelectors = { 1, 0, 0, 1, 1, 0, 1, 1 };
     assertArrayEquals(expectedSelectors, selectors);
@@ -60,7 +70,7 @@ final class Mcv2PaletteFitTest {
   @Test
   void shouldAverageEachClusterAndRoundHalvesUp() {
     final int[] source = block(new int[] { 0, 0, 0 }, new int[] { 1, 1, 1 }, new int[] { 250, 250, 250 }, new int[] { 255, 255, 255 });
-    final int[] colors = new int[6];
+    final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
     final int[] expectedColors = { 1, 1, 1, 253, 253, 253 };
@@ -74,7 +84,7 @@ final class Mcv2PaletteFitTest {
     // equal luma everywhere: both endpoints start at the first pixel, so the first iteration puts every pixel in
     // cluster 0 and endpoint 1 keeps its seed; from the second iteration on, the first pixel has a cluster of its own
     final int[] source = block(new int[] { 100, 50, 0 }, new int[] { 0, 50, 100 }, new int[] { 50, 50, 50 }, new int[] { 50, 50, 50 });
-    final int[] colors = new int[6];
+    final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
     final int[] expectedColors = { 33, 50, 67, 100, 50, 0 };
@@ -85,7 +95,7 @@ final class Mcv2PaletteFitTest {
 
   @Test
   void shouldFitAUniformBlockWithOneColour() {
-    final int[] colors = new int[6];
+    final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[2];
     fit(block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
     final int[] expectedColors = { 7, 8, 9, 7, 8, 9 };
@@ -98,8 +108,8 @@ final class Mcv2PaletteFitTest {
   @Test
   void shouldAssignPatternsAndStopWhereNoneCanHold() {
     final int size = 8;
-    final int[] dark = { 10, 20, 30 };
-    final int[] light = { 200, 210, 220 };
+    final int[] dark = { DARK_RED, DARK_GREEN, DARK_BLUE };
+    final int[] light = { LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
     for (final Layout layout : Layout.values()) {
       final int[] source = new int[size * size * 3];
       for (int row = 0; row < size; row++) {
@@ -112,11 +122,11 @@ final class Mcv2PaletteFitTest {
           System.arraycopy(bright ? light : dark, 0, source, (row * size + column) * 3, 3);
         }
       }
-      final int[] endpoints = new int[6];
+      final int[] endpoints = new int[ENDPOINTS_LENGTH];
       Mcv2Internals.javaKernels().cluster(source, size, endpoints);
-      final int[] colors = new int[6];
+      final int[] colors = new int[ENDPOINTS_LENGTH];
       final byte[] selectors = new byte[size * size];
-      final int[] plainColors = new int[6];
+      final int[] plainColors = new int[ENDPOINTS_LENGTH];
       final byte[] plain = new byte[size * size];
       Mcv2Internals.javaKernels().finishPalette(source, size * size, endpoints, plainColors, plain);
       final boolean pattern = Mcv2Internals.javaKernels().finishPattern(source, size, endpoints, colors, selectors);

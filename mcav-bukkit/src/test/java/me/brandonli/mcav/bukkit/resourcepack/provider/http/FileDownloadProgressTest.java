@@ -50,9 +50,15 @@ import org.mockito.Mockito;
 
 final class FileDownloadProgressTest {
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String PAYLOAD = "payload";
+
+  private static final int WRITE_TIMEOUT_SECONDS = 300;
+  private static final int AFTER_TIMEOUT_SECONDS = 301;
+
   @Test
   void shouldKeepAProgressingFileRegionOpenPastTheWriteTimeout(@TempDir final Path folder) throws Exception {
-    final Path pack = folder.resolve("pack.zip");
+    final Path pack = folder.resolve(PACK_FILE_NAME);
     Files.write(pack, new byte[4096]);
     final SlowSocket channel = new SlowSocket();
     channel.freezeTime();
@@ -93,11 +99,11 @@ final class FileDownloadProgressTest {
   @Test
   void shouldForwardCompletionAndCancelItsDeadline() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS));
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
       final boolean done = completion.isDone();
       assertFalse(done);
@@ -106,7 +112,7 @@ final class FileDownloadProgressTest {
       final boolean succeeded = completion.isSuccess();
       assertTrue(succeeded);
 
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       final boolean open = channel.isOpen();
       assertTrue(open);
@@ -118,18 +124,18 @@ final class FileDownloadProgressTest {
   @Test
   void shouldForwardTheOriginalWriteFailure() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS));
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
       final IOException failure = new IOException("Socket closed!");
       held.promise().setFailure(failure);
       final @Nullable Throwable cause = completion.cause();
       assertSame(failure, cause);
 
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       final boolean open = channel.isOpen();
       assertTrue(open);
@@ -141,10 +147,10 @@ final class FileDownloadProgressTest {
   @Test
   void shouldNotExtendAStalledWriteOnZeroProgress() {
     final HeldWrite held = new HeldWrite();
-    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300), new IgnoreTimeout());
+    final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS), new IgnoreTimeout());
     channel.freezeTime();
     try {
-      final ChannelFuture completion = channel.writeOneOutbound("payload");
+      final ChannelFuture completion = channel.writeOneOutbound(PAYLOAD);
       final boolean done = completion.isDone();
       assertFalse(done);
 
@@ -166,18 +172,18 @@ final class FileDownloadProgressTest {
   @Test
   void shouldCancelDeadlinesOnRemovalEvenWhenTheWriteMakesLaterProgress() {
     final HeldWrite held = new HeldWrite();
-    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);
+    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS);
     final EmbeddedChannel channel = new EmbeddedChannel(held, handler, new IgnoreTimeout());
     channel.freezeTime();
     try {
       final ChannelPromise completion = channel.newPromise();
-      final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
+      final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
       channel.pipeline().remove(handler);
       final boolean progressed = held.promise().tryProgress(1, 10);
       assertTrue(progressed);
 
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       final boolean open = channel.isOpen();
       assertTrue(open, "a removed handler cannot create another deadline");
@@ -194,18 +200,18 @@ final class FileDownloadProgressTest {
   void shouldReportAnExceptionThrownWhileExpiringAWrite() {
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.freezeTime();
-    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);
+    final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(WRITE_TIMEOUT_SECONDS);
     final ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
     final ChannelProgressivePromise progress = channel.newProgressivePromise();
     final ChannelPromise completion = channel.newPromise();
     final RuntimeException failure = new IllegalStateException("Timeout reporting failed!");
     Mockito.when(context.executor()).thenReturn(channel.eventLoop());
     Mockito.when(context.newProgressivePromise()).thenReturn(progress);
-    Mockito.when(context.write("payload", progress)).thenReturn(progress);
+    Mockito.when(context.write(PAYLOAD, progress)).thenReturn(progress);
     Mockito.when(context.fireExceptionCaught(WriteTimeoutException.INSTANCE)).thenThrow(failure);
     try {
-      handler.write(context, "payload", completion);
-      channel.advanceTimeBy(301, TimeUnit.SECONDS);
+      handler.write(context, PAYLOAD, completion);
+      channel.advanceTimeBy(AFTER_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       Mockito.verify(context).fireExceptionCaught(failure);
       final boolean done = completion.isDone();

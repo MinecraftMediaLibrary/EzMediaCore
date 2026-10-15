@@ -35,6 +35,8 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2Test {
 
+  private static final int LAMBDA = 72;
+
   @Test
   void shouldWriteTheHandComputedUniformKeyframeAndPredictedGolden() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
@@ -58,7 +60,7 @@ final class Mcv2Test {
       final boolean keyframe = encoder.getStatistics().keyframe();
       assertFalse(keyframe);
       final double lambda = encoder.getStatistics().lambda();
-      assertEquals(72, lambda);
+      assertEquals(LAMBDA, lambda);
     }
   }
 
@@ -210,7 +212,7 @@ final class Mcv2Test {
   @Test
   void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
-      final Mcv2 encoder = new Mcv2(new Mcv2.Settings(72, false), pool, 1, true);
+      final Mcv2 encoder = new Mcv2(new Mcv2.Settings(LAMBDA, false), pool, 1, true);
       final byte[] black = new byte[3];
       final boolean firstIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0xFFFFFFFEL)).isKeyframe();
       assertTrue(firstIsKeyframe);
@@ -250,7 +252,7 @@ final class Mcv2Test {
       encoder.encode(source, 32, 32, 1);
       Arrays.fill(source, (byte) 20);
       encoder.encode(source, 32, 32, 2);
-      final double raised = 72 * Math.pow(10 / 4.6, 0.79);
+      final double raised = LAMBDA * Math.pow(10 / 4.6, 0.79);
       final double lambda = encoder.getStatistics().lambda();
       assertEquals(raised, lambda);
 

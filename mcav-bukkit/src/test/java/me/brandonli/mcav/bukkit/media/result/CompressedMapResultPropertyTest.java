@@ -69,6 +69,8 @@ final class CompressedMapResultPropertyTest {
   private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
 
+  private static final int PER_MILLE = 1000;
+
   private FakeServer server;
 
   @BeforeTry
@@ -117,7 +119,7 @@ final class CompressedMapResultPropertyTest {
    * than the grid, so the picture is sometimes larger than the grid and sometimes much smaller.
    */
   private static Arbitrary<Step> steps() {
-    final Arbitrary<Integer> shares = between(1, 1000);
+    final Arbitrary<Integer> shares = between(1, PER_MILLE);
     final Arbitrary<Integer> colors = between(1, 60);
     final Arbitrary<Integer> kinds = Arbitraries.of(Step.FRAME, Step.FRAME, Step.FRAME, Step.JOIN, Step.LEAVE);
     final Combinators.Combinator4<Integer, Integer, Integer, Integer> combined = Combinators.combine(kinds, shares, shares, colors);
@@ -289,12 +291,12 @@ final class CompressedMapResultPropertyTest {
 
     private int widthOf(final Step step) {
       final int maximum = this.columns * MAP_SIZE + 60;
-      return Math.max(1, (step.widthShare * maximum) / 1000);
+      return Math.max(1, (step.widthShare * maximum) / PER_MILLE);
     }
 
     private int heightOf(final Step step) {
       final int maximum = this.rows * MAP_SIZE + 60;
-      return Math.max(1, (step.heightShare * maximum) / 1000);
+      return Math.max(1, (step.heightShare * maximum) / PER_MILLE);
     }
 
     private MapLayout createLayout(final Step step) {

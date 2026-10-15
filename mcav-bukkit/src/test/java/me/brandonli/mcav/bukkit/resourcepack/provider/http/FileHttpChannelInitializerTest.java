@@ -60,6 +60,8 @@ final class FileHttpChannelInitializerTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4 };
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+
   @TempDir
   private Path directory;
 
@@ -67,7 +69,7 @@ final class FileHttpChannelInitializerTest {
 
   @BeforeEach
   void writePack() throws IOException {
-    this.pack = this.directory.resolve("pack.zip");
+    this.pack = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.pack, PACK);
   }
 

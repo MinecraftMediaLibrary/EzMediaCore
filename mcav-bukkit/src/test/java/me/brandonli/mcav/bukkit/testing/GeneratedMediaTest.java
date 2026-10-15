@@ -43,6 +43,15 @@ import org.junit.jupiter.api.io.TempDir;
 @Timeout(20)
 final class GeneratedMediaTest {
 
+  private static final String VIDEO_FILE_NAME = "video.mp4";
+
+  private static final String SUCCESS_ARGUMENT = "success";
+  private static final String FAILURE_ARGUMENT = "failure";
+  private static final String TIMEOUT_ARGUMENT = "timeout";
+
+  private static final String COMPLETED_MEDIA = "completed media";
+  private static final String DIAGNOSTIC = "fixture encoder diagnostic";
+
   @TempDir
   private Path directory;
 
@@ -89,17 +98,17 @@ final class GeneratedMediaTest {
 
   @Test
   void shouldReplaceUntrustedExistingFilesAndCacheOnlySuccessfulGeneration() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     Files.writeString(output, "partial from a failed older attempt");
     final AtomicInteger invocations = new AtomicInteger();
     final AtomicReference<Path> temporary = new AtomicReference<>();
     final Path generated = GeneratedMedia.generate(output, path -> {
       invocations.incrementAndGet();
       temporary.set(path);
-      return this.command(path, "success");
+      return this.command(path, SUCCESS_ARGUMENT);
     });
     final String content = Files.readString(generated);
-    assertEquals("completed media", content);
+    assertEquals(COMPLETED_MEDIA, content);
     final Path expectedPath = output.toAbsolutePath();
     assertEquals(expectedPath, generated);
     final Path staged = temporary.get();
@@ -117,32 +126,32 @@ final class GeneratedMediaTest {
 
   @Test
   void shouldPreserveTheOldDestinationAndRetryOnTheNextRequestWhenEncodingFails() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     Files.writeString(output, "old complete media");
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
-      GeneratedMedia.generate(output, path -> this.command(path, "failure"))
+      GeneratedMedia.generate(output, path -> this.command(path, FAILURE_ARGUMENT))
     );
     final String message = thrown.getMessage();
     final boolean reportsTheExitCode = message.contains("exit code 7");
     assertTrue(reportsTheExitCode);
-    final boolean reportsTheDiagnostic = message.contains("fixture encoder diagnostic");
+    final boolean reportsTheDiagnostic = message.contains(DIAGNOSTIC);
     assertTrue(reportsTheDiagnostic);
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
     this.assertNoPartialFiles();
-    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, "success"));
+    final Path retried = GeneratedMedia.generate(output, path -> this.command(path, SUCCESS_ARGUMENT));
     final String content = Files.readString(retried);
-    assertEquals("completed media", content);
+    assertEquals(COMPLETED_MEDIA, content);
     this.assertNoPartialFiles();
   }
 
   @Test
   void shouldBoundATimedOutEncodingAndNotPublishItsPartialOutput() throws Exception {
-    final Path output = this.directory.resolve("video.mp4");
+    final Path output = this.directory.resolve(VIDEO_FILE_NAME);
     final Duration timeout = Duration.ofSeconds(2);
     final long before = System.nanoTime();
     final UncheckedIOException thrown = assertThrows(UncheckedIOException.class, () ->
-      GeneratedMedia.generate(output, path -> this.command(path, "timeout"), timeout)
+      GeneratedMedia.generate(output, path -> this.command(path, TIMEOUT_ARGUMENT), timeout)
     );
     final long elapsed = System.nanoTime() - before;
     final String message = thrown.getMessage();

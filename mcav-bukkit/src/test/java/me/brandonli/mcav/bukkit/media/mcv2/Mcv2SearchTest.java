@@ -53,6 +53,18 @@ final class Mcv2SearchTest {
 
   private static final ThreadLocal<LongSupplier> SEARCH_TIME = new ThreadLocal<>();
 
+  private static final String BEGIN_METHOD = "begin";
+  private static final String SEARCH_METHOD = "search";
+  private static final String SYSTEM_CLASS = "java/lang/System";
+
+  private static final String FRAME_STATE_CLASS = "FrameState";
+  private static final String BLOCK_CODER_CLASS = "BlockCoder";
+  private static final String KERNELS_CLASS = "Kernels";
+
+  private static final String FRAME_FIELD = "frame";
+  private static final String NODE_FIELD = "node";
+  private static final String IDLE_CODERS_FIELD = "idleCoders";
+
   static long searchTime() {
     final LongSupplier fixed = SEARCH_TIME.get();
     return fixed == null ? System.nanoTime() : fixed.getAsLong();
@@ -89,10 +101,10 @@ final class Mcv2SearchTest {
               final String[] exceptions
             ) {
               final MethodVisitor visitor = super.visitMethod(access, methodName, descriptor, signature, exceptions);
-              if (!methodName.startsWith("lambda$search$") && !(includeBegin && methodName.equals("begin"))) {
+              if (!methodName.startsWith("lambda$search$") && !(includeBegin && methodName.equals(BEGIN_METHOD))) {
                 return visitor;
               }
-              final String clockedMethod = methodName.equals("begin") ? "begin" : "search";
+              final String clockedMethod = methodName.equals(BEGIN_METHOD) ? BEGIN_METHOD : SEARCH_METHOD;
               return new MethodVisitor(Opcodes.ASM9, visitor) {
                 @Override
                 public void visitMethodInsn(
@@ -102,7 +114,7 @@ final class Mcv2SearchTest {
                   final String descriptor,
                   final boolean isInterface
                 ) {
-                  if (owner.equals("java/lang/System") && methodName.equals("nanoTime")) {
+                  if (owner.equals(SYSTEM_CLASS) && methodName.equals("nanoTime")) {
                     clockedMethods.add(clockedMethod);
                     super.visitMethodInsn(opcode, Mcv2SearchTest.class.getName().replace('.', '/'), "searchTime", descriptor, isInterface);
                   } else {
@@ -128,7 +140,7 @@ final class Mcv2SearchTest {
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
-      final Set<String> expectedClockedMethods = Set.of("search");
+      final Set<String> expectedClockedMethods = Set.of(SEARCH_METHOD);
       assertEquals(expectedClockedMethods, clockedMethods);
 
       final byte[] source = new byte[32 * 32 * 3];
@@ -140,15 +152,15 @@ final class Mcv2SearchTest {
       for (final long instant : new long[] { 99, 100, 101 }) {
         SEARCH_TIME.set(() -> instant);
         final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], 32, 32, true, false, 72, null);
-        final Class<?> frameType = Mcv2Internals.nested("FrameState");
-        final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, "frame");
+        final Class<?> frameType = Mcv2Internals.nested(FRAME_STATE_CLASS);
+        final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, FRAME_FIELD);
         try (final ForkJoinPool pool = new ForkJoinPool(1)) {
           final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, false);
           encoder.setFrameBudget(100);
           final Object result = Mcv2Internals.invoke(
             encoderType,
             encoder,
-            "search",
+            SEARCH_METHOD,
             new Class<?>[] { frameType, boolean[].class, long.class, boolean.class },
             frame,
             new boolean[0],
@@ -193,7 +205,7 @@ final class Mcv2SearchTest {
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
-      final Set<String> expectedClockedMethods = Set.of("begin", "search");
+      final Set<String> expectedClockedMethods = Set.of(BEGIN_METHOD, SEARCH_METHOD);
       assertEquals(expectedClockedMethods, clockedMethods);
 
       final long[] instants = { 0, 0, 0, 0, 100 };
@@ -389,7 +401,7 @@ final class Mcv2SearchTest {
     final Mcv2BlockState state = new Mcv2BlockState(reference, reference, 32, 32, false, false, 72, null);
     final Object root = state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final Object child = state.code(16, 1, 0, 16, 16, Mcv2BlockState.NO_VECTOR);
-    final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
+    final Class<?> coderType = Mcv2Internals.nested(BLOCK_CODER_CLASS);
     final Field parent = coderType.getDeclaredField("root");
     parent.setAccessible(true);
     parent.set(child, root);
@@ -408,10 +420,10 @@ final class Mcv2SearchTest {
   }
 
   private static Object descend(final Mcv2BlockState state, final int level, final int left, final int top, final double threshold) {
-    final Class<?> frameType = Mcv2Internals.nested("FrameState");
-    final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
-    final Class<?> kernelType = Mcv2Internals.nested("Kernels");
-    final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, "frame");
+    final Class<?> frameType = Mcv2Internals.nested(FRAME_STATE_CLASS);
+    final Class<?> coderType = Mcv2Internals.nested(BLOCK_CODER_CLASS);
+    final Class<?> kernelType = Mcv2Internals.nested(KERNELS_CLASS);
+    final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, FRAME_FIELD);
     final Object coders = Array.newInstance(coderType, 3);
     for (int depth = 0; depth < 3; depth++) {
       Array.set(
@@ -453,7 +465,7 @@ final class Mcv2SearchTest {
     final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], 16, 16, true, false, 2, null);
     for (final int[] position : new int[][] { { 16, 0 }, { 0, 16 }, { 16, 16 } }) {
       final Object choice = descend(state, 1, position[0], position[1], 0);
-      final Node node = new Node(Mcv2Internals.field(choice.getClass(), choice, "node"));
+      final Node node = new Node(Mcv2Internals.field(choice.getClass(), choice, NODE_FIELD));
       final Node expectedNode = Mcv2Trees.solid(0, 0, 0);
       assertEquals(expectedNode, node);
       final Object leaves = Mcv2Internals.field(choice.getClass(), choice, "leaves");
@@ -475,11 +487,11 @@ final class Mcv2SearchTest {
     state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final double cost = state.cost(0, 0);
     final Object equal = descend(state, 0, 0, 0, cost);
-    final boolean equalSplits = new Node(Mcv2Internals.field(equal.getClass(), equal, "node")).isSplit();
+    final boolean equalSplits = new Node(Mcv2Internals.field(equal.getClass(), equal, NODE_FIELD)).isSplit();
     assertFalse(equalSplits);
 
     final Object cheaper = descend(state, 0, 0, 0, Math.nextDown(cost));
-    final Node split = new Node(Mcv2Internals.field(cheaper.getClass(), cheaper, "node"));
+    final Node split = new Node(Mcv2Internals.field(cheaper.getClass(), cheaper, NODE_FIELD));
     final boolean cheaperSplits = split.isSplit();
     assertTrue(cheaperSplits);
     final Node expectedTopLeft = Mcv2Trees.solid(40, 0, 0);
@@ -500,7 +512,7 @@ final class Mcv2SearchTest {
   void shouldReuseCodersWithoutRetainingBusyEntries() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
-      final Collection<?> idle = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, "idleCoders");
+      final Collection<?> idle = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, IDLE_CODERS_FIELD);
       final Collection<?> busy = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, "busyCoders");
       encoder.encode(new byte[3], 1, 1, 0);
       final Object coders = idle.iterator().next();
@@ -550,9 +562,9 @@ final class Mcv2SearchTest {
         final byte[] expectedQuarter = Mcv2BlockState.half(half, halfWidth, halfHeight, new byte[quarter.length]);
         assertArrayEquals(expectedQuarter, quarter);
 
-        final Collection<?> idle = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, "idleCoders");
+        final Collection<?> idle = (Collection<?>) Mcv2Internals.field(Mcv2.class, encoder, IDLE_CODERS_FIELD);
         final Object coders = idle.iterator().next();
-        final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
+        final Class<?> coderType = Mcv2Internals.nested(BLOCK_CODER_CLASS);
         for (int level = 0; level < 3; level++) {
           final Object coder = Array.get(coders, level);
           final int size = 32 >> level;
@@ -606,8 +618,8 @@ final class Mcv2SearchTest {
   void shouldScaleTheMotionRangeToEachPyramidLevel() {
     for (final boolean fast : new boolean[] { false, true }) {
       final Mcv2BlockState state = new Mcv2BlockState(new byte[32 * 32 * 3], new byte[32 * 32 * 3], 32, 32, false, fast, 72, null);
-      final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, "frame");
-      final Class<?> kernelType = Mcv2Internals.nested("Kernels");
+      final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, FRAME_FIELD);
+      final Class<?> kernelType = Mcv2Internals.nested(KERNELS_CLASS);
       final List<Integer> ranges = new ArrayList<>();
       final Object kernels = Proxy.newProxyInstance(kernelType.getClassLoader(), new Class<?>[] { kernelType }, (_, method, arguments) -> {
         if (method.getName().equals("seeded")) {
@@ -618,10 +630,10 @@ final class Mcv2SearchTest {
         assertEquals("halve", methodName);
         return null;
       });
-      final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
+      final Class<?> coderType = Mcv2Internals.nested(BLOCK_CODER_CLASS);
       final Object coder = Mcv2Internals.construct(
         coderType,
-        new Class<?>[] { Mcv2Internals.nested("FrameState"), int.class, kernelType },
+        new Class<?>[] { Mcv2Internals.nested(FRAME_STATE_CLASS), int.class, kernelType },
         frame,
         32,
         kernels

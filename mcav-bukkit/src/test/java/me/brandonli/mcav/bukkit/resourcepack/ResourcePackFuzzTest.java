@@ -53,6 +53,13 @@ final class ResourcePackFuzzTest {
   private static final Path SOUND = writeFile("sound.ogg", "OggS");
   private static final Path TEXT = writeFile("credits.txt", "credits");
 
+  private static final String PATH_SEPARATOR = "/";
+  private static final String ZIP_EXTENSION = ".zip";
+
+  private static final String ASSETS_FOLDER = "assets/";
+  private static final String SOUNDS_FILE = "/sounds.json";
+  private static final String SOUNDS_FOLDER = "/sounds/";
+
   private static Path createWorkFolder() {
     try {
       final Path folder = Files.createTempDirectory("mcav-pack-paths-fuzz");
@@ -96,7 +103,7 @@ final class ResourcePackFuzzTest {
       }
     }
 
-    final Path zipped = Files.createTempFile(WORK, "pack", ".zip");
+    final Path zipped = Files.createTempFile(WORK, "pack", ZIP_EXTENSION);
     try {
       pack.zip(zipped);
       try (final ZipFile zip = new ZipFile(zipped.toFile(), StandardCharsets.UTF_8)) {
@@ -114,11 +121,11 @@ final class ResourcePackFuzzTest {
     while (entries.hasMoreElements()) {
       final ZipEntry entry = entries.nextElement();
       final String name = entry.getName();
-      final boolean absolute = name.startsWith("/");
+      final boolean absolute = name.startsWith(PATH_SEPARATOR);
       assertFalse(absolute, () -> "an absolute entry " + name);
       final boolean hasBackslash = name.contains("\\");
       assertFalse(hasBackslash, () -> "an entry with a backslash " + name);
-      for (final String segment : name.split("/", -1)) {
+      for (final String segment : name.split(PATH_SEPARATOR, -1)) {
         final boolean unsafe = segment.isEmpty() || segment.equals(".") || segment.equals("..");
         assertFalse(unsafe, () -> "an entry with an empty, dot or parent segment " + name);
       }
@@ -138,10 +145,10 @@ final class ResourcePackFuzzTest {
       final int separator = key.indexOf(':');
       final String namespace = key.substring(0, separator);
       final String value = key.substring(separator + 1);
-      final JsonObject sounds = readJson(zip, "assets/" + namespace + "/sounds.json");
+      final JsonObject sounds = readJson(zip, ASSETS_FOLDER + namespace + SOUNDS_FILE);
       final boolean registered = sounds.has(value);
       assertTrue(registered, () -> "the sound " + key + " is not registered");
-      final ZipEntry file = zip.getEntry("assets/" + namespace + "/sounds/" + value + ".ogg");
+      final ZipEntry file = zip.getEntry(ASSETS_FOLDER + namespace + SOUNDS_FOLDER + value + ".ogg");
       assertNotNull(file, () -> "the sound " + key + " has no file");
     }
   }

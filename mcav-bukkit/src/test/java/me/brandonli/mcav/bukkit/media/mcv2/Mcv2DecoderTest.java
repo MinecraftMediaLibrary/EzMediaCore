@@ -34,6 +34,13 @@ import org.junit.jupiter.api.Test;
 
 final class Mcv2DecoderTest {
 
+  private static final int SOLID_RED = 10;
+  private static final int SOLID_GREEN = 20;
+  private static final int SOLID_BLUE = 30;
+
+  private static final String CONFORMANCE_FOLDER = "conformance";
+  private static final String CONFORMANCE_PREFIX = "conformance/";
+
   @Test
   void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Decoder.class);
@@ -41,9 +48,28 @@ final class Mcv2DecoderTest {
 
   @Test
   void shouldDecodeAKeyframeWithoutAReferenceAndCropItsEdges() throws Mcv2Exception {
-    final byte[] frame = keyframe(3, 2, solid(10, 20, 30));
+    final byte[] frame = keyframe(3, 2, solid(SOLID_RED, SOLID_GREEN, SOLID_BLUE));
     final byte[] picture = Mcv2Decoder.decode(frame, null, 99);
-    final byte[] expected = new byte[] { 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30 };
+    final byte[] expected = new byte[] {
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+      SOLID_RED,
+      SOLID_GREEN,
+      SOLID_BLUE,
+    };
     assertArrayEquals(expected, picture);
     final byte[] decodedFromParsed = Mcv2Decoder.decode(Mcv2Decoder.parse(frame), new byte[1], 5);
     assertArrayEquals(picture, decodedFromParsed);
@@ -51,7 +77,7 @@ final class Mcv2DecoderTest {
 
   @Test
   void shouldDecodeIntoAPictureOfTheFramesSize() throws Mcv2Exception {
-    final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(keyframe(3, 2, solid(10, 20, 30)));
+    final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(keyframe(3, 2, solid(SOLID_RED, SOLID_GREEN, SOLID_BLUE)));
     final byte[] fresh = Mcv2Decoder.decode(frame, null, 0);
     final byte[] into = new byte[18];
     Arrays.fill(into, (byte) 99);
@@ -79,8 +105,8 @@ final class Mcv2DecoderTest {
 
   @Test
   void shouldDecodeTheSamePictureOnAnyNumberOfWorkers() throws Mcv2Exception {
-    final String stream = Mcv2Fixtures.digests("conformance").keySet().iterator().next();
-    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/" + stream));
+    final String stream = Mcv2Fixtures.digests(CONFORMANCE_FOLDER).keySet().iterator().next();
+    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(CONFORMANCE_PREFIX + stream));
     try (final ForkJoinPool pool = new ForkJoinPool(4)) {
       byte[] reference = null;
       for (final byte[] data : frames) {
@@ -109,8 +135,8 @@ final class Mcv2DecoderTest {
 
   @Test
   void shouldDecodeAPFrameIntoThePictureItIsPredictedFrom() throws Mcv2Exception {
-    final String stream = Mcv2Fixtures.digests("conformance").keySet().iterator().next();
-    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/" + stream));
+    final String stream = Mcv2Fixtures.digests(CONFORMANCE_FOLDER).keySet().iterator().next();
+    final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(CONFORMANCE_PREFIX + stream));
     byte[] reference = null;
     byte[] reused = null;
     for (int index = 0; index < frames.size(); index++) {

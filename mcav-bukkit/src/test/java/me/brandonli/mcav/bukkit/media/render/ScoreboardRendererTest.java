@@ -67,6 +67,10 @@ final class ScoreboardRendererTest {
   private static final UUID LATE_VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000003");
 
+  private static final String CHARACTER = "#";
+
+  private static final String OBJECTIVE_NAME_PATTERN = "mcav_\\d+";
+
   private FakeServer server;
   private List<UUID> viewers;
   private FakeScoreboards scoreboards;
@@ -93,7 +97,7 @@ final class ScoreboardRendererTest {
   private ScoreboardConfiguration createConfiguration(final int lines) {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(this.viewers);
-    builder.character("#");
+    builder.character(CHARACTER);
     builder.lines(lines);
     builder.width(2);
     return builder.build();
@@ -124,7 +128,7 @@ final class ScoreboardRendererTest {
     final Component emptyTitle = Component.empty();
     verify(board).registerNewObjective(objectiveName.capture(), eq(Criteria.DUMMY), eq(emptyTitle));
     final String name = objectiveName.getValue();
-    final boolean validName = name.matches("mcav_\\d+");
+    final boolean validName = name.matches(OBJECTIVE_NAME_PATTERN);
     final List<String> teamNames = this.scoreboards.getTeamNames();
     final List<String> expectedTeamNames = List.of(name + "_0", name + "_1", name + "_2");
     final Scoreboard current = this.viewer.getScoreboard();
@@ -197,8 +201,8 @@ final class ScoreboardRendererTest {
     this.server.runTasks();
 
     final LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
-    final String firstLine = ChatUtils.createRawLine(pixels, "#", 2, 0);
-    final String secondLine = ChatUtils.createRawLine(pixels, "#", 2, 1);
+    final String firstLine = ChatUtils.createRawLine(pixels, CHARACTER, 2, 0);
+    final String secondLine = ChatUtils.createRawLine(pixels, CHARACTER, 2, 1);
     final Component expectedFirst = serializer.deserialize(firstLine);
     final Component expectedSecond = serializer.deserialize(secondLine);
     final List<Team> teams = this.scoreboards.getTeams();

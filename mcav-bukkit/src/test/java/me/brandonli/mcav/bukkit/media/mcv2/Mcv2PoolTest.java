@@ -52,6 +52,8 @@ import org.junit.jupiter.api.Test;
  */
 final class Mcv2PoolTest {
 
+  private static final String ENCODER_THREAD_PREFIX = "mcav-mcv2-encoder-";
+
   @Test
   void shouldUseHalfTheProcessorsByDefault() {
     final int forOne = Pool.defaultThreads(1);
@@ -82,7 +84,7 @@ final class Mcv2PoolTest {
       assertEquals(2, threads);
 
       final Thread thread = pool.run(Thread::currentThread);
-      final boolean named = thread.getName().startsWith("mcav-mcv2-encoder-");
+      final boolean named = thread.getName().startsWith(ENCODER_THREAD_PREFIX);
       assertTrue(named, thread.getName());
       final boolean daemon = thread.isDaemon();
       assertTrue(daemon);
@@ -135,7 +137,7 @@ final class Mcv2PoolTest {
       final boolean withinSize = seen.size() <= 2;
       assertTrue(withinSize, "threads used: " + seen.size());
       for (final Thread thread : seen) {
-        final boolean named = thread.getName().startsWith("mcav-mcv2-encoder-");
+        final boolean named = thread.getName().startsWith(ENCODER_THREAD_PREFIX);
         assertTrue(named, thread.getName());
       }
     }

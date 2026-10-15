@@ -52,6 +52,8 @@ final class Mcv2ChannelUnsentLimitTest {
 
   private static final UUID VIEWER = UUID.fromString("00000000-0000-0000-0000-000000000041");
 
+  private static final int WALL_MAP = 100;
+
   private FakeServer server;
 
   private CraftPlayer player;
@@ -76,7 +78,7 @@ final class Mcv2ChannelUnsentLimitTest {
 
   private static Mcv2Screen screen() {
     final Mcv2Screen screen = mock(Mcv2Screen.class);
-    when(screen.anchors()).thenReturn(List.of(new MapTilePatch(100, 0, 0, 128, 1, new byte[128])));
+    when(screen.anchors()).thenReturn(List.of(new MapTilePatch(WALL_MAP, 0, 0, 128, 1, new byte[128])));
     return screen;
   }
 
@@ -85,7 +87,7 @@ final class Mcv2ChannelUnsentLimitTest {
       .viewers(List.of(VIEWER))
       .origin(new Location(mock(World.class), 0, 64, 0))
       .facing(BlockFace.SOUTH)
-      .map(100)
+      .map(WALL_MAP)
       .columns(1)
       .rows(1)
       .pageMap(500)

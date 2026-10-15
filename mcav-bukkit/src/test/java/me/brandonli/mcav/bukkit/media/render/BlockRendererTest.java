@@ -65,6 +65,8 @@ final class BlockRendererTest {
   private static final UUID OFFLINE = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID LATE = UUID.fromString("00000000-0000-0000-0000-000000000003");
 
+  private static final int OPAQUE_ALPHA = 0xFF000000;
+
   private FakeServer server;
   private FakeWorld world;
   private CraftPlayer viewer;
@@ -99,14 +101,14 @@ final class BlockRendererTest {
 
   private static ImageBuffer solidImage(final int width, final int height, final int rgb) {
     final int[] pixels = new int[width * height];
-    Arrays.fill(pixels, 0xFF000000 | rgb);
+    Arrays.fill(pixels, OPAQUE_ALPHA | rgb);
     return ImageBuffer.buffer(pixels, width, height);
   }
 
   private static ImageBuffer imageWithOneMagentaBlock() {
     final int[] pixels = new int[6];
-    Arrays.fill(pixels, 0xFF000000 | BROWN);
-    pixels[4] = 0xFF000000 | MAGENTA;
+    Arrays.fill(pixels, OPAQUE_ALPHA | BROWN);
+    pixels[4] = OPAQUE_ALPHA | MAGENTA;
     return ImageBuffer.buffer(pixels, 3, 2);
   }
 
@@ -168,7 +170,7 @@ final class BlockRendererTest {
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final int[] pixels = { BROWN, BROWN, BROWN, MAGENTA, BROWN, BROWN };
     for (int index = 0; index < pixels.length; index++) {
-      pixels[index] |= 0xFF000000;
+      pixels[index] |= OPAQUE_ALPHA;
     }
     final ImageBuffer image = ImageBuffer.buffer(pixels, 3, 2);
 

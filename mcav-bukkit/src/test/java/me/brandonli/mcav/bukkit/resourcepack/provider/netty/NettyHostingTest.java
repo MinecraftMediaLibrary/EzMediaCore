@@ -64,6 +64,20 @@ final class NettyHostingTest {
 
   private static final byte[] PACK = { 'P', 'K', 3, 4, 8 };
 
+  private static final String PACK_FILE_NAME = "pack.zip";
+  private static final String OTHER_FILE_NAME = "other.zip";
+  private static final String UNREADABLE_FILE_NAME = "unreadable.zip";
+  private static final String MISSING_FILE_NAME = "missing.zip";
+
+  private static final String GET_PREFIX = "GET ";
+  private static final String REQUEST_SUFFIX = " HTTP/1.1\r\n\r\n";
+
+  private static final String PUBLIC_ADDRESS = "203.0.113.9";
+  private static final String LOCALHOST = "localhost";
+  private static final int SERVER_PORT = 25570;
+
+  private static final String MESSAGE = "Message!";
+
   @TempDir
   private Path directory;
 
@@ -73,7 +87,7 @@ final class NettyHostingTest {
   @BeforeEach
   void startServer() throws IOException {
     this.server = FakeServer.start();
-    this.zip = this.directory.resolve("pack.zip");
+    this.zip = this.directory.resolve(PACK_FILE_NAME);
     Files.write(this.zip, PACK);
   }
 
@@ -97,7 +111,7 @@ final class NettyHostingTest {
     final String url = hosting.getRawUrl();
     final URI uri = URI.create(url);
     final String path = uri.getRawPath();
-    final ByteBuf request = Unpooled.copiedBuffer("GET " + path + " HTTP/1.1\r\n\r\n", StandardCharsets.US_ASCII);
+    final ByteBuf request = Unpooled.copiedBuffer(GET_PREFIX + path + REQUEST_SUFFIX, StandardCharsets.US_ASCII);
     channel.writeInbound(request);
 
     final ByteBuf headers = channel.readOutbound();
@@ -135,7 +149,7 @@ final class NettyHostingTest {
   @Test
   void shouldRouteEachUrlToItsOwnPackAcrossFragmentedRequests() throws IOException {
     final byte[] otherBytes = { 'P', 'K', 7, 8, 9 };
-    final Path other = this.directory.resolve("other.zip");
+    final Path other = this.directory.resolve(OTHER_FILE_NAME);
     Files.write(other, otherBytes);
     final NettyHosting first = new NettyHosting(this.zip);
     final NettyHosting second = new NettyHosting(other);
@@ -148,7 +162,7 @@ final class NettyHostingTest {
       final List<NettyHosting> hosts = List.of(first, second);
       for (final NettyHosting hosting : hosts) {
         final URI uri = URI.create(hosting.getRawUrl());
-        final String request = "GET " + uri.getRawPath() + " HTTP/1.1\r\n\r\n";
+        final String request = GET_PREFIX + uri.getRawPath() + REQUEST_SUFFIX;
         final byte[] bytes = request.getBytes(StandardCharsets.US_ASCII);
         final EmbeddedChannel channel = connect();
         try {
@@ -257,7 +271,7 @@ final class NettyHostingTest {
 
   @Test
   void shouldStartEvenWhenThePackCannotBeReadAhead() throws IOException {
-    final Path unreadable = this.directory.resolve("unreadable.zip");
+    final Path unreadable = this.directory.resolve(UNREADABLE_FILE_NAME);
     Files.write(unreadable, PACK);
     final NettyHosting hosting = new NettyHosting(unreadable);
     try (final MockedStatic<Files> files = Mockito.mockStatic(Files.class, CALLS_REAL_METHODS)) {
@@ -275,7 +289,7 @@ final class NettyHostingTest {
 
   @Test
   void shouldRefuseToStartWithoutAPack() {
-    final Path missing = this.directory.resolve("missing.zip");
+    final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final NettyHosting hosting = new NettyHosting(missing);
     final int before = listenerCount();
 
@@ -291,8 +305,8 @@ final class NettyHostingTest {
   @Test
   void shouldBuildTheUrlFromThePublicAddressAndTheMinecraftPortOnce() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
-    bukkit.when(Bukkit::getIp).thenReturn("203.0.113.9");
-    bukkit.when(Bukkit::getPort).thenReturn(25570);
+    bukkit.when(Bukkit::getIp).thenReturn(PUBLIC_ADDRESS);
+    bukkit.when(Bukkit::getPort).thenReturn(SERVER_PORT);
     final NettyHosting hosting = new NettyHosting(this.zip);
 
     final String url = hosting.getRawUrl();
@@ -308,7 +322,7 @@ final class NettyHostingTest {
   void shouldEncloseIpv6AddressesInBrackets() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
     bukkit.when(Bukkit::getIp).thenReturn("2001:db8::5");
-    bukkit.when(Bukkit::getPort).thenReturn(25570);
+    bukkit.when(Bukkit::getPort).thenReturn(SERVER_PORT);
     final NettyHosting hosting = new NettyHosting(this.zip);
 
     final String url = hosting.getRawUrl();
@@ -317,26 +331,26 @@ final class NettyHostingTest {
 
     final boolean bracketed = url.startsWith("http://[2001:db8::5]:25570/mcav/resourcepack_");
     assertTrue(bracketed);
-    assertEquals(25570, port, "the URL can be parsed");
+    assertEquals(SERVER_PORT, port, "the URL can be parsed");
   }
 
   @Test
   void shouldFormatOnlyIpv6AddressesAsBracketedHosts() {
     final String ipv6 = NettyHosting.formatHost("::1");
-    final String ipv4 = NettyHosting.formatHost("203.0.113.9");
+    final String ipv4 = NettyHosting.formatHost(PUBLIC_ADDRESS);
     final String hostName = NettyHosting.formatHost("example.org");
-    final String fallback = NettyHosting.formatHost("localhost");
+    final String fallback = NettyHosting.formatHost(LOCALHOST);
 
     assertEquals("[::1]", ipv6);
-    assertEquals("203.0.113.9", ipv4);
+    assertEquals(PUBLIC_ADDRESS, ipv4);
     assertEquals("example.org", hostName);
-    assertEquals("localhost", fallback);
+    assertEquals(LOCALHOST, fallback);
   }
 
   @Test
   void shouldBuildTheUrlAgainWhileThePublicAddressIsUnknown() {
     try (final MockedStatic<ServerAddress> serverAddress = Mockito.mockStatic(ServerAddress.class, Mockito.CALLS_REAL_METHODS)) {
-      serverAddress.when(ServerAddress::getPublicIpAddress).thenReturn("localhost", "198.51.100.7", "203.0.113.1");
+      serverAddress.when(ServerAddress::getPublicIpAddress).thenReturn(LOCALHOST, "198.51.100.7", "203.0.113.1");
       final NettyHosting hosting = new NettyHosting(this.zip);
 
       final String fallbackUrl = hosting.getRawUrl();
@@ -365,30 +379,30 @@ final class NettyHostingTest {
 
   @Test
   void shouldKeepTheMessageInExceptions() {
-    final InjectorException exception = new InjectorException("Message!");
+    final InjectorException exception = new InjectorException(MESSAGE);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("Message!", message);
+    assertEquals(MESSAGE, message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseInExceptions() {
     final IOException failure = new IOException("Cause!");
-    final InjectorException exception = new InjectorException("Message!", failure);
+    final InjectorException exception = new InjectorException(MESSAGE, failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("Message!", message);
+    assertEquals(MESSAGE, message);
     assertSame(failure, cause);
   }
 
   @Test
   void shouldMakeExceptionsIllegalStateExceptions() {
-    final InjectorException exception = new InjectorException("Message!");
+    final InjectorException exception = new InjectorException(MESSAGE);
     assertInstanceOf(IllegalStateException.class, exception, "a missing pack is a state of the server, so it is no Error");
   }
 }

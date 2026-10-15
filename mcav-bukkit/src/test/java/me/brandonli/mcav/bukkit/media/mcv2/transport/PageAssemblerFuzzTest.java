@@ -55,10 +55,12 @@ final class PageAssemblerFuzzTest {
 
   private static final List<List<byte[]>> FOREIGN = pages(STREAM + 1);
 
+  private static final String PROXY_DEFAULT_PATH = "conformance/proxy-default.mcs";
+
   private static List<byte[]> frames() {
     final List<byte[]> frames = new ArrayList<>();
     frames.add(Mcv2Trees.twoPages());
-    final List<byte[]> source = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"));
+    final List<byte[]> source = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH));
     for (int index = 0; index < 5; index++) {
       final byte[] frame = source.get(index).clone();
       Mcv2Decoder.putU32(frame, 12, index + 1);

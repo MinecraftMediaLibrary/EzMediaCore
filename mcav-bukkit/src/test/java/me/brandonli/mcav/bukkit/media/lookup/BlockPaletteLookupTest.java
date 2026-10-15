@@ -50,10 +50,21 @@ final class BlockPaletteLookupTest {
   private static final int BROWN_STAINED_GLASS = (102 << 16) | (76 << 8) | 51;
   private static final int NOT_IN_PALETTE = 0x010203;
 
+  private static final int OPAQUE_ALPHA = 0xFF000000;
+
+  private static final String PALETTE_RESOURCE = "mcav/bukkit/blocks.json";
+
+  private static final String STONE_MATERIAL_NAME = "STONE";
+  private static final String STONE_BLOCK_NAME = "stone";
+
+  private static final int SECOND_ENTRY_COLOR = 0x040506;
+
+  private static final String CLOSE_FAILURE_MESSAGE = "Close failed!";
+
   @Test
   void shouldFindTheBlockOfAPaletteColorAndIgnoreTheAlphaChannel() {
     final Material material = BlockPaletteLookup.getMaterial(BROWN_STAINED_GLASS);
-    final Material opaque = BlockPaletteLookup.getMaterial(0xFF000000 | BROWN_STAINED_GLASS);
+    final Material opaque = BlockPaletteLookup.getMaterial(OPAQUE_ALPHA | BROWN_STAINED_GLASS);
     final Material unknown = BlockPaletteLookup.getMaterial(NOT_IN_PALETTE);
 
     assertEquals(Material.BROWN_STAINED_GLASS, material);
@@ -78,7 +89,7 @@ final class BlockPaletteLookupTest {
 
   @Test
   void shouldResolveEveryBlockOfTheBundledPalette() {
-    final Reader reader = IoUtils.getResourceAsStreamReader("mcav/bukkit/blocks.json");
+    final Reader reader = IoUtils.getResourceAsStreamReader(PALETTE_RESOURCE);
     final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
     final Set<Map.Entry<String, int[]>> entries = palette.entrySet();
 
@@ -99,7 +110,7 @@ final class BlockPaletteLookupTest {
     final Random random = new Random(7);
     final int[] pixels = new int[64];
     for (int index = 0; index < pixels.length; index++) {
-      pixels[index] = 0xFF000000 | random.nextInt(0x1000000);
+      pixels[index] = OPAQUE_ALPHA | random.nextInt(0x1000000);
     }
 
     dithering.dither(pixels, 8);
@@ -131,7 +142,7 @@ final class BlockPaletteLookupTest {
       final List<String> names = List.copyOf(keys);
       final int[] dirt = palette.get("DIRT");
       final int blue = dirt[2];
-      final List<String> expected = List.of("STONE", "DIRT");
+      final List<String> expected = List.of(STONE_MATERIAL_NAME, "DIRT");
       assertEquals(expected, names);
       assertEquals(6, blue);
       assertTrue(reader.closed);
@@ -157,14 +168,14 @@ final class BlockPaletteLookupTest {
       final Throwable cause = exception.getCause();
       final String message = exception.getMessage();
       assertInstanceOf(IOException.class, cause);
-      assertEquals("Close failed!", message);
+      assertEquals(CLOSE_FAILURE_MESSAGE, message);
     }
   }
 
   @Test
   void shouldSkipNamesThatAreUnknownOrNotBlocks() {
     final Map<String, int[]> palette = new LinkedHashMap<>();
-    palette.put("stone", new int[] { 1, 2, 3 });
+    palette.put(STONE_BLOCK_NAME, new int[] { 1, 2, 3 });
     palette.put("no_such_block", new int[] { 4, 5, 6 });
     palette.put("diamond", new int[] { 7, 8, 9 });
 
@@ -177,14 +188,14 @@ final class BlockPaletteLookupTest {
   @Test
   void shouldSkipEntriesWithMalformedColors() {
     final Map<String, int[]> palette = new LinkedHashMap<>();
-    palette.put("stone", new int[] { 1, 2 });
+    palette.put(STONE_BLOCK_NAME, new int[] { 1, 2 });
     palette.put("dirt", null);
     palette.put("cobblestone", new int[0]);
     palette.put("oak_planks", new int[] { 4, 5, 6 });
 
     final Map<Integer, Material> materials = BlockPaletteLookup.resolveMaterials(palette);
 
-    final Map<Integer, Material> expected = Map.of(0x040506, Material.OAK_PLANKS);
+    final Map<Integer, Material> expected = Map.of(SECOND_ENTRY_COLOR, Material.OAK_PLANKS);
     assertEquals(expected, materials, "malformed entries never break the initialization");
   }
 
@@ -195,9 +206,9 @@ final class BlockPaletteLookupTest {
     final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
     final Map<Integer, Material> materials = BlockPaletteLookup.resolveMaterials(palette);
 
-    final boolean hasStone = palette.containsKey("STONE");
-    final int[] stone = palette.get("STONE");
-    final Map<Integer, Material> expected = Map.of(0x040506, Material.DIRT);
+    final boolean hasStone = palette.containsKey(STONE_MATERIAL_NAME);
+    final int[] stone = palette.get(STONE_MATERIAL_NAME);
+    final Map<Integer, Material> expected = Map.of(SECOND_ENTRY_COLOR, Material.DIRT);
     assertTrue(hasStone);
     assertNull(stone);
     assertEquals(expected, materials);
@@ -233,7 +244,7 @@ final class BlockPaletteLookupTest {
       this.content.close();
       this.closed = true;
       if (firstClose && this.failOnFirstClose) {
-        throw new IOException("Close failed!");
+        throw new IOException(CLOSE_FAILURE_MESSAGE);
       }
     }
   }

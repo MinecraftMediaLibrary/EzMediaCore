@@ -44,6 +44,14 @@ final class NativeConformanceTest {
 
   private static final int HEIGHT = 180;
 
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+  private static final String CROP_DEFAULT_STREAM = "crop-default.mcs";
+  private static final String CROP_FAST_STREAM = "crop-fast.mcs";
+
+  private static final String ENCODER_FOLDER = "encoder/";
+  private static final String EDGE_FOLDER = "edge/";
+  private static final String CONFORMANCE_FOLDER = "conformance/";
+
   private static Stream<Arguments> levels() {
     return NativeTesting.levels().stream().map(Arguments::of);
   }
@@ -76,7 +84,7 @@ final class NativeConformanceTest {
       made.add(NativeTesting.view(kernels));
       return kernels;
     });
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
     for (int frameIndex = 0; frameIndex < 2; frameIndex++) {
       final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
@@ -91,7 +99,7 @@ final class NativeConformanceTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
   void shouldEncodeEverySourceFixtureAsJavaDoes(final Level level) {
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
     final int expectedLength = 4 * frameBytes;
     final int sourceLength = source.length;
@@ -117,11 +125,11 @@ final class NativeConformanceTest {
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
   void shouldPinTheOutputOfTheLiveProfiles(final Level level) {
-    final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
+    final byte[] source = Mcv2Fixtures.read(CROP_SOURCE_PATH);
     final int frameBytes = WIDTH * HEIGHT * 3;
-    for (final String stream : List.of("crop-default.mcs", "crop-fast.mcs")) {
-      final Settings settings = stream.equals("crop-default.mcs") ? Settings.DEFAULT : Settings.FAST;
-      final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read("encoder/" + stream));
+    for (final String stream : List.of(CROP_DEFAULT_STREAM, CROP_FAST_STREAM)) {
+      final Settings settings = stream.equals(CROP_DEFAULT_STREAM) ? Settings.DEFAULT : Settings.FAST;
+      final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read(ENCODER_FOLDER + stream));
       final int expectedLength = expected.size() * frameBytes;
       final int sourceLength = source.length;
       assertEquals(expectedLength, sourceLength);
@@ -148,13 +156,13 @@ final class NativeConformanceTest {
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndStreams")
   void shouldReencodeTheEdgeCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, "edge/" + stream);
+    reencode(level, EDGE_FOLDER + stream);
   }
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndConformanceStreams")
   void shouldReencodeTheConformanceCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, "conformance/" + stream);
+    reencode(level, CONFORMANCE_FOLDER + stream);
   }
 
   private static void reencode(final Level level, final String stream) throws Mcv2Exception {

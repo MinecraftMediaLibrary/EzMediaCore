@@ -55,6 +55,8 @@ final class Mcv2ShaderReportsTest {
 
   private static final byte[] SHADERS_UNKNOWN = { 1, 1, 2, 0 };
 
+  private static final String MALFORMED_REPORT_MESSAGE = "Ignoring a malformed MCV2 client report from Alice.";
+
   private final AtomicLong clock = new AtomicLong(Long.MAX_VALUE - 3 * Mcv2ShaderReports.INTERVAL_NANOSECONDS);
 
   private Mcv2ShaderReports reports;
@@ -165,7 +167,7 @@ final class Mcv2ShaderReportsTest {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.sendLater(this.alice, message);
 
-      final List<String> expectedDebugMessages = List.of("Ignoring a malformed MCV2 client report from Alice.");
+      final List<String> expectedDebugMessages = List.of(MALFORMED_REPORT_MESSAGE);
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
       final List<String> informationMessages = messages(logs, Level.INFO);
@@ -204,7 +206,7 @@ final class Mcv2ShaderReportsTest {
       }
 
       final List<String> expectedDebugMessages = List.of(
-        "Ignoring a malformed MCV2 client report from Alice.",
+        MALFORMED_REPORT_MESSAGE,
         "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
         "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
         "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",

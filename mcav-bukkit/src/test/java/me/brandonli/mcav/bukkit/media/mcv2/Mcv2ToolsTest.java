@@ -40,6 +40,20 @@ import org.junit.jupiter.api.io.TempDir;
 
 final class Mcv2ToolsTest {
 
+  private static final String BENCH_COMMAND = "bench";
+  private static final String DIGESTS_COMMAND = "digests";
+
+  private static final String CROP_SOURCE_PATH = "encoder/crop-320x180x4.rgb";
+  private static final String CROP_DEFAULT_PATH = "encoder/crop-default.mcs";
+  private static final String PROXY_DEFAULT_PATH = "conformance/proxy-default.mcs";
+  private static final String PROXY_DEFAULT_STREAM = "proxy-default.mcs";
+  private static final String POST_SHADER_FOLDER = "assets/mcav/shaders/post";
+
+  private static final String ARCHIVE_EXTENSION = ".mcs";
+  private static final String STREAM_FILE_NAME = "stream.mcs";
+  private static final String REJECTED_FILE_NAME = "rejected.mcs";
+  private static final String CLASSPATH_FILE_NAME = "mcv2-tools-classpath.txt";
+
   @TempDir
   Path folder;
 
@@ -51,11 +65,11 @@ final class Mcv2ToolsTest {
   @Test
   void shouldWriteTheGoldenStreamAndReportTheKernelsOnBenchmark() throws Exception {
     final Path source = folder.resolve("source.rgb");
-    Files.write(source, Mcv2Fixtures.read("encoder/crop-320x180x4.rgb"));
+    Files.write(source, Mcv2Fixtures.read(CROP_SOURCE_PATH));
     for (final String mode : List.of("off", "auto")) {
-      final Path archive = folder.resolve(mode + ".mcs");
+      final Path archive = folder.resolve(mode + ARCHIVE_EXTENSION);
       final String output = run(
-        "bench",
+        BENCH_COMMAND,
         "source=" + source,
         "width=320",
         "height=180",
@@ -66,7 +80,7 @@ final class Mcv2ToolsTest {
         mode.equals("off") ? "natives=off" : "profile=DEFAULT",
         "out=" + archive
       );
-      final byte[] expectedArchive = Mcv2Fixtures.read("encoder/crop-default.mcs");
+      final byte[] expectedArchive = Mcv2Fixtures.read(CROP_DEFAULT_PATH);
       final byte[] archiveBytes = Files.readAllBytes(archive);
       assertArrayEquals(expectedArchive, archiveBytes);
 
@@ -118,17 +132,17 @@ final class Mcv2ToolsTest {
 
   @Test
   void shouldPrintTheReferenceDigestsAndWriteTheDecodedPicturesOnDigests() throws Exception {
-    final Path archive = folder.resolve("stream.mcs");
+    final Path archive = folder.resolve(STREAM_FILE_NAME);
     final Path pictures = folder.resolve("pictures.rgb");
-    Files.write(archive, Mcv2Fixtures.read("conformance/proxy-default.mcs"));
-    final List<String> expected = Mcv2Fixtures.digests("conformance").get("proxy-default.mcs");
+    Files.write(archive, Mcv2Fixtures.read(PROXY_DEFAULT_PATH));
+    final List<String> expected = Mcv2Fixtures.digests("conformance").get(PROXY_DEFAULT_STREAM);
     final String expectedOutput = archive + " " + String.join(" ", expected);
-    final String output = run("digests", "--rgb", pictures.toString(), archive.toString()).strip();
+    final String output = run(DIGESTS_COMMAND, "--rgb", pictures.toString(), archive.toString()).strip();
     assertEquals(expectedOutput, output);
 
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final ByteArrayOutputStream decoded = new ByteArrayOutputStream();
-    for (final byte[] frame : Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"))) {
+    for (final byte[] frame : Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH))) {
       decoded.writeBytes(receiver.accept(frame));
     }
     final byte[] expectedPictures = decoded.toByteArray();
@@ -140,26 +154,26 @@ final class Mcv2ToolsTest {
   void shouldRejectUnknownCommandsAndNativeModes() {
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[0]));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "unknown" }));
-    assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "bench", "natives=unknown" }));
+    assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { BENCH_COMMAND, "natives=unknown" }));
   }
 
   @Test
   void shouldDistinguishRejectedFramesFromTruncatedArchivesOnDigests() throws Exception {
-    final Path archive = folder.resolve("rejected.mcs");
-    final byte[] frame = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs")).getFirst();
+    final Path archive = folder.resolve(REJECTED_FILE_NAME);
+    final byte[] frame = Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH)).getFirst();
     final byte[] stream = new byte[Integer.BYTES + frame.length];
     Mcv2Decoder.putU32(stream, 0, frame.length);
     System.arraycopy(frame, 0, stream, Integer.BYTES, frame.length);
     stream[Integer.BYTES] = 0;
     Files.write(archive, stream);
     final String expectedRejection = archive + " reject";
-    final String rejection = run("digests", archive.toString()).strip();
+    final String rejection = run(DIGESTS_COMMAND, archive.toString()).strip();
     assertEquals(expectedRejection, rejection);
 
     for (final byte[] truncated : List.of(new byte[] { 1 }, Arrays.copyOf(stream, stream.length - 1))) {
       Files.write(archive, truncated);
       final String expectedTruncation = archive + " truncated";
-      final String truncation = run("digests", archive.toString()).strip();
+      final String truncation = run(DIGESTS_COMMAND, archive.toString()).strip();
       assertEquals(expectedTruncation, truncation);
     }
   }
@@ -167,7 +181,7 @@ final class Mcv2ToolsTest {
   @Test
   void shouldPreserveSamplerNamesAndReturnTheFailedStageCountInTheShaderCompiler() throws Exception {
     final Path pack = folder.resolve("pack");
-    final Path post = Files.createDirectories(pack.resolve("assets/mcav/shaders/post"));
+    final Path post = Files.createDirectories(pack.resolve(POST_SHADER_FOLDER));
     final Path generated = Files.createDirectories(folder.resolve("generated"));
     final Path output = folder.resolve("compiled");
     Files.writeString(
@@ -202,7 +216,7 @@ final class Mcv2ToolsTest {
     // JaCoCo's synthetic methods on LWJGL interfaces confuse its FFM callback selection.
     final String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
     final Path java = Path.of(System.getProperty("java.home"), "bin", executable);
-    final String classpath = Files.readString(Path.of("build", "mcv2-tools-classpath.txt"));
+    final String classpath = Files.readString(Path.of("build", CLASSPATH_FILE_NAME));
     final List<String> command = new ArrayList<>(
       List.of(java.toString(), "--enable-native-access=ALL-UNNAMED", "-cp", classpath, Mcv2Tools.class.getName(), "shader-compile")
     );

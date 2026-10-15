@@ -31,6 +31,8 @@ import org.junit.jupiter.api.Test;
 /** The receiver's state machine: commit only newer frames, keep the state on every failure, and wrap ids. */
 final class Mcv2ReceiverTest {
 
+  private static final String STALE_FRAME_MESSAGE = "Stale or ambiguous frame number!";
+
   private static byte[] keyframeWithId(final long id, final int gray) {
     return Mcv2Trees.write(4, 4, id, id, true, List.of(solid(gray, gray, gray)));
   }
@@ -47,7 +49,7 @@ final class Mcv2ReceiverTest {
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5, 2)));
     final String message = exception.getMessage();
-    assertEquals("Stale or ambiguous frame number!", message);
+    assertEquals(STALE_FRAME_MESSAGE, message);
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(4, 2)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5 + 0x80000000L, 2)));
     final long frameIdAfterRejections = receiver.getFrameId();
@@ -61,7 +63,7 @@ final class Mcv2ReceiverTest {
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(0, 2)));
     final String message = exception.getMessage();
-    assertEquals("Stale or ambiguous frame number!", message);
+    assertEquals(STALE_FRAME_MESSAGE, message);
     final long frameId = receiver.getFrameId();
     assertEquals(0, frameId);
   }

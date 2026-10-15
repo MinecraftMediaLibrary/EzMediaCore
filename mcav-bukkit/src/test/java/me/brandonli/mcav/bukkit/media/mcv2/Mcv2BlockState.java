@@ -30,6 +30,8 @@ final class Mcv2BlockState {
   private static final Class<?> FRAME = Mcv2Internals.nested("FrameState");
   private static final Class<?> CODER = Mcv2Internals.nested("BlockCoder");
   static final int NO_VECTOR = (int) Mcv2Internals.field(Mcv2.class, null, "NO_VECTOR");
+
+  private static final String HALF_MEMBER = "half";
   private final Object buffers;
 
   private record Block(int level, int index) {}
@@ -49,7 +51,7 @@ final class Mcv2BlockState {
   ) {
     this.buffers = Mcv2Internals.construct(BUFFERS, new Class<?>[] { int.class, int.class }, width, height);
     if (!keyframe) {
-      final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "half");
+      final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, HALF_MEMBER);
       final byte[] quarter = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "quarter");
       half(reference, width, height, half);
       half(half, (width + 1) / 2, (height + 1) / 2, quarter);
@@ -85,7 +87,7 @@ final class Mcv2BlockState {
     Mcv2Internals.call(
       Mcv2.class,
       null,
-      "half",
+      HALF_MEMBER,
       new Class<?>[] { byte[].class, int.class, int.class, Mcv2Internals.nested("Workers"), byte[].class },
       picture,
       width,

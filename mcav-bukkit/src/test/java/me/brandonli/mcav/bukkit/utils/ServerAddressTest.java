@@ -41,6 +41,14 @@ import org.mockito.MockedStatic;
  */
 final class ServerAddressTest {
 
+  private static final String CONFIGURED_ADDRESS = "10.0.0.5";
+  private static final String PUBLIC_ADDRESS = "203.0.113.7";
+  private static final String LOCALHOST = "localhost";
+
+  private static final String ADDRESS_PATH = "/ip";
+  private static final String OTHER_PATH = "/other";
+  private static final int HTTP_OK = 200;
+
   private FakeServer server;
   private LocalHttpServer http;
 
@@ -71,24 +79,24 @@ final class ServerAddressTest {
 
   @Test
   void shouldPreferTheAddressConfiguredInTheServerProperties() {
-    this.configureServerAddress("10.0.0.5");
+    this.configureServerAddress(CONFIGURED_ADDRESS);
     final String address = ServerAddress.getPublicIpAddress();
-    assertEquals("10.0.0.5", address);
+    assertEquals(CONFIGURED_ADDRESS, address);
   }
 
   @Test
   void shouldLookUpThePublicAddressOnceWhenNoAddressIsConfigured() {
     this.configureServerAddress("");
     final byte[] body = " 203.0.113.7\n".getBytes(StandardCharsets.US_ASCII);
-    this.http.respond("/ip", 200, body);
-    final URI service = this.http.uri("/ip");
-    final URI otherService = this.http.uri("/other");
+    this.http.respond(ADDRESS_PATH, HTTP_OK, body);
+    final URI service = this.http.uri(ADDRESS_PATH);
+    final URI otherService = this.http.uri(OTHER_PATH);
     final String first = ServerAddress.getPublicIpAddress(service);
     final String second = ServerAddress.getPublicIpAddress(otherService);
-    final int requests = this.http.getRequestCount("/ip");
-    final int otherRequests = this.http.getRequestCount("/other");
-    assertEquals("203.0.113.7", first);
-    assertEquals("203.0.113.7", second);
+    final int requests = this.http.getRequestCount(ADDRESS_PATH);
+    final int otherRequests = this.http.getRequestCount(OTHER_PATH);
+    assertEquals(PUBLIC_ADDRESS, first);
+    assertEquals(PUBLIC_ADDRESS, second);
     assertEquals(1, requests, "the address is cached");
     assertEquals(0, otherRequests);
   }
@@ -98,8 +106,8 @@ final class ServerAddressTest {
   void shouldTreatTheWildcardAddressAsNotConfigured(final String wildcard) {
     this.configureServerAddress(wildcard);
     final byte[] body = "2001:db8::1".getBytes(StandardCharsets.US_ASCII);
-    this.http.respond("/ip", 200, body);
-    final URI service = this.http.uri("/ip");
+    this.http.respond(ADDRESS_PATH, HTTP_OK, body);
+    final URI service = this.http.uri(ADDRESS_PATH);
     final String address = ServerAddress.getPublicIpAddress(service);
     assertEquals("2001:db8::1", address);
   }
@@ -115,32 +123,32 @@ final class ServerAddressTest {
   void shouldFallBackToLocalhostWithoutCachingItWhenTheLookupFails() {
     this.configureServerAddress("");
     final byte[] error = "unavailable".getBytes(StandardCharsets.US_ASCII);
-    final byte[] address = "203.0.113.7".getBytes(StandardCharsets.US_ASCII);
-    this.http.respond("/ip", 503, error);
-    this.http.respond("/ip", 200, address);
-    final URI service = this.http.uri("/ip");
+    final byte[] address = PUBLIC_ADDRESS.getBytes(StandardCharsets.US_ASCII);
+    this.http.respond(ADDRESS_PATH, 503, error);
+    this.http.respond(ADDRESS_PATH, HTTP_OK, address);
+    final URI service = this.http.uri(ADDRESS_PATH);
     final String failed = ServerAddress.getPublicIpAddress(service);
     final String retried = ServerAddress.getPublicIpAddress(service);
     final String cached = ServerAddress.getPublicIpAddress(service);
-    final int requests = this.http.getRequestCount("/ip");
+    final int requests = this.http.getRequestCount(ADDRESS_PATH);
     final boolean failedIsFallback = ServerAddress.isFallbackAddress(failed);
-    assertEquals("localhost", failed);
+    assertEquals(LOCALHOST, failed);
     assertTrue(failedIsFallback);
-    assertEquals("203.0.113.7", retried, "a transient failure is not remembered");
-    assertEquals("203.0.113.7", cached);
+    assertEquals(PUBLIC_ADDRESS, retried, "a transient failure is not remembered");
+    assertEquals(PUBLIC_ADDRESS, cached);
     assertEquals(2, requests, "only the successful lookup is cached");
   }
 
   @Test
   void shouldRequireAnAddressService() {
-    this.configureServerAddress("10.0.0.5");
+    this.configureServerAddress(CONFIGURED_ADDRESS);
     assertThrows(NullPointerException.class, () -> ServerAddress.getPublicIpAddress(null));
   }
 
   @Test
   void shouldRecognizeOnlyTheFallbackAddress() {
-    final boolean localhost = ServerAddress.isFallbackAddress("localhost");
-    final boolean publicAddress = ServerAddress.isFallbackAddress("203.0.113.7");
+    final boolean localhost = ServerAddress.isFallbackAddress(LOCALHOST);
+    final boolean publicAddress = ServerAddress.isFallbackAddress(PUBLIC_ADDRESS);
     final boolean loopback = ServerAddress.isFallbackAddress("127.0.0.1");
     assertTrue(localhost);
     assertFalse(publicAddress);
