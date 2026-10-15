@@ -77,6 +77,7 @@ public interface DisplayableImage {
   static DisplayableImage map(final MapConfiguration configuration, final DitherAlgorithm algorithm) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
     Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
+
     return new MapImage(configuration, algorithm);
   }
 
@@ -89,6 +90,7 @@ public interface DisplayableImage {
    */
   static DisplayableImage chat(final ChatConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Chat configuration must not be null!");
+
     return new ChatImage(configuration);
   }
 
@@ -101,6 +103,7 @@ public interface DisplayableImage {
    */
   static DisplayableImage entity(final EntityConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Entity configuration must not be null!");
+
     return new EntityImage(configuration);
   }
 
@@ -113,6 +116,7 @@ public interface DisplayableImage {
    */
   static DisplayableImage scoreboard(final ScoreboardConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null!");
+
     return new ScoreboardImage(configuration);
   }
 
@@ -125,6 +129,7 @@ public interface DisplayableImage {
    */
   static DisplayableImage block(final BlockConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Block configuration must not be null!");
+
     return new BlockImage(configuration);
   }
 }

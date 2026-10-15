@@ -216,6 +216,7 @@ public final class Mcv2Configuration {
    */
   public Mcv2Configuration withVideo(final int width, final int height) {
     Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive!");
+
     return this.toBuilder().video(width, height).build();
   }
 
@@ -255,6 +256,7 @@ public final class Mcv2Configuration {
     if (pool != null) {
       builder.encoderPool(pool);
     }
+
     return builder;
   }
 
@@ -488,6 +490,7 @@ public final class Mcv2Configuration {
      */
     public Builder viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
       this.viewers = viewers;
       return this;
     }
@@ -505,6 +508,7 @@ public final class Mcv2Configuration {
     public Builder origin(final Location origin) {
       Preconditions.checkNotNull(origin, "Origin must not be null!");
       Preconditions.checkArgument(origin.getWorld() != null, "Origin must be in a world!");
+
       this.origin = origin.toBlockLocation();
       return this;
     }
@@ -644,6 +648,7 @@ public final class Mcv2Configuration {
      */
     public Builder settings(final Settings settings) {
       Preconditions.checkNotNull(settings, "Settings must not be null!");
+
       this.settings = settings;
       return this;
     }
@@ -660,6 +665,7 @@ public final class Mcv2Configuration {
     public Builder outlineColor(final NamedTextColor outlineColor) {
       Preconditions.checkNotNull(outlineColor, "Outline color must not be null!");
       Preconditions.checkArgument(outlineColor.value() != 0, "The outline colour must not be black!");
+
       this.outlineColor = outlineColor;
       return this;
     }
@@ -761,6 +767,7 @@ public final class Mcv2Configuration {
       );
       Preconditions.checkArgument(this.backlogLimit >= 0, "Backlog limit must not be negative!");
       Preconditions.checkArgument(this.unsentLimit >= 0, "Unsent limit must not be negative!");
+
       final int maps = this.columns * this.rows;
       final int slots = this.pageSlots > 0 ? this.pageSlots : defaultPageSlots(maps);
       // A slot without a wall map is invisible to the client and prevents frame reassembly.
@@ -775,6 +782,7 @@ public final class Mcv2Configuration {
       Preconditions.checkArgument(this.pageMap >= 0 && lastPage <= Integer.MAX_VALUE, "Page map ids must be non-negative ints!");
       Preconditions.checkArgument(lastMap <= Integer.MAX_VALUE, "Map ids exceed the integer range!");
       Preconditions.checkArgument(lastPage < this.map || this.pageMap > lastMap, "Page maps must not be maps of the wall!");
+
       return new Mcv2Configuration(this, configuredViewers, configuredOrigin, configuredFacing, slots);
     }
   }

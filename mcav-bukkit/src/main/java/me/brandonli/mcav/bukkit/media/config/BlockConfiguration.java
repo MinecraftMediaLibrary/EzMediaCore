@@ -148,6 +148,7 @@ public class BlockConfiguration {
      */
     public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
       this.viewers = viewers;
       return this.self();
     }
@@ -163,6 +164,7 @@ public class BlockConfiguration {
      */
     public BuilderType position(final Location position) {
       Preconditions.checkNotNull(position, "Position must not be null!");
+
       this.position = position;
       return this.self();
     }

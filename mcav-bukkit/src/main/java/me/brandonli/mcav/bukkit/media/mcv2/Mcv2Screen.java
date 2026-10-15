@@ -118,6 +118,7 @@ public final class Mcv2Screen {
    */
   public Mcv2Screen(final Mcv2Configuration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
     this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), Character.MAX_RADIX);
     this.frames = new ArrayList<>();
@@ -137,6 +138,7 @@ public final class Mcv2Screen {
    */
   public void build() {
     Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist!");
+
     final Location origin = this.configuration.getOrigin();
     final World world = Preconditions.checkNotNull(origin.getWorld(), "The origin must be in a world!");
     final BlockFace right = this.configuration.getRight();
@@ -182,10 +184,12 @@ public final class Mcv2Screen {
    */
   public void show(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.showEntity(plugin, frame);
     }
+
     final List<UUID> viewer = List.of(player.getUniqueId());
     PacketUtils.sendPackets(viewer, ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(this.team(), true));
     MapPacketFactory.send(viewer, this.anchors());
@@ -200,10 +204,12 @@ public final class Mcv2Screen {
    */
   public void hide(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.hideEntity(plugin, frame);
     }
+
     PacketUtils.sendPackets(List.of(player.getUniqueId()), ClientboundSetPlayerTeamPacket.createRemovePacket(this.team()));
   }
 
@@ -220,6 +226,7 @@ public final class Mcv2Screen {
   private static void hold(final HeldChunk chunk) {
     final int holders = HELD_CHUNKS.getOrDefault(chunk, 0) + 1;
     HELD_CHUNKS.put(chunk, holders);
+
     if (holders == 1) {
       chunk.world().addPluginChunkTicket(chunk.chunkX(), chunk.chunkZ(), BukkitModule.getPlugin());
     }
@@ -240,6 +247,7 @@ public final class Mcv2Screen {
     for (final ItemFrame frame : this.frames) {
       members.add(frame.getUniqueId().toString());
     }
+
     return team;
   }
 
@@ -276,6 +284,7 @@ public final class Mcv2Screen {
         patches.add(new MapTilePatch(mapId, 0, 0, MapLayout.MAP_SIZE, ANCHOR_ROWS, MapAlphabet.toMapColors(symbols)));
       }
     }
+
     return patches;
   }
 

@@ -91,15 +91,18 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       LOGGER.debug(TOO_LONG, message.length, name, MAXIMUM_BYTES);
       return;
     }
+
     final UUID viewerId = player.getUniqueId();
     if (!this.admit(viewerId)) {
       LOGGER.debug(TOO_OFTEN, name);
       return;
     }
+
     final Report report = parse(message, name);
     if (report == null) {
       return;
     }
+
     final Report before = this.reports.put(viewerId, report);
     if (!Objects.equals(before, report)) {
       LOGGER.debug(REPORTED, name, report.describe(), report.blocksDecoding() ? DITHERED_MAPS : VIDEO);
@@ -113,7 +116,9 @@ final class Mcv2ShaderReports implements PluginMessageListener {
     if (next - now > BURST_NANOSECONDS) {
       return false;
     }
+
     this.allowances.put(player, next + INTERVAL_NANOSECONDS);
+
     return true;
   }
 
@@ -122,6 +127,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       LOGGER.debug(UNKNOWN_VERSION, message[0], name);
       return null;
     }
+
     if (
       message.length != REPORT_BYTES ||
       !isFlag(message[IRIS_PRESENT_INDEX]) ||
@@ -131,6 +137,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       LOGGER.debug(MALFORMED, name);
       return null;
     }
+
     return new Report(message[IRIS_PRESENT_INDEX] == 1, message[SHADER_PACK_INDEX], message[DECODES_UNDER_SHADERS_INDEX] == 1);
   }
 
@@ -165,6 +172,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
       if (!this.irisPresent) {
         return "no Iris";
       }
+
       return switch (this.shaderPack) {
         case NO_SHADER_PACK -> "Iris without a shader pack";
         case SHADER_PACK_IN_USE -> this.decodesUnderShaders

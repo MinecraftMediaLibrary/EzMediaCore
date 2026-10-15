@@ -65,6 +65,7 @@ public final class ServerAddress {
   @VisibleForTesting
   static String getPublicIpAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");
+
     final String configuredAddress = Bukkit.getIp();
     final boolean hasConfiguredAddress = isConfiguredAddress(configuredAddress);
     if (hasConfiguredAddress) {
@@ -80,6 +81,7 @@ public final class ServerAddress {
     if (lookedUpAddress.isEmpty()) {
       return FALLBACK_ADDRESS;
     }
+
     final String address = lookedUpAddress.get();
     publicAddress = address;
     return address;
@@ -89,10 +91,12 @@ public final class ServerAddress {
     if (address.isBlank()) {
       return false;
     }
+
     final boolean literal = InetAddresses.isInetAddress(address);
     if (!literal) {
       return true;
     }
+
     final InetAddress parsed = InetAddresses.forString(address);
     return !parsed.isAnyLocalAddress();
   }
@@ -108,6 +112,7 @@ public final class ServerAddress {
    */
   public static boolean isFallbackAddress(final String address) {
     Preconditions.checkNotNull(address, "Address must not be null!");
+
     return address.equals(FALLBACK_ADDRESS);
   }
 }

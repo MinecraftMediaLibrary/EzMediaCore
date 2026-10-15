@@ -177,12 +177,14 @@ public final class Mcv2Pacer {
   public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final boolean dithered) {
     Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed!");
     Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed!");
+
     for (int index = 1; index < presets.size(); index++) {
       Preconditions.checkArgument(
         presets.get(index).cost() < presets.get(index - 1).cost(),
         "Each preset must cost less than the one before!"
       );
     }
+
     final Preset fastest = presets.getLast();
     final List<Rung> rungs = new ArrayList<>();
     for (final int[] size : sizes) {
@@ -194,9 +196,11 @@ public final class Mcv2Pacer {
         rungs.add(new Rung(size[0], size[1], divisor, fastest));
       }
     }
+
     if (dithered) {
       rungs.add(Rung.DITHERED);
     }
+
     this.ladder = List.copyOf(rungs);
     this.blockedUntil = new long[rungs.size()];
     this.blockSeconds = new double[rungs.size()];
@@ -220,17 +224,21 @@ public final class Mcv2Pacer {
     if (this.firstArrival == NEVER) {
       this.firstArrival = now;
     }
+
     // Dithering throughput does not measure the video's frame rate.
     if (this.lastArrival != NEVER && now > this.lastArrival && !this.getRung().isDithered()) {
       final double interval = now - this.lastArrival;
       this.videoInterval = Double.isNaN(this.videoInterval) ? interval : this.videoInterval + SMOOTHING * (interval - this.videoInterval);
     }
+
     this.lastArrival = now;
     Change change = null;
     if (this.getRung().isDithered() && now >= this.retryAt) {
       change = this.move(this.lowestEncoded(), false, 0, 0);
     }
+
     this.arrivals++;
+
     return change;
   }
 
@@ -255,46 +263,60 @@ public final class Mcv2Pacer {
    */
   public @Nullable Change encoded(final double milliseconds, final boolean isKeyframe, final long now) {
     Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative!");
+
     final Rung rung = this.getRung();
     if (isKeyframe || rung.isDithered() || Double.isNaN(this.videoInterval)) {
       return null;
     }
+
     this.smoothed = Double.isNaN(this.smoothed) ? milliseconds : this.smoothed + SMOOTHING * (milliseconds - this.smoothed);
     this.samples++;
+
     if (this.settledSince == NEVER) {
       this.settledSince = now;
     }
+
     if (this.samples < MINIMUM_SAMPLES || now - this.firstArrival < seconds(STARTUP_SECONDS)) {
       return null;
     }
+
     final double frameMilliseconds = this.frameMilliseconds(rung);
     if (this.smoothed > HIGH * frameMilliseconds) {
       this.roomSince = NEVER;
+
       if (this.overSince == NEVER) {
         this.overSince = now;
       }
+
       if (now - this.overSince >= seconds(DOWN_SECONDS)) {
         return this.stepDown(now, frameMilliseconds);
       }
+
       return null;
     }
+
     this.overSince = NEVER;
     // Resetting backoff before the next retry interval permits repeated rung oscillation.
     final long held = now - this.settledSince;
     if (held >= seconds(Math.max(UP_SECONDS, this.blockSeconds[this.current]))) {
       this.blockSeconds[this.current] = BLOCK_SECONDS;
     }
+
     if (held >= seconds(Math.max(UP_SECONDS, this.retrySeconds))) {
       this.retrySeconds = RETRY_SECONDS;
     }
+
     final int above = this.bestAbove(now);
     if (above < 0) {
       this.roomSince = NEVER;
+
       return null;
     }
+
     if (this.roomSince == NEVER) {
       this.roomSince = now;
     }
+
     return now - this.roomSince >= seconds(UP_SECONDS) ? this.move(above, false, this.smoothed, frameMilliseconds) : null;
   }
 
@@ -314,14 +336,18 @@ public final class Mcv2Pacer {
         }
       }
     }
+
     if (encoded == this.ladder.size()) {
       final int lowest = this.lowestEncoded();
       this.overSince = NEVER;
+
       return lowest > this.current ? this.move(lowest, true, this.smoothed, frameMilliseconds) : null;
     }
+
     final Change change = this.move(this.ladder.size() - 1, true, this.smoothed, frameMilliseconds);
     this.retryAt = now + seconds(this.retrySeconds);
     this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
+
     return change;
   }
 
@@ -345,6 +371,7 @@ public final class Mcv2Pacer {
     this.settledSince = NEVER;
     this.arrivals = 0;
     this.samples = 0;
+
     return change;
   }
 
@@ -372,6 +399,7 @@ public final class Mcv2Pacer {
         return index;
       }
     }
+
     return -1;
   }
 
@@ -380,6 +408,7 @@ public final class Mcv2Pacer {
     while (!this.isAllowed(this.ladder.get(index))) {
       index--;
     }
+
     return index;
   }
 
@@ -533,6 +562,7 @@ public final class Mcv2Pacer {
       if (this.from.isDithered()) {
         return "MCV2 screen tries encoding again at %s after showing the dithered maps".formatted(this.to.describe(this.videoFrameRate));
       }
+
       final String timing = String.format(
         Locale.ROOT,
         "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",

@@ -86,6 +86,7 @@ public final class NettyHosting implements InjectorHosting {
    */
   public NettyHosting(final Path zip) {
     Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
+
     final int instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     @Subst("resourcepack_1")
     final String keyValue = KEY_VALUE_PREFIX + instanceNumber;
@@ -125,6 +126,7 @@ public final class NettyHosting implements InjectorHosting {
     if (!fallback) {
       this.url = builtUrl;
     }
+
     return builtUrl;
   }
 
@@ -159,6 +161,7 @@ public final class NettyHosting implements InjectorHosting {
     if (this.running) {
       return;
     }
+
     this.readPackAhead();
     ChannelInitializeListenerHolder.addListener(this.listenerKey, this::installHandler);
     this.running = true;

@@ -108,6 +108,7 @@ final class Mcv2FrameEvent extends Event {
         LUMA_DIVISOR;
       builder.append(HexFormat.of().toHexDigits((byte) luma));
     }
+
     return builder.toString();
   }
 }

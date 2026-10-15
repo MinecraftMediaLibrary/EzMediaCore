@@ -134,6 +134,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void handlerAdded(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
+
     final ByteBufAllocator allocator = context.alloc();
     this.requestBuffer = allocator.buffer(INITIAL_REQUEST_BUFFER_BYTES, MAXIMUM_HEADER_BYTES);
   }
@@ -146,6 +147,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void handlerRemoved(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
+
     final ByteBuf buffer = this.requestBuffer;
     if (buffer != null) {
       this.requestBuffer = null;
@@ -164,6 +166,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(final ChannelHandlerContext context, final Object message) {
     Preconditions.checkNotNull(context);
     Preconditions.checkNotNull(message);
+
     try {
       final ByteBuf buffer = this.requestBuffer;
       if (this.responded || buffer == null || !(message instanceof final ByteBuf data)) {
@@ -187,6 +190,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
       if (data.isReadable()) {
         this.respondWithStatus(context, STATUS_HEADER_TOO_LARGE);
       }
+
       return;
     }
 
@@ -215,6 +219,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
         return index;
       }
     }
+
     return -1;
   }
 
@@ -225,6 +230,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
         return false;
       }
     }
+
     return true;
   }
 
@@ -350,6 +356,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   public void exceptionCaught(final ChannelHandlerContext context, final Throwable cause) {
     Preconditions.checkNotNull(context);
     Preconditions.checkNotNull(cause);
+
     final ChannelFuture closing = context.close();
     closing.addListener(LOG_CLOSE_FAILURE);
   }
@@ -363,6 +370,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     if (closed) {
       return;
     }
+
     final Throwable failure = closing.cause();
     LOGGER.debug(CLOSE_FAILED, failure);
   }

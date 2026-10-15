@@ -62,6 +62,7 @@ public final class BukkitModule implements MCAVModule {
    */
   public void inject(final Plugin plugin) {
     Preconditions.checkNotNull(plugin, "Plugin must not be null!");
+
     ServerEnvironment.checkSupported();
 
     injectedPlugin = plugin;
@@ -80,6 +81,7 @@ public final class BukkitModule implements MCAVModule {
     if (plugin == null) {
       throw new IllegalStateException("No plugin has been injected, call BukkitModule#inject(Plugin) first!");
     }
+
     return plugin;
   }
 
@@ -95,6 +97,7 @@ public final class BukkitModule implements MCAVModule {
     if (plugin == null || !plugin.isEnabled()) {
       return;
     }
+
     PacketUtils.initialize();
   }
 
@@ -110,6 +113,7 @@ public final class BukkitModule implements MCAVModule {
     if (injectedPlugin == null) {
       return;
     }
+
     PacketUtils.shutdown();
   }
 

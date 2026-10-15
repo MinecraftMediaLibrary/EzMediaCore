@@ -200,6 +200,7 @@ public final class Mcv2Pack {
    */
   public static void write(final Mcv2Configuration configuration, final boolean showsDebugView, final Path archivePath) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     write(List.of(configuration), showsDebugView, archivePath);
   }
 
@@ -220,11 +221,13 @@ public final class Mcv2Pack {
     Preconditions.checkNotNull(screens, "Screens must not be null!");
     Preconditions.checkNotNull(archivePath, "Zip must not be null!");
     checkScreens(screens);
+
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(PACK_FORMAT, describe(screens));
     for (final String file : FILES) {
       pack.data(file, resource(file));
     }
+
     int firstSlot = 0;
     int debugTop = 0;
     for (int screen = 0; screen < screens.size(); screen++) {
@@ -240,6 +243,7 @@ public final class Mcv2Pack {
       firstSlot += configuration.getPageSlots();
       debugTop += Math.max(configuration.getVideoHeight(), DEBUG_SQUARES) + DEBUG_GAP;
     }
+
     pack.data(POST_CHAIN, postChain(screens).getBytes(StandardCharsets.UTF_8));
     pack.data(INCLUDE + CONFIG_INCLUDE, packConstants(screens, showsDebugView).getBytes(StandardCharsets.UTF_8));
     pack.data(INCLUDE + ALPHABET_INCLUDE, alphabet(palette()).getBytes(StandardCharsets.UTF_8));
@@ -249,8 +253,10 @@ public final class Mcv2Pack {
 
   private static void checkScreens(final List<Mcv2Configuration> screens) {
     Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAXIMUM_SCREENS, "A pack has 1 to %s screens!", MAXIMUM_SCREENS);
+
     final Set<Long> streams = screens.stream().map(Mcv2Configuration::getStreamId).collect(Collectors.toSet());
     Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id!");
+
     final NamedTextColor outline = screens.getFirst().getOutlineColor();
     final boolean oneOutline = screens.stream().allMatch(screen -> screen.getOutlineColor().equals(outline));
     Preconditions.checkArgument(oneOutline, "The screens of a pack share one outline colour!");
@@ -279,6 +285,7 @@ public final class Mcv2Pack {
       final String message = "MCV2 pack resource %s is missing!".formatted(file);
       throw new IllegalStateException(message);
     }
+
     try (stream) {
       return stream.readAllBytes();
     } catch (final IOException exception) {
@@ -294,6 +301,7 @@ public final class Mcv2Pack {
   static String screenCopy(final byte[] source, final int screen) {
     final String text = new String(source, StandardCharsets.UTF_8);
     Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl!");
+
     return text.replace(SCREEN_INCLUDE, INCLUDE_DIRECTIVE_PREFIX + screenInclude(screen) + INCLUDE_DIRECTIVE_SUFFIX);
   }
 
@@ -312,9 +320,11 @@ public final class Mcv2Pack {
       decoding.addAll(chain.getAsJsonArray("decode"));
       drawing.addAll(chain.getAsJsonArray("draw"));
     }
+
     for (final Map.Entry<String, JsonElement> target : shared.getAsJsonObject(TARGETS_KEY).entrySet()) {
       targets.add(target.getKey(), target.getValue());
     }
+
     final JsonArray passes = new JsonArray();
     passes.addAll(decoding);
     passes.addAll(drawing);
@@ -367,6 +377,7 @@ public final class Mcv2Pack {
       firsts.append(separator).append(total);
       total += configuration.getPageSlots();
     }
+
     return guarded(
       CONFIG_GUARD,
       String.join(
@@ -415,6 +426,7 @@ public final class Mcv2Pack {
     for (int symbol = 0; symbol < colors.length; symbol++) {
       colors[symbol] = MapColor.getColorFromPackedId(symbol + MapAlphabet.FIRST_COLOR) & RGB_MASK;
     }
+
     return colors;
   }
 
@@ -432,12 +444,14 @@ public final class Mcv2Pack {
         throw new IllegalStateException(message);
       }
     }
+
     final int multiplier = symbolHash(colors, maximumMultiplier);
     final int[] entries = new int[SYMBOL_ENTRIES];
     Arrays.fill(entries, NO_SYMBOL);
     for (int symbol = 0; symbol < colors.length; symbol++) {
       entries[symbolEntry(colors[symbol], multiplier)] = (colors[symbol] << MapAlphabet.SYMBOL_BITS) | symbol;
     }
+
     final StringBuilder table = new StringBuilder();
     for (int entry = 0; entry < entries.length; entry++) {
       table
@@ -448,6 +462,7 @@ public final class Mcv2Pack {
         .append(entry < entries.length - 1 ? ENTRY_SEPARATOR : "")
         .append(entry % ENTRIES_PER_LINE == ENTRIES_PER_LINE - 1 ? LINE_SEPARATOR : "");
     }
+
     return guarded(
       ALPHABET_GUARD,
       String.format(
@@ -481,6 +496,7 @@ public final class Mcv2Pack {
         return multiplier;
       }
     }
+
     final String message = String.format(
       Locale.ROOT,
       "No odd multiplier up to %d gives the map colours distinct symbol entries!",
@@ -508,6 +524,7 @@ public final class Mcv2Pack {
       screen.addProperty("page_slots", configuration.getPageSlots());
       list.add(screen);
     }
+
     manifest.add("screens", list);
     return GSON.toJson(manifest);
   }

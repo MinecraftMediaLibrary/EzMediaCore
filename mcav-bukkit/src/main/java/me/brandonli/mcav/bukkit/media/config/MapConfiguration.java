@@ -220,6 +220,7 @@ public class MapConfiguration {
      */
     public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
       this.viewers = viewers;
       return this.self();
     }
@@ -305,7 +306,9 @@ public class MapConfiguration {
       if (configuredResolution > 0) {
         return configuredResolution;
       }
+
       Preconditions.checkArgument(maps <= Integer.MAX_VALUE / MapLayout.MAP_SIZE, "Native map resolution exceeds the integer range!");
+
       return MapLayout.MAP_SIZE * maps;
     }
   }

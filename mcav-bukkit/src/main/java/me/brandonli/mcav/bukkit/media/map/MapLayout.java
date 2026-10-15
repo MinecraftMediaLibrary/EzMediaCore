@@ -103,6 +103,7 @@ public final class MapLayout {
 
     final long longMapCount = (long) columns * rows;
     Preconditions.checkArgument(longMapCount <= Integer.MAX_VALUE, "Map grid of %sx%s maps has too many maps!", columns, rows);
+
     final long lastMapId = startMapId + longMapCount - 1;
     Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids %s to %s exceed the largest map id!", startMapId, lastMapId);
 
@@ -121,6 +122,7 @@ public final class MapLayout {
     for (int index = 0; index < mapCount; index++) {
       computed[index] = this.computeRegion(index);
     }
+
     return computed;
   }
 
@@ -155,6 +157,7 @@ public final class MapLayout {
    */
   public int getMapId(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     return this.startMapId + index;
   }
 
@@ -167,6 +170,7 @@ public final class MapLayout {
    */
   public MapRegion getRegion(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     return this.regions[index];
   }
 
@@ -205,6 +209,7 @@ public final class MapLayout {
   public MapTilePatch extractPatch(final byte[] image, final int index, final int left, final int top, final int width, final int height) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
+
     final int expectedLength = this.imageWidth * this.imageHeight;
     Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
@@ -260,6 +265,7 @@ public final class MapLayout {
    */
   public List<MapTilePatch> extractAll(final byte[] image) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
+
     final int expectedLength = this.imageWidth * this.imageHeight;
     Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
@@ -277,6 +283,7 @@ public final class MapLayout {
       final MapTilePatch patch = this.extractPatch(image, index, localX, localY, width, height);
       patches.add(patch);
     }
+
     return patches;
   }
 

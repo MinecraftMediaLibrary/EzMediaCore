@@ -55,6 +55,7 @@ final class ProgressWriteTimeoutHandler extends WriteTimeoutHandler {
     for (final PendingWrite pending : this.writes) {
       pending.cancel();
     }
+
     this.writes.clear();
     super.handlerRemoved(context);
   }
@@ -104,6 +105,7 @@ final class ProgressWriteTimeoutHandler extends WriteTimeoutHandler {
     public void operationComplete(final ChannelProgressiveFuture future) {
       this.cancel();
       ProgressWriteTimeoutHandler.this.writes.remove(this);
+
       if (future.isSuccess()) {
         this.completion.trySuccess();
       } else {

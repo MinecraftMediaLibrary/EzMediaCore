@@ -85,6 +85,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    */
   public ScoreboardRenderer(final ScoreboardConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     final int lines = configuration.getLines();
     this.configuration = configuration;
     this.previousScoreboards = new HashMap<>();
@@ -109,6 +110,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    */
   public void render(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getWidth();
     final int lines = this.configuration.getLines();
     final ResizeFilter resize = new ResizeFilter(width, lines);
@@ -121,6 +123,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
       final String line = ChatUtils.createRawLine(pixels, character, width, row);
       components[row] = LEGACY_SERIALIZER.deserialize(line);
     }
+
     this.submit(components);
   }
 
@@ -219,6 +222,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
         player.setScoreboard(board);
       }
     }
+
     final Set<UUID> remembered = this.previousScoreboards.keySet();
     final Set<UUID> removed = new HashSet<>(remembered);
     removed.removeAll(watching);

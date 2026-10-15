@@ -77,6 +77,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    */
   public EntityRenderer(final EntityConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
     this.shownTo = new HashSet<>();
   }
@@ -100,6 +101,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    */
   public void render(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getEntityWidth();
     final int height = this.configuration.getEntityHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -165,6 +167,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     if (current == null) {
       return;
     }
+
     // a still image sends no further frame that would bring the display back after its chunk unloaded
     final TextDisplay display = current.isValid() ? current : this.respawnWithLastText();
     if (display == null) {
@@ -185,6 +188,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
       }
       this.shownTo.add(viewer);
     }
+
     final Set<UUID> removed = new HashSet<>(this.shownTo);
     removed.removeAll(watching);
     for (final UUID viewer : removed) {
@@ -193,6 +197,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
         player.hideEntity(plugin, display);
       }
     }
+
     this.shownTo.retainAll(watching);
   }
 
@@ -245,6 +250,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     if (display != null && text != null) {
       setText(display, text);
     }
+
     return display;
   }
 
@@ -272,6 +278,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
 
     this.entity = null;
     this.spawnEntity();
+
     return this.entity;
   }
 

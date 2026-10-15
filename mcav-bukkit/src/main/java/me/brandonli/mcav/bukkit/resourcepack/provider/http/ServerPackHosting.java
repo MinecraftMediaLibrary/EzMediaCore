@@ -72,6 +72,7 @@ public class ServerPackHosting implements HttpHosting {
     Preconditions.checkNotNull(hostName);
     Preconditions.checkArgument(port > 0 && port <= MAXIMUM_PORT, "Port must be between 1 and 65535!");
     Preconditions.checkNotNull(server);
+
     this.zip = zip;
     this.hostName = hostName;
     this.port = port;

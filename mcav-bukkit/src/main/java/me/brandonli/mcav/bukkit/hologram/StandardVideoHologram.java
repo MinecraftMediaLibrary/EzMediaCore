@@ -105,6 +105,7 @@ public class StandardVideoHologram extends VideoHologram {
   public void spawn(final Location location, final UrlParseDump dump) {
     Preconditions.checkNotNull(location, "Location must not be null!");
     Preconditions.checkNotNull(dump, "Video metadata must not be null!");
+
     final World world = location.getWorld();
     Preconditions.checkArgument(world != null, "Location must have a world!");
 
@@ -153,6 +154,7 @@ public class StandardVideoHologram extends VideoHologram {
     if (timestamp <= 0) {
       return UNKNOWN_DATE;
     }
+
     final Instant instant = Instant.ofEpochSecond(timestamp);
     final ZoneId zone = ZoneId.systemDefault();
     final ZonedDateTime dateTime = instant.atZone(zone);
@@ -167,6 +169,7 @@ public class StandardVideoHologram extends VideoHologram {
     if (day >= FIRST_TEEN_DAY && day <= LAST_TEEN_DAY) {
       return DEFAULT_ORDINAL_SUFFIX;
     }
+
     final int lastDigit = day % DECIMAL_BASE;
     return switch (lastDigit) {
       case 1 -> "st";
@@ -202,6 +205,7 @@ public class StandardVideoHologram extends VideoHologram {
       this.cancelTask();
       return;
     }
+
     final Component text = this.createProgressText();
     display.text(text);
     this.currentSecond++;
@@ -231,6 +235,7 @@ public class StandardVideoHologram extends VideoHologram {
     if (this.durationSeconds == 0) {
       return 0;
     }
+
     final double progress = (double) this.currentSecond / this.durationSeconds;
     final double filledSegments = Math.ceil(progress * PROGRESS_SEGMENTS);
     return (int) filledSegments;
@@ -247,6 +252,7 @@ public class StandardVideoHologram extends VideoHologram {
     if (current == null) {
       return;
     }
+
     current.cancel();
     this.task = null;
   }

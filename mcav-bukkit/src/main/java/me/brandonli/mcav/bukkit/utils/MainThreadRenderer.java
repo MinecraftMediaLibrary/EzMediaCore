@@ -90,6 +90,7 @@ public abstract class MainThreadRenderer<FrameType> {
     if (this.task != null) {
       return;
     }
+
     final Plugin plugin = BukkitModule.getPlugin();
     final BukkitScheduler scheduler = Bukkit.getScheduler();
     this.task = scheduler.runTaskTimer(plugin, this::applyPendingFrame, START_DELAY_TICKS, PERIOD_TICKS);
@@ -104,15 +105,18 @@ public abstract class MainThreadRenderer<FrameType> {
    */
   protected final void showDisplay(final Runnable initialize) {
     Preconditions.checkNotNull(initialize, "Initialization must not be null!");
+
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
     }
+
     runOnMainThread(() -> {
       synchronized (this) {
         if (generation != this.visibilityGeneration) {
           return;
         }
+
         initialize.run();
         // An initialization callback may synchronously request hide on this same main thread.
         if (generation == this.visibilityGeneration) {
@@ -131,11 +135,13 @@ public abstract class MainThreadRenderer<FrameType> {
    */
   protected final void hideDisplay(final Runnable remove) {
     Preconditions.checkNotNull(remove, "Removal must not be null!");
+
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
       this.stopRendering();
     }
+
     runOnMainThread(() -> {
       synchronized (this) {
         if (generation == this.visibilityGeneration) {
@@ -157,6 +163,7 @@ public abstract class MainThreadRenderer<FrameType> {
    */
   protected void submit(final FrameType frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     this.pendingFrame.set(frame);
   }
 
@@ -165,6 +172,7 @@ public abstract class MainThreadRenderer<FrameType> {
     if (frame != null) {
       this.apply(frame);
     }
+
     this.onTick();
   }
 
@@ -177,6 +185,7 @@ public abstract class MainThreadRenderer<FrameType> {
       currentTask.cancel();
       this.task = null;
     }
+
     this.pendingFrame.set(null);
   }
 
@@ -196,11 +205,13 @@ public abstract class MainThreadRenderer<FrameType> {
    */
   public static void runOnMainThread(final Runnable task) {
     Preconditions.checkNotNull(task, "Task must not be null!");
+
     final boolean onMainThread = Bukkit.isPrimaryThread();
     if (onMainThread) {
       task.run();
       return;
     }
+
     final Plugin plugin = BukkitModule.getPlugin();
     final boolean enabled = plugin.isEnabled();
     if (!enabled) {
@@ -208,6 +219,7 @@ public abstract class MainThreadRenderer<FrameType> {
       LOGGER.warn(TASK_SKIPPED_WHILE_DISABLED, pluginName);
       return;
     }
+
     final BukkitScheduler scheduler = Bukkit.getScheduler();
     try {
       scheduler.runTask(plugin, task);

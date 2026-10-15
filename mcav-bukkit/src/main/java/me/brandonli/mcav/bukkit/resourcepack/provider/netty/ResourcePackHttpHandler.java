@@ -125,6 +125,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   public void channelRead(final ChannelHandlerContext context, final Object message) {
     Preconditions.checkNotNull(context);
     Preconditions.checkNotNull(message);
+
     if (this.served) {
       ReferenceCountUtil.release(message);
       return;
@@ -159,9 +160,11 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
       this.passToMinecraft(context, data);
       return;
     }
+
     if (readable < expected.length) {
       return;
     }
+
     this.serve(context, data, isHeadRequest);
   }
 
@@ -196,6 +199,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
         pipeline.remove(handler.getKey());
       }
     }
+
     // the stall handler counts a write once it is complete, and raises its first idle event however far a write still
     // in progress got, so the pack goes out a chunk at a time, each chunk a write of its own that passes through it
     pipeline.addBefore(context.name(), CHUNKS_NAME, new ChunkedWriteHandler());
@@ -217,6 +221,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
       closing.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
       return;
     }
+
     context.fireUserEventTriggered(event);
   }
 
@@ -231,6 +236,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     final CompositeByteBuf composite = allocator.compositeBuffer();
     composite.addComponent(true, buffer);
     this.cumulation = composite;
+
     return composite;
   }
 
@@ -304,6 +310,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     if (couldBeGet || couldBeHead) {
       return RequestType.INCOMPLETE;
     }
+
     return RequestType.MINECRAFT;
   }
 
@@ -315,6 +322,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
         return false;
       }
     }
+
     return true;
   }
 
@@ -326,6 +334,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void handlerRemoved(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
+
     this.releaseCumulation();
   }
 
@@ -337,6 +346,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   @Override
   public void channelInactive(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
+
     this.releaseCumulation();
     context.fireChannelInactive();
   }
@@ -346,6 +356,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     if (pending == null) {
       return;
     }
+
     this.cumulation = null;
     pending.release();
   }

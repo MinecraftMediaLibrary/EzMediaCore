@@ -58,6 +58,7 @@ public class MapImage implements DisplayableImage {
   @Override
   public void displayImage(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     this.resizeIfConfigured(image);
 
     final byte[] dithered = this.algorithm.ditherIntoBytes(image);

@@ -54,6 +54,7 @@ public final class PageAssembler {
    */
   public PageAssembler(final long streamId, final int symbolBits) {
     Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Symbol width %s is unsupported!", symbolBits);
+
     this.streamId = streamId;
   }
 
@@ -75,12 +76,14 @@ public final class PageAssembler {
     if (page.getStreamId() != this.streamId) {
       throw new Mcv2Exception("Wrong stream!");
     }
+
     final long frameId = page.getFrameId();
     if (!this.pending.containsKey(frameId) && this.pending.size() >= MAXIMUM_PENDING) {
       final Iterator<Long> oldest = this.pending.keySet().iterator();
       oldest.next();
       oldest.remove();
     }
+
     final Map<Integer, TransportPage> parts = this.pending.computeIfAbsent(frameId, _ -> new HashMap<>());
     if (!parts.isEmpty()) {
       final TransportPage first = parts.values().iterator().next();
@@ -94,24 +97,30 @@ public final class PageAssembler {
         throw new Mcv2Exception("Inconsistent pages!");
       }
     }
+
     final TransportPage previous = parts.get(page.getNumber());
     if (previous != null && !previous.equals(page)) {
       this.pending.remove(frameId);
       throw new Mcv2Exception("Conflicting page duplicate!");
     }
+
     parts.put(page.getNumber(), page);
+
     if (parts.size() != page.getCount()) {
       return null;
     }
+
     // Distinct validated page numbers filling the count cover exactly 0..count-1.
     final TransportPage[] ordered = new TransportPage[page.getCount()];
     for (final TransportPage part : parts.values()) {
       ordered[part.getNumber()] = part;
     }
+
     final ByteArrayOutputStream frame = new ByteArrayOutputStream(page.getFrameBytes());
     for (final TransportPage part : ordered) {
       frame.writeBytes(part.payload());
     }
+
     this.pending.remove(frameId);
     final byte[] data = frame.toByteArray();
     final Frame parsed = Mcv2Decoder.parse(data);
@@ -120,6 +129,7 @@ public final class PageAssembler {
     ) {
       throw new Mcv2Exception("Frame and page identity mismatch!");
     }
+
     return data;
   }
 

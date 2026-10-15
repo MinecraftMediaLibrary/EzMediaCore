@@ -96,6 +96,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    */
   public BlockRenderer(final BlockConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+
     this.configuration = configuration;
     this.activeViewers = new HashSet<>();
   }
@@ -120,6 +121,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    */
   public void render(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -135,6 +137,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       final int color = pixels[index];
       blocks[index] = BlockPaletteLookup.getBlockData(color);
     }
+
     this.submit(blocks);
   }
 
@@ -226,6 +229,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     final BlockData[] previousBlocks = this.displayedBlocks;
     final Map<Position, BlockData> changes = collectChanges(currentPositions, previousBlocks, blocks);
     this.displayedBlocks = blocks;
+
     if (changes.isEmpty()) {
       return;
     }
@@ -250,6 +254,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
         changes.put(position, block);
       }
     }
+
     return changes;
   }
 
@@ -299,6 +304,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     if (shouldResendToEveryone) {
       this.ticksSinceFullResend = 0;
     }
+
     return shouldResendToEveryone;
   }
 
@@ -322,6 +328,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
         playersWithoutWall.add(player);
       }
     }
+
     return playersWithoutWall;
   }
 
@@ -331,6 +338,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   private void restoreRemovedViewers(final Position[] currentPositions, final Set<UUID> watchingViewers) {
     final List<UUID> removedViewers = new ArrayList<>(this.activeViewers);
     removedViewers.removeAll(watchingViewers);
+
     if (removedViewers.isEmpty()) {
       return;
     }
@@ -383,6 +391,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
       final BlockData block = blocks[index];
       map.put(position, block);
     }
+
     return map;
   }
 }

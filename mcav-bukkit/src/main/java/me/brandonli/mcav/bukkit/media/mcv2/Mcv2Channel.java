@@ -118,6 +118,7 @@ public final class Mcv2Channel {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     Preconditions.checkNotNull(viewers, "Viewers must not be null!");
     Preconditions.checkNotNull(screen, "Screen must not be null!");
+
     this.configuration = configuration;
     this.viewers = viewers;
     this.screen = screen;
@@ -138,6 +139,7 @@ public final class Mcv2Channel {
    */
   public void open() {
     this.screen.build();
+
     if (this.ranging == null) {
       this.measureRange();
       this.ranging = Bukkit.getScheduler().runTaskTimer(BukkitModule.getPlugin(), this::measureRange, RANGE_TICKS, RANGE_TICKS);
@@ -153,6 +155,7 @@ public final class Mcv2Channel {
       task.cancel();
       this.ranging = null;
     }
+
     this.removeFrames();
     this.farAway = Set.of();
   }
@@ -179,6 +182,7 @@ public final class Mcv2Channel {
         far.add(viewer);
       }
     }
+
     this.farAway = Set.copyOf(far);
   }
 
@@ -187,11 +191,13 @@ public final class Mcv2Channel {
     if (viewDistance <= 0) {
       return false;
     }
+
     // Bukkit throws if the location's world has unloaded.
     final World wall = Objects.requireNonNull(this.configuration.getOrigin().getWorld(), "A screen's origin is in a world!");
     if (!wall.getUID().equals(player.getWorld().getUID())) {
       return true;
     }
+
     final double reach = viewDistance * CHUNK_BLOCKS + (wasFarAway ? 0 : RANGE_MARGIN);
     return this.distanceToWall(player.getLocation()) > reach;
   }
@@ -234,12 +240,14 @@ public final class Mcv2Channel {
       if (far.contains(viewer)) {
         // Not hidden: hiding removes the scoreboard team shared by every screen shown to this viewer.
         this.scheduled.remove(viewer);
+
         if (this.links.remove(viewer) != null) {
           this.away.add(viewer);
         }
       } else if (!this.viewers.isLoaded(viewer)) {
         others.add(viewer);
         this.scheduled.remove(viewer);
+
         if (this.links.remove(viewer) != null) {
           Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.hide(viewer));
         }
@@ -247,12 +255,15 @@ public final class Mcv2Channel {
         receiving.put(viewer, link);
       } else {
         others.add(viewer);
+
         if (this.scheduled.add(viewer)) {
           Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.show(viewer));
         }
       }
     }
+
     this.recipients = Collections.unmodifiableMap(receiving);
+
     return others;
   }
 
@@ -287,6 +298,7 @@ public final class Mcv2Channel {
     if (this.scheduled.contains(viewer)) {
       return;
     }
+
     final Player player = Bukkit.getPlayer(viewer);
     if (player != null) {
       this.screen.hide(player);
@@ -300,6 +312,7 @@ public final class Mcv2Channel {
       this.scheduled.remove(viewer);
       return;
     }
+
     this.screen.show(player);
 
     final int unsent = this.configuration.getUnsentLimit();
@@ -317,11 +330,14 @@ public final class Mcv2Channel {
     // Publish before rechecking so an overlapping retirement can own the cleanup.
     if (!this.canShow(viewer)) {
       this.scheduled.remove(viewer);
+
       if (this.links.remove(viewer, link)) {
         this.screen.hide(player);
       }
+
       return;
     }
+
     this.keyframeRequest.request();
   }
 
@@ -363,6 +379,7 @@ public final class Mcv2Channel {
    */
   public int send(final byte[] frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
+
     final Frame header;
     final List<byte[]> pages;
     try {
@@ -372,17 +389,20 @@ public final class Mcv2Channel {
       final String message = "Not a valid MCV2 frame (%s)!".formatted(exception.getMessage());
       throw new IllegalArgumentException(message, exception);
     }
+
     final Mcv2SendEvent event = new Mcv2SendEvent();
     event.frameId = header.getFrameId();
     event.referenceId = header.getReferenceId();
     event.keyframe = header.isKeyframe();
     event.bytes = frame.length;
+
     if (pages.size() > this.configuration.getPageSlots()) {
       this.keyframeRequest.request();
       event.colors = -1;
       event.commit();
       return -1;
     }
+
     final List<MapTilePatch> patches = new ArrayList<>();
     int colors = 0;
     for (int page = 0; page < pages.size(); page++) {
@@ -391,15 +411,18 @@ public final class Mcv2Channel {
       final int rows = mapColors.length / MapLayout.MAP_SIZE;
       patches.add(new MapTilePatch(this.configuration.getPageMap() + page, 0, 0, MapLayout.MAP_SIZE, rows, mapColors));
     }
+
     final boolean isKeyframe = header.isKeyframe();
     if (isKeyframe) {
       patches.addAll(this.screen.anchors());
     }
+
     final List<MapPacketFactory.Bundle> bundles = MapPacketFactory.bundles(patches);
     long bytes = 0;
     for (final MapPacketFactory.Bundle bundle : bundles) {
       bytes += bundle.bytes();
     }
+
     for (final Map.Entry<UUID, Mcv2Link> recipient : this.recipients.entrySet()) {
       final UUID viewer = recipient.getKey();
       final Mcv2Link link = recipient.getValue();
@@ -417,6 +440,7 @@ public final class Mcv2Channel {
       }
       event.backlog = Math.max(event.backlog, link.getBacklog());
     }
+
     event.colors = colors;
     event.sent = System.currentTimeMillis();
     event.commit();

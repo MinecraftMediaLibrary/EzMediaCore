@@ -85,6 +85,7 @@ public final class BlockPaletteLookup {
     if (material == null) {
       return Material.AIR;
     }
+
     return material;
   }
 
@@ -102,6 +103,7 @@ public final class BlockPaletteLookup {
     if (data == null) {
       return Holder.AIR;
     }
+
     return data;
   }
 
@@ -137,6 +139,7 @@ public final class BlockPaletteLookup {
         final IOException emptyPalette = new IOException(message);
         throw new UncheckedIOException(message, emptyPalette);
       }
+
       return palette;
     } catch (final IOException exception) {
       final String message = exception.getMessage();
@@ -173,6 +176,7 @@ public final class BlockPaletteLookup {
       final int color = (red << RED_SHIFT) | (green << GREEN_SHIFT) | blue;
       materials.put(color, material);
     }
+
     return Map.copyOf(materials);
   }
 
@@ -210,6 +214,7 @@ public final class BlockPaletteLookup {
         final BlockData data = material.createBlockData();
         blockData.put(color, data);
       }
+
       return Map.copyOf(blockData);
     }
 

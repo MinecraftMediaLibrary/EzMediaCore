@@ -115,6 +115,7 @@ public class McPackHosting implements WebsiteHosting {
     Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
     Preconditions.checkNotNull(uploadUri, "Upload URI must not be null!");
     Preconditions.checkNotNull(downloadUrlFormat, "Download URL format must not be null!");
+
     this.zip = zip;
     this.uploadUri = uploadUri;
     this.downloadUrlFormat = downloadUrlFormat;
@@ -137,6 +138,7 @@ public class McPackHosting implements WebsiteHosting {
     if (currentUrl == null) {
       throw new IllegalStateException("The resource pack has not been uploaded yet, call start() first!");
     }
+
     return currentUrl;
   }
 
@@ -216,6 +218,7 @@ public class McPackHosting implements WebsiteHosting {
     } catch (final IllegalArgumentException exception) {
       return false;
     }
+
     return NetworkUtils.isReachable(uri);
   }
 
@@ -309,12 +312,14 @@ public class McPackHosting implements WebsiteHosting {
     for (final byte[] part : parts) {
       totalLength += part.length;
     }
+
     final byte[] joined = new byte[totalLength];
     int offset = 0;
     for (final byte[] part : parts) {
       System.arraycopy(part, 0, joined, offset, part.length);
       offset += part.length;
     }
+
     return joined;
   }
 
@@ -329,6 +334,7 @@ public class McPackHosting implements WebsiteHosting {
     if (!exists) {
       return new HashMap<>();
     }
+
     final Gson gson = GsonProvider.getSimple();
     try (final Reader reader = Files.newBufferedReader(cacheFile)) {
       final Map<String, String> cache = gson.fromJson(reader, CACHE_TYPE);
@@ -342,6 +348,7 @@ public class McPackHosting implements WebsiteHosting {
     if (cache == null) {
       return new HashMap<>();
     }
+
     return new HashMap<>(cache);
   }
 

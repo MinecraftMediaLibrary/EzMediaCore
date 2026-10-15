@@ -122,6 +122,7 @@ final class FileHttpServer {
     if (channel == null) {
       throw new IllegalStateException("The resource pack server is not running!");
     }
+
     final SocketAddress address = channel.localAddress();
     final InetSocketAddress socketAddress = (InetSocketAddress) address;
     return socketAddress.getPort();
@@ -137,11 +138,13 @@ final class FileHttpServer {
       closeFuture.awaitUninterruptibly();
       this.serverChannel = null;
     }
+
     final EventLoopGroup acceptors = this.acceptorGroup;
     if (acceptors != null) {
       terminate(acceptors);
       this.acceptorGroup = null;
     }
+
     final EventLoopGroup workers = this.workerGroup;
     if (workers != null) {
       terminate(workers);

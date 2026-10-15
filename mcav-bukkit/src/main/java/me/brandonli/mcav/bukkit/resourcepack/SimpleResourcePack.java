@@ -147,9 +147,11 @@ public final class SimpleResourcePack {
   public void sound(final String key, final Path path) {
     Preconditions.checkNotNull(key);
     Preconditions.checkNotNull(path);
+
     final Matcher keyMatcher = KEY_PATTERN.matcher(key);
     final boolean validKey = keyMatcher.matches();
     Preconditions.checkArgument(validKey, "Sound key %s is invalid!", key);
+
     final boolean exists = Files.isRegularFile(path);
     Preconditions.checkArgument(exists, "Sound file %s does not exist!", path);
 
@@ -158,6 +160,7 @@ public final class SimpleResourcePack {
     final String value = key.substring(separator + 1);
     final String soundPath = namespace + PATH_SEPARATOR + value;
     checkPathSegments(soundPath);
+
     final Map<String, Path> namespaceSounds = this.sounds.computeIfAbsent(namespace, _ -> new LinkedHashMap<>());
     namespaceSounds.put(value, path);
   }
@@ -179,8 +182,10 @@ public final class SimpleResourcePack {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(file);
     checkEntryPath(path);
+
     final boolean exists = Files.isRegularFile(file);
     Preconditions.checkArgument(exists, "File %s does not exist!", file);
+
     this.contents.remove(path);
     this.files.put(path, file);
   }
@@ -199,6 +204,7 @@ public final class SimpleResourcePack {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(content);
     checkEntryPath(path);
+
     this.files.remove(path);
     this.contents.put(path, content.clone());
   }
@@ -234,6 +240,7 @@ public final class SimpleResourcePack {
   public void meta(final int format, final String description) {
     Preconditions.checkArgument(format > 0, "Pack format must be positive!");
     Preconditions.checkNotNull(description);
+
     this.format = format;
     this.description = description;
   }
@@ -252,6 +259,7 @@ public final class SimpleResourcePack {
    */
   public void zip(final Path destination) {
     Preconditions.checkNotNull(destination);
+
     final String packDescription = this.description;
     if (packDescription == null) {
       throw new IllegalStateException("Pack metadata must be set using meta(format, description)!");
@@ -297,6 +305,7 @@ public final class SimpleResourcePack {
     if (view == null) {
       return;
     }
+
     final Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(READABLE_PERMISSIONS);
     view.setPermissions(permissions);
   }

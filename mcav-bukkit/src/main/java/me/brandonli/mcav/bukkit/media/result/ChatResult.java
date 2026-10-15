@@ -52,6 +52,7 @@ public class ChatResult implements FunctionalVideoFilter {
    */
   public ChatResult(final ChatConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Chat configuration must not be null!");
+
     this.configuration = configuration;
   }
 
@@ -67,6 +68,7 @@ public class ChatResult implements FunctionalVideoFilter {
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
     Preconditions.checkNotNull(data, "Frame must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     final int width = this.configuration.getChatWidth();
     final int height = this.configuration.getChatHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -78,6 +80,7 @@ public class ChatResult implements FunctionalVideoFilter {
     final ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
     final Collection<UUID> viewers = this.configuration.getViewers();
     PacketUtils.sendPackets(viewers, packet);
+
     return true;
   }
 

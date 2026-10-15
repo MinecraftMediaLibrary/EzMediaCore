@@ -231,6 +231,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   ) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     Preconditions.checkNotNull(channel, "Channel must not be null!");
+
     this.requested = configuration;
     this.screen = new Screen(configuration, channel);
     this.fallbackViewers = ConcurrentHashMap.newKeySet();
@@ -246,6 +247,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.ditheringThread = null;
       this.dithering = dithering;
     }
+
     this.lock = new Object();
     this.pending = new Mcv2LatestFrame<>();
     this.statistics = new Statistics();
@@ -261,6 +263,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (settings.fast()) {
       return List.of(settings);
     }
+
     // Every finite product is divided as before, so 72 still gives exactly 55; one that overflows is scaled instead.
     final double product = settings.lambda() * Settings.FAST.lambda();
     final double lambda = Double.isFinite(product)
@@ -273,10 +276,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (ladder.size() == 1) {
       return List.of(Mcv2Pacer.Preset.ONLY);
     }
+
     final List<Mcv2Pacer.Preset> presets = new ArrayList<>();
     for (final Settings settings : ladder) {
       presets.add(preset(settings));
     }
+
     return List.copyOf(presets);
   }
 
@@ -284,6 +289,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (settings.fast()) {
       return new Mcv2Pacer.Preset("FAST", FAST_COST);
     }
+
     return new Mcv2Pacer.Preset("DEFAULT", DEFAULT_COST);
   }
 
@@ -312,6 +318,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   public void setSmallerSizes(final List<int[]> sizes, final Resizer resizer) {
     Preconditions.checkNotNull(sizes, "Sizes must not be null!");
     Preconditions.checkNotNull(resizer, "Resizer must not be null!");
+
     this.smaller = List.copyOf(sizes);
     this.resizer = resizer;
   }
@@ -339,6 +346,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (dithered != null) {
       dithered.result().start();
     }
+
     final Pool encoderPool = this.requested.getEncoderPool();
     final Mcv2 encoder = this.encoders.apply(this.ladder.getFirst());
 
@@ -363,6 +371,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.running = true;
       this.pending.open();
     }
+
     delivery.start();
     thread.start();
   }
@@ -380,9 +389,11 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
     Preconditions.checkNotNull(data, "Frame must not be null!");
     Preconditions.checkNotNull(metadata, "Metadata must not be null!");
+
     if (!this.takeFrame(this.clock.getAsLong())) {
       return false;
     }
+
     final boolean encode;
     final boolean everyoneDithered;
     Mcv2Pacer.Preset preset = this.presets.getFirst();
@@ -394,16 +405,20 @@ public final class Mcv2Result implements FunctionalVideoFilter {
         if (tried != null) {
           this.follow(tried);
         }
+
         encode = screenPacer.isEncoded();
         preset = screenPacer.getRung().preset();
       } else {
         encode = true;
       }
+
       everyoneDithered = this.ditheredForAll;
     }
+
     if (tried != null) {
       this.announce(tried);
     }
+
     final Screen current = this.screen;
 
     final Set<UUID> others = everyoneDithered ? current.channel().near(this.requested.getViewers()) : current.channel().update();
@@ -420,6 +435,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       final Arrival arrival = new Arrival(rgbFromBgr(data.getData(), width * height), width, height, System.currentTimeMillis(), preset);
       this.pending.offer(arrival);
     }
+
     final Fallback dithered = this.fallback;
     if (dithered != null && !others.isEmpty() && this.ditheringBusy.compareAndSet(false, true)) {
       // ImageBuffer replaces its pixel array, allowing asynchronous reads without a copy.
@@ -430,6 +446,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
         this.ditheringBusy.set(false);
       }
     }
+
     return true;
   }
 
@@ -438,15 +455,20 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (this.framesPerNanosecond == 0) {
       return true;
     }
+
     synchronized (this.lock) {
       if (this.lastFrame != Long.MIN_VALUE) {
         this.frameCredit = Math.min(FRAME_CREDIT_CAP, this.frameCredit + (now - this.lastFrame) * this.framesPerNanosecond);
       }
+
       this.lastFrame = now;
+
       if (this.frameCredit < 1) {
         return false;
       }
+
       this.frameCredit -= 1;
+
       return true;
     }
   }
@@ -459,6 +481,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
         maps.refresh();
         this.lastFallbackRefresh = now;
       }
+
       maps.process(frame, dithered.algorithm());
     } finally {
       this.ditheringBusy.set(false);
@@ -473,6 +496,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       pictureBytes[pixelOffset] = pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET];
       pictureBytes[pixelOffset + LAST_CHANNEL_OFFSET] = blue;
     }
+
     return pictureBytes;
   }
 
@@ -483,6 +507,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       counts[BEHIND] += link.getBehind();
       counts[UNDECODABLE] += link.getUndecodable();
     }
+
     return counts;
   }
 
@@ -492,6 +517,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     for (final Mcv2Link link : this.screen.channel().getLinks().values()) {
       backlog = Math.max(backlog, link.getBacklog());
     }
+
     event.frameId = delivery.frameId;
     event.keyframe = delivery.statistics.keyframe();
     event.bytes = delivery.frame.length;
@@ -511,6 +537,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (thread == null) {
       return;
     }
+
     thread.interrupt();
     try {
       thread.join(TimeUnit.SECONDS.toMillis(JOIN_SECONDS));
@@ -524,6 +551,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     synchronized (this.lock) {
       own = this.pipeline;
     }
+
     long frameId = this.requested.getFirstFrameId();
     Mcv2 encoder = first;
     try {
@@ -586,6 +614,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     synchronized (this.lock) {
       running = this.pipeline;
     }
+
     final long started = this.clock.getAsLong();
     final boolean isKeyframe;
     Delivery delivery = null;
@@ -601,8 +630,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       synchronized (this.lock) {
         this.handed++;
       }
+
       running.queue().put(new Handoff(encoder, pending, frameId, arrival));
     }
+
     final long finished = this.clock.getAsLong();
     Mcv2Pacer.Change change = null;
     synchronized (this.lock) {
@@ -614,9 +645,11 @@ public final class Mcv2Result implements FunctionalVideoFilter {
         }
       }
     }
+
     if (change != null) {
       this.announce(change);
     }
+
     if (delivery != null) {
       this.deliver(delivery);
     }
@@ -639,6 +672,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       if (stopped == null || !Objects.equals(stopped, current)) {
         return;
       }
+
       this.running = false;
       this.pending.close();
       this.lock.notifyAll();
@@ -685,22 +719,27 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (colors >= 0) {
       this.frameListener.accept(frame);
     }
+
     if (recorded) {
       this.record(event, delivery, colors, before);
     }
+
     if (colors < 0) {
       LOGGER.warn(FRAME_TOO_LARGE, frameId, frame.length, current.configuration().getPageSlots());
       this.statistics.drop();
       return;
     }
+
     this.statistics.add(statistics, colors);
   }
 
   private void follow(final Mcv2Pacer.Change change) {
     this.ditheredForAll = change.to().isDithered();
+
     if (this.ditheredForAll) {
       this.pending.clear();
     }
+
     Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::sync);
   }
 
@@ -711,8 +750,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       if (screenPacer == null) {
         return;
       }
+
       rung = screenPacer.getRung();
     }
+
     final Screen current = this.screen;
     final Mcv2Configuration configuration = current.configuration();
     if (rung.isDithered()) {
@@ -720,8 +761,10 @@ public final class Mcv2Result implements FunctionalVideoFilter {
         current.channel().removeFrames();
         this.opened = false;
       }
+
       return;
     }
+
     Screen target = current;
     if (size(rung.width(), rung.height()) != size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
       current.channel().close();
@@ -730,6 +773,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       target = new Screen(size, Preconditions.checkNotNull(this.resizer).resize(size));
       this.screen = target;
     }
+
     if (!this.opened) {
       target.channel().open();
       this.opened = true;
@@ -742,6 +786,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     } else {
       LOGGER.debug(PACING_STEP, change.describe());
     }
+
     this.pacingListener.accept(change);
   }
 
@@ -767,6 +812,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.pipeline = null;
       this.pacer = null;
     }
+
     stop(thread);
     stop(delivery);
     this.screen.channel().close();
@@ -780,6 +826,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (ditheringOwn != null) {
       ditheringOwn.shutdown();
     }
+
     final Fallback dithered = this.fallback;
     if (dithered != null) {
       dithered.result().release();
@@ -829,6 +876,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    */
   public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
     Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+
     this.pacingListener = listener;
   }
 
@@ -846,6 +894,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    */
   public void setFrameListener(final Consumer<byte[]> listener) {
     Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+
     this.frameListener = listener;
   }
 

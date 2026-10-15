@@ -145,27 +145,34 @@ public final class Mcv2Decoder {
    */
   public static Frame parse(final byte[] bytes) throws Mcv2Exception {
     Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
+
     if (bytes.length >= Integer.BYTES && u32(bytes, MAGIC_OFFSET) == LEGACY_MAGIC) {
       throw new Mcv2Exception("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!");
     }
+
     if (bytes.length < Integer.BYTES || u32(bytes, MAGIC_OFFSET) != MAGIC) {
       throw new Mcv2Exception("Not an MCV2 frame!");
     }
+
     if (bytes.length > Integer.BYTES && bytes[VERSION_OFFSET] == LEGACY_VERSION) {
       throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3!");
     }
+
     if (bytes.length < HEADER_BYTES || bytes.length > MAXIMUM_FRAME_BYTES) {
       throw new Mcv2Exception("Invalid frame length!");
     }
+
     final byte[] data = bytes.clone();
     if (u32(data, VERSION_OFFSET) != VERSION) {
       throw new Mcv2Exception("Not an MCV2 version 3 frame!");
     }
+
     final int width = u16(data, DIMENSIONS_OFFSET);
     final int height = u16(data, DIMENSIONS_OFFSET + Short.BYTES);
     if (width < 1 || width > MAXIMUM_DIMENSION || height < 1 || height > MAXIMUM_DIMENSION) {
       throw new Mcv2Exception("Invalid dimensions!");
     }
+
     final boolean keyframe = u32(data, FRAME_ID_OFFSET) == u32(data, REFERENCE_ID_OFFSET);
     return new Parser(data, width, height, keyframe).parse();
   }
@@ -255,6 +262,7 @@ public final class Mcv2Decoder {
     Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame!");
     Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range!");
     Preconditions.checkArgument(!samePicture(prediction, output), "Row decoding needs a separate reference!");
+
     final Context context = new Context(frame, prediction, output);
     for (int arrayOffset = 0; arrayOffset < frame.leaves.length; arrayOffset += LEAF_INTS) {
       context.leaf(arrayOffset, fromRow, toRow);
@@ -265,9 +273,11 @@ public final class Mcv2Decoder {
     if (frame.keyframe) {
       return NO_REFERENCE;
     }
+
     if (reference == null || referenceId != frame.referenceId || reference.length != frame.width * frame.height * CHANNELS) {
       throw new Mcv2Exception("Reference frame mismatch!");
     }
+
     return reference;
   }
 
@@ -417,6 +427,7 @@ public final class Mcv2Decoder {
 
     Leaf getLeaf(final int index) {
       Preconditions.checkElementIndex(index, this.getLeafCount(), "Leaf index");
+
       final int arrayOffset = index * LEAF_INTS;
       return new Leaf(
         this.leaves[arrayOffset],
@@ -518,6 +529,7 @@ public final class Mcv2Decoder {
       if (descriptorsAt > this.data.length) {
         throw new Mcv2Exception("Truncated index!");
       }
+
       // Unsigned counts must fit the input before narrowing to int.
       final long levelZero = u32(this.data, countsAt);
       final long levelOne = u32(this.data, countsAt + Integer.BYTES);
@@ -527,6 +539,7 @@ public final class Mcv2Decoder {
       if (start > this.data.length) {
         throw new Mcv2Exception("Invalid index length!");
       }
+
       this.start = (int) start;
       final int descriptors = (int) count;
       final int firstChildren = (int) levelZero;
@@ -551,19 +564,24 @@ public final class Mcv2Decoder {
           if (index >= lastLevel) {
             throw new Mcv2Exception("Split below the bounded depth!");
           }
+
           splits++;
+
           if (index < firstChildren) {
             firstSplits++;
           }
         }
       }
+
       if ((long) QUARTERS * firstSplits != levelOne || (long) QUARTERS * (splits - firstSplits) != levelTwo) {
         throw new Mcv2Exception("Level counts disagree with splits!");
       }
+
       final int[] positions = new int[descriptors * POSITION_INTS];
       for (int index = 0; index < firstChildren; index++) {
         position(positions, index, (present[index] % this.columns) * ROOT_SIZE, (present[index] / this.columns) * ROOT_SIZE, ROOT_SIZE);
       }
+
       int child = firstChildren;
       for (int index = 0; index < lastLevel; index++) {
         if ((this.data[descriptorsAt + index] & MODE_MASK) != MODE_SPLIT) {
@@ -581,6 +599,7 @@ public final class Mcv2Decoder {
           );
         }
       }
+
       final int[] leaves = new int[(this.roots + descriptors - firstChildren - splits) * LEAF_INTS];
       int leaf = 0;
       int cursor = 0;
@@ -605,9 +624,11 @@ public final class Mcv2Decoder {
         cursor += this.recordLength(mode, size, offset);
         leaf(leaves, leaf++, positions[arrayOffset], positions[arrayOffset + TOP_INDEX], size, mode, descriptor >> QUANTIZER_SHIFT, offset);
       }
+
       if (this.start + cursor != payloadEnd) {
         throw new Mcv2Exception("Records do not end at the frame end!");
       }
+
       int listed = 0;
       for (int root = 0; root < this.roots; root++) {
         if (listed < present.length && present[listed] == root) {
@@ -616,6 +637,7 @@ public final class Mcv2Decoder {
           leaf(leaves, leaf++, (root % this.columns) * ROOT_SIZE, (root / this.columns) * ROOT_SIZE, ROOT_SIZE, MODE_SKIP, 0, -1);
         }
       }
+
       return new Frame(this, leaves);
     }
 
@@ -637,9 +659,11 @@ public final class Mcv2Decoder {
           }
         }
       }
+
       if (seen != count) {
         throw new Mcv2Exception("Presence count differs from level zero!");
       }
+
       return present;
     }
 
@@ -648,9 +672,11 @@ public final class Mcv2Decoder {
       if (length > this.data.length - offset) {
         throw new Mcv2Exception("Truncated record!");
       }
+
       if (mode == MODE_PATTERN && (this.data[offset + RECORD_COLORS * CHANNELS] & BYTE_MASK) > 1) {
         throw new Mcv2Exception("Invalid pattern selector!");
       }
+
       return length;
     }
   }
@@ -683,6 +709,7 @@ public final class Mcv2Decoder {
       if (firstRow >= lastRow || left >= right) {
         return;
       }
+
       final byte[] data = this.frame.data;
       int motionX = 0;
       int motionY = 0;
@@ -692,6 +719,7 @@ public final class Mcv2Decoder {
       int orientation = 0;
       if (mode == MODE_SOLID || mode == MODE_PALETTE) {
         color0 = readColor(data, offset);
+
         if (mode == MODE_PALETTE) {
           color1 = readColor(data, offset + CHANNELS);
         }
@@ -713,8 +741,10 @@ public final class Mcv2Decoder {
             NODE_BITS
           );
         }
+
         horizontal(this.nodes, size, this.rows);
       }
+
       final int scale = HALF_PIXEL_SCALE * HALF_PIXEL_SCALE * size * size;
       final int shift = INTERPOLATED_AXES * (Integer.numberOfTrailingZeros(size) + 1);
       for (int row = firstRow; row < lastRow; row++) {
@@ -740,6 +770,7 @@ public final class Mcv2Decoder {
               System.arraycopy(this.reference, source, this.output, target, CHANNELS);
               continue;
             }
+
             final int luma =
               this.rows[lower * size + localColumn] * (HALF_PIXEL_SCALE * size - weight) + this.rows[upper * size + localColumn] * weight;
             this.output[target] = (byte) round((this.reference[source] & BYTE_MASK) * scale + (luma << quantizer), shift);

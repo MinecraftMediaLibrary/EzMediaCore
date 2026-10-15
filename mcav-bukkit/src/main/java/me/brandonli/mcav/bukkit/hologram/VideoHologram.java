@@ -39,6 +39,7 @@ public abstract class VideoHologram implements Hologram {
     if (current == null) {
       return;
     }
+
     current.remove();
     this.display = null;
   }

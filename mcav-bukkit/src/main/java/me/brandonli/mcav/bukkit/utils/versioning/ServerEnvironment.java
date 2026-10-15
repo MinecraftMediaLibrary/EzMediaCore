@@ -72,6 +72,7 @@ public final class ServerEnvironment {
    */
   public static boolean isSupported(final String version) {
     Preconditions.checkNotNull(version, "Version must not be null!");
+
     final boolean exactMatch = version.equals(SUPPORTED_MINECRAFT_VERSION);
     final boolean patchRelease = version.startsWith(PATCH_PREFIX);
     return exactMatch || patchRelease;
@@ -88,6 +89,7 @@ public final class ServerEnvironment {
     if (supported) {
       return;
     }
+
     final String message = "MCAV only supports Minecraft %s, but the server is running %s!".formatted(SUPPORTED_MINECRAFT_VERSION, version);
     throw new UnsupportedServerVersionException(message);
   }

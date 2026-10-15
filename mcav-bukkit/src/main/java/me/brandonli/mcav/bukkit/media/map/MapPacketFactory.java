@@ -65,9 +65,11 @@ public final class MapPacketFactory {
   public static void send(final Collection<UUID> viewers, final List<MapTilePatch> patches) {
     Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
     Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
+
     if (patches.isEmpty() || viewers.isEmpty()) {
       return;
     }
+
     for (final Bundle bundle : bundles(patches)) {
       PacketUtils.sendPackets(viewers, bundle.packet());
     }
@@ -83,6 +85,7 @@ public final class MapPacketFactory {
    */
   public static List<Bundle> bundles(final List<MapTilePatch> patches) {
     Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
+
     final List<Bundle> bundles = new ArrayList<>();
     for (int from = 0; from < patches.size(); from += MAXIMUM_PACKETS_PER_BUNDLE) {
       final int to = Math.min(from + MAXIMUM_PACKETS_PER_BUNDLE, patches.size());
@@ -94,6 +97,7 @@ public final class MapPacketFactory {
       }
       bundles.add(new Bundle(new ClientboundBundlePacket(packets), bytes));
     }
+
     return bundles;
   }
 
@@ -115,6 +119,7 @@ public final class MapPacketFactory {
     Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
     Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative!");
     Preconditions.checkArgument(count >= 0, "Map count must be non-negative!");
+
     final long lastMapId = (long) startMapId + count - 1;
     Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids exceed the integer range!");
 
@@ -126,6 +131,7 @@ public final class MapPacketFactory {
       final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, size, size, transparent);
       patches.add(patch);
     }
+
     send(viewers, patches);
   }
 
@@ -165,6 +171,7 @@ public final class MapPacketFactory {
      */
     public void send(final UUID viewer, final Runnable written) {
       Preconditions.checkNotNull(written, "Callback must not be null!");
+
       if (!PacketUtils.sendPacket(viewer, this.packet, _ -> written.run())) {
         written.run();
       }

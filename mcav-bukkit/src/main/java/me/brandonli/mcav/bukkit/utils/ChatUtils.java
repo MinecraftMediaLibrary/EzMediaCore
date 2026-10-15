@@ -66,6 +66,7 @@ public final class ChatUtils {
    */
   public static String getUniqueString(final int index) {
     Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
+
     final String hexadecimal = Integer.toHexString(index);
     final char[] digits = hexadecimal.toCharArray();
     final StringBuilder entry = new StringBuilder(digits.length * CHARACTERS_PER_DIGIT);
@@ -73,6 +74,7 @@ public final class ChatUtils {
       entry.append(COLOR_CHAR);
       entry.append(digit);
     }
+
     return entry.toString();
   }
 
@@ -95,6 +97,7 @@ public final class ChatUtils {
     Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
     Preconditions.checkArgument(width > 0, "Width must be positive!");
     Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image!");
+
     final int characterLength = character.length();
     final int capacity = width * (HEXADECIMAL_COLOR_LENGTH + characterLength);
     final StringBuilder builder = new StringBuilder(capacity);
@@ -121,6 +124,7 @@ public final class ChatUtils {
     Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
     Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty!");
     Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data!");
+
     final int characterLength = character.length();
     final int capacity = width * height * (HEXADECIMAL_COLOR_LENGTH + characterLength) + height;
     final StringBuilder builder = new StringBuilder(capacity);
@@ -130,6 +134,7 @@ public final class ChatUtils {
       }
       appendRow(builder, data, character, width, row);
     }
+
     final String text = builder.toString();
     final Component component = CraftChatMessage.fromStringOrNull(text, true);
     return Objects.requireNonNull(component, "Text with color codes always converts to a component!");
@@ -168,6 +173,7 @@ public final class ChatUtils {
    */
   public static void clearChat(final Collection<UUID> viewers) {
     Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
     final Component message = Component.literal(CLEAR_CHAT_MESSAGE);
     final ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
     PacketUtils.sendPackets(viewers, packet);

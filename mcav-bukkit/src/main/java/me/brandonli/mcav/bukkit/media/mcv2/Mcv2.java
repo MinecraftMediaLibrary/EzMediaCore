@@ -339,6 +339,7 @@ public final class Mcv2 {
     Preconditions.checkArgument(sourcePixels.length == width * height * CHANNELS, "Picture size does not match the dimensions!");
     Preconditions.checkArgument(frameId >= 0 && frameId <= MAXIMUM_UNSIGNED_INT, "Frame id must be an unsigned 32-bit value!");
     Preconditions.checkArgument(this.lastFrameId < 0 || follows(frameId, this.lastFrameId), "Stale or ambiguous frame number!");
+
     final long started = System.nanoTime();
     final byte[] previous = this.reference;
     final boolean requested = this.keyframeRequested.getAndSet(false);
@@ -356,12 +357,15 @@ public final class Mcv2 {
       buffers = new Buffers(width, height);
       this.buffers = buffers;
     }
+
     if (!keyframe) {
       half(predictFrom, width, height, this.workers, buffers.half);
+
       if (!fast) {
         half(buffers.half, (width + 1) / PYRAMID_SCALE, (height + 1) / PYRAMID_SCALE, this.workers, buffers.quarter);
       }
     }
+
     final Pending verifying = this.newer;
     final byte[] picture = buffers.spare(
       predictFrom,
@@ -390,11 +394,13 @@ public final class Mcv2 {
       searched = this.search(frame, before, started, false);
       data = write(width, height, keyframe, searched.roots, frameId, predictsId);
     }
+
     if (data == null || data.length > limit) {
       searched = this.search(frame, before, started, true);
       data = write(width, height, keyframe, searched.roots, frameId, predictsId);
       Preconditions.checkState(Objects.nonNull(data), "Trivial frame exceeds the format bound!");
     }
+
     final Pending pending = new Pending(
       this,
       Objects.requireNonNull(data),
@@ -416,6 +422,7 @@ public final class Mcv2 {
     this.framesSinceKey = keyframe ? 1 : this.framesSinceKey + 1;
     this.older = this.newer;
     this.newer = pending;
+
     return pending;
   }
 
@@ -435,6 +442,7 @@ public final class Mcv2 {
     Preconditions.checkArgument(pending.owner == this, "The pending frame belongs to another encoder!");
     Preconditions.checkState(!pending.finished, "The frame is finished already!");
     Preconditions.checkState(this.older == null || this.older.finished || pending == this.older, "Finish frames in creation order!");
+
     final long started = System.nanoTime();
     if (this.shouldVerify) {
       try {
@@ -444,6 +452,7 @@ public final class Mcv2 {
         throw exception;
       }
     }
+
     pending.finished = true;
     final Statistics result = new Statistics(
       pending.data.length,
@@ -453,6 +462,7 @@ public final class Mcv2 {
       pending.lambda
     );
     this.statistics = result;
+
     return new Encoded(pending.data, result);
   }
 
@@ -548,6 +558,7 @@ public final class Mcv2 {
         break;
       }
     }
+
     return packMotion(bestX, bestY);
   }
 
@@ -580,8 +591,10 @@ public final class Mcv2 {
           sum += Math.abs((reference[arrayOffset + BLUE_OFFSET] & BYTE_MASK) - source[target + BLUE_OFFSET]);
         }
       }
+
       return sum;
     }
+
     long sum = 0;
     for (int sampleRow = 0; sampleRow < SAMPLED; sampleRow++) {
       final int row = Math.min(Math.max(blockTop + samples[sampleRow] + motionY, 0), height - 1);
@@ -594,6 +607,7 @@ public final class Mcv2 {
         }
       }
     }
+
     return sum;
   }
 
@@ -641,6 +655,7 @@ public final class Mcv2 {
           for (final BlockCoder coder : coders) {
             coder.hurried = late;
           }
+
           final Choice chosen = descend(frame, coders, 0, left, top, NO_VECTOR, threshold, fineThreshold);
           final TreeNode root = chosen.node();
           roots[index] = root;
@@ -652,10 +667,12 @@ public final class Mcv2 {
     } finally {
       this.releaseCoders();
     }
+
     int leaves = 0;
     for (final int count : leafCounts) {
       leaves += count;
     }
+
     return new SearchResult(List.of(roots), leaves, motion, splits);
   }
 
@@ -672,6 +689,7 @@ public final class Mcv2 {
     if (left >= frame.width || top >= frame.height) {
       return new Choice(TreeNode.leaf(MODE_SOLID, 0, new byte[CHANNELS]), frame.lambda * OUTSIDE_BITS, 0);
     }
+
     final int size = ROOT_SIZE >> level;
     final BlockCoder coder = coders[level];
     coder.code(left, top, parent);
@@ -696,6 +714,7 @@ public final class Mcv2 {
         splitCost += child.cost();
         leaves += child.leaves();
       }
+
       if (splitCost < cost) {
         return new Choice(
           TreeNode.split(children[TOP_LEFT], children[TOP_RIGHT], children[BOTTOM_LEFT], children[BOTTOM_RIGHT]),
@@ -704,6 +723,7 @@ public final class Mcv2 {
         );
       }
     }
+
     coder.reconstruct();
     return new Choice(TreeNode.leaf(coder.mode, coder.quantizer, Arrays.copyOf(coder.bestRecord, coder.length)), cost, 1);
   }
@@ -721,11 +741,14 @@ public final class Mcv2 {
         coders[1].root = coders[0];
         coders[FINEST_LEVEL].root = coders[0];
       }
+
       this.busyCoders.add(coders);
     }
+
     for (final BlockCoder coder : coders) {
       coder.frame = frame;
     }
+
     return coders;
   }
 
@@ -736,6 +759,7 @@ public final class Mcv2 {
           coder.kernels.forgetArrays();
         }
       }
+
       this.idleCoders.addAll(this.busyCoders);
       this.busyCoders.clear();
     }
@@ -775,6 +799,7 @@ public final class Mcv2 {
         return quantizer;
       }
     }
+
     return COARSEST_QUANTIZER;
   }
 
@@ -827,6 +852,7 @@ public final class Mcv2 {
       }
       matrices[index] = matrix;
     }
+
     return matrices;
   }
 
@@ -853,9 +879,11 @@ public final class Mcv2 {
     );
     final int columns = (width + ROOT_SIZE - 1) / ROOT_SIZE;
     Preconditions.checkArgument(input.size() == columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE), "Wrong root count!");
+
     for (final TreeNode root : input) {
       validateTree(root, ROOT_SIZE, keyframe);
     }
+
     final List<TreeNode> roots = input;
     final List<TreeNode> flat = new ArrayList<>();
     final int[] levels = new int[BLOCK_SIZES];
@@ -865,6 +893,7 @@ public final class Mcv2 {
         level.add(root);
       }
     }
+
     for (int depth = 0; depth < BLOCK_SIZES; depth++) {
       levels[depth] = level.size();
       final List<TreeNode> children = new ArrayList<>();
@@ -878,6 +907,7 @@ public final class Mcv2 {
       }
       level = children;
     }
+
     final int groups = (roots.size() + GROUP_ROOTS - 1) / GROUP_ROOTS;
     final int checkpoints = (groups + CHECKPOINT_GROUPS - 1) / CHECKPOINT_GROUPS;
     final int countsAt = HEADER_BYTES + (groups + checkpoints) * Integer.BYTES;
@@ -888,9 +918,11 @@ public final class Mcv2 {
     for (final TreeNode node : flat) {
       length += node.record.length;
     }
+
     if (length > MAXIMUM_FRAME_BYTES) {
       return null;
     }
+
     final byte[] data = new byte[length];
     putU32(data, MAGIC_OFFSET, MAGIC);
     putU32(data, VERSION_OFFSET, VERSION);
@@ -913,9 +945,11 @@ public final class Mcv2 {
       }
       seen += Long.bitCount(mask);
     }
+
     for (int index = 0; index < BLOCK_SIZES; index++) {
       putU32(data, countsAt + index * Integer.BYTES, levels[index]);
     }
+
     int cursor = 0;
     int splits = 0;
     for (int index = 0; index < flat.size(); index++) {
@@ -932,17 +966,21 @@ public final class Mcv2 {
       System.arraycopy(record, 0, data, start + cursor, record.length);
       cursor += record.length;
     }
+
     return data;
   }
 
   private static void validateTree(final TreeNode node, final int size, final boolean keyframe) {
     if (node.isSplit()) {
       Preconditions.checkArgument(size > SMALLEST_BLOCK, "Split below the bounded depth!");
+
       for (int corner = 0; corner < QUARTERS; corner++) {
         validateTree(node.getChild(corner), size / QUARTERS_PER_SIDE, keyframe);
       }
+
       return;
     }
+
     final int mode = node.mode;
     Preconditions.checkArgument(mode <= MODE_COMPACT, "Leaf mode %s is illegal!", mode);
     Preconditions.checkArgument(mode == MODE_COMPACT || node.quantizer == 0, "Quantizer on a mode without one!");
@@ -953,6 +991,7 @@ public final class Mcv2 {
     final byte[] record = node.record;
     final int length = recordSize(mode, size);
     Preconditions.checkArgument(record.length == length, "Record length disagrees with its mode!");
+
     if (mode == MODE_PATTERN) {
       Preconditions.checkArgument((record[PALETTE_COLORS * CHANNELS] & BYTE_MASK) <= 1, "Invalid pattern orientation!");
     }
@@ -979,9 +1018,11 @@ public final class Mcv2 {
           final int value = orientation == 0 ? paletteBit(paletteRecord, position) : paletteBit(paletteRecord, position * size);
           patternOutput[arrayOffset + position / Byte.SIZE] |= (byte) (value << (position % Byte.SIZE));
         }
+
         return true;
       }
     }
+
     return false;
   }
 
@@ -1012,8 +1053,10 @@ public final class Mcv2 {
           half
         );
       }
+
       return;
     }
+
     final byte[] record = node.record;
     final int mode = node.mode;
     final int vector = mode == MODE_MOTION || mode == MODE_COMPACT ? packMotion(record[0], record[1]) : 0;
@@ -1031,6 +1074,7 @@ public final class Mcv2 {
       if (this.verificationPicture.length != pending.picture.length) {
         this.verificationPicture = new byte[pending.picture.length];
       }
+
       final byte[] decoded = this.verificationPicture;
       final int bands = (frame.getHeight() + ROOT_SIZE - 1) / ROOT_SIZE;
       final AtomicReference<@Nullable Mcv2Exception> failure = new AtomicReference<>();
@@ -1044,6 +1088,7 @@ public final class Mcv2 {
           failure.compareAndSet(null, exception);
           return;
         }
+
         final int first = from * frame.getWidth() * CHANNELS;
         final int last = to * frame.getWidth() * CHANNELS;
         if (!Arrays.equals(decoded, first, last, pending.picture, first, last)) {
@@ -1054,6 +1099,7 @@ public final class Mcv2 {
       if (error != null) {
         throw error;
       }
+
       Preconditions.checkState(same.get(), "MCV2 live picture and decoded picture disagree!");
     } catch (final Mcv2Exception exception) {
       throw new IllegalStateException("The encoder wrote a frame the decoder rejects!", exception);
@@ -1068,6 +1114,7 @@ public final class Mcv2 {
    */
   public void setFrameBudget(final long nanoseconds) {
     Preconditions.checkArgument(nanoseconds >= 0, "The frame budget must not be negative!");
+
     this.frameBudget = nanoseconds;
   }
 
@@ -1081,6 +1128,7 @@ public final class Mcv2 {
    */
   public void setFrameLimit(final int bytes) {
     Preconditions.checkArgument(bytes >= 0, "The frame limit must not be negative!");
+
     this.frameLimit = bytes;
   }
 
@@ -1273,6 +1321,7 @@ public final class Mcv2 {
       if (!(motion > KNEE)) {
         return 1;
       }
+
       return Math.min(MAXIMUM_RAISE, Math.pow(motion / KNEE, EXPONENT));
     }
 
@@ -1283,12 +1332,14 @@ public final class Mcv2 {
         this.across = new int[columns * rows];
         this.spare = new int[columns * rows];
       }
+
       final int[] current = blurredLuma(sourcePixels, width, height, workers, this.across, this.spare);
       if (columns != this.columns || rows != this.rows) {
         this.motion = Double.NaN;
       } else {
         this.add(temporalInformation(current, this.previous, workers));
       }
+
       this.spare = this.previous.length == current.length ? this.previous : new int[current.length];
       this.previous = current;
       this.columns = columns;
@@ -1354,12 +1405,14 @@ public final class Mcv2 {
         for (int sample = band * BAND_SAMPLES; sample < Math.min(current.length, (band + 1) * BAND_SAMPLES); sample++) {
           sum += Math.abs(current[sample] - previous[sample]);
         }
+
         sums[band] = sum;
       });
       long sum = 0;
       for (final long partial : sums) {
         sum += partial;
       }
+
       return (double) sum / ((long) current.length * LUMA_SCALE * BOX_AREA);
     }
   }
@@ -1397,6 +1450,7 @@ public final class Mcv2 {
           return picture;
         }
       }
+
       return this.pictures[this.pictures.length - 1];
     }
   }
@@ -1564,10 +1618,12 @@ public final class Mcv2 {
         this.eligible(0);
         this.kernels.predicted(this.zeroPrediction, this.size, this.reconstruction);
         this.score(MODE_SKIP, 0, 0);
+
         if (this.hurried || this.cost() <= (this.frame.fast ? FAST_SKIP_BITS : NORMAL_SKIP_BITS) * this.frame.lambda) {
           this.skipped = true;
           return;
         }
+
         this.localVector = this.size == SMALLEST_BLOCK ? parent : this.searchMotion(parent);
         this.predict(this.localVector, this.localPrediction);
         boolean closer = false;
@@ -1576,18 +1632,23 @@ public final class Mcv2 {
           this.eligible(MOTION_BYTES);
           this.record[0] = (byte) motionX(this.localVector);
           this.record[1] = (byte) motionY(this.localVector);
+
           if (this.kernels.predicted(this.localPrediction, this.size, this.reconstruction)) {
             this.score(MODE_MOTION, 0, MOTION_BYTES);
             closer = true;
           }
         }
+
         this.compact(closer);
       }
+
       this.solid();
+
       if (this.hurried) {
         this.skipped = true;
         return;
       }
+
       this.pattern();
       this.palette();
     }
@@ -1601,6 +1662,7 @@ public final class Mcv2 {
       this.rate = Math.min(this.frame.lambda * (length * Byte.SIZE + bits), Double.MAX_VALUE);
       final double best = this.cost();
       this.kernels.start(this.source, this.rate, best);
+
       return best > this.rate;
     }
 
@@ -1674,6 +1736,7 @@ public final class Mcv2 {
       this.seeds[BELOW_SEED] = frame.previousMotion(this.left + half, this.top + this.size);
       this.seeds[PARENT_SEED] = parent == NO_VECTOR ? this.seeds[CENTRE_SEED] : parent;
       this.coarseSeed[0] = this.coarseMotion(PYRAMID_SCALE);
+
       return this.kernels.seeded(
         frame.reference,
         frame.width,
@@ -1701,6 +1764,7 @@ public final class Mcv2 {
           seeds[index] = packMotion(motionX(this.seeds[index]) / divisor, motionY(this.seeds[index]) / divisor);
         }
       }
+
       final int coarse = this.kernels.seeded(
         half ? frame.buffers.half : frame.buffers.quarter,
         (frame.width + divisor - 1) / divisor,
@@ -1720,6 +1784,7 @@ public final class Mcv2 {
         this.kernels.cluster(this.source, this.size, this.clusters);
         this.clustered = true;
       }
+
       return this.clusters;
     }
 
@@ -1727,6 +1792,7 @@ public final class Mcv2 {
       if (!this.eligible(CHANNELS)) {
         return;
       }
+
       long redSum = 0;
       long greenSum = 0;
       long blueSum = 0;
@@ -1735,12 +1801,14 @@ public final class Mcv2 {
         greenSum += this.source[pixel * CHANNELS + GREEN_OFFSET];
         blueSum += this.source[pixel * CHANNELS + BLUE_OFFSET];
       }
+
       final int red = (int) ((redSum + this.count / ROUNDING_DIVISOR) / this.count);
       final int green = (int) ((greenSum + this.count / ROUNDING_DIVISOR) / this.count);
       final int blue = (int) ((blueSum + this.count / ROUNDING_DIVISOR) / this.count);
       this.record[0] = (byte) red;
       this.record[GREEN_OFFSET] = (byte) green;
       this.record[BLUE_OFFSET] = (byte) blue;
+
       if (this.kernels.solid((red << RED_SHIFT) | (green << GREEN_SHIFT) | blue, this.size, this.reconstruction)) {
         this.score(MODE_SOLID, 0, CHANNELS);
       }
@@ -1750,6 +1818,7 @@ public final class Mcv2 {
       for (int index = 0; index < PALETTE_COLORS * CHANNELS; index++) {
         target[index] = (byte) this.colors[index];
       }
+
       Arrays.fill(target, PALETTE_COLORS * CHANNELS, PALETTE_COLORS * CHANNELS + this.count / Byte.SIZE, (byte) 0);
       for (int pixel = 0; pixel < this.count; pixel++) {
         target[PALETTE_COLORS * CHANNELS + pixel / Byte.SIZE] |= (byte) (this.selectors[pixel] << (pixel % Byte.SIZE));
@@ -1761,8 +1830,10 @@ public final class Mcv2 {
       if (!this.eligible(length)) {
         return;
       }
+
       this.kernels.finishPalette(this.source, this.count, this.endpoints(), this.colors, this.selectors);
       this.writePalette(this.record);
+
       if (this.kernels.palette(this.record, this.size, this.reconstruction)) {
         this.score(MODE_PALETTE, 0, length);
       }
@@ -1773,11 +1844,14 @@ public final class Mcv2 {
       if (!this.eligible(length)) {
         return;
       }
+
       if (!this.kernels.finishPattern(this.source, this.size, this.endpoints(), this.colors, this.selectors)) {
         return;
       }
+
       this.writePalette(this.palette);
       patternRecord(this.palette, this.size, this.record);
+
       if (this.kernels.palette(this.palette, this.size, this.reconstruction)) {
         this.score(MODE_PATTERN, 0, length);
       }
@@ -1787,6 +1861,7 @@ public final class Mcv2 {
       if (!this.eligible(COMPACT_BYTES)) {
         return;
       }
+
       final int[] prediction = local ? this.localPrediction : this.zeroPrediction;
       this.kernels.residualTarget(this.source, prediction, this.count, this.target);
       this.kernels.fit(this.target, this.size, this.fit);
@@ -1799,6 +1874,7 @@ public final class Mcv2 {
         final int high = quantize(this.fit[NODES_PER_BYTE * index + 1], step) & NODE_MASK;
         this.record[MOTION_BYTES + index] = (byte) (low | (high << NODE_BITS));
       }
+
       if (this.kernels.compact(prediction, this.record, quantizer, this.size, this.reconstruction)) {
         this.score(MODE_COMPACT, quantizer, COMPACT_BYTES);
       }
@@ -1934,6 +2010,7 @@ public final class Mcv2 {
     static synchronized void install(final Path folder, final String mode) {
       Preconditions.checkNotNull(mode, "Native mode must not be null!");
       Preconditions.checkArgument(NATIVE_AUTO.equals(mode) || NATIVE_OFF.equals(mode), "The MCV2 native mode must be auto or off!");
+
       directory = Preconditions.checkNotNull(folder, "Native folder must not be null!");
       configured = mode;
       resolution = null;
@@ -1952,9 +2029,11 @@ public final class Mcv2 {
         if (current.failed()) {
           LOGGER.warn(FAILED, current.description());
         }
+
         LOGGER.info(ACTIVE, current.description());
         resolution = current;
       }
+
       return current;
     }
 
@@ -1970,6 +2049,7 @@ public final class Mcv2 {
       } else {
         return null;
       }
+
       return switch (processorArchitecture.toLowerCase(Locale.ROOT)) {
         case AMD64, X86_64 -> operatingSystem + X86_64_SUFFIX;
         case AARCH64, ARM64 -> operatingSystem + AARCH64_SUFFIX;
@@ -1981,6 +2061,7 @@ public final class Mcv2 {
       if (platform.startsWith(WINDOWS)) {
         return WINDOWS_LIBRARY;
       }
+
       return platform.startsWith(MACOS) ? MACOS_LIBRARY : LINUX_LIBRARY;
     }
 
@@ -1988,6 +2069,7 @@ public final class Mcv2 {
       if (stream == null) {
         return null;
       }
+
       try (stream) {
         return stream.readAllBytes();
       } catch (final IOException exception) {
@@ -2002,9 +2084,11 @@ public final class Mcv2 {
       } catch (final UncheckedIOException exception) {
         return Map.of();
       }
+
       if (bytes == null) {
         return Map.of();
       }
+
       final Map<String, String> digests = new HashMap<>();
       for (final String line : new String(bytes, StandardCharsets.US_ASCII).lines().toList()) {
         final Matcher matcher = DIGEST_ENTRY.matcher(line);
@@ -2019,6 +2103,7 @@ public final class Mcv2 {
           return Map.of();
         }
       }
+
       return Map.copyOf(digests);
     }
 
@@ -2032,12 +2117,15 @@ public final class Mcv2 {
       if (NATIVE_OFF.equals(mode)) {
         return Resolution.java("turned off by " + NATIVE_PROPERTY + "=" + NATIVE_OFF, false);
       }
+
       if (!NATIVE_AUTO.equals(mode)) {
         return Resolution.java("unknown mode " + NATIVE_PROPERTY + "=" + mode, true);
       }
+
       if (platform == null) {
         return Resolution.java("no library for this operating system and processor", false);
       }
+
       final String digest = NATIVE_DIGESTS.get(platform);
       final byte[] bytes;
       try {
@@ -2045,9 +2133,11 @@ public final class Mcv2 {
       } catch (final UncheckedIOException exception) {
         return Resolution.java("the library could not be read: " + exception, true);
       }
+
       if (digest == null || bytes == null) {
         return Resolution.java("no library for " + platform, false);
       }
+
       return load(platform, digest, bytes, folder, highest);
     }
 
@@ -2062,21 +2152,25 @@ public final class Mcv2 {
       if (!digest.equals(Mcv2Resources.sha256(bytes))) {
         return Resolution.java("the library for " + platform + " does not match its SHA-256", true);
       }
+
       if (folder == null) {
         return Resolution.java("no folder was given to extract the library into", true);
       }
+
       final Path file;
       try {
         file = extract(folder, EXTRACTED_PREFIX + digest + EXTRACTED_SEPARATOR + libraryName(platform), bytes, digest);
       } catch (final IOException exception) {
         return Resolution.java("the library could not be extracted: " + exception, true);
       }
+
       final SymbolLookup library;
       try {
         library = SymbolLookup.libraryLookup(file, Arena.global());
       } catch (final IllegalCallerException | IllegalArgumentException exception) {
         return Resolution.java("the library could not be loaded: " + exception, true);
       }
+
       return bind(library, platform, highest, ABI_VERSION);
     }
 
@@ -2086,6 +2180,7 @@ public final class Mcv2 {
       if (Files.isRegularFile(file) && digest.equals(Mcv2Resources.sha256(Files.readAllBytes(file)))) {
         return file;
       }
+
       // Atomic replacement prevents concurrent readers from loading a partial library.
       final Path partial = Files.createTempFile(folder, name, PARTIAL_SUFFIX);
       try {
@@ -2094,6 +2189,7 @@ public final class Mcv2 {
       } finally {
         Files.deleteIfExists(partial);
       }
+
       return file;
     }
 
@@ -2105,6 +2201,7 @@ public final class Mcv2 {
         if (interfaceVersion != expected) {
           return Resolution.java("the library's interface " + interfaceVersion + " is not " + expected, true);
         }
+
         // The dependency-free AArch64 library cannot query the kernel for SVE permission.
         final long features = platform.startsWith(LINUX) ? hardwareCapabilities(AUXILIARY_VECTOR_FILE) : 0;
         final MethodHandle cpuLevels = MethodHandles.insertArguments(
@@ -2136,6 +2233,7 @@ public final class Mcv2 {
           return value;
         }
       }
+
       return 0;
     }
 
@@ -2147,6 +2245,7 @@ public final class Mcv2 {
           return level;
         }
       }
+
       return Level.SCALAR;
     }
   }
@@ -2328,6 +2427,7 @@ public final class Mcv2 {
     private MemorySegment remember(final int slot, final Object array, final MemorySegment segment) {
       this.cachedArrays[slot] = array;
       this.cachedSegments[slot] = segment;
+
       return segment;
     }
 
@@ -2371,7 +2471,9 @@ public final class Mcv2 {
       if (measured < 0) {
         return false;
       }
+
       this.distortion = measured;
+
       return true;
     }
 
@@ -2391,6 +2493,7 @@ public final class Mcv2 {
     public boolean predicted(final int[] prediction, final int size, final int[] output) {
       this.checkScored(size, output);
       checkBlock(prediction.length, size);
+
       try {
         return this.finished(
           (long) this.binding.predicted.invokeExact(of(prediction), size, of(output), of(this.source), this.rate, this.limit)
@@ -2403,6 +2506,7 @@ public final class Mcv2 {
     @Override
     public boolean solid(final int color, final int size, final int[] output) {
       this.checkScored(size, output);
+
       try {
         return this.finished((long) this.binding.solid.invokeExact(color, size, of(output), of(this.source), this.rate, this.limit));
       } catch (final Throwable exception) {
@@ -2414,6 +2518,7 @@ public final class Mcv2 {
     public boolean palette(final byte[] record, final int size, final int[] output) {
       this.checkScored(size, output);
       checkLength(record.length, SELECTORS_AT + (size * (long) size) / Byte.SIZE);
+
       try {
         return this.finished((long) this.binding.palette.invokeExact(of(record), size, of(output), of(this.source), this.rate, this.limit));
       } catch (final Throwable exception) {
@@ -2427,6 +2532,7 @@ public final class Mcv2 {
       this.checkScored(size, output);
       checkBlock(prediction.length, size);
       checkLength(record.length, COMPACT_BYTES);
+
       try {
         return this.finished(
           (long) this.binding.compact.invokeExact(
@@ -2464,6 +2570,7 @@ public final class Mcv2 {
       checkCoordinate(top);
       checkCoordinate(motionX);
       checkCoordinate(motionY);
+
       try {
         this.binding.predict.invokeExact(of(reference), width, height, left, top, size, motionX, motionY, of(output));
       } catch (final Throwable exception) {
@@ -2476,6 +2583,7 @@ public final class Mcv2 {
       checkSize(size);
       checkLength(values.length, size * (long) size);
       checkLength(output.length, GRID_NODES);
+
       try {
         this.binding.fit.invokeExact(of(values), size, of(FITTING_MATRICES[sizeIndex(size)]), of(output));
       } catch (final Throwable exception) {
@@ -2488,6 +2596,7 @@ public final class Mcv2 {
       checkSize(size);
       checkBlock(source.length, size);
       checkLength(endpoints.length, PALETTE_COLORS * CHANNELS);
+
       try {
         this.binding.cluster.invokeExact(of(source), size, of(endpoints));
       } catch (final Throwable exception) {
@@ -2501,6 +2610,7 @@ public final class Mcv2 {
       checkLength(source.length, count * (long) CHANNELS);
       checkLength(selectors.length, count);
       checkLength(colors.length, PALETTE_COLORS * CHANNELS);
+
       System.arraycopy(endpoints, 0, colors, 0, PALETTE_COLORS * CHANNELS);
       try {
         this.binding.assign.invokeExact(of(source), count, of(colors), of(selectors));
@@ -2515,6 +2625,7 @@ public final class Mcv2 {
       checkBlock(source.length, size);
       checkLength(selectors.length, size * (long) size);
       checkLength(colors.length, PALETTE_COLORS * CHANNELS);
+
       System.arraycopy(endpoints, 0, colors, 0, PALETTE_COLORS * CHANNELS);
       try {
         return (int) this.binding.assignPattern.invokeExact(of(source), size, of(colors), of(selectors)) != 0;
@@ -2541,6 +2652,7 @@ public final class Mcv2 {
       checkCoordinate(left);
       checkCoordinate(top);
       Preconditions.checkArgument(range >= 0 && range <= MAXIMUM_COORDINATE, "Invalid range!");
+
       try {
         return (int) this.binding.seeded.invokeExact(
           of(reference),
@@ -2573,6 +2685,7 @@ public final class Mcv2 {
       checkSize(size);
       checkBlock(source.length, size);
       Preconditions.checkArgument(left >= 0 && left < width && top >= 0 && top < height, "Block outside the picture!");
+
       try {
         this.binding.loadSource.invokeExact(of(image), width, height, left, top, size, of(source));
       } catch (final Throwable exception) {
@@ -2586,6 +2699,7 @@ public final class Mcv2 {
       Preconditions.checkArgument(size >= PYRAMID_SCALE && size <= ROOT_SIZE && Integer.bitCount(size) == 1, INVALID_BLOCK_SIZE_MESSAGE);
       checkBlock(block.length, size);
       checkBlock(output.length, size / PYRAMID_SCALE);
+
       try {
         this.binding.halve.invokeExact(of(block), size, of(output));
       } catch (final Throwable exception) {
@@ -2599,6 +2713,7 @@ public final class Mcv2 {
       checkLength(source.length, count * (long) CHANNELS);
       checkLength(prediction.length, count * (long) CHANNELS);
       checkLength(target.length, count);
+
       try {
         this.binding.residualTarget.invokeExact(of(source), of(prediction), count, of(target));
       } catch (final Throwable exception) {
@@ -2651,7 +2766,9 @@ public final class Mcv2 {
           this.source[offset + BLUE_OFFSET] - output[offset + BLUE_OFFSET]
         );
       }
+
       this.distortion += sum;
+
       return this.distortion / DISTORTION_SCALE + this.rate < this.limit;
     }
   }
@@ -2691,6 +2808,7 @@ public final class Mcv2 {
           return false;
         }
       }
+
       return true;
     }
 
@@ -2710,6 +2828,7 @@ public final class Mcv2 {
           return false;
         }
       }
+
       return true;
     }
 
@@ -2728,6 +2847,7 @@ public final class Mcv2 {
           return false;
         }
       }
+
       return true;
     }
 
@@ -2739,6 +2859,7 @@ public final class Mcv2 {
           NODE_BITS
         );
       }
+
       horizontal(this.nodes, size, this.rows);
       final int shift = INTERPOLATED_AXES * (Integer.numberOfTrailingZeros(size) + 1);
       final int scale = HALF_PIXEL_SCALE * HALF_PIXEL_SCALE * size * size;
@@ -2756,6 +2877,7 @@ public final class Mcv2 {
           return false;
         }
       }
+
       return true;
     }
 
@@ -2793,8 +2915,10 @@ public final class Mcv2 {
             output[destinationOffset + offset] = reference[from + offset] & BYTE_MASK;
           }
         }
+
         return;
       }
+
       for (int row = 0; row < size; row++) {
         final int sourceRow = Math.min(Math.max(top + row, 0), height - 1);
         for (int column = 0; column < size; column++) {
@@ -2820,6 +2944,7 @@ public final class Mcv2 {
           this.fitScratch[row * GRID + nodeColumn] = sum;
         }
       }
+
       for (int nodeRow = 0; nodeRow < GRID; nodeRow++) {
         for (int nodeColumn = 0; nodeColumn < GRID; nodeColumn++) {
           double sum = 0;
@@ -2852,10 +2977,12 @@ public final class Mcv2 {
           }
         }
       }
+
       for (int channel = 0; channel < CHANNELS; channel++) {
         endpoints[channel] = source[low + channel];
         endpoints[CHANNELS + channel] = source[high + channel];
       }
+
       for (int iteration = 0; iteration < ITERATIONS; iteration++) {
         final int firstRed = endpoints[0];
         final int firstGreen = endpoints[GREEN_OFFSET];
@@ -2916,6 +3043,7 @@ public final class Mcv2 {
           rows &= selectors[pixel] == selectors[row * size];
         }
       }
+
       return columns || rows;
     }
 
@@ -3036,6 +3164,7 @@ public final class Mcv2 {
 
     private Workers(final ForkJoinPool pool, final int threads) {
       Preconditions.checkArgument(threads >= 1, "At least one thread is needed!");
+
       this.pool = pool;
       this.threads = threads;
     }
@@ -3056,8 +3185,10 @@ public final class Mcv2 {
         for (int index = 0; index < count; index++) {
           body.accept(state, index);
         }
+
         return;
       }
+
       final AtomicInteger next = new AtomicInteger();
       final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
       target
@@ -3080,6 +3211,7 @@ public final class Mcv2 {
       if (reported instanceof final RuntimeException exception) {
         throw exception;
       }
+
       if (reported instanceof final Error error) {
         throw error;
       }
@@ -3165,6 +3297,7 @@ public final class Mcv2 {
       if (current != null) {
         return current;
       }
+
       final int size = sharedThreads > 0 ? sharedThreads : defaultThreads(Runtime.getRuntime().availableProcessors());
       final Pool created = new Pool(size);
       shared = created;
@@ -3193,6 +3326,7 @@ public final class Mcv2 {
         "Threads must be between 0 and %s inclusive!",
         MAXIMUM_THREADS
       );
+
       if (threads != sharedThreads) {
         sharedThreads = threads;
         shared = null;
@@ -3227,6 +3361,7 @@ public final class Mcv2 {
       if (Thread.interrupted()) {
         throw new InterruptedException("Interrupted before the task started!");
       }
+
       final ForkJoinTask<ResultType> job = this.pool.submit(task);
       try {
         return job.get();
@@ -3238,9 +3373,11 @@ public final class Mcv2 {
         if (cause instanceof final RuntimeException runtime) {
           throw runtime;
         }
+
         if (cause instanceof final Error error) {
           throw error;
         }
+
         throw new IllegalStateException("An encode failed!", cause);
       }
     }

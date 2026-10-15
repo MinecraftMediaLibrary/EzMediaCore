@@ -149,6 +149,7 @@ public class ScoreboardConfiguration {
      */
     public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+
       this.viewers = viewers;
       return this.self();
     }
@@ -165,6 +166,7 @@ public class ScoreboardConfiguration {
      */
     public BuilderType character(final String character) {
       Preconditions.checkNotNull(character, "Character must not be null!");
+
       this.character = character;
       return this.self();
     }

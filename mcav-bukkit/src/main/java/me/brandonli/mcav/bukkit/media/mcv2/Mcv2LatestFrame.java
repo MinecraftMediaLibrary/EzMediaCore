@@ -55,6 +55,7 @@ final class Mcv2LatestFrame<FrameType extends @NonNull Object> {
     synchronized (this.lock) {
       final FrameType taken = this.frame;
       this.frame = null;
+
       return taken;
     }
   }
@@ -64,8 +65,10 @@ final class Mcv2LatestFrame<FrameType extends @NonNull Object> {
       while (this.open && this.frame == null) {
         this.lock.wait();
       }
+
       final FrameType taken = this.frame;
       this.frame = null;
+
       return this.open ? taken : null;
     }
   }

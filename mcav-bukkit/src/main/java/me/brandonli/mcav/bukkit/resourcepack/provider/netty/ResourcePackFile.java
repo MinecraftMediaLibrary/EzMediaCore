@@ -73,11 +73,13 @@ final class ResourcePackFile {
     if (unchanged) {
       return this.cachedBytes;
     }
+
     final byte[] bytes = Files.readAllBytes(this.path);
     this.cachedBytes = bytes;
     this.cachedModified = modifiedTime;
     this.cachedFileKey = fileKey;
     this.cachedSize = size;
+
     return bytes;
   }
 }

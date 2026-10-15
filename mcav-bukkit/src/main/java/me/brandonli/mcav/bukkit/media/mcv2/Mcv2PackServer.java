@@ -238,6 +238,7 @@ public final class Mcv2PackServer {
     Preconditions.checkNotNull(hosting, "Hosting must not be null!");
     Preconditions.checkNotNull(onOffered, "Offered callback must not be null!");
     Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
+
     this.folder = folder;
     this.hosting = hosting;
     this.showsDebugView = showsDebugView;
@@ -296,14 +297,17 @@ public final class Mcv2PackServer {
     );
     final boolean sameColour = this.slots.isEmpty() || this.slots.getFirst().template.getOutlineColor().equals(requested.getOutlineColor());
     Preconditions.checkArgument(sameColour || this.leases.isEmpty(), "The screens of a pack share one outline colour!");
+
     if (!sameColour) {
       this.slots.clear();
     }
+
     final Slot slot = this.acquire(requested);
     if (slot == null) {
       final String message = "Every one of the %s MCV2 slots plays a screen!".formatted(Mcv2Pack.MAXIMUM_SCREENS);
       throw new IllegalStateException(message);
     }
+
     final Lease lease = new Lease(
       requested,
       (this.millisecondClock.getAsLong() / FRAME_ID_INTERVAL_MILLISECONDS) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT,
@@ -320,6 +324,7 @@ public final class Mcv2PackServer {
     if (lease.closed || pack == null || pack.generation() != this.generation.get()) {
       return;
     }
+
     for (final UUID viewer : lease.requested.getViewers()) {
       final Player player = Bukkit.getPlayer(viewer);
       if (player != null) {
@@ -346,6 +351,7 @@ public final class Mcv2PackServer {
         if (free) {
           return slot;
         }
+
         spareOfThatSize = slot;
       } else if (free) {
         oldestFree = oldestFree == null || slot.released < oldestFree.released ? slot : oldestFree;
@@ -353,10 +359,12 @@ public final class Mcv2PackServer {
         oldestSpare = oldestSpare == null || slot.released < oldestSpare.released ? slot : oldestSpare;
       }
     }
+
     if (spareOfThatSize != null) {
       spareOfThatSize.spareOf = null;
       return spareOfThatSize;
     }
+
     // Every allocated slot consumes strip rows on every viewer's screen, so a free slot is reshaped before the pack grows.
     final Slot changed;
     if (oldestFree != null) {
@@ -372,7 +380,9 @@ public final class Mcv2PackServer {
     } else {
       return null;
     }
+
     this.publish();
+
     return changed;
   }
 
@@ -381,6 +391,7 @@ public final class Mcv2PackServer {
     while (this.hasStreamId(streamId)) {
       streamId++;
     }
+
     return streamId;
   }
 
@@ -390,6 +401,7 @@ public final class Mcv2PackServer {
         return true;
       }
     }
+
     return false;
   }
 
@@ -405,10 +417,12 @@ public final class Mcv2PackServer {
     if (this.trimming || this.stopped) {
       return;
     }
+
     final Plugin plugin = BukkitModule.getPlugin();
     if (!plugin.isEnabled()) {
       return;
     }
+
     this.trimming = true;
     final long ticks = Math.max(1, (delayMilliseconds + MILLISECONDS_PER_TICK - 1) / MILLISECONDS_PER_TICK);
     Bukkit.getScheduler().runTaskLater(plugin, this::trim, ticks);
@@ -416,9 +430,11 @@ public final class Mcv2PackServer {
 
   private synchronized void trim() {
     this.trimming = false;
+
     if (this.stopped) {
       return;
     }
+
     final long now = this.millisecondClock.getAsLong();
     boolean removed = false;
     long nextDue = Long.MAX_VALUE;
@@ -435,9 +451,11 @@ public final class Mcv2PackServer {
         nextDue = Math.min(nextDue, due);
       }
     }
+
     if (nextDue != Long.MAX_VALUE) {
       this.trimLater(nextDue - now);
     }
+
     if (removed) {
       this.publish();
     }
@@ -445,6 +463,7 @@ public final class Mcv2PackServer {
 
   private void publish() {
     this.generation.incrementAndGet();
+
     if (!this.flushing) {
       this.flushing = true;
       Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), this::flush);
@@ -453,13 +472,16 @@ public final class Mcv2PackServer {
 
   private synchronized void flush() {
     this.flushing = false;
+
     if (this.stopped) {
       return;
     }
+
     if (this.slots.isEmpty()) {
       this.withdraw();
       return;
     }
+
     final int wanted = this.generation.get();
     final List<Mcv2Configuration> screens = this.slots
       .stream()
@@ -472,6 +494,7 @@ public final class Mcv2PackServer {
     if (this.stopped || wanted != this.generation.get()) {
       return;
     }
+
     final String description = describe(screens);
     final Path archivePath = this.folder.resolve(FILE_PREFIX + wanted + FILE_SUFFIX);
     final Published published;
@@ -489,10 +512,12 @@ public final class Mcv2PackServer {
       deleteQuietly(archivePath);
       return;
     }
+
     if (this.stopped) {
       this.retire(published);
       return;
     }
+
     Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.serve(published));
   }
 
@@ -502,6 +527,7 @@ public final class Mcv2PackServer {
       // The previous HTTP host still holds the port.
       this.stopRunning();
     }
+
     host.start();
     this.running.add(host);
     return host;
@@ -512,6 +538,7 @@ public final class Mcv2PackServer {
       this.retireLater(published);
       return;
     }
+
     final Published previousPack = this.current;
     this.current = published;
     this.viewers.retarget(published.packId());
@@ -525,6 +552,7 @@ public final class Mcv2PackServer {
         this.offer(player, published);
       }
     }
+
     if (previousPack != null) {
       this.retireLater(previousPack);
     }
@@ -535,6 +563,7 @@ public final class Mcv2PackServer {
     if (previousPack == null) {
       return;
     }
+
     this.current = null;
     this.viewers.retarget(NO_PACK);
     this.offered.clear();
@@ -542,6 +571,7 @@ public final class Mcv2PackServer {
     for (final Player player : Bukkit.getOnlinePlayers()) {
       player.removeResourcePacks(previousPack.packId());
     }
+
     this.retireLater(previousPack);
   }
 
@@ -550,6 +580,7 @@ public final class Mcv2PackServer {
     if (this.viewers.getState(viewerId) != null) {
       return;
     }
+
     this.viewers.requested(viewerId);
     this.offered.put(viewerId, this.millisecondClock.getAsLong());
     this.onOffered.accept(player);
@@ -577,6 +608,7 @@ public final class Mcv2PackServer {
         return true;
       }
     }
+
     return false;
   }
 
@@ -587,14 +619,17 @@ public final class Mcv2PackServer {
     ) {
       return -1;
     }
+
     final Player player = event.getPlayer();
     final Long since = this.offered.remove(player.getUniqueId());
     if (since == null) {
       return -1;
     }
+
     final long took = this.millisecondClock.getAsLong() - since;
     LOGGER.debug(PACK_LOADED, player.getName(), pack.packId(), took);
     this.adviseModdedViewer(player);
+
     return took;
   }
 
@@ -603,6 +638,7 @@ public final class Mcv2PackServer {
     if (brand == null || VANILLA_BRAND.equals(brand) || this.viewers.hasShaderReport(player.getUniqueId())) {
       return;
     }
+
     LOGGER.warn(MODDED_CLIENT_LOADED, player.getName(), brand);
     player.sendMessage(Component.text(MODDED_CLIENT_ADVISORY, NamedTextColor.YELLOW));
   }
@@ -629,6 +665,7 @@ public final class Mcv2PackServer {
       host.shutdown();
       deleteQuietly(host.getZip());
     }
+
     this.running.clear();
   }
 
@@ -658,6 +695,7 @@ public final class Mcv2PackServer {
     if (this.stopped) {
       return;
     }
+
     this.stopped = true;
     this.viewers.unregister();
     final Listener events = this.listener;
@@ -665,9 +703,11 @@ public final class Mcv2PackServer {
       HandlerList.unregisterAll(events);
       this.listener = null;
     }
+
     for (final Lease lease : List.copyOf(this.leases)) {
       lease.close();
     }
+
     this.current = null;
     this.writer.execute(this::stopRunning);
     this.writer.shutdown();
@@ -700,6 +740,7 @@ public final class Mcv2PackServer {
       for (int read = input.read(buffer); read >= 0; read = input.read(buffer)) {
         digest.update(buffer, 0, read);
       }
+
       return HexFormat.of().formatHex(digest.digest());
     } catch (final IOException exception) {
       throw new UncheckedIOException("Cannot hash the MCV2 pack!", exception);
@@ -811,8 +852,10 @@ public final class Mcv2PackServer {
     @Override
     public Mcv2Channel resize(final Mcv2Configuration resized) {
       Preconditions.checkNotNull(resized, CONFIGURATION_NULL_MESSAGE);
+
       synchronized (Mcv2PackServer.this) {
         Preconditions.checkState(!this.closed, "The lease was closed!");
+
         final Geometry geometry = Geometry.of(resized);
         if (!this.playing.geometry.equals(geometry)) {
           final Slot left = this.ownSpare();
@@ -823,6 +866,7 @@ public final class Mcv2PackServer {
             if (left != null) {
               Mcv2PackServer.this.free(left);
             }
+
             this.spare = null;
             slot = Mcv2PackServer.this.acquire(resized);
             if (slot == null) {
@@ -830,6 +874,7 @@ public final class Mcv2PackServer {
               return new Mcv2Channel(resized, Mcv2PackServer.this.nobody);
             }
           }
+
           slot.spareOf = null;
           slot.holder = this;
           // Returning to this size must work without another pack reload.
@@ -859,11 +904,13 @@ public final class Mcv2PackServer {
         if (this.closed) {
           return;
         }
+
         this.closed = true;
         final Slot left = this.ownSpare();
         if (left != null) {
           Mcv2PackServer.this.free(left);
         }
+
         this.spare = null;
         Mcv2PackServer.this.free(this.playing);
         Mcv2PackServer.this.leases.remove(this);

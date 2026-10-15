@@ -87,6 +87,7 @@ public interface PackHosting {
   static HttpHosting http(final Path path, final String hostName, final int port) {
     Preconditions.checkNotNull(path, "Resource pack path must not be null!");
     Preconditions.checkNotNull(hostName, "Host name must not be null!");
+
     return new ServerPackHosting(path, hostName, port);
   }
 
@@ -99,6 +100,7 @@ public interface PackHosting {
    */
   static WebsiteHosting website(final Path path) {
     Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+
     return new McPackHosting(path);
   }
 
@@ -111,6 +113,7 @@ public interface PackHosting {
    */
   static InjectorHosting injector(final Path path) {
     Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+
     return new NettyHosting(path);
   }
 }

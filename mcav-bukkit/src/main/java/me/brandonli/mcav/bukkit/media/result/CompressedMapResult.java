@@ -122,6 +122,7 @@ public class CompressedMapResult implements DitherResultStep {
   public CompressedMapResult(final MapConfiguration configuration, final int maximumBytesPerFrame) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
     Preconditions.checkArgument(maximumBytesPerFrame > 0, "Byte budget must be positive!");
+
     this.configuration = configuration;
     this.maximumBytesPerFrame = maximumBytesPerFrame;
     this.activeViewers = new HashMap<>();
@@ -142,11 +143,13 @@ public class CompressedMapResult implements DitherResultStep {
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
     Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
+
     this.lock.lock();
     try {
       if (this.released) {
         return;
       }
+
       this.ditherAndSendFrame(samples, algorithm);
     } finally {
       this.lock.unlock();
@@ -169,6 +172,7 @@ public class CompressedMapResult implements DitherResultStep {
     if (!shouldResize) {
       return;
     }
+
     final int width = this.configuration.getMapWidthResolution();
     final int height = this.configuration.getMapHeightResolution();
     final ResizeFilter filter = new ResizeFilter(width, height);
@@ -179,10 +183,12 @@ public class CompressedMapResult implements DitherResultStep {
     final List<UUID> existingViewers = new ArrayList<>();
     final List<UUID> newViewers = new ArrayList<>();
     this.sortConnectedViewers(existingViewers, newViewers);
+
     if (!existingViewers.isEmpty()) {
       MapPacketFactory.send(existingViewers, patches);
       this.rememberCoverage(patches);
     }
+
     if (!newViewers.isEmpty()) {
       // A layout change forgets the viewer baseline, so old viewers also receive this reset. Keep historical
       // cleanup available for viewers absent during earlier resizes, including when the snapshot is empty.
@@ -214,6 +220,7 @@ public class CompressedMapResult implements DitherResultStep {
       final BitSet copy = (BitSet) pixels.clone();
       uncovered.put(mapId, copy);
     }
+
     for (final MapTilePatch patch : snapshot) {
       final int mapId = patch.getMapId();
       final BitSet pixels = uncovered.get(mapId);
@@ -221,12 +228,14 @@ public class CompressedMapResult implements DitherResultStep {
         setCoverage(pixels, patch, false);
       }
     }
+
     final List<MapTilePatch> clears = new ArrayList<>();
     for (final Map.Entry<Integer, BitSet> entry : uncovered.entrySet()) {
       final int mapId = entry.getKey();
       final BitSet pixels = entry.getValue();
       appendClearRectangles(mapId, pixels, clears);
     }
+
     return clears;
   }
 
@@ -289,6 +298,7 @@ public class CompressedMapResult implements DitherResultStep {
       final List<UUID> group = alreadyWatching ? existingViewers : newViewers;
       group.add(viewer);
     }
+
     this.activeViewers.keySet().retainAll(connectedViewers);
   }
 
@@ -304,10 +314,12 @@ public class CompressedMapResult implements DitherResultStep {
         return currentEncoder;
       }
     }
+
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
     final DeltaMapEncoder createdEncoder = new DeltaMapEncoder(layout, this.maximumBytesPerFrame);
     this.encoder = createdEncoder;
     this.activeViewers.clear();
+
     return createdEncoder;
   }
 
@@ -318,8 +330,10 @@ public class CompressedMapResult implements DitherResultStep {
         pool = createDitherPool();
         this.ditherPool = pool;
       }
+
       return parallelAlgorithm.ditherIntoBytes(samples, pool);
     }
+
     return algorithm.ditherIntoBytes(samples);
   }
 
@@ -387,6 +401,7 @@ public class CompressedMapResult implements DitherResultStep {
       if (this.released) {
         return;
       }
+
       this.released = true;
       this.encoder = null;
       this.activeViewers.clear();
@@ -397,6 +412,7 @@ public class CompressedMapResult implements DitherResultStep {
         pool.shutdownNow();
         this.ditherPool = null;
       }
+
       // Clearing is part of the same transition: a restarted frame must be sent after this clear.
       this.clearMaps();
     } finally {

@@ -159,6 +159,7 @@ public final class TransportPage {
     if (!(other instanceof final TransportPage page)) {
       return false;
     }
+
     return (
       this.streamId == page.streamId &&
       this.frameId == page.frameId &&

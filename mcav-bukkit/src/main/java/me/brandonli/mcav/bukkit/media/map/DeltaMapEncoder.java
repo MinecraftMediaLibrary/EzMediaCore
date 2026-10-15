@@ -117,6 +117,7 @@ public final class DeltaMapEncoder {
    */
   public List<MapTilePatch> encode(final byte[] image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     final int imageWidth = this.layout.getImageWidth();
     final int imageHeight = this.layout.getImageHeight();
     final int expectedLength = imageWidth * imageHeight;
@@ -152,6 +153,7 @@ public final class DeltaMapEncoder {
         candidates.add(candidate);
       }
     }
+
     return candidates;
   }
 
@@ -177,6 +179,7 @@ public final class DeltaMapEncoder {
       this.synced[map] = true;
       this.waitingFrames[map] = 0;
     }
+
     return accepted;
   }
 
@@ -197,6 +200,7 @@ public final class DeltaMapEncoder {
       final MapTilePatch patch = this.copyClientState(map, region);
       patches.add(patch);
     }
+
     return patches;
   }
 
@@ -212,6 +216,7 @@ public final class DeltaMapEncoder {
       final int targetIndex = row * width;
       System.arraycopy(state, sourceIndex, colors, targetIndex, width);
     }
+
     final int mapId = this.layout.getMapId(map);
     return new MapTilePatch(mapId, localX, localY, width, height, colors);
   }
@@ -277,6 +282,7 @@ public final class DeltaMapEncoder {
         tilesToSend |= tileBit;
       }
     }
+
     return tilesToSend;
   }
 
@@ -295,6 +301,7 @@ public final class DeltaMapEncoder {
         changedPixels += this.changedPixelsPerTile[tile];
       }
     }
+
     return changedPixels;
   }
 
@@ -309,6 +316,7 @@ public final class DeltaMapEncoder {
     if (boundsSize <= rectanglesSize) {
       return List.of(bounds);
     }
+
     return rectangles;
   }
 
@@ -317,6 +325,7 @@ public final class DeltaMapEncoder {
     for (final PatchRectangle rectangle : rectangles) {
       size += rectangle.getEncodedSize();
     }
+
     return size;
   }
 
@@ -330,6 +339,7 @@ public final class DeltaMapEncoder {
       final MapTilePatch patch = this.layout.extractPatch(image, map, left, top, width, height);
       patches.add(patch);
     }
+
     return patches;
   }
 
@@ -347,6 +357,7 @@ public final class DeltaMapEncoder {
     for (int row = 0; row < height; row++) {
       dirtyTiles |= this.findDirtyTilesInRow(image, state, region, row);
     }
+
     return dirtyTiles;
   }
 
@@ -374,6 +385,7 @@ public final class DeltaMapEncoder {
       dirtyTiles |= 1L << tile;
       column = tileEnd;
     }
+
     return dirtyTiles;
   }
 
@@ -398,6 +410,7 @@ public final class DeltaMapEncoder {
     if (mismatch < 0) {
       return -1;
     }
+
     return fromColumn + mismatch;
   }
 
@@ -424,6 +437,7 @@ public final class DeltaMapEncoder {
         changes++;
       }
     }
+
     return changes;
   }
 
@@ -440,6 +454,7 @@ public final class DeltaMapEncoder {
         rectangles.add(rectangle);
       }
     }
+
     return rectangles;
   }
 
@@ -449,6 +464,7 @@ public final class DeltaMapEncoder {
       final long tileBit = 1L << tile;
       pending[tile] = (tiles & tileBit) != 0;
     }
+
     return pending;
   }
 
@@ -479,6 +495,7 @@ public final class DeltaMapEncoder {
       }
       runWidth++;
     }
+
     return runWidth;
   }
 
@@ -491,6 +508,7 @@ public final class DeltaMapEncoder {
       }
       runHeight++;
     }
+
     return runHeight;
   }
 
@@ -501,6 +519,7 @@ public final class DeltaMapEncoder {
         return false;
       }
     }
+
     return true;
   }
 
@@ -581,6 +600,7 @@ public final class DeltaMapEncoder {
         right = Math.max(right, rectangle.left + rectangle.width);
         bottom = Math.max(bottom, rectangle.top + rectangle.height);
       }
+
       return new PatchRectangle(left, top, right - left, bottom - top);
     }
 

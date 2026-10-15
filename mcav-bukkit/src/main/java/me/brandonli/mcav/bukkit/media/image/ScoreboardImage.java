@@ -44,6 +44,7 @@ public class ScoreboardImage implements DisplayableImage {
   @Override
   public void displayImage(final ImageBuffer image) {
     Preconditions.checkNotNull(image, "Image must not be null!");
+
     this.renderer.show();
     this.renderer.render(image);
   }

@@ -98,6 +98,7 @@ public final class Mcv2FileEncoder {
     Preconditions.checkNotNull(budget, "Budget must not be null!");
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(progress, "Progress must not be null!");
+
     try (frames) {
       final Mcv2 encoder = budget.encoder(settings, false);
       encoder.setFrameLimit(screenFrameLimit(width, height));
@@ -120,6 +121,7 @@ public final class Mcv2FileEncoder {
         count++;
         progress.accept(count);
       }
+
       return new Result(count, keyframes, bytes, nanoseconds);
     }
   }
@@ -153,6 +155,7 @@ public final class Mcv2FileEncoder {
   public static FrameReader ffmpeg(final Path video, final int width, final int height) throws IOException {
     Preconditions.checkNotNull(video, "Video must not be null!");
     Preconditions.checkArgument(width > 0 && height > 0, SIZE_NOT_POSITIVE_MESSAGE);
+
     return open(new FFmpegFrameGrabber(video.toFile()), video.toString(), width, height);
   }
 
@@ -169,6 +172,7 @@ public final class Mcv2FileEncoder {
       final String message = "Cannot open %s (%s)!".formatted(name, exception.getMessage());
       throw new IOException(message, exception);
     }
+
     return new GrabberReader(grabber, width, height);
   }
 
@@ -182,6 +186,7 @@ public final class Mcv2FileEncoder {
 
   static void copy(final Frame frame, final byte[] pictureBytes, final int width, final int height) {
     Preconditions.checkState(frame.imageWidth == width && frame.imageHeight == height, "The frame must be %sx%s pixels!", width, height);
+
     final ByteBuffer pixels = ((ByteBuffer) frame.image[0]).duplicate();
     final int rowBytes = width * Mcv2Decoder.CHANNELS;
     for (int row = 0; row < height; row++) {
@@ -252,10 +257,13 @@ public final class Mcv2FileEncoder {
         final String message = "Cannot decode the video (%s)!".formatted(exception.getMessage());
         throw new IOException(message, exception);
       }
+
       if (frame == null) {
         return false;
       }
+
       copy(frame, pictureBytes, this.width, this.height);
+
       return true;
     }
 

@@ -55,6 +55,7 @@ public class MapResult implements DitherResultStep {
    */
   public MapResult(final MapConfiguration configuration) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
+
     this.configuration = configuration;
   }
 
@@ -70,6 +71,7 @@ public class MapResult implements DitherResultStep {
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
     Preconditions.checkNotNull(samples, "Samples must not be null!");
     Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
+
     this.resizeIfConfigured(samples);
 
     final byte[] dithered = algorithm.ditherIntoBytes(samples);
@@ -88,6 +90,7 @@ public class MapResult implements DitherResultStep {
   private static List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
     final int width = layout.getImageWidth();
     Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout!");
+
     final List<MapTilePatch> patches = new ArrayList<>(layout.getMapCount());
     for (int index = 0; index < layout.getMapCount(); index++) {
       final MapRegion region = layout.getRegion(index);
@@ -101,6 +104,7 @@ public class MapResult implements DitherResultStep {
       }
       patches.add(new MapTilePatch(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
     }
+
     return patches;
   }
 
@@ -109,6 +113,7 @@ public class MapResult implements DitherResultStep {
     if (!shouldResize) {
       return;
     }
+
     final int targetWidth = this.configuration.getMapWidthResolution();
     final int targetHeight = this.configuration.getMapHeightResolution();
     final ResizeFilter filter = new ResizeFilter(targetWidth, targetHeight);

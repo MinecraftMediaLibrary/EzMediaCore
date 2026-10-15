@@ -80,6 +80,7 @@ public final class Mcv2Viewers {
   public Mcv2Viewers(final UUID packId, final Consumer<Player> onRefused) {
     Preconditions.checkNotNull(packId, PACK_ID_NULL_MESSAGE);
     Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
+
     this.packId = packId;
     this.onRefused = onRefused;
     this.states = new ConcurrentHashMap<>();
@@ -128,6 +129,7 @@ public final class Mcv2Viewers {
    */
   public void retarget(final UUID newPackId) {
     Preconditions.checkNotNull(newPackId, PACK_ID_NULL_MESSAGE);
+
     this.packId = newPackId;
     this.states.values().removeIf(state -> state != PackState.DECLINED);
     this.sessions.clear();
@@ -141,6 +143,7 @@ public final class Mcv2Viewers {
    */
   public void requested(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     this.states.put(player, PackState.REQUESTED);
   }
 
@@ -153,6 +156,7 @@ public final class Mcv2Viewers {
    */
   public @Nullable PackState getState(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     return this.states.get(player);
   }
 
@@ -183,6 +187,7 @@ public final class Mcv2Viewers {
    */
   public long getSession(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+
     return this.sessions.getOrDefault(player, 0L);
   }
 
@@ -190,6 +195,7 @@ public final class Mcv2Viewers {
     if (!this.packId.equals(event.getID())) {
       return;
     }
+
     final Player player = event.getPlayer();
     final UUID viewerId = player.getUniqueId();
     switch (event.getStatus()) {
