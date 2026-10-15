@@ -29,11 +29,16 @@ object JcstressBudget {
     private const val MINIMUM_ITERATION_MILLISECONDS = 50L
     private const val MAXIMUM_ITERATION_MILLISECONDS = 10_000L
     private const val MILLISECONDS_PER_MINUTE = 60_000L
+    private const val TEST_LIST_ENTRY: String = "META-INF/TestList"
     private const val TEST_LINE = "JCTEST"
+    private const val NAME_LENGTH_TERMINATOR: Char = 'S'
+
+    private const val CPUS_PER_RUN: Int = 2
+    private const val ITERATION_SHARE_OF_BUDGET: Int = 2
 
     private class Preset(val forks: Int, val stressMultiplier: Int, val iterations: Int)
 
-    private val presets = mapOf(
+    private val PRESETS: Map<String, Preset> = mapOf(
         "sanity" to Preset(1, 1, 1),
         "quick" to Preset(1, 1, 5),
         "default" to Preset(1, 5, 5),
@@ -44,26 +49,26 @@ object JcstressBudget {
     fun countTests(jar: File, selection: String?): Int {
         val pattern = selection?.let { Regex(it) }
         ZipFile(jar).use { zip ->
-            val entry = zip.getEntry("META-INF/TestList") ?: return 0
+            val entry = zip.getEntry(TEST_LIST_ENTRY) ?: return 0
             val lines = zip.getInputStream(entry).reader().readLines()
             return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(testName(line))) }
         }
     }
 
     private fun testName(line: String): String {
-        val lengthEnd = line.indexOf('S', TEST_LINE.length)
+        val lengthEnd = line.indexOf(NAME_LENGTH_TERMINATOR, TEST_LINE.length)
         val length = line.substring(TEST_LINE.length, lengthEnd).toInt()
         return line.substring(lengthEnd + 1, lengthEnd + 1 + length)
     }
 
     fun iterationMilliseconds(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
         val message = "Jcstress mode $mode is unknown!"
-        val preset = presets[mode] ?: throw GradleException(message)
+        val preset = PRESETS[mode] ?: throw GradleException(message)
         val runs = testCount.toLong() * CONFIGURATIONS * (preset.forks + preset.forks * preset.stressMultiplier)
-        val parallelRuns = maxOf(1, cpus / 2)
+        val parallelRuns = maxOf(1, cpus / CPUS_PER_RUN)
         val budgetMilliseconds = budgetMinutes * MILLISECONDS_PER_MINUTE
         val startMilliseconds = runs * JVM_START_MILLISECONDS / parallelRuns
-        val iterationBudget = budgetMilliseconds / 2 - startMilliseconds
+        val iterationBudget = budgetMilliseconds / ITERATION_SHARE_OF_BUDGET - startMilliseconds
         val perIteration = iterationBudget * parallelRuns / maxOf(1L, runs * preset.iterations)
         return perIteration.coerceIn(MINIMUM_ITERATION_MILLISECONDS, MAXIMUM_ITERATION_MILLISECONDS)
     }

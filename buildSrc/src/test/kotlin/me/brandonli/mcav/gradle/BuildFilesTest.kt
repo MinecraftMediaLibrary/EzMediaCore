@@ -24,27 +24,51 @@ import org.junit.jupiter.api.Test
 
 class BuildFilesTest {
 
-    private val root = File("..")
+    private companion object {
 
-    private val modules = Regex("""^ {4}"([\w-]+)",$""", RegexOption.MULTILINE)
-        .findAll(root.resolve("settings.gradle.kts").readText())
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val SETTINGS_SCRIPT: String = "settings.gradle.kts"
+        const val BUILD_SCRIPT: String = "build.gradle.kts"
+        const val BUILD_SOURCE_SETTINGS_SCRIPT: String = "buildSrc/settings.gradle.kts"
+        const val BUILD_SOURCE_BUILD_SCRIPT: String = "buildSrc/build.gradle.kts"
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+
+        const val SOURCE_DIRECTORY: String = "src"
+        const val KOTLIN_EXTENSION: String = ".kt"
+        const val SCRIPT_EXTENSION: String = ".kts"
+        const val HEADER_FILE: String = "HEADER"
+        const val BUILD_SOURCE_DIRECTORY: String = "buildSrc"
+
+        val MODULE_ENTRY: Regex = Regex("""^ {4}"([\w-]+)",$""", RegexOption.MULTILINE)
+        val MODULE_SCRIPT_LAYOUT: Regex =
+            Regex("""((import [\w.]+\n)+\n)?plugins \{\n( {4}id\("mcav\.[\w-]+"\)\n)+}\n(\ndependencies \{\n( {4}.+\n)+}\n)?""")
+        val CATALOG_SECTION_HEADER: Regex = Regex("""^\[\w+]\n""", RegexOption.MULTILINE)
+        val CATALOG_ENTRY: Regex = Regex("""^([\w-]+) = """, RegexOption.MULTILINE)
+    }
+
+    private val root = File(REPOSITORY_DIRECTORY)
+
+    private val modules = MODULE_ENTRY
+        .findAll(root.resolve(SETTINGS_SCRIPT).readText())
         .map { it.groupValues[1] }
         .toList()
 
     private val moduleScripts = modules.map { root.resolve("$it/build.gradle.kts") }
 
     private val buildScripts = listOf(
-        "settings.gradle.kts",
-        "build.gradle.kts",
-        "buildSrc/settings.gradle.kts",
-        "buildSrc/build.gradle.kts"
+        SETTINGS_SCRIPT,
+        BUILD_SCRIPT,
+        BUILD_SOURCE_SETTINGS_SCRIPT,
+        BUILD_SOURCE_BUILD_SCRIPT
     ).map { root.resolve(it) } + moduleScripts
 
-    private val sources = File("src").walk().filter { it.isFile && (it.name.endsWith(".kt") || it.name.endsWith(".kts")) }.toList()
+    private val sources = File(SOURCE_DIRECTORY).walk()
+        .filter { it.isFile && (it.name.endsWith(KOTLIN_EXTENSION) || it.name.endsWith(SCRIPT_EXTENSION)) }
+        .toList()
 
     @Test
     fun shouldOpenEverySourceOfTheBuildWithTheLicenseHeaderAndNoBuildScript() {
-        val header = root.resolve("HEADER").readText()
+        val header = root.resolve(HEADER_FILE).readText()
         val sourcesWithoutHeader: List<String> = sources.filterNot { it.readText().startsWith("$header\n") }.map { it.path }
         assertEquals(listOf<String>(), sourcesWithoutHeader)
 
@@ -54,20 +78,19 @@ class BuildFilesTest {
 
     @Test
     fun shouldOnlyApplyConventionsAndListDependenciesInEveryModuleScript() {
-        val layout = Regex("""((import [\w.]+\n)+\n)?plugins \{\n( {4}id\("mcav\.[\w-]+"\)\n)+}\n(\ndependencies \{\n( {4}.+\n)+}\n)?""")
-        val offenders: List<String> = moduleScripts.filterNot { layout.matches(it.readText()) }.map { it.path }
+        val offenders: List<String> = moduleScripts.filterNot { MODULE_SCRIPT_LAYOUT.matches(it.readText()) }.map { it.path }
         assertEquals(listOf<String>(), offenders)
     }
 
     @Test
     fun shouldIncludeEveryModuleInOrderAndSortEverySectionOfTheCatalog() {
-        val directories = root.listFiles { file -> file.name != "buildSrc" && file.resolve("build.gradle.kts").isFile }!!
+        val directories = root.listFiles { file -> file.name != BUILD_SOURCE_DIRECTORY && file.resolve(BUILD_SCRIPT).isFile }!!
         val sortedModules: List<String> = directories.map { it.name }.sorted()
         assertEquals(sortedModules, modules)
 
-        val sections = root.resolve("gradle/libs.versions.toml").readText().split(Regex("""^\[\w+]\n""", RegexOption.MULTILINE))
+        val sections = root.resolve(CATALOG_PATH).readText().split(CATALOG_SECTION_HEADER)
         val names: List<List<String>> = sections.drop(1).map { section ->
-            Regex("""^([\w-]+) = """, RegexOption.MULTILINE).findAll(section).map { it.groupValues[1] }.toList()
+            CATALOG_ENTRY.findAll(section).map { it.groupValues[1] }.toList()
         }
         val sortedNames: List<List<String>> = names.map { it.sorted() }
         assertEquals(sortedNames, names)

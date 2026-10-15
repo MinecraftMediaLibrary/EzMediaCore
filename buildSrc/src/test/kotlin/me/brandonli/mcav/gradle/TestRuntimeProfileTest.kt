@@ -26,6 +26,11 @@ import org.junit.jupiter.api.Test
 
 class TestRuntimeProfileTest {
 
+    private companion object {
+
+        const val JQWIK_DATABASE_PATH: String = "build/jqwik-database"
+    }
+
     @Test
     fun shouldGiveMutationTheTestArgumentsAndEverySystemPropertyExactlyOnce() {
         val project = ProjectBuilder.builder().build()
@@ -35,7 +40,7 @@ class TestRuntimeProfileTest {
         test.jvmArgumentProviders.add(CommandLineArgumentProvider { listOf("-javaagent:coverage.jar") })
         test.systemProperty("mcav.networkTests", "false")
         test.systemProperty("mcav.syncMeasurement", "false")
-        test.systemProperty("jqwik.database", "build/jqwik-database")
+        test.systemProperty("jqwik.database", JQWIK_DATABASE_PATH)
         test.systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
         test.systemProperty("jqwik.tries.default", "10")
         val arguments: List<String> = TestRuntimeProfile.forMutation(test)

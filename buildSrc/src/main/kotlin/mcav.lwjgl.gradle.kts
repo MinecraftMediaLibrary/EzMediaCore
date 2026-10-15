@@ -25,6 +25,8 @@ plugins {
     id("mcav.publishing")
 }
 
+val lwjglAliases: List<String> = listOf("lwjgl", "lwjgl-opengl", "lwjgl-glfw")
+
 dependencies {
-    addLwjglTestNatives(listOf("lwjgl", "lwjgl-opengl", "lwjgl-glfw").map { libs.libraryOf(it) })
+    addLwjglTestNatives(lwjglAliases.map { libs.libraryOf(it) })
 }

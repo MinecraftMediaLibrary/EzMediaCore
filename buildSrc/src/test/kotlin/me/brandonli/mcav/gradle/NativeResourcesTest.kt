@@ -31,22 +31,39 @@ import org.junit.jupiter.api.io.TempDir
 
 class NativeResourcesTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+
+        const val NATIVE_SOURCES_PATH: String = "src/main/native/mcv2"
+        const val NATIVE_SOURCE: String = "mcv2.cpp"
+        const val CONSUMER_JAR_PATH: String = "build/libs/consumer-all.jar"
+        const val NATIVE_LIBRARY_ENTRY: String = "mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+        const val PRODUCER_PROJECT: String = "producer"
+        const val CONSUMER_PROJECT: String = "consumer"
+        const val ZIG_EXECUTABLE: String = "zig"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldBuildAndPackageTheGeneratedResourceArtifactIntoAShadowConsumer() {
         val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.python' }\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.python' }\n")
+        val catalog = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        val producer = project.resolve("producer").apply { mkdirs() }
-        val sources = producer.resolve("src/main/native/mcv2").apply { mkdirs() }
-        sources.resolve("mcv2.cpp").writeText("native fixture bytes")
-        val compiler = project.resolve("zig").apply { writeText("unused fixture compiler") }
-        producer.resolve("build.gradle").writeText("""
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+        val producer = project.resolve(PRODUCER_PROJECT).apply { mkdirs() }
+        val sources = producer.resolve(NATIVE_SOURCES_PATH).apply { mkdirs() }
+        sources.resolve(NATIVE_SOURCE).writeText("native fixture bytes")
+        val compiler = project.resolve(ZIG_EXECUTABLE).apply { writeText("unused fixture compiler") }
+        producer.resolve(BUILD_SCRIPT).writeText("""
             plugins { id 'mcav.natives' }
             tasks.named('buildMcv2Natives') {
                 actions.clear()
@@ -57,8 +74,8 @@ class NativeResourcesTest {
                 }
             }
         """.trimIndent())
-        val consumer = project.resolve("consumer").apply { mkdirs() }
-        consumer.resolve("build.gradle").writeText("""
+        val consumer = project.resolve(CONSUMER_PROJECT).apply { mkdirs() }
+        consumer.resolve(BUILD_SCRIPT).writeText("""
             plugins {
                 id 'java'
                 id 'com.gradleup.shadow'
@@ -87,7 +104,7 @@ class NativeResourcesTest {
         val unchangedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
         assertEquals(TaskOutcome.UP_TO_DATE, unchangedOutcome)
 
-        sources.resolve("mcv2.cpp").writeText("changed native fixture bytes")
+        sources.resolve(NATIVE_SOURCE).writeText("changed native fixture bytes")
         val changedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
         assertEquals(TaskOutcome.SUCCESS, changedOutcome)
 
@@ -96,8 +113,8 @@ class NativeResourcesTest {
     }
 
     private fun readLibrary(consumer: File): String? =
-        ZipFile(consumer.resolve("build/libs/consumer-all.jar")).use { archive ->
-            archive.getEntry("mcav/mcv2/natives/linux-x86_64/libmcv2kernels.so")
+        ZipFile(consumer.resolve(CONSUMER_JAR_PATH)).use { archive ->
+            archive.getEntry(NATIVE_LIBRARY_ENTRY)
                 ?.let { archive.getInputStream(it).reader().readText() }
         }
 }

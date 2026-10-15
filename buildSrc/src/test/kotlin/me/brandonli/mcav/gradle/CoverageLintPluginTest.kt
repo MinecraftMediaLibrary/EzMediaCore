@@ -27,18 +27,26 @@ import org.junit.jupiter.api.io.TempDir
 
 class CoverageLintPluginTest {
 
+    private companion object {
+
+        const val SOURCE_PATH: String = "src/main/java/Example.java"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered() {
         val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
         for (name in listOf("first", "second")) {
             val module = project.resolve(name)
             module.mkdirs()
-            module.resolve("build.gradle").writeText("plugins { id 'mcav.coverage' }\n")
-            val source = module.resolve("src/main/java/Example.java")
+            module.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.coverage' }\n")
+            val source = module.resolve(SOURCE_PATH)
             source.parentFile.mkdirs()
             source.writeText("public class Example { public int value() { return 42; } }\n")
         }

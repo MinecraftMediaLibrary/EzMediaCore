@@ -25,61 +25,111 @@ import org.gradle.api.provider.Provider
 
 class HostPlatform private constructor(val operatingSystem: String, val architecture: String) {
 
-    val isWindows: Boolean get() = operatingSystem.contains("windows")
+    val isWindows: Boolean get() = operatingSystem.contains(WINDOWS)
 
     val zigSystem: String get() = when {
-        isWindows -> "windows"
-        operatingSystem.contains("mac") -> "macos"
-        operatingSystem.contains("linux") -> "linux"
+        isWindows -> WINDOWS
+        operatingSystem.contains(MAC) -> ZIG_MACOS
+        operatingSystem.contains(LINUX) -> LINUX
         else -> operatingSystem
     }
 
     val uvTarget: String get() = architecture + when {
-        isWindows -> "-pc-windows-msvc"
-        operatingSystem.contains("mac") -> "-apple-darwin"
-        else -> "-unknown-linux-musl"
+        isWindows -> WINDOWS_UV_TARGET
+        operatingSystem.contains(MAC) -> MACOS_UV_TARGET
+        else -> LINUX_UV_TARGET
     }
 
     val lwjglNatives: String? get() = when {
-        operatingSystem.contains("mac") || operatingSystem.contains("darwin") -> when (architecture) {
-            "aarch64" -> "natives-macos-arm64"
-            "x86_64" -> "natives-macos"
+        operatingSystem.contains(MAC) || operatingSystem.contains(DARWIN) -> when (architecture) {
+            AARCH64 -> MACOS_ARM64_NATIVES
+            X86_64 -> MACOS_NATIVES
             else -> null
         }
-        operatingSystem.contains("win") -> when (architecture) {
-            "aarch64" -> "natives-windows-arm64"
-            "x86_64" -> "natives-windows"
-            "x86", "i386", "i686" -> "natives-windows-x86"
+        operatingSystem.contains(WIN) -> when (architecture) {
+            AARCH64 -> WINDOWS_ARM64_NATIVES
+            X86_64 -> WINDOWS_NATIVES
+            X86, I386, I686 -> WINDOWS_X86_NATIVES
             else -> null
         }
-        operatingSystem.contains("freebsd") -> if (architecture == "x86_64") "natives-freebsd" else null
-        operatingSystem.contains("linux") -> when {
-            architecture == "x86_64" -> "natives-linux"
-            architecture == "aarch64" -> "natives-linux-arm64"
-            architecture == "arm" || architecture == "arm32" || architecture.startsWith("armv7") -> "natives-linux-arm32"
-            architecture == "ppc64le" -> "natives-linux-ppc64le"
-            architecture == "riscv64" -> "natives-linux-riscv64"
+        operatingSystem.contains(FREEBSD) -> if (architecture == X86_64) FREEBSD_NATIVES else null
+        operatingSystem.contains(LINUX) -> when {
+            architecture == X86_64 -> LINUX_NATIVES
+            architecture == AARCH64 -> LINUX_ARM64_NATIVES
+            architecture == ARM || architecture == ARM32 || architecture.startsWith(ARMV7_PREFIX) -> LINUX_ARM32_NATIVES
+            architecture == PPC64LE -> LINUX_PPC64LE_NATIVES
+            architecture == RISCV64 -> LINUX_RISCV64_NATIVES
             else -> null
         }
         else -> null
     }
 
-    fun javaExecutable(javaHome: String): String = javaHome + "/bin/java" + if (isWindows) ".exe" else ""
+    fun javaExecutable(javaHome: String): String = javaHome + JAVA_BINARY + if (isWindows) EXECUTABLE_EXTENSION else ""
 
-    fun virtualEnvironmentExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
+    fun virtualEnvironmentExecutable(name: String): String =
+        if (isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
 
     companion object {
-        private val architectureAliases = mapOf("amd64" to "x86_64", "arm64" to "aarch64")
 
-        fun current(): HostPlatform = normalize(System.getProperty("os.name"), System.getProperty("os.arch"))
+        private const val WINDOWS: String = "windows"
+        private const val WIN: String = "win"
+        private const val MAC: String = "mac"
+        private const val DARWIN: String = "darwin"
+        private const val LINUX: String = "linux"
+        private const val FREEBSD: String = "freebsd"
+
+        private const val ZIG_MACOS: String = "macos"
+
+        private const val X86_64: String = "x86_64"
+        private const val AARCH64: String = "aarch64"
+        private const val X86: String = "x86"
+        private const val I386: String = "i386"
+        private const val I686: String = "i686"
+        private const val ARM: String = "arm"
+        private const val ARM32: String = "arm32"
+        private const val ARMV7_PREFIX: String = "armv7"
+        private const val PPC64LE: String = "ppc64le"
+        private const val RISCV64: String = "riscv64"
+        private const val AMD64: String = "amd64"
+        private const val ARM64: String = "arm64"
+
+        private const val WINDOWS_UV_TARGET: String = "-pc-windows-msvc"
+        private const val MACOS_UV_TARGET: String = "-apple-darwin"
+        private const val LINUX_UV_TARGET: String = "-unknown-linux-musl"
+
+        private const val MACOS_ARM64_NATIVES: String = "natives-macos-arm64"
+        private const val MACOS_NATIVES: String = "natives-macos"
+        private const val WINDOWS_ARM64_NATIVES: String = "natives-windows-arm64"
+        private const val WINDOWS_NATIVES: String = "natives-windows"
+        private const val WINDOWS_X86_NATIVES: String = "natives-windows-x86"
+        private const val FREEBSD_NATIVES: String = "natives-freebsd"
+        private const val LINUX_NATIVES: String = "natives-linux"
+        private const val LINUX_ARM64_NATIVES: String = "natives-linux-arm64"
+        private const val LINUX_ARM32_NATIVES: String = "natives-linux-arm32"
+        private const val LINUX_PPC64LE_NATIVES: String = "natives-linux-ppc64le"
+        private const val LINUX_RISCV64_NATIVES: String = "natives-linux-riscv64"
+
+        private const val JAVA_BINARY: String = "/bin/java"
+        private const val EXECUTABLE_EXTENSION: String = ".exe"
+        private const val WINDOWS_SCRIPTS_DIRECTORY: String = "Scripts/"
+        private const val UNIX_BINARIES_DIRECTORY: String = "bin/"
+
+        private const val OPERATING_SYSTEM_PROPERTY: String = "os.name"
+        private const val ARCHITECTURE_PROPERTY: String = "os.arch"
+
+        private val ARCHITECTURE_ALIASES: Map<String, String> = mapOf(AMD64 to X86_64, ARM64 to AARCH64)
+
+        fun current(): HostPlatform = normalize(System.getProperty(OPERATING_SYSTEM_PROPERTY), System.getProperty(ARCHITECTURE_PROPERTY))
 
         fun normalize(operatingSystem: String, architecture: String): HostPlatform {
             val name = architecture.lowercase(Locale.ROOT)
-            val normalizedArchitecture = architectureAliases.getOrDefault(name, name)
+            val normalizedArchitecture = ARCHITECTURE_ALIASES.getOrDefault(name, name)
             return HostPlatform(operatingSystem.lowercase(Locale.ROOT), normalizedArchitecture)
         }
     }
 }
+
+private const val TEST_RUNTIME_CONFIGURATION: String = "testRuntimeOnly"
 
 val isWindows: Boolean = HostPlatform.current().isWindows
 
@@ -94,7 +144,7 @@ fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalEx
 fun DependencyHandler.addLwjglTestNatives(platform: HostPlatform, libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
     platform.lwjglNatives?.let { natives ->
         libraries.forEach { library ->
-            add("testRuntimeOnly", variantOf(library) { classifier(natives) })
+            add(TEST_RUNTIME_CONFIGURATION, variantOf(library) { classifier(natives) })
         }
     }
 }

@@ -29,6 +29,19 @@ class FuzzTargetsTest {
 
     private companion object {
 
+        const val TARGET_METHOD: String = "shouldParse"
+        const val TEXT_TARGET_METHOD: String = "shouldParseAnyText"
+
+        const val FUZZ_TEST_SOURCE: String = "ParserFuzzTest.java"
+        const val PLAIN_TEST_SOURCE: String = "ParserTest.java"
+        const val EARLIER_SOURCE: String = "a/EarlierFuzzTest.java"
+        const val LATER_SOURCE: String = "b/LaterFuzzTest.java"
+
+        const val FIRST_ROOT: String = "first"
+        const val SECOND_ROOT: String = "second"
+        const val EARLIER_PACKAGE: String = "a"
+        const val LATER_PACKAGE: String = "b"
+
         const val PACKAGE_PATH: String = "me/brandonli/mcav/example"
 
         const val CLASS_NAME: String = "me.brandonli.mcav.example.ParserFuzzTest"
@@ -53,7 +66,7 @@ class FuzzTargetsTest {
         """.trimIndent()
 
         val methods: List<String> = FuzzTargets.findMethods(source)
-        val expected: List<String> = listOf("shouldParseAnyText", "shouldParseAnyBytes")
+        val expected: List<String> = listOf(TEXT_TARGET_METHOD, "shouldParseAnyBytes")
         assertEquals(expected, methods)
     }
 
@@ -80,22 +93,22 @@ class FuzzTargetsTest {
         val root: File = this.directory.toFile()
         val packageDirectory: File = root.resolve(PACKAGE_PATH)
         packageDirectory.mkdirs()
-        packageDirectory.resolve("ParserFuzzTest.java").writeText("@FuzzTest void shouldParse(final byte[] input) {}")
-        packageDirectory.resolve("ParserTest.java").writeText("@FuzzTest void shouldNotBeFound(final byte[] input) {}")
+        packageDirectory.resolve(FUZZ_TEST_SOURCE).writeText("@FuzzTest void shouldParse(final byte[] input) {}")
+        packageDirectory.resolve(PLAIN_TEST_SOURCE).writeText("@FuzzTest void shouldNotBeFound(final byte[] input) {}")
 
         val targets: List<FuzzTarget> = FuzzTargets.find(listOf(root))
-        val expected: List<FuzzTarget> = listOf(FuzzTarget(CLASS_NAME, "shouldParse"))
+        val expected: List<FuzzTarget> = listOf(FuzzTarget(CLASS_NAME, TARGET_METHOD))
         assertEquals(expected, targets)
     }
 
     @Test
     fun shouldOrderTheTargetsOfSeveralDirectoriesByClass(): Unit {
-        val first: File = this.directory.resolve("first").toFile()
-        val second: File = this.directory.resolve("second").toFile()
-        first.resolve("b").mkdirs()
-        second.resolve("a").mkdirs()
-        first.resolve("b/LaterFuzzTest.java").writeText("@FuzzTest void shouldRun(final byte[] input) {}")
-        second.resolve("a/EarlierFuzzTest.java").writeText("@FuzzTest void shouldRun(final byte[] input) {}")
+        val first: File = this.directory.resolve(FIRST_ROOT).toFile()
+        val second: File = this.directory.resolve(SECOND_ROOT).toFile()
+        first.resolve(LATER_PACKAGE).mkdirs()
+        second.resolve(EARLIER_PACKAGE).mkdirs()
+        first.resolve(LATER_SOURCE).writeText("@FuzzTest void shouldRun(final byte[] input) {}")
+        second.resolve(EARLIER_SOURCE).writeText("@FuzzTest void shouldRun(final byte[] input) {}")
 
         val targets: List<FuzzTarget> = FuzzTargets.find(listOf(first, second))
         val expected: List<FuzzTarget> = listOf(FuzzTarget("a.EarlierFuzzTest", "shouldRun"), FuzzTarget("b.LaterFuzzTest", "shouldRun"))
@@ -104,7 +117,7 @@ class FuzzTargetsTest {
 
     @Test
     fun shouldFilterAndNameATaskForOneMethod(): Unit {
-        val target: FuzzTarget = FuzzTarget(CLASS_NAME, "shouldParseAnyText")
+        val target: FuzzTarget = FuzzTarget(CLASS_NAME, TEXT_TARGET_METHOD)
 
         val pattern: String = target.filterPattern()
         assertEquals("$CLASS_NAME.shouldParseAnyText", pattern)
@@ -118,10 +131,10 @@ class FuzzTargetsTest {
 
     @Test
     fun shouldEqualOnlyATargetOfTheSameClassAndMethod(): Unit {
-        val target: FuzzTarget = FuzzTarget(CLASS_NAME, "shouldParse")
-        val same: FuzzTarget = FuzzTarget(CLASS_NAME, "shouldParse")
+        val target: FuzzTarget = FuzzTarget(CLASS_NAME, TARGET_METHOD)
+        val same: FuzzTarget = FuzzTarget(CLASS_NAME, TARGET_METHOD)
         val otherMethod: FuzzTarget = FuzzTarget(CLASS_NAME, "shouldRead")
-        val otherClass: FuzzTarget = FuzzTarget("a.OtherFuzzTest", "shouldParse")
+        val otherClass: FuzzTarget = FuzzTarget("a.OtherFuzzTest", TARGET_METHOD)
 
         assertEquals(target, target)
         assertEquals(same, target)

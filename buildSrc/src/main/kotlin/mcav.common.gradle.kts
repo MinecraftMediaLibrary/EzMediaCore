@@ -23,6 +23,10 @@ plugins {
     id("mcav.publishing")
 }
 
+val bytedecoGroup: String = "org.bytedeco"
+val javacvPlatformModule: String = "javacv-platform"
+val platformSuffix: String = "-platform"
+
 val unusedJavacvPresets = listOf(
     "flycapture",
     "libdc1394",
@@ -38,10 +42,10 @@ val unusedJavacvPresets = listOf(
 
 configurations.api {
     dependencies.withType<ModuleDependency>().configureEach {
-        if (group == "org.bytedeco" && name == "javacv-platform") {
+        if (group == bytedecoGroup && name == javacvPlatformModule) {
             unusedJavacvPresets.forEach { preset ->
-                exclude(group = "org.bytedeco", module = preset)
-                exclude(group = "org.bytedeco", module = "$preset-platform")
+                exclude(group = bytedecoGroup, module = preset)
+                exclude(group = bytedecoGroup, module = "$preset$platformSuffix")
             }
         }
     }

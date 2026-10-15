@@ -26,16 +26,24 @@ plugins {
     id("info.solidsoft.pitest")
 }
 
+val pitestAlias: String = "pitest"
+val pitestJunit5PluginAlias: String = "pitest-junit5-plugin"
+val mutatedClasses: String = "me.brandonli.mcav.*"
+val testJavaHomeProperty: String = "mcav.testJavaHome"
+
+val mutationThreads: Int = 4
+val mutationTimeoutMilliseconds: Int = 4000
+
 pitest {
-    pitestVersion = libs.versionOf("pitest")
-    junit5PluginVersion = libs.versionOf("pitest-junit5-plugin")
-    targetClasses = setOf("me.brandonli.mcav.*")
-    threads = 4
-    timeoutConstInMillis = 4000
+    pitestVersion = libs.versionOf(pitestAlias)
+    junit5PluginVersion = libs.versionOf(pitestJunit5PluginAlias)
+    targetClasses = setOf(mutatedClasses)
+    threads = mutationThreads
+    timeoutConstInMillis = mutationTimeoutMilliseconds
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
     jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
-    val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
+    val testJavaHome = providers.gradleProperty(testJavaHomeProperty)
     if (testJavaHome.isPresent) {
         jvmPath = file(javaExecutable(testJavaHome.get()))
     }

@@ -25,16 +25,27 @@ import org.junit.jupiter.api.Test
 
 class CatalogPinsTest {
 
-    private val repository = Path.of("..").toFile()
+    private companion object {
 
-    private val catalog = repository.resolve("gradle/libs.versions.toml").readText()
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val TOOL_CHECKSUMS_PATH: String = "buildSrc/src/main/resources/tool-checksums.properties"
+
+        const val READ_THE_DOCS_CONFIG: String = ".readthedocs.yaml"
+
+        val PYTHON_MINOR_VERSION: Regex = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"")
+    }
+
+    private val repository = Path.of(REPOSITORY_DIRECTORY).toFile()
+
+    private val catalog = repository.resolve(CATALOG_PATH).readText()
 
     private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
 
     @Test
     fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog() {
-        val readTheDocs = repository.resolve(".readthedocs.yaml").readText()
-        val minor = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"").find(readTheDocs)!!.groupValues[1]
+        val readTheDocs = repository.resolve(READ_THE_DOCS_CONFIG).readText()
+        val minor = PYTHON_MINOR_VERSION.find(readTheDocs)!!.groupValues[1]
         val catalogMinor: String = version("python").split('.').take(2).joinToString(".")
         assertEquals(catalogMinor, minor)
     }
@@ -52,7 +63,7 @@ class CatalogPinsTest {
             )
         }
         val pins = Properties()
-        repository.resolve("buildSrc/src/main/resources/tool-checksums.properties").inputStream().use { pins.load(it) }
+        repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use { pins.load(it) }
         val pinnedArchives: Set<String> = pins.stringPropertyNames()
         assertEquals(archives.toSet(), pinnedArchives)
     }

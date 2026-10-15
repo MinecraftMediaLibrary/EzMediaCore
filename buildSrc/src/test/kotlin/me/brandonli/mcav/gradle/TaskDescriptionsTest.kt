@@ -24,19 +24,29 @@ import org.junit.jupiter.api.Test
 
 class TaskDescriptionsTest {
 
+    private companion object {
+
+        const val CONVENTIONS_DIRECTORY: String = "src/main/kotlin"
+        const val SCRIPT_EXTENSION: String = ".gradle.kts"
+        const val BUILD_SCRIPT: String = "build.gradle.kts"
+
+        const val TASK_NAME: String = """("\w+"|[\w.]+(?:\(\))?)"""
+        const val DESCRIPTION: String = """"[A-Z][a-z]+s [^"\n]*[^."]""""
+
+        val TASK_REGISTRATION: Regex = Regex("""tasks\.register\b""")
+        val DESCRIBED_REGISTRATION: Regex = Regex(
+            """tasks\.register(<\w+>)?\($TASK_NAME\) \{\n( +)(this\.|)group = "[a-z ]+"\n\3\4description = $DESCRIPTION\n"""
+        )
+    }
+
     @Test
     fun shouldStartEveryRegisteredTaskWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
-        val conventions = File("src/main/kotlin").listFiles { file -> file.name.endsWith(".gradle.kts") }!!.toList()
-        val scripts = conventions + File("build.gradle.kts")
-        val taskName = """("\w+"|[\w.]+\(\))"""
-        val description = """"[A-Z][a-z]+s [^"\n]*[^."]""""
-        val registration = Regex(
-            """tasks\.register(<\w+>)?\($taskName\) \{\n( +)(this\.|)group = "[a-z ]+"\n\3\4description = $description\n"""
-        )
+        val conventions = File(CONVENTIONS_DIRECTORY).listFiles { file -> file.name.endsWith(SCRIPT_EXTENSION) }!!.toList()
+        val scripts = conventions + File(BUILD_SCRIPT)
         val undescribed: List<String> = scripts.sorted()
             .filter { script ->
                 val text = script.readText()
-                Regex("""tasks\.register\b""").findAll(text).count() != registration.findAll(text).count()
+                TASK_REGISTRATION.findAll(text).count() != DESCRIBED_REGISTRATION.findAll(text).count()
             }
             .map { it.path }
         assertEquals(listOf<String>(), undescribed)

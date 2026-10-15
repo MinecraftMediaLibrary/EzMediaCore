@@ -28,18 +28,28 @@ import org.junit.jupiter.api.io.TempDir
 
 class ExplicitLocalePluginTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val SOURCE_PATH: String = "src/main/java/fixture/NumericOutput.java"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldRequireProductionNumberFormattingToChooseALocale() {
         val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'locale-fixture'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.java-library' }\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'locale-fixture'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.java-library' }\n")
+        val catalog = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
-        val source = project.resolve("src/main/java/fixture/NumericOutput.java")
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
+        val source = project.resolve(SOURCE_PATH)
         source.parentFile.mkdirs()
         source.writeText(
             """

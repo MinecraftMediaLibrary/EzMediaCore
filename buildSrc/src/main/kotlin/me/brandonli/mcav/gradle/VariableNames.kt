@@ -44,10 +44,16 @@ data class UndescriptiveName(val line: Long, val name: String, val kind: String,
 
 object VariableNames {
 
+    private const val SOURCE_URI: String = "string:///Source.java"
+
+    private const val ANONYMOUS_CLASS: String = "<anonymous>"
+    private const val PACKAGE_SEPARATOR: String = "."
+    private const val MEMBER_SEPARATOR: String = "#"
+
     private val ABBREVIATIONS = setOf("buf", "tmp", "cfg", "idx", "cnt", "val", "res", "sb", "ctx", "mgr", "str", "arr", "len", "num")
 
     fun find(source: String): List<UndescriptiveName> {
-        val file = object : SimpleJavaFileObject(URI.create("string:///Source.java"), JavaFileObject.Kind.SOURCE) {
+        val file = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
         }
         return find(listOf(file)).values.single()
@@ -86,7 +92,7 @@ object VariableNames {
             val name = node.name.toString()
             if (isUndescriptive(name)) {
                 val line = unit.lineMap.getLineNumber(positions.getStartPosition(unit, node))
-                found += UndescriptiveName(line, name, kind(node), "${owner()}#$name")
+                found += UndescriptiveName(line, name, kind(node), "${owner()}$MEMBER_SEPARATOR$name")
             }
             return super.visitVariable(node, unused)
         }
@@ -113,11 +119,11 @@ object VariableNames {
             val types = generateSequence(currentPath) { it.parentPath }
                 .map { it.leaf }
                 .filterIsInstance<ClassTree>()
-                .map { it.simpleName.toString().ifEmpty { "<anonymous>" } }
+                .map { it.simpleName.toString().ifEmpty { ANONYMOUS_CLASS } }
                 .toList()
                 .asReversed()
             val packageName = unit.packageName?.toString()
-            return (listOfNotNull(packageName) + types).joinToString(".")
+            return (listOfNotNull(packageName) + types).joinToString(PACKAGE_SEPARATOR)
         }
     }
 }

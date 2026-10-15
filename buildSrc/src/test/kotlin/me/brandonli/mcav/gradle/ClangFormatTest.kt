@@ -29,6 +29,18 @@ import org.junit.jupiter.api.io.TempDir
 
 class ClangFormatTest {
 
+    private companion object {
+
+        const val CLANG_FORMAT_EXECUTABLE: String = "clang-format"
+        const val VERSION_OUTPUT: String = "clang-format version 18.1.8\n"
+
+        const val VERSION_OPTION: String = "--version"
+        const val STYLE_OPTION: String = "--style=file"
+
+        const val FIRST_SOURCE: String = "a.cpp"
+        const val SECOND_SOURCE: String = "b.cpp"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -39,20 +51,20 @@ class ClangFormatTest {
 
     @Test
     fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources() {
-        val processes = RecordedProcesses("clang-format version 18.1.8\n")
+        val processes = RecordedProcesses(VERSION_OUTPUT)
         format(false, processes)
         val commands: List<List<String>> = processes.commands
         assertEquals(
-            listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "--dry-run", "--Werror", "--style=file") + sources()),
+            listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "--dry-run", "--Werror", STYLE_OPTION) + sources()),
             commands
         )
     }
 
     @Test
     fun shouldRewriteTheSourcesInPlace() {
-        val processes = RecordedProcesses("clang-format version 18.1.8\n")
+        val processes = RecordedProcesses(VERSION_OUTPUT)
         format(true, processes)
-        val expected = listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "-i", "--style=file") + sources())
+        val expected = listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "-i", STYLE_OPTION) + sources())
         val commands: List<List<String>> = processes.commands
         assertEquals(expected, commands)
     }
@@ -68,19 +80,19 @@ class ClangFormatTest {
         )
 
         val commands: List<List<String>> = processes.commands
-        assertEquals(listOf(listOf(clangFormat(), "--version")), commands)
+        assertEquals(listOf(listOf(clangFormat(), VERSION_OPTION)), commands)
     }
 
-    private fun clangFormat(): String = directory.resolve("clang-format").toString()
+    private fun clangFormat(): String = directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
 
-    private fun sources(): List<String> = listOf("a.cpp", "b.cpp").map { directory.resolve(it).toString() }
+    private fun sources(): List<String> = listOf(FIRST_SOURCE, SECOND_SOURCE).map { directory.resolve(it).toString() }
 
     private fun format(rewrite: Boolean, processes: RecordedProcesses) {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val task = project.tasks.register("format", RecordingFormat::class.java).get()
-        val files = listOf("b.cpp", "a.cpp").map { directory.resolve(it).toFile() }
+        val files = listOf(SECOND_SOURCE, FIRST_SOURCE).map { directory.resolve(it).toFile() }
         files.forEach { it.writeText("int main() {}\n") }
-        task.clangFormat.set(directory.resolve("clang-format").toFile())
+        task.clangFormat.set(directory.resolve(CLANG_FORMAT_EXECUTABLE).toFile())
         task.clangFormatVersion.set("18.1.8")
         task.sources.from(files)
         task.rewrite.set(rewrite)

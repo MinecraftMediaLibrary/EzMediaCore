@@ -30,6 +30,12 @@ class NodeLayoutTest {
 
     private companion object {
 
+        const val UNIX_NODE_PATH: String = "bin/node"
+        const val UNIX_COREPACK_PATH: String = "lib/node_modules/corepack/dist/corepack.js"
+        const val WINDOWS_COREPACK_PATH: String = "node_modules/corepack/dist/corepack.js"
+
+        const val WINDOWS_NODE_PATH: String = "node.exe"
+
         val LINUX: HostPlatform = HostPlatform.normalize("Linux", "amd64")
         val WINDOWS: HostPlatform = HostPlatform.normalize("Windows 11", "amd64")
     }
@@ -45,28 +51,28 @@ class NodeLayoutTest {
     @Test
     fun shouldFindTheExecutableInTheBinDirectoryOutsideWindows(): Unit {
         val executable: File = NodeLayout.executable(this.installation, LINUX).asFile
-        val expected: File = this.installation.asFile.resolve("bin/node")
+        val expected: File = this.installation.asFile.resolve(UNIX_NODE_PATH)
         assertEquals(expected, executable)
     }
 
     @Test
     fun shouldFindTheExecutableAtTheTopOnWindows(): Unit {
         val executable: File = NodeLayout.executable(this.installation, WINDOWS).asFile
-        val expected: File = this.installation.asFile.resolve("node.exe")
+        val expected: File = this.installation.asFile.resolve(WINDOWS_NODE_PATH)
         assertEquals(expected, executable)
     }
 
     @Test
     fun shouldFindTheCorepackScriptInTheLibraryDirectoryOutsideWindows(): Unit {
         val script: File = NodeLayout.corepackScript(this.installation, LINUX).asFile
-        val expected: File = this.installation.asFile.resolve("lib/node_modules/corepack/dist/corepack.js")
+        val expected: File = this.installation.asFile.resolve(UNIX_COREPACK_PATH)
         assertEquals(expected, script)
     }
 
     @Test
     fun shouldFindTheCorepackScriptAtTheTopOnWindows(): Unit {
         val script: File = NodeLayout.corepackScript(this.installation, WINDOWS).asFile
-        val expected: File = this.installation.asFile.resolve("node_modules/corepack/dist/corepack.js")
+        val expected: File = this.installation.asFile.resolve(WINDOWS_COREPACK_PATH)
         assertEquals(expected, script)
     }
 }

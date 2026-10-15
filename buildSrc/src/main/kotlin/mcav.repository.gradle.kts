@@ -20,6 +20,54 @@ plugins {
     id("com.diffplug.spotless")
 }
 
+val repositoryFilePatterns: List<String> = listOf(
+    "*.md",
+    "*.yml",
+    "*.yaml",
+    "gradle/wrapper/gradle-wrapper.properties",
+    "gradle/libs.versions.toml",
+    "*.json",
+    "*.properties",
+    "*.gradle.kts",
+    "HEADER",
+    "LICENSE",
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    "gradle/checker-framework/**/*.astub",
+    "buildSrc/**/*.kt",
+    "buildSrc/**/*.kts",
+    "mcav-docs/**/*.md",
+    "mcav-docs/**/*.yml",
+    "mcav-docs/**/*.py",
+    "mcav-docs/**/*.txt",
+    "mcav-docs/*.gradle.kts",
+    "buildSrc/src/main/resources/tool-checksums.properties",
+    "requirements.lock",
+    ".github/**/*.md",
+    ".github/**/*.yml",
+    ".github/**/*.json",
+    "mcav-http/mcav-website/src/**/*.ts",
+    "mcav-http/mcav-website/src/**/*.tsx",
+    "mcav-http/mcav-website/src/**/*.css",
+    "mcav-http/mcav-website/*.json",
+    "mcav-http/mcav-website/*.mjs",
+    "mcav-http/mcav-website/*.ts"
+)
+val excludedRepositoryPatterns: List<String> = listOf("**/build/**", "**/node_modules/**", "**/out/**")
+val libraryModules: List<String> = listOf(
+    "mcav-browser",
+    "mcav-bukkit",
+    "mcav-common",
+    "mcav-discord",
+    "mcav-http",
+    "mcav-installer",
+    "mcav-lwjgl",
+    "mcav-vm",
+    "mcav-vnc",
+    "mcav-voicechat"
+)
+
 repositories {
     mavenCentral()
 }
@@ -28,41 +76,8 @@ spotless {
     format("repository") {
         target(
             fileTree(rootDir) {
-                include(
-                    "*.md",
-                    "*.yml",
-                    "*.yaml",
-                    "gradle/wrapper/gradle-wrapper.properties",
-                    "gradle/libs.versions.toml",
-                    "*.json",
-                    "*.properties",
-                    "*.gradle.kts",
-                    "HEADER",
-                    "LICENSE",
-                    ".editorconfig",
-                    ".gitattributes",
-                    ".gitignore",
-                    "gradle/checker-framework/**/*.astub",
-                    "buildSrc/**/*.kt",
-                    "buildSrc/**/*.kts",
-                    "mcav-docs/**/*.md",
-                    "mcav-docs/**/*.yml",
-                    "mcav-docs/**/*.py",
-                    "mcav-docs/**/*.txt",
-                    "mcav-docs/*.gradle.kts",
-                    "buildSrc/src/main/resources/tool-checksums.properties",
-                    "requirements.lock",
-                    ".github/**/*.md",
-                    ".github/**/*.yml",
-                    ".github/**/*.json",
-                    "mcav-http/mcav-website/src/**/*.ts",
-                    "mcav-http/mcav-website/src/**/*.tsx",
-                    "mcav-http/mcav-website/src/**/*.css",
-                    "mcav-http/mcav-website/*.json",
-                    "mcav-http/mcav-website/*.mjs",
-                    "mcav-http/mcav-website/*.ts"
-                )
-                exclude("**/build/**", "**/node_modules/**", "**/out/**")
+                include(repositoryFilePatterns)
+                exclude(excludedRepositoryPatterns)
             }
         )
         trimTrailingWhitespace()
@@ -74,17 +89,6 @@ tasks.register("publishLibraries") {
     group = "publishing"
     description = "Publishes the library modules to the snapshot repository and to build/e2e-repository"
     dependsOn(
-        listOf(
-            "mcav-browser",
-            "mcav-bukkit",
-            "mcav-common",
-            "mcav-discord",
-            "mcav-http",
-            "mcav-installer",
-            "mcav-lwjgl",
-            "mcav-vm",
-            "mcav-vnc",
-            "mcav-voicechat"
-        ).map { ":$it:publish" }
+        libraryModules.map { ":$it:publish" }
     )
 }

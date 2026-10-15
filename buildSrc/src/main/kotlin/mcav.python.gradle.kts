@@ -26,32 +26,53 @@ import me.brandonli.mcav.gradle.pinnedSha256
 import me.brandonli.mcav.gradle.selectTool
 import me.brandonli.mcav.gradle.versionOf
 
+val uvTool: String = "uv"
+val pythonAlias: String = "python"
+val pythonPackageAliasPrefix: String = "python-"
+val pythonPackages: List<String> =
+    listOf("clang-format", "jupyter-book", "matplotlib", "moderngl", "numpy", "pillow", "pytest", "pytest-xdist", "sphinx-design")
+
+val uvReleasesUrl: String = "https://github.com/astral-sh/uv/releases/download"
+val zipExtension: String = ".zip"
+val gzipTarExtension: String = ".tar.gz"
+val windowsUvExecutable: String = "uv.exe"
+
+val requirementsLockPath: String = "requirements.lock"
+val uvToolsPath: String = "tools/uv"
+val pythonToolsPath: String = "tools/python"
+val uvCachePath: String = "tools/uv/cache"
+
+val licenseHeaderPath: String = "HEADER"
+val javadocLinePrefix: String = " *"
+val lockCommentPrefix: String = "#"
+val lineSeparator: String = "\n"
+
 val uvTarget = HostPlatform.current().uvTarget
-val pinnedUvVersion = libs.versionOf("uv")
-val pinnedPythonVersion = libs.versionOf("python")
-val pinnedPackages = listOf(
-    "clang-format", "jupyter-book", "matplotlib", "moderngl", "numpy", "pillow", "pytest", "pytest-xdist", "sphinx-design"
-).associateWith { libs.versionOf("python-$it") }
+val pinnedUvVersion = libs.versionOf(uvTool)
+val pinnedPythonVersion = libs.versionOf(pythonAlias)
+val pinnedPackages = pythonPackages.associateWith { libs.versionOf("$pythonPackageAliasPrefix$it") }
 val packageMarkers = mapOf(
     "clang-format" to "sys_platform != 'win32' or platform_machine != 'ARM64'",
     "moderngl" to "platform_machine != 'aarch64' and platform_machine != 'ARM64'"
 )
-val uvArchive = "uv-$uvTarget" + if (isWindows) ".zip" else ".tar.gz"
-val uvPath = if (isWindows) "uv.exe" else "uv-$uvTarget/uv"
+val uvArchive = "$uvTool-$uvTarget" + if (isWindows) zipExtension else gzipTarExtension
+val uvPath = if (isWindows) windowsUvExecutable else "$uvTool-$uvTarget/$uvTool"
 val downloadUv = tasks.register<DownloadToolArchive>("downloadUv") {
     group = "build setup"
     description = "Downloads the pinned uv and verifies its SHA-256"
-    archiveUrl = "https://github.com/astral-sh/uv/releases/download/$pinnedUvVersion/$uvArchive"
-    sha256 = pinnedSha256("uv", pinnedUvVersion, uvArchive)
+    archiveUrl = "$uvReleasesUrl/$pinnedUvVersion/$uvArchive"
+    sha256 = pinnedSha256(uvTool, pinnedUvVersion, uvArchive)
     executablePath = uvPath
-    installationDirectory = layout.buildDirectory.dir("tools/uv/$pinnedUvVersion")
+    installationDirectory = layout.buildDirectory.dir("$uvToolsPath/$pinnedUvVersion")
 }
-val selectedUv = selectTool("uv", downloadUv.flatMap { it.installationDirectory.file(uvPath) })
-val requirementsLock = layout.projectDirectory.file("requirements.lock")
-val pythonInstallation = layout.buildDirectory.dir("tools/python/$pinnedPythonVersion")
-val uvCache = layout.buildDirectory.dir("tools/uv/cache")
-val lockHeader = providers.fileContents(layout.settingsDirectory.file("HEADER")).asText.map { header ->
-    header.trimEnd().lines().drop(1).dropLast(1).joinToString("\n", postfix = "\n\n") { "#" + it.removePrefix(" *").trimEnd() }
+val selectedUv = selectTool(uvTool, downloadUv.flatMap { it.installationDirectory.file(uvPath) })
+val requirementsLock = layout.projectDirectory.file(requirementsLockPath)
+val pythonInstallation = layout.buildDirectory.dir("$pythonToolsPath/$pinnedPythonVersion")
+val uvCache = layout.buildDirectory.dir(uvCachePath)
+val lockHeader = providers.fileContents(layout.settingsDirectory.file(licenseHeaderPath)).asText.map { header ->
+    header.trimEnd().lines().drop(1).dropLast(1).joinToString(lineSeparator, postfix = lineSeparator + lineSeparator) {
+        lockCommentPrefix + it.removePrefix(javadocLinePrefix).trimEnd()
+    }
 }
 
 val lockRequirements = tasks.register<LockPythonRequirements>("lockPythonRequirements") {

@@ -27,24 +27,44 @@ import org.junit.jupiter.api.io.TempDir
 
 class ModLicensingTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val NOTICES_FILE: String = "THIRD-PARTY-NOTICES.md"
+
+        const val RESOURCES_META_INF_PATH: String = "src/main/resources/META-INF"
+        const val FABRIC_METADATA_PATH: String = "src/main/resources/fabric.mod.json"
+        const val NEOFORGE_METADATA_PATH: String = "src/main/resources/META-INF/neoforge.mods.toml"
+
+        const val LICENSE_ENTRY: String = "META-INF/LICENSE-MCAV"
+        const val NOTICES_ENTRY: String = "META-INF/THIRD-PARTY-NOTICES.md"
+        const val FABRIC_METADATA_ENTRY: String = "fabric.mod.json"
+        const val NEOFORGE_METADATA_ENTRY: String = "META-INF/neoforge.mods.toml"
+
+        const val SETTINGS_SCRIPT: String = "settings.gradle"
+        const val BUILD_SCRIPT: String = "build.gradle"
+        const val LICENSE_FILE: String = "LICENSE"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate() {
         val project = directory.toFile()
-        project.resolve("settings.gradle").writeText("rootProject.name = 'mcav-mod'\n")
-        project.resolve("build.gradle").writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
-        val catalog = project.resolve("gradle/libs.versions.toml")
+        project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-mod'\n")
+        project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
+        val catalog = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
-        Path.of("..", "gradle", "libs.versions.toml").toFile().copyTo(catalog)
+        Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
         val license = "Fixture license: preserve the whole file.\n"
         val notices = "Fixture third-party notices: preserve the whole file.\n"
-        project.resolve("LICENSE").writeText(license)
-        project.resolve("THIRD-PARTY-NOTICES.md").writeText(notices)
-        project.resolve("src/main/resources/META-INF").mkdirs()
-        project.resolve("src/main/resources/fabric.mod.json").writeText("{}\n")
-        project.resolve("src/main/resources/META-INF/neoforge.mods.toml").writeText("modId = 'fixture'\n")
+        project.resolve(LICENSE_FILE).writeText(license)
+        project.resolve(NOTICES_FILE).writeText(notices)
+        project.resolve(RESOURCES_META_INF_PATH).mkdirs()
+        project.resolve(FABRIC_METADATA_PATH).writeText("{}\n")
+        project.resolve(NEOFORGE_METADATA_PATH).writeText("modId = 'fixture'\n")
         GradleRunner.create()
             .withProjectDir(project)
             .withPluginClasspath()
@@ -62,10 +82,10 @@ class ModLicensingTest {
     private fun describeArchive(classifier: String): List<Any?> =
         ZipFile(directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
             listOf(
-                readEntry(archive, "META-INF/LICENSE-MCAV"),
-                readEntry(archive, "META-INF/THIRD-PARTY-NOTICES.md"),
-                archive.getEntry("fabric.mod.json") != null,
-                archive.getEntry("META-INF/neoforge.mods.toml") != null
+                readEntry(archive, LICENSE_ENTRY),
+                readEntry(archive, NOTICES_ENTRY),
+                archive.getEntry(FABRIC_METADATA_ENTRY) != null,
+                archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
             )
         }
 

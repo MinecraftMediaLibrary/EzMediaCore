@@ -24,6 +24,8 @@ plugins {
     id("mcav.mutation")
 }
 
+val testNodeProperty: String = "mcav.testNode"
+
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
 val host = HostPlatform.current()
@@ -31,7 +33,7 @@ val testNode = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile
 
 tasks.withType<Test>().configureEach {
     dependsOn(nodeSetup)
-    jvmArgs("-Dmcav.testNode=${testNode.get().absolutePath}")
+    jvmArgs("-D$testNodeProperty=${testNode.get().absolutePath}")
 }
 
 tasks.named("pitest") {

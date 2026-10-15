@@ -27,12 +27,17 @@ import org.junit.jupiter.api.io.TempDir
 
 class ToolDigestsTest {
 
+    private companion object {
+
+        const val CONTENTS_FILE: String = "contents"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldStreamEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest() {
-        val file = directory.resolve("contents").toFile()
+        val file = directory.resolve(CONTENTS_FILE).toFile()
         file.writeBytes(byteArrayOf())
         val emptyDigest: String = ToolDigests.sha256(file)
         assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", emptyDigest)

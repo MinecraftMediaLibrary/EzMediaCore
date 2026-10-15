@@ -27,41 +27,83 @@ plugins {
     java
 }
 
+val junitBomAlias: String = "junit-bom"
+val testingBundleAlias: String = "testing"
+val junitLauncherAlias: String = "junit-platform-launcher"
+
+val networkTestsProperty: String = "mcav.networkTests"
+val syncMeasurementProperty: String = "mcav.syncMeasurement"
+val testJavaHomeProperty: String = "mcav.testJavaHome"
+val propertyTriesProperty: String = "property.tries"
+val propertySmokeTriesProperty: String = "property.smokeTries"
+val fuzzSecondsProperty: String = "fuzz.seconds"
+val disabledValue: String = "false"
+val defaultPropertyTries: String = "200"
+val defaultPropertySmokeTries: String = "10"
+
+val quietMachineService: String = "quietMachine"
+val testHeapSize: String = "2g"
+val fuzzHeapSize: String = "1g"
+val processorsPerFork: Int = 2
+
+val jqwikEngine: String = "jqwik"
+val jqwikDatabaseProperty: String = "jqwik.database"
+val jqwikDatabasePath: String = "build/jqwik-database"
+val jqwikFailuresProperty: String = "jqwik.failures.after.default"
+val previousSeed: String = "PREVIOUS_SEED"
+val jqwikTriesProperty: String = "jqwik.tries.default"
+val noDatabase: String = ""
+
+val fuzzTag: String = "fuzz"
+val fuzzTestName: String = "fuzzTest"
+val fuzzInputsPath: String = "src/test/resources"
+val fuzzTestClasses: String = "**/*FuzzTest.class"
+val jazzerPath: String = "jazzer"
+val jazzerBaseDirectoryProperty: String = "jazzer.internal.basedir"
+val jazzerBaseDirectoryPath: String = "build/jazzer"
+val testTemplateTimeoutProperty: String = "junit.jupiter.execution.timeout.testtemplate.method.default"
+val replayTimeout: String = "30s"
+val jazzerFuzzVariable: String = "JAZZER_FUZZ"
+val enabledValue: String = "1"
+val jazzerDurationProperty: String = "jazzer.max_duration"
+val timeoutModeProperty: String = "junit.jupiter.execution.timeout.mode"
+val disabledTimeoutMode: String = "disabled"
+
 dependencies {
-    testImplementation(platform(libs.libraryOf("junit-bom")))
-    testImplementation(libs.bundleOf("testing"))
-    testRuntimeOnly(libs.libraryOf("junit-platform-launcher"))
+    testImplementation(platform(libs.libraryOf(junitBomAlias)))
+    testImplementation(libs.bundleOf(testingBundleAlias))
+    testRuntimeOnly(libs.libraryOf(junitLauncherAlias))
 }
 
-val networkTests = providers.gradleProperty("mcav.networkTests").getOrElse("false")
-val syncMeasurement = providers.gradleProperty("mcav.syncMeasurement").getOrElse("false")
+val networkTests = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
+val syncMeasurement = providers.gradleProperty(syncMeasurementProperty).getOrElse(disabledValue)
 val measuresSync = syncMeasurement.toBoolean()
-val testJavaHome = providers.gradleProperty("mcav.testJavaHome")
-val propertyTries = providers.gradleProperty("property.tries").getOrElse("200")
-val propertySmokeTries = providers.gradleProperty("property.smokeTries").getOrElse("10")
-val fuzzSeconds = providers.gradleProperty("fuzz.seconds").map { it.toInt() }.getOrElse(0)
+val testJavaHome = providers.gradleProperty(testJavaHomeProperty)
+val propertyTries = providers.gradleProperty(propertyTriesProperty).getOrElse(defaultPropertyTries)
+val propertySmokeTries = providers.gradleProperty(propertySmokeTriesProperty).getOrElse(defaultPropertySmokeTries)
+val fuzzSeconds = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
 val testSourceSet = sourceSets.test.get()
-val quietMachine = gradle.sharedServices.registerIfAbsent("quietMachine", ExclusiveResource::class) {
+val quietMachine = gradle.sharedServices.registerIfAbsent(quietMachineService, ExclusiveResource::class) {
     maxParallelUsages = 1
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     failOnNoDiscoveredTests = false
-    maxHeapSize = "2g"
+    maxHeapSize = testHeapSize
     jvmArgs(
         "--enable-native-access=ALL-UNNAMED",
         "-XX:+EnableDynamicAgentLoading",
         "-Xshare:off",
         "--sun-misc-unsafe-memory-access=allow"
     )
-    systemProperty("mcav.networkTests", networkTests)
-    systemProperty("mcav.syncMeasurement", syncMeasurement)
+    systemProperty(networkTestsProperty, networkTests)
+    systemProperty(syncMeasurementProperty, syncMeasurement)
     if (testJavaHome.isPresent) {
         executable = javaExecutable(testJavaHome.get())
     }
-    systemProperty("jqwik.database", "build/jqwik-database-$name")
-    systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
+    systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
+    systemProperty(jqwikFailuresProperty, previousSeed)
     if (measuresSync) {
         usesService(quietMachine)
     }
@@ -69,11 +111,11 @@ tasks.withType<Test>().configureEach {
 
 tasks.test {
     useJUnitPlatform {
-        excludeTags("fuzz")
+        excludeTags(fuzzTag)
     }
-    systemProperty("jqwik.tries.default", propertySmokeTries)
-    maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / 2).coerceAtLeast(1)
-    systemProperty("jqwik.database", "")
+    systemProperty(jqwikTriesProperty, propertySmokeTries)
+    maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / processorsPerFork).coerceAtLeast(1)
+    systemProperty(jqwikDatabaseProperty, noDatabase)
 }
 
 val propertyTest = tasks.register<Test>("propertyTest") {
@@ -82,30 +124,30 @@ val propertyTest = tasks.register<Test>("propertyTest") {
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
-        includeEngines("jqwik")
+        includeEngines(jqwikEngine)
     }
-    systemProperty("jqwik.tries.default", propertyTries)
+    systemProperty(jqwikTriesProperty, propertyTries)
 }
 
-val fuzzInputs = layout.projectDirectory.dir("src/test/resources")
+val fuzzInputs = layout.projectDirectory.dir(fuzzInputsPath)
 val fuzzing = fuzzSeconds > 0
 val fuzzTargets = if (fuzzing) FuzzTargets.find(testSourceSet.java.srcDirs) else emptyList()
-val fuzzTaskNames = fuzzTargets.map { it.taskName() }.toSet() + "fuzzTest"
+val fuzzTaskNames = fuzzTargets.map { it.taskName() }.toSet() + fuzzTestName
 
 tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
-        includeTags("fuzz")
+        includeTags(fuzzTag)
     }
-    include("**/*FuzzTest.class")
+    include(fuzzTestClasses)
     inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir(layout.buildDirectory.dir("jazzer/$name")).withPropertyName("jazzerDirectory")
-    systemProperty("jazzer.internal.basedir", "build/jazzer/$name")
-    systemProperty("junit.jupiter.execution.timeout.testtemplate.method.default", "30s")
-    maxHeapSize = "1g"
+    outputs.dir(layout.buildDirectory.dir("$jazzerPath/$name")).withPropertyName("jazzerDirectory")
+    systemProperty(jazzerBaseDirectoryProperty, "$jazzerBaseDirectoryPath/$name")
+    systemProperty(testTemplateTimeoutProperty, replayTimeout)
+    maxHeapSize = fuzzHeapSize
 }
 
 val fuzzTasks = fuzzTargets.map { target ->
@@ -113,9 +155,9 @@ val fuzzTasks = fuzzTargets.map { target ->
         group = "verification"
         description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
         filter.includeTestsMatching(target.filterPattern())
-        environment("JAZZER_FUZZ", "1")
-        systemProperty("jazzer.max_duration", "${fuzzSeconds}s")
-        systemProperty("junit.jupiter.execution.timeout.mode", "disabled")
+        environment(jazzerFuzzVariable, enabledValue)
+        systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
+        systemProperty(timeoutModeProperty, disabledTimeoutMode)
         outputs.upToDateWhen { false }
         testLogging {
             events("started", "failed", "skipped")
@@ -123,7 +165,7 @@ val fuzzTasks = fuzzTargets.map { target ->
     }
 }
 
-val fuzzTest = tasks.register<Test>("fuzzTest") {
+val fuzzTest = tasks.register<Test>(fuzzTestName) {
     group = "verification"
     description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
     dependsOn(fuzzTasks)

@@ -47,6 +47,49 @@ import org.gradle.workers.WorkerExecutor
 @CacheableTask
 abstract class BuildMcv2Natives : DefaultTask() {
 
+    private companion object {
+
+        const val ZIG_TOOL: String = "zig"
+        const val ZIG_VERSION_ARGUMENT: String = "version"
+
+        const val NATIVES_PATH: String = "mcav/mcv2/natives"
+        const val CHECKSUMS_MANIFEST: String = "SHA256SUMS"
+        const val SOURCES_MANIFEST: String = "SOURCES"
+        const val CLANG_FORMAT_FILE: String = ".clang-format"
+
+        const val LEVEL_PREFIX: String = "level_"
+        const val SOURCE_SUFFIX: String = ".cpp"
+        const val OBJECT_SUFFIX: String = ".o"
+        const val IMPORT_LIBRARY_EXTENSION: String = "lib"
+
+        const val LINUX: String = "linux"
+        const val WINDOWS: String = "windows"
+        const val MACOS: String = "macos"
+
+        const val X86_64: String = "x86_64"
+        const val AARCH64: String = "aarch64"
+
+        const val LINUX_TARGET_SUFFIX: String = "-linux-gnu.2.28"
+        const val WINDOWS_TARGET_SUFFIX: String = "-windows-gnu"
+        const val MACOS_TARGET_SUFFIX: String = "-macos.11.0"
+
+        const val LINUX_LIBRARY: String = "libmcv2kernels.so"
+        const val WINDOWS_LIBRARY: String = "mcv2kernels.dll"
+        const val MACOS_LIBRARY: String = "libmcv2kernels.dylib"
+
+        const val TARGET_OPTION: String = "-target"
+        const val OUTPUT_OPTION: String = "-o"
+
+        const val SOURCE_DATE_VARIABLE: String = "SOURCE_DATE_EPOCH"
+        const val REPRODUCIBLE_SOURCE_DATE: String = "0"
+        const val ZIG_CACHE_VARIABLE: String = "ZIG_GLOBAL_CACHE_DIR"
+
+        const val MANIFEST_SEPARATOR: String = "  "
+        const val LINE_SEPARATOR: String = "\n"
+
+        val SVE_VECTOR_BITS: List<Int> = listOf(256, 512)
+    }
+
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sourcesDirectory: DirectoryProperty
@@ -84,7 +127,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
     @TaskAction
     fun build() {
-        ToolVersions.verify(processes, zigExecutable.get().asFile, "zig", zigVersion.get(), prefix = "", argument = "version")
+        ToolVersions.verify(processes, zigExecutable.get().asFile, ZIG_TOOL, zigVersion.get(), prefix = "", argument = ZIG_VERSION_ARGUMENT)
         val task = this
         workers.noIsolation().submit(Work::class.java) {
             zigExecutable.set(task.zigExecutable)
@@ -115,7 +158,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
         override fun execute() {
             val output = parameters.outputDirectory.get().asFile
             output.deleteRecursively()
-            val natives = output.resolve("mcav/mcv2/natives")
+            val natives = output.resolve(NATIVES_PATH)
             val objectsDirectory = parameters.objectsDirectory.get().asFile
             val libraries = mutableListOf<File>()
             val compiles = mutableListOf<() -> Unit>()
@@ -123,65 +166,65 @@ abstract class BuildMcv2Natives : DefaultTask() {
             val boundary = listOf("-mbranches-within-32B-boundaries")
             val avx512 = listOf("-mavx512f", "-mavx512dq", "-mavx512bw", "-mavx512vl",
                 "-mavx512vbmi", "-mavx512vbmi2", "-mavx512vnni", "-mavx512bitalg")
-            for (system in listOf("linux", "windows", "macos")) {
-                for (architecture in listOf("x86_64", "aarch64")) {
+            for (system in listOf(LINUX, WINDOWS, MACOS)) {
+                for (architecture in listOf(X86_64, AARCH64)) {
                     val platform = "$system-$architecture"
                     val target = architecture + when (system) {
-                        "linux" -> "-linux-gnu.2.28"
-                        "windows" -> "-windows-gnu"
-                        else -> "-macos.11.0"
+                        LINUX -> LINUX_TARGET_SUFFIX
+                        WINDOWS -> WINDOWS_TARGET_SUFFIX
+                        else -> MACOS_TARGET_SUFFIX
                     }
                     val units = linkedMapOf("scalar" to emptyList<String>())
-                    if (architecture == "x86_64") {
+                    if (architecture == X86_64) {
                         units["sse2"] = emptyList()
                         units["sse41"] = listOf("-msse4.1")
                         units["avx2"] = listOf("-mavx2")
-                        if (system != "macos") {
+                        if (system != MACOS) {
                             units["avx512"] = avx512
                             units.replaceAll { _, flags -> flags + boundary }
                         }
                     } else {
                         units["neon"] = emptyList()
-                        if (system == "linux") {
-                            for (width in listOf(256, 512)) {
+                        if (system == LINUX) {
+                            for (width in SVE_VECTOR_BITS) {
                                 units["sve$width"] = listOf("-mcpu=baseline+sve", "-msve-vector-bits=$width")
                             }
                         }
                     }
                     val objects = units.map { (level, flags) ->
-                        val objectFile = objectsDirectory.resolve("$platform/level_$level.o")
+                        val objectFile = objectsDirectory.resolve(platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
                         objectFile.parentFile.mkdirs()
                         compiles += {
-                            runZig(listOf("c++", "-target", target, "-mcpu=baseline") + parameters.compilerFlags.get() + flags +
-                                listOf("-c", "level_$level.cpp", "-o", objectFile.absolutePath))
+                            runZig(listOf("c++", TARGET_OPTION, target, "-mcpu=baseline") + parameters.compilerFlags.get() + flags +
+                                listOf("-c", "$LEVEL_PREFIX$level$SOURCE_SUFFIX", OUTPUT_OPTION, objectFile.absolutePath))
                         }
                         objectFile.absolutePath
                     }
                     val name = when (system) {
-                        "windows" -> "mcv2kernels.dll"
-                        "macos" -> "libmcv2kernels.dylib"
-                        else -> "libmcv2kernels.so"
+                        WINDOWS -> WINDOWS_LIBRARY
+                        MACOS -> MACOS_LIBRARY
+                        else -> LINUX_LIBRARY
                     }
-                    val library = natives.resolve("$platform/$name")
+                    val library = natives.resolve(platform).resolve(name)
                     library.parentFile.mkdirs()
                     val linkFlags = when (system) {
-                        "linux" -> listOf("-Wl,-z,noexecstack")
-                        "macos" -> listOf("-Wl,-install_name,@rpath/libmcv2kernels.dylib")
+                        LINUX -> listOf("-Wl,-z,noexecstack")
+                        MACOS -> listOf("-Wl,-install_name,@rpath/$MACOS_LIBRARY")
                         else -> emptyList()
                     }
                     links += {
-                        runZig(listOf("cc", "-target", target, "-shared", "-s") + linkFlags +
-                            listOf("-o", library.absolutePath) + objects)
-                        library.parentFile.listFiles()!!.filter { it.extension == "lib" }.forEach { it.delete() }
+                        runZig(listOf("cc", TARGET_OPTION, target, "-shared", "-s") + linkFlags +
+                            listOf(OUTPUT_OPTION, library.absolutePath) + objects)
+                        library.parentFile.listFiles()!!.filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
                     }
                     libraries.add(library)
                 }
             }
             inParallel(compiles)
             inParallel(links)
-            writeManifest(natives.resolve("SHA256SUMS"), natives, libraries)
+            writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
             val sources = parameters.sourcesDirectory.get().asFile
-            writeManifest(natives.resolve("SOURCES"), sources, sources.listFiles()!!.filter { it.name != ".clang-format" })
+            writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sources.listFiles()!!.filter { it.name != CLANG_FORMAT_FILE })
         }
 
         private fun inParallel(steps: List<() -> Unit>) {
@@ -204,15 +247,15 @@ abstract class BuildMcv2Natives : DefaultTask() {
             processes.exec {
                 workingDir(parameters.sourcesDirectory.get().asFile)
                 commandLine(listOf(parameters.zigExecutable.get().asFile.absolutePath) + arguments)
-                environment("SOURCE_DATE_EPOCH", "0")
-                environment("ZIG_GLOBAL_CACHE_DIR", parameters.cacheDirectory.get().asFile.absolutePath)
+                environment(SOURCE_DATE_VARIABLE, REPRODUCIBLE_SOURCE_DATE)
+                environment(ZIG_CACHE_VARIABLE, parameters.cacheDirectory.get().asFile.absolutePath)
             }
         }
 
         private fun writeManifest(manifest: File, root: File, files: List<File>) {
             manifest.writeText(files.sortedBy { it.relativeTo(root).invariantSeparatorsPath }.joinToString("", transform = { file ->
                 val digest = ToolDigests.sha256(file)
-                "$digest  ${file.relativeTo(root).invariantSeparatorsPath}\n"
+                "$digest$MANIFEST_SEPARATOR${file.relativeTo(root).invariantSeparatorsPath}$LINE_SEPARATOR"
             }))
         }
     }

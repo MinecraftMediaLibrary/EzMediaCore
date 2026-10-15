@@ -25,6 +25,16 @@ plugins {
     jacoco
 }
 
+val coverageReportPath: String = "reports/jacoco/test/jacocoTestReport.xml"
+val mainSourcePath: String = "src/main/java"
+val coverageExceptionsPath: String = "coverage-exceptions.txt"
+
+val coverageProperty: String = "mcav.coverage"
+val disabledValue: String = "false"
+
+val propertyTestName: String = "propertyTest"
+val fuzzTaskPrefix: String = "fuzz"
+
 jacoco {
     toolVersion = CatalogVersions.JACOCO
 }
@@ -52,9 +62,9 @@ val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     group = "verification"
     description = "Runs the tests and reports every line and branch of production code that no test covers"
     dependsOn(testTask, jacocoReport)
-    report.from(layout.buildDirectory.file("reports/jacoco/test/jacocoTestReport.xml"))
-    sourceDirectory = layout.projectDirectory.dir("src/main/java")
-    exceptionsFile.from(layout.projectDirectory.file("coverage-exceptions.txt"))
+    report.from(layout.buildDirectory.file(coverageReportPath))
+    sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
+    exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
     testsFiltered = testTask.map {
         val filter = it.filter as DefaultTestFilter
         filter.commandLineIncludePatterns.isNotEmpty() || filter.includePatterns.isNotEmpty() ||
@@ -63,13 +73,13 @@ val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     projectPath = project.path
 }
 
-tasks.withType<Test>().named { it == "propertyTest" || it.startsWith("fuzz") }.configureEach {
+tasks.withType<Test>().named { it == propertyTestName || it.startsWith(fuzzTaskPrefix) }.configureEach {
     extensions.configure<JacocoTaskExtension> {
         isEnabled = false
     }
 }
 
-val coverageGate = providers.gradleProperty("mcav.coverage").map { !it.equals("false", ignoreCase = true) }.getOrElse(true)
+val coverageGate = providers.gradleProperty(coverageProperty).map { !it.equals(disabledValue, ignoreCase = true) }.getOrElse(true)
 if (coverageGate) {
     tasks.check {
         dependsOn(coverageLint)

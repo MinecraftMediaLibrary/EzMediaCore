@@ -28,6 +28,14 @@ import org.junit.jupiter.api.io.TempDir
 
 class PythonTaskTest {
 
+    private companion object {
+
+        const val LOCK_FILE: String = "requirements.lock"
+        const val VIRTUAL_ENVIRONMENT_PATH: String = "python/venv"
+
+        const val PYTHON_DIRECTORY: String = "python"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -35,16 +43,16 @@ class PythonTaskTest {
     fun shouldRunATaskThatUsesTheEnvironmentAfterItOnItsLockPythonAndHost() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val environment = project.tasks.register("installPythonEnvironment", PythonEnvironment::class.java)
-        environment.get().requirements.set(directory.resolve("requirements.lock").toFile())
+        environment.get().requirements.set(directory.resolve(LOCK_FILE).toFile())
         environment.get().pythonVersion.set("3.13.16")
-        environment.get().installationDirectory.set(directory.resolve("python").toFile())
+        environment.get().installationDirectory.set(directory.resolve(PYTHON_DIRECTORY).toFile())
         val book = project.tasks.register("book", JupyterBook::class.java).get()
         book.useEnvironment(environment)
         val dependencies: Set<Task> = book.taskDependencies.getDependencies(book)
         assertEquals(setOf(environment.get()), dependencies)
 
         val requirements: File = book.requirements.get().asFile
-        assertEquals(directory.resolve("requirements.lock").toFile(), requirements)
+        assertEquals(directory.resolve(LOCK_FILE).toFile(), requirements)
 
         val pythonVersion: String = book.pythonVersion.get()
         assertEquals("3.13.16", pythonVersion)
@@ -53,6 +61,6 @@ class PythonTaskTest {
         assertEquals(HostPlatform.current().uvTarget, platform)
 
         val pythonExecutable: File = book.pythonExecutable.get().asFile
-        assertEquals(directory.resolve("python/venv").resolve(virtualEnvironmentExecutable("python")).toFile(), pythonExecutable)
+        assertEquals(directory.resolve(VIRTUAL_ENVIRONMENT_PATH).resolve(virtualEnvironmentExecutable("python")).toFile(), pythonExecutable)
     }
 }

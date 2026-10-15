@@ -37,6 +37,22 @@ import org.mockito.Mockito.mockingDetails
 
 class JupyterBookTest {
 
+    private companion object {
+
+        const val BOOK_CONFIG_FILE: String = "_config.yml"
+        const val SPHINX_CONFIG_FILE: String = "conf.py"
+
+        const val HTML_OUTPUT_PATH: String = "site/_build/html"
+        const val INDEX_FILE: String = "index.html"
+        const val EPUB_OUTPUT_PATH: String = "site/_build/epub"
+        const val EPUB_FILE: String = "book.epub"
+
+        const val SOURCE_DIRECTORY: String = "source"
+        const val MANAGED_PYTHON_DIRECTORY: String = "managed-python"
+        const val HTML_DIRECTORY: String = "html"
+        const val BOOK_DIRECTORY: String = "book"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -48,14 +64,14 @@ class JupyterBookTest {
     @Test
     fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register("book", RecordingBook::class.java).get()
-        val source = directory.resolve("source").toFile()
+        val task = project.tasks.register(BOOK_DIRECTORY, RecordingBook::class.java).get()
+        val source = directory.resolve(SOURCE_DIRECTORY).toFile()
         source.mkdirs()
-        source.resolve("_config.yml").writeText("title: Fixture book\n")
-        source.resolve("conf.py").writeText("html_title = 'Stale title'\n")
+        source.resolve(BOOK_CONFIG_FILE).writeText("title: Fixture book\n")
+        source.resolve(SPHINX_CONFIG_FILE).writeText("html_title = 'Stale title'\n")
         task.sources.from(project.fileTree(source))
-        task.pythonExecutable.set(directory.resolve("managed-python").toFile())
-        task.outputDirectory.set(directory.resolve("html").toFile())
+        task.pythonExecutable.set(directory.resolve(MANAGED_PYTHON_DIRECTORY).toFile())
+        task.outputDirectory.set(directory.resolve(HTML_DIRECTORY).toFile())
         val commands = mutableListOf<List<String>>()
         val processes = mock(ExecOperations::class.java)
         val expectedConfiguration = "html_title = 'Fixture book'\n"
@@ -68,38 +84,38 @@ class JupyterBookTest {
             val staging = calls.single { it.method.name == "workingDir" }.rawArguments[0] as File
             val arguments = command.drop(3)
             commands += arguments
-            val book = staging.resolve("book")
-            val stagedConfiguration: String = book.resolve("_config.yml").readText()
+            val book = staging.resolve(BOOK_DIRECTORY)
+            val stagedConfiguration: String = book.resolve(BOOK_CONFIG_FILE).readText()
             assertEquals("title: Fixture book\n", stagedConfiguration)
             if (arguments.first() == "config") {
-                book.resolve("conf.py").writeText(expectedConfiguration)
+                book.resolve(SPHINX_CONFIG_FILE).writeText(expectedConfiguration)
             } else {
-                val generatedConfiguration: String = book.resolve("conf.py").readText()
+                val generatedConfiguration: String = book.resolve(SPHINX_CONFIG_FILE).readText()
                 assertEquals(expectedConfiguration, generatedConfiguration)
-                val html = staging.resolve("site/_build/html")
+                val html = staging.resolve(HTML_OUTPUT_PATH)
                 html.mkdirs()
-                html.resolve("index.html").writeText(expectedHtml)
-                val epub = staging.resolve("site/_build/epub")
+                html.resolve(INDEX_FILE).writeText(expectedHtml)
+                val epub = staging.resolve(EPUB_OUTPUT_PATH)
                 epub.mkdirs()
-                epub.resolve("book.epub").writeText("not an HTML output")
+                epub.resolve(EPUB_FILE).writeText("not an HTML output")
             }
             mock(ExecResult::class.java)
         }.`when`(processes).exec(any())
         task.recordedProcesses = processes
         task.build()
         assertEquals(listOf(
-            listOf("config", "sphinx", "book"),
-            listOf("build", "book", "--path-output", "site", "--warningiserror", "--keep-going", "--all")
+            listOf("config", "sphinx", BOOK_DIRECTORY),
+            listOf("build", BOOK_DIRECTORY, "--path-output", "site", "--warningiserror", "--keep-going", "--all")
         ), commands)
 
         val output: File = task.outputDirectory.get().asFile
-        val html: String = output.resolve("index.html").readText()
+        val html: String = output.resolve(INDEX_FILE).readText()
         assertEquals(expectedHtml, html)
 
-        val configurationLeft: Boolean = output.resolve("conf.py").exists()
+        val configurationLeft: Boolean = output.resolve(SPHINX_CONFIG_FILE).exists()
         assertFalse(configurationLeft)
 
-        val epubLeft: Boolean = output.resolve("book.epub").exists()
+        val epubLeft: Boolean = output.resolve(EPUB_FILE).exists()
         assertFalse(epubLeft)
     }
 }

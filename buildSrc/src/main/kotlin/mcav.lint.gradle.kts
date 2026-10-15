@@ -24,27 +24,34 @@ plugins {
     base
 }
 
-val javaSources = layout.projectDirectory.dir("src").asFileTree.matching { include("*/java/**/*.java") }
+val sourcePath: String = "src"
+val javaSourcePattern: String = "*/java/**/*.java"
+
+val qualifiedNamesReportPath: String = "reports/qualified-names.txt"
+val logMessagesReportPath: String = "reports/log-messages.txt"
+val variableNamesReportPath: String = "reports/variable-names.txt"
+
+val javaSources = layout.projectDirectory.dir(sourcePath).asFileTree.matching { include(javaSourcePattern) }
 
 val qualifiedNames = tasks.register<QualifiedNamesTask>("qualifiedNames") {
     group = "verification"
     description = "Fails on fully qualified type names in the Java code of every source set of this module"
     sources.from(javaSources)
-    report = layout.buildDirectory.file("reports/qualified-names.txt")
+    report = layout.buildDirectory.file(qualifiedNamesReportPath)
 }
 
 val logMessages = tasks.register<LogMessagesTask>("logMessages") {
     group = "verification"
     description = "Fails on log calls that join strings with + in the Java code of every source set of this module"
     sources.from(javaSources)
-    report = layout.buildDirectory.file("reports/log-messages.txt")
+    report = layout.buildDirectory.file(logMessagesReportPath)
 }
 
 val variableNames = tasks.register<VariableNamesTask>("variableNames") {
     group = "verification"
     description = "Fails on one-letter and abbreviated variable names in the Java code of every source set of this module"
     sources.from(javaSources)
-    report = layout.buildDirectory.file("reports/variable-names.txt")
+    report = layout.buildDirectory.file(variableNamesReportPath)
 }
 
 tasks.check {

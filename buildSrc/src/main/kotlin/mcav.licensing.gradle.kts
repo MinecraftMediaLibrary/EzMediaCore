@@ -20,12 +20,17 @@ plugins {
     java
 }
 
+val licenseFile: String = "LICENSE"
+val noticesFile: String = "THIRD-PARTY-NOTICES.md"
+val metadataDirectory: String = "META-INF"
+val bundledLicenseFile: String = "LICENSE-MCAV"
+
 tasks.withType<Jar>().configureEach {
-    from(rootProject.file("LICENSE")) {
-        into("META-INF")
-        rename { "LICENSE-MCAV" }
+    from(rootProject.file(licenseFile)) {
+        into(metadataDirectory)
+        rename { bundledLicenseFile }
     }
-    from(rootProject.file("THIRD-PARTY-NOTICES.md")) {
-        into("META-INF")
+    from(rootProject.file(noticesFile)) {
+        into(metadataDirectory)
     }
 }

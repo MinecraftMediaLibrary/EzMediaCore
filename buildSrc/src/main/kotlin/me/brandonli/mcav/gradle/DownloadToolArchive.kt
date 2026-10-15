@@ -39,6 +39,21 @@ abstract class DownloadToolArchive : DefaultTask() {
     private companion object {
         const val DOWNLOADING = "Downloading tool archive {}."
         const val VERIFIED = "Verified SHA-256 {} of {}."
+
+        const val CONNECT_TIMEOUT_MILLISECONDS: Int = 30_000
+        const val READ_TIMEOUT_MILLISECONDS: Int = 120_000
+
+        const val PATH_SEPARATOR: Char = '/'
+
+        const val ZIP_EXTENSION: String = ".zip"
+        const val GZIP_TAR_EXTENSION: String = ".tar.gz"
+        const val XZ_TAR_EXTENSION: String = ".tar.xz"
+
+        const val UNPACKED_TAR: String = "archive.tar"
+
+        const val EXECUTABLE_PERMISSIONS: String = "rwxr-xr-x"
+
+        val SHA256_DIGEST: Regex = Regex("[0-9a-f]{64}")
     }
 
     @get:Input
@@ -63,16 +78,16 @@ abstract class DownloadToolArchive : DefaultTask() {
     fun install() {
         val address = archiveUrl.get()
         val expected = sha256.get()
-        if (!expected.matches(Regex("[0-9a-f]{64}"))) {
+        if (!expected.matches(SHA256_DIGEST)) {
             val message = "Pinned SHA-256 of $address must be 64 lowercase hexadecimal digits!"
             throw GradleException(message)
         }
-        val archive = temporaryDir.resolve(URI(address).path.substringAfterLast('/'))
+        val archive = temporaryDir.resolve(URI(address).path.substringAfterLast(PATH_SEPARATOR))
         logger.lifecycle(DOWNLOADING, address)
         try {
             val connection = URI(address).toURL().openConnection()
-            connection.connectTimeout = 30_000
-            connection.readTimeout = 120_000
+            connection.connectTimeout = CONNECT_TIMEOUT_MILLISECONDS
+            connection.readTimeout = READ_TIMEOUT_MILLISECONDS
             connection.getInputStream().use { input -> archive.outputStream().use { output -> input.copyTo(output) } }
         } catch (exception: IOException) {
             val message = "Tool archive $address could not be downloaded!"
@@ -87,10 +102,10 @@ abstract class DownloadToolArchive : DefaultTask() {
         logger.lifecycle(VERIFIED, expected, address)
         val formatMessage = "Tool archive $address must be a .zip, .tar.gz or .tar.xz file!"
         val contents = when {
-            archive.name.endsWith(".zip") -> archives.zipTree(archive)
-            archive.name.endsWith(".tar.gz") -> archives.tarTree(archive)
-            archive.name.endsWith(".tar.xz") -> {
-                val unpacked = temporaryDir.resolve("archive.tar")
+            archive.name.endsWith(ZIP_EXTENSION) -> archives.zipTree(archive)
+            archive.name.endsWith(GZIP_TAR_EXTENSION) -> archives.tarTree(archive)
+            archive.name.endsWith(XZ_TAR_EXTENSION) -> {
+                val unpacked = temporaryDir.resolve(UNPACKED_TAR)
                 XZInputStream(archive.inputStream()).use { input -> unpacked.outputStream().use { output -> input.copyTo(output) } }
                 archives.tarTree(unpacked)
             }
@@ -100,7 +115,7 @@ abstract class DownloadToolArchive : DefaultTask() {
             from(contents)
             into(installationDirectory)
             filesMatching(executablePath.get()) {
-                permissions { unix("rwxr-xr-x") }
+                permissions { unix(EXECUTABLE_PERMISSIONS) }
             }
         }
         if (!installationDirectory.file(executablePath).get().asFile.isFile) {

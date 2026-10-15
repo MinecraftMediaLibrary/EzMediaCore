@@ -20,8 +20,12 @@ package me.brandonli.mcav.gradle
 
 object RequirementsLock {
 
+    const val PIN_SEPARATOR: String = "=="
+
+    private const val PIN_END: Char = ' '
+
     fun missingPins(lock: String, versions: Map<String, String>): List<String> {
-        val locked = lock.lines().map { line -> line.substringBefore(' ') }.toSet()
-        return versions.map { (name, version) -> "$name==$version" }.filterNot { pin -> pin in locked }
+        val locked = lock.lines().map { line -> line.substringBefore(PIN_END) }.toSet()
+        return versions.map { (name, version) -> "$name$PIN_SEPARATOR$version" }.filterNot { pin -> pin in locked }
     }
 }

@@ -22,6 +22,18 @@ object JavaSource {
 
     private const val TEXT_BLOCK_QUOTES = "\"\"\""
 
+    private const val LINE_COMMENT_START: String = "//"
+    private const val BLOCK_COMMENT_START: String = "/*"
+    private const val BLOCK_COMMENT_END: String = "*/"
+
+    private const val STRING_QUOTE: Char = '"'
+    private const val CHARACTER_QUOTE: Char = '\''
+    private const val ESCAPE: Char = '\\'
+    private const val NEW_LINE: Char = '\n'
+    private const val BLANK: Char = ' '
+
+    private const val ESCAPE_SEQUENCE_LENGTH: Int = 2
+
     fun mask(source: String): String = Masker(source, true).mask()
 
     fun withoutComments(source: String): String = Masker(source, false).mask()
@@ -41,8 +53,8 @@ object JavaSource {
                     State.LINE_COMMENT -> lineComment()
                     State.BLOCK_COMMENT -> blockComment()
                     State.TEXT_BLOCK -> textBlock()
-                    State.STRING -> literal('"')
-                    State.CHARACTER -> literal('\'')
+                    State.STRING -> literal(STRING_QUOTE)
+                    State.CHARACTER -> literal(CHARACTER_QUOTE)
                 }
             }
             return out.toString()
@@ -50,25 +62,25 @@ object JavaSource {
 
         private fun code() {
             when {
-                source.startsWith("//", index) -> enter(State.LINE_COMMENT, 2)
-                source.startsWith("/*", index) -> enter(State.BLOCK_COMMENT, 2)
+                source.startsWith(LINE_COMMENT_START, index) -> enter(State.LINE_COMMENT, LINE_COMMENT_START.length)
+                source.startsWith(BLOCK_COMMENT_START, index) -> enter(State.BLOCK_COMMENT, BLOCK_COMMENT_START.length)
                 source.startsWith(TEXT_BLOCK_QUOTES, index) -> enter(State.TEXT_BLOCK, TEXT_BLOCK_QUOTES.length)
-                source[index] == '"' -> enter(State.STRING, 1)
-                source[index] == '\'' -> enter(State.CHARACTER, 1)
+                source[index] == STRING_QUOTE -> enter(State.STRING, 1)
+                source[index] == CHARACTER_QUOTE -> enter(State.CHARACTER, 1)
                 else -> keep()
             }
         }
 
         private fun lineComment() {
-            if (source[index] == '\n') {
+            if (source[index] == NEW_LINE) {
                 state = State.CODE
             }
             blank(1)
         }
 
         private fun blockComment() {
-            if (source.startsWith("*/", index)) {
-                enter(State.CODE, 2)
+            if (source.startsWith(BLOCK_COMMENT_END, index)) {
+                enter(State.CODE, BLOCK_COMMENT_END.length)
             } else {
                 blank(1)
             }
@@ -76,7 +88,7 @@ object JavaSource {
 
         private fun textBlock() {
             when {
-                source[index] == '\\' -> literalCharacters(2)
+                source[index] == ESCAPE -> literalCharacters(ESCAPE_SEQUENCE_LENGTH)
                 source.startsWith(TEXT_BLOCK_QUOTES, index) -> enter(State.CODE, TEXT_BLOCK_QUOTES.length)
                 else -> literalCharacters(1)
             }
@@ -84,8 +96,8 @@ object JavaSource {
 
         private fun literal(quote: Char) {
             when (source[index]) {
-                '\\' -> literalCharacters(2)
-                quote, '\n' -> enter(State.CODE, 1)
+                ESCAPE -> literalCharacters(ESCAPE_SEQUENCE_LENGTH)
+                quote, NEW_LINE -> enter(State.CODE, 1)
                 else -> literalCharacters(1)
             }
         }
@@ -108,7 +120,7 @@ object JavaSource {
         private fun blank(length: Int) {
             val end = minOf(index + length, source.length)
             while (index < end) {
-                out.append(if (source[index] == '\n') '\n' else ' ')
+                out.append(if (source[index] == NEW_LINE) NEW_LINE else BLANK)
                 index++
             }
         }

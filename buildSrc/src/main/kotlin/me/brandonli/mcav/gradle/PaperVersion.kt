@@ -21,14 +21,24 @@ package me.brandonli.mcav.gradle
 import org.gradle.api.GradleException
 
 internal data class PaperVersion(val minecraft: String, val build: Int) {
-    val fileName: String get() = "paper-$minecraft-$build.jar"
+    val fileName: String get() = "$FILE_PREFIX$minecraft$NAME_SEPARATOR$build$JAR_EXTENSION"
 
     companion object {
+
+        private const val FILE_PREFIX: String = "paper-"
+        private const val NAME_SEPARATOR: Char = '-'
+        private const val JAR_EXTENSION: String = ".jar"
+
+        private const val MINECRAFT_GROUP: Int = 1
+        private const val BUILD_GROUP: Int = 2
+
+        private val VERSION: Regex = Regex("(.+)\\.build\\.([0-9]+)(?:-.+)?")
+
         fun parse(version: String): PaperVersion {
             val message = "Paper version $version must name a build!"
-            val match = Regex("(.+)\\.build\\.([0-9]+)(?:-.+)?").matchEntire(version) ?: throw GradleException(message)
-            val build = match.groupValues[2].toIntOrNull() ?: throw GradleException(message)
-            return PaperVersion(match.groupValues[1], build)
+            val match = VERSION.matchEntire(version) ?: throw GradleException(message)
+            val build = match.groupValues[BUILD_GROUP].toIntOrNull() ?: throw GradleException(message)
+            return PaperVersion(match.groupValues[MINECRAFT_GROUP], build)
         }
     }
 }

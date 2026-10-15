@@ -28,8 +28,10 @@ plugins {
     id("io.papermc.paperweight.userdev")
 }
 
+val paperAlias: String = "paper"
+
 dependencies {
-    paperweight.paperDevBundle(libs.versionOf("paper"))
+    paperweight.paperDevBundle(libs.versionOf(paperAlias))
 }
 
 extensions.configure<MCAVPublishingExtension> {

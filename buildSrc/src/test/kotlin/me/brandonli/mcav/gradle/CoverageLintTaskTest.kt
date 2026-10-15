@@ -28,6 +28,17 @@ import org.junit.jupiter.api.io.TempDir
 
 class CoverageLintTaskTest {
 
+    private companion object {
+
+        const val SOURCE_PATH: String = "sources/sample/Example.java"
+        const val REPORT_FILE: String = "report.xml"
+        const val EXCEPTIONS_FILE: String = "exceptions.txt"
+
+        const val EXCEPTION_LINE: String = "sample/Example.java | serverOnly(); | server constructor\n"
+
+        const val SOURCES_DIRECTORY: String = "sources"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -49,7 +60,7 @@ class CoverageLintTaskTest {
     @Test
     fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine() {
         val task = lint(uncoveredLine = false)
-        directory.resolve("exceptions.txt").toFile().writeText("sample/Example.java | serverOnly(); | server constructor\n")
+        directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
         val failure = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
         assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale!", message)
@@ -58,15 +69,15 @@ class CoverageLintTaskTest {
     @Test
     fun shouldPassWhenAnExceptionExcusesTheOnlyUncoveredLine() {
         val task = lint(uncoveredLine = true)
-        directory.resolve("exceptions.txt").toFile().writeText("sample/Example.java | serverOnly(); | server constructor\n")
+        directory.resolve(EXCEPTIONS_FILE).toFile().writeText(EXCEPTION_LINE)
         task.lint()
     }
 
     private fun lint(uncoveredLine: Boolean): CoverageLintTask {
-        val source = directory.resolve("sources/sample/Example.java").toFile()
+        val source = directory.resolve(SOURCE_PATH).toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\n")
-        val coverage = directory.resolve("report.xml").toFile()
+        val coverage = directory.resolve(REPORT_FILE).toFile()
         val counts = if (uncoveredLine) "mi=\"1\" ci=\"0\"" else "mi=\"0\" ci=\"1\""
         coverage.writeText(
             "<report name=\"fixture\"><package name=\"sample\"><sourcefile name=\"Example.java\">" +
@@ -75,8 +86,8 @@ class CoverageLintTaskTest {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         return project.tasks.register("coverageLint", CoverageLintTask::class.java).get().apply {
             report.from(coverage)
-            sourceDirectory.set(directory.resolve("sources").toFile())
-            exceptionsFile.from(directory.resolve("exceptions.txt").toFile())
+            sourceDirectory.set(directory.resolve(SOURCES_DIRECTORY).toFile())
+            exceptionsFile.from(directory.resolve(EXCEPTIONS_FILE).toFile())
             testsFiltered.set(false)
             projectPath.set(":fixture")
         }

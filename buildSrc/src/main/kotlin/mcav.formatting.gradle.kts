@@ -27,6 +27,27 @@ plugins {
     id("com.diffplug.spotless")
 }
 
+val prettierAlias: String = "prettier"
+val prettierJavaPluginAlias: String = "prettier-plugin-java"
+val javaParser: String = "java"
+val javaTabWidth: Int = 2
+val javaPrintWidth: Int = 140
+val licenseHeaderPath: String = "HEADER"
+
+val gradleScriptPattern: String = "*.gradle.kts"
+val resourcePatterns: List<String> = listOf(
+    "src/**/*.json",
+    "src/**/*.yml",
+    "src/**/*.yaml",
+    "src/**/*.properties",
+    "src/**/*.astub",
+    "coverage-exceptions.txt",
+    "*.md"
+)
+val excludedResourcePatterns: List<String> = listOf("**/build/**", "**/node_modules/**")
+
+val spotlessJavaTaskPrefix: String = "spotlessJava"
+
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
 val host = HostPlatform.current()
@@ -34,10 +55,17 @@ val nodeExecutable = node.resolvedNodeDir.map { NodeLayout.executable(it, host).
 
 spotless {
     java {
-        prettier(mapOf("prettier" to libs.versionOf("prettier"), "prettier-plugin-java" to libs.versionOf("prettier-plugin-java")))
-            .config(mapOf("parser" to "java", "tabWidth" to 2, "plugins" to listOf("prettier-plugin-java"), "printWidth" to 140))
+        prettier(mapOf(prettierAlias to libs.versionOf(prettierAlias), prettierJavaPluginAlias to libs.versionOf(prettierJavaPluginAlias)))
+            .config(
+                mapOf(
+                    "parser" to javaParser,
+                    "tabWidth" to javaTabWidth,
+                    "plugins" to listOf(prettierJavaPluginAlias),
+                    "printWidth" to javaPrintWidth
+                )
+            )
             .nodeExecutable(nodeExecutable)
-        licenseHeaderFile(rootProject.file("HEADER"))
+        licenseHeaderFile(rootProject.file(licenseHeaderPath))
         importOrder()
         removeUnusedImports()
         formatAnnotations()
@@ -45,26 +73,18 @@ spotless {
         endWithNewline()
     }
     kotlinGradle {
-        target("*.gradle.kts")
+        target(gradleScriptPattern)
         trimTrailingWhitespace()
         endWithNewline()
     }
     format("resources") {
-        target(
-            "src/**/*.json",
-            "src/**/*.yml",
-            "src/**/*.yaml",
-            "src/**/*.properties",
-            "src/**/*.astub",
-            "coverage-exceptions.txt",
-            "*.md"
-        )
-        targetExclude("**/build/**", "**/node_modules/**")
+        target(*resourcePatterns.toTypedArray())
+        targetExclude(*excludedResourcePatterns.toTypedArray())
         trimTrailingWhitespace()
         endWithNewline()
     }
 }
 
-tasks.matching { it.name.startsWith("spotlessJava") }.configureEach {
+tasks.matching { it.name.startsWith(spotlessJavaTaskPrefix) }.configureEach {
     dependsOn(nodeSetup)
 }

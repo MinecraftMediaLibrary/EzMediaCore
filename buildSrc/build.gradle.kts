@@ -30,9 +30,30 @@ dependencies {
     testRuntimeOnly(libs.junit.platform.launcher)
 }
 
-val catalogVersions = layout.buildDirectory.dir("generated/sources/catalog/kotlin")
+val catalogVersionsPath: String = "generated/sources/catalog/kotlin"
+val catalogVersionsFile: String = "me/brandonli/mcav/gradle/CatalogVersions.kt"
+val repositoryHeaderPath: String = "../HEADER"
+val lineSeparator: String = "\n"
+
+val buildPackageClasses: String = "me/brandonli/mcav/gradle/**"
+val generatedClasses: String = "me/brandonli/mcav/gradle/CatalogVersions*"
+val mutatedClasses: String = "me.brandonli.mcav.gradle.*"
+val generatedClass: String = "me.brandonli.mcav.gradle.CatalogVersions"
+val mutationThreads: Int = 4
+val fullCoverage: String = "1.0"
+
+val fuzzTag: String = "fuzz"
+val fuzzSecondsProperty: String = "fuzz.seconds"
+val fuzzInputsPath: String = "src/test/resources"
+val jazzerBaseDirectoryProperty: String = "jazzer.internal.basedir"
+val jazzerBaseDirectoryPath: String = "build/jazzer"
+val jazzerFuzzVariable: String = "JAZZER_FUZZ"
+val enabledValue: String = "1"
+val jazzerDurationProperty: String = "jazzer.max_duration"
+
+val catalogVersions = layout.buildDirectory.dir(catalogVersionsPath)
 val jacocoVersion = libs.versions.jacoco
-val repositoryHeader = layout.projectDirectory.file("../HEADER")
+val repositoryHeader = layout.projectDirectory.file(repositoryHeaderPath)
 val generateCatalogVersions = tasks.register("generateCatalogVersions") {
     group = "build"
     description = "Writes the catalog versions the plugins of this build need outside the main build"
@@ -40,10 +61,10 @@ val generateCatalogVersions = tasks.register("generateCatalogVersions") {
     inputs.file(repositoryHeader)
     outputs.dir(catalogVersions)
     doLast {
-        val file = catalogVersions.get().file("me/brandonli/mcav/gradle/CatalogVersions.kt").asFile
+        val file = catalogVersions.get().file(catalogVersionsFile).asFile
         file.parentFile.mkdirs()
         file.writeText(
-            repositoryHeader.asFile.readText() + "\n" + """
+            repositoryHeader.asFile.readText() + lineSeparator + """
             |package me.brandonli.mcav.gradle
             |
             |object CatalogVersions {
@@ -59,16 +80,16 @@ kotlin.sourceSets.main {
 }
 
 val testSourceSet = sourceSets.test.get()
-val fuzzSeconds = providers.gradleProperty("fuzz.seconds").map { it.toInt() }.getOrElse(0)
-val fuzzInputs = layout.projectDirectory.dir("src/test/resources")
+val fuzzSeconds = providers.gradleProperty(fuzzSecondsProperty).map { it.toInt() }.getOrElse(0)
+val fuzzInputs = layout.projectDirectory.dir(fuzzInputsPath)
 val buildClasses = sourceSets.main.get().output.classesDirs.asFileTree.matching {
-    include("me/brandonli/mcav/gradle/**")
-    exclude("me/brandonli/mcav/gradle/CatalogVersions*")
+    include(buildPackageClasses)
+    exclude(generatedClasses)
 }
 
 tasks.test {
     useJUnitPlatform {
-        excludeTags("fuzz")
+        excludeTags(fuzzTag)
     }
 }
 
@@ -79,17 +100,17 @@ val fuzzTest = tasks.register<Test>("fuzzTest") {
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
-        includeTags("fuzz")
+        includeTags(fuzzTag)
     }
     forkEvery = 1
     failOnNoDiscoveredTests = false
     inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    systemProperty("jazzer.internal.basedir", "build/jazzer")
+    systemProperty(jazzerBaseDirectoryProperty, jazzerBaseDirectoryPath)
     if (fuzzSeconds > 0) {
-        environment("JAZZER_FUZZ", "1")
-        systemProperty("jazzer.max_duration", "${fuzzSeconds}s")
+        environment(jazzerFuzzVariable, enabledValue)
+        systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
         outputs.upToDateWhen { false }
     }
 }
@@ -108,11 +129,11 @@ tasks.jacocoTestCoverageVerification {
         rule {
             limit {
                 counter = "LINE"
-                minimum = "1.0".toBigDecimal()
+                minimum = fullCoverage.toBigDecimal()
             }
             limit {
                 counter = "BRANCH"
-                minimum = "1.0".toBigDecimal()
+                minimum = fullCoverage.toBigDecimal()
             }
         }
     }
@@ -121,10 +142,10 @@ tasks.jacocoTestCoverageVerification {
 pitest {
     pitestVersion = libs.versions.pitest.asProvider()
     junit5PluginVersion = libs.versions.pitest.junit5.plugin
-    targetClasses = setOf("me.brandonli.mcav.gradle.*")
-    excludedClasses = setOf("me.brandonli.mcav.gradle.CatalogVersions")
-    excludedGroups = setOf("fuzz")
-    threads = 4
+    targetClasses = setOf(mutatedClasses)
+    excludedClasses = setOf(generatedClass)
+    excludedGroups = setOf(fuzzTag)
+    threads = mutationThreads
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
     jvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED")

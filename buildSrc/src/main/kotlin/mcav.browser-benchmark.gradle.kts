@@ -22,7 +22,14 @@ plugins {
     java
 }
 
-val benchmark = sourceSets.create("benchmark")
+val benchmarkSourceSetName: String = "benchmark"
+val benchmarkMainClass: String = "me.brandonli.mcav.plugin.benchmark.BrowserBenchmark"
+val backendProperty: String = "benchmark.backend"
+val outputProperty: String = "benchmark.output"
+val defaultOutputPath: String = "browser-benchmark.md"
+val benchmarkHeapSize: String = "4g"
+
+val benchmark = sourceSets.create(benchmarkSourceSetName)
 
 configurations.named(benchmark.implementationConfigurationName) {
     extendsFrom(configurations.testImplementation.get())
@@ -40,12 +47,12 @@ tasks.register<JavaExec>("browserBenchmark") {
     group = "verification"
     description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
     classpath = benchmark.runtimeClasspath
-    mainClass = "me.brandonli.mcav.plugin.benchmark.BrowserBenchmark"
-    val backend = providers.gradleProperty("benchmark.backend").orElse("")
-    val output = providers.gradleProperty("benchmark.output")
-        .orElse(layout.buildDirectory.file("browser-benchmark.md").map { it.asFile.absolutePath })
+    mainClass = benchmarkMainClass
+    val backend = providers.gradleProperty(backendProperty).orElse("")
+    val output = providers.gradleProperty(outputProperty)
+        .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })
     argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
     javaLauncher = javaLauncher()
-    maxHeapSize = "4g"
+    maxHeapSize = benchmarkHeapSize
     outputs.upToDateWhen { false }
 }

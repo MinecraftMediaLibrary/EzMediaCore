@@ -26,6 +26,16 @@ object LogMessages {
 
     private val LOGGER = Regex("""(?:[A-Z][A-Z0-9_]*_)?LOG(?:GER)?|log(?:ger)?|[a-z][A-Za-z0-9]*Logger""")
 
+    private const val RECEIVER_GROUP: Int = 1
+
+    private const val CALL_START: Char = '('
+    private const val ARGUMENT_SEPARATOR: Char = ','
+    private const val CONCATENATION: Char = '+'
+    private const val STRING_QUOTE: Char = '"'
+    private const val NEW_LINE: Char = '\n'
+
+    private const val FIRST_LINE_NUMBER: Int = 1
+
     private val OPENING = setOf('(', '[', '{')
 
     private val CLOSING = setOf(')', ']', '}')
@@ -34,9 +44,9 @@ object LogMessages {
         val code = JavaSource.mask(source)
         val text = JavaSource.withoutComments(source)
         return CALL.findAll(code)
-            .filter { LOGGER.matches(it.groupValues[1]) }
+            .filter { LOGGER.matches(it.groupValues[RECEIVER_GROUP]) }
             .filter { call -> isConcatenated(arguments(text, code, call.range.last + 1)) }
-            .map { call -> ConcatenatedLogMessage(lineOf(source, call.range.first), call.value.substringBefore('(')) }
+            .map { call -> ConcatenatedLogMessage(lineOf(source, call.range.first), call.value.substringBefore(CALL_START)) }
             .toList()
     }
 
@@ -54,7 +64,7 @@ object LogMessages {
             when {
                 character in OPENING -> depth++
                 character in CLOSING && depth > 0 -> depth--
-                ends || (character == ',' && depth == 0) -> {
+                ends || (character == ARGUMENT_SEPARATOR && depth == 0) -> {
                     arguments += Argument(source.substring(argumentStart, index), code.substring(argumentStart, index))
                     argumentStart = index + 1
                 }
@@ -67,7 +77,7 @@ object LogMessages {
         return if (noArguments) emptyList() else arguments
     }
 
-    private fun lineOf(source: String, offset: Int): Int = source.substring(0, offset).count { it == '\n' } + 1
+    private fun lineOf(source: String, offset: Int): Int = source.substring(0, offset).count { it == NEW_LINE } + FIRST_LINE_NUMBER
 
     private class Argument(val text: String, private val code: String) {
 
@@ -80,8 +90,8 @@ object LogMessages {
                     character in OPENING -> depth++
                     character in CLOSING -> depth--
                     depth > 0 -> Unit
-                    character == '+' -> plus = true
-                    text[index] == '"' -> literal = true
+                    character == CONCATENATION -> plus = true
+                    text[index] == STRING_QUOTE -> literal = true
                 }
             }
             return plus && literal

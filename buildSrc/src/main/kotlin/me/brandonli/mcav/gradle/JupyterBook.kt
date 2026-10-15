@@ -33,6 +33,18 @@ import org.gradle.process.ExecOperations
 @CacheableTask
 abstract class JupyterBook : PythonTask() {
 
+    private companion object {
+
+        const val BOOK_DIRECTORY: String = "book"
+        const val SITE_DIRECTORY: String = "site"
+        const val HTML_DIRECTORY: String = "site/_build/html"
+
+        const val ENTRY_POINT: String = "from jupyter_book.cli.main import main\nmain()"
+
+        const val JUPYTER_CONFIG_VARIABLE: String = "JUPYTER_CONFIG_DIR"
+        const val JUPYTER_CONFIG_DIRECTORY: String = "jupyter"
+    }
+
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
@@ -50,28 +62,28 @@ abstract class JupyterBook : PythonTask() {
     fun build() {
         val staging = temporaryDir
         files.delete { delete(staging) }
-        val book = staging.resolve("book")
+        val book = staging.resolve(BOOK_DIRECTORY)
         files.sync {
             from(sources)
             into(book)
         }
         val commands = listOf(
-            listOf("config", "sphinx", "book"),
-            listOf("build", "book", "--path-output", "site", "--warningiserror", "--keep-going", "--all")
+            listOf("config", "sphinx", BOOK_DIRECTORY),
+            listOf("build", BOOK_DIRECTORY, "--path-output", SITE_DIRECTORY, "--warningiserror", "--keep-going", "--all")
         )
         commands.forEach { arguments ->
             processes.exec {
                 workingDir(staging)
-                commandLine(listOf(pythonExecutable.get().asFile, "-c", "from jupyter_book.cli.main import main\nmain()") + arguments)
-                environment("PYTHONNOUSERSITE", "1")
-                environment("PYTHONDONTWRITEBYTECODE", "1")
-                environment("PYTHONHASHSEED", "0")
-                environment("MPLCONFIGDIR", staging.resolve("matplotlib").absolutePath)
-                environment("JUPYTER_CONFIG_DIR", staging.resolve("jupyter").absolutePath)
+                commandLine(listOf(pythonExecutable.get().asFile, "-c", ENTRY_POINT) + arguments)
+                environment(NO_USER_SITE_VARIABLE, ENABLED)
+                environment(NO_BYTECODE_VARIABLE, ENABLED)
+                environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
+                environment(MATPLOTLIB_CONFIG_VARIABLE, staging.resolve(MATPLOTLIB_CONFIG_DIRECTORY).absolutePath)
+                environment(JUPYTER_CONFIG_VARIABLE, staging.resolve(JUPYTER_CONFIG_DIRECTORY).absolutePath)
             }
         }
         files.sync {
-            from(staging.resolve("site/_build/html"))
+            from(staging.resolve(HTML_DIRECTORY))
             into(outputDirectory)
         }
     }

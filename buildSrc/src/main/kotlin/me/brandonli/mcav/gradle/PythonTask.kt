@@ -30,6 +30,21 @@ import org.gradle.api.tasks.TaskProvider
 
 abstract class PythonTask : DefaultTask() {
 
+    internal companion object {
+
+        const val PYTHON_EXECUTABLE: String = "python"
+
+        const val NO_USER_SITE_VARIABLE: String = "PYTHONNOUSERSITE"
+        const val NO_BYTECODE_VARIABLE: String = "PYTHONDONTWRITEBYTECODE"
+        const val HASH_SEED_VARIABLE: String = "PYTHONHASHSEED"
+        const val MATPLOTLIB_CONFIG_VARIABLE: String = "MPLCONFIGDIR"
+
+        const val ENABLED: String = "1"
+        const val FIXED_HASH_SEED: String = "0"
+
+        const val MATPLOTLIB_CONFIG_DIRECTORY: String = "matplotlib"
+    }
+
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val requirements: RegularFileProperty
@@ -48,6 +63,6 @@ abstract class PythonTask : DefaultTask() {
         requirements.set(environment.flatMap { it.requirements })
         pythonVersion.set(environment.flatMap { it.pythonVersion })
         platform.set(HostPlatform.current().uvTarget)
-        pythonExecutable.set(environment.flatMap { it.executable("python") })
+        pythonExecutable.set(environment.flatMap { it.executable(PYTHON_EXECUTABLE) })
     }
 }

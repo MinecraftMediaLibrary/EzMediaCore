@@ -29,18 +29,29 @@ import org.junit.jupiter.api.io.TempDir
 
 class JcstressBudgetTest {
 
+    private companion object {
+
+        const val QUICK_PRESET: String = "quick"
+
+        const val TESTS_JAR: String = "tests.jar"
+        const val EMPTY_JAR: String = "empty.jar"
+        const val TEST_LIST_ENTRY: String = "META-INF/TestList"
+
+        const val OTHER_ENTRY: String = "other"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun() {
-        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds("quick", 10, 9, 4)
+        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 10, 9, 4)
         assertEquals(76L, iterationMilliseconds)
     }
 
     @Test
     fun shouldKeepTheIterationTimeWithinItsBounds() {
-        val shortest: Long = JcstressBudget.iterationMilliseconds("quick", 1, 9, 4)
+        val shortest: Long = JcstressBudget.iterationMilliseconds(QUICK_PRESET, 1, 9, 4)
         assertEquals(50L, shortest)
 
         val longest: Long = JcstressBudget.iterationMilliseconds("sanity", 100_000, 1, 4)
@@ -60,9 +71,9 @@ class JcstressBudgetTest {
 
     @Test
     fun shouldCountTheTestsThatTheSelectionMatches() {
-        val jar = directory.resolve("tests.jar").toFile()
+        val jar = directory.resolve(TESTS_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("META-INF/TestList"))
+            zip.putNextEntry(ZipEntry(TEST_LIST_ENTRY))
             zip.write(listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n").toByteArray())
             zip.closeEntry()
         }
@@ -78,9 +89,9 @@ class JcstressBudgetTest {
 
     @Test
     fun shouldCountNoTestsInAJarWithoutTheList() {
-        val jar = directory.resolve("empty.jar").toFile()
+        val jar = directory.resolve(EMPTY_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("other"))
+            zip.putNextEntry(ZipEntry(OTHER_ENTRY))
             zip.closeEntry()
         }
         val count: Int = JcstressBudget.countTests(jar, null)

@@ -23,10 +23,15 @@ import java.security.MessageDigest
 import java.util.HexFormat
 
 internal object ToolDigests {
+
+    private const val ALGORITHM: String = "SHA-256"
+
+    private const val BUFFER_SIZE: Int = 65_536
+
     fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
+        val digest = MessageDigest.getInstance(ALGORITHM)
         file.inputStream().use { input ->
-            val buffer = ByteArray(65_536)
+            val buffer = ByteArray(BUFFER_SIZE)
             var count = input.read(buffer)
             while (count >= 0) {
                 digest.update(buffer, 0, count)

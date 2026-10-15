@@ -35,6 +35,12 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(because = "clang-format checks or rewrites the sources in place")
 abstract class ClangFormat : DefaultTask() {
 
+    private companion object {
+
+        const val TOOL: String = "clang-format"
+        const val VERSION_PREFIX: String = "clang-format version "
+    }
+
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val sources: ConfigurableFileCollection
@@ -55,7 +61,7 @@ abstract class ClangFormat : DefaultTask() {
     @TaskAction
     fun format() {
         val executable = clangFormat.get().asFile
-        ToolVersions.verify(processes, executable, "clang-format", clangFormatVersion.get(), "clang-format version ")
+        ToolVersions.verify(processes, executable, TOOL, clangFormatVersion.get(), VERSION_PREFIX)
         val mode = if (rewrite.get()) listOf("-i") else listOf("--dry-run", "--Werror")
         processes.exec {
             commandLine(listOf(executable.path) + mode + "--style=file" + sources.files.sorted().map { it.path })

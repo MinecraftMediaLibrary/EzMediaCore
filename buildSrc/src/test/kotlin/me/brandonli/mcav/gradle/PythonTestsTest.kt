@@ -29,6 +29,26 @@ import org.junit.jupiter.api.io.TempDir
 
 class PythonTestsTest {
 
+    private companion object {
+
+        const val WORKERS_OPTION: String = "-n"
+
+        const val TESTS_DIRECTORY: String = "python"
+        const val FIRST_TEST: String = "test_a.py"
+        const val SECOND_TEST: String = "test_b.py"
+        const val THIRD_TEST: String = "test_c.py"
+        const val TIMING_TEST: String = "test_timing.py"
+
+        const val REPORTS_DIRECTORY: String = "reports"
+        const val STALE_REPORT: String = "stale.xml"
+        const val PARALLEL_REPORT: String = "parallel.xml"
+        const val SERIAL_REPORT: String = "serial.xml"
+
+        const val VIRTUAL_ENVIRONMENT_PYTHON: String = "venv/bin/python"
+
+        const val MATPLOTLIB_DIRECTORY: String = "matplotlib"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -40,19 +60,19 @@ class PythonTestsTest {
     @Test
     fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess() {
         val task = pythonTests(8)
-        val reports = directory.resolve("reports").toFile()
+        val reports = directory.resolve(REPORTS_DIRECTORY).toFile()
         reports.mkdirs()
-        reports.resolve("stale.xml").writeText("<testsuites/>")
+        reports.resolve(STALE_REPORT).writeText("<testsuites/>")
         val processes = RecordedProcesses("") { assertNoStaleReport(reports) }
         task.recordedProcesses = processes.operations
         task.test()
-        val tests = directory.resolve("python")
+        val tests = directory.resolve(TESTS_DIRECTORY)
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
-                pytest("parallel.xml") + listOf("-n", "3", "--dist", "loadfile") +
-                    listOf("test_a.py", "test_b.py", "test_c.py").map { tests.resolve(it).toString() },
-                pytest("serial.xml") + tests.resolve("test_timing.py").toString()
+                pytest(PARALLEL_REPORT) + listOf(WORKERS_OPTION, "3", "--dist", "loadfile") +
+                    listOf(FIRST_TEST, SECOND_TEST, THIRD_TEST).map { tests.resolve(it).toString() },
+                pytest(SERIAL_REPORT) + tests.resolve(TIMING_TEST).toString()
             ),
             commands
         )
@@ -66,7 +86,7 @@ class PythonTestsTest {
             "PYTHONHASHSEED" to "0",
             "PYTEST_ADDOPTS" to "",
             "MPLBACKEND" to "Agg",
-            "MPLCONFIGDIR" to task.temporaryDir.resolve("matplotlib").path
+            "MPLCONFIGDIR" to task.temporaryDir.resolve(MATPLOTLIB_DIRECTORY).path
         )
         val environments: List<Map<String, Any?>> = processes.environments
         assertEquals(listOf(variables, variables), environments)
@@ -79,42 +99,42 @@ class PythonTestsTest {
         task.recordedProcesses = processes.operations
         task.test()
         val parallel = processes.commands.first()
-        val processCount: String = parallel[parallel.indexOf("-n") + 1]
+        val processCount: String = parallel[parallel.indexOf(WORKERS_OPTION) + 1]
         assertEquals("2", processCount)
     }
 
     private fun assertNoStaleReport(reports: File) {
-        val stale: Boolean = reports.resolve("stale.xml").exists()
+        val stale: Boolean = reports.resolve(STALE_REPORT).exists()
         assertFalse(stale)
     }
 
     private fun pytest(report: String): List<String> = listOf(
-        directory.resolve("venv/bin/python").toString(),
+        directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toString(),
         "-m",
         "pytest",
         "-p",
         "no:cacheprovider",
         "-ra",
         "--rootdir",
-        directory.resolve("python").toString(),
+        directory.resolve(TESTS_DIRECTORY).toString(),
         "--junitxml",
-        directory.resolve("reports").resolve(report).toString()
+        directory.resolve(REPORTS_DIRECTORY).resolve(report).toString()
     )
 
     private fun pythonTests(processCount: Int): RecordingTests {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val tests = directory.resolve("python").toFile()
+        val tests = directory.resolve(TESTS_DIRECTORY).toFile()
         tests.mkdirs()
-        val parallel = listOf("test_b.py", "test_a.py", "test_c.py").map { tests.resolve(it) }
-        val timing = tests.resolve("test_timing.py")
+        val parallel = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
+        val timing = tests.resolve(TIMING_TEST)
         (parallel + timing).forEach { it.writeText("") }
         val task = project.tasks.register("pythonTest", RecordingTests::class.java).get()
-        task.pythonExecutable.set(directory.resolve("venv/bin/python").toFile())
+        task.pythonExecutable.set(directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
         task.testDirectory.set(tests)
         task.parallelTests.from(parallel)
         task.serialTests.from(timing)
         task.processCount.set(processCount)
-        task.reportDirectory.set(directory.resolve("reports").toFile())
+        task.reportDirectory.set(directory.resolve(REPORTS_DIRECTORY).toFile())
         return task
     }
 }

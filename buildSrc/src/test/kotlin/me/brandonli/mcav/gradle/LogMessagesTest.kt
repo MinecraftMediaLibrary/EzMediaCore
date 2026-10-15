@@ -23,6 +23,11 @@ import org.junit.jupiter.api.Test
 
 class LogMessagesTest {
 
+    private companion object {
+
+        const val LINE_SEPARATOR: String = "\n"
+    }
+
     @Test
     fun shouldAcceptCommentsAroundAConstantMessage() {
         val sources: List<String> = listOf(
@@ -85,7 +90,7 @@ class LogMessagesTest {
             "LOG.info(\"c\" + name);",
             "AUDIT_LOGGER.warn(\"d\" + name);",
             "pluginLogger.error(\"e\" + name);",
-        ).joinToString("\n")
+        ).joinToString(LINE_SEPARATOR)
         val lines: List<Int> = LogMessages.find(source).map { it.line }
         assertEquals(listOf(1, 2, 3, 4, 5), lines)
     }
@@ -96,7 +101,7 @@ class LogMessagesTest {
             "LOGGER.error(message, error);",
             "LOGGER.warn(prefix() + NAME);",
             "LOGGER.info(Failed.name());",
-        ).joinToString("\n")
+        ).joinToString(LINE_SEPARATOR)
         val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
         assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
@@ -107,7 +112,7 @@ class LogMessagesTest {
             "LOGGER.warn(FAILED, \"at \" + place);",
             "LOGGER.warn(FAILED, count + 1, String.join(\",\", names));",
             "LOGGER.warn(FAILED, place.concat(\"x\" + y));",
-        ).joinToString("\n")
+        ).joinToString(LINE_SEPARATOR)
         val lines: List<Int> = LogMessages.find(source).map { it.line }
         assertEquals(listOf(1), lines)
     }
@@ -137,7 +142,7 @@ class LogMessagesTest {
             "log.info();",
             "// LOGGER.info(\"in a \" + comment);",
             "String text = \"LOGGER.info(\\\"in a \\\" + string)\";",
-        ).joinToString("\n")
+        ).joinToString(LINE_SEPARATOR)
         val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
         assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }

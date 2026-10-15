@@ -35,6 +35,23 @@ import org.junit.jupiter.api.io.TempDir
 
 class DownloadToolArchiveTest {
 
+    private companion object {
+
+        const val TASK_NAME: String = "downloadTool"
+
+        const val ARCHIVE_FILE: String = "tool.zip"
+        const val MISSING_ARCHIVE: String = "missing.zip"
+        const val EXECUTABLE_PATH: String = "tool/bin/tool"
+        const val INSTALLATION_DIRECTORY: String = "installed"
+        const val INSTALLED_EXECUTABLE: String = "installed/tool/bin/tool"
+        const val MISSING_EXECUTABLE_PATH: String = "missing"
+        const val SEVEN_ZIP_ARCHIVE: String = "tool.7z"
+
+        const val EXECUTABLE_CONTENT: String = "verified executable\n"
+
+        const val DIGEST_ALGORITHM: String = "SHA-256"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -42,9 +59,9 @@ class DownloadToolArchiveTest {
     fun shouldInstallTheVerifiedZipAndMakeItsToolExecutable() {
         val task = zippedTool()
         task.install()
-        val installed = directory.resolve("installed/tool/bin/tool").toFile()
+        val installed = directory.resolve(INSTALLED_EXECUTABLE).toFile()
         val content: String = installed.readText()
-        assertEquals("verified executable\n", content)
+        assertEquals(EXECUTABLE_CONTENT, content)
 
         val executable: Boolean = installed.canExecute()
         assertTrue(executable)
@@ -53,7 +70,7 @@ class DownloadToolArchiveTest {
     @Test
     fun shouldNeitherExtractUntrustedBytesNorReplaceAnExistingToolOnAChecksumMismatch() {
         val task = zippedTool()
-        val installed = directory.resolve("installed/tool/bin/tool").toFile()
+        val installed = directory.resolve(INSTALLED_EXECUTABLE).toFile()
         installed.parentFile.mkdirs()
         installed.writeText("previous verified tool\n")
         val expected = "0".repeat(64)
@@ -69,7 +86,7 @@ class DownloadToolArchiveTest {
         val content: String = installed.readText()
         assertEquals("previous verified tool\n", content)
 
-        val archiveKept: Boolean = task.temporaryDir.resolve("tool.zip").exists()
+        val archiveKept: Boolean = task.temporaryDir.resolve(ARCHIVE_FILE).exists()
         assertFalse(archiveKept)
     }
 
@@ -81,26 +98,26 @@ class DownloadToolArchiveTest {
         val message: String? = failure.message
         assertEquals("Pinned SHA-256 of ${task.archiveUrl.get()} must be 64 lowercase hexadecimal digits!", message)
 
-        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        val installed: Boolean = directory.resolve(INSTALLATION_DIRECTORY).toFile().exists()
         assertFalse(installed)
     }
 
     @Test
     fun shouldNameTheUnavailableArchiveWhenTheDownloadFails() {
         val task = zippedTool()
-        task.archiveUrl.set(directory.resolve("missing.zip").toUri().toString())
+        task.archiveUrl.set(directory.resolve(MISSING_ARCHIVE).toUri().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} could not be downloaded!", message)
 
-        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        val installed: Boolean = directory.resolve(INSTALLATION_DIRECTORY).toFile().exists()
         assertFalse(installed)
     }
 
     @Test
     fun shouldRequireTheRequestedExecutableInAVerifiedArchive() {
         val task = zippedTool()
-        task.executablePath.set("missing")
+        task.executablePath.set(MISSING_EXECUTABLE_PATH)
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must contain missing to be installed!", message)
@@ -109,14 +126,14 @@ class DownloadToolArchiveTest {
     @Test
     fun shouldNotUnpackAVerifiedArchiveOfAnotherFormat() {
         val task = zippedTool()
-        val archive = directory.resolve("tool.7z").toFile()
-        directory.resolve("tool.zip").toFile().copyTo(archive)
+        val archive = directory.resolve(SEVEN_ZIP_ARCHIVE).toFile()
+        directory.resolve(ARCHIVE_FILE).toFile().copyTo(archive)
         task.archiveUrl.set(archive.toURI().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals("Tool archive ${task.archiveUrl.get()} must be a .zip, .tar.gz or .tar.xz file!", message)
 
-        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        val installed: Boolean = directory.resolve(INSTALLATION_DIRECTORY).toFile().exists()
         assertFalse(installed)
     }
 
@@ -133,32 +150,32 @@ class DownloadToolArchiveTest {
             val archive = directory.resolve("tool.$extension").toFile()
             archive.writeBytes(Base64.getDecoder().decode(encoded))
             val project = ProjectBuilder.builder().withProjectDir(directory.resolve(extension).toFile()).build()
-            val task = project.tasks.register("downloadTool", DownloadToolArchive::class.java).get()
+            val task = project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get()
             task.archiveUrl.set(archive.toURI().toString())
-            task.sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(archive.readBytes())))
-            task.executablePath.set("tool/bin/tool")
+            task.sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))
+            task.executablePath.set(EXECUTABLE_PATH)
             task.installationDirectory.set(directory.resolve("installed-$extension").toFile())
             task.install()
             val tool = directory.resolve("installed-$extension/tool/bin/tool").toFile()
             tool.readText() to tool.canExecute()
         }
-        val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { "verified executable\n" to true }
+        val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { EXECUTABLE_CONTENT to true }
         assertEquals(expected, installed)
     }
 
     private fun zippedTool(): DownloadToolArchive {
-        val archive = directory.resolve("tool.zip").toFile()
+        val archive = directory.resolve(ARCHIVE_FILE).toFile()
         ZipOutputStream(archive.outputStream()).use { output ->
-            output.putNextEntry(ZipEntry("tool/bin/tool"))
-            output.write("verified executable\n".toByteArray())
+            output.putNextEntry(ZipEntry(EXECUTABLE_PATH))
+            output.write(EXECUTABLE_CONTENT.toByteArray())
             output.closeEntry()
         }
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        return project.tasks.register("downloadTool", DownloadToolArchive::class.java).get().apply {
+        return project.tasks.register(TASK_NAME, DownloadToolArchive::class.java).get().apply {
             archiveUrl.set(archive.toURI().toString())
-            sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(archive.readBytes())))
-            executablePath.set("tool/bin/tool")
-            installationDirectory.set(directory.resolve("installed").toFile())
+            sha256.set(HexFormat.of().formatHex(MessageDigest.getInstance(DIGEST_ALGORITHM).digest(archive.readBytes())))
+            executablePath.set(EXECUTABLE_PATH)
+            installationDirectory.set(directory.resolve(INSTALLATION_DIRECTORY).toFile())
         }
     }
 }

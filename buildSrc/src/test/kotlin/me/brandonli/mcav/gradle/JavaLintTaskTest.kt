@@ -28,22 +28,33 @@ import org.junit.jupiter.api.io.TempDir
 
 class JavaLintTaskTest {
 
+    private companion object {
+
+        const val LOGS_TASK: String = "logs"
+        const val QUALIFIED_TASK: String = "qualified"
+        const val VARIABLES_TASK: String = "variables"
+
+        const val SOURCE_FILE: String = "Example.java"
+        const val REPORT_EXTENSION: String = ".txt"
+        const val VARIABLES_REPORT: String = "variables.txt"
+    }
+
     @TempDir
     lateinit var directory: Path
 
     @Test
     fun shouldKeepTheExactSuccessReportOfEachLint() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val source = directory.resolve("Example.java").toFile()
+        val source = directory.resolve(SOURCE_FILE).toFile()
         source.writeText("final class Example {}\n")
         val tasks = listOf(
-            project.tasks.register("logs", LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
-            project.tasks.register("qualified", QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
-            project.tasks.register("variables", VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
+            project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
+            project.tasks.register(QUALIFIED_TASK, QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
+            project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
         )
         val reports: List<String> = tasks.map { (task, _) ->
             task.sources.from(source)
-            task.report.set(directory.resolve(task.name + ".txt").toFile())
+            task.report.set(directory.resolve(task.name + REPORT_EXTENSION).toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             task.check()
             task.report.get().asFile.readText()
@@ -56,17 +67,17 @@ class JavaLintTaskTest {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val tasks = listOf(
             Triple(
-                project.tasks.register("logs", LogMessagesTask::class.java).get(),
+                project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get(),
                 "final class Example { void run() { logger.info(\"joined \" + name); logger.error(\"joined \" + name); } }",
                 "Found 2 log calls with a concatenated message!"
             ),
             Triple(
-                project.tasks.register("qualified", QualifiedNamesTask::class.java).get(),
+                project.tasks.register(QUALIFIED_TASK, QualifiedNamesTask::class.java).get(),
                 "final class Example { java.time.Instant first; java.time.Instant second; }",
                 "Found 2 fully qualified type names in Java code!"
             ),
             Triple(
-                project.tasks.register("variables", VariableNamesTask::class.java).get(),
+                project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get(),
                 "final class Example { int x; int y; }",
                 "Found 2 undescriptive variable names!"
             )
@@ -75,7 +86,7 @@ class JavaLintTaskTest {
             val source = directory.resolve(task.name + ".java").toFile()
             source.writeText(input)
             task.sources.from(source)
-            task.report.set(directory.resolve(task.name + ".txt").toFile())
+            task.report.set(directory.resolve(task.name + REPORT_EXTENSION).toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             val failure = assertThrows(GradleException::class.java) { task.check() }
             failure.message to task.report.get().asFile.exists()
@@ -87,11 +98,11 @@ class JavaLintTaskTest {
     @Test
     fun shouldKeepAPublishedNameWhileTheOtherNamesFail() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val task = project.tasks.register("variables", VariableNamesTask::class.java).get()
-        val source = directory.resolve("Example.java").toFile()
+        val task = project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get()
+        val source = directory.resolve(SOURCE_FILE).toFile()
         source.writeText("package me.example;\nfinal class Example { int x; int y; }\n")
         task.sources.from(source)
-        task.report.set(directory.resolve("variables.txt").toFile())
+        task.report.set(directory.resolve(VARIABLES_REPORT).toFile())
         task.publishedNames.set(setOf("me.example.Example#x"))
         val failure = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message

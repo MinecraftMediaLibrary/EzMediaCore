@@ -25,11 +25,16 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 
+private const val CHECKSUMS_RESOURCE: String = "/tool-checksums.properties"
+
+private const val NAME_SEPARATOR: Char = '-'
+private const val VARIABLE_SEPARATOR: Char = '_'
+
 private val pinnedChecksums = Properties().apply {
-    DownloadToolArchive::class.java.getResourceAsStream("/tool-checksums.properties")!!.use { load(it) }
+    DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)!!.use { load(it) }
 }
 
-private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace('-', '_')
+private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
 
 fun Project.pinnedSha256(tool: String, version: String, archive: String): Provider<String> = provider {
     val key = "$tool/$version/$archive"

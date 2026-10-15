@@ -39,14 +39,34 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
+internal const val UV_TOOL: String = "uv"
+internal const val PACKAGE_INDEX: String = "https://pypi.org/simple"
+
+private const val VIRTUAL_ENVIRONMENT_DIRECTORY: String = "venv"
+private const val PYTHON_DIRECTORY: String = "python"
+private const val BINARY_DIRECTORY: String = "bin"
+private const val PATH_SEPARATOR: String = "/"
+
+private const val NO_CONFIG_VARIABLE: String = "UV_NO_CONFIG"
+private const val CACHE_VARIABLE: String = "UV_CACHE_DIR"
+private const val PYTHON_CACHE_VARIABLE: String = "UV_PYTHON_CACHE_DIR"
+private const val PYTHON_INSTALL_VARIABLE: String = "UV_PYTHON_INSTALL_DIR"
+private const val PYTHON_BINARY_VARIABLE: String = "UV_PYTHON_BIN_DIR"
+private const val PYTHON_PREFERENCE_VARIABLE: String = "UV_PYTHON_PREFERENCE"
+private const val LINK_MODE_VARIABLE: String = "UV_LINK_MODE"
+
+private const val ENABLED: String = "1"
+private const val MANAGED_PYTHON_ONLY: String = "only-managed"
+private const val COPY_LINKS: String = "copy"
+
 fun uvEnvironment(installationDirectory: File, cacheDirectory: File): Map<String, String> = mapOf(
-    "UV_NO_CONFIG" to "1",
-    "UV_CACHE_DIR" to cacheDirectory.absolutePath,
-    "UV_PYTHON_CACHE_DIR" to cacheDirectory.resolve("python").absolutePath,
-    "UV_PYTHON_INSTALL_DIR" to installationDirectory.resolve("python").absolutePath,
-    "UV_PYTHON_BIN_DIR" to installationDirectory.resolve("bin").absolutePath,
-    "UV_PYTHON_PREFERENCE" to "only-managed",
-    "UV_LINK_MODE" to "copy"
+    NO_CONFIG_VARIABLE to ENABLED,
+    CACHE_VARIABLE to cacheDirectory.absolutePath,
+    PYTHON_CACHE_VARIABLE to cacheDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
+    PYTHON_INSTALL_VARIABLE to installationDirectory.resolve(PYTHON_DIRECTORY).absolutePath,
+    PYTHON_BINARY_VARIABLE to installationDirectory.resolve(BINARY_DIRECTORY).absolutePath,
+    PYTHON_PREFERENCE_VARIABLE to MANAGED_PYTHON_ONLY,
+    LINK_MODE_VARIABLE to COPY_LINKS
 )
 
 @DisableCachingByDefault(because = "Python virtual environments contain absolute installation paths")
@@ -81,7 +101,8 @@ abstract class PythonEnvironment : DefaultTask() {
     @get:Inject
     protected abstract val processes: ExecOperations
 
-    fun executable(name: String): Provider<RegularFile> = installationDirectory.file("venv/" + virtualEnvironmentExecutable(name))
+    fun executable(name: String): Provider<RegularFile> =
+        installationDirectory.file(VIRTUAL_ENVIRONMENT_DIRECTORY + PATH_SEPARATOR + virtualEnvironmentExecutable(name))
 
     @TaskAction
     fun install() {
@@ -93,16 +114,17 @@ abstract class PythonEnvironment : DefaultTask() {
             throw GradleException(message)
         }
         val uv = uvExecutable.get().asFile
-        ToolVersions.verify(processes, uv, "uv", uvVersion.get())
+        ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
         val installation = installationDirectory.get().asFile
         val environment = uvEnvironment(installation, cacheDirectory.get().asFile)
-        val virtualEnvironment = installation.resolve("venv")
+        val virtualEnvironment = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
         val python = pythonVersion.get()
+        val virtualEnvironmentPython: File = virtualEnvironment.resolve(virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE))
         listOf(
             listOf("python", "install", python, "--no-bin", "--no-registry"),
             listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment),
-            listOf("pip", "sync", "--python", virtualEnvironment.resolve(virtualEnvironmentExecutable("python")), "--require-hashes",
-                "--only-binary", ":all:", "--default-index", "https://pypi.org/simple", lock)
+            listOf("pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
+                "--only-binary", ":all:", "--default-index", PACKAGE_INDEX, lock)
         ).forEach { arguments ->
             processes.exec {
                 commandLine(listOf(uv) + arguments)

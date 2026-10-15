@@ -23,10 +23,13 @@ plugins {
     id("com.github.node-gradle.node")
 }
 
-val pinnedNodeVersion = libs.versionOf("node")
+val nodeAlias: String = "node"
+val nodeToolsPath: String = "tools/node"
+
+val pinnedNodeVersion = libs.versionOf(nodeAlias)
 
 node {
     download = true
     version = pinnedNodeVersion
-    workDir = layout.buildDirectory.dir("tools/node/$pinnedNodeVersion")
+    workDir = layout.buildDirectory.dir("$nodeToolsPath/$pinnedNodeVersion")
 }

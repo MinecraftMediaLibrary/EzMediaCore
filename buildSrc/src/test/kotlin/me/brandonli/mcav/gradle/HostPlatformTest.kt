@@ -36,6 +36,26 @@ class HostPlatformTest {
 
     private companion object {
 
+        const val LINUX_NAME: String = "Linux"
+        const val WINDOWS_NAME: String = "Windows 11"
+        const val MACOS_NAME: String = "Mac OS X"
+        const val UNKNOWN_NAME: String = "Plan 9"
+
+        const val AMD64: String = "amd64"
+        const val ARM64: String = "arm64"
+
+        const val LINUX_ARM64_TARGET: String = "aarch64-unknown-linux-musl"
+        const val WINDOWS_TARGET: String = "x86_64-pc-windows-msvc"
+
+        const val LINUX_CLASSIFIER: String = "natives-linux"
+        const val WINDOWS_CLASSIFIER: String = "natives-windows"
+        const val MACOS_ARM64_CLASSIFIER: String = "natives-macos-arm64"
+
+        const val LINUX_JAVA: String = "/opt/jdk/bin/java"
+        const val WINDOWS_JAVA: String = "/opt/jdk/bin/java.exe"
+        const val LINUX_PYTHON: String = "bin/python"
+        const val WINDOWS_PYTHON: String = "Scripts/python.exe"
+
         const val JAVA_HOME: String = "/opt/jdk"
         const val PYTHON: String = "python"
 
@@ -47,12 +67,12 @@ class HostPlatformTest {
     @Test
     fun shouldKeepTheArchiveAndClassifierMappingsOfTheSixDownloadHosts() {
         val hosts = listOf(
-            listOf("Linux", "amd64", "x86_64", "linux", "x86_64-unknown-linux-musl", "natives-linux"),
-            listOf("Linux", "arm64", "aarch64", "linux", "aarch64-unknown-linux-musl", "natives-linux-arm64"),
-            listOf("Windows 11", "x86_64", "x86_64", "windows", "x86_64-pc-windows-msvc", "natives-windows"),
-            listOf("Windows 11", "aarch64", "aarch64", "windows", "aarch64-pc-windows-msvc", "natives-windows-arm64"),
-            listOf("Mac OS X", "amd64", "x86_64", "macos", "x86_64-apple-darwin", "natives-macos"),
-            listOf("Mac OS X", "arm64", "aarch64", "macos", "aarch64-apple-darwin", "natives-macos-arm64")
+            listOf(LINUX_NAME, AMD64, "x86_64", "linux", "x86_64-unknown-linux-musl", LINUX_CLASSIFIER),
+            listOf(LINUX_NAME, ARM64, "aarch64", "linux", LINUX_ARM64_TARGET, "natives-linux-arm64"),
+            listOf(WINDOWS_NAME, "x86_64", "x86_64", "windows", WINDOWS_TARGET, WINDOWS_CLASSIFIER),
+            listOf(WINDOWS_NAME, "aarch64", "aarch64", "windows", "aarch64-pc-windows-msvc", "natives-windows-arm64"),
+            listOf(MACOS_NAME, AMD64, "x86_64", "macos", "x86_64-apple-darwin", "natives-macos"),
+            listOf(MACOS_NAME, ARM64, "aarch64", "macos", "aarch64-apple-darwin", MACOS_ARM64_CLASSIFIER)
         )
         val mappings: List<List<String?>> = hosts.map { expected ->
             val host = HostPlatform.normalize(expected[0], expected[1])
@@ -66,34 +86,34 @@ class HostPlatformTest {
         val windowsX86: List<String?> = listOf("x86", "i386", "i686").map { HostPlatform.normalize("Windows", it).lwjglNatives }
         assertEquals(List(3) { "natives-windows-x86" }, windowsX86)
 
-        val linuxArm32: List<String?> = listOf("arm", "arm32", "armv7l").map { HostPlatform.normalize("Linux", it).lwjglNatives }
+        val linuxArm32: List<String?> = listOf("arm", "arm32", "armv7l").map { HostPlatform.normalize(LINUX_NAME, it).lwjglNatives }
         assertEquals(List(3) { "natives-linux-arm32" }, linuxArm32)
 
-        val powerPc: String? = HostPlatform.normalize("Linux", "ppc64le").lwjglNatives
+        val powerPc: String? = HostPlatform.normalize(LINUX_NAME, "ppc64le").lwjglNatives
         assertEquals("natives-linux-ppc64le", powerPc)
 
-        val riscV: String? = HostPlatform.normalize("Linux", "riscv64").lwjglNatives
+        val riscV: String? = HostPlatform.normalize(LINUX_NAME, "riscv64").lwjglNatives
         assertEquals("natives-linux-riscv64", riscV)
 
-        val freeBsd: String? = HostPlatform.normalize("FreeBSD", "amd64").lwjglNatives
+        val freeBsd: String? = HostPlatform.normalize("FreeBSD", AMD64).lwjglNatives
         assertEquals("natives-freebsd", freeBsd)
 
-        val darwin: HostPlatform = HostPlatform.normalize("Darwin", "arm64")
+        val darwin: HostPlatform = HostPlatform.normalize("Darwin", ARM64)
         val darwinNatives: String? = darwin.lwjglNatives
-        assertEquals("natives-macos-arm64", darwinNatives)
+        assertEquals(MACOS_ARM64_CLASSIFIER, darwinNatives)
 
         val darwinZigSystem: String = darwin.zigSystem
         assertEquals("darwin", darwinZigSystem)
 
         val darwinUvTarget: String = darwin.uvTarget
-        assertEquals("aarch64-unknown-linux-musl", darwinUvTarget)
+        assertEquals(LINUX_ARM64_TARGET, darwinUvTarget)
 
-        val unknownArchitectures: List<String?> = listOf("Linux", "Windows", "Mac OS X", "FreeBSD", "Plan 9").map {
+        val unknownArchitectures: List<String?> = listOf(LINUX_NAME, "Windows", MACOS_NAME, "FreeBSD", UNKNOWN_NAME).map {
             HostPlatform.normalize(it, "unknown").lwjglNatives
         }
         assertEquals(List(5) { null }, unknownArchitectures)
 
-        val freeBsdArm: String? = HostPlatform.normalize("FreeBSD", "arm64").lwjglNatives
+        val freeBsdArm: String? = HostPlatform.normalize("FreeBSD", ARM64).lwjglNatives
         assertNull(freeBsdArm)
     }
 
@@ -107,13 +127,13 @@ class HostPlatformTest {
             assertTrue(windows)
 
             val uvTarget: String = host.uvTarget
-            assertEquals("x86_64-pc-windows-msvc", uvTarget)
+            assertEquals(WINDOWS_TARGET, uvTarget)
 
             val windowsNatives: String? = host.lwjglNatives
-            assertEquals("natives-windows", windowsNatives)
+            assertEquals(WINDOWS_CLASSIFIER, windowsNatives)
 
             val linuxNatives: String? = HostPlatform.normalize("LINUX", "X86_64").lwjglNatives
-            assertEquals("natives-linux", linuxNatives)
+            assertEquals(LINUX_CLASSIFIER, linuxNatives)
         } finally {
             Locale.setDefault(previous)
         }
@@ -121,20 +141,20 @@ class HostPlatformTest {
 
     @Test
     fun shouldPlaceTheJavaAndVirtualEnvironmentExecutablesOfEachSystem(): Unit {
-        val linux: HostPlatform = HostPlatform.normalize("Linux", "amd64")
-        val windows: HostPlatform = HostPlatform.normalize("Windows 11", "amd64")
+        val linux: HostPlatform = HostPlatform.normalize(LINUX_NAME, AMD64)
+        val windows: HostPlatform = HostPlatform.normalize(WINDOWS_NAME, AMD64)
 
         val linuxJava: String = linux.javaExecutable(JAVA_HOME)
-        assertEquals("/opt/jdk/bin/java", linuxJava)
+        assertEquals(LINUX_JAVA, linuxJava)
 
         val windowsJava: String = windows.javaExecutable(JAVA_HOME)
-        assertEquals("/opt/jdk/bin/java.exe", windowsJava)
+        assertEquals(WINDOWS_JAVA, windowsJava)
 
         val linuxPython: String = linux.virtualEnvironmentExecutable(PYTHON)
-        assertEquals("bin/python", linuxPython)
+        assertEquals(LINUX_PYTHON, linuxPython)
 
         val windowsPython: String = windows.virtualEnvironmentExecutable(PYTHON)
-        assertEquals("Scripts/python.exe", windowsPython)
+        assertEquals(WINDOWS_PYTHON, windowsPython)
     }
 
     @Test
@@ -153,17 +173,17 @@ class HostPlatformTest {
     @Test
     fun shouldAddTheLwjglNativesOfAHostThatHasThem(): Unit {
         val project: Project = this.javaProject()
-        val linux: HostPlatform = HostPlatform.normalize("Linux", "amd64")
+        val linux: HostPlatform = HostPlatform.normalize(LINUX_NAME, AMD64)
         project.dependencies.addLwjglTestNatives(linux, listOf(this.lwjgl(project)))
 
         val classifiers: List<String?> = this.testRuntimeClassifiers(project)
-        assertEquals(listOf("natives-linux"), classifiers)
+        assertEquals(listOf(LINUX_CLASSIFIER), classifiers)
     }
 
     @Test
     fun shouldAddNoLwjglNativesForAHostWithoutThem(): Unit {
         val project: Project = this.javaProject()
-        val unknown: HostPlatform = HostPlatform.normalize("Plan 9", "amd64")
+        val unknown: HostPlatform = HostPlatform.normalize(UNKNOWN_NAME, AMD64)
         project.dependencies.addLwjglTestNatives(unknown, listOf(this.lwjgl(project)))
 
         val classifiers: List<String?> = this.testRuntimeClassifiers(project)

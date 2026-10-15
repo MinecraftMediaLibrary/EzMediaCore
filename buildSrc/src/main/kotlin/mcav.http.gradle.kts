@@ -25,47 +25,74 @@ plugins {
     id("mcav.publishing")
 }
 
+val pathVariable: String = "PATH"
+val corepackPromptVariable: String = "COREPACK_ENABLE_DOWNLOAD_PROMPT"
+val disabledPrompt: String = "0"
+val nodeOptionsVariable: String = "NODE_OPTIONS"
+val nodeHeapMegabytes: Int = 4096
+val pnpmTool: String = "pnpm"
+
+val websitePath: String = "mcav-website"
+val packageJsonPath: String = "mcav-website/package.json"
+val pnpmLockPath: String = "mcav-website/pnpm-lock.yaml"
+val installedModulesPath: String = "mcav-website/node_modules/.modules.yaml"
+val websiteSourcePath: String = "mcav-website/src"
+val websitePublicPath: String = "mcav-website/public"
+val websiteTestPath: String = "mcav-website/test"
+val websiteOutputPath: String = "mcav-website/out"
+val websiteConfigurationFiles: List<String> = listOf(
+    "mcav-website/next.config.ts",
+    "mcav-website/third-party-notices.mjs",
+    "mcav-website/tsconfig.json",
+    "mcav-website/postcss.config.mjs"
+)
+val websiteTestsPassedPath: String = "website-tests/passed"
+val passedMarker: String = "passed\n"
+
+val bundledWebsitePath: String = "mcav/http/website"
+val websiteTestResources: String = "website/**"
+val httpResourcePath: String = "mcav/http"
+val builtJarProperty: String = "mcav.http.jar"
+val builtJarPath: String = "libs/mcav-http.jar"
+
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
 val host = HostPlatform.current()
 val nodeInstallation = node.resolvedNodeDir.get()
 val nodeExecutable = NodeLayout.executable(nodeInstallation, host).asFile
 val corepackScript = NodeLayout.corepackScript(nodeInstallation, host).asFile
-val nodePath = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
+val nodePath = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv(pathVariable)
 
 val pnpmProjectInstall = tasks.register<Exec>("pnpmProjectInstall") {
     group = "build"
     description = "Installs the pnpm dependencies of the website"
     dependsOn(nodeSetup)
-    workingDir = file("mcav-website")
+    workingDir = file(websitePath)
     executable = nodeExecutable.absolutePath
-    environment("PATH", nodePath)
-    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
-    args(corepackScript.absolutePath, "pnpm", "install", "--frozen-lockfile")
-    inputs.file("mcav-website/package.json")
-    inputs.file("mcav-website/pnpm-lock.yaml")
-    outputs.file("mcav-website/node_modules/.modules.yaml")
+    environment(pathVariable, nodePath)
+    environment(corepackPromptVariable, disabledPrompt)
+    args(corepackScript.absolutePath, pnpmTool, "install", "--frozen-lockfile")
+    inputs.file(packageJsonPath)
+    inputs.file(pnpmLockPath)
+    outputs.file(installedModulesPath)
 }
 
 val buildWebsite = tasks.register<Exec>("buildWebsite") {
     group = "build"
     description = "Builds the Next.js website"
     dependsOn(pnpmProjectInstall)
-    workingDir = file("mcav-website")
+    workingDir = file(websitePath)
     executable = nodeExecutable.absolutePath
-    environment("PATH", nodePath)
-    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
-    environment("NODE_OPTIONS", "--max-old-space-size=4096")
-    args(corepackScript.absolutePath, "pnpm", "run", "build")
-    inputs.dir("mcav-website/src")
-    inputs.dir("mcav-website/public")
-    inputs.file("mcav-website/package.json")
-    inputs.file("mcav-website/next.config.ts")
-    inputs.file("mcav-website/third-party-notices.mjs")
-    inputs.file("mcav-website/pnpm-lock.yaml")
-    inputs.file("mcav-website/tsconfig.json")
-    inputs.file("mcav-website/postcss.config.mjs")
-    outputs.dir("mcav-website/out")
+    environment(pathVariable, nodePath)
+    environment(corepackPromptVariable, disabledPrompt)
+    environment(nodeOptionsVariable, "--max-old-space-size=$nodeHeapMegabytes")
+    args(corepackScript.absolutePath, pnpmTool, "run", "build")
+    inputs.dir(websiteSourcePath)
+    inputs.dir(websitePublicPath)
+    inputs.file(packageJsonPath)
+    inputs.file(pnpmLockPath)
+    inputs.files(websiteConfigurationFiles)
+    outputs.dir(websiteOutputPath)
     outputs.cacheIf { false }
 }
 
@@ -73,18 +100,18 @@ val testWebsite = tasks.register<Exec>("testWebsite") {
     group = "verification"
     description = "Runs the tests of the website"
     dependsOn(pnpmProjectInstall)
-    workingDir = file("mcav-website")
+    workingDir = file(websitePath)
     executable = nodeExecutable.absolutePath
-    environment("PATH", nodePath)
-    environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
-    args(corepackScript.absolutePath, "pnpm", "test")
-    inputs.dir("mcav-website/src")
-    inputs.dir("mcav-website/test")
-    inputs.file("mcav-website/package.json")
-    val passed = layout.buildDirectory.file("website-tests/passed")
+    environment(pathVariable, nodePath)
+    environment(corepackPromptVariable, disabledPrompt)
+    args(corepackScript.absolutePath, pnpmTool, "test")
+    inputs.dir(websiteSourcePath)
+    inputs.dir(websiteTestPath)
+    inputs.file(packageJsonPath)
+    val passed = layout.buildDirectory.file(websiteTestsPassedPath)
     outputs.file(passed)
     doLast {
-        passed.get().asFile.writeText("passed\n")
+        passed.get().asFile.writeText(passedMarker)
     }
 }
 
@@ -94,23 +121,23 @@ tasks.check {
 
 tasks.jar {
     from(buildWebsite) {
-        into("mcav/http/website")
+        into(bundledWebsitePath)
     }
 }
 
 tasks.processTestResources {
-    filesMatching("website/**") {
-        path = "mcav/http/$path"
+    filesMatching(websiteTestResources) {
+        path = "$httpResourcePath/$path"
     }
 }
 
 tasks.named<Jar>("sourcesJar") {
     from(buildWebsite) {
-        into("mcav/http/website")
+        into(bundledWebsitePath)
     }
 }
 
-val builtJar = "-Dmcav.http.jar=" + layout.buildDirectory.file("libs/mcav-http.jar").get().asFile.absolutePath
+val builtJar = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
     dependsOn(tasks.jar)
     jvmArgs(builtJar)

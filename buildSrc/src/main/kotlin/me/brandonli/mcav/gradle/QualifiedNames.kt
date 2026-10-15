@@ -26,21 +26,26 @@ object QualifiedNames {
         "java", "javax", "jakarta", "jdk", "sun", "com", "org", "net", "io", "me", "uk", "de", "xyz", "it", "dev", "info"
     )
 
-    private val NAME = Regex("(?<![\\w.$])((?:${ROOTS.joinToString("|")})\\.(?:[a-z_][a-z0-9_]*\\.)+[A-Z][\\w$]*)")
+    private val NAME = Regex("(?<![\\w.$])((?:${ROOTS.joinToString(ROOT_SEPARATOR)})\\.(?:[a-z_][a-z0-9_]*\\.)+[A-Z][\\w$]*)")
 
     private val MARKER = Regex("//\\s*fqn:\\s*\\S")
 
     private val DECLARATION = Regex("^\\s*(package|import)\\s")
 
+    private const val ROOT_SEPARATOR: String = "|"
+    private const val NEW_LINE: Char = '\n'
+    private const val NAME_GROUP: Int = 1
+    private const val FIRST_LINE_NUMBER: Int = 1
+
     fun find(source: String): List<QualifiedName> {
-        val lines = source.split('\n')
-        val code = JavaSource.mask(source).split('\n')
+        val lines = source.split(NEW_LINE)
+        val code = JavaSource.mask(source).split(NEW_LINE)
         val found = mutableListOf<QualifiedName>()
         code.forEachIndexed { index, line ->
             if (DECLARATION.containsMatchIn(line) || MARKER.containsMatchIn(lines[index])) {
                 return@forEachIndexed
             }
-            NAME.findAll(line).forEach { match -> found += QualifiedName(index + 1, match.groupValues[1]) }
+            NAME.findAll(line).forEach { match -> found += QualifiedName(index + FIRST_LINE_NUMBER, match.groupValues[NAME_GROUP]) }
         }
         return found
     }

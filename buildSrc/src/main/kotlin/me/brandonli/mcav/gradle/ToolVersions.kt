@@ -24,13 +24,17 @@ import org.gradle.process.ExecOperations
 
 object ToolVersions {
 
+    private const val VERSION_ARGUMENT: String = "--version"
+
+    private const val VERSION_GROUP: Int = 1
+
     fun verify(
         processes: ExecOperations,
         executable: Any,
         tool: String,
         expected: String,
         prefix: String = "$tool ",
-        argument: String = "--version"
+        argument: String = VERSION_ARGUMENT
     ) {
         val output = ByteArrayOutputStream()
         processes.exec {
@@ -38,7 +42,7 @@ object ToolVersions {
             standardOutput = output
         }
         val reported = output.toString(Charsets.UTF_8).trim()
-        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(1)
+        val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(VERSION_GROUP)
         if (actual != expected) {
             val message = "$executable reports $reported, which is not the $tool $expected this build pins!"
             throw GradleException(message)

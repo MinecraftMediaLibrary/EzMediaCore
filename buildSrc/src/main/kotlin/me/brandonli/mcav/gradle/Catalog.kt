@@ -26,8 +26,10 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.getByType
 
+private const val CATALOG_NAME: String = "libs"
+
 val Project.libs: VersionCatalog
-    get() = extensions.getByType<VersionCatalogsExtension>().named("libs")
+    get() = extensions.getByType<VersionCatalogsExtension>().named(CATALOG_NAME)
 
 fun VersionCatalog.versionOf(alias: String): String = findVersion(alias).get().requiredVersion
 

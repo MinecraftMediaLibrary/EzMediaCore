@@ -23,15 +23,19 @@ plugins {
     base
 }
 
+val excludedDocsSources: List<String> =
+    listOf("build/**", "_build/**", ".jupyter_cache/**", "**/__pycache__/**", "build.gradle.kts", "requirements*", "conf.py")
+val docsOutputPath: String = "html"
+
 val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
 val buildDocs = tasks.register<JupyterBook>("buildDocs") {
     group = "documentation"
     description = "Builds the documentation HTML; a Sphinx warning fails it"
     useEnvironment(pythonEnvironment)
     sources.from(fileTree(projectDir) {
-        exclude("build/**", "_build/**", ".jupyter_cache/**", "**/__pycache__/**", "build.gradle.kts", "requirements*", "conf.py")
+        exclude(excludedDocsSources)
     })
-    outputDirectory = layout.buildDirectory.dir("html")
+    outputDirectory = layout.buildDirectory.dir(docsOutputPath)
 }
 tasks.named("assemble") {
     dependsOn(buildDocs)

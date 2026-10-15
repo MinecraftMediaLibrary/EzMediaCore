@@ -26,6 +26,12 @@ import org.junit.jupiter.api.io.TempDir
 
 class VariableNamesTest {
 
+    private companion object {
+
+        const val SOURCE_FILE: String = "Sample.java"
+        const val DETOUR_PATH: String = "sub/../Sample.java"
+    }
+
     @Test
     fun shouldAcceptDescriptiveNamesTypeParametersAndTheUnnamedVariable() {
         val source = """
@@ -147,9 +153,9 @@ class VariableNamesTest {
 
     @Test
     fun shouldKeyAFileByItsNormalizedPathWhenTheGivenPathTakesADetour(@TempDir directory: Path): Unit {
-        val file: File = directory.resolve("Sample.java").toFile()
+        val file: File = directory.resolve(SOURCE_FILE).toFile()
         file.writeText("final class Sample {\n  private int x;\n}\n")
-        val detour: File = directory.resolve("sub/../Sample.java").toFile()
+        val detour: File = directory.resolve(DETOUR_PATH).toFile()
 
         val found: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(listOf(detour))
         val files: Set<File> = found.keys

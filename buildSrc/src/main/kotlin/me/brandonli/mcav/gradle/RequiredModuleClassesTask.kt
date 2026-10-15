@@ -31,6 +31,8 @@ abstract class RequiredModuleClassesTask : DefaultTask() {
 
     companion object {
         const val RESOURCE = "META-INF/mcav/required-classes.txt"
+
+        private const val LINE_SEPARATOR: String = "\n"
     }
 
     @get:Classpath
@@ -47,6 +49,6 @@ abstract class RequiredModuleClassesTask : DefaultTask() {
         val classes = ModuleClasses.required(pluginClasses.files, modules.files)
         val file = output.get().file(RESOURCE).asFile
         file.parentFile.mkdirs()
-        file.writeText(classes.joinToString("\n", postfix = "\n"))
+        file.writeText(classes.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
     }
 }

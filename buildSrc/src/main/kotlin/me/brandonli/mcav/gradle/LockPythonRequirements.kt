@@ -37,6 +37,19 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(because = "The lock is resolved from the package index into the source tree")
 abstract class LockPythonRequirements : DefaultTask() {
 
+    companion object {
+
+        private const val REQUIREMENTS_INPUT: String = "requirements.in"
+        private const val LINE_SEPARATOR: String = "\n"
+        private const val MARKER_SEPARATOR: String = " ; "
+        private const val VERSION_SEPARATOR: Char = '.'
+
+        fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> =
+            versions.toSortedMap().map { (name, version) ->
+                listOfNotNull("$name${RequirementsLock.PIN_SEPARATOR}$version", markers[name]).joinToString(MARKER_SEPARATOR)
+            }
+    }
+
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val uvExecutable: RegularFileProperty
@@ -71,22 +84,17 @@ abstract class LockPythonRequirements : DefaultTask() {
     @TaskAction
     fun lock() {
         val uv = uvExecutable.get().asFile
-        ToolVersions.verify(processes, uv, "uv", uvVersion.get())
-        val requirementsInput = temporaryDir.resolve("requirements.in")
-        requirementsInput.writeText(requirementLines(versions.get(), markers.get()).joinToString("\n", postfix = "\n"))
+        ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
+        val requirementsInput = temporaryDir.resolve(REQUIREMENTS_INPUT)
+        requirementsInput.writeText(requirementLines(versions.get(), markers.get()).joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
         val lock = lockFile.get().asFile
         val python = pythonVersion.get()
         processes.exec {
             commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
-                "--python", python, "--python-version", python.substringBeforeLast('.'), "--only-binary", ":all:",
-                "--default-index", "https://pypi.org/simple", "--output-file", lock, "--quiet")
+                "--python", python, "--python-version", python.substringBeforeLast(VERSION_SEPARATOR), "--only-binary", ":all:",
+                "--default-index", PACKAGE_INDEX, "--output-file", lock, "--quiet")
             environment(uvEnvironment(installationDirectory.get().asFile, cacheDirectory.get().asFile))
         }
         lock.writeText(licenseHeader.get() + lock.readText())
-    }
-
-    companion object {
-        fun requirementLines(versions: Map<String, String>, markers: Map<String, String>): List<String> =
-            versions.toSortedMap().map { (name, version) -> listOfNotNull("$name==$version", markers[name]).joinToString(" ; ") }
     }
 }

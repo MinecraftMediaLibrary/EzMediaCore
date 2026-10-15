@@ -40,9 +40,70 @@ plugins {
     id("org.bytedeco.gradle-javacpp-platform")
 }
 
-val minecraftVersion = libs.versionOf("minecraft")
-private val paperVersion = PaperVersion.parse(libs.versionOf("paper"))
-version = "${rootProject.version.toString().removeSuffix("-SNAPSHOT")}-v$minecraftVersion"
+val minecraftAlias: String = "minecraft"
+val paperAlias: String = "paper"
+val junitBomAlias: String = "junit-bom"
+val junitJupiterAlias: String = "junit-jupiter"
+val gsonAlias: String = "gson"
+val junitLauncherAlias: String = "junit-platform-launcher"
+val voiceChatAlias: String = "voicechat-plugin"
+val sparkAlias: String = "spark"
+val sparkBuildAlias: String = "spark-build"
+
+val snapshotSuffix: String = "-SNAPSHOT"
+val minecraftVersionPrefix: String = "-v"
+val noChangingModuleCache: Int = 0
+val changingModuleCacheUnit: String = "seconds"
+val classpathSuffix: String = "Classpath"
+val projectPathPrefix: String = ":"
+
+val nativeResourcesConfiguration: String = "mcv2NativeResources"
+val bukkitProjectPath: String = ":mcav-bukkit"
+val requiredClassesPath: String = "generated/resources/required-classes"
+val dependencyManifestSource: String = "dependencies.txt"
+val dependencyManifestTarget: String = "mcav/plugin/dependencies.txt"
+
+val pluginName: String = "MCAV"
+val pluginDescription: String = "MCAV Sandbox Plugin"
+val pluginAuthor: String = "PulseBeat_02"
+val pluginLogPrefix: String = "MCAV Sandbox"
+val pluginLoaderClass: String = "me.brandonli.mcav.plugin.MCAVLoader"
+val pluginMainClass: String = "me.brandonli.mcav.plugin.MCAVSandbox"
+val voiceChatPlugin: String = "voicechat"
+
+val serverHeapSize: String = "8192m"
+
+val endToEndProperty: String = "mcav.e2e"
+val endToEndPortProperty: String = "mcav.e2e.repositoryPort"
+val acceptEulaProperty: String = "mcav.acceptMinecraftEula"
+val disabledValue: String = "false"
+val anyFreePort: Int = 0
+val endToEndRepositoryPath: String = "e2e-repository"
+val endToEndRepositoryName: String = "endToEnd"
+val endToEndPublishTaskSuffix: String = "publishMavenPublicationToEndToEndRepository"
+val publicRepositorySchemes: Set<String> = setOf("http", "https")
+val localRepositoryHost: String = "http://127.0.0.1"
+
+val endToEndTestName: String = "e2eTest"
+val endToEndImplementation: String = "e2eTestImplementation"
+val endToEndRuntimeOnly: String = "e2eTestRuntimeOnly"
+val endToEndCachePath: String = "e2e-cache"
+
+val paperFileNameProperty: String = "mcav.e2e.paperFileName"
+val voiceChatFileNameProperty: String = "mcav.e2e.voiceChatFileName"
+val cacheDirectoryProperty: String = "mcav.e2e.cacheDirectory"
+val acceptEulaTestProperty: String = "mcav.e2e.acceptEula"
+val repositoryDirectoryProperty: String = "mcav.e2e.repositoryDirectory"
+val pluginJarProperty: String = "mcav.e2e.pluginJar"
+val javaProperty: String = "mcav.e2e.java"
+
+val legacyFormattingWarningProperty: String = "net.kyori.adventure.text.warnWhenLegacyFormattingDetected"
+val voiceChatModrinthProject: String = "simple-voice-chat"
+val sparkJobUrl: String = "https://ci.lucko.me/job/spark"
+
+val minecraftVersion = libs.versionOf(minecraftAlias)
+private val paperVersion = PaperVersion.parse(libs.versionOf(paperAlias))
+version = "${rootProject.version.toString().removeSuffix(snapshotSuffix)}$minecraftVersionPrefix$minecraftVersion"
 
 configurations.compileOnly {
     extendsFrom(configurations.runtimeDownload.get())
@@ -53,25 +114,25 @@ configurations.testImplementation {
 }
 
 configurations.runtimeDownload {
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    resolutionStrategy.cacheChangingModulesFor(noChangingModuleCache, changingModuleCacheUnit)
 }
 
-configurations.matching { it.name.endsWith("Classpath") }.configureEach {
+configurations.matching { it.name.endsWith(classpathSuffix) }.configureEach {
     resolutionStrategy.dependencySubstitution.all {
         val module = requested as? ModuleComponentSelector ?: return@all
-        val project = rootProject.findProject(":${module.module}")
+        val project = rootProject.findProject("$projectPathPrefix${module.module}")
         if (module.group == rootProject.group.toString() && project != null) {
             useTarget(project)
         }
     }
 }
 
-val nativeResources = configurations.register("mcv2NativeResources") {
+val nativeResources = configurations.register(nativeResourcesConfiguration) {
     isCanBeConsumed = false
     isCanBeResolved = true
 }
 dependencies {
-    add(nativeResources.name, project(path = ":mcav-bukkit", configuration = "mcv2NativeResources"))
+    add(nativeResources.name, project(path = bukkitProjectPath, configuration = nativeResourcesConfiguration))
 }
 tasks.shadowJar {
     from(nativeResources)
@@ -83,8 +144,8 @@ tasks.assemble {
 
 val downloadedModules = configurations.runtimeDownload.map { configuration ->
     configuration.dependencies
-        .filter { it.group == rootProject.group.toString() && rootProject.findProject(":${it.name}") != null }
-        .map { ":${it.name}" }
+        .filter { it.group == rootProject.group.toString() && rootProject.findProject("$projectPathPrefix${it.name}") != null }
+        .map { "$projectPathPrefix${it.name}" }
 }
 val requiredModuleClasses = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
     group = "build"
@@ -98,7 +159,7 @@ val requiredModuleClasses = tasks.register<RequiredModuleClassesTask>("requiredM
             }.files
         }
     )
-    output = layout.buildDirectory.dir("generated/resources/required-classes")
+    output = layout.buildDirectory.dir(requiredClassesPath)
 }
 
 sourceSets.main {
@@ -106,9 +167,9 @@ sourceSets.main {
 }
 
 tasks.processResources {
-    val dependencyManifestPath = "mcav/plugin/dependencies.txt"
+    val dependencyManifestPath = dependencyManifestTarget
     inputs.property("dependencyManifestPath", dependencyManifestPath)
-    filesMatching("dependencies.txt") {
+    filesMatching(dependencyManifestSource) {
         path = dependencyManifestPath
     }
 }
@@ -154,14 +215,14 @@ val pluginPermissions = mapOf(
 
 paperPluginYaml {
     apiVersion = minecraftVersion
-    name = "MCAV"
+    name = pluginName
     version = "${project.version}"
-    description = "MCAV Sandbox Plugin"
-    authors = listOf("PulseBeat_02")
-    prefix = "MCAV Sandbox"
-    loader = "me.brandonli.mcav.plugin.MCAVLoader"
-    main = "me.brandonli.mcav.plugin.MCAVSandbox"
-    dependencies.server("voicechat", PaperPluginYaml.Load.BEFORE, false)
+    description = pluginDescription
+    authors = listOf(pluginAuthor)
+    prefix = pluginLogPrefix
+    loader = pluginLoaderClass
+    main = pluginMainClass
+    dependencies.server(voiceChatPlugin, PaperPluginYaml.Load.BEFORE, false)
     defaultPermission = Permission.Default.OP
     permissions {
         pluginPermissions.forEach { (name, text) -> register(name) { description = text } }
@@ -175,43 +236,43 @@ tasks.runServer {
 
 tasks.withType<AbstractRun>().configureEach {
     javaLauncher = javaLauncher(JvmVendorSpec.JETBRAINS)
-    jvmArgs("-Xms8192m", "-Xmx8192m", "-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
+    jvmArgs("-Xms$serverHeapSize", "-Xmx$serverHeapSize", "-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
-val endToEnd = providers.gradleProperty("mcav.e2e").map { it.toBoolean() }.getOrElse(false)
-val endToEndRepository = rootProject.layout.buildDirectory.dir("e2e-repository").get().asFile
+val endToEnd = providers.gradleProperty(endToEndProperty).map { it.toBoolean() }.getOrElse(false)
+val endToEndRepository = rootProject.layout.buildDirectory.dir(endToEndRepositoryPath).get().asFile
 val endToEndPort = if (endToEnd) {
-    providers.gradleProperty("mcav.e2e.repositoryPort").orNull?.toInt() ?: ServerSocket(0).use { it.localPort }
+    providers.gradleProperty(endToEndPortProperty).orNull?.toInt() ?: ServerSocket(anyFreePort).use { it.localPort }
 } else {
-    0
+    anyFreePort
 }
 
 if (endToEnd) {
     val repository = repositories.maven {
-        name = "endToEnd"
+        name = endToEndRepositoryName
         url = endToEndRepository.toURI()
     }
     repositories.remove(repository)
     repositories.addFirst(repository)
     tasks.named<WriteDependencySet>("writeDependencies") {
-        dependsOn(downloadedModules.map { modules -> modules.map { "$it:publishMavenPublicationToEndToEndRepository" } })
+        dependsOn(downloadedModules.map { modules -> modules.map { "$it:$endToEndPublishTaskSuffix" } })
         val publicRepositories = repositories.withType<MavenArtifactRepository>()
-            .filter { it.url.scheme == "http" || it.url.scheme == "https" }
+            .filter { it.url.scheme in publicRepositorySchemes }
             .map { it.url.toString() }
-        repos = listOf("http://127.0.0.1:$endToEndPort/") + publicRepositories
+        repos = listOf("$localRepositoryHost:$endToEndPort/") + publicRepositories
     }
 }
 
-val endToEndTestSourceSet = sourceSets.create("e2eTest")
+val endToEndTestSourceSet = sourceSets.create(endToEndTestName)
 
 dependencies {
-    "e2eTestImplementation"(platform(libs.libraryOf("junit-bom")))
-    "e2eTestImplementation"(libs.libraryOf("junit-jupiter"))
-    "e2eTestImplementation"(libs.libraryOf("gson"))
-    "e2eTestRuntimeOnly"(libs.libraryOf("junit-platform-launcher"))
+    add(endToEndImplementation, platform(libs.libraryOf(junitBomAlias)))
+    add(endToEndImplementation, libs.libraryOf(junitJupiterAlias))
+    add(endToEndImplementation, libs.libraryOf(gsonAlias))
+    add(endToEndRuntimeOnly, libs.libraryOf(junitLauncherAlias))
 }
 
-tasks.register<Test>("e2eTest") {
+tasks.register<Test>(endToEndTestName) {
     group = "verification"
     description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
     testClassesDirs = endToEndTestSourceSet.output.classesDirs
@@ -219,12 +280,12 @@ tasks.register<Test>("e2eTest") {
     val pluginJar = tasks.shadowJar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
     outputs.upToDateWhen { false }
-    systemProperty("mcav.e2e.paperFileName", paperVersion.fileName)
-    systemProperty("mcav.e2e.voiceChatFileName", "voicechat-${libs.versionOf("voicechat-plugin")}.jar")
-    systemProperty("mcav.e2e.cacheDirectory", layout.buildDirectory.dir("e2e-cache").get().asFile.absolutePath)
-    systemProperty("mcav.e2e.acceptEula", providers.gradleProperty("mcav.acceptMinecraftEula").getOrElse("false"))
-    systemProperty("mcav.e2e.repositoryDirectory", endToEndRepository.absolutePath)
-    systemProperty("mcav.e2e.repositoryPort", endToEndPort)
+    systemProperty(paperFileNameProperty, paperVersion.fileName)
+    systemProperty(voiceChatFileNameProperty, "$voiceChatPlugin-${libs.versionOf(voiceChatAlias)}.jar")
+    systemProperty(cacheDirectoryProperty, layout.buildDirectory.dir(endToEndCachePath).get().asFile.absolutePath)
+    systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
+    systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
+    systemProperty(endToEndPortProperty, endToEndPort)
     val launcher = javaLauncher()
     val usesThisBuild = endToEnd
     doFirst {
@@ -232,16 +293,16 @@ tasks.register<Test>("e2eTest") {
             val message = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
             throw GradleException(message)
         }
-        systemProperty("mcav.e2e.pluginJar", pluginJar.get().asFile.absolutePath)
-        systemProperty("mcav.e2e.java", launcher.get().executablePath.asFile.absolutePath)
+        systemProperty(pluginJarProperty, pluginJar.get().asFile.absolutePath)
+        systemProperty(javaProperty, launcher.get().executablePath.asFile.absolutePath)
     }
 }
 
 tasks.runServer {
-    systemProperty("net.kyori.adventure.text.warnWhenLegacyFormattingDetected", false)
+    systemProperty(legacyFormattingWarningProperty, false)
     downloadPlugins {
-        modrinth("simple-voice-chat", libs.versionOf("voicechat-plugin"))
-        val spark = libs.versionOf("spark")
-        url("https://ci.lucko.me/job/spark/${libs.versionOf("spark-build")}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
+        modrinth(voiceChatModrinthProject, libs.versionOf(voiceChatAlias))
+        val spark = libs.versionOf(sparkAlias)
+        url("$sparkJobUrl/${libs.versionOf(sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
     }
 }

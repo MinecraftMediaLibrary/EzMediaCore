@@ -31,13 +31,20 @@ import org.junit.jupiter.api.Test
 
 class ToolsTest {
 
+    private companion object {
+
+        const val CLANG_ARCHIVE: String = "clang.zip"
+        const val FIXTURE_TOOL_PATH: String = "tools/fixture-tool/1.0/fixture-tool"
+        const val PATH_TOOL_PATH: String = "tools/path/1.0/path"
+    }
+
     @Test
     fun shouldGiveAPinnedArchiveItsChecksumAndNameTheOverrideVariableOfAnUnpinnedOne() {
         val project = ProjectBuilder.builder().build()
         val checksum: String = project.pinnedSha256("zig", "0.16.0", "zig-x86_64-linux-0.16.0.tar.xz").get()
         assertEquals("70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00", checksum)
 
-        val failure = assertThrows(GradleException::class.java) { project.pinnedSha256("clang-format", "1.0", "clang.zip").get() }
+        val failure = assertThrows(GradleException::class.java) { project.pinnedSha256("clang-format", "1.0", CLANG_ARCHIVE).get() }
         val message: String? = failure.message
         val expected: String =
             "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip, so set CLANG_FORMAT to the path of clang-format 1.0!"
@@ -47,7 +54,7 @@ class ToolsTest {
     @Test
     fun shouldSelectTheInstalledToolWithoutItsOverrideVariable() {
         val project = ProjectBuilder.builder().build()
-        val installed = project.layout.buildDirectory.file("tools/fixture-tool/1.0/fixture-tool")
+        val installed = project.layout.buildDirectory.file(FIXTURE_TOOL_PATH)
         val overridden: Boolean = project.toolOverride("fixture-tool").isPresent
         assertFalse(overridden)
 
@@ -58,7 +65,7 @@ class ToolsTest {
     @Test
     fun shouldSelectTheFileOfASetOverrideVariableOverTheInstalledTool() {
         val project = ProjectBuilder.builder().build()
-        val installed = project.layout.buildDirectory.file("tools/path/1.0/path")
+        val installed = project.layout.buildDirectory.file(PATH_TOOL_PATH)
         // a test cannot set a variable of its own process, and PATH is always set
         val variable = project.file(System.getenv("PATH"))
         val override: File = project.toolOverride("path").get().asFile

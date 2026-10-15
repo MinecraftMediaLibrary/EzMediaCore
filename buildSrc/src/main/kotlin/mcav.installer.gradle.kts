@@ -27,8 +27,17 @@ plugins {
     id("com.gradleup.shadow")
 }
 
+val mavenResolverSupplierAlias: String = "maven-resolver-supplier"
+val plainClassifier: String = "plain"
+val noticeFiles: List<String> = listOf("META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/NOTICE.md")
+val relocatedPackages: List<String> =
+    listOf("com.ctc", "com.google", "jakarta.inject", "org.apache", "org.codehaus", "org.eclipse", "org.objectweb", "org.slf4j")
+val relocationRoot: String = "me.brandonli.mcav.libs"
+val builtJarProperty: String = "mcav.installer.jar"
+val builtJarPath: String = "libs/mcav-installer.jar"
+
 dependencies {
-    implementation(libs.libraryOf("maven-resolver-supplier"))
+    implementation(libs.libraryOf(mavenResolverSupplierAlias))
 }
 
 extensions.configure<MCAVPublishingExtension> {
@@ -36,26 +45,25 @@ extensions.configure<MCAVPublishingExtension> {
 }
 
 tasks.jar {
-    archiveClassifier = "plain"
+    archiveClassifier = plainClassifier
 }
 
 tasks.shadowJar {
     archiveClassifier = ""
     mergeServiceFiles()
-    filesMatching(listOf("META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/NOTICE.md")) {
+    filesMatching(noticeFiles) {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     transform(ApacheNoticeResourceTransformer::class.java)
     inputs.property("noticeDuplicates", DuplicatesStrategy.INCLUDE.name)
-    listOf("com.ctc", "com.google", "jakarta.inject", "org.apache", "org.codehaus", "org.eclipse", "org.objectweb", "org.slf4j")
-        .forEach { prefix -> relocate(prefix, "me.brandonli.mcav.libs.$prefix") }
+    relocatedPackages.forEach { prefix -> relocate(prefix, "$relocationRoot.$prefix") }
 }
 
 tasks.assemble {
     dependsOn(tasks.shadowJar)
 }
 
-val builtJar = "-Dmcav.installer.jar=" + layout.buildDirectory.file("libs/mcav-installer.jar").get().asFile.absolutePath
+val builtJar = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
     jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
     dependsOn(tasks.shadowJar)

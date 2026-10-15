@@ -31,51 +31,71 @@ plugins {
     java
 }
 
+val zigTool: String = "zig"
+val clangFormatTool: String = "clang-format"
+val clangFormatAlias: String = "python-clang-format"
+
+val windowsSystem: String = "windows"
+val zipExtension: String = ".zip"
+val xzTarExtension: String = ".tar.xz"
+val executableExtension: String = ".exe"
+val zigDownloadUrl: String = "https://ziglang.org/download"
+val zigOverrideChecksum: String = "ZIG override"
+
+val nativeSourcePath: String = "src/main/native/mcv2"
+val nativeSourcePattern: String = "*.cpp"
+val zigToolsPath: String = "tools/zig"
+val zigCachePath: String = "tools/zig/cache"
+val generatedNativesPath: String = "generated/natives"
+
+val nativeResourcesConfiguration: String = "mcv2NativeResources"
+val directoryArtifactType: String = "directory"
+
 val host = HostPlatform.current()
 val system = host.zigSystem
 val architecture = host.architecture
-val pinnedZigVersion = libs.versionOf("zig")
-val zigFolder = "zig-$architecture-$system-$pinnedZigVersion"
-val zigArchive = zigFolder + if (system == "windows") ".zip" else ".tar.xz"
-val zigPath = "$zigFolder/zig" + if (system == "windows") ".exe" else ""
-val zigChecksum = pinnedSha256("zig", pinnedZigVersion, zigArchive)
+val pinnedZigVersion = libs.versionOf(zigTool)
+val zigFolder = "$zigTool-$architecture-$system-$pinnedZigVersion"
+val zigArchive = zigFolder + if (system == windowsSystem) zipExtension else xzTarExtension
+val zigPath = "$zigFolder/$zigTool" + if (system == windowsSystem) executableExtension else ""
+val zigChecksum = pinnedSha256(zigTool, pinnedZigVersion, zigArchive)
 val downloadZig = tasks.register<DownloadToolArchive>("downloadZig") {
     group = "build setup"
     description = "Downloads the pinned Zig and verifies its SHA-256"
-    archiveUrl = "https://ziglang.org/download/$pinnedZigVersion/$zigArchive"
+    archiveUrl = "$zigDownloadUrl/$pinnedZigVersion/$zigArchive"
     sha256 = zigChecksum
     executablePath = zigPath
-    installationDirectory = layout.buildDirectory.dir("tools/zig/$pinnedZigVersion")
+    installationDirectory = layout.buildDirectory.dir("$zigToolsPath/$pinnedZigVersion")
 }
-val nativeSources = layout.projectDirectory.dir("src/main/native/mcv2")
+val nativeSources = layout.projectDirectory.dir(nativeSourcePath)
 val buildMcv2Natives = tasks.register<BuildMcv2Natives>("buildMcv2Natives") {
     group = "build"
     description = "Compiles MCV2's six native libraries from source"
     sourcesDirectory = nativeSources
-    zigExecutable = selectTool("zig", downloadZig.flatMap { it.installationDirectory.file(zigPath) })
+    zigExecutable = selectTool(zigTool, downloadZig.flatMap { it.installationDirectory.file(zigPath) })
     zigVersion = pinnedZigVersion
-    toolchainChecksum = toolOverride("zig").map { "ZIG override" }.orElse(zigChecksum)
-    outputDirectory = layout.buildDirectory.dir("generated/natives")
-    cacheDirectory = layout.buildDirectory.dir("tools/zig/cache")
+    toolchainChecksum = toolOverride(zigTool).map { zigOverrideChecksum }.orElse(zigChecksum)
+    outputDirectory = layout.buildDirectory.dir(generatedNativesPath)
+    cacheDirectory = layout.buildDirectory.dir(zigCachePath)
     processCount = gradle.startParameter.maxWorkerCount
 }
 sourceSets.main {
     resources.srcDir(buildMcv2Natives)
 }
 
-val nativeResources = configurations.register("mcv2NativeResources") {
+val nativeResources = configurations.register(nativeResourcesConfiguration) {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
 artifacts.add(nativeResources.name, buildMcv2Natives.flatMap { it.outputDirectory }) {
     builtBy(buildMcv2Natives)
-    type = "directory"
+    type = directoryArtifactType
 }
 
-val pinnedClangFormatVersion = libs.versionOf("python-clang-format")
+val pinnedClangFormatVersion = libs.versionOf(clangFormatAlias)
 val pythonEnvironment = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
-val selectedClangFormat = selectTool("clang-format", pythonEnvironment.flatMap { it.executable("clang-format") })
-val formattedSources = fileTree(nativeSources) { include("*.cpp") }
+val selectedClangFormat = selectTool(clangFormatTool, pythonEnvironment.flatMap { it.executable(clangFormatTool) })
+val formattedSources = fileTree(nativeSources) { include(nativeSourcePattern) }
 
 tasks.register<ClangFormat>("formatMcv2Natives") {
     group = "formatting"

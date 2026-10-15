@@ -26,7 +26,9 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.kotlin.dsl.getByType
 
-fun Project.javaLanguageVersion(): JavaLanguageVersion = JavaLanguageVersion.of(libs.versionOf("java"))
+private const val JAVA_VERSION_ALIAS: String = "java"
+
+fun Project.javaLanguageVersion(): JavaLanguageVersion = JavaLanguageVersion.of(libs.versionOf(JAVA_VERSION_ALIAS))
 
 fun Project.javaLauncher(requestedVendor: JvmVendorSpec? = null): Provider<JavaLauncher> =
     extensions.getByType<JavaToolchainService>().launcherFor {

@@ -36,6 +36,18 @@ import org.gradle.process.ExecOperations
 @CacheableTask
 abstract class PythonTests : PythonTask() {
 
+    private companion object {
+
+        const val PARALLEL_REPORT: String = "parallel.xml"
+        const val SERIAL_REPORT: String = "serial.xml"
+
+        const val PYTEST_OPTIONS_VARIABLE: String = "PYTEST_ADDOPTS"
+        const val NO_OPTIONS: String = ""
+
+        const val MATPLOTLIB_BACKEND_VARIABLE: String = "MPLBACKEND"
+        const val HEADLESS_BACKEND: String = "Agg"
+    }
+
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val parallelTests: ConfigurableFileCollection
@@ -68,9 +80,9 @@ abstract class PythonTests : PythonTask() {
         val reports = reportDirectory.get().asFile
         files.delete { delete(reports) }
         val parallel = parallelTests.files.sorted()
-        pytest(reports.resolve("parallel.xml"), listOf("-n", minOf(processCount.get(), parallel.size).toString(), "--dist", "loadfile") +
+        pytest(reports.resolve(PARALLEL_REPORT), listOf("-n", minOf(processCount.get(), parallel.size).toString(), "--dist", "loadfile") +
             parallel.map { it.path })
-        pytest(reports.resolve("serial.xml"), serialTests.files.sorted().map { it.path })
+        pytest(reports.resolve(SERIAL_REPORT), serialTests.files.sorted().map { it.path })
     }
 
     private fun pytest(report: File, arguments: List<String>) {
@@ -79,12 +91,12 @@ abstract class PythonTests : PythonTask() {
             workingDir(directory)
             commandLine(listOf(pythonExecutable.get().asFile.path, "-m", "pytest", "-p", "no:cacheprovider", "-ra",
                 "--rootdir", directory.path, "--junitxml", report.path) + arguments)
-            environment("PYTHONNOUSERSITE", "1")
-            environment("PYTHONDONTWRITEBYTECODE", "1")
-            environment("PYTHONHASHSEED", "0")
-            environment("PYTEST_ADDOPTS", "")
-            environment("MPLBACKEND", "Agg")
-            environment("MPLCONFIGDIR", temporaryDir.resolve("matplotlib").path)
+            environment(NO_USER_SITE_VARIABLE, ENABLED)
+            environment(NO_BYTECODE_VARIABLE, ENABLED)
+            environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
+            environment(PYTEST_OPTIONS_VARIABLE, NO_OPTIONS)
+            environment(MATPLOTLIB_BACKEND_VARIABLE, HEADLESS_BACKEND)
+            environment(MATPLOTLIB_CONFIG_VARIABLE, temporaryDir.resolve(MATPLOTLIB_CONFIG_DIRECTORY).path)
         }
     }
 }

@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
@@ -28,6 +29,25 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
 class LockPythonRequirementsTest {
+
+    private companion object {
+
+        const val NUMPY: String = "numpy"
+        const val NUMPY_VERSION: String = "2.5.3"
+        const val CLANG_FORMAT: String = "clang-format"
+        const val CLANG_FORMAT_VERSION: String = "18.1.8"
+
+        const val PYTHON_VERSION: String = "3.13.16"
+
+        const val PACKAGE_INDEX: String = "https://pypi.org/simple"
+
+        const val UV_EXECUTABLE: String = "uv"
+        const val PYTHON_DIRECTORY: String = "python"
+        const val UV_CACHE_DIRECTORY: String = "uv-cache"
+        const val LOCK_FILE: String = "requirements.lock"
+
+        const val REQUIREMENTS_INPUT_FILE: String = "requirements.in"
+    }
 
     @TempDir
     lateinit var directory: Path
@@ -41,8 +61,8 @@ class LockPythonRequirementsTest {
     fun shouldSortTheRequirementsByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere() {
         val marker = "sys_platform != 'win32' or platform_machine != 'ARM64'"
         val lines: List<String> = LockPythonRequirements.requirementLines(
-            mapOf("pytest" to "9.1.1", "numpy" to "2.5.3", "clang-format" to "18.1.8"),
-            mapOf("clang-format" to marker)
+            mapOf("pytest" to "9.1.1", NUMPY to NUMPY_VERSION, CLANG_FORMAT to CLANG_FORMAT_VERSION),
+            mapOf(CLANG_FORMAT to marker)
         )
         assertEquals(listOf("clang-format==18.1.8 ; $marker", "numpy==2.5.3", "pytest==9.1.1"), lines)
     }
@@ -50,8 +70,8 @@ class LockPythonRequirementsTest {
     @Test
     fun shouldCompileAUniversalHashedLockOfWheelsForThePythonMinorBelowTheLicenseHeader() {
         val task = lockTask()
-        val lock = directory.resolve("requirements.lock").toFile()
-        val requirementsInput = task.temporaryDir.resolve("requirements.in")
+        val lock = directory.resolve(LOCK_FILE).toFile()
+        val requirementsInput = task.temporaryDir.resolve(REQUIREMENTS_INPUT_FILE)
         val processes = RecordedProcesses("uv 0.12.23\n") { command ->
             if (command[1] == "pip") {
                 val requirements: String = requirementsInput.readText()
@@ -62,20 +82,22 @@ class LockPythonRequirementsTest {
         }
         task.recordedProcesses = processes.operations
         task.lock()
-        val uv = directory.resolve("uv").toString()
+        val uv = directory.resolve(UV_EXECUTABLE).toString()
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
                 listOf(uv, "--version"),
                 listOf(uv, "pip", "compile", requirementsInput.path, "--universal", "--generate-hashes", "--no-header",
-                    "--no-annotate", "--python", "3.13.16", "--python-version", "3.13", "--only-binary", ":all:",
-                    "--default-index", "https://pypi.org/simple", "--output-file", lock.path, "--quiet")
+                    "--no-annotate", "--python", PYTHON_VERSION, "--python-version", "3.13", "--only-binary", ":all:",
+                    "--default-index", PACKAGE_INDEX, "--output-file", lock.path, "--quiet")
             ),
             commands
         )
 
         val environment: Map<String, Any?> = processes.environments[1]
-        assertEquals(uvEnvironment(directory.resolve("python").toFile(), directory.resolve("uv-cache").toFile()), environment)
+        val installation: File = directory.resolve(PYTHON_DIRECTORY).toFile()
+        val cache: File = directory.resolve(UV_CACHE_DIRECTORY).toFile()
+        assertEquals(uvEnvironment(installation, cache), environment)
 
         val locked: String = lock.readText()
         assertEquals("# License header\n\nnumpy==2.5.3 \\\n    --hash=sha256:00\n", locked)
@@ -84,13 +106,13 @@ class LockPythonRequirementsTest {
     @Test
     fun shouldLeaveTheLockAsItIsWithAnUvOfAnotherVersion() {
         val task = lockTask()
-        val lock = directory.resolve("requirements.lock").toFile()
+        val lock = directory.resolve(LOCK_FILE).toFile()
         lock.writeText("numpy==2.5.2\n")
         val processes = RecordedProcesses("uv 0.12.22\n")
         task.recordedProcesses = processes.operations
         val failure = assertThrows(GradleException::class.java) { task.lock() }
         val message: String? = failure.message
-        assertEquals("${directory.resolve("uv")} reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
+        assertEquals("${directory.resolve(UV_EXECUTABLE)} reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
 
         val commandCount: Int = processes.commands.size
         assertEquals(1, commandCount)
@@ -102,15 +124,15 @@ class LockPythonRequirementsTest {
     private fun lockTask(): RecordingLock {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val task = project.tasks.register("lockPythonRequirements", RecordingLock::class.java).get()
-        task.uvExecutable.set(directory.resolve("uv").toFile())
+        task.uvExecutable.set(directory.resolve(UV_EXECUTABLE).toFile())
         task.uvVersion.set("0.12.23")
-        task.pythonVersion.set("3.13.16")
-        task.versions.set(mapOf("numpy" to "2.5.3", "clang-format" to "18.1.8"))
-        task.markers.set(mapOf("clang-format" to "platform_machine != 'ARM64'"))
+        task.pythonVersion.set(PYTHON_VERSION)
+        task.versions.set(mapOf(NUMPY to NUMPY_VERSION, CLANG_FORMAT to CLANG_FORMAT_VERSION))
+        task.markers.set(mapOf(CLANG_FORMAT to "platform_machine != 'ARM64'"))
         task.licenseHeader.set("# License header\n\n")
-        task.lockFile.set(directory.resolve("requirements.lock").toFile())
-        task.installationDirectory.set(directory.resolve("python").toFile())
-        task.cacheDirectory.set(directory.resolve("uv-cache").toFile())
+        task.lockFile.set(directory.resolve(LOCK_FILE).toFile())
+        task.installationDirectory.set(directory.resolve(PYTHON_DIRECTORY).toFile())
+        task.cacheDirectory.set(directory.resolve(UV_CACHE_DIRECTORY).toFile())
         return task
     }
 }

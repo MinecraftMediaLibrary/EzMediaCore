@@ -29,7 +29,27 @@ plugins {
     id("net.ltgt.errorprone")
 }
 
-val javaRelease = libs.versionOf("java").toInt()
+val javaAlias: String = "java"
+val errorProneAlias: String = "errorprone-core"
+val checkerFrameworkAlias: String = "checker-framework"
+
+val sourceEncoding: String = "UTF-8"
+val compilerHeapSize: String = "4g"
+val nullnessChecker: String = "org.checkerframework.checker.nullness.NullnessChecker"
+val slowTypecheckingSeconds: Int = 600
+val checkerStubsPath: String = "gradle/checker-framework"
+
+val repositoryUrls: List<String> = listOf(
+    "https://repo.brandonli.me/snapshots",
+    "https://maven.maxhenkel.de/repository/public",
+    "https://repo.papermc.io/repository/maven-public/",
+    "https://hub.spigotmc.org/nexus/content/repositories/snapshots/",
+    "https://repo.codemc.io/repository/maven-releases/"
+)
+val modrinthRepositoryUrl: String = "https://api.modrinth.com/maven"
+val modrinthGroup: String = "maven.modrinth"
+
+val javaRelease = libs.versionOf(javaAlias).toInt()
 
 val enforcedChecks = listOf(
     "FieldCanBeFinal",
@@ -62,20 +82,16 @@ val enforcedChecks = listOf(
 repositories {
     mavenCentral()
     google()
-    maven("https://repo.brandonli.me/snapshots")
-    maven("https://maven.maxhenkel.de/repository/public")
-    maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven("https://repo.codemc.io/repository/maven-releases/")
-    maven("https://api.modrinth.com/maven") {
+    repositoryUrls.forEach { maven(it) }
+    maven(modrinthRepositoryUrl) {
         content {
-            includeGroup("maven.modrinth")
+            includeGroup(modrinthGroup)
         }
     }
 }
 
 dependencies {
-    errorprone(libs.libraryOf("errorprone-core"))
+    errorprone(libs.libraryOf(errorProneAlias))
 }
 
 java {
@@ -84,10 +100,10 @@ java {
 
 tasks.withType<JavaCompile>().configureEach {
     options.release = javaRelease
-    options.encoding = "UTF-8"
+    options.encoding = sourceEncoding
     options.compilerArgs.addAll(listOf("-parameters", "-Xlint:all", "-Xlint:-processing", "-Werror"))
     options.isFork = true
-    options.forkOptions.memoryMaximumSize = "4g"
+    options.forkOptions.memoryMaximumSize = compilerHeapSize
     options.forkOptions.jvmArgumentProviders.add(CommandLineArgumentProvider {
         listOf("--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
     })
@@ -100,19 +116,19 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 checkerFramework {
-    version = libs.versionOf("checker-framework")
-    checkers = listOf("org.checkerframework.checker.nullness.NullnessChecker")
+    version = libs.versionOf(checkerFrameworkAlias)
+    checkers = listOf(nullnessChecker)
     excludeTests = true
-    extraJavacArgs = stubsArgument() + "-AslowTypecheckingSeconds=600"
+    extraJavacArgs = stubsArgument() + "-AslowTypecheckingSeconds=$slowTypecheckingSeconds"
 }
 
 tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    filteringCharset = "UTF-8"
+    filteringCharset = sourceEncoding
 }
 
 fun stubsArgument(): List<String> {
-    val stubs = rootProject.file("gradle/checker-framework")
+    val stubs = rootProject.file(checkerStubsPath)
     val folders = CheckerStubs.forProject(stubs, project.name)
     return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
 }

@@ -25,19 +25,30 @@ import org.junit.jupiter.api.Test
 
 class GeneratedCatalogTest {
 
+    private companion object {
+
+        const val REPOSITORY_DIRECTORY: String = ".."
+        const val CATALOG_PATH: String = "gradle/libs.versions.toml"
+        const val GENERATED_SOURCE_PATH: String = "build/generated/sources/catalog/kotlin/me/brandonli/mcav/gradle/CatalogVersions.kt"
+
+        const val HEADER_FILE: String = "HEADER"
+
+        val JACOCO_VERSION: Regex = Regex("(?m)^jacoco = \"([^\"]+)\"")
+    }
+
     @Test
     fun shouldKeepThePinOfTheGeneratedCatalogAndOpenItWithTheRepositoryLicense() {
-        val repository = Path.of("..").toFile()
-        val source = Path.of("build/generated/sources/catalog/kotlin/me/brandonli/mcav/gradle/CatalogVersions.kt").toFile().readText()
-        val licensed: Boolean = source.startsWith(repository.resolve("HEADER").readText())
+        val repository = Path.of(REPOSITORY_DIRECTORY).toFile()
+        val source = Path.of(GENERATED_SOURCE_PATH).toFile().readText()
+        val licensed: Boolean = source.startsWith(repository.resolve(HEADER_FILE).readText())
         assertTrue(licensed)
 
-        val catalog = repository.resolve("gradle/libs.versions.toml").readText()
-        val version = Regex("(?m)^jacoco = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
+        val catalog = repository.resolve(CATALOG_PATH).readText()
+        val version = JACOCO_VERSION.find(catalog)!!.groupValues[1]
         val generatedVersion: String = CatalogVersions.JACOCO
         assertEquals(version, generatedVersion)
 
         val header: String = source.substringBefore("package").trimEnd()
-        assertEquals(repository.resolve("HEADER").readText().trimEnd(), header)
+        assertEquals(repository.resolve(HEADER_FILE).readText().trimEnd(), header)
     }
 }

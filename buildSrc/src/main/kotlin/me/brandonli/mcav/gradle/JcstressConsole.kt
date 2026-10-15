@@ -25,19 +25,22 @@ import org.gradle.api.GradleException
 
 object JcstressConsole {
 
+    private const val TEST_GROUP: Int = 1
 
-    private val skippedLine = Regex("""\[SKIPPED]\s+(\S+)""")
+    private const val LINE_SEPARATOR: String = "\n"
+
+    private val SKIPPED_LINE: Regex = Regex("""\[SKIPPED]\s+(\S+)""")
 
     fun tee(console: OutputStream, file: File): OutputStream = Tee(console, BufferedOutputStream(file.outputStream()))
 
     fun skippedTests(lines: List<String>): List<String> =
-        lines.mapNotNull { line -> skippedLine.find(line)?.groupValues?.get(1) }.distinct()
+        lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
 
     fun checkNoneSkipped(console: File) {
         val skipped = skippedTests(console.readLines())
         if (skipped.isNotEmpty()) {
-            val message =
-                "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!\n${skipped.joinToString("\n")}"
+            val names: String = skipped.joinToString(LINE_SEPARATOR)
+            val message = "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!$LINE_SEPARATOR$names"
             throw GradleException(message)
         }
     }

@@ -25,25 +25,33 @@ import org.junit.jupiter.api.Test
 
 class PaperVersionTest {
 
+    private companion object {
+
+        const val MINECRAFT_VERSION: String = "26.3"
+
+        const val BUILD_FILE_NAME: String = "paper-26.3-49.jar"
+        const val RELEASE_FILE_NAME: String = "paper-26.4-123.jar"
+    }
+
     @Test
     fun shouldSupplyTheExactServerBuildAndArtifactNameOfThePinnedAlphaVersion() {
         val version = PaperVersion.parse("26.3.build.49-alpha")
         val minecraft: String = version.minecraft
-        assertEquals("26.3", minecraft)
+        assertEquals(MINECRAFT_VERSION, minecraft)
 
         val build: Int = version.build
         assertEquals(49, build)
 
         val fileName: String = version.fileName
-        assertEquals("paper-26.3-49.jar", fileName)
+        assertEquals(BUILD_FILE_NAME, fileName)
 
         val releaseFileName: String = PaperVersion.parse("26.4.build.123").fileName
-        assertEquals("paper-26.4-123.jar", releaseFileName)
+        assertEquals(RELEASE_FILE_NAME, releaseFileName)
     }
 
     @Test
     fun shouldRejectAVersionWithoutAnExplicitBuild() {
-        val versions: List<String> = listOf("26.3", "26.3.build.latest")
+        val versions: List<String> = listOf(MINECRAFT_VERSION, "26.3.build.latest")
         val messages: Map<String, String?> = versions.associateWith { version ->
             assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message
         }

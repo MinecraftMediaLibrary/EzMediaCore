@@ -31,6 +31,14 @@ import org.junit.jupiter.api.io.TempDir
 
 class JcstressConsoleTest {
 
+    private companion object {
+
+        const val SKIPPED_TEST: String = "me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"
+        const val SKIPPED_LINE: String = "..... [SKIPPED] me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"
+
+        const val CONSOLE_FILE: String = "console.txt"
+    }
+
     @TempDir
     lateinit var directory: Path
 
@@ -41,18 +49,18 @@ class JcstressConsoleTest {
         "  Error tests: No matches.",
         "  All remaining tests: 2 matching test results.",
         "..... [OK] me.brandonli.mcav.http.ListenerStopRace",
-        "..... [SKIPPED] me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace",
+        SKIPPED_LINE,
     )
 
     @Test
     fun shouldFindTheTestsThatARunSkipped() {
         val skipped: List<String> = JcstressConsole.skippedTests(this.summary)
-        assertEquals(listOf("me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"), skipped)
+        assertEquals(listOf(SKIPPED_TEST), skipped)
     }
 
     @Test
     fun shouldNameEverySkippedTestOnce() {
-        val twice = this.summary + "..... [SKIPPED] me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"
+        val twice = this.summary + SKIPPED_LINE
         val skippedCount: Int = JcstressConsole.skippedTests(twice).size
         assertEquals(1, skippedCount)
     }
@@ -64,7 +72,7 @@ class JcstressConsoleTest {
         val message: String? = failure.message
         assertEquals(
             "jcstress skipped 1 tests that failed their sanity check and never ran!\n" +
-                "me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace",
+                SKIPPED_TEST,
             message,
         )
     }
@@ -82,7 +90,7 @@ class JcstressConsoleTest {
                 closed = true
             }
         }
-        val file = this.directory.resolve("console.txt").toFile()
+        val file = this.directory.resolve(CONSOLE_FILE).toFile()
         val tee = JcstressConsole.tee(shown, file)
         tee.write("[OK] one\n".toByteArray())
         tee.write('x'.code)
@@ -99,7 +107,7 @@ class JcstressConsoleTest {
     }
 
     private fun console(lines: List<String>): File {
-        val file = this.directory.resolve("console.txt").toFile()
+        val file = this.directory.resolve(CONSOLE_FILE).toFile()
         file.writeText(lines.joinToString("\n"))
         return file
     }
@@ -112,7 +120,7 @@ class JcstressConsoleTest {
                 flushed = true
             }
         }
-        val file = this.directory.resolve("console.txt").toFile()
+        val file = this.directory.resolve(CONSOLE_FILE).toFile()
         val tee = JcstressConsole.tee(shown, file)
         tee.write("[OK] one".toByteArray())
         tee.flush()

@@ -33,6 +33,8 @@ class FuzzTarget(val className: String, val methodName: String) {
         const val PACKAGE_SEPARATOR: Char = '.'
 
         const val TASK_PREFIX: String = "fuzz"
+
+        const val HASH_MULTIPLIER: Int = 31
     }
 
     /**
@@ -79,7 +81,7 @@ class FuzzTarget(val className: String, val methodName: String) {
      * @return the hash code
      */
     override fun hashCode(): Int {
-        return 31 * this.className.hashCode() + this.methodName.hashCode()
+        return HASH_MULTIPLIER * this.className.hashCode() + this.methodName.hashCode()
     }
 
     /**
