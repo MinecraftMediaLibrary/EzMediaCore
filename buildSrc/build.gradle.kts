@@ -1,5 +1,7 @@
 plugins {
     `kotlin-dsl`
+    jacoco
+    alias(libs.plugins.pitest)
 }
 
 repositories {
@@ -23,6 +25,7 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockito.core)
+    testImplementation(libs.jazzer.junit)
     testImplementation(gradleTestKit())
     testRuntimeOnly(libs.junit.platform.launcher)
 }
@@ -55,8 +58,79 @@ kotlin.sourceSets.main {
     kotlin.srcDir(generateCatalogVersions)
 }
 
-tasks.test {
-    useJUnitPlatform()
+val testSourceSet = sourceSets.test.get()
+val fuzzSeconds = providers.gradleProperty("fuzz.seconds").map { it.toInt() }.getOrElse(0)
+val fuzzInputs = layout.projectDirectory.dir("src/test/resources")
+val buildClasses = sourceSets.main.get().output.classesDirs.asFileTree.matching {
+    include("me/brandonli/mcav/gradle/**")
+    exclude("me/brandonli/mcav/gradle/CatalogVersions*")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform {
+        excludeTags("fuzz")
+    }
+}
+
+// one fuzz test method per class: forkEvery gives each class, and so each method, the JVM of its own that Jazzer needs
+val fuzzTest = tasks.register<Test>("fuzzTest") {
+    group = "verification"
+    description = "Replays the committed fuzz inputs of buildSrc, and fuzzes every fuzz test class with -Pfuzz.seconds=<n>"
+    testClassesDirs = testSourceSet.output.classesDirs
+    classpath = testSourceSet.runtimeClasspath
+    useJUnitPlatform {
+        includeTags("fuzz")
+    }
+    forkEvery = 1
+    failOnNoDiscoveredTests = false
+    inputs.files(fuzzInputs)
+        .withPropertyName("fuzzInputs")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("jazzer.internal.basedir", "build/jazzer")
+    if (fuzzSeconds > 0) {
+        environment("JAZZER_FUZZ", "1")
+        systemProperty("jazzer.max_duration", "${fuzzSeconds}s")
+        outputs.upToDateWhen { false }
+    }
+}
+
+tasks.jacocoTestReport {
+    classDirectories.setFrom(buildClasses)
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    classDirectories.setFrom(buildClasses)
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                minimum = "1.0".toBigDecimal()
+            }
+            limit {
+                counter = "BRANCH"
+                minimum = "1.0".toBigDecimal()
+            }
+        }
+    }
+}
+
+pitest {
+    pitestVersion = libs.versions.pitest.asProvider()
+    junit5PluginVersion = libs.versions.pitest.junit5.plugin
+    targetClasses = setOf("me.brandonli.mcav.gradle.*")
+    excludedClasses = setOf("me.brandonli.mcav.gradle.CatalogVersions")
+    excludedGroups = setOf("fuzz")
+    threads = 4
+    outputFormats = setOf("HTML", "XML")
+    timestampedReports = false
+}
+
+tasks.check {
+    dependsOn(fuzzTest)
 }
 
 fun plugin(plugin: Provider<PluginDependency>): Provider<String> =
