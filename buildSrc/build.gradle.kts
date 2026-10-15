@@ -131,6 +131,7 @@ pitest {
 
 tasks.check {
     dependsOn(fuzzTest)
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 fun plugin(plugin: Provider<PluginDependency>): Provider<String> =
