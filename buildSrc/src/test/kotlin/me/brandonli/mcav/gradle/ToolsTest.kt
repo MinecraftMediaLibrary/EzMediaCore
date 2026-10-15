@@ -42,11 +42,11 @@ class ToolsTest {
     @Test
     fun shouldGiveAPinnedArchiveItsChecksumAndNameTheOverrideVariableOfAnUnpinnedOne(): Unit {
         val project: Project = ProjectBuilder.builder().build()
-        val checksum: String = project.pinnedSha256("zig", "0.16.0", "zig-x86_64-linux-0.16.0.tar.xz").get()
+        val checksum: String = Tools.pinnedSha256(project, "zig", "0.16.0", "zig-x86_64-linux-0.16.0.tar.xz").get()
         assertEquals("70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00", checksum)
 
         val failure: GradleException =
-            assertThrows(GradleException::class.java) { project.pinnedSha256("clang-format", "1.0", CLANG_ARCHIVE).get() }
+            assertThrows(GradleException::class.java) { Tools.pinnedSha256(project, "clang-format", "1.0", CLANG_ARCHIVE).get() }
         val message: String? = failure.message
         val expected: String =
             "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip, so set CLANG_FORMAT to the path of clang-format 1.0!"
@@ -57,10 +57,10 @@ class ToolsTest {
     fun shouldSelectTheInstalledToolWithoutItsOverrideVariable(): Unit {
         val project: Project = ProjectBuilder.builder().build()
         val installed: Provider<RegularFile> = project.layout.buildDirectory.file(FIXTURE_TOOL_PATH)
-        val overridden: Boolean = project.toolOverride("fixture-tool").isPresent
+        val overridden: Boolean = Tools.toolOverride(project, "fixture-tool").isPresent
         assertFalse(overridden)
 
-        val selected: Provider<RegularFile> = project.selectTool("fixture-tool", installed)
+        val selected: Provider<RegularFile> = Tools.selectTool(project, "fixture-tool", installed)
         assertSame(installed, selected)
     }
 
@@ -70,10 +70,10 @@ class ToolsTest {
         val installed: Provider<RegularFile> = project.layout.buildDirectory.file(PATH_TOOL_PATH)
         // a test cannot set a variable of its own process, and PATH is always set
         val variable: File = project.file(System.getenv("PATH"))
-        val override: File = project.toolOverride("path").get().asFile
+        val override: File = Tools.toolOverride(project, "path").get().asFile
         assertEquals(variable, override)
 
-        val selected: File = project.selectTool("path", installed).get().asFile
+        val selected: File = Tools.selectTool(project, "path", installed).get().asFile
         assertEquals(variable, selected)
     }
 }

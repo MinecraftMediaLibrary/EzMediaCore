@@ -17,12 +17,11 @@
  */
 
 import java.net.ServerSocket
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.JavaToolchains
 import me.brandonli.mcav.gradle.PaperVersion
 import me.brandonli.mcav.gradle.RequiredModuleClassesTask
-import me.brandonli.mcav.gradle.javaLauncher
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import xyz.jpenilla.gremlin.gradle.WriteDependencySet
@@ -101,8 +100,8 @@ val legacyFormattingWarningProperty: String = "net.kyori.adventure.text.warnWhen
 val voiceChatModrinthProject: String = "simple-voice-chat"
 val sparkJobUrl: String = "https://ci.lucko.me/job/spark"
 
-val minecraftVersion: String = libs.versionOf(minecraftAlias)
-private val paperVersion: PaperVersion = PaperVersion.parse(libs.versionOf(paperAlias))
+val minecraftVersion: String = CatalogUtils.versionOf(libs, minecraftAlias)
+private val paperVersion: PaperVersion = PaperVersion.parse(CatalogUtils.versionOf(libs, paperAlias))
 version = "${rootProject.version.toString().removeSuffix(snapshotSuffix)}$minecraftVersionPrefix$minecraftVersion"
 
 configurations.compileOnly {
@@ -235,7 +234,7 @@ tasks.runServer {
 }
 
 tasks.withType<AbstractRun>().configureEach {
-    javaLauncher = javaLauncher(JvmVendorSpec.JETBRAINS)
+    javaLauncher = JavaToolchains.launcher(project, JvmVendorSpec.JETBRAINS)
     jvmArgs("-Xms$serverHeapSize", "-Xmx$serverHeapSize", "-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
 }
 
@@ -266,10 +265,10 @@ if (endToEnd) {
 val endToEndTestSourceSet: SourceSet = sourceSets.create(endToEndTestName)
 
 dependencies {
-    add(endToEndImplementation, platform(libs.libraryOf(junitBomAlias)))
-    add(endToEndImplementation, libs.libraryOf(junitJupiterAlias))
-    add(endToEndImplementation, libs.libraryOf(gsonAlias))
-    add(endToEndRuntimeOnly, libs.libraryOf(junitLauncherAlias))
+    add(endToEndImplementation, platform(CatalogUtils.libraryOf(libs, junitBomAlias)))
+    add(endToEndImplementation, CatalogUtils.libraryOf(libs, junitJupiterAlias))
+    add(endToEndImplementation, CatalogUtils.libraryOf(libs, gsonAlias))
+    add(endToEndRuntimeOnly, CatalogUtils.libraryOf(libs, junitLauncherAlias))
 }
 
 tasks.register<Test>(endToEndTestName) {
@@ -281,12 +280,12 @@ tasks.register<Test>(endToEndTestName) {
     inputs.file(pluginJar)
     outputs.upToDateWhen { false }
     systemProperty(paperFileNameProperty, paperVersion.fileName)
-    systemProperty(voiceChatFileNameProperty, "$voiceChatPlugin-${libs.versionOf(voiceChatAlias)}.jar")
+    systemProperty(voiceChatFileNameProperty, "$voiceChatPlugin-${CatalogUtils.versionOf(libs, voiceChatAlias)}.jar")
     systemProperty(cacheDirectoryProperty, layout.buildDirectory.dir(endToEndCachePath).get().asFile.absolutePath)
     systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
     systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
     systemProperty(endToEndPortProperty, endToEndPort)
-    val launcher: Provider<JavaLauncher> = javaLauncher()
+    val launcher: Provider<JavaLauncher> = JavaToolchains.launcher(project)
     val usesThisBuild: Boolean = endToEnd
     doFirst {
         if (!usesThisBuild) {
@@ -301,8 +300,8 @@ tasks.register<Test>(endToEndTestName) {
 tasks.runServer {
     systemProperty(legacyFormattingWarningProperty, false)
     downloadPlugins {
-        modrinth(voiceChatModrinthProject, libs.versionOf(voiceChatAlias))
-        val spark: String = libs.versionOf(sparkAlias)
-        url("$sparkJobUrl/${libs.versionOf(sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
+        modrinth(voiceChatModrinthProject, CatalogUtils.versionOf(libs, voiceChatAlias))
+        val spark: String = CatalogUtils.versionOf(libs, sparkAlias)
+        url("$sparkJobUrl/${CatalogUtils.versionOf(libs, sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
     }
 }

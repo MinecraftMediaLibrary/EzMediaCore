@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.JcstressBudget
 import me.brandonli.mcav.gradle.JcstressConsole
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 import net.ltgt.gradle.errorprone.errorprone
 
@@ -46,8 +46,8 @@ val resultsPath: String = "results"
 val consolePath: String = "console.txt"
 
 dependencies {
-    implementation(libs.libraryOf(jcstressAlias))
-    annotationProcessor(libs.libraryOf(jcstressAlias))
+    implementation(CatalogUtils.libraryOf(libs, jcstressAlias))
+    annotationProcessor(CatalogUtils.libraryOf(libs, jcstressAlias))
 }
 
 checkerFramework {

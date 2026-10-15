@@ -17,15 +17,13 @@
  */
 
 import me.brandonli.mcav.gradle.BuildMcv2Natives
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.ClangFormat
 import me.brandonli.mcav.gradle.DownloadToolArchive
 import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.PythonEnvironment
+import me.brandonli.mcav.gradle.Tools
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.pinnedSha256
-import me.brandonli.mcav.gradle.selectTool
-import me.brandonli.mcav.gradle.toolOverride
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
@@ -54,11 +52,11 @@ val directoryArtifactType: String = "directory"
 val host: HostPlatform = HostPlatform.current()
 val system: String = host.zigSystem
 val architecture: String = host.architecture
-val pinnedZigVersion: String = libs.versionOf(zigTool)
+val pinnedZigVersion: String = CatalogUtils.versionOf(libs, zigTool)
 val zigFolder: String = "$zigTool-$architecture-$system-$pinnedZigVersion"
 val zigArchive: String = zigFolder + if (system == windowsSystem) zipExtension else xzTarExtension
 val zigPath: String = "$zigFolder/$zigTool" + if (system == windowsSystem) executableExtension else ""
-val zigChecksum: Provider<String> = pinnedSha256(zigTool, pinnedZigVersion, zigArchive)
+val zigChecksum: Provider<String> = Tools.pinnedSha256(project, zigTool, pinnedZigVersion, zigArchive)
 val downloadZig: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadZig") {
     group = "build setup"
     description = "Downloads the pinned Zig and verifies its SHA-256"
@@ -72,9 +70,9 @@ val buildMcv2Natives: TaskProvider<BuildMcv2Natives> = tasks.register<BuildMcv2N
     group = "build"
     description = "Compiles MCV2's six native libraries from source"
     sourcesDirectory = nativeSources
-    zigExecutable = selectTool(zigTool, downloadZig.flatMap { it.installationDirectory.file(zigPath) })
+    zigExecutable = Tools.selectTool(project, zigTool, downloadZig.flatMap { it.installationDirectory.file(zigPath) })
     zigVersion = pinnedZigVersion
-    toolchainChecksum = toolOverride(zigTool).map { zigOverrideChecksum }.orElse(zigChecksum)
+    toolchainChecksum = Tools.toolOverride(project, zigTool).map { zigOverrideChecksum }.orElse(zigChecksum)
     outputDirectory = layout.buildDirectory.dir(generatedNativesPath)
     cacheDirectory = layout.buildDirectory.dir(zigCachePath)
     processCount = gradle.startParameter.maxWorkerCount
@@ -92,9 +90,10 @@ artifacts.add(nativeResources.name, buildMcv2Natives.flatMap { it.outputDirector
     type = directoryArtifactType
 }
 
-val pinnedClangFormatVersion: String = libs.versionOf(clangFormatAlias)
+val pinnedClangFormatVersion: String = CatalogUtils.versionOf(libs, clangFormatAlias)
 val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
-val selectedClangFormat: Provider<RegularFile> = selectTool(clangFormatTool, pythonEnvironment.flatMap { it.executable(clangFormatTool) })
+val installedClangFormat: Provider<RegularFile> = pythonEnvironment.flatMap { it.executable(clangFormatTool) }
+val selectedClangFormat: Provider<RegularFile> = Tools.selectTool(project, clangFormatTool, installedClangFormat)
 val formattedSources: ConfigurableFileTree = fileTree(nativeSources) { include(nativeSourcePattern) }
 
 tasks.register<ClangFormat>("formatMcv2Natives") {

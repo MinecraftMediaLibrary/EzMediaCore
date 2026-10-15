@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.TestRuntimeProfile
-import me.brandonli.mcav.gradle.javaExecutable
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
@@ -35,8 +35,8 @@ val mutationThreads: Int = 4
 val mutationTimeoutMilliseconds: Int = 4000
 
 pitest {
-    pitestVersion = libs.versionOf(pitestAlias)
-    junit5PluginVersion = libs.versionOf(pitestJunit5PluginAlias)
+    pitestVersion = CatalogUtils.versionOf(libs, pitestAlias)
+    junit5PluginVersion = CatalogUtils.versionOf(libs, pitestJunit5PluginAlias)
     targetClasses = setOf(mutatedClasses)
     threads = mutationThreads
     timeoutConstInMillis = mutationTimeoutMilliseconds
@@ -45,6 +45,6 @@ pitest {
     jvmArgs = provider { TestRuntimeProfile.forMutation(tasks.test.get()) }
     val testJavaHome: Provider<String> = providers.gradleProperty(testJavaHomeProperty)
     if (testJavaHome.isPresent) {
-        jvmPath = file(javaExecutable(testJavaHome.get()))
+        jvmPath = file(HostPlatform.current().javaExecutable(testJavaHome.get()))
     }
 }

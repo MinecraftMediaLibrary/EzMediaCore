@@ -55,13 +55,13 @@ class JavaToolchainsTest {
 
     @Test
     fun shouldReadTheJavaVersionFromTheCatalog(): Unit {
-        val version: JavaLanguageVersion = this.project.javaLanguageVersion()
+        val version: JavaLanguageVersion = JavaToolchains.languageVersion(this.project)
         assertEquals(this.runningVersion, version)
     }
 
     @Test
     fun shouldFindALauncherOfTheCatalogVersion(): Unit {
-        val launcher: JavaLauncher = this.project.javaLauncher().get()
+        val launcher: JavaLauncher = JavaToolchains.launcher(this.project).get()
 
         val version: JavaLanguageVersion = launcher.metadata.languageVersion
         assertEquals(this.runningVersion, version)
@@ -71,7 +71,7 @@ class JavaToolchainsTest {
     fun shouldFindALauncherOfTheRequestedVendor(): Unit {
         val runningVendor: String = System.getProperty(VENDOR_PROPERTY)
         val vendor: JvmVendorSpec = JvmVendorSpec.matching(runningVendor)
-        val launcher: JavaLauncher = this.project.javaLauncher(vendor).get()
+        val launcher: JavaLauncher = JavaToolchains.launcher(this.project, vendor).get()
 
         val version: JavaLanguageVersion = launcher.metadata.languageVersion
         assertEquals(this.runningVersion, version)

@@ -16,12 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.ExclusiveResource
 import me.brandonli.mcav.gradle.FuzzTarget
 import me.brandonli.mcav.gradle.FuzzTargets
-import me.brandonli.mcav.gradle.bundleOf
-import me.brandonli.mcav.gradle.javaExecutable
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.libs
 
 plugins {
@@ -71,9 +70,9 @@ val timeoutModeProperty: String = "junit.jupiter.execution.timeout.mode"
 val disabledTimeoutMode: String = "disabled"
 
 dependencies {
-    testImplementation(platform(libs.libraryOf(junitBomAlias)))
-    testImplementation(libs.bundleOf(testingBundleAlias))
-    testRuntimeOnly(libs.libraryOf(junitLauncherAlias))
+    testImplementation(platform(CatalogUtils.libraryOf(libs, junitBomAlias)))
+    testImplementation(CatalogUtils.bundleOf(libs, testingBundleAlias))
+    testRuntimeOnly(CatalogUtils.libraryOf(libs, junitLauncherAlias))
 }
 
 val networkTests: String = providers.gradleProperty(networkTestsProperty).getOrElse(disabledValue)
@@ -101,7 +100,7 @@ tasks.withType<Test>().configureEach {
     systemProperty(networkTestsProperty, networkTests)
     systemProperty(syncMeasurementProperty, syncMeasurement)
     if (testJavaHome.isPresent) {
-        executable = javaExecutable(testJavaHome.get())
+        executable = HostPlatform.current().javaExecutable(testJavaHome.get())
     }
     systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
     systemProperty(jqwikFailuresProperty, previousSeed)

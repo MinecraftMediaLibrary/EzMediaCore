@@ -67,19 +67,19 @@ class CatalogTest {
 
     @Test
     fun shouldReadTheRequiredVersionOfAnAlias(): Unit {
-        val version: String = this.catalog.versionOf(VERSION_ALIAS)
+        val version: String = CatalogUtils.versionOf(this.catalog, VERSION_ALIAS)
         assertEquals(JAVA_VERSION, version)
     }
 
     @Test
     fun shouldReadALibraryByItsAlias(): Unit {
-        val found: Provider<MinimalExternalModuleDependency> = this.catalog.libraryOf(LIBRARY_ALIAS)
+        val found: Provider<MinimalExternalModuleDependency> = CatalogUtils.libraryOf(this.catalog, LIBRARY_ALIAS)
         assertSame(this.library, found)
     }
 
     @Test
     fun shouldReadABundleByItsAlias(): Unit {
-        val found: Provider<ExternalModuleDependencyBundle> = this.catalog.bundleOf(BUNDLE_ALIAS)
+        val found: Provider<ExternalModuleDependencyBundle> = CatalogUtils.bundleOf(this.catalog, BUNDLE_ALIAS)
         assertSame(this.bundle, found)
     }
 }

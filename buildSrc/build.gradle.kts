@@ -9,19 +9,25 @@ repositories {
     mavenCentral()
 }
 
+val buildPlugins: List<Provider<PluginDependency>> = listOf(
+    libs.plugins.spotless,
+    libs.plugins.paperweight.userdev,
+    libs.plugins.checker.framework,
+    libs.plugins.node,
+    libs.plugins.errorprone,
+    libs.plugins.pitest,
+    libs.plugins.shadow,
+    libs.plugins.run.paper,
+    libs.plugins.resource.factory.paper,
+    libs.plugins.gremlin,
+    libs.plugins.javacpp.platform
+)
+val buildPluginMarkers: List<Provider<String>> =
+    buildPlugins.map { plugin -> plugin.map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" } }
+
 dependencies {
     implementation(libs.xz)
-    implementation(plugin(libs.plugins.spotless))
-    implementation(plugin(libs.plugins.paperweight.userdev))
-    implementation(plugin(libs.plugins.checker.framework))
-    implementation(plugin(libs.plugins.node))
-    implementation(plugin(libs.plugins.errorprone))
-    implementation(plugin(libs.plugins.pitest))
-    implementation(plugin(libs.plugins.shadow))
-    implementation(plugin(libs.plugins.run.paper))
-    implementation(plugin(libs.plugins.resource.factory.paper))
-    implementation(plugin(libs.plugins.gremlin))
-    implementation(plugin(libs.plugins.javacpp.platform))
+    buildPluginMarkers.forEach { implementation(it) }
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockito.core)
@@ -155,6 +161,3 @@ tasks.check {
     dependsOn(fuzzTest)
     dependsOn(tasks.jacocoTestCoverageVerification)
 }
-
-fun plugin(plugin: Provider<PluginDependency>): Provider<String> =
-    plugin.map { "${it.pluginId}:${it.pluginId}.gradle.plugin:${it.version}" }

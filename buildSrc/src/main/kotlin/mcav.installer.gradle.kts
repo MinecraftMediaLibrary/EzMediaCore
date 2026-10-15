@@ -17,8 +17,8 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.transformers.ApacheNoticeResourceTransformer
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.MCAVPublishingExtension
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 
 plugins {
@@ -37,7 +37,7 @@ val builtJarProperty: String = "mcav.installer.jar"
 val builtJarPath: String = "libs/mcav-installer.jar"
 
 dependencies {
-    implementation(libs.libraryOf(mavenResolverSupplierAlias))
+    implementation(CatalogUtils.libraryOf(libs, mavenResolverSupplierAlias))
 }
 
 extensions.configure<MCAVPublishingExtension> {

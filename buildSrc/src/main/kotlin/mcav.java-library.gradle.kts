@@ -16,11 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.CheckerStubs
-import me.brandonli.mcav.gradle.javaLanguageVersion
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.JavaToolchains
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
@@ -49,7 +48,8 @@ val repositoryUrls: List<String> = listOf(
 val modrinthRepositoryUrl: String = "https://api.modrinth.com/maven"
 val modrinthGroup: String = "maven.modrinth"
 
-val javaRelease: Int = libs.versionOf(javaAlias).toInt()
+val javaRelease: Int = CatalogUtils.versionOf(libs, javaAlias).toInt()
+val checkerStubs: File = rootProject.file(checkerStubsPath)
 
 val enforcedChecks: List<String> = listOf(
     "FieldCanBeFinal",
@@ -91,11 +91,11 @@ repositories {
 }
 
 dependencies {
-    errorprone(libs.libraryOf(errorProneAlias))
+    errorprone(CatalogUtils.libraryOf(libs, errorProneAlias))
 }
 
 java {
-    toolchain.languageVersion = javaLanguageVersion()
+    toolchain.languageVersion = JavaToolchains.languageVersion(project)
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -116,19 +116,13 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 checkerFramework {
-    version = libs.versionOf(checkerFrameworkAlias)
+    version = CatalogUtils.versionOf(libs, checkerFrameworkAlias)
     checkers = listOf(nullnessChecker)
     excludeTests = true
-    extraJavacArgs = stubsArgument() + "-AslowTypecheckingSeconds=$slowTypecheckingSeconds"
+    extraJavacArgs = CheckerStubs.argumentsFor(checkerStubs, project.name) + "-AslowTypecheckingSeconds=$slowTypecheckingSeconds"
 }
 
 tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
     filteringCharset = sourceEncoding
-}
-
-fun stubsArgument(): List<String> {
-    val stubs: File = rootProject.file(checkerStubsPath)
-    val folders: List<File> = CheckerStubs.forProject(stubs, project.name)
-    return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
 }

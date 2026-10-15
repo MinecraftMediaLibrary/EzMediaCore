@@ -79,7 +79,7 @@ class PythonEnvironmentTest {
             commands
         )
 
-        val uvVariables: Map<String, String> = uvEnvironment(installation, directory.resolve(UV_CACHE_DIRECTORY).toFile())
+        val uvVariables: Map<String, String> = UvEnvironment.variables(installation, directory.resolve(UV_CACHE_DIRECTORY).toFile())
         val environments: List<Map<String, Any?>> = processes.environments
         assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), environments)
 

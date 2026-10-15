@@ -31,8 +31,11 @@ private const val CATALOG_NAME: String = "libs"
 val Project.libs: VersionCatalog
     get() = extensions.getByType<VersionCatalogsExtension>().named(CATALOG_NAME)
 
-fun VersionCatalog.versionOf(alias: String): String = findVersion(alias).get().requiredVersion
+object CatalogUtils {
 
-fun VersionCatalog.libraryOf(alias: String): Provider<MinimalExternalModuleDependency> = findLibrary(alias).get()
+    fun versionOf(catalog: VersionCatalog, alias: String): String = catalog.findVersion(alias).get().requiredVersion
 
-fun VersionCatalog.bundleOf(alias: String): Provider<ExternalModuleDependencyBundle> = findBundle(alias).get()
+    fun libraryOf(catalog: VersionCatalog, alias: String): Provider<MinimalExternalModuleDependency> = catalog.findLibrary(alias).get()
+
+    fun bundleOf(catalog: VersionCatalog, alias: String): Provider<ExternalModuleDependencyBundle> = catalog.findBundle(alias).get()
+}

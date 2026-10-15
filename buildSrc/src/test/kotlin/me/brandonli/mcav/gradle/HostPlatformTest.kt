@@ -59,6 +59,9 @@ class HostPlatformTest {
         const val JAVA_HOME: String = "/opt/jdk"
         const val PYTHON: String = "python"
 
+        const val OPERATING_SYSTEM_PROPERTY: String = "os.name"
+        const val ARCHITECTURE_PROPERTY: String = "os.arch"
+
         const val LWJGL_GROUP: String = "org.lwjgl"
         const val LWJGL_NAME: String = "lwjgl"
         const val LWJGL_VERSION: String = "3.3.6"
@@ -159,13 +162,15 @@ class HostPlatformTest {
 
     @Test
     fun shouldPlaceTheExecutablesOfThisHost(): Unit {
-        val host: HostPlatform = HostPlatform.current()
+        val operatingSystem: String = System.getProperty(OPERATING_SYSTEM_PROPERTY)
+        val architecture: String = System.getProperty(ARCHITECTURE_PROPERTY)
+        val host: HostPlatform = HostPlatform.normalize(operatingSystem, architecture)
 
-        val java: String = javaExecutable(JAVA_HOME)
+        val java: String = HostPlatform.current().javaExecutable(JAVA_HOME)
         val expectedJava: String = host.javaExecutable(JAVA_HOME)
         assertEquals(expectedJava, java)
 
-        val python: String = virtualEnvironmentExecutable(PYTHON)
+        val python: String = HostPlatform.current().virtualEnvironmentExecutable(PYTHON)
         val expectedPython: String = host.virtualEnvironmentExecutable(PYTHON)
         assertEquals(expectedPython, python)
     }
@@ -174,7 +179,7 @@ class HostPlatformTest {
     fun shouldAddTheLwjglNativesOfAHostThatHasThem(): Unit {
         val project: Project = this.javaProject()
         val linux: HostPlatform = HostPlatform.normalize(LINUX_NAME, AMD64)
-        project.dependencies.addLwjglTestNatives(linux, listOf(this.lwjgl(project)))
+        linux.addLwjglTestNatives(project.dependencies, listOf(this.lwjgl(project)))
 
         val classifiers: List<String?> = this.testRuntimeClassifiers(project)
         assertEquals(listOf(LINUX_CLASSIFIER), classifiers)
@@ -184,7 +189,7 @@ class HostPlatformTest {
     fun shouldAddNoLwjglNativesForAHostWithoutThem(): Unit {
         val project: Project = this.javaProject()
         val unknown: HostPlatform = HostPlatform.normalize(UNKNOWN_NAME, AMD64)
-        project.dependencies.addLwjglTestNatives(unknown, listOf(this.lwjgl(project)))
+        unknown.addLwjglTestNatives(project.dependencies, listOf(this.lwjgl(project)))
 
         val classifiers: List<String?> = this.testRuntimeClassifiers(project)
         assertEquals(emptyList<String?>(), classifiers)
@@ -193,7 +198,7 @@ class HostPlatformTest {
     @Test
     fun shouldAddTheLwjglNativesOfThisHost(): Unit {
         val project: Project = this.javaProject()
-        project.dependencies.addLwjglTestNatives(listOf(this.lwjgl(project)))
+        HostPlatform.current().addLwjglTestNatives(project.dependencies, listOf(this.lwjgl(project)))
 
         val classifiers: List<String?> = this.testRuntimeClassifiers(project)
         val expected: List<String?> = listOfNotNull(HostPlatform.current().lwjglNatives)

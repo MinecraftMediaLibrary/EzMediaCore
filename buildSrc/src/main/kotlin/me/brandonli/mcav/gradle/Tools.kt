@@ -25,28 +25,31 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.Provider
 
-private const val CHECKSUMS_RESOURCE: String = "/tool-checksums.properties"
+object Tools {
 
-private const val NAME_SEPARATOR: Char = '-'
-private const val VARIABLE_SEPARATOR: Char = '_'
+    private const val CHECKSUMS_RESOURCE: String = "/tool-checksums.properties"
 
-private val pinnedChecksums: Properties = Properties().apply {
-    DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)!!.use { load(it) }
-}
+    private const val NAME_SEPARATOR: Char = '-'
+    private const val VARIABLE_SEPARATOR: Char = '_'
 
-private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
+    private val PINNED_CHECKSUMS: Properties = Properties().apply {
+        DownloadToolArchive::class.java.getResourceAsStream(CHECKSUMS_RESOURCE)!!.use { load(it) }
+    }
 
-fun Project.pinnedSha256(tool: String, version: String, archive: String): Provider<String> = provider {
-    val key: String = "$tool/$version/$archive"
-    val message: String =
-        "tool-checksums.properties pins no SHA-256 for $key, so set ${overrideVariable(tool)} to the path of $tool $version!"
-    pinnedChecksums.getProperty(key) ?: throw GradleException(message)
-}
+    fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> = project.provider {
+        val key: String = "$tool/$version/$archive"
+        val message: String =
+            "tool-checksums.properties pins no SHA-256 for $key, so set ${overrideVariable(tool)} to the path of $tool $version!"
+        PINNED_CHECKSUMS.getProperty(key) ?: throw GradleException(message)
+    }
 
-fun Project.toolOverride(tool: String): Provider<RegularFile> =
-    layout.file(providers.environmentVariable(overrideVariable(tool)).map { file(it) })
+    fun toolOverride(project: Project, tool: String): Provider<RegularFile> =
+        project.layout.file(project.providers.environmentVariable(overrideVariable(tool)).map { project.file(it) })
 
-fun Project.selectTool(tool: String, installed: Provider<RegularFile>): Provider<RegularFile> {
-    val override: Provider<RegularFile> = toolOverride(tool)
-    return if (override.isPresent) override else installed
+    fun selectTool(project: Project, tool: String, installed: Provider<RegularFile>): Provider<RegularFile> {
+        val override: Provider<RegularFile> = this.toolOverride(project, tool)
+        return if (override.isPresent) override else installed
+    }
+
+    private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT).replace(NAME_SEPARATOR, VARIABLE_SEPARATOR)
 }

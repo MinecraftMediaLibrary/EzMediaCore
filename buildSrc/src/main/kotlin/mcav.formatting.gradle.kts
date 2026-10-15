@@ -17,10 +17,10 @@
  */
 
 import com.github.gradle.node.NodeExtension
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.NodeLayout
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     java
@@ -52,10 +52,12 @@ val node: NodeExtension = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup: TaskProvider<Task> = rootProject.tasks.named("nodeSetup")
 val host: HostPlatform = HostPlatform.current()
 val nodeExecutable: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
+val prettierVersion: String = CatalogUtils.versionOf(libs, prettierAlias)
+val prettierJavaPluginVersion: String = CatalogUtils.versionOf(libs, prettierJavaPluginAlias)
 
 spotless {
     java {
-        prettier(mapOf(prettierAlias to libs.versionOf(prettierAlias), prettierJavaPluginAlias to libs.versionOf(prettierJavaPluginAlias)))
+        prettier(mapOf(prettierAlias to prettierVersion, prettierJavaPluginAlias to prettierJavaPluginVersion))
             .config(
                 mapOf(
                     "parser" to javaParser,

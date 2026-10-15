@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -30,6 +31,7 @@ class CheckerStubsTest {
         const val BUKKIT_PROJECT: String = "mcav-bukkit"
         const val MOD_PROJECT: String = "mcav-mod"
 
+        const val SHARED_STUBS: String = "shared"
         const val GUAVA_STUBS: String = "shared-guava"
     }
 
@@ -40,13 +42,13 @@ class CheckerStubsTest {
     fun shouldGiveTheSharedGuavaAndPaperStubsOnlyToTheirConsumers(): Unit {
         val projects: List<String> = listOf("mcav-common", BUKKIT_PROJECT, "mcav-plugin", "mcav-browser", "mcav-discord", "mcav-http",
             "mcav-installer", "mcav-lwjgl", MOD_PROJECT, "mcav-vm", "mcav-vnc", "mcav-voicechat", "mcav-jcstress")
-        (projects + listOf("shared", GUAVA_STUBS, "shared-paper")).forEach { directory.resolve(it).toFile().mkdirs() }
+        (projects + listOf(SHARED_STUBS, GUAVA_STUBS, "shared-paper")).forEach { directory.resolve(it).toFile().mkdirs() }
         val expected: Map<String, List<String>> = projects.associateWith { project ->
             when (project) {
-                "mcav-common" -> listOf(project, "shared", GUAVA_STUBS)
-                BUKKIT_PROJECT -> listOf(project, "shared", GUAVA_STUBS, "shared-paper")
-                "mcav-plugin" -> listOf(project, "shared", "shared-paper")
-                else -> listOf(project, "shared")
+                "mcav-common" -> listOf(project, SHARED_STUBS, GUAVA_STUBS)
+                BUKKIT_PROJECT -> listOf(project, SHARED_STUBS, GUAVA_STUBS, "shared-paper")
+                "mcav-plugin" -> listOf(project, SHARED_STUBS, "shared-paper")
+                else -> listOf(project, SHARED_STUBS)
             }
         }
         val stubs: Map<String, List<String>> = projects.associateWith { project ->
@@ -66,5 +68,23 @@ class CheckerStubsTest {
 
         val otherProject: List<String> = CheckerStubs.forProject(directory.toFile(), MOD_PROJECT).map { it.name }
         assertEquals(emptyList<String>(), otherProject)
+    }
+
+    @Test
+    fun shouldPassNoStubsArgumentWithoutStubFolders(): Unit {
+        val arguments: List<String> = CheckerStubs.argumentsFor(directory.toFile(), MOD_PROJECT)
+        assertEquals(emptyList<String>(), arguments)
+    }
+
+    @Test
+    fun shouldJoinTheStubFoldersIntoOneStubsArgument(): Unit {
+        val projectStubs: File = directory.resolve(MOD_PROJECT).toFile()
+        val sharedStubs: File = directory.resolve(SHARED_STUBS).toFile()
+        projectStubs.mkdirs()
+        sharedStubs.mkdirs()
+
+        val arguments: List<String> = CheckerStubs.argumentsFor(directory.toFile(), MOD_PROJECT)
+        val expected: List<String> = listOf("-Astubs=$projectStubs${File.pathSeparator}$sharedStubs")
+        assertEquals(expected, arguments)
     }
 }

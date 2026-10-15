@@ -31,7 +31,7 @@ class ModuleCoordinatesTest {
         root.group = "fixture.changed"
         root.version = "2.3.4-SNAPSHOT"
         val plugin: Project = ProjectBuilder.builder().withName("mcav-plugin").withParent(root).build()
-        val coordinate: String = plugin.moduleCoordinate("mcav-bukkit")
+        val coordinate: String = ModuleCoordinates.coordinateOf(plugin, "mcav-bukkit")
         assertEquals("fixture.changed:mcav-bukkit:2.3.4-SNAPSHOT", coordinate)
 
         val pluginVersion: String = plugin.version.toString()
@@ -39,7 +39,7 @@ class ModuleCoordinatesTest {
 
         root.group = "fixture.updated"
         root.version = "3.4.5-SNAPSHOT"
-        val updatedCoordinate: String = plugin.moduleCoordinate("mcav-voicechat")
+        val updatedCoordinate: String = ModuleCoordinates.coordinateOf(plugin, "mcav-voicechat")
         assertEquals("fixture.updated:mcav-voicechat:3.4.5-SNAPSHOT", updatedCoordinate)
     }
 }

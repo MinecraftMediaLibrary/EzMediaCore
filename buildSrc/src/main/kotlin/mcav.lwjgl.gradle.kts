@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.addLwjglTestNatives
-import me.brandonli.mcav.gradle.libraryOf
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.libs
 
 plugins {
@@ -28,5 +28,5 @@ plugins {
 val lwjglAliases: List<String> = listOf("lwjgl", "lwjgl-opengl", "lwjgl-glfw")
 
 dependencies {
-    addLwjglTestNatives(lwjglAliases.map { libs.libraryOf(it) })
+    HostPlatform.current().addLwjglTestNatives(dependencies, lwjglAliases.map { CatalogUtils.libraryOf(libs, it) })
 }

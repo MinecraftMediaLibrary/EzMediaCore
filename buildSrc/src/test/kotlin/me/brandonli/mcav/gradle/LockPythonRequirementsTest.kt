@@ -98,7 +98,7 @@ class LockPythonRequirementsTest {
         val environment: Map<String, Any?> = processes.environments[1]
         val installation: File = directory.resolve(PYTHON_DIRECTORY).toFile()
         val cache: File = directory.resolve(UV_CACHE_DIRECTORY).toFile()
-        assertEquals(uvEnvironment(installation, cache), environment)
+        assertEquals(UvEnvironment.variables(installation, cache), environment)
 
         val locked: String = lock.readText()
         assertEquals("# License header\n\nnumpy==2.5.3 \\\n    --hash=sha256:00\n", locked)

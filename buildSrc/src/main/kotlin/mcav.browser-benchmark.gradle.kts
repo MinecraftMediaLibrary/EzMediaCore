@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.javaLauncher
+import me.brandonli.mcav.gradle.JavaToolchains
 
 plugins {
     java
@@ -52,7 +52,7 @@ tasks.register<JavaExec>("browserBenchmark") {
     val output: Provider<String> = providers.gradleProperty(outputProperty)
         .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })
     argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
-    javaLauncher = javaLauncher()
+    javaLauncher = JavaToolchains.launcher(project)
     maxHeapSize = benchmarkHeapSize
     outputs.upToDateWhen { false }
 }

@@ -16,10 +16,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
+import me.brandonli.mcav.gradle.HostPlatform
 import me.brandonli.mcav.gradle.PythonEnvironment
 import me.brandonli.mcav.gradle.PythonTests
-import me.brandonli.mcav.gradle.addLwjglTestNatives
-import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 
 plugins {
@@ -39,9 +39,9 @@ val docsImagePath: String = "mcav-docs/images/mcv2"
 val pythonReportPath: String = "test-results/pythonTest"
 
 dependencies {
-    val libraries: List<Provider<MinimalExternalModuleDependency>> = lwjglAliases.map { libs.libraryOf(it) }
+    val libraries: List<Provider<MinimalExternalModuleDependency>> = lwjglAliases.map { CatalogUtils.libraryOf(libs, it) }
     libraries.forEach { testImplementation(it) }
-    addLwjglTestNatives(libraries)
+    HostPlatform.current().addLwjglTestNatives(dependencies, libraries)
 }
 
 val writeToolsClasspath: TaskProvider<Task> = tasks.register("writeMcv2ToolsClasspath") {

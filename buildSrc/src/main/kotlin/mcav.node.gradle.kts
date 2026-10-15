@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import me.brandonli.mcav.gradle.CatalogUtils
 import me.brandonli.mcav.gradle.libs
-import me.brandonli.mcav.gradle.versionOf
 
 plugins {
     id("com.github.node-gradle.node")
@@ -26,7 +26,7 @@ plugins {
 val nodeAlias: String = "node"
 val nodeToolsPath: String = "tools/node"
 
-val pinnedNodeVersion: String = libs.versionOf(nodeAlias)
+val pinnedNodeVersion: String = CatalogUtils.versionOf(libs, nodeAlias)
 
 node {
     download = true

@@ -1,4 +1,4 @@
-import me.brandonli.mcav.gradle.moduleCoordinate
+import me.brandonli.mcav.gradle.ModuleCoordinates
 
 plugins {
     id("mcav.module")
@@ -8,15 +8,15 @@ plugins {
 
 dependencies {
     implementation(libs.gremlin.runtime)
-    implementation(moduleCoordinate("mcav-voicechat"))
+    implementation(ModuleCoordinates.coordinateOf(project, "mcav-voicechat"))
     compileOnly(libs.paper.api)
-    runtimeDownload(moduleCoordinate("mcav-bukkit"))
-    runtimeDownload(moduleCoordinate("mcav-discord"))
-    runtimeDownload(moduleCoordinate("mcav-http"))
-    runtimeDownload(moduleCoordinate("mcav-common"))
-    runtimeDownload(moduleCoordinate("mcav-vm"))
-    runtimeDownload(moduleCoordinate("mcav-vnc"))
-    runtimeDownload(moduleCoordinate("mcav-browser"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-bukkit"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-discord"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-http"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-common"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-vm"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-vnc"))
+    runtimeDownload(ModuleCoordinates.coordinateOf(project, "mcav-browser"))
     runtimeDownload(libs.bundles.cloud)
     runtimeDownload(libs.commodore)
     runtimeDownload(libs.bstats.bukkit)

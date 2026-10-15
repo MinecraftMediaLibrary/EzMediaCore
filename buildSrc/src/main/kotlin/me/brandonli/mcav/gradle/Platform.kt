@@ -69,6 +69,14 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
     fun virtualEnvironmentExecutable(name: String): String =
         if (isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
 
+    fun addLwjglTestNatives(dependencies: DependencyHandler, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
+        lwjglNatives?.let { natives ->
+            libraries.forEach { library ->
+                dependencies.add(TEST_RUNTIME_CONFIGURATION, dependencies.variantOf(library) { classifier(natives) })
+            }
+        }
+    }
+
     companion object {
 
         private const val WINDOWS: String = "windows"
@@ -114,6 +122,8 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
         private const val WINDOWS_SCRIPTS_DIRECTORY: String = "Scripts/"
         private const val UNIX_BINARIES_DIRECTORY: String = "bin/"
 
+        private const val TEST_RUNTIME_CONFIGURATION: String = "testRuntimeOnly"
+
         private const val OPERATING_SYSTEM_PROPERTY: String = "os.name"
         private const val ARCHITECTURE_PROPERTY: String = "os.arch"
 
@@ -125,26 +135,6 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
             val name: String = architecture.lowercase(Locale.ROOT)
             val normalizedArchitecture: String = ARCHITECTURE_ALIASES.getOrDefault(name, name)
             return HostPlatform(operatingSystem.lowercase(Locale.ROOT), normalizedArchitecture)
-        }
-    }
-}
-
-private const val TEST_RUNTIME_CONFIGURATION: String = "testRuntimeOnly"
-
-val isWindows: Boolean = HostPlatform.current().isWindows
-
-fun javaExecutable(javaHome: String): String = HostPlatform.current().javaExecutable(javaHome)
-
-fun virtualEnvironmentExecutable(name: String): String = HostPlatform.current().virtualEnvironmentExecutable(name)
-
-fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
-    addLwjglTestNatives(HostPlatform.current(), libraries)
-}
-
-fun DependencyHandler.addLwjglTestNatives(platform: HostPlatform, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
-    platform.lwjglNatives?.let { natives ->
-        libraries.forEach { library ->
-            add(TEST_RUNTIME_CONFIGURATION, variantOf(library) { classifier(natives) })
         }
     }
 }

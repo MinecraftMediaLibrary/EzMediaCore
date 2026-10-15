@@ -20,4 +20,8 @@ package me.brandonli.mcav.gradle
 
 import org.gradle.api.Project
 
-fun Project.moduleCoordinate(moduleName: String): String = "${rootProject.group}:$moduleName:${rootProject.version}"
+object ModuleCoordinates {
+
+    fun coordinateOf(project: Project, moduleName: String): String =
+        "${project.rootProject.group}:$moduleName:${project.rootProject.version}"
+}

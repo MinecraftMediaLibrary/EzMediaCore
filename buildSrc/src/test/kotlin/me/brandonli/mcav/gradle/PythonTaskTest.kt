@@ -63,6 +63,7 @@ class PythonTaskTest {
         assertEquals(HostPlatform.current().uvTarget, platform)
 
         val pythonExecutable: File = book.pythonExecutable.get().asFile
-        assertEquals(directory.resolve(VIRTUAL_ENVIRONMENT_PATH).resolve(virtualEnvironmentExecutable("python")).toFile(), pythonExecutable)
+        val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable("python")
+        assertEquals(directory.resolve(VIRTUAL_ENVIRONMENT_PATH).resolve(pythonPath).toFile(), pythonExecutable)
     }
 }

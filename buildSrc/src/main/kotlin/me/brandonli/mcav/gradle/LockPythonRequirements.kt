@@ -94,7 +94,7 @@ abstract class LockPythonRequirements : DefaultTask() {
             commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
                 "--python", python, "--python-version", python.substringBeforeLast(VERSION_SEPARATOR), "--only-binary", ":all:",
                 "--default-index", PACKAGE_INDEX, "--output-file", lock, "--quiet")
-            environment(uvEnvironment(installationDirectory.get().asFile, cacheDirectory.get().asFile))
+            environment(UvEnvironment.variables(installationDirectory.get().asFile, cacheDirectory.get().asFile))
         }
         lock.writeText(licenseHeader.get() + lock.readText())
     }
