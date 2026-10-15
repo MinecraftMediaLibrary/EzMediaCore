@@ -28,31 +28,22 @@ import java.util.List;
 import java.util.Map;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * Assertions for the {@link Object#equals(Object)} and {@link Object#hashCode()} contract of value types.
- */
+// Assertions for the Object#equals(Object) and Object#hashCode() contract of value types.
 public final class EqualityAssertions {
 
   private EqualityAssertions() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /**
-   * Asserts that a value equals itself, that two values are equal in both directions with equal hash codes, that
-   * neither equals {@code null} or an unrelated object, and that the value differs from every one of the different
-   * values in both directions and remains distinct from them as a hash map key.
-   *
-   * <p>Unequal values may have equal hash codes, even when only one property differs. Hash maps use equality to
-   * distinguish keys that collide; the contract requires equal hashes only for equal values.
-   *
-   * @param value           the value under test
-   * @param equalValue      a distinct instance that must be equal to the value
-   * @param differentValues instances that must not be equal to the value, ideally each differing in one property
-   */
+  // Asserts that a value equals itself, that two values are equal in both directions with equal hash codes, that
+  // neither equals null or an unrelated object, and that the value differs from every one of the different values in
+  // both directions and remains distinct from them as a hash map key. Unequal values may have equal hash codes, even
+  // when only one property differs. Hash maps use equality to distinguish keys that collide; the contract requires
+  // equal hashes only for equal values.
   public static void assertEqualityContract(final Object value, final Object equalValue, final Object... differentValues) {
-    Preconditions.checkNotNull(value, "Value must not be null");
-    Preconditions.checkNotNull(equalValue, "Equal value must not be null");
-    Preconditions.checkNotNull(differentValues, "Different values must not be null");
+    Preconditions.checkNotNull(value, "Value must not be null!");
+    Preconditions.checkNotNull(equalValue, "Equal value must not be null!");
+    Preconditions.checkNotNull(differentValues, "Different values must not be null!");
 
     final List<Object> equalValues = List.of(value, equalValue);
     for (final Object left : equalValues) {

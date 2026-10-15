@@ -30,8 +30,9 @@ import me.brandonli.mcav.plugin.utils.DitheringArgument;
 import me.brandonli.mcav.plugin.utils.MapCodec;
 import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
-import me.brandonli.mcav.vnc.VNCPlayer;
-import me.brandonli.mcav.vnc.VNCSource;
+import me.brandonli.mcav.vnc.VncPlayer;
+import me.brandonli.mcav.vnc.VncSource;
+import me.brandonli.mcav.vnc.VncSourceBuilder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -55,7 +56,7 @@ import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
  * its network that way. A server's password is written in its entry there, never in the command, where the server's
  * log would keep it, and it is not logged or shown anywhere.
  */
-public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
+public final class VncCommand extends AbstractInteractiveCommand<VncPlayer> {
 
   /**
    * The permission a player needs to send input to the desktop, by chat or by clicking the screen.
@@ -89,7 +90,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
    * @param screenY the y coordinate on the desktop, in pixels
    */
   @Override
-  protected void handleLeftClick(final VNCPlayer current, final int screenX, final int screenY) {
+  protected void handleLeftClick(final VncPlayer current, final int screenX, final int screenY) {
     Preconditions.checkNotNull(current, "Desktop must not be null");
     current.sendMouseEvent(MouseClick.LEFT, screenX, screenY);
   }
@@ -102,7 +103,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
    * @param screenY the y coordinate on the desktop, in pixels
    */
   @Override
-  protected void handleRightClick(final VNCPlayer current, final int screenX, final int screenY) {
+  protected void handleRightClick(final VncPlayer current, final int screenX, final int screenY) {
     Preconditions.checkNotNull(current, "Desktop must not be null");
     current.sendMouseEvent(MouseClick.RIGHT, screenX, screenY);
   }
@@ -114,7 +115,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
    * @param text    the text to type
    */
   @Override
-  protected void handleTextInput(final VNCPlayer current, final String text) {
+  protected void handleTextInput(final VncPlayer current, final String text) {
     Preconditions.checkNotNull(current, "Desktop must not be null");
     Preconditions.checkNotNull(text, "Text must not be null");
     current.sendKeyEvent(text);
@@ -126,7 +127,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
    * @param current the desktop to disconnect from, which is no longer the running one
    */
   @Override
-  protected void releasePlayer(final VNCPlayer current) {
+  protected void releasePlayer(final VncPlayer current) {
     Preconditions.checkNotNull(current, "Desktop must not be null");
     // closing the connection waits for the client's threads, which a stalled server can hold up
     CleanupUtils.runAll(() -> current.getVideoAttachableCallback().detach(), () -> this.releaseInTheBackground(current::release));
@@ -229,7 +230,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
       return;
     }
 
-    final VNCSource source = createSource(entry, resolution, targetFps);
+    final VncSource source = createSource(entry, resolution, targetFps);
     final MapCodec chosen = this.chooseCodec(codec);
     final ScreenSettings settings = new ScreenSettings(sender, playerSelector, blocks, resolution, mapId, ditheringAlgorithm, chosen);
     final Screen screen = this.createScreen(settings);
@@ -244,8 +245,8 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
    * @param targetFps  the frames per second
    * @return the source
    */
-  static VNCSource createSource(final VncAllowList.Entry entry, final Pair<Integer, Integer> resolution, final int targetFps) {
-    final VNCSource.Builder builder = VNCSource.builder();
+  static VncSource createSource(final VncAllowList.Entry entry, final Pair<Integer, Integer> resolution, final int targetFps) {
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host(entry.host());
     builder.port(entry.port());
     final String password = entry.password();
@@ -258,8 +259,8 @@ public final class VncCommand extends AbstractInteractiveCommand<VNCPlayer> {
     return builder.build();
   }
 
-  private void connect(final CommandSender sender, final Screen screen, final VNCSource source, final VncAllowList.Entry entry) {
-    final VNCPlayer desktop = VNCPlayer.create();
+  private void connect(final CommandSender sender, final Screen screen, final VncSource source, final VncAllowList.Entry entry) {
+    final VncPlayer desktop = VncPlayer.create();
     this.ownCreatedPlayer(desktop);
     final VideoAttachableCallback callback = desktop.getVideoAttachableCallback();
     final VideoPipelineStep pipeline = screen.getPipeline();

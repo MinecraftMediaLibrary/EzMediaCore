@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.vnc;
 
+import static me.brandonli.mcav.vnc.RfbSession.MINOR_VERSION_3_8;
 import static me.brandonli.mcav.vnc.RfbSession.NONE;
 import static me.brandonli.mcav.vnc.RfbSession.version;
 
@@ -25,27 +26,25 @@ import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.io.IOException;
 import org.junit.jupiter.api.Tag;
 
-/**
- * Fuzzes {@link RfbGuard} with what a hostile VNC server could send: after a handshake, or from the first byte, any
- * bytes in any chunks. The guard passes them or refuses them with an {@link IOException}; any other failure, or a hang,
- * is a crash. The client side is the one mcav's VNC client sends.
- */
+// Fuzzes RfbGuard with what a hostile VNC server could send: after a handshake, or from the first byte, any bytes in
+// any chunks. The guard passes them or refuses them with an IOException; any other failure, or a hang, is a crash. The
+// client side is the one mcav's VNC client sends.
 @Tag("fuzz")
 final class RfbGuardFuzzTest {
 
   private static final int SIDE = 64;
 
-  private static final int MAX_CHUNK = 512;
+  private static final int MAXIMUM_CHUNK = 512;
 
   @FuzzTest(maxDuration = "30s")
-  void checksWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
+  void shouldCheckWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
     final RfbSession session = new RfbSession();
-    session.handshake(8, NONE, SIDE, SIDE);
-    feed(session, data);
+    session.handshake(MINOR_VERSION_3_8, NONE, SIDE, SIDE);
+    this.feed(session, data);
   }
 
   @FuzzTest(maxDuration = "30s")
-  void checksAHandshakeFromTheFirstByte(final FuzzedDataProvider data) {
+  void shouldCheckAHandshakeFromTheFirstByte(final FuzzedDataProvider data) {
     final RfbSession session = new RfbSession();
     final int minor = data.pickValue(new int[] { 3, 7, 8 });
     try {
@@ -56,18 +55,18 @@ final class RfbGuardFuzzTest {
         session.client(new byte[] { (byte) data.consumeInt(0, 255) });
       }
       session.client(data.consumeBytes(data.consumeInt(0, 400)));
-    } catch (final IOException refused) {
+    } catch (final IOException exception) {
       return;
     }
-    feed(session, data);
+    this.feed(session, data);
   }
 
-  private static void feed(final RfbSession session, final FuzzedDataProvider data) {
+  private void feed(final RfbSession session, final FuzzedDataProvider data) {
     try {
       while (data.remainingBytes() > 0) {
-        session.server(data.consumeBytes(data.consumeInt(1, MAX_CHUNK)));
+        session.server(data.consumeBytes(data.consumeInt(1, MAXIMUM_CHUNK)));
       }
-    } catch (final IOException refused) {
+    } catch (final IOException exception) {
       // the one failure the guard may report
     }
   }

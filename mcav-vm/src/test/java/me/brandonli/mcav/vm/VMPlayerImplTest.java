@@ -66,8 +66,8 @@ import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.utils.os.Os;
-import me.brandonli.mcav.vnc.VNCPlayer;
-import me.brandonli.mcav.vnc.VNCSource;
+import me.brandonli.mcav.vnc.VncPlayer;
+import me.brandonli.mcav.vnc.VncSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -103,14 +103,14 @@ final class VMPlayerImplTest {
     return this.audioClient;
   };
 
-  private VNCPlayer vnc;
+  private VncPlayer vnc;
   private VMProcess qemu;
   private AtomicBoolean processAlive;
   private ExecutableFinder finder;
 
   @BeforeEach
   void createParts() throws IOException {
-    this.vnc = mock(VNCPlayer.class);
+    this.vnc = mock(VncPlayer.class);
     this.qemu = mock(VMProcess.class);
     when(this.qemu.getPassword()).thenReturn(PASSWORD);
     final AtomicBoolean alive = new AtomicBoolean();
@@ -168,7 +168,7 @@ final class VMPlayerImplTest {
   }
 
   private void stubConnectingStream() {
-    when(this.vnc.start(any(VNCSource.class))).thenReturn(true);
+    when(this.vnc.start(any(VncSource.class))).thenReturn(true);
   }
 
   private static boolean startDefaultMachine(final VMPlayer player) {
@@ -197,15 +197,15 @@ final class VMPlayerImplTest {
   }
 
   private void assertStreamedWith(final VMSettings settings) {
-    final ArgumentCaptor<VNCSource> captor = ArgumentCaptor.forClass(VNCSource.class);
+    final ArgumentCaptor<VncSource> captor = ArgumentCaptor.forClass(VncSource.class);
     verify(this.vnc).start(captor.capture());
-    final VNCSource source = captor.getValue();
+    final VncSource source = captor.getValue();
     final String sourceHost = source.getHost();
     final int sourcePort = source.getPort();
     final int sourceWidth = source.getScreenWidth();
     final int sourceHeight = source.getScreenHeight();
     final int sourceFrameRate = source.getTargetFrameRate();
-    final String sourcePassword = source.getPassword();
+    final Optional<String> sourcePassword = source.getPassword();
 
     final int port = settings.getPort();
     final int width = settings.getWidth();
@@ -216,7 +216,7 @@ final class VMPlayerImplTest {
     assertEquals(width, sourceWidth);
     assertEquals(height, sourceHeight);
     assertEquals(frameRate, sourceFrameRate);
-    assertEquals(PASSWORD, sourcePassword, "the display asks for the password of its machine");
+    assertEquals(Optional.of(PASSWORD), sourcePassword, "the display asks for the password of its machine");
   }
 
   @Test
@@ -420,7 +420,7 @@ final class VMPlayerImplTest {
     final boolean messageContains = message.contains("qemu-system-riscv64");
     assertTrue(messageContains, message);
     assertTrue(nothingCreated);
-    verify(this.vnc, never()).start(any(VNCSource.class));
+    verify(this.vnc, never()).start(any(VncSource.class));
   }
 
   @Test
@@ -503,12 +503,12 @@ final class VMPlayerImplTest {
     final boolean playing = player.isPlaying();
     assertSame(failure, exception);
     assertFalse(playing);
-    verify(this.vnc, never()).start(any(VNCSource.class));
+    verify(this.vnc, never()).start(any(VncSource.class));
   }
 
   @Test
   void shutsQemuDownWhenTheStreamCannotStart() {
-    when(this.vnc.start(any(VNCSource.class))).thenReturn(false);
+    when(this.vnc.start(any(VncSource.class))).thenReturn(false);
     final VMPlayerImpl player = this.player();
 
     final PlayerException exception = assertThrows(PlayerException.class, () -> startDefaultMachine(player));
@@ -523,7 +523,7 @@ final class VMPlayerImplTest {
   @Test
   void shutsQemuDownAndCanStartAgainWhenTheConnectionFails() {
     final PlayerException failure = new PlayerException("Failed to connect");
-    when(this.vnc.start(any(VNCSource.class)))
+    when(this.vnc.start(any(VncSource.class)))
       .thenThrow(failure)
       .thenReturn(true);
     final VMPlayerImpl player = this.player();
@@ -651,7 +651,7 @@ final class VMPlayerImplTest {
     final VMPlayerImpl.ProcessFactory factory = (_, _, _, _) -> created.getAndIncrement() == 0 ? previous : next;
     final VMPlayerImpl player = new VMPlayerImpl(this.vnc, this.finder, factory, this.audio);
     final IllegalStateException connectionFailure = new IllegalStateException("VNC initialization failed");
-    when(this.vnc.start(any(VNCSource.class)))
+    when(this.vnc.start(any(VncSource.class)))
       .thenThrow(connectionFailure)
       .thenReturn(true);
     final IllegalStateException original = assertThrows(IllegalStateException.class, () -> startDefaultMachine(player));
@@ -695,7 +695,7 @@ final class VMPlayerImplTest {
     assertTrue(released);
     assertFalse(releasedAgain);
     verify(this.qemu, times(2)).shutdown();
-    verify(this.vnc, never()).start(any(VNCSource.class));
+    verify(this.vnc, never()).start(any(VncSource.class));
   }
 
   @Test
@@ -725,7 +725,7 @@ final class VMPlayerImplTest {
     final VMPlayerImpl player = this.player();
     final PlayerException primary = new PlayerException("VNC start failed");
     final IllegalStateException cleanup = new IllegalStateException("process termination failed");
-    when(this.vnc.start(any(VNCSource.class))).thenThrow(primary);
+    when(this.vnc.start(any(VncSource.class))).thenThrow(primary);
     doThrow(cleanup).when(this.qemu).shutdown();
     final PlayerException thrown = assertThrows(PlayerException.class, () -> startDefaultMachine(player));
     assertSame(primary, thrown);
@@ -766,7 +766,7 @@ final class VMPlayerImplTest {
   void retainsTheMachineForExplicitReleaseAfterAFatalDisplayStartFailure() {
     final VMPlayerImpl player = this.player();
     final InternalError fatal = new InternalError("VM failure during VNC startup");
-    when(this.vnc.start(any(VNCSource.class))).thenThrow(fatal);
+    when(this.vnc.start(any(VncSource.class))).thenThrow(fatal);
     final InternalError thrown = assertThrows(InternalError.class, () -> startDefaultMachine(player));
     assertSame(fatal, thrown);
     assertFalse(player.isPlaying());

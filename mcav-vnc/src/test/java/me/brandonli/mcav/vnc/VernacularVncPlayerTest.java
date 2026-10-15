@@ -44,7 +44,6 @@ import com.shinyhut.vernacular.client.exceptions.AuthenticationFailedException;
 import com.shinyhut.vernacular.client.exceptions.NoSupportedSecurityTypesException;
 import com.shinyhut.vernacular.client.exceptions.UnexpectedVncException;
 import com.shinyhut.vernacular.client.exceptions.UnknownMessageTypeException;
-import com.shinyhut.vernacular.client.exceptions.VncException;
 import com.shinyhut.vernacular.client.rendering.ColorDepth;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -76,7 +75,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import me.brandonli.mcav.media.image.ImageBuffer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.media.player.metadata.OriginalVideoMetadata;
 import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
@@ -93,19 +91,39 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-/**
- * Tests {@link VNCPlayerImpl} and the default methods of {@link VNCPlayer}.
- *
- * <p>Most tests talk to a {@link RfbTestServer} on the loopback interface, so the whole path from the socket to the
- * pipeline is exercised. Tests of failures the real client cannot produce on demand use a mocked
- * {@link VernacularClient} whose listeners are driven by the test.
- */
-final class VNCPlayerImplTest {
+// Tests VernacularVncPlayer and the default methods of VncPlayer. Most tests talk to a RfbTestServer on the loopback
+// interface, so the whole path from the socket to the pipeline is exercised. Tests of failures the real client cannot
+// produce on demand use a mocked VernacularClient whose listeners are driven by the test.
+final class VernacularVncPlayerTest {
 
   private static final int RED = 0xFF0000;
   private static final int GREEN = 0x00FF00;
   private static final int BLUE = 0x0000FF;
   private static final String RENDER_THREAD = "mcav-vnc-render";
+
+  private static final long TIMEOUT_SECONDS = 10;
+
+  private static final int SQUARE_SIDE = 4;
+
+  private static final int SERVER_SIDE = 16;
+
+  private static final int SERVER_WIDTH = 64;
+  private static final int SERVER_HEIGHT = 48;
+
+  private static final int SCREEN_WIDTH = 200;
+  private static final int SCREEN_HEIGHT = 100;
+
+  private static final int SCALED_WIDTH = 100;
+  private static final int SCALED_HEIGHT = 50;
+
+  private static final String PASSWORD = "secret";
+
+  private static final String RETURN_KEY = "Return";
+
+  private static final int UNKNOWN_MESSAGE_TYPE = 9;
+
+  private static final long SHORT_IDLE_NANOSECONDS = TimeUnit.MILLISECONDS.toNanos(10);
+  private static final long HANDSHAKE_DEADLINE_MILLISECONDS = 500;
 
   private final List<AutoCloseable> resources = new CopyOnWriteArrayList<>();
   private final List<RecordedFrame> frames = new CopyOnWriteArrayList<>();
@@ -122,14 +140,12 @@ final class VNCPlayerImplTest {
     }
   }
 
-  /**
-   * Loads the OpenCV libraries that every frame goes through before any test runs. JavaCV loads them on first use,
-   * which takes seconds on a busy machine, and that one-time cost would otherwise count against the timeout of
-   * whichever test receives the first frame.
-   */
+  // Loads the OpenCV libraries that every frame goes through before any test runs. JavaCV loads them on first use,
+  // which takes seconds on a busy machine, and that one-time cost would otherwise count against the timeout of
+  // whichever test receives the first frame.
   @BeforeAll
   static void loadImageLibraries() {
-    final BufferedImage frame = image(2, 2, RED);
+    final BufferedImage frame = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
     final ResizeFilter resizeFilter = new ResizeFilter(1, 1);
     final OriginalVideoMetadata metadata = OriginalVideoMetadata.of(1, 1, 50);
     try (final ImageBuffer buffer = ImageBuffer.image(frame)) {
@@ -144,7 +160,7 @@ final class VNCPlayerImplTest {
   }
 
   private RfbTestServer server(final RfbTestServer.Security security, final String password) {
-    final RfbTestServer server = RfbTestServer.start(64, 48, security, password);
+    final RfbTestServer server = RfbTestServer.start(SERVER_WIDTH, SERVER_HEIGHT, security, password);
     this.resources.add(server);
     return server;
   }
@@ -156,7 +172,7 @@ final class VNCPlayerImplTest {
     return socket;
   }
 
-  private VNCPlayerImpl track(final VNCPlayerImpl player) {
+  private VernacularVncPlayer track(final VernacularVncPlayer player) {
     this.resources.add(player::release);
     final BiConsumer<String, Throwable> handler = (message, error) -> {
       this.errorMessages.add(message);
@@ -164,11 +180,11 @@ final class VNCPlayerImplTest {
     };
     player.setExceptionHandler(handler);
     final VideoFilter recorder = this::record;
-    attach(player, recorder);
+    this.attach(player, recorder);
     return player;
   }
 
-  private static void attach(final VNCPlayer player, final VideoFilter filter) {
+  private void attach(final VncPlayer player, final VideoFilter filter) {
     final VideoPipelineStepBuilder builder = PipelineBuilder.video();
     builder.then(filter);
     final VideoPipelineStep pipeline = builder.build();
@@ -176,14 +192,14 @@ final class VNCPlayerImplTest {
     callback.attach(pipeline);
   }
 
-  private VNCPlayerImpl player() {
-    final VNCPlayerImpl player = new VNCPlayerImpl();
+  private VernacularVncPlayer player() {
+    final VernacularVncPlayer player = new VernacularVncPlayer();
     return this.track(player);
   }
 
-  private VNCPlayerImpl mockedPlayer(final VernacularClient client, final AtomicReference<VernacularConfig> config) {
-    final VNCPlayerImpl player = new VNCPlayerImpl(configuration -> {
-      config.set(configuration);
+  private VernacularVncPlayer mockedPlayer(final VernacularClient client, final AtomicReference<VernacularConfig> capturedConfiguration) {
+    final VernacularVncPlayer player = new VernacularVncPlayer(configuration -> {
+      capturedConfiguration.set(configuration);
       return client;
     }, Socket::new);
     return this.track(player);
@@ -202,52 +218,55 @@ final class VNCPlayerImplTest {
     return false;
   }
 
-  private static VNCSource.Builder hostBuilder(final int port) {
-    final VNCSource.Builder builder = VNCSource.builder();
+  private VncSourceBuilder hostBuilder(final int port) {
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host("127.0.0.1");
     builder.port(port);
     return builder;
   }
 
-  private static VNCSource.Builder hostBuilder(final ServerSocket socket) {
+  private VncSourceBuilder hostBuilder(final ServerSocket socket) {
     final int port = socket.getLocalPort();
-    return hostBuilder(port);
+    return this.hostBuilder(port);
   }
 
-  private static VNCSource.Builder hostBuilder(final RfbTestServer server) {
+  private VncSourceBuilder hostBuilder(final RfbTestServer server) {
     final int port = server.getPort();
-    return hostBuilder(port);
+    return this.hostBuilder(port);
   }
 
-  private static VNCSource source(final VNCSource.Builder builder, final int width, final int height) {
+  private VncSource source(final VncSourceBuilder builder, final int width, final int height) {
     builder.screenWidth(width);
     builder.screenHeight(height);
     builder.targetFrameRate(50);
     return builder.build();
   }
 
-  private static VNCSource source(final ServerSocket socket, final int width, final int height) {
-    final VNCSource.Builder builder = hostBuilder(socket);
-    return source(builder, width, height);
+  private VncSource source(final ServerSocket socket, final int width, final int height) {
+    final VncSourceBuilder builder = this.hostBuilder(socket);
+    return this.source(builder, width, height);
   }
 
-  private static VNCSource source(final RfbTestServer server, final int width, final int height) {
-    final VNCSource.Builder builder = hostBuilder(server);
-    return source(builder, width, height);
+  private VncSource source(final RfbTestServer server, final int width, final int height) {
+    final VncSourceBuilder builder = this.hostBuilder(server);
+    return this.source(builder, width, height);
   }
 
   private RecordedFrame awaitFrame(final String description, final Predicate<RecordedFrame> condition) {
     final AtomicReference<RecordedFrame> found = new AtomicReference<>();
-    Await.until(description, () -> {
-      for (final RecordedFrame frame : this.frames) {
-        if (condition.test(frame)) {
-          found.set(frame);
-          return true;
-        }
-      }
-      return false;
-    });
+    Await.until(description, () -> this.findFrame(condition, found));
     return found.get();
+  }
+
+  private boolean findFrame(final Predicate<RecordedFrame> condition, final AtomicReference<RecordedFrame> found) {
+    for (final RecordedFrame frame : this.frames) {
+      if (condition.test(frame)) {
+        found.set(frame);
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private boolean containsBlueFrame() {
@@ -259,39 +278,43 @@ final class VNCPlayerImplTest {
     return false;
   }
 
-  private static BufferedImage image(final int width, final int height, final int rgb) {
+  private BufferedImage image(final int width, final int height, final int rgb) {
     final BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
         image.setRGB(column, row, rgb);
       }
     }
+
     return image;
   }
 
-  private static void pushScreen(final AtomicReference<VernacularConfig> config, final Image image) {
-    final VernacularConfig configuration = config.get();
+  private void pushScreen(final AtomicReference<VernacularConfig> capturedConfiguration, final Image image) {
+    final VernacularConfig configuration = capturedConfiguration.get();
     final Consumer<Image> listener = configuration.getScreenUpdateListener();
     listener.accept(image);
   }
 
-  private static void pushError(final AtomicReference<VernacularConfig> config, final VncException error) {
-    final VernacularConfig configuration = config.get();
-    final Consumer<VncException> listener = configuration.getErrorListener();
+  private void pushError(
+    final AtomicReference<VernacularConfig> capturedConfiguration,
+    final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
+  ) {
+    final VernacularConfig configuration = capturedConfiguration.get();
+    final Consumer<com.shinyhut.vernacular.client.exceptions.VncException> listener = configuration.getErrorListener(); // fqn: clashes with the VncException of this module
     listener.accept(error);
   }
 
-  private static Socket startedSocket(final VernacularClient client) {
+  private Socket startedSocket(final VernacularClient client) {
     final ArgumentCaptor<Socket> captor = ArgumentCaptor.forClass(Socket.class);
     verify(client).start(captor.capture());
     return captor.getValue();
   }
 
   @Test
-  void streamsTheRemoteScreenScaledToTheConfiguredSize() {
-    final RfbTestServer server = this.server(64, 48);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 32, 24);
+  void shouldStreamTheRemoteScreenScaledToTheConfiguredSize() {
+    final RfbTestServer server = this.server(SERVER_WIDTH, SERVER_HEIGHT);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 32, 24);
     final boolean started = player.start(source);
     final boolean playing = player.isPlaying();
     assertTrue(started);
@@ -312,10 +335,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void keepsTheSizeOfTheRemoteScreenWhenNoSizeIsConfigured() {
+  void shouldKeepTheSizeOfTheRemoteScreenWhenNoSizeIsConfigured() {
     final RfbTestServer server = this.server(40, 30);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
     final RecordedFrame frame = this.awaitFrame("a frame arrives", _ -> true);
     assertEquals(40, frame.width);
@@ -324,12 +347,12 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void forwardsKeysAndTypedTextToTheServer() {
-    final RfbTestServer server = this.server(64, 48);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldForwardKeysAndTypedTextToTheServer() {
+    final RfbTestServer server = this.server(SERVER_WIDTH, SERVER_HEIGHT);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
-    player.sendKeyEvent("Return");
+    player.sendKeyEvent(RETURN_KEY);
     player.sendKeyEvent("hi");
     Await.until("six key events arrive", () -> server.getKeyCount() == 6);
 
@@ -346,10 +369,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void translatesPointerInputToTheRemoteScreen() {
-    final RfbTestServer server = this.server(200, 100);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 100, 50);
+  void shouldTranslatePointerInputToTheRemoteScreen() {
+    final RfbTestServer server = this.server(SCREEN_WIDTH, SCREEN_HEIGHT);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, SCALED_WIDTH, SCALED_HEIGHT);
     player.start(source);
     this.awaitFrame("the first frame arrives", _ -> true);
     player.moveMouse(10, 20);
@@ -373,11 +396,11 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void sendsUntranslatedCoordinatesBeforeTheFirstFrame() {
-    final RfbTestServer server = this.server(200, 100);
+  void shouldSendUntranslatedCoordinatesBeforeTheFirstFrame() {
+    final RfbTestServer server = this.server(SCREEN_WIDTH, SCREEN_HEIGHT);
     server.setAnswering(false);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 100, 50);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, SCALED_WIDTH, SCALED_HEIGHT);
     player.start(source);
     player.moveMouse(30, -7);
     Await.until("the pointer event arrives", () -> server.getPointerCount() == 1);
@@ -396,10 +419,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void pausesAndResumesTheStream() {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldPauseAndResumesTheStream() {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
     this.awaitFrame("a red frame arrives", frame -> frame.rgb == RED);
 
@@ -429,10 +452,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void refusesToStartTwiceOrAfterRelease() throws InterruptedException {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldRefuseToStartTwiceOrAfterRelease() throws InterruptedException {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     final boolean started = player.start(source);
     final boolean startedAgain = player.start(source);
     assertTrue(started);
@@ -450,10 +473,10 @@ final class VNCPlayerImplTest {
     assertFalse(startedAfterRelease);
     assertFalse(pausedAfterRelease);
     assertFalse(resumedAfterRelease);
-    assertDisconnectedOnce(server);
+    this.assertDisconnectedOnce(server);
   }
 
-  private static void assertDisconnectedOnce(final RfbTestServer server) throws InterruptedException {
+  private void assertDisconnectedOnce(final RfbTestServer server) throws InterruptedException {
     final CountDownLatch disconnected = server.getDisconnected();
     final boolean closed = disconnected.await(5, TimeUnit.SECONDS);
     final int connections = server.getConnections();
@@ -462,12 +485,12 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void ignoresInputAfterRelease() throws IOException {
+  void shouldIgnoreInputAfterRelease() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
 
     player.moveMouse(2, 3);
@@ -476,7 +499,7 @@ final class VNCPlayerImplTest {
     player.release();
     player.moveMouse(1, 1);
     player.sendMouseEvent(MouseClick.LEFT, 1, 1);
-    player.sendKeyEvent("Return");
+    player.sendKeyEvent(RETURN_KEY);
     player.sendKeyEvent("text");
     verify(client, times(1)).moveMouse(anyInt(), anyInt());
     verify(client, never()).click(anyInt());
@@ -485,13 +508,13 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void authenticatesWithThePassword() {
-    final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, "secret");
-    final VNCPlayerImpl player = this.player();
-    final VNCSource.Builder builder = hostBuilder(server);
+  void shouldAuthenticateWithThePassword() {
+    final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, PASSWORD);
+    final VernacularVncPlayer player = this.player();
+    final VncSourceBuilder builder = this.hostBuilder(server);
     builder.username("user");
-    builder.password("secret");
-    final VNCSource source = builder.build();
+    builder.password(PASSWORD);
+    final VncSource source = builder.build();
     final boolean started = player.start(source);
     final boolean authenticated = server.isAuthenticated();
     assertTrue(started);
@@ -500,13 +523,13 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void failsToStartWhenThePasswordIsRejected() {
-    final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, "secret");
-    final VNCPlayerImpl player = this.player();
-    final VNCSource.Builder builder = hostBuilder(server);
+  void shouldFailToStartWhenThePasswordIsRejected() {
+    final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, PASSWORD);
+    final VernacularVncPlayer player = this.player();
+    final VncSourceBuilder builder = this.hostBuilder(server);
     builder.password("wrong");
-    final VNCSource source = builder.build();
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncSource source = builder.build();
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
@@ -520,11 +543,11 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void failsToStartWhenNoSecurityTypeIsSupported() {
+  void shouldFailToStartWhenNoSecurityTypeIsSupported() {
     final RfbTestServer server = this.server(RfbTestServer.Security.UNSUPPORTED, "");
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     assertInstanceOf(NoSupportedSecurityTypesException.class, cause);
     final boolean playing = player.isPlaying();
@@ -532,49 +555,49 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void canStartAgainAfterAFailedStart() {
+  void shouldStartAgainAfterAFailedStart() {
     final RfbTestServer refusing = this.server(RfbTestServer.Security.UNSUPPORTED, "");
-    final RfbTestServer working = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource refusingSource = source(refusing, 0, 0);
-    final VNCSource workingSource = source(working, 0, 0);
-    assertThrows(PlayerException.class, () -> player.start(refusingSource));
+    final RfbTestServer working = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final VncSource refusingSource = this.source(refusing, 0, 0);
+    final VncSource workingSource = this.source(working, 0, 0);
+    assertThrows(VncException.class, () -> player.start(refusingSource));
     final boolean started = player.start(workingSource);
     assertTrue(started);
     this.awaitFrame("a frame arrives", _ -> true);
   }
 
   @Test
-  void failsToStartWhenTheServerHangsUpDuringTheHandshake() {
+  void shouldFailToStartWhenTheServerHangsUpDuringTheHandshake() {
     final RfbTestServer server = this.server(RfbTestServer.Security.HANG_UP, "");
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final String message = exception.getMessage();
-    final boolean messageStartsWith = message.startsWith("Failed to start the VNC session with VNCSource[vnc://127.0.0.1:");
+    final boolean messageStartsWith = message.startsWith("VNC session with vnc://127.0.0.1:");
     assertTrue(messageStartsWith, message);
     final boolean playing = player.isPlaying();
     assertFalse(playing);
   }
 
   @Test
-  void failsToStartWhenNothingListens() throws IOException {
+  void shouldFailToStartWhenNothingListens() throws IOException {
     final ServerSocket closed = this.listeningSocket();
-    final VNCSource source = source(closed, 0, 0);
+    final VncSource source = this.source(closed, 0, 0);
     closed.close();
-    final VNCPlayerImpl player = this.player();
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer player = this.player();
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
-    final boolean messageStartsWith = message.startsWith("Failed to connect to ");
+    final boolean messageStartsWith = message.startsWith("VNC server vnc://127.0.0.1:");
     assertTrue(messageStartsWith, message);
     assertInstanceOf(IOException.class, cause);
   }
 
   @Test
-  void closesSocketsThatFailToConnectEvenIfClosingFails() throws IOException {
+  void shouldCloseSocketsThatFailToConnectEvenIfClosingFails() throws IOException {
     final ServerSocket listening = this.listeningSocket();
-    final VNCSource source = source(listening, 0, 0);
+    final VncSource source = this.source(listening, 0, 0);
     final List<FailingSocket> createdSockets = new CopyOnWriteArrayList<>();
     final Supplier<Socket> sockets = () -> {
       final FailingSocket socket = new FailingSocket();
@@ -582,9 +605,9 @@ final class VNCPlayerImplTest {
       return socket;
     };
     final VernacularClient client = mock(VernacularClient.class);
-    final VNCPlayerImpl created = new VNCPlayerImpl(_ -> client, sockets);
-    final VNCPlayerImpl player = this.track(created);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer created = new VernacularVncPlayer(_ -> client, sockets);
+    final VernacularVncPlayer player = this.track(created);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
 
     final String message = exception.getMessage();
     final boolean messageContains = message.contains("refused on purpose");
@@ -597,10 +620,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void reportsConnectionFailuresWhileStreaming() {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldReportConnectionFailuresWhileStreaming() {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
     this.awaitFrame("a frame arrives", _ -> true);
     server.sendUnknownMessage();
@@ -612,19 +635,20 @@ final class VNCPlayerImplTest {
     final Throwable cause = failure.getCause();
     final IOException refused = assertInstanceOf(IOException.class, cause);
     final String reason = refused.getMessage();
-    assertTrue(reason.contains("message type 127"), reason);
+    final boolean named = reason.contains("message type 127");
+    assertTrue(named, reason);
   }
 
   @Test
-  void reportsPipelineFailuresAndKeepsStreaming() {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final IllegalStateException failure = new IllegalStateException("filter failed");
+  void shouldReportPipelineFailuresAndKeepsStreaming() {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final IllegalStateException failure = new IllegalStateException("filter failed!");
     final VideoFilter failing = (_, _) -> {
       throw failure;
     };
-    attach(player, failing);
-    final VNCSource source = source(server, 0, 0);
+    this.attach(player, failing);
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
 
     Await.until("two failures are reported", () -> this.errorMessages.size() >= 2);
@@ -637,10 +661,10 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void restoresTheInterruptFlagWhenReleasedFromAnInterruptedThread() {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayerImpl player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldRestoreTheInterruptFlagWhenReleasedFromAnInterruptedThread() {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VernacularVncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     player.start(source);
     final Thread current = Thread.currentThread();
     current.interrupt();
@@ -651,32 +675,32 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void stopsWaitingForABusyFilterWhenTheReleasingThreadIsInterrupted() throws Exception {
+  void shouldStopWaitingForABusyFilterWhenTheReleasingThreadIsInterrupted() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
-    final VideoFilter busy = blockingFilter(entered, proceed);
-    attach(player, busy);
+    final VideoFilter busy = this.blockingFilter(entered, proceed);
+    this.attach(player, busy);
 
-    final VNCSource source = source(listening, 0, 0);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final BufferedImage screen = image(4, 4, RED);
-    pushScreen(config, screen);
-    final boolean filtering = entered.await(10, TimeUnit.SECONDS);
+    final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+    this.pushScreen(capturedConfiguration, screen);
+    final boolean filtering = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(filtering);
 
-    final long elapsedMillis = releaseWhileInterrupted(player, proceed);
+    final long elapsedMilliseconds = this.releaseWhileInterrupted(player, proceed);
     final boolean interrupted = Thread.interrupted();
     final boolean playing = player.isPlaying();
     assertTrue(interrupted);
     assertFalse(playing);
-    assertTrue(elapsedMillis < 1_500L, () -> "release took " + elapsedMillis + " ms");
+    assertTrue(elapsedMilliseconds < 1_500L, () -> "release took " + elapsedMilliseconds + " ms");
   }
 
-  private static VideoFilter blockingFilter(final CountDownLatch entered, final CountDownLatch proceed) {
+  private VideoFilter blockingFilter(final CountDownLatch entered, final CountDownLatch proceed) {
     return (_, _) -> {
       entered.countDown();
       try {
@@ -689,7 +713,7 @@ final class VNCPlayerImplTest {
     };
   }
 
-  private static long releaseWhileInterrupted(final VNCPlayerImpl player, final CountDownLatch proceed) {
+  private long releaseWhileInterrupted(final VernacularVncPlayer player, final CountDownLatch proceed) {
     final Thread current = Thread.currentThread();
     current.interrupt();
     final long before = System.nanoTime();
@@ -705,16 +729,16 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void startsAsynchronously() throws Exception {
-    final RfbTestServer server = this.server(16, 16);
-    final VNCPlayer player = this.player();
-    final VNCSource source = source(server, 0, 0);
+  void shouldStartAsynchronously() throws Exception {
+    final RfbTestServer server = this.server(SERVER_SIDE, SERVER_SIDE);
+    final VncPlayer player = this.player();
+    final VncSource source = this.source(server, 0, 0);
     final CompletableFuture<Boolean> first = player.startAsync(source);
-    final boolean started = first.get(10, TimeUnit.SECONDS);
+    final boolean started = first.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     final ExecutorService executor = Executors.newSingleThreadExecutor();
     try {
       final CompletableFuture<Boolean> second = player.startAsync(source, executor);
-      final boolean startedAgain = second.get(10, TimeUnit.SECONDS);
+      final boolean startedAgain = second.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(started);
       assertFalse(startedAgain);
     } finally {
@@ -726,12 +750,12 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void createsPlayersThatAreNotPlaying() {
-    final VNCPlayer player = VNCPlayer.create();
+  void shouldCreatePlayersThatAreNotPlaying() {
+    final VncPlayer player = VncPlayer.create();
     final boolean playing = player.isPlaying();
     final boolean paused = player.pause();
     final boolean resumed = player.resume();
-    assertInstanceOf(VNCPlayerImpl.class, player);
+    assertInstanceOf(VernacularVncPlayer.class, player);
     assertFalse(playing);
     assertFalse(paused);
     assertFalse(resumed);
@@ -740,8 +764,8 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void rejectsNullArguments() {
-    final VNCPlayerImpl player = this.player();
+  void shouldRejectNullArguments() {
+    final VernacularVncPlayer player = this.player();
     assertThrows(NullPointerException.class, () -> player.start(null));
     assertThrows(NullPointerException.class, () -> player.sendMouseEvent(null, 0, 0));
     assertThrows(NullPointerException.class, () -> player.sendKeyEvent(null));
@@ -749,8 +773,8 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void replacesTheExceptionHandler() {
-    final VNCPlayerImpl player = new VNCPlayerImpl();
+  void shouldReplaceTheExceptionHandler() {
+    final VernacularVncPlayer player = new VernacularVncPlayer();
     final BiConsumer<String, Throwable> handler = (_, _) -> {};
     player.setExceptionHandler(handler);
     final BiConsumer<String, Throwable> current = player.getExceptionHandler();
@@ -758,32 +782,32 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void configuresTheClientFromTheSource() throws IOException {
+  void shouldConfigureTheClientFromTheSource() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource.Builder builder = hostBuilder(listening);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSourceBuilder builder = this.hostBuilder(listening);
     builder.username("user");
-    builder.password("secret");
+    builder.password(PASSWORD);
     builder.targetFrameRate(12);
-    final VNCSource source = builder.build();
+    final VncSource source = builder.build();
     player.start(source);
 
-    final VernacularConfig configuration = config.get();
-    assertConfiguredFromTheSource(configuration);
-    final Socket connected = startedSocket(client);
-    assertConnectedWithoutDelay(connected);
+    final VernacularConfig configuration = capturedConfiguration.get();
+    this.assertConfiguredFromTheSource(configuration);
+    final Socket connected = this.startedSocket(client);
+    this.assertConnectedWithoutDelay(connected);
   }
 
-  private static void assertConnectedWithoutDelay(final Socket socket) throws IOException {
+  private void assertConnectedWithoutDelay(final Socket socket) throws IOException {
     final boolean isConnected = socket.isConnected();
     final boolean noDelay = socket.getTcpNoDelay();
     assertTrue(isConnected);
     assertTrue(noDelay);
   }
 
-  private static void assertConfiguredFromTheSource(final VernacularConfig configuration) {
+  private void assertConfiguredFromTheSource(final VernacularConfig configuration) {
     final ColorDepth depth = configuration.getColorDepth();
     final boolean shared = configuration.isShared();
     final boolean localPointer = configuration.isUseLocalMousePointer();
@@ -797,21 +821,21 @@ final class VNCPlayerImplTest {
     assertFalse(localPointer);
     assertEquals(12, frameRate);
     assertEquals("user", username);
-    assertEquals("secret", password);
+    assertEquals(PASSWORD, password);
   }
 
   @Test
-  void sendsNoCredentialsWhenTheyAreEmpty() throws IOException {
+  void shouldSendNoCredentialsWhenTheyAreEmpty() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource.Builder builder = hostBuilder(listening);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSourceBuilder builder = this.hostBuilder(listening);
     builder.username("");
     builder.password("");
-    final VNCSource source = builder.build();
+    final VncSource source = builder.build();
     player.start(source);
-    final VernacularConfig configuration = config.get();
+    final VernacularConfig configuration = capturedConfiguration.get();
     final Supplier<String> usernames = configuration.getUsernameSupplier();
     final Supplier<String> passwords = configuration.getPasswordSupplier();
     assertNull(usernames);
@@ -819,19 +843,19 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void closesTheSocketWhenTheClientFailsToStart() throws IOException {
+  void shouldCloseTheSocketWhenTheClientFailsToStart() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("client is already running");
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final IllegalStateException failure = new IllegalStateException("client is already running!");
     doThrow(failure).when(client).start(any(Socket.class));
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     assertSame(failure, cause);
 
-    final Socket used = startedSocket(client);
+    final Socket used = this.startedSocket(client);
     final boolean closed = used.isClosed();
     assertTrue(closed);
     try (final Socket accepted = listening.accept()) {
@@ -842,29 +866,32 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void stopsTheClientAndClosesTheSocketWhenTheHandshakeFails() throws IOException {
+  void shouldStopTheClientAndClosesTheSocketWhenTheHandshakeFails() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final AuthenticationFailedException failure = new AuthenticationFailedException("denied");
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final AuthenticationFailedException failure = new AuthenticationFailedException("denied!");
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     doAnswer(_ -> {
-      final BufferedImage early = image(4, 4, RED);
-      pushScreen(config, early);
-      assertTrue(player.hasPendingFrame(), "the handshake can deliver an image before reporting its failure");
-      pushError(config, failure);
+      final BufferedImage early = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+      this.pushScreen(capturedConfiguration, early);
+      final boolean pending = player.hasPendingFrame();
+      assertTrue(pending, "the handshake can deliver an image before reporting its failure");
+
+      this.pushError(capturedConfiguration, failure);
       return null;
     })
       .when(client)
       .start(any(Socket.class));
-    final VNCSource source = source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VncSource source = this.source(listening, 0, 0);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
+    final boolean pending = player.hasPendingFrame();
     assertSame(failure, cause);
-    assertFalse(player.hasPendingFrame(), "a failed handshake must not retain its undelivered image");
+    assertFalse(pending, "a failed handshake must not retain its undelivered image");
 
     verify(client).stop();
-    final Socket used = startedSocket(client);
+    final Socket used = this.startedSocket(client);
     final boolean closed = used.isClosed();
     assertTrue(closed);
     final boolean noReports = this.errorMessages.isEmpty();
@@ -872,18 +899,18 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void rendersEveryScreenUpdateAtItsOwnSize() throws IOException {
+  void shouldRenderEveryScreenUpdateAtItsOwnSize() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final BufferedImage small = image(8, 4, RED);
-    pushScreen(config, small);
+    final BufferedImage small = this.image(8, 4, RED);
+    this.pushScreen(capturedConfiguration, small);
     final RecordedFrame first = this.awaitFrame("the first frame arrives", frame -> frame.rgb == RED);
-    final BufferedImage wide = image(6, 2, BLUE);
-    pushScreen(config, wide);
+    final BufferedImage wide = this.image(6, 2, BLUE);
+    this.pushScreen(capturedConfiguration, wide);
     final RecordedFrame second = this.awaitFrame("the second frame arrives", frame -> frame.rgb == BLUE);
     assertEquals(8, first.width);
     assertEquals(4, first.height);
@@ -894,15 +921,15 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void mapsCoordinatesOneToOneWhenFramesKeepTheRemoteSize() throws IOException {
+  void shouldMapCoordinatesOneToOneWhenFramesKeepTheRemoteSize() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final BufferedImage screen = image(30, 20, RED);
-    pushScreen(config, screen);
+    final BufferedImage screen = this.image(30, 20, RED);
+    this.pushScreen(capturedConfiguration, screen);
     player.moveMouse(12, 7);
     player.moveMouse(30, 20);
     final InOrder order = inOrder(client);
@@ -911,15 +938,15 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void clampsExtremeCoordinatesBeforeNarrowingToIntegers() throws IOException {
+  void shouldClampExtremeCoordinatesBeforeNarrowingToIntegers() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 100, 50);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, SCALED_WIDTH, SCALED_HEIGHT);
     player.start(source);
-    final BufferedImage screen = image(200, 100, RED);
-    pushScreen(config, screen);
+    final BufferedImage screen = this.image(SCREEN_WIDTH, SCREEN_HEIGHT, RED);
+    this.pushScreen(capturedConfiguration, screen);
 
     player.moveMouse(Integer.MAX_VALUE, Integer.MAX_VALUE);
     player.moveMouse(Integer.MIN_VALUE + 1, Integer.MIN_VALUE + 1);
@@ -936,20 +963,20 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void ignoresScreenUpdatesThatAreNotBufferedImages() throws IOException {
+  void shouldIgnoreScreenUpdatesThatAreNotBufferedImages() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 10, 10);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 10, 10);
     player.start(source);
     final Image other = mock(Image.class);
-    pushScreen(config, other);
+    this.pushScreen(capturedConfiguration, other);
     player.moveMouse(5, 6);
     verify(client).moveMouse(5, 6);
 
-    final BufferedImage frame = image(20, 20, RED);
-    pushScreen(config, frame);
+    final BufferedImage frame = this.image(20, 20, RED);
+    this.pushScreen(capturedConfiguration, frame);
     this.awaitFrame("the buffered frame arrives", _ -> true);
     final int count = this.frames.size();
     assertEquals(1, count);
@@ -957,24 +984,24 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void learnsTheRemoteSizeButDropsFramesWhilePaused() throws IOException {
+  void shouldLearnTheRemoteSizeButDropsFramesWhilePaused() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 10, 5);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 10, 5);
     player.start(source);
     player.pause();
-    final BufferedImage paused = image(20, 10, RED);
-    pushScreen(config, paused);
+    final BufferedImage paused = this.image(20, 10, RED);
+    this.pushScreen(capturedConfiguration, paused);
     player.moveMouse(5, 2);
     verify(client).moveMouse(10, 4);
     player.moveMouse(1000, -5);
     verify(client).moveMouse(19, 0);
 
     player.resume();
-    final BufferedImage resumed = image(20, 10, BLUE);
-    pushScreen(config, resumed);
+    final BufferedImage resumed = this.image(20, 10, BLUE);
+    this.pushScreen(capturedConfiguration, resumed);
     final RecordedFrame frame = this.awaitFrame("a frame arrives after resuming", _ -> true);
     final int count = this.frames.size();
     assertEquals(BLUE, frame.rgb);
@@ -984,12 +1011,12 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void translatesEveryKindOfClick() throws IOException {
+  void shouldTranslateEveryKindOfClick() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     player.sendMouseEvent(MouseClick.LEFT, 1, 2);
     player.sendMouseEvent(MouseClick.RIGHT, 3, 4);
@@ -1011,12 +1038,12 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void pressesNamedKeysAndTypesOtherText() throws IOException {
+  void shouldPressNamedKeysAndTypesOtherText() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     player.sendKeyEvent("Escape");
     player.sendKeyEvent("hello");
@@ -1027,29 +1054,29 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void doesNotTouchTheClientBeforeStarting() {
+  void shouldNotTouchTheClientBeforeStarting() {
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     player.moveMouse(1, 1);
     player.sendMouseEvent(MouseClick.LEFT, 1, 1);
-    player.sendKeyEvent("Return");
+    player.sendKeyEvent(RETURN_KEY);
     final boolean released = player.release();
     assertTrue(released);
     verifyNoInteractions(client);
-    final VernacularConfig configuration = config.get();
+    final VernacularConfig configuration = capturedConfiguration.get();
     assertNull(configuration);
   }
 
   @Test
-  void reportsInputThatFailsToForward() throws IOException {
+  void shouldReportInputThatFailsToForward() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("broken pipe");
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final IllegalStateException failure = new IllegalStateException("broken pipe!");
     doThrow(failure).when(client).moveMouse(anyInt(), anyInt());
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     player.moveMouse(1, 1);
     final String message = this.errorMessages.getFirst();
@@ -1059,23 +1086,23 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void ignoresInputFailuresCausedByARelease() throws IOException {
+  void shouldIgnoreInputFailuresCausedByARelease() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final AtomicReference<VNCPlayerImpl> reference = new AtomicReference<>();
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final AtomicReference<VernacularVncPlayer> reference = new AtomicReference<>();
     doAnswer(_ -> {
-      final VNCPlayerImpl current = reference.get();
+      final VernacularVncPlayer current = reference.get();
       current.release();
-      throw new IllegalStateException("closed while typing");
+      throw new IllegalStateException("closed while typing!");
     })
       .when(client)
       .updateKey(anyInt(), anyBoolean());
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     reference.set(player);
-    final VNCSource source = source(listening, 0, 0);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    player.sendKeyEvent("Return");
+    player.sendKeyEvent(RETURN_KEY);
     final boolean noReports = this.errorMessages.isEmpty();
     final boolean playing = player.isPlaying();
     assertTrue(noReports, this.errorMessages::toString);
@@ -1083,15 +1110,15 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void reportsErrorsOfAStartedConnection() throws IOException {
+  void shouldReportErrorsOfAStartedConnection() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     final String message = this.errorMessages.getFirst();
     final Throwable error = this.errors.getFirst();
     assertEquals("The VNC connection failed", message);
@@ -1099,16 +1126,16 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void stopsPlayingWhenTheConnectionFailsAndCanStartAgain() throws IOException {
+  void shouldStopPlayingWhenTheConnectionFailsAndCanStartAgain() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
-    pushError(config, failure);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
+    this.pushError(capturedConfiguration, failure);
     this.assertEndedSessionIgnoresControl(player, client);
 
     final boolean restarted = player.start(source);
@@ -1121,12 +1148,12 @@ final class VNCPlayerImplTest {
     order.verify(client).start(any(Socket.class));
   }
 
-  private void assertEndedSessionIgnoresControl(final VNCPlayerImpl player, final VernacularClient client) {
+  private void assertEndedSessionIgnoresControl(final VernacularVncPlayer player, final VernacularClient client) {
     final boolean playing = player.isPlaying();
     final boolean paused = player.pause();
     final boolean resumed = player.resume();
     player.moveMouse(1, 1);
-    player.sendKeyEvent("Return");
+    player.sendKeyEvent(RETURN_KEY);
     final int reports = this.errorMessages.size();
     assertFalse(playing);
     assertFalse(paused);
@@ -1137,22 +1164,22 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void failsTheStartWithTheFirstErrorOfTheHandshake() throws IOException {
+  void shouldFailTheStartWithTheFirstErrorOfTheHandshake() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final AuthenticationFailedException first = new AuthenticationFailedException("denied");
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final AuthenticationFailedException first = new AuthenticationFailedException("denied!");
     final UnknownMessageTypeException second = new UnknownMessageTypeException(3);
     doAnswer(_ -> {
-      pushError(config, first);
-      pushError(config, second);
+      this.pushError(capturedConfiguration, first);
+      this.pushError(capturedConfiguration, second);
       return null;
     })
       .when(client)
       .start(any(Socket.class));
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
-    final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
+    final VncException exception = assertThrows(VncException.class, () -> player.start(source));
     final Throwable cause = exception.getCause();
     final boolean noReports = this.errorMessages.isEmpty();
     assertSame(first, cause);
@@ -1160,30 +1187,30 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void showsAScreenUpdateThatArrivesDuringTheHandshake() throws IOException {
+  void shouldShowAScreenUpdateThatArrivesDuringTheHandshake() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
     doAnswer(_ -> {
-      final BufferedImage screen = image(4, 4, RED);
-      pushScreen(config, screen);
+      final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+      this.pushScreen(capturedConfiguration, screen);
       return null;
     })
       .when(client)
       .start(any(Socket.class));
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     final RecordedFrame frame = this.awaitFrame("the update of the handshake is shown", _ -> true);
     assertEquals(RED, frame.rgb);
   }
 
   @Test
-  void neverLosesAnErrorThatArrivesAroundTheEndOfTheHandshake() throws IOException {
+  void shouldNeverLoseAnErrorThatArrivesAroundTheEndOfTheHandshake() throws IOException {
     final InetAddress loopback = InetAddress.getLoopbackAddress();
     final ServerSocket listening = new ServerSocket(0, 200, loopback);
     this.resources.add(listening);
-    final VNCSource source = source(listening, 0, 0);
+    final VncSource source = this.source(listening, 0, 0);
     int started = 0;
     for (int attempt = 0; attempt < 40; attempt++) {
       final boolean running = this.startWithLateError(source, attempt);
@@ -1198,19 +1225,19 @@ final class VNCPlayerImplTest {
     assertEquals(started, reports, this.errorMessages::toString);
   }
 
-  private boolean startWithLateError(final VNCSource source, final int attempt) {
+  private boolean startWithLateError(final VncSource source, final int attempt) {
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final long delayNanos = TimeUnit.MICROSECONDS.toNanos(attempt * 25L);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final long delayNanoseconds = TimeUnit.MICROSECONDS.toNanos(attempt * 25L);
     final UnknownMessageTypeException failure = new UnknownMessageTypeException(attempt);
     doAnswer(_ -> {
       if (attempt == 0) {
-        pushError(config, failure);
+        this.pushError(capturedConfiguration, failure);
         return null;
       }
       final Thread sender = new Thread(() -> {
-        LockSupport.parkNanos(delayNanos);
-        pushError(config, failure);
+        LockSupport.parkNanos(delayNanoseconds);
+        this.pushError(capturedConfiguration, failure);
       });
       sender.start();
       return null;
@@ -1218,12 +1245,14 @@ final class VNCPlayerImplTest {
       .when(client)
       .start(any(Socket.class));
 
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     boolean running;
     try {
       running = player.start(source);
-    } catch (final PlayerException exception) {
-      assertSame(failure, exception.getCause(), "a refused handshake must carry its injected error");
+    } catch (final VncException exception) {
+      final Throwable cause = exception.getCause();
+      assertSame(failure, cause, "a refused handshake must carry its injected error");
+
       running = false;
     }
     if (running) {
@@ -1233,29 +1262,29 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void throwsErrorsOfTheVirtualMachineOnTheRenderThread() throws Exception {
+  void shouldThrowErrorsOfTheVirtualMachineOnTheRenderThread() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final InternalError fatal = new InternalError("out of native memory");
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final InternalError fatal = new InternalError("out of native memory!");
     final VideoFilter failing = (_, _) -> {
       throw fatal;
     };
-    attach(player, failing);
+    this.attach(player, failing);
 
-    final VNCSource source = source(listening, 0, 0);
-    final Throwable error = awaitRenderThreadDeath(() -> {
+    final VncSource source = this.source(listening, 0, 0);
+    final Throwable error = this.awaitRenderThreadDeath(() -> {
       player.start(source);
-      final BufferedImage screen = image(4, 4, RED);
-      pushScreen(config, screen);
+      final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+      this.pushScreen(capturedConfiguration, screen);
     });
     final boolean noReports = this.errorMessages.isEmpty();
     assertSame(fatal, error);
     assertTrue(noReports, this.errorMessages::toString);
   }
 
-  private static Throwable awaitRenderThreadDeath(final Runnable trigger) throws InterruptedException {
+  private Throwable awaitRenderThreadDeath(final Runnable trigger) throws InterruptedException {
     final AtomicReference<Throwable> uncaught = new AtomicReference<>();
     final CountDownLatch died = new CountDownLatch(1);
     final Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
@@ -1268,7 +1297,7 @@ final class VNCPlayerImplTest {
     });
     try {
       trigger.run();
-      final boolean threadDied = died.await(10, TimeUnit.SECONDS);
+      final boolean threadDied = died.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       assertTrue(threadDied);
     } finally {
       Thread.setDefaultUncaughtExceptionHandler(previous);
@@ -1277,14 +1306,14 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void reportsClientsThatFailToStop() throws IOException {
+  void shouldReportClientsThatFailToStop() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final IllegalStateException failure = new IllegalStateException("stuck");
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final IllegalStateException failure = new IllegalStateException("stuck!");
     doThrow(failure).when(client).stop();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     final boolean released = player.release();
     final String message = this.errorMessages.getFirst();
@@ -1295,16 +1324,16 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void rendersOnDaemonThreadsSoTheyNeverKeepTheJvmAlive() throws IOException {
+  void shouldRenderOnDaemonThreadsSoTheyNeverKeepTheJvmAlive() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
 
-    Await.until("the render thread runs", () -> !renderThreads().isEmpty());
-    final List<Thread> threads = renderThreads();
+    Await.until("the render thread runs", () -> !this.renderThreads().isEmpty());
+    final List<Thread> threads = this.renderThreads();
     for (final Thread thread : threads) {
       final boolean isDaemon = thread.isDaemon();
       final String name = thread.getName();
@@ -1312,12 +1341,8 @@ final class VNCPlayerImplTest {
     }
   }
 
-  /**
-   * Gets the render threads of every player that is alive, which all carry the same name.
-   *
-   * @return the live render threads
-   */
-  private static List<Thread> renderThreads() {
+  // Gets the render threads of every player that is alive, which all carry the same name.
+  private List<Thread> renderThreads() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
     final List<Thread> running = new ArrayList<>();
@@ -1333,31 +1358,31 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void waitsForTheRenderThreadToFinishItsFrameBeforeAReleaseReturns() throws Exception {
+  void shouldWaitForTheRenderThreadToFinishItsFrameBeforeAReleaseReturns() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
-    final VideoFilter busy = blockingFilter(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    final VideoFilter busy = this.blockingFilter(entered, proceed);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    final BufferedImage screen = image(4, 4, RED);
-    pushScreen(config, screen);
-    final boolean filtering = entered.await(10, TimeUnit.SECONDS);
+    final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+    this.pushScreen(capturedConfiguration, screen);
+    final boolean filtering = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(filtering);
 
-    final CountDownLatch released = releaseOnAnotherThread(player);
+    final CountDownLatch released = this.releaseOnAnotherThread(player);
     final boolean returnedWhileBusy = released.await(500, TimeUnit.MILLISECONDS);
     proceed.countDown();
-    final boolean returnedAfterwards = released.await(10, TimeUnit.SECONDS);
+    final boolean returnedAfterwards = released.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertFalse(returnedWhileBusy, "the release waits for the render thread to finish its frame");
     assertTrue(returnedAfterwards);
   }
 
-  private static CountDownLatch releaseOnAnotherThread(final VNCPlayerImpl player) {
+  private CountDownLatch releaseOnAnotherThread(final VernacularVncPlayer player) {
     final CountDownLatch released = new CountDownLatch(1);
     final Runnable release = () -> {
       player.release();
@@ -1370,26 +1395,26 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void dropsTheFrameThatWasStillWaitingWhenThePlayerPaused() throws Exception {
+  void shouldDropTheFrameThatWasStillWaitingWhenThePlayerPaused() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
 
-    final BufferedImage waiting = image(4, 4, GREEN);
-    pushScreen(config, waiting);
+    final BufferedImage waiting = this.image(SQUARE_SIDE, SQUARE_SIDE, GREEN);
+    this.pushScreen(capturedConfiguration, waiting);
     final boolean paused = player.pause();
     proceed.countDown();
     player.resume();
-    final BufferedImage afterResume = image(4, 4, BLUE);
-    pushScreen(config, afterResume);
+    final BufferedImage afterResume = this.image(SQUARE_SIDE, SQUARE_SIDE, BLUE);
+    this.pushScreen(capturedConfiguration, afterResume);
     this.awaitFrame("a frame arrives after resuming", frame -> frame.rgb == BLUE);
     final boolean stale = this.containsFrame(GREEN);
     assertTrue(paused);
@@ -1397,27 +1422,27 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void neverShowsAFrameThatWasWaitingWhenTheSessionEnded() throws Exception {
+  void shouldNeverShowAFrameThatWasWaitingWhenTheSessionEnded() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
 
-    final BufferedImage waiting = image(4, 4, GREEN);
-    pushScreen(config, waiting);
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    final BufferedImage waiting = this.image(SQUARE_SIDE, SQUARE_SIDE, GREEN);
+    this.pushScreen(capturedConfiguration, waiting);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     final boolean restarted = player.start(source);
     proceed.countDown();
-    final BufferedImage afterRestart = image(4, 4, BLUE);
-    pushScreen(config, afterRestart);
+    final BufferedImage afterRestart = this.image(SQUARE_SIDE, SQUARE_SIDE, BLUE);
+    this.pushScreen(capturedConfiguration, afterRestart);
     this.awaitFrame("a frame of the new session arrives", frame -> frame.rgb == BLUE);
     final boolean stale = this.containsFrame(GREEN);
     assertTrue(restarted);
@@ -1425,21 +1450,21 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void dropsThePendingFrameWhenPausing() throws Exception {
+  void shouldDropThePendingFrameWhenPausing() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
 
-    final BufferedImage waiting = image(4, 4, GREEN);
-    pushScreen(config, waiting);
+    final BufferedImage waiting = this.image(SQUARE_SIDE, SQUARE_SIDE, GREEN);
+    this.pushScreen(capturedConfiguration, waiting);
     final boolean pendingBeforePause = player.hasPendingFrame();
     final boolean paused = player.pause();
     final boolean pendingAfterPause = player.hasPendingFrame();
@@ -1451,30 +1476,30 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void dropsThePendingFrameWhenTheNextSessionStarts() throws Exception {
+  void shouldDropThePendingFrameWhenTheNextSessionStarts() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
-    final Thread endingRenderThread = onlyRenderThread();
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
+    final Thread endingRenderThread = this.onlyRenderThread();
 
-    final BufferedImage waiting = image(4, 4, GREEN);
-    pushScreen(config, waiting);
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    final BufferedImage waiting = this.image(SQUARE_SIDE, SQUARE_SIDE, GREEN);
+    this.pushScreen(capturedConfiguration, waiting);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     proceed.countDown();
     Await.until("the render thread of the session that ended stops", () -> !endingRenderThread.isAlive());
     final boolean pendingAfterTheSessionEnded = player.hasPendingFrame();
 
     final boolean restarted = player.start(source);
-    Await.until("the render thread of the new session waits for an update", VNCPlayerImplTest::anyRenderThreadWaitsForAnUpdate);
+    Await.until("the render thread of the new session waits for an update", this::anyRenderThreadWaitsForAnUpdate);
     final boolean pending = player.hasPendingFrame();
     final boolean stale = this.containsFrame(GREEN);
 
@@ -1484,27 +1509,19 @@ final class VNCPlayerImplTest {
     assertFalse(stale, "and it is never rendered");
   }
 
-  /**
-   * Gets the one render thread that is alive, failing the test when a thread of an earlier session is still running.
-   *
-   * @return the render thread
-   */
-  private static Thread onlyRenderThread() {
-    final List<Thread> threads = renderThreads();
+  // Gets the one render thread that is alive, failing the test when a thread of an earlier session is still running.
+  private Thread onlyRenderThread() {
+    final List<Thread> threads = this.renderThreads();
     final int count = threads.size();
     assertEquals(1, count, "exactly one render thread runs");
     return threads.getFirst();
   }
 
-  /**
-   * Checks whether a render thread parked because it found no update, which the render loop does with a timed park.
-   * A render thread that is held inside a filter waits with a timeout as well, so this only tells the two apart once
-   * the threads of earlier sessions have stopped.
-   *
-   * @return true once a render thread waits for the next update
-   */
-  private static boolean anyRenderThreadWaitsForAnUpdate() {
-    final List<Thread> threads = renderThreads();
+  // Checks whether a render thread parked because it found no update, which the render loop does with a timed park. A
+  // render thread that is held inside a filter waits with a timeout as well, so this only tells the two apart once the
+  // threads of earlier sessions have stopped.
+  private boolean anyRenderThreadWaitsForAnUpdate() {
+    final List<Thread> threads = this.renderThreads();
     for (final Thread thread : threads) {
       final Thread.State state = thread.getState();
       if (state == Thread.State.TIMED_WAITING) {
@@ -1514,35 +1531,23 @@ final class VNCPlayerImplTest {
     return false;
   }
 
-  /**
-   * Pushes a first screen update and waits until the render thread is busy with it, so the next update stays waiting.
-   *
-   * @param config  the configuration of the client, whose listener receives the update
-   * @param entered opens once the filter of the render thread runs
-   * @throws InterruptedException if the test is interrupted
-   */
-  private static void pushAndAwaitBusyRenderThread(final AtomicReference<VernacularConfig> config, final CountDownLatch entered)
+  // Pushes a first screen update and waits until the render thread is busy with it, so the next update stays waiting.
+  private void pushAndAwaitBusyRenderThread(final AtomicReference<VernacularConfig> capturedConfiguration, final CountDownLatch entered)
     throws InterruptedException {
-    final BufferedImage first = image(4, 4, RED);
-    pushScreen(config, first);
-    final boolean filtering = entered.await(10, TimeUnit.SECONDS);
+    final BufferedImage first = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+    this.pushScreen(capturedConfiguration, first);
+    final boolean filtering = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(filtering);
   }
 
-  /**
-   * Creates a filter that holds the render thread inside its first frame and records every frame as usual.
-   *
-   * @param entered opens once the first frame is being filtered
-   * @param proceed lets the first frame finish
-   * @return the filter
-   */
+  // Creates a filter that holds the render thread inside its first frame and records every frame as usual.
   private VideoFilter blockingThenRecording(final CountDownLatch entered, final CountDownLatch proceed) {
     final AtomicBoolean firstFrame = new AtomicBoolean(true);
     return (image, metadata) -> {
       final boolean first = firstFrame.compareAndSet(true, false);
       if (first) {
         entered.countDown();
-        awaitLatch(proceed);
+        this.awaitLatch(proceed);
       }
       return this.record(image, metadata);
     };
@@ -1558,30 +1563,30 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void ignoresScreensFromAnEndedSessionAfterRestartAndRelease() throws Exception {
+  void shouldIgnoreScreensFromAnEndedSessionAfterRestartAndRelease() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 100, 50);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, SCALED_WIDTH, SCALED_HEIGHT);
     player.start(source);
-    final VernacularConfig oldConfig = config.get();
-    final Consumer<Image> oldListener = oldConfig.getScreenUpdateListener();
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    final VernacularConfig oldConfiguration = capturedConfiguration.get();
+    final Consumer<Image> oldListener = oldConfiguration.getScreenUpdateListener();
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     player.start(source);
-    final VernacularConfig newConfig = config.get();
-    final Consumer<Image> newListener = newConfig.getScreenUpdateListener();
-    final BufferedImage current = image(200, 100, RED);
-    pushScreen(config, current);
-    final boolean rendering = entered.await(10, TimeUnit.SECONDS);
+    final VernacularConfig newConfiguration = capturedConfiguration.get();
+    final Consumer<Image> newListener = newConfiguration.getScreenUpdateListener();
+    final BufferedImage current = this.image(SCREEN_WIDTH, SCREEN_HEIGHT, RED);
+    this.pushScreen(capturedConfiguration, current);
+    final boolean rendering = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     assertTrue(rendering);
     try {
-      final BufferedImage stale = image(3, 9, GREEN);
+      final BufferedImage stale = this.image(3, 9, GREEN);
       oldListener.accept(stale);
       final boolean staleQueued = player.hasPendingFrame();
       player.moveMouse(50, 25);
@@ -1598,24 +1603,24 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void releaseDropsThePendingFrameAfterTheRendererStops() throws Exception {
+  void shouldDropThePendingFrameOnReleaseAfterTheRendererStops() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
-    final Thread renderer = onlyRenderThread();
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
+    final Thread renderer = this.onlyRenderThread();
     try {
-      final BufferedImage pending = image(4, 4, GREEN);
-      pushScreen(config, pending);
-      final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-      pushError(config, failure);
+      final BufferedImage pending = this.image(SQUARE_SIDE, SQUARE_SIDE, GREEN);
+      this.pushScreen(capturedConfiguration, pending);
+      final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+      this.pushError(capturedConfiguration, failure);
       proceed.countDown();
       renderer.join(2_000L);
       final boolean pendingBeforeRelease = player.hasPendingFrame();
@@ -1629,21 +1634,21 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void restartWaitsForThePreviousRendererToFinish() throws Exception {
+  void shouldWaitForThePreviousRendererToFinishOnRestart() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch proceed = new CountDownLatch(1);
     final VideoFilter busy = this.blockingThenRecording(entered, proceed);
-    attach(player, busy);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, busy);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    pushAndAwaitBusyRenderThread(config, entered);
-    final Thread oldRenderer = onlyRenderThread();
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    this.pushAndAwaitBusyRenderThread(capturedConfiguration, entered);
+    final Thread oldRenderer = this.onlyRenderThread();
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     final CountDownLatch restarted = new CountDownLatch(1);
     final AtomicBoolean result = new AtomicBoolean();
     final Thread starter = new Thread(() -> {
@@ -1655,10 +1660,11 @@ final class VNCPlayerImplTest {
       final boolean restartedWhileBusy = restarted.await(250, TimeUnit.MILLISECONDS);
       assertFalse(restartedWhileBusy, "restart must join the previous render worker before installing a new one");
       proceed.countDown();
-      final boolean completed = restarted.await(10, TimeUnit.SECONDS);
+      final boolean completed = restarted.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
       final boolean oldAlive = oldRenderer.isAlive();
+      final boolean started = result.get();
       assertTrue(completed);
-      assertTrue(result.get());
+      assertTrue(started);
       assertFalse(oldAlive);
     } finally {
       proceed.countDown();
@@ -1667,14 +1673,14 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void wakesAnIdleRendererForFramesAndShutdown() throws Exception {
+  void shouldWakeAnIdleRendererForFramesAndShutdown() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
     final long longIdleWait = TimeUnit.SECONDS.toNanos(30);
-    final VNCPlayerImpl player = new VNCPlayerImpl(
+    final VernacularVncPlayer player = new VernacularVncPlayer(
       configuration -> {
-        config.set(configuration);
+        capturedConfiguration.set(configuration);
         return client;
       },
       Socket::new,
@@ -1686,18 +1692,18 @@ final class VNCPlayerImplTest {
       received.countDown();
       return false;
     };
-    attach(player, recorder);
-    final VNCSource source = source(listening, 0, 0);
+    this.attach(player, recorder);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
-    Await.until("the renderer starts", () -> !renderThreads().isEmpty());
-    final Thread renderer = onlyRenderThread();
+    Await.until("the renderer starts", () -> !this.renderThreads().isEmpty());
+    final Thread renderer = this.onlyRenderThread();
     try {
-      Await.until("the renderer enters its long idle park", VNCPlayerImplTest::anyRenderThreadWaitsForAnUpdate);
-      final BufferedImage screen = image(4, 4, RED);
-      pushScreen(config, screen);
+      Await.until("the renderer enters its long idle park", this::anyRenderThreadWaitsForAnUpdate);
+      final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+      this.pushScreen(capturedConfiguration, screen);
       final boolean delivered = received.await(2, TimeUnit.SECONDS);
       assertTrue(delivered, "a screen callback must wake the renderer instead of waiting for its idle timeout");
-      Await.until("the renderer parks again after the frame", VNCPlayerImplTest::anyRenderThreadWaitsForAnUpdate);
+      Await.until("the renderer parks again after the frame", this::anyRenderThreadWaitsForAnUpdate);
       player.release();
       final boolean aliveAfterRelease = renderer.isAlive();
       assertFalse(aliveAfterRelease, "release must wake the idle renderer so it can observe the ended session");
@@ -1709,37 +1715,39 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void rejectsNonPositiveIdleWaits() {
-    assertThrows(IllegalArgumentException.class, () -> new VNCPlayerImpl(VernacularClient::new, Socket::new, 0));
-    assertThrows(IllegalArgumentException.class, () -> new VNCPlayerImpl(VernacularClient::new, Socket::new, -1));
+  void shouldRejectNonPositiveIdleWaits() {
+    assertThrows(IllegalArgumentException.class, () -> new VernacularVncPlayer(VernacularClient::new, Socket::new, 0));
+    assertThrows(IllegalArgumentException.class, () -> new VernacularVncPlayer(VernacularClient::new, Socket::new, -1));
   }
 
   @Test
-  void rejectsNonPositiveHandshakeTimeouts() {
+  void shouldRejectNonPositiveHandshakeTimeouts() {
     final IllegalArgumentException zero = assertThrows(IllegalArgumentException.class, () ->
-      new VNCPlayerImpl(VernacularClient::new, Socket::new, 1, 0)
+      new VernacularVncPlayer(VernacularClient::new, Socket::new, 1, 0)
     );
-    assertEquals("Handshake timeout must be positive", zero.getMessage());
-    assertThrows(IllegalArgumentException.class, () -> new VNCPlayerImpl(VernacularClient::new, Socket::new, 1, -1));
+    final String message = zero.getMessage();
+    assertEquals("Handshake timeout 0 must be positive!", message);
+
+    assertThrows(IllegalArgumentException.class, () -> new VernacularVncPlayer(VernacularClient::new, Socket::new, 1, -1));
   }
 
   @Test
-  void releasesFromARenderCallbackWithoutWaitingForItself() throws Exception {
+  void shouldReleaseFromARenderCallbackWithoutWaitingForItself() throws Exception {
     this.assertControlFromRenderCallback(false);
   }
 
   @Test
-  void restartsAnEndedSessionFromARenderCallbackWithoutWaitingForItself() throws Exception {
+  void shouldRestartAnEndedSessionFromARenderCallbackWithoutWaitingForItself() throws Exception {
     this.assertControlFromRenderCallback(true);
   }
 
   @Test
-  void restartKeepsPipelineDeliverySerialAcrossSessions() throws Exception {
+  void shouldKeepPipelineDeliverySerialAcrossRestartedSessions() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     final CountDownLatch restarted = new CountDownLatch(1);
     final CountDownLatch releaseFirst = new CountDownLatch(1);
     final CountDownLatch secondEntered = new CountDownLatch(1);
@@ -1747,7 +1755,7 @@ final class VNCPlayerImplTest {
     final AtomicInteger active = new AtomicInteger();
     final AtomicInteger maximum = new AtomicInteger();
     final List<Integer> colors = new CopyOnWriteArrayList<>();
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
     final VideoPipelineStep recorder = VideoPipelineStep.of((image, _) -> {
       colors.add(image.getPixels()[0] & 0xFFFFFF);
       active.decrementAndGet();
@@ -1757,11 +1765,13 @@ final class VNCPlayerImplTest {
     final VideoPipelineStep controller = VideoPipelineStep.of(recorder, (image, _) -> {
       maximum.accumulateAndGet(active.incrementAndGet(), Math::max);
       if ((image.getPixels()[0] & 0xFFFFFF) == RED) {
-        pushError(config, failure);
-        assertTrue(player.start(source));
-        pushScreen(config, image(4, 4, BLUE));
+        this.pushError(capturedConfiguration, failure);
+        final boolean started = player.start(source);
+        assertTrue(started);
+
+        this.pushScreen(capturedConfiguration, this.image(SQUARE_SIDE, SQUARE_SIDE, BLUE));
         restarted.countDown();
-        awaitLatch(releaseFirst);
+        this.awaitLatch(releaseFirst);
       } else {
         secondEntered.countDown();
       }
@@ -1769,15 +1779,24 @@ final class VNCPlayerImplTest {
     });
     player.getVideoAttachableCallback().attach(controller);
     try {
-      assertTrue(player.start(source));
-      pushScreen(config, image(4, 4, RED));
-      assertTrue(restarted.await(10, TimeUnit.SECONDS));
-      assertFalse(secondEntered.await(200, TimeUnit.MILLISECONDS), "the replacement entered a pipeline still processing the old session");
+      final boolean started = player.start(source);
+      assertTrue(started);
+
+      this.pushScreen(capturedConfiguration, this.image(SQUARE_SIDE, SQUARE_SIDE, RED));
+      final boolean restartedInCallback = restarted.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      final boolean replacementEntered = secondEntered.await(200, TimeUnit.MILLISECONDS);
+      assertTrue(restartedInCallback);
+      assertFalse(replacementEntered, "the replacement entered a pipeline still processing the old session");
+
       releaseFirst.countDown();
-      assertTrue(delivered.await(10, TimeUnit.SECONDS));
-      assertEquals(1, maximum.get());
-      assertEquals(List.of(RED, BLUE), colors, "the replacement's frame must remain the last displayed frame");
-      assertEquals(List.of(failure), this.errors);
+      final boolean replacementDelivered = delivered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      final int mostAtOnce = maximum.get();
+      final List<Integer> expectedColors = List.of(RED, BLUE);
+      final List<com.shinyhut.vernacular.client.exceptions.VncException> expectedErrors = List.of(failure); // fqn: clashes with the VncException of this module
+      assertTrue(replacementDelivered);
+      assertEquals(1, mostAtOnce);
+      assertEquals(expectedColors, colors, "the replacement's frame must remain the last displayed frame");
+      assertEquals(expectedErrors, this.errors);
     } finally {
       releaseFirst.countDown();
       player.release();
@@ -1785,43 +1804,52 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void endedReplacementDropsItsFrameWhileWaitingForAnOldCallback() throws Exception {
+  void shouldDropTheFrameOfAnEndedReplacementWhileWaitingForAnOldCallback() throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     final CountDownLatch restarted = new CountDownLatch(1);
     final CountDownLatch releaseFirst = new CountDownLatch(1);
     final AtomicReference<Thread> originalRenderer = new AtomicReference<>();
     final List<Integer> colors = new CopyOnWriteArrayList<>();
-    final UnknownMessageTypeException originalFailure = new UnknownMessageTypeException(9);
+    final UnknownMessageTypeException originalFailure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
     final UnknownMessageTypeException replacementFailure = new UnknownMessageTypeException(10);
     player.getVideoAttachableCallback().attach(
       VideoPipelineStep.of((frame, _) -> {
         final int color = frame.getPixels()[0] & 0xFFFFFF;
         if (color == RED) {
           originalRenderer.set(Thread.currentThread());
-          pushError(config, originalFailure);
-          assertTrue(player.start(source));
-          pushScreen(config, image(4, 4, BLUE));
+          this.pushError(capturedConfiguration, originalFailure);
+          final boolean started = player.start(source);
+          assertTrue(started);
+
+          this.pushScreen(capturedConfiguration, this.image(SQUARE_SIDE, SQUARE_SIDE, BLUE));
           restarted.countDown();
-          assertTrue(awaitLatch(releaseFirst));
+          final boolean releasedFirst = this.awaitLatch(releaseFirst);
+          assertTrue(releasedFirst);
         }
         colors.add(color);
         return false;
       })
     );
     try {
-      assertTrue(player.start(source));
-      pushScreen(config, image(4, 4, RED));
-      assertTrue(restarted.await(10, TimeUnit.SECONDS));
+      final boolean started = player.start(source);
+      assertTrue(started);
+
+      this.pushScreen(capturedConfiguration, this.image(SQUARE_SIDE, SQUARE_SIDE, RED));
+      final boolean restartedInCallback = restarted.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      assertTrue(restartedInCallback);
+
       final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
       while (player.hasPendingFrame() && System.nanoTime() < deadline) {
         LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
       }
-      assertFalse(player.hasPendingFrame(), "the replacement takes its queued frame");
-      pushError(config, replacementFailure);
+      final boolean pending = player.hasPendingFrame();
+      assertFalse(pending, "the replacement takes its queued frame");
+
+      this.pushError(capturedConfiguration, replacementFailure);
       releaseFirst.countDown();
     } finally {
       releaseFirst.countDown();
@@ -1829,19 +1857,23 @@ final class VNCPlayerImplTest {
       final Thread original = originalRenderer.get();
       if (original != null) {
         original.join(10_000);
-        assertFalse(original.isAlive(), "the original renderer must finish");
+        final boolean originalAlive = original.isAlive();
+        assertFalse(originalAlive, "the original renderer must finish");
       }
     }
-    assertEquals(List.of(RED), colors, "the ended replacement cannot show its waiting frame");
-    assertEquals(List.of(originalFailure, replacementFailure), this.errors);
+
+    final List<Integer> expectedColors = List.of(RED);
+    final List<com.shinyhut.vernacular.client.exceptions.VncException> expectedErrors = List.of(originalFailure, replacementFailure); // fqn: clashes with the VncException of this module
+    assertEquals(expectedColors, colors, "the ended replacement cannot show its waiting frame");
+    assertEquals(expectedErrors, this.errors);
   }
 
   private void assertControlFromRenderCallback(final boolean restarts) throws Exception {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     final CountDownLatch entered = new CountDownLatch(1);
     final CountDownLatch returned = new CountDownLatch(1);
     final AtomicBoolean changed = new AtomicBoolean();
@@ -1850,8 +1882,8 @@ final class VNCPlayerImplTest {
       worker.set(Thread.currentThread());
       entered.countDown();
       if (restarts) {
-        final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-        pushError(config, failure);
+        final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+        this.pushError(capturedConfiguration, failure);
         changed.set(player.start(source));
       } else {
         changed.set(player.release());
@@ -1859,16 +1891,18 @@ final class VNCPlayerImplTest {
       returned.countDown();
       return false;
     };
-    attach(player, controller);
+    this.attach(player, controller);
     player.start(source);
     try {
-      final BufferedImage screen = image(4, 4, RED);
-      pushScreen(config, screen);
+      final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
+      this.pushScreen(capturedConfiguration, screen);
       final boolean controlling = entered.await(2, TimeUnit.SECONDS);
       assertTrue(controlling);
       final boolean completed = returned.await(1, TimeUnit.SECONDS);
+      final boolean restartedInCallback = changed.get();
       assertTrue(completed, "the render thread must not spend the two-second join timeout waiting for itself");
-      assertTrue(changed.get());
+      assertTrue(restartedInCallback);
+
       final Thread oldRenderer = worker.get();
       oldRenderer.join(2_000L);
       final boolean oldAlive = oldRenderer.isAlive();
@@ -1881,53 +1915,48 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void startsPlayingAgainAfterTheSessionThatWasPausedFailed() throws IOException {
+  void shouldStartPlayingAgainAfterTheSessionThatWasPausedFailed() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
     final boolean paused = player.pause();
 
-    final UnknownMessageTypeException failure = new UnknownMessageTypeException(9);
-    pushError(config, failure);
+    final UnknownMessageTypeException failure = new UnknownMessageTypeException(UNKNOWN_MESSAGE_TYPE);
+    this.pushError(capturedConfiguration, failure);
     final boolean restarted = player.start(source);
     final boolean playing = player.isPlaying();
     assertTrue(paused);
     assertTrue(restarted);
     assertTrue(playing, "a session that starts again is never paused");
 
-    final BufferedImage screen = image(4, 4, BLUE);
-    pushScreen(config, screen);
+    final BufferedImage screen = this.image(SQUARE_SIDE, SQUARE_SIDE, BLUE);
+    this.pushScreen(capturedConfiguration, screen);
     this.awaitFrame("a frame of the new session arrives", frame -> frame.rgb == BLUE);
   }
 
   @Test
-  void releasesItsLockAfterEveryControlCall() throws IOException {
+  void shouldReleaseItsLockAfterEveryControlCall() throws IOException {
     final ServerSocket listening = this.listeningSocket();
     final VernacularClient client = mock(VernacularClient.class);
-    final AtomicReference<VernacularConfig> config = new AtomicReference<>();
-    final VNCPlayerImpl player = this.mockedPlayer(client, config);
-    final VNCSource source = source(listening, 0, 0);
+    final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
+    final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
+    final VncSource source = this.source(listening, 0, 0);
     player.start(source);
 
     player.pause();
-    assertDoesNotBlock("another thread pauses after a pause", () -> player.pause());
+    this.assertDoesNotBlock("another thread pauses after a pause", () -> player.pause());
     player.resume();
-    assertDoesNotBlock("another thread resumes after a resume", () -> player.resume());
+    this.assertDoesNotBlock("another thread resumes after a resume", () -> player.resume());
     player.release();
-    assertDoesNotBlock("another thread releases after a release", () -> player.release());
+    this.assertDoesNotBlock("another thread releases after a release", () -> player.release());
   }
 
-  /**
-   * Asserts that an action which takes the lock of the player finishes on another thread, which it only does while
-   * no lock is left held.
-   *
-   * @param description what must not block
-   * @param action      the action
-   */
-  private static void assertDoesNotBlock(final String description, final Runnable action) {
+  // Asserts that an action which takes the lock of the player finishes on another thread, which it only does while no
+  // lock is left held.
+  private void assertDoesNotBlock(final String description, final Runnable action) {
     final CountDownLatch finished = new CountDownLatch(1);
     final Runnable probe = () -> {
       action.run();
@@ -1936,13 +1965,13 @@ final class VNCPlayerImplTest {
     final Thread probing = new Thread(probe, "lock-probe");
     probing.setDaemon(true);
     probing.start();
-    final boolean completed = awaitLatch(finished);
+    final boolean completed = this.awaitLatch(finished);
     assertTrue(completed, description);
   }
 
-  private static boolean awaitLatch(final CountDownLatch latch) {
+  private boolean awaitLatch(final CountDownLatch latch) {
     try {
-      return latch.await(10, TimeUnit.SECONDS);
+      return latch.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();
@@ -1950,9 +1979,6 @@ final class VNCPlayerImplTest {
     }
   }
 
-  /**
-   * A frame the pipeline received.
-   */
   private static final class RecordedFrame {
 
     private final int width;
@@ -1979,80 +2005,86 @@ final class VNCPlayerImplTest {
     }
   }
 
-  /**
-   * A socket that refuses to connect and fails to close.
-   */
   private static final class FailingSocket extends Socket {
 
     private volatile boolean closeAttempted;
 
     @Override
     public void connect(final SocketAddress endpoint, final int timeout) throws IOException {
-      throw new ConnectException("refused on purpose");
+      throw new ConnectException("refused on purpose!");
     }
 
     @Override
     public synchronized void close() throws IOException {
       this.closeAttempted = true;
-      throw new IOException("close failed on purpose");
+      throw new IOException("close failed on purpose!");
     }
   }
 
-  /**
-   * Keeps every worker of the common pool busy until the returned latch opens, as the tasks of other plugins can.
-   *
-   * @return the latch that frees the workers
-   */
-  private static CountDownLatch occupyTheCommonPool() throws InterruptedException {
+  // Keeps every worker of the common pool busy until the returned latch opens, as the tasks of other plugins can.
+  private CountDownLatch occupyTheCommonPool() throws InterruptedException {
     final int workers = ForkJoinPool.getCommonPoolParallelism();
     final CountDownLatch busy = new CountDownLatch(workers);
     final CountDownLatch release = new CountDownLatch(1);
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     for (int worker = 0; worker < workers; worker++) {
-      pool.execute(() -> {
-        busy.countDown();
-        try {
-          release.await();
-        } catch (final InterruptedException exception) {
-          Thread.currentThread().interrupt();
-        }
-      });
+      pool.execute(() -> this.occupyWorker(busy, release));
     }
-    assertTrue(busy.await(30, TimeUnit.SECONDS), "every worker of the common pool is busy");
+
+    final boolean allBusy = busy.await(30, TimeUnit.SECONDS);
+    assertTrue(allBusy, "every worker of the common pool is busy");
+
     return release;
   }
 
+  private void occupyWorker(final CountDownLatch busy, final CountDownLatch release) {
+    busy.countDown();
+    try {
+      release.await();
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
+  }
+
   @Test
-  void givesUpOnAServerThatNeverAnswersItsHandshakeWhileTheCommonPoolIsBusy() throws Exception {
-    final CountDownLatch release = occupyTheCommonPool();
+  void shouldGiveUpOnAServerThatNeverAnswersItsHandshakeWhileTheCommonPoolIsBusy() throws Exception {
+    final CountDownLatch release = this.occupyTheCommonPool();
     try {
       final ServerSocket silent = this.listeningSocket();
-      final VNCPlayerImpl player = this.track(
-        new VNCPlayerImpl(VernacularClient::new, Socket::new, TimeUnit.MILLISECONDS.toNanos(10), 500)
+      final VernacularVncPlayer player = this.track(
+        new VernacularVncPlayer(VernacularClient::new, Socket::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
       );
-      final VNCSource source = source(silent, 0, 0);
-      final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(30), () ->
-        assertThrows(PlayerException.class, () -> player.start(source))
+      final VncSource source = this.source(silent, 0, 0);
+      final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(30), () ->
+        assertThrows(VncException.class, () -> player.start(source))
       );
-      assertTrue(failure.getMessage().endsWith(": the server did not finish the handshake within 500 ms"), failure.getMessage());
+      final String message = failure.getMessage();
+      final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
+      assertTrue(blamesTheDeadline, message);
     } finally {
       release.countDown();
     }
   }
 
   @Test
-  void givesUpOnAServerThatNeverAnswersItsHandshake() throws IOException {
+  void shouldGiveUpOnAServerThatNeverAnswersItsHandshake() throws IOException {
     final ServerSocket silent = this.listeningSocket();
-    final VNCPlayerImpl player = this.track(new VNCPlayerImpl(VernacularClient::new, Socket::new, TimeUnit.MILLISECONDS.toNanos(10), 500));
-    final VNCSource source = source(silent, 0, 0);
-    final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
-      assertThrows(PlayerException.class, () -> player.start(source))
+    final VernacularVncPlayer player = this.track(
+      new VernacularVncPlayer(VernacularClient::new, Socket::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
     );
-    assertTrue(failure.getMessage().endsWith(": the server did not finish the handshake within 500 ms"), failure.getMessage());
+    final VncSource source = this.source(silent, 0, 0);
+    final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
+      assertThrows(VncException.class, () -> player.start(source))
+    );
+    final String message = failure.getMessage();
+    final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
+    assertTrue(blamesTheDeadline, message);
+
     assertTimeoutPreemptively(Duration.ofSeconds(5), player::release);
   }
 
-  /** A socket whose first close, the deadline's, takes a second to return once the socket is closed, as a close can. */
+  // A socket whose first close, the deadline's, takes a second to return once the socket is closed, as a close can.
   private static final class SlowToClose extends Socket {
 
     private final AtomicBoolean first = new AtomicBoolean(true);
@@ -2067,24 +2099,32 @@ final class VNCPlayerImplTest {
   }
 
   @Test
-  void blamesTheDeadlineWhenTheHandshakeFailsBeforeTheDeadlinesCloseReturns() throws IOException {
+  void shouldBlameTheDeadlineWhenTheHandshakeFailsBeforeTheDeadlinesCloseReturns() throws IOException {
     final ServerSocket silent = this.listeningSocket();
-    final VNCPlayerImpl player = this.track(
-      new VNCPlayerImpl(VernacularClient::new, SlowToClose::new, TimeUnit.MILLISECONDS.toNanos(10), 500)
+    final VernacularVncPlayer player = this.track(
+      new VernacularVncPlayer(VernacularClient::new, SlowToClose::new, SHORT_IDLE_NANOSECONDS, HANDSHAKE_DEADLINE_MILLISECONDS)
     );
-    final VNCSource source = source(silent, 0, 0);
-    final PlayerException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
-      assertThrows(PlayerException.class, () -> player.start(source))
+    final VncSource source = this.source(silent, 0, 0);
+    final VncException failure = assertTimeoutPreemptively(Duration.ofSeconds(15), () ->
+      assertThrows(VncException.class, () -> player.start(source))
     );
-    assertTrue(failure.getMessage().endsWith(": the server did not finish the handshake within 500 ms"), failure.getMessage());
+    final String message = failure.getMessage();
+    final boolean blamesTheDeadline = message.endsWith(" could not start because the server did not finish the handshake within 500 ms!");
+    assertTrue(blamesTheDeadline, message);
   }
 
   @Test
-  void aHandshakeThatEndsInTimeKeepsItsConnection() throws InterruptedException {
-    final RfbTestServer answering = this.server(64, 48);
-    final VNCPlayerImpl player = this.track(new VNCPlayerImpl(VernacularClient::new, Socket::new, TimeUnit.MILLISECONDS.toNanos(10), 300));
-    assertTrue(player.start(source(answering, 64, 48)));
-    assertFalse(answering.getDisconnected().await(900, TimeUnit.MILLISECONDS), "the deadline closed an established session");
-    assertEquals(1, answering.getConnections());
+  void shouldKeepTheConnectionOfAHandshakeThatEndsInTime() throws InterruptedException {
+    final RfbTestServer answering = this.server(SERVER_WIDTH, SERVER_HEIGHT);
+    final VernacularVncPlayer player = this.track(new VernacularVncPlayer(VernacularClient::new, Socket::new, SHORT_IDLE_NANOSECONDS, 300));
+    final VncSource source = this.source(answering, SERVER_WIDTH, SERVER_HEIGHT);
+    final boolean started = player.start(source);
+    assertTrue(started);
+
+    final CountDownLatch disconnected = answering.getDisconnected();
+    final boolean closedByTheDeadline = disconnected.await(900, TimeUnit.MILLISECONDS);
+    final int connections = answering.getConnections();
+    assertFalse(closedByTheDeadline, "the deadline closed an established session");
+    assertEquals(1, connections);
   }
 }

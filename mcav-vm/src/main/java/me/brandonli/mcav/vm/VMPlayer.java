@@ -32,7 +32,7 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * Runs a virtual machine in QEMU and streams its screen and its sound, forwarding mouse and keyboard input to it.
  *
  * <p>The player starts QEMU with a VNC display bound to the local machine and connects a
- * {@link me.brandonli.mcav.vnc.VNCPlayer} to it. A USB tablet is attached so the mouse pointer follows absolute
+ * {@link me.brandonli.mcav.vnc.VncPlayer} to it. A USB tablet is attached so the mouse pointer follows absolute
  * coordinates, and the fastest available accelerator is used unless the configuration sets one. On x86 PC and Q35
  * machines the player adds an Intel HD Audio card and routes the PC speaker, and a second VNC connection receives
  * their sound through QEMU's audio extension, in the format of the audio pipeline; the configuration may not set
@@ -78,8 +78,9 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return true if the machine started, false if the player is already running or released
    * @throws ExecutableNotInPathException              if the QEMU program is not installed
    * @throws me.brandonli.mcav.media.player.PlayerException if reserved display/audio options are configured,
-   *         the port cannot be bound, QEMU cannot launch or exits, the display cannot be connected within
-   *         the startup deadline, the wait is interrupted, or a previous machine cannot be stopped
+   *         the port cannot be bound, QEMU cannot launch or exits, the display does not open within the startup
+   *         deadline, the wait is interrupted, or a previous machine cannot be stopped
+   * @throws me.brandonli.mcav.vnc.VncException if the display opens but the VNC connection to it fails
    * @throws NullPointerException if any argument is null
    */
   boolean start(final VMSettings settings, final Architecture architecture, final VMConfiguration configuration);
@@ -130,7 +131,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
 
   /**
    * Moves the mouse pointer while the machine is active, including while paused; otherwise does nothing.
-   * Coordinates are translated and clamped as {@link me.brandonli.mcav.vnc.VNCPlayer#moveMouse(int, int)} describes.
+   * Coordinates are translated and clamped as {@link me.brandonli.mcav.vnc.VncPlayer#moveMouse(int, int)} describes.
    *
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame

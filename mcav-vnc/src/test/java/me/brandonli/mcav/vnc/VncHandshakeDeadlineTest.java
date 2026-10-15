@@ -41,10 +41,12 @@ import java.util.concurrent.locks.LockSupport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-final class VNCHandshakeDeadlineTest {
+final class VncHandshakeDeadlineTest {
+
+  private static final long TIMEOUT_SECONDS = 10;
 
   @Test
-  void concurrentAsyncStartsStillHaveIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
+  void shouldGiveConcurrentAsyncStartsIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
     final Path javaFolder = Path.of(System.getProperty("java.home"), "bin");
     final Path windowsJava = javaFolder.resolve("java.exe");
     final Path executable = Files.isRegularFile(windowsJava) ? windowsJava : javaFolder.resolve("java");
@@ -60,15 +62,19 @@ final class VNCHandshakeDeadlineTest {
       .redirectOutput(output.toFile())
       .start();
     try {
-      assertTrue(child.waitFor(30, TimeUnit.SECONDS), "the isolated deadline probe terminates");
-      assertEquals(0, child.exitValue(), () -> readOutput(output));
+      final boolean terminated = child.waitFor(30, TimeUnit.SECONDS);
+      assertTrue(terminated, "the isolated deadline probe terminates");
+
+      final int exitValue = child.exitValue();
+      assertEquals(0, exitValue, () -> this.readOutput(output));
     } finally {
       child.destroyForcibly();
-      assertTrue(child.waitFor(10, TimeUnit.SECONDS), "the child is reaped");
+      final boolean reaped = child.waitFor(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+      assertTrue(reaped, "the child is reaped");
     }
   }
 
-  private static String readOutput(final Path path) {
+  private String readOutput(final Path path) {
     try {
       return Files.readString(path);
     } catch (final Exception exception) {
@@ -76,22 +82,19 @@ final class VNCHandshakeDeadlineTest {
     }
   }
 
-  /** Keeps the common pool size independent of the surrounding test worker. */
+  // Keeps the common pool size independent of the surrounding test worker.
   public static final class DeadlineProbe {
 
     private DeadlineProbe() {}
 
-    /**
-     * Runs two stalled handshakes until their own deadlines close them.
-     * @param arguments unused
-     * @throws Exception if a fixture operation fails
-     */
     public static void main(final String[] arguments) throws Exception {
       final ForkJoinPool pool = ForkJoinPool.commonPool();
-      assertEquals(2, pool.getParallelism());
+      final int parallelism = pool.getParallelism();
+      assertEquals(2, parallelism);
+
       final CountDownLatch entered = new CountDownLatch(2);
       final List<CountDownLatch> closed = new ArrayList<>();
-      final List<VNCPlayerImpl> players = new ArrayList<>();
+      final List<VernacularVncPlayer> players = new ArrayList<>();
       final List<CompletableFuture<Boolean>> starts = new ArrayList<>();
       for (int index = 0; index < 2; index++) {
         final CountDownLatch stopped = new CountDownLatch(1);
@@ -107,37 +110,41 @@ final class VNCHandshakeDeadlineTest {
           .close();
         doAnswer(_ -> {
           entered.countDown();
-          assertTrue(entered.await(10, TimeUnit.SECONDS));
-          assertTrue(stopped.await(10, TimeUnit.SECONDS), "the handshake is closed");
-          throw new IllegalStateException("socket closed");
+          final boolean bothEntered = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+          final boolean closedByDeadline = stopped.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+          assertTrue(bothEntered);
+          assertTrue(closedByDeadline, "the handshake is closed");
+          throw new IllegalStateException("socket closed!");
         })
           .when(client)
           .start(any(Socket.class));
         closed.add(stopped);
-        players.add(new VNCPlayerImpl(_ -> client, () -> socket, 1L, 500));
+        players.add(new VernacularVncPlayer(_ -> client, () -> socket, 1L, 500));
       }
       try {
-        for (final VNCPlayerImpl player : players) {
-          starts.add(player.startAsync(VNCSource.builder().host("127.0.0.1").build()));
+        for (final VernacularVncPlayer player : players) {
+          starts.add(player.startAsync(VncSource.builder().host("127.0.0.1").build()));
         }
-        assertTrue(entered.await(10, TimeUnit.SECONDS), "both common-pool workers are in their handshakes");
-        final long limit = System.nanoTime() + Duration.ofSeconds(10).toNanos();
+        final boolean bothEntered = entered.await(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertTrue(bothEntered, "both common-pool workers are in their handshakes");
+
+        final long limit = System.nanoTime() + Duration.ofSeconds(TIMEOUT_SECONDS).toNanos();
         while (!starts.stream().allMatch(CompletableFuture::isDone) && pool.getQueuedSubmissionCount() < 2 && System.nanoTime() < limit) {
           LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(1));
         }
-        assertTrue(
-          starts.stream().allMatch(CompletableFuture::isCompletedExceptionally),
-          "deadline actions must not queue behind the two handshakes: queued=" + pool.getQueuedSubmissionCount()
-        );
+        final boolean allFailed = starts.stream().allMatch(CompletableFuture::isCompletedExceptionally);
+        assertTrue(allFailed, "deadline actions must not queue behind the two handshakes: queued=" + pool.getQueuedSubmissionCount());
+
         for (final CountDownLatch stopped : closed) {
-          assertEquals(0L, stopped.getCount());
+          final long remaining = stopped.getCount();
+          assertEquals(0L, remaining);
         }
       } finally {
         closed.forEach(CountDownLatch::countDown);
         for (final CompletableFuture<Boolean> start : starts) {
-          start.handle((result, failure) -> null).get(10, TimeUnit.SECONDS);
+          start.handle((result, failure) -> null).get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         }
-        players.forEach(VNCPlayerImpl::release);
+        players.forEach(VernacularVncPlayer::release);
       }
     }
   }

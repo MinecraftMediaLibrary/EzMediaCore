@@ -22,24 +22,21 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.vnc.testing.UtilityClassAssertions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link KeySymbols}.
- */
 final class KeySymbolsTest {
 
   @Test
-  void looksUpTheKeysymsOfKeyNames() {
+  void shouldLookUpTheKeysymsOfKeyNames() {
     final OptionalInt enter = KeySymbols.lookup("Return");
     final OptionalInt escape = KeySymbols.lookup("Escape");
     final OptionalInt backSpace = KeySymbols.lookup("BackSpace");
@@ -52,7 +49,7 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void findsNothingForTextThatIsNotAKeyName() {
+  void shouldFindNothingForTextThatIsNotAKeyName() {
     final OptionalInt text = KeySymbols.lookup("hello world");
     final OptionalInt lowerCase = KeySymbols.lookup("return");
     final boolean textIsEmpty = text.isEmpty();
@@ -62,12 +59,12 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void rejectsNullNames() {
+  void shouldRejectNullNames() {
     assertThrows(NullPointerException.class, () -> KeySymbols.lookup(null));
   }
 
   @Test
-  void parsesHexadecimalCodesAndClosesTheReader() {
+  void shouldParseHexadecimalCodesAndClosesTheReader() {
     final ClosingReader reader = new ClosingReader("{\"A\": \"0x41\", \"F1\": \"0xffbe\"}", false);
     final Map<String, Integer> symbols = KeySymbols.parse(reader);
     final int letter = symbols.get("A");
@@ -85,17 +82,17 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void rejectsEmptyTables() {
+  void shouldRejectEmptyTables() {
     final Reader reader = new StringReader("");
-    final PlayerException exception = assertThrows(PlayerException.class, () -> KeySymbols.parse(reader));
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
     final String message = exception.getMessage();
     final boolean messageContains = message.contains("empty");
     assertTrue(messageContains, message);
   }
 
   @Test
-  void wrapsReadFailures() {
-    final PlayerException exception = assertThrows(PlayerException.class, () -> {
+  void shouldWrapReadFailures() {
+    final VncException exception = assertThrows(VncException.class, () -> {
       final ClosingReader reader = new ClosingReader("{}", true);
       KeySymbols.parse(reader);
     });
@@ -107,13 +104,44 @@ final class KeySymbolsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldRejectMalformedTables() {
+    final Reader reader = new StringReader("{\"A\": ");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(JsonParseException.class, cause);
+  }
+
+  @Test
+  void shouldRejectArraysOfPairs() {
+    final Reader reader = new StringReader("[[null, \"0x41\"]]");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(JsonParseException.class, cause);
+  }
+
+  @Test
+  void shouldRejectKeysWithoutACode() {
+    final Reader reader = new StringReader("{\"A\": null}");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final String message = exception.getMessage();
+    final boolean messageContains = message.contains("has no code");
+    assertTrue(messageContains, message);
+  }
+
+  @Test
+  void shouldRejectCodesThatAreNotNumbers() {
+    final Reader reader = new StringReader("{\"A\": \"0xzz\"}");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(NumberFormatException.class, cause);
+  }
+
+  @Test
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(KeySymbols.class);
   }
 
-  /**
-   * A reader of a string that remembers whether it was closed and can fail to close.
-   */
+  // A reader of a string that remembers whether it was closed and can fail to close.
   private static final class ClosingReader extends Reader {
 
     private final StringReader content;
@@ -139,7 +167,7 @@ final class KeySymbolsTest {
       this.closed = true;
       this.content.close();
       if (this.failOnClose) {
-        throw new IOException("close failed");
+        throw new IOException("close failed!");
       }
     }
   }

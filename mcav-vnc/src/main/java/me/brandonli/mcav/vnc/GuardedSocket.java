@@ -24,30 +24,28 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-/**
- * A connected socket whose streams pass through an {@link RfbGuard}: the VNC client reads only what the guard let
- * through. The client uses a socket only for its streams, and closing this closes the connection.
- */
+// A connected socket whose streams pass through an RfbGuard: the VNC client reads only what the guard let through. The
+// client uses a socket only for its streams, and closing this closes the connection.
 final class GuardedSocket extends Socket {
 
   private final Socket socket;
-
   private final InputStream input;
-
   private final OutputStream output;
 
-  /**
-   * Guards a connected socket.
-   *
-   * @param socket the connection
-   * @throws IOException if its streams cannot be opened
-   */
   GuardedSocket(final Socket socket) throws IOException {
-    Preconditions.checkNotNull(socket, "Socket must not be null");
-    this.socket = socket;
+    Preconditions.checkNotNull(socket, "Socket must not be null!");
+
     final RfbGuard guard = new RfbGuard();
-    this.input = guard.serverInput(socket.getInputStream());
-    this.output = guard.clientOutput(socket.getOutputStream());
+    final InputStream serverInput = socket.getInputStream();
+    final OutputStream clientOutput = socket.getOutputStream();
+    this.socket = socket;
+    this.input = guard.serverInput(serverInput);
+    this.output = guard.clientOutput(clientOutput);
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    this.socket.close();
   }
 
   @Override
@@ -73,10 +71,5 @@ final class GuardedSocket extends Socket {
   @Override
   public boolean isClosed() {
     return this.socket.isClosed();
-  }
-
-  @Override
-  public synchronized void close() throws IOException {
-    this.socket.close();
   }
 }

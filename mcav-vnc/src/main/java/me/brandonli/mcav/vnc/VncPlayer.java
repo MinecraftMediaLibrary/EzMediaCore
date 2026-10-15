@@ -30,33 +30,41 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
 /**
  * Streams the screen of a VNC server and forwards mouse and keyboard input to it.
  *
- * <p>Frames arrive whenever the remote screen changes, scaled to the size of the {@link VNCSource}. Input
+ * <p>Frames arrive whenever the remote screen changes, scaled to the size of the {@link VncSource}. Input
  * coordinates are in the coordinate system of the streamed frames. Pausing keeps the connection open but stops
  * accepting new frames for delivery; an in-flight filter call may finish. The default player runs the video
  * pipeline on a dedicated daemon renderer, keeps only the newest waiting update and closes each image buffer
  * after its pipeline call. Filters must copy data they retain beyond that call.
  *
  * <p>The caller owns the player and must {@link #release()} it. Release is terminal and closes the connection;
- * stopping {@link VNCModule} does not release players. Attached pipelines and their filters remain caller-owned.
+ * stopping {@link VncModule} does not release players. Attached pipelines and their filters remain caller-owned.
  * Lifecycle calls are serialized. Exception callbacks run on the thread detecting the failure and must return
  * promptly without throwing.
  *
- * <pre><code>
- *   final VNCPlayer player = VNCPlayer.create();
- *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
- *   video.attach(pipeline);
- *   player.start(source);
- *   player.sendKeyEvent("Return");
- * </code></pre>
+ * {@snippet :
+ * final VncPlayer player = VncPlayer.create();
+ * final VideoAttachableCallback video = player.getVideoAttachableCallback();
+ * video.attach(videoPipeline);
+ * player.start(source);
+ * final String enterKey = "Return";
+ * player.sendKeyEvent(enterKey);
+ * // when done
+ * player.release();
+ * }
+ *
+ * <p>Implementations in this library are thread-safe.
+ *
+ * @since 1.0.0
  */
-public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
+public interface VncPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
+   * @since 1.0.0
    */
-  static VNCPlayer create() {
-    return new VNCPlayerImpl();
+  static VncPlayer create() {
+    return new VernacularVncPlayer();
   }
 
   /**
@@ -65,22 +73,23 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @param source the non-null server description; credentials and dimensions are read from it
    * @return true if startup succeeded, false if a session is already active (including paused) or the player
    *         has been released; a session that failed may be started again before release
-   * @throws me.brandonli.mcav.media.player.PlayerException if the server cannot be reached or rejects the
-   * connection
+   * @throws VncException         if the server cannot be reached or rejects the connection
    * @throws NullPointerException if {@code source} is null
+   * @since 1.0.0
    */
-  boolean start(final VNCSource source);
+  boolean start(final VncSource source);
 
   /**
    * Connects on the common pool.
    *
    * @param source the server to connect to
-   * @return a future that completes with the result of {@link #start(VNCSource)}, or exceptionally if
+   * @return a future that completes with the result of {@link #start(VncSource)}, or exceptionally if
    *         startup fails; cancelling this future does not release the player
    * @throws NullPointerException if {@code source} is null
+   * @since 1.0.0
    */
-  default CompletableFuture<Boolean> startAsync(final VNCSource source) {
-    Preconditions.checkNotNull(source, "Source must not be null");
+  default CompletableFuture<Boolean> startAsync(final VncSource source) {
+    Preconditions.checkNotNull(source, "Source must not be null!");
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     return this.startAsync(source, pool);
   }
@@ -90,14 +99,15 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    *
    * @param source   the server to connect to
    * @param executor the non-null caller-owned executor that connects; the player never shuts it down
-   * @return a future that completes with the result of {@link #start(VNCSource)}, or exceptionally if
+   * @return a future that completes with the result of {@link #start(VncSource)}, or exceptionally if
    *         startup fails; cancelling this future does not release the player
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
-   * @throws NullPointerException if {@code source} or {@code executor} is null
+   * @throws NullPointerException                            if {@code source} or {@code executor} is null
+   * @since 1.0.0
    */
-  default CompletableFuture<Boolean> startAsync(final VNCSource source, final ExecutorService executor) {
-    Preconditions.checkNotNull(source, "Source must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+  default CompletableFuture<Boolean> startAsync(final VncSource source, final ExecutorService executor) {
+    Preconditions.checkNotNull(source, "Source must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(source), executor);
   }
 
@@ -110,6 +120,7 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    *               values are clamped after scaling
    * @param frameY the vertical pixel coordinate from the top edge of the streamed frame; out-of-range
    *               values are clamped after scaling
+   * @since 1.0.0
    */
   void moveMouse(final int frameX, final int frameY);
 
@@ -120,6 +131,7 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    *
    * @param text the non-null text or key name; an empty string types nothing
    * @throws NullPointerException if {@code text} is null, even without an active connection
+   * @since 1.0.0
    */
   void sendKeyEvent(final String text);
 
@@ -134,20 +146,23 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @param frameY the vertical pixel coordinate from the top edge of the streamed frame; out-of-range
    *               values are clamped after scaling
    * @throws NullPointerException if {@code type} is null, even without an active connection
+   * @since 1.0.0
    */
   void sendMouseEvent(final MouseClick type, final int frameX, final int frameY);
 
   /**
-   * Checks whether the player is connected and delivering frames.
+   * Returns whether the player is connected and delivering frames.
    *
    * @return true while connected and not paused
+   * @since 1.0.0
    */
   boolean isPlaying();
 
   /**
-   * Gets the slot that holds the video pipeline the frames are sent through.
+   * Returns the slot that holds the video pipeline the frames are sent through.
    *
    * @return the video pipeline slot
+   * @since 1.0.0
    */
   VideoAttachableCallback getVideoAttachableCallback();
 }

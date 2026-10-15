@@ -20,28 +20,26 @@ package me.brandonli.mcav.vnc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import java.io.IOException;
 import java.io.Reader;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
 import me.brandonli.mcav.json.GsonProvider;
-import me.brandonli.mcav.media.player.PlayerException;
 import me.brandonli.mcav.utils.IoUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The X11 keysym table used to translate key names such as {@code Return} into the codes the VNC protocol
- * sends.
- */
+// The X11 keysym table used to translate key names such as Return into the codes the VNC protocol sends.
 final class KeySymbols {
 
   private static final String RESOURCE = "mcav/vnc/keysyms.json";
   private static final Map<String, Integer> SYMBOLS = load();
 
   private KeySymbols() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static Map<String, Integer> load() {
@@ -49,50 +47,65 @@ final class KeySymbols {
     return parse(reader);
   }
 
-  /**
-   * Reads a keysym table, a JSON object that maps key names to hexadecimal codes, and closes the reader.
-   *
-   * @param reader the reader of the table
-   * @return the codes by key name
-   * @throws PlayerException if the table is empty or cannot be read
-   */
+  // Reads a keysym table, a JSON object that maps key names to hexadecimal codes, and closes the reader.
   @VisibleForTesting
   static Map<String, Integer> parse(final Reader reader) {
     final Gson gson = GsonProvider.getSimple();
-    final TypeToken<Map<String, String>> token = new TypeToken<>() {};
-    final Type type = token.getType();
     try (reader) {
-      final Map<String, String> table = gson.fromJson(reader, type);
+      // a JsonObject rather than a Map, because Gson's map reader also takes arrays of pairs and fails on null keys
+      final @Nullable JsonObject table = gson.fromJson(reader, JsonObject.class);
       if (table == null) {
-        throw new PlayerException("The keysym resource " + RESOURCE + " is empty");
+        final String message = "Keysym resource %s is empty!".formatted(RESOURCE);
+        throw new VncException(message);
       }
 
-      final Map<String, Integer> symbols = new HashMap<>();
-      for (final Map.Entry<String, String> entry : table.entrySet()) {
-        final String name = entry.getKey();
-        final String hexadecimalCode = entry.getValue();
-        final int code = Integer.decode(hexadecimalCode);
-        symbols.put(name, code);
-      }
-      return Map.copyOf(symbols);
-    } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Failed to read the keysym resource: " + message, exception);
+      return toCodes(table);
+    } catch (final IOException | JsonParseException exception) {
+      final String reason = exception.getMessage();
+      final String message = "Keysym resource %s could not be read because of \"%s\"!".formatted(RESOURCE, reason);
+      throw new VncException(message, exception);
     }
   }
 
-  /**
-   * Looks up the keysym of a key name.
-   *
-   * @param name the key name, such as {@code Return}
-   * @return the keysym, or empty if the name is not a key
-   */
+  private static Map<String, Integer> toCodes(final JsonObject table) {
+    final Map<String, Integer> symbols = new HashMap<>();
+    for (final Map.Entry<String, JsonElement> entry : table.entrySet()) {
+      final String name = entry.getKey();
+      final JsonElement value = entry.getValue();
+      final int code = decode(name, value);
+      symbols.put(name, code);
+    }
+
+    return Map.copyOf(symbols);
+  }
+
+  private static int decode(final String name, final JsonElement value) {
+    if (!value.isJsonPrimitive()) {
+      final String message = "Keysym %s in resource %s has no code!".formatted(name, RESOURCE);
+      throw new VncException(message);
+    }
+
+    final String hexadecimalCode = value.getAsString();
+    try {
+      return Integer.decode(hexadecimalCode);
+    } catch (final NumberFormatException exception) {
+      final String message = "Keysym %s in resource %s has the code \"%s\", which is not a number!".formatted(
+        name,
+        RESOURCE,
+        hexadecimalCode
+      );
+      throw new VncException(message, exception);
+    }
+  }
+
   static OptionalInt lookup(final String name) {
-    Preconditions.checkNotNull(name, "Name must not be null");
-    final Integer code = SYMBOLS.get(name);
+    Preconditions.checkNotNull(name, "Name must not be null!");
+
+    final @Nullable Integer code = SYMBOLS.get(name);
     if (code == null) {
       return OptionalInt.empty();
     }
+
     return OptionalInt.of(code);
   }
 }

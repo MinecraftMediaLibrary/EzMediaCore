@@ -36,24 +36,20 @@ import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 
-/**
- * Shows the screen of the VNC server at {@code localhost:5900} in a window and forwards clicks to it.
- */
-public final class VNCInputExample {
+// Shows the screen of the VNC server at localhost:5900 in a window and forwards clicks to it.
+public final class VncInputExample {
 
   private static final int WIDTH = 1024;
   private static final int HEIGHT = 768;
 
-  private VNCInputExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+  private VncInputExample() {
+    throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
-  /**
-   * Opens the window, connects to the server, and releases everything when the JVM exits.
-   */
+  // Opens the window, connects to the server, and releases everything when the JVM exits.
   static void main() {
     final MCAVApi api = MCAV.api();
-    api.install(VNCModule.class);
+    api.install(VncModule.class);
 
     final JLabel label = new JLabel();
     openWindow(label);
@@ -65,15 +61,15 @@ public final class VNCInputExample {
     });
     final VideoPipelineStep pipeline = builder.build();
 
-    final VNCSource.Builder sourceBuilder = VNCSource.builder();
+    final VncSourceBuilder sourceBuilder = VncSource.builder();
     sourceBuilder.host("localhost");
     sourceBuilder.port(5900);
     sourceBuilder.screenWidth(WIDTH);
     sourceBuilder.screenHeight(HEIGHT);
     sourceBuilder.targetFrameRate(30);
-    final VNCSource source = sourceBuilder.build();
+    final VncSource source = sourceBuilder.build();
 
-    final VNCPlayer player = VNCPlayer.create();
+    final VncPlayer player = VncPlayer.create();
     final VideoAttachableCallback callback = player.getVideoAttachableCallback();
     callback.attach(pipeline);
     player.start(source);
@@ -92,7 +88,7 @@ public final class VNCInputExample {
     frame.setVisible(true);
   }
 
-  private static void forwardClicks(final JLabel label, final VNCPlayer player) {
+  private static void forwardClicks(final JLabel label, final VncPlayer player) {
     final MouseListener listener = new MouseAdapter() {
       @Override
       public void mouseClicked(final MouseEvent event) {
@@ -104,7 +100,7 @@ public final class VNCInputExample {
     label.addMouseListener(listener);
   }
 
-  private static void releaseOnExit(final MCAVApi api, final VNCPlayer player) {
+  private static void releaseOnExit(final MCAVApi api, final VncPlayer player) {
     final Thread hook = new Thread(() -> {
       player.release();
       api.release();
