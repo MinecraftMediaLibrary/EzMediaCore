@@ -44,7 +44,7 @@ public abstract class VideoHologram implements Hologram {
   }
 
   /**
-   * Gets the display entity of this hologram.
+   * Returns the display entity of this hologram.
    *
    * @return the display entity, or null if the hologram is not spawned
    */

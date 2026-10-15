@@ -52,7 +52,7 @@ public class BlockConfiguration {
   }
 
   /**
-   * Gets the players who see the block wall.
+   * Returns the players who see the block wall.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
@@ -62,7 +62,7 @@ public class BlockConfiguration {
   }
 
   /**
-   * Gets the width of the wall in blocks.
+   * Returns the width of the wall in blocks.
    *
    * @return the width in blocks
    */
@@ -71,7 +71,7 @@ public class BlockConfiguration {
   }
 
   /**
-   * Gets the height of the wall in blocks.
+   * Returns the height of the wall in blocks.
    *
    * @return the height in blocks
    */
@@ -80,7 +80,7 @@ public class BlockConfiguration {
   }
 
   /**
-   * Gets the bottom center of the wall.
+   * Returns the bottom center of the wall.
    *
    * @return the original location supplied to the builder, without a defensive copy
    */

@@ -57,7 +57,7 @@ final class ResourcePackFile {
   }
 
   /**
-   * Gets the contents of the resource pack, reading the file again only if it changed since the last call.
+   * Returns the contents of the resource pack, reading the file again only if it changed since the last call.
    * The returned array is shared between callers and must not be modified.
    *
    * @return the bytes of the resource pack

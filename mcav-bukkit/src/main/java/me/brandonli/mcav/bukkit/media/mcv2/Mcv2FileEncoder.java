@@ -86,12 +86,12 @@ public final class Mcv2FileEncoder {
    *
    * @param frames      the frames encoded
    * @param keyframes   how many of them were keyframes
-   * @param bytes the MCV2 frame bytes, excluding each four-byte length prefix
+   * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
    * @param nanoseconds the time the encodes took, waiting for the budget's threads included
    */
   public record Result(long frames, long keyframes, long bytes, long nanoseconds) {
     /**
-     * Gets the mean time a frame took.
+     * Returns the mean time a frame took.
      *
      * @return milliseconds per frame, 0 without frames
      */
@@ -103,24 +103,24 @@ public final class Mcv2FileEncoder {
   /**
    * Encodes every frame a reader has into a stream.
    *
-   * @param frames the non-null reader, closed at the end after argument validation; validation failures
-   *               before encoding starts leave it caller-owned
-   * @param width the frame width in pixels, 1 through 4096 for encoding
-   * @param height the frame height in pixels, 1 through 4096 for encoding
+   * @param frames   the non-null reader, closed at the end after argument validation; validation failures
+   *                 before encoding starts leave it caller-owned
+   * @param width    the frame width in pixels, 1 through 4096 for encoding
+   * @param height   the frame height in pixels, 1 through 4096 for encoding
    * @param settings the encoder settings, for example {@link Settings#DEFAULT}
    * @param budget   the encoder budget, usually {@link Pool#shared()}
-   * @param output the caller-owned output, written synchronously without flush or close; failures can leave
-   *            a partial length prefix or frame in the stream
+   * @param output   the caller-owned output, written synchronously without flush or close; failures can leave
+   *                 a partial length prefix or frame in the stream
    * @param progress called synchronously on the calling thread after each complete frame write, with
    *                 the cumulative count starting at one; callback failures abort encoding
    * @return what the encode did
-   * @throws IOException if the reader cannot read or close, or the output cannot be written
-   * @throws InterruptedException if the calling thread is interrupted, which stops the encode
-   * @throws IllegalArgumentException if a dimension is nonpositive, or an encoded frame exceeds the codec
-   *         dimension/id range
-   * @throws ArithmeticException if the RGB allocation size overflows an int
+   * @throws IOException                if the reader cannot read or close, or the output cannot be written
+   * @throws InterruptedException       if the calling thread is interrupted, which stops the encode
+   * @throws IllegalArgumentException   if a dimension is nonpositive, or an encoded frame exceeds the codec
+   *                                    dimension/id range
+   * @throws ArithmeticException        if the RGB allocation size overflows an int
    * @throws RejectedExecutionException if the budget rejects the encoding task
-   * @throws NullPointerException if {@code frames}, {@code settings}, {@code budget}, {@code output} or {@code progress} is null
+   * @throws NullPointerException       if {@code frames}, {@code settings}, {@code budget}, {@code output} or {@code progress} is null
    */
   public static Result encode(
     final FrameReader frames,
@@ -164,7 +164,7 @@ public final class Mcv2FileEncoder {
   }
 
   /**
-   * Gets the most bytes a frame may have to play on a wall of the video's native size with the default page slots.
+   * Returns the most bytes a frame may have to play on a wall of the video's native size with the default page slots.
    *
    * @param width  the video width
    * @param height the video height
@@ -185,9 +185,9 @@ public final class Mcv2FileEncoder {
    * @param width  the width of the frames
    * @param height the height of the frames
    * @return the frames
-   * @throws IOException if the file cannot be opened
+   * @throws IOException              if the file cannot be opened
    * @throws IllegalArgumentException if either dimension is nonpositive
-   * @throws NullPointerException if {@code video} is null
+   * @throws NullPointerException     if {@code video} is null
    */
   public static FrameReader ffmpeg(final Path video, final int width, final int height) throws IOException {
     Preconditions.checkNotNull(video, "Video must not be null!");

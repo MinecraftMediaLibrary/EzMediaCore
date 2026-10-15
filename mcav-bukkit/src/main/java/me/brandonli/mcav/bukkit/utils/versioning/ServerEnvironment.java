@@ -41,7 +41,7 @@ public final class ServerEnvironment {
   }
 
   /**
-   * Gets the Minecraft version of the running server, such as {@code 26.3}.
+   * Returns the Minecraft version of the running server, such as {@code 26.3}.
    *
    * @return the Minecraft version of the server
    */

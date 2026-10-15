@@ -164,7 +164,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the players who watch the screen.
+   * Returns the players who watch the screen.
    *
    * @return the UUIDs of the viewers, not copied
    */
@@ -173,7 +173,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the block the top-left frame of the wall hangs in.
+   * Returns the block the top-left frame of the wall hangs in.
    *
    * @return a copy of the location
    */
@@ -182,7 +182,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the direction the frames of the wall face, towards the viewers.
+   * Returns the direction the frames of the wall face, towards the viewers.
    *
    * @return north, south, east or west
    */
@@ -191,7 +191,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the direction the maps' right edge points to, as seen by a viewer in front of the wall.
+   * Returns the direction the maps' right edge points to, as seen by a viewer in front of the wall.
    *
    * @return the direction columns count along
    */
@@ -205,7 +205,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the anchor's facing code: 0 when the maps' right edge points east, 1 south, 2 west and 3 north.
+   * Returns the anchor's facing code: 0 when the maps' right edge points east, 1 south, 2 west and 3 north.
    *
    * @return the code the shader reads
    */
@@ -219,7 +219,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the id of the top-left map of the wall.
+   * Returns the id of the top-left map of the wall.
    *
    * @return the first map id
    */
@@ -228,7 +228,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the width of the wall in maps.
+   * Returns the width of the wall in maps.
    *
    * @return the columns
    */
@@ -237,7 +237,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the height of the wall in maps.
+   * Returns the height of the wall in maps.
    *
    * @return the rows
    */
@@ -246,7 +246,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the width of the encoded video; defaults to the wall's native width, 128 pixels per map.
+   * Returns the width of the encoded video; defaults to the wall's native width, 128 pixels per map.
    *
    * @return the width in pixels
    */
@@ -255,7 +255,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the height of the encoded video; defaults to the wall's native height, 128 pixels per map.
+   * Returns the height of the encoded video; defaults to the wall's native height, 128 pixels per map.
    *
    * @return the height in pixels
    */
@@ -264,7 +264,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the id of the map that carries the first page of every frame; page p is on map {@code getPageMap() + p}.
+   * Returns the id of the map that carries the first page of every frame; page p is on map {@code getPageMap() + p}.
    *
    * @return the first page map id
    */
@@ -273,7 +273,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets how many pages a frame may have; a frame with more is not sent. Defaults to {@value #MAX_PAGE_SLOTS}, or the
+   * Returns how many pages a frame may have; a frame with more is not sent. Defaults to {@value #MAX_PAGE_SLOTS}, or the
    * number of maps of a smaller wall, because behind every map of the wall hangs one page's frame.
    *
    * @return the page slots
@@ -283,7 +283,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the page slots a screen has when its configuration names none.
+   * Returns the page slots a screen has when its configuration names none.
    *
    * @param maps the maps of the wall
    * @return the default page slots of such a wall
@@ -293,7 +293,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the stream id every page carries; the pack decodes only its own stream.
+   * Returns the stream id every page carries; the pack decodes only its own stream.
    *
    * @return the configured stream id, from 0 through {@value #MAX_STREAM_ID}
    */
@@ -302,7 +302,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the encoder profile.
+   * Returns the encoder profile.
    *
    * @return the settings
    */
@@ -311,7 +311,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the team colour of the hidden page frames. They glow, which is what makes the client run the pack's post
+   * Returns the team colour of the hidden page frames. They glow, which is what makes the client run the pack's post
    * chain, and the pack removes outlines of exactly this colour, so glowing entities of other teams with this colour
    * lose their outline too; the default, dark purple, is rarely used for glowing. It is never black, whose RGB value
    * of zero means "no outline" to the client.
@@ -323,7 +323,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets how much video a viewer's connection may have left to write for the viewer to be sent another frame, in estimated
+   * Returns how much video a viewer's connection may have left to write for the viewer to be sent another frame, in estimated
    * map-update bytes including patch overhead. A viewer over it misses frames until one it can decode comes with its backlog under it again (see
    * {@link Mcv2Link}), so a slow connection neither delays the other viewers nor piles video in front of its own
    * game packets.
@@ -387,7 +387,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the id of the screen's first frame: the frames after it count up from it, so a screen that takes over the
+   * Returns the id of the screen's first frame: the frames after it count up from it, so a screen that takes over the
    * pack slot of an earlier one is newer to the clients than anything the earlier one sent.
    *
    * @return an unsigned 32-bit value
@@ -397,7 +397,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the most frames a second the screen shows; a faster source is thinned to it.
+   * Returns the most frames a second the screen shows; a faster source is thinned to it.
    *
    * @return the rate, at most {@value #MAX_FRAME_RATE}, or 0 for every frame the source gives
    */
@@ -406,7 +406,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the cap on the bytes a viewer's operating system may hold unsent, which is set on a viewer's connection when
+   * Returns the cap on the bytes a viewer's operating system may hold unsent, which is set on a viewer's connection when
    * it starts receiving the screen (on Linux, where Paper uses the epoll transport).
    *
    * @return the cap in bytes, or 0 to leave the system's own
@@ -416,7 +416,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Gets the encoder budget the screen encodes in: the one it was given, or the server's shared budget.
+   * Returns the encoder budget the screen encodes in: the one it was given, or the server's shared budget.
    *
    * @return the budget
    */
@@ -495,7 +495,7 @@ public final class Mcv2Configuration {
      * @param origin the location of that block, in a world
      * @return this builder
      * @throws IllegalArgumentException if the origin has no world
-     * @throws NullPointerException if {@code origin} is null
+     * @throws NullPointerException     if {@code origin} is null
      */
     public Builder origin(final Location origin) {
       Preconditions.checkNotNull(origin, "Origin must not be null!");
@@ -510,7 +510,7 @@ public final class Mcv2Configuration {
      * @param facing north, south, east or west
      * @return this builder
      * @throws IllegalArgumentException if the direction is not horizontal and cardinal
-     * @throws NullPointerException if {@code facing} is null
+     * @throws NullPointerException     if {@code facing} is null
      */
     public Builder facing(final BlockFace facing) {
       Preconditions.checkNotNull(facing, "Facing must not be null!");
@@ -650,7 +650,7 @@ public final class Mcv2Configuration {
      *                     run the pack's post chain
      * @return this builder
      * @throws IllegalArgumentException if the color is black
-     * @throws NullPointerException if {@code outlineColor} is null
+     * @throws NullPointerException     if {@code outlineColor} is null
      */
     public Builder outlineColor(final NamedTextColor outlineColor) {
       Preconditions.checkNotNull(outlineColor, "Outline color must not be null!");

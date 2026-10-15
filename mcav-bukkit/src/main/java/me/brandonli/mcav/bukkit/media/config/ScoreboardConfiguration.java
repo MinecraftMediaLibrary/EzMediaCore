@@ -52,7 +52,7 @@ public class ScoreboardConfiguration {
   }
 
   /**
-   * Gets the players who see the scoreboard.
+   * Returns the players who see the scoreboard.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
@@ -62,7 +62,7 @@ public class ScoreboardConfiguration {
   }
 
   /**
-   * Gets the text drawn for every pixel, usually a single character such as {@code █}.
+   * Returns the text drawn for every pixel, usually a single character such as {@code █}.
    *
    * @return the pixel text
    * @see Characters
@@ -72,7 +72,7 @@ public class ScoreboardConfiguration {
   }
 
   /**
-   * Gets the height of the image in lines.
+   * Returns the height of the image in lines.
    *
    * @return the number of lines, at most {@link #MAX_LINES}
    */
@@ -81,7 +81,7 @@ public class ScoreboardConfiguration {
   }
 
   /**
-   * Gets the width of the image in characters.
+   * Returns the width of the image in characters.
    *
    * @return the width in characters
    */

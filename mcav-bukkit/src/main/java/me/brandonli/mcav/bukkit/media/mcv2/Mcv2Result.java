@@ -291,7 +291,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the number of frames sent.
+     * Returns the number of frames sent.
      *
      * @return the frames
      */
@@ -300,7 +300,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the number of keyframes sent.
+     * Returns the number of keyframes sent.
      *
      * @return the keyframes
      */
@@ -309,7 +309,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the number of frames not sent because they had more pages than the screen has page slots.
+     * Returns the number of frames not sent because they had more pages than the screen has page slots.
      *
      * @return the dropped frames
      */
@@ -318,7 +318,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the MCV2 bytes of the frames sent.
+     * Returns the MCV2 bytes of the frames sent.
      *
      * @return the frame bytes
      */
@@ -327,7 +327,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
+     * Returns accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
      * Anchors, packet overhead and actual recipient counts are excluded.
      *
      * @return the map bytes per viewer
@@ -337,7 +337,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     /**
-     * Gets the time spent encoding the frames sent.
+     * Returns the time spent encoding the frames sent.
      *
      * @return the encode time in nanoseconds
      */
@@ -450,7 +450,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets what the result has done so far.
+   * Returns what the result has done so far.
    *
    * @return the statistics, updated as frames are sent
    */
@@ -459,7 +459,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the channel that delivers the frames.
+   * Returns the channel that delivers the frames.
    *
    * @return the channel
    */
@@ -468,7 +468,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
+   * Returns the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
    * down to.
    *
    * @return the configuration
@@ -527,7 +527,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   /**
-   * Gets the rung of the ladder the screen is on.
+   * Returns the rung of the ladder the screen is on.
    *
    * @return the rung, or null before the result is started
    */

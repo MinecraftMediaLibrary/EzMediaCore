@@ -48,7 +48,7 @@ public class ServerPackHosting implements HttpHosting {
    * @param hostName the host name or address players use to reach this server
    * @param port     the port to listen on, from 1 to 65535
    * @throws IllegalArgumentException if the port is out of range
-   * @throws NullPointerException if the zip path or advertised host name is null
+   * @throws NullPointerException     if the zip path or advertised host name is null
    */
   public ServerPackHosting(final Path zip, final String hostName, final int port) {
     this(zip, hostName, port, new FileHttpServer(port, zip));
@@ -95,7 +95,7 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the resource pack zip that is served. The file is read again for every download.
+   * Returns the resource pack zip that is served. The file is read again for every download.
    *
    * @return the path to the resource pack zip
    */
@@ -105,7 +105,7 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the host name or address players use to reach this server, as passed to the constructor.
+   * Returns the host name or address players use to reach this server, as passed to the constructor.
    *
    * @return the host name
    */
@@ -115,7 +115,7 @@ public class ServerPackHosting implements HttpHosting {
   }
 
   /**
-   * Gets the port players use to reach this server, as passed to the constructor.
+   * Returns the port players use to reach this server, as passed to the constructor.
    *
    * @return the port, from 1 to 65535
    */

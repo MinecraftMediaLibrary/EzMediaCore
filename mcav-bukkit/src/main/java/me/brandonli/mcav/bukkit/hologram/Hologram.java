@@ -57,7 +57,7 @@ public interface Hologram {
    *
    * @param location the location to spawn the hologram at, which must have a world
    * @param dump     the metadata of the video, as parsed by yt-dlp
-   * @throws NullPointerException if the location or metadata is null
+   * @throws NullPointerException     if the location or metadata is null
    * @throws IllegalArgumentException if the location has no world
    */
   void handleRequest(final Location location, final UrlParseDump dump);
@@ -75,7 +75,7 @@ public interface Hologram {
   void kill();
 
   /**
-   * Gets the display entity of this hologram.
+   * Returns the display entity of this hologram.
    *
    * @return the display entity, or null if the hologram is not spawned
    */

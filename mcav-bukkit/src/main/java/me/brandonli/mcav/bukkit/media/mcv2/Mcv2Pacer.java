@@ -107,7 +107,7 @@ public final class Mcv2Pacer {
      *
      * @param name the non-null diagnostic name, possibly empty for an unnamed single preset
      * @param cost the strictly positive finite relative cost; only ratios between presets matter
-     * @throws NullPointerException if name is null
+     * @throws NullPointerException     if name is null
      * @throws IllegalArgumentException if the cost is not positive and finite
      */
     public Preset {
@@ -156,7 +156,7 @@ public final class Mcv2Pacer {
     }
 
     /**
-     * Gets the frames per second this rung encodes of a video.
+     * Returns the frames per second this rung encodes of a video.
      *
      * @param videoFrameRate the video's frames per second
      * @return the encoded frames per second, 0 for the dithered maps
@@ -198,12 +198,12 @@ public final class Mcv2Pacer {
   /**
    * A step of the pacer.
    *
-   * @param from     the rung before
-   * @param to       the rung now
-   * @param down     whether the step went down the ladder
+   * @param from               the rung before
+   * @param to                 the rung now
+   * @param down               whether the step went down the ladder
    * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
    * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
-   * @param videoFrameRate the video's frames per second as measured
+   * @param videoFrameRate     the video's frames per second as measured
    */
   public record Change(Rung from, Rung to, boolean down, double encodeMilliseconds, double frameMilliseconds, double videoFrameRate) {
     /**
@@ -271,7 +271,7 @@ public final class Mcv2Pacer {
    * @param sizes the video sizes the screen can show, largest first: the size it was asked for, then smaller ones it
    *              can switch to
    * @throws IllegalArgumentException if there is no size, or a size is not positive
-   * @throws NullPointerException if the sizes or one of its arrays is null
+   * @throws NullPointerException     if the sizes or one of its arrays is null
    */
   public Mcv2Pacer(final List<int[]> sizes) {
     this(sizes, true);
@@ -288,7 +288,7 @@ public final class Mcv2Pacer {
    * @param dithered whether the screen can fall back to the dithered maps; without them, the lowest encoded rung is as
    *                 low as the pacer goes, even when its frames take longer than they have
    * @throws IllegalArgumentException if there is no size, or a size is not positive
-   * @throws NullPointerException if the sizes or one of its arrays is null
+   * @throws NullPointerException     if the sizes or one of its arrays is null
    */
   public Mcv2Pacer(final List<int[]> sizes, final boolean dithered) {
     this(sizes, List.of(Preset.ONLY), dithered);
@@ -307,7 +307,7 @@ public final class Mcv2Pacer {
    *                 low as the pacer goes, even when its frames take longer than they have
    * @throws IllegalArgumentException if there is no size or no preset, a size is not positive, or a preset does not
    *                                  cost less than the one before it
-   * @throws NullPointerException if the sizes or one of its arrays is null, or presets is null
+   * @throws NullPointerException     if the sizes or one of its arrays is null, or presets is null
    */
   public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final boolean dithered) {
     Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed!");
@@ -340,7 +340,7 @@ public final class Mcv2Pacer {
   }
 
   /**
-   * Gets the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
+   * Returns the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
    *
    * @return the unmodifiable ladder, whose immutable rungs may be shared
    */
@@ -349,7 +349,7 @@ public final class Mcv2Pacer {
   }
 
   /**
-   * Gets the rung the screen is on.
+   * Returns the rung the screen is on.
    *
    * @return the rung
    */
@@ -358,7 +358,7 @@ public final class Mcv2Pacer {
   }
 
   /**
-   * Gets the video's frames per second, as measured from the frames it hands over.
+   * Returns the video's frames per second, as measured from the frames it hands over.
    *
    * @return the frame rate, or NaN before two frames arrived
    */
@@ -406,7 +406,7 @@ public final class Mcv2Pacer {
    *
    * @param milliseconds how long the frame took to encode, waiting for the budget's threads included
    * @param isKeyframe   whether it was a keyframe, which is left out
-   * @param now the completion time in monotonic nanoseconds, from the same clock used for other calls
+   * @param now          the completion time in monotonic nanoseconds, from the same clock used for other calls
    * @return the step it causes, which the caller carries out, or null
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
    */

@@ -83,7 +83,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the players who see the maps.
+   * Returns the players who see the maps.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
@@ -93,7 +93,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the id of the top left map of the screen.
+   * Returns the id of the top left map of the screen.
    *
    * @return the id of the first map
    */
@@ -102,7 +102,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the width of the screen in maps.
+   * Returns the width of the screen in maps.
    *
    * @return the number of maps horizontally
    */
@@ -111,7 +111,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the height of the screen in maps.
+   * Returns the height of the screen in maps.
    *
    * @return the number of maps vertically
    */
@@ -120,7 +120,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the width in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
+   * Returns the width in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
    * width of the screen.
    *
    * @return the target width in pixels
@@ -130,7 +130,7 @@ public class MapConfiguration {
   }
 
   /**
-   * Gets the height in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
+   * Returns the height in pixels that images are resized to if {@link #shouldResize()} is set. Defaults to the native
    * height of the screen.
    *
    * @return the target height in pixels
@@ -284,7 +284,7 @@ public class MapConfiguration {
      *
      * @return the map configuration
      * @throws IllegalArgumentException if the first map id is negative, a grid dimension is nonpositive,
-     *         a requested resolution is negative, or a default resolution would overflow an integer
+     *                                  a requested resolution is negative, or a default resolution would overflow an integer
      * @throws NullPointerException     if the viewers were not set
      */
     public MapConfiguration build() {

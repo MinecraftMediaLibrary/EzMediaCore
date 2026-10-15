@@ -98,7 +98,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   /**
    * Constructs a new handler for one connection.
    *
-   * @param packFile the resource pack to serve to HTTP clients
+   * @param packFile    the resource pack to serve to HTTP clients
    * @param requestPath the unique absolute request path of this pack
    */
   ResourcePackHttpHandler(final ResourcePackFile packFile, final String requestPath) {

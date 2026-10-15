@@ -163,7 +163,7 @@ public final class Mcv2Pack {
    * @throws IllegalArgumentException if there are no screens or more than {@link #MAX_SCREENS}, two share a stream
    *                                  id, or their outline colours differ
    * @throws UncheckedIOException     if the pack cannot be written
-   * @throws NullPointerException if {@code screens} or {@code archivePath} is null
+   * @throws NullPointerException     if {@code screens} or {@code archivePath} is null
    */
   public static void write(final List<Mcv2Configuration> screens, final boolean showsDebugView, final Path archivePath) {
     Preconditions.checkNotNull(screens, "Screens must not be null!");

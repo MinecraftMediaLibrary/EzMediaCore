@@ -113,7 +113,7 @@ public class CompressedMapResult implements DitherResultStep {
    *                         urgent map is always sent even if it exceeds the budget. Resize cleanup and new-viewer
    *                         snapshots are additional. Lower values spread motion and scene cuts over more frames
    * @throws IllegalArgumentException if the budget is not positive
-   * @throws NullPointerException if {@code configuration} is null
+   * @throws NullPointerException     if {@code configuration} is null
    */
   public CompressedMapResult(final MapConfiguration configuration, final int maxBytesPerFrame) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");

@@ -146,7 +146,7 @@ public final class Mcv2Viewers {
   }
 
   /**
-   * Gets the id of the pack followed.
+   * Returns the id of the pack followed.
    *
    * @return the id of the pack's request
    */
@@ -166,7 +166,7 @@ public final class Mcv2Viewers {
   }
 
   /**
-   * Gets what a player's client reported.
+   * Returns what a player's client reported.
    *
    * @param player the player's UUID
    * @return the recorded state, or null when no state is currently tracked, including after quit or retarget
@@ -194,7 +194,7 @@ public final class Mcv2Viewers {
   }
 
   /**
-   * Gets the session of a player's client with the pack: a number that changes whenever the client loads the pack
+   * Returns the session of a player's client with the pack: a number that changes whenever the client loads the pack
    * anew, after its player joined again or after another pack. A screen shown to the client of an earlier session is
    * not shown to the client of this one.
    *

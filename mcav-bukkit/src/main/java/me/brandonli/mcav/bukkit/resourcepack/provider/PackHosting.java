@@ -47,7 +47,7 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.netty.NettyHosting;
  */
 public interface PackHosting {
   /**
-   * Gets the URL players download the resource pack from.
+   * Returns the URL players download the resource pack from.
    *
    * @return the URL of the resource pack
    * @throws IllegalStateException if the URL is only known after {@link #start()} and the hosting was not started
@@ -68,7 +68,7 @@ public interface PackHosting {
   void shutdown();
 
   /**
-   * Gets the resource pack zip that is hosted.
+   * Returns the resource pack zip that is hosted.
    *
    * @return the path to the resource pack zip
    */
@@ -82,7 +82,7 @@ public interface PackHosting {
    * @param port     the port the HTTP server listens on, from 1 to 65535
    * @return the hosting strategy
    * @throws IllegalArgumentException if the port is out of range
-   * @throws NullPointerException if {@code path} or {@code hostName} is null
+   * @throws NullPointerException     if {@code path} or {@code hostName} is null
    */
   static HttpHosting http(final Path path, final String hostName, final int port) {
     Preconditions.checkNotNull(path, "Resource pack path must not be null!");

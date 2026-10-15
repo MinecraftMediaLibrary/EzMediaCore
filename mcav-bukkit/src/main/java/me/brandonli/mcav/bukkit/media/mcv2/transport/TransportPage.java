@@ -70,7 +70,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the stream id.
+   * Returns the stream id.
    *
    * @return the unsigned 32-bit stream id
    */
@@ -79,7 +79,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the id of the frame this page belongs to.
+   * Returns the id of the frame this page belongs to.
    *
    * @return the unsigned 32-bit frame id
    */
@@ -88,7 +88,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the zero-based number of this page inside its frame.
+   * Returns the zero-based number of this page inside its frame.
    *
    * @return the page number
    */
@@ -97,7 +97,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the number of pages of the frame.
+   * Returns the number of pages of the frame.
    *
    * @return the page count
    */
@@ -106,7 +106,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the reference id of the frame.
+   * Returns the reference id of the frame.
    *
    * @return the unsigned 32-bit reference id
    */
@@ -115,7 +115,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the length of the complete frame.
+   * Returns the length of the complete frame.
    *
    * @return the frame length in bytes
    */
@@ -124,7 +124,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the page flags: 1 for a keyframe, 0 for a P frame.
+   * Returns the page flags: 1 for a keyframe, 0 for a P frame.
    *
    * @return the flags
    */
@@ -133,7 +133,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets the number of useful bits per symbol.
+   * Returns the number of useful bits per symbol.
    *
    * @return 6
    */
@@ -142,7 +142,7 @@ public final class TransportPage {
   }
 
   /**
-   * Gets a copy of this page's share of the frame bytes.
+   * Returns a copy of this page's share of the frame bytes.
    *
    * @return the payload
    */

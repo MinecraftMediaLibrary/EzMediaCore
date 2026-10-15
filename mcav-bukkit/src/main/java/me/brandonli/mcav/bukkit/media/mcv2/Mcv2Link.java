@@ -121,7 +121,7 @@ public final class Mcv2Link {
   }
 
   /**
-   * Gets the video bytes handed to the viewer's connection and not yet written.
+   * Returns the video bytes handed to the viewer's connection and not yet written.
    *
    * @return the backlog
    */
@@ -130,7 +130,7 @@ public final class Mcv2Link {
   }
 
   /**
-   * Gets how many frames the viewer was sent.
+   * Returns how many frames the viewer was sent.
    *
    * @return the frames sent
    */
@@ -139,7 +139,7 @@ public final class Mcv2Link {
   }
 
   /**
-   * Gets how many frames the viewer missed because its connection was over the backlog limit.
+   * Returns how many frames the viewer missed because its connection was over the backlog limit.
    *
    * @return the frames missed for the backlog
    */
@@ -148,7 +148,7 @@ public final class Mcv2Link {
   }
 
   /**
-   * Gets how many frames the viewer missed because it did not hold their reference, after missing one before.
+   * Returns how many frames the viewer missed because it did not hold their reference, after missing one before.
    *
    * @return the frames missed for their reference
    */

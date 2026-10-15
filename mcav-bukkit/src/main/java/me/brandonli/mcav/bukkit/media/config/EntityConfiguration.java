@@ -55,7 +55,7 @@ public class EntityConfiguration {
   }
 
   /**
-   * Gets the players who see the entity.
+   * Returns the players who see the entity.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
@@ -65,7 +65,7 @@ public class EntityConfiguration {
   }
 
   /**
-   * Gets the text drawn for every pixel, usually a single character such as {@code █}.
+   * Returns the text drawn for every pixel, usually a single character such as {@code █}.
    *
    * @return the pixel text
    * @see Characters
@@ -75,7 +75,7 @@ public class EntityConfiguration {
   }
 
   /**
-   * Gets the width of the image in characters.
+   * Returns the width of the image in characters.
    *
    * @return the width in characters
    */
@@ -84,7 +84,7 @@ public class EntityConfiguration {
   }
 
   /**
-   * Gets the height of the image in lines.
+   * Returns the height of the image in lines.
    *
    * @return the height in lines
    */
@@ -93,7 +93,7 @@ public class EntityConfiguration {
   }
 
   /**
-   * Gets the position the entity is spawned at.
+   * Returns the position the entity is spawned at.
    *
    * @return the original location supplied to the builder, without a defensive copy
    */

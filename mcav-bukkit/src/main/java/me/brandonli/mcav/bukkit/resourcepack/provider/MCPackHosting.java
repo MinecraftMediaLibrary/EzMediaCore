@@ -115,7 +115,7 @@ public class MCPackHosting implements WebsiteHosting {
   }
 
   /**
-   * Gets the download URL of the uploaded pack.
+   * Returns the download URL of the uploaded pack.
    *
    * @return the URL of the resource pack
    * @throws IllegalStateException if the pack has not been uploaded yet
@@ -217,7 +217,7 @@ public class MCPackHosting implements WebsiteHosting {
   }
 
   /**
-   * Gets the resource pack zip that is uploaded to mc-packs.net.
+   * Returns the resource pack zip that is uploaded to mc-packs.net.
    *
    * @return the path to the resource pack zip
    */

@@ -58,7 +58,7 @@ public final class BukkitModule implements MCAVModule {
    *
    * @param plugin the plugin instance
    * @throws UnsupportedServerVersionException if the server runs an unsupported Minecraft version
-   * @throws NullPointerException if the plugin is null
+   * @throws NullPointerException              if the plugin is null
    */
   public void inject(final Plugin plugin) {
     Preconditions.checkNotNull(plugin, "Plugin must not be null!");
@@ -70,7 +70,7 @@ public final class BukkitModule implements MCAVModule {
   }
 
   /**
-   * Gets the injected plugin.
+   * Returns the injected plugin.
    *
    * @return the plugin instance
    * @throws IllegalStateException if no plugin has been injected yet
@@ -114,7 +114,7 @@ public final class BukkitModule implements MCAVModule {
   }
 
   /**
-   * Gets the name of the module, which is {@code bukkit}.
+   * Returns the name of the module, which is {@code bukkit}.
    *
    * @return the name of the module
    */

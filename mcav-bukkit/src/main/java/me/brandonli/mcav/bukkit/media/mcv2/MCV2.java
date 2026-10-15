@@ -122,7 +122,7 @@ public final class MCV2 {
    * Controls the live search without changing the version 3 syntax.
    *
    * @param lambda finite, nonnegative cost of a coded bit relative to distortion
-   * @param fast whether to use the fast search thresholds
+   * @param fast   whether to use the fast search thresholds
    */
   public record Settings(double lambda, boolean fast) {
     /**
@@ -158,11 +158,11 @@ public final class MCV2 {
   /**
    * Measurements of the most recently finished frame.
    *
-   * @param bytes encoded frame length
-   * @param keyframe whether the frame decodes independently
-   * @param leaves number of chosen leaves, including absent roots
+   * @param bytes       encoded frame length
+   * @param keyframe    whether the frame decodes independently
+   * @param leaves      number of chosen leaves, including absent roots
    * @param nanoseconds elapsed search and writing time
-   * @param lambda effective lambda, including motion adjustment and any size retries
+   * @param lambda      effective lambda, including motion adjustment and any size retries
    */
   public record Stats(int bytes, boolean keyframe, int leaves, long nanoseconds, double lambda) {}
 
@@ -301,10 +301,10 @@ public final class MCV2 {
    * Creates an encoder for one stream on a caller-owned pool.
    *
    * @param settings initial live search settings
-   * @param pool worker pool, retained but never shut down by this encoder
-   * @param threads maximum concurrent workers, at least one
-   * @param verify whether finish checks every reconstructed pixel with Mcv2Decoder
-   * @throws NullPointerException if settings or pool is null
+   * @param pool     worker pool, retained but never shut down by this encoder
+   * @param threads  maximum concurrent workers, at least one
+   * @param verify   whether finish checks every reconstructed pixel with Mcv2Decoder
+   * @throws NullPointerException     if settings or pool is null
    * @throws IllegalArgumentException if threads is less than one
    */
   public MCV2(final Settings settings, final ForkJoinPool pool, final int threads, final boolean verify) {
@@ -388,13 +388,13 @@ public final class MCV2 {
    * Searches, writes and finishes one frame synchronously.
    *
    * @param sourcePixels row-major RGB24 source, exactly width times height times three bytes
-   * @param width picture width, 1 through 4096
-   * @param height picture height, 1 through 4096
-   * @param frameId unsigned 32-bit id strictly following the last id modulo 2^32
-   * @throws NullPointerException if {@code sourcePixels} is null
-   * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
-   * @throws IllegalStateException if the encoder stopped or pending frames prevent this operation
+   * @param width        picture width, 1 through 4096
+   * @param height       picture height, 1 through 4096
+   * @param frameId      unsigned 32-bit id strictly following the last id modulo 2^32
    * @return a complete version 3 frame
+   * @throws NullPointerException     if {@code sourcePixels} is null
+   * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
+   * @throws IllegalStateException    if the encoder stopped or pending frames prevent this operation
    */
   public byte[] encode(final byte[] sourcePixels, final int width, final int height, final long frameId) {
     return this.finish(this.begin(sourcePixels, width, height, frameId)).getData();
@@ -406,13 +406,13 @@ public final class MCV2 {
    * At most two unfinished frames may exist and they must finish in order.
    *
    * @param sourcePixels row-major RGB24 source, exactly width times height times three bytes
-   * @param width picture width, 1 through 4096
-   * @param height picture height, 1 through 4096
-   * @param frameId unsigned 32-bit id strictly following the last id modulo 2^32
-   * @throws NullPointerException if {@code sourcePixels} is null
-   * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
-   * @throws IllegalStateException if the encoder stopped or pending frames prevent this operation
+   * @param width        picture width, 1 through 4096
+   * @param height       picture height, 1 through 4096
+   * @param frameId      unsigned 32-bit id strictly following the last id modulo 2^32
    * @return the pending frame to finish exactly once
+   * @throws NullPointerException     if {@code sourcePixels} is null
+   * @throws IllegalArgumentException if dimensions, input length or frame id are invalid
+   * @throws IllegalStateException    if the encoder stopped or pending frames prevent this operation
    */
   public Pending begin(final byte[] sourcePixels, final int width, final int height, final long frameId) {
     Preconditions.checkState(!this.failed, STOPPED);
@@ -507,9 +507,9 @@ public final class MCV2 {
    *
    * @param pending an unfinished frame from this encoder, in begin order
    * @return the finished frame and statistics
-   * @throws NullPointerException if pending is null
+   * @throws NullPointerException     if pending is null
    * @throws IllegalArgumentException if another encoder owns pending
-   * @throws IllegalStateException if order is wrong, pending is finished, or verification fails
+   * @throws IllegalStateException    if order is wrong, pending is finished, or verification fails
    */
   @SuppressWarnings("ReferenceEquality")
   public Encoded finish(final Pending pending) {
@@ -2994,7 +2994,7 @@ public final class MCV2 {
     }
 
     /**
-     * Gets the lazily created application-wide pool.
+     * Returns the lazily created application-wide pool.
      *
      * @return the current shared pool
      */
@@ -3035,7 +3035,7 @@ public final class MCV2 {
     /**
      * Creates a stream encoder sharing this pool's worker budget.
      *
-     * @param settings live search settings
+     * @param settings     live search settings
      * @param shouldVerify whether finish verifies reconstruction
      * @return a new stream encoder
      * @throws NullPointerException if settings is null
@@ -3047,11 +3047,11 @@ public final class MCV2 {
     /**
      * Runs a job within the shared worker budget and propagates its failures.
      *
-     * @param task encoding job
+     * @param task         encoding job
      * @param <ResultType> result type
      * @return the job result
-     * @throws InterruptedException if interrupted before or while awaiting the job
-     * @throws NullPointerException if task is null
+     * @throws InterruptedException  if interrupted before or while awaiting the job
+     * @throws NullPointerException  if task is null
      * @throws IllegalStateException if the job throws a checked exception
      */
     public <ResultType> ResultType run(final Callable<ResultType> task) throws InterruptedException {

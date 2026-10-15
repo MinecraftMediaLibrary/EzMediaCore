@@ -42,15 +42,15 @@ public final class MapTilePatch {
   /**
    * Constructs a new patch.
    *
-   * @param mapId the nonnegative id of the map to update
+   * @param mapId  the nonnegative id of the map to update
    * @param left   the x coordinate of the top left corner of the rectangle, from 0 to 127
    * @param top    the y coordinate of the top left corner of the rectangle, from 0 to 127
-   * @param width the positive width in pixels, with the rectangle ending at or before coordinate 128
+   * @param width  the positive width in pixels, with the rectangle ending at or before coordinate 128
    * @param height the positive height in pixels, with the rectangle ending at or before coordinate 128
    * @param colors the map palette indices of the rectangle, exactly {@code width * height} bytes long
    * @throws IllegalArgumentException if the map id is negative, the rectangle is empty or outside the map,
-   *         or the color array has the wrong size
-   * @throws NullPointerException if {@code colors} is null
+   *                                  or the color array has the wrong size
+   * @throws NullPointerException     if {@code colors} is null
    */
   public MapTilePatch(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
     Preconditions.checkNotNull(colors, "Colors must not be null!");
@@ -74,7 +74,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the id of the map this patch updates.
+   * Returns the id of the map this patch updates.
    *
    * @return the map id
    */
@@ -83,7 +83,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the x coordinate of the top left corner of the rectangle inside the map.
+   * Returns the x coordinate of the top left corner of the rectangle inside the map.
    *
    * @return the x coordinate, from 0 to 127
    */
@@ -92,7 +92,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the y coordinate of the top left corner of the rectangle inside the map.
+   * Returns the y coordinate of the top left corner of the rectangle inside the map.
    *
    * @return the y coordinate, from 0 to 127
    */
@@ -101,7 +101,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the width of the rectangle.
+   * Returns the width of the rectangle.
    *
    * @return the width in pixels
    */
@@ -110,7 +110,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the height of the rectangle.
+   * Returns the height of the rectangle.
    *
    * @return the height in pixels
    */
@@ -119,7 +119,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the map palette indices of the rectangle, stored row by row. The returned array is not a copy and must
+   * Returns the map palette indices of the rectangle, stored row by row. The returned array is not a copy and must
    * not be modified.
    *
    * @return the colors of the rectangle
@@ -129,7 +129,7 @@ public final class MapTilePatch {
   }
 
   /**
-   * Gets the approximate number of bytes this patch occupies on the network, including the packet overhead.
+   * Returns the approximate number of bytes this patch occupies on the network, including the packet overhead.
    *
    * @return the size of the patch in bytes
    */

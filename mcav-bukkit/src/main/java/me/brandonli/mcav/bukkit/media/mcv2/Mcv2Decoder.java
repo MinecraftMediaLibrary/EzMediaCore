@@ -178,7 +178,7 @@ public final class Mcv2Decoder {
    * @param bytes one complete frame
    * @return immutable validated frame
    * @throws NullPointerException if bytes is null
-   * @throws Mcv2Exception if any version 3 validation rule fails, including unsupported older versions
+   * @throws Mcv2Exception        if any version 3 validation rule fails, including unsupported older versions
    */
   public static Frame parse(final byte[] bytes) throws Mcv2Exception {
     Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
@@ -400,12 +400,12 @@ public final class Mcv2Decoder {
   /**
    * Parses and reconstructs a complete frame.
    *
-   * @param bytes complete encoded frame
-   * @param reference previous RGB24 picture; may be null for keyframes
+   * @param bytes       complete encoded frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
    * @param referenceId id of that picture; ignored for keyframes
    * @return newly allocated RGB24 picture
    * @throws NullPointerException if bytes is null
-   * @throws Mcv2Exception if syntax or reference validation fails
+   * @throws Mcv2Exception        if syntax or reference validation fails
    */
   public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
     return decode(parse(bytes), reference, referenceId);
@@ -414,12 +414,12 @@ public final class Mcv2Decoder {
   /**
    * Reconstructs a validated frame into a new RGB24 array.
    *
-   * @param frame validated frame
-   * @param reference previous RGB24 picture; may be null for keyframes
+   * @param frame       validated frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
    * @param referenceId id of that picture; ignored for keyframes
    * @return newly allocated RGB24 picture
    * @throws NullPointerException if frame is null
-   * @throws Mcv2Exception if the required reference is missing or has the wrong id or byte length
+   * @throws Mcv2Exception        if the required reference is missing or has the wrong id or byte length
    */
   public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
     final byte[] output = new byte[frame.width * frame.height * CHANNELS];
@@ -430,13 +430,13 @@ public final class Mcv2Decoder {
   /**
    * Reconstructs a complete frame. An output alias of the reference uses an owned snapshot.
    *
-   * @param frame validated frame
-   * @param reference previous RGB24 picture; may be null for keyframes
+   * @param frame       validated frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
    * @param referenceId id of that picture; ignored for keyframes
-   * @param output array of exactly width * height * 3 bytes
-   * @throws NullPointerException if frame or output is null
+   * @param output      array of exactly width * height * 3 bytes
+   * @throws NullPointerException     if frame or output is null
    * @throws IllegalArgumentException if output has the wrong length
-   * @throws Mcv2Exception if the required reference is missing or has the wrong id or byte length
+   * @throws Mcv2Exception            if the required reference is missing or has the wrong id or byte length
    */
   public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output)
     throws Mcv2Exception {
@@ -617,7 +617,7 @@ public final class Mcv2Decoder {
   /**
    * Reads an unsigned little-endian 16-bit integer.
    *
-   * @param data source bytes
+   * @param data        source bytes
    * @param arrayOffset first byte offset
    * @return unsigned value
    * @throws IndexOutOfBoundsException if either byte lies outside data
@@ -629,7 +629,7 @@ public final class Mcv2Decoder {
   /**
    * Reads an unsigned little-endian 32-bit integer.
    *
-   * @param data source bytes
+   * @param data        source bytes
    * @param arrayOffset first byte offset
    * @return unsigned value
    * @throws IndexOutOfBoundsException if any byte lies outside data
@@ -646,9 +646,9 @@ public final class Mcv2Decoder {
   /**
    * Writes the low 16 bits in little-endian order.
    *
-   * @param data destination bytes
+   * @param data        destination bytes
    * @param arrayOffset first byte offset
-   * @param value value to write
+   * @param value       value to write
    * @throws IndexOutOfBoundsException if either byte lies outside data
    */
   public static void putU16(final byte[] data, final int arrayOffset, final int value) {
@@ -659,9 +659,9 @@ public final class Mcv2Decoder {
   /**
    * Writes the low 32 bits in little-endian order.
    *
-   * @param data destination bytes
+   * @param data        destination bytes
    * @param arrayOffset first byte offset
-   * @param value value to write
+   * @param value       value to write
    * @throws IndexOutOfBoundsException if any byte lies outside data
    */
   public static void putU32(final byte[] data, final int arrayOffset, final long value) {

@@ -89,7 +89,7 @@ public final class NettyHosting implements InjectorHosting {
   }
 
   /**
-   * Gets the URL players download the resource pack from.
+   * Returns the URL players download the resource pack from.
    *
    * <p>The URL consists of the public address of the server and the port of the Minecraft server, and a unique path for this hosting instance. IPv6 addresses
    * are enclosed in brackets. The public address is looked up the first time this method is called, and the URL is
@@ -168,7 +168,7 @@ public final class NettyHosting implements InjectorHosting {
   }
 
   /**
-   * Gets the name this instance installs its handler under in the Netty pipeline. Visible for testing.
+   * Returns the name this instance installs its handler under in the Netty pipeline. Visible for testing.
    *
    * @return the pipeline name, which is unique per instance
    */
@@ -195,7 +195,7 @@ public final class NettyHosting implements InjectorHosting {
   }
 
   /**
-   * Gets the resource pack zip that is served. The file is read again whenever it changed.
+   * Returns the resource pack zip that is served. The file is read again whenever it changed.
    *
    * @return the path to the resource pack zip
    */

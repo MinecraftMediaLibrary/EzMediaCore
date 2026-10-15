@@ -30,21 +30,21 @@ public interface HttpHosting extends PackHosting {
   String HOST_URL = "http://%s:%s";
 
   /**
-   * Gets the host name or address players use to reach the HTTP server.
+   * Returns the host name or address players use to reach the HTTP server.
    *
    * @return the host name
    */
   String getHostName();
 
   /**
-   * Gets the port the HTTP server listens on.
+   * Returns the port the HTTP server listens on.
    *
    * @return the port
    */
   int getPort();
 
   /**
-   * Gets the URL of the resource pack, built from the host name and the port.
+   * Returns the URL of the resource pack, built from the host name and the port.
    *
    * @return the URL in the format {@code http://<hostName>:<port>}
    */

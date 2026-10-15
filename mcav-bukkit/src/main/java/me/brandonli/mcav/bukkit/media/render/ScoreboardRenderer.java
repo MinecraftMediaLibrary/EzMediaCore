@@ -104,7 +104,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    * Converts the image into scoreboard lines and schedules them for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the scoreboard dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {

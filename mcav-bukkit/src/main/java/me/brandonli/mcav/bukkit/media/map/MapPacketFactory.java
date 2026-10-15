@@ -136,7 +136,7 @@ public final class MapPacketFactory {
    * @param startMapId the id of the first map
    * @param count      the number of maps with consecutive ids to clear
    * @throws IllegalArgumentException if the first map id or count is negative, or the last id overflows an integer
-   * @throws NullPointerException if {@code viewers} is null
+   * @throws NullPointerException     if {@code viewers} is null
    */
   public static void clear(final Collection<UUID> viewers, final int startMapId, final int count) {
     Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);

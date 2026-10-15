@@ -285,7 +285,7 @@ public final class Mcv2PackServer {
   }
 
   /**
-   * Gets who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
+   * Returns who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
    *
    * @return the viewers
    */
@@ -322,8 +322,8 @@ public final class Mcv2PackServer {
    * @return the screen's lease, which holds its slots until it is closed
    * @throws IllegalStateException    if every slot plays another screen, or the server was shut down
    * @throws IllegalArgumentException if the outline color differs from active screens, or the page-map range
-   *         cannot accommodate every pack slot without overflowing or overlapping the wall
-   * @throws NullPointerException if {@code requested} is null
+   *                                  cannot accommodate every pack slot without overflowing or overlapping the wall
+   * @throws NullPointerException     if {@code requested} is null
    */
   public synchronized Lease open(final Mcv2Configuration requested) {
     Preconditions.checkNotNull(requested, CONFIGURATION_NULL_MESSAGE);
@@ -787,7 +787,7 @@ public final class Mcv2PackServer {
     }
 
     /**
-     * Gets the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
+     * Returns the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
      * first frame gets.
      *
      * @return the configuration to create the screen's result or channel with
@@ -797,14 +797,14 @@ public final class Mcv2PackServer {
     }
 
     /**
-     * Gets the channel of the screen at another video size, in the slot of that size. The channel's stream id and page
+     * Returns the channel of the screen at another video size, in the slot of that size. The channel's stream id and page
      * maps are the slot's, counted from the first page map the lease was opened with: the stream id and page map of
      * {@code resized} are not used, so the configuration of the lease or of any of its channels may be resized.
      *
      * @param resized the screen at the other size
      * @return its channel, not opened yet; one whose viewers all see the dithered maps if no slot is free
      * @throws IllegalStateException if the lease was closed
-     * @throws NullPointerException if {@code resized} is null
+     * @throws NullPointerException  if {@code resized} is null
      */
     @Override
     public Mcv2Channel resize(final Mcv2Configuration resized) {

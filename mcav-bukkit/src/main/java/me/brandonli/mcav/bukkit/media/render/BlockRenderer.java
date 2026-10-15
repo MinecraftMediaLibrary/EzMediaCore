@@ -113,7 +113,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * Converts the image into blocks and schedules them for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the wall dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {
@@ -180,7 +180,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   }
 
   /**
-   * Gets the number of blocks of the wall.
+   * Returns the number of blocks of the wall.
    */
   private int getBlockCount() {
     final int width = this.configuration.getBlockWidth();
@@ -189,7 +189,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   }
 
   /**
-   * Gets the x coordinate of a block of the screen, which is centered on the origin horizontally.
+   * Returns the x coordinate of a block of the screen, which is centered on the origin horizontally.
    */
   private int getBlockX(final int originX, final int index) {
     final int width = this.configuration.getBlockWidth();
@@ -199,7 +199,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   }
 
   /**
-   * Gets the y coordinate of a block of the screen, whose bottom row is at the height of the origin.
+   * Returns the y coordinate of a block of the screen, whose bottom row is at the height of the origin.
    */
   private int getBlockY(final int originY, final int index) {
     final int width = this.configuration.getBlockWidth();

@@ -125,7 +125,7 @@ public final class PacketUtils {
   }
 
   /**
-   * Gets an opaque identity for the player's current connection. May be called from any thread. The identity is
+   * Returns an opaque identity for the player's current connection. May be called from any thread. The identity is
    * stable while that connection is cached, including cache refreshes, and changes when the player reconnects.
    * Retaining it does not retain the player or the network connection.
    *
@@ -206,7 +206,7 @@ public final class PacketUtils {
    * @return true if the cap was set; false for a player who is not online, a connection not open yet, or a transport
    *     without the option
    * @throws IllegalArgumentException if the byte limit is nonpositive
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException     if {@code player} is null
    */
   public static boolean limitUnsent(final UUID player, final int bytes) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);

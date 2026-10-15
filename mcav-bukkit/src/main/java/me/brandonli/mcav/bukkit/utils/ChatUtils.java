@@ -81,7 +81,7 @@ public final class ChatUtils {
    * @param row       the row to convert
    * @return the row as text with legacy section sign color codes
    * @throws IllegalArgumentException if width is nonpositive or the requested zero-based row is outside the data
-   * @throws NullPointerException if {@code data} or {@code character} is null
+   * @throws NullPointerException     if {@code data} or {@code character} is null
    */
   public static String createRawLine(final int[] data, final String character, final int width, final int row) {
     Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
@@ -107,7 +107,7 @@ public final class ChatUtils {
    * @param height    the height of the image in pixels
    * @return a chat component showing the image
    * @throws IllegalArgumentException if either dimension is nonpositive or the image requires more pixels than supplied
-   * @throws NullPointerException if {@code data} or {@code character} is null
+   * @throws NullPointerException     if {@code data} or {@code character} is null
    */
   public static Component createChatComponent(final int[] data, final String character, final int width, final int height) {
     Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);

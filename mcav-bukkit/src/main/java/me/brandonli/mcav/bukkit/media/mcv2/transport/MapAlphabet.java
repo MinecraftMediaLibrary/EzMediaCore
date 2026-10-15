@@ -47,7 +47,7 @@ public final class MapAlphabet {
    * @param symbols the symbols, at most 16,384
    * @return a new map-color array, a multiple of 128 bytes; empty input produces an empty array
    * @throws IllegalArgumentException if there are more than 16,384 symbols or an unsigned symbol exceeds 63
-   * @throws NullPointerException if {@code symbols} is null
+   * @throws NullPointerException     if {@code symbols} is null
    */
   public static byte[] toMapColors(final byte[] symbols) {
     Preconditions.checkNotNull(symbols, "Symbols must not be null!");
@@ -66,7 +66,7 @@ public final class MapAlphabet {
    *
    * @param colors the map colours
    * @return a new symbol array of the same length; any row padding remains present
-   * @throws Mcv2Exception if a colour is outside the alphabet
+   * @throws Mcv2Exception        if a colour is outside the alphabet
    * @throws NullPointerException if {@code colors} is null
    */
   public static byte[] fromMapColors(final byte[] colors) throws Mcv2Exception {

@@ -42,7 +42,7 @@ public final class ServerAddress {
   }
 
   /**
-   * Gets the address players use to reach the server.
+   * Returns the address players use to reach the server.
    *
    * <p>If {@code server-ip} is set in {@code server.properties}, that address is used. Otherwise, the public
    * address is looked up with {@link NetworkUtils#lookUpPublicAddress()}. A successful lookup is cached for the
@@ -57,7 +57,7 @@ public final class ServerAddress {
   }
 
   /**
-   * Gets the address players use to reach the server, looking the public address up with the specified service.
+   * Returns the address players use to reach the server, looking the public address up with the specified service.
    *
    * @param addressService the service that answers with the public address of the caller as plain text
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now

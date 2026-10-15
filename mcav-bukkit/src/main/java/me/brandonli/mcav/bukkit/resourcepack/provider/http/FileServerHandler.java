@@ -99,7 +99,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   }
 
   /**
-   * Gets the name of the served file for the {@code Content-Disposition} header.
+   * Returns the name of the served file for the {@code Content-Disposition} header.
    *
    * @param path the path of the served file
    * @return the file name, or a generic name if the path has none, such as a root directory

@@ -48,7 +48,7 @@ public class ChatConfiguration {
   }
 
   /**
-   * Gets the players who see the chat image.
+   * Returns the players who see the chat image.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
    *         concurrent collection if another thread changes membership during rendering
@@ -58,7 +58,7 @@ public class ChatConfiguration {
   }
 
   /**
-   * Gets the text drawn for every pixel, usually a single character such as {@code █}.
+   * Returns the text drawn for every pixel, usually a single character such as {@code █}.
    *
    * @return the pixel text
    * @see Characters
@@ -68,7 +68,7 @@ public class ChatConfiguration {
   }
 
   /**
-   * Gets the width of the image in characters.
+   * Returns the width of the image in characters.
    *
    * @return the width in characters
    */
@@ -77,7 +77,7 @@ public class ChatConfiguration {
   }
 
   /**
-   * Gets the height of the image in lines.
+   * Returns the height of the image in lines.
    *
    * @return the height in lines
    */

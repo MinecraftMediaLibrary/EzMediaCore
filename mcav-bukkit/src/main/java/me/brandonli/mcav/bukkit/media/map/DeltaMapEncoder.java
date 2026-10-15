@@ -90,7 +90,7 @@ public final class DeltaMapEncoder {
    * @param maxBytesPerFrame the maximum number of bytes to send per frame; the most urgent map is always sent,
    *                         even if it alone exceeds the budget
    * @throws IllegalArgumentException if the budget is not positive
-   * @throws NullPointerException if {@code layout} is null
+   * @throws NullPointerException     if {@code layout} is null
    */
   public DeltaMapEncoder(final MapLayout layout, final int maxBytesPerFrame) {
     Preconditions.checkNotNull(layout, "Layout must not be null!");
@@ -107,7 +107,7 @@ public final class DeltaMapEncoder {
   }
 
   /**
-   * Gets the layout this encoder was created for.
+   * Returns the layout this encoder was created for.
    *
    * @return the layout
    */
@@ -122,7 +122,7 @@ public final class DeltaMapEncoder {
    * @param image the frame as map palette indices, laid out row by row, matching the image size of the layout
    * @return the patches to send, or an empty list if nothing visible changed
    * @throws IllegalArgumentException if the image size does not match the layout
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException     if {@code image} is null
    */
   public List<MapTilePatch> encode(final byte[] image) {
     Preconditions.checkNotNull(image, "Image must not be null!");

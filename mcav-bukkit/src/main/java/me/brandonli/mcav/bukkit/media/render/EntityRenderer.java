@@ -93,7 +93,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * Converts the image into colored text and schedules it for display. May be called from any thread.
    *
    * @param image the image to render, which is resized to the entity dimensions in place
-   * @throws NullPointerException if the image is null
+   * @throws NullPointerException  if the image is null
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {

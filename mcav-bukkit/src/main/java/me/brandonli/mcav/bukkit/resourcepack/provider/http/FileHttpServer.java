@@ -110,7 +110,7 @@ final class FileHttpServer {
   }
 
   /**
-   * Gets the port the server is bound to. This is the configured port, unless the server was configured with port
+   * Returns the port the server is bound to. This is the configured port, unless the server was configured with port
    * {@code 0}, in which case the operating system picked a free port.
    *
    * @return the bound port

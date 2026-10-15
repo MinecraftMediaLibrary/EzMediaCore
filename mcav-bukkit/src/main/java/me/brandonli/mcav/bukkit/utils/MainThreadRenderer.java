@@ -83,7 +83,7 @@ public abstract class MainThreadRenderer<T> {
   /**
    * Starts applying submitted frames once per server tick. Calling this method again while the renderer is
    * running has no effect. May be called from any thread.
-   * @throws IllegalStateException if no plugin has been injected
+   * @throws IllegalStateException        if no plugin has been injected
    * @throws IllegalPluginAccessException if the injected plugin cannot schedule tasks
    */
   protected synchronized void startRendering() {
@@ -192,7 +192,7 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param task the task to run
    * @throws IllegalStateException if called off the main thread before a plugin has been injected
-   * @throws NullPointerException if {@code task} is null
+   * @throws NullPointerException  if {@code task} is null
    */
   public static void runOnMainThread(final Runnable task) {
     Preconditions.checkNotNull(task, "Task must not be null!");

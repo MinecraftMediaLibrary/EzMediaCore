@@ -63,10 +63,10 @@ public final class MapLayout {
   /**
    * Constructs a new layout.
    *
-   * @param startMapId the nonnegative id of the top left map
-   * @param columns the strictly positive number of maps horizontally
-   * @param rows the strictly positive number of maps vertically
-   * @param imageWidth the strictly positive width of the image in pixels
+   * @param startMapId  the nonnegative id of the top left map
+   * @param columns     the strictly positive number of maps horizontally
+   * @param rows        the strictly positive number of maps vertically
+   * @param imageWidth  the strictly positive width of the image in pixels
    * @param imageHeight the strictly positive height of the image in pixels
    * @throws IllegalArgumentException if any argument is out of range, the map count, last map id or the size of the
    *                                  grid in pixels would exceed {@link Integer#MAX_VALUE}, or the image has more
@@ -145,7 +145,7 @@ public final class MapLayout {
   }
 
   /**
-   * Gets the number of maps in the grid.
+   * Returns the number of maps in the grid.
    *
    * @return the number of maps
    */
@@ -154,7 +154,7 @@ public final class MapLayout {
   }
 
   /**
-   * Gets the id of the map at the specified index.
+   * Returns the id of the map at the specified index.
    *
    * @param index the index of the map, counted row by row from the top left
    * @return the map id
@@ -166,7 +166,7 @@ public final class MapLayout {
   }
 
   /**
-   * Gets the width of the image in pixels.
+   * Returns the width of the image in pixels.
    *
    * @return the image width
    */
@@ -175,7 +175,7 @@ public final class MapLayout {
   }
 
   /**
-   * Gets the height of the image in pixels.
+   * Returns the height of the image in pixels.
    *
    * @return the image height
    */
@@ -184,7 +184,7 @@ public final class MapLayout {
   }
 
   /**
-   * Gets the part of the map at the specified index that is covered by the image.
+   * Returns the part of the map at the specified index that is covered by the image.
    *
    * @param index the index of the map, counted row by row from the top left
    * @return the covered region, which is empty if the image does not reach this map
@@ -225,7 +225,7 @@ public final class MapLayout {
    * @throws IndexOutOfBoundsException if the map index is outside of the grid
    * @throws IllegalArgumentException  if the image size does not match the layout, or the rectangle is empty or
    *                                   not inside the region of the map
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException      if {@code image} is null
    */
   public MapTilePatch extractPatch(final byte[] image, final int index, final int left, final int top, final int width, final int height) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
@@ -281,7 +281,7 @@ public final class MapLayout {
    * @param image the image as map palette indices, laid out row by row
    * @return the patches for the entire image
    * @throws IllegalArgumentException if the image size does not match the layout
-   * @throws NullPointerException if {@code image} is null
+   * @throws NullPointerException     if {@code image} is null
    */
   public List<MapTilePatch> extractAll(final byte[] image) {
     Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);

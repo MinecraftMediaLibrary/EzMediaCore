@@ -59,7 +59,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the x coordinate of the covered rectangle inside the map.
+   * Returns the x coordinate of the covered rectangle inside the map.
    *
    * @return the local x coordinate
    */
@@ -68,7 +68,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the y coordinate of the covered rectangle inside the map.
+   * Returns the y coordinate of the covered rectangle inside the map.
    *
    * @return the local y coordinate
    */
@@ -77,7 +77,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the width of the covered rectangle.
+   * Returns the width of the covered rectangle.
    *
    * @return the width in pixels, or zero if the map is not covered
    */
@@ -86,7 +86,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the height of the covered rectangle.
+   * Returns the height of the covered rectangle.
    *
    * @return the height in pixels, or zero if the map is not covered
    */
@@ -95,7 +95,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the x coordinate of the image pixel that is drawn at the local x coordinate.
+   * Returns the x coordinate of the image pixel that is drawn at the local x coordinate.
    *
    * @return the source x coordinate
    */
@@ -104,7 +104,7 @@ public final class MapRegion {
   }
 
   /**
-   * Gets the y coordinate of the image pixel that is drawn at the local y coordinate.
+   * Returns the y coordinate of the image pixel that is drawn at the local y coordinate.
    *
    * @return the source y coordinate
    */

@@ -121,7 +121,7 @@ public final class Mcv2Screen {
    * main thread.
    *
    * @throws IllegalStateException if the frames were already spawned or a required plugin has not been injected
-   * @throws NullPointerException if the origin no longer resolves to a world
+   * @throws NullPointerException  if the origin no longer resolves to a world
    */
   public void build() {
     Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist!");
@@ -162,7 +162,7 @@ public final class Mcv2Screen {
   }
 
   /**
-   * Gets the page frames.
+   * Returns the page frames.
    *
    * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
    */
@@ -175,7 +175,7 @@ public final class Mcv2Screen {
    *
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException  if {@code player} is null
    */
   public void show(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
@@ -193,7 +193,7 @@ public final class Mcv2Screen {
    *
    * @param player the player
    * @throws IllegalStateException if no plugin has been injected
-   * @throws NullPointerException if {@code player} is null
+   * @throws NullPointerException  if {@code player} is null
    */
   public void hide(final Player player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);

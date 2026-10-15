@@ -131,7 +131,7 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the screen.
+   * Returns the screen.
    *
    * @return the screen
    */
@@ -140,7 +140,7 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the configuration of the screen the channel sends to: its video size, stream id and viewers.
+   * Returns the configuration of the screen the channel sends to: its video size, stream id and viewers.
    *
    * @return the configuration
    */
@@ -152,7 +152,7 @@ public final class Mcv2Channel {
    * Spawns the screen's page frames, and starts measuring how far the viewers are from the wall, unless the channel
    * still measures them since the dithered maps took the page frames' place. Call on the main thread.
    * @throws IllegalStateException if the screen is already built or no plugin has been injected
-   * @throws NullPointerException if the origin no longer resolves to a world
+   * @throws NullPointerException  if the origin no longer resolves to a world
    */
   public void open() {
     this.screen.build();
@@ -353,7 +353,7 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the viewers that receive frames.
+   * Returns the viewers that receive frames.
    *
    * @return the viewers shown the screen, as of the last {@link #update()}
    */
@@ -362,7 +362,7 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Gets the links of the viewers shown the screen: what each was sent, missed and has not yet written.
+   * Returns the links of the viewers shown the screen: what each was sent, missed and has not yet written.
    *
    * @return the links by viewer, a live view
    */
@@ -395,7 +395,7 @@ public final class Mcv2Channel {
    * @return the number of page-map color bytes per potential recipient, excluding anchors and packet overhead, or -1 if the frame has more pages than the screen has page slots, in which
    *     case nothing is sent and the next frame is asked to be a keyframe
    * @throws IllegalArgumentException if the bytes are not a valid MCV2 frame
-   * @throws NullPointerException if {@code frame} is null
+   * @throws NullPointerException     if {@code frame} is null
    */
   public int send(final byte[] frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");

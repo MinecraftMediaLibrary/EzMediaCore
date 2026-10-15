@@ -145,10 +145,10 @@ public final class TransportPages {
   /**
    * Unpacks symbols into bytes, rejecting symbols outside the alphabet, a wrong symbol count and nonzero padding.
    *
-   * @param symbols    the symbols, exactly {@code ceil(byteCount * 8 / SYMBOL_BITS)} of them
-   * @param byteCount  the number of bytes the symbols carry
+   * @param symbols   the symbols, exactly {@code ceil(byteCount * 8 / SYMBOL_BITS)} of them
+   * @param byteCount the number of bytes the symbols carry
    * @return the bytes
-   * @throws Mcv2Exception if the symbols do not carry exactly that many bytes with zero padding
+   * @throws Mcv2Exception        if the symbols do not carry exactly that many bytes with zero padding
    * @throws NullPointerException if {@code symbols} is null
    */
   public static byte[] fromSymbols(final byte[] symbols, final int byteCount) throws Mcv2Exception {
@@ -182,12 +182,12 @@ public final class TransportPages {
   /**
    * Splits a frame into pages. The frame is validated first, so only a valid frame can be sent.
    *
-   * @param frame      the frame bytes
-   * @param streamId   the unsigned 32-bit stream id
+   * @param frame    the frame bytes
+   * @param streamId the unsigned 32-bit stream id
    * @return the pages, each as its symbols
-   * @throws Mcv2Exception if the bytes are not a valid frame
+   * @throws Mcv2Exception            if the bytes are not a valid frame
    * @throws IllegalArgumentException if the stream id is outside unsigned 32-bit range
-   * @throws NullPointerException if {@code frame} is null
+   * @throws NullPointerException     if {@code frame} is null
    */
   public static List<byte[]> makePages(final byte[] frame, final long streamId) throws Mcv2Exception {
     Preconditions.checkNotNull(frame, FRAME_NULL_MESSAGE);
@@ -198,10 +198,10 @@ public final class TransportPages {
   /**
    * Splits an already validated frame into six-bit pages.
    *
-   * @param parsed immutable validated frame
+   * @param parsed   immutable validated frame
    * @param streamId unsigned 32-bit stream id
    * @return pages as symbols
-   * @throws NullPointerException if parsed is null
+   * @throws NullPointerException     if parsed is null
    * @throws IllegalArgumentException if streamId is outside the unsigned 32-bit range
    */
   public static List<byte[]> makePages(final Frame parsed, final long streamId) {
@@ -240,7 +240,7 @@ public final class TransportPages {
    *
    * @param symbols    at least the header's symbols
    * @return the useful symbol count
-   * @throws Mcv2Exception if the header is truncated, malformed or inconsistent
+   * @throws Mcv2Exception        if the header is truncated, malformed or inconsistent
    * @throws NullPointerException if the symbol array is null
    */
   public static int usefulSymbols(final byte[] symbols) throws Mcv2Exception {
@@ -304,7 +304,7 @@ public final class TransportPages {
    *
    * @param symbols    the page's useful symbols
    * @return the page
-   * @throws Mcv2Exception if the page is malformed or its CRC does not match
+   * @throws Mcv2Exception        if the page is malformed or its CRC does not match
    * @throws NullPointerException if the symbol array is null
    */
   public static TransportPage readPage(final byte[] symbols) throws Mcv2Exception {

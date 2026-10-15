@@ -67,7 +67,7 @@ public final class BlockPaletteLookup {
   }
 
   /**
-   * Gets the block whose average color is the given palette color.
+   * Returns the block whose average color is the given palette color.
    *
    * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
    *              alpha channel is ignored
@@ -83,7 +83,7 @@ public final class BlockPaletteLookup {
   }
 
   /**
-   * Gets the default block data of the block whose average color is the given palette color. The block data is
+   * Returns the default block data of the block whose average color is the given palette color. The block data is
    * cached and shared, so it must not be modified.
    *
    * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
@@ -100,7 +100,7 @@ public final class BlockPaletteLookup {
   }
 
   /**
-   * Gets the dithering algorithm that reduces images to the colors of the block palette.
+   * Returns the dithering algorithm that reduces images to the colors of the block palette.
    *
    * <p>The instance and its lookup tables are shared. Treat its exposed palette arrays as read-only and
    * use independently owned input buffers for concurrent calls.

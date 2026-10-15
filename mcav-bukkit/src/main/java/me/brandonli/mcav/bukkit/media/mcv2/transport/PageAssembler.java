@@ -48,7 +48,7 @@ public final class PageAssembler {
   /**
    * Constructs a new assembler.
    *
-   * @param streamId the unsigned 32-bit stream id to accept, from 0 through 4,294,967,295; not checked here
+   * @param streamId   the unsigned 32-bit stream id to accept, from 0 through 4,294,967,295; not checked here
    * @param symbolBits the negotiated width, 6 bits per symbol
    * @throws IllegalArgumentException if the symbol width is not 6
    */
@@ -66,8 +66,8 @@ public final class PageAssembler {
    *
    * @param symbols the page's useful symbols
    * @return the complete frame's bytes once its last page arrives, otherwise null
-   * @throws Mcv2Exception if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
-   *                       or completes a frame that is not valid
+   * @throws Mcv2Exception        if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
+   *                              or completes a frame that is not valid
    * @throws NullPointerException if the symbol array is null
    */
   public byte @Nullable [] push(final byte[] symbols) throws Mcv2Exception {
@@ -124,7 +124,7 @@ public final class PageAssembler {
   }
 
   /**
-   * Gets the number of frames waiting for pages.
+   * Returns the number of frames waiting for pages.
    *
    * @return the pending frame count
    */
