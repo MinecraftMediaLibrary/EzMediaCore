@@ -20,11 +20,11 @@ package me.brandonli.mcav.vnc;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 import java.io.IOException;
 import java.io.Reader;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -51,10 +51,9 @@ final class KeySymbols {
   @VisibleForTesting
   static Map<String, Integer> parse(final Reader reader) {
     final Gson gson = GsonProvider.getSimple();
-    final TypeToken<Map<String, String>> token = new TypeToken<>() {};
-    final Type type = token.getType();
     try (reader) {
-      final Map<String, String> table = gson.fromJson(reader, type);
+      // a JsonObject rather than a Map, because Gson's map reader also takes arrays of pairs and fails on null keys
+      final @Nullable JsonObject table = gson.fromJson(reader, JsonObject.class);
       if (table == null) {
         final String message = "Keysym resource %s is empty!".formatted(RESOURCE);
         throw new VncException(message);
@@ -68,24 +67,25 @@ final class KeySymbols {
     }
   }
 
-  private static Map<String, Integer> toCodes(final Map<String, String> table) {
+  private static Map<String, Integer> toCodes(final JsonObject table) {
     final Map<String, Integer> symbols = new HashMap<>();
-    for (final Map.Entry<String, String> entry : table.entrySet()) {
+    for (final Map.Entry<String, JsonElement> entry : table.entrySet()) {
       final String name = entry.getKey();
-      final @Nullable String hexadecimalCode = entry.getValue();
-      final int code = decode(name, hexadecimalCode);
+      final JsonElement value = entry.getValue();
+      final int code = decode(name, value);
       symbols.put(name, code);
     }
 
     return Map.copyOf(symbols);
   }
 
-  private static int decode(final String name, final @Nullable String hexadecimalCode) {
-    if (hexadecimalCode == null) {
+  private static int decode(final String name, final JsonElement value) {
+    if (!value.isJsonPrimitive()) {
       final String message = "Keysym %s in resource %s has no code!".formatted(name, RESOURCE);
       throw new VncException(message);
     }
 
+    final String hexadecimalCode = value.getAsString();
     try {
       return Integer.decode(hexadecimalCode);
     } catch (final NumberFormatException exception) {

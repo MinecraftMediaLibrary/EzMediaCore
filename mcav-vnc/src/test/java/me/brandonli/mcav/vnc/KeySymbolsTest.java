@@ -112,6 +112,14 @@ final class KeySymbolsTest {
   }
 
   @Test
+  void shouldRejectArraysOfPairs() {
+    final Reader reader = new StringReader("[[null, \"0x41\"]]");
+    final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
+    final Throwable cause = exception.getCause();
+    assertInstanceOf(JsonParseException.class, cause);
+  }
+
+  @Test
   void shouldRejectKeysWithoutACode() {
     final Reader reader = new StringReader("{\"A\": null}");
     final VncException exception = assertThrows(VncException.class, () -> KeySymbols.parse(reader));
