@@ -32,14 +32,15 @@ class CatalogPinsTest {
     private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
 
     @Test
-    fun readTheDocsUsesTheCatalogPythonMinor() {
+    fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog() {
         val readTheDocs = repository.resolve(".readthedocs.yaml").readText()
         val minor = Regex("(?m)^\\s+python: \"([0-9]+\\.[0-9]+)\"").find(readTheDocs)!!.groupValues[1]
-        assertEquals(version("python").split('.').take(2).joinToString("."), minor)
+        val catalogMinor: String = version("python").split('.').take(2).joinToString(".")
+        assertEquals(catalogMinor, minor)
     }
 
     @Test
-    fun theToolChecksumsPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse() {
+    fun shouldPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse() {
         val zig = version("zig")
         val uv = version("uv")
         val archives = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
@@ -52,6 +53,7 @@ class CatalogPinsTest {
         }
         val pins = Properties()
         repository.resolve("buildSrc/src/main/resources/tool-checksums.properties").inputStream().use { pins.load(it) }
-        assertEquals(archives.toSet(), pins.stringPropertyNames())
+        val pinnedArchives: Set<String> = pins.stringPropertyNames()
+        assertEquals(archives.toSet(), pinnedArchives)
     }
 }

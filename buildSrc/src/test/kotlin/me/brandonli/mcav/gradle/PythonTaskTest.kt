@@ -18,7 +18,9 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
+import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -30,7 +32,7 @@ class PythonTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun aTaskUsingTheEnvironmentRunsAfterItOnItsLockPythonAndHost() {
+    fun shouldRunATaskThatUsesTheEnvironmentAfterItOnItsLockPythonAndHost() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val environment = project.tasks.register("installPythonEnvironment", PythonEnvironment::class.java)
         environment.get().requirements.set(directory.resolve("requirements.lock").toFile())
@@ -38,10 +40,19 @@ class PythonTaskTest {
         environment.get().installationDirectory.set(directory.resolve("python").toFile())
         val book = project.tasks.register("book", JupyterBook::class.java).get()
         book.useEnvironment(environment)
-        assertEquals(setOf(environment.get()), book.taskDependencies.getDependencies(book))
-        assertEquals(directory.resolve("requirements.lock").toFile(), book.requirements.get().asFile)
-        assertEquals("3.13.16", book.pythonVersion.get())
-        assertEquals(HostPlatform.current().uvTarget, book.platform.get())
-        assertEquals(directory.resolve("python/venv").resolve(venvExecutable("python")).toFile(), book.pythonExecutable.get().asFile)
+        val dependencies: Set<Task> = book.taskDependencies.getDependencies(book)
+        assertEquals(setOf(environment.get()), dependencies)
+
+        val requirements: File = book.requirements.get().asFile
+        assertEquals(directory.resolve("requirements.lock").toFile(), requirements)
+
+        val pythonVersion: String = book.pythonVersion.get()
+        assertEquals("3.13.16", pythonVersion)
+
+        val platform: String = book.platform.get()
+        assertEquals(HostPlatform.current().uvTarget, platform)
+
+        val pythonExecutable: File = book.pythonExecutable.get().asFile
+        assertEquals(directory.resolve("python/venv").resolve(venvExecutable("python")).toFile(), pythonExecutable)
     }
 }

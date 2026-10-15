@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test
 class QualifiedNamesTest {
 
     @Test
-    fun reportsAQualifiedNameInCode() {
+    fun shouldReportAQualifiedNameInCode() {
         val source = """
             package me.example;
 
@@ -34,21 +34,23 @@ class QualifiedNamesTest {
               }
             }
         """.trimIndent()
-        assertEquals(listOf(QualifiedName(5, "java.util.Arrays")), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(listOf(QualifiedName(5, "java.util.Arrays")), found)
     }
 
     @Test
-    fun reportsEveryOccurrenceAndStopsAtTheOuterType() {
+    fun shouldReportEveryOccurrenceAndStopAtTheOuterType() {
         val source = """
             final class Example {
               final java.util.Map.Entry<String, java.util.List<String>> entry = null;
             }
         """.trimIndent()
-        assertEquals(listOf(QualifiedName(2, "java.util.Map"), QualifiedName(2, "java.util.List")), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(listOf(QualifiedName(2, "java.util.Map"), QualifiedName(2, "java.util.List")), found)
     }
 
     @Test
-    fun acceptsAClashMarkedWithItsReason() {
+    fun shouldAcceptAClashMarkedWithItsReason() {
         val source = """
             import org.bukkit.entity.Display;
 
@@ -56,17 +58,19 @@ class QualifiedNamesTest {
               net.minecraft.world.entity.Display handle; // fqn: Display is imported as org.bukkit.entity.Display
             }
         """.trimIndent()
-        assertEquals(emptyList<QualifiedName>(), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(emptyList<QualifiedName>(), found)
     }
 
     @Test
-    fun wantsAReasonAfterTheMarker() {
+    fun shouldWantAReasonAfterTheMarker() {
         val source = "final class Example {\n  net.minecraft.world.entity.Display handle; // fqn:   \n}"
-        assertEquals(listOf(QualifiedName(2, "net.minecraft.world.entity.Display")), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(listOf(QualifiedName(2, "net.minecraft.world.entity.Display")), found)
     }
 
     @Test
-    fun ignoresCommentsAndJavadoc() {
+    fun shouldIgnoreCommentsAndJavadoc() {
         val source = """
             /**
              * Wraps a {@link java.util.List}, see {@link org.bukkit.Bukkit#getServer()}.
@@ -76,11 +80,12 @@ class QualifiedNamesTest {
               /* org.bukkit.Bukkit */ int value;
             }
         """.trimIndent()
-        assertEquals(emptyList<QualifiedName>(), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(emptyList<QualifiedName>(), found)
     }
 
     @Test
-    fun ignoresStringsCharactersAndTextBlocks() {
+    fun shouldIgnoreStringsCharactersAndTextBlocks() {
         val quotes = "\"\"\""
         val source = listOf(
             "final class Example {",
@@ -93,11 +98,12 @@ class QualifiedNamesTest {
             "      $quotes;",
             "}",
         ).joinToString("\n")
-        assertEquals(emptyList<QualifiedName>(), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(emptyList<QualifiedName>(), found)
     }
 
     @Test
-    fun ignoresPackageAndImportDeclarations() {
+    fun shouldIgnorePackageAndImportDeclarations() {
         val source = """
             package me.example.tool;
 
@@ -106,11 +112,12 @@ class QualifiedNamesTest {
 
             final class Example {}
         """.trimIndent()
-        assertEquals(emptyList<QualifiedName>(), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(emptyList<QualifiedName>(), found)
     }
 
     @Test
-    fun ignoresMemberChainsAndOtherPackageRoots() {
+    fun shouldIgnoreMemberChainsAndOtherPackageRoots() {
         val source = """
             final class Example {
               int a = this.me.Values.size;
@@ -118,12 +125,14 @@ class QualifiedNamesTest {
               int c = unknown.util.Type.VALUE;
             }
         """.trimIndent()
-        assertEquals(emptyList<QualifiedName>(), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(emptyList<QualifiedName>(), found)
     }
 
     @Test
-    fun keepsTheLineOfCodeAfterAMultilineComment() {
+    fun shouldKeepTheLineOfCodeAfterAMultilineComment() {
         val source = "/*\n java.util.List\n*/ java.util.Set<String> set;"
-        assertEquals(listOf(QualifiedName(3, "java.util.Set")), QualifiedNames.find(source))
+        val found: List<QualifiedName> = QualifiedNames.find(source)
+        assertEquals(listOf(QualifiedName(3, "java.util.Set")), found)
     }
 }

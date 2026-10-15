@@ -20,8 +20,6 @@ package me.brandonli.mcav.gradle
 
 import java.io.File
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class BuildFilesTest {
@@ -45,33 +43,41 @@ class BuildFilesTest {
     private val sources = File("src").walk().filter { it.isFile && (it.name.endsWith(".kt") || it.name.endsWith(".kts")) }.toList()
 
     @Test
-    fun everySourceOfTheBuildOpensWithTheLicenseHeaderAndNoBuildScriptCarriesIt() {
+    fun shouldOpenEverySourceOfTheBuildWithTheLicenseHeaderAndNoBuildScript() {
         val header = root.resolve("HEADER").readText()
-        sources.forEach { assertTrue(it.readText().startsWith("$header\n"), it.path) }
-        buildScripts.forEach { assertFalse(it.readText().contains(header), it.path) }
+        val sourcesWithoutHeader: List<String> = sources.filterNot { it.readText().startsWith("$header\n") }.map { it.path }
+        assertEquals(listOf<String>(), sourcesWithoutHeader)
+
+        val scriptsWithHeader: List<String> = buildScripts.filter { it.readText().contains(header) }.map { it.path }
+        assertEquals(listOf<String>(), scriptsWithHeader)
     }
 
     @Test
-    fun everyModuleScriptOnlyAppliesConventionsAndListsDependencies() {
+    fun shouldOnlyApplyConventionsAndListDependenciesInEveryModuleScript() {
         val layout = Regex("""((import [\w.]+\n)+\n)?plugins \{\n( {4}id\("mcav\.[\w-]+"\)\n)+}\n(\ndependencies \{\n( {4}.+\n)+}\n)?""")
-        moduleScripts.forEach { assertTrue(layout.matches(it.readText()), it.path) }
+        val offenders: List<String> = moduleScripts.filterNot { layout.matches(it.readText()) }.map { it.path }
+        assertEquals(listOf<String>(), offenders)
     }
 
     @Test
-    fun settingsIncludeEveryModuleInOrderAndEverySectionOfTheCatalogIsSorted() {
+    fun shouldIncludeEveryModuleInOrderAndSortEverySectionOfTheCatalog() {
         val directories = root.listFiles { file -> file.name != "buildSrc" && file.resolve("build.gradle.kts").isFile }!!
-        assertEquals(directories.map { it.name }.sorted(), modules)
+        val sortedModules: List<String> = directories.map { it.name }.sorted()
+        assertEquals(sortedModules, modules)
+
         val sections = root.resolve("gradle/libs.versions.toml").readText().split(Regex("""^\[\w+]\n""", RegexOption.MULTILINE))
-        sections.drop(1).forEach { section ->
-            val names = Regex("""^([\w-]+) = """, RegexOption.MULTILINE).findAll(section).map { it.groupValues[1] }.toList()
-            assertEquals(names.sorted(), names)
+        val names: List<List<String>> = sections.drop(1).map { section ->
+            Regex("""^([\w-]+) = """, RegexOption.MULTILINE).findAll(section).map { it.groupValues[1] }.toList()
         }
+        val sortedNames: List<List<String>> = names.map { it.sorted() }
+        assertEquals(sortedNames, names)
     }
 
     @Test
-    fun noLineOfTheBuildIsLongerThan140Columns() {
-        (sources + buildScripts).forEach { file ->
-            file.readLines().forEachIndexed { index, line -> assertTrue(line.length <= 140, "${file.path}:${index + 1}") }
+    fun shouldKeepEveryLineOfTheBuildWithin140Columns() {
+        val longLines: List<String> = (sources + buildScripts).flatMap { file ->
+            file.readLines().withIndex().filter { it.value.length > 140 }.map { "${file.path}:${it.index + 1}" }
         }
+        assertEquals(listOf<String>(), longLines)
     }
 }

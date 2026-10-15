@@ -32,7 +32,7 @@ class ExplicitLocalePluginTest {
     lateinit var directory: Path
 
     @Test
-    fun productionNumberFormattingMustChooseALocale() {
+    fun shouldRequireProductionNumberFormattingToChooseALocale() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'locale-fixture'\n")
         project.resolve("build.gradle").writeText("plugins { id 'mcav.java-library' }\n")
@@ -57,7 +57,8 @@ class ExplicitLocalePluginTest {
             .withPluginClasspath()
             .withArguments("compileJava", "--no-parallel", "--max-workers=1")
         val rejected = runner.buildAndFail()
-        assertTrue(rejected.output.contains("error: [DefaultLocale]"), rejected.output)
+        val flagged: Boolean = rejected.output.contains("error: [DefaultLocale]")
+        assertTrue(flagged, rejected.output)
 
         source.writeText(
             """
@@ -72,6 +73,7 @@ class ExplicitLocalePluginTest {
             """.trimIndent()
         )
         val accepted = runner.build()
-        assertEquals(TaskOutcome.SUCCESS, accepted.task(":compileJava")?.outcome, accepted.output)
+        val outcome: TaskOutcome? = accepted.task(":compileJava")?.outcome
+        assertEquals(TaskOutcome.SUCCESS, outcome, accepted.output)
     }
 }

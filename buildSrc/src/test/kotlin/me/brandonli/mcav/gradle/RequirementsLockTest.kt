@@ -35,26 +35,30 @@ class RequirementsLockTest {
     """.trimIndent()
 
     @Test
-    fun aLockWithEveryPinMissesNone() {
+    fun shouldMissNoPinOfALockWithEveryPin() {
         val versions = mapOf("jupyter-book" to "1.0.4.post1", "numpy" to "2.5.3", "sphinx-design" to "0.7.0")
-        assertEquals(emptyList<String>(), RequirementsLock.missingPins(this.lock, versions))
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(emptyList<String>(), missing)
     }
 
     @Test
-    fun namesTheChangedAndTheAbsentPins() {
+    fun shouldNameTheChangedAndTheAbsentPins() {
         val versions = mapOf("jupyter-book" to "1.0.4.post1", "numpy" to "2.6.0", "matplotlib" to "3.11.2")
-        assertEquals(listOf("numpy==2.6.0", "matplotlib==3.11.2"), RequirementsLock.missingPins(this.lock, versions))
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(listOf("numpy==2.6.0", "matplotlib==3.11.2"), missing)
     }
 
     @Test
-    fun commentsAndHashesAreNotPins() {
+    fun shouldNotTreatCommentsAndHashesAsPins() {
         val lock = "# numpy==2.5.3\n    --hash=sha256:9f1c3f0a6f0e2a5a8b0a3e7c1d2b4f6a8c0e2d4f6a8b0c2e4f6a8b0c2d4e6f8a\n"
-        assertEquals(listOf("numpy==2.5.3"), RequirementsLock.missingPins(lock, mapOf("numpy" to "2.5.3")))
+        val missing: List<String> = RequirementsLock.missingPins(lock, mapOf("numpy" to "2.5.3"))
+        assertEquals(listOf("numpy==2.5.3"), missing)
     }
 
     @Test
-    fun aPinMustMatchTheWholeVersion() {
+    fun shouldMatchAPinAgainstTheWholeVersion() {
         val versions = mapOf("jupyter-book" to "1.0.4", "sphinx-design" to "0.7")
-        assertEquals(listOf("jupyter-book==1.0.4", "sphinx-design==0.7"), RequirementsLock.missingPins(this.lock, versions))
+        val missing: List<String> = RequirementsLock.missingPins(this.lock, versions)
+        assertEquals(listOf("jupyter-book==1.0.4", "sphinx-design==0.7"), missing)
     }
 }

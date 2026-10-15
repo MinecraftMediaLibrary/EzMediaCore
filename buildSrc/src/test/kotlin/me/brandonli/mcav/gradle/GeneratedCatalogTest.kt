@@ -26,13 +26,18 @@ import org.junit.jupiter.api.Test
 class GeneratedCatalogTest {
 
     @Test
-    fun theGeneratedCatalogPreservesItsPinAndStartsWithTheRepositoryLicense() {
+    fun shouldKeepThePinOfTheGeneratedCatalogAndOpenItWithTheRepositoryLicense() {
         val repository = Path.of("..").toFile()
         val source = Path.of("build/generated/sources/catalog/kotlin/me/brandonli/mcav/gradle/CatalogVersions.kt").toFile().readText()
-        assertTrue(source.startsWith(repository.resolve("HEADER").readText()))
+        val licensed: Boolean = source.startsWith(repository.resolve("HEADER").readText())
+        assertTrue(licensed)
+
         val catalog = repository.resolve("gradle/libs.versions.toml").readText()
         val version = Regex("(?m)^jacoco = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
-        assertEquals(version, CatalogVersions.JACOCO)
-        assertEquals(repository.resolve("HEADER").readText().trimEnd(), source.substringBefore("package").trimEnd())
+        val generatedVersion: String = CatalogVersions.JACOCO
+        assertEquals(version, generatedVersion)
+
+        val header: String = source.substringBefore("package").trimEnd()
+        assertEquals(repository.resolve("HEADER").readText().trimEnd(), header)
     }
 }

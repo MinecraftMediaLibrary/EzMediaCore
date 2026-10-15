@@ -27,7 +27,7 @@ import org.junit.jupiter.api.io.TempDir
 class VariableNamesTest {
 
     @Test
-    fun acceptsDescriptiveNamesTypeParametersAndTheUnnamedVariable() {
+    fun shouldAcceptDescriptiveNamesTypeParametersAndTheUnnamedVariable() {
         val source = """
             package example;
             final class Pairs<K, V> {
@@ -41,11 +41,12 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        assertEquals(emptyList<UndescriptiveName>(), VariableNames.find(source))
+        val found: List<UndescriptiveName> = VariableNames.find(source)
+        assertEquals(emptyList<UndescriptiveName>(), found)
     }
 
     @Test
-    fun reportsEveryKindOfDeclarationNamedByOneLetter() {
+    fun shouldReportEveryKindOfDeclarationNamedByOneLetter() {
         val source = """
             package example;
             final class Shapes {
@@ -83,7 +84,7 @@ class VariableNamesTest {
     }
 
     @Test
-    fun reportsTheShortFormsTheRulesListButNotWordsThatStartWithThem() {
+    fun shouldReportTheShortFormsTheRulesListButNotWordsThatStartWithThem() {
         val source = """
             final class Buffers {
               void fill(final byte[] buf, final int idx) {
@@ -93,11 +94,12 @@ class VariableNamesTest {
               }
             }
         """.trimIndent()
-        assertEquals(listOf("buf", "idx", "sb"), VariableNames.find(source).map { it.name })
+        val names: List<String> = VariableNames.find(source).map { it.name }
+        assertEquals(listOf("buf", "idx", "sb"), names)
     }
 
     @Test
-    fun namesTheMemberAsThePackageTheTypesAndTheName() {
+    fun shouldNameTheMemberAsThePackageTheTypesAndTheName() {
         val source = """
             package me.example;
             public final class Frame {
@@ -110,8 +112,11 @@ class VariableNamesTest {
             }
         """.trimIndent()
         val found = VariableNames.find(source)
-        assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), found.map { it.member })
-        assertEquals(listOf(3L, 6L), found.map { it.line })
+        val members: List<String> = found.map { it.member }
+        assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), members)
+
+        val lines: List<Long> = found.map { it.line }
+        assertEquals(listOf(3L, 6L), lines)
     }
 
     @Test
@@ -147,6 +152,7 @@ class VariableNamesTest {
         val detour: File = directory.resolve("sub/../Sample.java").toFile()
 
         val found: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(listOf(detour))
-        assertEquals(setOf(file), found.keys)
+        val files: Set<File> = found.keys
+        assertEquals(setOf(file), files)
     }
 }

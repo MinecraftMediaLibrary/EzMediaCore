@@ -26,19 +26,28 @@ import org.junit.jupiter.api.Test
 class PaperVersionTest {
 
     @Test
-    fun thePinnedAlphaVersionSuppliesTheExactServerBuildAndArtifactName() {
+    fun shouldSupplyTheExactServerBuildAndArtifactNameOfThePinnedAlphaVersion() {
         val version = PaperVersion.parse("26.3.build.49-alpha")
-        assertEquals("26.3", version.minecraft)
-        assertEquals(49, version.build)
-        assertEquals("paper-26.3-49.jar", version.fileName)
-        assertEquals("paper-26.4-123.jar", PaperVersion.parse("26.4.build.123").fileName)
+        val minecraft: String = version.minecraft
+        assertEquals("26.3", minecraft)
+
+        val build: Int = version.build
+        assertEquals(49, build)
+
+        val fileName: String = version.fileName
+        assertEquals("paper-26.3-49.jar", fileName)
+
+        val releaseFileName: String = PaperVersion.parse("26.4.build.123").fileName
+        assertEquals("paper-26.4-123.jar", releaseFileName)
     }
 
     @Test
-    fun aVersionWithoutAnExplicitBuildIsRejected() {
-        listOf("26.3", "26.3.build.latest").forEach { version ->
-            val failure = assertThrows(GradleException::class.java) { PaperVersion.parse(version) }
-            assertEquals("Paper version must name a build, but it is $version", failure.message)
+    fun shouldRejectAVersionWithoutAnExplicitBuild() {
+        val versions: List<String> = listOf("26.3", "26.3.build.latest")
+        val messages: Map<String, String?> = versions.associateWith { version ->
+            assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message
         }
+        val expected: Map<String, String?> = versions.associateWith { "Paper version must name a build, but it is $it" }
+        assertEquals(expected, messages)
     }
 }

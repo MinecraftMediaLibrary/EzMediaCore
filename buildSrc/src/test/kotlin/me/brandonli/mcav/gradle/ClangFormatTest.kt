@@ -38,29 +38,34 @@ class ClangFormatTest {
     }
 
     @Test
-    fun theCheckFailsOnEveryUnformattedLineWithoutChangingTheSources() {
+    fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources() {
         val processes = RecordedProcesses("clang-format version 18.1.8\n")
         format(false, processes)
+        val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "--dry-run", "--Werror", "--style=file") + sources()),
-            processes.commands
+            commands
         )
     }
 
     @Test
-    fun theFormatterRewritesTheSourcesInPlace() {
+    fun shouldRewriteTheSourcesInPlace() {
         val processes = RecordedProcesses("clang-format version 18.1.8\n")
         format(true, processes)
         val expected = listOf(listOf(clangFormat(), "--version"), listOf(clangFormat(), "-i", "--style=file") + sources())
-        assertEquals(expected, processes.commands)
+        val commands: List<List<String>> = processes.commands
+        assertEquals(expected, commands)
     }
 
     @Test
-    fun anotherClangFormatVersionTouchesNoSource() {
+    fun shouldTouchNoSourceWithAnotherClangFormatVersion() {
         val processes = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
         val failure = assertThrows(GradleException::class.java) { format(true, processes) }
-        assertEquals("${clangFormat()} must be clang-format 18.1.8, but it is Ubuntu clang-format version 19.1.1", failure.message)
-        assertEquals(listOf(listOf(clangFormat(), "--version")), processes.commands)
+        val message: String? = failure.message
+        assertEquals("${clangFormat()} must be clang-format 18.1.8, but it is Ubuntu clang-format version 19.1.1", message)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(listOf(listOf(clangFormat(), "--version")), commands)
     }
 
     private fun clangFormat(): String = directory.resolve("clang-format").toString()

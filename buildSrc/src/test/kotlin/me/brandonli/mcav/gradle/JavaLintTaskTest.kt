@@ -22,7 +22,6 @@ import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -33,7 +32,7 @@ class JavaLintTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun eachLintKeepsItsExactSuccessReport() {
+    fun shouldKeepTheExactSuccessReportOfEachLint() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val source = directory.resolve("Example.java").toFile()
         source.writeText("final class Example {}\n")
@@ -42,17 +41,18 @@ class JavaLintTaskTest {
             project.tasks.register("qualified", QualifiedNamesTask::class.java).get() to "no fully qualified type names in 1 files\n",
             project.tasks.register("variables", VariableNamesTask::class.java).get() to "no undescriptive variable name in 1 files\n"
         )
-        tasks.forEach { (task, expected) ->
+        val reports: List<String> = tasks.map { (task, _) ->
             task.sources.from(source)
             task.report.set(directory.resolve(task.name + ".txt").toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             task.check()
-            assertEquals(expected, task.report.get().asFile.readText())
+            task.report.get().asFile.readText()
         }
+        assertEquals(tasks.map { it.second }, reports)
     }
 
     @Test
-    fun eachLintCountsViolationsAndKeepsItsFailureMessage() {
+    fun shouldCountTheViolationsAndKeepTheFailureMessageOfEachLint() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val tasks = listOf(
             Triple(
@@ -71,20 +71,21 @@ class JavaLintTaskTest {
                 "2 undescriptive variable names"
             )
         )
-        tasks.forEach { (task, input, expected) ->
+        val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) ->
             val source = directory.resolve(task.name + ".java").toFile()
             source.writeText(input)
             task.sources.from(source)
             task.report.set(directory.resolve(task.name + ".txt").toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             val failure = assertThrows(GradleException::class.java) { task.check() }
-            assertEquals(expected, failure.message)
-            assertFalse(task.report.get().asFile.exists())
+            failure.message to task.report.get().asFile.exists()
         }
+        val expected: List<Pair<String?, Boolean>> = tasks.map { it.third to false }
+        assertEquals(expected, outcomes)
     }
 
     @Test
-    fun aPublishedNameStaysWhileTheOtherNamesFail() {
+    fun shouldKeepAPublishedNameWhileTheOtherNamesFail() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val task = project.tasks.register("variables", VariableNamesTask::class.java).get()
         val source = directory.resolve("Example.java").toFile()
@@ -93,6 +94,7 @@ class JavaLintTaskTest {
         task.report.set(directory.resolve("variables.txt").toFile())
         task.publishedNames.set(setOf("me.example.Example#x"))
         val failure = assertThrows(GradleException::class.java) { task.check() }
-        assertEquals("1 undescriptive variable names", failure.message)
+        val message: String? = failure.message
+        assertEquals("1 undescriptive variable names", message)
     }
 }

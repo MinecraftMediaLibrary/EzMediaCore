@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
 class TestRuntimeProfileTest {
 
     @Test
-    fun mutationReceivesTheTestArgumentsAndEverySystemPropertyExactlyOnce() {
+    fun shouldGiveMutationTheTestArgumentsAndEverySystemPropertyExactlyOnce() {
         val project = ProjectBuilder.builder().build()
         val test = project.tasks.register("ordinaryTest", GradleTest::class.java).get()
         test.jvmArgs("--enable-native-access=ALL-UNNAMED", "-Dmcav.published.pom=build/pom.xml")
@@ -38,18 +38,21 @@ class TestRuntimeProfileTest {
         test.systemProperty("jqwik.database", "build/jqwik-database")
         test.systemProperty("jqwik.failures.after.default", "PREVIOUS_SEED")
         test.systemProperty("jqwik.tries.default", "10")
+        val arguments: List<String> = TestRuntimeProfile.forMutation(test)
         assertEquals(listOf(
             "--enable-native-access=ALL-UNNAMED",
             "-Djqwik.database=build/jqwik-database", "-Djqwik.failures.after.default=PREVIOUS_SEED", "-Djqwik.tries.default=10",
             "-Dmcav.networkTests=false", "-Dmcav.published.pom=build/pom.xml", "-Dmcav.syncMeasurement=false"
-        ), TestRuntimeProfile.forMutation(test))
+        ), arguments)
+
         test.systemProperty("mcav.networkTests", "true")
         test.systemProperty("mcav.syncMeasurement", "true")
         test.systemProperty("jqwik.tries.default", "500")
+        val changedArguments: List<String> = TestRuntimeProfile.forMutation(test)
         assertEquals(listOf(
             "--enable-native-access=ALL-UNNAMED",
             "-Djqwik.database=build/jqwik-database", "-Djqwik.failures.after.default=PREVIOUS_SEED", "-Djqwik.tries.default=500",
             "-Dmcav.networkTests=true", "-Dmcav.published.pom=build/pom.xml", "-Dmcav.syncMeasurement=true"
-        ), TestRuntimeProfile.forMutation(test))
+        ), changedArguments)
     }
 }

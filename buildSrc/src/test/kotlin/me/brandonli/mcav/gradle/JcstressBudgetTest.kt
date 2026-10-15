@@ -33,46 +33,57 @@ class JcstressBudgetTest {
     lateinit var directory: Path
 
     @Test
-    fun splitsHalfOfTheBudgetOverTheIterationsOfEveryRun() {
-        assertEquals(76L, JcstressBudget.iterationMillis("quick", 10, 9, 4))
+    fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun() {
+        val iterationMillis: Long = JcstressBudget.iterationMillis("quick", 10, 9, 4)
+        assertEquals(76L, iterationMillis)
     }
 
     @Test
-    fun keepsTheIterationTimeWithinItsBounds() {
-        assertEquals(50L, JcstressBudget.iterationMillis("quick", 1, 9, 4))
-        assertEquals(10_000L, JcstressBudget.iterationMillis("sanity", 100_000, 1, 4))
+    fun shouldKeepTheIterationTimeWithinItsBounds() {
+        val shortest: Long = JcstressBudget.iterationMillis("quick", 1, 9, 4)
+        assertEquals(50L, shortest)
+
+        val longest: Long = JcstressBudget.iterationMillis("sanity", 100_000, 1, 4)
+        assertEquals(10_000L, longest)
     }
 
     @Test
-    fun runsOneRunAtATimeOnASingleCpu() {
-        assertEquals(314L, JcstressBudget.iterationMillis("default", 10, 1, 1))
+    fun shouldRunOneRunAtATimeOnASingleCpu() {
+        val iterationMillis: Long = JcstressBudget.iterationMillis("default", 10, 1, 1)
+        assertEquals(314L, iterationMillis)
     }
 
     @Test
-    fun refusesAnUnknownMode() {
+    fun shouldRefuseAnUnknownMode() {
         assertThrows(GradleException::class.java) { JcstressBudget.iterationMillis("forever", 10, 1, 4) }
     }
 
     @Test
-    fun countsTheTestsTheSelectionMatches() {
+    fun shouldCountTheTestsThatTheSelectionMatches() {
         val jar = directory.resolve("tests.jar").toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry("META-INF/TestList"))
             zip.write(listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n").toByteArray())
             zip.closeEntry()
         }
-        assertEquals(2, JcstressBudget.countTests(jar, null))
-        assertEquals(1, JcstressBudget.countTests(jar, "Sec"))
-        assertEquals(0, JcstressBudget.countTests(jar, "Third"))
+        val all: Int = JcstressBudget.countTests(jar, null)
+        assertEquals(2, all)
+
+        val selected: Int = JcstressBudget.countTests(jar, "Sec")
+        assertEquals(1, selected)
+
+        val unmatched: Int = JcstressBudget.countTests(jar, "Third")
+        assertEquals(0, unmatched)
     }
 
     @Test
-    fun countsNoTestsInAJarWithoutTheList() {
+    fun shouldCountNoTestsInAJarWithoutTheList() {
         val jar = directory.resolve("empty.jar").toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry("other"))
             zip.closeEntry()
         }
-        assertEquals(0, JcstressBudget.countTests(jar, null))
+        val count: Int = JcstressBudget.countTests(jar, null)
+        assertEquals(0, count)
     }
 }

@@ -19,36 +19,37 @@
 package me.brandonli.mcav.gradle
 
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class LogMessagesTest {
 
     @Test
-    fun acceptsCommentsAroundAConstantMessage() {
-        for (source in listOf(
+    fun shouldAcceptCommentsAroundAConstantMessage() {
+        val sources: List<String> = listOf(
             "LOGGER.info(/* why this message */ STARTED);",
             "LOGGER.info(STARTED /* why this message */);",
             "LOGGER.info(// why this message\n STARTED);",
-        )) {
-            assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source), source)
-        }
+        )
+        val found: List<ConcatenatedLogMessage> = sources.flatMap { LogMessages.find(it) }
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun doesNotTreatQuotedCommentTextAsStringConcatenation() {
+    fun shouldNotTreatQuotedCommentTextAsStringConcatenation() {
         val source = "LOGGER.info(STARTED, count + 1 /* \"units\" */);"
-        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun stillRejectsLiteralConcatenationBesideAComment() {
+    fun shouldRejectLiteralConcatenationBesideAComment() {
         val source = "LOGGER.info(/* explanation */ \"\" + STARTED);"
-        assertEquals(listOf(ConcatenatedLogMessage(1, "LOGGER.info")), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(listOf(ConcatenatedLogMessage(1, "LOGGER.info")), found)
     }
 
     @Test
-    fun acceptsAMessageInAConstant() {
+    fun shouldAcceptAMessageInAConstant() {
         val source = """
             final class Example {
               private static final String FAILED_TO_START = "Failed to start {}";
@@ -59,11 +60,12 @@ class LogMessagesTest {
               }
             }
         """.trimIndent()
-        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun acceptsAMessageWrittenInline() {
+    fun shouldAcceptAMessageWrittenInline() {
         val source = """
             final class Example {
               void run() {
@@ -71,11 +73,12 @@ class LogMessagesTest {
               }
             }
         """.trimIndent()
-        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun reportsEveryLevelOnEveryKindOfLogger() {
+    fun shouldReportEveryLevelOnEveryKindOfLogger() {
         val source = listOf(
             "log.trace(\"a\" + name);",
             "logger.debug(\"b\" + name);",
@@ -83,31 +86,34 @@ class LogMessagesTest {
             "AUDIT_LOGGER.warn(\"d\" + name);",
             "pluginLogger.error(\"e\" + name);",
         ).joinToString("\n")
-        assertEquals(listOf(1, 2, 3, 4, 5), LogMessages.find(source).map { it.line })
+        val lines: List<Int> = LogMessages.find(source).map { it.line }
+        assertEquals(listOf(1, 2, 3, 4, 5), lines)
     }
 
     @Test
-    fun acceptsAMessageThatIsNotAConstant() {
+    fun shouldAcceptAMessageThatIsNotAConstant() {
         val source = listOf(
             "LOGGER.error(message, error);",
             "LOGGER.warn(prefix() + NAME);",
             "LOGGER.info(Failed.name());",
         ).joinToString("\n")
-        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun reportsAnArgumentThatJoinsStrings() {
+    fun shouldReportAnArgumentThatJoinsStrings() {
         val source = listOf(
             "LOGGER.warn(FAILED, \"at \" + place);",
             "LOGGER.warn(FAILED, count + 1, String.join(\",\", names));",
             "LOGGER.warn(FAILED, place.concat(\"x\" + y));",
         ).joinToString("\n")
-        assertEquals(listOf(1), LogMessages.find(source).map { it.line })
+        val lines: List<Int> = LogMessages.find(source).map { it.line }
+        assertEquals(listOf(1), lines)
     }
 
     @Test
-    fun readsACallAcrossLinesAndInsideALambda() {
+    fun shouldReadACallAcrossLinesAndInsideALambda() {
         val source = """
             final class Example {
               void run() {
@@ -118,11 +124,12 @@ class LogMessagesTest {
               }
             }
         """.trimIndent()
-        assertEquals(listOf(ConcatenatedLogMessage(3, "LOGGER.warn")), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(listOf(ConcatenatedLogMessage(3, "LOGGER.warn")), found)
     }
 
     @Test
-    fun ignoresCallsThatAreNotLogCalls() {
+    fun shouldIgnoreCallsThatAreNotLogCalls() {
         val source = listOf(
             "verify(logger).warn(\"checked by \" + test);",
             "counter.info(\"not a \" + logger);",
@@ -131,13 +138,15 @@ class LogMessagesTest {
             "// LOGGER.info(\"in a \" + comment);",
             "String text = \"LOGGER.info(\\\"in a \\\" + string)\";",
         ).joinToString("\n")
-        assertEquals(emptyList<ConcatenatedLogMessage>(), LogMessages.find(source))
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 
     @Test
-    fun readsParenthesesAndCommasInLiteralsAsText() {
+    fun shouldReadParenthesesAndCommasInLiteralsAsText() {
         val source = "LOGGER.info(STARTED, \"(,\", ')', \"at \" + name);\nLOGGER.info(\"x\");"
-        assertEquals(listOf(1), LogMessages.find(source).map { it.line })
+        val lines: List<Int> = LogMessages.find(source).map { it.line }
+        assertEquals(listOf(1), lines)
     }
 
     @Test
@@ -145,6 +154,6 @@ class LogMessagesTest {
         val source = "LOGGER.info(\"Started \" + name"
 
         val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
-        assertTrue(found.isEmpty())
+        assertEquals(emptyList<ConcatenatedLogMessage>(), found)
     }
 }

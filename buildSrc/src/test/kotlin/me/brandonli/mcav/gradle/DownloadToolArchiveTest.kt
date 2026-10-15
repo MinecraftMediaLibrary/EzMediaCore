@@ -39,16 +39,19 @@ class DownloadToolArchiveTest {
     lateinit var directory: Path
 
     @Test
-    fun installsTheVerifiedZipAndMakesItsToolExecutable() {
+    fun shouldInstallTheVerifiedZipAndMakeItsToolExecutable() {
         val task = zippedTool()
         task.install()
         val installed = directory.resolve("installed/tool/bin/tool").toFile()
-        assertEquals("verified executable\n", installed.readText())
-        assertTrue(installed.canExecute())
+        val content: String = installed.readText()
+        assertEquals("verified executable\n", content)
+
+        val executable: Boolean = installed.canExecute()
+        assertTrue(executable)
     }
 
     @Test
-    fun checksumMismatchDoesNotExtractUntrustedBytesOrReplaceAnExistingTool() {
+    fun shouldNeitherExtractUntrustedBytesNorReplaceAnExistingToolOnAChecksumMismatch() {
         val task = zippedTool()
         val installed = directory.resolve("installed/tool/bin/tool").toFile()
         installed.parentFile.mkdirs()
@@ -57,56 +60,65 @@ class DownloadToolArchiveTest {
         val actual = task.sha256.get()
         task.sha256.set(expected)
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        assertEquals(
-            "SHA-256 mismatch for ${task.archiveUrl.get()}: expected $expected, got $actual; archive was not installed",
-            failure.message
-        )
-        assertEquals("previous verified tool\n", installed.readText())
-        assertFalse(task.temporaryDir.resolve("tool.zip").exists())
+        val message: String? = failure.message
+        assertEquals("SHA-256 mismatch for ${task.archiveUrl.get()}: expected $expected, got $actual; archive was not installed", message)
+
+        val content: String = installed.readText()
+        assertEquals("previous verified tool\n", content)
+
+        val archiveKept: Boolean = task.temporaryDir.resolve("tool.zip").exists()
+        assertFalse(archiveKept)
     }
 
     @Test
-    fun invalidChecksumFailsBeforeDownloading() {
+    fun shouldFailOnAnInvalidChecksumBeforeDownloading() {
         val task = zippedTool()
         task.sha256.set("missing")
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        assertEquals(
-            "Invalid pinned SHA-256 for ${task.archiveUrl.get()}: expected 64 lowercase hexadecimal digits",
-            failure.message
-        )
-        assertFalse(directory.resolve("installed").toFile().exists())
+        val message: String? = failure.message
+        assertEquals("Invalid pinned SHA-256 for ${task.archiveUrl.get()}: expected 64 lowercase hexadecimal digits", message)
+
+        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        assertFalse(installed)
     }
 
     @Test
-    fun downloadFailureIdentifiesTheUnavailableArchive() {
+    fun shouldNameTheUnavailableArchiveWhenTheDownloadFails() {
         val task = zippedTool()
         task.archiveUrl.set(directory.resolve("missing.zip").toUri().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        assertTrue(failure.message!!.startsWith("Could not download tool archive from ${task.archiveUrl.get()}:"))
-        assertFalse(directory.resolve("installed").toFile().exists())
+        val named: Boolean = failure.message!!.startsWith("Could not download tool archive from ${task.archiveUrl.get()}:")
+        assertTrue(named)
+
+        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        assertFalse(installed)
     }
 
     @Test
-    fun aVerifiedArchiveMustContainTheRequestedExecutable() {
+    fun shouldRequireTheRequestedExecutableInAVerifiedArchive() {
         val task = zippedTool()
         task.executablePath.set("missing")
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        assertEquals("Tool archive ${task.archiveUrl.get()} does not contain missing", failure.message)
+        val message: String? = failure.message
+        assertEquals("Tool archive ${task.archiveUrl.get()} does not contain missing", message)
     }
 
     @Test
-    fun aVerifiedArchiveOfAnotherFormatIsNotUnpacked() {
+    fun shouldNotUnpackAVerifiedArchiveOfAnotherFormat() {
         val task = zippedTool()
         val archive = directory.resolve("tool.7z").toFile()
         directory.resolve("tool.zip").toFile().copyTo(archive)
         task.archiveUrl.set(archive.toURI().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        assertEquals("Unsupported tool archive format: ${task.archiveUrl.get()} (expected .zip, .tar.gz or .tar.xz)", failure.message)
-        assertFalse(directory.resolve("installed").toFile().exists())
+        val message: String? = failure.message
+        assertEquals("Unsupported tool archive format: ${task.archiveUrl.get()} (expected .zip, .tar.gz or .tar.xz)", message)
+
+        val installed: Boolean = directory.resolve("installed").toFile().exists()
+        assertFalse(installed)
     }
 
     @Test
-    fun extractsGzipAndXzArchivesWithoutAnExternalUnpacker() {
+    fun shouldExtractGzipAndXzArchivesWithoutAnExternalUnpacker() {
         val archives = mapOf(
             "tar.gz" to "H4sIAAAAAAACA+3NQQqCQAAF0Fl3Cm/gWInn0ZpAkAQbo+M3tQnaF0Hvbf7nb36e56kexnOdSwmfEYuubZ9ZvGeM2/2rP/Ym7romVDF8wXrJ/VLu" +
                 "w3+6pmU8jelYpVs6rLkfprQJAAAAAAAAAAAA/Lw7jjgM0wAoAAA=",
@@ -114,7 +126,7 @@ class DownloadToolArchiveTest {
                 "KQ3BNzSNn9Lgm5Pjp01y3THUEfiMj5qL+5NnvL7IiCthCBuqOOi+oVXsi4XON87LGOIoT5AAvVZcrNZukgAAAEjvLyQMjRxeAAGPAYBQAADrwzaQscRn+wIA" +
                 "AAAABFla"
         )
-        archives.forEach { (extension, encoded) ->
+        val installed: Map<String, Pair<String, Boolean>> = archives.mapValues { (extension, encoded) ->
             val archive = directory.resolve("tool.$extension").toFile()
             archive.writeBytes(Base64.getDecoder().decode(encoded))
             val project = ProjectBuilder.builder().withProjectDir(directory.resolve(extension).toFile()).build()
@@ -124,10 +136,11 @@ class DownloadToolArchiveTest {
             task.executablePath.set("tool/bin/tool")
             task.installationDirectory.set(directory.resolve("installed-$extension").toFile())
             task.install()
-            val installed = directory.resolve("installed-$extension/tool/bin/tool").toFile()
-            assertEquals("verified executable\n", installed.readText())
-            assertTrue(installed.canExecute())
+            val tool = directory.resolve("installed-$extension/tool/bin/tool").toFile()
+            tool.readText() to tool.canExecute()
         }
+        val expected: Map<String, Pair<String, Boolean>> = archives.mapValues { "verified executable\n" to true }
+        assertEquals(expected, installed)
     }
 
     private fun zippedTool(): DownloadToolArchive {

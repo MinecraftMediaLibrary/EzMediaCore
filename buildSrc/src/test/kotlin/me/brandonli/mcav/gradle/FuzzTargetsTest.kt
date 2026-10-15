@@ -125,7 +125,11 @@ class FuzzTargetsTest {
 
         assertEquals(target, target)
         assertEquals(same, target)
-        assertEquals(same.hashCode(), target.hashCode())
+
+        val sameHash: Int = same.hashCode()
+        val targetHash: Int = target.hashCode()
+        assertEquals(sameHash, targetHash)
+
         assertNotEquals(otherMethod, target)
         assertNotEquals(otherClass, target)
         assertNotEquals(target, CLASS_NAME)

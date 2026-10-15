@@ -31,15 +31,20 @@ class ToolDigestsTest {
     lateinit var directory: Path
 
     @Test
-    fun streamsEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest() {
+    fun shouldStreamEmptyShortAndMultipleBufferFilesWithoutChangingTheirDigest() {
         val file = directory.resolve("contents").toFile()
         file.writeBytes(byteArrayOf())
-        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ToolDigests.sha256(file))
+        val emptyDigest: String = ToolDigests.sha256(file)
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", emptyDigest)
+
         file.writeText("abc")
-        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", ToolDigests.sha256(file))
+        val shortDigest: String = ToolDigests.sha256(file)
+        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", shortDigest)
+
         val contents = ByteArray(196_625) { index -> (index % 251).toByte() }
         file.writeBytes(contents)
         val expected = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(contents))
-        assertEquals(expected, ToolDigests.sha256(file))
+        val longDigest: String = ToolDigests.sha256(file)
+        assertEquals(expected, longDigest)
     }
 }

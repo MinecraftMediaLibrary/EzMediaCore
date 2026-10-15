@@ -32,7 +32,7 @@ class CoverageReportTest {
     lateinit var directory: Path
 
     @Test
-    fun partialInstructionsAndBranchesRemainGaps() {
+    fun shouldKeepPartialInstructionsAndBranchesAsGaps() {
         val source = directory.resolve("sample/Example.java").toFile()
         source.parentFile.mkdirs()
         source.writeText("uncalled();\nchoose();\nRunnable action = () -> work();\ncovered();\n")
@@ -47,7 +47,6 @@ class CoverageReportTest {
         """.trimIndent())
 
         val gaps = CoverageReport.findGaps(report, directory.toFile(), emptyList())
-
         assertEquals(listOf(
             "$source:1: warning: line is not covered by any test",
             "$source:2: warning: 1 of 2 branches are not covered by any test",
@@ -56,7 +55,7 @@ class CoverageReportTest {
     }
 
     @Test
-    fun exceptionExcusesExactlyOneMatchingUncoveredLine() {
+    fun shouldExcuseExactlyOneMatchingUncoveredLineByAnException() {
         val source = directory.resolve("sample/Example.java").toFile()
         source.parentFile.mkdirs()
         source.writeText("serverOnly();\nserverOnly();\ncovered();\n")
@@ -73,35 +72,54 @@ class CoverageReportTest {
         val wrongPath = CoverageException("other/Example.java", "serverOnly();", "different source")
 
         val gaps = CoverageReport.findGaps(report, directory.toFile(), listOf(matching, stale, wrongPath))
-
         assertEquals(listOf("$source:2: warning: line is not covered by any test"), gaps)
-        assertTrue(matching.used)
-        assertFalse(stale.used)
-        assertFalse(wrongPath.used)
+
+        val matchingUsed: Boolean = matching.used
+        assertTrue(matchingUsed)
+
+        val staleUsed: Boolean = stale.used
+        assertFalse(staleUsed)
+
+        val wrongPathUsed: Boolean = wrongPath.used
+        assertFalse(wrongPathUsed)
     }
 
     @Test
-    fun missingReportFailsOnlyWhenProductionSourcesExist() {
+    fun shouldFailOnAMissingReportOnlyWhenProductionSourcesExist() {
         val report = directory.resolve("missing.xml").toFile()
         val sources = directory.resolve("sources").toFile()
-        assertTrue(CoverageReport.findGaps(report, sources, emptyList()).isEmpty())
+        val withoutDirectory: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(emptyList<String>(), withoutDirectory)
+
         sources.mkdirs()
-        assertTrue(CoverageReport.findGaps(report, sources, emptyList()).isEmpty())
+        val withoutSources: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(emptyList<String>(), withoutSources)
+
         sources.resolve("Example.java").writeText("class Example {}\n")
-        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered"),
-            CoverageReport.findGaps(report, sources, emptyList()))
+        val withSources: List<String> = CoverageReport.findGaps(report, sources, emptyList())
+        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered"), withSources)
     }
 
     @Test
-    fun exceptionsRequireAReasonAndPreserveSourceSeparators() {
+    fun shouldRequireAReasonAndKeepTheSeparatorsOfTheSource() {
         val file = directory.resolve("exceptions.txt").toFile()
-        assertTrue(CoverageExceptions.read(file).isEmpty())
+        val withoutFile: List<CoverageException> = CoverageExceptions.read(file)
+        assertEquals(emptyList<CoverageException>(), withoutFile)
+
         file.writeText("# comment\n\nsample/Example.java | left | right | native boundary\n")
         val entries = CoverageExceptions.read(file)
-        assertEquals(1, entries.size)
-        assertEquals("sample/Example.java", entries[0].path)
-        assertEquals("left | right", entries[0].sourceLine)
-        assertEquals("native boundary", entries[0].reason)
+        val entryCount: Int = entries.size
+        assertEquals(1, entryCount)
+
+        val path: String = entries[0].path
+        assertEquals("sample/Example.java", path)
+
+        val sourceLine: String = entries[0].sourceLine
+        assertEquals("left | right", sourceLine)
+
+        val reason: String = entries[0].reason
+        assertEquals("native boundary", reason)
+
         for (invalid in listOf("missing separators", "path | source", "path | source | ")) {
             file.writeText(invalid)
             assertThrows(IllegalArgumentException::class.java) { CoverageExceptions.read(file) }
@@ -121,6 +139,8 @@ class CoverageReportTest {
 
         val gaps: List<String> = CoverageReport.findGaps(report, directory.toFile(), listOf(blankLine))
         assertEquals(emptyList<String>(), gaps)
-        assertTrue(blankLine.used)
+
+        val used: Boolean = blankLine.used
+        assertTrue(used)
     }
 }

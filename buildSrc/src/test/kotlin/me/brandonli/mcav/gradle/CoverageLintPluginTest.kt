@@ -31,7 +31,7 @@ class CoverageLintPluginTest {
     lateinit var directory: Path
 
     @Test
-    fun filteringOneModuleDoesNotDisableAnotherModulesCoverage() {
+    fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
         for (name in listOf("first", "second")) {
@@ -48,9 +48,17 @@ class CoverageLintPluginTest {
             .withArguments(":first:test", "--tests", "ExampleTest", ":first:coverageLint", ":second:coverageLint", "--stacktrace")
             .buildAndFail()
 
-        assertTrue(result.output.contains("coverageLint of :first skipped"), result.output)
-        assertFalse(result.output.contains("coverageLint of :second skipped"), result.output)
-        assertTrue(result.output.contains("no test ran, so none of this code is covered"), result.output)
-        assertTrue(result.output.contains(":second:coverageLint FAILED"), result.output)
+        val output: String = result.output
+        val firstSkipped: Boolean = output.contains("coverageLint of :first skipped")
+        assertTrue(firstSkipped, output)
+
+        val secondSkipped: Boolean = output.contains("coverageLint of :second skipped")
+        assertFalse(secondSkipped, output)
+
+        val uncovered: Boolean = output.contains("no test ran, so none of this code is covered")
+        assertTrue(uncovered, output)
+
+        val secondFailed: Boolean = output.contains(":second:coverageLint FAILED")
+        assertTrue(secondFailed, output)
     }
 }

@@ -22,8 +22,6 @@ import java.nio.file.Path
 import java.util.zip.ZipFile
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -33,7 +31,7 @@ class ModLicensingTest {
     lateinit var directory: Path
 
     @Test
-    fun everyModArchiveCarriesTheExactLicenseAndNoticesWhileKeepingLoaderResourcesSeparate() {
+    fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'mcav-mod'\n")
         project.resolve("build.gradle").writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
@@ -52,18 +50,25 @@ class ModLicensingTest {
             .withPluginClasspath()
             .withArguments("jar", "fabricJar", "neoforgeJar", "--no-parallel", "--max-workers=1")
             .build()
-        for (classifier in listOf("plain", "fabric", "neoforge")) {
-            ZipFile(directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
-                for ((name, expected) in mapOf("LICENSE-MCAV" to license, "THIRD-PARTY-NOTICES.md" to notices)) {
-                    val entry = archive.getEntry("META-INF/$name")
-                    assertNotNull(entry)
-                    assertEquals(expected, archive.getInputStream(entry).reader().readText())
-                }
-                if (classifier == "neoforge") assertNull(archive.getEntry("fabric.mod.json"))
-                else assertNotNull(archive.getEntry("fabric.mod.json"))
-                if (classifier == "fabric") assertNull(archive.getEntry("META-INF/neoforge.mods.toml"))
-                else assertNotNull(archive.getEntry("META-INF/neoforge.mods.toml"))
-            }
-        }
+        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith { describeArchive(it) }
+        val expected: Map<String, List<Any?>> = mapOf(
+            "plain" to listOf(license, notices, true, true),
+            "fabric" to listOf(license, notices, true, false),
+            "neoforge" to listOf(license, notices, false, true)
+        )
+        assertEquals(expected, archives)
     }
+
+    private fun describeArchive(classifier: String): List<Any?> =
+        ZipFile(directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
+            listOf(
+                readEntry(archive, "META-INF/LICENSE-MCAV"),
+                readEntry(archive, "META-INF/THIRD-PARTY-NOTICES.md"),
+                archive.getEntry("fabric.mod.json") != null,
+                archive.getEntry("META-INF/neoforge.mods.toml") != null
+            )
+        }
+
+    private fun readEntry(archive: ZipFile, name: String): String? =
+        archive.getEntry(name)?.let { archive.getInputStream(it).reader().readText() }
 }

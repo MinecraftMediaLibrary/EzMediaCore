@@ -46,7 +46,7 @@ class JupyterBookTest {
     }
 
     @Test
-    fun generatedConfigurationPrecedesTheHtmlBuildAndOnlyHtmlLeavesTheTask() {
+    fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask() {
         val project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
         val task = project.tasks.register("book", RecordingBook::class.java).get()
         val source = directory.resolve("source").toFile()
@@ -69,11 +69,13 @@ class JupyterBookTest {
             val arguments = command.drop(3)
             commands += arguments
             val book = staging.resolve("book")
-            assertEquals("title: Fixture book\n", book.resolve("_config.yml").readText())
+            val stagedConfiguration: String = book.resolve("_config.yml").readText()
+            assertEquals("title: Fixture book\n", stagedConfiguration)
             if (arguments.first() == "config") {
                 book.resolve("conf.py").writeText(expectedConfiguration)
             } else {
-                assertEquals(expectedConfiguration, book.resolve("conf.py").readText())
+                val generatedConfiguration: String = book.resolve("conf.py").readText()
+                assertEquals(expectedConfiguration, generatedConfiguration)
                 val html = staging.resolve("site/_build/html")
                 html.mkdirs()
                 html.resolve("index.html").writeText(expectedHtml)
@@ -89,8 +91,15 @@ class JupyterBookTest {
             listOf("config", "sphinx", "book"),
             listOf("build", "book", "--path-output", "site", "--warningiserror", "--keep-going", "--all")
         ), commands)
-        assertEquals(expectedHtml, task.outputDirectory.get().asFile.resolve("index.html").readText())
-        assertFalse(task.outputDirectory.get().asFile.resolve("conf.py").exists())
-        assertFalse(task.outputDirectory.get().asFile.resolve("book.epub").exists())
+
+        val output: File = task.outputDirectory.get().asFile
+        val html: String = output.resolve("index.html").readText()
+        assertEquals(expectedHtml, html)
+
+        val configurationLeft: Boolean = output.resolve("conf.py").exists()
+        assertFalse(configurationLeft)
+
+        val epubLeft: Boolean = output.resolve("book.epub").exists()
+        assertFalse(epubLeft)
     }
 }

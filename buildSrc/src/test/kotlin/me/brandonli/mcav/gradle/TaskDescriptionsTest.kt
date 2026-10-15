@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test
 class TaskDescriptionsTest {
 
     @Test
-    fun everyRegisteredTaskStartsWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
+    fun shouldStartEveryRegisteredTaskWithItsGroupAndAOneLineDescriptionInTheThirdPerson() {
         val conventions = File("src/main/kotlin").listFiles { file -> file.name.endsWith(".gradle.kts") }!!.toList()
         val scripts = conventions + File("build.gradle.kts")
         val taskName = """("\w+"|[\w.]+\(\))"""
@@ -33,9 +33,12 @@ class TaskDescriptionsTest {
         val registration = Regex(
             """tasks\.register(<\w+>)?\($taskName\) \{\n( +)(this\.|)group = "[a-z ]+"\n\3\4description = $description\n"""
         )
-        for (script in scripts.sorted()) {
-            val text = script.readText()
-            assertEquals(Regex("""tasks\.register\b""").findAll(text).count(), registration.findAll(text).count(), script.path)
-        }
+        val undescribed: List<String> = scripts.sorted()
+            .filter { script ->
+                val text = script.readText()
+                Regex("""tasks\.register\b""").findAll(text).count() != registration.findAll(text).count()
+            }
+            .map { it.path }
+        assertEquals(listOf<String>(), undescribed)
     }
 }

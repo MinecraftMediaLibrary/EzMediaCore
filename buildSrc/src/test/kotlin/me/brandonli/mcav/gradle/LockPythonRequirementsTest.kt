@@ -38,31 +38,32 @@ class LockPythonRequirementsTest {
     }
 
     @Test
-    fun requirementsAreSortedByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere() {
+    fun shouldSortTheRequirementsByNameAndKeepTheMarkersOfPackagesWithoutWheelsEverywhere() {
         val marker = "sys_platform != 'win32' or platform_machine != 'ARM64'"
-        assertEquals(
-            listOf("clang-format==18.1.8 ; $marker", "numpy==2.5.3", "pytest==9.1.1"),
-            LockPythonRequirements.requirementLines(
-                mapOf("pytest" to "9.1.1", "numpy" to "2.5.3", "clang-format" to "18.1.8"),
-                mapOf("clang-format" to marker)
-            )
+        val lines: List<String> = LockPythonRequirements.requirementLines(
+            mapOf("pytest" to "9.1.1", "numpy" to "2.5.3", "clang-format" to "18.1.8"),
+            mapOf("clang-format" to marker)
         )
+        assertEquals(listOf("clang-format==18.1.8 ; $marker", "numpy==2.5.3", "pytest==9.1.1"), lines)
     }
 
     @Test
-    fun compilesAUniversalHashedLockOfWheelsForThePythonMinorBelowTheLicenseHeader() {
+    fun shouldCompileAUniversalHashedLockOfWheelsForThePythonMinorBelowTheLicenseHeader() {
         val task = lockTask()
         val lock = directory.resolve("requirements.lock").toFile()
         val requirementsInput = task.temporaryDir.resolve("requirements.in")
         val processes = RecordedProcesses("uv 0.12.23\n") { command ->
             if (command[1] == "pip") {
-                assertEquals("clang-format==18.1.8 ; platform_machine != 'ARM64'\nnumpy==2.5.3\n", requirementsInput.readText())
+                val requirements: String = requirementsInput.readText()
+                assertEquals("clang-format==18.1.8 ; platform_machine != 'ARM64'\nnumpy==2.5.3\n", requirements)
+
                 lock.writeText("numpy==2.5.3 \\\n    --hash=sha256:00\n")
             }
         }
         task.recordedProcesses = processes.operations
         task.lock()
         val uv = directory.resolve("uv").toString()
+        val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
                 listOf(uv, "--version"),
@@ -70,23 +71,32 @@ class LockPythonRequirementsTest {
                     "--no-annotate", "--python", "3.13.16", "--python-version", "3.13", "--only-binary", ":all:",
                     "--default-index", "https://pypi.org/simple", "--output-file", lock.path, "--quiet")
             ),
-            processes.commands
+            commands
         )
-        assertEquals(uvEnvironment(directory.resolve("python").toFile(), directory.resolve("uv-cache").toFile()), processes.environments[1])
-        assertEquals("# License header\n\nnumpy==2.5.3 \\\n    --hash=sha256:00\n", lock.readText())
+
+        val environment: Map<String, Any?> = processes.environments[1]
+        assertEquals(uvEnvironment(directory.resolve("python").toFile(), directory.resolve("uv-cache").toFile()), environment)
+
+        val locked: String = lock.readText()
+        assertEquals("# License header\n\nnumpy==2.5.3 \\\n    --hash=sha256:00\n", locked)
     }
 
     @Test
-    fun anUvOfAnotherVersionLeavesTheLockAsItIs() {
+    fun shouldLeaveTheLockAsItIsWithAnUvOfAnotherVersion() {
         val task = lockTask()
         val lock = directory.resolve("requirements.lock").toFile()
         lock.writeText("numpy==2.5.2\n")
         val processes = RecordedProcesses("uv 0.12.22\n")
         task.recordedProcesses = processes.operations
         val failure = assertThrows(GradleException::class.java) { task.lock() }
-        assertEquals("${directory.resolve("uv")} must be uv 0.12.23, but it is uv 0.12.22", failure.message)
-        assertEquals(1, processes.commands.size)
-        assertEquals("numpy==2.5.2\n", lock.readText())
+        val message: String? = failure.message
+        assertEquals("${directory.resolve("uv")} must be uv 0.12.23, but it is uv 0.12.22", message)
+
+        val commandCount: Int = processes.commands.size
+        assertEquals(1, commandCount)
+
+        val locked: String = lock.readText()
+        assertEquals("numpy==2.5.2\n", locked)
     }
 
     private fun lockTask(): RecordingLock {

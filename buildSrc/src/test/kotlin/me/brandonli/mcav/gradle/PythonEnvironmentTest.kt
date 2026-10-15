@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.api.GradleException
 import org.gradle.process.ExecOperations
@@ -38,7 +39,7 @@ class PythonEnvironmentTest {
     }
 
     @Test
-    fun installsThePinnedPythonIntoAFreshVirtualEnvironmentAndSyncsItWithTheHashedLock() {
+    fun shouldInstallThePinnedPythonIntoAFreshVirtualEnvironmentAndSyncItWithTheHashedLock() {
         val task = environment("numpy==2.5.3 \\\n    --hash=sha256:00\npytest==9.1.1 \\\n    --hash=sha256:11\n")
         val processes = RecordedProcesses("uv 0.12.23\n")
         task.recordedProcesses = processes.operations
@@ -46,6 +47,7 @@ class PythonEnvironmentTest {
         val uv = directory.resolve("uv").toString()
         val installation = directory.resolve("python").toFile()
         val virtualEnvironment = installation.resolve("venv")
+        val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
                 listOf(uv, "--version"),
@@ -55,25 +57,32 @@ class PythonEnvironmentTest {
                     "--only-binary", ":all:", "--default-index", "https://pypi.org/simple",
                     directory.resolve("requirements.lock").toString())
             ),
-            processes.commands
+            commands
         )
+
         val uvVariables = uvEnvironment(installation, directory.resolve("uv-cache").toFile())
-        assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), processes.environments)
-        assertEquals(virtualEnvironment.resolve("bin/clang-format"), task.executable("clang-format").get().asFile)
+        val environments: List<Map<String, Any?>> = processes.environments
+        assertEquals(listOf(emptyMap(), uvVariables, uvVariables, uvVariables), environments)
+
+        val clangFormat: File = task.executable("clang-format").get().asFile
+        assertEquals(virtualEnvironment.resolve("bin/clang-format"), clangFormat)
     }
 
     @Test
-    fun aLockWithoutTheCatalogVersionsNamesTheTaskThatWritesItAndInstallsNothing() {
+    fun shouldNameTheTaskThatWritesALockWithoutTheCatalogVersionsAndInstallNothing() {
         val task = environment("numpy==2.5.2 \\\n    --hash=sha256:00\n")
         val processes = RecordedProcesses("uv 0.12.23\n")
         task.recordedProcesses = processes.operations
         val failure = assertThrows(GradleException::class.java) { task.install() }
+        val message: String? = failure.message
         assertEquals(
             "${directory.resolve("requirements.lock")} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml; " +
                 "run ./gradlew :lockPythonRequirements",
-            failure.message
+            message
         )
-        assertEquals(emptyList<List<String>>(), processes.commands)
+
+        val commands: List<List<String>> = processes.commands
+        assertEquals(emptyList<List<String>>(), commands)
     }
 
     private fun environment(lock: String): RecordingEnvironment {

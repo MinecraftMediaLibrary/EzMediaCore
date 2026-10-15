@@ -30,7 +30,7 @@ class Mcv2ToolsPluginTest {
     lateinit var directory: Path
 
     @Test
-    fun mutationTestingWritesTheClasspathMcv2ToolsTestStartsTheToolsWith() {
+    fun shouldWriteTheClasspathThatMcv2ToolsTestStartsTheToolsWithBeforeMutationTesting() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'mcv2-tools-fixture'\ninclude 'tools'\n")
         Path.of("..", "build.gradle.kts").toFile().copyTo(project.resolve("build.gradle.kts"))
@@ -43,9 +43,7 @@ class Mcv2ToolsPluginTest {
             .withPluginClasspath()
             .withArguments(":tools:pitest", "--dry-run", "--stacktrace")
             .build()
-        assertEquals(
-            listOf(":tools:writeMcv2ToolsClasspath SKIPPED"),
-            result.output.lines().filter { it.contains("writeMcv2ToolsClasspath") }
-        )
+        val classpathTasks: List<String> = result.output.lines().filter { it.contains("writeMcv2ToolsClasspath") }
+        assertEquals(listOf(":tools:writeMcv2ToolsClasspath SKIPPED"), classpathTasks)
     }
 }

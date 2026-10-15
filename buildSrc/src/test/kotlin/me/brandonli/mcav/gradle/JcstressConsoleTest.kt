@@ -45,34 +45,37 @@ class JcstressConsoleTest {
     )
 
     @Test
-    fun findsTheTestsARunSkipped() {
-        assertEquals(listOf("me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"), JcstressConsole.skippedTests(this.summary))
+    fun shouldFindTheTestsThatARunSkipped() {
+        val skipped: List<String> = JcstressConsole.skippedTests(this.summary)
+        assertEquals(listOf("me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"), skipped)
     }
 
     @Test
-    fun namesEverySkippedTestOnce() {
+    fun shouldNameEverySkippedTestOnce() {
         val twice = this.summary + "..... [SKIPPED] me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace"
-        assertEquals(1, JcstressConsole.skippedTests(twice).size)
+        val skippedCount: Int = JcstressConsole.skippedTests(twice).size
+        assertEquals(1, skippedCount)
     }
 
     @Test
-    fun failsARunThatSkippedATest() {
+    fun shouldFailARunThatSkippedATest() {
         val console = this.console(this.summary)
         val failure = assertThrows(GradleException::class.java) { JcstressConsole.checkNoneSkipped(console) }
+        val message: String? = failure.message
         assertEquals(
             "jcstress skipped 1 test(s), which failed their sanity check and never ran: " +
                 "me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace",
-            failure.message,
+            message,
         )
     }
 
     @Test
-    fun passesARunThatRanEveryTest() {
+    fun shouldPassARunThatRanEveryTest() {
         JcstressConsole.checkNoneSkipped(this.console(this.summary.dropLast(1)))
     }
 
     @Test
-    fun keepsWhatItShowsAndLeavesTheConsoleOpen() {
+    fun shouldKeepWhatItShowsAndLeaveTheConsoleOpen() {
         var closed = false
         val shown = object : ByteArrayOutputStream() {
             override fun close() {
@@ -84,10 +87,15 @@ class JcstressConsoleTest {
         tee.write("[OK] one\n".toByteArray())
         tee.write('x'.code)
         tee.close()
-        assertFalse(closed, "the build's console stays open for everything after the run")
+        val consoleClosed: Boolean = closed
+        assertFalse(consoleClosed, "the build's console stays open for everything after the run")
+
         shown.write('!'.code)
-        assertEquals("[OK] one\nx!", shown.toString())
-        assertEquals("[OK] one\nx", file.readText())
+        val shownText: String = shown.toString()
+        assertEquals("[OK] one\nx!", shownText)
+
+        val fileText: String = file.readText()
+        assertEquals("[OK] one\nx", fileText)
     }
 
     private fun console(lines: List<String>): File {
@@ -111,7 +119,9 @@ class JcstressConsoleTest {
 
         val written: String = file.readText()
         tee.close()
-        assertTrue(flushed)
+        val consoleFlushed: Boolean = flushed
+        assertTrue(consoleFlushed)
+
         assertEquals("[OK] one", written)
     }
 }

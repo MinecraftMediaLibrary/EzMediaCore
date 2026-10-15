@@ -30,7 +30,7 @@ class NodeInstallationTest {
     lateinit var directory: Path
 
     @Test
-    fun everyModuleFormatsAndTestsWithTheOneNodeTheRootInstalls() {
+    fun shouldFormatAndTestEveryModuleWithTheOneNodeTheRootInstalls() {
         val project = directory.toFile()
         project.resolve("settings.gradle").writeText("rootProject.name = 'node-fixture'\ninclude 'first', 'second'\n")
         Path.of("..", "build.gradle.kts").toFile().copyTo(project.resolve("build.gradle.kts"))
@@ -45,6 +45,7 @@ class NodeInstallationTest {
             .withPluginClasspath()
             .withArguments("spotlessJava", "test", "--dry-run", "--stacktrace")
             .build()
-        assertEquals(listOf(":nodeSetup SKIPPED"), result.output.lines().filter { it.endsWith("nodeSetup SKIPPED") })
+        val setups: List<String> = result.output.lines().filter { it.endsWith("nodeSetup SKIPPED") }
+        assertEquals(listOf(":nodeSetup SKIPPED"), setups)
     }
 }

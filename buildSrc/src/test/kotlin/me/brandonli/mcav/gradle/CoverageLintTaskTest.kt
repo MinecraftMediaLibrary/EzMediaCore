@@ -32,29 +32,31 @@ class CoverageLintTaskTest {
     lateinit var directory: Path
 
     @Test
-    fun aFilteredTestRunSkipsTheLint() {
+    fun shouldSkipTheLintOnAFilteredTestRun() {
         val task = lint(uncoveredLine = true)
         task.testsFiltered.set(true)
         task.lint()
     }
 
     @Test
-    fun failsOnAnUncoveredLine() {
+    fun shouldFailOnAnUncoveredLine() {
         val task = lint(uncoveredLine = true)
         val failure = assertThrows(GradleException::class.java) { task.lint() }
-        assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale", failure.message)
+        val message: String? = failure.message
+        assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale", message)
     }
 
     @Test
-    fun failsOnAnExceptionThatMatchesNoUncoveredLine() {
+    fun shouldFailOnAnExceptionThatMatchesNoUncoveredLine() {
         val task = lint(uncoveredLine = false)
         directory.resolve("exceptions.txt").toFile().writeText("sample/Example.java | serverOnly(); | server constructor\n")
         val failure = assertThrows(GradleException::class.java) { task.lint() }
-        assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale", failure.message)
+        val message: String? = failure.message
+        assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale", message)
     }
 
     @Test
-    fun passesWhenAnExceptionExcusesTheOnlyUncoveredLine() {
+    fun shouldPassWhenAnExceptionExcusesTheOnlyUncoveredLine() {
         val task = lint(uncoveredLine = true)
         directory.resolve("exceptions.txt").toFile().writeText("sample/Example.java | serverOnly(); | server constructor\n")
         task.lint()

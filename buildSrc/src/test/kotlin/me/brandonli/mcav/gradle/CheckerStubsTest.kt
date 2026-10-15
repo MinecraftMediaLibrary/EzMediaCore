@@ -29,26 +29,34 @@ class CheckerStubsTest {
     lateinit var directory: Path
 
     @Test
-    fun onlyTheExistingConsumersReceiveTheSharedGuavaAndPaperStubs() {
+    fun shouldGiveTheSharedGuavaAndPaperStubsOnlyToTheirConsumers() {
         val projects = listOf("mcav-common", "mcav-bukkit", "mcav-plugin", "mcav-browser", "mcav-discord", "mcav-http",
             "mcav-installer", "mcav-lwjgl", "mcav-mod", "mcav-vm", "mcav-vnc", "mcav-voicechat", "mcav-jcstress")
         (projects + listOf("shared", "shared-guava", "shared-paper")).forEach { directory.resolve(it).toFile().mkdirs() }
-        projects.forEach { project ->
-            val expected = when (project) {
+        val expected: Map<String, List<String>> = projects.associateWith { project ->
+            when (project) {
                 "mcav-common" -> listOf(project, "shared", "shared-guava")
                 "mcav-bukkit" -> listOf(project, "shared", "shared-guava", "shared-paper")
                 "mcav-plugin" -> listOf(project, "shared", "shared-paper")
                 else -> listOf(project, "shared")
             }
-            assertEquals(expected, CheckerStubs.forProject(directory.toFile(), project).map { it.name })
         }
+        val stubs: Map<String, List<String>> = projects.associateWith { project ->
+            CheckerStubs.forProject(directory.toFile(), project).map { it.name }
+        }
+        assertEquals(expected, stubs)
     }
 
     @Test
-    fun nonexistentStubFoldersAreNotPassedToTheChecker() {
-        assertEquals(emptyList<String>(), CheckerStubs.forProject(directory.toFile(), "mcav-bukkit").map { it.name })
+    fun shouldNotPassStubFoldersThatDoNotExistToTheChecker() {
+        val withoutFolders: List<String> = CheckerStubs.forProject(directory.toFile(), "mcav-bukkit").map { it.name }
+        assertEquals(emptyList<String>(), withoutFolders)
+
         directory.resolve("shared-guava").toFile().mkdirs()
-        assertEquals(listOf("shared-guava"), CheckerStubs.forProject(directory.toFile(), "mcav-bukkit").map { it.name })
-        assertEquals(emptyList<String>(), CheckerStubs.forProject(directory.toFile(), "mcav-mod").map { it.name })
+        val withGuava: List<String> = CheckerStubs.forProject(directory.toFile(), "mcav-bukkit").map { it.name }
+        assertEquals(listOf("shared-guava"), withGuava)
+
+        val otherProject: List<String> = CheckerStubs.forProject(directory.toFile(), "mcav-mod").map { it.name }
+        assertEquals(emptyList<String>(), otherProject)
     }
 }

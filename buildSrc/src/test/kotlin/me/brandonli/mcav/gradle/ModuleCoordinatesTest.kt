@@ -25,15 +25,20 @@ import org.junit.jupiter.api.Test
 class ModuleCoordinatesTest {
 
     @Test
-    fun dependencyCoordinatesFollowTheRootGroupAndVersionWithoutVersioningLibraryArchives() {
+    fun shouldFollowTheRootGroupAndVersionInDependencyCoordinatesWithoutVersioningLibraryArchives() {
         val root = ProjectBuilder.builder().withName("mcav").build()
         root.group = "fixture.changed"
         root.version = "2.3.4-SNAPSHOT"
         val plugin = ProjectBuilder.builder().withName("mcav-plugin").withParent(root).build()
-        assertEquals("fixture.changed:mcav-bukkit:2.3.4-SNAPSHOT", plugin.moduleCoordinate("mcav-bukkit"))
-        assertEquals("unspecified", plugin.version.toString())
+        val coordinate: String = plugin.moduleCoordinate("mcav-bukkit")
+        assertEquals("fixture.changed:mcav-bukkit:2.3.4-SNAPSHOT", coordinate)
+
+        val pluginVersion: String = plugin.version.toString()
+        assertEquals("unspecified", pluginVersion)
+
         root.group = "fixture.updated"
         root.version = "3.4.5-SNAPSHOT"
-        assertEquals("fixture.updated:mcav-voicechat:3.4.5-SNAPSHOT", plugin.moduleCoordinate("mcav-voicechat"))
+        val updatedCoordinate: String = plugin.moduleCoordinate("mcav-voicechat")
+        assertEquals("fixture.updated:mcav-voicechat:3.4.5-SNAPSHOT", updatedCoordinate)
     }
 }

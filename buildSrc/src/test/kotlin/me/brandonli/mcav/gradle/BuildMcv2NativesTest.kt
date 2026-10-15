@@ -65,56 +65,80 @@ class BuildMcv2NativesTest {
     private val submitted = mutableListOf<RecordingWork>()
 
     @Test
-    fun handsTheCompilesAndLinksToAGradleWorker() {
+    fun shouldHandTheCompilesAndLinksToAGradleWorker() {
         val task = compiler("test-version")
         task.build()
         assertEquals(listOf(listOf("version")), commands)
-        assertTrue(task.outputDirectory.get().file("stale.dll").asFile.exists())
+
+        val staleBeforeWork: Boolean = task.outputDirectory.get().file("stale.dll").asFile.exists()
+        assertTrue(staleBeforeWork)
+
         submitted.single().execute()
-        assertEquals(22, commands.count { it.first() == "c++" })
-        assertEquals(6, commands.count { it.first() == "cc" })
-        assertFalse(task.outputDirectory.get().file("stale.dll").asFile.exists())
+        val compileCount: Int = commands.count { it.first() == "c++" }
+        assertEquals(22, compileCount)
+
+        val linkCount: Int = commands.count { it.first() == "cc" }
+        assertEquals(6, linkCount)
+
+        val staleAfterWork: Boolean = task.outputDirectory.get().file("stale.dll").asFile.exists()
+        assertFalse(staleAfterWork)
     }
 
     @Test
-    fun buildsAllTargetsWithTheirBaselineAndOnlyTheirOwnExtensions() {
+    fun shouldBuildAllTargetsWithTheirBaselineAndOnlyTheirOwnExtensions() {
         val task = compiler("test-version")
         buildWithWorkers(task)
         val links = commands.filter { it.first() == "cc" }
+        val targets: Set<String> = links.map { it[2] }.toSet()
         assertEquals(setOf("x86_64-linux-gnu.2.28", "aarch64-linux-gnu.2.28", "x86_64-windows-gnu",
-            "aarch64-windows-gnu", "x86_64-macos.11.0", "aarch64-macos.11.0"), links.map { it[2] }.toSet())
-        assertEquals(6, links.size)
-        assertTrue(links.all { "-shared" in it && "-s" in it })
-        assertTrue(links.filter { "linux" in it[2] }.all { "-Wl,-z,noexecstack" in it })
-        assertTrue(links.filter { "macos" in it[2] }.all { "-Wl,-install_name,@rpath/libmcv2kernels.dylib" in it })
+            "aarch64-windows-gnu", "x86_64-macos.11.0", "aarch64-macos.11.0"), targets)
+
+        val linkCount: Int = links.size
+        assertEquals(6, linkCount)
+
+        val shared: Boolean = links.all { "-shared" in it && "-s" in it }
+        assertTrue(shared)
+
+        val linuxStacksNotExecutable: Boolean = links.filter { "linux" in it[2] }.all { "-Wl,-z,noexecstack" in it }
+        assertTrue(linuxStacksNotExecutable)
+
+        val macosInstallNamed: Boolean = links.filter { "macos" in it[2] }.all { "-Wl,-install_name,@rpath/libmcv2kernels.dylib" in it }
+        assertTrue(macosInstallNamed)
+
         val compiles = commands.filter { it.first() == "c++" }
-        assertEquals(22, compiles.size)
+        val compileCount: Int = compiles.size
+        assertEquals(22, compileCount)
+
         for (command in compiles) {
-            assertTrue("-mcpu=baseline" in command)
-            assertTrue("-ffp-contract=off" in command && "-fwrapv" in command && "-fno-strict-aliasing" in command)
-            assertFalse(command.any { "native" == it.substringAfter('=') || it == "-ffast-math" })
-            val source = command[command.indexOf("-c") + 1]
-            assertEquals(source == "level_avx2.cpp", "-mavx2" in command)
-            assertEquals(source == "level_avx512.cpp", "-mavx512f" in command)
-            assertEquals(source.startsWith("level_sve"), "-mcpu=baseline+sve" in command)
-            assertEquals(command[2].startsWith("x86_64") && "macos" !in command[2], "-mbranches-within-32B-boundaries" in command)
+            assertCompileFlags(command)
         }
-        assertTrue(processes.environments.drop(1).all { it["SOURCE_DATE_EPOCH"] == "0" })
+
+        val reproducible: Boolean = processes.environments.drop(1).all { it["SOURCE_DATE_EPOCH"] == "0" }
+        assertTrue(reproducible)
+
         val natives = task.outputDirectory.get().asFile.resolve("mcav/mcv2/natives")
         val expectedPaths = setOf("linux-x86_64/libmcv2kernels.so", "linux-aarch64/libmcv2kernels.so",
             "macos-x86_64/libmcv2kernels.dylib", "macos-aarch64/libmcv2kernels.dylib",
             "windows-x86_64/mcv2kernels.dll", "windows-aarch64/mcv2kernels.dll")
         val sums = natives.resolve("SHA256SUMS").readLines()
-        assertEquals(expectedPaths, sums.map { it.substringAfter("  ") }.toSet())
-        assertTrue(sums.all { it.startsWith("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  ") })
-        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  mcv2.cpp\n",
-            natives.resolve("SOURCES").readText())
-        assertFalse(task.outputDirectory.get().file("stale.dll").asFile.exists())
-        assertFalse(natives.walkTopDown().any { it.extension == "lib" })
+        val summedPaths: Set<String> = sums.map { it.substringAfter("  ") }.toSet()
+        assertEquals(expectedPaths, summedPaths)
+
+        val summedContents: Boolean = sums.all { it.startsWith("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  ") }
+        assertTrue(summedContents)
+
+        val sourceSums: String = natives.resolve("SOURCES").readText()
+        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  mcv2.cpp\n", sourceSums)
+
+        val staleKept: Boolean = task.outputDirectory.get().file("stale.dll").asFile.exists()
+        assertFalse(staleKept)
+
+        val importLibraryKept: Boolean = natives.walkTopDown().any { it.extension == "lib" }
+        assertFalse(importLibraryKept)
     }
 
     @Test
-    fun compilesAsManyObjectsAtOnceAsItHasProcesses() {
+    fun shouldCompileAsManyObjectsAtOnceAsItHasProcesses() {
         val bothStarted = CountDownLatch(2)
         val running = AtomicInteger()
         val mostAtOnce = AtomicInteger()
@@ -125,12 +149,15 @@ class BuildMcv2NativesTest {
             running.decrementAndGet()
         }
         buildWithWorkers(task)
-        assertEquals(2, mostAtOnce.get())
-        assertEquals(22, commands.count { it.first() == "c++" })
+        val mostCompilesAtOnce: Int = mostAtOnce.get()
+        assertEquals(2, mostCompilesAtOnce)
+
+        val compileCount: Int = commands.count { it.first() == "c++" }
+        assertEquals(22, compileCount)
     }
 
     @Test
-    fun aFailingCompileFailsTheBuildBeforeAnyLink() {
+    fun shouldFailTheBuildOnAFailingCompileBeforeAnyLink() {
         val failure = IllegalStateException("zig: error: unable to compile")
         val task = compiler("test-version") { arguments ->
             if ("level_avx2.cpp" in arguments) {
@@ -138,20 +165,56 @@ class BuildMcv2NativesTest {
             }
         }
         val thrown = assertThrows(GradleException::class.java) { buildWithWorkers(task) }
-        assertEquals("Zig could not build MCV2's natives", thrown.message)
-        assertSame(failure, thrown.cause)
-        assertTrue(commands.none { it.first() == "cc" })
+        val message: String? = thrown.message
+        assertEquals("Zig could not build MCV2's natives", message)
+
+        val cause: Throwable? = thrown.cause
+        assertSame(failure, cause)
+
+        val linked: Boolean = commands.any { it.first() == "cc" }
+        assertFalse(linked)
     }
 
     @Test
-    fun wrongCompilerVersionFailsBeforeReplacingAnyOutput() {
+    fun shouldFailOnAWrongCompilerVersionBeforeReplacingAnyOutput() {
         val task = compiler("wrong-version")
         val failure = assertThrows(GradleException::class.java) { task.build() }
         val zig = directory.resolve("zig").toString()
-        assertEquals("$zig must be zig test-version, but it is wrong-version", failure.message)
-        assertTrue(task.outputDirectory.get().file("stale.dll").asFile.exists())
-        assertEquals(listOf(listOf(zig, "version")), processes.commands)
-        assertTrue(submitted.isEmpty())
+        val message: String? = failure.message
+        assertEquals("$zig must be zig test-version, but it is wrong-version", message)
+
+        val staleKept: Boolean = task.outputDirectory.get().file("stale.dll").asFile.exists()
+        assertTrue(staleKept)
+
+        val recordedCommands: List<List<String>> = processes.commands
+        assertEquals(listOf(listOf(zig, "version")), recordedCommands)
+
+        val nothingSubmitted: Boolean = submitted.isEmpty()
+        assertTrue(nothingSubmitted)
+    }
+
+    private fun assertCompileFlags(command: List<String>) {
+        val baseline: Boolean = "-mcpu=baseline" in command
+        assertTrue(baseline)
+
+        val strict: Boolean = "-ffp-contract=off" in command && "-fwrapv" in command && "-fno-strict-aliasing" in command
+        assertTrue(strict)
+
+        val hostTuned: Boolean = command.any { "native" == it.substringAfter('=') || it == "-ffast-math" }
+        assertFalse(hostTuned)
+
+        val source = command[command.indexOf("-c") + 1]
+        val avx2: Boolean = "-mavx2" in command
+        assertEquals(source == "level_avx2.cpp", avx2)
+
+        val avx512: Boolean = "-mavx512f" in command
+        assertEquals(source == "level_avx512.cpp", avx512)
+
+        val sve: Boolean = "-mcpu=baseline+sve" in command
+        assertEquals(source.startsWith("level_sve"), sve)
+
+        val branchesAligned: Boolean = "-mbranches-within-32B-boundaries" in command
+        assertEquals(command[2].startsWith("x86_64") && "macos" !in command[2], branchesAligned)
     }
 
     private fun buildWithWorkers(task: RecordingBuild) {
@@ -185,7 +248,8 @@ class BuildMcv2NativesTest {
         task.recordedProcesses = processes.operations
         val queue = mock(WorkQueue::class.java)
         doAnswer { invocation ->
-            assertEquals(BuildMcv2Natives.Work::class.java, invocation.getArgument<Class<*>>(0))
+            val workClass: Class<*> = invocation.getArgument<Class<*>>(0)
+            assertEquals(BuildMcv2Natives.Work::class.java, workClass)
             val parameters = project.objects.newInstance(Parameters::class.java)
             invocation.getArgument<Action<Parameters>>(1).execute(parameters)
             submitted.add(RecordingWork(parameters, processes.operations))

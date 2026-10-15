@@ -18,6 +18,7 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
 import java.nio.file.Path
 import org.gradle.process.ExecOperations
 import org.gradle.testfixtures.ProjectBuilder
@@ -37,24 +38,28 @@ class PythonTestsTest {
     }
 
     @Test
-    fun runsTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess() {
+    fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess() {
         val task = pythonTests(8)
         val reports = directory.resolve("reports").toFile()
         reports.mkdirs()
         reports.resolve("stale.xml").writeText("<testsuites/>")
-        val processes = RecordedProcesses("") { assertFalse(reports.resolve("stale.xml").exists()) }
+        val processes = RecordedProcesses("") { assertNoStaleReport(reports) }
         task.recordedProcesses = processes.operations
         task.test()
         val tests = directory.resolve("python")
+        val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
                 pytest("parallel.xml") + listOf("-n", "3", "--dist", "loadfile") +
                     listOf("test_a.py", "test_b.py", "test_c.py").map { tests.resolve(it).toString() },
                 pytest("serial.xml") + tests.resolve("test_timing.py").toString()
             ),
-            processes.commands
+            commands
         )
-        assertEquals(listOf(tests.toFile(), tests.toFile()), processes.workingDirectories)
+
+        val workingDirectories: List<Any?> = processes.workingDirectories
+        assertEquals(listOf(tests.toFile(), tests.toFile()), workingDirectories)
+
         val variables = mapOf(
             "PYTHONNOUSERSITE" to "1",
             "PYTHONDONTWRITEBYTECODE" to "1",
@@ -63,17 +68,24 @@ class PythonTestsTest {
             "MPLBACKEND" to "Agg",
             "MPLCONFIGDIR" to task.temporaryDir.resolve("matplotlib").path
         )
-        assertEquals(listOf(variables, variables), processes.environments)
+        val environments: List<Map<String, Any?>> = processes.environments
+        assertEquals(listOf(variables, variables), environments)
     }
 
     @Test
-    fun startsNoMoreProcessesThanGradleMayUse() {
+    fun shouldStartNoMoreProcessesThanGradleMayUse() {
         val task = pythonTests(2)
         val processes = RecordedProcesses("")
         task.recordedProcesses = processes.operations
         task.test()
         val parallel = processes.commands.first()
-        assertEquals("2", parallel[parallel.indexOf("-n") + 1])
+        val processCount: String = parallel[parallel.indexOf("-n") + 1]
+        assertEquals("2", processCount)
+    }
+
+    private fun assertNoStaleReport(reports: File) {
+        val stale: Boolean = reports.resolve("stale.xml").exists()
+        assertFalse(stale)
     }
 
     private fun pytest(report: String): List<String> = listOf(
