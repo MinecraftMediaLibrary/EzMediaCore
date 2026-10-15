@@ -64,15 +64,20 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class VernacularVncPlayer implements VncPlayer {
 
+  private static final String DEADLINE_THREAD_NAME = "mcav-vnc-deadline";
+  private static final String RENDER_THREAD_NAME = "mcav-vnc-render";
+
   private static final Executor HANDSHAKE_DEADLINES = task -> {
     // Closing may block in a socket implementation; one deadline must not hold up another.
-    final Thread worker = Thread.ofVirtual().name("mcav-vnc-deadline").unstarted(task);
+    final Thread worker = Thread.ofVirtual().name(DEADLINE_THREAD_NAME).unstarted(task);
     worker.start();
   };
 
   private static final int LEFT_BUTTON = 1;
   private static final int RIGHT_BUTTON = 3;
+
   private static final long IDLE_PARK_NANOSECONDS = TimeUnit.MILLISECONDS.toNanos(10);
+
   private static final long STOP_TIMEOUT_MILLISECONDS = 2_000L;
   private static final int CONNECT_TIMEOUT_MILLISECONDS = 10_000;
   // the handshake as a whole, not each read: a server that sends a byte now and then would keep a read timeout happy
@@ -201,7 +206,7 @@ public final class VernacularVncPlayer implements VncPlayer {
   private void launchSession(final VncSource source) {
     final Session created = new Session();
 
-    final Thread renderWorker = new Thread(() -> this.render(source, created), "mcav-vnc-render");
+    final Thread renderWorker = new Thread(() -> this.render(source, created), RENDER_THREAD_NAME);
     renderWorker.setDaemon(true);
 
     // Publish the owner before the handshake, which can deliver the first screen update synchronously.

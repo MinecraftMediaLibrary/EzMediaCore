@@ -128,6 +128,9 @@ public final class DefaultVncSource implements VncSource {
    */
   static final class DefaultVncSourceBuilder implements Builder {
 
+    private static final int MINIMUM_PORT = 1;
+    private static final int MAXIMUM_PORT = 65535;
+
     private @Nullable String host;
     private int port;
     private @Nullable String username;
@@ -151,7 +154,7 @@ public final class DefaultVncSource implements VncSource {
 
     @Override
     public Builder port(final int port) {
-      Preconditions.checkArgument(port > 0 && port <= 65535, "Port %s must be between 1 and 65535!", port);
+      Preconditions.checkArgument(port >= MINIMUM_PORT && port <= MAXIMUM_PORT, "Port %s must be between 1 and 65535!", port);
       this.port = port;
       return this;
     }

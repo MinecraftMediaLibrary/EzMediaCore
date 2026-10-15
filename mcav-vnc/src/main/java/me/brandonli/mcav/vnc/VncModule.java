@@ -25,6 +25,8 @@ import me.brandonli.mcav.module.MCAVModule;
  */
 public final class VncModule implements MCAVModule {
 
+  private static final String MODULE_NAME = "vnc";
+
   /**
    * Constructs the module. The module loader creates it for you.
    */
@@ -49,6 +51,6 @@ public final class VncModule implements MCAVModule {
    */
   @Override
   public String getModuleName() {
-    return "vnc";
+    return MODULE_NAME;
   }
 }
