@@ -108,34 +108,42 @@ final class ResourcePackHttpHandlerFuzzTest {
     final boolean isHeadRequest = startsWith(stream, HEAD_PREFIX);
     final boolean waiting = isProperPrefix(stream, GET_PREFIX) || isProperPrefix(stream, HEAD_PREFIX);
     if (isGetRequest || isHeadRequest) {
-      assertEquals(0, forwarded.length, "nothing of a pack request reaches Minecraft");
+      final int forwardedLength = forwarded.length;
+      assertEquals(0, forwardedLength, "nothing of a pack request reaches Minecraft");
+
       final String response = new String(answered, StandardCharsets.US_ASCII);
-      assertTrue(response.startsWith("HTTP/1.1 200 OK\r\n"), () -> "a pack request is answered: " + response);
+      final boolean answeredWithSuccess = response.startsWith("HTTP/1.1 200 OK\r\n");
+      assertTrue(answeredWithSuccess, () -> "a pack request is answered: " + response);
+
       final byte[] tail = Arrays.copyOfRange(answered, Math.max(0, answered.length - PACK.length), answered.length);
       if (isGetRequest) {
         assertArrayEquals(PACK, tail, "a GET request receives the pack");
       } else {
         final int headerEnd = response.indexOf("\r\n\r\n");
-        assertTrue(headerEnd >= 0, "HEAD has complete response headers");
-        assertEquals(headerEnd + 4, answered.length, "HEAD has no response body");
+        final boolean hasCompleteHeaders = headerEnd >= 0;
+        assertTrue(hasCompleteHeaders, "HEAD has complete response headers");
+        final int expectedLength = headerEnd + 4;
+        final int answeredLength = answered.length;
+        assertEquals(expectedLength, answeredLength, "HEAD has no response body");
+
         final String headers = response.substring(0, headerEnd);
-        assertEquals(
-          1L,
-          headers
-            .lines()
-            .filter(line -> line.equals("Content-Length: " + PACK.length))
-            .count(),
-          headers
-        );
+        final long contentLengthCount = headers
+          .lines()
+          .filter(line -> line.equals("Content-Length: " + PACK.length))
+          .count();
+        assertEquals(1L, contentLengthCount, headers);
       }
       return;
     }
     if (waiting) {
-      assertEquals(0, forwarded.length, "the start of a pack request waits for the rest");
-      assertEquals(0, answered.length, "the start of a pack request is not answered yet");
+      final int forwardedLength = forwarded.length;
+      assertEquals(0, forwardedLength, "the start of a pack request waits for the rest");
+      final int answeredLength = answered.length;
+      assertEquals(0, answeredLength, "the start of a pack request is not answered yet");
       return;
     }
-    assertEquals(0, answered.length, "only a request for the pack is answered");
+    final int answeredLength = answered.length;
+    assertEquals(0, answeredLength, "only a request for the pack is answered");
     assertArrayEquals(stream, forwarded, "everything else reaches Minecraft byte for byte");
   }
 

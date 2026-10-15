@@ -144,7 +144,8 @@ final class DeltaMapEncoderPropertyTest {
     int quietFrames = 0;
     int extraFrames = 0;
     while (quietFrames < MAX_QUIET_FRAMES) {
-      assertTrue(extraFrames < frameLimit, () -> "the clients did not catch up within " + frameLimit + " frames");
+      final boolean withinLimit = extraFrames < frameLimit;
+      assertTrue(withinLimit, () -> "the clients did not catch up within " + frameLimit + " frames");
       final List<MapTilePatch> patches = encoder.encode(lastFrame);
       clients.applyAll(patches);
       quietFrames = patches.isEmpty() ? quietFrames + 1 : 0;
@@ -388,7 +389,9 @@ final class DeltaMapEncoderPropertyTest {
       final ClientModel restored = new ClientModel(this.layout);
       restored.applyAll(snapshot);
       for (int index = 0; index < this.maps.length; index++) {
-        assertArrayEquals(this.maps[index], restored.maps[index], "the snapshot reconstructs every sent pixel of map " + index);
+        final short[] expectedMap = this.maps[index];
+        final short[] restoredMap = restored.maps[index];
+        assertArrayEquals(expectedMap, restoredMap, "the snapshot reconstructs every sent pixel of map " + index);
       }
       final Set<Integer> snapshotMaps = new HashSet<>();
       for (final MapTilePatch patch : snapshot) {

@@ -135,7 +135,8 @@ final class CompressedMapResultTest {
     for (int packetIndex = firstPacket; packetIndex < this.firstViewerPacketCount(); packetIndex++) {
       for (final ClientboundMapItemDataPacket packet : this.packetsOf(FIRST, packetIndex)) {
         final int map = packet.mapId().id() - 3;
-        assertTrue(map >= 0 && map < columns);
+        final boolean addressesTheGrid = map >= 0 && map < columns;
+        assertTrue(addressesTheGrid);
         final MapItemSavedData.MapPatch patch = packet.colorPatch().orElseThrow();
         final byte[] colors = patch.mapColors();
         for (int row = 0; row < patch.height(); row++) {
@@ -225,13 +226,17 @@ final class CompressedMapResultTest {
       MapPacketFactory.clear(this.viewers, 3, 1);
       result.refresh();
       result.refresh();
-      assertEquals(2, this.firstViewerPacketCount(), "requests send no packets before the next frame");
-      assertEquals(2, this.server.getSentPackets(SECOND).size());
+      final int firstPacketCount = this.firstViewerPacketCount();
+      assertEquals(2, firstPacketCount, "requests send no packets before the next frame");
+      final int secondPacketCount = this.server.getSentPackets(SECOND).size();
+      assertEquals(2, secondPacketCount);
 
       result.process(image, this.algorithm);
       result.process(image, this.algorithm);
-      assertEquals(3, this.firstViewerPacketCount(), "requests coalesce and unchanged frames stay quiet");
-      assertEquals(3, this.server.getSentPackets(SECOND).size());
+      final int firstPacketCountAfterFrames = this.firstViewerPacketCount();
+      assertEquals(3, firstPacketCountAfterFrames, "requests coalesce and unchanged frames stay quiet");
+      final int secondPacketCountAfterFrames = this.server.getSentPackets(SECOND).size();
+      assertEquals(3, secondPacketCountAfterFrames);
       MapPackets.assertMapPacket(this.packetsOf(FIRST, 2).getFirst(), 3, 0, 0, 128, 128, original);
       MapPackets.assertMapPacket(this.packetsOf(SECOND, 2).getFirst(), 3, 0, 0, 128, 128, original);
 
@@ -244,7 +249,8 @@ final class CompressedMapResultTest {
       final int released = this.firstViewerPacketCount();
       result.refresh();
       result.process(image, this.algorithm);
-      assertEquals(released, this.firstViewerPacketCount(), "a refresh cannot revive released playback");
+      final int firstPacketCountAfterRefresh = this.firstViewerPacketCount();
+      assertEquals(released, firstPacketCountAfterRefresh, "a refresh cannot revive released playback");
     } finally {
       result.release();
     }
@@ -367,12 +373,15 @@ final class CompressedMapResultTest {
       }
       result.process(image, this.algorithm);
 
-      assertEquals(1, this.firstViewerPacketCount(), "a replacement connection needs its own complete baseline");
+      final int packetCount = this.firstViewerPacketCount();
+      assertEquals(1, packetCount, "a replacement connection needs its own complete baseline");
       final List<ClientboundMapItemDataPacket> snapshot = this.packetsOf(FIRST, 0);
-      assertEquals(1, snapshot.size());
+      final int snapshotSize = snapshot.size();
+      assertEquals(1, snapshotSize);
       MapPackets.assertMapPacket(snapshot.getFirst(), 3, 0, 0, 128, 128, this.nextFrame);
       result.process(image, this.algorithm);
-      assertEquals(1, this.firstViewerPacketCount(), "the replacement connection retains its new baseline");
+      final int packetCountAfterNextFrame = this.firstViewerPacketCount();
+      assertEquals(1, packetCountAfterNextFrame, "the replacement connection retains its new baseline");
     } finally {
       result.release();
     }
@@ -388,7 +397,8 @@ final class CompressedMapResultTest {
     for (final ClientboundMapItemDataPacket packet : packets) {
       final MapId mapId = packet.mapId();
       final int index = mapId.id() - 3;
-      assertTrue(index >= 0 && index < columns * rows, "packet must address the configured map grid");
+      final boolean addressesTheGrid = index >= 0 && index < columns * rows;
+      assertTrue(addressesTheGrid, "packet must address the configured map grid");
       final Optional<MapItemSavedData.MapPatch> colorPatch = packet.colorPatch();
       final MapItemSavedData.MapPatch patch = colorPatch.orElseThrow();
       final int mapX = (index % columns) * 128;
@@ -728,7 +738,8 @@ final class CompressedMapResultTest {
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
     final int parallelism = firstPool.getParallelism();
-    assertTrue(parallelism <= Math.max(1, processors / 2), "map dithering leaves at least half the CPUs for the server");
+    final boolean leavesHalfTheProcessors = parallelism <= Math.max(1, processors / 2);
+    assertTrue(leavesHalfTheProcessors, "map dithering leaves at least half the CPUs for the server");
     assertTrue(namedWorker, workerName);
     assertTrue(isDaemon, "dither threads never keep the server alive");
     assertFalse(shutDownBeforeRelease);
@@ -818,11 +829,13 @@ final class CompressedMapResultTest {
     final Field retainedField = CompressedMapResult.class.getDeclaredField("sentPixels");
     retainedField.setAccessible(true);
     final Map<?, ?> retained = (Map<?, ?>) retainedField.get(result);
-    assertTrue(retained.isEmpty(), "released displays must not retain obsolete rendering state");
+    final boolean retainsNoState = retained.isEmpty();
+    assertTrue(retainsNoState, "released displays must not retain obsolete rendering state");
     final Field viewersField = CompressedMapResult.class.getDeclaredField("activeViewers");
     viewersField.setAccessible(true);
     final Map<?, ?> retainedViewers = (Map<?, ?>) viewersField.get(result);
-    assertTrue(retainedViewers.isEmpty(), "release drops the old viewer snapshot");
+    final boolean retainsNoViewers = retainedViewers.isEmpty();
+    assertTrue(retainsNoViewers, "release drops the old viewer snapshot");
   }
 
   @Test
@@ -841,8 +854,10 @@ final class CompressedMapResultTest {
     result.process(image, this.algorithm);
     final int afterRestart = this.firstViewerPacketCount();
 
-    assertTrue(afterRestart > afterRelease, "a started result sends frames again instead of dropping them");
-    assertArrayEquals(this.nextFrame, this.replayFrames(afterRelease, 2), "the entire second picture reaches both maps");
+    final boolean sendsAgain = afterRestart > afterRelease;
+    assertTrue(sendsAgain, "a started result sends frames again instead of dropping them");
+    final byte[] replayed = this.replayFrames(afterRelease, 2);
+    assertArrayEquals(this.nextFrame, replayed, "the entire second picture reaches both maps");
     result.release();
     image.close();
   }
@@ -884,7 +899,8 @@ final class CompressedMapResultTest {
             .when(() -> MapPacketFactory.clear(this.viewers, 3, 1))
             .thenAnswer(_ -> {
               clearing.countDown();
-              assertTrue(finishClear.await(10, TimeUnit.SECONDS));
+              final boolean clearFinished = finishClear.await(10, TimeUnit.SECONDS);
+              assertTrue(clearFinished);
               order.add("clear");
               return null;
             });
@@ -893,13 +909,15 @@ final class CompressedMapResultTest {
       }, workers);
       final CompletableFuture<Void> restarted;
       try {
-        assertTrue(clearing.await(5, TimeUnit.SECONDS));
+        final boolean clearStarted = clearing.await(5, TimeUnit.SECONDS);
+        assertTrue(clearStarted);
         restarted = CompletableFuture.runAsync(() -> {
           restarting.countDown();
           result.start();
           result.process(image, this.algorithm);
         }, workers);
-        assertTrue(restarting.await(5, TimeUnit.SECONDS));
+        final boolean restartStarted = restarting.await(5, TimeUnit.SECONDS);
+        assertTrue(restartStarted);
         assertThrows(
           TimeoutException.class,
           () -> restarted.get(200, TimeUnit.MILLISECONDS),
@@ -910,7 +928,8 @@ final class CompressedMapResultTest {
       }
       released.get(5, TimeUnit.SECONDS);
       restarted.get(5, TimeUnit.SECONDS);
-      assertEquals(List.of("clear", "frame"), order);
+      final List<String> expectedOrder = List.of("clear", "frame");
+      assertEquals(expectedOrder, order);
     }
   }
 
@@ -922,14 +941,16 @@ final class CompressedMapResultTest {
     final ImageBuffer image = Images.solid(128, 128, 0xFF000000);
 
     result.process(image, this.algorithm);
-    assertArrayEquals(this.nextFrame, this.replayFrames(0, 1));
+    final byte[] replayed = this.replayFrames(0, 1);
+    assertArrayEquals(this.nextFrame, replayed);
     this.nextFrame = MapPackets.pattern(128 * 128, 19);
     assertTimeoutPreemptively(
       TIMEOUT,
       () -> runInAnotherThread(() -> result.process(image, this.algorithm)),
       "a frame that was processed releases the lock again"
     );
-    assertArrayEquals(this.nextFrame, this.replayFrames(0, 1), "the other thread delivered the next picture");
+    final byte[] replayedAfterOtherThread = this.replayFrames(0, 1);
+    assertArrayEquals(this.nextFrame, replayedAfterOtherThread, "the other thread delivered the next picture");
 
     result.release();
     assertTimeoutPreemptively(TIMEOUT, () -> runInAnotherThread(result::release), "releasing releases the lock again");

@@ -27,7 +27,8 @@ final class MCV2ReconstructionTest {
   @Test
   void shouldRoundHalvesUpAndClamp() {
     for (final int[] sample : new int[][] { { -768, 0 }, { 76800, 255 }, { 384, 2 }, { 640, 3 }, { 637, 2 } }) {
-      assertEquals(sample[1], Mcv2Decoder.round(sample[0], 8));
+      final int rounded = Mcv2Decoder.round(sample[0], 8);
+      assertEquals(sample[1], rounded);
     }
   }
 
@@ -37,13 +38,21 @@ final class MCV2ReconstructionTest {
     final Kernels kernels = Mcv2Internals.javaKernels();
     final int[] out = new int[8 * 8 * 3];
     kernels.predict(reference, 2, 2, 0, 0, 8, 1, 1, out);
-    assertEquals(120, out[0]);
+    final int shiftedDiagonally = out[0];
+    assertEquals(120, shiftedDiagonally);
+
     kernels.predict(reference, 2, 2, 0, 0, 8, 1, 0, out);
-    assertEquals(40, out[0]);
+    final int shiftedRight = out[0];
+    assertEquals(40, shiftedRight);
+
     kernels.predict(reference, 2, 2, 0, 0, 8, 0, 1, out);
-    assertEquals(80, out[0]);
+    final int shiftedDown = out[0];
+    assertEquals(80, shiftedDown);
+
     kernels.predict(reference, 2, 2, 0, 0, 8, -5, -5, out);
-    assertEquals(0, out[0]);
-    assertEquals(120, out[(7 * 8 + 7) * 3]);
+    final int clampedFirst = out[0];
+    assertEquals(0, clampedFirst);
+    final int clampedLast = out[(7 * 8 + 7) * 3];
+    assertEquals(120, clampedLast);
   }
 }

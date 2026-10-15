@@ -107,7 +107,8 @@ final class PageAssemblerFuzzTest {
           numbers.add(number);
           final byte[] assembled = assembler.push(page);
           if (numbers.size() == frame.size()) {
-            assertArrayEquals(FRAMES.get(index), assembled);
+            final byte[] expected = FRAMES.get(index);
+            assertArrayEquals(expected, assembled);
             pending.remove(id);
           } else {
             assertNull(assembled);
@@ -128,7 +129,9 @@ final class PageAssemblerFuzzTest {
           assertThrows(Mcv2Exception.class, () -> assembler.push(foreign));
         }
       }
-      assertEquals(pending.size(), assembler.getPendingCount());
+      final int expectedPendingCount = pending.size();
+      final int pendingCount = assembler.getPendingCount();
+      assertEquals(expectedPendingCount, pendingCount);
     }
   }
 }

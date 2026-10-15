@@ -151,13 +151,16 @@ final class FileServerHandlerFuzzTest {
       channel.finishAndReleaseAll();
     }
     for (final ByteBuf buffer : sent) {
-      assertEquals(0, buffer.refCnt(), "a buffer the connection sent was never released");
+      final int referenceCount = buffer.refCnt();
+      assertEquals(0, referenceCount, "a buffer the connection sent was never released");
     }
     for (final ByteBuf buffer : allocator.allocated) {
-      assertEquals(0, buffer.refCnt(), "a buffer of the handler outlived the connection");
+      final int referenceCount = buffer.refCnt();
+      assertEquals(0, referenceCount, "a buffer of the handler outlived the connection");
     }
     for (final FileChannel fileChannel : opened) {
-      assertFalse(fileChannel.isOpen(), "the served file outlived the connection");
+      final boolean fileOpen = fileChannel.isOpen();
+      assertFalse(fileOpen, "the served file outlived the connection");
     }
   }
 
@@ -186,7 +189,9 @@ final class FileServerHandlerFuzzTest {
     final boolean complete = headerEnd >= 0 && headerEnd + HEADER_TERMINATOR.length <= MAX_HEADER_BYTES;
     if (!complete) {
       if (stream.length > MAX_HEADER_BYTES) {
-        assertEquals(List.of(status("431 Request Header Fields Too Large")), texts(answered), "headers past the limit are refused");
+        final List<String> expectedAnswers = List.of(status("431 Request Header Fields Too Large"));
+        final List<String> answeredTexts = texts(answered);
+        assertEquals(expectedAnswers, answeredTexts, "headers past the limit are refused");
         assertFalse(openAfterReads, "a refused connection is closed");
         return;
       }
@@ -201,22 +206,34 @@ final class FileServerHandlerFuzzTest {
     final boolean isGet = startsWith(stream, GET_PREFIX);
     final boolean isHead = startsWith(stream, HEAD_PREFIX);
     if (!isGet && !isHead) {
-      assertEquals(List.of(status("405 Method Not Allowed")), texts(answered), "only GET and HEAD are served");
+      final List<String> expectedAnswers = List.of(status("405 Method Not Allowed"));
+      final List<String> answeredTexts = texts(answered);
+      assertEquals(expectedAnswers, answeredTexts, "only GET and HEAD are served");
       return;
     }
     if (mode != OpenMode.OPENS) {
-      assertEquals(List.of(status("404 Not Found")), texts(answered), "a file that cannot be read is not found");
+      final List<String> expectedAnswers = List.of(status("404 Not Found"));
+      final List<String> answeredTexts = texts(answered);
+      assertEquals(expectedAnswers, answeredTexts, "a file that cannot be read is not found");
       return;
     }
-    assertEquals(isGet ? 2 : 1, answered.size(), "a request is answered once: the headers, and for GET the file");
+    final int expectedAnswerCount = isGet ? 2 : 1;
+    final int answerCount = answered.size();
+    assertEquals(expectedAnswerCount, answerCount, "a request is answered once: the headers, and for GET the file");
     final String headers = text(answered.getFirst());
-    assertTrue(headers.startsWith("HTTP/1.1 200 OK\r\n"), () -> "the file is served: " + headers);
-    assertTrue(headers.contains("\r\nContent-Length: " + content.length + "\r\n"), () -> "the length is the file's: " + headers);
-    assertTrue(headers.endsWith("\r\n\r\n"), () -> "the headers end: " + headers);
+    final boolean served = headers.startsWith("HTTP/1.1 200 OK\r\n");
+    assertTrue(served, () -> "the file is served: " + headers);
+    final boolean statesTheLength = headers.contains("\r\nContent-Length: " + content.length + "\r\n");
+    assertTrue(statesTheLength, () -> "the length is the file's: " + headers);
+    final boolean headersEnd = headers.endsWith("\r\n\r\n");
+    assertTrue(headersEnd, () -> "the headers end: " + headers);
     if (isGet) {
-      final FileRegion region = assertInstanceOf(FileRegion.class, answered.get(1));
-      assertEquals(content.length, region.count(), "the body is the whole file");
-      assertArrayEquals(content, transfer(region), "the body is the file");
+      final Object bodyMessage = answered.get(1);
+      final FileRegion region = assertInstanceOf(FileRegion.class, bodyMessage);
+      final long regionCount = region.count();
+      assertEquals(content.length, regionCount, "the body is the whole file");
+      final byte[] body = transfer(region);
+      assertArrayEquals(content, body, "the body is the file");
     }
   }
 

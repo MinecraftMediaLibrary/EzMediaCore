@@ -36,11 +36,18 @@ final class MCV2TreeNodeTest {
   @Test
   void shouldMakeSkipASharedEmptyLeaf() {
     final Node skip = Node.skip();
-    assertSame(skip.value(), Node.skip().value());
-    assertEquals(Mcv2Decoder.MODE_SKIP, skip.getMode());
-    assertEquals(0, skip.getQuantizer());
-    assertFalse(skip.isSplit());
-    assertEquals(0, skip.getRecord().length);
+
+    final Object expectedValue = skip.value();
+    final Object sharedValue = Node.skip().value();
+    assertSame(expectedValue, sharedValue);
+    final int mode = skip.getMode();
+    assertEquals(Mcv2Decoder.MODE_SKIP, mode);
+    final int quantizer = skip.getQuantizer();
+    assertEquals(0, quantizer);
+    final boolean split = skip.isSplit();
+    assertFalse(split);
+    final int recordLength = skip.getRecord().length;
+    assertEquals(0, recordLength);
   }
 
   @Test
@@ -56,16 +63,25 @@ final class MCV2TreeNodeTest {
     Arrays.fill(source, (byte) 93);
     encoder.requestKeyframe();
     encoder.encode(source, 64, 32, 1);
+
     assertArrayEquals(saved, data);
-    assertArrayEquals(expected, Mcv2Decoder.decode(Mcv2Decoder.parse(data), null, 0));
+    final byte[] decoded = Mcv2Decoder.decode(Mcv2Decoder.parse(data), null, 0);
+    assertArrayEquals(expected, decoded);
   }
 
   @Test
   void shouldHoldFourChildrenInRasterOrderInASplit() {
     final Node split = Node.split(SOLID, Node.skip(), Node.skip(), SOLID);
-    assertTrue(split.isSplit());
-    assertEquals(Mcv2Decoder.MODE_SPLIT, split.getMode());
-    assertSame(SOLID.value(), split.getChild(0).value());
-    assertSame(SOLID.value(), split.getChild(3).value());
+
+    final boolean isSplit = split.isSplit();
+    assertTrue(isSplit);
+    final int mode = split.getMode();
+    assertEquals(Mcv2Decoder.MODE_SPLIT, mode);
+    final Object expectedFirstValue = SOLID.value();
+    final Object firstValue = split.getChild(0).value();
+    assertSame(expectedFirstValue, firstValue);
+    final Object expectedLastValue = SOLID.value();
+    final Object lastValue = split.getChild(3).value();
+    assertSame(expectedLastValue, lastValue);
   }
 }

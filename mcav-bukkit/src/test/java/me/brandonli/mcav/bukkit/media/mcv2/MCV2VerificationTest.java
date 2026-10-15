@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees.Node;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class MCV2VerificationTest {
@@ -45,10 +46,14 @@ final class MCV2VerificationTest {
     encoder.encode(new byte[32 * 32 * 3], 32, 32, 0);
     final Object first = storage.get(encoder);
     encoder.encode(Mcv2Pictures.scene(32, 32, 1, 3), 32, 32, 1);
-    assertSame(first, storage.get(encoder));
+    final @Nullable Object reused = storage.get(encoder);
+    assertSame(first, reused);
+
     encoder.encode(new byte[3], 1, 1, 2);
-    assertNotSame(first, storage.get(encoder));
-    assertEquals(3, ((byte[]) storage.get(encoder)).length);
+    final @Nullable Object replaced = storage.get(encoder);
+    assertNotSame(first, replaced);
+    final int replacedLength = ((byte[]) storage.get(encoder)).length;
+    assertEquals(3, replacedLength);
   }
 
   @Test
@@ -86,10 +91,11 @@ final class MCV2VerificationTest {
     assertDoesNotThrow(() -> verify(frame, reference, frame.getReferenceId(), picture));
     final byte[] wrong = picture.clone();
     wrong[random.nextInt(wrong.length)] ^= 1;
-    assertEquals(
-      "MCV2 live picture and decoded picture disagree",
-      assertThrows(IllegalStateException.class, () -> verify(frame, reference, frame.getReferenceId(), wrong)).getMessage()
+    final IllegalStateException failure = assertThrows(IllegalStateException.class, () ->
+      verify(frame, reference, frame.getReferenceId(), wrong)
     );
+    final @Nullable String message = failure.getMessage();
+    assertEquals("MCV2 live picture and decoded picture disagree", message);
   }
 
   private static void verify(final Mcv2Decoder.Frame frame, final byte[] reference, final long referenceId, final byte[] picture) {
@@ -143,11 +149,12 @@ final class MCV2VerificationTest {
   void shouldRejectPictureAndReferenceMismatch() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(8, 8, Node.skip()));
     final byte[] picture = new byte[8 * 8 * 3];
-    assertInstanceOf(
-      Mcv2Exception.class,
-      assertThrows(IllegalStateException.class, () -> verify(frame, new byte[1], 0, picture)).getCause()
-    );
-    assertInstanceOf(Mcv2Exception.class, assertThrows(IllegalStateException.class, () -> verify(frame, picture, 5, picture)).getCause());
+    final IllegalStateException shortReference = assertThrows(IllegalStateException.class, () -> verify(frame, new byte[1], 0, picture));
+    final @Nullable Throwable shortReferenceCause = shortReference.getCause();
+    assertInstanceOf(Mcv2Exception.class, shortReferenceCause);
+    final IllegalStateException wrongReferenceId = assertThrows(IllegalStateException.class, () -> verify(frame, picture, 5, picture));
+    final @Nullable Throwable wrongReferenceIdCause = wrongReferenceId.getCause();
+    assertInstanceOf(Mcv2Exception.class, wrongReferenceIdCause);
     assertThrows(IllegalArgumentException.class, () -> verify(frame, picture, 0, new byte[1]));
   }
 
@@ -157,18 +164,23 @@ final class MCV2VerificationTest {
     final byte[] picture = Mcv2Pictures.scene(32, 32, 0, 2);
     encoder.encode(picture, 32, 32, 0);
     final MCV2.Pending pending = encoder.begin(picture, 32, 32, 1);
-    assertFalse(pending.isKeyframe());
+    final boolean keyframe = pending.isKeyframe();
+    assertFalse(keyframe);
+
     final Field referenceId = MCV2.Pending.class.getDeclaredField("referenceId");
     referenceId.setAccessible(true);
     referenceId.setLong(pending, -1);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
-    assertEquals("The encoder wrote a frame the decoder rejects", failure.getMessage());
-    assertInstanceOf(Mcv2Exception.class, failure.getCause());
-    assertEquals("Reference frame mismatch", failure.getCause().getMessage());
-    assertEquals(
-      "The encoder stopped after a frame failed its verification",
-      assertThrows(IllegalStateException.class, () -> encoder.begin(picture, 32, 32, 2)).getMessage()
-    );
+    final @Nullable String message = failure.getMessage();
+    assertEquals("The encoder wrote a frame the decoder rejects", message);
+    final @Nullable Throwable cause = failure.getCause();
+    assertInstanceOf(Mcv2Exception.class, cause);
+    final @Nullable String causeMessage = failure.getCause().getMessage();
+    assertEquals("Reference frame mismatch", causeMessage);
+
+    final IllegalStateException stopped = assertThrows(IllegalStateException.class, () -> encoder.begin(picture, 32, 32, 2));
+    final @Nullable String stoppedMessage = stopped.getMessage();
+    assertEquals("The encoder stopped after a frame failed its verification", stoppedMessage);
   }
 
   @Test
@@ -179,9 +191,13 @@ final class MCV2VerificationTest {
     data.setAccessible(true);
     ((byte[]) data.get(pending))[0] = 0;
     final IllegalStateException error = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
-    assertEquals("The encoder wrote a frame the decoder rejects", error.getMessage());
-    assertInstanceOf(Mcv2Exception.class, error.getCause());
-    assertEquals("Not an MCV2 frame", error.getCause().getMessage());
+    final @Nullable String message = error.getMessage();
+    assertEquals("The encoder wrote a frame the decoder rejects", message);
+    final @Nullable Throwable cause = error.getCause();
+    assertInstanceOf(Mcv2Exception.class, cause);
+    final @Nullable String causeMessage = error.getCause().getMessage();
+    assertEquals("Not an MCV2 frame", causeMessage);
+
     assertThrows(IllegalStateException.class, () -> encoder.encode(new byte[3], 1, 1, 1));
   }
 }

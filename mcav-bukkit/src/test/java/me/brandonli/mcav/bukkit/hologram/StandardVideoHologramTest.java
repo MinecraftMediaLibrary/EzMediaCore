@@ -189,7 +189,8 @@ final class StandardVideoHologramTest {
     final String plain = PLAIN.serialize(text);
     final String date = expectedDate(1, "st");
     assertSame(display, current);
-    assertEquals("Some Video\nSome Channel (" + date + ")", plain);
+    final String expected = "Some Video\nSome Channel (" + date + ")";
+    assertEquals(expected, plain);
     verify(display).setPersistent(false);
     verify(display).setAlignment(TextDisplay.TextAlignment.CENTER);
     verify(display).setBillboard(Display.Billboard.VERTICAL);
@@ -211,7 +212,8 @@ final class StandardVideoHologramTest {
       final Component text = lastText(display);
       final String plain = PLAIN.serialize(text);
       final String date = expectedDate(days[index], suffixes[index]);
-      assertEquals("t\nu (" + date + ")", plain);
+      final String expected = "t\nu (" + date + ")";
+      assertEquals(expected, plain);
     }
   }
 
@@ -311,10 +313,12 @@ final class StandardVideoHologramTest {
     final int oneSecondFilled = countFilled(oneSecond);
 
     final String bar = PROGRESS.repeat(20);
-    assertEquals("t\nu (Unknown date)\n00:00 " + bar + " 00:10", startPlain);
+    final String expectedStart = "t\nu (Unknown date)\n00:00 " + bar + " 00:10";
+    assertEquals(expectedStart, startPlain);
     assertEquals(0, startFilled);
     assertEquals(20, startEmpty);
-    assertEquals("t\nu (Unknown date)\n00:01 " + bar + " 00:10", oneSecondPlain);
+    final String expectedOneSecond = "t\nu (Unknown date)\n00:01 " + bar + " 00:10";
+    assertEquals(expectedOneSecond, oneSecondPlain);
     assertEquals(2, oneSecondFilled);
   }
 
@@ -333,7 +337,8 @@ final class StandardVideoHologramTest {
     final int tasksAfterFinish = this.server.getScheduledTaskCount();
 
     final String bar = PROGRESS.repeat(20);
-    assertEquals("t\nu (Unknown date)\n00:10 " + bar + " 00:10", endPlain);
+    final String expectedEnd = "t\nu (Unknown date)\n00:10 " + bar + " 00:10";
+    assertEquals(expectedEnd, endPlain);
     assertEquals(20, endFilled);
     assertEquals(1, tasksBeforeFinish);
     assertEquals(0, tasksAfterFinish, "the progress stops after the video ended");
@@ -371,8 +376,10 @@ final class StandardVideoHologramTest {
     this.server.runTasks();
     final int tasks = this.server.getScheduledTaskCount();
     final String bar = PROGRESS.repeat(20);
-    assertEquals("t\nu (Unknown date)\n00:00 " + bar + " 02:05", longPlain);
-    assertEquals("t\nu (Unknown date)\n00:00 " + bar + " 00:00", negativePlain);
+    final String expectedLong = "t\nu (Unknown date)\n00:00 " + bar + " 02:05";
+    assertEquals(expectedLong, longPlain);
+    final String expectedNegative = "t\nu (Unknown date)\n00:00 " + bar + " 00:00";
+    assertEquals(expectedNegative, negativePlain);
     assertEquals(0, negativeFilled);
     assertEquals(0, tasks);
   }

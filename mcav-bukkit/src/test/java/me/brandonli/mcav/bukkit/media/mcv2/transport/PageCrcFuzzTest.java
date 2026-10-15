@@ -81,7 +81,8 @@ final class PageCrcFuzzTest {
     } catch (final Mcv2Exception rejected) {
       return;
     }
-    assertArrayEquals(symbols, rebuild(page));
+    final byte[] rebuilt = rebuild(page);
+    assertArrayEquals(symbols, rebuilt);
   }
 
   /** The symbols of a page, written from its fields as the sender writes them. */

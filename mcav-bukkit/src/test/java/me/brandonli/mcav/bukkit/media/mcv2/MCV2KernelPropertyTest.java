@@ -80,7 +80,9 @@ final class MCV2KernelPropertyTest {
     Mcv2Oracle.compact(prediction, record, quantizer, size, expected);
     final Kernels kernels = Mcv2Internals.javaKernels();
     kernels.start(new int[actual.length], 0, Double.POSITIVE_INFINITY);
-    assertTrue(kernels.compact(prediction, record, quantizer, size, actual));
+    final boolean finished = kernels.compact(prediction, record, quantizer, size, actual);
+    assertTrue(finished);
+
     record[0] = 0;
     record[1] = 0;
     final byte[] reference = new byte[prediction.length];
@@ -92,7 +94,9 @@ final class MCV2KernelPropertyTest {
     Mcv2Oracle.compact(prediction, record, quantizer, size, wholeExpected);
     final byte[] decoded = Mcv2Decoder.decode(Mcv2WireFrames.block(size, 5, quantizer, record, false), reference, 0);
     for (int index = 0; index < decoded.length; index++) {
-      assertEquals(wholeExpected[index], decoded[index] & 255);
+      final int expectedChannel = wholeExpected[index];
+      final int decodedChannel = decoded[index] & 255;
+      assertEquals(expectedChannel, decodedChannel);
     }
     assertArrayEquals(expected, actual);
   }
@@ -106,7 +110,8 @@ final class MCV2KernelPropertyTest {
     Mcv2Oracle.predicted(prediction, size, expected);
     final Kernels kernels = Mcv2Internals.javaKernels();
     kernels.start(new int[actual.length], 0, Double.POSITIVE_INFINITY);
-    assertTrue(kernels.predicted(prediction, size, actual));
+    final boolean finished = kernels.predicted(prediction, size, actual);
+    assertTrue(finished);
     assertArrayEquals(expected, actual);
   }
 
@@ -145,18 +150,27 @@ final class MCV2KernelPropertyTest {
     final int[] reconstruction = new int[source.length];
     final int[] repeated = new int[source.length];
     kernels.start(source, rate, Double.POSITIVE_INFINITY);
-    assertTrue(kernel.run(kernels, reconstruction));
+    final boolean finished = kernel.run(kernels, reconstruction);
+    assertTrue(finished);
+
     kernels.start(source, rate, Double.POSITIVE_INFINITY);
-    assertTrue(kernel.run(kernels, repeated));
+    final boolean finishedAgain = kernel.run(kernels, repeated);
+    assertTrue(finishedAgain);
     assertArrayEquals(reconstruction, repeated);
     final long distortion = distortion(source, reconstruction);
-    assertEquals(distortion, kernels.distortion());
+    final long measured = kernels.distortion();
+    assertEquals(distortion, measured);
+
     final double cost = distortion / 96.0 + rate;
     kernels.start(source, rate, cost);
-    assertFalse(kernel.run(kernels, new int[source.length]));
+    final boolean finishedAtTheLimit = kernel.run(kernels, new int[source.length]);
+    assertFalse(finishedAtTheLimit);
+
     kernels.start(source, rate, Math.nextUp(cost));
-    assertTrue(kernel.run(kernels, new int[source.length]));
-    assertEquals(distortion, kernels.distortion());
+    final boolean finishedPastTheLimit = kernel.run(kernels, new int[source.length]);
+    assertTrue(finishedPastTheLimit);
+    final long measuredPastTheLimit = kernels.distortion();
+    assertEquals(distortion, measuredPastTheLimit);
   }
 
   @Property(seed = SEED, tries = 300)

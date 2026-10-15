@@ -183,24 +183,30 @@ final class MapPacketFactoryTest {
   @Test
   void shouldClearTheExtremeMapIdsAndRejectOverflowBeforeSending() {
     final List<UUID> viewers = List.of(FIRST);
-    assertEquals(
-      "Map ids exceed the integer range",
-      assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, Integer.MAX_VALUE, 2)).getMessage()
+    final IllegalArgumentException overflow = assertThrows(IllegalArgumentException.class, () ->
+      MapPacketFactory.clear(viewers, Integer.MAX_VALUE, 2)
     );
-    assertEquals(
-      "Map id must be non-negative",
-      assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, -1, 0)).getMessage()
+    final String overflowMessage = overflow.getMessage();
+    assertEquals("Map ids exceed the integer range", overflowMessage);
+    final IllegalArgumentException negativeId = assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, -1, 0));
+    final String negativeIdMessage = negativeId.getMessage();
+    assertEquals("Map id must be non-negative", negativeIdMessage);
+    final IllegalArgumentException negativeCount = assertThrows(IllegalArgumentException.class, () ->
+      MapPacketFactory.clear(viewers, 0, -1)
     );
-    assertEquals(
-      "Map count must be non-negative",
-      assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, 0, -1)).getMessage()
-    );
+    final String negativeCountMessage = negativeCount.getMessage();
+    assertEquals("Map count must be non-negative", negativeCountMessage);
+
     final List<Packet<?>> before = this.server.getSentPackets(FIRST);
-    assertTrue(before.isEmpty());
+    final boolean nothingSentBefore = before.isEmpty();
+    assertTrue(nothingSentBefore);
+
     MapPacketFactory.clear(viewers, 0, 1);
     MapPacketFactory.clear(viewers, Integer.MAX_VALUE, 1);
     final List<Packet<?>> packets = this.server.getSentPackets(FIRST);
-    assertEquals(2, packets.size());
+    final int packetCount = packets.size();
+    assertEquals(2, packetCount);
+
     final List<ClientboundMapItemDataPacket> first = unbundle(packets.getFirst());
     final List<ClientboundMapItemDataPacket> last = unbundle(packets.getLast());
     final byte[] transparent = new byte[128 * 128];

@@ -470,9 +470,13 @@ final class ResourcePackHttpHandlerTest {
     final EmbeddedChannel channel = this.downloading();
     channel.advanceTimeBy(31, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
-    assertTrue(channel.isOpen(), "the game counts 30 seconds from the request, and a download sends nothing after it");
-    assertNull(channel.pipeline().get(ReadTimeoutHandler.class));
-    assertInstanceOf(IdleStateHandler.class, channel.pipeline().get(ResourcePackHttpHandler.STALL_NAME));
+    final boolean open = channel.isOpen();
+    assertTrue(open, "the game counts 30 seconds from the request, and a download sends nothing after it");
+    final @Nullable ReadTimeoutHandler readTimeout = channel.pipeline().get(ReadTimeoutHandler.class);
+    assertNull(readTimeout);
+    final @Nullable ChannelHandler stall = channel.pipeline().get(ResourcePackHttpHandler.STALL_NAME);
+    assertInstanceOf(IdleStateHandler.class, stall);
+
     channel.finishAndReleaseAll();
   }
 
@@ -481,7 +485,9 @@ final class ResourcePackHttpHandlerTest {
     final EmbeddedChannel channel = this.downloading();
     channel.advanceTimeBy(ResourcePackHttpHandler.STALL_SECONDS + 1, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
-    assertFalse(channel.isOpen(), "a client that stopped reading does not hold the game's port forever");
+    final boolean open = channel.isOpen();
+    assertFalse(open, "a client that stopped reading does not hold the game's port forever");
+
     channel.finishAndReleaseAll();
   }
 
@@ -531,16 +537,24 @@ final class ResourcePackHttpHandlerTest {
     for (int step = 1; step <= 8; step++) {
       channel.advanceTimeBy(30, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen(), "a download that took some of the pack in the last 30 s is not cut, after " + step * 30 + " s");
+      final boolean openAfterStep = channel.isOpen();
+      assertTrue(openAfterStep, "a download that took some of the pack in the last 30 s is not cut, after " + step * 30 + " s");
+
       channel.take(32 * 1024);
     }
-    assertTrue(channel.taken() < size, "the download is still running");
+    final boolean stillRunning = channel.taken() < size;
+    assertTrue(stillRunning, "the download is still running");
+
     channel.advanceTimeBy(ResourcePackHttpHandler.STALL_SECONDS - 1, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
-    assertTrue(channel.isOpen());
+    final boolean openBeforeStall = channel.isOpen();
+    assertTrue(openBeforeStall);
+
     channel.advanceTimeBy(2, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
-    assertFalse(channel.isOpen(), "a client that stopped taking the pack does not hold the game's port forever");
+    final boolean openAfterStall = channel.isOpen();
+    assertFalse(openAfterStall, "a client that stopped taking the pack does not hold the game's port forever");
+
     channel.finishAndReleaseAll();
   }
 
@@ -561,7 +575,9 @@ final class ResourcePackHttpHandlerTest {
     writeText(channel, "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n");
     channel.pipeline().fireUserEventTriggered(IdleStateEvent.READER_IDLE_STATE_EVENT);
     channel.pipeline().fireUserEventTriggered("during");
-    assertEquals(List.of("before", IdleStateEvent.READER_IDLE_STATE_EVENT, "during"), events);
+    final List<Object> expectedEvents = List.of("before", IdleStateEvent.READER_IDLE_STATE_EVENT, "during");
+    assertEquals(expectedEvents, events);
+
     channel.finishAndReleaseAll();
   }
 }

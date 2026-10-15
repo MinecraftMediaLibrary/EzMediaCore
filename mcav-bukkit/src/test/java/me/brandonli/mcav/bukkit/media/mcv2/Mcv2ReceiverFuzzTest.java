@@ -60,13 +60,20 @@ final class Mcv2ReceiverFuzzTest {
       try {
         picture = receiver.accept(frame);
       } catch (final Mcv2Exception refused) {
-        assertEquals(lastId, receiver.getFrameId(), "a refused frame keeps the last frame");
+        final long frameIdAfterRefusal = receiver.getFrameId();
+        assertEquals(lastId, frameIdAfterRefusal, "a refused frame keeps the last frame");
         continue;
       }
       final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
-      assertEquals(parsed.getWidth() * parsed.getHeight() * 3, picture.length, "the picture has the size of its frame");
-      assertEquals(parsed.getFrameId(), receiver.getFrameId(), "a committed frame is the last frame");
-      assertArrayEquals(picture, committedOnly.accept(frame), "a refused frame left nothing behind in the receiver");
+      final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
+      final int pictureLength = picture.length;
+      assertEquals(expectedLength, pictureLength, "the picture has the size of its frame");
+      final long expectedFrameId = parsed.getFrameId();
+      final long frameId = receiver.getFrameId();
+      assertEquals(expectedFrameId, frameId, "a committed frame is the last frame");
+      final byte[] committedPicture = committedOnly.accept(frame);
+      assertArrayEquals(picture, committedPicture, "a refused frame left nothing behind in the receiver");
+
       final byte[] prediction = parallelPicture;
       final byte[] rows = new byte[picture.length];
       final long predictsId = parallelId;

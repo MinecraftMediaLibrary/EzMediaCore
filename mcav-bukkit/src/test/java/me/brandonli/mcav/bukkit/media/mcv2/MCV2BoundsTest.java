@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees.Node;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class MCV2BoundsTest {
@@ -48,14 +49,24 @@ final class MCV2BoundsTest {
     encoder.setFrameBudget(1);
     encoder.setFrameLimit(1);
     final byte[] first = encoder.encode(picture, width, height, 0);
-    assertEquals(76064, first.length);
-    assertEquals(72 * 16, encoder.getStats().lambda());
-    assertEquals(128 * 128, Mcv2Decoder.parse(first).getLeafCount());
-    assertArrayEquals(picture, encoder.getReference());
+    final int firstLength = first.length;
+    assertEquals(76064, firstLength);
+    final int expectedLambda = 72 * 16;
+    final double lambda = encoder.getStats().lambda();
+    assertEquals(expectedLambda, lambda);
+    final int expectedLeafCount = 128 * 128;
+    final int leafCount = Mcv2Decoder.parse(first).getLeafCount();
+    assertEquals(expectedLeafCount, leafCount);
+    final byte @Nullable [] firstReference = encoder.getReference();
+    assertArrayEquals(picture, firstReference);
+
     final byte[] next = encoder.encode(picture, width, height, 1);
-    assertEquals(2336, next.length);
-    assertEquals(0, Mcv2Decoder.parse(next).getReferenceId());
-    assertArrayEquals(picture, encoder.getReference());
+    final int nextLength = next.length;
+    assertEquals(2336, nextLength);
+    final long referenceId = Mcv2Decoder.parse(next).getReferenceId();
+    assertEquals(0, referenceId);
+    final byte @Nullable [] nextReference = encoder.getReference();
+    assertArrayEquals(picture, nextReference);
   }
 
   @Test
@@ -86,14 +97,21 @@ final class MCV2BoundsTest {
     final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), 4, true);
     final byte[] data = encoder.encode(picture, width, width, 0);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
-    assertTrue(data.length <= 131071);
-    assertEquals(0, encoder.getStats().lambda());
-    assertEquals(32 * 32, frame.getLeafCount());
+    final boolean withinLimit = data.length <= 131071;
+    assertTrue(withinLimit);
+    final double lambda = encoder.getStats().lambda();
+    assertEquals(0, lambda);
+    final int expectedLeafCount = 32 * 32;
+    final int leafCount = frame.getLeafCount();
+    assertEquals(expectedLeafCount, leafCount);
     for (int index = 0; index < frame.getLeafCount(); index++) {
-      assertEquals(32, frame.getLeaf(index).size());
+      final int size = frame.getLeaf(index).size();
+      assertEquals(32, size);
     }
-    assertArrayEquals(expected, encoder.getReference());
-    assertArrayEquals(expected, Mcv2Decoder.decode(frame, null, 0));
+    final byte @Nullable [] reference = encoder.getReference();
+    assertArrayEquals(expected, reference);
+    final byte[] decoded = Mcv2Decoder.decode(frame, null, 0);
+    assertArrayEquals(expected, decoded);
   }
 
   @Test
@@ -101,19 +119,18 @@ final class MCV2BoundsTest {
     final Node palette = Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, new byte[14]);
     final Node full = Mcv2Trees.split(Mcv2Trees.split(palette));
     final List<Object> roots = Collections.nCopies(128 * 128, full.value());
-    assertNull(
-      Mcv2Internals.call(
-        MCV2.class,
-        null,
-        "write",
-        new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
-        4096,
-        4096,
-        true,
-        roots,
-        0L,
-        0L
-      )
+    final @Nullable Object written = Mcv2Internals.call(
+      MCV2.class,
+      null,
+      "write",
+      new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },
+      4096,
+      4096,
+      true,
+      roots,
+      0L,
+      0L
     );
+    assertNull(written);
   }
 }

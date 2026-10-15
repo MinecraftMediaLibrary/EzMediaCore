@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -53,28 +54,42 @@ final class MCV2PoolTest {
 
   @Test
   void shouldUseHalfTheProcessorsByDefault() {
-    assertEquals(1, Pool.defaultThreads(1));
-    assertEquals(1, Pool.defaultThreads(2));
-    assertEquals(1, Pool.defaultThreads(3));
-    assertEquals(2, Pool.defaultThreads(4));
-    assertEquals(6, Pool.defaultThreads(12));
-    assertEquals(256, Pool.defaultThreads(768));
+    final int forOne = Pool.defaultThreads(1);
+    assertEquals(1, forOne);
+    final int forTwo = Pool.defaultThreads(2);
+    assertEquals(1, forTwo);
+    final int forThree = Pool.defaultThreads(3);
+    assertEquals(1, forThree);
+    final int forFour = Pool.defaultThreads(4);
+    assertEquals(2, forFour);
+    final int forTwelve = Pool.defaultThreads(12);
+    assertEquals(6, forTwelve);
+    final int forMany = Pool.defaultThreads(768);
+    assertEquals(256, forMany);
+
     assertThrows(IllegalArgumentException.class, () -> new Pool(0));
     assertThrows(IllegalArgumentException.class, () -> new Pool(Pool.MAX_THREADS + 1));
     try (final Pool largest = new Pool(Pool.MAX_THREADS)) {
-      assertEquals(Pool.MAX_THREADS, largest.getThreads());
+      final int threads = largest.getThreads();
+      assertEquals(Pool.MAX_THREADS, threads);
     }
   }
 
   @Test
   void shouldRunOnLowPriorityDaemonThreadsOfItsOwn() throws InterruptedException {
     try (final Pool pool = new Pool(2)) {
-      assertEquals(2, pool.getThreads());
+      final int threads = pool.getThreads();
+      assertEquals(2, threads);
+
       final Thread thread = pool.run(Thread::currentThread);
-      assertTrue(thread.getName().startsWith("mcav-mcv2-encoder-"), thread.getName());
-      assertTrue(thread.isDaemon());
-      assertEquals(Thread.MIN_PRIORITY, thread.getPriority());
-      assertNotSame(Thread.currentThread(), thread);
+      final boolean named = thread.getName().startsWith("mcav-mcv2-encoder-");
+      assertTrue(named, thread.getName());
+      final boolean daemon = thread.isDaemon();
+      assertTrue(daemon);
+      final int priority = thread.getPriority();
+      assertEquals(Thread.MIN_PRIORITY, priority);
+      final Thread testThread = Thread.currentThread();
+      assertNotSame(testThread, thread);
     }
   }
 
@@ -111,12 +126,17 @@ final class MCV2PoolTest {
       }
       for (final Thread caller : callers) {
         caller.join(TimeUnit.SECONDS.toMillis(60));
-        assertTrue(!caller.isAlive());
+        final boolean finished = !caller.isAlive();
+        assertTrue(finished);
       }
-      assertEquals(3L * 5 * 16 * 199_990_000L, total.get());
-      assertTrue(seen.size() <= 2, "threads used: " + seen.size());
+      final long expectedTotal = 3L * 5 * 16 * 199_990_000L;
+      final long actualTotal = total.get();
+      assertEquals(expectedTotal, actualTotal);
+      final boolean withinSize = seen.size() <= 2;
+      assertTrue(withinSize, "threads used: " + seen.size());
       for (final Thread thread : seen) {
-        assertTrue(thread.getName().startsWith("mcav-mcv2-encoder-"), thread.getName());
+        final boolean named = thread.getName().startsWith("mcav-mcv2-encoder-");
+        assertTrue(named, thread.getName());
       }
     }
   }
@@ -148,9 +168,12 @@ final class MCV2PoolTest {
         seen.add(Thread.currentThread());
         return null;
       });
-      assertEquals(1, blocks.get());
-      assertEquals(1, threadsWhileBlocked.get(), "managed blocking must not create a spare worker");
-      assertEquals(1, seen.size());
+      final int blockCount = blocks.get();
+      assertEquals(1, blockCount);
+      final int poolSizeWhileBlocked = threadsWhileBlocked.get();
+      assertEquals(1, poolSizeWhileBlocked, "managed blocking must not create a spare worker");
+      final int seenCount = seen.size();
+      assertEquals(1, seenCount);
     }
   }
 
@@ -176,7 +199,8 @@ final class MCV2PoolTest {
       }
       final byte[] inside = pool.run(() -> encoder.encode(rgb, 32, 16, 0));
       final MCV2 alone = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
-      assertArrayEquals(alone.encode(rgb, 32, 16, 0), inside);
+      final byte[] expected = alone.encode(rgb, 32, 16, 0);
+      assertArrayEquals(expected, inside);
     }
   }
 
@@ -194,22 +218,29 @@ final class MCV2PoolTest {
           throw runtime;
         })
       );
-      assertTrue(isOrWraps(thrownRuntime, runtime));
+      final boolean passesOnRuntime = isOrWraps(thrownRuntime, runtime);
+      assertTrue(passesOnRuntime);
+
       final AssertionError error = new AssertionError("error");
       final AssertionError thrownError = assertThrows(AssertionError.class, () ->
         pool.run(() -> {
           throw error;
         })
       );
-      assertTrue(isOrWraps(thrownError, error));
+      final boolean passesOnError = isOrWraps(thrownError, error);
+      assertTrue(passesOnError);
+
       final IOException checked = new IOException("checked");
       final IllegalStateException wrapped = assertThrows(IllegalStateException.class, () ->
         pool.run(() -> {
           throw checked;
         })
       );
-      assertInstanceOf(IOException.class, wrapped.getCause());
-      assertTrue(isOrWraps(wrapped.getCause(), checked));
+      final @Nullable Throwable cause = wrapped.getCause();
+      assertInstanceOf(IOException.class, cause);
+      final boolean passesOnChecked = isOrWraps(wrapped.getCause(), checked);
+      assertTrue(passesOnChecked);
+
       final ForkJoinPool workers = (ForkJoinPool) Mcv2Internals.field(Pool.class, pool, "pool");
       workers.getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), new IllegalStateException("outside a task"));
       assertThrows(NullPointerException.class, () -> pool.run(null));
@@ -237,12 +268,17 @@ final class MCV2PoolTest {
           thrown.set(exception);
         }
       });
-      assertTrue(started.await(30, TimeUnit.SECONDS));
+      final boolean hasStarted = started.await(30, TimeUnit.SECONDS);
+      assertTrue(hasStarted);
+
       caller.interrupt();
       caller.join(TimeUnit.SECONDS.toMillis(30));
-      assertTrue(!caller.isAlive());
-      assertInstanceOf(InterruptedException.class, thrown.get());
-      assertTrue(cancelled.await(30, TimeUnit.SECONDS));
+      final boolean finished = !caller.isAlive();
+      assertTrue(finished);
+      final @Nullable Throwable callerFailure = thrown.get();
+      assertInstanceOf(InterruptedException.class, callerFailure);
+      final boolean wasCancelled = cancelled.await(30, TimeUnit.SECONDS);
+      assertTrue(wasCancelled);
     }
   }
 
@@ -257,8 +293,10 @@ final class MCV2PoolTest {
           return null;
         })
       );
-      assertFalse(Thread.currentThread().isInterrupted());
-      assertNull(ran.get());
+      final boolean interrupted = Thread.currentThread().isInterrupted();
+      assertFalse(interrupted);
+      final @Nullable Thread ranOn = ran.get();
+      assertNull(ranOn);
     }
   }
 
@@ -274,19 +312,32 @@ final class MCV2PoolTest {
     try {
       Pool.setSharedThreads(Pool.MAX_THREADS);
       final Pool largest = Pool.shared();
-      assertEquals(Pool.MAX_THREADS, largest.getThreads());
+      final int largestThreads = largest.getThreads();
+      assertEquals(Pool.MAX_THREADS, largestThreads);
+
       largest.close();
       Pool.setSharedThreads(3);
       final Pool shared = Pool.shared();
-      assertSame(shared, Pool.shared());
-      assertEquals(3, shared.getThreads());
+      final Pool sharedAgain = Pool.shared();
+      assertSame(shared, sharedAgain);
+      final int sharedThreads = shared.getThreads();
+      assertEquals(3, sharedThreads);
+
       Pool.setSharedThreads(3);
-      assertSame(shared, Pool.shared());
+      final Pool sameSize = Pool.shared();
+      assertSame(shared, sameSize);
+
       Pool.setSharedThreads(2);
-      assertNotSame(shared, Pool.shared());
-      assertEquals(2, Pool.shared().getThreads());
+      final Pool resized = Pool.shared();
+      assertNotSame(shared, resized);
+      final int resizedThreads = Pool.shared().getThreads();
+      assertEquals(2, resizedThreads);
+
       Pool.setSharedThreads(0);
-      assertEquals(Pool.defaultThreads(Runtime.getRuntime().availableProcessors()), Pool.shared().getThreads());
+      final int expectedDefaultThreads = Pool.defaultThreads(Runtime.getRuntime().availableProcessors());
+      final int defaultThreads = Pool.shared().getThreads();
+      assertEquals(expectedDefaultThreads, defaultThreads);
+
       assertThrows(IllegalArgumentException.class, () -> Pool.setSharedThreads(-1));
       assertThrows(IllegalArgumentException.class, () -> Pool.setSharedThreads(Pool.MAX_THREADS + 1));
     } finally {

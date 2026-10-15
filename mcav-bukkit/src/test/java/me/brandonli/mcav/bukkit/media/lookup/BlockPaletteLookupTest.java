@@ -131,7 +131,8 @@ final class BlockPaletteLookupTest {
       final List<String> names = List.copyOf(keys);
       final int[] dirt = palette.get("DIRT");
       final int blue = dirt[2];
-      assertEquals(List.of("STONE", "DIRT"), names);
+      final List<String> expected = List.of("STONE", "DIRT");
+      assertEquals(expected, names);
       assertEquals(6, blue);
       assertTrue(reader.closed);
     }

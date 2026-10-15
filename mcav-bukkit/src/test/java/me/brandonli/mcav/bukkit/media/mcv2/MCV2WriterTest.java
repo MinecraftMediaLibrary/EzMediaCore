@@ -35,11 +35,13 @@ final class MCV2WriterTest {
   void shouldRefuseInvalidDimensionsAndRootCounts() {
     final List<Node> one = List.of(solid(1, 1, 1));
     for (final int[] size : new int[][] { { 0, 32 }, { 4097, 32 }, { 32, 0 }, { 32, 4097 } }) {
-      assertEquals(
-        "Invalid dimensions",
-        assertThrows(IllegalArgumentException.class, () -> Mcv2Trees.write(size[0], size[1], 0, 0, true, one)).getMessage()
+      final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        Mcv2Trees.write(size[0], size[1], 0, 0, true, one)
       );
+      final String message = exception.getMessage();
+      assertEquals("Invalid dimensions", message);
     }
+
     assertThrows(IllegalArgumentException.class, () -> Mcv2Trees.write(64, 32, 0, 0, true, one));
     assertThrows(NullPointerException.class, () ->
       Mcv2Internals.call(
@@ -61,23 +63,32 @@ final class MCV2WriterTest {
   void shouldRefuseLeavesThatAreNotLeaves() {
     for (int mode = 7; mode <= 31; mode++) {
       final Node node = Node.leaf(mode, 0, new byte[2]);
-      assertEquals("Illegal leaf mode " + mode, assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node)).getMessage());
+      final String expected = "Illegal leaf mode " + mode;
+      final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node));
+      final String message = exception.getMessage();
+      assertEquals(expected, message);
     }
+
     final Node shortRecord = Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[2]);
-    assertEquals(
-      "Record length disagrees with its mode",
-      assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, shortRecord)).getMessage()
-    );
+    final IllegalArgumentException shortRecordException = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, shortRecord));
+    final String shortRecordMessage = shortRecordException.getMessage();
+    assertEquals("Record length disagrees with its mode", shortRecordMessage);
+
     final Node deep = split(split(split(solid(1, 1, 1))));
-    assertEquals("Split below the bounded depth", assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, deep)).getMessage());
+    final IllegalArgumentException deepException = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, deep));
+    final String deepMessage = deepException.getMessage();
+    assertEquals("Split below the bounded depth", deepMessage);
   }
 
   @Test
   void shouldRefuseATreeThatDoesNotSerializeToAValidFrame() {
     for (final Node temporal : List.of(Mcv2Trees.motion(1, 1), Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[10]))) {
       final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, temporal));
-      assertTrue(exception.getMessage().startsWith("The tree does not serialize to a valid frame"));
+      final String message = exception.getMessage();
+      final boolean reportsAnInvalidFrame = message.startsWith("The tree does not serialize to a valid frame");
+      assertTrue(reportsAnInvalidFrame);
     }
+
     for (final byte[] record : new byte[][] { {}, { 3 }, { 0x30 }, { 0 }, { 0, 1, 2 } }) {
       assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, record)));
     }
@@ -92,26 +103,35 @@ final class MCV2WriterTest {
       Node.leaf(Mcv2Decoder.MODE_MOTION, 1, new byte[] { 1, 1 }),
       Node.leaf(Mcv2Decoder.MODE_SOLID, 2, new byte[3])
     )) {
-      assertEquals(
-        "Quantizer on a mode without one",
-        assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node)).getMessage()
-      );
+      final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node));
+      final String message = exception.getMessage();
+      assertEquals("Quantizer on a mode without one", message);
     }
+
     final Node coarse = Node.leaf(Mcv2Decoder.MODE_COMPACT, 2, new byte[10]);
     final Node compact = Node.leaf(Mcv2Decoder.MODE_COMPACT, 1, new byte[10]);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(predicted(64, 32, coarse, compact));
-    assertEquals(2, frame.getLeaf(0).quantizer());
-    assertEquals(1, frame.getLeaf(1).quantizer());
+    final int firstQuantizer = frame.getLeaf(0).quantizer();
+    assertEquals(2, firstQuantizer);
+    final int secondQuantizer = frame.getLeaf(1).quantizer();
+    assertEquals(1, secondQuantizer);
   }
 
   @Test
   void shouldWriteNoDescriptorsForAbsentRoots() throws Mcv2Exception {
     final byte[] skipped = predicted(64, 32, Node.skip(), Node.skip());
-    assertEquals(40, skipped.length);
-    assertEquals(2, Mcv2Decoder.parse(skipped).getLeafCount());
+    final int skippedLength = skipped.length;
+    assertEquals(40, skippedLength);
+    final int leafCount = Mcv2Decoder.parse(skipped).getLeafCount();
+    assertEquals(2, leafCount);
+
     final byte[] uniform = keyframe(64, 32, solid(3, 3, 3), solid(3, 3, 3));
-    assertEquals(52, uniform.length);
-    assertEquals(3, Mcv2Decoder.u32(uniform, 20));
-    assertEquals(List.of(solid(3, 3, 3), solid(3, 3, 3)), Mcv2Trees.read(Mcv2Decoder.parse(uniform)));
+    final int uniformLength = uniform.length;
+    assertEquals(52, uniformLength);
+    final long firstGroupMask = Mcv2Decoder.u32(uniform, 20);
+    assertEquals(3, firstGroupMask);
+    final List<Node> expectedRoots = List.of(solid(3, 3, 3), solid(3, 3, 3));
+    final List<Node> roots = Mcv2Trees.read(Mcv2Decoder.parse(uniform));
+    assertEquals(expectedRoots, roots);
   }
 }

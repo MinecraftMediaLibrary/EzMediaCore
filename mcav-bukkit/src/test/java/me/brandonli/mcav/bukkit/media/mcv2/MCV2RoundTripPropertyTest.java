@@ -27,6 +27,7 @@ import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.constraints.DoubleRange;
 import net.jqwik.api.constraints.IntRange;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Round trips through the encoder and the decoder on generated pictures. MCV2 is a rate-distortion codec with no fixed
@@ -117,7 +118,10 @@ final class MCV2RoundTripPropertyTest {
         encoder.requestKeyframe();
       }
       final byte[] data = encoder.encode(rgb, width, height, frame);
-      assertArrayEquals(encoder.getReference(), client.accept(data));
+      final byte @Nullable [] expected = encoder.getReference();
+      final byte[] accepted = client.accept(data);
+      assertArrayEquals(expected, accepted);
+
       rgb = next(random, rgb, width, height);
     }
   }
@@ -137,6 +141,7 @@ final class MCV2RoundTripPropertyTest {
       rgb[offset + 2] = (byte) color;
     }
     final MCV2 encoder = new MCV2(PROFILES.get(profile).withLambda(lambda), POOL, 2, false);
-    assertArrayEquals(rgb, new Mcv2Receiver().accept(encoder.encode(rgb, width, height, 0)));
+    final byte[] decoded = new Mcv2Receiver().accept(encoder.encode(rgb, width, height, 0));
+    assertArrayEquals(rgb, decoded);
   }
 }

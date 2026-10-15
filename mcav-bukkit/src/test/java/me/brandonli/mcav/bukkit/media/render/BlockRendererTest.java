@@ -378,7 +378,8 @@ final class BlockRendererTest {
     final Field retainedField = BlockRenderer.class.getDeclaredField("activeViewers");
     retainedField.setAccessible(true);
     final Set<?> retained = (Set<?>) retainedField.get(renderer);
-    assertTrue(retained.isEmpty(), "released displays must not retain obsolete rendering state");
+    final boolean empty = retained.isEmpty();
+    assertTrue(empty, "released displays must not retain obsolete rendering state");
   }
 
   @Test
@@ -554,9 +555,12 @@ final class BlockRendererTest {
     this.world.enter(this.viewer);
     this.server.runTasks();
     final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
-    assertEquals(6, changes.getLast().size(), "the whole wall, not only what changed while they were away");
+    final Map<? extends Position, BlockData> returnedWall = changes.getLast();
+    final int returnedWallSize = returnedWall.size();
+    assertEquals(6, returnedWallSize, "the whole wall, not only what changed while they were away");
+
     final Map<Position, BlockData> expected = expectAll(BlockPaletteLookup.getBlockData(BROWN));
     expected.put(Position.block(10, 64, -6), BlockPaletteLookup.getBlockData(MAGENTA));
-    assertEquals(expected, changes.getLast(), "returning viewers see every pixel of the newest wall");
+    assertEquals(expected, returnedWall, "returning viewers see every pixel of the newest wall");
   }
 }

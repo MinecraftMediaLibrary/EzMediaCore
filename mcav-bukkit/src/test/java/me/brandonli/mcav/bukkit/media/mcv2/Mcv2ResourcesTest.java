@@ -34,8 +34,10 @@ final class Mcv2ResourcesTest {
 
   @Test
   void shouldHashWithSha256() {
-    assertEquals(EMPTY_SHA256, Mcv2Resources.sha256(new byte[0]));
-    assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", Mcv2Resources.sha256(new byte[] { 'a', 'b', 'c' }));
+    final String emptyHash = Mcv2Resources.sha256(new byte[0]);
+    assertEquals(EMPTY_SHA256, emptyHash);
+    final String threeLetterHash = Mcv2Resources.sha256(new byte[] { 'a', 'b', 'c' });
+    assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", threeLetterHash);
   }
 
   @Test

@@ -57,14 +57,25 @@ final class MCV2PatternRewriteTest {
   @Test
   void shouldFindTheRepeatingAxisRowsFirst() {
     final byte[] record = new byte[8];
-    assertTrue(pattern(palette((column, row) -> column < 4 ? 1 : 0), record));
-    assertArrayEquals(Mcv2Trees.pattern(8, ENDPOINTS, 0, 0x0f).getRecord(), record);
-    assertTrue(pattern(palette((column, row) -> row < 4 ? 1 : 0), record));
-    assertArrayEquals(Mcv2Trees.pattern(8, ENDPOINTS, 1, 0x0f).getRecord(), record);
-    assertTrue(pattern(palette((column, row) -> 0), record));
-    assertArrayEquals(Mcv2Trees.pattern(8, ENDPOINTS, 0, 0).getRecord(), record);
-    assertFalse(pattern(palette((column, row) -> (column + row) & 1), record));
-    assertFalse(pattern(palette((column, row) -> row == 7 && column == 7 ? 1 : 0), record));
+    final boolean leftHalfIsPattern = pattern(palette((column, row) -> column < 4 ? 1 : 0), record);
+    assertTrue(leftHalfIsPattern);
+    final byte[] expectedLeftHalf = Mcv2Trees.pattern(8, ENDPOINTS, 0, 0x0f).getRecord();
+    assertArrayEquals(expectedLeftHalf, record);
+
+    final boolean topHalfIsPattern = pattern(palette((column, row) -> row < 4 ? 1 : 0), record);
+    assertTrue(topHalfIsPattern);
+    final byte[] expectedTopHalf = Mcv2Trees.pattern(8, ENDPOINTS, 1, 0x0f).getRecord();
+    assertArrayEquals(expectedTopHalf, record);
+
+    final boolean blankIsPattern = pattern(palette((column, row) -> 0), record);
+    assertTrue(blankIsPattern);
+    final byte[] expectedBlank = Mcv2Trees.pattern(8, ENDPOINTS, 0, 0).getRecord();
+    assertArrayEquals(expectedBlank, record);
+
+    final boolean checkerboardIsPattern = pattern(palette((column, row) -> (column + row) & 1), record);
+    assertFalse(checkerboardIsPattern);
+    final boolean cornerIsPattern = pattern(palette((column, row) -> row == 7 && column == 7 ? 1 : 0), record);
+    assertFalse(cornerIsPattern);
   }
 
   @Test
@@ -88,18 +99,18 @@ final class MCV2PatternRewriteTest {
           }
         }
         final byte[] output = new byte[expected.length];
-        assertTrue(
-          (boolean) Mcv2Internals.invoke(
-            MCV2.class,
-            null,
-            "patternRecord",
-            new Class<?>[] { byte[].class, int.class, byte[].class },
-            palette,
-            size,
-            output
-          )
+        final boolean encodedAsPattern = (boolean) Mcv2Internals.invoke(
+          MCV2.class,
+          null,
+          "patternRecord",
+          new Class<?>[] { byte[].class, int.class, byte[].class },
+          palette,
+          size,
+          output
         );
+        assertTrue(encodedAsPattern);
         assertArrayEquals(expected, output);
+
         final byte[] source = new byte[size * size * 3];
         for (int pixel = 0; pixel < size * size; pixel++) {
           final int color = (palette[6 + pixel / 8] >> (pixel % 8)) & 1;
@@ -108,11 +119,14 @@ final class MCV2PatternRewriteTest {
         for (final double lambda : new double[] { 0, 1e-300, 60, 72 }) {
           final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], size, size, true, false, lambda, null);
           state.code(size, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
-          assertEquals(Mcv2Decoder.MODE_PATTERN, state.mode(0, 0));
+          final int mode = state.mode(0, 0);
+          assertEquals(Mcv2Decoder.MODE_PATTERN, mode);
+
           final byte[] record = state.record(0, 0);
           final Node leaf = Node.leaf(Mcv2Decoder.MODE_PATTERN, 0, record);
           final Node root = size == 32 ? leaf : size == 16 ? Mcv2Trees.split(leaf) : Mcv2Trees.split(Mcv2Trees.split(leaf));
-          assertArrayEquals(source, Mcv2Decoder.decode(Mcv2Decoder.parse(Mcv2Trees.keyframe(size, size, root)), null, 0));
+          final byte[] decoded = Mcv2Decoder.decode(Mcv2Decoder.parse(Mcv2Trees.keyframe(size, size, root)), null, 0);
+          assertArrayEquals(source, decoded);
         }
       }
     }
@@ -122,7 +136,9 @@ final class MCV2PatternRewriteTest {
   void shouldRebuildKeyframeSolidsAndPatterns() throws Mcv2Exception {
     final Node patterns = Mcv2Trees.split(Mcv2Trees.pattern(16, ENDPOINTS, 1, 0x5a));
     final byte[] data = Mcv2Trees.keyframe(64, 32, Mcv2Trees.solid(4, 5, 6), patterns);
-    assertEquals(List.of(Mcv2Trees.solid(4, 5, 6), patterns), Mcv2Trees.read(Mcv2Decoder.parse(data)));
+    final List<Node> expected = List.of(Mcv2Trees.solid(4, 5, 6), patterns);
+    final List<Node> roots = Mcv2Trees.read(Mcv2Decoder.parse(data));
+    assertEquals(expected, roots);
   }
 
   @Test
@@ -130,6 +146,8 @@ final class MCV2PatternRewriteTest {
     final Node compact = Node.leaf(Mcv2Decoder.MODE_COMPACT, 2, new byte[] { 0, 0, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 });
     final Node split = Node.split(compact, Node.skip(), Mcv2Trees.motion(1, 1), compact);
     final byte[] data = Mcv2Trees.predicted(96, 32, Mcv2Trees.motion(-2, 3), Node.skip(), split);
-    assertEquals(List.of(Mcv2Trees.motion(-2, 3), Node.skip(), split), Mcv2Trees.read(Mcv2Decoder.parse(data)));
+    final List<Node> expected = List.of(Mcv2Trees.motion(-2, 3), Node.skip(), split);
+    final List<Node> roots = Mcv2Trees.read(Mcv2Decoder.parse(data));
+    assertEquals(expected, roots);
   }
 }

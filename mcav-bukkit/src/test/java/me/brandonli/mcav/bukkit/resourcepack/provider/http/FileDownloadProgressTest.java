@@ -66,17 +66,25 @@ final class FileDownloadProgressTest {
       for (int interval = 0; interval < 8; interval++) {
         channel.advanceTimeBy(100, TimeUnit.SECONDS);
         channel.runScheduledPendingTasks();
-        assertTrue(channel.isOpen(), "partial file progress must renew the download deadline");
+        final boolean openWhileProgressing = channel.isOpen();
+        assertTrue(openWhileProgressing, "partial file progress must renew the download deadline");
+
         channel.take(128);
       }
-      assertTrue(channel.bodyBytes > 0 && channel.bodyBytes < 4096);
+      final boolean partiallyWritten = channel.bodyBytes > 0 && channel.bodyBytes < 4096;
+      assertTrue(partiallyWritten);
+
       channel.advanceTimeBy(299, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen(), "a stall shorter than the limit is allowed");
+      final boolean openAfterShortStall = channel.isOpen();
+      assertTrue(openAfterShortStall, "a stall shorter than the limit is allowed");
+
       channel.advanceTimeBy(2, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertFalse(channel.isOpen(), "an actually stalled download is closed");
-      assertEquals(0, channel.region.refCnt(), "closing releases the owned file region");
+      final boolean openAfterStall = channel.isOpen();
+      assertFalse(openAfterStall, "an actually stalled download is closed");
+      final int regionReferenceCount = channel.region.refCnt();
+      assertEquals(0, regionReferenceCount, "closing releases the owned file region");
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -91,12 +99,17 @@ final class FileDownloadProgressTest {
       final ChannelPromise completion = channel.newPromise();
       final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
       assertSame(completion, submitted);
-      assertFalse(completion.isDone());
+      final boolean done = completion.isDone();
+      assertFalse(done);
+
       held.promise().setSuccess();
-      assertTrue(completion.isSuccess());
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
+
       channel.advanceTimeBy(301, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen());
+      final boolean open = channel.isOpen();
+      assertTrue(open);
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -113,10 +126,13 @@ final class FileDownloadProgressTest {
       assertSame(completion, submitted);
       final IOException failure = new IOException("socket closed");
       held.promise().setFailure(failure);
-      assertSame(failure, completion.cause());
+      final @Nullable Throwable cause = completion.cause();
+      assertSame(failure, cause);
+
       channel.advanceTimeBy(301, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen());
+      final boolean open = channel.isOpen();
+      assertTrue(open);
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -129,12 +145,18 @@ final class FileDownloadProgressTest {
     channel.freezeTime();
     try {
       final ChannelFuture completion = channel.writeOneOutbound("payload");
-      assertFalse(completion.isDone());
+      final boolean done = completion.isDone();
+      assertFalse(done);
+
       channel.advanceTimeBy(200, TimeUnit.SECONDS);
-      assertTrue(held.promise().tryProgress(0, 10));
+      final boolean progressed = held.promise().tryProgress(0, 10);
+      assertTrue(progressed);
+
       channel.advanceTimeBy(101, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertFalse(channel.isOpen());
+      final boolean open = channel.isOpen();
+      assertFalse(open);
+
       held.promise().setFailure(new IOException("closed after timeout"));
     } finally {
       channel.finishAndReleaseAll();
@@ -152,12 +174,17 @@ final class FileDownloadProgressTest {
       final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
       assertSame(completion, submitted);
       channel.pipeline().remove(handler);
-      assertTrue(held.promise().tryProgress(1, 10));
+      final boolean progressed = held.promise().tryProgress(1, 10);
+      assertTrue(progressed);
+
       channel.advanceTimeBy(301, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
-      assertTrue(channel.isOpen(), "a removed handler cannot create another deadline");
+      final boolean open = channel.isOpen();
+      assertTrue(open, "a removed handler cannot create another deadline");
+
       held.promise().setSuccess();
-      assertTrue(completion.isSuccess());
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -181,9 +208,12 @@ final class FileDownloadProgressTest {
       channel.advanceTimeBy(301, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
       Mockito.verify(context).fireExceptionCaught(failure);
-      assertFalse(completion.isDone(), "reporting a timeout does not invent successful write completion");
+      final boolean done = completion.isDone();
+      assertFalse(done, "reporting a timeout does not invent successful write completion");
+
       progress.setSuccess();
-      assertTrue(completion.isSuccess());
+      final boolean succeeded = completion.isSuccess();
+      assertTrue(succeeded);
     } finally {
       channel.finishAndReleaseAll();
     }

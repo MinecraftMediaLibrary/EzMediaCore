@@ -114,8 +114,10 @@ final class ResourcePackFuzzTest {
     while (entries.hasMoreElements()) {
       final ZipEntry entry = entries.nextElement();
       final String name = entry.getName();
-      assertFalse(name.startsWith("/"), () -> "an absolute entry " + name);
-      assertFalse(name.contains("\\"), () -> "an entry with a backslash " + name);
+      final boolean absolute = name.startsWith("/");
+      assertFalse(absolute, () -> "an absolute entry " + name);
+      final boolean hasBackslash = name.contains("\\");
+      assertFalse(hasBackslash, () -> "an entry with a backslash " + name);
       for (final String segment : name.split("/", -1)) {
         final boolean unsafe = segment.isEmpty() || segment.equals(".") || segment.equals("..");
         assertFalse(unsafe, () -> "an entry with an empty, dot or parent segment " + name);

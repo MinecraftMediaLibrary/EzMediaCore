@@ -128,7 +128,9 @@ final class MCV2SearchTest {
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
-      assertEquals(Set.of("search"), clockedMethods);
+      final Set<String> expectedClockedMethods = Set.of("search");
+      assertEquals(expectedClockedMethods, clockedMethods);
+
       final byte[] source = new byte[32 * 32 * 3];
       for (int row = 0; row < 32; row++) {
         for (int column = 0; column < 32; column++) {
@@ -154,17 +156,25 @@ final class MCV2SearchTest {
             false
           );
           final List<?> roots = (List<?>) Mcv2Internals.field(result.getClass(), result, "roots");
-          assertEquals(1, roots.size());
+          final int rootCount = roots.size();
+          assertEquals(1, rootCount);
+
           final Node root = new Node(roots.getFirst());
-          assertEquals(instant >= 100 ? Mcv2Decoder.MODE_SOLID : Mcv2Decoder.MODE_PATTERN, root.getMode());
+          final int expectedMode = instant >= 100 ? Mcv2Decoder.MODE_SOLID : Mcv2Decoder.MODE_PATTERN;
+          final int mode = root.getMode();
+          assertEquals(expectedMode, mode);
+
           final byte[] expected = source.clone();
           if (instant >= 100) {
             for (int pixel = 0; pixel < 32 * 32; pixel++) {
               expected[pixel * 3] = 105;
             }
-            assertArrayEquals(new byte[] { 105, 0, 0 }, root.getRecord());
+            final byte[] expectedRecord = { 105, 0, 0 };
+            final byte[] record = root.getRecord();
+            assertArrayEquals(expectedRecord, record);
           }
-          assertArrayEquals(expected, (byte[]) Mcv2Internals.field(frameType, frame, "picture"));
+          final byte[] picture = (byte[]) Mcv2Internals.field(frameType, frame, "picture");
+          assertArrayEquals(expected, picture);
         }
       }
     } finally {
@@ -183,7 +193,9 @@ final class MCV2SearchTest {
     instrumentation.addTransformer(clock, true);
     try {
       instrumentation.retransformClasses(encoderType);
-      assertEquals(Set.of("begin", "search"), clockedMethods);
+      final Set<String> expectedClockedMethods = Set.of("begin", "search");
+      assertEquals(expectedClockedMethods, clockedMethods);
+
       final long[] instants = { 0, 0, 0, 0, 100 };
       final AtomicInteger readings = new AtomicInteger();
       SEARCH_TIME.set(() -> instants[Math.min(readings.getAndIncrement(), instants.length - 1)]);
@@ -201,9 +213,12 @@ final class MCV2SearchTest {
         encoder.setFrameBudget(100);
         encoder.setFrameLimit(60);
         final byte[] data = encoder.encode(source, 64, 32, 0);
-        assertEquals(52, data.length);
-        assertArrayEquals(expected, Mcv2Decoder.decode(data, null, 0));
-        assertArrayEquals(expected, encoder.getReference());
+        final int length = data.length;
+        assertEquals(52, length);
+        final byte[] decoded = Mcv2Decoder.decode(data, null, 0);
+        assertArrayEquals(expected, decoded);
+        final byte @Nullable [] reference = encoder.getReference();
+        assertArrayEquals(expected, reference);
       }
     } finally {
       SEARCH_TIME.remove();
@@ -254,7 +269,8 @@ final class MCV2SearchTest {
     for (int index = 0; index < nodes.length; index++) {
       final int[] field = new int[1];
       fillMotion(field, 8, 8, nodes[index], 0, 0, 8);
-      assertEquals(expected[index], field[0]);
+      final int motion = field[0];
+      assertEquals(expected[index], motion);
     }
   }
 
@@ -264,7 +280,8 @@ final class MCV2SearchTest {
     final int[] field = new int[5 * 3];
     fillMotion(field, 40, 20, split, 0, 0, 32);
     fillMotion(field, 40, 20, Mcv2Trees.solid(0, 0, 0), 32, 0, 32);
-    assertArrayEquals(new int[] { vector(4, 0), vector(4, 0), 0, 0, 0, vector(4, 0), vector(4, 0), 0, 0, 0, 0, 0, 0, 0, 0 }, field);
+    final int[] expected = { vector(4, 0), vector(4, 0), 0, 0, 0, vector(4, 0), vector(4, 0), 0, 0, 0, 0, 0, 0, 0, 0 };
+    assertArrayEquals(expected, field);
   }
 
   @Test
@@ -274,11 +291,18 @@ final class MCV2SearchTest {
     final int[] field = new int[8 * 8];
     Arrays.fill(field, vector(6, 0));
     final Mcv2BlockState job = new Mcv2BlockState(source, reference, 64, 64, false, false, 72, field);
-    assertEquals(vector(6, 0), job.previousMotion(-5, 100));
+    final int expectedPreviousMotion = vector(6, 0);
+    final int previousMotion = job.previousMotion(-5, 100);
+    assertEquals(expectedPreviousMotion, previousMotion);
+
     final Mcv2BlockState fresh = new Mcv2BlockState(source, reference, 64, 64, false, false, 72, null);
-    assertEquals(0, fresh.previousMotion(10, 10));
+    final int freshPreviousMotion = fresh.previousMotion(10, 10);
+    assertEquals(0, freshPreviousMotion);
+
     job.code(16, 1, 0, 0, 0, vector(6, 0));
-    assertTrue(job.cost(1, 0) < Double.POSITIVE_INFINITY);
+    final boolean finiteCost = job.cost(1, 0) < Double.POSITIVE_INFINITY;
+    assertTrue(finiteCost);
+
     for (int row = 0; row < 8; row++) {
       for (int column = 0; column < 8; column++) {
         field[row * 8 + column] = vector(2 * column, -2 * row);
@@ -287,17 +311,16 @@ final class MCV2SearchTest {
     for (final int parent : new int[] { Mcv2BlockState.NO_VECTOR, vector(-6, -4) }) {
       final Mcv2BlockState seeded = new Mcv2BlockState(source, reference, 64, 64, false, false, 0, field);
       final Object coder = seeded.code(16, 1, 5, 16, 16, parent);
-      assertArrayEquals(
-        new int[] {
-          vector(3, -3),
-          vector(1, -3),
-          vector(4, -3),
-          vector(3, -1),
-          vector(3, -4),
-          parent == Mcv2BlockState.NO_VECTOR ? vector(3, -3) : vector(-3, -2),
-        },
-        Mcv2BlockState.seeds(coder, "halfSeeds")
-      );
+      final int[] expected = {
+        vector(3, -3),
+        vector(1, -3),
+        vector(4, -3),
+        vector(3, -1),
+        vector(3, -4),
+        parent == Mcv2BlockState.NO_VECTOR ? vector(3, -3) : vector(-3, -2),
+      };
+      final int[] seeds = Mcv2BlockState.seeds(coder, "halfSeeds");
+      assertArrayEquals(expected, seeds);
     }
   }
 
@@ -317,11 +340,14 @@ final class MCV2SearchTest {
           final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, fast, lambda, null);
           final Object coder = job.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
           final boolean skipped = Mcv2BlockState.skipped(coder);
-          assertEquals(distortion / 96.0 + lambda <= (fast ? 60 : 28) * lambda, skipped);
-          assertTrue(!skippedBefore || skipped, "monotonic in lambda");
+          final boolean expectedSkipped = distortion / 96.0 + lambda <= (fast ? 60 : 28) * lambda;
+          assertEquals(expectedSkipped, skipped);
+          final boolean monotonic = !skippedBefore || skipped;
+          assertTrue(monotonic, "monotonic in lambda");
           skippedBefore = skipped;
           if (skipped) {
-            assertEquals(Mcv2Decoder.MODE_SKIP, job.mode(0, 0));
+            final int mode = job.mode(0, 0);
+            assertEquals(Mcv2Decoder.MODE_SKIP, mode);
           }
         }
       }
@@ -337,10 +363,16 @@ final class MCV2SearchTest {
     final double lambda = 864.0 / 59;
     final Mcv2BlockState state = new Mcv2BlockState(source, new byte[source.length], 32, 32, false, true, lambda, null);
     final Object coder = state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
-    assertEquals(60 * lambda, state.cost(0, 0));
-    assertTrue(Mcv2BlockState.skipped(coder));
-    assertEquals(Mcv2Decoder.MODE_SKIP, state.mode(0, 0));
-    assertArrayEquals(new byte[0], state.record(0, 0));
+    final double expectedCost = 60 * lambda;
+    final double cost = state.cost(0, 0);
+    assertEquals(expectedCost, cost);
+    final boolean skipped = Mcv2BlockState.skipped(coder);
+    assertTrue(skipped);
+    final int mode = state.mode(0, 0);
+    assertEquals(Mcv2Decoder.MODE_SKIP, mode);
+    final byte[] expectedRecord = new byte[0];
+    final byte[] record = state.record(0, 0);
+    assertArrayEquals(expectedRecord, record);
   }
 
   @Test
@@ -422,9 +454,12 @@ final class MCV2SearchTest {
     for (final int[] position : new int[][] { { 16, 0 }, { 0, 16 }, { 16, 16 } }) {
       final Object choice = descend(state, 1, position[0], position[1], 0);
       final Node node = new Node(Mcv2Internals.field(choice.getClass(), choice, "node"));
-      assertEquals(Mcv2Trees.solid(0, 0, 0), node);
-      assertEquals(0, Mcv2Internals.field(choice.getClass(), choice, "leaves"));
-      assertEquals(112.0, Mcv2Internals.field(choice.getClass(), choice, "cost"));
+      final Node expectedNode = Mcv2Trees.solid(0, 0, 0);
+      assertEquals(expectedNode, node);
+      final Object leaves = Mcv2Internals.field(choice.getClass(), choice, "leaves");
+      assertEquals(0, leaves);
+      final Object cost = Mcv2Internals.field(choice.getClass(), choice, "cost");
+      assertEquals(112.0, cost);
     }
   }
 
@@ -440,14 +475,25 @@ final class MCV2SearchTest {
     state.code(32, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
     final double cost = state.cost(0, 0);
     final Object equal = descend(state, 0, 0, 0, cost);
-    assertFalse(new Node(Mcv2Internals.field(equal.getClass(), equal, "node")).isSplit());
+    final boolean equalSplits = new Node(Mcv2Internals.field(equal.getClass(), equal, "node")).isSplit();
+    assertFalse(equalSplits);
+
     final Object cheaper = descend(state, 0, 0, 0, Math.nextDown(cost));
     final Node split = new Node(Mcv2Internals.field(cheaper.getClass(), cheaper, "node"));
-    assertTrue(split.isSplit());
-    assertEquals(Mcv2Trees.solid(40, 0, 0), split.getChild(0));
-    assertEquals(Mcv2Trees.solid(80, 0, 0), split.getChild(1));
-    assertEquals(Mcv2Trees.solid(0, 40, 0), split.getChild(2));
-    assertEquals(Mcv2Trees.solid(0, 80, 0), split.getChild(3));
+    final boolean cheaperSplits = split.isSplit();
+    assertTrue(cheaperSplits);
+    final Node expectedTopLeft = Mcv2Trees.solid(40, 0, 0);
+    final Node topLeft = split.getChild(0);
+    assertEquals(expectedTopLeft, topLeft);
+    final Node expectedTopRight = Mcv2Trees.solid(80, 0, 0);
+    final Node topRight = split.getChild(1);
+    assertEquals(expectedTopRight, topRight);
+    final Node expectedBottomLeft = Mcv2Trees.solid(0, 40, 0);
+    final Node bottomLeft = split.getChild(2);
+    assertEquals(expectedBottomLeft, bottomLeft);
+    final Node expectedBottomRight = Mcv2Trees.solid(0, 80, 0);
+    final Node bottomRight = split.getChild(3);
+    assertEquals(expectedBottomRight, bottomRight);
   }
 
   @Test
@@ -460,9 +506,12 @@ final class MCV2SearchTest {
       final Object coders = idle.iterator().next();
       for (int frame = 1; frame < 4; frame++) {
         encoder.encode(new byte[3], 1, 1, frame);
-        assertTrue(busy.isEmpty());
-        assertEquals(1, idle.size());
-        assertEquals(coders, idle.iterator().next());
+        final boolean noneBusy = busy.isEmpty();
+        assertTrue(noneBusy);
+        final int idleCount = idle.size();
+        assertEquals(1, idleCount);
+        final Object idleCoders = idle.iterator().next();
+        assertEquals(coders, idleCoders);
       }
     }
   }
@@ -482,23 +531,37 @@ final class MCV2SearchTest {
         encoder.encode(source, width, height, 0);
         final byte[] reference = encoder.getReference();
         encoder.encode(source, width, height, 1);
-        assertEquals(9 * 5, ((int[]) Mcv2Internals.field(MCV2.class, encoder, "motion")).length);
+        final int expectedMotionLength = 9 * 5;
+        final int motionLength = ((int[]) Mcv2Internals.field(MCV2.class, encoder, "motion")).length;
+        assertEquals(expectedMotionLength, motionLength);
+
         final Class<?> buffersType = Mcv2Internals.nested("Buffers");
         final Object buffers = Mcv2Internals.field(MCV2.class, encoder, "buffers");
         final byte[] half = (byte[]) Mcv2Internals.field(buffersType, buffers, "half");
         final byte[] quarter = (byte[]) Mcv2Internals.field(buffersType, buffers, "quarter");
-        assertEquals(halfWidth * halfHeight * 3, half.length);
-        assertEquals(quarterWidth * quarterHeight * 3, quarter.length);
-        assertArrayEquals(Mcv2BlockState.half(reference, width, height, new byte[half.length]), half);
-        assertArrayEquals(Mcv2BlockState.half(half, halfWidth, halfHeight, new byte[quarter.length]), quarter);
+        final int expectedHalfLength = halfWidth * halfHeight * 3;
+        final int halfLength = half.length;
+        assertEquals(expectedHalfLength, halfLength);
+        final int expectedQuarterLength = quarterWidth * quarterHeight * 3;
+        final int quarterLength = quarter.length;
+        assertEquals(expectedQuarterLength, quarterLength);
+        final byte[] expectedHalf = Mcv2BlockState.half(reference, width, height, new byte[half.length]);
+        assertArrayEquals(expectedHalf, half);
+        final byte[] expectedQuarter = Mcv2BlockState.half(half, halfWidth, halfHeight, new byte[quarter.length]);
+        assertArrayEquals(expectedQuarter, quarter);
+
         final Collection<?> idle = (Collection<?>) Mcv2Internals.field(MCV2.class, encoder, "idleCoders");
         final Object coders = idle.iterator().next();
         final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
         for (int level = 0; level < 3; level++) {
           final Object coder = Array.get(coders, level);
           final int size = 32 >> level;
-          assertEquals((size / 2) * (size / 2) * 3, ((int[]) Mcv2Internals.field(coderType, coder, "halfSource")).length);
-          assertEquals((size / 4) * (size / 4) * 3, ((int[]) Mcv2Internals.field(coderType, coder, "quarterSource")).length);
+          final int expectedHalfSourceLength = (size / 2) * (size / 2) * 3;
+          final int halfSourceLength = ((int[]) Mcv2Internals.field(coderType, coder, "halfSource")).length;
+          assertEquals(expectedHalfSourceLength, halfSourceLength);
+          final int expectedQuarterSourceLength = (size / 4) * (size / 4) * 3;
+          final int quarterSourceLength = ((int[]) Mcv2Internals.field(coderType, coder, "quarterSource")).length;
+          assertEquals(expectedQuarterSourceLength, quarterSourceLength);
         }
       }
     }
@@ -520,14 +583,22 @@ final class MCV2SearchTest {
     }
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT.withLambda(2), pool, 1, true);
-      assertEquals(4, Mcv2Decoder.parse(encoder.encode(reference, 32, 32, 0)).getLeafCount());
-      assertArrayEquals(reference, encoder.getReference());
+      final int firstLeafCount = Mcv2Decoder.parse(encoder.encode(reference, 32, 32, 0)).getLeafCount();
+      assertEquals(4, firstLeafCount);
+      final byte @Nullable [] firstReference = encoder.getReference();
+      assertArrayEquals(reference, firstReference);
+
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(source, 32, 32, 1));
-      assertEquals(1, frame.getLeafCount());
-      assertEquals(32, frame.getLeaf(0).size());
-      assertEquals(Mcv2Decoder.MODE_SKIP, frame.getLeaf(0).mode());
-      assertArrayEquals(reference, Mcv2Decoder.decode(frame, reference, 0));
-      assertArrayEquals(reference, encoder.getReference());
+      final int leafCount = frame.getLeafCount();
+      assertEquals(1, leafCount);
+      final int leafSize = frame.getLeaf(0).size();
+      assertEquals(32, leafSize);
+      final int leafMode = frame.getLeaf(0).mode();
+      assertEquals(Mcv2Decoder.MODE_SKIP, leafMode);
+      final byte[] decoded = Mcv2Decoder.decode(frame, reference, 0);
+      assertArrayEquals(reference, decoded);
+      final byte @Nullable [] nextReference = encoder.getReference();
+      assertArrayEquals(reference, nextReference);
     }
   }
 
@@ -543,7 +614,8 @@ final class MCV2SearchTest {
           ranges.add((Integer) arguments[7]);
           return 0;
         }
-        assertEquals("halve", method.getName());
+        final String methodName = method.getName();
+        assertEquals("halve", methodName);
         return null;
       });
       final Class<?> coderType = Mcv2Internals.nested("BlockCoder");
@@ -554,8 +626,10 @@ final class MCV2SearchTest {
         32,
         kernels
       );
-      assertEquals(0, Mcv2Internals.invoke(coderType, coder, "coarseMotion", new Class<?>[] { int.class }, 2));
-      assertEquals(fast ? List.of(12) : List.of(6, 12), ranges);
+      final Object coarseMotion = Mcv2Internals.invoke(coderType, coder, "coarseMotion", new Class<?>[] { int.class }, 2);
+      assertEquals(0, coarseMotion);
+      final List<Integer> expectedRanges = fast ? List.of(12) : List.of(6, 12);
+      assertEquals(expectedRanges, ranges);
     }
   }
 
@@ -573,11 +647,15 @@ final class MCV2SearchTest {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT.withLambda(2), pool, 1, true);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(source, 32, 32, 0));
-      assertEquals(4, frame.getLeafCount());
+      final int leafCount = frame.getLeafCount();
+      assertEquals(4, leafCount);
+
       for (int index = 0; index < frame.getLeafCount(); index++) {
         final Mcv2Decoder.Leaf leaf = frame.getLeaf(index);
-        assertEquals(16, leaf.size());
-        assertEquals(Mcv2Decoder.MODE_SOLID, leaf.mode());
+        final int leafSize = leaf.size();
+        assertEquals(16, leafSize);
+        final int leafMode = leaf.mode();
+        assertEquals(Mcv2Decoder.MODE_SOLID, leafMode);
       }
       final byte[] expected = new byte[source.length];
       for (int row = 0; row < 32; row++) {
@@ -588,7 +666,8 @@ final class MCV2SearchTest {
           expected[pixel + 2] = source[pixel + 2];
         }
       }
-      assertArrayEquals(expected, Mcv2Decoder.decode(frame, null, 0));
+      final byte[] decoded = Mcv2Decoder.decode(frame, null, 0);
+      assertArrayEquals(expected, decoded);
     }
   }
 
@@ -600,9 +679,8 @@ final class MCV2SearchTest {
       picture[index * 3] = (byte) red[index];
       picture[index * 3 + 1] = (byte) index;
     }
-    assertArrayEquals(
-      new byte[] { 6, 2, 0, 15, 4, 0, (byte) 150, 7, 0, (byte) 255, 8, 0 },
-      Mcv2BlockState.half(picture, 3, 3, new byte[2 * 2 * 3])
-    );
+    final byte[] expected = { 6, 2, 0, 15, 4, 0, (byte) 150, 7, 0, (byte) 255, 8, 0 };
+    final byte[] half = Mcv2BlockState.half(picture, 3, 3, new byte[2 * 2 * 3]);
+    assertArrayEquals(expected, half);
   }
 }

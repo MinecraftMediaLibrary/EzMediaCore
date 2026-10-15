@@ -143,9 +143,15 @@ final class ScoreboardRendererTest {
     this.viewers.add(VIEWER);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(this.createConfiguration(3));
     renderer.show();
-    assertSame(this.scoreboards.getBoard(), this.viewer.getScoreboard());
+
+    final Scoreboard expectedBoard = this.scoreboards.getBoard();
+    final Scoreboard shown = this.viewer.getScoreboard();
+    assertSame(expectedBoard, shown);
+
     renderer.hide();
-    assertSame(this.previousBoard, this.viewer.getScoreboard(), "duplicate entries must not replace the saved original board");
+
+    final Scoreboard restored = this.viewer.getScoreboard();
+    assertSame(this.previousBoard, restored, "duplicate entries must not replace the saved original board");
   }
 
   @Test
@@ -303,7 +309,8 @@ final class ScoreboardRendererTest {
     final Field retainedField = ScoreboardRenderer.class.getDeclaredField("previousScoreboards");
     retainedField.setAccessible(true);
     final Map<?, ?> retained = (Map<?, ?>) retainedField.get(renderer);
-    assertTrue(retained.isEmpty(), "released displays must not retain obsolete rendering state");
+    final boolean retainsNothing = retained.isEmpty();
+    assertTrue(retainsNothing, "released displays must not retain obsolete rendering state");
     verify(objective, times(1)).unregister();
     for (final Team team : teams) {
       verify(team, times(1)).unregister();

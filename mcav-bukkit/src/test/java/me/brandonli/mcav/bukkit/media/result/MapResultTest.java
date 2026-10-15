@@ -37,6 +37,7 @@ import me.brandonli.mcav.media.player.pipeline.filter.video.dither.algorithm.Dit
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -175,7 +176,8 @@ final class MapResultTest {
     for (final Packet<?> bundle : this.server.getSentPackets(VIEWER)) {
       for (final ClientboundMapItemDataPacket packet : MapPackets.unbundle(bundle)) {
         final int column = packet.mapId().id() - 5;
-        assertTrue(column >= 0 && column < columns);
+        final boolean insideTheGrid = column >= 0 && column < columns;
+        assertTrue(insideTheGrid);
         final MapItemSavedData.MapPatch update = packet.colorPatch().orElseThrow();
         for (int row = 0; row < update.height(); row++) {
           final int offset = (update.startY() + row) * canvasWidth + column * 128 + update.startX();
@@ -227,9 +229,11 @@ final class MapResultTest {
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenReturn(new byte[length]);
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF102030)) {
       final IllegalArgumentException failure = assertThrows(IllegalArgumentException.class, () -> result.process(image, this.algorithm));
-      assertEquals("Image size does not match layout", failure.getMessage());
+      final @Nullable String message = failure.getMessage();
+      assertEquals("Image size does not match layout", message);
     }
-    assertEquals(List.of(), this.server.getSentPackets(VIEWER), "invalid converted pixels must not reach the viewer");
+    final List<Packet<?>> sent = this.server.getSentPackets(VIEWER);
+    assertEquals(List.of(), sent, "invalid converted pixels must not reach the viewer");
   }
 
   @Test

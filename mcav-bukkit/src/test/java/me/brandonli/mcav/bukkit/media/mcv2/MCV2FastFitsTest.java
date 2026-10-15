@@ -39,7 +39,8 @@ final class MCV2FastFitsTest {
     }
     final int[] endpoints = new int[6];
     Mcv2Internals.javaKernels().cluster(source, size, endpoints);
-    assertArrayEquals(new int[] { 10, 20, 30, 200, 210, 220 }, endpoints);
+    final int[] expected = new int[] { 10, 20, 30, 200, 210, 220 };
+    assertArrayEquals(expected, endpoints);
   }
 
   @Test
@@ -49,6 +50,7 @@ final class MCV2FastFitsTest {
     Arrays.fill(source, 77);
     final int[] endpoints = new int[6];
     Mcv2Internals.javaKernels().cluster(source, 8, endpoints);
-    assertArrayEquals(new int[] { 77, 77, 77, 77, 77, 77 }, endpoints);
+    final int[] expected = new int[] { 77, 77, 77, 77, 77, 77 };
+    assertArrayEquals(expected, endpoints);
   }
 }

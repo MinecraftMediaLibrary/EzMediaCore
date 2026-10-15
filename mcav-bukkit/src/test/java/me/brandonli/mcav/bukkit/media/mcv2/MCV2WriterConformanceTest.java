@@ -54,17 +54,16 @@ final class MCV2WriterConformanceTest {
     for (int index = 0; index < frames.size(); index++) {
       final byte[] data = frames.get(index);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
-      assertArrayEquals(
-        canonical.get(index),
-        Mcv2Trees.write(
-          frame.getWidth(),
-          frame.getHeight(),
-          frame.getFrameId(),
-          frame.getReferenceId(),
-          frame.isKeyframe(),
-          Mcv2Trees.read(frame)
-        )
+      final byte[] expected = canonical.get(index);
+      final byte[] rebuilt = Mcv2Trees.write(
+        frame.getWidth(),
+        frame.getHeight(),
+        frame.getFrameId(),
+        frame.getReferenceId(),
+        frame.isKeyframe(),
+        Mcv2Trees.read(frame)
       );
+      assertArrayEquals(expected, rebuilt);
     }
   }
 }

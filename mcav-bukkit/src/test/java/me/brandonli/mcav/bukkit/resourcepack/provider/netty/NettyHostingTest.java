@@ -163,7 +163,8 @@ final class NettyHostingTest {
           final ByteBuf headers = channel.readOutbound();
           final String text = headers.toString(StandardCharsets.US_ASCII);
           headers.release();
-          assertTrue(text.startsWith("HTTP/1.1 200 OK"));
+          final boolean served = text.startsWith("HTTP/1.1 200 OK");
+          assertTrue(served);
           final ByteBuf body = channel.readOutbound();
           final byte[] received = ByteBufUtil.getBytes(body);
           body.release();
@@ -196,8 +197,10 @@ final class NettyHostingTest {
     second.shutdown();
     final int after = listenerCount();
 
-    assertEquals(before + 2, running, "starting twice registers one listener, and every instance has its own");
-    assertEquals(before + 1, afterFirstShutdown);
+    final int expectedRunning = before + 2;
+    assertEquals(expectedRunning, running, "starting twice registers one listener, and every instance has its own");
+    final int expectedAfterFirstShutdown = before + 1;
+    assertEquals(expectedAfterFirstShutdown, afterFirstShutdown);
     assertEquals(before, after);
   }
 
@@ -210,8 +213,10 @@ final class NettyHostingTest {
     final String secondName = second.getHandlerName();
 
     assertNotEquals(firstName, secondName, "two instances must not install handlers under one name");
-    assertTrue(firstName.startsWith(ResourcePackHttpHandler.NAME), firstName);
-    assertTrue(secondName.startsWith(ResourcePackHttpHandler.NAME), secondName);
+    final boolean firstNamePrefixed = firstName.startsWith(ResourcePackHttpHandler.NAME);
+    assertTrue(firstNamePrefixed, firstName);
+    final boolean secondNamePrefixed = secondName.startsWith(ResourcePackHttpHandler.NAME);
+    assertTrue(secondNamePrefixed, secondName);
   }
 
   @Test
@@ -278,7 +283,8 @@ final class NettyHostingTest {
 
     final String message = exception.getMessage();
     final int after = listenerCount();
-    assertEquals("Resource pack does not exist: " + missing, message);
+    final String expectedMessage = "Resource pack does not exist: " + missing;
+    assertEquals(expectedMessage, message);
     assertEquals(before, after);
   }
 
@@ -293,7 +299,8 @@ final class NettyHostingTest {
     bukkit.when(Bukkit::getIp).thenReturn("198.51.100.1");
     final String cachedUrl = hosting.getRawUrl();
 
-    assertTrue(url.startsWith("http://203.0.113.9:25570/mcav/resourcepack_"));
+    final boolean usesThePublicAddress = url.startsWith("http://203.0.113.9:25570/mcav/resourcepack_");
+    assertTrue(usesThePublicAddress);
     assertEquals(url, cachedUrl);
   }
 
@@ -308,7 +315,8 @@ final class NettyHostingTest {
     final URI uri = URI.create(url);
     final int port = uri.getPort();
 
-    assertTrue(url.startsWith("http://[2001:db8::5]:25570/mcav/resourcepack_"));
+    final boolean bracketed = url.startsWith("http://[2001:db8::5]:25570/mcav/resourcepack_");
+    assertTrue(bracketed);
     assertEquals(25570, port, "the URL can be parsed");
   }
 
@@ -335,8 +343,10 @@ final class NettyHostingTest {
       final String resolvedUrl = hosting.getRawUrl();
       final String cachedUrl = hosting.getRawUrl();
 
-      assertTrue(fallbackUrl.startsWith("http://localhost:25565/mcav/resourcepack_"));
-      assertTrue(resolvedUrl.startsWith("http://198.51.100.7:25565/mcav/resourcepack_"), "the fallback is not cached");
+      final boolean fallsBackToLocalhost = fallbackUrl.startsWith("http://localhost:25565/mcav/resourcepack_");
+      assertTrue(fallsBackToLocalhost);
+      final boolean usesTheResolvedAddress = resolvedUrl.startsWith("http://198.51.100.7:25565/mcav/resourcepack_");
+      assertTrue(usesTheResolvedAddress, "the fallback is not cached");
       assertEquals(resolvedUrl, cachedUrl, "a resolved address is cached");
     }
   }

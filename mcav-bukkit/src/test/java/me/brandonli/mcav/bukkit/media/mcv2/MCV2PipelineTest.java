@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -123,9 +124,15 @@ final class MCV2PipelineTest {
     factory.set(encoder, original);
     for (int frame = 0; frame < 3; frame++) {
       final byte[] source = new byte[failed.length];
-      assertArrayEquals(control.encode(source, 32, 32, frame), encoder.encode(source, 32, 32, frame));
-      assertEquals(control.getStats().lambda(), encoder.getStats().lambda());
-      assertArrayEquals(control.getReference(), encoder.getReference());
+      final byte[] expected = control.encode(source, 32, 32, frame);
+      final byte[] encoded = encoder.encode(source, 32, 32, frame);
+      assertArrayEquals(expected, encoded);
+      final double expectedLambda = control.getStats().lambda();
+      final double lambda = encoder.getStats().lambda();
+      assertEquals(expectedLambda, lambda);
+      final byte @Nullable [] expectedReference = control.getReference();
+      final byte @Nullable [] reference = encoder.getReference();
+      assertArrayEquals(expectedReference, reference);
     }
   }
 
@@ -142,7 +149,8 @@ final class MCV2PipelineTest {
       (Supplier<?>) () -> {
         searching.countDown();
         try {
-          assertTrue(resume.await(30, TimeUnit.SECONDS));
+          final boolean resumed = resume.await(30, TimeUnit.SECONDS);
+          assertTrue(resumed);
         } catch (final InterruptedException exception) {
           Thread.currentThread().interrupt();
           throw new AssertionError(exception);
@@ -153,19 +161,29 @@ final class MCV2PipelineTest {
     try (final ExecutorService caller = Executors.newSingleThreadExecutor()) {
       final Future<MCV2.Pending> first = caller.submit(() -> encoder.begin(new byte[3], 1, 1, 0));
       try {
-        assertTrue(searching.await(30, TimeUnit.SECONDS));
+        final boolean searchStarted = searching.await(30, TimeUnit.SECONDS);
+        assertTrue(searchStarted);
+
         encoder.requestKeyframe();
         encoder.switchTo(Settings.FAST);
       } finally {
         resume.countDown();
       }
-      assertEquals(72, encoder.finish(first.get()).getStats().lambda());
+      final double firstLambda = encoder.finish(first.get()).getStats().lambda();
+      assertEquals(72, firstLambda);
+
       final MCV2.Pending requested = encoder.begin(new byte[3], 1, 1, 1);
-      assertTrue(requested.isKeyframe());
-      assertEquals(55, encoder.finish(requested).getStats().lambda());
+      final boolean keyframeRequested = requested.isKeyframe();
+      assertTrue(keyframeRequested);
+      final double requestedLambda = encoder.finish(requested).getStats().lambda();
+      assertEquals(55, requestedLambda);
+
       for (int frameId = 2; frameId <= 121; frameId++) {
         final MCV2.Pending pending = encoder.begin(new byte[3], 1, 1, frameId);
-        assertEquals(frameId == 121, pending.isKeyframe());
+        final boolean expectedKeyframe = frameId == 121;
+        final boolean keyframe = pending.isKeyframe();
+        assertEquals(expectedKeyframe, keyframe);
+
         encoder.finish(pending);
       }
     }
@@ -180,7 +198,10 @@ final class MCV2PipelineTest {
         final List<byte[]> two = pipelined(settings, 100, 70, 7, 3, requestEvery);
         final Mcv2Receiver client = new Mcv2Receiver();
         for (int frameIndex = 0; frameIndex < one.size(); frameIndex++) {
-          assertArrayEquals(one.get(frameIndex), two.get(frameIndex), settings + " frame " + frameIndex);
+          final byte[] expected = one.get(frameIndex);
+          final byte[] pipelinedFrame = two.get(frameIndex);
+          assertArrayEquals(expected, pipelinedFrame, settings + " frame " + frameIndex);
+
           client.accept(two.get(frameIndex));
         }
       }
@@ -192,13 +213,17 @@ final class MCV2PipelineTest {
     final MCV2 encoder = new MCV2(Settings.FAST, POOL, 2, true);
     final MCV2.Pending first = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
-    assertEquals(
-      "Two frames are in flight already",
-      assertThrows(IllegalStateException.class, () -> encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)).getMessage()
+    final IllegalStateException beginException = assertThrows(IllegalStateException.class, () ->
+      encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)
     );
+    final String beginMessage = beginException.getMessage();
+    assertEquals("Two frames are in flight already", beginMessage);
+
     encoder.finish(first);
     encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2);
-    assertEquals("The frame is finished already", assertThrows(IllegalStateException.class, () -> encoder.finish(first)).getMessage());
+    final IllegalStateException finishException = assertThrows(IllegalStateException.class, () -> encoder.finish(first));
+    final String finishMessage = finishException.getMessage();
+    assertEquals("The frame is finished already", finishMessage);
     assertThrows(NullPointerException.class, () -> encoder.finish(null));
   }
 
@@ -210,16 +235,18 @@ final class MCV2PipelineTest {
     final var picture = MCV2.Pending.class.getDeclaredField("picture");
     picture.setAccessible(true);
     ((byte[]) picture.get(frame))[0] ^= 1;
-    assertEquals(
-      "MCV2 live picture and decoded picture disagree",
-      assertThrows(IllegalStateException.class, () -> encoder.finish(frame)).getMessage()
-    );
+    final IllegalStateException finishException = assertThrows(IllegalStateException.class, () -> encoder.finish(frame));
+    final String finishMessage = finishException.getMessage();
+    assertEquals("MCV2 live picture and decoded picture disagree", finishMessage);
     // the frame in flight predicts from the failed frame's picture: it is never finished, and nothing is encoded after
-    assertEquals(STOPPED, assertThrows(IllegalStateException.class, () -> encoder.finish(next)).getMessage());
-    assertEquals(
-      STOPPED,
-      assertThrows(IllegalStateException.class, () -> encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)).getMessage()
+    final IllegalStateException nextException = assertThrows(IllegalStateException.class, () -> encoder.finish(next));
+    final String nextMessage = nextException.getMessage();
+    assertEquals(STOPPED, nextMessage);
+    final IllegalStateException beginException = assertThrows(IllegalStateException.class, () ->
+      encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)
     );
+    final String beginMessage = beginException.getMessage();
+    assertEquals(STOPPED, beginMessage);
     assertThrows(IllegalStateException.class, () -> encoder.encode(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2));
   }
 
@@ -231,9 +258,13 @@ final class MCV2PipelineTest {
     picture.setAccessible(true);
     ((byte[]) picture.get(frame))[0] ^= 1;
     final MCV2.Encoded encoded = encoder.finish(frame);
-    assertEquals(encoded.getData().length, encoded.getStats().bytes());
-    assertTrue(encoded.getStats().keyframe());
-    assertTrue(encoded.getStats().nanoseconds() > 0);
+    final int expectedBytes = encoded.getData().length;
+    final int bytes = encoded.getStats().bytes();
+    assertEquals(expectedBytes, bytes);
+    final boolean keyframe = encoded.getStats().keyframe();
+    assertTrue(keyframe);
+    final boolean timed = encoded.getStats().nanoseconds() > 0;
+    assertTrue(timed);
   }
 
   @Test
@@ -257,11 +288,15 @@ final class MCV2PipelineTest {
       }
     }
     keyframes.add(encoder.finish(frames.get(4)).getStats().keyframe());
-    assertEquals(List.of(true, false, false, true, false), keyframes);
-    assertTrue(frames.get(3).isKeyframe());
-    assertFalse(frames.get(2).isKeyframe());
+    final List<Boolean> expected = List.of(true, false, false, true, false);
+    assertEquals(expected, keyframes);
+    final boolean requestedKeyframe = frames.get(3).isKeyframe();
+    assertTrue(requestedKeyframe);
+    final boolean inFlightKeyframe = frames.get(2).isKeyframe();
+    assertFalse(inFlightKeyframe);
     final MCV2.Stats last = encoder.getStats();
     assertNotNull(last);
-    assertFalse(last.keyframe());
+    final boolean lastKeyframe = last.keyframe();
+    assertFalse(lastKeyframe);
   }
 }

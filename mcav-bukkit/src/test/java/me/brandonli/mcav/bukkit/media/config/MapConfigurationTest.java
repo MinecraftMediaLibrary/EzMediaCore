@@ -196,6 +196,7 @@ final class MapConfigurationTest {
     builder.mapBlockWidth(maps);
     final MapConfiguration configuration = builder.build();
     final int resolution = configuration.getMapWidthResolution();
-    assertEquals(maps * 128, resolution);
+    final int expected = maps * 128;
+    assertEquals(expected, resolution);
   }
 }

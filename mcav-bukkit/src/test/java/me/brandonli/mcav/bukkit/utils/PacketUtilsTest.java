@@ -61,6 +61,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -123,16 +124,22 @@ final class PacketUtilsTest {
     this.server.addPlayer(SECOND);
     this.server.injectModule();
     final Object original = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
-    assertNotSame(original, PacketUtils.connectionIdentity(SECOND));
-    assertNull(PacketUtils.connectionIdentity(LATE));
+    final @Nullable Object second = PacketUtils.connectionIdentity(SECOND);
+    assertNotSame(original, second);
+    final @Nullable Object late = PacketUtils.connectionIdentity(LATE);
+    assertNull(late);
+
     final Listener listener = this.captureListener(1);
     final EventExecutor join = this.captureExecutor(PlayerJoinEvent.class, EventPriority.LOWEST);
     final PlayerJoinEvent joined = mock(PlayerJoinEvent.class);
     when(joined.getPlayer()).thenReturn(first);
     join.execute(listener, joined);
-    assertSame(original, PacketUtils.connectionIdentity(FIRST), "a repeated event cannot invalidate a live baseline");
+    final @Nullable Object rejoined = PacketUtils.connectionIdentity(FIRST);
+    assertSame(original, rejoined, "a repeated event cannot invalidate a live baseline");
+
     PacketUtils.init();
-    assertSame(original, PacketUtils.connectionIdentity(FIRST), "refreshing the cache keeps a live connection's identity");
+    final @Nullable Object refreshed = PacketUtils.connectionIdentity(FIRST);
+    assertSame(original, refreshed, "refreshing the cache keeps a live connection's identity");
 
     this.server.removePlayer(FIRST);
     final CraftPlayer replacement = this.server.addPlayer(FIRST);
@@ -141,11 +148,12 @@ final class PacketUtilsTest {
     final Object reconnected = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
     assertNotSame(original, reconnected, "a new connection cannot inherit the previous client's map state");
     PacketUtils.shutdown();
-    assertNull(PacketUtils.connectionIdentity(FIRST));
-    assertEquals(
-      "Player must not be null",
-      assertThrows(NullPointerException.class, () -> PacketUtils.connectionIdentity(null)).getMessage()
-    );
+    final @Nullable Object afterShutdown = PacketUtils.connectionIdentity(FIRST);
+    assertNull(afterShutdown);
+
+    final NullPointerException exception = assertThrows(NullPointerException.class, () -> PacketUtils.connectionIdentity(null));
+    final @Nullable String message = exception.getMessage();
+    assertEquals("Player must not be null", message);
   }
 
   @Test
@@ -243,18 +251,26 @@ final class PacketUtilsTest {
   void shouldCapTheUnsentBytesOfAConnectionThatTakesTheOption() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
-    assertFalse(PacketUtils.limitUnsent(SECOND, 1024));
-    assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
+    final boolean offlineLimited = PacketUtils.limitUnsent(SECOND, 1024);
+    assertFalse(offlineLimited);
+    final boolean unconnectedLimited = PacketUtils.limitUnsent(FIRST, 1024);
+    assertFalse(unconnectedLimited);
+
     final Connection connection = useConnection();
-    assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
+    final boolean channellessLimited = PacketUtils.limitUnsent(FIRST, 1024);
+    assertFalse(channellessLimited);
+
     connection.channel = new EmbeddedChannel();
-    assertFalse(PacketUtils.limitUnsent(FIRST, 1024));
+    final boolean embeddedLimited = PacketUtils.limitUnsent(FIRST, 1024);
+    assertFalse(embeddedLimited);
+
     final Channel epoll = mock(Channel.class);
     final ChannelConfig config = mock(ChannelConfig.class);
     when(epoll.config()).thenReturn(config);
     when(config.setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L)).thenReturn(true);
     connection.channel = epoll;
-    assertTrue(PacketUtils.limitUnsent(FIRST, 1024));
+    final boolean epollLimited = PacketUtils.limitUnsent(FIRST, 1024);
+    assertTrue(epollLimited);
     verify(config).setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L);
     assertThrows(NullPointerException.class, () -> PacketUtils.limitUnsent(null, 1));
     assertThrows(IllegalArgumentException.class, () -> PacketUtils.limitUnsent(FIRST, 0));
@@ -270,20 +286,37 @@ final class PacketUtilsTest {
     final MapTilePatch page = new MapTilePatch(100, 0, 0, 128, 1, new byte[128]);
     final ClientboundBundlePacket bundle = MapPacketFactory.bundles(List.of(page)).getFirst().packet();
     final List<ChannelFuture> writes = new ArrayList<>();
-    assertTrue(PacketUtils.sendPacket(FIRST, bundle, writes::add));
+    final boolean sent = PacketUtils.sendPacket(FIRST, bundle, writes::add);
+    assertTrue(sent);
     // Paper holds a map packet that a plugin sends from another thread until the server's next tick, which put two
     // frames of a 30 fps MCV2 video into one tick about every other tick
-    assertSame(bundle, channel.readOutbound(), "the packet is written to the connection and flushed at once");
-    assertEquals(1, writes.size());
-    assertTrue(writes.getFirst().isSuccess(), "the listener runs once the write is done");
-    assertTrue(channel.close().isSuccess());
-    assertTrue(PacketUtils.sendPacket(FIRST, bundle, writes::add));
-    assertEquals(2, writes.size());
-    assertFalse(writes.getLast().isSuccess(), "a write that fails runs the listener too");
+    final @Nullable Object written = channel.readOutbound();
+    assertSame(bundle, written, "the packet is written to the connection and flushed at once");
+    final int writeCount = writes.size();
+    assertEquals(1, writeCount);
+    final ChannelFuture firstWrite = writes.getFirst();
+    final boolean firstWriteSucceeded = firstWrite.isSuccess();
+    assertTrue(firstWriteSucceeded, "the listener runs once the write is done");
+
+    final ChannelFuture closing = channel.close();
+    final boolean closed = closing.isSuccess();
+    assertTrue(closed);
+
+    final boolean sentToClosed = PacketUtils.sendPacket(FIRST, bundle, writes::add);
+    assertTrue(sentToClosed);
+    final int writeCountAfterClose = writes.size();
+    assertEquals(2, writeCountAfterClose);
+    final ChannelFuture lastWrite = writes.getLast();
+    final boolean lastWriteSucceeded = lastWrite.isSuccess();
+    assertFalse(lastWriteSucceeded, "a write that fails runs the listener too");
+
     connection.channel = null;
-    assertFalse(PacketUtils.sendPacket(FIRST, bundle, writes::add), "a connection that is not open yet takes nothing");
-    assertFalse(PacketUtils.sendPacket(SECOND, bundle, writes::add), "a player who is not online takes nothing");
-    assertEquals(2, writes.size(), "the listener of a packet that was not sent never runs");
+    final boolean sentWithoutChannel = PacketUtils.sendPacket(FIRST, bundle, writes::add);
+    assertFalse(sentWithoutChannel, "a connection that is not open yet takes nothing");
+    final boolean sentOffline = PacketUtils.sendPacket(SECOND, bundle, writes::add);
+    assertFalse(sentOffline, "a player who is not online takes nothing");
+    final int writeCountAfterUnsent = writes.size();
+    assertEquals(2, writeCountAfterUnsent, "the listener of a packet that was not sent never runs");
   }
 
   @Test

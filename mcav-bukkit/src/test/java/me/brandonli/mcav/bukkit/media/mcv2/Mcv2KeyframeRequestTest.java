@@ -28,15 +28,20 @@ final class Mcv2KeyframeRequestTest {
   @Test
   void shouldNeedNoKeyframeUntilOneIsRequested() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
-    assertFalse(requests.take());
+
+    final boolean taken = requests.take();
+    assertFalse(taken);
   }
 
   @Test
   void shouldLetOnlyOneFrameTakeTheRequest() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
-    assertTrue(requests.take());
-    assertFalse(requests.take(), "the frame after it needs no keyframe");
+
+    final boolean firstTaken = requests.take();
+    assertTrue(firstTaken);
+    final boolean secondTaken = requests.take();
+    assertFalse(secondTaken, "the frame after it needs no keyframe");
   }
 
   @Test
@@ -44,7 +49,10 @@ final class Mcv2KeyframeRequestTest {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
     requests.request();
-    assertTrue(requests.take());
-    assertFalse(requests.take());
+
+    final boolean firstTaken = requests.take();
+    assertTrue(firstTaken);
+    final boolean secondTaken = requests.take();
+    assertFalse(secondTaken);
   }
 }

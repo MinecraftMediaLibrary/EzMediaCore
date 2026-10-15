@@ -170,7 +170,8 @@ final class Mcv2ParserPropertyTest {
     } catch (final Mcv2Exception rejected) {
       return;
     }
-    assertEquals(size, picture.length);
+    final int pictureLength = picture.length;
+    assertEquals(size, pictureLength);
   }
 
   @Property(seed = SEED, tries = 2000)
@@ -207,7 +208,8 @@ final class Mcv2ParserPropertyTest {
 
   @Property(seed = SEED, tries = 300)
   void shouldCarryAnyBytesExactlyInSymbols(@ForAll @Size(max = 2000) final byte[] data) throws Mcv2Exception {
-    assertArrayEquals(data, TransportPages.fromSymbols(TransportPages.toSymbols(data), data.length));
+    final byte[] carried = TransportPages.fromSymbols(TransportPages.toSymbols(data), data.length);
+    assertArrayEquals(data, carried);
   }
 
   /**
@@ -228,15 +230,28 @@ final class Mcv2ParserPropertyTest {
     final ByteArrayOutputStream payloads = new ByteArrayOutputStream();
     for (int number = 0; number < pages.size(); number++) {
       final TransportPage page = TransportPages.readPage(pages.get(number));
-      assertEquals(stream, page.getStreamId());
-      assertEquals(parsed.getFrameId(), page.getFrameId());
-      assertEquals(parsed.getReferenceId(), page.getReferenceId());
-      assertEquals(number, page.getNumber());
-      assertEquals(pages.size(), page.getCount());
-      assertEquals(frame.length, page.getFrameBytes());
+      final long streamId = page.getStreamId();
+      assertEquals(stream, streamId);
+      final long expectedFrameId = parsed.getFrameId();
+      final long frameId = page.getFrameId();
+      assertEquals(expectedFrameId, frameId);
+      final long expectedReferenceId = parsed.getReferenceId();
+      final long referenceId = page.getReferenceId();
+      assertEquals(expectedReferenceId, referenceId);
+      final int pageNumber = page.getNumber();
+      assertEquals(number, pageNumber);
+      final int expectedCount = pages.size();
+      final int count = page.getCount();
+      assertEquals(expectedCount, count);
+      final int expectedFrameBytes = frame.length;
+      final int frameBytes = page.getFrameBytes();
+      assertEquals(expectedFrameBytes, frameBytes);
+
       payloads.writeBytes(page.getPayload());
     }
-    assertArrayEquals(frame, payloads.toByteArray());
+    final byte[] carriedFrame = payloads.toByteArray();
+    assertArrayEquals(frame, carriedFrame);
+
     final Random random = new Random(seed);
     final List<Integer> order = new ArrayList<>();
     for (int number = 0; number < pages.size(); number++) {

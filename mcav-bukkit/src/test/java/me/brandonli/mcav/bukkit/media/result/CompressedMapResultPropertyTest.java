@@ -152,7 +152,8 @@ final class CompressedMapResultPropertyTest {
     int extraFrames = 0;
     final int frameLimit = MAX_QUIET_FRAMES * (scenario.getMapCount() * 65) + MAX_QUIET_FRAMES;
     while (quietFrames < MAX_QUIET_FRAMES) {
-      assertTrue(extraFrames < frameLimit, "the viewers did not catch up");
+      final boolean withinLimit = extraFrames < frameLimit;
+      assertTrue(withinLimit, "the viewers did not catch up");
       frames.process(result, scenario, lastFrame);
       final boolean sent = models.receive(this.server);
       quietFrames = sent ? 0 : quietFrames + 1;

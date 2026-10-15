@@ -110,7 +110,8 @@ final class MapPipelineFuzzTest {
       for (int row = 0; row < patchHeight; row++) {
         for (int column = 0; column < patchWidth; column++) {
           final byte expected = frame[(sourceY + row) * imageWidth + sourceX + column];
-          assertEquals(expected, colors[row * patchWidth + column], "a patch carries the pixels of its frame");
+          final byte color = colors[row * patchWidth + column];
+          assertEquals(expected, color, "a patch carries the pixels of its frame");
         }
       }
       bytes += patch.getEncodedSize();

@@ -33,10 +33,14 @@ final class Mcv2CompactTest {
         final byte[] record = { (byte) motionX, (byte) motionY, -128, 127, -1, 0, 0x18, 0x72, 0x4E, 0x5A };
         final byte[] data = Mcv2WireFrames.block(32, 5, 2, record, false);
         final int offset = Mcv2Decoder.parse(data).getLeaf(0).offset();
-        assertEquals(motionX, data[offset]);
-        assertEquals(motionY, data[offset + 1]);
-        assertEquals(10, data.length - offset);
-        assertArrayEquals(record, Arrays.copyOfRange(data, offset, data.length));
+        final byte storedX = data[offset];
+        assertEquals(motionX, storedX);
+        final byte storedY = data[offset + 1];
+        assertEquals(motionY, storedY);
+        final int recordLength = data.length - offset;
+        assertEquals(10, recordLength);
+        final byte[] storedRecord = Arrays.copyOfRange(data, offset, data.length);
+        assertArrayEquals(record, storedRecord);
       }
     }
   }
@@ -47,7 +51,8 @@ final class Mcv2CompactTest {
       for (int length = 0; length <= 20; length++) {
         final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
         if (length == 10) {
-          assertEquals(10, data.length - Mcv2Decoder.parse(data).getPayloadStart());
+          final int payloadLength = data.length - Mcv2Decoder.parse(data).getPayloadStart();
+          assertEquals(10, payloadLength);
         } else {
           assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
         }

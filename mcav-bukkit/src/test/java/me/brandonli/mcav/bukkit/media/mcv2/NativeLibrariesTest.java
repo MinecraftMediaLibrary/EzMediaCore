@@ -108,7 +108,9 @@ final class NativeLibrariesTest {
 
   @Test
   void shouldCheckEveryPlatformTheLoaderHasALibraryFor() {
-    assertEquals(MCV2.NATIVE_DIGESTS.keySet(), PLATFORMS.keySet());
+    final Set<String> expectedPlatforms = MCV2.NATIVE_DIGESTS.keySet();
+    final Set<String> platforms = PLATFORMS.keySet();
+    assertEquals(expectedPlatforms, platforms);
   }
 
   @ParameterizedTest
@@ -116,8 +118,14 @@ final class NativeLibrariesTest {
   void shouldBeBuiltForItsPlatformAndExportItsLevels(final String platform) throws IOException {
     final Expected expected = PLATFORMS.get(platform);
     final NativeLibraryFile library = NativeLibraryFile.read(library(platform));
-    assertEquals(expected.format(), library.format(), platform);
-    assertEquals(expected.machine(), library.machine(), platform);
+
+    final Format expectedFormat = expected.format();
+    final Format format = library.format();
+    assertEquals(expectedFormat, format, platform);
+    final int expectedMachine = expected.machine();
+    final int machine = library.machine();
+    assertEquals(expectedMachine, machine, platform);
+
     final Set<String> entryPoints = new TreeSet<>(QUERIES);
     for (final Level level : expected.levels()) {
       for (final String kernel : kernels()) {
@@ -129,11 +137,15 @@ final class NativeLibrariesTest {
     for (final String symbol : library.exports()) {
       (symbol.startsWith("mcv2_") ? own : others).add(symbol);
     }
+
     assertEquals(entryPoints, own, platform);
-    assertEquals(expected.format() == Format.MACH_O ? MACH_O_LINKER_SYMBOLS : Set.of(), others, platform);
+    final Set<String> expectedOthers = expected.format() == Format.MACH_O ? MACH_O_LINKER_SYMBOLS : Set.of();
+    assertEquals(expectedOthers, others, platform);
     if (expected.format() == Format.ELF) {
-      assertEquals(List.of(), library.needed(), platform);
-      assertEquals(Set.of(), library.undefined(), platform);
+      final List<String> needed = library.needed();
+      assertEquals(List.of(), needed, platform);
+      final Set<String> undefined = library.undefined();
+      assertEquals(Set.of(), undefined, platform);
     }
   }
 
@@ -173,7 +185,10 @@ final class NativeLibrariesTest {
     while (matcher.find()) {
       kernels.add(matcher.group(1));
     }
-    assertFalse(kernels.isEmpty(), "no kernel in the source's list");
+
+    final boolean empty = kernels.isEmpty();
+    assertFalse(empty, "no kernel in the source's list");
+
     return kernels;
   }
 

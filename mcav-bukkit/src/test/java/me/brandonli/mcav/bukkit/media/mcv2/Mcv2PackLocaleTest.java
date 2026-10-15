@@ -27,8 +27,10 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
@@ -51,10 +53,15 @@ final class Mcv2PackLocaleTest {
       final Map<String, String> expected = this.shaders(configuration, "root.zip");
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
       final Map<String, String> actual = this.shaders(configuration, "localized.zip");
-      assertFalse(expected.isEmpty());
-      assertEquals(expected.keySet(), actual.keySet());
+      final boolean empty = expected.isEmpty();
+      assertFalse(empty);
+      final Set<String> expectedNames = expected.keySet();
+      final Set<String> actualNames = actual.keySet();
+      assertEquals(expectedNames, actualNames);
       for (final Map.Entry<String, String> shader : expected.entrySet()) {
-        assertEquals(shader.getValue(), actual.get(shader.getKey()), shader.getKey() + " must keep locale-independent GLSL numbers");
+        final String expectedShader = shader.getValue();
+        final @Nullable String actualShader = actual.get(shader.getKey());
+        assertEquals(expectedShader, actualShader, shader.getKey() + " must keep locale-independent GLSL numbers");
       }
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);

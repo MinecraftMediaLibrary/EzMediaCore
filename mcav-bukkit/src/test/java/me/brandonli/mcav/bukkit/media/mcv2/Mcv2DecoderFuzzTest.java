@@ -45,6 +45,7 @@ final class Mcv2DecoderFuzzTest {
     } catch (final Mcv2Exception rejected) {
       return;
     }
-    assertEquals(size, picture.length);
+    final int pictureLength = picture.length;
+    assertEquals(size, pictureLength);
   }
 }

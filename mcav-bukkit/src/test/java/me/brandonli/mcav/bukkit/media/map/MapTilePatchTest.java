@@ -53,7 +53,8 @@ final class MapTilePatchTest {
     final MapTilePatch patch = new MapTilePatch(0, 0, 0, 3, 2, colors);
     final int size = patch.getEncodedSize();
 
-    assertEquals(6 + MapLayout.PATCH_OVERHEAD, size);
+    final int expected = 6 + MapLayout.PATCH_OVERHEAD;
+    assertEquals(expected, size);
   }
 
   @Test

@@ -31,12 +31,16 @@ final class MCV2MotionSearchTest {
 
   @Test
   void shouldPackBothPartsOfAVectorIntoOneInt() {
-    assertEquals(0x0005FFFD, pack(5, -3));
+    final int packedExample = pack(5, -3);
+    assertEquals(0x0005FFFD, packedExample);
+
     final int[][] vectors = { { 0, 0 }, { 5, -3 }, { -7, 12 }, { -32768, 32767 }, { 32767, -32768 } };
     for (final int[] vector : vectors) {
       final int packed = pack(vector[0], vector[1]);
-      assertEquals(vector[0], motionX(packed));
-      assertEquals(vector[1], motionY(packed));
+      final int motionX = motionX(packed);
+      assertEquals(vector[0], motionX);
+      final int motionY = motionY(packed);
+      assertEquals(vector[1], motionY);
     }
   }
 
@@ -94,7 +98,9 @@ final class MCV2MotionSearchTest {
   @Test
   void shouldFindAWholePixelDisplacement() {
     final int[] source = block(picture(), 32, 32, 16, 5, -3);
-    assertEquals((5 << 16) | (-3 & 0xFFFF), search(source, 8));
+    final int expected = (5 << 16) | (-3 & 0xFFFF);
+    final int found = search(source, 8);
+    assertEquals(expected, found);
   }
 
   private static int seeded(final int[] source, final int range, final int... seeds) {
@@ -109,7 +115,9 @@ final class MCV2MotionSearchTest {
   void shouldStartASeededSearchFromTheBestSeed() {
     // the true vector is far from zero but one seed is next to it: the diamond walks the last pixel
     final int[] source = block(picture(), 32, 32, 16, 10, -7);
-    assertEquals(vector(10, -7), seeded(source, 24, vector(0, 0), vector(9, -7), vector(9, -7), vector(-30, 40)));
+    final int expected = vector(10, -7);
+    final int found = seeded(source, 24, vector(0, 0), vector(9, -7), vector(9, -7), vector(-30, 40));
+    assertEquals(expected, found);
   }
 
   @Test
@@ -117,10 +125,14 @@ final class MCV2MotionSearchTest {
     // seeds past the range are clamped to its edge, and so is every step
     final int[] source = block(picture(), 32, 32, 16, 10, 0);
     final int found = seeded(source, 2, vector(100, 0), vector(-100, 0));
-    assertEquals(2, found >> 16);
+    final int foundX = found >> 16;
+    assertEquals(2, foundX);
+
     // with a range of one pixel the walk takes at most two steps, both improving here
     final int[] near = block(picture(), 32, 32, 16, 1, 1);
-    assertEquals(vector(1, 1), seeded(near, 1));
+    final int expectedNear = vector(1, 1);
+    final int foundNear = seeded(near, 1);
+    assertEquals(expectedNear, foundNear);
   }
 
   private static byte[] sampledCosts(final int[][] costs) {
@@ -142,10 +154,11 @@ final class MCV2MotionSearchTest {
   @Test
   void shouldUseANonzeroSeedAcrossALocalMinimum() {
     final byte[] reference = sampledCosts(new int[][] { { 0, 0, 100 }, { 2, 2, 0 } });
-    assertEquals(
+    final int expected = vector(2, 2);
+    final int found = Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[] {
       vector(2, 2),
-      Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[] { vector(2, 2) })
-    );
+    });
+    assertEquals(expected, found);
   }
 
   @Test
@@ -158,7 +171,9 @@ final class MCV2MotionSearchTest {
       { -2, -2, 60 },
       { -1, -2, 50 },
     });
-    assertEquals(vector(-2, -2), Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[0]));
+    final int expected = vector(-2, -2);
+    final int found = Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[0]);
+    assertEquals(expected, found);
   }
 
   @Test
@@ -176,7 +191,9 @@ final class MCV2MotionSearchTest {
       }
     }
     final int found = Mcv2Internals.javaKernels().seeded(rgb, WIDTH, HEIGHT, source, 0, 0, 8, 4, new int[] { vector(-4, -4) });
-    assertEquals(true, Math.abs(found >> 16) <= 4 && Math.abs((short) found) <= 4);
-    assertEquals(vector(-4, -4), found, "the clamped corner has an exact four-pixel displacement");
+    final boolean withinRange = Math.abs(found >> 16) <= 4 && Math.abs((short) found) <= 4;
+    assertEquals(true, withinRange);
+    final int expected = vector(-4, -4);
+    assertEquals(expected, found, "the clamped corner has an exact four-pixel displacement");
   }
 }

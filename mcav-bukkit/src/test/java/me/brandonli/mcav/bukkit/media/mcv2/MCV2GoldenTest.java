@@ -53,7 +53,10 @@ final class MCV2GoldenTest {
       for (int frame = 0; frame < 8; frame++) {
         stream.writeBytes(encoder.encode(Mcv2Pictures.scene(96, 64, frame, 2), 96, 64, frame));
       }
-      assertEquals(expected.get(preset), Mcv2Fixtures.sha256(stream.toByteArray()));
+
+      final String expectedDigest = expected.get(preset);
+      final String digest = Mcv2Fixtures.sha256(stream.toByteArray());
+      assertEquals(expectedDigest, digest);
     }
   }
 
@@ -84,10 +87,15 @@ final class MCV2GoldenTest {
     try {
       final MCV2 encoder = new MCV2(settings, pool, threads, shouldVerify);
       final int frameBytes = WIDTH * HEIGHT * 3;
-      assertEquals(expected.size() * frameBytes, source.length);
+      final int expectedLength = expected.size() * frameBytes;
+      final int sourceLength = source.length;
+      assertEquals(expectedLength, sourceLength);
+
       for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
         final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
-        assertArrayEquals(expected.get(frameIndex), encoder.encode(rgb, WIDTH, HEIGHT, frameIndex), stream + " frame " + frameIndex);
+        final byte[] expectedFrame = expected.get(frameIndex);
+        final byte[] frame = encoder.encode(rgb, WIDTH, HEIGHT, frameIndex);
+        assertArrayEquals(expectedFrame, frame, stream + " frame " + frameIndex);
       }
     } finally {
       pool.shutdown();

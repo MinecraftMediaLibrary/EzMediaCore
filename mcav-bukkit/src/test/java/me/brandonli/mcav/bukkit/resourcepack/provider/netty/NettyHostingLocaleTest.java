@@ -73,9 +73,13 @@ final class NettyHostingLocaleTest {
       server.when(Bukkit::getPort).thenReturn(PORT);
       address.when(ServerAddress::getPublicIPAddress).thenReturn("127.0.0.1");
       final URI uri = URI.create(hosting.getRawUrl());
-      assertEquals(PORT, uri.getPort(), "resource-pack URLs must keep a parseable ASCII port");
-      assertEquals("127.0.0.1", uri.getHost());
-      assertTrue(uri.getRawPath().matches("/mcav/resourcepack_[0-9]+\\.zip"));
+
+      final int port = uri.getPort();
+      assertEquals(PORT, port, "resource-pack URLs must keep a parseable ASCII port");
+      final String host = uri.getHost();
+      assertEquals("127.0.0.1", host);
+      final boolean packPath = uri.getRawPath().matches("/mcav/resourcepack_[0-9]+\\.zip");
+      assertTrue(packPath);
     }
   }
 }

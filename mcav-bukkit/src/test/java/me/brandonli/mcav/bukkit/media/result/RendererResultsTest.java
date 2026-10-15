@@ -157,7 +157,9 @@ final class RendererResultsTest {
     verify(this.viewer).showEntity(plugin, display);
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
-    assertEquals("#", textCaptor.getValue().getString());
+    final String text = textCaptor.getValue().getString();
+    assertEquals("#", text);
+
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
@@ -165,7 +167,8 @@ final class RendererResultsTest {
       }
       return Optional.empty();
     }, Style.EMPTY);
-    assertEquals(List.of(0x000000), colors, "the submitted image's exact color reaches the display");
+    final List<Integer> expectedColors = List.of(0x000000);
+    assertEquals(expectedColors, colors, "the submitted image's exact color reaches the display");
     verify(display).remove();
     assertThrows(NullPointerException.class, () -> new EntityResult(null));
 
@@ -217,7 +220,8 @@ final class RendererResultsTest {
       Characters.SMALL_BLACK_SQUARE
     );
 
-    assertEquals(List.of("█", "□", "■", "○", "●", "▫", "▪"), characters);
+    final List<String> expectedCharacters = List.of("█", "□", "■", "○", "●", "▫", "▪");
+    assertEquals(expectedCharacters, characters);
     UtilityClassAssertions.assertNotInstantiable(Characters.class);
   }
 }

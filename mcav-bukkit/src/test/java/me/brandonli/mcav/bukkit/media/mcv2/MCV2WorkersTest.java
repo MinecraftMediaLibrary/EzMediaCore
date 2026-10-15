@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.concurrent.atomic.AtomicReference;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /** The loop runner of the parallel decode and encode stages. */
@@ -48,12 +49,18 @@ final class MCV2WorkersTest {
     final AtomicInteger scratches = new AtomicInteger();
     final Thread caller = Thread.currentThread();
     Workers.SEQUENTIAL.forEach(5, scratches::incrementAndGet, (_, index) -> {
-      assertEquals(caller, Thread.currentThread());
+      final Thread current = Thread.currentThread();
+      assertEquals(caller, current);
+
       visited.add(index);
     });
-    assertEquals(List.of(0, 1, 2, 3, 4), visited);
-    assertEquals(1, scratches.get());
-    assertEquals(1, Workers.SEQUENTIAL.threads());
+
+    final List<Integer> expected = List.of(0, 1, 2, 3, 4);
+    assertEquals(expected, visited);
+    final int scratchCount = scratches.get();
+    assertEquals(1, scratchCount);
+    final int threadCount = Workers.SEQUENTIAL.threads();
+    assertEquals(1, threadCount);
   }
 
   @Test
@@ -61,20 +68,26 @@ final class MCV2WorkersTest {
     final ForkJoinPool pool = new ForkJoinPool(4);
     try {
       final Workers workers = new Workers(pool, 4);
-      assertEquals(4, workers.threads());
+      final int threadCount = workers.threads();
+      assertEquals(4, threadCount);
+
       final AtomicIntegerArray counts = new AtomicIntegerArray(1000);
       final Set<Thread> threads = ConcurrentHashMap.newKeySet();
       final AtomicInteger scratches = new AtomicInteger();
       workers.forEach(counts.length(), scratches::incrementAndGet, (_, index) -> {
         counts.incrementAndGet(index);
         threads.add(Thread.currentThread());
-        assertSame(pool, ForkJoinTask.getPool(), "every index must run on the supplied pool");
+        final @Nullable ForkJoinPool currentPool = ForkJoinTask.getPool();
+        assertSame(pool, currentPool, "every index must run on the supplied pool");
       });
       for (int position = 0; position < counts.length(); position++) {
-        assertEquals(1, counts.get(position), "index " + position);
+        final int count = counts.get(position);
+        assertEquals(1, count, "index " + position);
       }
-      assertEquals(4, scratches.get());
-      assertFalse(threads.contains(Thread.currentThread()));
+      final int scratchCount = scratches.get();
+      assertEquals(4, scratchCount);
+      final boolean ranOnCaller = threads.contains(Thread.currentThread());
+      assertFalse(ranOnCaller);
     } finally {
       pool.shutdownNow();
     }
@@ -87,10 +100,20 @@ final class MCV2WorkersTest {
       final AtomicInteger scratches = new AtomicInteger();
       final AtomicInteger calls = new AtomicInteger();
       new Workers(pool, 8).forEach(2, scratches::incrementAndGet, (_, _) -> calls.incrementAndGet());
-      assertEquals(2, calls.get());
-      assertEquals(2, scratches.get());
+      final int callCount = calls.get();
+      assertEquals(2, callCount);
+      final int scratchCount = scratches.get();
+      assertEquals(2, scratchCount);
+
       final Thread caller = Thread.currentThread();
-      new Workers(pool, 8).forEach(1, () -> caller, (thread, _) -> assertEquals(thread, Thread.currentThread()));
+      new Workers(pool, 8).forEach(
+        1,
+        () -> caller,
+        (thread, _) -> {
+          final Thread current = Thread.currentThread();
+          assertEquals(thread, current);
+        }
+      );
     } finally {
       pool.shutdownNow();
     }
@@ -167,16 +190,22 @@ final class MCV2WorkersTest {
     }, "workers-failure-caller");
     try {
       caller.start();
-      assertTrue(throwing.await(5, TimeUnit.SECONDS), "the root worker must reach its failure");
-      assertFalse(returned.await(200, TimeUnit.MILLISECONDS), "forEach returned while a sibling callback still owned its state");
+      final boolean reachedFailure = throwing.await(5, TimeUnit.SECONDS);
+      assertTrue(reachedFailure, "the root worker must reach its failure");
+      final boolean returnedEarly = returned.await(200, TimeUnit.MILLISECONDS);
+      assertFalse(returnedEarly, "forEach returned while a sibling callback still owned its state");
     } finally {
       releaseSibling.countDown();
       caller.join(5000);
       pool.shutdownNow();
-      assertTrue(pool.awaitTermination(5, TimeUnit.SECONDS), "worker pool must terminate");
-      assertFalse(caller.isAlive(), "caller must terminate");
+      final boolean terminated = pool.awaitTermination(5, TimeUnit.SECONDS);
+      assertTrue(terminated, "worker pool must terminate");
+      final boolean callerAlive = caller.isAlive();
+      assertFalse(callerAlive, "caller must terminate");
     }
-    assertTrue(finishedBeforeReturn.get(), "all callbacks must finish before the failure reaches the caller");
+    final boolean callbacksFinishedFirst = finishedBeforeReturn.get();
+    assertTrue(callbacksFinishedFirst, "all callbacks must finish before the failure reaches the caller");
+
     Throwable observed = reported.get();
     while (observed != null && observed.getCause() != null) {
       observed = observed.getCause();
@@ -186,7 +215,8 @@ final class MCV2WorkersTest {
 
   private static void await(final CountDownLatch latch) {
     try {
-      assertTrue(latch.await(5, TimeUnit.SECONDS), "fixture latch must be released");
+      final boolean released = latch.await(5, TimeUnit.SECONDS);
+      assertTrue(released, "fixture latch must be released");
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
       throw new AssertionError(exception);
@@ -196,9 +226,18 @@ final class MCV2WorkersTest {
   @Test
   void shouldRunOnTheCallingThreadWithOneWorker() {
     final Workers workers = new Workers(ForkJoinPool.commonPool(), 1);
-    assertEquals(1, workers.threads());
+    final int threadCount = workers.threads();
+    assertEquals(1, threadCount);
+
     final Thread caller = Thread.currentThread();
-    workers.forEach(3, () -> caller, (thread, _) -> assertEquals(thread, Thread.currentThread()));
+    workers.forEach(
+      3,
+      () -> caller,
+      (thread, _) -> {
+        final Thread current = Thread.currentThread();
+        assertEquals(thread, current);
+      }
+    );
   }
 
   @Test

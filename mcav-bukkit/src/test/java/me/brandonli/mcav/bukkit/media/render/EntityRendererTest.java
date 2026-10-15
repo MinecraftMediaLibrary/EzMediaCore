@@ -242,7 +242,8 @@ final class EntityRendererTest {
       }
       return Optional.empty();
     }, Style.EMPTY);
-    assertEquals(List.of(0x123456, 0xABCDEF), colors, "each rendered pixel retains its exact RGB");
+    final List<Integer> expectedColors = List.of(0x123456, 0xABCDEF);
+    assertEquals(expectedColors, colors, "each rendered pixel retains its exact RGB");
     assertEquals(2, width);
     assertEquals(1, height);
   }
@@ -298,7 +299,8 @@ final class EntityRendererTest {
     renderer.onTick();
 
     final List<CraftTextDisplay> spawned = this.world.getSpawnedDisplays();
-    assertEquals(2, spawned.size(), "the display comes back");
+    final int spawnedCount = spawned.size();
+    assertEquals(2, spawnedCount, "the display comes back");
     final net.minecraft.world.entity.Display.TextDisplay handle = spawned.get(1).getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle, never()).setText(any());
     renderer.hide();
@@ -317,7 +319,9 @@ final class EntityRendererTest {
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(false);
     renderer.apply(whileUnloaded);
     renderer.onTick();
-    assertEquals(1, this.world.getSpawnedDisplays().size());
+    final int displayCountWhileUnloaded = this.world.getSpawnedDisplays().size();
+    assertEquals(1, displayCountWhileUnloaded);
+
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     final CraftTextDisplay replacement = this.world.getSpawnedDisplays().get(1);
@@ -338,13 +342,16 @@ final class EntityRendererTest {
     final World configuredWorld = this.world.getWorld();
     when(discarded.isValid()).thenReturn(false);
     renderer.onTick();
-    assertEquals(1, this.world.getSpawnedDisplays().size(), "not while the chunk is unloaded");
+    final int displayCountWhileUnloaded = this.world.getSpawnedDisplays().size();
+    assertEquals(1, displayCountWhileUnloaded, "not while the chunk is unloaded");
+
     when(configuredWorld.isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     renderer.onTick();
 
     final List<CraftTextDisplay> spawned = this.world.getSpawnedDisplays();
-    assertEquals(2, spawned.size(), "the display comes back once");
+    final int spawnedCount = spawned.size();
+    assertEquals(2, spawnedCount, "the display comes back once");
     final CraftTextDisplay respawned = spawned.get(1);
     final net.minecraft.world.entity.Display.TextDisplay handle = respawned.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     verify(handle).setText(text);
@@ -352,7 +359,8 @@ final class EntityRendererTest {
     renderer.hide();
     when(respawned.isValid()).thenReturn(false);
     renderer.onTick();
-    assertEquals(2, this.world.getSpawnedDisplays().size());
+    final int displayCountAfterHide = this.world.getSpawnedDisplays().size();
+    assertEquals(2, displayCountAfterHide);
   }
 
   @Test
@@ -367,10 +375,13 @@ final class EntityRendererTest {
     when(this.world.getWorld().isChunkLoaded(0, 0)).thenReturn(true);
     renderer.onTick();
     final CraftTextDisplay respawned = this.world.getSpawnedDisplays().get(1);
-    assertTrue(this.viewer.canSee(respawned));
+    final boolean visible = this.viewer.canSee(respawned);
+    assertTrue(visible);
+
     this.server.endTracking(respawned);
     renderer.onTick();
-    assertTrue(this.viewer.canSee(respawned), "the viewer is shown the display again");
+    final boolean visibleAgain = this.viewer.canSee(respawned);
+    assertTrue(visibleAgain, "the viewer is shown the display again");
     verify(this.viewer, times(2)).showEntity(plugin, respawned);
     renderer.onTick();
     verify(this.viewer, times(2)).showEntity(plugin, respawned);
@@ -492,7 +503,8 @@ final class EntityRendererTest {
     renderer.hide();
     this.server.runTasks();
     final List<CraftTextDisplay> displays = this.world.getSpawnedDisplays();
-    assertEquals(0, displays.size());
+    final int displayCount = displays.size();
+    assertEquals(0, displayCount);
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }

@@ -236,7 +236,8 @@ final class ServerPackHostingTest {
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
 
-      assertEquals("Failed to start the resource pack server on port " + port, message);
+      final String expectedMessage = "Failed to start the resource pack server on port " + port;
+      assertEquals(expectedMessage, message);
       assertNotNull(cause);
       hosting.shutdown();
     }

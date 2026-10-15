@@ -81,8 +81,10 @@ final class FrameMutationTest {
         }
       }
     }
-    assertTrue(rejected > 0, stream + " rejected nothing");
-    assertTrue(accepted > 0, stream + " accepted nothing");
+    final boolean rejectedAny = rejected > 0;
+    assertTrue(rejectedAny, stream + " rejected nothing");
+    final boolean acceptedAny = accepted > 0;
+    assertTrue(acceptedAny, stream + " accepted nothing");
   }
 
   @Test
@@ -91,7 +93,8 @@ final class FrameMutationTest {
     final Mcv2Decoder.Frame keyframe = Mcv2Decoder.parse(stream.getFirst());
     final byte[] reference = Mcv2Decoder.decode(keyframe, null, 0);
     final Mcv2Decoder.Frame interFrame = Mcv2Decoder.parse(stream.get(1));
-    assertTrue(!interFrame.isKeyframe(), "the fixture contains an inter frame");
+    final boolean notKeyframe = !interFrame.isKeyframe();
+    assertTrue(notKeyframe, "the fixture contains an inter frame");
     final long wrongReference = interFrame.getReferenceId() + 1;
     decodeAgainst(interFrame, reference, wrongReference);
   }
@@ -100,10 +103,12 @@ final class FrameMutationTest {
     final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
     if (!parsed.isKeyframe() && (parsed.getReferenceId() != id || expectedLength != picture.length)) {
       final Mcv2Exception mismatch = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(parsed, picture, id));
-      assertEquals("Reference frame mismatch", mismatch.getMessage());
+      final String message = mismatch.getMessage();
+      assertEquals("Reference frame mismatch", message);
       return;
     }
     final byte[] decoded = parsed.isKeyframe() ? Mcv2Decoder.decode(parsed, null, 0) : Mcv2Decoder.decode(parsed, picture, id);
-    assertEquals(expectedLength, decoded.length);
+    final int decodedLength = decoded.length;
+    assertEquals(expectedLength, decodedLength);
   }
 }

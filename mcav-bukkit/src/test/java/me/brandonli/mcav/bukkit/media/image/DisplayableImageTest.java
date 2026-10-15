@@ -337,7 +337,8 @@ final class DisplayableImageTest {
     final Display.TextDisplay handle = entity.getHandle();
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
-    assertEquals("#", textCaptor.getValue().getString());
+    final String text = textCaptor.getValue().getString();
+    assertEquals("#", text);
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
@@ -345,7 +346,8 @@ final class DisplayableImageTest {
       }
       return Optional.empty();
     }, Style.EMPTY);
-    assertEquals(List.of(0x808080), colors, "the submitted image's exact color reaches the display");
+    final List<Integer> expectedColors = List.of(0x808080);
+    assertEquals(expectedColors, colors, "the submitted image's exact color reaches the display");
     verify(entity).remove();
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
   }

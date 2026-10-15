@@ -82,6 +82,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -160,7 +161,9 @@ final class Mcv2ResultTest {
     while (result.getStatistics().getFrames() < frames && System.nanoTime() < deadline) {
       Thread.sleep(10);
     }
-    assertEquals(frames, result.getStatistics().getFrames());
+
+    final long publishedFrames = result.getStatistics().getFrames();
+    assertEquals(frames, publishedFrames);
   }
 
   @Test
@@ -177,21 +180,33 @@ final class Mcv2ResultTest {
       result.applyFilter(frame, this.metadata);
       verify(this.algorithm, timeout(5000)).ditherIntoBytes(any());
       this.server.runTasks();
-      assertTrue(result.applyFilter(frame, this.metadata));
+      final boolean applied = result.applyFilter(frame, this.metadata);
+      assertTrue(applied);
       awaitFrames(result, 1);
       result.applyFilter(Images.solid(64, 32, 0xFF336698), this.metadata);
       awaitFrames(result, 2);
       final Mcv2Result.Statistics statistics = result.getStatistics();
-      assertEquals(1, statistics.getKeyframes());
-      assertEquals(0, statistics.getDropped());
-      assertTrue(statistics.getBytes() > 48);
-      assertTrue(statistics.getMapBytes() > 0 && statistics.getMapBytes() % 128 == 0);
-      assertTrue(statistics.getNanoseconds() > 0);
+      final long keyframes = statistics.getKeyframes();
+      assertEquals(1, keyframes);
+      final long dropped = statistics.getDropped();
+      assertEquals(0, dropped);
+      final boolean largerThanTheHeader = statistics.getBytes() > 48;
+      assertTrue(largerThanTheHeader);
+      final boolean wholeMaps = statistics.getMapBytes() > 0 && statistics.getMapBytes() % 128 == 0;
+      assertTrue(wholeMaps);
+      final boolean timed = statistics.getNanoseconds() > 0;
+      assertTrue(timed);
+
       final List<Packet<?>> packets = this.server.getSentPackets(WITH_PACK);
-      assertEquals(500, MapPackets.unbundle(packets.getLast()).getFirst().mapId().id());
-      assertSame(channel, result.getChannel());
-      assertEquals(2, heard.size());
-      assertEquals(statistics.getBytes(), heard.getFirst().length + heard.getLast().length);
+      final int lastMapId = MapPackets.unbundle(packets.getLast()).getFirst().mapId().id();
+      assertEquals(500, lastMapId);
+      final Mcv2Channel resultChannel = result.getChannel();
+      assertSame(channel, resultChannel);
+      final int heardCount = heard.size();
+      assertEquals(2, heardCount);
+      final long expectedBytes = statistics.getBytes();
+      final int heardBytes = heard.getFirst().length + heard.getLast().length;
+      assertEquals(expectedBytes, heardBytes);
     } finally {
       result.release();
     }
@@ -224,16 +239,25 @@ final class Mcv2ResultTest {
         .stream()
         .filter(event -> event.getEventType().getName().equals("me.brandonli.mcav.Mcv2Frame"))
         .toList();
-      assertEquals(1, frames.size());
+      final int frameCount = frames.size();
+      assertEquals(1, frameCount);
+
       final RecordedEvent frame = frames.getFirst();
-      assertEquals(4_000_000_000L, frame.getLong("frameId"));
-      assertTrue(frame.getBoolean("keyframe"));
-      assertEquals(1, frame.getInt("sentTo"));
-      assertEquals(0, frame.getInt("behind") + frame.getInt("waiting"));
-      assertTrue(frame.getInt("colors") > 0 && frame.getInt("bytes") > 48);
-      assertTrue(frame.getLong("arrived") >= before && frame.getLong("sent") >= frame.getLong("arrived"));
+      final long frameId = frame.getLong("frameId");
+      assertEquals(4_000_000_000L, frameId);
+      final boolean keyframe = frame.getBoolean("keyframe");
+      assertTrue(keyframe);
+      final int sentTo = frame.getInt("sentTo");
+      assertEquals(1, sentTo);
+      final int queued = frame.getInt("behind") + frame.getInt("waiting");
+      assertEquals(0, queued);
+      final boolean hasContent = frame.getInt("colors") > 0 && frame.getInt("bytes") > 48;
+      assertTrue(hasContent);
+      final boolean timedInOrder = frame.getLong("arrived") >= before && frame.getLong("sent") >= frame.getLong("arrived");
+      assertTrue(timedInOrder);
       // two block centres fit a 64-pixel-wide video: the luma of 0x336699 is (0x33 + 2 * 0x66 + 0x99) / 4 = 0x66
-      assertEquals("6666", frame.getString("fingerprint"));
+      final String fingerprint = frame.getString("fingerprint");
+      assertEquals("6666", fingerprint);
     }
   }
 
@@ -244,11 +268,17 @@ final class Mcv2ResultTest {
     final int offset = (16 * 1024 + 48) * 3;
     rgb[offset] = rgb[offset + 1] = rgb[offset + 2] = (byte) 255;
     final String fingerprint = Mcv2FrameEvent.fingerprint(rgb, 1024, 32);
-    assertEquals(2 * Mcv2FrameEvent.FINGERPRINT_PIXELS, fingerprint.length());
-    assertEquals("00ff00", fingerprint.substring(0, 6));
+
+    final int expectedLength = 2 * Mcv2FrameEvent.FINGERPRINT_PIXELS;
+    final int length = fingerprint.length();
+    assertEquals(expectedLength, length);
+    final String firstSample = fingerprint.substring(0, 6);
+    assertEquals("00ff00", firstSample);
     // a video narrower than the blocks, or too short for row 16, has fewer samples
-    assertEquals(2, Mcv2FrameEvent.fingerprint(new byte[20 * 20 * 3], 20, 20).length());
-    assertEquals("", Mcv2FrameEvent.fingerprint(new byte[64 * 16 * 3], 64, 16));
+    final int narrowLength = Mcv2FrameEvent.fingerprint(new byte[20 * 20 * 3], 20, 20).length();
+    assertEquals(2, narrowLength);
+    final String shortFingerprint = Mcv2FrameEvent.fingerprint(new byte[64 * 16 * 3], 64, 16);
+    assertEquals("", shortFingerprint);
   }
 
   @Test
@@ -256,14 +286,24 @@ final class Mcv2ResultTest {
     final Mcv2Result result = this.result(this.configuration, null);
     final ImageBuffer wide = Images.solid(128, 64, 0xFF000000);
     result.applyFilter(wide, this.metadata);
-    assertEquals(64, wide.getWidth());
-    assertEquals(32, wide.getHeight());
+
+    final int wideWidth = wide.getWidth();
+    assertEquals(64, wideWidth);
+    final int wideHeight = wide.getHeight();
+    assertEquals(32, wideHeight);
+
     final ImageBuffer tall = Images.solid(64, 16, 0xFF000000);
     result.applyFilter(tall, this.metadata);
-    assertEquals(32, tall.getHeight());
+
+    final int tallHeight = tall.getHeight();
+    assertEquals(32, tallHeight);
+
     final ImageBuffer wider = Images.solid(128, 32, 0xFF000000);
     result.applyFilter(wider, this.metadata);
-    assertEquals(64, wider.getWidth());
+
+    final int widerWidth = wider.getWidth();
+    assertEquals(64, widerWidth);
+
     verify(this.algorithm, never()).ditherIntoBytes(any());
     result.release();
   }
@@ -310,10 +350,15 @@ final class Mcv2ResultTest {
       .ditherIntoBytes(any());
     final Mcv2Result result = this.result(this.configuration, this.algorithm);
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
-    assertTrue(result.applyFilter(frame, this.metadata));
-    assertTrue(dithering.await(5, TimeUnit.SECONDS));
-    assertTrue(result.applyFilter(frame, this.metadata));
-    assertTrue(result.applyFilter(frame, this.metadata));
+    final boolean firstApplied = result.applyFilter(frame, this.metadata);
+    assertTrue(firstApplied);
+    final boolean ditheringStarted = dithering.await(5, TimeUnit.SECONDS);
+    assertTrue(ditheringStarted);
+    final boolean secondApplied = result.applyFilter(frame, this.metadata);
+    assertTrue(secondApplied);
+    final boolean thirdApplied = result.applyFilter(frame, this.metadata);
+    assertTrue(thirdApplied);
+
     finish.countDown();
     verify(this.algorithm, timeout(5000).times(1)).ditherIntoBytes(any());
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
@@ -335,7 +380,9 @@ final class Mcv2ResultTest {
     result.start();
     Thread.currentThread().interrupt();
     result.release();
-    assertTrue(Thread.interrupted());
+
+    final boolean interrupted = Thread.interrupted();
+    assertTrue(interrupted);
     verify(this.screen).remove();
   }
 
@@ -363,8 +410,10 @@ final class Mcv2ResultTest {
     verify(encoder).requestKeyframe();
     verify(encoder).setFrameLimit(TransportPages.capacity());
     assertEquals(List.of(), heard, "a frame that is not sent is not heard");
-    assertEquals(1, result.getStatistics().getDropped());
-    assertEquals(0, result.getStatistics().getFrames());
+    final long dropped = result.getStatistics().getDropped();
+    assertEquals(1, dropped);
+    final long frames = result.getStatistics().getFrames();
+    assertEquals(0, frames);
   }
 
   @Test
@@ -372,21 +421,30 @@ final class Mcv2ResultTest {
     final Mcv2Result result = this.result(this.configuration, null);
     // the screen's thread of a start that a release overtook finds no pipeline to stop
     assertTimeoutPreemptively(Duration.ofSeconds(10), () -> result.encodeLoop(mock(MCV2.class)));
-    assertNull(result.take());
+
+    final Mcv2Result.@Nullable Arrival taken = result.take();
+    assertNull(taken);
   }
 
   @Test
   void shouldStopWaitingOnceReleasedOrInterrupted() throws InterruptedException {
     final Mcv2Result result = this.result(this.configuration, null);
-    assertNull(result.take());
+    final Mcv2Result.@Nullable Arrival takenBeforeStart = result.take();
+    assertNull(takenBeforeStart);
+
     result.start();
     final Thread waiter = new Thread(() -> result.encodeLoop(mock(MCV2.class)));
     waiter.start();
     waiter.interrupt();
     waiter.join(TimeUnit.SECONDS.toMillis(10));
-    assertTrue(!waiter.isAlive());
+
+    final boolean waiterStopped = !waiter.isAlive();
+    assertTrue(waiterStopped);
+
     result.release();
-    assertNull(result.take());
+
+    final Mcv2Result.@Nullable Arrival takenAfterRelease = result.take();
+    assertNull(takenAfterRelease);
   }
 
   /**
@@ -436,9 +494,15 @@ final class Mcv2ResultTest {
     );
     final List<Mcv2Pacer.Change> changes = new ArrayList<>();
     result.setPacingListener(changes::add);
-    assertNull(result.getRung());
+    final Mcv2Pacer.@Nullable Rung rungBeforePacing = result.getRung();
+    assertNull(rungBeforePacing);
+
     result.pace();
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 1), result.getRung());
+
+    final Mcv2Pacer.Rung expectedFirstRung = new Mcv2Pacer.Rung(64, 32, 1);
+    final Mcv2Pacer.@Nullable Rung firstRung = result.getRung();
+    assertEquals(expectedFirstRung, firstRung);
+
     final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
@@ -452,34 +516,58 @@ final class Mcv2ResultTest {
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     // five seconds while a new encoder warms up: the pacer judges nothing yet
-    assertEquals(300, this.play(result, clock, encoder, frame, 300));
+    final int encodedWhileWarming = this.play(result, clock, encoder, frame, 300);
+    assertEquals(300, encodedWhileWarming);
     verify(this.algorithm, times(1)).ditherIntoBytes(any());
+
     // at 25 ms a frame the screen steps down to every other frame, and says why
     encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(25));
     this.play(result, clock, encoder, frame, 90);
-    assertEquals(1, changes.size());
-    assertTrue(changes.getFirst().down());
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 2), result.getRung());
-    assertEquals(30, this.play(result, clock, encoder, frame, 60));
+
+    final int changesAfterSteppingDown = changes.size();
+    assertEquals(1, changesAfterSteppingDown);
+    final boolean steppedDown = changes.getFirst().down();
+    assertTrue(steppedDown);
+    final Mcv2Pacer.Rung expectedHalvedRung = new Mcv2Pacer.Rung(64, 32, 2);
+    final Mcv2Pacer.@Nullable Rung halvedRung = result.getRung();
+    assertEquals(expectedHalvedRung, halvedRung);
+    final int encodedAtHalfRate = this.play(result, clock, encoder, frame, 60);
+    assertEquals(30, encodedAtHalfRate);
+
     // at two seconds a frame nothing fits: every viewer is dithered for, and the page frames go
     encodeNanos.set(TimeUnit.SECONDS.toNanos(2));
     this.play(result, clock, encoder, frame, 90);
-    assertEquals(2, changes.size());
-    assertEquals(Mcv2Pacer.Rung.DITHERED, result.getRung());
+
+    final int changesAfterDithering = changes.size();
+    assertEquals(2, changesAfterDithering);
+    final Mcv2Pacer.@Nullable Rung ditheredRung = result.getRung();
+    assertEquals(Mcv2Pacer.Rung.DITHERED, ditheredRung);
+
     this.server.runTasks();
     verify(this.screen).remove();
     clearInvocations(this.algorithm);
-    assertEquals(0, this.play(result, clock, encoder, frame, 60));
+
+    final int encodedWhileDithered = this.play(result, clock, encoder, frame, 60);
+    assertEquals(0, encodedWhileDithered);
     verify(this.algorithm, times(60)).ditherIntoBytes(any());
+
     // thirty seconds later the screen tries encoding again: the page frames return
     encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
     this.play(result, clock, encoder, frame, 35 * 60);
-    assertEquals(Mcv2Pacer.Rung.DITHERED, changes.get(2).from());
+
+    final Mcv2Pacer.Rung retriedFrom = changes.get(2).from();
+    assertEquals(Mcv2Pacer.Rung.DITHERED, retriedFrom);
+
     this.server.runTasks();
     verify(this.screen).build();
-    assertFalse(result.getRung().isDithered());
+
+    final boolean stillDithered = result.getRung().isDithered();
+    assertFalse(stillDithered);
+
     result.release();
-    assertNull(result.getRung());
+
+    final Mcv2Pacer.@Nullable Rung rungAfterRelease = result.getRung();
+    assertNull(rungAfterRelease);
   }
 
   @Test
@@ -529,26 +617,42 @@ final class Mcv2ResultTest {
     this.play(result, clock, encoder, frame, 300);
     fullNanos.set(TimeUnit.MILLISECONDS.toNanos(100));
     this.play(result, clock, encoder, frame, 120);
+
     // no frame rate of 64x32 fits 100 ms with room; 32x16 at 30 fps does
-    assertEquals(new Mcv2Pacer.Rung(32, 16, 2), result.getRung());
+    final Mcv2Pacer.Rung expectedSmallRung = new Mcv2Pacer.Rung(32, 16, 2);
+    final Mcv2Pacer.@Nullable Rung smallRung = result.getRung();
+    assertEquals(expectedSmallRung, smallRung);
+
     this.server.runTasks();
     verify(this.screen).remove();
     verify(smallScreen).build();
-    assertEquals(1, resized.size());
-    assertEquals(32, resized.getFirst().getVideoWidth());
-    assertEquals(16, result.getConfiguration().getVideoHeight());
+    final int resizeCount = resized.size();
+    assertEquals(1, resizeCount);
+    final int resizedWidth = resized.getFirst().getVideoWidth();
+    assertEquals(32, resizedWidth);
+    final int videoHeight = result.getConfiguration().getVideoHeight();
+    assertEquals(16, videoHeight);
+
     result.applyFilter(Images.solid(64, 32, 0xFF336699), this.metadata);
     this.server.runTasks();
     widths.clear();
     this.play(result, clock, encoder, Images.solid(64, 32, 0xFF336699), 60);
-    assertTrue(!widths.isEmpty() && widths.stream().allMatch(width -> width == 32), widths.toString());
+
+    final boolean encodedSmall = !widths.isEmpty() && widths.stream().allMatch(width -> width == 32);
+    assertTrue(encodedSmall, widths.toString());
+
     // the load drops: back to the size it was asked for, once the top rung may be tried again
     fullNanos.set(TimeUnit.MILLISECONDS.toNanos(4));
     this.play(result, clock, encoder, Images.solid(64, 32, 0xFF336699), 60 * 30);
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 1), result.getRung());
+
+    final Mcv2Pacer.Rung expectedFullRung = new Mcv2Pacer.Rung(64, 32, 1);
+    final Mcv2Pacer.@Nullable Rung fullRung = result.getRung();
+    assertEquals(expectedFullRung, fullRung);
+
     this.server.runTasks();
     verify(smallScreen).remove();
-    assertEquals(64, result.getConfiguration().getVideoWidth());
+    final int videoWidth = result.getConfiguration().getVideoWidth();
+    assertEquals(64, videoWidth);
     result.sync();
     result.release();
     result.sync();
@@ -577,7 +681,11 @@ final class Mcv2ResultTest {
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 600);
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 6), result.getRung());
+
+    final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 6);
+    final Mcv2Pacer.@Nullable Rung rung = result.getRung();
+    assertEquals(expectedRung, rung);
+
     result.release();
   }
 
@@ -596,8 +704,12 @@ final class Mcv2ResultTest {
         .encoderPool(budget)
         .maxFrameRate(0)
         .build();
-      assertSame(budget, own.getEncoderPool());
-      assertSame(Pool.shared(), this.configuration.getEncoderPool());
+      final Pool ownPool = own.getEncoderPool();
+      assertSame(budget, ownPool);
+      final Pool sharedPool = Pool.shared();
+      final Pool defaultPool = this.configuration.getEncoderPool();
+      assertSame(sharedPool, defaultPool);
+
       final Mcv2Result result = this.result(own, null);
       result.start();
       final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
@@ -633,22 +745,30 @@ final class Mcv2ResultTest {
     for (long now = 0; now < 1000 * millisecond; now += 5 * millisecond) {
       taken += result.takeFrame(now) ? 1 : 0;
     }
-    assertTrue(taken >= 30 && taken <= 32, "frames taken: " + taken);
+    final boolean aboutThirtyTaken = taken >= 30 && taken <= 32;
+    assertTrue(aboutThirtyTaken, "frames taken: " + taken);
+
     // a 30 fps source with jitter keeps every frame
     long now = 5000 * millisecond;
     result.takeFrame(now);
     for (int frame = 0; frame < 60; frame++) {
       now += (frame % 2 == 0 ? 30 : 36) * millisecond + millisecond / 2;
-      assertTrue(result.takeFrame(now), "frame " + frame);
+      final boolean frameTaken = result.takeFrame(now);
+      assertTrue(frameTaken, "frame " + frame);
     }
+
     // frames saved up during a pause do not come out as a burst
     now += 2000 * millisecond;
-    assertTrue(result.takeFrame(now));
-    assertFalse(result.takeFrame(now + millisecond));
+    final boolean takenAfterPause = result.takeFrame(now);
+    assertTrue(takenAfterPause);
+    final boolean burstTaken = result.takeFrame(now + millisecond);
+    assertFalse(burstTaken);
+
     // and a frame that is not the screen's goes nowhere: of two frames at once, the second
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
-    assertFalse(result.applyFilter(frame, this.metadata));
+    final boolean secondApplied = result.applyFilter(frame, this.metadata);
+    assertFalse(secondApplied);
   }
 
   @Test
@@ -657,31 +777,33 @@ final class Mcv2ResultTest {
     bgr.position(1);
     final byte[] rgb = Mcv2Result.rgbFromBgr(bgr, 2);
 
-    assertArrayEquals(new byte[] { 0x11, 0x22, 0x33, (byte) 0xAA, (byte) 0xBB, (byte) 0xCC }, rgb);
-    assertEquals(1, bgr.position(), "the buffer is left as it was");
+    final byte[] expectedRgb = new byte[] { 0x11, 0x22, 0x33, (byte) 0xAA, (byte) 0xBB, (byte) 0xCC };
+    assertArrayEquals(expectedRgb, rgb);
+    final int position = bgr.position();
+    assertEquals(1, position, "the buffer is left as it was");
   }
 
   @Test
   void shouldRefuseNulls() {
-    assertEquals(
-      "Configuration must not be null",
-      assertThrows(NullPointerException.class, () -> new Mcv2Result(null, this.viewers, null)).getMessage()
+    final NullPointerException noConfiguration = assertThrows(NullPointerException.class, () -> new Mcv2Result(null, this.viewers, null));
+    final String noConfigurationMessage = noConfiguration.getMessage();
+    assertEquals("Configuration must not be null", noConfigurationMessage);
+    final NullPointerException noChannel = assertThrows(NullPointerException.class, () ->
+      new Mcv2Result(this.configuration, (Mcv2Channel) null, null)
     );
-    assertEquals(
-      "Channel must not be null",
-      assertThrows(NullPointerException.class, () -> new Mcv2Result(this.configuration, (Mcv2Channel) null, null)).getMessage()
-    );
+    final String noChannelMessage = noChannel.getMessage();
+    assertEquals("Channel must not be null", noChannelMessage);
+
     final Mcv2Result result = new Mcv2Result(this.configuration, this.viewers, this.algorithm);
     try (final ImageBuffer image = Images.solid(64, 32, 0)) {
-      assertEquals(
-        "Frame must not be null",
-        assertThrows(NullPointerException.class, () -> result.applyFilter(null, this.metadata)).getMessage()
-      );
-      assertEquals(
-        "Metadata must not be null",
-        assertThrows(NullPointerException.class, () -> result.applyFilter(image, null)).getMessage()
-      );
-      assertEquals(0, result.getStatistics().getFrames(), "invalid input cannot publish a frame");
+      final NullPointerException noFrame = assertThrows(NullPointerException.class, () -> result.applyFilter(null, this.metadata));
+      final String noFrameMessage = noFrame.getMessage();
+      assertEquals("Frame must not be null", noFrameMessage);
+      final NullPointerException noMetadata = assertThrows(NullPointerException.class, () -> result.applyFilter(image, null));
+      final String noMetadataMessage = noMetadata.getMessage();
+      assertEquals("Metadata must not be null", noMetadataMessage);
+      final long frames = result.getStatistics().getFrames();
+      assertEquals(0, frames, "invalid input cannot publish a frame");
     } finally {
       result.release();
     }
@@ -692,24 +814,35 @@ final class Mcv2ResultTest {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
     statistics.add(new MCV2.Stats(10, true, 1, 5, 72), 128);
     statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
-    assertEquals(2, statistics.getFrames());
-    assertEquals(1, statistics.getKeyframes());
+
+    final long frames = statistics.getFrames();
+    assertEquals(2, frames);
+    final long keyframes = statistics.getKeyframes();
+    assertEquals(1, keyframes);
   }
 
   @Test
   void shouldCountNoKeyframeForAPredictedFrame() {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
     statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
-    assertEquals(1, statistics.getFrames());
-    assertEquals(0, statistics.getKeyframes());
+
+    final long frames = statistics.getFrames();
+    assertEquals(1, frames);
+    final long keyframes = statistics.getKeyframes();
+    assertEquals(0, keyframes);
   }
 
   @Test
   void shouldPaceFromTheTopOfItsLadderOnceStarted() {
     final Mcv2Result result = this.result(this.configuration, null);
-    assertNull(result.getRung());
+    final Mcv2Pacer.@Nullable Rung rungBeforeStart = result.getRung();
+    assertNull(rungBeforeStart);
+
     result.start();
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 1), result.getRung());
+    final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 1);
+    final Mcv2Pacer.@Nullable Rung rung = result.getRung();
+    assertEquals(expectedRung, rung);
+
     result.release();
   }
 
@@ -744,7 +877,9 @@ final class Mcv2ResultTest {
       MapPacketFactory.clear(List.of(WITHOUT), 100, 1);
       clock.addAndGet(TimeUnit.SECONDS.toNanos(4) - 1);
       result.applyFilter(frame, this.metadata);
-      assertEquals(2, this.server.getSentPackets(WITHOUT).size(), "ordinary identical frames keep delta savings");
+      final int sentAfterIdenticalFrame = this.server.getSentPackets(WITHOUT).size();
+      assertEquals(2, sentAfterIdenticalFrame, "ordinary identical frames keep delta savings");
+
       clock.incrementAndGet();
       result.applyFilter(frame, this.metadata);
       MapPackets.assertMapPacket(
@@ -756,10 +891,14 @@ final class Mcv2ResultTest {
         128,
         expected
       );
-      assertEquals(3, this.server.getSentPackets(WITHOUT).size(), "the fallback repairs an external map reset");
+      final int sentAfterRepair = this.server.getSentPackets(WITHOUT).size();
+      assertEquals(3, sentAfterRepair, "the fallback repairs an external map reset");
+
       clock.incrementAndGet();
       result.applyFilter(frame, this.metadata);
-      assertEquals(3, this.server.getSentPackets(WITHOUT).size(), "a repair starts a fresh interval");
+      final int sentAfterFreshInterval = this.server.getSentPackets(WITHOUT).size();
+      assertEquals(3, sentAfterFreshInterval, "a repair starts a fresh interval");
+
       MapPacketFactory.clear(List.of(WITHOUT), 100, 1);
       clock.addAndGet(TimeUnit.SECONDS.toNanos(4));
       result.applyFilter(frame, this.metadata);
@@ -772,7 +911,8 @@ final class Mcv2ResultTest {
         128,
         expected
       );
-      assertEquals(5, this.server.getSentPackets(WITHOUT).size(), "recovery is periodic, not a one-time join delay");
+      final int sentAfterPeriodicRepair = this.server.getSentPackets(WITHOUT).size();
+      assertEquals(5, sentAfterPeriodicRepair, "recovery is periodic, not a one-time join delay");
     } finally {
       result.release();
     }
@@ -793,8 +933,11 @@ final class Mcv2ResultTest {
     final int sent = this.server.getSentPackets(WITHOUT).size();
     result.release();
     final List<Packet<?>> cleared = this.server.getSentPackets(WITHOUT);
-    assertEquals(sent + 1, cleared.size());
+    final int expectedClearedSize = sent + 1;
+    final int clearedSize = cleared.size();
+    assertEquals(expectedClearedSize, clearedSize);
     MapPackets.assertMapPacket(MapPackets.unbundle(cleared.getLast()).getFirst(), 100, 0, 0, 128, 128, new byte[128 * 128]);
+
     result.start();
     clearInvocations(this.algorithm);
     result.applyFilter(frame, this.metadata);
@@ -819,16 +962,23 @@ final class Mcv2ResultTest {
     this.server.runTasks();
     result.applyFilter(frame, this.metadata);
     awaitFrames(result, 1);
-    assertEquals(Set.of(WITH_PACK), result.getChannel().getRecipients());
+    final Set<UUID> expectedRecipients = Set.of(WITH_PACK);
+    final Set<UUID> recipients = result.getChannel().getRecipients();
+    assertEquals(expectedRecipients, recipients);
+
     final int withPack = this.server.getSentPackets(WITH_PACK).size();
     final int without = this.server.getSentPackets(WITHOUT).size();
 
     result.release();
 
     final List<Packet<?>> cleared = this.server.getSentPackets(WITH_PACK);
-    assertEquals(withPack + 1, cleared.size(), "one bundle clears the wall of the viewer with the pack");
+    final int expectedClearedSize = withPack + 1;
+    final int clearedSize = cleared.size();
+    assertEquals(expectedClearedSize, clearedSize, "one bundle clears the wall of the viewer with the pack");
     MapPackets.assertMapPacket(MapPackets.unbundle(cleared.getLast()).getFirst(), 100, 0, 0, 128, 128, new byte[128 * 128]);
-    assertEquals(without + 1, this.server.getSentPackets(WITHOUT).size(), "the dithered maps are cleared once");
+    final int expectedDitheredSize = without + 1;
+    final int ditheredSize = this.server.getSentPackets(WITHOUT).size();
+    assertEquals(expectedDitheredSize, ditheredSize, "the dithered maps are cleared once");
   }
 
   @Test
@@ -850,7 +1000,8 @@ final class Mcv2ResultTest {
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     result.applyFilter(frame, this.metadata);
-    assertEquals(2, handed.get());
+    final int handovers = handed.get();
+    assertEquals(2, handovers);
     verify(this.algorithm).ditherIntoBytes(any());
     result.release();
   }
@@ -921,15 +1072,21 @@ final class Mcv2ResultTest {
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     result.applyFilter(frame, this.metadata);
-    assertTrue(encoding.await(5, TimeUnit.SECONDS));
+    final boolean encodingBegan = encoding.await(5, TimeUnit.SECONDS);
+    assertTrue(encodingBegan);
+
     result.release();
-    assertEquals(Set.of(), threads("mcav-mcv2-screen", before));
-    assertEquals(Set.of(), threads("mcav-mcv2-sender", before));
+    final Set<Thread> screenThreads = threads("mcav-mcv2-screen", before);
+    assertEquals(Set.of(), screenThreads);
+    final Set<Thread> senderThreads = threads("mcav-mcv2-sender", before);
+    assertEquals(Set.of(), senderThreads);
+
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
     while (!threads("mcav-mcv2-dither", before).isEmpty() && System.nanoTime() < deadline) {
       Thread.sleep(10);
     }
-    assertEquals(Set.of(), threads("mcav-mcv2-dither", before));
+    final Set<Thread> ditherThreads = threads("mcav-mcv2-dither", before);
+    assertEquals(Set.of(), ditherThreads);
   }
 
   @Test
@@ -975,8 +1132,11 @@ final class Mcv2ResultTest {
       result.applyFilter(frame, this.metadata);
       result.send(encoder, encoding, 300 + frameNumber);
     }
-    assertTrue(result.getRung().isDithered());
-    assertNull(result.poll());
+    final boolean dithered = result.getRung().isDithered();
+    assertTrue(dithered);
+    final Mcv2Result.@Nullable Arrival remaining = result.poll();
+    assertNull(remaining);
+
     result.release();
   }
 
@@ -1037,24 +1197,34 @@ final class Mcv2ResultTest {
     for (int frameNumber = 0; frameNumber < 600 && !result.getRung().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
-    assertTrue(result.getRung().isDithered());
+    final boolean dithered = result.getRung().isDithered();
+    assertTrue(dithered);
+
     this.server.runTasks();
     verify(this.screen).remove();
     final int withPack = this.server.getSentPackets(WITH_PACK).size();
     this.play(result, clock, encoder, frame, 30);
-    assertTrue(this.server.getSentPackets(WITH_PACK).size() > withPack, "the viewer with the pack is shown the dithered maps");
-    assertEquals(List.of(), this.server.getSentPackets(far), "a viewer 400 blocks from the wall cannot see it");
-    assertEquals(List.of(), this.server.getSentPackets(otherWorld), "nor one in another world");
+    final boolean shownToThePackViewer = this.server.getSentPackets(WITH_PACK).size() > withPack;
+    assertTrue(shownToThePackViewer, "the viewer with the pack is shown the dithered maps");
+    final List<Packet<?>> farPackets = this.server.getSentPackets(far);
+    assertEquals(List.of(), farPackets, "a viewer 400 blocks from the wall cannot see it");
+    final List<Packet<?>> otherWorldPackets = this.server.getSentPackets(otherWorld);
+    assertEquals(List.of(), otherWorldPackets, "nor one in another world");
+
     farPosition.set(new Location(WORLD, 0, 64, 5));
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 1);
-    assertFalse(this.server.getSentPackets(far).isEmpty(), "a viewer who came near the wall sees the dithered maps");
+    final boolean nothingSentNearTheWall = this.server.getSentPackets(far).isEmpty();
+    assertFalse(nothingSentNearTheWall, "a viewer who came near the wall sees the dithered maps");
+
     // the load drops: the pacer tries the frames again, and the first frame encoded after its return is a keyframe
     encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(1));
     for (int frameNumber = 0; frameNumber < 60 * 60 && result.getRung().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
-    assertFalse(result.getRung().isDithered());
+    final boolean stillDithered = result.getRung().isDithered();
+    assertFalse(stillDithered);
+
     clearInvocations(encoder);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 1);
@@ -1119,27 +1289,24 @@ final class Mcv2ResultTest {
         .stream()
         .filter(event -> event.getEventType().getName().equals("me.brandonli.mcav.Mcv2Frame"))
         .toList();
-      assertEquals(
-        List.of(2, 2, 1, 1, 2),
-        recorded
-          .stream()
-          .map(event -> event.getInt("sentTo"))
-          .toList()
-      );
-      assertEquals(
-        List.of(0, 0, 1, 0, 0),
-        recorded
-          .stream()
-          .map(event -> event.getInt("behind"))
-          .toList()
-      );
-      assertEquals(
-        List.of(0, 0, 0, 1, 0),
-        recorded
-          .stream()
-          .map(event -> event.getInt("waiting"))
-          .toList()
-      );
+      final List<Integer> expectedSentTo = List.of(2, 2, 1, 1, 2);
+      final List<Integer> sentToCounts = recorded
+        .stream()
+        .map(event -> event.getInt("sentTo"))
+        .toList();
+      assertEquals(expectedSentTo, sentToCounts);
+      final List<Integer> expectedBehind = List.of(0, 0, 1, 0, 0);
+      final List<Integer> behindCounts = recorded
+        .stream()
+        .map(event -> event.getInt("behind"))
+        .toList();
+      assertEquals(expectedBehind, behindCounts);
+      final List<Integer> expectedWaiting = List.of(0, 0, 0, 1, 0);
+      final List<Integer> waitingCounts = recorded
+        .stream()
+        .map(event -> event.getInt("waiting"))
+        .toList();
+      assertEquals(expectedWaiting, waitingCounts);
     }
     result.release();
   }
@@ -1192,7 +1359,8 @@ final class Mcv2ResultTest {
     while (made.size() < count && System.nanoTime() < deadline) {
       Thread.sleep(10);
     }
-    assertEquals(count, made.size());
+    final int madeCount = made.size();
+    assertEquals(count, madeCount);
   }
 
   @Test
@@ -1225,16 +1393,21 @@ final class Mcv2ResultTest {
     });
     drainer.start();
     drainer.join(200);
-    assertTrue(drainer.isAlive());
+    final boolean drainerWaits = drainer.isAlive();
+    assertTrue(drainerWaits);
+
     gate.countDown();
     drainer.join(TimeUnit.SECONDS.toMillis(10));
-    assertFalse(drainer.isAlive());
+    final boolean drainerStillWaits = drainer.isAlive();
+    assertFalse(drainerStillWaits);
+
     awaitFrames(result, 1);
     for (int frameNumber = 2; frameNumber <= 3; frameNumber++) {
       result.applyFilter(frame, this.metadata);
       awaitFrames(result, frameNumber);
     }
-    assertEquals(1, made.size());
+    final int encoderCount = made.size();
+    assertEquals(1, encoderCount);
     verify(made.getFirst(), times(3)).begin(any(), anyInt(), anyInt(), anyLong());
     verify(made.getFirst(), times(3)).finish(any());
     result.drain();
@@ -1272,11 +1445,15 @@ final class Mcv2ResultTest {
     });
     drainer.start();
     drainer.join(TimeUnit.SECONDS.toMillis(10));
-    assertFalse(drainer.isAlive(), "the failed verification stops the screen");
+    final boolean drainerWaits = drainer.isAlive();
+    assertFalse(drainerWaits, "the failed verification stops the screen");
+
     result.applyFilter(frame, this.metadata);
     result.applyFilter(frame, this.metadata);
     verify(made.getFirst(), Mockito.after(500).times(1)).begin(any(), anyInt(), anyInt(), anyLong());
-    assertEquals(0, result.getStatistics().getFrames());
+    final long frames = result.getStatistics().getFrames();
+    assertEquals(0, frames);
+
     result.release();
   }
 
@@ -1284,11 +1461,12 @@ final class Mcv2ResultTest {
   void shouldScaleANonPresetLambdaAndStopAtFast() {
     final Settings settings = new Settings(60, false);
     final Settings fast = new Settings(45.833333333333336, true);
-    assertEquals(
-      List.of(settings, fast),
-      Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, settings)
-    );
-    assertEquals(List.of(fast), Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, fast));
+    final List<Settings> expectedLadder = List.of(settings, fast);
+    final @Nullable Object ladder = Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, settings);
+    assertEquals(expectedLadder, ladder);
+    final List<Settings> expectedFastLadder = List.of(fast);
+    final @Nullable Object fastLadder = Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, fast);
+    assertEquals(expectedFastLadder, fastLadder);
   }
 
   @Test
@@ -1296,21 +1474,29 @@ final class Mcv2ResultTest {
     final Settings largest = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     final Mcv2Result result = assertDoesNotThrow(() -> this.result(packScreen(largest), null));
     result.release();
-    assertEquals(
-      List.of(largest, new Settings(Double.MAX_VALUE * (Settings.FAST.lambda() / Settings.DEFAULT.lambda()), true)),
-      Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, largest)
+
+    final List<Settings> expectedLadder = List.of(
+      largest,
+      new Settings(Double.MAX_VALUE * (Settings.FAST.lambda() / Settings.DEFAULT.lambda()), true)
     );
+    final @Nullable Object ladder = Mcv2Internals.call(Mcv2Result.class, null, "ladder", new Class<?>[] { Settings.class }, largest);
+    assertEquals(expectedLadder, ladder);
   }
 
   @Test
   void shouldNameThePresetsOfItsLadder() {
     final Mcv2Result live = this.result(packScreen(Settings.DEFAULT), null);
     live.pace();
-    assertEquals(new Mcv2Pacer.Preset("DEFAULT", 1), live.getRung().preset());
+    final Mcv2Pacer.Preset expectedPreset = new Mcv2Pacer.Preset("DEFAULT", 1);
+    final Mcv2Pacer.Preset preset = live.getRung().preset();
+    assertEquals(expectedPreset, preset);
+
     // The fastest preset has no faster search to step through.
     final Mcv2Result fastest = this.result(packScreen(Settings.FAST), null);
     fastest.pace();
-    assertEquals(new Mcv2Pacer.Rung(64, 32, 1), fastest.getRung());
+    final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 1);
+    final Mcv2Pacer.@Nullable Rung fastestRung = fastest.getRung();
+    assertEquals(expectedRung, fastestRung);
   }
 
   /**
@@ -1371,27 +1557,39 @@ final class Mcv2ResultTest {
     final MCV2 first = timedEncoder(Settings.DEFAULT, clock, encodeNanos, switched);
     made.add(first);
     MCV2 encoder = this.playSwitching(result, clock, first, frame, 300);
-    assertEquals(1, made.size());
-    assertEquals(Settings.DEFAULT, made.getFirst().getSettings());
+    final int encoderCount = made.size();
+    assertEquals(1, encoderCount);
+    final Settings firstSettings = made.getFirst().getSettings();
+    assertEquals(Settings.DEFAULT, firstSettings);
+
     // FAST is estimated at 16.2 ms, inside the 16.7 ms frame interval.
     encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(18));
     encoder = this.playSwitching(result, clock, encoder, frame, 120);
-    assertEquals(1, changes.size());
-    assertEquals(
+    final int changeCount = changes.size();
+    assertEquals(1, changeCount);
+    final String expectedDescription =
       "MCV2 screen steps down to 64x32 at 60 fps with the FAST search: encoding 64x32 with the DEFAULT search takes 18.0 ms" +
-        " per frame, more than the 16.7 ms a frame has at 60 fps with the encoder threads it has",
-      changes.getFirst().describe()
-    );
-    assertEquals(1, made.size());
-    assertEquals(List.of(Settings.FAST), switched);
+      " per frame, more than the 16.7 ms a frame has at 60 fps with the encoder threads it has";
+    final String description = changes.getFirst().describe();
+    assertEquals(expectedDescription, description);
+    final int encoderCountAfterStepDown = made.size();
+    assertEquals(1, encoderCountAfterStepDown);
+    final List<Settings> expectedSwitches = List.of(Settings.FAST);
+    assertEquals(expectedSwitches, switched);
     verify(made.getFirst(), Mockito.atLeast(150)).encode(any(), anyInt(), anyInt(), anyLong());
     encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
     this.playSwitching(result, clock, encoder, frame, 30 * 60);
-    assertEquals(2, changes.size());
-    assertFalse(changes.get(1).down());
-    assertEquals(1, made.size());
-    assertEquals(List.of(Settings.FAST, Settings.DEFAULT), switched);
-    assertEquals(new Mcv2Pacer.Preset("DEFAULT", 1), result.getRung().preset());
+    final int changeCountAfterClimb = changes.size();
+    assertEquals(2, changeCountAfterClimb);
+    final boolean climbStepsDown = changes.get(1).down();
+    assertFalse(climbStepsDown);
+    final int encoderCountAfterClimb = made.size();
+    assertEquals(1, encoderCountAfterClimb);
+    final List<Settings> expectedSwitchesAfterClimb = List.of(Settings.FAST, Settings.DEFAULT);
+    assertEquals(expectedSwitchesAfterClimb, switched);
+    final Mcv2Pacer.Preset expectedPreset = new Mcv2Pacer.Preset("DEFAULT", 1);
+    final Mcv2Pacer.Preset preset = result.getRung().preset();
+    assertEquals(expectedPreset, preset);
   }
 
   /**
@@ -1460,7 +1658,9 @@ final class Mcv2ResultTest {
       this.play(result, clock, encoder, frame, 90);
       encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
       this.play(result, clock, encoder, frame, 20 * 60);
-      assertEquals(List.of(Level.WARN, Level.INFO), logs.getEvents().stream().map(LogCapture.RecordedEvent::getLevel).toList());
+      final List<Level> expectedLevels = List.of(Level.WARN, Level.INFO);
+      final List<Level> levels = logs.getEvents().stream().map(LogCapture.RecordedEvent::getLevel).toList();
+      assertEquals(expectedLevels, levels);
     }
     result.release();
   }
@@ -1497,7 +1697,8 @@ final class Mcv2ResultTest {
       result.applyFilter(Images.solid(video[0], video[1], 0xFF336699), this.metadata);
       result.release();
     }
-    assertEquals(List.of("256x128", "256x128"), dithered, "a wall of 2x1 maps is 256x128 pixels");
+    final List<String> expected = List.of("256x128", "256x128");
+    assertEquals(expected, dithered, "a wall of 2x1 maps is 256x128 pixels");
   }
 
   @Test
@@ -1516,16 +1717,17 @@ final class Mcv2ResultTest {
         result.applyFilter(Images.solid(64, 32, 0xFF336699 + shade), this.metadata);
         Thread.sleep(20);
       }
-      assertEquals(Set.of(), threads("mcav-mcv2-sender", before), "the listener's failure ends the sender");
-      assertEquals(Set.of(), threads("mcav-mcv2-screen", before), "and the screen's thread, instead of waiting for it");
+      final Set<Thread> senderThreads = threads("mcav-mcv2-sender", before);
+      assertEquals(Set.of(), senderThreads, "the listener's failure ends the sender");
+      final Set<Thread> screenThreads = threads("mcav-mcv2-screen", before);
+      assertEquals(Set.of(), screenThreads, "and the screen's thread, instead of waiting for it");
+
       assertTimeoutPreemptively(Duration.ofSeconds(5), result::drain, "a stopped screen has nothing to drain");
-      assertTrue(
-        logs
-          .getEvents()
-          .stream()
-          .anyMatch(event -> Level.ERROR.equals(event.getLevel())),
-        "the failure is logged"
-      );
+      final boolean errorLogged = logs
+        .getEvents()
+        .stream()
+        .anyMatch(event -> Level.ERROR.equals(event.getLevel()));
+      assertTrue(errorLogged, "the failure is logged");
     }
     result.release();
   }
@@ -1553,15 +1755,15 @@ final class Mcv2ResultTest {
       result.applyFilter(frame, this.metadata);
       verify(failing, timeout(TimeUnit.SECONDS.toMillis(10))).begin(any(), anyInt(), anyInt(), anyLong());
       awaitPipelineEnd(before);
-      assertEquals(Set.of(), threads("mcav-mcv2-screen", before), "the encoder's failure ends the screen's thread");
-      assertEquals(Set.of(), threads("mcav-mcv2-sender", before), "and the sender, which waits for its frames");
-      assertTrue(
-        logs
-          .getEvents()
-          .stream()
-          .anyMatch(event -> Level.ERROR.equals(event.getLevel())),
-        "the failure is logged"
-      );
+      final Set<Thread> screenThreads = threads("mcav-mcv2-screen", before);
+      assertEquals(Set.of(), screenThreads, "the encoder's failure ends the screen's thread");
+      final Set<Thread> senderThreads = threads("mcav-mcv2-sender", before);
+      assertEquals(Set.of(), senderThreads, "and the sender, which waits for its frames");
+      final boolean errorLogged = logs
+        .getEvents()
+        .stream()
+        .anyMatch(event -> Level.ERROR.equals(event.getLevel()));
+      assertTrue(errorLogged, "the failure is logged");
     }
     result.release();
   }
@@ -1572,7 +1774,8 @@ final class Mcv2ResultTest {
     while (thread.getState() != Thread.State.WAITING && System.nanoTime() < deadline) {
       Thread.sleep(5);
     }
-    assertEquals(Thread.State.WAITING, thread.getState());
+    final Thread.State state = thread.getState();
+    assertEquals(Thread.State.WAITING, state);
   }
 
   /** Waits for a latch the way code that does not answer interrupts does, and keeps the interrupt for later. */
@@ -1615,8 +1818,10 @@ final class Mcv2ResultTest {
       awaitWaiting(waiter);
       result.release();
       waiter.join(TimeUnit.SECONDS.toMillis(5));
-      assertFalse(waiter.isAlive(), "the release wakes a thread that waits for a frame");
-      assertNull(taken.get(), "and hands it none");
+      final boolean waiterAlive = waiter.isAlive();
+      assertFalse(waiterAlive, "the release wakes a thread that waits for a frame");
+      final Mcv2Result.@Nullable Arrival handed = taken.get();
+      assertNull(handed, "and hands it none");
     } finally {
       releaseAndStopWaiter(result, waiter);
     }
@@ -1636,15 +1841,19 @@ final class Mcv2ResultTest {
       })
     ) {
       final AssertionError failure = assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease);
-      assertTrue(failure.getMessage().contains("the release wakes a thread"));
-      assertEquals(1, results.constructed().size());
-      assertFalse(waiting.get().isAlive(), "a failed release-notification test leaked its waiter");
+      final boolean namesTheRelease = failure.getMessage().contains("the release wakes a thread");
+      assertTrue(namesTheRelease);
+      final int resultCount = results.constructed().size();
+      assertEquals(1, resultCount);
+      final boolean waiterLeaked = waiting.get().isAlive();
+      assertFalse(waiterLeaked, "a failed release-notification test leaked its waiter");
     } finally {
       final Thread waiter = waiting.get();
       if (waiter != null) {
         waiter.interrupt();
         waiter.join(5000);
-        assertFalse(waiter.isAlive(), "the fixture probe must stop its own waiter");
+        final boolean waiterAlive = waiter.isAlive();
+        assertFalse(waiterAlive, "the fixture probe must stop its own waiter");
       }
     }
   }
@@ -1664,15 +1873,19 @@ final class Mcv2ResultTest {
         Mockito.doThrow(forcedFailure).doNothing().when(result).release();
       })
     ) {
-      assertSame(forcedFailure, assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease));
-      assertEquals(1, results.constructed().size());
-      assertFalse(waiting.get().isAlive(), "a release failure leaked the fixture waiter");
+      final AssertionError failure = assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease);
+      assertSame(forcedFailure, failure);
+      final int resultCount = results.constructed().size();
+      assertEquals(1, resultCount);
+      final boolean waiterLeaked = waiting.get().isAlive();
+      assertFalse(waiterLeaked, "a release failure leaked the fixture waiter");
     } finally {
       final Thread waiter = waiting.get();
       if (waiter != null) {
         waiter.interrupt();
         waiter.join(5000);
-        assertFalse(waiter.isAlive(), "the fixture probe must stop its own waiter");
+        final boolean waiterAlive = waiter.isAlive();
+        assertFalse(waiterAlive, "the fixture probe must stop its own waiter");
       }
     }
   }
@@ -1724,20 +1937,22 @@ final class Mcv2ResultTest {
       result.applyFilter(frame, this.metadata);
       verify(encoder, timeout(TimeUnit.SECONDS.toMillis(10))).finish(first);
       result.applyFilter(frame, this.metadata);
-      assertTrue(inSecondFrame.await(10, TimeUnit.SECONDS));
+      final boolean reachedSecondFrame = inSecondFrame.await(10, TimeUnit.SECONDS);
+      assertTrue(reachedSecondFrame);
+
       waiter.start();
       awaitWaiting(waiter);
       firstFrameMayFail.countDown();
       waiter.join(TimeUnit.SECONDS.toMillis(5));
-      assertFalse(waiter.isAlive(), "the sender's failure stops the screen at once, not when its thread is free again");
-      assertNull(taken.get());
-      assertTrue(
-        logs
-          .getEvents()
-          .stream()
-          .anyMatch(event -> Level.ERROR.equals(event.getLevel())),
-        "the failure is logged"
-      );
+      final boolean waiterAlive = waiter.isAlive();
+      assertFalse(waiterAlive, "the sender's failure stops the screen at once, not when its thread is free again");
+      final Mcv2Result.@Nullable Arrival handed = taken.get();
+      assertNull(handed);
+      final boolean errorLogged = logs
+        .getEvents()
+        .stream()
+        .anyMatch(event -> Level.ERROR.equals(event.getLevel()));
+      assertTrue(errorLogged, "the failure is logged");
     } finally {
       firstFrameMayFail.countDown();
       secondFrameMayGoOn.countDown();
@@ -1752,7 +1967,8 @@ final class Mcv2ResultTest {
       // Cleanup must not depend on the production notification that this fixture tests.
       waiter.interrupt();
       waiter.join(TimeUnit.SECONDS.toMillis(5));
-      assertFalse(waiter.isAlive(), "the fixture must stop its waiter even after an assertion fails");
+      final boolean waiterAlive = waiter.isAlive();
+      assertFalse(waiterAlive, "the fixture must stop its waiter even after an assertion fails");
     }
   }
 }

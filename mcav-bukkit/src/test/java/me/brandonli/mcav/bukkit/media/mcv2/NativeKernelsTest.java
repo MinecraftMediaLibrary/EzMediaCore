@@ -79,7 +79,9 @@ final class NativeKernelsTest {
   }
 
   private static void failed(final Executable call) {
-    assertEquals("MCV2 native kernel failed", assertThrows(IllegalStateException.class, call).getMessage());
+    final IllegalStateException exception = assertThrows(IllegalStateException.class, call);
+    final String message = exception.getMessage();
+    assertEquals("MCV2 native kernel failed", message);
   }
 
   @Test
@@ -88,10 +90,14 @@ final class NativeKernelsTest {
     final byte[] picture = new byte[16 * 16 * 3];
     final int[] block = new int[8 * 8 * 3];
     failed(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, block));
-    assertTrue(kernels.keeps(picture), "a coder passes the same picture block after block");
+    final boolean keepsPicture = kernels.keeps(picture);
+    assertTrue(keepsPicture, "a coder passes the same picture block after block");
+
     kernels.forgetArrays();
-    assertFalse(kernels.keeps(picture));
-    assertFalse(kernels.keeps(block));
+    final boolean keepsPictureAfterForgetting = kernels.keeps(picture);
+    assertFalse(keepsPictureAfterForgetting);
+    final boolean keepsBlock = kernels.keeps(block);
+    assertFalse(keepsBlock);
   }
 
   @Test
@@ -105,7 +111,9 @@ final class NativeKernelsTest {
     final NativeKernels kernels = NativeTesting.view(target);
     failed(() -> kernels.predict(new byte[16 * 16 * 3], 16, 16, 0, 0, 8, 0, 0, new int[8 * 8 * 3]));
     final Object[] segments = (Object[]) Mcv2Internals.field(type, target, "cachedSegments");
-    assertTrue(Arrays.stream(segments).anyMatch(Objects::nonNull));
+    final boolean keepsASegment = Arrays.stream(segments).anyMatch(Objects::nonNull);
+    assertTrue(keepsASegment);
+
     kernels.forgetArrays();
     for (final Object segment : segments) {
       assertNull(segment);
@@ -259,13 +267,21 @@ final class NativeKernelsTest {
     );
     final int[] block = new int[8 * 8 * 3];
     finished.start(block, 0, 1);
-    assertTrue(finished.predicted(block, 8, block));
-    assertEquals(42, finished.distortion());
+    final boolean finishedPredicted = finished.predicted(block, 8, block);
+    assertTrue(finishedPredicted);
+    final long finishedDistortion = finished.distortion();
+    assertEquals(42, finishedDistortion);
+
     stopped.start(block, 0, 1);
-    assertFalse(stopped.predicted(block, 8, block));
-    assertEquals(0, stopped.distortion());
-    assertEquals(Level.SCALAR, finished.level());
-    assertEquals("avx2", Level.AVX2.symbol());
+    final boolean stoppedPredicted = stopped.predicted(block, 8, block);
+    assertFalse(stoppedPredicted);
+    final long stoppedDistortion = stopped.distortion();
+    assertEquals(0, stoppedDistortion);
+
+    final Level level = finished.level();
+    assertEquals(Level.SCALAR, level);
+    final String symbol = Level.AVX2.symbol();
+    assertEquals("avx2", symbol);
   }
 
   @Test
@@ -275,10 +291,8 @@ final class NativeKernelsTest {
       for (int kernel = 0; kernel < KernelDifferential.KERNELS; kernel++) {
         for (int seed = 0; seed < 12; seed++) {
           final KernelDifferential.Values values = KernelDifferential.of(new Random(seed * 31L + kernel));
-          assertNull(
-            KernelDifferential.compare(values, Mcv2Internals.javaKernels(), kernels, kernel),
-            level + " kernel " + kernel + " seed " + seed
-          );
+          final @Nullable String difference = KernelDifferential.compare(values, Mcv2Internals.javaKernels(), kernels, kernel);
+          assertNull(difference, level + " kernel " + kernel + " seed " + seed);
         }
       }
     }
@@ -322,7 +336,8 @@ final class NativeKernelsTest {
         Arrays.fill(expected, 128 - (3 << quantizer));
         final int[] actual = new int[source.length];
         kernels.start(source, 0, Double.POSITIVE_INFINITY);
-        assertTrue(kernels.compact(prediction, record, quantizer, 8, actual));
+        final boolean finished = kernels.compact(prediction, record, quantizer, 8, actual);
+        assertTrue(finished);
         assertArrayEquals(expected, actual, level + " q=" + quantizer);
       }
     }
@@ -371,14 +386,20 @@ final class NativeKernelsTest {
       assertArrayEquals(expected, prediction, level.symbol());
       final int[] actual = new int[reference.length];
       kernels.start(expected, 0, Double.POSITIVE_INFINITY);
-      assertTrue(kernels.predicted(prediction, 8, actual));
+      final boolean finished = kernels.predicted(prediction, 8, actual);
+      assertTrue(finished);
       assertArrayEquals(expected, actual, level.symbol());
-      assertEquals(0, kernels.distortion());
+      final long distortion = kernels.distortion();
+      assertEquals(0, distortion);
+
       kernels.predict(new byte[] { 0, 127, -1 }, 1, 1, 0, 0, 8, -128, 127, prediction);
       for (int pixel = 0; pixel < 64; pixel++) {
-        assertEquals(0, prediction[pixel * 3]);
-        assertEquals(127, prediction[pixel * 3 + 1]);
-        assertEquals(255, prediction[pixel * 3 + 2]);
+        final int red = prediction[pixel * 3];
+        assertEquals(0, red);
+        final int green = prediction[pixel * 3 + 1];
+        assertEquals(127, green);
+        final int blue = prediction[pixel * 3 + 2];
+        assertEquals(255, blue);
       }
       final int[] source = new int[8 * 8 * 3];
       final int[] values = { 0, 1, 250, 255 };
@@ -387,7 +408,8 @@ final class NativeKernelsTest {
       }
       final int[] endpoints = new int[6];
       kernels.cluster(source, 8, endpoints);
-      assertArrayEquals(new int[] { 1, 1, 1, 253, 253, 253 }, endpoints, level.symbol());
+      final int[] expectedEndpoints = new int[] { 1, 1, 1, 253, 253, 253 };
+      assertArrayEquals(expectedEndpoints, endpoints, level.symbol());
     }
   }
 }

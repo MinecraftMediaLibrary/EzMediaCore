@@ -41,7 +41,9 @@ final class MCV2FitsTest {
         final float[] fitted = new float[grid * grid];
         Mcv2Internals.javaKernels().fit(values, size, fitted);
         for (int nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
-          assertEquals(nodes[nodeIndex], fitted[nodeIndex], 1e-3, "size " + size + " grid " + grid + " node " + nodeIndex);
+          final float expected = nodes[nodeIndex];
+          final float fittedNode = fitted[nodeIndex];
+          assertEquals(expected, fittedNode, 1e-3, "size " + size + " grid " + grid + " node " + nodeIndex);
         }
       }
     }
@@ -51,8 +53,10 @@ final class MCV2FitsTest {
   void shouldTargetLumaWithoutChromaResiduals() {
     final float[] target = new float[2];
     Mcv2Internals.javaKernels().residualTarget(new int[] { 40, 60, 80, 9, 2, 3 }, new int[] { 0, 255, 128, 9, 2, 3 }, 2, target);
-    assertEquals(-99.5f, target[0]);
-    assertEquals(0, target[1]);
+    final float luma = target[0];
+    assertEquals(-99.5f, luma);
+    final float chroma = target[1];
+    assertEquals(0, chroma);
   }
 
   @Test
@@ -66,7 +70,9 @@ final class MCV2FitsTest {
     Mcv2Internals.javaKernels().fit(values, 8, fitted);
     for (int row = 0; row < 4; row++) {
       for (int column = 0; column < 4; column++) {
-        assertEquals(column - 3, fitted[row * 4 + column], 3e-7, "row " + row + " column " + column);
+        final int expected = column - 3;
+        final float fittedNode = fitted[row * 4 + column];
+        assertEquals(expected, fittedNode, 3e-7, "row " + row + " column " + column);
       }
     }
   }

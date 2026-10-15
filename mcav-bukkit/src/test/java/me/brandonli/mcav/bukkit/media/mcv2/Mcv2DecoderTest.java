@@ -43,8 +43,10 @@ final class Mcv2DecoderTest {
   void shouldDecodeAKeyframeWithoutAReferenceAndCropItsEdges() throws Mcv2Exception {
     final byte[] frame = keyframe(3, 2, solid(10, 20, 30));
     final byte[] picture = Mcv2Decoder.decode(frame, null, 99);
-    assertArrayEquals(new byte[] { 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30 }, picture);
-    assertArrayEquals(picture, Mcv2Decoder.decode(Mcv2Decoder.parse(frame), new byte[1], 5));
+    final byte[] expected = new byte[] { 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30 };
+    assertArrayEquals(expected, picture);
+    final byte[] decodedFromParsed = Mcv2Decoder.decode(Mcv2Decoder.parse(frame), new byte[1], 5);
+    assertArrayEquals(picture, decodedFromParsed);
   }
 
   @Test
@@ -57,8 +59,10 @@ final class Mcv2DecoderTest {
     assertArrayEquals(fresh, into);
     final byte[] small = new byte[17];
     assertThrows(IllegalArgumentException.class, () -> Mcv2Decoder.decode(frame, null, 0, small));
-    assertArrayEquals(new byte[17], small);
-    assertArrayEquals(fresh, Mcv2Decoder.decode(frame, null, 0));
+    final byte[] expectedSmall = new byte[17];
+    assertArrayEquals(expectedSmall, small);
+    final byte[] decodedAgain = Mcv2Decoder.decode(frame, null, 0);
+    assertArrayEquals(fresh, decodedAgain);
   }
 
   @Test
@@ -68,7 +72,9 @@ final class Mcv2DecoderTest {
       reference[index] = (byte) (index * 10);
     }
     final byte[] frame = predicted(2, 1, motion(1, 0));
-    assertArrayEquals(new byte[] { 30, 40, 50, 30, 40, 50 }, Mcv2Decoder.decode(frame, reference, 0));
+    final byte[] expected = new byte[] { 30, 40, 50, 30, 40, 50 };
+    final byte[] decoded = Mcv2Decoder.decode(frame, reference, 0);
+    assertArrayEquals(expected, decoded);
   }
 
   @Test
@@ -131,13 +137,18 @@ final class Mcv2DecoderTest {
     records[1][6] = 2;
     records[290] = new byte[] { 0 };
     final byte[] frame = Mcv2WireFrames.frame(4096, 96, false, descriptors, records, new int[] { count, 0, 0 });
-    assertEquals("Invalid pattern selector", assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame)).getMessage());
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame));
+    final String message = exception.getMessage();
+    assertEquals("Invalid pattern selector", message);
   }
 
   @Test
   void shouldRefuseAMissingOrMismatchedReference() {
     final byte[] frame = predicted(2, 1, motion(0, 0));
-    assertEquals("Reference frame mismatch", assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0)).getMessage());
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0));
+    final String message = exception.getMessage();
+    assertEquals("Reference frame mismatch", message);
+
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, new byte[6], 7));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, new byte[5], 0));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(new byte[3], null, 0));

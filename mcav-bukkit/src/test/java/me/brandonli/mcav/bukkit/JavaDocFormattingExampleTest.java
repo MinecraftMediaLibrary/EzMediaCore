@@ -81,7 +81,8 @@ final class JavaDocFormattingExampleTest {
         final Scoreboard board = scoreboards.getBoard();
         verify(viewer).setScoreboard(board);
         final List<Team> teams = scoreboards.getTeams();
-        assertEquals(15, teams.size());
+        final int teamCount = teams.size();
+        assertEquals(15, teamCount);
         for (int row = 0; row < 15; row++) {
           final int color = row % 2 == 0 ? 0x123456 : 0xABCDEF;
           verify(teams.get(row)).suffix(Component.text("█".repeat(16), TextColor.color(color)));
@@ -89,7 +90,8 @@ final class JavaDocFormattingExampleTest {
       } finally {
         display.release();
       }
-      assertSame(previous, viewer.getScoreboard());
+      final Scoreboard restored = viewer.getScoreboard();
+      assertSame(previous, restored);
     }
   }
 }

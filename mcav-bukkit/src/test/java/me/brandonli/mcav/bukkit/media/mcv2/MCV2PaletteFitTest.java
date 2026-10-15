@@ -51,8 +51,10 @@ final class MCV2PaletteFitTest {
     final int[] colors = new int[6];
     final byte[] selectors = new byte[8];
     fit(source, 8, colors, selectors);
-    assertArrayEquals(new int[] { 10, 20, 30, 200, 210, 220 }, colors);
-    assertArrayEquals(new byte[] { 1, 0, 0, 1, 1, 0, 1, 1 }, selectors);
+    final int[] expectedColors = { 10, 20, 30, 200, 210, 220 };
+    assertArrayEquals(expectedColors, colors);
+    final byte[] expectedSelectors = { 1, 0, 0, 1, 1, 0, 1, 1 };
+    assertArrayEquals(expectedSelectors, selectors);
   }
 
   @Test
@@ -61,8 +63,10 @@ final class MCV2PaletteFitTest {
     final int[] colors = new int[6];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
-    assertArrayEquals(new int[] { 1, 1, 1, 253, 253, 253 }, colors);
-    assertArrayEquals(new byte[] { 0, 0, 1, 1 }, selectors);
+    final int[] expectedColors = { 1, 1, 1, 253, 253, 253 };
+    assertArrayEquals(expectedColors, colors);
+    final byte[] expectedSelectors = { 0, 0, 1, 1 };
+    assertArrayEquals(expectedSelectors, selectors);
   }
 
   @Test
@@ -73,8 +77,10 @@ final class MCV2PaletteFitTest {
     final int[] colors = new int[6];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
-    assertArrayEquals(new int[] { 33, 50, 67, 100, 50, 0 }, colors);
-    assertArrayEquals(new byte[] { 1, 0, 0, 0 }, selectors);
+    final int[] expectedColors = { 33, 50, 67, 100, 50, 0 };
+    assertArrayEquals(expectedColors, colors);
+    final byte[] expectedSelectors = { 1, 0, 0, 0 };
+    assertArrayEquals(expectedSelectors, selectors);
   }
 
   @Test
@@ -82,8 +88,10 @@ final class MCV2PaletteFitTest {
     final int[] colors = new int[6];
     final byte[] selectors = new byte[2];
     fit(block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
-    assertArrayEquals(new int[] { 7, 8, 9, 7, 8, 9 }, colors);
-    assertArrayEquals(new byte[] { 0, 0 }, selectors);
+    final int[] expectedColors = { 7, 8, 9, 7, 8, 9 };
+    assertArrayEquals(expectedColors, colors);
+    final byte[] expectedSelectors = { 0, 0 };
+    assertArrayEquals(expectedSelectors, selectors);
   }
 
   /** The pattern assignment agrees with the plain one whenever the selectors repeat along an axis, and says when not. */

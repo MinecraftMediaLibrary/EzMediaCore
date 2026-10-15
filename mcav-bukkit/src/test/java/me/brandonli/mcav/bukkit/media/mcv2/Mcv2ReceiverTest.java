@@ -38,27 +38,32 @@ final class Mcv2ReceiverTest {
   @Test
   void shouldCommitNewerFramesOnly() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
-    assertEquals(-1, receiver.getFrameId());
+    final long initialFrameId = receiver.getFrameId();
+    assertEquals(-1, initialFrameId);
+
     receiver.accept(keyframeWithId(5, 1));
-    assertEquals(5, receiver.getFrameId());
-    assertEquals(
-      "Stale or ambiguous frame number",
-      assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5, 2))).getMessage()
-    );
+    final long acceptedFrameId = receiver.getFrameId();
+    assertEquals(5, acceptedFrameId);
+
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5, 2)));
+    final String message = exception.getMessage();
+    assertEquals("Stale or ambiguous frame number", message);
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(4, 2)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5 + 0x80000000L, 2)));
-    assertEquals(5, receiver.getFrameId());
+    final long frameIdAfterRejections = receiver.getFrameId();
+    assertEquals(5, frameIdAfterRejections);
   }
 
   @Test
   void shouldStillRequireAFrameAfterFrameZeroToBeNewer() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(keyframeWithId(0, 1));
-    assertEquals(
-      "Stale or ambiguous frame number",
-      assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(0, 2))).getMessage()
-    );
-    assertEquals(0, receiver.getFrameId());
+
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(0, 2)));
+    final String message = exception.getMessage();
+    assertEquals("Stale or ambiguous frame number", message);
+    final long frameId = receiver.getFrameId();
+    assertEquals(0, frameId);
   }
 
   @Test
@@ -66,8 +71,12 @@ final class Mcv2ReceiverTest {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(keyframeWithId(0xFFFFFFFFL, 1));
     final byte[] picture = receiver.accept(keyframeWithId(0, 9));
-    assertArrayEquals(new byte[] { 9, 9, 9 }, Arrays.copyOf(picture, 3));
-    assertEquals(0, receiver.getFrameId());
+
+    final byte[] expected = new byte[] { 9, 9, 9 };
+    final byte[] firstPixel = Arrays.copyOf(picture, 3);
+    assertArrayEquals(expected, firstPixel);
+    final long frameId = receiver.getFrameId();
+    assertEquals(0, frameId);
   }
 
   @Test
@@ -76,17 +85,24 @@ final class Mcv2ReceiverTest {
     receiver.accept(keyframeWithId(1, 3));
     final byte[] orphan = Mcv2Trees.write(4, 4, 2, 7, false, List.of(motion(0, 0)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(orphan));
-    assertEquals(1, receiver.getFrameId());
+    final long frameIdAfterOrphan = receiver.getFrameId();
+    assertEquals(1, frameIdAfterOrphan);
+
     final byte[] expected = new byte[4 * 4 * 3];
     Arrays.fill(expected, (byte) 3);
     final byte[] next = Mcv2Trees.write(4, 4, 2, 1, false, List.of(motion(0, 0)));
-    assertArrayEquals(expected, assertDoesNotThrow(() -> receiver.accept(next)));
-    assertEquals(2, receiver.getFrameId());
+    final byte[] nextPicture = assertDoesNotThrow(() -> receiver.accept(next));
+    assertArrayEquals(expected, nextPicture);
+    final long frameIdAfterNext = receiver.getFrameId();
+    assertEquals(2, frameIdAfterNext);
+
     final byte[] anotherOrphan = Mcv2Trees.write(4, 4, 3, 8, false, List.of(motion(0, 0)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(anotherOrphan));
     final byte[] retry = Mcv2Trees.write(4, 4, 3, 2, false, List.of(motion(0, 0)));
-    assertArrayEquals(expected, assertDoesNotThrow(() -> receiver.accept(retry)));
-    assertEquals(3, receiver.getFrameId());
+    final byte[] retryPicture = assertDoesNotThrow(() -> receiver.accept(retry));
+    assertArrayEquals(expected, retryPicture);
+    final long frameIdAfterRetry = receiver.getFrameId();
+    assertEquals(3, frameIdAfterRetry);
   }
 
   @Test
@@ -94,11 +110,19 @@ final class Mcv2ReceiverTest {
     final Mcv2Receiver receiver = new Mcv2Receiver();
     receiver.accept(Mcv2Trees.write(8, 16, 0, 0, true, List.of(solid(1, 2, 3))));
     final byte[] wrongShape = Mcv2Trees.write(16, 8, 1, 0, false, List.of(motion(0, 0)));
-    assertEquals("Reference frame dimensions mismatch", assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongShape)).getMessage());
-    assertEquals(0, receiver.getFrameId());
+    final Mcv2Exception shapeException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongShape));
+    final String shapeMessage = shapeException.getMessage();
+    assertEquals("Reference frame dimensions mismatch", shapeMessage);
+    final long frameIdAfterWrongShape = receiver.getFrameId();
+    assertEquals(0, frameIdAfterWrongShape);
+
     final byte[] wrongHeight = Mcv2Trees.write(8, 8, 1, 0, false, List.of(motion(0, 0)));
-    assertEquals("Reference frame dimensions mismatch", assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongHeight)).getMessage());
-    assertEquals(0, receiver.getFrameId());
+    final Mcv2Exception heightException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongHeight));
+    final String heightMessage = heightException.getMessage();
+    assertEquals("Reference frame dimensions mismatch", heightMessage);
+    final long frameIdAfterWrongHeight = receiver.getFrameId();
+    assertEquals(0, frameIdAfterWrongHeight);
+
     assertDoesNotThrow(() -> receiver.accept(Mcv2Trees.write(8, 16, 1, 0, false, List.of(motion(0, 0)))));
   }
 }

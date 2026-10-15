@@ -260,10 +260,14 @@ final class SimpleResourcePackTest {
     pack.zip(zip);
 
     final Map<String, byte[]> entries = readZip(zip);
-    assertEquals(
-      List.of("pack.mcmeta", "assets/mcav/texts/credits.txt", "assets/mcav/shaders/post/a.fsh", "assets/mcav/texts/replaced.txt"),
-      entryNames(entries)
+    final List<String> expectedNames = List.of(
+      "pack.mcmeta",
+      "assets/mcav/texts/credits.txt",
+      "assets/mcav/shaders/post/a.fsh",
+      "assets/mcav/texts/replaced.txt"
     );
+    final List<String> names = entryNames(entries);
+    assertEquals(expectedNames, names);
     assertEntry("#version 330".getBytes(StandardCharsets.US_ASCII), entries, "assets/mcav/shaders/post/a.fsh");
     assertEntry(CREDITS, entries, "assets/mcav/texts/credits.txt");
     assertEntry(new byte[] { 2 }, entries, "assets/mcav/texts/replaced.txt");
@@ -283,17 +287,22 @@ final class SimpleResourcePackTest {
     final Path second = this.directory.resolve("second.zip");
     pack.zip(first);
     pack.zip(second);
-    assertArrayEquals(Files.readAllBytes(first), Files.readAllBytes(second));
+    final byte[] expectedBytes = Files.readAllBytes(first);
+    final byte[] bytes = Files.readAllBytes(second);
+    assertArrayEquals(expectedBytes, bytes);
+
     final LocalDateTime fixed = LocalDateTime.of(1980, 2, 1, 0, 0);
     try (final InputStream input = Files.newInputStream(first); final ZipInputStream zip = new ZipInputStream(input)) {
       int entries = 0;
       for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
-        assertEquals(fixed, entry.getTimeLocal(), entry.getName());
+        final LocalDateTime time = entry.getTimeLocal();
+        assertEquals(fixed, time, entry.getName());
         entries++;
       }
       assertEquals(5, entries);
     }
-    assertEquals(fixed, SimpleResourcePack.entry("a.txt").getTimeLocal());
+    final LocalDateTime newEntryTime = SimpleResourcePack.entry("a.txt").getTimeLocal();
+    assertEquals(fixed, newEntryTime);
   }
 
   @Test
@@ -425,28 +434,43 @@ final class SimpleResourcePackTest {
 
     final Map<String, byte[]> firstEntries = readZip(firstZip);
     final Map<String, byte[]> secondEntries = readZip(secondZip);
-    assertEquals(
-      Set.of("pack.mcmeta", "credits.txt", "generated.txt", "assets/mcav/sounds/first.ogg", "assets/mcav/sounds.json"),
-      firstEntries.keySet()
+    final Set<String> expectedFirstNames = Set.of(
+      "pack.mcmeta",
+      "credits.txt",
+      "generated.txt",
+      "assets/mcav/sounds/first.ogg",
+      "assets/mcav/sounds.json"
     );
-    assertEquals(
-      Set.of("pack.mcmeta", "credits.txt", "generated.txt", "assets/mcav/sounds/second.ogg", "assets/mcav/sounds.json"),
-      secondEntries.keySet()
+    final Set<String> firstNames = firstEntries.keySet();
+    assertEquals(expectedFirstNames, firstNames);
+    final Set<String> expectedSecondNames = Set.of(
+      "pack.mcmeta",
+      "credits.txt",
+      "generated.txt",
+      "assets/mcav/sounds/second.ogg",
+      "assets/mcav/sounds.json"
     );
-    assertEquals(
-      JsonParser.parseString("{\"pack\":{\"description\":\"first\",\"pack_format\":1,\"min_format\":1,\"max_format\":1}}"),
-      parseEntry(firstEntries, "pack.mcmeta")
+    final Set<String> secondNames = secondEntries.keySet();
+    assertEquals(expectedSecondNames, secondNames);
+    final JsonElement expectedFirstMetadata = JsonParser.parseString(
+      "{\"pack\":{\"description\":\"first\",\"pack_format\":1,\"min_format\":1,\"max_format\":1}}"
     );
-    assertEquals(
-      JsonParser.parseString("{\"pack\":{\"description\":\"second\",\"pack_format\":2,\"min_format\":2,\"max_format\":2}}"),
-      parseEntry(secondEntries, "pack.mcmeta")
+    final JsonObject firstMetadata = parseEntry(firstEntries, "pack.mcmeta");
+    assertEquals(expectedFirstMetadata, firstMetadata);
+    final JsonElement expectedSecondMetadata = JsonParser.parseString(
+      "{\"pack\":{\"description\":\"second\",\"pack_format\":2,\"min_format\":2,\"max_format\":2}}"
     );
+    final JsonObject secondMetadata = parseEntry(secondEntries, "pack.mcmeta");
+    assertEquals(expectedSecondMetadata, secondMetadata);
+
     final JsonObject firstEvents = new JsonObject();
     final JsonObject secondEvents = new JsonObject();
     addSoundEvent(firstEvents, "first", "mcav:first");
     addSoundEvent(secondEvents, "second", "mcav:second");
-    assertEquals(firstEvents, parseEntry(firstEntries, "assets/mcav/sounds.json"));
-    assertEquals(secondEvents, parseEntry(secondEntries, "assets/mcav/sounds.json"));
+    final JsonObject firstSounds = parseEntry(firstEntries, "assets/mcav/sounds.json");
+    assertEquals(firstEvents, firstSounds);
+    final JsonObject secondSounds = parseEntry(secondEntries, "assets/mcav/sounds.json");
+    assertEquals(secondEvents, secondSounds);
     assertEntry(CREDITS, firstEntries, "credits.txt");
     assertEntry(SECOND_SOUND, secondEntries, "credits.txt");
     assertEntry(FIRST_SOUND, firstEntries, "generated.txt");

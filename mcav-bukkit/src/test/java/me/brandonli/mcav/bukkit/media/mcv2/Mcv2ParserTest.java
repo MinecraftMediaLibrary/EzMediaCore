@@ -52,8 +52,10 @@ final class Mcv2ParserTest {
   @Test
   void shouldGiveAbsentRootsNoRecordOffset() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(1, 1, Node.skip()));
-    assertEquals(1, frame.getLeafCount());
-    assertEquals(-1, frame.getLeaf(0).offset());
+    final int leafCount = frame.getLeafCount();
+    assertEquals(1, leafCount);
+    final int offset = frame.getLeaf(0).offset();
+    assertEquals(-1, offset);
   }
 
   @Test
@@ -65,22 +67,38 @@ final class Mcv2ParserTest {
   void shouldParseTheHeaderAndTheLeavesOfAKeyframe() throws Mcv2Exception {
     final byte[] frame = keyframe(40, 20, solid(1, 2, 3), split(Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, palette())));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
-    assertEquals(40, parsed.getWidth());
-    assertEquals(20, parsed.getHeight());
-    assertEquals(0, parsed.getFrameId());
-    assertEquals(0, parsed.getReferenceId());
-    assertTrue(parsed.isKeyframe());
-    assertEquals(frame.length, parsed.getData().length);
-    assertArrayEquals(frame, parsed.getData());
-    assertNotSame(parsed.getData(), parsed.getData());
-    assertEquals(5, parsed.getLeafCount());
+    final int width = parsed.getWidth();
+    assertEquals(40, width);
+    final int height = parsed.getHeight();
+    assertEquals(20, height);
+    final long frameId = parsed.getFrameId();
+    assertEquals(0, frameId);
+    final long referenceId = parsed.getReferenceId();
+    assertEquals(0, referenceId);
+    final boolean keyframe = parsed.isKeyframe();
+    assertTrue(keyframe);
+    final int dataLength = parsed.getData().length;
+    assertEquals(frame.length, dataLength);
+    final byte[] data = parsed.getData();
+    assertArrayEquals(frame, data);
+    final byte[] firstCopy = parsed.getData();
+    final byte[] secondCopy = parsed.getData();
+    assertNotSame(firstCopy, secondCopy);
+    final int leafCount = parsed.getLeafCount();
+    assertEquals(5, leafCount);
+
     final List<Mcv2Decoder.Leaf> leaves = new ArrayList<>();
     for (int leafIndex = 0; leafIndex < parsed.getLeafCount(); leafIndex++) {
       leaves.add(parsed.getLeaf(leafIndex));
     }
+
     // The solid root precedes the second root's four palette children in level order.
-    assertEquals(new Mcv2Decoder.Leaf(32, 0, 16, Mcv2Decoder.MODE_PALETTE, 0, parsed.getPayloadStart() + 3), leaves.get(1));
-    assertEquals(new Mcv2Decoder.Leaf(0, 0, 32, Mcv2Decoder.MODE_SOLID, 0, parsed.getPayloadStart()), leaves.get(0));
+    final Mcv2Decoder.Leaf expectedPaletteLeaf = new Mcv2Decoder.Leaf(32, 0, 16, Mcv2Decoder.MODE_PALETTE, 0, parsed.getPayloadStart() + 3);
+    final Mcv2Decoder.Leaf paletteLeaf = leaves.get(1);
+    assertEquals(expectedPaletteLeaf, paletteLeaf);
+    final Mcv2Decoder.Leaf expectedSolidLeaf = new Mcv2Decoder.Leaf(0, 0, 32, Mcv2Decoder.MODE_SOLID, 0, parsed.getPayloadStart());
+    final Mcv2Decoder.Leaf solidLeaf = leaves.get(0);
+    assertEquals(expectedSolidLeaf, solidLeaf);
     assertThrows(IndexOutOfBoundsException.class, () -> parsed.getLeaf(5));
   }
 
@@ -89,7 +107,9 @@ final class Mcv2ParserTest {
     final byte[] frame = keyframe(8, 8, solid(9, 9, 9));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     frame[12] = 1;
-    assertEquals(0, parsed.getData()[12]);
+
+    final byte copiedByte = parsed.getData()[12];
+    assertEquals(0, copiedByte);
   }
 
   @Test
@@ -97,27 +117,36 @@ final class Mcv2ParserTest {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V' }));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[48]));
     final Mcv2Exception mcv1 = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V', '1' }));
-    assertEquals("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3", mcv1.getMessage());
+    final String failureMessage = mcv1.getMessage();
+    assertEquals("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3", failureMessage);
+
     assertThrows(NullPointerException.class, () -> Mcv2Decoder.parse(null));
   }
 
   @Test
   void shouldRejectFramesOfTheWrongLength() {
     final byte[] frame = keyframe(8, 8, solid(1, 1, 1));
-    assertEquals("Invalid frame length", message(Arrays.copyOf(frame, 19)));
+    final String truncatedMessage = message(Arrays.copyOf(frame, 19));
+    assertEquals("Invalid frame length", truncatedMessage);
+
     final byte[] huge = new byte[Mcv2Decoder.MAX_FRAME_BYTES + 1];
     System.arraycopy(frame, 0, huge, 0, 4);
-    assertEquals("Invalid frame length", message(huge));
+    final String hugeMessage = message(huge);
+    assertEquals("Invalid frame length", hugeMessage);
   }
 
   @Test
   void shouldJudgeTheLengthOfBytesThatStartLikeAFrame() {
     final byte[] magic = new byte[Integer.BYTES];
     Mcv2Decoder.putU32(magic, 0, Mcv2Decoder.MAGIC);
-    assertEquals("Invalid frame length", message(magic));
+    final String magicMessage = message(magic);
+    assertEquals("Invalid frame length", magicMessage);
+
     // the shortest and the longest frames pass the length check and reach the header's
-    assertEquals("Not an MCV2 version 3 frame", message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES)));
-    assertEquals("Not an MCV2 version 3 frame", message(Arrays.copyOf(magic, Mcv2Decoder.MAX_FRAME_BYTES)));
+    final String shortestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
+    assertEquals("Not an MCV2 version 3 frame", shortestMessage);
+    final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAX_FRAME_BYTES));
+    assertEquals("Not an MCV2 version 3 frame", longestMessage);
   }
 
   private static Stream<Arguments> headerRules() {
@@ -143,7 +172,8 @@ final class Mcv2ParserTest {
   @ParameterizedTest(name = "{1}")
   @MethodSource("headerRules")
   void shouldEnforceEveryHeaderRule(final byte[] frame, final String expected) {
-    assertEquals(expected, message(frame));
+    final String failureMessage = message(frame);
+    assertEquals(expected, failureMessage);
   }
 
   private static String message(final byte[] frame) {

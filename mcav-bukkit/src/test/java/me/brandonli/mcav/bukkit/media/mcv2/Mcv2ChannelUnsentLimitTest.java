@@ -107,8 +107,11 @@ final class Mcv2ChannelUnsentLimitTest {
       this.server.runTasks();
 
       verify(screen).show(this.player);
-      assertEquals(Set.of(), channel.update(), "the viewer receives frames, without the limit");
-      assertEquals(Set.of(VIEWER), channel.getRecipients());
+      final Set<UUID> updated = channel.update();
+      assertEquals(Set.of(), updated, "the viewer receives frames, without the limit");
+      final Set<UUID> expectedRecipients = Set.of(VIEWER);
+      final Set<UUID> recipients = channel.getRecipients();
+      assertEquals(expectedRecipients, recipients);
       packets.verify(() -> PacketUtils.limitUnsent(VIEWER, 4096));
     }
   }

@@ -261,7 +261,9 @@ final class MainThreadRendererTest {
     }
     final int count = runs.get();
     assertEquals(0, count);
-    assertEquals(1, events.size());
+    final int eventCount = events.size();
+    assertEquals(1, eventCount);
+
     final LogCapture.RecordedEvent event = events.getFirst();
     final Level level = event.getLevel();
     assertEquals(Level.WARN, level);

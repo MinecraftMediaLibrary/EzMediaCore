@@ -41,10 +41,14 @@ final class MCV2MotionLambdaBandsTest {
     final int[] current = new int[SAMPLES];
     Arrays.fill(current, LUMA_STEP);
     final int[] previous = new int[SAMPLES];
-    assertEquals(1.0, MotionLambda.temporalInformation(current, previous, Workers.SEQUENTIAL));
+    final double information = MotionLambda.temporalInformation(current, previous, Workers.SEQUENTIAL);
+    assertEquals(1.0, information);
+
     // one sample differing by a thousand steps moves the mean by a thousand over the samples, wherever it lies
     final int[] spike = new int[SAMPLES];
     spike[SAMPLES - 1] = 1_000 * LUMA_STEP;
-    assertEquals(1_000.0 / SAMPLES, MotionLambda.temporalInformation(spike, previous, Workers.SEQUENTIAL), 1e-12);
+    final double expectedSpikeInformation = 1_000.0 / SAMPLES;
+    final double spikeInformation = MotionLambda.temporalInformation(spike, previous, Workers.SEQUENTIAL);
+    assertEquals(expectedSpikeInformation, spikeInformation, 1e-12);
   }
 }

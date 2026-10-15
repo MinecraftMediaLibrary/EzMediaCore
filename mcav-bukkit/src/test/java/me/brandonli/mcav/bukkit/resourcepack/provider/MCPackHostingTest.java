@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import me.brandonli.mcav.bukkit.testing.LogCapture;
 import me.brandonli.mcav.utils.IoUtils;
 import org.apache.logging.log4j.Level;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -175,10 +176,14 @@ final class MCPackHostingTest {
 
     final String boundary = boundaryMatcher.group(1);
     final byte[] expectedBody = expectedMultipartBody(boundary);
-    assertEquals("POST", upload.method);
-    assertEquals("mcav", upload.userAgent);
-    assertEquals("*/*", upload.accept);
-    assertArrayEquals(expectedBody, upload.body);
+    final String method = upload.method;
+    assertEquals("POST", method);
+    final String userAgent = upload.userAgent;
+    assertEquals("mcav", userAgent);
+    final String accept = upload.accept;
+    assertEquals("*/*", accept);
+    final byte[] body = upload.body;
+    assertArrayEquals(expectedBody, body);
   }
 
   @Test
@@ -365,7 +370,8 @@ final class MCPackHostingTest {
     final Throwable cause = exception.getCause();
     final List<Upload> uploads = this.service.getUploads();
     final boolean nothingUploaded = uploads.isEmpty();
-    assertEquals("Resource pack cannot be read: " + missing, message);
+    final String expectedMessage = "Resource pack cannot be read: " + missing;
+    assertEquals(expectedMessage, message);
     assertInstanceOf(NoSuchFileException.class, cause);
     assertTrue(nothingUploaded);
   }
@@ -410,7 +416,8 @@ final class MCPackHostingTest {
     assertEquals(expectedUrl, url, "the successful upload is used even though it cannot be cached");
     assertEquals(1, uploadCount);
     assertEquals(Level.WARN, level);
-    assertEquals("Could not write the upload cache " + cacheFile + ", the pack will be uploaded again next time", message);
+    final String expectedMessage = "Could not write the upload cache " + cacheFile + ", the pack will be uploaded again next time";
+    assertEquals(expectedMessage, message);
     assertInstanceOf(IOException.class, thrown);
   }
 
@@ -664,12 +671,14 @@ final class MCPackHostingTest {
       this.server.stop(0);
       this.handlers.shutdown();
       try {
-        assertTrue(this.handlers.awaitTermination(10, TimeUnit.SECONDS), "the upload callbacks finish");
+        final boolean terminated = this.handlers.awaitTermination(10, TimeUnit.SECONDS);
+        assertTrue(terminated, "the upload callbacks finish");
       } catch (final InterruptedException failure) {
         Thread.currentThread().interrupt();
         throw new AssertionError("Interrupted while joining upload callbacks", failure);
       }
-      assertEquals(null, this.handlerFailure.get(), "upload assertions reach JUnit");
+      final @Nullable AssertionError recordedFailure = this.handlerFailure.get();
+      assertEquals(null, recordedFailure, "upload assertions reach JUnit");
     }
   }
 }

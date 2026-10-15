@@ -117,9 +117,11 @@ final class StandardVideoHologramFuzzTest {
     final String title = reportedTitle == null ? "Unknown title" : reportedTitle;
     final String uploader = reportedUploader == null ? "Unknown uploader" : reportedUploader;
     final String start = title + "\n" + uploader + " (";
-    assertTrue(plain.startsWith(start) && plain.endsWith(")"), () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
+    final boolean shownAsNamed = plain.startsWith(start) && plain.endsWith(")");
+    assertTrue(shownAsNamed, () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
     if (reportedTimestamp <= 0) {
-      assertEquals(start + "Unknown date)", plain, "a video without a date says so");
+      final String expected = start + "Unknown date)";
+      assertEquals(expected, plain, "a video without a date says so");
     }
   }
 }

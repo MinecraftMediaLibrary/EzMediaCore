@@ -41,8 +41,11 @@ final class MCV2TreePropertyTest {
     }
     final byte[] data = Mcv2Trees.write(width, height, 2, 1, false, roots);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
-    assertEquals(roots, Mcv2Trees.read(parsed));
-    assertArrayEquals(data, Mcv2Trees.write(width, height, 2, 1, false, Mcv2Trees.read(parsed)));
+    final List<Node> readRoots = Mcv2Trees.read(parsed);
+    assertEquals(roots, readRoots);
+    final byte[] rewritten = Mcv2Trees.write(width, height, 2, 1, false, Mcv2Trees.read(parsed));
+    assertArrayEquals(data, rewritten);
+
     final int groups = (roots.size() + 31) / 32;
     final int counts = 20 + 4 * (groups + (groups + 7) / 8);
     final int descriptors = (int) (Mcv2Decoder.u32(data, counts) + Mcv2Decoder.u32(data, counts + 4) + Mcv2Decoder.u32(data, counts + 8));
@@ -52,7 +55,10 @@ final class MCV2TreePropertyTest {
     int leaf = 0;
     for (int descriptor = 0; descriptor < descriptors; descriptor++) {
       if (descriptor % 8 == 0) {
-        assertEquals(cursor | ((long) splits << 17), Mcv2Decoder.u32(data, walk + (descriptor / 8) * 4));
+        final long expectedCheckpoint = cursor | ((long) splits << 17);
+        final long checkpoint = Mcv2Decoder.u32(data, walk + (descriptor / 8) * 4);
+        assertEquals(expectedCheckpoint, checkpoint);
+
         final byte[] corrupt = data.clone();
         corrupt[walk + (descriptor / 8) * 4] ^= 1;
         assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(corrupt));
@@ -62,7 +68,10 @@ final class MCV2TreePropertyTest {
         splits++;
       } else {
         final Mcv2Decoder.Leaf value = parsed.getLeaf(leaf++);
-        assertEquals(parsed.getPayloadStart() + cursor, value.offset());
+        final int expectedOffset = parsed.getPayloadStart() + cursor;
+        final int offset = value.offset();
+        assertEquals(expectedOffset, offset);
+
         cursor += Mcv2Decoder.recordSize(value.mode(), value.size());
       }
     }

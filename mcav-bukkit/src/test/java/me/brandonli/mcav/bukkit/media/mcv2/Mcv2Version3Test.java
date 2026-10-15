@@ -38,23 +38,34 @@ final class Mcv2Version3Test {
     final byte[] data = block(32, 0, 0, new byte[0], true);
     data[4] = 2;
     final String versionTwo = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data)).getMessage();
-    assertTrue(versionTwo.contains("version 2"));
-    assertTrue(versionTwo.contains("re-encode"));
+    final boolean namesVersionTwo = versionTwo.contains("version 2");
+    assertTrue(namesVersionTwo);
+    final boolean asksToReencodeVersionTwo = versionTwo.contains("re-encode");
+    assertTrue(asksToReencodeVersionTwo);
+
     data[3] = '1';
     final String versionOne = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data)).getMessage();
-    assertTrue(versionOne.contains("version 1"));
-    assertTrue(versionOne.contains("re-encode"));
+    final boolean namesVersionOne = versionOne.contains("version 1");
+    assertTrue(namesVersionOne);
+    final boolean asksToReencodeVersionOne = versionOne.contains("re-encode");
+    assertTrue(asksToReencodeVersionOne);
   }
 
   @Test
   void shouldDetermineKeyframesFromExactlyTheTwoIds() throws Mcv2Exception {
     final byte[] data = block(32, 0, 0, new byte[0], false);
-    assertFalse(Mcv2Decoder.parse(data).isKeyframe());
+    final boolean keyframeBefore = Mcv2Decoder.parse(data).isKeyframe();
+    assertFalse(keyframeBefore);
+
     for (final long id : new long[] { 0, 1, 0xFFFFFFFFL }) {
       put(data, 12, id, 4);
       put(data, 16, id, 4);
-      assertTrue(Mcv2Decoder.parse(data).isKeyframe());
-      assertArrayEquals(new byte[32 * 32 * 3], Mcv2Decoder.decode(data, null, 0));
+
+      final boolean keyframe = Mcv2Decoder.parse(data).isKeyframe();
+      assertTrue(keyframe);
+      final byte[] expectedPicture = new byte[32 * 32 * 3];
+      final byte[] picture = Mcv2Decoder.decode(data, null, 0);
+      assertArrayEquals(expectedPicture, picture);
     }
   }
 
@@ -183,7 +194,9 @@ final class Mcv2Version3Test {
   void shouldDecodeSolidPaletteAndBlackKeyframeSkipsExactly() throws Mcv2Exception {
     final byte[] solid = Mcv2Decoder.decode(block(8, 2, 0, new byte[] { 10, 20, 30 }, true), null, 0);
     for (int offset = 0; offset < solid.length; offset += 3) {
-      assertArrayEquals(new byte[] { 10, 20, 30 }, Arrays.copyOfRange(solid, offset, offset + 3));
+      final byte[] expectedPixel = new byte[] { 10, 20, 30 };
+      final byte[] decodedPixel = Arrays.copyOfRange(solid, offset, offset + 3);
+      assertArrayEquals(expectedPixel, decodedPixel);
     }
     final byte[] palette = new byte[14];
     palette[0] = 10;
@@ -199,8 +212,12 @@ final class Mcv2Version3Test {
     pixel(picture, 8, 7, 0, 40, 50, 60);
     pixel(picture, 8, 0, 1, 10, 20, 30);
     final byte[] skipped = frame(3, 2, true, new byte[0], new byte[0][], new int[3]);
-    assertArrayEquals(new byte[18], Mcv2Decoder.decode(skipped, null, 0));
-    assertArrayEquals(new byte[8 * 8 * 3], Mcv2Decoder.decode(block(8, 0, 0, new byte[0], true), null, 0));
+    final byte[] expectedSkippedPicture = new byte[18];
+    final byte[] skippedPicture = Mcv2Decoder.decode(skipped, null, 0);
+    assertArrayEquals(expectedSkippedPicture, skippedPicture);
+    final byte[] expectedBlackPicture = new byte[8 * 8 * 3];
+    final byte[] blackPicture = Mcv2Decoder.decode(block(8, 0, 0, new byte[0], true), null, 0);
+    assertArrayEquals(expectedBlackPicture, blackPicture);
   }
 
   @Test
@@ -214,7 +231,9 @@ final class Mcv2Version3Test {
       pixel(decoded, 8, 0, 0, 24, 25, 26);
       pixel(decoded, 8, 7, 7, 186, 187, 188);
     }
-    assertArrayEquals(reference, Mcv2Decoder.decode(block(8, 0, 0, new byte[0], false), reference, 0));
+
+    final byte[] skippedPicture = Mcv2Decoder.decode(block(8, 0, 0, new byte[0], false), reference, 0);
+    assertArrayEquals(reference, skippedPicture);
   }
 
   @Test
@@ -256,7 +275,11 @@ final class Mcv2Version3Test {
     final byte[] data = block(16, 2, 0, new byte[] { 10, 20, 30 }, true);
     put(data, 8, 1, 2);
     put(data, 10, 1, 2);
-    assertArrayEquals(new byte[] { 10, 20, 30 }, Mcv2Decoder.decode(data, null, 0));
+
+    final byte[] expectedPicture = new byte[] { 10, 20, 30 };
+    final byte[] picture = Mcv2Decoder.decode(data, null, 0);
+    assertArrayEquals(expectedPicture, picture);
+
     data[42] = 31;
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
   }
@@ -292,13 +315,21 @@ final class Mcv2Version3Test {
     Arrays.fill(data, (byte) 0);
     final byte[] copy = frame.getData();
     copy[0] = 0;
-    assertEquals('M', frame.getData()[0]);
-    assertEquals(8, frame.getWidth());
-    assertEquals(8, frame.getHeight());
-    assertEquals(1, frame.getFrameId());
-    assertEquals(0, frame.getReferenceId());
-    assertEquals(7, frame.getLeafCount());
-    assertEquals(16, frame.getLeaf(0).size());
+
+    final byte magic = frame.getData()[0];
+    assertEquals('M', magic);
+    final int width = frame.getWidth();
+    assertEquals(8, width);
+    final int height = frame.getHeight();
+    assertEquals(8, height);
+    final long frameId = frame.getFrameId();
+    assertEquals(1, frameId);
+    final long referenceId = frame.getReferenceId();
+    assertEquals(0, referenceId);
+    final int leafCount = frame.getLeafCount();
+    assertEquals(7, leafCount);
+    final int leafSize = frame.getLeaf(0).size();
+    assertEquals(16, leafSize);
     assertThrows(IndexOutOfBoundsException.class, () -> frame.getLeaf(-1));
   }
 
@@ -306,8 +337,11 @@ final class Mcv2Version3Test {
   void shouldAcceptMaximumDimensionsWithAllRootsAbsent() throws Mcv2Exception {
     final byte[] data = frame(4096, 4096, true, new byte[0], new byte[0][], new int[3]);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
-    assertEquals(16384, parsed.getLeafCount());
-    assertEquals(2336, parsed.getPayloadStart());
+
+    final int leafCount = parsed.getLeafCount();
+    assertEquals(16384, leafCount);
+    final int payloadStart = parsed.getPayloadStart();
+    assertEquals(2336, payloadStart);
   }
 
   @Test
@@ -341,6 +375,8 @@ final class Mcv2Version3Test {
     final int blue
   ) {
     final int offset = (row * width + column) * 3;
-    assertArrayEquals(new byte[] { (byte) red, (byte) green, (byte) blue }, Arrays.copyOfRange(picture, offset, offset + 3));
+    final byte[] expectedPixel = new byte[] { (byte) red, (byte) green, (byte) blue };
+    final byte[] decodedPixel = Arrays.copyOfRange(picture, offset, offset + 3);
+    assertArrayEquals(expectedPixel, decodedPixel);
   }
 }

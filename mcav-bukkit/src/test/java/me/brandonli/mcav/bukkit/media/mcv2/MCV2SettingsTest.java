@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class MCV2SettingsTest {
@@ -57,7 +58,8 @@ final class MCV2SettingsTest {
       );
       encoder.encode(Mcv2Pictures.scene(128, 96, 0, 3), 128, 96, 0);
       encoder.encode(Mcv2Pictures.scene(128, 96, 2, 3), 128, 96, 1);
-      assertEquals(settings.fast() ? Set.of(64, 128) : Set.of(32, 64, 128), widths);
+      final Set<Integer> expected = settings.fast() ? Set.of(64, 128) : Set.of(32, 64, 128);
+      assertEquals(expected, widths);
     }
   }
 
@@ -71,34 +73,49 @@ final class MCV2SettingsTest {
       final MCV2 encoder = new MCV2(settings, ForkJoinPool.commonPool(), 3, true);
       encoder.encode(new byte[stripes.length], 8, 8, 0);
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(stripes, 8, 8, 1));
-      assertEquals(false, frame.isKeyframe());
-      assertEquals(1, frame.getLeafCount());
-      assertEquals(Mcv2Decoder.MODE_PATTERN, frame.getLeaf(0).mode());
-      assertArrayEquals(stripes, encoder.getReference());
+      final boolean keyframe = frame.isKeyframe();
+      assertEquals(false, keyframe);
+      final int leafCount = frame.getLeafCount();
+      assertEquals(1, leafCount);
+      final int mode = frame.getLeaf(0).mode();
+      assertEquals(Mcv2Decoder.MODE_PATTERN, mode);
+      final byte @Nullable [] reference = encoder.getReference();
+      assertArrayEquals(stripes, reference);
     }
   }
 
   @Test
   void shouldPinThePresetSearchThresholds() {
-    assertEquals(150, Mcv2Internals.field(MCV2.class, null, "ROOT_SPLIT_BITS"));
-    assertEquals(450, Mcv2Internals.field(MCV2.class, null, "NORMAL_STEADY_SPLIT_BITS"));
-    assertEquals(900, Mcv2Internals.field(MCV2.class, null, "FAST_STEADY_SPLIT_BITS"));
-    assertEquals(300, Mcv2Internals.field(MCV2.class, null, "NORMAL_FINE_SPLIT_BITS"));
-    assertEquals(600, Mcv2Internals.field(MCV2.class, null, "FAST_FINE_SPLIT_BITS"));
-    assertEquals(28, Mcv2Internals.field(MCV2.class, null, "NORMAL_SKIP_BITS"));
-    assertEquals(60, Mcv2Internals.field(MCV2.class, null, "FAST_SKIP_BITS"));
+    final Object rootSplitBits = Mcv2Internals.field(MCV2.class, null, "ROOT_SPLIT_BITS");
+    assertEquals(150, rootSplitBits);
+    final Object normalSteadySplitBits = Mcv2Internals.field(MCV2.class, null, "NORMAL_STEADY_SPLIT_BITS");
+    assertEquals(450, normalSteadySplitBits);
+    final Object fastSteadySplitBits = Mcv2Internals.field(MCV2.class, null, "FAST_STEADY_SPLIT_BITS");
+    assertEquals(900, fastSteadySplitBits);
+    final Object normalFineSplitBits = Mcv2Internals.field(MCV2.class, null, "NORMAL_FINE_SPLIT_BITS");
+    assertEquals(300, normalFineSplitBits);
+    final Object fastFineSplitBits = Mcv2Internals.field(MCV2.class, null, "FAST_FINE_SPLIT_BITS");
+    assertEquals(600, fastFineSplitBits);
+    final Object normalSkipBits = Mcv2Internals.field(MCV2.class, null, "NORMAL_SKIP_BITS");
+    assertEquals(28, normalSkipBits);
+    final Object fastSkipBits = Mcv2Internals.field(MCV2.class, null, "FAST_SKIP_BITS");
+    assertEquals(60, fastSkipBits);
   }
 
   @Test
   void shouldKeepTheTwoLivePresetsAsData() {
-    assertEquals(new Settings(72, false), Settings.DEFAULT);
-    assertEquals(new Settings(55, true), Settings.FAST);
+    final Settings expectedDefault = new Settings(72, false);
+    assertEquals(expectedDefault, Settings.DEFAULT);
+    final Settings expectedFast = new Settings(55, true);
+    assertEquals(expectedFast, Settings.FAST);
   }
 
   @Test
   void shouldCopyWithOneValueChanged() {
     final Settings settings = new Settings(72, true);
-    assertEquals(new Settings(0, true), settings.withLambda(0));
+    final Settings expected = new Settings(0, true);
+    final Settings copy = settings.withLambda(0);
+    assertEquals(expected, copy);
   }
 
   @Test

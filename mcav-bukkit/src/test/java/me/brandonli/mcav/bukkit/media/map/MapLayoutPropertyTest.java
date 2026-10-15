@@ -80,8 +80,9 @@ final class MapLayoutPropertyTest {
 
     assertEquals(cells, mapCount, "one map per cell of the grid");
     for (int index = 0; index < mapCount; index++) {
+      final long expectedMapId = firstId + index;
       final long mapId = layout.getMapId(index);
-      assertEquals(firstId + index, mapId, "maps are numbered consecutively");
+      assertEquals(expectedMapId, mapId, "maps are numbered consecutively");
     }
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(mapCount));
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(-1));
@@ -110,8 +111,9 @@ final class MapLayoutPropertyTest {
     final int height = grid.getImageHeight();
     final int visibleWidth = Math.min(width, grid.getGridWidth());
     final int visibleHeight = Math.min(height, grid.getGridHeight());
+    final int expectedPixels = visibleWidth * visibleHeight;
     final int coveredPixels = coverage.countCoveredOnce();
-    assertEquals(visibleWidth * visibleHeight, coveredPixels, "every pixel that fits on the grid is shown once");
+    assertEquals(expectedPixels, coveredPixels, "every pixel that fits on the grid is shown once");
     coverage.assertCentered();
   }
 
@@ -272,7 +274,8 @@ final class MapLayoutPropertyTest {
     private int countCoveredOnce() {
       int covered = 0;
       for (final int count : this.counts) {
-        assertTrue(count <= 1, "no pixel of the image is shown twice");
+        final boolean shownAtMostOnce = count <= 1;
+        assertTrue(shownAtMostOnce, "no pixel of the image is shown twice");
         covered += count;
       }
       return covered;
@@ -296,7 +299,8 @@ final class MapLayoutPropertyTest {
 
     private static void assertBalanced(final int before, final int after, final String axis) {
       final int difference = Math.abs(before - after);
-      assertTrue(difference <= 1, () -> "image centered " + axis + ": " + before + " before, " + after + " after");
+      final boolean balanced = difference <= 1;
+      assertTrue(balanced, () -> "image centered " + axis + ": " + before + " before, " + after + " after");
     }
 
     private static void assertInsideRegion(final MapTilePatch patch, final MapRegion region) {
@@ -310,7 +314,8 @@ final class MapLayoutPropertyTest {
       final int regionBottom = regionY + region.getHeight();
       final boolean inside = left >= regionX && top >= regionY && right <= regionRight && bottom <= regionBottom;
       final boolean insideMap = right <= MapLayout.MAP_SIZE && bottom <= MapLayout.MAP_SIZE;
-      assertTrue(inside && insideMap, "patch inside the covered region of its map");
+      final boolean insideRegionAndMap = inside && insideMap;
+      assertTrue(insideRegionAndMap, "patch inside the covered region of its map");
     }
   }
 }

@@ -97,7 +97,9 @@ final class ChatUtilsTest {
     final String marker = "long pixel marker with spaces";
     final int[] pixels = { RED };
     final String raw = ChatUtils.createRawLine(pixels, marker, 1, 0);
-    assertEquals("§x§f§f§0§0§0§0" + marker, raw);
+    final String expectedRaw = "§x§f§f§0§0§0§0" + marker;
+    assertEquals(expectedRaw, raw);
+
     final Component component = ChatUtils.createChatComponent(pixels, marker, 1, 1);
     final String text = component.getString();
     assertEquals(marker, text);

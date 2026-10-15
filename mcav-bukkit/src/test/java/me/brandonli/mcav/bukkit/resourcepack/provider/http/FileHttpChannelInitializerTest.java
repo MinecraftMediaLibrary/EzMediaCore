@@ -109,7 +109,8 @@ final class FileHttpChannelInitializerTest {
     final Field timeoutField = WriteTimeoutHandler.class.getDeclaredField("timeoutNanos");
     timeoutField.setAccessible(true);
     final long configuredTimeout = timeoutField.getLong(writeTimeout);
-    assertEquals(TimeUnit.MINUTES.toNanos(5), configuredTimeout, "the installed handler uses the five-minute timeout");
+    final long expectedTimeout = TimeUnit.MINUTES.toNanos(5);
+    assertEquals(expectedTimeout, configuredTimeout, "the installed handler uses the five-minute timeout");
     assertEquals(300, FileHttpChannelInitializer.WRITE_TIMEOUT_SECONDS, "a stalled download is closed after five minutes");
     assertInstanceOf(FileServerHandler.class, fileHandler);
   }
@@ -149,7 +150,8 @@ final class FileHttpChannelInitializerTest {
     initializer.initChannel(second.channel);
     initializer.initChannel(refused.channel);
 
-    assertEquals(3, initializer.getOpenConnections());
+    final int openConnections = initializer.getOpenConnections();
+    assertEquals(3, openConnections);
     verify(first.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
     verify(second.pipeline).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
     verify(refused.pipeline, never()).addLast(eq(FileHttpChannelInitializer.READ_TIMEOUT_NAME), any(ChannelHandler.class));
@@ -165,7 +167,8 @@ final class FileHttpChannelInitializerTest {
     assertTrue(busy, text);
 
     first.close();
-    assertEquals(2, initializer.getOpenConnections(), "a closed connection makes room for the next one");
+    final int openConnectionsAfterClose = initializer.getOpenConnections();
+    assertEquals(2, openConnectionsAfterClose, "a closed connection makes room for the next one");
   }
 
   @Test

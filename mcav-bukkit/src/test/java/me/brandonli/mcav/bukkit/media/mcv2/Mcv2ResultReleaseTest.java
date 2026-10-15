@@ -102,19 +102,19 @@ final class Mcv2ResultReleaseTest {
     result.applyFilter(frame, metadata);
     this.server.runTasks();
     result.applyFilter(frame, metadata);
-    assertEquals(Set.of(WITH_PACK), result.getChannel().getRecipients());
+    final Set<UUID> expectedRecipients = Set.of(WITH_PACK);
+    final Set<UUID> recipients = result.getChannel().getRecipients();
+    assertEquals(expectedRecipients, recipients);
 
     result.release();
 
     final List<Packet<?>> sent = this.server.getSentPackets(WITH_PACK);
     final List<ClientboundMapItemDataPacket> cleared = MapPackets.unbundle(sent.getLast());
-    assertEquals(
-      List.of(100, 101, 102, 103, 104, 105),
-      cleared
-        .stream()
-        .map(packet -> packet.mapId().id())
-        .toList(),
-      "every map of the wall is cleared, not the first only"
-    );
+    final List<Integer> expectedMapIds = List.of(100, 101, 102, 103, 104, 105);
+    final List<Integer> clearedMapIds = cleared
+      .stream()
+      .map(packet -> packet.mapId().id())
+      .toList();
+    assertEquals(expectedMapIds, clearedMapIds, "every map of the wall is cleared, not the first only");
   }
 }

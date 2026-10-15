@@ -145,11 +145,20 @@ final class Mcv2ScreenTest {
   void shouldSpawnOneHiddenGlowingPageFrameBehindEveryMap() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     screen.build();
-    assertEquals(6, this.frames.size());
+
+    final int frameCount = this.frames.size();
+    assertEquals(6, frameCount);
     // facing south, columns count east and the frames hang two blocks north of the wall's frames
-    assertEquals(new Location(this.world, 10, 64, -6), this.spawned.get(0));
-    assertEquals(new Location(this.world, 12, 64, -6), this.spawned.get(2));
-    assertEquals(new Location(this.world, 11, 63, -6), this.spawned.get(4));
+    final Location expectedFirstLocation = new Location(this.world, 10, 64, -6);
+    final Location firstLocation = this.spawned.get(0);
+    assertEquals(expectedFirstLocation, firstLocation);
+    final Location expectedThirdLocation = new Location(this.world, 12, 64, -6);
+    final Location thirdLocation = this.spawned.get(2);
+    assertEquals(expectedThirdLocation, thirdLocation);
+    final Location expectedFifthLocation = new Location(this.world, 11, 63, -6);
+    final Location fifthLocation = this.spawned.get(4);
+    assertEquals(expectedFifthLocation, fifthLocation);
+
     for (int index = 0; index < 6; index++) {
       final ItemFrame frame = this.frames.get(index);
       verify(frame).setVisibleByDefault(false);
@@ -161,16 +170,23 @@ final class Mcv2ScreenTest {
       verify(frame).setSilent(true);
       verify(frame).setItem(this.items.get(PAGES_OF_A_THREE_BY_TWO_WALL[index]), false);
     }
-    assertEquals(this.frames, screen.getFrames());
+
+    final List<ItemFrame> screenFrames = screen.getFrames();
+    assertEquals(this.frames, screenFrames);
     assertThrows(IllegalStateException.class, screen::build);
   }
 
   @Test
   void shouldPlaceTheFramesBehindAWallFacingEast() {
     new Mcv2Screen(this.configuration(BlockFace.EAST)).build();
+
     // facing east, columns count north and the frames hang two blocks west
-    assertEquals(new Location(this.world, 8, 64, -4), this.spawned.get(0));
-    assertEquals(new Location(this.world, 8, 64, -6), this.spawned.get(2));
+    final Location expectedFirstLocation = new Location(this.world, 8, 64, -4);
+    final Location firstLocation = this.spawned.get(0);
+    assertEquals(expectedFirstLocation, firstLocation);
+    final Location expectedThirdLocation = new Location(this.world, 8, 64, -6);
+    final Location thirdLocation = this.spawned.get(2);
+    assertEquals(expectedThirdLocation, thirdLocation);
   }
 
   @Test
@@ -179,10 +195,13 @@ final class Mcv2ScreenTest {
     when(unloaded.getOrigin()).thenReturn(new Location(null, 0, 0, 0));
     final Mcv2Screen screen = new Mcv2Screen(unloaded);
     final NullPointerException missingWorld = assertThrows(NullPointerException.class, screen::build);
-    assertEquals("The origin must be in a world", missingWorld.getMessage());
+    final String missingWorldMessage = missingWorld.getMessage();
+    assertEquals("The origin must be in a world", missingWorldMessage);
     final NullPointerException missingConfiguration = assertThrows(NullPointerException.class, () -> new Mcv2Screen(null));
-    assertEquals("Configuration must not be null", missingConfiguration.getMessage());
-    assertEquals(List.of(), screen.getFrames(), "a failed build leaves no page frames");
+    final String missingConfigurationMessage = missingConfiguration.getMessage();
+    assertEquals("Configuration must not be null", missingConfigurationMessage);
+    final List<ItemFrame> framesAfterFailure = screen.getFrames();
+    assertEquals(List.of(), framesAfterFailure, "a failed build leaves no page frames");
   }
 
   @Test
@@ -194,16 +213,22 @@ final class Mcv2ScreenTest {
       MockedStatic<CraftItemStack> crafts = Mockito.mockStatic(CraftItemStack.class)
     ) {
       crafts.when(() -> CraftItemStack.asBukkitCopy(ArgumentMatchers.any(net.minecraft.world.item.ItemStack.class))).thenReturn(copy); // fqn: Minecraft's ItemStack beside the imported Bukkit one
-      assertSame(copy, Mcv2Screen.pageItem(2_000_000_123));
+      final ItemStack pageItem = Mcv2Screen.pageItem(2_000_000_123);
+      assertSame(copy, pageItem);
       verify(stacks.constructed().getFirst()).set(DataComponents.MAP_ID, new MapId(2_000_000_123));
     }
     this.statics = Mockito.mockStatic(Mcv2Screen.class, Mockito.CALLS_REAL_METHODS);
+
     // in reading order, on a wall of three columns with four slots
-    assertEquals(0, Mcv2Screen.slot(0, 0, 3, 4));
-    assertEquals(3, Mcv2Screen.slot(1, 2, 3, 4));
-    assertEquals(0, Mcv2Screen.slot(2, 2, 3, 4));
+    final int topLeftSlot = Mcv2Screen.slot(0, 0, 3, 4);
+    assertEquals(0, topLeftSlot);
+    final int thirdRowSecondColumnSlot = Mcv2Screen.slot(1, 2, 3, 4);
+    assertEquals(3, thirdRowSecondColumnSlot);
+    final int thirdRowThirdColumnSlot = Mcv2Screen.slot(2, 2, 3, 4);
+    assertEquals(0, thirdRowThirdColumnSlot);
     // the second row of a wall of two columns goes on with the third slot
-    assertEquals(2, Mcv2Screen.slot(0, 1, 2, 4));
+    final int secondRowFirstColumnSlot = Mcv2Screen.slot(0, 1, 2, 4);
+    assertEquals(2, secondRowFirstColumnSlot);
   }
 
   @Test
@@ -215,25 +240,38 @@ final class Mcv2ScreenTest {
       verify(this.player).showEntity(this.server.getPlugin(), frame);
     }
     final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
-    assertEquals(2, packets.size());
-    final ClientboundSetPlayerTeamPacket team = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, packets.get(0));
-    assertTrue(team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}"));
-    assertEquals(screen.team().getName(), team.getName());
-    assertEquals(Optional.of(TeamColor.GOLD), team.getParameters().orElseThrow().color());
-    assertEquals(6, team.getPlayers().size());
-    assertTrue(team.getPlayers().contains(this.frames.get(3).getUniqueId().toString()));
+    final int packetCount = packets.size();
+    assertEquals(2, packetCount);
+    final Packet<?> teamPacket = packets.get(0);
+    final ClientboundSetPlayerTeamPacket team = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, teamPacket);
+    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}");
+    assertTrue(namedAsScreenTeam);
+    final String expectedName = screen.team().getName();
+    final String teamName = team.getName();
+    assertEquals(expectedName, teamName);
+    final Optional<TeamColor> expectedColor = Optional.of(TeamColor.GOLD);
+    final Optional<TeamColor> color = team.getParameters().orElseThrow().color();
+    assertEquals(expectedColor, color);
+    final int memberCount = team.getPlayers().size();
+    assertEquals(6, memberCount);
+    final boolean holdsTheFourthFrame = team.getPlayers().contains(this.frames.get(3).getUniqueId().toString());
+    assertTrue(holdsTheFourthFrame);
+
     final List<ClientboundMapItemDataPacket> anchors = MapPackets.unbundle(packets.get(1));
-    assertEquals(6, anchors.size());
+    final int anchorCount = anchors.size();
+    assertEquals(6, anchorCount);
     MapPackets.assertMapPacket(anchors.get(0), screen.anchors().get(0));
     screen.hide(this.player);
     for (final ItemFrame frame : this.frames) {
       verify(this.player).hideEntity(this.server.getPlugin(), frame);
     }
-    final ClientboundSetPlayerTeamPacket removal = assertInstanceOf(
-      ClientboundSetPlayerTeamPacket.class,
-      this.server.getSentPackets(VIEWER).get(2)
-    );
-    assertEquals(team.getName(), removal.getName());
+
+    final Packet<?> removalPacket = this.server.getSentPackets(VIEWER).get(2);
+    final ClientboundSetPlayerTeamPacket removal = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, removalPacket);
+    final String expectedRemovedName = team.getName();
+    final String removedName = removal.getName();
+    assertEquals(expectedRemovedName, removedName);
+
     assertThrows(NullPointerException.class, () -> screen.show(null));
     assertThrows(NullPointerException.class, () -> screen.hide(null));
   }
@@ -249,27 +287,34 @@ final class Mcv2ScreenTest {
       second.show(this.player);
       first.hide(this.player);
       final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
-      final ClientboundSetPlayerTeamPacket firstTeam = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, packets.get(0));
-      final ClientboundSetPlayerTeamPacket secondTeam = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, packets.get(2));
-      final ClientboundSetPlayerTeamPacket removal = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, packets.get(4));
-      assertEquals(firstTeam.getName(), removal.getName());
-      assertNotEquals(secondTeam.getName(), removal.getName(), "a screen removes only its own team");
-      assertEquals(
-        new HashSet<>(
-          second
-            .getFrames()
-            .stream()
-            .map(frame -> frame.getUniqueId().toString())
-            .toList()
-        ),
-        Set.copyOf(secondTeam.getPlayers())
+      final Packet<?> firstTeamPacket = packets.get(0);
+      final ClientboundSetPlayerTeamPacket firstTeam = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, firstTeamPacket);
+      final Packet<?> secondTeamPacket = packets.get(2);
+      final ClientboundSetPlayerTeamPacket secondTeam = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, secondTeamPacket);
+      final Packet<?> removalPacket = packets.get(4);
+      final ClientboundSetPlayerTeamPacket removal = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, removalPacket);
+      final String firstTeamName = firstTeam.getName();
+      final String removedName = removal.getName();
+      assertEquals(firstTeamName, removedName);
+      final String secondTeamName = secondTeam.getName();
+      final String removedNameAgain = removal.getName();
+      assertNotEquals(secondTeamName, removedNameAgain, "a screen removes only its own team");
+      final Set<String> expectedMembers = new HashSet<>(
+        second
+          .getFrames()
+          .stream()
+          .map(frame -> frame.getUniqueId().toString())
+          .toList()
       );
+      final Set<String> members = Set.copyOf(secondTeam.getPlayers());
+      assertEquals(expectedMembers, members);
+
       second.hide(this.player);
-      final ClientboundSetPlayerTeamPacket secondRemoval = assertInstanceOf(
-        ClientboundSetPlayerTeamPacket.class,
-        this.server.getSentPackets(VIEWER).get(5)
-      );
-      assertEquals(secondTeam.getName(), secondRemoval.getName());
+      final Packet<?> secondRemovalPacket = this.server.getSentPackets(VIEWER).get(5);
+      final ClientboundSetPlayerTeamPacket secondRemoval = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, secondRemovalPacket);
+      final String expectedSecondRemovedName = secondTeam.getName();
+      final String secondRemovedName = secondRemoval.getName();
+      assertEquals(expectedSecondRemovedName, secondRemovedName);
     } finally {
       first.remove();
       second.remove();
@@ -279,18 +324,26 @@ final class Mcv2ScreenTest {
   @Test
   void shouldWriteTheAnchorOfEveryMapInItsFirstRow() {
     final List<MapTilePatch> anchors = new Mcv2Screen(this.configuration(BlockFace.WEST)).anchors();
-    assertEquals(6, anchors.size());
+    final int anchorCount = anchors.size();
+    assertEquals(6, anchorCount);
+
     final MapTilePatch patch = anchors.get(4);
-    assertEquals(104, patch.getMapId());
-    assertEquals(0, patch.getY());
-    assertEquals(1, patch.getHeight());
+    final int mapId = patch.getMapId();
+    assertEquals(104, mapId);
+    final int row = patch.getY();
+    assertEquals(0, row);
+    final int height = patch.getHeight();
+    assertEquals(1, height);
+
     final byte[] expected = new byte[128];
     // after the signature: column, row, columns, rows, facing, the stream id 70 in two symbols (6 + 1 * 64), the check
     final int[] symbols = { 21, 3, 58, 44, 9, 37, 60, 17, 1, 1, 3, 2, 1, 6, 1, (1 + 1 + 3 + 2 + 1 + 6 + 1) & 63 };
     for (int index = 0; index < expected.length; index++) {
       expected[index] = (byte) ((index < symbols.length ? symbols[index] : 0) + 4);
     }
-    assertArrayEquals(expected, patch.getColors());
+
+    final byte[] colors = patch.getColors();
+    assertArrayEquals(expected, colors);
   }
 
   @Test
@@ -301,7 +354,9 @@ final class Mcv2ScreenTest {
     for (final ItemFrame frame : this.frames) {
       verify(frame).remove();
     }
-    assertEquals(List.of(), screen.getFrames());
+
+    final List<ItemFrame> framesAfterRemoval = screen.getFrames();
+    assertEquals(List.of(), framesAfterRemoval);
   }
 
   @Test
@@ -351,9 +406,15 @@ final class Mcv2ScreenTest {
   void shouldColorTheTeam() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     final PlayerTeam team = screen.team();
-    assertEquals(Optional.of(TeamColor.GOLD), team.getColor());
-    assertTrue(team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}"));
-    assertEquals(screen.team().getName(), team.getName());
+
+    final Optional<TeamColor> expectedColor = Optional.of(TeamColor.GOLD);
+    final Optional<TeamColor> color = team.getColor();
+    assertEquals(expectedColor, color);
+    final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + "[0-9a-z]{1,7}");
+    assertTrue(namedAsScreenTeam);
+    final String expectedName = screen.team().getName();
+    final String teamName = team.getName();
+    assertEquals(expectedName, teamName);
   }
 
   @Test

@@ -32,6 +32,7 @@ import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -80,8 +81,10 @@ final class NativeConformanceTest {
     for (int frameIndex = 0; frameIndex < 2; frameIndex++) {
       final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
       encoder.encode(rgb, WIDTH, HEIGHT, frameIndex);
-      assertFalse(made.isEmpty());
-      assertTrue(made.stream().noneMatch(kernels -> kernels.keeps(rgb)), "frame " + frameIndex);
+      final boolean noneMade = made.isEmpty();
+      assertFalse(noneMade);
+      final boolean keepsNoFrame = made.stream().noneMatch(kernels -> kernels.keeps(rgb));
+      assertTrue(keepsNoFrame, "frame " + frameIndex);
     }
   }
 
@@ -90,7 +93,9 @@ final class NativeConformanceTest {
   void shouldEncodeEverySourceFixtureAsJavaDoes(final Level level) {
     final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
     final int frameBytes = WIDTH * HEIGHT * 3;
-    assertEquals(4 * frameBytes, source.length);
+    final int expectedLength = 4 * frameBytes;
+    final int sourceLength = source.length;
+    assertEquals(expectedLength, sourceLength);
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       for (int threads = 1; threads <= 4; threads++) {
         final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
@@ -98,8 +103,12 @@ final class NativeConformanceTest {
         for (int frameIndex = 0; frameIndex < 4; frameIndex++) {
           final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
           final String context = settings + " frame " + frameIndex + " threads " + threads + " level " + level;
-          assertArrayEquals(java.encode(rgb, WIDTH, HEIGHT, frameIndex), other.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(java.getReference(), other.getReference(), context);
+          final byte[] expectedEncoded = java.encode(rgb, WIDTH, HEIGHT, frameIndex);
+          final byte[] encoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
+          assertArrayEquals(expectedEncoded, encoded, context);
+          final byte @Nullable [] expectedReference = java.getReference();
+          final byte @Nullable [] reference = other.getReference();
+          assertArrayEquals(expectedReference, reference, context);
         }
       }
     }
@@ -113,16 +122,24 @@ final class NativeConformanceTest {
     for (final String stream : List.of("crop-default.mcs", "crop-fast.mcs")) {
       final Settings settings = stream.equals("crop-default.mcs") ? Settings.DEFAULT : Settings.FAST;
       final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read("encoder/" + stream));
-      assertEquals(expected.size() * frameBytes, source.length);
+      final int expectedLength = expected.size() * frameBytes;
+      final int sourceLength = source.length;
+      assertEquals(expectedLength, sourceLength);
       for (int threads = 1; threads <= 4; threads++) {
         final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
         final MCV2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
         for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
           final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
           final String context = stream + " frame " + frameIndex + " threads " + threads + " level " + level;
-          assertArrayEquals(expected.get(frameIndex), java.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(expected.get(frameIndex), other.encode(rgb, WIDTH, HEIGHT, frameIndex), context);
-          assertArrayEquals(java.getReference(), other.getReference(), context);
+          final byte[] expectedFrame = expected.get(frameIndex);
+          final byte[] javaEncoded = java.encode(rgb, WIDTH, HEIGHT, frameIndex);
+          assertArrayEquals(expectedFrame, javaEncoded, context);
+          final byte[] expectedFrameForOther = expected.get(frameIndex);
+          final byte[] otherEncoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
+          assertArrayEquals(expectedFrameForOther, otherEncoded, context);
+          final byte @Nullable [] expectedReference = java.getReference();
+          final byte @Nullable [] reference = other.getReference();
+          assertArrayEquals(expectedReference, reference, context);
         }
       }
     }
@@ -152,8 +169,12 @@ final class NativeConformanceTest {
         final int width = frame.getWidth();
         final int height = frame.getHeight();
         final String context = stream + " frame " + frameIndex + " settings " + settings;
-        assertArrayEquals(java.encode(picture, width, height, frameIndex), other.encode(picture, width, height, frameIndex), context);
-        assertArrayEquals(java.getReference(), other.getReference(), context);
+        final byte[] expectedEncoded = java.encode(picture, width, height, frameIndex);
+        final byte[] encoded = other.encode(picture, width, height, frameIndex);
+        assertArrayEquals(expectedEncoded, encoded, context);
+        final byte @Nullable [] expectedReference = java.getReference();
+        final byte @Nullable [] reference = other.getReference();
+        assertArrayEquals(expectedReference, reference, context);
       }
     }
   }

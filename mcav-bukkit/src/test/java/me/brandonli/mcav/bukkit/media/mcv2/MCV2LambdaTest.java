@@ -33,7 +33,8 @@ final class MCV2LambdaTest {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(settings, pool, 1, true);
       final byte[] frame = assertDoesNotThrow(() -> encoder.encode(new byte[] { 10, 20, 30 }, 1, 1, 0));
-      assertTrue(frame.length > 0);
+      final boolean hasBytes = frame.length > 0;
+      assertTrue(hasBytes);
     }
   }
 
@@ -45,7 +46,8 @@ final class MCV2LambdaTest {
       // a limit no frame meets, so every retry doubles the lambda
       encoder.setFrameLimit(1);
       final byte[] frame = assertDoesNotThrow(() -> encoder.encode(new byte[] { 10, 20, 30 }, 1, 1, 0));
-      assertTrue(frame.length > 0);
+      final boolean hasBytes = frame.length > 0;
+      assertTrue(hasBytes);
     }
   }
 }

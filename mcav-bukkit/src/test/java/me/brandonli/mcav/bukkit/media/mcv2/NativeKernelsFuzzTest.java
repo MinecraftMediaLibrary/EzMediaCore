@@ -24,6 +24,7 @@ import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.util.Arrays;
 import java.util.List;
 import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
 /**
@@ -53,6 +54,7 @@ final class NativeKernelsFuzzTest {
         return Arrays.copyOf(data.consumeBytes(count), count);
       }
     };
-    assertNull(KernelDifferential.compare(values, Mcv2Internals.javaKernels(), NativeTesting.kernels(level)), level.symbol());
+    final @Nullable String difference = KernelDifferential.compare(values, Mcv2Internals.javaKernels(), NativeTesting.kernels(level));
+    assertNull(difference, level.symbol());
   }
 }

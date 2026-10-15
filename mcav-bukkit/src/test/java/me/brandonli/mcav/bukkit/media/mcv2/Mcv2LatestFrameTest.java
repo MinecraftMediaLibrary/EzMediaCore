@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -51,7 +52,8 @@ final class Mcv2LatestFrameTest {
   void shouldNotTakeADroppedFrame() {
     this.slot.offer("dropped");
     this.slot.clear();
-    assertNull(this.slot.poll());
+    final @Nullable String taken = this.slot.poll();
+    assertNull(taken);
   }
 
   @Test
@@ -60,7 +62,8 @@ final class Mcv2LatestFrameTest {
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.offer("next");
 
-    assertEquals("next", taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS));
+    final String next = taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    assertEquals("next", next);
   }
 
   @Test
@@ -69,7 +72,8 @@ final class Mcv2LatestFrameTest {
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.close();
 
-    assertNull(taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS));
+    final @Nullable String woken = taken.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+    assertNull(woken);
   }
 
   @Test
@@ -90,7 +94,9 @@ final class Mcv2LatestFrameTest {
     final Thread currentThread = Thread.currentThread();
     currentThread.interrupt();
     assertThrows(InterruptedException.class, this.slot::take);
-    assertFalse(Thread.interrupted(), "the interrupt was thrown");
+
+    final boolean interrupted = Thread.interrupted();
+    assertFalse(interrupted, "the interrupt was thrown");
   }
 
   private String takeQuietly() {

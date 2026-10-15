@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -55,23 +56,44 @@ final class Mcv2ConfigurationTest {
   @Test
   void shouldFillInTheDefaults() {
     final Mcv2Configuration configuration = complete().build();
-    assertSame(VIEWERS, configuration.getViewers());
-    assertEquals(new Location(WORLD, 10, 64, -4), configuration.getOrigin());
-    assertNotSame(configuration.getOrigin(), configuration.getOrigin());
-    assertEquals(BlockFace.SOUTH, configuration.getFacing());
-    assertEquals(7, configuration.getMap());
-    assertEquals(5, configuration.getColumns());
-    assertEquals(3, configuration.getRows());
-    assertEquals(640, configuration.getVideoWidth());
-    assertEquals(384, configuration.getVideoHeight());
-    assertEquals(Mcv2Configuration.DEFAULT_PAGE_MAP, configuration.getPageMap());
-    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, configuration.getPageSlots());
-    assertEquals(1, configuration.getStreamId());
-    assertEquals(Settings.DEFAULT, configuration.getSettings());
-    assertEquals(NamedTextColor.DARK_PURPLE, configuration.getOutlineColor());
-    assertEquals(Mcv2Configuration.DEFAULT_BACKLOG_LIMIT, configuration.getBacklogLimit());
-    assertEquals(Mcv2Configuration.DEFAULT_UNSENT_LIMIT, configuration.getUnsentLimit());
-    assertEquals(32 * 1024, Mcv2Configuration.DEFAULT_UNSENT_LIMIT);
+
+    final Collection<UUID> viewers = configuration.getViewers();
+    assertSame(VIEWERS, viewers);
+    final Location expectedOrigin = new Location(WORLD, 10, 64, -4);
+    final Location origin = configuration.getOrigin();
+    assertEquals(expectedOrigin, origin);
+    final Location firstOrigin = configuration.getOrigin();
+    final Location secondOrigin = configuration.getOrigin();
+    assertNotSame(firstOrigin, secondOrigin);
+    final BlockFace facing = configuration.getFacing();
+    assertEquals(BlockFace.SOUTH, facing);
+    final int map = configuration.getMap();
+    assertEquals(7, map);
+    final int columns = configuration.getColumns();
+    assertEquals(5, columns);
+    final int rows = configuration.getRows();
+    assertEquals(3, rows);
+    final int videoWidth = configuration.getVideoWidth();
+    assertEquals(640, videoWidth);
+    final int videoHeight = configuration.getVideoHeight();
+    assertEquals(384, videoHeight);
+    final int pageMap = configuration.getPageMap();
+    assertEquals(Mcv2Configuration.DEFAULT_PAGE_MAP, pageMap);
+    final int pageSlots = configuration.getPageSlots();
+    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, pageSlots);
+    final long streamId = configuration.getStreamId();
+    assertEquals(1, streamId);
+    final Settings settings = configuration.getSettings();
+    assertEquals(Settings.DEFAULT, settings);
+    final NamedTextColor outlineColor = configuration.getOutlineColor();
+    assertEquals(NamedTextColor.DARK_PURPLE, outlineColor);
+    final long backlogLimit = configuration.getBacklogLimit();
+    assertEquals(Mcv2Configuration.DEFAULT_BACKLOG_LIMIT, backlogLimit);
+    final int unsentLimit = configuration.getUnsentLimit();
+    assertEquals(Mcv2Configuration.DEFAULT_UNSENT_LIMIT, unsentLimit);
+
+    final int expectedDefaultUnsentLimit = 32 * 1024;
+    assertEquals(expectedDefaultUnsentLimit, Mcv2Configuration.DEFAULT_UNSENT_LIMIT);
   }
 
   @Test
@@ -89,24 +111,52 @@ final class Mcv2ConfigurationTest {
         .encoderPool(budget)
         .build();
       final Mcv2Configuration smaller = original.withVideo(160, 90);
-      assertEquals(160, smaller.getVideoWidth());
-      assertEquals(90, smaller.getVideoHeight());
-      assertEquals(original.getViewers(), smaller.getViewers());
-      assertEquals(original.getOrigin(), smaller.getOrigin());
-      assertEquals(original.getFacing(), smaller.getFacing());
-      assertEquals(original.getMap(), smaller.getMap());
-      assertEquals(original.getColumns(), smaller.getColumns());
-      assertEquals(original.getRows(), smaller.getRows());
-      assertEquals(original.getPageMap(), smaller.getPageMap());
-      assertEquals(2, smaller.getPageSlots());
-      assertEquals(7, smaller.getStreamId());
-      assertEquals(99, smaller.getFirstFrameId());
-      assertEquals(Settings.DEFAULT, smaller.getSettings());
-      assertEquals(NamedTextColor.AQUA, smaller.getOutlineColor());
-      assertEquals(1000, smaller.getBacklogLimit());
-      assertEquals(2000, smaller.getUnsentLimit());
-      assertSame(budget, smaller.getEncoderPool());
-      assertSame(Pool.shared(), complete().build().withVideo(64, 64).getEncoderPool());
+
+      final int videoWidth = smaller.getVideoWidth();
+      assertEquals(160, videoWidth);
+      final int videoHeight = smaller.getVideoHeight();
+      assertEquals(90, videoHeight);
+      final Collection<UUID> expectedViewers = original.getViewers();
+      final Collection<UUID> viewers = smaller.getViewers();
+      assertEquals(expectedViewers, viewers);
+      final Location expectedOrigin = original.getOrigin();
+      final Location origin = smaller.getOrigin();
+      assertEquals(expectedOrigin, origin);
+      final BlockFace expectedFacing = original.getFacing();
+      final BlockFace facing = smaller.getFacing();
+      assertEquals(expectedFacing, facing);
+      final int expectedMap = original.getMap();
+      final int map = smaller.getMap();
+      assertEquals(expectedMap, map);
+      final int expectedColumns = original.getColumns();
+      final int columns = smaller.getColumns();
+      assertEquals(expectedColumns, columns);
+      final int expectedRows = original.getRows();
+      final int rows = smaller.getRows();
+      assertEquals(expectedRows, rows);
+      final int expectedPageMap = original.getPageMap();
+      final int pageMap = smaller.getPageMap();
+      assertEquals(expectedPageMap, pageMap);
+      final int pageSlots = smaller.getPageSlots();
+      assertEquals(2, pageSlots);
+      final long streamId = smaller.getStreamId();
+      assertEquals(7, streamId);
+      final long firstFrameId = smaller.getFirstFrameId();
+      assertEquals(99, firstFrameId);
+      final Settings settings = smaller.getSettings();
+      assertEquals(Settings.DEFAULT, settings);
+      final NamedTextColor outlineColor = smaller.getOutlineColor();
+      assertEquals(NamedTextColor.AQUA, outlineColor);
+      final long backlogLimit = smaller.getBacklogLimit();
+      assertEquals(1000, backlogLimit);
+      final int unsentLimit = smaller.getUnsentLimit();
+      assertEquals(2000, unsentLimit);
+      final Pool encoderPool = smaller.getEncoderPool();
+      assertSame(budget, encoderPool);
+      final Pool expectedEncoderPool = Pool.shared();
+      final Pool defaultEncoderPool = complete().build().withVideo(64, 64).getEncoderPool();
+      assertSame(expectedEncoderPool, defaultEncoderPool);
+
       assertThrows(IllegalArgumentException.class, () -> original.withVideo(0, 90));
       assertThrows(IllegalArgumentException.class, () -> original.withVideo(160, 0));
       assertThrows(IllegalArgumentException.class, () -> original.withVideo(5000, 90));
@@ -115,14 +165,23 @@ final class Mcv2ConfigurationTest {
 
   @Test
   void shouldShowThirtyFramesASecondUnlessToldOtherwise() {
-    assertEquals(Mcv2Configuration.DEFAULT_MAX_FRAME_RATE, complete().build().getMaxFrameRate());
+    final double defaultMaxFrameRate = complete().build().getMaxFrameRate();
+    assertEquals(Mcv2Configuration.DEFAULT_MAX_FRAME_RATE, defaultMaxFrameRate);
     assertEquals(30, Mcv2Configuration.DEFAULT_MAX_FRAME_RATE);
+
     final Mcv2Configuration sixty = complete().maxFrameRate(60).build();
-    assertEquals(60, sixty.getMaxFrameRate());
-    assertEquals(60, sixty.withVideo(64, 64).getMaxFrameRate());
-    assertEquals(60, sixty.withSlot(2, Mcv2Configuration.DEFAULT_PAGE_MAP, 0).getMaxFrameRate());
-    assertEquals(0, complete().maxFrameRate(0).build().getMaxFrameRate());
-    assertEquals(Mcv2Configuration.MAX_FRAME_RATE, complete().maxFrameRate(Mcv2Configuration.MAX_FRAME_RATE).build().getMaxFrameRate());
+
+    final double maxFrameRate = sixty.getMaxFrameRate();
+    assertEquals(60, maxFrameRate);
+    final double resizedMaxFrameRate = sixty.withVideo(64, 64).getMaxFrameRate();
+    assertEquals(60, resizedMaxFrameRate);
+    final double slottedMaxFrameRate = sixty.withSlot(2, Mcv2Configuration.DEFAULT_PAGE_MAP, 0).getMaxFrameRate();
+    assertEquals(60, slottedMaxFrameRate);
+    final double zeroMaxFrameRate = complete().maxFrameRate(0).build().getMaxFrameRate();
+    assertEquals(0, zeroMaxFrameRate);
+    final double highestMaxFrameRate = complete().maxFrameRate(Mcv2Configuration.MAX_FRAME_RATE).build().getMaxFrameRate();
+    assertEquals(Mcv2Configuration.MAX_FRAME_RATE, highestMaxFrameRate);
+
     assertThrows(IllegalArgumentException.class, () -> complete().maxFrameRate(-1).build());
     assertThrows(IllegalArgumentException.class, () ->
       complete()
@@ -135,12 +194,22 @@ final class Mcv2ConfigurationTest {
   void shouldCopyItselfWithTheStreamASlotGaveIt() {
     final Mcv2Configuration original = complete().video(320, 180).streamId(7).build();
     final Mcv2Configuration slotted = original.withSlot(3, Mcv2Configuration.DEFAULT_PAGE_MAP + 16, Mcv2Decoder.MAX_U32);
-    assertEquals(3, slotted.getStreamId());
-    assertEquals(Mcv2Configuration.DEFAULT_PAGE_MAP + 16, slotted.getPageMap());
-    assertEquals(Mcv2Decoder.MAX_U32, slotted.getFirstFrameId());
-    assertEquals(320, slotted.getVideoWidth());
-    assertSame(original.getViewers(), slotted.getViewers());
-    assertEquals(0, original.getFirstFrameId());
+
+    final long streamId = slotted.getStreamId();
+    assertEquals(3, streamId);
+    final int expectedPageMap = Mcv2Configuration.DEFAULT_PAGE_MAP + 16;
+    final int pageMap = slotted.getPageMap();
+    assertEquals(expectedPageMap, pageMap);
+    final long firstFrameId = slotted.getFirstFrameId();
+    assertEquals(Mcv2Decoder.MAX_U32, firstFrameId);
+    final int videoWidth = slotted.getVideoWidth();
+    assertEquals(320, videoWidth);
+    final Collection<UUID> expectedViewers = original.getViewers();
+    final Collection<UUID> viewers = slotted.getViewers();
+    assertSame(expectedViewers, viewers);
+    final long originalFirstFrameId = original.getFirstFrameId();
+    assertEquals(0, originalFirstFrameId);
+
     assertThrows(IllegalArgumentException.class, () ->
       original.withSlot(Mcv2Configuration.MAX_STREAM_ID + 1, Mcv2Configuration.DEFAULT_PAGE_MAP, 0)
     );
@@ -160,29 +229,44 @@ final class Mcv2ConfigurationTest {
       .backlogLimit(0)
       .unsentLimit(0)
       .build();
-    assertEquals(320, configuration.getVideoWidth());
-    assertEquals(180, configuration.getVideoHeight());
-    assertEquals(50, configuration.getPageMap());
-    assertEquals(2, configuration.getPageSlots());
-    assertEquals(Mcv2Configuration.MAX_STREAM_ID, configuration.getStreamId());
-    assertEquals(Settings.DEFAULT, configuration.getSettings());
-    assertEquals(NamedTextColor.AQUA, configuration.getOutlineColor());
-    assertEquals(0, configuration.getBacklogLimit());
-    assertEquals(0, configuration.getUnsentLimit());
+
+    final int videoWidth = configuration.getVideoWidth();
+    assertEquals(320, videoWidth);
+    final int videoHeight = configuration.getVideoHeight();
+    assertEquals(180, videoHeight);
+    final int pageMap = configuration.getPageMap();
+    assertEquals(50, pageMap);
+    final int pageSlots = configuration.getPageSlots();
+    assertEquals(2, pageSlots);
+    final long streamId = configuration.getStreamId();
+    assertEquals(Mcv2Configuration.MAX_STREAM_ID, streamId);
+    final Settings settings = configuration.getSettings();
+    assertEquals(Settings.DEFAULT, settings);
+    final NamedTextColor outlineColor = configuration.getOutlineColor();
+    assertEquals(NamedTextColor.AQUA, outlineColor);
+    final long backlogLimit = configuration.getBacklogLimit();
+    assertEquals(0, backlogLimit);
+    final int unsentLimit = configuration.getUnsentLimit();
+    assertEquals(0, unsentLimit);
   }
 
   @Test
   void shouldUseOnePageSlotPerMapOfASmallWall() {
-    assertEquals(1, complete().columns(1).rows(1).build().getPageSlots());
-    assertEquals(3, complete().columns(3).rows(1).build().getPageSlots());
+    final int singleMapPageSlots = complete().columns(1).rows(1).build().getPageSlots();
+    assertEquals(1, singleMapPageSlots);
+    final int threeMapPageSlots = complete().columns(3).rows(1).build().getPageSlots();
+    assertEquals(3, threeMapPageSlots);
   }
 
   @ParameterizedTest
   @CsvSource({ "SOUTH, EAST, 0", "WEST, SOUTH, 1", "NORTH, WEST, 2", "EAST, NORTH, 3" })
   void shouldKnowWhereTheMapsRightEdgePoints(final BlockFace facing, final BlockFace right, final int code) {
     final Mcv2Configuration configuration = complete().facing(facing).build();
-    assertEquals(right, configuration.getRight());
-    assertEquals(code, configuration.getFacingCode());
+
+    final BlockFace rightEdge = configuration.getRight();
+    assertEquals(right, rightEdge);
+    final int facingCode = configuration.getFacingCode();
+    assertEquals(code, facingCode);
   }
 
   private static void refuses(final String message, final Consumer<Mcv2Configuration.Builder> change) {
@@ -191,7 +275,8 @@ final class Mcv2ConfigurationTest {
       change.accept(builder);
       builder.build();
     });
-    assertEquals(message, failure.getMessage());
+    final String failureMessage = failure.getMessage();
+    assertEquals(message, failureMessage);
   }
 
   @Test
@@ -243,50 +328,70 @@ final class Mcv2ConfigurationTest {
 
   @Test
   void shouldAcceptEveryValueAtTheEdgesOfItsRanges() {
-    assertEquals(0, complete().map(0).build().getMap());
-    assertEquals(1, complete().columns(1).build().getColumns());
+    final int lowestMap = complete().map(0).build().getMap();
+    assertEquals(0, lowestMap);
+    final int fewestColumns = complete().columns(1).build().getColumns();
+    assertEquals(1, fewestColumns);
     // a side of 63 maps is 8064 pixels at its native size, so it plays a video the codec can take
-    assertEquals(Mcv2Configuration.MAX_SIDE, complete().columns(Mcv2Configuration.MAX_SIDE).video(4096, 0).build().getColumns());
-    assertEquals(1, complete().rows(1).build().getRows());
-    assertEquals(Mcv2Configuration.MAX_SIDE, complete().rows(Mcv2Configuration.MAX_SIDE).video(0, 4096).build().getRows());
+    final int mostColumns = complete().columns(Mcv2Configuration.MAX_SIDE).video(4096, 0).build().getColumns();
+    assertEquals(Mcv2Configuration.MAX_SIDE, mostColumns);
+    final int fewestRows = complete().rows(1).build().getRows();
+    assertEquals(1, fewestRows);
+    final int mostRows = complete().rows(Mcv2Configuration.MAX_SIDE).video(0, 4096).build().getRows();
+    assertEquals(Mcv2Configuration.MAX_SIDE, mostRows);
     // 0 is the wall's own size, 128 pixels per map
-    assertEquals(5 * 128, complete().video(0, 0).build().getVideoWidth());
-    assertEquals(3 * 128, complete().video(0, 0).build().getVideoHeight());
-    assertEquals(4096, complete().video(4096, 4096).build().getVideoWidth());
-    assertEquals(4096, complete().video(4096, 4096).build().getVideoHeight());
-    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, complete().pageSlots(0).build().getPageSlots());
-    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, complete().pageSlots(Mcv2Configuration.MAX_PAGE_SLOTS).build().getPageSlots());
-    assertEquals(0, complete().streamId(0).build().getStreamId());
-    assertEquals(Mcv2Configuration.MAX_STREAM_ID, complete().streamId(Mcv2Configuration.MAX_STREAM_ID).build().getStreamId());
-    assertEquals(0, complete().backlogLimit(0).build().getBacklogLimit());
-    assertEquals(0, complete().unsentLimit(0).build().getUnsentLimit());
-    assertEquals(0, complete().pageSlots(4).pageMap(0).build().getPageMap());
-    assertEquals(
-      Integer.MAX_VALUE - 3,
-      complete()
-        .pageSlots(4)
-        .pageMap(Integer.MAX_VALUE - 3)
-        .build()
-        .getPageMap()
-    );
-    assertEquals(
-      Integer.MAX_VALUE - (Mcv2Configuration.MAX_PAGE_SLOTS - 1),
-      complete()
-        .pageMap(Integer.MAX_VALUE - (Mcv2Configuration.MAX_PAGE_SLOTS - 1))
-        .build()
-        .getPageMap()
-    );
-    assertEquals(
-      Integer.MAX_VALUE - 14,
-      complete()
-        .map(Integer.MAX_VALUE - 14)
-        .pageMap(0)
-        .build()
-        .getMap()
-    );
+    final int expectedNativeVideoWidth = 5 * 128;
+    final int nativeVideoWidth = complete().video(0, 0).build().getVideoWidth();
+    assertEquals(expectedNativeVideoWidth, nativeVideoWidth);
+    final int expectedNativeVideoHeight = 3 * 128;
+    final int nativeVideoHeight = complete().video(0, 0).build().getVideoHeight();
+    assertEquals(expectedNativeVideoHeight, nativeVideoHeight);
+    final int largestVideoWidth = complete().video(4096, 4096).build().getVideoWidth();
+    assertEquals(4096, largestVideoWidth);
+    final int largestVideoHeight = complete().video(4096, 4096).build().getVideoHeight();
+    assertEquals(4096, largestVideoHeight);
+    final int defaultPageSlots = complete().pageSlots(0).build().getPageSlots();
+    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, defaultPageSlots);
+    final int mostPageSlots = complete().pageSlots(Mcv2Configuration.MAX_PAGE_SLOTS).build().getPageSlots();
+    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, mostPageSlots);
+    final long lowestStreamId = complete().streamId(0).build().getStreamId();
+    assertEquals(0, lowestStreamId);
+    final long highestStreamId = complete().streamId(Mcv2Configuration.MAX_STREAM_ID).build().getStreamId();
+    assertEquals(Mcv2Configuration.MAX_STREAM_ID, highestStreamId);
+    final long lowestBacklogLimit = complete().backlogLimit(0).build().getBacklogLimit();
+    assertEquals(0, lowestBacklogLimit);
+    final int lowestUnsentLimit = complete().unsentLimit(0).build().getUnsentLimit();
+    assertEquals(0, lowestUnsentLimit);
+    final int lowestPageMap = complete().pageSlots(4).pageMap(0).build().getPageMap();
+    assertEquals(0, lowestPageMap);
+    final int expectedHighestPageMapOfFourSlots = Integer.MAX_VALUE - 3;
+    final int highestPageMapOfFourSlots = complete()
+      .pageSlots(4)
+      .pageMap(Integer.MAX_VALUE - 3)
+      .build()
+      .getPageMap();
+    assertEquals(expectedHighestPageMapOfFourSlots, highestPageMapOfFourSlots);
+    final int expectedHighestPageMap = Integer.MAX_VALUE - (Mcv2Configuration.MAX_PAGE_SLOTS - 1);
+    final int highestPageMap = complete()
+      .pageMap(Integer.MAX_VALUE - (Mcv2Configuration.MAX_PAGE_SLOTS - 1))
+      .build()
+      .getPageMap();
+    assertEquals(expectedHighestPageMap, highestPageMap);
+    final int expectedHighestMap = Integer.MAX_VALUE - 14;
+    final int highestMap = complete()
+      .map(Integer.MAX_VALUE - 14)
+      .pageMap(0)
+      .build()
+      .getMap();
+    assertEquals(expectedHighestMap, highestMap);
+
     final Mcv2Configuration configuration = complete().build();
-    assertEquals(1, configuration.withVideo(1, 1).getVideoWidth());
-    assertEquals(1, configuration.withVideo(1, 1).getVideoHeight());
+
+    final int smallestVideoWidth = configuration.withVideo(1, 1).getVideoWidth();
+    assertEquals(1, smallestVideoWidth);
+    final int smallestVideoHeight = configuration.withVideo(1, 1).getVideoHeight();
+    assertEquals(1, smallestVideoHeight);
+
     assertThrows(IllegalArgumentException.class, () -> configuration.withVideo(0, 1));
     assertThrows(IllegalArgumentException.class, () -> configuration.withVideo(1, 0));
   }
@@ -297,26 +402,39 @@ final class Mcv2ConfigurationTest {
     refuses("Page maps must not be maps of the wall", builder -> builder.pageMap(21));
     refuses("Page maps must not be maps of the wall", builder -> builder.pageSlots(4).pageMap(4));
     refuses("Page maps must not be maps of the wall", builder -> builder.pageMap(0));
-    assertEquals(3, complete().pageSlots(4).pageMap(3).build().getPageMap());
-    assertEquals(22, complete().pageMap(22).build().getPageMap());
+
+    final int pageMapBelowTheWall = complete().pageSlots(4).pageMap(3).build().getPageMap();
+    assertEquals(3, pageMapBelowTheWall);
+    final int pageMapAboveTheWall = complete().pageMap(22).build().getPageMap();
+    assertEquals(22, pageMapAboveTheWall);
   }
 
   @Test
   void shouldRefuseAWallWhoseNativeSizeIsLargerThanTheCodecTakes() {
     final IllegalArgumentException wide = assertThrows(IllegalArgumentException.class, () -> complete().columns(33).build());
-    assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size", wide.getMessage());
+    final String message = wide.getMessage();
+    assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size", message);
     assertThrows(IllegalArgumentException.class, () -> complete().rows(33).build());
-    assertEquals(4096, complete().columns(33).video(4096, 0).build().getVideoWidth());
-    assertEquals(4096, complete().rows(33).video(0, 4096).build().getVideoHeight());
-    assertEquals(4096, complete().columns(32).rows(32).build().getVideoWidth());
+
+    final int wideVideoWidth = complete().columns(33).video(4096, 0).build().getVideoWidth();
+    assertEquals(4096, wideVideoWidth);
+    final int tallVideoHeight = complete().rows(33).video(0, 4096).build().getVideoHeight();
+    assertEquals(4096, tallVideoHeight);
+    final int largestNativeVideoWidth = complete().columns(32).rows(32).build().getVideoWidth();
+    assertEquals(4096, largestNativeVideoWidth);
   }
 
   @Test
   void shouldRefuseMorePageSlotsThanTheWallHasMaps() {
     final Mcv2Configuration.Builder square = complete().columns(2).rows(2);
-    assertEquals(4, square.pageSlots(0).build().getPageSlots(), "the default of a wall of four maps");
-    assertEquals(4, square.pageSlots(4).build().getPageSlots());
+
+    final int defaultPageSlots = square.pageSlots(0).build().getPageSlots();
+    assertEquals(4, defaultPageSlots, "the default of a wall of four maps");
+    final int fullPageSlots = square.pageSlots(4).build().getPageSlots();
+    assertEquals(4, fullPageSlots);
+
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () -> square.pageSlots(5).build());
-    assertEquals("A wall of 4 maps cannot carry 5 page slots: one page frame hangs behind each map", refused.getMessage());
+    final String message = refused.getMessage();
+    assertEquals("A wall of 4 maps cannot carry 5 page slots: one page frame hangs behind each map", message);
   }
 }

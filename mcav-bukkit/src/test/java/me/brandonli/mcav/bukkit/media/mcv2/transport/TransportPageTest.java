@@ -55,6 +55,8 @@ final class TransportPageTest {
       page(1, 2, 0, 1, 2, 48, 1, 7, (byte) 5),
       page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 6)
     );
-    assertNotSame(value.getPayload(), value.getPayload());
+    final byte[] firstPayload = value.getPayload();
+    final byte[] secondPayload = value.getPayload();
+    assertNotSame(firstPayload, secondPayload);
   }
 }

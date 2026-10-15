@@ -56,12 +56,17 @@ final class ConformanceTest {
   @MethodSource("streams")
   void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
-    assertEquals(digests.size(), frames.size(), "frame count");
+    final int expectedFrameCount = digests.size();
+    final int frameCount = frames.size();
+    assertEquals(expectedFrameCount, frameCount, "frame count");
+
     final Mcv2Receiver receiver = new Mcv2Receiver();
     for (int frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
       final byte[] data = frames.get(frameIndex);
       final byte[] picture = receiver.accept(data);
-      assertEquals(digests.get(frameIndex), Mcv2Fixtures.sha256(picture), "frame " + frameIndex);
+      final String expectedDigest = digests.get(frameIndex);
+      final String digest = Mcv2Fixtures.sha256(picture);
+      assertEquals(expectedDigest, digest, "frame " + frameIndex);
     }
   }
 
@@ -72,7 +77,10 @@ final class ConformanceTest {
     for (final Map.Entry<String, JsonElement> entry : root.entrySet()) {
       arguments.add(Arguments.of(entry.getKey(), HexFormat.of().parseHex(entry.getValue().getAsJsonObject().get("frame").getAsString())));
     }
-    assertEquals(78, arguments.size());
+
+    final int argumentCount = arguments.size();
+    assertEquals(78, argumentCount);
+
     return arguments.stream();
   }
 

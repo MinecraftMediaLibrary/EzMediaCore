@@ -50,10 +50,15 @@ final class MCV2BlockCoderTest {
     }
     final Mcv2BlockState job = code(source, reference);
     {
-      assertEquals(0, job.distortion(2, 0));
-      assertEquals(Mcv2Decoder.MODE_COMPACT, job.mode(2, 0));
-      assertEquals(2, job.quantizer(2, 0));
-      assertArrayEquals(new byte[] { 0, 0, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44 }, job.record(2, 0));
+      final long distortion = job.distortion(2, 0);
+      assertEquals(0, distortion);
+      final int mode = job.mode(2, 0);
+      assertEquals(Mcv2Decoder.MODE_COMPACT, mode);
+      final int quantizer = job.quantizer(2, 0);
+      assertEquals(2, quantizer);
+      final byte[] expectedRecord = new byte[] { 0, 0, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44, 0x44 };
+      final byte[] record = job.record(2, 0);
+      assertArrayEquals(expectedRecord, record);
     }
   }
 
@@ -62,21 +67,36 @@ final class MCV2BlockCoderTest {
     final float[] fit = new float[16];
     // the sixteen luma nibbles of the 4x4 grid classes hold -8 to 7 steps
     fit[0] = 7;
-    assertEquals(0, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtSeven = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(0, quantizerAtSeven);
+
     fit[0] = -8.5f;
-    assertEquals(0, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtMinusEightPointFive = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(0, quantizerAtMinusEightPointFive);
+
     fit[0] = -8.6f;
-    assertEquals(1, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtMinusEightPointSix = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(1, quantizerAtMinusEightPointSix);
+
     fit[0] = 7.5f;
-    assertEquals(1, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtSevenPointFive = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(1, quantizerAtSevenPointFive);
+
     fit[0] = 14.9f;
-    assertEquals(1, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtFourteenPointNine = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(1, quantizerAtFourteenPointNine);
+
     fit[0] = 15;
-    assertEquals(2, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtFifteen = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(2, quantizerAtFifteen);
+
     fit[0] = 1000;
-    assertEquals(2, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtThousand = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(2, quantizerAtThousand);
+
     fit[0] = -1000;
-    assertEquals(2, Mcv2BlockState.neededQuantizer(fit));
+    final int quantizerAtMinusThousand = Mcv2BlockState.neededQuantizer(fit);
+    assertEquals(2, quantizerAtMinusThousand);
   }
 
   @Test
@@ -94,12 +114,15 @@ final class MCV2BlockCoderTest {
     }
     final int[] half = new int[2 * 2 * 3];
     Mcv2Internals.javaKernels().halve(block, 4, half);
-    assertArrayEquals(new int[] { 20, 21, 22, 60, 61, 62, 100, 101, 102, 140, 141, 142 }, half);
+    final int[] expectedHalf = new int[] { 20, 21, 22, 60, 61, 62, 100, 101, 102, 140, 141, 142 };
+    assertArrayEquals(expectedHalf, half);
+
     // a mean of 2.5 rounds up, one of 0.25 down
     final int[] square = { 1, 0, 255, 2, 0, 255, 3, 0, 255, 4, 1, 254 };
     final int[] mean = new int[3];
     Mcv2Internals.javaKernels().halve(square, 2, mean);
-    assertArrayEquals(new int[] { 3, 0, 255 }, mean);
+    final int[] expectedMean = new int[] { 3, 0, 255 };
+    assertArrayEquals(expectedMean, mean);
   }
 
   @Test
@@ -112,9 +135,14 @@ final class MCV2BlockCoderTest {
     }
     final Mcv2BlockState job = new Mcv2BlockState(source, new byte[0], 8, 8, true, false, 65.255994022, null);
     job.code(8, 2, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
-    assertEquals(Mcv2Decoder.MODE_SOLID, job.mode(2, 0));
-    assertArrayEquals(new byte[] { 10, 20, 30 }, job.record(2, 0));
-    assertEquals(0, job.distortion(2, 0));
+
+    final int mode = job.mode(2, 0);
+    assertEquals(Mcv2Decoder.MODE_SOLID, mode);
+    final byte[] expectedRecord = new byte[] { 10, 20, 30 };
+    final byte[] record = job.record(2, 0);
+    assertArrayEquals(expectedRecord, record);
+    final long distortion = job.distortion(2, 0);
+    assertEquals(0, distortion);
   }
 
   @Test
@@ -132,7 +160,8 @@ final class MCV2BlockCoderTest {
     for (final int parent : new int[] { -4 << 16, 0x0000fffc, 4 << 16, -1 }) {
       final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, 65.255994022, null);
       final Object coder = job.code(8, 2, 5, 8, 8, parent);
-      assertEquals(parent, Mcv2BlockState.localVector(coder));
+      final int vector = Mcv2BlockState.localVector(coder);
+      assertEquals(parent, vector);
     }
   }
 
@@ -152,8 +181,10 @@ final class MCV2BlockCoderTest {
       final int level = size == 16 ? 1 : 0;
       final int parent = size == 16 ? -4 << 16 : Mcv2BlockState.NO_VECTOR;
       final Object coder = job.code(size, level, 0, 0, 0, parent);
-      assertEquals(0, Mcv2BlockState.localVector(coder));
-      assertEquals(Mcv2Decoder.MODE_COMPACT, job.mode(level, 0));
+      final int vector = Mcv2BlockState.localVector(coder);
+      assertEquals(0, vector);
+      final int mode = job.mode(level, 0);
+      assertEquals(Mcv2Decoder.MODE_COMPACT, mode);
     }
   }
 }
