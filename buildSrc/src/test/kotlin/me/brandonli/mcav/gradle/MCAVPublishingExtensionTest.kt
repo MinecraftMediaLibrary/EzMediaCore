@@ -23,12 +23,12 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 
-class PublishingExtensionTest {
+class MCAVPublishingExtensionTest {
 
     @Test
     fun shouldHoldWhetherToPublishGradleModuleMetadata(): Unit {
         val project: Project = ProjectBuilder.builder().build()
-        val extension: McavPublishingExtension = project.objects.newInstance(McavPublishingExtension::class.java)
+        val extension: MCAVPublishingExtension = project.objects.newInstance(MCAVPublishingExtension::class.java)
         extension.gradleModuleMetadata.set(false)
 
         val metadata: Boolean = extension.gradleModuleMetadata.get()

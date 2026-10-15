@@ -34,28 +34,28 @@ class JcstressBudgetTest {
 
     @Test
     fun shouldSplitHalfOfTheBudgetOverTheIterationsOfEveryRun() {
-        val iterationMillis: Long = JcstressBudget.iterationMillis("quick", 10, 9, 4)
-        assertEquals(76L, iterationMillis)
+        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds("quick", 10, 9, 4)
+        assertEquals(76L, iterationMilliseconds)
     }
 
     @Test
     fun shouldKeepTheIterationTimeWithinItsBounds() {
-        val shortest: Long = JcstressBudget.iterationMillis("quick", 1, 9, 4)
+        val shortest: Long = JcstressBudget.iterationMilliseconds("quick", 1, 9, 4)
         assertEquals(50L, shortest)
 
-        val longest: Long = JcstressBudget.iterationMillis("sanity", 100_000, 1, 4)
+        val longest: Long = JcstressBudget.iterationMilliseconds("sanity", 100_000, 1, 4)
         assertEquals(10_000L, longest)
     }
 
     @Test
     fun shouldRunOneRunAtATimeOnASingleCpu() {
-        val iterationMillis: Long = JcstressBudget.iterationMillis("default", 10, 1, 1)
-        assertEquals(314L, iterationMillis)
+        val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds("default", 10, 1, 1)
+        assertEquals(314L, iterationMilliseconds)
     }
 
     @Test
     fun shouldRefuseAnUnknownMode() {
-        assertThrows(GradleException::class.java) { JcstressBudget.iterationMillis("forever", 10, 1, 4) }
+        assertThrows(GradleException::class.java) { JcstressBudget.iterationMilliseconds("forever", 10, 1, 4) }
     }
 
     @Test

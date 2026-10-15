@@ -17,7 +17,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.transformers.ApacheNoticeResourceTransformer
-import me.brandonli.mcav.gradle.McavPublishingExtension
+import me.brandonli.mcav.gradle.MCAVPublishingExtension
 import me.brandonli.mcav.gradle.libraryOf
 import me.brandonli.mcav.gradle.libs
 
@@ -31,7 +31,7 @@ dependencies {
     implementation(libs.libraryOf("maven-resolver-supplier"))
 }
 
-extensions.configure<McavPublishingExtension> {
+extensions.configure<MCAVPublishingExtension> {
     bundledJar = tasks.shadowJar
 }
 

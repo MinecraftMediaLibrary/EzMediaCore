@@ -91,9 +91,9 @@ tasks.register<JavaExec>("jcstressTest") {
         standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
         if (budget != null) {
             val testCount = JcstressBudget.countTests(jar.get().asFile, tests)
-            val iterationMillis = JcstressBudget.iterationMillis(stressMode, budget, testCount, cpuCount)
-            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMillis)
-            args("-time", iterationMillis.toString())
+            val iterationMilliseconds = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)
+            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMilliseconds)
+            args("-time", iterationMilliseconds.toString())
         }
     }
     doLast {

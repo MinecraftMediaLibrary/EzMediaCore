@@ -25,10 +25,10 @@ import org.gradle.api.GradleException
 object JcstressBudget {
 
     private const val CONFIGURATIONS = 14
-    private const val JVM_START_MILLIS = 2_000L
-    private const val MIN_ITERATION_MILLIS = 50L
-    private const val MAX_ITERATION_MILLIS = 10_000L
-    private const val MILLIS_PER_MINUTE = 60_000L
+    private const val JVM_START_MILLISECONDS = 2_000L
+    private const val MINIMUM_ITERATION_MILLISECONDS = 50L
+    private const val MAXIMUM_ITERATION_MILLISECONDS = 10_000L
+    private const val MILLISECONDS_PER_MINUTE = 60_000L
     private const val TEST_LINE = "JCTEST"
 
     private class Preset(val forks: Int, val stressMultiplier: Int, val iterations: Int)
@@ -56,15 +56,15 @@ object JcstressBudget {
         return line.substring(lengthEnd + 1, lengthEnd + 1 + length)
     }
 
-    fun iterationMillis(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
+    fun iterationMilliseconds(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
         val message = "Jcstress mode $mode is unknown!"
         val preset = presets[mode] ?: throw GradleException(message)
         val runs = testCount.toLong() * CONFIGURATIONS * (preset.forks + preset.forks * preset.stressMultiplier)
         val parallelRuns = maxOf(1, cpus / 2)
-        val budgetMillis = budgetMinutes * MILLIS_PER_MINUTE
-        val startMillis = runs * JVM_START_MILLIS / parallelRuns
-        val iterationBudget = budgetMillis / 2 - startMillis
+        val budgetMilliseconds = budgetMinutes * MILLISECONDS_PER_MINUTE
+        val startMilliseconds = runs * JVM_START_MILLISECONDS / parallelRuns
+        val iterationBudget = budgetMilliseconds / 2 - startMilliseconds
         val perIteration = iterationBudget * parallelRuns / maxOf(1L, runs * preset.iterations)
-        return perIteration.coerceIn(MIN_ITERATION_MILLIS, MAX_ITERATION_MILLIS)
+        return perIteration.coerceIn(MINIMUM_ITERATION_MILLISECONDS, MAXIMUM_ITERATION_MILLISECONDS)
     }
 }

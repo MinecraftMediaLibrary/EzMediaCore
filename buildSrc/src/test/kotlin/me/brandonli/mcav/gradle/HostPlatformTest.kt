@@ -130,10 +130,10 @@ class HostPlatformTest {
         val windowsJava: String = windows.javaExecutable(JAVA_HOME)
         assertEquals("/opt/jdk/bin/java.exe", windowsJava)
 
-        val linuxPython: String = linux.venvExecutable(PYTHON)
+        val linuxPython: String = linux.virtualEnvironmentExecutable(PYTHON)
         assertEquals("bin/python", linuxPython)
 
-        val windowsPython: String = windows.venvExecutable(PYTHON)
+        val windowsPython: String = windows.virtualEnvironmentExecutable(PYTHON)
         assertEquals("Scripts/python.exe", windowsPython)
     }
 
@@ -145,8 +145,8 @@ class HostPlatformTest {
         val expectedJava: String = host.javaExecutable(JAVA_HOME)
         assertEquals(expectedJava, java)
 
-        val python: String = venvExecutable(PYTHON)
-        val expectedPython: String = host.venvExecutable(PYTHON)
+        val python: String = virtualEnvironmentExecutable(PYTHON)
+        val expectedPython: String = host.virtualEnvironmentExecutable(PYTHON)
         assertEquals(expectedPython, python)
     }
 

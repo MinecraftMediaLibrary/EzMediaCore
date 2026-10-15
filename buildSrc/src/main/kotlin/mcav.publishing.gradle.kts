@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import me.brandonli.mcav.gradle.McavPublishingExtension
+import me.brandonli.mcav.gradle.MCAVPublishingExtension
 
 plugins {
     java
@@ -24,7 +24,7 @@ plugins {
     id("mcav.licensing")
 }
 
-val settings = extensions.create<McavPublishingExtension>("mcavPublishing")
+val settings = extensions.create<MCAVPublishingExtension>("mcavPublishing")
 settings.gradleModuleMetadata.convention(true)
 
 java {

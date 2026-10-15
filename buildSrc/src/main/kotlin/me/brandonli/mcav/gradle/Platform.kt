@@ -66,7 +66,7 @@ class HostPlatform private constructor(val operatingSystem: String, val architec
 
     fun javaExecutable(javaHome: String): String = javaHome + "/bin/java" + if (isWindows) ".exe" else ""
 
-    fun venvExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
+    fun virtualEnvironmentExecutable(name: String): String = if (isWindows) "Scripts/$name.exe" else "bin/$name"
 
     companion object {
         private val architectureAliases = mapOf("amd64" to "x86_64", "arm64" to "aarch64")
@@ -85,7 +85,7 @@ val isWindows: Boolean = HostPlatform.current().isWindows
 
 fun javaExecutable(javaHome: String): String = HostPlatform.current().javaExecutable(javaHome)
 
-fun venvExecutable(name: String): String = HostPlatform.current().venvExecutable(name)
+fun virtualEnvironmentExecutable(name: String): String = HostPlatform.current().virtualEnvironmentExecutable(name)
 
 fun DependencyHandler.addLwjglTestNatives(libraries: Iterable<Provider<MinimalExternalModuleDependency>>) {
     addLwjglTestNatives(HostPlatform.current(), libraries)

@@ -21,6 +21,7 @@ package me.brandonli.mcav.gradle
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
 import java.io.OutputStream
+import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import org.gradle.api.Action
@@ -93,10 +94,11 @@ class ToolVersionsFuzzTest {
             val streams: MutableList<OutputStream> = mutableListOf()
             val loader: ClassLoader = ExecSpec::class.java.classLoader
             val interfaces: Array<Class<*>> = arrayOf(ExecSpec::class.java)
-            val spec: ExecSpec = Proxy.newProxyInstance(loader, interfaces) { proxy: Any, method: Method, arguments: Array<Any?>? ->
+            val handler: InvocationHandler = InvocationHandler { proxy: Any, method: Method, arguments: Array<Any?>? ->
                 this.record(proxy, method, arguments, streams)
-            } as ExecSpec
-            action.execute(spec)
+            }
+            val specification: ExecSpec = Proxy.newProxyInstance(loader, interfaces, handler) as ExecSpec
+            action.execute(specification)
 
             val bytes: ByteArray = this.output.toByteArray(Charsets.UTF_8)
             streams.forEach { it.write(bytes) }

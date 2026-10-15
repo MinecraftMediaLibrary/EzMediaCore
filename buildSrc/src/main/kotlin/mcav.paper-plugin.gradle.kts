@@ -202,7 +202,7 @@ if (endToEnd) {
     }
 }
 
-val e2eTestSourceSet = sourceSets.create("e2eTest")
+val endToEndTestSourceSet = sourceSets.create("e2eTest")
 
 dependencies {
     "e2eTestImplementation"(platform(libs.libraryOf("junit-bom")))
@@ -214,8 +214,8 @@ dependencies {
 tasks.register<Test>("e2eTest") {
     group = "verification"
     description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
-    testClassesDirs = e2eTestSourceSet.output.classesDirs
-    classpath = e2eTestSourceSet.runtimeClasspath
+    testClassesDirs = endToEndTestSourceSet.output.classesDirs
+    classpath = endToEndTestSourceSet.runtimeClasspath
     val pluginJar = tasks.shadowJar.flatMap { it.archiveFile }
     inputs.file(pluginJar)
     outputs.upToDateWhen { false }

@@ -81,7 +81,7 @@ abstract class PythonEnvironment : DefaultTask() {
     @get:Inject
     protected abstract val processes: ExecOperations
 
-    fun executable(name: String): Provider<RegularFile> = installationDirectory.file("venv/" + venvExecutable(name))
+    fun executable(name: String): Provider<RegularFile> = installationDirectory.file("venv/" + virtualEnvironmentExecutable(name))
 
     @TaskAction
     fun install() {
@@ -101,7 +101,7 @@ abstract class PythonEnvironment : DefaultTask() {
         listOf(
             listOf("python", "install", python, "--no-bin", "--no-registry"),
             listOf("venv", "--clear", "--no-project", "--no-python-downloads", "--python", python, virtualEnvironment),
-            listOf("pip", "sync", "--python", virtualEnvironment.resolve(venvExecutable("python")), "--require-hashes",
+            listOf("pip", "sync", "--python", virtualEnvironment.resolve(virtualEnvironmentExecutable("python")), "--require-hashes",
                 "--only-binary", ":all:", "--default-index", "https://pypi.org/simple", lock)
         ).forEach { arguments ->
             processes.exec {
