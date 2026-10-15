@@ -86,8 +86,8 @@ final class FileHttpServer {
     final ChannelFuture bindFuture = this.bind(acceptors, workers);
     final boolean bound = bindFuture.isSuccess();
     if (!bound) {
-      terminate(acceptors);
-      terminate(workers);
+      this.terminate(acceptors);
+      this.terminate(workers);
       final Throwable cause = bindFuture.cause();
       final String message = "Port %s could not be bound for the resource pack server!".formatted(this.port);
       throw new HttpServerException(message, cause);
@@ -141,13 +141,13 @@ final class FileHttpServer {
 
     final EventLoopGroup acceptors = this.acceptorGroup;
     if (acceptors != null) {
-      terminate(acceptors);
+      this.terminate(acceptors);
       this.acceptorGroup = null;
     }
 
     final EventLoopGroup workers = this.workerGroup;
     if (workers != null) {
-      terminate(workers);
+      this.terminate(workers);
       this.workerGroup = null;
     }
   }
@@ -156,7 +156,7 @@ final class FileHttpServer {
    * Shuts the threads down without a quiet period and waits until they are gone. The listening socket is only
    * released once its event loop has finished, so waiting here lets the port be bound again right away.
    */
-  private static void terminate(final EventLoopGroup group) {
+  private void terminate(final EventLoopGroup group) {
     final Future<?> termination = group.shutdownGracefully(0, SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     termination.awaitUninterruptibly();
   }

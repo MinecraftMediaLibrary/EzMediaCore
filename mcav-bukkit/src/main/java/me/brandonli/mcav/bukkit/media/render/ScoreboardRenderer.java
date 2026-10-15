@@ -231,7 +231,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
       final Scoreboard saved = requireNonNull(rememberedBoard);
       final Player player = Bukkit.getPlayer(viewer);
       if (player != null) {
-        restoreViewer(player, board, saved);
+        this.restoreViewer(player, board, saved);
       }
       this.previousScoreboards.remove(viewer);
     }
@@ -262,7 +262,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
 
     this.restoreViewers(board);
-    unregisterAll(board);
+    this.unregisterAll(board);
     this.previousScoreboards.clear();
     this.scoreboard = null;
   }
@@ -284,11 +284,11 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
         continue;
       }
       final Scoreboard previous = this.previousScoreboards.getOrDefault(viewer, mainScoreboard);
-      restoreViewer(player, board, previous);
+      this.restoreViewer(player, board, previous);
     }
   }
 
-  private static void restoreViewer(final Player player, final Scoreboard board, final Scoreboard previous) {
+  private void restoreViewer(final Player player, final Scoreboard board, final Scoreboard previous) {
     final Scoreboard current = player.getScoreboard();
     // Scoreboards do not override equals; preserve a replacement installed by another plugin.
     final boolean seesThisBoard = board.equals(current);
@@ -297,7 +297,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
     }
   }
 
-  private static void unregisterAll(final Scoreboard board) {
+  private void unregisterAll(final Scoreboard board) {
     final Set<Objective> objectives = board.getObjectives();
     for (final Objective objective : objectives) {
       objective.unregister();

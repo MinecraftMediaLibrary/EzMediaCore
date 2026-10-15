@@ -204,7 +204,7 @@ public class CompressedMapResult implements DitherResultStep {
     for (final MapTilePatch patch : patches) {
       final int mapId = patch.getMapId();
       final BitSet pixels = this.sentPixels.computeIfAbsent(mapId, _ -> new BitSet(MapLayout.MAP_SIZE * MapLayout.MAP_SIZE));
-      setCoverage(pixels, patch, true);
+      this.setCoverage(pixels, patch, true);
     }
   }
 
@@ -225,7 +225,7 @@ public class CompressedMapResult implements DitherResultStep {
       final int mapId = patch.getMapId();
       final BitSet pixels = uncovered.get(mapId);
       if (pixels != null) {
-        setCoverage(pixels, patch, false);
+        this.setCoverage(pixels, patch, false);
       }
     }
 
@@ -233,13 +233,13 @@ public class CompressedMapResult implements DitherResultStep {
     for (final Map.Entry<Integer, BitSet> entry : uncovered.entrySet()) {
       final int mapId = entry.getKey();
       final BitSet pixels = entry.getValue();
-      appendClearRectangles(mapId, pixels, clears);
+      this.appendClearRectangles(mapId, pixels, clears);
     }
 
     return clears;
   }
 
-  private static void setCoverage(final BitSet pixels, final MapTilePatch patch, final boolean covered) {
+  private void setCoverage(final BitSet pixels, final MapTilePatch patch, final boolean covered) {
     final int left = patch.getX();
     final int top = patch.getY();
     final int width = patch.getWidth();
@@ -254,7 +254,7 @@ public class CompressedMapResult implements DitherResultStep {
    * Consumes a coverage bitmap as disjoint transparent rectangles. Each horizontal run is extended down through
    * rows that contain it, keeping solid regions compact without including a pixel outside the recorded coverage.
    */
-  private static void appendClearRectangles(final int mapId, final BitSet pixels, final List<MapTilePatch> clears) {
+  private void appendClearRectangles(final int mapId, final BitSet pixels, final List<MapTilePatch> clears) {
     final int size = MapLayout.MAP_SIZE;
     int first = pixels.nextSetBit(0);
     while (first >= 0) {
@@ -263,16 +263,16 @@ public class CompressedMapResult implements DitherResultStep {
       final int nextClear = pixels.nextClearBit(first);
       final int right = Math.min(nextClear, (top + 1) * size);
       final int width = right - first;
-      final int height = clearRunHeight(pixels, left, top, width);
+      final int height = this.clearRunHeight(pixels, left, top, width);
       final byte[] transparent = new byte[width * height];
       final MapTilePatch clear = new MapTilePatch(mapId, left, top, width, height, transparent);
       clears.add(clear);
-      setCoverage(pixels, clear, false);
+      this.setCoverage(pixels, clear, false);
       first = pixels.nextSetBit(0);
     }
   }
 
-  private static int clearRunHeight(final BitSet pixels, final int left, final int top, final int width) {
+  private int clearRunHeight(final BitSet pixels, final int left, final int top, final int width) {
     final int size = MapLayout.MAP_SIZE;
     int height = 1;
     while (top + height < size) {
@@ -334,7 +334,7 @@ public class CompressedMapResult implements DitherResultStep {
     if (algorithm instanceof final ParallelDitherAlgorithm parallelAlgorithm) {
       ForkJoinPool pool = this.ditherPool;
       if (pool == null) {
-        pool = createDitherPool();
+        pool = this.createDitherPool();
         this.ditherPool = pool;
       }
 
@@ -344,21 +344,21 @@ public class CompressedMapResult implements DitherResultStep {
     return algorithm.ditherIntoBytes(samples);
   }
 
-  private static ForkJoinPool createDitherPool() {
+  private ForkJoinPool createDitherPool() {
     final Runtime runtime = Runtime.getRuntime();
     final int processors = runtime.availableProcessors();
     final int parallelism = Math.max(MINIMUM_PARALLELISM, processors / PROCESSORS_PER_DITHER_THREAD - 1);
-    final ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = CompressedMapResult::createDitherThread;
-    final Thread.UncaughtExceptionHandler exceptionHandler = CompressedMapResult::logUncaughtException;
+    final ForkJoinPool.ForkJoinWorkerThreadFactory threadFactory = this::createDitherThread;
+    final Thread.UncaughtExceptionHandler exceptionHandler = this::logUncaughtException;
     return new ForkJoinPool(parallelism, threadFactory, exceptionHandler, false);
   }
 
-  private static void logUncaughtException(final Thread thread, final Throwable throwable) {
+  private void logUncaughtException(final Thread thread, final Throwable throwable) {
     final String threadName = thread.getName();
     LOGGER.error(DITHERING_THREAD_FAILED, threadName, throwable);
   }
 
-  private static ForkJoinWorkerThread createDitherThread(final ForkJoinPool pool) {
+  private ForkJoinWorkerThread createDitherThread(final ForkJoinPool pool) {
     final ForkJoinPool.ForkJoinWorkerThreadFactory defaultFactory = ForkJoinPool.defaultForkJoinWorkerThreadFactory;
     final ForkJoinWorkerThread thread = defaultFactory.newThread(pool);
     final int poolIndex = thread.getPoolIndex();

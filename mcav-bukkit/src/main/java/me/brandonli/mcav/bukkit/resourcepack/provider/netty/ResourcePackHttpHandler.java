@@ -182,7 +182,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     this.cumulation = null;
     this.served = true;
     data.release();
-    replaceReadTimeout(context);
+    this.replaceReadTimeout(context);
     this.respond(context, isHeadRequest);
   }
 
@@ -192,7 +192,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
    * longer than that was cut. A client that stops taking the pack is still closed, once it took less than a chunk of
    * {@value #CHUNK_BYTES} bytes for {@value #STALL_SECONDS} seconds.
    */
-  private static void replaceReadTimeout(final ChannelHandlerContext context) {
+  private void replaceReadTimeout(final ChannelHandlerContext context) {
     final ChannelPipeline pipeline = context.pipeline();
     for (final Map.Entry<String, ChannelHandler> handler : pipeline.toMap().entrySet()) {
       if (handler.getValue() instanceof ReadTimeoutHandler) {
@@ -246,11 +246,11 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
       body = this.packFile.read();
     } catch (final IOException exception) {
       LOGGER.warn(PACK_NOT_READ, exception);
-      respondWithError(context);
+      this.respondWithError(context);
       return;
     }
 
-    final ByteBuf headers = createHeaders(STATUS_OK, CONTENT_TYPE_ZIP, body.length);
+    final ByteBuf headers = this.createHeaders(STATUS_OK, CONTENT_TYPE_ZIP, body.length);
     if (isHeadRequest) {
       final ChannelFuture headersFuture = context.writeAndFlush(headers);
       headersFuture.addListener(ChannelFutureListener.CLOSE);
@@ -264,13 +264,13 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
     contentFuture.addListener(ChannelFutureListener.CLOSE);
   }
 
-  private static void respondWithError(final ChannelHandlerContext context) {
-    final ByteBuf error = createHeaders(STATUS_ERROR, CONTENT_TYPE_TEXT, 0);
+  private void respondWithError(final ChannelHandlerContext context) {
+    final ByteBuf error = this.createHeaders(STATUS_ERROR, CONTENT_TYPE_TEXT, 0);
     final ChannelFuture errorFuture = context.writeAndFlush(error);
     errorFuture.addListener(ChannelFutureListener.CLOSE);
   }
 
-  private static ByteBuf createHeaders(final String status, final String contentType, final int contentLength) {
+  private ByteBuf createHeaders(final String status, final String contentType, final int contentLength) {
     final String text =
       STATUS_LINE_PREFIX +
       status +

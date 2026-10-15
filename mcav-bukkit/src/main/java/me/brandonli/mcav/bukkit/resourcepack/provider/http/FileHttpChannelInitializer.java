@@ -88,7 +88,7 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
     closed.addListener(future -> this.openConnections.decrementAndGet());
 
     if (open > this.maximumConnections) {
-      refuse(channel);
+      this.refuse(channel);
       return;
     }
 
@@ -101,7 +101,7 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
     pipeline.addLast(handler);
   }
 
-  private static void refuse(final SocketChannel channel) {
+  private void refuse(final SocketChannel channel) {
     final ByteBuf response = Unpooled.copiedBuffer(BUSY_RESPONSE, StandardCharsets.US_ASCII);
     final ChannelFuture written = channel.writeAndFlush(response);
     written.addListener(ChannelFutureListener.CLOSE);

@@ -529,7 +529,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     event.commit();
   }
 
-  private static void stop(final @Nullable Thread thread) {
+  private void stop(final @Nullable Thread thread) {
     if (thread == null) {
       return;
     }
@@ -790,7 +790,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     Screen target = current;
-    if (size(rung.width(), rung.height()) != size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
+    if (this.size(rung.width(), rung.height()) != this.size(configuration.getVideoWidth(), configuration.getVideoHeight())) {
       current.channel().close();
       this.opened = false;
       final Mcv2Configuration size = this.requested.withVideo(rung.width(), rung.height());
@@ -837,8 +837,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.pacer = null;
     }
 
-    stop(thread);
-    stop(delivery);
+    this.stop(thread);
+    this.stop(delivery);
     this.screen.channel().close();
     this.opened = false;
     // Encoded viewers retain anchor maps, which keep their last decoded picture visible.
@@ -857,7 +857,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
-  private static long size(final int width, final int height) {
+  private long size(final int width, final int height) {
     return ((long) width << Integer.SIZE) | height;
   }
 

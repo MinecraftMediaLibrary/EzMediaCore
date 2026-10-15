@@ -227,7 +227,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
 
     final BlockData[] previousBlocks = this.displayedBlocks;
-    final Map<Position, BlockData> changes = collectChanges(currentPositions, previousBlocks, blocks);
+    final Map<Position, BlockData> changes = this.collectChanges(currentPositions, previousBlocks, blocks);
     this.displayedBlocks = blocks;
 
     if (changes.isEmpty()) {
@@ -240,7 +240,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   /**
    * Collects the blocks of a frame that differ from the previous frame, or every block if there is none.
    */
-  private static Map<Position, BlockData> collectChanges(
+  private Map<Position, BlockData> collectChanges(
     final Position[] positions,
     final BlockData @Nullable [] previousBlocks,
     final BlockData[] blocks
@@ -286,7 +286,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     final Set<UUID> watchingViewers = new HashSet<>();
     final List<Player> playersWithoutWall = this.updateActiveViewers(watchingViewers, shouldResendToEveryone);
     if (!playersWithoutWall.isEmpty()) {
-      final Map<Position, BlockData> wall = createBlockMap(currentPositions, blocks);
+      final Map<Position, BlockData> wall = this.createBlockMap(currentPositions, blocks);
       for (final Player player : playersWithoutWall) {
         player.sendMultiBlockChange(wall);
       }
@@ -371,7 +371,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
 
   private Map<Position, BlockData> createOriginalBlockMap(final Position[] currentPositions) {
     final BlockData[] original = Objects.requireNonNull(this.originalBlocks, "Original blocks were not captured!");
-    return createBlockMap(currentPositions, original);
+    return this.createBlockMap(currentPositions, original);
   }
 
   // a player in another world has nothing of the wall to restore; their client dropped this world's blocks when they left
@@ -384,7 +384,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     }
   }
 
-  private static Map<Position, BlockData> createBlockMap(final Position[] positions, final BlockData[] blocks) {
+  private Map<Position, BlockData> createBlockMap(final Position[] positions, final BlockData[] blocks) {
     final Map<Position, BlockData> map = new HashMap<>();
     for (int index = 0; index < positions.length; index++) {
       final Position position = positions[index];

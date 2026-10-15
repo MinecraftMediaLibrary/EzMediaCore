@@ -81,13 +81,13 @@ public class MapResult implements DitherResultStep {
     final int width = samples.getWidth();
     final int height = samples.getHeight();
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
-    final List<MapTilePatch> patches = completeGrid(layout, dithered);
+    final List<MapTilePatch> patches = this.completeGrid(layout, dithered);
 
     final Collection<UUID> viewers = this.configuration.getViewers();
     MapPacketFactory.send(viewers, patches);
   }
 
-  private static List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
+  private List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
     final int width = layout.getImageWidth();
     Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout!");
 
@@ -96,7 +96,7 @@ public class MapResult implements DitherResultStep {
       final MapRegion region = layout.getRegion(index);
       final byte[] colors = new byte[MapLayout.MAP_SIZE * MapLayout.MAP_SIZE];
       if (!region.isEmpty()) {
-        copyRegion(image, width, region, colors);
+        this.copyRegion(image, width, region, colors);
       }
       patches.add(new MapTilePatch(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
     }
@@ -104,7 +104,7 @@ public class MapResult implements DitherResultStep {
     return patches;
   }
 
-  private static void copyRegion(final byte[] image, final int width, final MapRegion region, final byte[] colors) {
+  private void copyRegion(final byte[] image, final int width, final MapRegion region, final byte[] colors) {
     for (int row = 0; row < region.getHeight(); row++) {
       final int source = (region.getSourceY() + row) * width + region.getSourceX();
       final int target = (region.getLocalY() + row) * MapLayout.MAP_SIZE + region.getLocalX();

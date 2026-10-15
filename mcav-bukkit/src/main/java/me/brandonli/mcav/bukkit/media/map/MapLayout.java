@@ -214,7 +214,7 @@ public final class MapLayout {
     Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
     final MapRegion region = this.regions[index];
-    checkInsideRegion(region, index, left, top, width, height);
+    this.checkInsideRegion(region, index, left, top, width, height);
 
     final int sourceX = region.getSourceX() + (left - region.getLocalX());
     final int sourceY = region.getSourceY() + (top - region.getLocalY());
@@ -229,7 +229,7 @@ public final class MapLayout {
     return new MapTilePatch(mapId, left, top, width, height, colors);
   }
 
-  private static void checkInsideRegion(
+  private void checkInsideRegion(
     final MapRegion region,
     final int index,
     final int left,

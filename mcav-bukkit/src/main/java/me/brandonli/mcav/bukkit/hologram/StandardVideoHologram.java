@@ -110,8 +110,8 @@ public class StandardVideoHologram extends VideoHologram {
     Preconditions.checkArgument(world != null, "Location must have a world!");
 
     this.kill();
-    final Component metadata = createMetadataText(dump);
-    final TextDisplay entity = world.spawn(location, TextDisplay.class, display -> configureDisplay(display, metadata));
+    final Component metadata = this.createMetadataText(dump);
+    final TextDisplay entity = world.spawn(location, TextDisplay.class, display -> this.configureDisplay(display, metadata));
     this.setDisplay(entity);
     this.metadataText = metadata;
 
@@ -121,7 +121,7 @@ public class StandardVideoHologram extends VideoHologram {
     this.currentSecond = 0;
   }
 
-  private static void configureDisplay(final TextDisplay display, final Component text) {
+  private void configureDisplay(final TextDisplay display, final Component text) {
     display.setPersistent(false);
     display.setAlignment(TextDisplay.TextAlignment.CENTER);
     display.setBillboard(Display.Billboard.VERTICAL);
@@ -131,7 +131,7 @@ public class StandardVideoHologram extends VideoHologram {
     display.text(text);
   }
 
-  private static Component createMetadataText(final UrlParseDump dump) {
+  private Component createMetadataText(final UrlParseDump dump) {
     final Optional<String> titleValue = dump.getTitle();
     final Optional<String> uploaderValue = dump.getUploader();
     final @Nullable String reportedTitle = titleValue.orElse(null);
@@ -139,7 +139,7 @@ public class StandardVideoHologram extends VideoHologram {
     final String title = reportedTitle == null ? UNKNOWN_TITLE : reportedTitle;
     final String uploader = reportedUploader == null ? UNKNOWN_UPLOADER : reportedUploader;
     final int timestamp = dump.getTimestamp();
-    final String uploadDate = formatUploadDate(timestamp);
+    final String uploadDate = this.formatUploadDate(timestamp);
     // the site names its videos and uploaders, so the names are inserted as text that is never parsed: escaping them
     // leaves a backslash at their end, which would escape the closing tag after them
     return MINI_MESSAGE.deserialize(
@@ -150,7 +150,7 @@ public class StandardVideoHologram extends VideoHologram {
     );
   }
 
-  private static String formatUploadDate(final int timestamp) {
+  private String formatUploadDate(final int timestamp) {
     if (timestamp <= 0) {
       return UNKNOWN_DATE;
     }
@@ -159,13 +159,13 @@ public class StandardVideoHologram extends VideoHologram {
     final ZoneId zone = ZoneId.systemDefault();
     final ZonedDateTime dateTime = instant.atZone(zone);
     final int day = dateTime.getDayOfMonth();
-    final String ordinal = getOrdinalSuffix(day);
+    final String ordinal = this.getOrdinalSuffix(day);
     final String monthDay = dateTime.format(MONTH_DAY_FORMATTER);
     final String yearTime = dateTime.format(YEAR_TIME_FORMATTER);
     return monthDay + ordinal + yearTime;
   }
 
-  private static String getOrdinalSuffix(final int day) {
+  private String getOrdinalSuffix(final int day) {
     if (day >= FIRST_TEEN_DAY && day <= LAST_TEEN_DAY) {
       return DEFAULT_ORDINAL_SUFFIX;
     }
@@ -213,8 +213,8 @@ public class StandardVideoHologram extends VideoHologram {
 
   private Component createProgressText() {
     final String progressBar = this.createProgressBar();
-    final String currentTime = formatTime(this.currentSecond);
-    final String totalTime = formatTime(this.durationSeconds);
+    final String currentTime = this.formatTime(this.currentSecond);
+    final String totalTime = this.formatTime(this.durationSeconds);
     final String timerLine = "<gray>%s</gray> %s <gray>%s</gray>".formatted(currentTime, progressBar, totalTime);
     final Component timer = MINI_MESSAGE.deserialize(timerLine);
 
@@ -241,7 +241,7 @@ public class StandardVideoHologram extends VideoHologram {
     return (int) filledSegments;
   }
 
-  private static String formatTime(final int seconds) {
+  private String formatTime(final int seconds) {
     final int minutes = seconds / SECONDS_PER_MINUTE;
     final int remainingSeconds = seconds % SECONDS_PER_MINUTE;
     return String.format(Locale.getDefault(Locale.Category.FORMAT), "%02d:%02d", minutes, remainingSeconds);

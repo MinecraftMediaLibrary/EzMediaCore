@@ -160,7 +160,7 @@ public final class Mcv2Screen {
   private void holdChunkAt(final World world, final Location location) {
     final HeldChunk chunk = new HeldChunk(world, location.getBlockX() >> CHUNK_SHIFT, location.getBlockZ() >> CHUNK_SHIFT);
     if (this.chunks.add(chunk)) {
-      hold(chunk);
+      this.hold(chunk);
     }
   }
 
@@ -225,11 +225,11 @@ public final class Mcv2Screen {
   public void remove() {
     this.frames.forEach(Entity::remove);
     this.frames.clear();
-    this.chunks.forEach(Mcv2Screen::release);
+    this.chunks.forEach(this::release);
     this.chunks.clear();
   }
 
-  private static void hold(final HeldChunk chunk) {
+  private void hold(final HeldChunk chunk) {
     final int holders = HELD_CHUNKS.getOrDefault(chunk, 0) + 1;
     HELD_CHUNKS.put(chunk, holders);
 
@@ -238,7 +238,7 @@ public final class Mcv2Screen {
     }
   }
 
-  private static void release(final HeldChunk chunk) {
+  private void release(final HeldChunk chunk) {
     final Integer holders = HELD_CHUNKS.computeIfPresent(chunk, (_, count) -> count == 1 ? null : count - 1);
     if (holders == null) {
       chunk.world().removePluginChunkTicket(chunk.chunkX(), chunk.chunkZ(), BukkitModule.getPlugin());

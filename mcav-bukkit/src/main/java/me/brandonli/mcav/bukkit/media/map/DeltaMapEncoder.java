@@ -253,7 +253,7 @@ public final class DeltaMapEncoder {
     }
 
     final int changedPixels = this.countChangedPixels(tilesToSend);
-    final List<PatchRectangle> rectangles = chooseRectangles(tilesToSend, region);
+    final List<PatchRectangle> rectangles = this.chooseRectangles(tilesToSend, region);
     final List<MapTilePatch> patches = this.extractPatches(image, map, rectangles);
     final int size = getEncodedSize(rectangles);
 
@@ -308,8 +308,8 @@ public final class DeltaMapEncoder {
   /**
    * Chooses whichever is smaller: the merged rectangles of the tiles, or one bounding rectangle around all of them.
    */
-  private static List<PatchRectangle> chooseRectangles(final long tiles, final MapRegion region) {
-    final List<PatchRectangle> rectangles = mergeTiles(tiles, region);
+  private List<PatchRectangle> chooseRectangles(final long tiles, final MapRegion region) {
+    final List<PatchRectangle> rectangles = this.mergeTiles(tiles, region);
     final PatchRectangle bounds = PatchRectangle.boundingBox(rectangles);
     final int boundsSize = bounds.getEncodedSize();
     final int rectanglesSize = getEncodedSize(rectangles);
@@ -372,7 +372,7 @@ public final class DeltaMapEncoder {
     long dirtyTiles = 0;
     int column = 0;
     while (column < width) {
-      final int firstChange = findNextChange(image, imageRowStart, state, stateRowStart, column, width);
+      final int firstChange = this.findNextChange(image, imageRowStart, state, stateRowStart, column, width);
       if (firstChange < 0) {
         break;
       }
@@ -380,7 +380,7 @@ public final class DeltaMapEncoder {
       final int tileColumn = (localX + firstChange) / TILE_SIZE;
       final int tileEnd = Math.min(width, (tileColumn + 1) * TILE_SIZE - localX);
       final int tile = tileRowStart + tileColumn;
-      final int changes = countChanges(image, imageRowStart, state, stateRowStart, firstChange, tileEnd);
+      final int changes = this.countChanges(image, imageRowStart, state, stateRowStart, firstChange, tileEnd);
       this.changedPixelsPerTile[tile] += changes;
       dirtyTiles |= 1L << tile;
       column = tileEnd;
@@ -394,7 +394,7 @@ public final class DeltaMapEncoder {
    *
    * @return the column of the first change, or -1 if the rest of the row is unchanged
    */
-  private static int findNextChange(
+  private int findNextChange(
     final byte[] image,
     final int imageRowStart,
     final byte[] state,
@@ -421,7 +421,7 @@ public final class DeltaMapEncoder {
     return (sourceY + row) * imageWidth + sourceX;
   }
 
-  private static int countChanges(
+  private int countChanges(
     final byte[] image,
     final int imageRowStart,
     final byte[] state,
@@ -441,28 +441,28 @@ public final class DeltaMapEncoder {
     return changes;
   }
 
-  private static List<PatchRectangle> mergeTiles(final long tiles, final MapRegion region) {
-    final boolean[] pending = toPendingTiles(tiles);
+  private List<PatchRectangle> mergeTiles(final long tiles, final MapRegion region) {
+    final boolean[] pending = this.toPendingTiles(tiles);
     final List<PatchRectangle> rectangles = new ArrayList<>();
     for (int tileY = 0; tileY < TILES_PER_ROW; tileY++) {
-      takeRowRuns(pending, tileY, region, rectangles);
+      this.takeRowRuns(pending, tileY, region, rectangles);
     }
 
     return rectangles;
   }
 
-  private static void takeRowRuns(final boolean[] pending, final int tileY, final MapRegion region, final List<PatchRectangle> rectangles) {
+  private void takeRowRuns(final boolean[] pending, final int tileY, final MapRegion region, final List<PatchRectangle> rectangles) {
     for (int tileX = 0; tileX < TILES_PER_ROW; tileX++) {
       final int tile = tileY * TILES_PER_ROW + tileX;
       if (!pending[tile]) {
         continue;
       }
-      final PatchRectangle rectangle = takeRun(pending, tileX, tileY, region);
+      final PatchRectangle rectangle = this.takeRun(pending, tileX, tileY, region);
       rectangles.add(rectangle);
     }
   }
 
-  private static boolean[] toPendingTiles(final long tiles) {
+  private boolean[] toPendingTiles(final long tiles) {
     final boolean[] pending = new boolean[TILE_COUNT];
     for (int tile = 0; tile < TILE_COUNT; tile++) {
       final long tileBit = 1L << tile;
@@ -478,10 +478,10 @@ public final class DeltaMapEncoder {
    *
    * @return the rectangle in map pixels
    */
-  private static PatchRectangle takeRun(final boolean[] pending, final int tileX, final int tileY, final MapRegion region) {
-    final int runWidth = measureRunWidth(pending, tileX, tileY);
-    final int runHeight = measureRunHeight(pending, tileX, tileY, runWidth);
-    clearRun(pending, tileX, tileY, runWidth, runHeight);
+  private PatchRectangle takeRun(final boolean[] pending, final int tileX, final int tileY, final MapRegion region) {
+    final int runWidth = this.measureRunWidth(pending, tileX, tileY);
+    final int runHeight = this.measureRunHeight(pending, tileX, tileY, runWidth);
+    this.clearRun(pending, tileX, tileY, runWidth, runHeight);
 
     final int left = tileX * TILE_SIZE;
     final int top = tileY * TILE_SIZE;
@@ -490,7 +490,7 @@ public final class DeltaMapEncoder {
     return PatchRectangle.clip(left, top, width, height, region);
   }
 
-  private static int measureRunWidth(final boolean[] pending, final int tileX, final int tileY) {
+  private int measureRunWidth(final boolean[] pending, final int tileX, final int tileY) {
     int runWidth = 1;
     while (tileX + runWidth < TILES_PER_ROW) {
       final int next = tileY * TILES_PER_ROW + tileX + runWidth;
@@ -503,10 +503,10 @@ public final class DeltaMapEncoder {
     return runWidth;
   }
 
-  private static int measureRunHeight(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
+  private int measureRunHeight(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
     int runHeight = 1;
     while (tileY + runHeight < TILES_PER_ROW) {
-      final boolean rowPending = isRowPending(pending, tileX, tileY + runHeight, runWidth);
+      final boolean rowPending = this.isRowPending(pending, tileX, tileY + runHeight, runWidth);
       if (!rowPending) {
         break;
       }
@@ -516,7 +516,7 @@ public final class DeltaMapEncoder {
     return runHeight;
   }
 
-  private static boolean isRowPending(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
+  private boolean isRowPending(final boolean[] pending, final int tileX, final int tileY, final int runWidth) {
     for (int tileColumn = tileX; tileColumn < tileX + runWidth; tileColumn++) {
       final int tile = tileY * TILES_PER_ROW + tileColumn;
       if (!pending[tile]) {
@@ -527,7 +527,7 @@ public final class DeltaMapEncoder {
     return true;
   }
 
-  private static void clearRun(final boolean[] pending, final int tileX, final int tileY, final int runWidth, final int runHeight) {
+  private void clearRun(final boolean[] pending, final int tileX, final int tileY, final int runWidth, final int runHeight) {
     for (int tileRow = tileY; tileRow < tileY + runHeight; tileRow++) {
       for (int tileColumn = tileX; tileColumn < tileX + runWidth; tileColumn++) {
         final int tile = tileRow * TILES_PER_ROW + tileColumn;

@@ -185,7 +185,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     final int available = buffer.maxWritableBytes();
     final int taken = Math.min(incoming, available);
     buffer.writeBytes(data, taken);
-    final int headerEnd = indexOfHeaderEnd(buffer);
+    final int headerEnd = this.indexOfHeaderEnd(buffer);
     if (headerEnd < 0) {
       if (data.isReadable()) {
         this.respondWithStatus(context, STATUS_HEADER_TOO_LARGE);
@@ -194,14 +194,14 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
       return;
     }
 
-    stopReadTimeout(context);
-    final String method = readMethod(buffer);
+    this.stopReadTimeout(context);
+    final String method = this.readMethod(buffer);
     this.respond(context, method);
   }
 
   // The request is complete, so the client has nothing more to send while it downloads the file. The write timeout of
   // the pipeline takes over from here and closes a download that stalls.
-  private static void stopReadTimeout(final ChannelHandlerContext context) {
+  private void stopReadTimeout(final ChannelHandlerContext context) {
     final ChannelPipeline pipeline = context.pipeline();
     final ChannelHandler timeout = pipeline.get(FileHttpChannelInitializer.READ_TIMEOUT_NAME);
     if (timeout != null) {
@@ -209,12 +209,12 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
-  private static int indexOfHeaderEnd(final ByteBuf buffer) {
+  private int indexOfHeaderEnd(final ByteBuf buffer) {
     final int start = buffer.readerIndex();
     final int writerIndex = buffer.writerIndex();
     final int end = writerIndex - HEADER_TERMINATOR.length;
     for (int index = start; index <= end; index++) {
-      final boolean matches = isHeaderTerminatorAt(buffer, index);
+      final boolean matches = this.isHeaderTerminatorAt(buffer, index);
       if (matches) {
         return index;
       }
@@ -223,7 +223,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     return -1;
   }
 
-  private static boolean isHeaderTerminatorAt(final ByteBuf buffer, final int index) {
+  private boolean isHeaderTerminatorAt(final ByteBuf buffer, final int index) {
     for (int offset = 0; offset < HEADER_TERMINATOR.length; offset++) {
       final byte actual = buffer.getByte(index + offset);
       if (actual != HEADER_TERMINATOR[offset]) {
@@ -234,7 +234,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     return true;
   }
 
-  private static String readMethod(final ByteBuf buffer) {
+  private String readMethod(final ByteBuf buffer) {
     final int start = buffer.readerIndex();
     final int end = buffer.writerIndex();
     int spaceIndex = start;
@@ -274,7 +274,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     try {
       fileLength = channel.size();
     } catch (final IOException exception) {
-      closeQuietly(channel);
+      this.closeQuietly(channel);
       this.respondWithStatus(context, STATUS_NOT_FOUND);
       return;
     }
@@ -293,9 +293,9 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     final long fileLength,
     final boolean isHeadRequest
   ) {
-    final ByteBuf headers = createHeaders(fileLength, this.fileName);
+    final ByteBuf headers = this.createHeaders(fileLength, this.fileName);
     if (isHeadRequest) {
-      closeQuietly(channel);
+      this.closeQuietly(channel);
       final ChannelFuture headersFuture = context.writeAndFlush(headers);
       headersFuture.addListener(ChannelFutureListener.CLOSE);
       return;
@@ -308,7 +308,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     bodyFuture.addListener(ChannelFutureListener.CLOSE);
   }
 
-  private static void closeQuietly(final FileChannel channel) {
+  private void closeQuietly(final FileChannel channel) {
     try {
       channel.close();
     } catch (final IOException exception) {
@@ -324,7 +324,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
     future.addListener(ChannelFutureListener.CLOSE);
   }
 
-  private static ByteBuf createHeaders(final long contentLength, final String fileName) {
+  private ByteBuf createHeaders(final long contentLength, final String fileName) {
     final String safeFileName = UNSAFE_FILE_NAME_CHARACTERS.matcher(fileName).replaceAll("");
     final String text =
       STATUS_LINE_PREFIX +

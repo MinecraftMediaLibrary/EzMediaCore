@@ -210,13 +210,13 @@ public final class Mcv2Channel {
     final int lastX = firstX + right.getModX() * span;
     final int firstZ = origin.getBlockZ();
     final int lastZ = firstZ + right.getModZ() * span;
-    final double outsideX = outside(location.getX(), Math.min(firstX, lastX), Math.max(firstX, lastX) + 1);
-    final double outsideY = outside(location.getY(), origin.getBlockY() - (this.configuration.getRows() - 1), origin.getBlockY() + 1);
-    final double outsideZ = outside(location.getZ(), Math.min(firstZ, lastZ), Math.max(firstZ, lastZ) + 1);
+    final double outsideX = this.outside(location.getX(), Math.min(firstX, lastX), Math.max(firstX, lastX) + 1);
+    final double outsideY = this.outside(location.getY(), origin.getBlockY() - (this.configuration.getRows() - 1), origin.getBlockY() + 1);
+    final double outsideZ = this.outside(location.getZ(), Math.min(firstZ, lastZ), Math.max(firstZ, lastZ) + 1);
     return Math.sqrt(outsideX * outsideX + outsideY * outsideY + outsideZ * outsideZ);
   }
 
-  private static double outside(final double coordinate, final double low, final double high) {
+  private double outside(final double coordinate, final double low, final double high) {
     return Math.max(0, Math.max(low - coordinate, coordinate - high));
   }
 

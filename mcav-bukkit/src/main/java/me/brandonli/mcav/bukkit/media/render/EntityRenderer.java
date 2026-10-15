@@ -133,7 +133,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
       throw new IllegalStateException("Entity position has no world!");
     }
 
-    final TextDisplay display = world.spawn(location, TextDisplay.class, EntityRenderer::configureDisplay);
+    final TextDisplay display = world.spawn(location, TextDisplay.class, this::configureDisplay);
     this.showToViewers(display);
     this.entity = display;
   }
@@ -202,7 +202,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
   }
 
   // runs before the entity is added to the world, so no viewer ever sees the default settings
-  private static void configureDisplay(final TextDisplay display) {
+  private void configureDisplay(final TextDisplay display) {
     display.setPersistent(false);
     display.setInvulnerable(true);
     display.setSeeThrough(false);
@@ -234,10 +234,10 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
       return;
     }
 
-    setText(display, text);
+    this.setText(display, text);
   }
 
-  private static void setText(final TextDisplay display, final Component text) {
+  private void setText(final TextDisplay display, final Component text) {
     final CraftTextDisplay craftDisplay = (CraftTextDisplay) display;
     final net.minecraft.world.entity.Display.TextDisplay handle = craftDisplay.getHandle(); // fqn: Display is imported as org.bukkit.entity.Display
     handle.setText(text);
@@ -248,7 +248,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     final TextDisplay display = this.respawnEntity();
     final Component text = this.lastText;
     if (display != null && text != null) {
-      setText(display, text);
+      this.setText(display, text);
     }
 
     return display;

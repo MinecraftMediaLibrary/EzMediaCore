@@ -278,7 +278,7 @@ public final class Mcv2Pacer {
       this.settledSince = now;
     }
 
-    if (this.samples < MINIMUM_SAMPLES || now - this.firstArrival < seconds(STARTUP_SECONDS)) {
+    if (this.samples < MINIMUM_SAMPLES || now - this.firstArrival < this.seconds(STARTUP_SECONDS)) {
       return null;
     }
 
@@ -290,7 +290,7 @@ public final class Mcv2Pacer {
         this.overSince = now;
       }
 
-      if (now - this.overSince >= seconds(DOWN_SECONDS)) {
+      if (now - this.overSince >= this.seconds(DOWN_SECONDS)) {
         return this.stepDown(now, frameMilliseconds);
       }
 
@@ -300,11 +300,11 @@ public final class Mcv2Pacer {
     this.overSince = NEVER;
     // Resetting backoff before the next retry interval permits repeated rung oscillation.
     final long held = now - this.settledSince;
-    if (held >= seconds(Math.max(UP_SECONDS, this.blockSeconds[this.current]))) {
+    if (held >= this.seconds(Math.max(UP_SECONDS, this.blockSeconds[this.current]))) {
       this.blockSeconds[this.current] = BLOCK_SECONDS;
     }
 
-    if (held >= seconds(Math.max(UP_SECONDS, this.retrySeconds))) {
+    if (held >= this.seconds(Math.max(UP_SECONDS, this.retrySeconds))) {
       this.retrySeconds = RETRY_SECONDS;
     }
 
@@ -319,12 +319,12 @@ public final class Mcv2Pacer {
       this.roomSince = now;
     }
 
-    return now - this.roomSince >= seconds(UP_SECONDS) ? this.move(above, false, this.smoothed, frameMilliseconds) : null;
+    return now - this.roomSince >= this.seconds(UP_SECONDS) ? this.move(above, false, this.smoothed, frameMilliseconds) : null;
   }
 
   private @Nullable Change stepDown(final long now, final double frameMilliseconds) {
     final int left = this.current;
-    this.blockedUntil[left] = now + seconds(this.blockSeconds[left]);
+    this.blockedUntil[left] = now + this.seconds(this.blockSeconds[left]);
     this.blockSeconds[left] = Math.min(MAXIMUM_RETRY_SECONDS, this.blockSeconds[left] * BACKOFF_FACTOR);
     final int encoded = this.encodedRungs();
 
@@ -344,7 +344,7 @@ public final class Mcv2Pacer {
     }
 
     final Change change = this.move(this.ladder.size() - 1, true, this.smoothed, frameMilliseconds);
-    this.retryAt = now + seconds(this.retrySeconds);
+    this.retryAt = now + this.seconds(this.retrySeconds);
     this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
 
     return change;
@@ -423,7 +423,7 @@ public final class Mcv2Pacer {
     return index;
   }
 
-  private static long seconds(final double value) {
+  private long seconds(final double value) {
     return (long) (value * NANOSECONDS_PER_SECOND);
   }
 

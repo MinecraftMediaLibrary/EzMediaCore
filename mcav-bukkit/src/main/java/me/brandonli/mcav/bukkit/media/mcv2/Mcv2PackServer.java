@@ -509,7 +509,7 @@ public final class Mcv2PackServer {
       published = new Published(wanted, packId, host, request, description);
     } catch (final RuntimeException exception) {
       LOGGER.error(PACK_FAILED, description, exception);
-      deleteQuietly(archivePath);
+      this.deleteQuietly(archivePath);
       return;
     }
 
@@ -656,14 +656,14 @@ public final class Mcv2PackServer {
 
     if (this.running.remove(host)) {
       host.shutdown();
-      deleteQuietly(host.getZip());
+      this.deleteQuietly(host.getZip());
     }
   }
 
   private void stopRunning() {
     for (final PackHosting host : this.running) {
       host.shutdown();
-      deleteQuietly(host.getZip());
+      this.deleteQuietly(host.getZip());
     }
 
     this.running.clear();
@@ -751,7 +751,7 @@ public final class Mcv2PackServer {
     }
   }
 
-  private static void deleteQuietly(final Path file) {
+  private void deleteQuietly(final Path file) {
     try {
       Files.deleteIfExists(file);
     } catch (final IOException exception) {

@@ -195,10 +195,10 @@ public class McPackHosting implements WebsiteHosting {
    * @return the download URL of the pack
    */
   private String findOrUpload(final String hash, final byte[] pack) {
-    final Map<String, String> cache = readCache();
+    final Map<String, String> cache = this.readCache();
     final String cachedUrl = cache.get(hash);
     if (cachedUrl != null) {
-      final boolean available = isAvailable(cachedUrl);
+      final boolean available = this.isAvailable(cachedUrl);
       if (available) {
         return cachedUrl;
       }
@@ -207,11 +207,11 @@ public class McPackHosting implements WebsiteHosting {
     this.upload(pack);
     final String uploadedUrl = this.downloadUrlFormat.formatted(hash);
     cache.put(hash, uploadedUrl);
-    writeCache(cache);
+    this.writeCache(cache);
     return uploadedUrl;
   }
 
-  private static boolean isAvailable(final String url) {
+  private boolean isAvailable(final String url) {
     final URI uri;
     try {
       uri = URI.create(url);
@@ -238,7 +238,7 @@ public class McPackHosting implements WebsiteHosting {
     clientBuilder.connectTimeout(TIMEOUT);
     clientBuilder.followRedirects(HttpClient.Redirect.NORMAL);
     try (final HttpClient client = clientBuilder.build()) {
-      send(client, request);
+      this.send(client, request);
     }
   }
 
@@ -254,7 +254,7 @@ public class McPackHosting implements WebsiteHosting {
     return requestBuilder.build();
   }
 
-  private static void send(final HttpClient client, final HttpRequest request) {
+  private void send(final HttpClient client, final HttpRequest request) {
     final HttpResponse.BodyHandler<String> bodyHandler = HttpResponse.BodyHandlers.ofString();
     try {
       final HttpResponse<String> response = client.send(request, bodyHandler);
@@ -278,7 +278,7 @@ public class McPackHosting implements WebsiteHosting {
     final String tailText = LINE_TERMINATOR + BOUNDARY_DELIMITER + boundary + BOUNDARY_DELIMITER + LINE_TERMINATOR;
     final byte[] headBytes = headText.getBytes(StandardCharsets.UTF_8);
     final byte[] tailBytes = tailText.getBytes(StandardCharsets.UTF_8);
-    return concatenate(headBytes, pack, tailBytes);
+    return this.concatenate(headBytes, pack, tailBytes);
   }
 
   private byte[] readZip() {
@@ -307,7 +307,7 @@ public class McPackHosting implements WebsiteHosting {
     );
   }
 
-  private static byte[] concatenate(final byte[]... parts) {
+  private byte[] concatenate(final byte[]... parts) {
     int totalLength = 0;
     for (final byte[] part : parts) {
       totalLength += part.length;
@@ -323,13 +323,13 @@ public class McPackHosting implements WebsiteHosting {
     return joined;
   }
 
-  private static Path getCacheFile() {
+  private Path getCacheFile() {
     final Path cacheFolder = IoUtils.getCachedFolder();
     return cacheFolder.resolve(CACHE_FILE);
   }
 
-  private static Map<String, String> readCache() {
-    final Path cacheFile = getCacheFile();
+  private Map<String, String> readCache() {
+    final Path cacheFile = this.getCacheFile();
     final boolean exists = Files.isRegularFile(cacheFile);
     if (!exists) {
       return new HashMap<>();
@@ -338,13 +338,13 @@ public class McPackHosting implements WebsiteHosting {
     final Gson gson = GsonProvider.getSimple();
     try (final Reader reader = Files.newBufferedReader(cacheFile)) {
       final Map<String, String> cache = gson.fromJson(reader, CACHE_TYPE);
-      return copyCache(cache);
+      return this.copyCache(cache);
     } catch (final IOException | JsonSyntaxException exception) {
       return new HashMap<>();
     }
   }
 
-  private static Map<String, String> copyCache(final @Nullable Map<String, String> cache) {
+  private Map<String, String> copyCache(final @Nullable Map<String, String> cache) {
     if (cache == null) {
       return new HashMap<>();
     }
@@ -352,8 +352,8 @@ public class McPackHosting implements WebsiteHosting {
     return new HashMap<>(cache);
   }
 
-  private static void writeCache(final Map<String, String> cache) {
-    final Path cacheFile = getCacheFile();
+  private void writeCache(final Map<String, String> cache) {
+    final Path cacheFile = this.getCacheFile();
     final Gson gson = GsonProvider.getSimple();
     try (final Writer writer = Files.newBufferedWriter(cacheFile)) {
       gson.toJson(cache, CACHE_TYPE, writer);
