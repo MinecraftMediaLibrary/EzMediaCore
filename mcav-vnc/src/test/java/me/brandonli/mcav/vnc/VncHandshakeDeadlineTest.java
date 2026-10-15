@@ -97,7 +97,7 @@ final class VncHandshakeDeadlineTest {
 
       final CountDownLatch entered = new CountDownLatch(2);
       final List<CountDownLatch> closed = new ArrayList<>();
-      final List<VncPlayerImpl> players = new ArrayList<>();
+      final List<VernacularVncPlayer> players = new ArrayList<>();
       final List<CompletableFuture<Boolean>> starts = new ArrayList<>();
       for (int index = 0; index < 2; index++) {
         final CountDownLatch stopped = new CountDownLatch(1);
@@ -122,10 +122,10 @@ final class VncHandshakeDeadlineTest {
           .when(client)
           .start(any(Socket.class));
         closed.add(stopped);
-        players.add(new VncPlayerImpl(_ -> client, () -> socket, 1L, 500));
+        players.add(new VernacularVncPlayer(_ -> client, () -> socket, 1L, 500));
       }
       try {
-        for (final VncPlayerImpl player : players) {
+        for (final VernacularVncPlayer player : players) {
           starts.add(player.startAsync(VncSource.builder().host("127.0.0.1").build()));
         }
         final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
@@ -147,7 +147,7 @@ final class VncHandshakeDeadlineTest {
         for (final CompletableFuture<Boolean> start : starts) {
           start.handle((result, failure) -> null).get(10, TimeUnit.SECONDS);
         }
-        players.forEach(VncPlayerImpl::release);
+        players.forEach(VernacularVncPlayer::release);
       }
     }
   }

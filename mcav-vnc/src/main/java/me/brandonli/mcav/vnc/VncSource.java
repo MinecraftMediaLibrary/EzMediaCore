@@ -53,7 +53,7 @@ public interface VncSource extends DynamicSource {
    * @return the builder
    */
   static Builder builder() {
-    return new VncSourceImpl.BuilderImpl();
+    return new DefaultVncSource.DefaultVncSourceBuilder();
   }
 
   /**

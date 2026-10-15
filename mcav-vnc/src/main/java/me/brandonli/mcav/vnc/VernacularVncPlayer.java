@@ -62,7 +62,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>When the connection fails while streaming, the failure is reported, the player stops playing, and it can be
  * started again.
  */
-public final class VncPlayerImpl implements VncPlayer {
+public final class VernacularVncPlayer implements VncPlayer {
 
   private static final Executor HANDSHAKE_DEADLINES = task -> {
     // Closing may block in a socket implementation; one deadline must not hold up another.
@@ -98,7 +98,7 @@ public final class VncPlayerImpl implements VncPlayer {
   private volatile int remoteWidth;
   private volatile int remoteHeight;
 
-  VncPlayerImpl() {
+  VernacularVncPlayer() {
     this(VernacularClient::new, Socket::new);
   }
 
@@ -109,7 +109,7 @@ public final class VncPlayerImpl implements VncPlayer {
    * @param socketFactory creates the unconnected socket of a session
    */
   @VisibleForTesting
-  VncPlayerImpl(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
+  VernacularVncPlayer(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
     this(clientFactory, socketFactory, IDLE_PARK_NANOSECONDS);
   }
 
@@ -121,7 +121,7 @@ public final class VncPlayerImpl implements VncPlayer {
    * @param idleParkNanoseconds how long an idle renderer waits unless a frame or shutdown wakes it first
    */
   @VisibleForTesting
-  VncPlayerImpl(
+  VernacularVncPlayer(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
     final long idleParkNanoseconds
@@ -139,7 +139,7 @@ public final class VncPlayerImpl implements VncPlayer {
    *                               closed and the start fails
    */
   @VisibleForTesting
-  VncPlayerImpl(
+  VernacularVncPlayer(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
     final long idleParkNanoseconds,

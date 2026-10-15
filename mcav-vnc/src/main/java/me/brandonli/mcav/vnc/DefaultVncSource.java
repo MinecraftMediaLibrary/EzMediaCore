@@ -24,7 +24,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * The default {@link VncSource}.
  */
-public final class VncSourceImpl implements VncSource {
+public final class DefaultVncSource implements VncSource {
 
   private final String host;
   private final int port;
@@ -34,7 +34,7 @@ public final class VncSourceImpl implements VncSource {
   private final int height;
   private final int targetFrameRate;
 
-  VncSourceImpl(
+  DefaultVncSource(
     final String host,
     final int port,
     final @Nullable String username,
@@ -92,7 +92,7 @@ public final class VncSourceImpl implements VncSource {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final VncSourceImpl source)) {
+    if (!(other instanceof final DefaultVncSource source)) {
       return false;
     }
     return (
@@ -126,7 +126,7 @@ public final class VncSourceImpl implements VncSource {
   /**
    * The default {@link VncSource.Builder}.
    */
-  static final class BuilderImpl implements Builder {
+  static final class DefaultVncSourceBuilder implements Builder {
 
     private @Nullable String host;
     private int port;
@@ -136,7 +136,7 @@ public final class VncSourceImpl implements VncSource {
     private int height;
     private int targetFrameRate;
 
-    BuilderImpl() {
+    DefaultVncSourceBuilder() {
       this.port = DEFAULT_PORT;
       this.targetFrameRate = DEFAULT_FRAME_RATE;
     }
@@ -197,7 +197,7 @@ public final class VncSourceImpl implements VncSource {
       if (configuredHost == null) {
         throw new IllegalStateException("Host must be set before the source is built!");
       }
-      return new VncSourceImpl(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
+      return new DefaultVncSource(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
     }
   }
 }

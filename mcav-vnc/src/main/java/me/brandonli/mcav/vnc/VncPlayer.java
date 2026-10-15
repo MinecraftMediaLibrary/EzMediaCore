@@ -56,7 +56,7 @@ public interface VncPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    * @return the player
    */
   static VncPlayer create() {
-    return new VncPlayerImpl();
+    return new VernacularVncPlayer();
   }
 
   /**

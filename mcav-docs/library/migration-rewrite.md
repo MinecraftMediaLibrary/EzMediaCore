@@ -224,15 +224,16 @@ Replace `VMPlayer.vm()` with `VMPlayer.create()` and `VNCPlayer.vm()` with `VncP
 `VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSource.Builder`, rather than
 `VNCSourceImpl.Builder`. Custom players must implement `isPlaying`; the VM player also exposes an audio callback.
 
-Types of `mcav-vnc` whose names held an upper-case acronym now case it as a word:
+Types of `mcav-vnc` whose names held an upper-case acronym now case it as a word, and implementation classes are
+named for how they work:
 
 | Former name | Current name |
 | --- | --- |
 | `VNCModule` | `VncModule` |
 | `VNCPlayer` | `VncPlayer` |
-| `VNCPlayerImpl` | `VncPlayerImpl` |
+| `VNCPlayerImpl` | `VernacularVncPlayer` |
 | `VNCSource` | `VncSource` |
-| `VNCSourceImpl` | `VncSourceImpl` |
+| `VNCSourceImpl` | `DefaultVncSource` |
 
 `ExecutableFinder.find` now returns an `Optional<Path>` rather than a string; handle a missing executable before
 using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the current
