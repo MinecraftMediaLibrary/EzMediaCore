@@ -42,9 +42,9 @@ import org.slf4j.LoggerFactory;
  * is disabled, Bukkit no longer runs such work, so it is skipped with a warning. During shutdown, release displays
  * on the main thread, for example in {@code onDisable}, so the original state is restored right away.
  *
- * @param <T> the type of frame that is applied on the main thread
+ * @param <FrameType> the type of frame that is applied on the main thread
  */
-public abstract class MainThreadRenderer<T> {
+public abstract class MainThreadRenderer<FrameType> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MainThreadRenderer.class);
   private static final String TASK_SKIPPED_WHILE_DISABLED =
@@ -54,7 +54,7 @@ public abstract class MainThreadRenderer<T> {
   private static final long START_DELAY_TICKS = 0L;
   private static final long PERIOD_TICKS = 1L;
 
-  private final AtomicReference<@Nullable T> pendingFrame;
+  private final AtomicReference<@Nullable FrameType> pendingFrame;
 
   private @Nullable BukkitTask task;
   private long visibilityGeneration;
@@ -71,7 +71,7 @@ public abstract class MainThreadRenderer<T> {
    *
    * @param frame the frame to apply
    */
-  protected abstract void apply(final T frame);
+  protected abstract void apply(final FrameType frame);
 
   /**
    * Called on the main thread once per server tick while the renderer is running, right after the pending frame,
@@ -155,13 +155,13 @@ public abstract class MainThreadRenderer<T> {
    * @param frame the frame to apply
    * @throws NullPointerException if {@code frame} is null
    */
-  protected void submit(final T frame) {
+  protected void submit(final FrameType frame) {
     Preconditions.checkNotNull(frame, "Frame must not be null!");
     this.pendingFrame.set(frame);
   }
 
   private void applyPendingFrame() {
-    final T frame = this.pendingFrame.getAndSet(null);
+    final FrameType frame = this.pendingFrame.getAndSet(null);
     if (frame != null) {
       this.apply(frame);
     }

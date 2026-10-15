@@ -122,9 +122,9 @@ public class ScoreboardConfiguration {
    * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
    * required fields are checked by {@link #build()}, which may be called again to create another configuration.
    *
-   * @param <T> the type of the builder
+   * @param <BuilderType> the type of the builder
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
 
     private @MonotonicNonNull Collection<UUID> viewers;
     private @MonotonicNonNull String character;
@@ -138,7 +138,7 @@ public class ScoreboardConfiguration {
      *
      * @return this builder
      */
-    abstract T self();
+    abstract BuilderType self();
 
     /**
      * Sets the players who see the scoreboard. The collection is not copied, see {@link ScoreboardConfiguration}.
@@ -147,7 +147,7 @@ public class ScoreboardConfiguration {
      * @return this builder
      * @throws NullPointerException if the viewers are null
      */
-    public T viewers(final Collection<UUID> viewers) {
+    public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
@@ -163,7 +163,7 @@ public class ScoreboardConfiguration {
      * @return this builder
      * @throws NullPointerException if the character is null
      */
-    public T character(final String character) {
+    public BuilderType character(final String character) {
       Preconditions.checkNotNull(character, "Character must not be null!");
       this.character = character;
       return this.self();
@@ -175,7 +175,7 @@ public class ScoreboardConfiguration {
      * @param lines the number of lines, from 1 to {@link #MAXIMUM_LINES}
      * @return this builder
      */
-    public T lines(final int lines) {
+    public BuilderType lines(final int lines) {
       this.lines = lines;
       return this.self();
     }
@@ -186,7 +186,7 @@ public class ScoreboardConfiguration {
      * @param width the width in characters, which must be positive
      * @return this builder
      */
-    public T width(final int width) {
+    public BuilderType width(final int width) {
       this.width = width;
       return this.self();
     }

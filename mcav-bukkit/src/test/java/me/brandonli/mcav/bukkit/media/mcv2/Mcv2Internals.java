@@ -118,7 +118,7 @@ final class Mcv2Internals {
       return (int) invoke(TYPE, this.value, "threads", new Class<?>[0]);
     }
 
-    <T> void forEach(final int count, final Supplier<T> factory, final ObjIntConsumer<T> action) {
+    <ScratchType> void forEach(final int count, final Supplier<ScratchType> factory, final ObjIntConsumer<ScratchType> action) {
       call(TYPE, this.value, "forEach", new Class<?>[] { int.class, Supplier.class, ObjIntConsumer.class }, count, factory, action);
     }
   }

@@ -121,9 +121,9 @@ public class BlockConfiguration {
    * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
    * required fields are checked by {@link #build()}, which may be called again to create another configuration.
    *
-   * @param <T> the type of the builder
+   * @param <BuilderType> the type of the builder
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
 
     private @MonotonicNonNull Collection<UUID> viewers;
     private int blockWidth;
@@ -137,7 +137,7 @@ public class BlockConfiguration {
      *
      * @return this builder
      */
-    abstract T self();
+    abstract BuilderType self();
 
     /**
      * Sets the players who see the block wall. The collection is not copied, see {@link BlockConfiguration}.
@@ -146,7 +146,7 @@ public class BlockConfiguration {
      * @return this builder
      * @throws NullPointerException if the viewers are null
      */
-    public T viewers(final Collection<UUID> viewers) {
+    public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
@@ -161,7 +161,7 @@ public class BlockConfiguration {
      * @return this builder
      * @throws NullPointerException if the position is null
      */
-    public T position(final Location position) {
+    public BuilderType position(final Location position) {
       Preconditions.checkNotNull(position, "Position must not be null!");
       this.position = position;
       return this.self();
@@ -173,7 +173,7 @@ public class BlockConfiguration {
      * @param blockWidth the width in blocks, which must be positive
      * @return this builder
      */
-    public T blockWidth(final int blockWidth) {
+    public BuilderType blockWidth(final int blockWidth) {
       this.blockWidth = blockWidth;
       return this.self();
     }
@@ -184,7 +184,7 @@ public class BlockConfiguration {
      * @param blockHeight the height in blocks, which must be positive
      * @return this builder
      */
-    public T blockHeight(final int blockHeight) {
+    public BuilderType blockHeight(final int blockHeight) {
       this.blockHeight = blockHeight;
       return this.self();
     }

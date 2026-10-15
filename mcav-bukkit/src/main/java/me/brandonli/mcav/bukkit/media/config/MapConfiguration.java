@@ -172,9 +172,9 @@ public class MapConfiguration {
    * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
    * required fields are checked by {@link #build()}, which may be called again to create another configuration.
    *
-   * @param <T> the type of the builder
+   * @param <BuilderType> the type of the builder
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
 
     private @MonotonicNonNull Collection<UUID> viewers;
     private int map;
@@ -193,7 +193,7 @@ public class MapConfiguration {
      *
      * @return this builder
      */
-    abstract T self();
+    abstract BuilderType self();
 
     /**
      * Sets whether frames and images are resized to the configured resolution before they are displayed. Without
@@ -206,7 +206,7 @@ public class MapConfiguration {
      * @param shouldResize true to resize frames and images, false to show them at their original size
      * @return this builder
      */
-    public T resize(final boolean shouldResize) {
+    public BuilderType resize(final boolean shouldResize) {
       this.shouldResize = shouldResize;
       return this.self();
     }
@@ -218,7 +218,7 @@ public class MapConfiguration {
      * @return this builder
      * @throws NullPointerException if the viewers are null
      */
-    public T viewers(final Collection<UUID> viewers) {
+    public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
@@ -230,7 +230,7 @@ public class MapConfiguration {
      * @param map the id of the first map, which must be non-negative
      * @return this builder
      */
-    public T map(final int map) {
+    public BuilderType map(final int map) {
       this.map = map;
       return this.self();
     }
@@ -241,7 +241,7 @@ public class MapConfiguration {
      * @param mapBlockWidth the number of maps horizontally, which must be positive
      * @return this builder
      */
-    public T mapBlockWidth(final int mapBlockWidth) {
+    public BuilderType mapBlockWidth(final int mapBlockWidth) {
       this.mapBlockWidth = mapBlockWidth;
       return this.self();
     }
@@ -252,7 +252,7 @@ public class MapConfiguration {
      * @param mapBlockHeight the number of maps vertically, which must be positive
      * @return this builder
      */
-    public T mapBlockHeight(final int mapBlockHeight) {
+    public BuilderType mapBlockHeight(final int mapBlockHeight) {
       this.mapBlockHeight = mapBlockHeight;
       return this.self();
     }
@@ -263,7 +263,7 @@ public class MapConfiguration {
      * @param mapWidthResolution the target width in pixels, which must not be negative; 0 selects the default
      * @return this builder
      */
-    public T mapWidthResolution(final int mapWidthResolution) {
+    public BuilderType mapWidthResolution(final int mapWidthResolution) {
       this.mapWidthResolution = mapWidthResolution;
       return this.self();
     }
@@ -274,7 +274,7 @@ public class MapConfiguration {
      * @param mapHeightResolution the target height in pixels, which must not be negative; 0 selects the default
      * @return this builder
      */
-    public T mapHeightResolution(final int mapHeightResolution) {
+    public BuilderType mapHeightResolution(final int mapHeightResolution) {
       this.mapHeightResolution = mapHeightResolution;
       return this.self();
     }

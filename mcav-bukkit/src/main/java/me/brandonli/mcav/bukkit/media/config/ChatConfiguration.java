@@ -118,9 +118,9 @@ public class ChatConfiguration {
    * <p>Builders are mutable and not thread-safe. Setters retain reference arguments; numeric ranges and
    * required fields are checked by {@link #build()}, which may be called again to create another configuration.
    *
-   * @param <T> the type of the builder
+   * @param <BuilderType> the type of the builder
    */
-  public abstract static class Builder<T extends Builder<T>> {
+  public abstract static class Builder<BuilderType extends Builder<BuilderType>> {
 
     private @MonotonicNonNull Collection<UUID> viewers;
     private @MonotonicNonNull String character;
@@ -134,7 +134,7 @@ public class ChatConfiguration {
      *
      * @return this builder
      */
-    abstract T self();
+    abstract BuilderType self();
 
     /**
      * Sets the players who see the chat image. The collection is not copied, see {@link ChatConfiguration}.
@@ -143,7 +143,7 @@ public class ChatConfiguration {
      * @return this builder
      * @throws NullPointerException if the viewers are null
      */
-    public T viewers(final Collection<UUID> viewers) {
+    public BuilderType viewers(final Collection<UUID> viewers) {
       Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
@@ -159,7 +159,7 @@ public class ChatConfiguration {
      * @return this builder
      * @throws NullPointerException if the character is null
      */
-    public T character(final String character) {
+    public BuilderType character(final String character) {
       Preconditions.checkNotNull(character, "Character must not be null!");
       this.character = character;
       return this.self();
@@ -171,7 +171,7 @@ public class ChatConfiguration {
      * @param chatWidth the width in characters, which must be positive
      * @return this builder
      */
-    public T chatWidth(final int chatWidth) {
+    public BuilderType chatWidth(final int chatWidth) {
       this.chatWidth = chatWidth;
       return this.self();
     }
@@ -182,7 +182,7 @@ public class ChatConfiguration {
      * @param chatHeight the height in lines, which must be positive
      * @return this builder
      */
-    public T chatHeight(final int chatHeight) {
+    public BuilderType chatHeight(final int chatHeight) {
       this.chatHeight = chatHeight;
       return this.self();
     }
