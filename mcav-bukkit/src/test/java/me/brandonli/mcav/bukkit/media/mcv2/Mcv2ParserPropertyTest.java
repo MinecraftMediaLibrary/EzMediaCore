@@ -39,6 +39,7 @@ import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.IntRange;
 import net.jqwik.api.constraints.LongRange;
 import net.jqwik.api.constraints.Size;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * The parsers are total and the transport is lossless on generated inputs, not only on the committed corpus: frames of
@@ -282,7 +283,7 @@ final class Mcv2ParserPropertyTest {
         seen[number] = true;
         missing--;
       }
-      final byte[] assembled = assembler.push(pages.get(number));
+      final byte @Nullable [] assembled = assembler.push(pages.get(number)).orElse(null);
       if (missing == 0) {
         assertArrayEquals(frame, assembled);
 

@@ -20,7 +20,6 @@ package me.brandonli.mcav.bukkit.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +38,7 @@ import io.netty.channel.epoll.EpollChannelOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import me.brandonli.mcav.bukkit.media.map.MapPacketFactory;
 import me.brandonli.mcav.bukkit.media.map.MapTilePatch;
@@ -124,35 +124,35 @@ final class PacketUtilsTest {
     final CraftPlayer first = this.server.addPlayer(FIRST);
     this.server.addPlayer(SECOND);
     this.server.injectModule();
-    final Object original = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
-    final @Nullable Object second = PacketUtils.connectionIdentity(SECOND);
+    final Object original = PacketUtils.connectionIdentity(FIRST).orElseThrow();
+    final Object second = PacketUtils.connectionIdentity(SECOND).orElseThrow();
     assertNotSame(original, second);
 
-    final @Nullable Object late = PacketUtils.connectionIdentity(LATE);
-    assertNull(late);
+    final Optional<Object> late = PacketUtils.connectionIdentity(LATE);
+    assertTrue(late.isEmpty());
 
     final Listener listener = this.captureListener(1);
     final EventExecutor join = this.captureExecutor(PlayerJoinEvent.class, EventPriority.LOWEST);
     final PlayerJoinEvent joined = mock(PlayerJoinEvent.class);
     when(joined.getPlayer()).thenReturn(first);
     join.execute(listener, joined);
-    final @Nullable Object rejoined = PacketUtils.connectionIdentity(FIRST);
+    final Object rejoined = PacketUtils.connectionIdentity(FIRST).orElseThrow();
     assertSame(original, rejoined, "a repeated event cannot invalidate a live baseline");
 
     PacketUtils.initialize();
-    final @Nullable Object refreshed = PacketUtils.connectionIdentity(FIRST);
+    final Object refreshed = PacketUtils.connectionIdentity(FIRST).orElseThrow();
     assertSame(original, refreshed, "refreshing the cache keeps a live connection's identity");
 
     this.server.removePlayer(FIRST);
     final CraftPlayer replacement = this.server.addPlayer(FIRST);
     when(joined.getPlayer()).thenReturn(replacement);
     join.execute(listener, joined);
-    final Object reconnected = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
+    final Object reconnected = PacketUtils.connectionIdentity(FIRST).orElseThrow();
     assertNotSame(original, reconnected, "a new connection cannot inherit the previous client's map state");
 
     PacketUtils.shutdown();
-    final @Nullable Object afterShutdown = PacketUtils.connectionIdentity(FIRST);
-    assertNull(afterShutdown);
+    final Optional<Object> afterShutdown = PacketUtils.connectionIdentity(FIRST);
+    assertTrue(afterShutdown.isEmpty());
 
     final NullPointerException exception = assertThrows(NullPointerException.class, () -> PacketUtils.connectionIdentity(null));
     final @Nullable String message = exception.getMessage();

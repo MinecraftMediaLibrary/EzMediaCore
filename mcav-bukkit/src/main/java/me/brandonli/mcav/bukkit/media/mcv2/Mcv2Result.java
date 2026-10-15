@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -326,12 +327,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   /**
    * Returns the rung of the ladder the screen is on.
    *
-   * @return the rung, or null before the result is started
+   * @return the rung, or empty before the result is started
    */
-  public Mcv2Pacer.@Nullable Rung getRung() {
+  public Optional<Mcv2Pacer.Rung> getRung() {
     synchronized (this.lock) {
-      final Mcv2Pacer screenPacer = this.pacer;
-      return screenPacer == null ? null : screenPacer.getRung();
+      final @Nullable Mcv2Pacer screenPacer = this.pacer;
+      return Optional.ofNullable(screenPacer).map(Mcv2Pacer::getRung);
     }
   }
 
@@ -397,7 +398,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     final boolean encode;
     final boolean everyoneDithered;
     Mcv2Pacer.Preset preset = this.presets.getFirst();
-    Mcv2Pacer.Change tried = null;
+    Optional<Mcv2Pacer.Change> tried = Optional.empty();
     synchronized (this.lock) {
       final Mcv2Pacer screenPacer = this.pacer;
       if (screenPacer != null) {
@@ -411,9 +412,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       everyoneDithered = this.ditheredForAll;
     }
 
-    if (tried != null) {
-      this.announce(tried);
-    }
+    tried.ifPresent(this::announce);
 
     final Screen current = this.screen;
 
@@ -542,11 +541,9 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
-  private Mcv2Pacer.@Nullable Change followArrival(final Mcv2Pacer screenPacer) {
-    final Mcv2Pacer.@Nullable Change change = screenPacer.arrive(this.clock.getAsLong());
-    if (change != null) {
-      this.follow(change);
-    }
+  private Optional<Mcv2Pacer.Change> followArrival(final Mcv2Pacer screenPacer) {
+    final Optional<Mcv2Pacer.Change> change = screenPacer.arrive(this.clock.getAsLong());
+    change.ifPresent(this::follow);
 
     return change;
   }
@@ -629,7 +626,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     Delivery delivery = null;
     if (running == null) {
       final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
-      final Mcv2.Statistics statistics = Preconditions.checkNotNull(encoder.getStatistics());
+      final Mcv2.Statistics statistics = encoder.getStatistics().orElseThrow();
       isKeyframe = statistics.keyframe();
       delivery = new Delivery(frame, statistics, frameId, arrival);
     } else {
@@ -644,7 +641,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
 
     final long finished = this.clock.getAsLong();
-    Mcv2Pacer.Change change = null;
+    Optional<Mcv2Pacer.Change> change = Optional.empty();
     synchronized (this.lock) {
       final Mcv2Pacer screenPacer = this.pacer;
       if (screenPacer != null) {
@@ -652,25 +649,21 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       }
     }
 
-    if (change != null) {
-      this.announce(change);
-    }
+    change.ifPresent(this::announce);
 
     if (delivery != null) {
       this.deliver(delivery);
     }
   }
 
-  private Mcv2Pacer.@Nullable Change followEncoding(
+  private Optional<Mcv2Pacer.Change> followEncoding(
     final Mcv2Pacer screenPacer,
     final double encodeMilliseconds,
     final boolean isKeyframe,
     final long finished
   ) {
-    final Mcv2Pacer.@Nullable Change change = screenPacer.encoded(encodeMilliseconds, isKeyframe, finished);
-    if (change != null) {
-      this.follow(change);
-    }
+    final Optional<Mcv2Pacer.Change> change = screenPacer.encoded(encodeMilliseconds, isKeyframe, finished);
+    change.ifPresent(this::follow);
 
     return change;
   }

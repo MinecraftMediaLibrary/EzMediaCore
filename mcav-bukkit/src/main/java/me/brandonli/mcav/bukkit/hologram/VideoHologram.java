@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.bukkit.hologram;
 
+import java.util.Optional;
 import org.bukkit.entity.TextDisplay;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -47,11 +48,11 @@ public abstract class VideoHologram implements Hologram {
   /**
    * Returns the display entity of this hologram.
    *
-   * @return the display entity, or null if the hologram is not spawned
+   * @return the display entity, or empty if the hologram is not spawned
    */
   @Override
-  public @Nullable TextDisplay getDisplay() {
-    return this.display;
+  public Optional<TextDisplay> getDisplay() {
+    return Optional.ofNullable(this.display);
   }
 
   /**

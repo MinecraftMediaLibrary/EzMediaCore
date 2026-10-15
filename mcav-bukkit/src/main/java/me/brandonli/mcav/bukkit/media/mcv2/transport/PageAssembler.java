@@ -23,10 +23,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Collects transport pages into complete frames, like the reference's {@code Assembler}: pages may arrive in any
@@ -66,12 +66,12 @@ public final class PageAssembler {
    * including when final frame validation fails; the returned byte array belongs to the caller.
    *
    * @param symbols the page's useful symbols
-   * @return the complete frame's bytes once its last page arrives, otherwise null
+   * @return the complete frame's bytes once its last page arrives, otherwise empty
    * @throws Mcv2Exception        if the page is invalid, belongs to another stream, contradicts the other pages of its frame,
    *                              or completes a frame that is not valid
    * @throws NullPointerException if the symbol array is null
    */
-  public byte @Nullable [] push(final byte[] symbols) throws Mcv2Exception {
+  public Optional<byte[]> push(final byte[] symbols) throws Mcv2Exception {
     final TransportPage page = TransportPages.readPage(symbols);
     if (page.getStreamId() != this.streamId) {
       throw new Mcv2Exception("Wrong stream!");
@@ -107,7 +107,7 @@ public final class PageAssembler {
     parts.put(page.getNumber(), page);
 
     if (parts.size() != page.getCount()) {
-      return null;
+      return Optional.empty();
     }
 
     // Distinct validated page numbers filling the count cover exactly 0..count-1.
@@ -130,7 +130,7 @@ public final class PageAssembler {
       throw new Mcv2Exception("Frame and page identity mismatch!");
     }
 
-    return data;
+    return Optional.of(data);
   }
 
   /**

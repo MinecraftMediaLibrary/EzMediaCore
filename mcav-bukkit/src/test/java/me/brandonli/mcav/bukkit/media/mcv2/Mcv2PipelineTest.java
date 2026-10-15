@@ -20,7 +20,6 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,7 +36,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -148,11 +146,11 @@ final class Mcv2PipelineTest {
       final byte[] expected = control.encode(source, 32, 32, frame);
       final byte[] encoded = encoder.encode(source, 32, 32, frame);
       assertArrayEquals(expected, encoded);
-      final double expectedLambda = control.getStatistics().lambda();
-      final double lambda = encoder.getStatistics().lambda();
+      final double expectedLambda = control.getStatistics().orElseThrow().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().lambda();
       assertEquals(expectedLambda, lambda);
-      final byte @Nullable [] expectedReference = control.getReference();
-      final byte @Nullable [] reference = encoder.getReference();
+      final byte[] expectedReference = control.getReference().orElseThrow();
+      final byte[] reference = encoder.getReference().orElseThrow();
       assertArrayEquals(expectedReference, reference);
     }
   }
@@ -331,8 +329,7 @@ final class Mcv2PipelineTest {
     final boolean inFlightKeyframe = frames.get(2).isKeyframe();
     assertFalse(inFlightKeyframe);
 
-    final Mcv2.Statistics last = encoder.getStatistics();
-    assertNotNull(last);
+    final Mcv2.Statistics last = encoder.getStatistics().orElseThrow();
 
     final boolean lastKeyframe = last.keyframe();
     assertFalse(lastKeyframe);

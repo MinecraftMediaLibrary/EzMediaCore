@@ -182,7 +182,7 @@ final class Mcv2SearchTest {
         final byte[] decoded = Mcv2Decoder.decode(data, null, 0);
         assertArrayEquals(expected, decoded);
 
-        final byte @Nullable [] reference = encoder.getReference();
+        final byte[] reference = encoder.getReference().orElseThrow();
         assertArrayEquals(expected, reference);
       }
     } finally {
@@ -534,7 +534,7 @@ final class Mcv2SearchTest {
     final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, true);
     final byte[] source = Mcv2Pictures.scene(width, height, 0, 0);
     encoder.encode(source, width, height, 0);
-    final byte[] reference = encoder.getReference();
+    final byte[] reference = encoder.getReference().orElseThrow();
     encoder.encode(source, width, height, 1);
     final int expectedMotionLength = 9 * 5;
     final int motionLength = ((int[]) Mcv2Internals.field(Mcv2.class, encoder, "motion")).length;
@@ -591,7 +591,7 @@ final class Mcv2SearchTest {
       final int firstLeafCount = Mcv2Decoder.parse(encoder.encode(reference, 32, 32, 0)).getLeafCount();
       assertEquals(4, firstLeafCount);
 
-      final byte @Nullable [] firstReference = encoder.getReference();
+      final byte[] firstReference = encoder.getReference().orElseThrow();
       assertArrayEquals(reference, firstReference);
 
       final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(encoder.encode(source, 32, 32, 1));
@@ -607,7 +607,7 @@ final class Mcv2SearchTest {
       final byte[] decoded = Mcv2Decoder.decode(frame, reference, 0);
       assertArrayEquals(reference, decoded);
 
-      final byte @Nullable [] nextReference = encoder.getReference();
+      final byte[] nextReference = encoder.getReference().orElseThrow();
       assertArrayEquals(reference, nextReference);
     }
   }

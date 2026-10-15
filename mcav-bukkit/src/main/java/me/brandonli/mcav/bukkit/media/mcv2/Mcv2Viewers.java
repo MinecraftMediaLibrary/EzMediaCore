@@ -19,6 +19,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 
 import com.google.common.base.Preconditions;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -151,13 +152,14 @@ public final class Mcv2Viewers {
    * Returns what a player's client reported.
    *
    * @param player the player's UUID
-   * @return the recorded state, or null when no state is currently tracked, including after quit or retarget
+   * @return the recorded state, or empty when no state is currently tracked, including after quit or retarget
    * @throws NullPointerException if {@code player} is null
    */
-  public @Nullable PackState getState(final UUID player) {
+  public Optional<PackState> getState(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
 
-    return this.states.get(player);
+    final @Nullable PackState state = this.states.get(player);
+    return Optional.ofNullable(state);
   }
 
   /**
@@ -169,7 +171,9 @@ public final class Mcv2Viewers {
    *         a playback acknowledgment
    */
   public boolean isLoaded(final UUID player) {
-    return this.getState(player) == PackState.LOADED && !this.shaderReports.blocksDecoding(player);
+    final Optional<PackState> state = this.getState(player);
+    final boolean loaded = state.filter(PackState.LOADED::equals).isPresent();
+    return loaded && !this.shaderReports.blocksDecoding(player);
   }
 
   boolean hasShaderReport(final UUID player) {

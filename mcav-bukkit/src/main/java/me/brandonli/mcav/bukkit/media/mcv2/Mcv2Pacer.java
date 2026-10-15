@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -220,9 +221,9 @@ public final class Mcv2Pacer {
    * try again comes, which moves the pacer to the lowest encoded rung.
    *
    * @param now the arrival time in monotonic nanoseconds, from the same clock used for other calls
-   * @return the step a try from the dithered maps takes, which the caller carries out, or null
+   * @return the step a try from the dithered maps takes, which the caller carries out, or empty
    */
-  public @Nullable Change arrive(final long now) {
+  public Optional<Change> arrive(final long now) {
     if (this.firstArrival == NEVER) {
       this.firstArrival = now;
     }
@@ -234,9 +235,9 @@ public final class Mcv2Pacer {
     }
 
     this.lastArrival = now;
-    Change change = null;
+    Optional<Change> change = Optional.empty();
     if (this.getRung().isDithered() && now >= this.retryAt) {
-      change = this.move(this.lowestEncoded(), false, 0, 0);
+      change = Optional.of(this.move(this.lowestEncoded(), false, 0, 0));
     }
 
     this.arrivals++;
@@ -260,15 +261,15 @@ public final class Mcv2Pacer {
    * @param milliseconds how long the frame took to encode, waiting for the budget's threads included
    * @param isKeyframe   whether it was a keyframe, which is left out
    * @param now          the completion time in monotonic nanoseconds, from the same clock used for other calls
-   * @return the step it causes, which the caller carries out, or null
+   * @return the step it causes, which the caller carries out, or empty
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
    */
-  public @Nullable Change encoded(final double milliseconds, final boolean isKeyframe, final long now) {
+  public Optional<Change> encoded(final double milliseconds, final boolean isKeyframe, final long now) {
     Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative!");
 
     final Rung rung = this.getRung();
     if (isKeyframe || rung.isDithered() || Double.isNaN(this.videoInterval)) {
-      return null;
+      return Optional.empty();
     }
 
     this.smoothed = Double.isNaN(this.smoothed) ? milliseconds : this.smoothed + SMOOTHING * (milliseconds - this.smoothed);
@@ -279,7 +280,7 @@ public final class Mcv2Pacer {
     }
 
     if (this.samples < MINIMUM_SAMPLES || now - this.firstArrival < this.seconds(STARTUP_SECONDS)) {
-      return null;
+      return Optional.empty();
     }
 
     final double frameMilliseconds = this.frameMilliseconds(rung);
@@ -291,10 +292,10 @@ public final class Mcv2Pacer {
       }
 
       if (now - this.overSince >= this.seconds(DOWN_SECONDS)) {
-        return this.stepDown(now, frameMilliseconds);
+        return Optional.ofNullable(this.stepDown(now, frameMilliseconds));
       }
 
-      return null;
+      return Optional.empty();
     }
 
     this.overSince = NEVER;
@@ -312,14 +313,19 @@ public final class Mcv2Pacer {
     if (above < 0) {
       this.roomSince = NEVER;
 
-      return null;
+      return Optional.empty();
     }
 
     if (this.roomSince == NEVER) {
       this.roomSince = now;
     }
 
-    return now - this.roomSince >= this.seconds(UP_SECONDS) ? this.move(above, false, this.smoothed, frameMilliseconds) : null;
+    if (now - this.roomSince < this.seconds(UP_SECONDS)) {
+      return Optional.empty();
+    }
+
+    final Change change = this.move(above, false, this.smoothed, frameMilliseconds);
+    return Optional.of(change);
   }
 
   private @Nullable Change stepDown(final long now, final double frameMilliseconds) {

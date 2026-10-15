@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -456,7 +457,7 @@ final class Mcv2ResultTest {
     final Mcv2Result result = this.result(narrow, null);
     final Mcv2 encoder = mock(Mcv2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(Mcv2ChannelTest.large());
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, true, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, true, 1, 1, LAMBDA)));
     result.getChannel().requestKeyframe();
     final List<byte[]> heard = new ArrayList<>();
     result.setFrameListener(heard::add);
@@ -551,13 +552,13 @@ final class Mcv2ResultTest {
     );
     final List<Mcv2Pacer.Change> changes = new ArrayList<>();
     result.setPacingListener(changes::add);
-    final Mcv2Pacer.@Nullable Rung rungBeforePacing = result.getRung();
-    assertNull(rungBeforePacing);
+    final Optional<Mcv2Pacer.Rung> rungBeforePacing = result.getRung();
+    assertTrue(rungBeforePacing.isEmpty());
 
     result.pace();
 
     final Mcv2Pacer.Rung expectedFirstRung = new Mcv2Pacer.Rung(64, 32, 1);
-    final Mcv2Pacer.@Nullable Rung firstRung = result.getRung();
+    final Mcv2Pacer.Rung firstRung = result.getRung().orElseThrow();
     assertEquals(expectedFirstRung, firstRung);
 
     final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
@@ -566,7 +567,7 @@ final class Mcv2ResultTest {
       clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     // the viewer with the pack is shown the screen, dithered for until then, then every frame is encoded while 5 ms
     // fit a frame's 16.7 ms
@@ -588,7 +589,7 @@ final class Mcv2ResultTest {
     assertTrue(steppedDown);
 
     final Mcv2Pacer.Rung expectedHalvedRung = new Mcv2Pacer.Rung(64, 32, 2);
-    final Mcv2Pacer.@Nullable Rung halvedRung = result.getRung();
+    final Mcv2Pacer.Rung halvedRung = result.getRung().orElseThrow();
     assertEquals(expectedHalvedRung, halvedRung);
 
     final int encodedAtHalfRate = this.play(result, clock, encoder, frame, 60);
@@ -601,7 +602,7 @@ final class Mcv2ResultTest {
     final int changesAfterDithering = changes.size();
     assertEquals(2, changesAfterDithering);
 
-    final Mcv2Pacer.@Nullable Rung ditheredRung = result.getRung();
+    final Mcv2Pacer.Rung ditheredRung = result.getRung().orElseThrow();
     assertEquals(Mcv2Pacer.Rung.DITHERED, ditheredRung);
 
     this.server.runTasks();
@@ -623,13 +624,13 @@ final class Mcv2ResultTest {
     this.server.runTasks();
     verify(this.screen).build();
 
-    final boolean stillDithered = result.getRung().isDithered();
+    final boolean stillDithered = result.getRung().orElseThrow().isDithered();
     assertFalse(stillDithered);
 
     result.release();
 
-    final Mcv2Pacer.@Nullable Rung rungAfterRelease = result.getRung();
-    assertNull(rungAfterRelease);
+    final Optional<Mcv2Pacer.Rung> rungAfterRelease = result.getRung();
+    assertTrue(rungAfterRelease.isEmpty());
   }
 
   @Test
@@ -672,7 +673,7 @@ final class Mcv2ResultTest {
       clock.addAndGet((fullNanoseconds.get() * width * (int) invocation.getArgument(2)) / (64 * 32));
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
@@ -682,7 +683,7 @@ final class Mcv2ResultTest {
 
     // no frame rate of 64x32 fits 100 ms with room; 32x16 at 30 fps does
     final Mcv2Pacer.Rung expectedSmallRung = new Mcv2Pacer.Rung(32, 16, 2);
-    final Mcv2Pacer.@Nullable Rung smallRung = result.getRung();
+    final Mcv2Pacer.Rung smallRung = result.getRung().orElseThrow();
     assertEquals(expectedSmallRung, smallRung);
 
     this.server.runTasks();
@@ -711,7 +712,7 @@ final class Mcv2ResultTest {
     this.play(result, clock, encoder, Images.solid(64, 32, FRAME_COLOR), 60 * 30);
 
     final Mcv2Pacer.Rung expectedFullRung = new Mcv2Pacer.Rung(64, 32, 1);
-    final Mcv2Pacer.@Nullable Rung fullRung = result.getRung();
+    final Mcv2Pacer.Rung fullRung = result.getRung().orElseThrow();
     assertEquals(expectedFullRung, fullRung);
 
     this.server.runTasks();
@@ -743,14 +744,14 @@ final class Mcv2ResultTest {
       clock.addAndGet(TimeUnit.SECONDS.toNanos(2));
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 600);
 
     final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 6);
-    final Mcv2Pacer.@Nullable Rung rung = result.getRung();
+    final Mcv2Pacer.Rung rung = result.getRung().orElseThrow();
     assertEquals(expectedRung, rung);
 
     result.release();
@@ -912,12 +913,12 @@ final class Mcv2ResultTest {
   @Test
   void shouldPaceFromTheTopOfItsLadderOnceStarted() {
     final Mcv2Result result = this.result(this.configuration, null);
-    final Mcv2Pacer.@Nullable Rung rungBeforeStart = result.getRung();
-    assertNull(rungBeforeStart);
+    final Optional<Mcv2Pacer.Rung> rungBeforeStart = result.getRung();
+    assertTrue(rungBeforeStart.isEmpty());
 
     result.start();
     final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 1);
-    final Mcv2Pacer.@Nullable Rung rung = result.getRung();
+    final Mcv2Pacer.Rung rung = result.getRung().orElseThrow();
     assertEquals(expectedRung, rung);
 
     result.release();
@@ -1203,14 +1204,14 @@ final class Mcv2ResultTest {
       clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 300);
     // two seconds a frame: nothing fits, and the frame that arrived while the last was encoded is not encoded any more
     encodeNanoseconds.set(TimeUnit.SECONDS.toNanos(2));
-    for (int frameNumber = 0; frameNumber < 20 && !result.getRung().isDithered(); frameNumber++) {
+    for (int frameNumber = 0; frameNumber < 20 && !result.getRung().orElseThrow().isDithered(); frameNumber++) {
       clock.addAndGet(FRAME_INTERVAL_NANOSECONDS);
       result.applyFilter(frame, this.metadata);
       final Mcv2Result.Arrival encoding = result.poll();
@@ -1219,7 +1220,7 @@ final class Mcv2ResultTest {
       result.send(encoder, encoding, 300 + frameNumber);
     }
 
-    final boolean dithered = result.getRung().isDithered();
+    final boolean dithered = result.getRung().orElseThrow().isDithered();
     assertTrue(dithered);
 
     final Mcv2Result.@Nullable Arrival remaining = result.poll();
@@ -1275,18 +1276,18 @@ final class Mcv2ResultTest {
       clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 300);
     // two seconds a frame: the pacer falls back to the dithered maps, which every viewer near the wall is shown
     encodeNanoseconds.set(TimeUnit.SECONDS.toNanos(2));
-    for (int frameNumber = 0; frameNumber < 600 && !result.getRung().isDithered(); frameNumber++) {
+    for (int frameNumber = 0; frameNumber < 600 && !result.getRung().orElseThrow().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
 
-    final boolean dithered = result.getRung().isDithered();
+    final boolean dithered = result.getRung().orElseThrow().isDithered();
     assertTrue(dithered);
 
     this.server.runTasks();
@@ -1311,11 +1312,11 @@ final class Mcv2ResultTest {
 
     // the load drops: the pacer tries the frames again, and the first frame encoded after its return is a keyframe
     encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(1));
-    for (int frameNumber = 0; frameNumber < 60 * 60 && result.getRung().isDithered(); frameNumber++) {
+    for (int frameNumber = 0; frameNumber < 60 * 60 && result.getRung().orElseThrow().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
 
-    final boolean stillDithered = result.getRung().isDithered();
+    final boolean stillDithered = result.getRung().orElseThrow().isDithered();
     assertFalse(stillDithered);
 
     clearInvocations(encoder);
@@ -1405,7 +1406,7 @@ final class Mcv2ResultTest {
   private void sendRecordedFrame(final Mcv2Result result, final Mcv2 encoder, final byte[] frame, final int id, final UUID second)
     throws Exception {
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(frame);
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(frame.length, id == 0 || id == 4, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(frame.length, id == 0 || id == 4, 1, 1, LAMBDA)));
     if (id == 3) {
       this.server.completeWrites(WITH_PACK);
     }
@@ -1603,14 +1604,14 @@ final class Mcv2ResultTest {
     final Mcv2Result live = this.result(this.packScreen(Settings.DEFAULT), null);
     live.pace();
     final Mcv2Pacer.Preset expectedPreset = new Mcv2Pacer.Preset(DEFAULT_PRESET_NAME, 1);
-    final Mcv2Pacer.Preset preset = live.getRung().preset();
+    final Mcv2Pacer.Preset preset = live.getRung().orElseThrow().preset();
     assertEquals(expectedPreset, preset);
 
     // The fastest preset has no faster search to step through.
     final Mcv2Result fastest = this.result(this.packScreen(Settings.FAST), null);
     fastest.pace();
     final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(64, 32, 1);
-    final Mcv2Pacer.@Nullable Rung fastestRung = fastest.getRung();
+    final Mcv2Pacer.Rung fastestRung = fastest.getRung().orElseThrow();
     assertEquals(expectedRung, fastestRung);
   }
 
@@ -1640,7 +1641,7 @@ final class Mcv2ResultTest {
       clock.addAndGet((encodeNanoseconds.get() * share) / 4);
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     return encoder;
   }
 
@@ -1712,7 +1713,7 @@ final class Mcv2ResultTest {
     assertEquals(expectedSwitchesAfterClimb, switched);
 
     final Mcv2Pacer.Preset expectedPreset = new Mcv2Pacer.Preset(DEFAULT_PRESET_NAME, 1);
-    final Mcv2Pacer.Preset preset = result.getRung().preset();
+    final Mcv2Pacer.Preset preset = result.getRung().orElseThrow().preset();
     assertEquals(expectedPreset, preset);
   }
 
@@ -1779,7 +1780,7 @@ final class Mcv2ResultTest {
       clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(1, false, 1, 1, LAMBDA));
+    when(encoder.getStatistics()).thenReturn(Optional.of(new Mcv2.Statistics(1, false, 1, 1, LAMBDA)));
     final ImageBuffer frame = Images.solid(64, 32, FRAME_COLOR);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();

@@ -58,14 +58,14 @@ final class Mcv2BoundsTest {
     assertEquals(76064, firstLength);
 
     final int expectedLambda = 72 * 16;
-    final double lambda = encoder.getStatistics().lambda();
+    final double lambda = encoder.getStatistics().orElseThrow().lambda();
     assertEquals(expectedLambda, lambda);
 
     final int expectedLeafCount = 128 * 128;
     final int leafCount = Mcv2Decoder.parse(first).getLeafCount();
     assertEquals(expectedLeafCount, leafCount);
 
-    final byte @Nullable [] firstReference = encoder.getReference();
+    final byte[] firstReference = encoder.getReference().orElseThrow();
     assertArrayEquals(picture, firstReference);
 
     final byte[] next = encoder.encode(picture, width, height, 1);
@@ -75,7 +75,7 @@ final class Mcv2BoundsTest {
     final long referenceId = Mcv2Decoder.parse(next).getReferenceId();
     assertEquals(0, referenceId);
 
-    final byte @Nullable [] nextReference = encoder.getReference();
+    final byte[] nextReference = encoder.getReference().orElseThrow();
     assertArrayEquals(picture, nextReference);
   }
 
@@ -98,7 +98,7 @@ final class Mcv2BoundsTest {
     final boolean withinLimit = data.length <= 131071;
     assertTrue(withinLimit);
 
-    final double lambda = encoder.getStatistics().lambda();
+    final double lambda = encoder.getStatistics().orElseThrow().lambda();
     assertEquals(0, lambda);
 
     final int expectedLeafCount = 32 * 32;
@@ -110,7 +110,7 @@ final class Mcv2BoundsTest {
       assertEquals(32, size);
     }
 
-    final byte @Nullable [] reference = encoder.getReference();
+    final byte[] reference = encoder.getReference().orElseThrow();
     assertArrayEquals(expected, reference);
 
     final byte[] decoded = Mcv2Decoder.decode(frame, null, 0);

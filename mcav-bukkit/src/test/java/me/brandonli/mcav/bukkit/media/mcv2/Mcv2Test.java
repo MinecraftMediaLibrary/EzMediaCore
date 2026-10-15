@@ -20,14 +20,13 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ForkJoinPool;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -57,13 +56,13 @@ final class Mcv2Test {
       final byte[] decoded = Mcv2Decoder.decode(predicted, picture, 1);
       assertArrayEquals(picture, decoded);
 
-      final int bytes = encoder.getStatistics().bytes();
+      final int bytes = encoder.getStatistics().orElseThrow().bytes();
       assertEquals(40, bytes);
 
-      final boolean keyframe = encoder.getStatistics().keyframe();
+      final boolean keyframe = encoder.getStatistics().orElseThrow().keyframe();
       assertFalse(keyframe);
 
-      final double lambda = encoder.getStatistics().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().lambda();
       assertEquals(LAMBDA, lambda);
     }
   }
@@ -93,7 +92,7 @@ final class Mcv2Test {
     final byte[] data = encoder.encode(picture, 65, 37, index);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final byte[] reference = Mcv2Decoder.decode(frame, previous, frame.getReferenceId());
-    final byte @Nullable [] encoderReference = encoder.getReference();
+    final byte[] encoderReference = encoder.getReference().orElseThrow();
     assertArrayEquals(reference, encoderReference);
 
     final long frameId = frame.getFrameId();
@@ -162,10 +161,10 @@ final class Mcv2Test {
       final boolean withinLimit = first.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
       assertTrue(withinLimit);
 
-      final byte[] reference = encoder.getReference();
+      final byte[] reference = encoder.getReference().orElseThrow();
       source[0]++;
       final byte[] second = encoder.encode(source, 63, 65, 1);
-      final byte @Nullable [] referenceAfterFallback = encoder.getReference();
+      final byte[] referenceAfterFallback = encoder.getReference().orElseThrow();
       assertArrayEquals(reference, referenceAfterFallback);
 
       final long referenceId = Mcv2Decoder.parse(second).getReferenceId();
@@ -183,7 +182,7 @@ final class Mcv2Test {
       encoder.setFrameLimit(40);
       final byte[] source = { 10, 20, 30 };
       final byte[] data = encoder.encode(source, 1, 1, 0);
-      final double lambda = encoder.getStatistics().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().lambda();
       assertEquals(16, lambda);
 
       final int frameLength = data.length;
@@ -234,7 +233,7 @@ final class Mcv2Test {
       final int secondLength = encoder.encode(source, 32, 32, 1).length;
       assertEquals(40, secondLength);
 
-      final byte @Nullable [] reference = encoder.getReference();
+      final byte[] reference = encoder.getReference().orElseThrow();
       assertArrayEquals(decoded, reference);
     }
   }
@@ -288,7 +287,7 @@ final class Mcv2Test {
       Arrays.fill(source, (byte) 20);
       encoder.encode(source, 32, 32, 2);
       final double raised = LAMBDA * Math.pow(10 / 4.6, 0.79);
-      final double lambda = encoder.getStatistics().lambda();
+      final double lambda = encoder.getStatistics().orElseThrow().lambda();
       assertEquals(raised, lambda);
 
       encoder.switchTo(Mcv2.Settings.FAST.withLambda(30));
@@ -304,7 +303,7 @@ final class Mcv2Test {
       assertEquals(2, referenceId);
 
       final double expectedLambda = 30 * Math.pow(10 / 4.6, 0.79);
-      final double lambdaAfterSwitch = encoder.getStatistics().lambda();
+      final double lambdaAfterSwitch = encoder.getStatistics().orElseThrow().lambda();
       assertEquals(expectedLambda, lambdaAfterSwitch);
     }
   }
@@ -355,8 +354,8 @@ final class Mcv2Test {
       assertThrows(IllegalStateException.class, () -> encoder.finish(second));
       assertThrows(IllegalStateException.class, () -> encoder.begin(new byte[3], 1, 1, 2));
 
-      final Mcv2.@Nullable Statistics statistics = encoder.getStatistics();
-      assertNull(statistics);
+      final Optional<Mcv2.Statistics> statistics = encoder.getStatistics();
+      assertTrue(statistics.isEmpty());
     }
   }
 
@@ -371,11 +370,11 @@ final class Mcv2Test {
       assertThrows(NullPointerException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, null, 1, false));
 
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, false);
-      final byte @Nullable [] initialReference = encoder.getReference();
-      assertNull(initialReference);
+      final Optional<byte[]> initialReference = encoder.getReference();
+      assertTrue(initialReference.isEmpty());
 
-      final Mcv2.@Nullable Statistics statistics = encoder.getStatistics();
-      assertNull(statistics);
+      final Optional<Mcv2.Statistics> statistics = encoder.getStatistics();
+      assertTrue(statistics.isEmpty());
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameBudget(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameLimit(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[3], 0, 1, 0));
@@ -402,12 +401,11 @@ final class Mcv2Test {
       assertThrows(IllegalArgumentException.class, () -> encoder.begin(new byte[3], 1, 1, 0));
       assertThrows(IllegalArgumentException.class, () -> encoder.begin(new byte[3], 1, 1, 0x80000000L));
 
-      final byte[] reference = encoder.getReference();
-      assertNotNull(reference);
+      final byte[] reference = encoder.getReference().orElseThrow();
 
       reference[0] = 42;
       final byte[] expected = new byte[3];
-      final byte @Nullable [] referenceAfterWrite = encoder.getReference();
+      final byte[] referenceAfterWrite = encoder.getReference().orElseThrow();
       assertArrayEquals(expected, referenceAfterWrite);
     }
   }

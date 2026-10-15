@@ -35,6 +35,7 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Fixtures;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 
 /**
@@ -129,7 +130,7 @@ final class PageAssemblerFuzzTest {
 
     final Set<Integer> numbers = pending.computeIfAbsent(id, _ -> new HashSet<>());
     numbers.add(number);
-    final byte[] assembled = assembler.push(frame.get(number));
+    final byte @Nullable [] assembled = assembler.push(frame.get(number)).orElse(null);
     if (numbers.size() != frame.size()) {
       assertNull(assembled);
       return;

@@ -24,6 +24,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.epoll.EpollChannelOption;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import me.brandonli.mcav.bukkit.BukkitModule;
@@ -132,14 +133,14 @@ public final class PacketUtils {
    * Retaining it does not retain the player or the network connection.
    *
    * @param player the player's UUID
-   * @return the connection identity, or null while the player is offline; a snapshot, not a guarantee of delivery
+   * @return the connection identity, or empty while the player is offline; a snapshot, not a guarantee of delivery
    * @throws NullPointerException if {@code player} is null
    */
-  public static @Nullable Object connectionIdentity(final UUID player) {
+  public static Optional<Object> connectionIdentity(final UUID player) {
     Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
 
-    final CachedConnection cached = PLAYER_CONNECTIONS.get(player);
-    return cached == null ? null : cached.identity();
+    final @Nullable CachedConnection cached = PLAYER_CONNECTIONS.get(player);
+    return Optional.ofNullable(cached).map(CachedConnection::identity);
   }
 
   /**

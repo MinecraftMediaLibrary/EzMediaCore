@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class Mcv2SettingsTest {
@@ -87,7 +86,7 @@ final class Mcv2SettingsTest {
       assertEquals(1, leafCount);
       final int mode = frame.getLeaf(0).mode();
       assertEquals(Mcv2Decoder.MODE_PATTERN, mode);
-      final byte @Nullable [] reference = encoder.getReference();
+      final byte[] reference = encoder.getReference().orElseThrow();
       assertArrayEquals(stripes, reference);
     }
   }

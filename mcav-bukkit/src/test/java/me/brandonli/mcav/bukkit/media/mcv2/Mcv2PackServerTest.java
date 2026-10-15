@@ -275,7 +275,7 @@ final class Mcv2PackServerTest {
     final UUID servedPackId = this.packs.getViewers().getPackId();
     assertEquals(expectedPackId, servedPackId);
 
-    final Mcv2Viewers.@Nullable PackState state = this.packs.getViewers().getState(ALICE);
+    final Mcv2Viewers.PackState state = this.packs.getViewers().getState(ALICE).orElseThrow();
     assertEquals(Mcv2Viewers.PackState.REQUESTED, state);
 
     final List<Player> expectedOffered = List.of(alice);

@@ -856,12 +856,12 @@ final class Mcv2Tools {
         this.encoder.requestKeyframe();
       }
 
-      final byte[] predictFrom = this.encoder.getReference();
+      final byte @Nullable [] predictFrom = this.encoder.getReference().orElse(null);
       final byte[] data = this.encodeInBudget(rgb, frameIndex);
       this.measured.times[frameIndex] = System.nanoTime() - startNanoseconds;
       this.measured.cpu[frameIndex] = this.system.getProcessCpuTime() - cpuBefore;
       this.measured.allocated[frameIndex] = this.threadBean.getTotalThreadAllocatedBytes() - allocatedBefore;
-      if (this.encoder.getStatistics().keyframe()) {
+      if (this.encoder.getStatistics().orElseThrow().keyframe()) {
         this.measured.keyframes++;
       }
 
@@ -934,7 +934,7 @@ final class Mcv2Tools {
 
       frame(this.archive, data);
       final byte[] picture = this.receiver.accept(data);
-      if (!Arrays.equals(picture, this.encoder.getReference())) {
+      if (!Arrays.equals(picture, this.encoder.getReference().orElseThrow())) {
         final String message = "Reference for %s frame %s differs!".formatted(this.name, id);
         throw new IllegalStateException(message);
       }

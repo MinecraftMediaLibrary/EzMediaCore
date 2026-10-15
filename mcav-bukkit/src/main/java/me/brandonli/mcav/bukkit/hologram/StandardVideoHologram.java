@@ -187,8 +187,8 @@ public class StandardVideoHologram extends VideoHologram {
    */
   @Override
   public void start() {
-    final TextDisplay display = this.getDisplay();
-    if (display == null || this.task != null) {
+    final Optional<TextDisplay> display = this.getDisplay();
+    if (display.isEmpty() || this.task != null) {
       return;
     }
 
@@ -199,7 +199,7 @@ public class StandardVideoHologram extends VideoHologram {
   }
 
   private void advanceProgress() {
-    final TextDisplay display = this.getDisplay();
+    final @Nullable TextDisplay display = this.getDisplay().orElse(null);
     final boolean finished = this.currentSecond > this.durationSeconds;
     if (display == null || !display.isValid() || finished) {
       this.cancelTask();

@@ -27,6 +27,7 @@ import net.jqwik.api.Property;
 import net.jqwik.api.Provide;
 import net.jqwik.api.constraints.DoubleRange;
 import net.jqwik.api.constraints.IntRange;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Whatever the video, the presets and however fast the budget encodes: the pacer never stays long on a rung whose frames
@@ -192,7 +193,7 @@ final class Mcv2PacerPropertyTest {
     private void finishEncodingsBy(final long arrival, final double fullMilliseconds) {
       while (this.encoding && this.busyUntil <= arrival) {
         this.encoding = false;
-        final Mcv2Pacer.Change change = this.pacer.encoded(this.cost, false, this.busyUntil);
+        final Mcv2Pacer.@Nullable Change change = this.pacer.encoded(this.cost, false, this.busyUntil).orElse(null);
         if (change != null) {
           this.record(change, this.busyUntil);
           this.waiting = false;
@@ -206,7 +207,7 @@ final class Mcv2PacerPropertyTest {
     }
 
     private void arrive(final long arrival, final double fullMilliseconds) {
-      final Mcv2Pacer.Change tried = this.pacer.arrive(arrival);
+      final Mcv2Pacer.@Nullable Change tried = this.pacer.arrive(arrival).orElse(null);
       if (tried != null) {
         this.record(tried, arrival);
       }

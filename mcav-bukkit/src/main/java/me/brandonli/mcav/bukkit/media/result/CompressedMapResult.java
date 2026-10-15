@@ -295,7 +295,7 @@ public class CompressedMapResult implements DitherResultStep {
     final Collection<UUID> viewers = this.configuration.getViewers();
     final Set<UUID> connectedViewers = new HashSet<>();
     for (final UUID viewer : viewers) {
-      final Object connection = PacketUtils.connectionIdentity(viewer);
+      final @Nullable Object connection = PacketUtils.connectionIdentity(viewer).orElse(null);
       if (connection == null) {
         continue;
       }

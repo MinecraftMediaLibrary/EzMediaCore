@@ -17,6 +17,7 @@
  */
 package me.brandonli.mcav.bukkit.hologram;
 
+import java.util.Optional;
 import me.brandonli.mcav.json.ytdlp.format.UrlParseDump;
 import org.bukkit.Location;
 import org.bukkit.entity.TextDisplay;
@@ -77,9 +78,9 @@ public interface Hologram {
   /**
    * Returns the display entity of this hologram.
    *
-   * @return the display entity, or null if the hologram is not spawned
+   * @return the display entity, or empty if the hologram is not spawned
    */
-  @Nullable TextDisplay getDisplay();
+  Optional<TextDisplay> getDisplay();
 
   /**
    * Replaces the display entity of this hologram. The previous entity is not removed. The caller must remove any replaced or detached entity.

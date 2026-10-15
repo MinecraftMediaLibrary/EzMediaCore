@@ -19,16 +19,16 @@ package me.brandonli.mcav.bukkit.media.mcv2.transport;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Exception;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Trees;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -85,22 +85,22 @@ final class PageAssemblerTest {
     final int pageCount = pages(BIG).size();
     assertEquals(2, pageCount);
 
-    final byte @Nullable [] firstPush = assembler.push(page(1));
-    assertNull(firstPush);
+    final Optional<byte[]> firstPush = assembler.push(page(1));
+    assertTrue(firstPush.isEmpty());
 
-    final byte @Nullable [] duplicatePush = assembler.push(page(1));
-    assertNull(duplicatePush);
+    final Optional<byte[]> duplicatePush = assembler.push(page(1));
+    assertTrue(duplicatePush.isEmpty());
 
     final int pendingCountBeforeCompletion = assembler.getPendingCount();
     assertEquals(1, pendingCountBeforeCompletion);
 
-    final byte @Nullable [] assembled = assembler.push(page(0));
+    final byte[] assembled = assembler.push(page(0)).orElseThrow();
     assertArrayEquals(BIG, assembled);
 
     final int pendingCountAfterCompletion = assembler.getPendingCount();
     assertEquals(0, pendingCountAfterCompletion);
 
-    final byte @Nullable [] assembledTiny = assembler.push(pages(TINY).get(0));
+    final byte[] assembledTiny = assembler.push(pages(TINY).get(0)).orElseThrow();
     assertArrayEquals(TINY, assembledTiny);
   }
 
@@ -128,8 +128,8 @@ final class PageAssemblerTest {
   @MethodSource("disagreements")
   void shouldDropAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
-    final byte @Nullable [] firstPush = assembler.push(first);
-    assertNull(firstPush);
+    final Optional<byte[]> firstPush = assembler.push(first);
+    assertTrue(firstPush.isEmpty());
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(second));
     final String message = exception.getMessage();
@@ -156,24 +156,24 @@ final class PageAssemblerTest {
   void shouldKeepAtMostFourFramesPendingAndEvictTheOldest() throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     for (int id = 1; id <= 4; id++) {
-      final byte @Nullable [] pending = assembler.push(rewritten(page(0), 12, id));
-      assertNull(pending);
+      final Optional<byte[]> pending = assembler.push(rewritten(page(0), 12, id));
+      assertTrue(pending.isEmpty());
     }
 
     // frame 0 evicts frame 1, then frame 1 starts again and evicts frame 2
-    final byte @Nullable [] firstEviction = assembler.push(page(0));
-    assertNull(firstEviction);
+    final Optional<byte[]> firstEviction = assembler.push(page(0));
+    assertTrue(firstEviction.isEmpty());
 
     final int pendingCountAfterFirstEviction = assembler.getPendingCount();
     assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterFirstEviction);
 
-    final byte @Nullable [] secondEviction = assembler.push(rewritten(page(1), 12, 1));
-    assertNull(secondEviction);
+    final Optional<byte[]> secondEviction = assembler.push(rewritten(page(1), 12, 1));
+    assertTrue(secondEviction.isEmpty());
 
     final int pendingCountAfterSecondEviction = assembler.getPendingCount();
     assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterSecondEviction);
     // frame 0 survived the evictions and completes
-    final byte @Nullable [] assembled = assembler.push(page(1));
+    final byte[] assembled = assembler.push(page(1)).orElseThrow();
     assertArrayEquals(BIG, assembled);
 
     final int pendingCountAfterCompletion = assembler.getPendingCount();

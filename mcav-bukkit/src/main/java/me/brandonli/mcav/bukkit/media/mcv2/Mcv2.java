@@ -89,6 +89,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -292,11 +293,11 @@ public final class Mcv2 {
   /**
    * Copies the latest reconstruction, including a frame still awaiting finish.
    *
-   * @return row-major RGB24 reference, or null before the first begin
+   * @return row-major RGB24 reference, or empty before the first begin
    */
-  public byte @Nullable [] getReference() {
-    final byte[] previous = this.reference;
-    return previous == null ? null : previous.clone();
+  public Optional<byte[]> getReference() {
+    final byte @Nullable [] previous = this.reference;
+    return Optional.ofNullable(previous).map(byte[]::clone);
   }
 
   /**
@@ -1150,10 +1151,10 @@ public final class Mcv2 {
   /**
    * Returns the last completed frame's measurements.
    *
-   * @return statistics, or null before the first finish
+   * @return statistics, or empty before the first finish
    */
-  public @Nullable Statistics getStatistics() {
-    return this.statistics;
+  public Optional<Statistics> getStatistics() {
+    return Optional.ofNullable(this.statistics);
   }
 
   // Public API and stream state.

@@ -124,7 +124,7 @@ final class TransportPagesTest {
       assertEquals(expectedCount, count);
       final int usefulSymbols = TransportPages.usefulSymbols(Arrays.copyOf(page, TransportPages.PAGE_SYMBOLS));
       assertEquals(page.length, usefulSymbols);
-      assembled = assembler.push(page);
+      assembled = assembler.push(page).orElse(null);
     }
 
     assertArrayEquals(frame, assembled);

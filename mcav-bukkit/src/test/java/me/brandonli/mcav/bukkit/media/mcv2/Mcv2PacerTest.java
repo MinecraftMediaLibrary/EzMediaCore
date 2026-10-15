@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
@@ -192,8 +193,8 @@ final class Mcv2PacerTest {
   void shouldEncodeEveryFrameAtTheTopAndMeasureTheVideo() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     // nothing is judged before the video's frame rate is known
-    final Mcv2Pacer.@Nullable Change unknownRateChange = pacer.encoded(500, false, 0);
-    assertNull(unknownRateChange);
+    final Optional<Mcv2Pacer.Change> unknownRateChange = pacer.encoded(500, false, 0);
+    assertTrue(unknownRateChange.isEmpty());
 
     final Driver driver = new Driver(pacer, 60, -5 * SECOND);
     final Mcv2Pacer.@Nullable Change change = driver.play(3, 5);
@@ -211,8 +212,8 @@ final class Mcv2PacerTest {
     final double frameRateAfterSameTime = pacer.getVideoFramesPerSecond();
     assertEquals(60, frameRateAfterSameTime, 0.1);
 
-    final Mcv2Pacer.@Nullable Change instantChange = pacer.encoded(0, false, 0);
-    assertNull(instantChange);
+    final Optional<Mcv2Pacer.Change> instantChange = pacer.encoded(0, false, 0);
+    assertTrue(instantChange.isEmpty());
     assertThrows(IllegalArgumentException.class, () -> pacer.encoded(-1, false, 0));
     assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.NaN, false, 0));
     assertThrows(IllegalArgumentException.class, () -> pacer.encoded(Double.POSITIVE_INFINITY, false, 0));
@@ -224,8 +225,8 @@ final class Mcv2PacerTest {
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
     for (int frameNumber = 0; frameNumber < 200; frameNumber++) {
-      final Mcv2Pacer.@Nullable Change change = pacer.encoded(1000, true, driver.now + (frameNumber * SECOND) / 60);
-      assertNull(change);
+      final Optional<Mcv2Pacer.Change> change = pacer.encoded(1000, true, driver.now + (frameNumber * SECOND) / 60);
+      assertTrue(change.isEmpty());
     }
 
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
@@ -439,8 +440,8 @@ final class Mcv2PacerTest {
     final boolean encoded = pacer.isEncoded();
     assertFalse(encoded);
 
-    final Mcv2Pacer.@Nullable Change reported = pacer.encoded(1, false, driver.now);
-    assertNull(reported);
+    final Optional<Mcv2Pacer.Change> reported = pacer.encoded(1, false, driver.now);
+    assertTrue(reported.isEmpty());
 
     // 30 seconds after it fell back, the lowest encoded rung is tried, which fails again two seconds later (ten frames
     // at 10 fps, then a second over its time)
@@ -1006,7 +1007,7 @@ final class Mcv2PacerTest {
       final long end = this.now + (long) (seconds * SECOND);
       while (this.now < end) {
         this.now += this.interval;
-        final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
+        final Mcv2Pacer.@Nullable Change tried = this.pacer.arrive(this.now).orElse(null);
         if (tried != null) {
           this.changes.add(tried);
           last = tried;
@@ -1028,7 +1029,7 @@ final class Mcv2PacerTest {
 
       final Mcv2Pacer.Rung rung = this.pacer.getRung();
       final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
-      return this.pacer.encoded(milliseconds, false, this.now);
+      return this.pacer.encoded(milliseconds, false, this.now).orElse(null);
     }
   }
 
@@ -1050,12 +1051,12 @@ final class Mcv2PacerTest {
     /** The next frame: it arrives, and if the pacer encodes it, it takes the given time; the change it caused, or null. */
     Mcv2Pacer.@Nullable Change frame(final double milliseconds) {
       this.now += this.interval;
-      final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
+      final Mcv2Pacer.@Nullable Change tried = this.pacer.arrive(this.now).orElse(null);
       if (tried != null) {
         return tried;
       }
 
-      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now) : null;
+      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now).orElse(null) : null;
     }
 
     /** Frames until one causes a change, which it returns; the clock is then at that frame. */

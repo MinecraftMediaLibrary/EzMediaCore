@@ -577,7 +577,7 @@ public final class Mcv2PackServer {
 
   private void offer(final Player player, final Published pack) {
     final UUID viewerId = player.getUniqueId();
-    if (this.viewers.getState(viewerId) != null) {
+    if (this.viewers.getState(viewerId).isPresent()) {
       return;
     }
 

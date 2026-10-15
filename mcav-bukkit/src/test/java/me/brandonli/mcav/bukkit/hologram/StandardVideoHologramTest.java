@@ -19,7 +19,6 @@ package me.brandonli.mcav.bukkit.hologram;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,6 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.function.Consumer;
 import me.brandonli.mcav.bukkit.testing.FakeServer;
@@ -191,9 +191,9 @@ final class StandardVideoHologramTest {
   @Test
   void shouldGiveAStandardVideoHologramFromBasicThatSpawnsNothingBeforeARequest() {
     final Hologram hologram = Hologram.basic();
-    final TextDisplay display = hologram.getDisplay();
+    final Optional<TextDisplay> display = hologram.getDisplay();
     assertInstanceOf(StandardVideoHologram.class, hologram);
-    assertNull(display, "nothing is spawned before a request");
+    assertTrue(display.isEmpty(), "nothing is spawned before a request");
   }
 
   @Test
@@ -203,7 +203,7 @@ final class StandardVideoHologramTest {
     final UrlParseDump dump = this.createDump("Some Video", "Some Channel", timestamp, 60);
     hologram.spawn(this.location, dump);
     final TextDisplay display = this.spawnedDisplays.getFirst();
-    final TextDisplay current = hologram.getDisplay();
+    final TextDisplay current = hologram.getDisplay().orElseThrow();
     final Component text = this.lastText(display);
     final String plain = PLAIN.serialize(text);
     final String date = this.expectedDate(1, "st");
@@ -228,7 +228,7 @@ final class StandardVideoHologramTest {
       final int timestamp = this.epochSecond(days[index]);
       final UrlParseDump dump = this.createDump(TITLE, UPLOADER, timestamp, 1);
       hologram.spawn(this.location, dump);
-      final TextDisplay display = hologram.getDisplay();
+      final TextDisplay display = hologram.getDisplay().orElseThrow();
       final Component text = this.lastText(display);
       final String plain = PLAIN.serialize(text);
       final String date = this.expectedDate(days[index], suffixes[index]);
@@ -242,12 +242,12 @@ final class StandardVideoHologramTest {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump missing = this.createDump(null, null, 0, 1);
     hologram.spawn(this.location, missing);
-    final TextDisplay first = hologram.getDisplay();
+    final TextDisplay first = hologram.getDisplay().orElseThrow();
     final Component missingText = this.lastText(first);
     final String missingPlain = PLAIN.serialize(missingText);
     final UrlParseDump tagged = this.createDump("<red>Title</red>", "<bold>Me", -5, 1);
     hologram.spawn(this.location, tagged);
-    final TextDisplay second = hologram.getDisplay();
+    final TextDisplay second = hologram.getDisplay().orElseThrow();
     final Component taggedText = this.lastText(second);
     final String taggedPlain = PLAIN.serialize(taggedText);
     assertEquals("Unknown title\nUnknown uploader (Unknown date)", missingPlain);
@@ -259,7 +259,7 @@ final class StandardVideoHologramTest {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = this.createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
     hologram.spawn(this.location, dump);
-    final Component text = this.lastText(hologram.getDisplay());
+    final Component text = this.lastText(hologram.getDisplay().orElseThrow());
     final String plain = PLAIN.serialize(text);
     assertEquals("Paths like C:\\\na\\<red>b\\ (Unknown date)", plain);
   }
@@ -272,7 +272,7 @@ final class StandardVideoHologramTest {
     hologram.spawn(this.location, dump);
     final TextDisplay first = this.spawnedDisplays.get(0);
     final TextDisplay second = this.spawnedDisplays.get(1);
-    final TextDisplay current = hologram.getDisplay();
+    final TextDisplay current = hologram.getDisplay().orElseThrow();
     verify(first).remove();
     verify(second, never()).remove();
     assertSame(second, current);
@@ -384,14 +384,14 @@ final class StandardVideoHologramTest {
     hologram.spawn(this.location, longDump);
     hologram.start();
     this.server.runTasks();
-    final TextDisplay longDisplay = hologram.getDisplay();
+    final TextDisplay longDisplay = hologram.getDisplay().orElseThrow();
     final Component longText = this.lastText(longDisplay);
     final String longPlain = PLAIN.serialize(longText);
     final UrlParseDump negativeDump = this.createDump(TITLE, UPLOADER, 0, -3);
     hologram.spawn(this.location, negativeDump);
     hologram.start();
     this.server.runTasks();
-    final TextDisplay negativeDisplay = hologram.getDisplay();
+    final TextDisplay negativeDisplay = hologram.getDisplay().orElseThrow();
     final Component negativeText = this.lastText(negativeDisplay);
     final int negativeFilled = this.countFilled(negativeText);
     final String negativePlain = PLAIN.serialize(negativeText);
@@ -434,12 +434,12 @@ final class StandardVideoHologramTest {
     final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
     hologram.spawn(this.location, dump);
     hologram.start();
-    final TextDisplay display = hologram.getDisplay();
+    final TextDisplay display = hologram.getDisplay().orElseThrow();
     hologram.kill();
     hologram.kill();
-    final TextDisplay afterKill = hologram.getDisplay();
+    final Optional<TextDisplay> afterKill = hologram.getDisplay();
     final int tasks = this.server.getScheduledTaskCount();
-    assertNull(afterKill);
+    assertTrue(afterKill.isEmpty());
     assertEquals(0, tasks);
     verify(display, times(1)).remove();
   }
@@ -451,7 +451,7 @@ final class StandardVideoHologramTest {
     final TextDisplay second = mock(TextDisplay.class);
     hologram.setDisplay(first);
     hologram.setDisplay(second);
-    final TextDisplay current = hologram.getDisplay();
+    final TextDisplay current = hologram.getDisplay().orElseThrow();
     assertSame(second, current);
     verify(first, never()).remove();
   }

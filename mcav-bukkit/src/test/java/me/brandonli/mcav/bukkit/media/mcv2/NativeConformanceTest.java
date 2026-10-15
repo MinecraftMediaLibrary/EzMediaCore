@@ -32,7 +32,6 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -124,8 +123,8 @@ final class NativeConformanceTest {
       final byte[] encoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
       assertArrayEquals(expectedEncoded, encoded, context);
 
-      final byte @Nullable [] expectedReference = java.getReference();
-      final byte @Nullable [] reference = other.getReference();
+      final byte[] expectedReference = java.getReference().orElseThrow();
+      final byte[] reference = other.getReference().orElseThrow();
       assertArrayEquals(expectedReference, reference, context);
     }
   }
@@ -169,8 +168,8 @@ final class NativeConformanceTest {
       final byte[] otherEncoded = other.encode(rgb, WIDTH, HEIGHT, frameIndex);
       assertArrayEquals(expectedFrameForOther, otherEncoded, context);
 
-      final byte @Nullable [] expectedReference = java.getReference();
-      final byte @Nullable [] reference = other.getReference();
+      final byte[] expectedReference = java.getReference().orElseThrow();
+      final byte[] reference = other.getReference().orElseThrow();
       assertArrayEquals(expectedReference, reference, context);
     }
   }
@@ -202,8 +201,8 @@ final class NativeConformanceTest {
         final byte[] expectedEncoded = java.encode(picture, width, height, frameIndex);
         final byte[] encoded = other.encode(picture, width, height, frameIndex);
         assertArrayEquals(expectedEncoded, encoded, context);
-        final byte @Nullable [] expectedReference = java.getReference();
-        final byte @Nullable [] reference = other.getReference();
+        final byte[] expectedReference = java.getReference().orElseThrow();
+        final byte[] reference = other.getReference().orElseThrow();
         assertArrayEquals(expectedReference, reference, context);
       }
     }
