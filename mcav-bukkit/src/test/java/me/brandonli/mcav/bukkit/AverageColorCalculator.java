@@ -69,22 +69,27 @@ final class AverageColorCalculator {
     final Map<String, int[]> colors = new TreeMap<>();
     try (final DirectoryStream<Path> textures = Files.newDirectoryStream(TEXTURES, "*" + PNG_EXTENSION)) {
       for (final Path texture : textures) {
-        final Path fileNamePath = texture.getFileName();
-        final String fileName = String.valueOf(fileNamePath);
-        final int nameLength = fileName.length() - PNG_EXTENSION.length();
-        final String blockName = fileName.substring(0, nameLength);
-        final String materialName = blockName.toUpperCase(Locale.ROOT);
-        final File textureFile = texture.toFile();
-        final BufferedImage image = ImageIO.read(textureFile);
-        if (image == null) {
-          continue;
-        }
-        final int[] averageColor = calculateAverageColor(image);
-        colors.put(materialName, averageColor);
+        putAverageColor(texture, colors);
       }
     }
 
     return colors;
+  }
+
+  private static void putAverageColor(final Path texture, final Map<String, int[]> colors) throws IOException {
+    final Path fileNamePath = texture.getFileName();
+    final String fileName = String.valueOf(fileNamePath);
+    final int nameLength = fileName.length() - PNG_EXTENSION.length();
+    final String blockName = fileName.substring(0, nameLength);
+    final String materialName = blockName.toUpperCase(Locale.ROOT);
+    final File textureFile = texture.toFile();
+    final BufferedImage image = ImageIO.read(textureFile);
+    if (image == null) {
+      return;
+    }
+
+    final int[] averageColor = calculateAverageColor(image);
+    colors.put(materialName, averageColor);
   }
 
   private static int[] calculateAverageColor(final BufferedImage image) {
@@ -110,17 +115,22 @@ final class AverageColorCalculator {
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
         final int argb = image.getRGB(column, row);
-        final int alpha = (argb >>> 24) & 0xFF;
-        if (alpha == 0) {
-          continue;
-        }
-        sums[RED_INDEX] += (argb >> 16) & 0xFF;
-        sums[GREEN_INDEX] += (argb >> 8) & 0xFF;
-        sums[BLUE_INDEX] += argb & 0xFF;
-        sums[COUNT_INDEX]++;
+        addOpaquePixel(sums, argb);
       }
     }
 
     return sums;
+  }
+
+  private static void addOpaquePixel(final long[] sums, final int argb) {
+    final int alpha = (argb >>> 24) & 0xFF;
+    if (alpha == 0) {
+      return;
+    }
+
+    sums[RED_INDEX] += (argb >> 16) & 0xFF;
+    sums[GREEN_INDEX] += (argb >> 8) & 0xFF;
+    sums[BLUE_INDEX] += argb & 0xFF;
+    sums[COUNT_INDEX]++;
   }
 }

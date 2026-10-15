@@ -76,17 +76,20 @@ final class Mcv2LinkPropertyTest {
         lastKey = id;
       }
       final boolean over = outstanding > (isKeyframe ? Mcv2Link.allowance(limit) : limit);
+      final boolean decodable = isKeyframe || reference == clientLast;
       final boolean sent = link.offer(id, reference, isKeyframe, step.bytes());
-      if (sent) {
-        if (over || !(isKeyframe || reference == clientLast)) {
-          return false;
-        }
+      if (sent && (over || !decodable)) {
+        return false;
+      }
 
+      if (!sent && !over && decodable) {
+        return false;
+      }
+
+      if (sent) {
         clientLast = id;
         outstanding += step.bytes();
         inFlight.add((long) step.bytes());
-      } else if (!over && (isKeyframe || reference == clientLast)) {
-        return false;
       }
       if (link.getBacklog() != outstanding) {
         return false;

@@ -67,31 +67,42 @@ final class FrameMutationTest {
   void shouldAcceptOrDeclareEveryCorruption(final String stream, final List<byte[]> frames) throws Mcv2Exception {
     final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(frames.getFirst());
     final byte[] picture = Mcv2Decoder.decode(reference, null, 0);
-    int accepted = 0;
-    int rejected = 0;
+    final List<Boolean> acceptances = new ArrayList<>();
     for (final byte[] frame : frames) {
-      for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
-        for (final int mask : MASKS) {
-          final byte[] corrupted = frame.clone();
-          corrupted[offset] ^= (byte) mask;
-          final Mcv2Decoder.Frame parsed;
-          try {
-            parsed = Mcv2Decoder.parse(corrupted);
-          } catch (final Mcv2Exception exception) {
-            rejected++;
-            continue;
-          }
-          accepted++;
-          decodeAgainst(parsed, picture, reference.getFrameId());
-        }
-      }
+      this.corruptEveryOffset(frame, picture, reference.getFrameId(), acceptances);
     }
 
-    final boolean rejectedAny = rejected > 0;
+    final boolean rejectedAny = acceptances.contains(false);
     assertTrue(rejectedAny, stream + " rejected nothing");
 
-    final boolean acceptedAny = accepted > 0;
+    final boolean acceptedAny = acceptances.contains(true);
     assertTrue(acceptedAny, stream + " accepted nothing");
+  }
+
+  private void corruptEveryOffset(final byte[] frame, final byte[] picture, final long frameId, final List<Boolean> acceptances)
+    throws Mcv2Exception {
+    for (int offset = 0; offset < frame.length; offset += offset < DENSE ? 1 : STRIDE) {
+      for (final int mask : MASKS) {
+        final boolean accepted = this.isCorruptionAccepted(frame, offset, mask, picture, frameId);
+        acceptances.add(accepted);
+      }
+    }
+  }
+
+  private boolean isCorruptionAccepted(final byte[] frame, final int offset, final int mask, final byte[] picture, final long frameId)
+    throws Mcv2Exception {
+    final byte[] corrupted = frame.clone();
+    corrupted[offset] ^= (byte) mask;
+    final Mcv2Decoder.Frame parsed;
+    try {
+      parsed = Mcv2Decoder.parse(corrupted);
+    } catch (final Mcv2Exception exception) {
+      return false;
+    }
+
+    decodeAgainst(parsed, picture, frameId);
+
+    return true;
   }
 
   @Test

@@ -72,29 +72,44 @@ final class Mcv2Test {
   void shouldReconstructExactlyWhatDecodeGivesForEveryPresetAndOddSize() throws Mcv2Exception {
     final Random random = new Random(0x4D435632);
     for (final Mcv2.Settings settings : new Mcv2.Settings[] { Mcv2.Settings.DEFAULT, Mcv2.Settings.FAST }) {
-      try (final ForkJoinPool pool = new ForkJoinPool(4)) {
-        final Mcv2 encoder = new Mcv2(settings, pool, 4, true);
-        byte[] reference = null;
-        for (int index = 0; index < 12; index++) {
-          final byte[] picture = new byte[65 * 37 * 3];
-          random.nextBytes(picture);
-          final byte[] data = encoder.encode(picture, 65, 37, index);
-          final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
-          reference = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
-          final byte @Nullable [] encoderReference = encoder.getReference();
-          assertArrayEquals(reference, encoderReference);
-          final long frameId = frame.getFrameId();
-          assertEquals(index, frameId);
-          final boolean withinLimit = data.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
-          assertTrue(withinLimit);
-          if (!frame.isKeyframe()) {
-            final int expectedReferenceId = index - 1;
-            final long referenceId = frame.getReferenceId();
-            assertEquals(expectedReferenceId, referenceId);
-          }
-        }
+      this.assertReconstructsEveryFrame(settings, random);
+    }
+  }
+
+  private void assertReconstructsEveryFrame(final Mcv2.Settings settings, final Random random) throws Mcv2Exception {
+    try (final ForkJoinPool pool = new ForkJoinPool(4)) {
+      final Mcv2 encoder = new Mcv2(settings, pool, 4, true);
+      byte[] reference = null;
+      for (int index = 0; index < 12; index++) {
+        reference = this.reconstructCheckedFrame(encoder, random, index, reference);
       }
     }
+  }
+
+  private byte[] reconstructCheckedFrame(final Mcv2 encoder, final Random random, final int index, final byte @Nullable [] previous)
+    throws Mcv2Exception {
+    final byte[] picture = new byte[65 * 37 * 3];
+    random.nextBytes(picture);
+    final byte[] data = encoder.encode(picture, 65, 37, index);
+    final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
+    final byte[] reference = Mcv2Decoder.decode(frame, previous, frame.getReferenceId());
+    final byte @Nullable [] encoderReference = encoder.getReference();
+    assertArrayEquals(reference, encoderReference);
+
+    final long frameId = frame.getFrameId();
+    assertEquals(index, frameId);
+
+    final boolean withinLimit = data.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
+    assertTrue(withinLimit);
+    if (frame.isKeyframe()) {
+      return reference;
+    }
+
+    final int expectedReferenceId = index - 1;
+    final long referenceId = frame.getReferenceId();
+    assertEquals(expectedReferenceId, referenceId);
+
+    return reference;
   }
 
   @Test
@@ -110,22 +125,24 @@ final class Mcv2Test {
     }
 
     for (final Mcv2.Settings settings : new Mcv2.Settings[] { Mcv2.Settings.DEFAULT, Mcv2.Settings.FAST }) {
-      final byte[][] golden = new byte[source.length][];
-      for (int threads = 1; threads <= 4; threads++) {
-        try (final ForkJoinPool pool = new ForkJoinPool(threads)) {
-          final Mcv2 encoder = new Mcv2(settings, pool, threads, true);
-          for (int index = 0; index < source.length; index++) {
-            final byte[] actual = encoder.encode(source[index], 128, 96, index);
-            if (threads == 1) {
-              golden[index] = actual;
-            } else {
-              final byte[] expected = golden[index];
-              assertArrayEquals(expected, actual);
-            }
-          }
-        }
+      final byte[][] golden = this.encodeOnThreads(settings, source, 1);
+      for (int threads = 2; threads <= 4; threads++) {
+        final byte[][] actual = this.encodeOnThreads(settings, source, threads);
+        assertArrayEquals(golden, actual);
       }
     }
+  }
+
+  private byte[][] encodeOnThreads(final Mcv2.Settings settings, final byte[][] source, final int threads) {
+    final byte[][] encoded = new byte[source.length][];
+    try (final ForkJoinPool pool = new ForkJoinPool(threads)) {
+      final Mcv2 encoder = new Mcv2(settings, pool, threads, true);
+      for (int index = 0; index < source.length; index++) {
+        encoded[index] = encoder.encode(source[index], 128, 96, index);
+      }
+    }
+
+    return encoded;
   }
 
   @Test

@@ -407,22 +407,25 @@ final class DeltaMapEncoderPropertyTest {
       for (final MapTilePatch patch : snapshot) {
         final int index = this.indexOf(patch);
         snapshotMaps.add(index);
-        final short[] map = this.maps[index];
-        final byte[] colors = patch.getColors();
-        final int width = patch.getWidth();
-        for (int row = 0; row < patch.getHeight(); row++) {
-          for (int column = 0; column < width; column++) {
-            final short shown = map[(patch.getY() + row) * MAP_SIZE + patch.getX() + column];
-            final short expected = colors[row * width + column];
-            assertEquals(expected, shown, "the snapshot shows what the clients display");
-          }
-        }
+        this.assertPatchShown(patch, this.maps[index]);
       }
 
       for (int index = 0; index < this.maps.length; index++) {
         final boolean received = this.hasReceived(index);
         final boolean inSnapshot = snapshotMaps.contains(index);
         assertEquals(received, inSnapshot, "the snapshot holds exactly the maps that were sent");
+      }
+    }
+
+    private void assertPatchShown(final MapTilePatch patch, final short[] map) {
+      final byte[] colors = patch.getColors();
+      final int width = patch.getWidth();
+      for (int row = 0; row < patch.getHeight(); row++) {
+        for (int column = 0; column < width; column++) {
+          final short shown = map[(patch.getY() + row) * MAP_SIZE + patch.getX() + column];
+          final short expected = colors[row * width + column];
+          assertEquals(expected, shown, "the snapshot shows what the clients display");
+        }
       }
     }
 
@@ -454,22 +457,26 @@ final class DeltaMapEncoderPropertyTest {
     private void assertShows(final byte[] frame) {
       final int imageWidth = this.layout.getImageWidth();
       for (int index = 0; index < this.maps.length; index++) {
-        final MapRegion region = this.layout.getRegion(index);
-        final short[] map = this.maps[index];
         for (int row = 0; row < MAP_SIZE; row++) {
-          for (int column = 0; column < MAP_SIZE; column++) {
-            final short shown = map[row * MAP_SIZE + column];
-            final int regionX = column - region.getLocalX();
-            final int regionY = row - region.getLocalY();
-            final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
-            if (covered) {
-              final int sourceIndex = (region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX;
-              final short expected = frame[sourceIndex];
-              assertEquals(expected, shown, "map " + index + " shows the last frame at " + column + "," + row);
-            } else {
-              assertEquals(NEVER_SENT, shown, "map " + index + " was sent nothing outside the image at " + column + "," + row);
-            }
-          }
+          this.assertRowShows(frame, imageWidth, index, row);
+        }
+      }
+    }
+
+    private void assertRowShows(final byte[] frame, final int imageWidth, final int index, final int row) {
+      final MapRegion region = this.layout.getRegion(index);
+      final short[] map = this.maps[index];
+      for (int column = 0; column < MAP_SIZE; column++) {
+        final short shown = map[row * MAP_SIZE + column];
+        final int regionX = column - region.getLocalX();
+        final int regionY = row - region.getLocalY();
+        final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
+        if (covered) {
+          final int sourceIndex = (region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX;
+          final short expected = frame[sourceIndex];
+          assertEquals(expected, shown, "map " + index + " shows the last frame at " + column + "," + row);
+        } else {
+          assertEquals(NEVER_SENT, shown, "map " + index + " was sent nothing outside the image at " + column + "," + row);
         }
       }
     }

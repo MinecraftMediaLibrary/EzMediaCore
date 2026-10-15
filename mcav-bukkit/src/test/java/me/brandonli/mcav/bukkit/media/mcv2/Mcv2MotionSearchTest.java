@@ -71,14 +71,17 @@ final class Mcv2MotionSearchTest {
     final int[] source = new int[size * size * 3];
     for (int row = 0; row < size; row++) {
       for (int column = 0; column < size; column++) {
-        for (int channel = 0; channel < 3; channel++) {
-          source[(row * size + column) * 3 + channel] =
-            rgb[((blockTop + row + motionY) * WIDTH + blockLeft + column + motionX) * 3 + channel] & 255;
-        }
+        copyPixel(source, row * size + column, rgb, (blockTop + row + motionY) * WIDTH + blockLeft + column + motionX);
       }
     }
 
     return source;
+  }
+
+  private static void copyPixel(final int[] destination, final int destinationPixel, final byte[] rgb, final int sourcePixel) {
+    for (int channel = 0; channel < 3; channel++) {
+      destination[destinationPixel * 3 + channel] = rgb[sourcePixel * 3 + channel] & 255;
+    }
   }
 
   private static int pack(final int motionX, final int motionY) {
@@ -142,16 +145,20 @@ final class Mcv2MotionSearchTest {
     Arrays.fill(reference, (byte) 120);
     for (final int sampleRow : new int[] { 4, 12, 20, 28 }) {
       for (final int sampleColumn : new int[] { 4, 12, 20, 28 }) {
-        for (final int[] cost : costs) {
-          final int pixel = (16 + sampleRow + cost[1]) * 64 + 16 + sampleColumn + cost[0];
-          reference[pixel * 3] = (byte) cost[2];
-          reference[pixel * 3 + 1] = 0;
-          reference[pixel * 3 + 2] = 0;
-        }
+        paintCosts(reference, sampleRow, sampleColumn, costs);
       }
     }
 
     return reference;
+  }
+
+  private static void paintCosts(final byte[] reference, final int sampleRow, final int sampleColumn, final int[][] costs) {
+    for (final int[] cost : costs) {
+      final int pixel = (16 + sampleRow + cost[1]) * 64 + 16 + sampleColumn + cost[0];
+      reference[pixel * 3] = (byte) cost[2];
+      reference[pixel * 3 + 1] = 0;
+      reference[pixel * 3 + 2] = 0;
+    }
   }
 
   @Test
@@ -188,9 +195,7 @@ final class Mcv2MotionSearchTest {
       for (int column = 0; column < 8; column++) {
         final int referenceRow = Math.max(0, row - 4);
         final int referenceColumn = Math.max(0, column - 4);
-        for (int channel = 0; channel < 3; channel++) {
-          source[(row * 8 + column) * 3 + channel] = rgb[(referenceRow * WIDTH + referenceColumn) * 3 + channel] & 0xFF;
-        }
+        copyPixel(source, row * 8 + column, rgb, referenceRow * WIDTH + referenceColumn);
       }
     }
 

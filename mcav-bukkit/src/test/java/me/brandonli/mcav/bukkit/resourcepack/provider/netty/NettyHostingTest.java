@@ -162,39 +162,48 @@ final class NettyHostingTest {
 
       final List<NettyHosting> hosts = List.of(first, second);
       for (final NettyHosting hosting : hosts) {
-        final URI uri = URI.create(hosting.getRawUrl());
-        final String request = GET_PREFIX + uri.getRawPath() + REQUEST_SUFFIX;
-        final byte[] bytes = request.getBytes(StandardCharsets.US_ASCII);
-        final EmbeddedChannel channel = connect();
-        try {
-          for (final byte value : bytes) {
-            if (!channel.isOpen()) {
-              break;
-            }
-            final ByteBuf part = Unpooled.buffer(1);
-            part.writeByte(value);
-            channel.writeInbound(part);
-          }
-
-          final ByteBuf headers = channel.readOutbound();
-          final String text = headers.toString(StandardCharsets.US_ASCII);
-          headers.release();
-          final boolean served = text.startsWith("HTTP/1.1 200 OK");
-          assertTrue(served);
-
-          final ByteBuf body = channel.readOutbound();
-          final byte[] received = ByteBufUtil.getBytes(body);
-          body.release();
-          final Path path = hosting.getZip();
-          final byte[] expected = Files.readAllBytes(path);
-          assertArrayEquals(expected, received);
-        } finally {
-          channel.finishAndReleaseAll();
-        }
+        this.assertServesFragmentedRequest(hosting);
       }
     } finally {
       first.shutdown();
       second.shutdown();
+    }
+  }
+
+  private void assertServesFragmentedRequest(final NettyHosting hosting) throws IOException {
+    final URI uri = URI.create(hosting.getRawUrl());
+    final String request = GET_PREFIX + uri.getRawPath() + REQUEST_SUFFIX;
+    final byte[] bytes = request.getBytes(StandardCharsets.US_ASCII);
+    final EmbeddedChannel channel = connect();
+    try {
+      this.writeByteByByte(channel, bytes);
+
+      final ByteBuf headers = channel.readOutbound();
+      final String text = headers.toString(StandardCharsets.US_ASCII);
+      headers.release();
+      final boolean served = text.startsWith("HTTP/1.1 200 OK");
+      assertTrue(served);
+
+      final ByteBuf body = channel.readOutbound();
+      final byte[] received = ByteBufUtil.getBytes(body);
+      body.release();
+      final Path path = hosting.getZip();
+      final byte[] expected = Files.readAllBytes(path);
+      assertArrayEquals(expected, received);
+    } finally {
+      channel.finishAndReleaseAll();
+    }
+  }
+
+  private void writeByteByByte(final EmbeddedChannel channel, final byte[] bytes) {
+    for (final byte value : bytes) {
+      if (!channel.isOpen()) {
+        return;
+      }
+
+      final ByteBuf part = Unpooled.buffer(1);
+      part.writeByte(value);
+      channel.writeInbound(part);
     }
   }
 

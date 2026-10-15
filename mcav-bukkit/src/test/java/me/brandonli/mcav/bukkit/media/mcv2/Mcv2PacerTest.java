@@ -1011,18 +1011,24 @@ final class Mcv2PacerTest {
           this.changes.add(tried);
           last = tried;
         }
-        if (this.pacer.isEncoded()) {
-          final Mcv2Pacer.Rung rung = this.pacer.getRung();
-          final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
-          final Mcv2Pacer.Change change = this.pacer.encoded(milliseconds, false, this.now);
-          if (change != null) {
-            this.changes.add(change);
-            last = change;
-          }
+        final Mcv2Pacer.Change change = this.encodeArrived(fullMilliseconds);
+        if (change != null) {
+          this.changes.add(change);
+          last = change;
         }
       }
 
       return last;
+    }
+
+    private Mcv2Pacer.@Nullable Change encodeArrived(final double fullMilliseconds) {
+      if (!this.pacer.isEncoded()) {
+        return null;
+      }
+
+      final Mcv2Pacer.Rung rung = this.pacer.getRung();
+      final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
+      return this.pacer.encoded(milliseconds, false, this.now);
     }
   }
 

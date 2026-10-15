@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Workers;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 final class Mcv2DecoderTest {
@@ -117,24 +118,30 @@ final class Mcv2DecoderTest {
       for (final byte[] data : frames) {
         final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
         final byte[] sequential = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
-        final byte[] before = reference;
-        for (int count = 1; count <= 4; count++) {
-          final byte[] parallel = new byte[sequential.length];
-          new Workers(pool, count).forEach(
-            frame.getHeight(),
-            () -> parallel,
-            (picture, row) -> {
-              try {
-                Mcv2Decoder.decodeRows(frame, before, frame.getReferenceId(), picture, row, row + 1);
-              } catch (final Mcv2Exception exception) {
-                throw new AssertionError(exception);
-              }
-            }
-          );
-          assertArrayEquals(sequential, parallel);
-        }
+        this.assertSameOnEveryWorkerCount(pool, frame, reference, sequential);
         reference = sequential;
       }
+    }
+  }
+
+  private void assertSameOnEveryWorkerCount(
+    final ForkJoinPool pool,
+    final Mcv2Decoder.Frame frame,
+    final byte @Nullable [] reference,
+    final byte[] sequential
+  ) {
+    for (int count = 1; count <= 4; count++) {
+      final byte[] parallel = new byte[sequential.length];
+      new Workers(pool, count).forEach(frame.getHeight(), () -> parallel, (picture, row) -> this.decodeRow(frame, reference, picture, row));
+      assertArrayEquals(sequential, parallel);
+    }
+  }
+
+  private void decodeRow(final Mcv2Decoder.Frame frame, final byte @Nullable [] reference, final byte[] picture, final int row) {
+    try {
+      Mcv2Decoder.decodeRows(frame, reference, frame.getReferenceId(), picture, row, row + 1);
+    } catch (final Mcv2Exception exception) {
+      throw new AssertionError(exception);
     }
   }
 

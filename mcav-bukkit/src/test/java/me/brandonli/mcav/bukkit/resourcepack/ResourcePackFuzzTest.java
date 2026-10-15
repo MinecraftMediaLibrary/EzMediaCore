@@ -92,12 +92,7 @@ final class ResourcePackFuzzTest {
       final boolean sound = data.consumeBoolean();
       final String name = data.consumeString(48);
       try {
-        if (sound) {
-          pack.sound(name, SOUND);
-          acceptedSounds.add(name);
-        } else {
-          pack.external(name, TEXT);
-        }
+        this.addEntry(pack, sound, name, acceptedSounds);
       } catch (final IllegalArgumentException exception) {
         // refusing is always allowed; what was accepted is checked below
       }
@@ -114,6 +109,16 @@ final class ResourcePackFuzzTest {
     } finally {
       Files.deleteIfExists(zipped);
     }
+  }
+
+  private void addEntry(final SimpleResourcePack pack, final boolean sound, final String name, final List<String> acceptedSounds) {
+    if (!sound) {
+      pack.external(name, TEXT);
+      return;
+    }
+
+    pack.sound(name, SOUND);
+    acceptedSounds.add(name);
   }
 
   private static void assertSafeEntries(final ZipFile zip) {

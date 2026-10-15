@@ -111,30 +111,7 @@ final class Mcv2PoolTest {
       final AtomicLong total = new AtomicLong();
       final List<Thread> callers = new ArrayList<>();
       for (int caller = 0; caller < 3; caller++) {
-        callers.add(
-          Thread.ofPlatform().start(() -> {
-            try {
-              pool.run(() -> {
-                final ForkJoinPool inner = ForkJoinTask.getPool();
-                final Workers workers = new Workers(inner, 4);
-                for (int loop = 0; loop < 5; loop++) {
-                  workers.forEach(
-                    16,
-                    () -> seen,
-                    (threads, item) -> {
-                      threads.add(Thread.currentThread());
-                      total.addAndGet(IntStream.range(0, 20_000).sum());
-                    }
-                  );
-                }
-
-                return null;
-              });
-            } catch (final InterruptedException exception) {
-              Thread.currentThread().interrupt();
-            }
-          })
-        );
+        callers.add(Thread.ofPlatform().start(() -> this.runNestedLoops(pool, seen, total)));
       }
 
       for (final Thread caller : callers) {
@@ -157,34 +134,38 @@ final class Mcv2PoolTest {
     }
   }
 
+  private void runNestedLoops(final Pool pool, final Set<Thread> seen, final AtomicLong total) {
+    try {
+      pool.run(() -> this.runWorkerLoops(seen, total));
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+    }
+  }
+
+  private @Nullable Object runWorkerLoops(final Set<Thread> seen, final AtomicLong total) {
+    final ForkJoinPool inner = ForkJoinTask.getPool();
+    final Workers workers = new Workers(inner, 4);
+    for (int loop = 0; loop < 5; loop++) {
+      workers.forEach(16, () -> seen, (threads, _) -> this.sumOnThread(threads, total));
+    }
+
+    return null;
+  }
+
+  private void sumOnThread(final Set<Thread> threads, final AtomicLong total) {
+    threads.add(Thread.currentThread());
+    total.addAndGet(IntStream.range(0, 20_000).sum());
+  }
+
   @Test
   void shouldBlockAThreadInsteadOfStartingASpare() throws InterruptedException {
     try (final Pool pool = new Pool(1)) {
       final Set<Thread> seen = ConcurrentHashMap.newKeySet();
       final AtomicInteger blocks = new AtomicInteger();
       final AtomicInteger threadsWhileBlocked = new AtomicInteger();
-      pool.run(() -> {
-        seen.add(Thread.currentThread());
-        // a pool asked to keep its threads running while one blocks would start a spare; the budget's does not
-        ForkJoinPool.managedBlock(
-          new ForkJoinPool.ManagedBlocker() {
-            @Override
-            public boolean block() {
-              blocks.incrementAndGet();
-              threadsWhileBlocked.set(ForkJoinTask.getPool().getPoolSize());
-
-              return true;
-            }
-
-            @Override
-            public boolean isReleasable() {
-              return false;
-            }
-          }
-        );
-        seen.add(Thread.currentThread());
-        return null;
-      });
+      final ForkJoinPool.ManagedBlocker blocker = new CountingBlocker(blocks, threadsWhileBlocked);
+      pool.run(() -> this.blockOnce(seen, blocker));
       final int blockCount = blocks.get();
       assertEquals(1, blockCount);
 
@@ -194,6 +175,15 @@ final class Mcv2PoolTest {
       final int seenCount = seen.size();
       assertEquals(1, seenCount);
     }
+  }
+
+  private @Nullable Object blockOnce(final Set<Thread> seen, final ForkJoinPool.ManagedBlocker blocker) throws InterruptedException {
+    seen.add(Thread.currentThread());
+    // a pool asked to keep its threads running while one blocks would start a spare; the budget's does not
+    ForkJoinPool.managedBlock(blocker);
+    seen.add(Thread.currentThread());
+
+    return null;
   }
 
   @Test
@@ -234,28 +224,18 @@ final class Mcv2PoolTest {
     try (final Pool pool = new Pool(1)) {
       final IllegalArgumentException runtime = new IllegalArgumentException("runtime!");
       final IllegalArgumentException thrownRuntime = assertThrows(IllegalArgumentException.class, () ->
-        pool.run(() -> {
-          throw runtime;
-        })
+        pool.run(() -> this.raise(runtime))
       );
       final boolean passesOnRuntime = isOrWraps(thrownRuntime, runtime);
       assertTrue(passesOnRuntime);
 
       final AssertionError error = new AssertionError("error!");
-      final AssertionError thrownError = assertThrows(AssertionError.class, () ->
-        pool.run(() -> {
-          throw error;
-        })
-      );
+      final AssertionError thrownError = assertThrows(AssertionError.class, () -> pool.run(() -> this.raise(error)));
       final boolean passesOnError = isOrWraps(thrownError, error);
       assertTrue(passesOnError);
 
       final IOException checked = new IOException("checked!");
-      final IllegalStateException wrapped = assertThrows(IllegalStateException.class, () ->
-        pool.run(() -> {
-          throw checked;
-        })
-      );
+      final IllegalStateException wrapped = assertThrows(IllegalStateException.class, () -> pool.run(() -> this.raise(checked)));
       final @Nullable Throwable cause = wrapped.getCause();
       assertInstanceOf(IOException.class, cause);
 
@@ -268,28 +248,21 @@ final class Mcv2PoolTest {
     }
   }
 
+  private @Nullable Object raise(final Exception exception) throws Exception {
+    throw exception;
+  }
+
+  private @Nullable Object raise(final Error error) {
+    throw error;
+  }
+
   @Test
   void shouldCancelTheTaskOfAnInterruptedCaller() throws InterruptedException {
     try (final Pool pool = new Pool(1)) {
       final CountDownLatch started = new CountDownLatch(1);
       final CountDownLatch cancelled = new CountDownLatch(1);
       final AtomicReference<Throwable> thrown = new AtomicReference<>();
-      final Thread caller = Thread.ofPlatform().start(() -> {
-        try {
-          pool.run(() -> {
-            started.countDown();
-            try {
-              Thread.sleep(TimeUnit.SECONDS.toMillis(60));
-            } catch (final InterruptedException exception) {
-              cancelled.countDown();
-            }
-
-            return null;
-          });
-        } catch (final InterruptedException exception) {
-          thrown.set(exception);
-        }
-      });
+      final Thread caller = Thread.ofPlatform().start(() -> this.runUntilCancelled(pool, started, cancelled, thrown));
       final boolean hasStarted = started.await(30, TimeUnit.SECONDS);
       assertTrue(hasStarted);
 
@@ -306,23 +279,48 @@ final class Mcv2PoolTest {
     }
   }
 
+  private void runUntilCancelled(
+    final Pool pool,
+    final CountDownLatch started,
+    final CountDownLatch cancelled,
+    final AtomicReference<Throwable> thrown
+  ) {
+    try {
+      pool.run(() -> this.sleepUntilCancelled(started, cancelled));
+    } catch (final InterruptedException exception) {
+      thrown.set(exception);
+    }
+  }
+
+  private @Nullable Object sleepUntilCancelled(final CountDownLatch started, final CountDownLatch cancelled) {
+    started.countDown();
+    try {
+      Thread.sleep(TimeUnit.SECONDS.toMillis(60));
+    } catch (final InterruptedException exception) {
+      cancelled.countDown();
+    }
+
+    return null;
+  }
+
   @Test
   void shouldStartNothingForACallerInterruptedBefore() {
     try (final Pool pool = new Pool(1)) {
       final AtomicReference<Thread> ran = new AtomicReference<>();
       Thread.currentThread().interrupt();
-      assertThrows(InterruptedException.class, () ->
-        pool.run(() -> {
-          ran.set(Thread.currentThread());
-          return null;
-        })
-      );
+      assertThrows(InterruptedException.class, () -> pool.run(() -> this.recordThread(ran)));
       final boolean interrupted = Thread.currentThread().isInterrupted();
       assertFalse(interrupted);
 
       final @Nullable Thread ranOn = ran.get();
       assertNull(ranOn);
     }
+  }
+
+  private @Nullable Object recordThread(final AtomicReference<Thread> ran) {
+    ran.set(Thread.currentThread());
+
+    return null;
   }
 
   @Test
@@ -369,6 +367,30 @@ final class Mcv2PoolTest {
       assertThrows(IllegalArgumentException.class, () -> Pool.setSharedThreads(Pool.MAXIMUM_THREADS + 1));
     } finally {
       Pool.setSharedThreads(0);
+    }
+  }
+
+  private static final class CountingBlocker implements ForkJoinPool.ManagedBlocker {
+
+    private final AtomicInteger blocks;
+    private final AtomicInteger threadsWhileBlocked;
+
+    CountingBlocker(final AtomicInteger blocks, final AtomicInteger threadsWhileBlocked) {
+      this.blocks = blocks;
+      this.threadsWhileBlocked = threadsWhileBlocked;
+    }
+
+    @Override
+    public boolean block() {
+      this.blocks.incrementAndGet();
+      this.threadsWhileBlocked.set(ForkJoinTask.getPool().getPoolSize());
+
+      return true;
+    }
+
+    @Override
+    public boolean isReleasable() {
+      return false;
     }
   }
 }

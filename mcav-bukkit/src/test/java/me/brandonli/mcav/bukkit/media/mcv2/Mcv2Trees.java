@@ -213,11 +213,13 @@ public final class Mcv2Trees {
         return false;
       }
 
-      if (this.isSplit()) {
-        for (int child = 0; child < 4; child++) {
-          if (!this.getChild(child).equals(node.getChild(child))) {
-            return false;
-          }
+      if (!this.isSplit()) {
+        return true;
+      }
+
+      for (int child = 0; child < 4; child++) {
+        if (!this.getChild(child).equals(node.getChild(child))) {
+          return false;
         }
       }
 

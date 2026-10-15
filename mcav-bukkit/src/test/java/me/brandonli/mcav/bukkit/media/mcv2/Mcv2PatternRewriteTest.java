@@ -89,54 +89,80 @@ final class Mcv2PatternRewriteTest {
   void shouldEncodeRepeatingSelectorsAsPatternsAtEveryLeafSize() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (final int orientation : new int[] { 0, 1 }) {
-        final byte[] palette = new byte[Mcv2Decoder.recordSize(Mcv2Decoder.MODE_PALETTE, size)];
-        System.arraycopy(ENDPOINTS, 0, palette, 0, ENDPOINTS.length);
-        final byte[] expected = new byte[Mcv2Decoder.patternSize(size)];
-        System.arraycopy(ENDPOINTS, 0, expected, 0, ENDPOINTS.length);
-        expected[6] = (byte) orientation;
-        for (int axis = 0; axis < size / 8; axis++) {
-          expected[7 + axis] = (byte) (0xA5 ^ (axis * 37));
-        }
-        for (int row = 0; row < size; row++) {
-          for (int column = 0; column < size; column++) {
-            final int axis = orientation == 0 ? column : row;
-            final int bit = (expected[7 + axis / 8] >> (axis % 8)) & 1;
-            final int pixel = row * size + column;
-            palette[6 + pixel / 8] |= (byte) (bit << (pixel % 8));
-          }
-        }
-        final byte[] output = new byte[expected.length];
-        final boolean encodedAsPattern = (boolean) Mcv2Internals.invoke(
-          Mcv2.class,
-          null,
-          PATTERN_RECORD_METHOD,
-          new Class<?>[] { byte[].class, int.class, byte[].class },
-          palette,
-          size,
-          output
-        );
-        assertTrue(encodedAsPattern);
-        assertArrayEquals(expected, output);
-
-        final byte[] source = new byte[size * size * 3];
-        for (int pixel = 0; pixel < size * size; pixel++) {
-          final int color = (palette[6 + pixel / 8] >> (pixel % 8)) & 1;
-          System.arraycopy(ENDPOINTS, color * 3, source, pixel * 3, 3);
-        }
-        for (final double lambda : new double[] { 0, 1e-300, 60, 72 }) {
-          final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], size, size, true, false, lambda, null);
-          state.code(size, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
-          final int mode = state.mode(0, 0);
-          assertEquals(Mcv2Decoder.MODE_PATTERN, mode);
-
-          final byte[] record = state.record(0, 0);
-          final Node leaf = Node.leaf(Mcv2Decoder.MODE_PATTERN, 0, record);
-          final Node root = size == 32 ? leaf : size == 16 ? Mcv2Trees.split(leaf) : Mcv2Trees.split(Mcv2Trees.split(leaf));
-          final byte[] decoded = Mcv2Decoder.decode(Mcv2Decoder.parse(Mcv2Trees.keyframe(size, size, root)), null, 0);
-          assertArrayEquals(source, decoded);
-        }
+        this.assertPatternRoundTrip(size, orientation);
       }
     }
+  }
+
+  private void assertPatternRoundTrip(final int size, final int orientation) throws Mcv2Exception {
+    final byte[] expected = this.expectedPattern(size, orientation);
+    final byte[] palette = this.repeatedPalette(expected, size, orientation);
+    final byte[] output = new byte[expected.length];
+    final boolean encodedAsPattern = (boolean) Mcv2Internals.invoke(
+      Mcv2.class,
+      null,
+      PATTERN_RECORD_METHOD,
+      new Class<?>[] { byte[].class, int.class, byte[].class },
+      palette,
+      size,
+      output
+    );
+    assertTrue(encodedAsPattern);
+    assertArrayEquals(expected, output);
+
+    final byte[] source = this.paletteSource(palette, size);
+    for (final double lambda : new double[] { 0, 1e-300, 60, 72 }) {
+      this.assertCodedAsPattern(source, size, lambda);
+    }
+  }
+
+  private byte[] expectedPattern(final int size, final int orientation) {
+    final byte[] expected = new byte[Mcv2Decoder.patternSize(size)];
+    System.arraycopy(ENDPOINTS, 0, expected, 0, ENDPOINTS.length);
+    expected[6] = (byte) orientation;
+    for (int axis = 0; axis < size / 8; axis++) {
+      expected[7 + axis] = (byte) (0xA5 ^ (axis * 37));
+    }
+
+    return expected;
+  }
+
+  private byte[] repeatedPalette(final byte[] expected, final int size, final int orientation) {
+    final byte[] palette = new byte[Mcv2Decoder.recordSize(Mcv2Decoder.MODE_PALETTE, size)];
+    System.arraycopy(ENDPOINTS, 0, palette, 0, ENDPOINTS.length);
+    for (int row = 0; row < size; row++) {
+      for (int column = 0; column < size; column++) {
+        final int axis = orientation == 0 ? column : row;
+        final int bit = (expected[7 + axis / 8] >> (axis % 8)) & 1;
+        final int pixel = row * size + column;
+        palette[6 + pixel / 8] |= (byte) (bit << (pixel % 8));
+      }
+    }
+
+    return palette;
+  }
+
+  private byte[] paletteSource(final byte[] palette, final int size) {
+    final byte[] source = new byte[size * size * 3];
+    for (int pixel = 0; pixel < size * size; pixel++) {
+      final int color = (palette[6 + pixel / 8] >> (pixel % 8)) & 1;
+      System.arraycopy(ENDPOINTS, color * 3, source, pixel * 3, 3);
+    }
+
+    return source;
+  }
+
+  private void assertCodedAsPattern(final byte[] source, final int size, final double lambda) throws Mcv2Exception {
+    final Mcv2BlockState state = new Mcv2BlockState(source, new byte[0], size, size, true, false, lambda, null);
+    state.code(size, 0, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
+    final int mode = state.mode(0, 0);
+    assertEquals(Mcv2Decoder.MODE_PATTERN, mode);
+
+    final byte[] record = state.record(0, 0);
+    final Node leaf = Node.leaf(Mcv2Decoder.MODE_PATTERN, 0, record);
+    final Node root = size == 32 ? leaf : size == 16 ? Mcv2Trees.split(leaf) : Mcv2Trees.split(Mcv2Trees.split(leaf));
+    final byte[] decoded = Mcv2Decoder.decode(Mcv2Decoder.parse(Mcv2Trees.keyframe(size, size, root)), null, 0);
+    assertArrayEquals(source, decoded);
   }
 
   @Test

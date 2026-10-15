@@ -60,22 +60,46 @@ final class Mcv2RoundTripPropertyTest {
       final int bottom = top + 1 + random.nextInt(height - top);
       final int kind = random.nextInt(3);
       final int color = random.nextInt(0x1000000);
-      for (int row = top; row < bottom; row++) {
-        for (int column = left; column < right; column++) {
-          final int offset = (row * width + column) * 3;
-          for (int channel = 0; channel < 3; channel++) {
-            final int base = (color >> (8 * channel)) & 0xFF;
-            rgb[offset + channel] = (byte) switch (kind) {
-              case 0 -> base;
-              case 1 -> (base + (column - left) * 3 + (row - top)) & 0xFF;
-              default -> ((column + row) & 1) == 0 ? base : 255 - base;
-            };
-          }
-        }
-      }
+      paintShape(rgb, width, left, top, right, bottom, kind, color);
     }
 
     return rgb;
+  }
+
+  private static void paintShape(
+    final byte[] rgb,
+    final int width,
+    final int left,
+    final int top,
+    final int right,
+    final int bottom,
+    final int kind,
+    final int color
+  ) {
+    for (int row = top; row < bottom; row++) {
+      for (int column = left; column < right; column++) {
+        paintShapePixel(rgb, (row * width + column) * 3, kind, color, column - left, row - top, column + row);
+      }
+    }
+  }
+
+  private static void paintShapePixel(
+    final byte[] rgb,
+    final int offset,
+    final int kind,
+    final int color,
+    final int columnInShape,
+    final int rowInShape,
+    final int diagonal
+  ) {
+    for (int channel = 0; channel < 3; channel++) {
+      final int base = (color >> (8 * channel)) & 0xFF;
+      rgb[offset + channel] = (byte) switch (kind) {
+        case 0 -> base;
+        case 1 -> (base + columnInShape * 3 + rowInShape) & 0xFF;
+        default -> (diagonal & 1) == 0 ? base : 255 - base;
+      };
+    }
   }
 
   /** The next picture: the same one, moved a few pixels, partly repainted, or a new scene. */
@@ -87,15 +111,7 @@ final class Mcv2RoundTripPropertyTest {
 
     final byte[] rgb = previous.clone();
     if (kind == 1) {
-      final int deltaX = random.nextInt(9) - 4;
-      final int deltaY = random.nextInt(9) - 4;
-      for (int row = 0; row < height; row++) {
-        for (int column = 0; column < width; column++) {
-          final int sourceColumn = Math.min(width - 1, Math.max(0, column + deltaX));
-          final int sourceRow = Math.min(height - 1, Math.max(0, row + deltaY));
-          System.arraycopy(previous, (sourceRow * width + sourceColumn) * 3, rgb, (row * width + column) * 3, 3);
-        }
-      }
+      shift(random, previous, rgb, width, height);
     } else if (kind == 2) {
       final byte[] patch = picture(random, width, height);
       final int rows = 1 + random.nextInt(height);
@@ -103,6 +119,18 @@ final class Mcv2RoundTripPropertyTest {
     }
 
     return rgb;
+  }
+
+  private static void shift(final Random random, final byte[] previous, final byte[] rgb, final int width, final int height) {
+    final int deltaX = random.nextInt(9) - 4;
+    final int deltaY = random.nextInt(9) - 4;
+    for (int row = 0; row < height; row++) {
+      for (int column = 0; column < width; column++) {
+        final int sourceColumn = Math.min(width - 1, Math.max(0, column + deltaX));
+        final int sourceRow = Math.min(height - 1, Math.max(0, row + deltaY));
+        System.arraycopy(previous, (sourceRow * width + sourceColumn) * 3, rgb, (row * width + column) * 3, 3);
+      }
+    }
   }
 
   @Property(seed = SEED, tries = 60)

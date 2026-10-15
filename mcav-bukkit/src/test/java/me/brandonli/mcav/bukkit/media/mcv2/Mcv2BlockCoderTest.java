@@ -112,11 +112,7 @@ final class Mcv2BlockCoderTest {
     final int[] block = new int[4 * 4 * 3];
     for (int row = 0; row < 4; row++) {
       for (int column = 0; column < 4; column++) {
-        final int level = 40 * (2 * (row / 2) + column / 2) + 20;
-        final int wobble = (column % 2 == 0 ? 3 : -1) * (row % 2 == 0 ? 1 : -1);
-        for (int channel = 0; channel < 3; channel++) {
-          block[(row * 4 + column) * 3 + channel] = level + channel + wobble;
-        }
+        this.setWobbledPixel(block, row, column);
       }
     }
 
@@ -131,6 +127,14 @@ final class Mcv2BlockCoderTest {
     Mcv2Internals.javaKernels().halve(square, 2, mean);
     final int[] expectedMean = new int[] { 3, 0, 255 };
     assertArrayEquals(expectedMean, mean);
+  }
+
+  private void setWobbledPixel(final int[] block, final int row, final int column) {
+    final int level = 40 * (2 * (row / 2) + column / 2) + 20;
+    final int wobble = (column % 2 == 0 ? 3 : -1) * (row % 2 == 0 ? 1 : -1);
+    for (int channel = 0; channel < 3; channel++) {
+      block[(row * 4 + column) * 3 + channel] = level + channel + wobble;
+    }
   }
 
   @Test

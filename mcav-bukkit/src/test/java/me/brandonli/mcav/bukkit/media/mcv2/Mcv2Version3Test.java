@@ -178,23 +178,28 @@ final class Mcv2Version3Test {
   void shouldDecodePatternSelectorsForAllSizes() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int orientation = 0; orientation < 2; orientation++) {
-        final byte[] record = new byte[7 + size / 8];
-        record[0] = (byte) 255;
-        record[5] = (byte) 255;
-        record[6] = (byte) orientation;
-        Arrays.fill(record, 7, record.length, (byte) 85);
-        final byte[] data = block(size, 4, 0, record, true);
-        final byte[] decoded = Mcv2Decoder.decode(data, null, 0);
-        for (int row = 0; row < size; row++) {
-          for (int column = 0; column < size; column++) {
-            final boolean blue = ((orientation == 0 ? column : row) & 1) == 0;
-            pixel(decoded, size, column, row, blue ? 0 : 255, 0, blue ? 255 : 0);
-          }
-        }
-        record[6] = 2;
-        assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(block(size, 4, 0, record, true)));
+        this.assertPatternDecodes(size, orientation);
       }
     }
+  }
+
+  private void assertPatternDecodes(final int size, final int orientation) throws Mcv2Exception {
+    final byte[] record = new byte[7 + size / 8];
+    record[0] = (byte) 255;
+    record[5] = (byte) 255;
+    record[6] = (byte) orientation;
+    Arrays.fill(record, 7, record.length, (byte) 85);
+    final byte[] data = block(size, 4, 0, record, true);
+    final byte[] decoded = Mcv2Decoder.decode(data, null, 0);
+    for (int row = 0; row < size; row++) {
+      for (int column = 0; column < size; column++) {
+        final boolean blue = ((orientation == 0 ? column : row) & 1) == 0;
+        pixel(decoded, size, column, row, blue ? 0 : 255, 0, blue ? 255 : 0);
+      }
+    }
+
+    record[6] = 2;
+    assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(block(size, 4, 0, record, true)));
   }
 
   @Test
@@ -268,15 +273,19 @@ final class Mcv2Version3Test {
     for (final int base : new int[] { 0, 6, 100, 250, 255 }) {
       Arrays.fill(reference, (byte) base);
       for (int quantizer = 0; quantizer <= 2; quantizer++) {
-        for (final int delta : new int[] { -8, -1, 0, 1, 7 }) {
-          final int value = Math.min(255, Math.max(0, base + (delta << quantizer)));
-          final byte[] record = new byte[10];
-          Arrays.fill(record, 2, 10, (byte) ((delta & 15) * 17));
-          final byte[] decoded = Mcv2Decoder.decode(block(8, 5, quantizer, record, false), reference, 0);
-          pixel(decoded, 8, 0, 0, value, value, value);
-          pixel(decoded, 8, 7, 7, value, value, value);
-        }
+        this.assertResidualsSaturate(reference, base, quantizer);
       }
+    }
+  }
+
+  private void assertResidualsSaturate(final byte[] reference, final int base, final int quantizer) throws Mcv2Exception {
+    for (final int delta : new int[] { -8, -1, 0, 1, 7 }) {
+      final int value = Math.min(255, Math.max(0, base + (delta << quantizer)));
+      final byte[] record = new byte[10];
+      Arrays.fill(record, 2, 10, (byte) ((delta & 15) * 17));
+      final byte[] decoded = Mcv2Decoder.decode(block(8, 5, quantizer, record, false), reference, 0);
+      pixel(decoded, 8, 0, 0, value, value, value);
+      pixel(decoded, 8, 7, 7, value, value, value);
     }
   }
 

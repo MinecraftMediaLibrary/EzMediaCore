@@ -87,20 +87,7 @@ final class Mcv2BoundsTest {
     final byte[] expected = new byte[picture.length];
     for (int top = 0; top < width; top += 32) {
       for (int left = 0; left < width; left += 32) {
-        for (int channel = 0; channel < 3; channel++) {
-          int sum = 0;
-          for (int row = top; row < top + 32; row++) {
-            for (int column = left; column < left + 32; column++) {
-              sum += picture[(row * width + column) * 3 + channel] & 255;
-            }
-          }
-          final byte mean = (byte) ((sum + 512) / 1024);
-          for (int row = top; row < top + 32; row++) {
-            for (int column = left; column < left + 32; column++) {
-              expected[(row * width + column) * 3 + channel] = mean;
-            }
-          }
-        }
+        this.averageSquare(picture, expected, width, top, left);
       }
     }
 
@@ -128,6 +115,32 @@ final class Mcv2BoundsTest {
 
     final byte[] decoded = Mcv2Decoder.decode(frame, null, 0);
     assertArrayEquals(expected, decoded);
+  }
+
+  private void averageSquare(final byte[] picture, final byte[] expected, final int width, final int top, final int left) {
+    for (int channel = 0; channel < 3; channel++) {
+      final byte mean = this.squareMean(picture, width, top, left, channel);
+      this.fillSquare(expected, width, top, left, channel, mean);
+    }
+  }
+
+  private byte squareMean(final byte[] picture, final int width, final int top, final int left, final int channel) {
+    int sum = 0;
+    for (int row = top; row < top + 32; row++) {
+      for (int column = left; column < left + 32; column++) {
+        sum += picture[(row * width + column) * 3 + channel] & 255;
+      }
+    }
+
+    return (byte) ((sum + 512) / 1024);
+  }
+
+  private void fillSquare(final byte[] expected, final int width, final int top, final int left, final int channel, final byte mean) {
+    for (int row = top; row < top + 32; row++) {
+      for (int column = left; column < left + 32; column++) {
+        expected[(row * width + column) * 3 + channel] = mean;
+      }
+    }
   }
 
   @Test

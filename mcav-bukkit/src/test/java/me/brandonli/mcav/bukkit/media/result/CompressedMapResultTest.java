@@ -63,6 +63,7 @@ import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import org.apache.logging.log4j.Level;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -139,19 +140,24 @@ final class CompressedMapResultTest {
     final byte[] canvas = new byte[columns * MAP_SIZE * MAP_SIZE];
     for (int packetIndex = firstPacket; packetIndex < this.firstViewerPacketCount(); packetIndex++) {
       for (final ClientboundMapItemDataPacket packet : this.packetsOf(FIRST, packetIndex)) {
-        final int map = packet.mapId().id() - 3;
-        final boolean addressesTheGrid = map >= 0 && map < columns;
-        assertTrue(addressesTheGrid);
-        final MapItemSavedData.MapPatch patch = packet.colorPatch().orElseThrow();
-        final byte[] colors = patch.mapColors();
-        for (int row = 0; row < patch.height(); row++) {
-          final int target = (patch.startY() + row) * columns * MAP_SIZE + map * MAP_SIZE + patch.startX();
-          System.arraycopy(colors, row * patch.width(), canvas, target, patch.width());
-        }
+        this.replayPacket(canvas, packet, columns);
       }
     }
 
     return canvas;
+  }
+
+  private void replayPacket(final byte[] canvas, final ClientboundMapItemDataPacket packet, final int columns) {
+    final int map = packet.mapId().id() - 3;
+    final boolean addressesTheGrid = map >= 0 && map < columns;
+    assertTrue(addressesTheGrid);
+
+    final MapItemSavedData.MapPatch patch = packet.colorPatch().orElseThrow();
+    final byte[] colors = patch.mapColors();
+    for (int row = 0; row < patch.height(); row++) {
+      final int target = (patch.startY() + row) * columns * MAP_SIZE + map * MAP_SIZE + patch.startX();
+      System.arraycopy(colors, row * patch.width(), canvas, target, patch.width());
+    }
   }
 
   private byte[] changedFrame() {
@@ -277,17 +283,19 @@ final class CompressedMapResultTest {
     final Lock lock = (Lock) lockField.get(result);
     try {
       result.refresh();
-      runInAnotherThread(() -> {
-        final boolean acquired = lock.tryLock();
-        if (acquired) {
-          lock.unlock();
-        }
-
-        assertTrue(acquired, "refresh must release the processing lock for the next frame on another thread");
-      });
+      runInAnotherThread(() -> this.assertLockFree(lock));
     } finally {
       result.release();
     }
+  }
+
+  private void assertLockFree(final Lock lock) {
+    final boolean acquired = lock.tryLock();
+    if (acquired) {
+      lock.unlock();
+    }
+
+    assertTrue(acquired, "refresh must release the processing lock for the next frame on another thread");
   }
 
   @Test
@@ -931,39 +939,21 @@ final class CompressedMapResultTest {
     final CountDownLatch finishClear = new CountDownLatch(1);
     final CountDownLatch restarting = new CountDownLatch(1);
     final List<String> order = new CopyOnWriteArrayList<>();
-    when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(_ -> {
-      order.add("frame");
-      return this.nextFrame.clone();
-    });
+    when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(_ -> this.recordFrame(order));
     try (
       final ExecutorService workers = Executors.newFixedThreadPool(2);
       final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, BLACK)
     ) {
-      final CompletableFuture<Void> released = CompletableFuture.runAsync(() -> {
-        try (final MockedStatic<MapPacketFactory> packets = Mockito.mockStatic(MapPacketFactory.class)) {
-          packets
-            .when(() -> MapPacketFactory.clear(this.viewers, 3, 1))
-            .thenAnswer(_ -> {
-              clearing.countDown();
-              final boolean clearFinished = finishClear.await(10, TimeUnit.SECONDS);
-              assertTrue(clearFinished);
-
-              order.add("clear");
-              return null;
-            });
-          result.release();
-        }
-      }, workers);
+      final CompletableFuture<Void> released = CompletableFuture.runAsync(
+        () -> this.releaseWithSlowClear(result, clearing, finishClear, order),
+        workers
+      );
       final CompletableFuture<Void> restarted;
       try {
         final boolean clearStarted = clearing.await(5, TimeUnit.SECONDS);
         assertTrue(clearStarted);
 
-        restarted = CompletableFuture.runAsync(() -> {
-          restarting.countDown();
-          result.start();
-          result.process(image, this.algorithm);
-        }, workers);
+        restarted = CompletableFuture.runAsync(() -> this.restart(result, image, restarting), workers);
         final boolean restartStarted = restarting.await(5, TimeUnit.SECONDS);
         assertTrue(restartStarted);
         assertThrows(
@@ -979,6 +969,39 @@ final class CompressedMapResultTest {
       final List<String> expectedOrder = List.of("clear", "frame");
       assertEquals(expectedOrder, order);
     }
+  }
+
+  private byte[] recordFrame(final List<String> order) {
+    order.add("frame");
+    return this.nextFrame.clone();
+  }
+
+  private void releaseWithSlowClear(
+    final CompressedMapResult result,
+    final CountDownLatch clearing,
+    final CountDownLatch finishClear,
+    final List<String> order
+  ) {
+    try (final MockedStatic<MapPacketFactory> packets = Mockito.mockStatic(MapPacketFactory.class)) {
+      packets.when(() -> MapPacketFactory.clear(this.viewers, 3, 1)).thenAnswer(_ -> this.clearSlowly(clearing, finishClear, order));
+      result.release();
+    }
+  }
+
+  private @Nullable Object clearSlowly(final CountDownLatch clearing, final CountDownLatch finishClear, final List<String> order)
+    throws InterruptedException {
+    clearing.countDown();
+    final boolean clearFinished = finishClear.await(10, TimeUnit.SECONDS);
+    assertTrue(clearFinished);
+
+    order.add("clear");
+    return null;
+  }
+
+  private void restart(final CompressedMapResult result, final ImageBuffer image, final CountDownLatch restarting) {
+    restarting.countDown();
+    result.start();
+    result.process(image, this.algorithm);
   }
 
   @Test

@@ -56,22 +56,24 @@ final class ChatUtilsTest {
   /**
    * Gets the color of every visible character of the component, skipping line breaks.
    */
-  private static List<Integer> getCharacterColors(final Component component) {
+  private List<Integer> getCharacterColors(final Component component) {
     final List<Integer> colors = new ArrayList<>();
-    final FormattedText.StyledContentConsumer<Void> consumer = (style, content) -> {
-      final TextColor color = style.getColor();
-      final int value = color == null ? -1 : color.getValue();
-      for (int index = 0; index < content.length(); index++) {
-        final char character = content.charAt(index);
-        if (character != '\n') {
-          colors.add(value);
-        }
-      }
-
-      return Optional.empty();
-    };
+    final FormattedText.StyledContentConsumer<Void> consumer = (style, content) -> this.recordColors(colors, style, content);
     component.visit(consumer, Style.EMPTY);
     return colors;
+  }
+
+  private Optional<Void> recordColors(final List<Integer> colors, final Style style, final String content) {
+    final TextColor color = style.getColor();
+    final int value = color == null ? -1 : color.getValue();
+    for (int index = 0; index < content.length(); index++) {
+      final char character = content.charAt(index);
+      if (character != '\n') {
+        colors.add(value);
+      }
+    }
+
+    return Optional.empty();
   }
 
   @Test
@@ -143,7 +145,7 @@ final class ChatUtilsTest {
     final int[] pixels = { RED, RED, GREEN, BLUE };
     final Component component = ChatUtils.createChatComponent(pixels, CHARACTER, 2, 2);
     final String text = component.getString();
-    final List<Integer> colors = getCharacterColors(component);
+    final List<Integer> colors = this.getCharacterColors(component);
     final List<Integer> expectedColors = List.of(RED_RGB, RED_RGB, GREEN_RGB, BLUE_RGB);
     assertEquals("##\n##", text);
     assertEquals(expectedColors, colors);
@@ -154,7 +156,7 @@ final class ChatUtilsTest {
     final int[] pixels = { BLUE, GREEN, RED };
     final Component component = ChatUtils.createChatComponent(pixels, "█", 1, 2);
     final String text = component.getString();
-    final List<Integer> colors = getCharacterColors(component);
+    final List<Integer> colors = this.getCharacterColors(component);
     final List<Integer> expectedColors = List.of(BLUE_RGB, GREEN_RGB);
     assertEquals("█\n█", text);
     assertEquals(expectedColors, colors);

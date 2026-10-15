@@ -117,17 +117,7 @@ final class Mcv2PaletteFitTest {
     final int[] dark = { DARK_RED, DARK_GREEN, DARK_BLUE };
     final int[] light = { LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
     for (final Layout layout : Layout.values()) {
-      final int[] source = new int[size * size * 3];
-      for (int row = 0; row < size; row++) {
-        for (int column = 0; column < size; column++) {
-          final boolean bright = switch (layout) {
-            case STRIPED_COLUMNS -> (column & 1) == 0;
-            case STRIPED_ROWS -> (row & 2) == 0;
-            case CHECKERBOARD -> ((column ^ row) & 1) == 0;
-          };
-          System.arraycopy(bright ? light : dark, 0, source, (row * size + column) * 3, 3);
-        }
-      }
+      final int[] source = this.layoutSource(layout, size, dark, light);
       final int[] endpoints = new int[ENDPOINTS_LENGTH];
       Mcv2Internals.javaKernels().cluster(source, size, endpoints);
       final int[] colors = new int[ENDPOINTS_LENGTH];
@@ -144,6 +134,26 @@ final class Mcv2PaletteFitTest {
         assertArrayEquals(plain, selectors);
       }
     }
+  }
+
+  private int[] layoutSource(final Layout layout, final int size, final int[] dark, final int[] light) {
+    final int[] source = new int[size * size * 3];
+    for (int row = 0; row < size; row++) {
+      for (int column = 0; column < size; column++) {
+        final boolean bright = this.isBright(layout, row, column);
+        System.arraycopy(bright ? light : dark, 0, source, (row * size + column) * 3, 3);
+      }
+    }
+
+    return source;
+  }
+
+  private boolean isBright(final Layout layout, final int row, final int column) {
+    return switch (layout) {
+      case STRIPED_COLUMNS -> (column & 1) == 0;
+      case STRIPED_ROWS -> (row & 2) == 0;
+      case CHECKERBOARD -> ((column ^ row) & 1) == 0;
+    };
   }
 
   private enum Layout {

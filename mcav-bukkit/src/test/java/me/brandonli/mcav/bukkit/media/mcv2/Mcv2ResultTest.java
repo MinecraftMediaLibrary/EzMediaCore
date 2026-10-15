@@ -1367,14 +1367,7 @@ final class Mcv2ResultTest {
       recording.enable(FRAME_EVENT_NAME);
       recording.start();
       for (int id = 0; id < frames.size(); id++) {
-        final byte[] frame = frames.get(id);
-        when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(frame);
-        when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(frame.length, id == 0 || id == 4, 1, 1, LAMBDA));
-        if (id == 3) {
-          this.server.completeWrites(WITH_PACK);
-        }
-        result.send(encoder, new Mcv2Result.Arrival(new byte[32 * 32 * 3], 32, 32, 0, Mcv2Pacer.Preset.ONLY), id);
-        this.server.completeWrites(second);
+        this.sendRecordedFrame(result, encoder, frames.get(id), id, second);
       }
 
       recording.stop();
@@ -1409,6 +1402,18 @@ final class Mcv2ResultTest {
     result.release();
   }
 
+  private void sendRecordedFrame(final Mcv2Result result, final Mcv2 encoder, final byte[] frame, final int id, final UUID second)
+    throws Exception {
+    when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(frame);
+    when(encoder.getStatistics()).thenReturn(new Mcv2.Statistics(frame.length, id == 0 || id == 4, 1, 1, LAMBDA));
+    if (id == 3) {
+      this.server.completeWrites(WITH_PACK);
+    }
+
+    result.send(encoder, new Mcv2Result.Arrival(new byte[32 * 32 * 3], 32, 32, 0, Mcv2Pacer.Preset.ONLY), id);
+    this.server.completeWrites(second);
+  }
+
   /** A screen of one map for the viewer with the pack, at 64x32, with the given encoder settings. */
   private static Mcv2Configuration packScreen(final Settings settings) {
     return Mcv2Configuration.builder()
@@ -1430,27 +1435,31 @@ final class Mcv2ResultTest {
    * or fails its verification.
    */
   private static Function<Settings, Mcv2> mockEncoders(final List<Mcv2> made, final boolean failing, final CountDownLatch gate) {
-    return settings -> {
-      final Mcv2 encoder = mock(Mcv2.class);
-      when(encoder.getSettings()).thenReturn(settings);
-      final Mcv2.Pending pending = mock(Mcv2.Pending.class);
-      when(encoder.begin(any(), anyInt(), anyInt(), anyLong())).thenReturn(pending);
+    return settings -> mockEncoder(settings, made, failing, gate);
+  }
 
-      if (failing) {
-        when(encoder.finish(pending)).thenThrow(new IllegalStateException(DISAGREEMENT_MESSAGE));
-      } else {
-        final Mcv2.Encoded encoded = mock(Mcv2.Encoded.class);
-        when(encoded.getData()).thenReturn(Mcv2ChannelTest.keyframe());
-        when(encoded.getStatistics()).thenReturn(new Mcv2.Statistics(1, true, 1, 1, 55));
-        when(encoder.finish(pending)).thenAnswer(_ -> {
-          gate.await();
-          return encoded;
-        });
-      }
+  private static Mcv2 mockEncoder(final Settings settings, final List<Mcv2> made, final boolean failing, final CountDownLatch gate) {
+    final Mcv2 encoder = mock(Mcv2.class);
+    when(encoder.getSettings()).thenReturn(settings);
+    final Mcv2.Pending pending = mock(Mcv2.Pending.class);
+    when(encoder.begin(any(), anyInt(), anyInt(), anyLong())).thenReturn(pending);
 
-      made.add(encoder);
-      return encoder;
-    };
+    if (failing) {
+      when(encoder.finish(pending)).thenThrow(new IllegalStateException(DISAGREEMENT_MESSAGE));
+    } else {
+      final Mcv2.Encoded encoded = mock(Mcv2.Encoded.class);
+      when(encoded.getData()).thenReturn(Mcv2ChannelTest.keyframe());
+      when(encoded.getStatistics()).thenReturn(new Mcv2.Statistics(1, true, 1, 1, 55));
+      when(encoder.finish(pending)).thenAnswer(_ -> awaitGate(gate, encoded));
+    }
+
+    made.add(encoder);
+    return encoder;
+  }
+
+  private static Mcv2.Encoded awaitGate(final CountDownLatch gate, final Mcv2.Encoded encoded) throws InterruptedException {
+    gate.await();
+    return encoded;
   }
 
   /** Waits until the screen's thread has made the given number of encoders. */
@@ -1721,17 +1730,23 @@ final class Mcv2ResultTest {
       result.applyFilter(frame, this.metadata);
       final Mcv2Result.Arrival handed = result.poll();
       if (handed != null) {
-        final Settings settings = result.settingsFor(handed);
-        if (!settings.equals(encoder.getSettings())) {
-          encoder = result.encoderFor(settings, encoder);
-        }
-
+        encoder = this.encoderOfPreset(result, handed, encoder);
         result.send(encoder, handed, frameNumber);
       }
+
       clock.set(arrival);
     }
 
     return encoder;
+  }
+
+  private Mcv2 encoderOfPreset(final Mcv2Result result, final Mcv2Result.Arrival handed, final Mcv2 encoder) {
+    final Settings settings = result.settingsFor(handed);
+    if (settings.equals(encoder.getSettings())) {
+      return encoder;
+    }
+
+    return result.encoderFor(settings, encoder);
   }
 
   @Test
@@ -1962,13 +1977,9 @@ final class Mcv2ResultTest {
     final CountDownLatch neverNotified = new CountDownLatch(1);
     final AtomicReference<Thread> waiting = new AtomicReference<>();
     try (
-      final MockedConstruction<Mcv2Result> results = Mockito.mockConstruction(Mcv2Result.class, (result, _) -> {
-        when(result.take()).thenAnswer(_ -> {
-          waiting.set(Thread.currentThread());
-          neverNotified.await();
-          return null;
-        });
-      })
+      final MockedConstruction<Mcv2Result> results = Mockito.mockConstruction(Mcv2Result.class, (result, _) ->
+        this.blockTake(result, waiting, neverNotified)
+      )
     ) {
       final AssertionError failure = assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease);
       final boolean namesTheRelease = failure.getMessage().contains("the release wakes a thread");
@@ -1988,20 +1999,27 @@ final class Mcv2ResultTest {
     }
   }
 
+  private void blockTake(final Mcv2Result result, final AtomicReference<Thread> waiting, final CountDownLatch neverNotified)
+    throws InterruptedException {
+    when(result.take()).thenAnswer(_ -> this.waitUnnotified(waiting, neverNotified));
+  }
+
+  private @Nullable Object waitUnnotified(final AtomicReference<Thread> waiting, final CountDownLatch neverNotified)
+    throws InterruptedException {
+    waiting.set(Thread.currentThread());
+    neverNotified.await();
+    return null;
+  }
+
   @Test
   void shouldStillStopTheFixtureWaiterWhenTheReleaseFails() throws InterruptedException {
     final CountDownLatch neverNotified = new CountDownLatch(1);
     final AtomicReference<Thread> waiting = new AtomicReference<>();
     final AssertionError forcedFailure = new AssertionError("forced release assertion!");
     try (
-      final MockedConstruction<Mcv2Result> results = Mockito.mockConstruction(Mcv2Result.class, (result, _) -> {
-        when(result.take()).thenAnswer(_ -> {
-          waiting.set(Thread.currentThread());
-          neverNotified.await();
-          return null;
-        });
-        Mockito.doThrow(forcedFailure).doNothing().when(result).release();
-      })
+      final MockedConstruction<Mcv2Result> results = Mockito.mockConstruction(Mcv2Result.class, (result, _) ->
+        this.blockTakeAndFailRelease(result, waiting, neverNotified, forcedFailure)
+      )
     ) {
       final AssertionError failure = assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease);
       assertSame(forcedFailure, failure);
@@ -2018,6 +2036,16 @@ final class Mcv2ResultTest {
         assertFalse(waiterAlive, WAITER_STOPPED_MESSAGE);
       }
     }
+  }
+
+  private void blockTakeAndFailRelease(
+    final Mcv2Result result,
+    final AtomicReference<Thread> waiting,
+    final CountDownLatch neverNotified,
+    final AssertionError forcedFailure
+  ) throws InterruptedException {
+    this.blockTake(result, waiting, neverNotified);
+    Mockito.doThrow(forcedFailure).doNothing().when(result).release();
   }
 
   @Test

@@ -88,27 +88,41 @@ final class Mcv2PipelineTest {
     final Mcv2 encoder = new Mcv2(settings, POOL, 2, true);
     final ExecutorService verifier = Executors.newSingleThreadExecutor();
     try {
-      final List<byte[]> stream = new ArrayList<>();
-      Future<Mcv2.Encoded> verifying = null;
-      for (int frameNumber = 0; frameNumber < frames; frameNumber++) {
-        if (requestEvery > 0 && frameNumber % requestEvery == 0) {
-          encoder.requestKeyframe();
-        }
-        final Mcv2.Pending pending = encoder.begin(Mcv2Pictures.scene(width, height, frameNumber, panPerFrame), width, height, frameNumber);
-        if (verifying != null) {
-          stream.add(verifying.get().getData());
-        }
-        verifying = verifier.submit(() -> encoder.finish(pending));
+      return encodePipelined(encoder, verifier, width, height, frames, panPerFrame, requestEvery);
+    } finally {
+      verifier.shutdown();
+    }
+  }
+
+  private static List<byte[]> encodePipelined(
+    final Mcv2 encoder,
+    final ExecutorService verifier,
+    final int width,
+    final int height,
+    final int frames,
+    final int panPerFrame,
+    final int requestEvery
+  ) throws InterruptedException, ExecutionException {
+    final List<byte[]> stream = new ArrayList<>();
+    Future<Mcv2.Encoded> verifying = null;
+    for (int frameNumber = 0; frameNumber < frames; frameNumber++) {
+      if (requestEvery > 0 && frameNumber % requestEvery == 0) {
+        encoder.requestKeyframe();
       }
 
+      final Mcv2.Pending pending = encoder.begin(Mcv2Pictures.scene(width, height, frameNumber, panPerFrame), width, height, frameNumber);
       if (verifying != null) {
         stream.add(verifying.get().getData());
       }
 
-      return stream;
-    } finally {
-      verifier.shutdown();
+      verifying = verifier.submit(() -> encoder.finish(pending));
     }
+
+    if (verifying != null) {
+      stream.add(verifying.get().getData());
+    }
+
+    return stream;
   }
 
   @Test
@@ -151,21 +165,7 @@ final class Mcv2PipelineTest {
     final Supplier<?> original = (Supplier<?>) factory.get(encoder);
     final CountDownLatch searching = new CountDownLatch(1);
     final CountDownLatch resume = new CountDownLatch(1);
-    factory.set(
-      encoder,
-      (Supplier<?>) () -> {
-        searching.countDown();
-        try {
-          final boolean resumed = resume.await(30, TimeUnit.SECONDS);
-          assertTrue(resumed);
-        } catch (final InterruptedException exception) {
-          Thread.currentThread().interrupt();
-          throw new AssertionError(exception);
-        }
-
-        return original.get();
-      }
-    );
+    factory.set(encoder, (Supplier<?>) () -> this.pauseBeforeSearching(searching, resume, original));
     try (final ExecutorService caller = Executors.newSingleThreadExecutor()) {
       final Future<Mcv2.Pending> first = caller.submit(() -> encoder.begin(new byte[3], 1, 1, 0));
       try {
@@ -199,22 +199,42 @@ final class Mcv2PipelineTest {
     }
   }
 
+  private Object pauseBeforeSearching(final CountDownLatch searching, final CountDownLatch resume, final Supplier<?> original) {
+    searching.countDown();
+    try {
+      final boolean resumed = resume.await(30, TimeUnit.SECONDS);
+      assertTrue(resumed);
+    } catch (final InterruptedException exception) {
+      final Thread current = Thread.currentThread();
+      current.interrupt();
+
+      throw new AssertionError(exception);
+    }
+
+    return original.get();
+  }
+
   @Test
   void shouldPipelineToTheStreamItEncodesOneFrameAtATime() throws InterruptedException, ExecutionException, Mcv2Exception {
     final List<Settings> profiles = List.of(Settings.DEFAULT, Settings.FAST);
     for (final Settings settings : profiles) {
       for (final int requestEvery : new int[] { 0, 1, 3 }) {
-        final List<byte[]> one = sequential(settings, 100, 70, 7, 3, requestEvery);
-        final List<byte[]> two = pipelined(settings, 100, 70, 7, 3, requestEvery);
-        final Mcv2Receiver client = new Mcv2Receiver();
-        for (int frameIndex = 0; frameIndex < one.size(); frameIndex++) {
-          final byte[] expected = one.get(frameIndex);
-          final byte[] pipelinedFrame = two.get(frameIndex);
-          assertArrayEquals(expected, pipelinedFrame, settings + " frame " + frameIndex);
-
-          client.accept(two.get(frameIndex));
-        }
+        this.assertPipelinedMatchesSequential(settings, requestEvery);
       }
+    }
+  }
+
+  private void assertPipelinedMatchesSequential(final Settings settings, final int requestEvery)
+    throws InterruptedException, ExecutionException, Mcv2Exception {
+    final List<byte[]> one = sequential(settings, 100, 70, 7, 3, requestEvery);
+    final List<byte[]> two = pipelined(settings, 100, 70, 7, 3, requestEvery);
+    final Mcv2Receiver client = new Mcv2Receiver();
+    for (int frameIndex = 0; frameIndex < one.size(); frameIndex++) {
+      final byte[] expected = one.get(frameIndex);
+      final byte[] pipelinedFrame = two.get(frameIndex);
+      assertArrayEquals(expected, pipelinedFrame, settings + " frame " + frameIndex);
+
+      client.accept(two.get(frameIndex));
     }
   }
 

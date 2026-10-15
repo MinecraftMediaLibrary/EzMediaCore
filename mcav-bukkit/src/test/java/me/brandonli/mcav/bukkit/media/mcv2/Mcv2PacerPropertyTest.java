@@ -183,31 +183,44 @@ final class Mcv2PacerPropertyTest {
       final long end = this.now + (long) (seconds * SECOND);
       while (this.now < end) {
         final long arrival = this.now + this.interval;
-        while (this.encoding && this.busyUntil <= arrival) {
-          this.encoding = false;
-          final Mcv2Pacer.Change change = this.pacer.encoded(this.cost, false, this.busyUntil);
-          if (change != null) {
-            this.record(change, this.busyUntil);
-            this.waiting = false;
-          }
-          if (this.waiting) {
-            this.waiting = false;
-            this.start(this.busyUntil, fullMilliseconds);
-          }
-        }
+        this.finishEncodingsBy(arrival, fullMilliseconds);
         this.now = arrival;
-        final Mcv2Pacer.Change tried = this.pacer.arrive(arrival);
-        if (tried != null) {
-          this.record(tried, arrival);
+        this.arrive(arrival, fullMilliseconds);
+      }
+    }
+
+    private void finishEncodingsBy(final long arrival, final double fullMilliseconds) {
+      while (this.encoding && this.busyUntil <= arrival) {
+        this.encoding = false;
+        final Mcv2Pacer.Change change = this.pacer.encoded(this.cost, false, this.busyUntil);
+        if (change != null) {
+          this.record(change, this.busyUntil);
+          this.waiting = false;
         }
-        if (this.pacer.isEncoded()) {
-          if (this.encoding) {
-            this.waiting = true;
-          } else {
-            this.start(arrival, fullMilliseconds);
-          }
+
+        if (this.waiting) {
+          this.waiting = false;
+          this.start(this.busyUntil, fullMilliseconds);
         }
       }
+    }
+
+    private void arrive(final long arrival, final double fullMilliseconds) {
+      final Mcv2Pacer.Change tried = this.pacer.arrive(arrival);
+      if (tried != null) {
+        this.record(tried, arrival);
+      }
+
+      if (!this.pacer.isEncoded()) {
+        return;
+      }
+
+      if (this.encoding) {
+        this.waiting = true;
+        return;
+      }
+
+      this.start(arrival, fullMilliseconds);
     }
 
     private void start(final long at, final double fullMilliseconds) {

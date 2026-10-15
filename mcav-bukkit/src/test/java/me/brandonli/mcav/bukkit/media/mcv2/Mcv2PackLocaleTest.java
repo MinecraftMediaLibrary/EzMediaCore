@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -82,19 +83,23 @@ final class Mcv2PackLocaleTest {
     Mcv2Pack.write(configuration, true, zip);
     final Map<String, String> shaders = new HashMap<>();
     try (final ZipFile archive = new ZipFile(zip.toFile())) {
-      for (final ZipEntry entry : archive.stream().toList()) {
-        if (
-          entry.getName().endsWith(SHADER_LIBRARY_EXTENSION) ||
-          entry.getName().endsWith(VERTEX_SHADER_EXTENSION) ||
-          entry.getName().endsWith(FRAGMENT_SHADER_EXTENSION)
-        ) {
-          try (final InputStream input = archive.getInputStream(entry)) {
-            shaders.put(entry.getName(), new String(input.readAllBytes(), StandardCharsets.UTF_8));
-          }
-        }
+      final List<? extends ZipEntry> entries = archive.stream().filter(this::isShader).toList();
+      for (final ZipEntry entry : entries) {
+        shaders.put(entry.getName(), this.readText(archive, entry));
       }
     }
 
     return shaders;
+  }
+
+  private boolean isShader(final ZipEntry entry) {
+    final String name = entry.getName();
+    return name.endsWith(SHADER_LIBRARY_EXTENSION) || name.endsWith(VERTEX_SHADER_EXTENSION) || name.endsWith(FRAGMENT_SHADER_EXTENSION);
+  }
+
+  private String readText(final ZipFile archive, final ZipEntry entry) throws IOException {
+    try (final InputStream input = archive.getInputStream(entry)) {
+      return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+    }
   }
 }

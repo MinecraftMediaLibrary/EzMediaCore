@@ -107,44 +107,52 @@ final class Mcv2ParserPropertyTest {
   private static byte[] mutate(final byte[] frame, final List<Mutation> mutations) {
     byte[] bytes = frame.clone();
     for (final Mutation mutation : mutations) {
-      final int length = bytes.length;
-      final int position = length == 0 ? 0 : mutation.position() % length;
-      final int value = mutation.value();
-      switch (mutation.kind()) {
-        case 0 -> {
-          if (length > 0) {
-            bytes[position] ^= (byte) (value | 1);
-          }
+      bytes = mutateOnce(bytes, mutation);
+    }
+
+    return bytes;
+  }
+
+  private static byte[] mutateOnce(final byte[] bytes, final Mutation mutation) {
+    final int length = bytes.length;
+    final int position = length == 0 ? 0 : mutation.position() % length;
+    final int value = mutation.value();
+    switch (mutation.kind()) {
+      case 0 -> {
+        if (length > 0) {
+          bytes[position] ^= (byte) (value | 1);
         }
-        case 1 -> {
-          // one of the header or initial index words, set to a value a bounds check turns on
-          final int offset = 4 * (mutation.position() % 12);
-          if (offset + 4 <= length) {
-            Mcv2Decoder.putU32(bytes, offset, EDGES[Math.floorMod(value, EDGES.length)]);
-          }
+      }
+      case 1 -> {
+        // one of the header or initial index words, set to a value a bounds check turns on
+        final int offset = 4 * (mutation.position() % 12);
+        if (offset + 4 <= length) {
+          Mcv2Decoder.putU32(bytes, offset, EDGES[Math.floorMod(value, EDGES.length)]);
         }
-        case 2 -> {
-          if (position + 2 <= length) {
-            Mcv2Decoder.putU16(bytes, position, value & 0xFFFF);
-          }
+      }
+      case 2 -> {
+        if (position + 2 <= length) {
+          Mcv2Decoder.putU16(bytes, position, value & 0xFFFF);
         }
-        case 3 -> bytes = Arrays.copyOf(bytes, position);
-        case 4 -> {
-          final byte[] grown = Arrays.copyOf(bytes, length + Math.floorMod(value, 64));
-          Arrays.fill(grown, length, grown.length, (byte) (value >>> 8));
-          bytes = grown;
+      }
+      case 3 -> {
+        return Arrays.copyOf(bytes, position);
+      }
+      case 4 -> {
+        final byte[] grown = Arrays.copyOf(bytes, length + Math.floorMod(value, 64));
+        Arrays.fill(grown, length, grown.length, (byte) (value >>> 8));
+        return grown;
+      }
+      case 5 -> {
+        final byte[] other = FRAMES.get(Math.floorMod(value, FRAMES.size()));
+        final int run = Math.min(16, Math.min(length - position, other.length - Math.min(position, other.length)));
+        if (run > 0) {
+          System.arraycopy(other, position, bytes, position, run);
         }
-        case 5 -> {
-          final byte[] other = FRAMES.get(Math.floorMod(value, FRAMES.size()));
-          final int run = Math.min(16, Math.min(length - position, other.length - Math.min(position, other.length)));
-          if (run > 0) {
-            System.arraycopy(other, position, bytes, position, run);
-          }
-        }
-        default -> {
-          if (length > 0) {
-            bytes[position] = (byte) EDGES[Math.floorMod(value, 6)];
-          }
+      }
+      default -> {
+        if (length > 0) {
+          bytes[position] = (byte) EDGES[Math.floorMod(value, 6)];
         }
       }
     }

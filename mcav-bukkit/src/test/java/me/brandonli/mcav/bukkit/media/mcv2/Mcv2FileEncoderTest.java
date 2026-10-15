@@ -262,24 +262,7 @@ final class Mcv2FileEncoderTest {
   }
 
   private static Mcv2FileEncoder.FrameReader repeating(final byte[] picture, final int count) {
-    return new Mcv2FileEncoder.FrameReader() {
-      private int read;
-
-      @Override
-      public boolean read(final byte[] pictureBytes) {
-        if (this.read == count) {
-          return false;
-        }
-
-        System.arraycopy(picture, 0, pictureBytes, 0, picture.length);
-        this.read++;
-
-        return true;
-      }
-
-      @Override
-      public void close() {}
-    };
+    return new RepeatingReader(picture, count);
   }
 
   @Test
@@ -391,5 +374,33 @@ final class Mcv2FileEncoderTest {
 
     assertThrows(IllegalStateException.class, () -> Mcv2FileEncoder.copy(frame, rgb, 3, 2));
     assertThrows(IllegalStateException.class, () -> Mcv2FileEncoder.copy(frame, rgb, 2, 3));
+  }
+
+  private static final class RepeatingReader implements Mcv2FileEncoder.FrameReader {
+
+    private final byte[] picture;
+    private final int count;
+
+    private int read;
+
+    RepeatingReader(final byte[] picture, final int count) {
+      this.picture = picture;
+      this.count = count;
+    }
+
+    @Override
+    public boolean read(final byte[] pictureBytes) {
+      if (this.read == this.count) {
+        return false;
+      }
+
+      System.arraycopy(this.picture, 0, pictureBytes, 0, this.picture.length);
+      this.read++;
+
+      return true;
+    }
+
+    @Override
+    public void close() {}
   }
 }

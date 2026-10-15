@@ -20,6 +20,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -81,25 +82,26 @@ final class NativeTesting {
    * @throws IllegalStateException if the library should load and did not
    */
   static synchronized Resolution resolution() {
-    Resolution current = loaded;
-    if (current == null) {
-      current = Natives.resolve(
-        Mcv2.NATIVE_AUTO,
-        Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, "")),
-        FOLDER,
-        platform ->
-          Natives.read(Mcv2.class.getResourceAsStream(NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform))),
-        null
-      );
-      if (expected() && current.binding() == null) {
-        final String message = "The MCV2 native kernels must load here and did not (%s)!".formatted(current.description());
-        throw new IllegalStateException(message);
-      }
-
-      loaded = current;
+    final Resolution previous = loaded;
+    if (previous != null) {
+      return previous;
     }
 
+    final String platform = Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""));
+    final Resolution current = Natives.resolve(Mcv2.NATIVE_AUTO, platform, FOLDER, NativeTesting::readLibrary, null);
+    if (expected() && current.binding() == null) {
+      final String message = "The MCV2 native kernels must load here and did not (%s)!".formatted(current.description());
+      throw new IllegalStateException(message);
+    }
+
+    loaded = current;
+
     return current;
+  }
+
+  private static byte @Nullable [] readLibrary(final String platform) {
+    final String resource = NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform);
+    return Natives.read(Mcv2.class.getResourceAsStream(resource));
   }
 
   /**
@@ -180,26 +182,27 @@ final class NativeTesting {
     return (NativeKernels) Proxy.newProxyInstance(
       NativeKernels.class.getClassLoader(),
       new Class<?>[] { NativeKernels.class },
-      (_, method, arguments) -> {
-        if (method.getName().equals("level")) {
-          return ((Binding) Mcv2Internals.field(type, kernels, "binding")).level();
-        }
-
-        if (method.getName().equals("keeps")) {
-          final Object array = Objects.requireNonNull(arguments)[0];
-          final int slot = (int) Mcv2Internals.invoke(type, null, "slot", new Class<?>[] { Object.class }, array);
-          return Mcv2Internals.invoke(type, kernels, "remembers", new Class<?>[] { int.class, Object.class }, slot, array);
-        }
-
-        return Mcv2Internals.call(
-          type,
-          kernels,
-          method.getName(),
-          method.getParameterTypes(),
-          arguments == null ? new Object[0] : arguments
-        );
-      }
+      (_, method, arguments) -> invokeView(type, kernels, method, arguments)
     );
+  }
+
+  private static @Nullable Object invokeView(
+    final Class<?> type,
+    final Object kernels,
+    final Method method,
+    final @Nullable Object @Nullable [] arguments
+  ) {
+    if (method.getName().equals("level")) {
+      return ((Binding) Mcv2Internals.field(type, kernels, "binding")).level();
+    }
+
+    if (method.getName().equals("keeps")) {
+      final Object array = Objects.requireNonNull(arguments)[0];
+      final int slot = (int) Mcv2Internals.invoke(type, null, "slot", new Class<?>[] { Object.class }, array);
+      return Mcv2Internals.invoke(type, kernels, "remembers", new Class<?>[] { int.class, Object.class }, slot, array);
+    }
+
+    return Mcv2Internals.call(type, kernels, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments);
   }
 
   static Mcv2 encoder(final Settings settings, final int threads, final boolean verify, final Supplier<?> factory) {

@@ -94,16 +94,20 @@ final class JavadocFormattingExampleTest {
         final int teamCount = teams.size();
         assertEquals(PICTURE_HEIGHT, teamCount);
 
-        for (int row = 0; row < PICTURE_HEIGHT; row++) {
-          final int color = row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR;
-          verify(teams.get(row)).suffix(Component.text("█".repeat(PICTURE_WIDTH), TextColor.color(color)));
-        }
+        this.verifyStripes(teams);
       } finally {
         display.release();
       }
 
       final Scoreboard restored = viewer.getScoreboard();
       assertSame(previous, restored);
+    }
+  }
+
+  private void verifyStripes(final List<Team> teams) {
+    for (int row = 0; row < PICTURE_HEIGHT; row++) {
+      final int color = row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR;
+      verify(teams.get(row)).suffix(Component.text("█".repeat(PICTURE_WIDTH), TextColor.color(color)));
     }
   }
 }

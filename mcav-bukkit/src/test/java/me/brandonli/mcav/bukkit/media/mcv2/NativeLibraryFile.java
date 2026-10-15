@@ -147,27 +147,42 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
       final int end = start + Math.toIntExact(file.getLong(header + 32));
       final int names = Math.toIntExact(file.getLong(sectionHeaders + file.getInt(header + 40) * headerSize + 24));
       if (type == SHT_DYNSYM) {
-        // the first entry is the reserved null symbol
-        for (int symbol = start + ELF_SYMBOL_SIZE; symbol < end; symbol += ELF_SYMBOL_SIZE) {
-          final String name = string(file, names + file.getInt(symbol));
-          final int binding = Byte.toUnsignedInt(file.get(symbol + 4)) >>> 4;
-          final int visibility = file.get(symbol + 5) & 3;
-          if (Short.toUnsignedInt(file.getShort(symbol + 6)) == SHN_UNDEF) {
-            undefined.add(name);
-          } else if ((binding == STB_GLOBAL || binding == STB_WEAK) && visibility == STV_DEFAULT) {
-            exports.add(name);
-          }
-        }
+        readDynamicSymbols(file, start, end, names, exports, undefined);
       } else if (type == SHT_DYNAMIC) {
-        for (int entry = start; entry < end; entry += ELF_DYNAMIC_SIZE) {
-          if (file.getLong(entry) == DT_NEEDED) {
-            needed.add(string(file, names + Math.toIntExact(file.getLong(entry + 8))));
-          }
-        }
+        readNeeded(file, start, end, names, needed);
       }
     }
 
     return new NativeLibraryFile(Format.ELF, machine, exports, needed, undefined);
+  }
+
+  private static void readDynamicSymbols(
+    final ByteBuffer file,
+    final int start,
+    final int end,
+    final int names,
+    final Set<String> exports,
+    final Set<String> undefined
+  ) {
+    // the first entry is the reserved null symbol
+    for (int symbol = start + ELF_SYMBOL_SIZE; symbol < end; symbol += ELF_SYMBOL_SIZE) {
+      final String name = string(file, names + file.getInt(symbol));
+      final int binding = Byte.toUnsignedInt(file.get(symbol + 4)) >>> 4;
+      final int visibility = file.get(symbol + 5) & 3;
+      if (Short.toUnsignedInt(file.getShort(symbol + 6)) == SHN_UNDEF) {
+        undefined.add(name);
+      } else if ((binding == STB_GLOBAL || binding == STB_WEAK) && visibility == STV_DEFAULT) {
+        exports.add(name);
+      }
+    }
+  }
+
+  private static void readNeeded(final ByteBuffer file, final int start, final int end, final int names, final List<String> needed) {
+    for (int entry = start; entry < end; entry += ELF_DYNAMIC_SIZE) {
+      if (file.getLong(entry) == DT_NEEDED) {
+        needed.add(string(file, names + Math.toIntExact(file.getLong(entry + 8))));
+      }
+    }
   }
 
   private static NativeLibraryFile pe(final ByteBuffer file) {
@@ -220,21 +235,26 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     int command = MACH_HEADER_64_SIZE;
     for (int index = 0; index < commands; index++) {
       if (file.getInt(command) == LC_SYMTAB) {
-        final int symbols = file.getInt(command + 8);
-        final int count = file.getInt(command + 12);
-        final int names = file.getInt(command + 16);
-        for (int symbol = 0; symbol < count; symbol++) {
-          final int entry = symbols + symbol * NLIST_64_SIZE;
-          final int type = Byte.toUnsignedInt(file.get(entry + 4));
-          if ((type & N_STAB) == 0 && (type & N_PEXT) == 0 && (type & N_EXT) != 0 && (type & N_TYPE) == N_SECT) {
-            exports.add(string(file, names + file.getInt(entry)).substring(1));
-          }
-        }
+        readSymbolTable(file, command, exports);
       }
+
       command += file.getInt(command + 4);
     }
 
     return new NativeLibraryFile(Format.MACH_O, machine, exports, List.of(), Set.of());
+  }
+
+  private static void readSymbolTable(final ByteBuffer file, final int command, final Set<String> exports) {
+    final int symbols = file.getInt(command + 8);
+    final int count = file.getInt(command + 12);
+    final int names = file.getInt(command + 16);
+    for (int symbol = 0; symbol < count; symbol++) {
+      final int entry = symbols + symbol * NLIST_64_SIZE;
+      final int type = Byte.toUnsignedInt(file.get(entry + 4));
+      if ((type & N_STAB) == 0 && (type & N_PEXT) == 0 && (type & N_EXT) != 0 && (type & N_TYPE) == N_SECT) {
+        exports.add(string(file, names + file.getInt(entry)).substring(1));
+      }
+    }
   }
 
   private static String string(final ByteBuffer file, final int offset) {

@@ -464,17 +464,23 @@ final class Mcv2ScreenTest {
         .pageMap(PAGE_MAP)
         .build();
       new Mcv2Screen(configuration).build();
-      final Set<Integer> absent = new TreeSet<>();
-      for (int slot = 0; slot < configuration.getPageSlots(); slot++) {
-        if (!this.items.containsKey(PAGE_MAP + slot)) {
-          absent.add(slot);
-        }
-      }
+      final Set<Integer> absent = this.findAbsentPageSlots(configuration);
       if (!absent.isEmpty()) {
         missing.put(wall[0] + "x" + wall[1] + " with " + configuration.getPageSlots() + " slots", absent);
       }
     }
 
     assertEquals(Map.of(), missing, "the page slots no map of the wall hangs in front of");
+  }
+
+  private Set<Integer> findAbsentPageSlots(final Mcv2Configuration configuration) {
+    final Set<Integer> absent = new TreeSet<>();
+    for (int slot = 0; slot < configuration.getPageSlots(); slot++) {
+      if (!this.items.containsKey(PAGE_MAP + slot)) {
+        absent.add(slot);
+      }
+    }
+
+    return absent;
   }
 }

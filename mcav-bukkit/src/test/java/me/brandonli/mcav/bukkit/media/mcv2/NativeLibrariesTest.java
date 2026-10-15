@@ -175,11 +175,9 @@ final class NativeLibrariesTest {
 
     final Map<String, String> tree = new TreeMap<>();
     try (final Stream<Path> files = Files.list(SOURCES)) {
-      for (final Path file : files.toList()) {
-        final String name = file.getFileName().toString();
-        if (!name.equals(FORMAT_SETTINGS)) {
-          tree.put(name, Mcv2Resources.sha256(Files.readAllBytes(file)));
-        }
+      final List<Path> sources = files.filter(file -> !file.getFileName().toString().equals(FORMAT_SETTINGS)).toList();
+      for (final Path file : sources) {
+        tree.put(file.getFileName().toString(), Mcv2Resources.sha256(Files.readAllBytes(file)));
       }
     }
 

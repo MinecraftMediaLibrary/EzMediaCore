@@ -133,21 +133,7 @@ public final class GeneratedMedia {
     final Set<ProcessHandle> descendants = new HashSet<>();
     boolean successful = false;
     try {
-      final long budget = TimeUnit.NANOSECONDS.convert(timeout);
-      while (true) {
-        try (final Stream<ProcessHandle> children = process.descendants()) {
-          children.forEach(descendants::add);
-        }
-        final long remaining = budget - (System.nanoTime() - startedAt);
-        if (remaining <= 0) {
-          final String message = "Fixture command %s took longer than its %s timeout!".formatted(command, timeout);
-          throw new IOException(message);
-        }
-        final long poll = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20));
-        if (process.waitFor(poll, TimeUnit.NANOSECONDS)) {
-          break;
-        }
-      }
+      waitForExit(process, command, timeout, startedAt, descendants);
 
       final int code = process.exitValue();
       if (code != 0) {
@@ -164,6 +150,34 @@ public final class GeneratedMedia {
     }
   }
 
+  private static void waitForExit(
+    final Process process,
+    final List<String> command,
+    final Duration timeout,
+    final long startedAt,
+    final Set<ProcessHandle> descendants
+  ) throws IOException, InterruptedException {
+    final long budget = TimeUnit.NANOSECONDS.convert(timeout);
+    boolean exited = false;
+    while (!exited) {
+      recordDescendants(process, descendants);
+      final long remaining = budget - (System.nanoTime() - startedAt);
+      if (remaining <= 0) {
+        final String message = "Fixture command %s took longer than its %s timeout!".formatted(command, timeout);
+        throw new IOException(message);
+      }
+
+      final long poll = Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20));
+      exited = process.waitFor(poll, TimeUnit.NANOSECONDS);
+    }
+  }
+
+  private static void recordDescendants(final Process process, final Set<ProcessHandle> descendants) {
+    try (final Stream<ProcessHandle> children = process.descendants()) {
+      children.forEach(descendants::add);
+    }
+  }
+
   private static String readLog(final Path log) throws IOException {
     try (final InputStream input = Files.newInputStream(log)) {
       final byte[] bytes = input.readNBytes(LOG_LIMIT_BYTES);
@@ -172,9 +186,7 @@ public final class GeneratedMedia {
   }
 
   private static void terminate(final Process process, final Set<ProcessHandle> descendants) {
-    try (final Stream<ProcessHandle> children = process.descendants()) {
-      children.forEach(descendants::add);
-    }
+    recordDescendants(process, descendants);
 
     descendants.forEach(ProcessHandle::destroyForcibly);
     process.destroyForcibly();
@@ -191,23 +203,31 @@ public final class GeneratedMedia {
     IOException cleanup = null;
     final List<Path> paths = log == null ? List.of(temporary) : List.of(temporary, log);
     for (final Path path : paths) {
-      try {
-        Files.deleteIfExists(path);
-      } catch (final IOException exception) {
-        if (cleanup == null) {
-          cleanup = exception;
-        } else {
-          cleanup.addSuppressed(exception);
-        }
-      }
+      cleanup = deleteCollectingFailure(path, cleanup);
     }
 
-    if (cleanup != null) {
-      if (primary != null) {
-        primary.addSuppressed(cleanup);
-      } else {
-        throw cleanup;
+    if (cleanup == null) {
+      return;
+    }
+
+    if (primary == null) {
+      throw cleanup;
+    }
+
+    primary.addSuppressed(cleanup);
+  }
+
+  private static @Nullable IOException deleteCollectingFailure(final Path path, final @Nullable IOException earlier) {
+    try {
+      Files.deleteIfExists(path);
+      return earlier;
+    } catch (final IOException exception) {
+      if (earlier == null) {
+        return exception;
       }
+
+      earlier.addSuppressed(exception);
+      return earlier;
     }
   }
 }

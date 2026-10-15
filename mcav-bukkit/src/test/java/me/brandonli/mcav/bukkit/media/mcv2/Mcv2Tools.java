@@ -51,6 +51,7 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.MapAlphabet;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -272,12 +273,7 @@ final class Mcv2Tools {
     final long frameBytes = (long) width * height * 3;
     final int sourceFrames = (int) (Files.size(source) / frameBytes);
     final String loop = options.getOrDefault("loop", "none");
-    final boolean inBudget = Boolean.parseBoolean(options.getOrDefault("budget", "true"));
-    final OperatingSystemMXBean system = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-    final ThreadMXBean threadBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
-    final Measurement measured = new Measurement(frames);
-    final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION);
-    final byte[] buffer = new byte[DEFLATE_BUFFER];
+    final FrameMeter meter = new FrameMeter(options, encoder, budget, width, height, frames);
     try (
       RandomAccessFile input = new RandomAccessFile(source.toFile(), READ_MODE);
       DataOutputStream out = options.containsKey("out")
@@ -291,42 +287,30 @@ final class Mcv2Tools {
       for (int frameIndex = 0; frameIndex < frames; frameIndex++) {
         input.seek(sourceIndex(frameIndex, loop, sourceFrames) * frameBytes);
         input.readFully(rgb);
-        final long cpuBefore = system.getProcessCpuTime();
-        final long allocatedBefore = threadBean.getTotalThreadAllocatedBytes();
-        final long startNanoseconds = System.nanoTime();
-        final long frameId = frameIndex;
-        if (options.getOrDefault("key", "0").equals("1")) {
-          encoder.requestKeyframe();
-        }
-        final byte[] predictFrom = encoder.getReference();
-        final byte[] data = inBudget
-          ? budget.run(() -> encoder.encode(rgb, width, height, frameId))
-          : encoder.encode(rgb, width, height, frameId);
-        measured.times[frameIndex] = System.nanoTime() - startNanoseconds;
-        measured.cpu[frameIndex] = system.getProcessCpuTime() - cpuBefore;
-        measured.allocated[frameIndex] = threadBean.getTotalThreadAllocatedBytes() - allocatedBefore;
-        if (encoder.getStatistics().keyframe()) {
-          measured.keyframes++;
-        }
-        measured.logical += data.length;
-        final List<byte[]> pages = TransportPages.makePages(data, STREAM_ID);
-        measured.wire += TransportPages.wireBytes(pages, false, TransportPages.PACKET_OVERHEAD);
-        measured.zlib += zlibBytes(pages, deflater, buffer);
-        final byte[] picture = decoded(data, predictFrom);
-        final double mse = squaredError(rgb, picture) / (double) rgb.length;
-        measured.psnrSum += mse == 0 ? EXACT_PSNR : psnr(mse);
-        measured.mseSum += mse;
-        if (out != null) {
-          out.writeInt(Integer.reverseBytes(data.length));
-          out.write(data);
-        }
-        if (decoded != null) {
-          decoded.write(picture);
-        }
+        final EncodedFrame frame = meter.encode(rgb, frameIndex);
+        writeFrame(out, frame.getData());
+        writeDecoded(decoded, frame.getPicture());
       }
     }
 
-    return measured;
+    return meter.getMeasurement();
+  }
+
+  private static void writeFrame(final @Nullable DataOutputStream out, final byte[] data) throws IOException {
+    if (out == null) {
+      return;
+    }
+
+    out.writeInt(Integer.reverseBytes(data.length));
+    out.write(data);
+  }
+
+  private static void writeDecoded(final @Nullable OutputStream decoded, final byte[] picture) throws IOException {
+    if (decoded == null) {
+      return;
+    }
+
+    decoded.write(picture);
   }
 
   private static byte[] decoded(final byte[] data, final byte[] predictFrom) throws Mcv2Exception {
@@ -526,41 +510,16 @@ final class Mcv2Tools {
     final Map<String, Object> pages
   ) throws Exception {
     final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
-    final Mcv2Receiver receiver = new Mcv2Receiver();
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     final List<String> hashes = new ArrayList<>();
     final byte[] rgb = new byte[width * height * CHANNELS];
+    final FixtureArchive fixture = new FixtureArchive(name, encoder, archive, hashes, pages, rgb, width, height);
     final String raw = source + "30_pp600_1920x1080.rgb";
     try (final RandomAccessFile input = new RandomAccessFile(sources.resolve(raw).toFile(), READ_MODE)) {
-      for (int id = 0; id < count; id++) {
+      boolean fits = true;
+      for (int id = 0; id < count && fits; id++) {
         crop(input, id, rgb, width, height);
-        if (name.equals(PROXY_KEYFRAMES_STREAM)) {
-          encoder.requestKeyframe();
-        }
-        final byte[] data = encoder.encode(rgb, width, height, id);
-        if (archive.size() + Integer.BYTES + data.length > MAXIMUM_ARCHIVE_BYTES) {
-          break;
-        }
-        frame(archive, data);
-        final byte[] picture = receiver.accept(data);
-        if (!Arrays.equals(picture, encoder.getReference())) {
-          final String message = "Reference for %s frame %s differs!".formatted(name, id);
-          throw new IllegalStateException(message);
-        }
-        hashes.add(Mcv2Resources.sha256(picture));
-        if (name.equals(PROXY_DEFAULT_STREAM) && id < 4) {
-          final List<byte[]> symbols = TransportPages.makePages(data, 7);
-          final List<String> pageHashes = new ArrayList<>();
-          for (final byte[] page : symbols) {
-            pageHashes.add(Mcv2Resources.sha256(page));
-          }
-
-          final Map<String, Object> expected = new LinkedHashMap<>();
-          expected.put("pages", pageHashes);
-          expected.put("wire", TransportPages.wireBytes(symbols, false, TransportPages.PACKET_OVERHEAD));
-          expected.put("wire_full", TransportPages.wireBytes(symbols, true, TransportPages.PACKET_OVERHEAD));
-          pages.put(CONFORMANCE_FOLDER + name + "#" + id + "@6", expected);
-        }
+        fits = fixture.addFrame(id);
       }
     }
 
@@ -832,6 +791,174 @@ final class Mcv2Tools {
       this.times = new long[frames];
       this.cpu = new long[frames];
       this.allocated = new long[frames];
+    }
+  }
+
+  private static final class EncodedFrame {
+
+    private final byte[] data;
+    private final byte[] picture;
+
+    private EncodedFrame(final byte[] data, final byte[] picture) {
+      this.data = data;
+      this.picture = picture;
+    }
+
+    private byte[] getData() {
+      return this.data;
+    }
+
+    private byte[] getPicture() {
+      return this.picture;
+    }
+  }
+
+  private static final class FrameMeter {
+
+    private final Mcv2 encoder;
+    private final Pool budget;
+    private final boolean inBudget;
+    private final boolean forceKeyframes;
+    private final int width;
+    private final int height;
+    private final OperatingSystemMXBean system;
+    private final ThreadMXBean threadBean;
+    private final Measurement measured;
+    private final Deflater deflater;
+    private final byte[] buffer;
+
+    private FrameMeter(
+      final Map<String, String> options,
+      final Mcv2 encoder,
+      final Pool budget,
+      final int width,
+      final int height,
+      final int frames
+    ) {
+      this.encoder = encoder;
+      this.budget = budget;
+      this.inBudget = Boolean.parseBoolean(options.getOrDefault("budget", "true"));
+      this.forceKeyframes = options.getOrDefault("key", "0").equals("1");
+      this.width = width;
+      this.height = height;
+      this.system = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      this.threadBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
+      this.measured = new Measurement(frames);
+      this.deflater = new Deflater(Deflater.DEFAULT_COMPRESSION);
+      this.buffer = new byte[DEFLATE_BUFFER];
+    }
+
+    private EncodedFrame encode(final byte[] rgb, final int frameIndex) throws Exception {
+      final long cpuBefore = this.system.getProcessCpuTime();
+      final long allocatedBefore = this.threadBean.getTotalThreadAllocatedBytes();
+      final long startNanoseconds = System.nanoTime();
+      if (this.forceKeyframes) {
+        this.encoder.requestKeyframe();
+      }
+
+      final byte[] predictFrom = this.encoder.getReference();
+      final byte[] data = this.encodeInBudget(rgb, frameIndex);
+      this.measured.times[frameIndex] = System.nanoTime() - startNanoseconds;
+      this.measured.cpu[frameIndex] = this.system.getProcessCpuTime() - cpuBefore;
+      this.measured.allocated[frameIndex] = this.threadBean.getTotalThreadAllocatedBytes() - allocatedBefore;
+      if (this.encoder.getStatistics().keyframe()) {
+        this.measured.keyframes++;
+      }
+
+      this.measured.logical += data.length;
+      final List<byte[]> pages = TransportPages.makePages(data, STREAM_ID);
+      this.measured.wire += TransportPages.wireBytes(pages, false, TransportPages.PACKET_OVERHEAD);
+      this.measured.zlib += zlibBytes(pages, this.deflater, this.buffer);
+      final byte[] picture = decoded(data, predictFrom);
+      final double mse = squaredError(rgb, picture) / (double) rgb.length;
+      this.measured.psnrSum += mse == 0 ? EXACT_PSNR : psnr(mse);
+      this.measured.mseSum += mse;
+      return new EncodedFrame(data, picture);
+    }
+
+    private byte[] encodeInBudget(final byte[] rgb, final long frameId) throws Exception {
+      if (!this.inBudget) {
+        return this.encoder.encode(rgb, this.width, this.height, frameId);
+      }
+
+      return this.budget.run(() -> this.encoder.encode(rgb, this.width, this.height, frameId));
+    }
+
+    private Measurement getMeasurement() {
+      return this.measured;
+    }
+  }
+
+  private static final class FixtureArchive {
+
+    private final String name;
+    private final Mcv2 encoder;
+    private final Mcv2Receiver receiver;
+    private final ByteArrayOutputStream archive;
+    private final List<String> hashes;
+    private final Map<String, Object> pages;
+    private final byte[] rgb;
+    private final int width;
+    private final int height;
+
+    private FixtureArchive(
+      final String name,
+      final Mcv2 encoder,
+      final ByteArrayOutputStream archive,
+      final List<String> hashes,
+      final Map<String, Object> pages,
+      final byte[] rgb,
+      final int width,
+      final int height
+    ) {
+      this.name = name;
+      this.encoder = encoder;
+      this.receiver = new Mcv2Receiver();
+      this.archive = archive;
+      this.hashes = hashes;
+      this.pages = pages;
+      this.rgb = rgb;
+      this.width = width;
+      this.height = height;
+    }
+
+    private boolean addFrame(final int id) throws Exception {
+      if (this.name.equals(PROXY_KEYFRAMES_STREAM)) {
+        this.encoder.requestKeyframe();
+      }
+
+      final byte[] data = this.encoder.encode(this.rgb, this.width, this.height, id);
+      if (this.archive.size() + Integer.BYTES + data.length > MAXIMUM_ARCHIVE_BYTES) {
+        return false;
+      }
+
+      frame(this.archive, data);
+      final byte[] picture = this.receiver.accept(data);
+      if (!Arrays.equals(picture, this.encoder.getReference())) {
+        final String message = "Reference for %s frame %s differs!".formatted(this.name, id);
+        throw new IllegalStateException(message);
+      }
+
+      this.hashes.add(Mcv2Resources.sha256(picture));
+      if (this.name.equals(PROXY_DEFAULT_STREAM) && id < 4) {
+        this.pages.put(CONFORMANCE_FOLDER + this.name + "#" + id + "@6", pageExpectations(data));
+      }
+
+      return true;
+    }
+
+    private static Map<String, Object> pageExpectations(final byte[] data) throws Mcv2Exception {
+      final List<byte[]> symbols = TransportPages.makePages(data, 7);
+      final List<String> pageHashes = new ArrayList<>();
+      for (final byte[] page : symbols) {
+        pageHashes.add(Mcv2Resources.sha256(page));
+      }
+
+      final Map<String, Object> expected = new LinkedHashMap<>();
+      expected.put("pages", pageHashes);
+      expected.put("wire", TransportPages.wireBytes(symbols, false, TransportPages.PACKET_OVERHEAD));
+      expected.put("wire_full", TransportPages.wireBytes(symbols, true, TransportPages.PACKET_OVERHEAD));
+      return expected;
     }
   }
 }

@@ -65,15 +65,19 @@ final class Mcv2VerificationTest {
   void shouldCheckTheWholeConformanceAndEdgeCorpusIncludingUnusedCompactClasses() throws Mcv2Exception {
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
-        final Map<Long, byte[]> pictures = new HashMap<>();
-        for (final byte[] data : Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream))) {
-          final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
-          final byte[] reference = frame.isKeyframe() ? new byte[0] : pictures.get(frame.getReferenceId());
-          final byte[] picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
-          compare(frame, reference, picture, new Random(20261003));
-          pictures.put(frame.getFrameId(), picture);
-        }
+        this.compareStream(folder, stream);
       }
+    }
+  }
+
+  private void compareStream(final String folder, final String stream) throws Mcv2Exception {
+    final Map<Long, byte[]> pictures = new HashMap<>();
+    for (final byte[] data : Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + PATH_SEPARATOR + stream))) {
+      final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
+      final byte[] reference = frame.isKeyframe() ? new byte[0] : pictures.get(frame.getReferenceId());
+      final byte[] picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
+      compare(frame, reference, picture, new Random(20261003));
+      pictures.put(frame.getFrameId(), picture);
     }
   }
 
@@ -144,12 +148,16 @@ final class Mcv2VerificationTest {
 
     for (final int row : new int[] { 0, 31, 32, 2047, 2048, frame.getHeight() - 1 }) {
       for (final int column : new int[] { 0, 30 }) {
-        for (int channel = 0; channel < 3; channel++) {
-          final byte[] wrong = picture.clone();
-          wrong[(row * 31 + column) * 3 + channel] ^= 1;
-          assertThrows(IllegalStateException.class, () -> verify(frame, reference, 4, wrong));
-        }
+        this.assertEveryChannelChecked(frame, reference, picture, (row * 31 + column) * 3);
       }
+    }
+  }
+
+  private void assertEveryChannelChecked(final Mcv2Decoder.Frame frame, final byte[] reference, final byte[] picture, final int offset) {
+    for (int channel = 0; channel < 3; channel++) {
+      final byte[] wrong = picture.clone();
+      wrong[offset + channel] ^= 1;
+      assertThrows(IllegalStateException.class, () -> verify(frame, reference, 4, wrong));
     }
   }
 

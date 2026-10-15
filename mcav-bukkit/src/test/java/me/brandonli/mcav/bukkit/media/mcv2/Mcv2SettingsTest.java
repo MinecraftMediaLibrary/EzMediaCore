@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -45,25 +46,28 @@ final class Mcv2SettingsTest {
       final Supplier<?> original = (Supplier<?>) factory.get(encoder);
       final Set<Integer> widths = new HashSet<>();
       final Class<?> contract = Mcv2Internals.nested("Kernels");
-      factory.set(
-        encoder,
-        (Supplier<?>) () -> {
-          final Object delegate = original.get();
-          return Proxy.newProxyInstance(contract.getClassLoader(), new Class<?>[] { contract }, (_, method, arguments) -> {
-            if (method.getName().equals("seeded")) {
-              widths.add((Integer) arguments[1]);
-            }
-
-            method.setAccessible(true);
-            return method.invoke(delegate, arguments);
-          });
-        }
-      );
+      factory.set(encoder, (Supplier<?>) () -> this.recordingKernels(original.get(), contract, widths));
       encoder.encode(Mcv2Pictures.scene(128, 96, 0, 3), 128, 96, 0);
       encoder.encode(Mcv2Pictures.scene(128, 96, 2, 3), 128, 96, 1);
       final Set<Integer> expected = settings.fast() ? Set.of(64, 128) : Set.of(32, 64, 128);
       assertEquals(expected, widths);
     }
+  }
+
+  private Object recordingKernels(final Object delegate, final Class<?> contract, final Set<Integer> widths) {
+    return Proxy.newProxyInstance(contract.getClassLoader(), new Class<?>[] { contract }, (_, method, arguments) ->
+      this.invokeRecordingWidths(delegate, widths, method, arguments)
+    );
+  }
+
+  private Object invokeRecordingWidths(final Object delegate, final Set<Integer> widths, final Method method, final Object[] arguments)
+    throws ReflectiveOperationException {
+    if (method.getName().equals("seeded")) {
+      widths.add((Integer) arguments[1]);
+    }
+
+    method.setAccessible(true);
+    return method.invoke(delegate, arguments);
   }
 
   @Test

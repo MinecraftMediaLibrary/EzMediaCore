@@ -145,11 +145,7 @@ final class FileServerHandlerFuzzTest {
       assertBehaviour(request.stream, mode, content, hasReadTimeout, answered, openAfterReads, timeoutLeft);
     } finally {
       for (final Object message : answered) {
-        if (message instanceof final FileRegion region) {
-          region.release();
-        } else if (message instanceof final ByteBuf buffer) {
-          buffer.release();
-        }
+        this.releaseAnswer(message);
       }
 
       channel.finishAndReleaseAll();
@@ -168,6 +164,17 @@ final class FileServerHandlerFuzzTest {
     for (final FileChannel fileChannel : opened) {
       final boolean fileOpen = fileChannel.isOpen();
       assertFalse(fileOpen, "the served file outlived the connection");
+    }
+  }
+
+  private void releaseAnswer(final Object message) {
+    if (message instanceof final FileRegion region) {
+      region.release();
+      return;
+    }
+
+    if (message instanceof final ByteBuf buffer) {
+      buffer.release();
     }
   }
 

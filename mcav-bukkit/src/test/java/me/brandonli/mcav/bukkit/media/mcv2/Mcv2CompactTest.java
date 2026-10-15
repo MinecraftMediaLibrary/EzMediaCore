@@ -51,15 +51,20 @@ final class Mcv2CompactTest {
   void shouldRequireExactlyTenBytesForEveryBlockSize() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int length = 0; length <= 20; length++) {
-        final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
-        if (length == RECORD_LENGTH) {
-          final int payloadLength = data.length - Mcv2Decoder.parse(data).getPayloadStart();
-          assertEquals(RECORD_LENGTH, payloadLength);
-        } else {
-          assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
-        }
+        this.assertRecordLengthChecked(size, length);
       }
     }
+  }
+
+  private void assertRecordLengthChecked(final int size, final int length) throws Mcv2Exception {
+    final byte[] data = Mcv2WireFrames.block(size, 5, 0, new byte[length], false);
+    if (length != RECORD_LENGTH) {
+      assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
+      return;
+    }
+
+    final int payloadLength = data.length - Mcv2Decoder.parse(data).getPayloadStart();
+    assertEquals(RECORD_LENGTH, payloadLength);
   }
 
   @Test

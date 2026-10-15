@@ -267,43 +267,58 @@ final class FileDownloadProgressTest {
       while (this.allowance > 0) {
         final Object current = outbound.current();
         if (current instanceof final ByteBuf buffer) {
-          final int written = (int) Math.min(this.allowance, buffer.readableBytes());
-          this.allowance -= written;
-          outbound.removeBytes(written);
-        } else if (current instanceof final FileRegion file) {
-          this.region = file;
-          final WritableByteChannel sink = new WritableByteChannel() {
-            @Override
-            public int write(final ByteBuffer bytes) {
-              final int written = (int) Math.min(SlowSocket.this.allowance, bytes.remaining());
-              bytes.position(bytes.position() + written);
-              SlowSocket.this.allowance -= written;
-              return written;
-            }
+          this.writeBuffer(outbound, buffer);
+          continue;
+        }
 
-            @Override
-            public boolean isOpen() {
-              return true;
-            }
+        if (!(current instanceof final FileRegion file)) {
+          return;
+        }
 
-            @Override
-            public void close() {}
-          };
-          final long written = file.transferTo(sink, file.transferred());
-          this.bodyBytes += written;
-          outbound.progress(written);
-
-          if (file.transferred() == file.count()) {
-            outbound.remove();
-          }
-
-          if (written == 0) {
-            return;
-          }
-        } else {
+        final boolean progressed = this.transferRegion(outbound, file);
+        if (!progressed) {
           return;
         }
       }
+    }
+
+    private void writeBuffer(final ChannelOutboundBuffer outbound, final ByteBuf buffer) {
+      final int written = (int) Math.min(this.allowance, buffer.readableBytes());
+      this.allowance -= written;
+      outbound.removeBytes(written);
+    }
+
+    private boolean transferRegion(final ChannelOutboundBuffer outbound, final FileRegion file) throws IOException {
+      this.region = file;
+      final long written = file.transferTo(this.allowanceSink(), file.transferred());
+      this.bodyBytes += written;
+      outbound.progress(written);
+
+      if (file.transferred() == file.count()) {
+        outbound.remove();
+      }
+
+      return written != 0;
+    }
+
+    private WritableByteChannel allowanceSink() {
+      return new WritableByteChannel() {
+        @Override
+        public int write(final ByteBuffer bytes) {
+          final int written = (int) Math.min(SlowSocket.this.allowance, bytes.remaining());
+          bytes.position(bytes.position() + written);
+          SlowSocket.this.allowance -= written;
+          return written;
+        }
+
+        @Override
+        public boolean isOpen() {
+          return true;
+        }
+
+        @Override
+        public void close() {}
+      };
     }
   }
 }

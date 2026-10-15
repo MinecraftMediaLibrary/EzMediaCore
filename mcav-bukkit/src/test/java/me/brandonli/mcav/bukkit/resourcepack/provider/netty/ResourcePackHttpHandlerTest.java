@@ -519,15 +519,7 @@ final class ResourcePackHttpHandlerTest {
   void shouldPassOnTheEventsItDoesNotHandle() {
     final List<Object> events = new ArrayList<>();
     final EmbeddedChannel channel = this.gameConnection();
-    channel.pipeline().addLast(
-      "events",
-      new ChannelInboundHandlerAdapter() {
-        @Override
-        public void userEventTriggered(final ChannelHandlerContext context, final Object event) {
-          events.add(event);
-        }
-      }
-    );
+    channel.pipeline().addLast("events", new EventRecorder(events));
     channel.pipeline().fireUserEventTriggered("before");
     writeText(channel, GET_REQUEST_WITH_HOST);
     channel.pipeline().fireUserEventTriggered(IdleStateEvent.READER_IDLE_STATE_EVENT);
@@ -601,6 +593,20 @@ final class ResourcePackHttpHandlerTest {
         this.taken += bytes;
         outbound.removeBytes(bytes);
       }
+    }
+  }
+
+  private static final class EventRecorder extends ChannelInboundHandlerAdapter {
+
+    private final List<Object> events;
+
+    EventRecorder(final List<Object> events) {
+      this.events = events;
+    }
+
+    @Override
+    public void userEventTriggered(final ChannelHandlerContext context, final Object event) {
+      this.events.add(event);
     }
   }
 }

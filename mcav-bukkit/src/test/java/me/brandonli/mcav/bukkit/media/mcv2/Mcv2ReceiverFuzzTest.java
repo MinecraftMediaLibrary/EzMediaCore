@@ -78,15 +78,7 @@ final class Mcv2ReceiverFuzzTest {
       final byte[] prediction = parallelPicture;
       final byte[] rows = new byte[picture.length];
       final long predictsId = parallelId;
-      POOL.submit(() ->
-        IntStream.range(0, THREADS)
-          .parallel()
-          .forEach(band -> {
-            final int from = (band * parsed.getHeight()) / THREADS;
-            final int to = ((band + 1) * parsed.getHeight()) / THREADS;
-            assertDoesNotThrow(() -> Mcv2Decoder.decodeRows(parsed, prediction, predictsId, rows, from, to));
-          })
-      ).join();
+      POOL.submit(() -> this.decodeBands(parsed, prediction, predictsId, rows)).join();
       assertArrayEquals(picture, rows, "parallel bands decode the same picture");
       if (parallelPicture == null || parallelPicture.length != picture.length) {
         parallelPicture = new byte[picture.length];
@@ -95,6 +87,24 @@ final class Mcv2ReceiverFuzzTest {
       parallelId = parsed.getFrameId();
       assertArrayEquals(picture, parallelPicture, "the workers decode the picture the receiver decodes");
     }
+  }
+
+  private void decodeBands(final Mcv2Decoder.Frame parsed, final byte @Nullable [] prediction, final long predictsId, final byte[] rows) {
+    IntStream.range(0, THREADS)
+      .parallel()
+      .forEach(band -> this.decodeBand(parsed, prediction, predictsId, rows, band));
+  }
+
+  private void decodeBand(
+    final Mcv2Decoder.Frame parsed,
+    final byte @Nullable [] prediction,
+    final long predictsId,
+    final byte[] rows,
+    final int band
+  ) {
+    final int from = (band * parsed.getHeight()) / THREADS;
+    final int to = ((band + 1) * parsed.getHeight()) / THREADS;
+    assertDoesNotThrow(() -> Mcv2Decoder.decodeRows(parsed, prediction, predictsId, rows, from, to));
   }
 
   private static List<byte[]> frames(final byte[] archive) {

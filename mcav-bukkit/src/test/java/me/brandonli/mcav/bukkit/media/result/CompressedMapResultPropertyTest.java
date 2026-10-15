@@ -134,16 +134,19 @@ final class CompressedMapResultPropertyTest {
     final FrameSource frames = new FrameSource();
     final ViewerModels models = new ViewerModels(scenario);
 
-    Step lastFrame = null;
+    final Step lastFrame = scenario
+      .getSteps()
+      .stream()
+      .filter(step -> step.getKind() != Step.JOIN && step.getKind() != Step.LEAVE)
+      .reduce((earlier, later) -> later)
+      .orElse(null);
     for (final Step step : scenario.getSteps()) {
       switch (step.getKind()) {
         case Step.JOIN -> this.connectSecondViewer(models);
         case Step.LEAVE -> this.disconnectSecondViewer(models);
-        default -> {
-          frames.process(result, scenario, step);
-          lastFrame = step;
-        }
+        default -> frames.process(result, scenario, step);
       }
+
       models.receive(this.server);
     }
 
@@ -378,41 +381,50 @@ final class CompressedMapResultPropertyTest {
     }
 
     private void assertShow(final MapLayout layout, final byte[] picture) {
-      final int imageWidth = layout.getImageWidth();
       for (final Viewer viewer : this.viewers) {
         for (int index = 0; index < viewer.maps.length; index++) {
-          final MapRegion region = layout.getRegion(index);
-          final short[] map = viewer.maps[index];
-          for (int row = 0; row < MAP_SIZE; row++) {
-            for (int column = 0; column < MAP_SIZE; column++) {
-              final short shown = map[row * MAP_SIZE + column];
-              final int regionX = column - region.getLocalX();
-              final int regionY = row - region.getLocalY();
-              final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
-              final String where = "viewer " + viewer.uuid + ", map " + index + " at " + column + "," + row;
-              if (covered) {
-                final short expected = picture[(region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX];
-                assertEquals(expected, shown, () -> where + " shows the current frame");
-              } else {
-                final boolean clean = shown == 0 || shown == NEVER_SENT;
-                assertTrue(clean, () -> where + " keeps color " + shown + " of an earlier frame");
-              }
-            }
-          }
+          this.assertMapShows(layout, picture, viewer, index);
         }
+      }
+    }
+
+    private void assertMapShows(final MapLayout layout, final byte[] picture, final Viewer viewer, final int index) {
+      final int imageWidth = layout.getImageWidth();
+      final MapRegion region = layout.getRegion(index);
+      final short[] map = viewer.maps[index];
+      for (int pixel = 0; pixel < MAP_SIZE * MAP_SIZE; pixel++) {
+        final int row = pixel / MAP_SIZE;
+        final int column = pixel % MAP_SIZE;
+        final short shown = map[pixel];
+        final int regionX = column - region.getLocalX();
+        final int regionY = row - region.getLocalY();
+        final boolean covered = regionX >= 0 && regionY >= 0 && regionX < region.getWidth() && regionY < region.getHeight();
+        final String where = "viewer " + viewer.uuid + ", map " + index + " at " + column + "," + row;
+        if (covered) {
+          final short expected = picture[(region.getSourceY() + regionY) * imageWidth + region.getSourceX() + regionX];
+          assertEquals(expected, shown, () -> where + " shows the current frame");
+          continue;
+        }
+
+        final boolean clean = shown == 0 || shown == NEVER_SENT;
+        assertTrue(clean, () -> where + " keeps color " + shown + " of an earlier frame");
       }
     }
 
     private void assertTransparent() {
       for (final Viewer viewer : this.viewers) {
         for (int index = 0; index < viewer.maps.length; index++) {
-          final short[] map = viewer.maps[index];
-          for (int pixel = 0; pixel < map.length; pixel++) {
-            final short shown = map[pixel];
-            final String where = "viewer " + viewer.uuid + ", map " + index + " pixel " + pixel;
-            assertEquals(0, shown, () -> where + " is transparent after the release");
-          }
+          this.assertMapTransparent(viewer, index);
         }
+      }
+    }
+
+    private void assertMapTransparent(final Viewer viewer, final int index) {
+      final short[] map = viewer.maps[index];
+      for (int pixel = 0; pixel < map.length; pixel++) {
+        final short shown = map[pixel];
+        final String where = "viewer " + viewer.uuid + ", map " + index + " pixel " + pixel;
+        assertEquals(0, shown, () -> where + " is transparent after the release");
       }
     }
   }
@@ -443,13 +455,16 @@ final class CompressedMapResultPropertyTest {
         assertTrue(inGrid, () -> "a packet for map " + id.id() + ", outside of the grid");
         final Optional<MapItemSavedData.MapPatch> colorPatch = mapPacket.colorPatch();
         final MapItemSavedData.MapPatch patch = colorPatch.orElseThrow();
-        final short[] map = this.maps[index];
-        final byte[] colors = patch.mapColors();
-        final int width = patch.width();
-        for (int row = 0; row < patch.height(); row++) {
-          for (int column = 0; column < width; column++) {
-            map[(patch.startY() + row) * MAP_SIZE + patch.startX() + column] = colors[row * width + column];
-          }
+        this.paint(this.maps[index], patch);
+      }
+    }
+
+    private void paint(final short[] map, final MapItemSavedData.MapPatch patch) {
+      final byte[] colors = patch.mapColors();
+      final int width = patch.width();
+      for (int row = 0; row < patch.height(); row++) {
+        for (int column = 0; column < width; column++) {
+          map[(patch.startY() + row) * MAP_SIZE + patch.startX() + column] = colors[row * width + column];
         }
       }
     }

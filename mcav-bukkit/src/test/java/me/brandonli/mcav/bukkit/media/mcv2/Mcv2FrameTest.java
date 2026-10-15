@@ -91,17 +91,21 @@ final class Mcv2FrameTest {
     final byte[] rgb = new byte[width * height * 3];
     for (int row = 0; row < height; row++) {
       for (int column = 0; column < width; column++) {
-        final double wave = 45 * Math.sin((column + seed) / 6.0) * Math.cos(row / 5.0) + 25 * Math.sin((column - 2 * row) / 9.0);
-        for (int channel = 0; channel < 3; channel++) {
-          rgb[(row * width + column) * 3 + channel] = (byte) Math.min(
-            255,
-            Math.max(0, (int) (120 + wave + 25 * channel + random.nextInt(16)))
-          );
-        }
+        paintTexturePixel(rgb, (row * width + column) * 3, texelWave(row, column, seed), random);
       }
     }
 
     return rgb;
+  }
+
+  private static double texelWave(final int row, final int column, final int seed) {
+    return 45 * Math.sin((column + seed) / 6.0) * Math.cos(row / 5.0) + 25 * Math.sin((column - 2 * row) / 9.0);
+  }
+
+  private static void paintTexturePixel(final byte[] rgb, final int offset, final double wave, final Random random) {
+    for (int channel = 0; channel < 3; channel++) {
+      rgb[offset + channel] = (byte) Math.min(255, Math.max(0, (int) (120 + wave + 25 * channel + random.nextInt(16))));
+    }
   }
 
   private static boolean keyframeAfter(final Mcv2 encoder, final byte[] next, final int width, final int height) {

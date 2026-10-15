@@ -182,14 +182,7 @@ final class MapResultTest {
     final byte[] actual = new byte[canvasWidth * MAP_SIZE];
     for (final Packet<?> bundle : this.server.getSentPackets(VIEWER)) {
       for (final ClientboundMapItemDataPacket packet : MapPackets.unbundle(bundle)) {
-        final int column = packet.mapId().id() - 5;
-        final boolean insideTheGrid = column >= 0 && column < columns;
-        assertTrue(insideTheGrid);
-        final MapItemSavedData.MapPatch update = packet.colorPatch().orElseThrow();
-        for (int row = 0; row < update.height(); row++) {
-          final int offset = (update.startY() + row) * canvasWidth + column * MAP_SIZE + update.startX();
-          System.arraycopy(update.mapColors(), row * update.width(), actual, offset, update.width());
-        }
+        this.copyPacket(actual, packet, columns);
       }
     }
 
@@ -200,6 +193,19 @@ final class MapResultTest {
     }
 
     assertArrayEquals(expected, actual, "the current picture is surrounded by transparent pixels, including uncovered maps");
+  }
+
+  private void copyPacket(final byte[] actual, final ClientboundMapItemDataPacket packet, final int columns) {
+    final int canvasWidth = columns * MAP_SIZE;
+    final int column = packet.mapId().id() - 5;
+    final boolean insideTheGrid = column >= 0 && column < columns;
+    assertTrue(insideTheGrid);
+
+    final MapItemSavedData.MapPatch update = packet.colorPatch().orElseThrow();
+    for (int row = 0; row < update.height(); row++) {
+      final int offset = (update.startY() + row) * canvasWidth + column * MAP_SIZE + update.startX();
+      System.arraycopy(update.mapColors(), row * update.width(), actual, offset, update.width());
+    }
   }
 
   @Test

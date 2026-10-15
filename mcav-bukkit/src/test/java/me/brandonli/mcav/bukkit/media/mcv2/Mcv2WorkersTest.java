@@ -113,14 +113,7 @@ final class Mcv2WorkersTest {
       assertEquals(2, scratchCount);
 
       final Thread caller = Thread.currentThread();
-      new Workers(pool, 8).forEach(
-        1,
-        () -> caller,
-        (thread, _) -> {
-          final Thread current = Thread.currentThread();
-          assertEquals(thread, current);
-        }
-      );
+      new Workers(pool, 8).forEach(1, () -> caller, (thread, _) -> this.assertRunsOn(thread));
     } finally {
       pool.shutdownNow();
     }
@@ -142,85 +135,30 @@ final class Mcv2WorkersTest {
   }
 
   private static void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {
-    final AtomicReference<Thread> root = new AtomicReference<>();
-    final ForkJoinPool pool = new ForkJoinPool(
-      2,
-      owner -> {
-        final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(owner);
-        root.compareAndSet(null, worker);
-        return worker;
-      },
-      null,
-      false
-    );
-    final CountDownLatch siblingEntered = new CountDownLatch(1);
-    final CountDownLatch releaseSibling = new CountDownLatch(1);
-    final CountDownLatch throwing = new CountDownLatch(1);
-    final CountDownLatch returned = new CountDownLatch(1);
-    final AtomicBoolean siblingFinished = new AtomicBoolean();
-    final AtomicBoolean finishedBeforeReturn = new AtomicBoolean();
-    final AtomicReference<Throwable> reported = new AtomicReference<>();
-    final Runnable fail = () -> {
-      await(siblingEntered);
-      throwing.countDown();
-
-      if (failure instanceof final RuntimeException exception) {
-        throw exception;
-      }
-
-      throw (Error) failure;
-    };
-    final Thread caller = new Thread(() -> {
-      try {
-        new Workers(pool, 2).forEach(
-          2,
-          () -> {
-            final boolean rootWorker = Thread.currentThread().equals(root.get());
-            if (rootWorker && failInSupplier) {
-              fail.run();
-            }
-
-            return rootWorker;
-          },
-          (rootWorker, _) -> {
-            if (rootWorker) {
-              fail.run();
-            }
-
-            siblingEntered.countDown();
-            await(releaseSibling);
-            siblingFinished.set(true);
-          }
-        );
-      } catch (final RuntimeException | Error exception) {
-        reported.set(exception);
-      } finally {
-        finishedBeforeReturn.set(siblingFinished.get());
-        returned.countDown();
-      }
-    }, "workers-failure-caller");
+    final SiblingFailure fixture = new SiblingFailure(failInSupplier, failure);
+    final Thread caller = new Thread(fixture::callForEach, "workers-failure-caller");
     try {
       caller.start();
-      final boolean reachedFailure = throwing.await(5, TimeUnit.SECONDS);
+      final boolean reachedFailure = fixture.throwing.await(5, TimeUnit.SECONDS);
       assertTrue(reachedFailure, "the root worker must reach its failure");
 
-      final boolean returnedEarly = returned.await(200, TimeUnit.MILLISECONDS);
+      final boolean returnedEarly = fixture.returned.await(200, TimeUnit.MILLISECONDS);
       assertFalse(returnedEarly, "forEach returned while a sibling callback still owned its state");
     } finally {
-      releaseSibling.countDown();
+      fixture.releaseSibling.countDown();
       caller.join(5000);
-      pool.shutdownNow();
-      final boolean terminated = pool.awaitTermination(5, TimeUnit.SECONDS);
+      fixture.pool.shutdownNow();
+      final boolean terminated = fixture.pool.awaitTermination(5, TimeUnit.SECONDS);
       assertTrue(terminated, "worker pool must terminate");
 
       final boolean callerAlive = caller.isAlive();
       assertFalse(callerAlive, "caller must terminate");
     }
 
-    final boolean callbacksFinishedFirst = finishedBeforeReturn.get();
+    final boolean callbacksFinishedFirst = fixture.finishedBeforeReturn.get();
     assertTrue(callbacksFinishedFirst, "all callbacks must finish before the failure reaches the caller");
 
-    Throwable observed = reported.get();
+    Throwable observed = fixture.reported.get();
     while (observed != null && observed.getCause() != null) {
       observed = observed.getCause();
     }
@@ -238,6 +176,12 @@ final class Mcv2WorkersTest {
     }
   }
 
+  private static ForkJoinWorkerThread newRecordedWorker(final ForkJoinPool owner, final AtomicReference<Thread> root) {
+    final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(owner);
+    root.compareAndSet(null, worker);
+    return worker;
+  }
+
   @Test
   void shouldRunOnTheCallingThreadWithOneWorker() {
     final Workers workers = new Workers(ForkJoinPool.commonPool(), 1);
@@ -245,18 +189,87 @@ final class Mcv2WorkersTest {
     assertEquals(1, threadCount);
 
     final Thread caller = Thread.currentThread();
-    workers.forEach(
-      3,
-      () -> caller,
-      (thread, _) -> {
-        final Thread current = Thread.currentThread();
-        assertEquals(thread, current);
-      }
-    );
+    workers.forEach(3, () -> caller, (thread, _) -> this.assertRunsOn(thread));
+  }
+
+  private void assertRunsOn(final Thread thread) {
+    final Thread current = Thread.currentThread();
+    assertEquals(thread, current);
   }
 
   @Test
   void shouldRefuseNoThreads() {
     assertThrows(IllegalArgumentException.class, () -> new Workers(ForkJoinPool.commonPool(), 0));
+  }
+
+  private static final class SiblingFailure {
+
+    private final boolean failInSupplier;
+    private final Throwable failure;
+    private final AtomicReference<Thread> root;
+    private final ForkJoinPool pool;
+    private final CountDownLatch siblingEntered;
+    private final CountDownLatch releaseSibling;
+    private final CountDownLatch throwing;
+    private final CountDownLatch returned;
+    private final AtomicBoolean siblingFinished;
+    private final AtomicBoolean finishedBeforeReturn;
+    private final AtomicReference<Throwable> reported;
+
+    SiblingFailure(final boolean failInSupplier, final Throwable failure) {
+      final AtomicReference<Thread> root = new AtomicReference<>();
+      this.failInSupplier = failInSupplier;
+      this.failure = failure;
+      this.root = root;
+      this.pool = new ForkJoinPool(2, owner -> newRecordedWorker(owner, root), null, false);
+      this.siblingEntered = new CountDownLatch(1);
+      this.releaseSibling = new CountDownLatch(1);
+      this.throwing = new CountDownLatch(1);
+      this.returned = new CountDownLatch(1);
+      this.siblingFinished = new AtomicBoolean();
+      this.finishedBeforeReturn = new AtomicBoolean();
+      this.reported = new AtomicReference<>();
+    }
+
+    void callForEach() {
+      try {
+        new Workers(this.pool, 2).forEach(2, this::isRootScratch, (rootWorker, _) -> this.runBody(rootWorker));
+      } catch (final RuntimeException | Error exception) {
+        this.reported.set(exception);
+      } finally {
+        this.finishedBeforeReturn.set(this.siblingFinished.get());
+        this.returned.countDown();
+      }
+    }
+
+    private boolean isRootScratch() {
+      final boolean rootWorker = Thread.currentThread().equals(this.root.get());
+      if (rootWorker && this.failInSupplier) {
+        this.fail();
+      }
+
+      return rootWorker;
+    }
+
+    private void runBody(final boolean rootWorker) {
+      if (rootWorker) {
+        this.fail();
+      }
+
+      this.siblingEntered.countDown();
+      await(this.releaseSibling);
+      this.siblingFinished.set(true);
+    }
+
+    private void fail() {
+      await(this.siblingEntered);
+      this.throwing.countDown();
+
+      if (this.failure instanceof final RuntimeException exception) {
+        throw exception;
+      }
+
+      throw (Error) this.failure;
+    }
   }
 }

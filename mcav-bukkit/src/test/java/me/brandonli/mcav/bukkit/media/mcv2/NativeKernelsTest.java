@@ -294,12 +294,16 @@ final class NativeKernelsTest {
     for (final Level level : NativeTesting.levels()) {
       final NativeKernels kernels = NativeTesting.kernels(level);
       for (int kernel = 0; kernel < KernelDifferential.KERNELS; kernel++) {
-        for (int seed = 0; seed < 12; seed++) {
-          final KernelDifferential.Values values = KernelDifferential.of(new Random(seed * 31L + kernel));
-          final @Nullable String difference = KernelDifferential.compare(values, Mcv2Internals.javaKernels(), kernels, kernel);
-          assertNull(difference, level + " kernel " + kernel + " seed " + seed);
-        }
+        this.assertKernelMatchesJava(level, kernels, kernel);
       }
+    }
+  }
+
+  private void assertKernelMatchesJava(final Level level, final NativeKernels kernels, final int kernel) {
+    for (int seed = 0; seed < 12; seed++) {
+      final KernelDifferential.Values values = KernelDifferential.of(new Random(seed * 31L + kernel));
+      final @Nullable String difference = KernelDifferential.compare(values, Mcv2Internals.javaKernels(), kernels, kernel);
+      assertNull(difference, level + " kernel " + kernel + " seed " + seed);
     }
   }
 

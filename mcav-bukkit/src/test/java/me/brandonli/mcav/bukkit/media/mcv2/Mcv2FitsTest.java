@@ -28,25 +28,36 @@ final class Mcv2FitsTest {
   void shouldRecoverTheNodesOfAnInterpolatedField() {
     for (int size = 8; size <= 32; size *= 2) {
       for (final int grid : new int[] { 4 }) {
-        final float[] nodes = new float[grid * grid];
-        for (int nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
-          nodes[nodeIndex] = ((nodeIndex * 37) % 11) - 5;
-        }
-        final float[] values = new float[size * size];
-        for (int row = 0; row < size; row++) {
-          for (int column = 0; column < size; column++) {
-            values[row * size + column] = (float) Mcv2Oracle.interpolate(nodes, 0, 1, grid, size, column, row);
-          }
-        }
-        final float[] fitted = new float[grid * grid];
-        Mcv2Internals.javaKernels().fit(values, size, fitted);
-        for (int nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
-          final float expected = nodes[nodeIndex];
-          final float fittedNode = fitted[nodeIndex];
-          assertEquals(expected, fittedNode, 1e-3, "size " + size + " grid " + grid + " node " + nodeIndex);
-        }
+        this.assertFitRecoversNodes(size, grid);
       }
     }
+  }
+
+  private void assertFitRecoversNodes(final int size, final int grid) {
+    final float[] nodes = new float[grid * grid];
+    for (int nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+      nodes[nodeIndex] = ((nodeIndex * 37) % 11) - 5;
+    }
+
+    final float[] values = this.interpolatedField(nodes, size, grid);
+    final float[] fitted = new float[grid * grid];
+    Mcv2Internals.javaKernels().fit(values, size, fitted);
+    for (int nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+      final float expected = nodes[nodeIndex];
+      final float fittedNode = fitted[nodeIndex];
+      assertEquals(expected, fittedNode, 1e-3, "size " + size + " grid " + grid + " node " + nodeIndex);
+    }
+  }
+
+  private float[] interpolatedField(final float[] nodes, final int size, final int grid) {
+    final float[] values = new float[size * size];
+    for (int row = 0; row < size; row++) {
+      for (int column = 0; column < size; column++) {
+        values[row * size + column] = (float) Mcv2Oracle.interpolate(nodes, 0, 1, grid, size, column, row);
+      }
+    }
+
+    return values;
   }
 
   @Test
