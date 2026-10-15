@@ -117,11 +117,11 @@ final class CompressedMapResultTest {
     builder.mapBlockHeight(rows);
     builder.mapWidthResolution(64);
     builder.mapHeightResolution(64);
-    configureResize(builder, shouldResize);
+    this.configureResize(builder, shouldResize);
     return builder.build();
   }
 
-  private static void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
+  private void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
     builder.resize(shouldResize);
   }
 
@@ -180,7 +180,7 @@ final class CompressedMapResultTest {
    * @param work the work to run
    * @throws InterruptedException if the test is interrupted while waiting for the thread
    */
-  private static void runInAnotherThread(final Runnable work) throws InterruptedException {
+  private void runInAnotherThread(final Runnable work) throws InterruptedException {
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     final Thread worker = new Thread(work, "map-result-lock-probe");
     worker.setDaemon(true);
@@ -193,7 +193,7 @@ final class CompressedMapResultTest {
     }
   }
 
-  private static byte[] topLeftTile(final byte[] frame) {
+  private byte[] topLeftTile(final byte[] frame) {
     final byte[] tile = new byte[16 * 16];
     for (int row = 0; row < 16; row++) {
       System.arraycopy(frame, row * MAP_SIZE, tile, row * 16, 16);
@@ -221,7 +221,7 @@ final class CompressedMapResultTest {
     final List<ClientboundMapItemDataPacket> delta = this.packetsOf(FIRST, 1);
     final ClientboundMapItemDataPacket full = first.getFirst();
     final ClientboundMapItemDataPacket tile = delta.getFirst();
-    final byte[] tileColors = topLeftTile(changed);
+    final byte[] tileColors = this.topLeftTile(changed);
 
     assertEquals(2, count, "an unchanged frame sends nothing");
 
@@ -260,7 +260,7 @@ final class CompressedMapResultTest {
 
       this.nextFrame = this.changedFrame();
       result.process(image, this.algorithm);
-      final byte[] changed = topLeftTile(this.nextFrame);
+      final byte[] changed = this.topLeftTile(this.nextFrame);
       MapPackets.assertMapPacket(this.packetsOf(FIRST, 3).getFirst(), 3, 0, 0, 16, 16, changed);
       MapPackets.assertMapPacket(this.packetsOf(SECOND, 3).getFirst(), 3, 0, 0, 16, 16, changed);
       result.release();
@@ -283,7 +283,7 @@ final class CompressedMapResultTest {
     final Lock lock = (Lock) lockField.get(result);
     try {
       result.refresh();
-      runInAnotherThread(() -> this.assertLockFree(lock));
+      this.runInAnotherThread(() -> this.assertLockFree(lock));
     } finally {
       result.release();
     }
@@ -315,12 +315,12 @@ final class CompressedMapResultTest {
       result.process(small, this.algorithm);
       final byte[] canvas = new byte[256 * MAP_SIZE];
       Arrays.fill(canvas, (byte) UNOWNED_COLOR);
-      applyPacketsToCanvas(canvas, 2, 1, this.packetsOf(FIRST, 0));
-      applyPacketsToCanvas(canvas, 2, 1, this.packetsOf(FIRST, 2));
+      this.applyPacketsToCanvas(canvas, 2, 1, this.packetsOf(FIRST, 0));
+      this.applyPacketsToCanvas(canvas, 2, 1, this.packetsOf(FIRST, 2));
       final byte[] expected = new byte[256 * MAP_SIZE];
       Arrays.fill(expected, (byte) UNOWNED_COLOR);
-      placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, new byte[MAP_SIZE * 64]);
-      placeRectangle(expected, 256, 96, 48, 64, 32, smallFrame);
+      this.placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, new byte[MAP_SIZE * 64]);
+      this.placeRectangle(expected, 256, 96, 48, 64, 32, smallFrame);
       assertArrayEquals(expected, canvas, "repair clears an old picture restored externally and preserves pixels never owned");
     } finally {
       result.release();
@@ -349,7 +349,7 @@ final class CompressedMapResultTest {
     final List<ClientboundMapItemDataPacket> secondDelta = this.packetsOf(SECOND, 1);
     final ClientboundMapItemDataPacket firstDeltaPacket = firstDelta.getFirst();
     final ClientboundMapItemDataPacket secondDeltaPacket = secondDelta.getFirst();
-    final byte[] tileColors = topLeftTile(changed);
+    final byte[] tileColors = this.topLeftTile(changed);
 
     assertEquals(1, firstCount, "viewers that already watch receive nothing for an unchanged frame");
 
@@ -415,7 +415,7 @@ final class CompressedMapResultTest {
     }
   }
 
-  private static void applyPacketsToCanvas(
+  private void applyPacketsToCanvas(
     final byte[] canvas,
     final int columns,
     final int rows,
@@ -443,7 +443,7 @@ final class CompressedMapResultTest {
     }
   }
 
-  private static void placeRectangle(
+  private void placeRectangle(
     final byte[] canvas,
     final int canvasWidth,
     final int left,
@@ -474,10 +474,10 @@ final class CompressedMapResultTest {
     final List<ClientboundMapItemDataPacket> restart = this.packetsOf(FIRST, 1);
     final List<ClientboundMapItemDataPacket> original = this.packetsOf(FIRST, 0);
     final byte[] canvas = new byte[MAP_SIZE * MAP_SIZE];
-    applyPacketsToCanvas(canvas, 1, 1, original);
-    applyPacketsToCanvas(canvas, 1, 1, restart);
+    this.applyPacketsToCanvas(canvas, 1, 1, original);
+    this.applyPacketsToCanvas(canvas, 1, 1, restart);
     final byte[] expected = new byte[MAP_SIZE * MAP_SIZE];
-    placeRectangle(expected, MAP_SIZE, 32, 32, 64, 64, smallFrame);
+    this.placeRectangle(expected, MAP_SIZE, 32, 32, 64, 64, smallFrame);
     assertEquals(2, count, "clear and replacement must share one bundle");
     assertArrayEquals(expected, canvas, "the old border must be transparent after a shrink");
 
@@ -509,13 +509,13 @@ final class CompressedMapResultTest {
     Arrays.fill(canvas, (byte) UNOWNED_COLOR);
     final List<ClientboundMapItemDataPacket> original = this.packetsOf(FIRST, 0);
     final List<ClientboundMapItemDataPacket> restart = this.packetsOf(FIRST, 1);
-    applyPacketsToCanvas(canvas, 2, 1, original);
-    applyPacketsToCanvas(canvas, 2, 1, restart);
+    this.applyPacketsToCanvas(canvas, 2, 1, original);
+    this.applyPacketsToCanvas(canvas, 2, 1, restart);
     final byte[] expected = new byte[256 * MAP_SIZE];
     Arrays.fill(expected, (byte) UNOWNED_COLOR);
     final byte[] transparent = new byte[MAP_SIZE * 64];
-    placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, transparent);
-    placeRectangle(expected, 256, 96, 48, 64, 32, smallFrame);
+    this.placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, transparent);
+    this.placeRectangle(expected, 256, 96, 48, 64, 32, smallFrame);
     assertArrayEquals(expected, canvas, "only pixels occupied by the old or new picture may change");
   }
 
@@ -542,11 +542,11 @@ final class CompressedMapResultTest {
     final List<ClientboundMapItemDataPacket> original = this.packetsOf(FIRST, 0);
     final List<ClientboundMapItemDataPacket> oldViewerReset = this.packetsOf(FIRST, 1);
     final List<ClientboundMapItemDataPacket> newViewerReset = this.packetsOf(SECOND, 0);
-    applyPacketsToCanvas(oldViewerCanvas, 3, 1, original);
-    applyPacketsToCanvas(oldViewerCanvas, 3, 1, oldViewerReset);
-    applyPacketsToCanvas(newViewerCanvas, 3, 1, newViewerReset);
+    this.applyPacketsToCanvas(oldViewerCanvas, 3, 1, original);
+    this.applyPacketsToCanvas(oldViewerCanvas, 3, 1, oldViewerReset);
+    this.applyPacketsToCanvas(newViewerCanvas, 3, 1, newViewerReset);
     final byte[] expected = new byte[384 * MAP_SIZE];
-    placeRectangle(expected, 384, 160, 32, 64, 64, smallFrame);
+    this.placeRectangle(expected, 384, 160, 32, 64, 64, smallFrame);
     assertArrayEquals(expected, oldViewerCanvas);
     assertArrayEquals(expected, newViewerCanvas);
 
@@ -584,11 +584,11 @@ final class CompressedMapResultTest {
     final byte[] canvas = new byte[256 * MAP_SIZE];
     for (int index = 0; index < totalCount; index++) {
       final List<ClientboundMapItemDataPacket> packets = this.packetsOf(FIRST, index);
-      applyPacketsToCanvas(canvas, 2, 1, packets);
+      this.applyPacketsToCanvas(canvas, 2, 1, packets);
     }
 
     final byte[] expected = new byte[256 * MAP_SIZE];
-    placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, smallFrame);
+    this.placeRectangle(expected, 256, 64, 32, MAP_SIZE, 64, smallFrame);
     assertArrayEquals(expected, canvas);
   }
 
@@ -610,10 +610,10 @@ final class CompressedMapResultTest {
     final List<ClientboundMapItemDataPacket> original = this.packetsOf(FIRST, 0);
     final List<ClientboundMapItemDataPacket> reset = this.packetsOf(FIRST, 1);
     final byte[] canvas = new byte[256 * MAP_SIZE];
-    applyPacketsToCanvas(canvas, 2, 1, original);
-    applyPacketsToCanvas(canvas, 2, 1, reset);
+    this.applyPacketsToCanvas(canvas, 2, 1, original);
+    this.applyPacketsToCanvas(canvas, 2, 1, reset);
     final byte[] expected = new byte[256 * MAP_SIZE];
-    placeRectangle(expected, 256, 96, 32, 64, 64, smallFrame);
+    this.placeRectangle(expected, 256, 96, 32, 64, 64, smallFrame);
     assertArrayEquals(expected, canvas);
   }
 
@@ -641,10 +641,10 @@ final class CompressedMapResultTest {
     final byte[] canvas = new byte[MAP_SIZE * MAP_SIZE];
     final List<ClientboundMapItemDataPacket> original = this.packetsOf(FIRST, 0);
     final List<ClientboundMapItemDataPacket> rejoined = this.packetsOf(FIRST, 1);
-    applyPacketsToCanvas(canvas, 1, 1, original);
-    applyPacketsToCanvas(canvas, 1, 1, rejoined);
+    this.applyPacketsToCanvas(canvas, 1, 1, original);
+    this.applyPacketsToCanvas(canvas, 1, 1, rejoined);
     final byte[] expected = new byte[MAP_SIZE * MAP_SIZE];
-    placeRectangle(expected, MAP_SIZE, 32, 32, 64, 64, smallFrame);
+    this.placeRectangle(expected, MAP_SIZE, 32, 32, 64, 64, smallFrame);
     assertArrayEquals(expected, canvas);
 
     final int count = this.firstViewerPacketCount();
@@ -687,16 +687,16 @@ final class CompressedMapResultTest {
 
     for (int index = 0; index < count; index++) {
       final List<ClientboundMapItemDataPacket> packets = this.packetsOf(FIRST, index);
-      applyPacketsToCanvas(canvas, 1, 1, packets);
+      this.applyPacketsToCanvas(canvas, 1, 1, packets);
     }
 
     final byte[] expected = new byte[MAP_SIZE * MAP_SIZE];
     Arrays.fill(expected, (byte) UNOWNED_COLOR);
     final byte[] wideClear = new byte[MAP_SIZE * 32];
     final byte[] tallClear = new byte[32 * MAP_SIZE];
-    placeRectangle(expected, MAP_SIZE, 0, 48, MAP_SIZE, 32, wideClear);
-    placeRectangle(expected, MAP_SIZE, 48, 0, 32, MAP_SIZE, tallClear);
-    placeRectangle(expected, MAP_SIZE, 32, 56, 64, 16, finalFrame);
+    this.placeRectangle(expected, MAP_SIZE, 0, 48, MAP_SIZE, 32, wideClear);
+    this.placeRectangle(expected, MAP_SIZE, 48, 0, 32, MAP_SIZE, tallClear);
+    this.placeRectangle(expected, MAP_SIZE, 32, 56, 64, 16, finalFrame);
     assertArrayEquals(expected, canvas, "the union is a cross, not its whole-map bounding rectangle");
   }
 
@@ -764,7 +764,7 @@ final class CompressedMapResultTest {
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final List<ForkJoinPool> pools = new CopyOnWriteArrayList<>();
     final List<Thread> workers = new CopyOnWriteArrayList<>();
-    final ParallelDitherAlgorithm parallel = createRecordingAlgorithm(pools, workers);
+    final ParallelDitherAlgorithm parallel = this.createRecordingAlgorithm(pools, workers);
     final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, BLACK);
 
     result.process(image, parallel);
@@ -796,7 +796,7 @@ final class CompressedMapResultTest {
   /**
    * Creates a parallel algorithm that records the pool it receives and the worker thread that runs a task in it.
    */
-  private static ParallelDitherAlgorithm createRecordingAlgorithm(final List<ForkJoinPool> pools, final List<Thread> workers) {
+  private ParallelDitherAlgorithm createRecordingAlgorithm(final List<ForkJoinPool> pools, final List<Thread> workers) {
     final ParallelDitherAlgorithm parallel = mock(ParallelDitherAlgorithm.class);
     when(parallel.ditherIntoBytes(any(ImageBuffer.class), any(ForkJoinPool.class))).thenAnswer(invocation -> {
       final ForkJoinPool pool = invocation.getArgument(1);
@@ -814,7 +814,7 @@ final class CompressedMapResultTest {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final RuntimeException failure = new RuntimeException("Escaped the dither pool!");
-    final ParallelDitherAlgorithm parallel = createFailingAlgorithm(failure);
+    final ParallelDitherAlgorithm parallel = this.createFailingAlgorithm(failure);
 
     final LogCapture.RecordedEvent event;
     try (final LogCapture logs = LogCapture.capture(CompressedMapResult.class)) {
@@ -838,7 +838,7 @@ final class CompressedMapResultTest {
    * Creates a parallel algorithm that runs a task in the pool which throws the failure out of its worker thread, so
    * the pool hands it to the uncaught exception handler of that thread.
    */
-  private static ParallelDitherAlgorithm createFailingAlgorithm(final RuntimeException failure) {
+  private ParallelDitherAlgorithm createFailingAlgorithm(final RuntimeException failure) {
     final ParallelDitherAlgorithm parallel = mock(ParallelDitherAlgorithm.class);
     when(parallel.ditherIntoBytes(any(ImageBuffer.class), any(ForkJoinPool.class))).thenAnswer(invocation -> {
       final ForkJoinPool pool = invocation.getArgument(1);
@@ -1018,14 +1018,14 @@ final class CompressedMapResultTest {
     this.nextFrame = MapPackets.pattern(MAP_SIZE * MAP_SIZE, 19);
     assertTimeoutPreemptively(
       TIMEOUT,
-      () -> runInAnotherThread(() -> result.process(image, this.algorithm)),
+      () -> this.runInAnotherThread(() -> result.process(image, this.algorithm)),
       "a frame that was processed releases the lock again"
     );
     final byte[] replayedAfterOtherThread = this.replayFrames(0, 1);
     assertArrayEquals(this.nextFrame, replayedAfterOtherThread, "the other thread delivered the next picture");
 
     result.release();
-    assertTimeoutPreemptively(TIMEOUT, () -> runInAnotherThread(result::release), "releasing releases the lock again");
+    assertTimeoutPreemptively(TIMEOUT, () -> this.runInAnotherThread(result::release), "releasing releases the lock again");
 
     final int packets = this.firstViewerPacketCount();
     final boolean sent = packets > 0;

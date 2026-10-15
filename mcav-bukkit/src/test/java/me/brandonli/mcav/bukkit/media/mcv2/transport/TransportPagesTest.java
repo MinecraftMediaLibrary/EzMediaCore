@@ -204,13 +204,13 @@ final class TransportPagesTest {
     assertEquals("Nonzero symbol padding!", paddingMessage);
   }
 
-  private static byte[] page() throws Mcv2Exception {
+  private byte[] page() throws Mcv2Exception {
     final byte[] frame = Mcv2Trees.tiny();
     return TransportPages.makePages(frame, 7).get(0);
   }
 
   /** Rewrites one header byte of a six-bit page and recomputes nothing, so the page tells the rule it breaks. */
-  private static byte[] withHeaderByte(final byte[] page, final int offset, final int value) throws Mcv2Exception {
+  private byte[] withHeaderByte(final byte[] page, final int offset, final int value) throws Mcv2Exception {
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     raw[offset] = (byte) value;
     return TransportPages.toSymbols(raw);
@@ -218,7 +218,7 @@ final class TransportPagesTest {
 
   @Test
   void shouldReadAValidPage() throws Mcv2Exception {
-    final TransportPage read = TransportPages.readPage(page());
+    final TransportPage read = TransportPages.readPage(this.page());
     final long streamId = read.getStreamId();
     assertEquals(7, streamId);
 
@@ -248,9 +248,9 @@ final class TransportPagesTest {
   @ParameterizedTest(name = "header byte {0}")
   @ValueSource(ints = { 0, 4, 5, 6, 7 })
   void shouldRefuseAnUnsupportedHeader(final int offset) throws Mcv2Exception {
-    final byte[] page = page();
+    final byte[] page = this.page();
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
-    final byte[] broken = withHeaderByte(page, offset, raw[offset] + 2);
+    final byte[] broken = this.withHeaderByte(page, offset, raw[offset] + 2);
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(broken));
     final String message = exception.getMessage();
     assertEquals("Unsupported page header!", message);
@@ -258,33 +258,35 @@ final class TransportPagesTest {
 
   @Test
   void shouldRefuseInconsistentPageMetadata() throws Mcv2Exception {
-    final byte[] page = page();
-    final Mcv2Exception frameBytesFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 24, 10)));
+    final byte[] page = this.page();
+    final Mcv2Exception frameBytesFailure = assertThrows(Mcv2Exception.class, () ->
+      TransportPages.readPage(this.withHeaderByte(page, 24, 10))
+    );
     final String frameBytesMessage = frameBytesFailure.getMessage();
     assertEquals(INVALID_METADATA_MESSAGE, frameBytesMessage);
 
     final Mcv2Exception oversizeFrameFailure = assertThrows(Mcv2Exception.class, () ->
-      TransportPages.readPage(withHeaderByte(withHeaderByte(page, 26, 0), 27, 1))
+      TransportPages.readPage(this.withHeaderByte(this.withHeaderByte(page, 26, 0), 27, 1))
     );
     final String oversizeFrameMessage = oversizeFrameFailure.getMessage();
     assertEquals(INVALID_METADATA_MESSAGE, oversizeFrameMessage);
 
-    final Mcv2Exception countFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 18, 2)));
+    final Mcv2Exception countFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.withHeaderByte(page, 18, 2)));
     final String countMessage = countFailure.getMessage();
     assertEquals(INVALID_METADATA_MESSAGE, countMessage);
 
-    final Mcv2Exception numberFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 16, 1)));
+    final Mcv2Exception numberFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.withHeaderByte(page, 16, 1)));
     final String numberMessage = numberFailure.getMessage();
     assertEquals(INVALID_METADATA_MESSAGE, numberMessage);
 
-    final Mcv2Exception checksumFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(withHeaderByte(page, 8, 8)));
+    final Mcv2Exception checksumFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.withHeaderByte(page, 8, 8)));
     final String checksumMessage = checksumFailure.getMessage();
     assertEquals("Page CRC mismatch!", checksumMessage);
   }
 
   @Test
   void shouldRefusePagesOfTheWrongSize() throws Mcv2Exception {
-    final byte[] page = page();
+    final byte[] page = this.page();
     final Mcv2Exception oversizeFailure = assertThrows(Mcv2Exception.class, () ->
       TransportPages.readPage(new byte[TransportPages.PAGE_SYMBOLS + 1])
     );
@@ -328,7 +330,7 @@ final class TransportPagesTest {
    * A six-bit page made by hand, with a correct CRC: page {@code number} of {@code count} of a frame of
    * {@code frameBytes} bytes, carrying {@code size} bytes of it. read_page checks the numbers against each other.
    */
-  private static byte[] pageOfFrame(final long frameBytes, final int number, final int count, final int size) {
+  private byte[] pageOfFrame(final long frameBytes, final int number, final int count, final int size) {
     final byte[] raw = new byte[TransportPages.HEADER_BYTES + size];
     Mcv2Decoder.putU32(raw, 0, TransportPages.MAGIC);
     raw[4] = 1;
@@ -344,25 +346,25 @@ final class TransportPagesTest {
 
   @Test
   void shouldReadThePagesOfTheSmallestAndTheLargestFrames() throws Mcv2Exception {
-    final int smallestFrameBytes = TransportPages.readPage(pageOfFrame(20, 0, 1, 20)).getFrameBytes();
+    final int smallestFrameBytes = TransportPages.readPage(this.pageOfFrame(20, 0, 1, 20)).getFrameBytes();
     assertEquals(20, smallestFrameBytes);
 
-    final int largestPayloadLength = TransportPages.readPage(pageOfFrame(131071, 10, 11, 8511)).getPayload().length;
+    final int largestPayloadLength = TransportPages.readPage(this.pageOfFrame(131071, 10, 11, 8511)).getPayload().length;
     assertEquals(8511, largestPayloadLength);
 
-    assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(19, 0, 1, 19)));
-    assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(131072, 10, 11, 8512)));
+    assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.pageOfFrame(19, 0, 1, 19)));
+    assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.pageOfFrame(131072, 10, 11, 8512)));
   }
 
   @Test
   void shouldFitAFrameOneByteShortOfAFullPageInOnePage() throws Mcv2Exception {
-    final int count = TransportPages.readPage(pageOfFrame(12_255, 0, 1, 12_255)).getCount();
+    final int count = TransportPages.readPage(this.pageOfFrame(12_255, 0, 1, 12_255)).getCount();
     assertEquals(1, count);
   }
 
   @Test
   void shouldRefuseAPageNumberedPastTheLastPage() {
-    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(100, 1, 1, 100)));
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(this.pageOfFrame(100, 1, 1, 100)));
     final String message = exception.getMessage();
     assertEquals(INVALID_METADATA_MESSAGE, message);
   }
@@ -370,7 +372,7 @@ final class TransportPagesTest {
   @Test
   void shouldRefuseAPageCutRightAfterItsHeaderForItsExtent() throws Mcv2Exception {
     // 43 six-bit symbols hold the whole 32-byte header, so the header reads; the missing payload is what is wrong
-    final byte[] page = page();
+    final byte[] page = this.page();
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(Arrays.copyOf(page, 43)));
     final String message = exception.getMessage();
     assertEquals("Invalid symbol extent!", message);

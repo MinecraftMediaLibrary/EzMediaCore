@@ -178,16 +178,16 @@ final class Mcv2PackServerTest {
     return hosting;
   }
 
-  private static Mcv2Configuration screen(final int width, final Collection<UUID> viewers) {
+  private Mcv2Configuration screen(final int width, final Collection<UUID> viewers) {
     return Mcv2ConfigurationTest.complete().viewers(viewers).video(width, SCREEN_HEIGHT).pageSlots(2).build();
   }
 
   /** Runs the ticks and the writer until neither has anything left: every pack asked for is written and served. */
   private void settle() {
-    settle(this.writer, this.server);
+    this.settle(this.writer, this.server);
   }
 
-  private static void settle(final QueuedExecutor writer, final FakeServer server) {
+  private void settle(final QueuedExecutor writer, final FakeServer server) {
     while (writer.drain() + server.runTasks() > 0) {
       // the writer hands the main thread what it hosted, and the main thread hands the writer what it retires
     }
@@ -199,14 +199,14 @@ final class Mcv2PackServerTest {
     return player;
   }
 
-  private static ResourcePackRequest requestSentTo(final Player player) {
+  private ResourcePackRequest requestSentTo(final Player player) {
     final ArgumentCaptor<ResourcePackRequest> requests = ArgumentCaptor.forClass(ResourcePackRequest.class);
     verify(player).sendResourcePacks(requests.capture());
 
     return requests.getValue();
   }
 
-  private static UUID packOf(final ResourcePackRequest request) {
+  private UUID packOf(final ResourcePackRequest request) {
     return request.packs().getFirst().id();
   }
 
@@ -240,7 +240,7 @@ final class Mcv2PackServerTest {
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
 
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
 
     final long streamId = lease.getConfiguration().getStreamId();
     assertEquals(1, streamId);
@@ -251,7 +251,7 @@ final class Mcv2PackServerTest {
     verify(alice, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
     this.settle();
-    final ResourcePackRequest request = requestSentTo(alice);
+    final ResourcePackRequest request = this.requestSentTo(alice);
     final ResourcePackInfo pack = request.packs().getFirst();
     final Path zip = this.folder.resolve(FIRST_PACK_FILE_NAME);
     final String sha1 = Mcv2PackServer.hash(zip, HASH_ALGORITHM);
@@ -292,13 +292,13 @@ final class Mcv2PackServerTest {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     first.close();
     first.close();
 
     this.milliseconds.addAndGet(5_000);
-    final Mcv2PackServer.Lease second = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE, BOB, CAROL)));
+    final Mcv2PackServer.Lease second = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE, BOB, CAROL)));
 
     final int drained = this.writer.drain();
     assertEquals(0, drained, PACK_UNCHANGED_MESSAGE);
@@ -314,7 +314,7 @@ final class Mcv2PackServerTest {
     // Alice was asked already; Bob, a viewer of the new screen, is asked on the main thread; Carol is offline
     verify(alice).sendResourcePacks(any(ResourcePackRequest.class));
 
-    requestSentTo(bob);
+    this.requestSentTo(bob);
     final List<Player> expectedOffered = List.of(alice, bob);
     assertEquals(expectedOffered, this.offered);
   }
@@ -324,10 +324,10 @@ final class Mcv2PackServerTest {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE))).close();
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE))).close();
     this.settle();
 
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(BOB))).close();
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(BOB))).close();
     this.server.runTasks();
 
     verify(alice, never()).sendResourcePacks(any(ResourcePackRequest.class));
@@ -338,14 +338,14 @@ final class Mcv2PackServerTest {
   void shouldGiveAScreenOfANewSizeASlotAndSwapThePackForThePlayers() throws IOException {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
-    final UUID oldPack = packOf(requestSentTo(alice));
+    final UUID oldPack = this.packOf(this.requestSentTo(alice));
     this.load(alice, oldPack);
     final boolean loaded = this.packs.getViewers().isLoaded(ALICE);
     assertTrue(loaded);
 
-    final Mcv2PackServer.Lease second = this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(BOB)));
+    final Mcv2PackServer.Lease second = this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(BOB)));
     final long secondStreamId = second.getConfiguration().getStreamId();
     assertEquals(2, secondStreamId);
 
@@ -359,7 +359,7 @@ final class Mcv2PackServerTest {
     final ArgumentCaptor<ResourcePackRequest> requests = ArgumentCaptor.forClass(ResourcePackRequest.class);
     verify(alice, Mockito.times(2)).sendResourcePacks(requests.capture());
 
-    final UUID newPack = packOf(requests.getValue());
+    final UUID newPack = this.packOf(requests.getValue());
     assertNotEquals(oldPack, newPack);
 
     final boolean loadedAfterSwap = this.packs.getViewers().isLoaded(ALICE);
@@ -380,24 +380,24 @@ final class Mcv2PackServerTest {
   void shouldChangeThePackOnceWhenScreensStartInTheSameTick() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
 
     this.settle();
 
     final int hostingCount = this.hostings.size();
     assertEquals(1, hostingCount);
 
-    final String uri = requestSentTo(alice).packs().getFirst().uri().toString();
+    final String uri = this.requestSentTo(alice).packs().getFirst().uri().toString();
     assertEquals("http://127.0.0.1:25565/mcav/mcav-mcv2-2.zip", uri);
   }
 
   @Test
   void shouldWriteOnlyAPackAskedForBeforeTheOneBeforeWasWritten() {
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.server.runTasks();
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of()));
     this.server.runTasks();
 
     this.settle();
@@ -411,10 +411,10 @@ final class Mcv2PackServerTest {
   void shouldNotServeAPackHostedAfterANewerOneWasAskedFor() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.server.runTasks();
     this.writer.drain();
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
 
     this.settle();
 
@@ -423,7 +423,7 @@ final class Mcv2PackServerTest {
     verify(this.hostings.getFirst()).shutdown();
     verify(this.hostings.get(1), never()).shutdown();
 
-    final String uri = requestSentTo(alice).packs().getFirst().uri().toString();
+    final String uri = this.requestSentTo(alice).packs().getFirst().uri().toString();
     assertEquals("http://127.0.0.1:25565/mcav/mcav-mcv2-2.zip", uri);
     verify(alice, never()).removeResourcePacks(any(UUID.class));
   }
@@ -433,7 +433,7 @@ final class Mcv2PackServerTest {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
-      leases.add(this.packs.open(screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of())));
+      leases.add(this.packs.open(this.screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of())));
     }
 
     this.settle();
@@ -441,9 +441,9 @@ final class Mcv2PackServerTest {
     leases.get(2).close();
     leases.get(6).close();
 
-    final Mcv2PackServer.Lease fifth = this.packs.open(screen(LARGE_SCREEN_WIDTH, Set.of()));
-    final Mcv2PackServer.Lease third = this.packs.open(screen(608, Set.of()));
-    final Mcv2PackServer.Lease seventh = this.packs.open(screen(576, Set.of()));
+    final Mcv2PackServer.Lease fifth = this.packs.open(this.screen(LARGE_SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease third = this.packs.open(this.screen(608, Set.of()));
+    final Mcv2PackServer.Lease seventh = this.packs.open(this.screen(576, Set.of()));
 
     final long fifthStreamId = fifth.getConfiguration().getStreamId();
     assertEquals(5, fifthStreamId, "the slot freed first");
@@ -466,7 +466,7 @@ final class Mcv2PackServerTest {
     final int seventhPageMap = seventh.getConfiguration().getPageMap();
     assertEquals(expectedSeventhPageMap, seventhPageMap);
 
-    final IllegalStateException full = assertThrows(IllegalStateException.class, () -> this.packs.open(screen(544, Set.of())));
+    final IllegalStateException full = assertThrows(IllegalStateException.class, () -> this.packs.open(this.screen(544, Set.of())));
     final String message = full.getMessage();
     assertEquals("Every one of the 8 MCV2 slots plays a screen!", message);
 
@@ -493,17 +493,17 @@ final class Mcv2PackServerTest {
   void shouldKeepTheNewSizeOfAReshapedSlotForTheNextScreenOfThatSize() {
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
-      leases.add(this.packs.open(screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of())));
+      leases.add(this.packs.open(this.screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of())));
     }
 
     this.settle();
     leases.getFirst().close();
-    this.packs.open(screen(LARGE_SCREEN_WIDTH, Set.of())).close();
+    this.packs.open(this.screen(LARGE_SCREEN_WIDTH, Set.of())).close();
     this.settle();
     final int hostingCountAfterReshape = this.hostings.size();
     assertEquals(2, hostingCountAfterReshape, "the full pack changed the free slot to the new size");
 
-    this.packs.open(screen(LARGE_SCREEN_WIDTH, Set.of())).close();
+    this.packs.open(this.screen(LARGE_SCREEN_WIDTH, Set.of())).close();
     this.settle();
     final int hostingCountAfterSameSize = this.hostings.size();
     assertEquals(2, hostingCountAfterSameSize, "the slot kept its new size, so the pack stays");
@@ -515,7 +515,7 @@ final class Mcv2PackServerTest {
     this.packs.start();
     final EventExecutor world = this.registered(PlayerChangedWorldEvent.class);
     final Listener listener = this.listener(PlayerChangedWorldEvent.class);
-    this.packs.open(screen(SCREEN_WIDTH, viewers));
+    this.packs.open(this.screen(SCREEN_WIDTH, viewers));
     this.settle();
     final CraftPlayer carol = this.online(CAROL);
     viewers.add(CAROL);
@@ -523,18 +523,18 @@ final class Mcv2PackServerTest {
     verify(carol, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
     this.server.runTasks();
-    requestSentTo(carol);
+    this.requestSentTo(carol);
   }
 
   @Test
   void shouldMeasureTheLoadOnlyOfThePackAPlayerWasOffered() {
     final CraftPlayer alice = this.online(ALICE);
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
-    requestSentTo(alice);
+    this.requestSentTo(alice);
     first.close();
     // the next pack is for Bob's screen: Alice is not asked to load it
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(BOB)));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(BOB)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
     final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
@@ -562,7 +562,7 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldDeleteThePackItServesWhenShutDown() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     final Path zip = this.folder.resolve(FIRST_PACK_FILE_NAME);
     final boolean written = Files.isRegularFile(zip);
@@ -577,11 +577,11 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldRetireAPackANewerOneReplacedBeforeItWasServed() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.server.runTasks();
     this.writer.drain();
     // the first pack is hosted and waits for the main thread, which asks for another first
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of()));
     this.settle();
     verify(this.hostings.getFirst()).shutdown();
 
@@ -594,7 +594,7 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldRefuseAScreenWhoseOutlineColourIsNotThePacks() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     final Mcv2Configuration gold = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.GOLD).build();
     assertThrows(IllegalArgumentException.class, () -> this.packs.open(gold));
     assertThrows(NullPointerException.class, () -> this.packs.open(null));
@@ -602,7 +602,7 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldGiveAPackWhoseScreensAllClosedTheOutlineColourOfTheNextScreen() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of())).close();
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of())).close();
     this.settle();
     final Mcv2Configuration gold = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.GOLD).build();
     final Mcv2PackServer.Lease lease = this.packs.open(gold);
@@ -613,7 +613,7 @@ final class Mcv2PackServerTest {
     final int hostingCount = this.hostings.size();
     assertEquals(2, hostingCount, "the pack changed for the new colour");
 
-    final Mcv2Configuration aqua = screen(SCREEN_WIDTH, Set.of());
+    final Mcv2Configuration aqua = this.screen(SCREEN_WIDTH, Set.of());
     assertThrows(IllegalArgumentException.class, () -> this.packs.open(aqua), "while the gold screen plays");
   }
 
@@ -621,7 +621,7 @@ final class Mcv2PackServerTest {
   void shouldKeepTheSlotOfTheSizeAScreenLeftSoSteppingBackChangesNothing() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    final Mcv2Configuration full = screen(SCREEN_WIDTH, Set.of(ALICE));
+    final Mcv2Configuration full = this.screen(SCREEN_WIDTH, Set.of(ALICE));
     final Mcv2PackServer.Lease lease = this.packs.open(full);
     this.settle();
     final Mcv2Configuration requested = lease.getConfiguration();
@@ -671,8 +671,8 @@ final class Mcv2PackServerTest {
   @Test
   void shouldKeepThePageMapsOfAScreenInALaterSlotWhenItStepsToAnotherSize() {
     this.packs.start();
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
-    final Mcv2PackServer.Lease second = this.packs.open(screen(STEPPED_SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease second = this.packs.open(this.screen(STEPPED_SCREEN_WIDTH, Set.of()));
     this.settle();
     final Mcv2Configuration playing = second.getConfiguration();
     final long playingStreamId = playing.getStreamId();
@@ -685,7 +685,7 @@ final class Mcv2PackServerTest {
     // the screen's result asks for the other size with the configuration its slot gave it
     final Mcv2Channel stepped = second.resize(playing.withVideo(SMALL_SCREEN_WIDTH, SMALL_SCREEN_HEIGHT));
     this.settle();
-    final Mcv2PackServer.Lease third = this.packs.open(screen(256, Set.of()));
+    final Mcv2PackServer.Lease third = this.packs.open(this.screen(256, Set.of()));
 
     final Mcv2Configuration step = stepped.getConfiguration();
     final long stepStreamId = step.getStreamId();
@@ -716,7 +716,7 @@ final class Mcv2PackServerTest {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
-      leases.add(this.packs.open(screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of(ALICE))));
+      leases.add(this.packs.open(this.screen(SMALL_SCREEN_WIDTH + 32 * slot, Set.of(ALICE))));
     }
 
     this.settle();
@@ -749,9 +749,9 @@ final class Mcv2PackServerTest {
     this.server.runTasks();
     verify(alice, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
-    this.packs.open(screen(SCREEN_WIDTH, viewers));
+    this.packs.open(this.screen(SCREEN_WIDTH, viewers));
     this.settle();
-    requestSentTo(alice);
+    this.requestSentTo(alice);
 
     // Bob joins; the screen's owner adds him to its viewers, and he is asked on the next tick
     final CraftPlayer bob = this.online(BOB);
@@ -760,7 +760,7 @@ final class Mcv2PackServerTest {
     verify(bob, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
     this.server.runTasks();
-    requestSentTo(bob);
+    this.requestSentTo(bob);
 
     // Carol watches nothing
     final CraftPlayer carol = this.online(CAROL);
@@ -799,7 +799,7 @@ final class Mcv2PackServerTest {
     final long earlyLoadTime = this.packs.onResourcePackStatus(early);
     assertEquals(-1, earlyLoadTime, "no pack is served yet");
 
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE, BOB)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE, BOB)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
 
@@ -835,7 +835,7 @@ final class Mcv2PackServerTest {
     when(alice.getName()).thenReturn(ALICE_NAME);
     when(alice.getClientBrandName()).thenReturn(brand);
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
     final long downloadedLoadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.DOWNLOADED));
@@ -884,7 +884,7 @@ final class Mcv2PackServerTest {
     when(alice.getName()).thenReturn(ALICE_NAME);
     when(alice.getClientBrandName()).thenReturn("fabric");
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
     this.server.receivePluginMessage(alice, "mcav:mcv2", new byte[] { 1, 1, 0, 0 });
@@ -912,7 +912,7 @@ final class Mcv2PackServerTest {
     final CraftPlayer alice = this.online(ALICE);
     when(alice.getClientBrandName()).thenReturn(brand);
     this.packs.start();
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
     try (final LogCapture logs = LogCapture.capture(Mcv2PackServer.class)) {
@@ -938,9 +938,9 @@ final class Mcv2PackServerTest {
       servers.add(hosting);
       return hosting;
     });
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of()));
     this.settle();
 
     final InOrder order = inOrder(servers.getFirst(), servers.get(1));
@@ -960,17 +960,17 @@ final class Mcv2PackServerTest {
 
       return this.hosting(zip);
     });
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     verify(alice, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
     final boolean firstPackExists = Files.exists(this.folder.resolve(FIRST_PACK_FILE_NAME));
     assertFalse(firstPackExists);
 
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
 
-    requestSentTo(alice);
+    this.requestSentTo(alice);
   }
 
   @Test
@@ -1003,8 +1003,8 @@ final class Mcv2PackServerTest {
       this.milliseconds::get
     );
     blocked.start();
-    blocked.open(screen(SCREEN_WIDTH, Set.of()));
-    settle(own, this.server);
+    blocked.open(this.screen(SCREEN_WIDTH, Set.of()));
+    this.settle(own, this.server);
     final boolean nothingHosted = this.hostings.isEmpty();
     assertTrue(nothingHosted);
 
@@ -1016,9 +1016,9 @@ final class Mcv2PackServerTest {
     final CraftPlayer alice = this.online(ALICE);
     try (final MockedStatic<HandlerList> lists = Mockito.mockStatic(HandlerList.class)) {
       this.packs.start();
-      this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+      this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
       this.settle();
-      final Mcv2PackServer.Lease pending = this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
+      final Mcv2PackServer.Lease pending = this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of(ALICE)));
       this.server.runTasks();
       this.writer.drain();
 
@@ -1032,7 +1032,7 @@ final class Mcv2PackServerTest {
       verify(alice).sendResourcePacks(any(ResourcePackRequest.class));
       verify(alice, never()).removeResourcePacks(any(UUID.class));
       assertThrows(IllegalStateException.class, () -> pending.resize(pending.getConfiguration()));
-      assertThrows(IllegalStateException.class, () -> this.packs.open(screen(SCREEN_WIDTH, Set.of())));
+      assertThrows(IllegalStateException.class, () -> this.packs.open(this.screen(SCREEN_WIDTH, Set.of())));
     }
   }
 
@@ -1044,7 +1044,7 @@ final class Mcv2PackServerTest {
 
       return hosting;
     });
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
 
     this.settle();
 
@@ -1057,9 +1057,9 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldWriteOrServeNothingAfterShutdown() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.server.runTasks();
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of()));
 
     this.packs.shutdown();
     this.server.runTasks();
@@ -1073,7 +1073,7 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldRetireAPackHostedTooLateWhenTheShutdownCouldNotWaitForTheWriter() {
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.server.runTasks();
     this.writer.drain();
     // the pack is hosted; the shutdown is interrupted before the writer stops it, then the main thread serves it
@@ -1120,7 +1120,7 @@ final class Mcv2PackServerTest {
     );
     try {
       own.start();
-      own.open(screen(SCREEN_WIDTH, Set.of()));
+      own.open(this.screen(SCREEN_WIDTH, Set.of()));
       this.server.runTasks();
       final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
       while (this.hostings.isEmpty() && System.nanoTime() < deadline) {
@@ -1167,9 +1167,9 @@ final class Mcv2PackServerTest {
       return hosting;
     });
     Files.writeString(this.folder.resolve(KEPT_FILE_NAME), "x");
-    this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
-    this.packs.open(screen(SMALL_SCREEN_WIDTH, Set.of()));
+    this.packs.open(this.screen(SMALL_SCREEN_WIDTH, Set.of()));
     this.settle();
     verify(this.hostings.getFirst()).shutdown();
 
@@ -1179,8 +1179,8 @@ final class Mcv2PackServerTest {
 
   @Test
   void shouldDescribeTheSlotsOfAPack() {
-    final Mcv2Configuration first = screen(SCREEN_WIDTH, Set.of()).withSlot(1, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
-    final Mcv2Configuration second = screen(SMALL_SCREEN_WIDTH, Set.of()).withSlot(2, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
+    final Mcv2Configuration first = this.screen(SCREEN_WIDTH, Set.of()).withSlot(1, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
+    final Mcv2Configuration second = this.screen(SMALL_SCREEN_WIDTH, Set.of()).withSlot(2, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
     final String description = Mcv2PackServer.describe(List.of(first, second));
     assertEquals("slots 1: 320x96, 2: 160x96", description);
   }
@@ -1214,11 +1214,11 @@ final class Mcv2PackServerTest {
   void shouldShareOneSlotOfThePackBetweenScreensThatPlayOneAfterAnother() throws IOException {
     this.packs.start();
     for (int width = SMALL_SCREEN_WIDTH; width <= 352; width += 32) {
-      this.packs.open(screen(width, Set.of())).close();
+      this.packs.open(this.screen(width, Set.of())).close();
       this.settle();
     }
 
-    final Mcv2PackServer.Lease last = this.packs.open(screen(384, Set.of()));
+    final Mcv2PackServer.Lease last = this.packs.open(this.screen(384, Set.of()));
     this.settle();
     final long streamId = last.getConfiguration().getStreamId();
     assertEquals(1, streamId);
@@ -1231,7 +1231,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldKeepOnlyTheSlotOfTheSizeLeftLastWhenAScreenStepsThroughThreeSizes() throws IOException {
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     final Mcv2Configuration playing = lease.getConfiguration();
     lease.resize(playing.withVideo(STEPPED_SCREEN_WIDTH, SCREEN_HEIGHT));
     lease.resize(playing.withVideo(256, SCREEN_HEIGHT));
@@ -1257,11 +1257,11 @@ final class Mcv2PackServerTest {
   void shouldRemoveTheSlotsOfScreensThatStoppedFromThePackAfterAMinute() throws IOException {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    final Mcv2PackServer.Lease video = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
-    final Mcv2PackServer.Lease machine = this.packs.open(screen(STEPPED_SCREEN_WIDTH, Set.of(ALICE)));
-    final Mcv2PackServer.Lease desktop = this.packs.open(screen(256, Set.of(ALICE)));
+    final Mcv2PackServer.Lease video = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease machine = this.packs.open(this.screen(STEPPED_SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease desktop = this.packs.open(this.screen(256, Set.of(ALICE)));
     this.settle();
-    final UUID threeSlots = packOf(requestSentTo(alice));
+    final UUID threeSlots = this.packOf(this.requestSentTo(alice));
     machine.close();
     desktop.close();
 
@@ -1289,9 +1289,9 @@ final class Mcv2PackServerTest {
   void shouldRemoveThePackFromThePlayersAMinuteAfterTheLastScreenStopped() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
-    final UUID pack = packOf(requestSentTo(alice));
+    final UUID pack = this.packOf(this.requestSentTo(alice));
     this.load(alice, pack);
     lease.close();
 
@@ -1309,7 +1309,7 @@ final class Mcv2PackServerTest {
     assertFalse(loaded);
 
     // the next screen brings a pack again
-    this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     this.settle();
     final int hostingCountAfterNextScreen = this.hostings.size();
     assertEquals(2, hostingCountAfterNextScreen);
@@ -1319,13 +1319,13 @@ final class Mcv2PackServerTest {
   @Test
   void shouldGiveANewScreenOfTheSizeAPlayingScreenLeftThatScreensSpare() {
     this.packs.start();
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     final Mcv2Configuration requested = first.getConfiguration();
     first.resize(requested.withVideo(SMALL_SCREEN_WIDTH, SMALL_SCREEN_HEIGHT));
     this.settle();
     final int hosted = this.hostings.size();
     // the first screen plays at 160 in slot 2 and keeps slot 1, at 320, as its spare; no slot of 320 is free
-    final Mcv2PackServer.Lease second = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease second = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     final long secondStreamId = second.getConfiguration().getStreamId();
     assertEquals(1, secondStreamId, "the pack has the size, as the playing screen's spare");
@@ -1345,7 +1345,7 @@ final class Mcv2PackServerTest {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int screen = 0; screen < Mcv2Pack.MAXIMUM_SCREENS / 2; screen++) {
-      final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH + 32 * screen, Set.of()));
+      final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH + 32 * screen, Set.of()));
       lease.resize(lease.getConfiguration().withVideo(SMALL_SCREEN_WIDTH + 16 * screen, SMALL_SCREEN_HEIGHT));
       leases.add(lease);
     }
@@ -1360,7 +1360,7 @@ final class Mcv2PackServerTest {
 
     this.settle();
 
-    final Mcv2PackServer.Lease fifth = this.packs.open(screen(608, Set.of()));
+    final Mcv2PackServer.Lease fifth = this.packs.open(this.screen(608, Set.of()));
 
     final long fifthStreamId = fifth.getConfiguration().getStreamId();
     assertEquals(3, fifthStreamId, "the spare left first, behind a newer one");
@@ -1373,7 +1373,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldTrimTheSlotOfAClosedScreenOnTheTickItsGraceEnds() {
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     lease.close();
     // the 60 seconds of grace are 1,200 ticks of 50 ms
@@ -1383,8 +1383,8 @@ final class Mcv2PackServerTest {
   @Test
   void shouldAskAgainForWhatIsLeftOfTheLastGraceWhenTrimmingBeforeItEnds() {
     this.packs.start();
-    final Mcv2PackServer.Lease first = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
-    final Mcv2PackServer.Lease second = this.packs.open(screen(STEPPED_SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease first = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease second = this.packs.open(this.screen(STEPPED_SCREEN_WIDTH, Set.of()));
     this.settle();
     first.close();
     this.milliseconds.addAndGet(20_000);
@@ -1398,10 +1398,10 @@ final class Mcv2PackServerTest {
   @Test
   void shouldKeepASpareThroughTheTrimOfTheSlotsAroundIt() throws IOException {
     this.packs.start();
-    final Mcv2PackServer.Lease playing = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease playing = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     final Mcv2Configuration requested = playing.getConfiguration();
     playing.resize(requested.withVideo(SMALL_SCREEN_WIDTH, SMALL_SCREEN_HEIGHT));
-    final Mcv2PackServer.Lease stopped = this.packs.open(screen(STEPPED_SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease stopped = this.packs.open(this.screen(STEPPED_SCREEN_WIDTH, Set.of()));
     this.settle();
     stopped.close();
 
@@ -1422,7 +1422,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldScheduleNoTrimWhileThePluginIsBeingDisabled() {
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     when(this.server.getPlugin().isEnabled()).thenReturn(false);
     lease.close();
@@ -1433,7 +1433,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldChangeNothingWhenATrimIsDueAfterTheShutdown() {
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     lease.close();
     this.packs.shutdown();
@@ -1453,7 +1453,7 @@ final class Mcv2PackServerTest {
   void shouldLeaveNoPackToWithdrawWhenAScreenStopsBeforeItsPackWasWritten() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of(ALICE)));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of(ALICE)));
     // the tick asks for the pack, which the writer has not written yet when the screen stops and its slot leaves
     this.server.runTasks();
     lease.close();
@@ -1470,7 +1470,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldChangeNothingOnAResizeToTheSizeThatPlays() {
     this.packs.start();
-    final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH, Set.of()));
+    final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH, Set.of()));
     this.settle();
     final Mcv2Configuration requested = lease.getConfiguration();
     final int hosted = this.hostings.size();
@@ -1493,7 +1493,7 @@ final class Mcv2PackServerTest {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int screen = 0; screen < Mcv2Pack.MAXIMUM_SCREENS / 2; screen++) {
-      final Mcv2PackServer.Lease lease = this.packs.open(screen(SCREEN_WIDTH + 32 * screen, Set.of()));
+      final Mcv2PackServer.Lease lease = this.packs.open(this.screen(SCREEN_WIDTH + 32 * screen, Set.of()));
       lease.resize(lease.getConfiguration().withVideo(SMALL_SCREEN_WIDTH + 16 * screen, SMALL_SCREEN_HEIGHT));
       leases.add(lease);
     }
@@ -1501,7 +1501,7 @@ final class Mcv2PackServerTest {
     this.settle();
 
     // four screens, each in the slot of its size and with the spare of the size it left: every slot is taken
-    final Mcv2PackServer.Lease fifth = this.packs.open(screen(608, Set.of()));
+    final Mcv2PackServer.Lease fifth = this.packs.open(this.screen(608, Set.of()));
 
     final long fifthStreamId = fifth.getConfiguration().getStreamId();
     assertEquals(1, fifthStreamId, "the spare left first");

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 /** Pages compare by every header field and every payload byte, which the assembler's duplicate rule relies on. */
 final class TransportPageTest {
 
-  private static TransportPage page(
+  private TransportPage page(
     final long stream,
     final long frame,
     final int number,
@@ -41,19 +41,19 @@ final class TransportPageTest {
 
   @Test
   void shouldCompareEveryField() {
-    final TransportPage value = page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
+    final TransportPage value = this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
     EqualityAssertions.assertEqualityContract(
       value,
-      page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(9, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 9, 0, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 9, 1, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 9, 2, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 9, 48, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 49, 1, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 0, 6, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 1, 7, (byte) 5),
-      page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 6)
+      this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(9, 2, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 9, 0, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 9, 1, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 9, 2, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 9, 48, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 49, 1, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 0, 6, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 1, 7, (byte) 5),
+      this.page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 6)
     );
     final byte[] firstPayload = value.getPayload();
     final byte[] secondPayload = value.getPayload();

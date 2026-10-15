@@ -42,7 +42,7 @@ final class EntityConfigurationTest {
   private static final World WORLD = mock(World.class);
   private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
-  private static EntityConfiguration.Builder<?> completeBuilder() {
+  private EntityConfiguration.Builder<?> completeBuilder() {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
@@ -128,13 +128,13 @@ final class EntityConfigurationTest {
 
   @Test
   void shouldRejectInvalidValues() {
-    final EntityConfiguration.Builder<?> emptyCharacter = completeBuilder();
+    final EntityConfiguration.Builder<?> emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final EntityConfiguration.Builder<?> noWidth = completeBuilder();
+    final EntityConfiguration.Builder<?> noWidth = this.completeBuilder();
     noWidth.entityWidth(0);
-    final EntityConfiguration.Builder<?> noHeight = completeBuilder();
+    final EntityConfiguration.Builder<?> noHeight = this.completeBuilder();
     noHeight.entityHeight(0);
-    final EntityConfiguration.Builder<?> noWorld = completeBuilder();
+    final EntityConfiguration.Builder<?> noWorld = this.completeBuilder();
     final Location nowhere = new Location(null, 1, 2, 3);
     noWorld.position(nowhere);
 

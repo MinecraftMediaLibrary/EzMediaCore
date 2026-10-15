@@ -54,7 +54,7 @@ final class ServerAddressTest {
 
   @BeforeEach
   void startServers() throws ReflectiveOperationException {
-    clearCachedAddress();
+    this.clearCachedAddress();
     this.server = FakeServer.start();
     this.http = LocalHttpServer.start();
   }
@@ -63,10 +63,10 @@ final class ServerAddressTest {
   void stopServers() throws ReflectiveOperationException {
     this.http.close();
     this.server.close();
-    clearCachedAddress();
+    this.clearCachedAddress();
   }
 
-  private static void clearCachedAddress() throws ReflectiveOperationException {
+  private void clearCachedAddress() throws ReflectiveOperationException {
     final Field field = ServerAddress.class.getDeclaredField("publicAddress");
     field.setAccessible(true);
     field.set(null, null);

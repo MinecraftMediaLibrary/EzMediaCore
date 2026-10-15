@@ -27,7 +27,7 @@ final class Mcv2PatternTest {
 
   private static final byte[] INLINE = { 1, 2, 3, 4, 5, 6, 0, (byte) 0b1010_0101 };
 
-  private static int colorAt(final byte[] picture, final int width, final int column, final int row) {
+  private int colorAt(final byte[] picture, final int width, final int column, final int row) {
     final int offset = (row * width + column) * 3;
     return ((picture[offset] & 255) << 16) | ((picture[offset + 1] & 255) << 8) | (picture[offset + 2] & 255);
   }
@@ -36,16 +36,16 @@ final class Mcv2PatternTest {
   void shouldResolveAnInlineRecordAlongColumns() throws Mcv2Exception {
     final byte[] data = Mcv2WireFrames.block(8, 4, 0, INLINE, true);
     final byte[] picture = Mcv2Decoder.decode(data, null, 0);
-    final int lastRowColor = colorAt(picture, 8, 0, 7);
+    final int lastRowColor = this.colorAt(picture, 8, 0, 7);
     assertEquals(0x040506, lastRowColor);
 
-    final int secondColumnColor = colorAt(picture, 8, 1, 0);
+    final int secondColumnColor = this.colorAt(picture, 8, 1, 0);
     assertEquals(0x010203, secondColumnColor);
 
     for (int row = 0; row < 8; row++) {
       for (int column = 0; column < 8; column++) {
         final int expected = ((INLINE[7] >> column) & 1) == 0 ? 0x010203 : 0x040506;
-        final int color = colorAt(picture, 8, column, row);
+        final int color = this.colorAt(picture, 8, column, row);
         assertEquals(expected, color);
       }
     }

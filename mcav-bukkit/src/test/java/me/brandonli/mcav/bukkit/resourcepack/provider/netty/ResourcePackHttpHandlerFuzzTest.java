@@ -73,7 +73,7 @@ final class ResourcePackHttpHandlerFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
   void shouldAnswerItsRequestsAndPassEverythingElseOnUnchanged(final byte[] input) {
-    final List<byte[]> reads = splitIntoReads(input);
+    final List<byte[]> reads = this.splitIntoReads(input);
     final byte[] stream = join(reads);
     final ResourcePackFile file = new ResourcePackFile(PACK_FILE);
     final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, REQUEST_PATH);
@@ -94,12 +94,12 @@ final class ResourcePackHttpHandlerFuzzTest {
       final ByteBuf buffer = Unpooled.copiedBuffer(read);
       written.add(buffer);
       channel.writeInbound(buffer);
-      drain(channel, forwarded, answered);
+      this.drain(channel, forwarded, answered);
     }
 
     channel.finishAndReleaseAll();
 
-    assertBehaviour(stream, forwarded.toByteArray(), answered.toByteArray());
+    this.assertBehaviour(stream, forwarded.toByteArray(), answered.toByteArray());
 
     for (final ByteBuf buffer : written) {
       final int references = buffer.refCnt();
@@ -107,10 +107,10 @@ final class ResourcePackHttpHandlerFuzzTest {
     }
   }
 
-  private static void assertBehaviour(final byte[] stream, final byte[] forwarded, final byte[] answered) {
-    final boolean isGetRequest = startsWith(stream, GET_PREFIX);
-    final boolean isHeadRequest = startsWith(stream, HEAD_PREFIX);
-    final boolean waiting = isProperPrefix(stream, GET_PREFIX) || isProperPrefix(stream, HEAD_PREFIX);
+  private void assertBehaviour(final byte[] stream, final byte[] forwarded, final byte[] answered) {
+    final boolean isGetRequest = this.startsWith(stream, GET_PREFIX);
+    final boolean isHeadRequest = this.startsWith(stream, HEAD_PREFIX);
+    final boolean waiting = this.isProperPrefix(stream, GET_PREFIX) || this.isProperPrefix(stream, HEAD_PREFIX);
     if (isGetRequest || isHeadRequest) {
       final int forwardedLength = forwarded.length;
       assertEquals(0, forwardedLength, "nothing of a pack request reaches Minecraft");
@@ -160,7 +160,7 @@ final class ResourcePackHttpHandlerFuzzTest {
   /**
    * Moves what the handler passed on and what it answered out of the channel, releasing the buffers.
    */
-  private static void drain(final EmbeddedChannel channel, final ByteArrayOutputStream forwarded, final ByteArrayOutputStream answered) {
+  private void drain(final EmbeddedChannel channel, final ByteArrayOutputStream forwarded, final ByteArrayOutputStream answered) {
     Object inbound = channel.readInbound();
     while (inbound != null) {
       final ByteBuf buffer = (ByteBuf) inbound;
@@ -180,7 +180,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     }
   }
 
-  private static List<byte[]> splitIntoReads(final byte[] input) {
+  private List<byte[]> splitIntoReads(final byte[] input) {
     if (input.length == 0) {
       return List.of();
     }
@@ -214,7 +214,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     return joined.toByteArray();
   }
 
-  private static boolean startsWith(final byte[] stream, final byte[] prefix) {
+  private boolean startsWith(final byte[] stream, final byte[] prefix) {
     if (stream.length < prefix.length) {
       return false;
     }
@@ -223,7 +223,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     return Arrays.equals(start, prefix);
   }
 
-  private static boolean isProperPrefix(final byte[] stream, final byte[] prefix) {
+  private boolean isProperPrefix(final byte[] stream, final byte[] prefix) {
     if (stream.length >= prefix.length) {
       return false;
     }

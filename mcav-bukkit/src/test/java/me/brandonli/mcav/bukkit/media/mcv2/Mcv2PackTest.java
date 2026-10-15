@@ -105,7 +105,7 @@ final class Mcv2PackTest {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Pack.class);
   }
 
-  private static Map<String, String> read(final Path zip) throws IOException {
+  private Map<String, String> read(final Path zip) throws IOException {
     final Map<String, String> entries = new HashMap<>();
     try (final InputStream input = Files.newInputStream(zip); final ZipInputStream stream = new ZipInputStream(input)) {
       for (ZipEntry entry = stream.getNextEntry(); entry != null; entry = stream.getNextEntry()) {
@@ -126,7 +126,7 @@ final class Mcv2PackTest {
       .build();
     final Path zip = this.directory.resolve(PACK_FILE_NAME);
     Mcv2Pack.write(configuration, true, zip);
-    final Map<String, String> entries = read(zip);
+    final Map<String, String> entries = this.read(zip);
     for (final String name : new String[] {
       PACK_METADATA_ENTRY,
       MANIFEST_ENTRY,
@@ -350,7 +350,7 @@ final class Mcv2PackTest {
     final Mcv2Configuration large = Mcv2ConfigurationTest.complete().video(640, 360).pageSlots(8).streamId(3).build();
     final Path zip = this.directory.resolve(SCREENS_FILE_NAME);
     Mcv2Pack.write(List.of(small, large), false, zip);
-    final Map<String, String> entries = read(zip);
+    final Map<String, String> entries = this.read(zip);
     final int entryCount = entries.size();
     assertEquals(33, entryCount);
 
@@ -404,11 +404,11 @@ final class Mcv2PackTest {
     final String secondScreenShader = passes.get(22).getAsJsonObject().get(FRAGMENT_SHADER_KEY).getAsString();
     assertEquals("mcav:post/s1/mcv2_screen", secondScreenShader);
 
-    final String description = describe(entries);
+    final String description = this.describe(entries);
     assertEquals("mcav MCV2 decoder, 2 screens: 320x180, 640x360", description);
   }
 
-  private static String describe(final Map<String, String> entries) {
+  private String describe(final Map<String, String> entries) {
     return JsonParser.parseString(entries.get(PACK_METADATA_ENTRY))
       .getAsJsonObject()
       .getAsJsonObject(PACK_KEY)

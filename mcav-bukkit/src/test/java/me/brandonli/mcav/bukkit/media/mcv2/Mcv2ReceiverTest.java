@@ -33,7 +33,7 @@ final class Mcv2ReceiverTest {
 
   private static final String STALE_FRAME_MESSAGE = "Stale or ambiguous frame number!";
 
-  private static byte[] keyframeWithId(final long id, final int gray) {
+  private byte[] keyframeWithId(final long id, final int gray) {
     return Mcv2Trees.write(4, 4, id, id, true, List.of(solid(gray, gray, gray)));
   }
 
@@ -43,15 +43,15 @@ final class Mcv2ReceiverTest {
     final long initialFrameId = receiver.getFrameId();
     assertEquals(-1, initialFrameId);
 
-    receiver.accept(keyframeWithId(5, 1));
+    receiver.accept(this.keyframeWithId(5, 1));
     final long acceptedFrameId = receiver.getFrameId();
     assertEquals(5, acceptedFrameId);
 
-    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5, 2)));
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(this.keyframeWithId(5, 2)));
     final String message = exception.getMessage();
     assertEquals(STALE_FRAME_MESSAGE, message);
-    assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(4, 2)));
-    assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5 + 0x80000000L, 2)));
+    assertThrows(Mcv2Exception.class, () -> receiver.accept(this.keyframeWithId(4, 2)));
+    assertThrows(Mcv2Exception.class, () -> receiver.accept(this.keyframeWithId(5 + 0x80000000L, 2)));
 
     final long frameIdAfterRejections = receiver.getFrameId();
     assertEquals(5, frameIdAfterRejections);
@@ -60,9 +60,9 @@ final class Mcv2ReceiverTest {
   @Test
   void shouldStillRequireAFrameAfterFrameZeroToBeNewer() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
-    receiver.accept(keyframeWithId(0, 1));
+    receiver.accept(this.keyframeWithId(0, 1));
 
-    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(0, 2)));
+    final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(this.keyframeWithId(0, 2)));
     final String message = exception.getMessage();
     assertEquals(STALE_FRAME_MESSAGE, message);
 
@@ -73,8 +73,8 @@ final class Mcv2ReceiverTest {
   @Test
   void shouldWrapFrameIdsAroundThirtyTwoBits() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
-    receiver.accept(keyframeWithId(0xFFFFFFFFL, 1));
-    final byte[] picture = receiver.accept(keyframeWithId(0, 9));
+    receiver.accept(this.keyframeWithId(0xFFFFFFFFL, 1));
+    final byte[] picture = receiver.accept(this.keyframeWithId(0, 9));
 
     final byte[] expected = new byte[] { 9, 9, 9 };
     final byte[] firstPixel = Arrays.copyOf(picture, 3);
@@ -87,7 +87,7 @@ final class Mcv2ReceiverTest {
   @Test
   void shouldKeepItsStateWhenAFrameFails() throws Mcv2Exception {
     final Mcv2Receiver receiver = new Mcv2Receiver();
-    receiver.accept(keyframeWithId(1, 3));
+    receiver.accept(this.keyframeWithId(1, 3));
     final byte[] orphan = Mcv2Trees.write(4, 4, 2, 7, false, List.of(motion(0, 0)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(orphan));
 

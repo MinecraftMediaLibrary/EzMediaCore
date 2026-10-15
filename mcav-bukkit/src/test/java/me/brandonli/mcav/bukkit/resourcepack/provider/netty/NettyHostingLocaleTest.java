@@ -52,7 +52,7 @@ final class NettyHostingLocaleTest {
         () -> new NettyHosting(Path.of(PACK_FILE_NAME)),
         "listener keys must use ASCII digits"
       );
-      assertDownloadAddress(hosting);
+      this.assertDownloadAddress(hosting);
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);
     }
@@ -66,13 +66,13 @@ final class NettyHostingLocaleTest {
       Locale.setDefault(Locale.Category.FORMAT, Locale.ROOT);
       final NettyHosting hosting = new NettyHosting(Path.of(PACK_FILE_NAME));
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
-      assertDownloadAddress(hosting);
+      this.assertDownloadAddress(hosting);
     } finally {
       Locale.setDefault(Locale.Category.FORMAT, previous);
     }
   }
 
-  private static void assertDownloadAddress(final NettyHosting hosting) {
+  private void assertDownloadAddress(final NettyHosting hosting) {
     try (
       final MockedStatic<Bukkit> server = Mockito.mockStatic(Bukkit.class);
       final MockedStatic<ServerAddress> address = Mockito.mockStatic(ServerAddress.class)

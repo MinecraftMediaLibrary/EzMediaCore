@@ -35,7 +35,7 @@ final class ChatConfigurationTest {
 
   private static final String CHARACTER = "x";
 
-  private static ChatConfiguration.Builder<?> completeBuilder() {
+  private ChatConfiguration.Builder<?> completeBuilder() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
@@ -99,11 +99,11 @@ final class ChatConfigurationTest {
     noCharacter.viewers(List.of());
     noCharacter.chatWidth(1);
     noCharacter.chatHeight(1);
-    final ChatConfiguration.Builder<?> emptyCharacter = completeBuilder();
+    final ChatConfiguration.Builder<?> emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final ChatConfiguration.Builder<?> noWidth = completeBuilder();
+    final ChatConfiguration.Builder<?> noWidth = this.completeBuilder();
     noWidth.chatWidth(0);
-    final ChatConfiguration.Builder<?> noHeight = completeBuilder();
+    final ChatConfiguration.Builder<?> noHeight = this.completeBuilder();
     noHeight.chatHeight(0);
 
     assertThrows(NullPointerException.class, noViewers::build);

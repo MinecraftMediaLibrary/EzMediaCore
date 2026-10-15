@@ -39,33 +39,33 @@ final class Mcv2ParserRulesTest {
 
   private static final String INVALID_DESCRIPTOR_MESSAGE = "Invalid descriptor!";
 
-  private static Node patterns8() {
+  private Node patterns8() {
     return split(split(pattern(8, ENDPOINTS, 1, 0x3C)));
   }
 
-  private static byte[] patterns() {
-    return keyframe(64, 32, patterns8(), split(split(pattern(8, OTHER_ENDPOINTS, 1, 0x3C))));
+  private byte[] patterns() {
+    return keyframe(64, 32, this.patterns8(), split(split(pattern(8, OTHER_ENDPOINTS, 1, 0x3C))));
   }
 
-  private static byte[] withByte(final byte[] frame, final int offset, final int value) {
+  private byte[] withByte(final byte[] frame, final int offset, final int value) {
     final byte[] copy = frame.clone();
     copy[offset] = (byte) value;
     return copy;
   }
 
-  private static byte[] withWord(final byte[] frame, final int offset, final long value) {
+  private byte[] withWord(final byte[] frame, final int offset, final long value) {
     final byte[] copy = frame.clone();
     Mcv2Decoder.putU32(copy, offset, value);
     return copy;
   }
 
-  private static String message(final byte[] frame) {
+  private String message(final byte[] frame) {
     return assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame)).getMessage();
   }
 
   @Test
   void shouldHaveASixWordWalkAndThirtyTwoLeavesInThePatternFixture() throws Mcv2Exception {
-    final byte[] frame = patterns();
+    final byte[] frame = this.patterns();
     final Layout layout = Layout.of(frame);
     final int expectedWalkLength = 6 * 4;
     final int walkLength = layout.start() - layout.walk();
@@ -83,7 +83,7 @@ final class Mcv2ParserRulesTest {
     final byte descriptorMode = frame[descriptor];
     assertEquals(Mcv2Decoder.MODE_SPLIT, descriptorMode);
 
-    final String failureMessage = message(withByte(frame, descriptor, Mcv2Decoder.MODE_SPLIT | (1 << 5)));
+    final String failureMessage = this.message(this.withByte(frame, descriptor, Mcv2Decoder.MODE_SPLIT | (1 << 5)));
     assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
   }
 
@@ -93,7 +93,7 @@ final class Mcv2ParserRulesTest {
     final Layout layout = Layout.of(frame);
     frame[layout.plane() + 1] = Mcv2Decoder.MODE_SKIP;
     frame[layout.plane() + 5] = Mcv2Decoder.MODE_SPLIT;
-    final String failureMessage = message(frame);
+    final String failureMessage = this.message(frame);
     assertEquals("Split below the bounded depth!", failureMessage);
   }
 
@@ -106,7 +106,7 @@ final class Mcv2ParserRulesTest {
     }
 
     final byte[] frame = Mcv2Trees.write(4096, 64, 0, 0, true, roots);
-    final String failureMessage = message(withWord(frame, 20, 0));
+    final String failureMessage = this.message(this.withWord(frame, 20, 0));
     assertEquals("Presence count differs from level zero!", failureMessage);
   }
 
@@ -116,7 +116,7 @@ final class Mcv2ParserRulesTest {
     Mcv2Decoder.parse(frame);
     final int descriptor = Layout.of(frame).plane();
     for (int mode = 7; mode < 32; mode++) {
-      final String failureMessage = message(withByte(frame, descriptor, mode));
+      final String failureMessage = this.message(this.withByte(frame, descriptor, mode));
       assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
     }
   }
@@ -137,7 +137,7 @@ final class Mcv2ParserRulesTest {
     final long checkpoint = Mcv2Decoder.u32(frame, 20 + groups * 4 + 4);
     assertEquals(37, checkpoint);
 
-    final String failureMessage = message(withWord(frame, 20 + groups * 4 + 4, 0));
+    final String failureMessage = this.message(this.withWord(frame, 20 + groups * 4 + 4, 0));
     assertEquals("Invalid directory checkpoint!", failureMessage);
   }
 
@@ -153,10 +153,10 @@ final class Mcv2ParserRulesTest {
     final int planeLength = layout.walk() - layout.plane();
     assertEquals(5, planeLength);
 
-    final String indexLengthMessage = message(withWord(frame, layout.counts() + 4, 40));
+    final String indexLengthMessage = this.message(this.withWord(frame, layout.counts() + 4, 40));
     assertEquals("Invalid index length!", indexLengthMessage);
 
-    final String truncatedMessage = message(Arrays.copyOf(frame, layout.counts() + 11));
+    final String truncatedMessage = this.message(Arrays.copyOf(frame, layout.counts() + 11));
     assertEquals("Truncated index!", truncatedMessage);
   }
 
@@ -165,7 +165,7 @@ final class Mcv2ParserRulesTest {
     for (final Node node : List.of(motion(1, 1), Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[10]))) {
       final byte[] frame = predicted(32, 32, node);
       Mcv2Decoder.putU32(frame, 16, 1);
-      final String failureMessage = message(frame);
+      final String failureMessage = this.message(frame);
       assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
     }
   }

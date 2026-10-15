@@ -104,16 +104,16 @@ final class Mcv2ParserPropertyTest {
     return mutation.list().ofMinSize(1).ofMaxSize(8);
   }
 
-  private static byte[] mutate(final byte[] frame, final List<Mutation> mutations) {
+  private byte[] mutate(final byte[] frame, final List<Mutation> mutations) {
     byte[] bytes = frame.clone();
     for (final Mutation mutation : mutations) {
-      bytes = mutateOnce(bytes, mutation);
+      bytes = this.mutateOnce(bytes, mutation);
     }
 
     return bytes;
   }
 
-  private static byte[] mutateOnce(final byte[] bytes, final Mutation mutation) {
+  private byte[] mutateOnce(final byte[] bytes, final Mutation mutation) {
     final int length = bytes.length;
     final int position = length == 0 ? 0 : mutation.position() % length;
     final int value = mutation.value();
@@ -161,7 +161,7 @@ final class Mcv2ParserPropertyTest {
   }
 
   /** Parses and decodes, accepting only a picture of the frame's size or the declared exception. */
-  private static void parseAndDecode(final byte[] bytes) {
+  private void parseAndDecode(final byte[] bytes) {
     final Mcv2Decoder.Frame frame;
     try {
       frame = Mcv2Decoder.parse(bytes);
@@ -191,7 +191,7 @@ final class Mcv2ParserPropertyTest {
     @ForAll @IntRange(min = 0, max = 1000) final int frame,
     @ForAll("mutations") final List<Mutation> mutations
   ) {
-    parseAndDecode(mutate(FRAMES.get(frame % FRAMES.size()), mutations));
+    this.parseAndDecode(this.mutate(FRAMES.get(frame % FRAMES.size()), mutations));
   }
 
   /**
@@ -215,7 +215,7 @@ final class Mcv2ParserPropertyTest {
     Mcv2Decoder.putU32(bytes, 8, ((long) height << 16) | width);
     Mcv2Decoder.putU32(bytes, 12, frameId);
     Mcv2Decoder.putU32(bytes, 16, isKeyframe ? frameId : frameId - 1);
-    parseAndDecode(bytes);
+    this.parseAndDecode(bytes);
   }
 
   @Property(seed = SEED, tries = 300)

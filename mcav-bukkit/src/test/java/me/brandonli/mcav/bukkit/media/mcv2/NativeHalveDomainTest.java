@@ -36,7 +36,7 @@ final class NativeHalveDomainTest {
 
   @Test
   void shouldRefuseUnsupportedSimdRowsBeforeNativeDispatch() {
-    final NativeKernels kernels = NativeTesting.kernels(new Binding(Level.AVX2, (_, descriptor) -> failingBoundary(descriptor)));
+    final NativeKernels kernels = NativeTesting.kernels(new Binding(Level.AVX2, (_, descriptor) -> this.failingBoundary(descriptor)));
     assertThrows(IllegalArgumentException.class, () -> kernels.halve(new int[18 * 18 * 3], 18, new int[9 * 9 * 3]));
     // every even size that is no power of two leaves a part of a row to a vector loop of some level
     for (int size = 6; size < 32; size += 2) {
@@ -51,7 +51,7 @@ final class NativeHalveDomainTest {
     }
   }
 
-  private static MethodHandle failingBoundary(final FunctionDescriptor descriptor) {
+  private MethodHandle failingBoundary(final FunctionDescriptor descriptor) {
     final MethodType type = descriptor.toMethodType();
     final MethodHandle failure = MethodHandles.insertArguments(
       MethodHandles.throwException(type.returnType(), IllegalStateException.class),

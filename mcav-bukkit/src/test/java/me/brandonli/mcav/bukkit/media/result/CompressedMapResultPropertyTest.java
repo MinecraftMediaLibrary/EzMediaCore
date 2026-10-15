@@ -89,19 +89,19 @@ final class CompressedMapResultPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<ResizeScenario> scenarios() {
-    final Arbitrary<Integer> columns = between(1, 3);
-    final Arbitrary<Integer> rows = between(1, 3);
-    final Arbitrary<Integer> smallBudgets = between(1, 20_000);
-    final Arbitrary<Integer> largeBudgets = between(20_000, 1 << 20);
+    final Arbitrary<Integer> columns = this.between(1, 3);
+    final Arbitrary<Integer> rows = this.between(1, 3);
+    final Arbitrary<Integer> smallBudgets = this.between(1, 20_000);
+    final Arbitrary<Integer> largeBudgets = this.between(20_000, 1 << 20);
     final Arbitrary<Integer> budgets = Arbitraries.oneOf(smallBudgets, largeBudgets);
-    final Arbitrary<Step> step = steps();
+    final Arbitrary<Step> step = this.steps();
     final ListArbitrary<Step> stepList = step.list();
     final ListArbitrary<Step> someSteps = stepList.ofMinSize(1);
     final ListArbitrary<Step> boundedSteps = someSteps.ofMaxSize(8);
@@ -118,9 +118,9 @@ final class CompressedMapResultPropertyTest {
    * A frame of some size and color, or the second viewer joining or leaving. Sizes are thousandths of a little more
    * than the grid, so the picture is sometimes larger than the grid and sometimes much smaller.
    */
-  private static Arbitrary<Step> steps() {
-    final Arbitrary<Integer> shares = between(1, PER_MILLE);
-    final Arbitrary<Integer> colors = between(1, 60);
+  private Arbitrary<Step> steps() {
+    final Arbitrary<Integer> shares = this.between(1, PER_MILLE);
+    final Arbitrary<Integer> colors = this.between(1, 60);
     final Arbitrary<Integer> kinds = Arbitraries.of(Step.FRAME, Step.FRAME, Step.FRAME, Step.JOIN, Step.LEAVE);
     final Combinators.Combinator4<Integer, Integer, Integer, Integer> combined = Combinators.combine(kinds, shares, shares, colors);
     return combined.as(Step::new);

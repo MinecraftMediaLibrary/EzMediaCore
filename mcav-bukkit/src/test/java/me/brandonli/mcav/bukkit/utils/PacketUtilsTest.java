@@ -243,7 +243,7 @@ final class PacketUtilsTest {
   /**
    * Gives the first player's packet listener a network connection of its own, without a channel.
    */
-  private static Connection useConnection() {
+  private Connection useConnection() {
     final Connection connection = FakeServer.connection();
     final CraftPlayer player = (CraftPlayer) Objects.requireNonNull(Bukkit.getPlayer(FIRST));
     FakeServer.connect(player.getHandle().connection, connection);
@@ -260,7 +260,7 @@ final class PacketUtilsTest {
     final boolean unconnectedLimited = PacketUtils.limitUnsent(FIRST, 1024);
     assertFalse(unconnectedLimited);
 
-    final Connection connection = useConnection();
+    final Connection connection = this.useConnection();
     final boolean channellessLimited = PacketUtils.limitUnsent(FIRST, 1024);
     assertFalse(channellessLimited);
 
@@ -284,7 +284,7 @@ final class PacketUtilsTest {
   void shouldWriteAPacketWithAListenerToTheConnectionAtOnce() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
-    final Connection connection = useConnection();
+    final Connection connection = this.useConnection();
     final EmbeddedChannel channel = new EmbeddedChannel();
     connection.channel = channel;
     final MapTilePatch page = new MapTilePatch(100, 0, 0, 128, 1, new byte[128]);

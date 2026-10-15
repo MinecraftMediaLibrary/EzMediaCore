@@ -194,7 +194,7 @@ final class Mcv2Version3Test {
     for (int row = 0; row < size; row++) {
       for (int column = 0; column < size; column++) {
         final boolean blue = ((orientation == 0 ? column : row) & 1) == 0;
-        pixel(decoded, size, column, row, blue ? 0 : 255, 0, blue ? 255 : 0);
+        this.pixel(decoded, size, column, row, blue ? 0 : 255, 0, blue ? 255 : 0);
       }
     }
 
@@ -220,10 +220,10 @@ final class Mcv2Version3Test {
     palette[5] = 60;
     palette[6] = (byte) 129;
     final byte[] picture = Mcv2Decoder.decode(block(8, 3, 0, palette, true), null, 0);
-    pixel(picture, 8, 0, 0, 40, 50, 60);
-    pixel(picture, 8, 1, 0, 10, 20, 30);
-    pixel(picture, 8, 7, 0, 40, 50, 60);
-    pixel(picture, 8, 0, 1, 10, 20, 30);
+    this.pixel(picture, 8, 0, 0, 40, 50, 60);
+    this.pixel(picture, 8, 1, 0, 10, 20, 30);
+    this.pixel(picture, 8, 7, 0, 40, 50, 60);
+    this.pixel(picture, 8, 0, 1, 10, 20, 30);
     final byte[] skipped = frame(3, 2, true, new byte[0], new byte[0][], new int[3]);
     final byte[] expectedSkippedPicture = new byte[18];
     final byte[] skippedPicture = Mcv2Decoder.decode(skipped, null, 0);
@@ -243,8 +243,8 @@ final class Mcv2Version3Test {
 
     for (final byte[] record : new byte[][] { { -1, 1 }, { -1, 1, 0, 0, 0, 0, 0, 0, 0, 0 } }) {
       final byte[] decoded = Mcv2Decoder.decode(block(8, record.length == 2 ? 1 : 5, 0, record, false), reference, 0);
-      pixel(decoded, 8, 0, 0, 24, 25, 26);
-      pixel(decoded, 8, 7, 7, 186, 187, 188);
+      this.pixel(decoded, 8, 0, 0, 24, 25, 26);
+      this.pixel(decoded, 8, 7, 7, 186, 187, 188);
     }
 
     final byte[] skippedPicture = Mcv2Decoder.decode(block(8, 0, 0, new byte[0], false), reference, 0);
@@ -259,11 +259,11 @@ final class Mcv2Version3Test {
       // Nodes [-8, -4, 0, 4] form a horizontal plane at all four rows.
       final byte[] record = { 0, 0, (byte) 0xC8, 0x40, (byte) 0xC8, 0x40, (byte) 0xC8, 0x40, (byte) 0xC8, 0x40 };
       final byte[] picture = Mcv2Decoder.decode(block(size, 5, 0, record, false), reference, 0);
-      pixel(picture, size, 0, 0, 92, 92, 92);
-      pixel(picture, size, size - 1, size - 1, 104, 104, 104);
+      this.pixel(picture, size, 0, 0, 92, 92, 92);
+      this.pixel(picture, size, size - 1, size - 1, 104, 104, 104);
       // At p=size/4 - 1, t=.5 - 2/size, so Y=-6 - 8/size.
       final int roundedLuma = (int) Math.floor(-6.0 - 8.0 / size + 0.5);
-      pixel(picture, size, size / 4 - 1, 0, 100 + roundedLuma, 100 + roundedLuma, 100 + roundedLuma);
+      this.pixel(picture, size, size / 4 - 1, 0, 100 + roundedLuma, 100 + roundedLuma, 100 + roundedLuma);
     }
   }
 
@@ -284,8 +284,8 @@ final class Mcv2Version3Test {
       final byte[] record = new byte[10];
       Arrays.fill(record, 2, 10, (byte) ((delta & 15) * 17));
       final byte[] decoded = Mcv2Decoder.decode(block(8, 5, quantizer, record, false), reference, 0);
-      pixel(decoded, 8, 0, 0, value, value, value);
-      pixel(decoded, 8, 7, 7, value, value, value);
+      this.pixel(decoded, 8, 0, 0, value, value, value);
+      this.pixel(decoded, 8, 7, 7, value, value, value);
     }
   }
 
@@ -394,7 +394,7 @@ final class Mcv2Version3Test {
     }
   }
 
-  private static void pixel(
+  private void pixel(
     final byte[] picture,
     final int width,
     final int column,

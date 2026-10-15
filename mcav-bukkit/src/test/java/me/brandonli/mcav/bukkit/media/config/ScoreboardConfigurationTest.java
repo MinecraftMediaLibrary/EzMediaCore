@@ -35,7 +35,7 @@ final class ScoreboardConfigurationTest {
 
   private static final String CHARACTER = "x";
 
-  private static ScoreboardConfiguration.Builder<?> completeBuilder() {
+  private ScoreboardConfiguration.Builder<?> completeBuilder() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of());
     builder.character(Characters.FULL_CHARACTER);
@@ -99,13 +99,13 @@ final class ScoreboardConfigurationTest {
     noCharacter.viewers(List.of());
     noCharacter.lines(1);
     noCharacter.width(1);
-    final ScoreboardConfiguration.Builder<?> emptyCharacter = completeBuilder();
+    final ScoreboardConfiguration.Builder<?> emptyCharacter = this.completeBuilder();
     emptyCharacter.character("");
-    final ScoreboardConfiguration.Builder<?> noLines = completeBuilder();
+    final ScoreboardConfiguration.Builder<?> noLines = this.completeBuilder();
     noLines.lines(0);
-    final ScoreboardConfiguration.Builder<?> tooManyLines = completeBuilder();
+    final ScoreboardConfiguration.Builder<?> tooManyLines = this.completeBuilder();
     tooManyLines.lines(16);
-    final ScoreboardConfiguration.Builder<?> noWidth = completeBuilder();
+    final ScoreboardConfiguration.Builder<?> noWidth = this.completeBuilder();
     noWidth.width(0);
 
     assertThrows(NullPointerException.class, noViewers::build);

@@ -68,7 +68,7 @@ final class Mcv2ToolsTest {
     Files.write(source, Mcv2Fixtures.read(CROP_SOURCE_PATH));
     for (final String mode : List.of("off", "auto")) {
       final Path archive = folder.resolve(mode + ARCHIVE_EXTENSION);
-      final String output = run(
+      final String output = this.run(
         BENCH_COMMAND,
         "source=" + source,
         "width=320",
@@ -138,7 +138,7 @@ final class Mcv2ToolsTest {
     Files.write(archive, Mcv2Fixtures.read(PROXY_DEFAULT_PATH));
     final List<String> expected = Mcv2Fixtures.digests("conformance").get(PROXY_DEFAULT_STREAM);
     final String expectedOutput = archive + " " + String.join(" ", expected);
-    final String output = run(DIGESTS_COMMAND, "--rgb", pictures.toString(), archive.toString()).strip();
+    final String output = this.run(DIGESTS_COMMAND, "--rgb", pictures.toString(), archive.toString()).strip();
     assertEquals(expectedOutput, output);
 
     final Mcv2Receiver receiver = new Mcv2Receiver();
@@ -169,13 +169,13 @@ final class Mcv2ToolsTest {
     stream[Integer.BYTES] = 0;
     Files.write(archive, stream);
     final String expectedRejection = archive + " reject";
-    final String rejection = run(DIGESTS_COMMAND, archive.toString()).strip();
+    final String rejection = this.run(DIGESTS_COMMAND, archive.toString()).strip();
     assertEquals(expectedRejection, rejection);
 
     for (final byte[] truncated : List.of(new byte[] { 1 }, Arrays.copyOf(stream, stream.length - 1))) {
       Files.write(archive, truncated);
       final String expectedTruncation = archive + " truncated";
-      final String truncation = run(DIGESTS_COMMAND, archive.toString()).strip();
+      final String truncation = this.run(DIGESTS_COMMAND, archive.toString()).strip();
       assertEquals(expectedTruncation, truncation);
     }
   }
@@ -196,7 +196,7 @@ final class Mcv2ToolsTest {
       """
     );
     final String[] arguments = { pack.toString(), generated.toString(), output.toString(), "--post-only" };
-    final int validFailures = compileShaders(arguments);
+    final int validFailures = this.compileShaders(arguments);
     assertEquals(0, validFailures);
 
     final String glsl = Files.readString(output.resolve("sampler.fsh"));
@@ -207,7 +207,7 @@ final class Mcv2ToolsTest {
     assertFalse(renamesSampler);
 
     Files.writeString(post.resolve("invalid.fsh"), "#version 330\nvoid main() { invalid shader; }\n");
-    final int invalidFailures = compileShaders(arguments);
+    final int invalidFailures = this.compileShaders(arguments);
     assertEquals(1, invalidFailures);
 
     final boolean invalidWritten = Files.exists(output.resolve("invalid.fsh"));
@@ -217,7 +217,7 @@ final class Mcv2ToolsTest {
     assertEquals(glsl, samplerAfterFailure);
   }
 
-  private static int compileShaders(final String[] arguments) throws Exception {
+  private int compileShaders(final String[] arguments) throws Exception {
     // JaCoCo's synthetic methods on LWJGL interfaces confuse its FFM callback selection.
     final String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
     final Path java = Path.of(System.getProperty("java.home"), "bin", executable);
@@ -241,7 +241,7 @@ final class Mcv2ToolsTest {
     return failures;
   }
 
-  private static String run(final String... arguments) throws Exception {
+  private String run(final String... arguments) throws Exception {
     final PrintStream original = System.out;
     final ByteArrayOutputStream output = new ByteArrayOutputStream();
     try (final PrintStream captured = new PrintStream(output, true, StandardCharsets.UTF_8)) {

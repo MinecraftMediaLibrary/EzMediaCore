@@ -58,7 +58,7 @@ final class Mcv2PacerPropertyTest {
     return Arbitraries.of(24.0, 25.0, 30.0, 50.0, 60.0);
   }
 
-  private static double frameMilliseconds(final Mcv2Pacer.Rung rung, final double framesPerSecond) {
+  private double frameMilliseconds(final Mcv2Pacer.Rung rung, final double framesPerSecond) {
     return (1000.0 * rung.divisor()) / framesPerSecond;
   }
 
@@ -86,10 +86,10 @@ final class Mcv2PacerPropertyTest {
       final double rungMilliseconds =
         (fullMilliseconds * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (FULL_WIDTH * FULL_HEIGHT);
       final double seconds = (stretch.to() - stretch.from()) / (double) SECOND;
-      final boolean over = rungMilliseconds * (1 - noise) > frameMilliseconds(stretch.rung(), framesPerSecond);
+      final boolean over = rungMilliseconds * (1 - noise) > this.frameMilliseconds(stretch.rung(), framesPerSecond);
       // it waits for the rung's first samples (and, on the first rung, for the encoder to warm up), then a second
       final double frame =
-        Math.max(rungMilliseconds * (1 + noise), frameMilliseconds(stretch.rung(), framesPerSecond)) / MILLISECONDS_PER_SECOND;
+        Math.max(rungMilliseconds * (1 + noise), this.frameMilliseconds(stretch.rung(), framesPerSecond)) / MILLISECONDS_PER_SECOND;
       final double allowed =
         Mcv2Pacer.DOWN_SECONDS + (Mcv2Pacer.MINIMUM_SAMPLES + 2) * frame + 1 + (stretchIndex == 0 ? Mcv2Pacer.STARTUP_SECONDS : 0);
       if (over && seconds > allowed) {

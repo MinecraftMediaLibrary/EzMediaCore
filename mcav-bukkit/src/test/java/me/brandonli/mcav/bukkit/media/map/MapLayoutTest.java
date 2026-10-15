@@ -51,7 +51,7 @@ final class MapLayoutTest {
     return colors;
   }
 
-  private static void assertRegion(
+  private void assertRegion(
     final MapRegion region,
     final int localX,
     final int localY,
@@ -98,9 +98,9 @@ final class MapLayoutTest {
     assertEquals(15, lastId);
     assertEquals(384, imageWidth);
     assertEquals(256, imageHeight);
-    assertRegion(secondRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
-    assertRegion(firstRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0);
-    assertRegion(secondRowFirstColumn, 0, 0, MAP_SIZE, MAP_SIZE, 0, MAP_SIZE);
+    this.assertRegion(secondRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, MAP_SIZE);
+    this.assertRegion(firstRowSecondColumn, 0, 0, MAP_SIZE, MAP_SIZE, MAP_SIZE, 0);
+    this.assertRegion(secondRowFirstColumn, 0, 0, MAP_SIZE, MAP_SIZE, 0, MAP_SIZE);
   }
 
   @Test
@@ -108,7 +108,7 @@ final class MapLayoutTest {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final MapRegion region = layout.getRegion(0);
 
-    assertRegion(region, 14, 39, 100, 50, 0, 0);
+    this.assertRegion(region, 14, 39, 100, 50, 0, 0);
   }
 
   @Test
@@ -124,7 +124,7 @@ final class MapLayoutTest {
     assertTrue(leftEmpty);
     assertFalse(middleEmpty);
     assertTrue(rightEmpty);
-    assertRegion(middle, 0, 32, MAP_SIZE, 64, 0, 0);
+    this.assertRegion(middle, 0, 32, MAP_SIZE, 64, 0, 0);
   }
 
   @Test
@@ -132,7 +132,7 @@ final class MapLayoutTest {
     final MapLayout layout = new MapLayout(0, 1, 1, 200, 150);
     final MapRegion region = layout.getRegion(0);
 
-    assertRegion(region, 0, 0, MAP_SIZE, MAP_SIZE, 36, 11);
+    this.assertRegion(region, 0, 0, MAP_SIZE, MAP_SIZE, 36, 11);
   }
 
   @Test
@@ -141,8 +141,8 @@ final class MapLayoutTest {
     final MapRegion left = layout.getRegion(0);
     final MapRegion right = layout.getRegion(1);
 
-    assertRegion(left, 28, 14, 100, 100, 0, 0);
-    assertRegion(right, 0, 14, 100, 100, 100, 0);
+    this.assertRegion(left, 28, 14, 100, 100, 0, 0);
+    this.assertRegion(right, 0, 14, 100, 100, 100, 0);
   }
 
   @Test
@@ -151,8 +151,8 @@ final class MapLayoutTest {
     final MapRegion top = layout.getRegion(0);
     final MapRegion bottom = layout.getRegion(1);
 
-    assertRegion(top, 0, 28, MAP_SIZE, 100, 0, 0);
-    assertRegion(bottom, 0, 0, MAP_SIZE, 100, 0, 100);
+    this.assertRegion(top, 0, 28, MAP_SIZE, 100, 0, 0);
+    this.assertRegion(bottom, 0, 0, MAP_SIZE, 100, 0, 100);
   }
 
   @Test

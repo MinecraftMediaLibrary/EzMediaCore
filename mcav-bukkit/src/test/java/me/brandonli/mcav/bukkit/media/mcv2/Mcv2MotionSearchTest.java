@@ -60,25 +60,18 @@ final class Mcv2MotionSearchTest {
   }
 
   /** The block at (blockLeft, blockTop) of the picture displaced by a vector in whole pixels. */
-  private static int[] block(
-    final byte[] rgb,
-    final int blockLeft,
-    final int blockTop,
-    final int size,
-    final int motionX,
-    final int motionY
-  ) {
+  private int[] block(final byte[] rgb, final int blockLeft, final int blockTop, final int size, final int motionX, final int motionY) {
     final int[] source = new int[size * size * 3];
     for (int row = 0; row < size; row++) {
       for (int column = 0; column < size; column++) {
-        copyPixel(source, row * size + column, rgb, (blockTop + row + motionY) * WIDTH + blockLeft + column + motionX);
+        this.copyPixel(source, row * size + column, rgb, (blockTop + row + motionY) * WIDTH + blockLeft + column + motionX);
       }
     }
 
     return source;
   }
 
-  private static void copyPixel(final int[] destination, final int destinationPixel, final byte[] rgb, final int sourcePixel) {
+  private void copyPixel(final int[] destination, final int destinationPixel, final byte[] rgb, final int sourcePixel) {
     for (int channel = 0; channel < 3; channel++) {
       destination[destinationPixel * 3 + channel] = rgb[sourcePixel * 3 + channel] & 255;
     }
@@ -102,7 +95,7 @@ final class Mcv2MotionSearchTest {
 
   @Test
   void shouldFindAWholePixelDisplacement() {
-    final int[] source = block(picture(), 32, 32, 16, 5, -3);
+    final int[] source = this.block(picture(), 32, 32, 16, 5, -3);
     final int expected = (5 << 16) | (-3 & 0xFFFF);
     final int found = search(source, 8);
     assertEquals(expected, found);
@@ -112,47 +105,47 @@ final class Mcv2MotionSearchTest {
     return Mcv2Internals.javaKernels().seeded(picture(), WIDTH, HEIGHT, source, 32, 32, 16, range, seeds);
   }
 
-  private static int vector(final int vectorX, final int vectorY) {
+  private int vector(final int vectorX, final int vectorY) {
     return (vectorX << 16) | (vectorY & 0xFFFF);
   }
 
   @Test
   void shouldStartASeededSearchFromTheBestSeed() {
     // the true vector is far from zero but one seed is next to it: the diamond walks the last pixel
-    final int[] source = block(picture(), 32, 32, 16, 10, -7);
-    final int expected = vector(10, -7);
-    final int found = seeded(source, 24, vector(0, 0), vector(9, -7), vector(9, -7), vector(-30, 40));
+    final int[] source = this.block(picture(), 32, 32, 16, 10, -7);
+    final int expected = this.vector(10, -7);
+    final int found = seeded(source, 24, this.vector(0, 0), this.vector(9, -7), this.vector(9, -7), this.vector(-30, 40));
     assertEquals(expected, found);
   }
 
   @Test
   void shouldKeepASeededSearchInsideTheRange() {
     // seeds past the range are clamped to its edge, and so is every step
-    final int[] source = block(picture(), 32, 32, 16, 10, 0);
-    final int found = seeded(source, 2, vector(100, 0), vector(-100, 0));
+    final int[] source = this.block(picture(), 32, 32, 16, 10, 0);
+    final int found = seeded(source, 2, this.vector(100, 0), this.vector(-100, 0));
     final int foundX = found >> 16;
     assertEquals(2, foundX);
 
     // with a range of one pixel the walk takes at most two steps, both improving here
-    final int[] near = block(picture(), 32, 32, 16, 1, 1);
-    final int expectedNear = vector(1, 1);
+    final int[] near = this.block(picture(), 32, 32, 16, 1, 1);
+    final int expectedNear = this.vector(1, 1);
     final int foundNear = seeded(near, 1);
     assertEquals(expectedNear, foundNear);
   }
 
-  private static byte[] sampledCosts(final int[][] costs) {
+  private byte[] sampledCosts(final int[][] costs) {
     final byte[] reference = new byte[64 * 64 * 3];
     Arrays.fill(reference, (byte) 120);
     for (final int sampleRow : new int[] { 4, 12, 20, 28 }) {
       for (final int sampleColumn : new int[] { 4, 12, 20, 28 }) {
-        paintCosts(reference, sampleRow, sampleColumn, costs);
+        this.paintCosts(reference, sampleRow, sampleColumn, costs);
       }
     }
 
     return reference;
   }
 
-  private static void paintCosts(final byte[] reference, final int sampleRow, final int sampleColumn, final int[][] costs) {
+  private void paintCosts(final byte[] reference, final int sampleRow, final int sampleColumn, final int[][] costs) {
     for (final int[] cost : costs) {
       final int pixel = (16 + sampleRow + cost[1]) * 64 + 16 + sampleColumn + cost[0];
       reference[pixel * 3] = (byte) cost[2];
@@ -163,17 +156,17 @@ final class Mcv2MotionSearchTest {
 
   @Test
   void shouldUseANonzeroSeedAcrossALocalMinimum() {
-    final byte[] reference = sampledCosts(new int[][] { { 0, 0, 100 }, { 2, 2, 0 } });
-    final int expected = vector(2, 2);
+    final byte[] reference = this.sampledCosts(new int[][] { { 0, 0, 100 }, { 2, 2, 0 } });
+    final int expected = this.vector(2, 2);
     final int found = Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[] {
-      vector(2, 2),
+      this.vector(2, 2),
     });
     assertEquals(expected, found);
   }
 
   @Test
   void shouldStopAfterTwiceTheRangeEvenWhenTheNextStepWouldImprove() {
-    final byte[] reference = sampledCosts(new int[][] {
+    final byte[] reference = this.sampledCosts(new int[][] {
       { 0, 0, 100 },
       { -1, 0, 90 },
       { -2, 0, 80 },
@@ -181,7 +174,7 @@ final class Mcv2MotionSearchTest {
       { -2, -2, 60 },
       { -1, -2, 50 },
     });
-    final int expected = vector(-2, -2);
+    final int expected = this.vector(-2, -2);
     final int found = Mcv2Internals.javaKernels().seeded(reference, 64, 64, new int[32 * 32 * 3], 16, 16, 32, 2, new int[0]);
     assertEquals(expected, found);
   }
@@ -195,15 +188,15 @@ final class Mcv2MotionSearchTest {
       for (int column = 0; column < 8; column++) {
         final int referenceRow = Math.max(0, row - 4);
         final int referenceColumn = Math.max(0, column - 4);
-        copyPixel(source, row * 8 + column, rgb, referenceRow * WIDTH + referenceColumn);
+        this.copyPixel(source, row * 8 + column, rgb, referenceRow * WIDTH + referenceColumn);
       }
     }
 
-    final int found = Mcv2Internals.javaKernels().seeded(rgb, WIDTH, HEIGHT, source, 0, 0, 8, 4, new int[] { vector(-4, -4) });
+    final int found = Mcv2Internals.javaKernels().seeded(rgb, WIDTH, HEIGHT, source, 0, 0, 8, 4, new int[] { this.vector(-4, -4) });
     final boolean withinRange = Math.abs(found >> 16) <= 4 && Math.abs((short) found) <= 4;
     assertEquals(true, withinRange);
 
-    final int expected = vector(-4, -4);
+    final int expected = this.vector(-4, -4);
     assertEquals(expected, found, "the clamped corner has an exact four-pixel displacement");
   }
 }

@@ -55,23 +55,23 @@ final class MapPipelineFuzzTest {
     final byte[] frame = new byte[width * height];
     final int frames = data.consumeInt(1, 6);
     for (int index = 0; index < frames; index++) {
-      paint(data, frame, width, height);
+      this.paint(data, frame, width, height);
       final List<MapTilePatch> patches = encoder.encode(frame);
-      assertPatches(layout, frame, patches, budget);
+      this.assertPatches(layout, frame, patches, budget);
     }
   }
 
   /**
    * Paints a few rectangles of one color each into the frame.
    */
-  private static void paint(final FuzzedDataProvider data, final byte[] frame, final int width, final int height) {
+  private void paint(final FuzzedDataProvider data, final byte[] frame, final int width, final int height) {
     final int rectangles = data.consumeInt(0, 6);
     for (int rectangle = 0; rectangle < rectangles; rectangle++) {
-      paintRectangle(data, frame, width, height);
+      this.paintRectangle(data, frame, width, height);
     }
   }
 
-  private static void paintRectangle(final FuzzedDataProvider data, final byte[] frame, final int width, final int height) {
+  private void paintRectangle(final FuzzedDataProvider data, final byte[] frame, final int width, final int height) {
     final int left = data.consumeInt(0, width - 1);
     final int top = data.consumeInt(0, height - 1);
     final int right = data.consumeInt(left, width - 1);
@@ -84,7 +84,7 @@ final class MapPipelineFuzzTest {
     }
   }
 
-  private static void assertPatches(final MapLayout layout, final byte[] frame, final List<MapTilePatch> patches, final int budget) {
+  private void assertPatches(final MapLayout layout, final byte[] frame, final List<MapTilePatch> patches, final int budget) {
     final int firstId = layout.getMapId(0);
     final int mapCount = layout.getMapCount();
     final int imageWidth = layout.getImageWidth();
@@ -110,7 +110,7 @@ final class MapPipelineFuzzTest {
       assertTrue(inside, "a patch outside of the part of its map the picture covers");
       final int sourceX = region.getSourceX() + left - regionX;
       final int sourceY = region.getSourceY() + top - regionY;
-      assertPatchPixels(frame, imageWidth, patch, sourceX, sourceY);
+      this.assertPatchPixels(frame, imageWidth, patch, sourceX, sourceY);
       bytes += patch.getEncodedSize();
       maps.add(mapId);
     }
@@ -120,13 +120,7 @@ final class MapPipelineFuzzTest {
     assertTrue(withinBudget, () -> sent + " bytes over " + maps.size() + " maps, budget " + budget);
   }
 
-  private static void assertPatchPixels(
-    final byte[] frame,
-    final int imageWidth,
-    final MapTilePatch patch,
-    final int sourceX,
-    final int sourceY
-  ) {
+  private void assertPatchPixels(final byte[] frame, final int imageWidth, final MapTilePatch patch, final int sourceX, final int sourceY) {
     final byte[] colors = patch.getColors();
     final int patchWidth = patch.getWidth();
     for (int row = 0; row < patch.getHeight(); row++) {

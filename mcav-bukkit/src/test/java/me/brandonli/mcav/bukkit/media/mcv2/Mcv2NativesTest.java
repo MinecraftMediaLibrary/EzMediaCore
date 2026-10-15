@@ -260,14 +260,14 @@ final class Mcv2NativesTest {
     assertEquals(Map.of(), failingDigests);
   }
 
-  private static byte @Nullable [] unexpected(final String platform) {
+  private byte @Nullable [] unexpected(final String platform) {
     final String message = "No library should be read for %s!".formatted(platform);
     throw new AssertionError(message);
   }
 
   @Test
   void shouldRunJavaWhenOffUnknownOrWithoutALibrary() {
-    final Resolution off = Natives.resolve(Mcv2.NATIVE_OFF, LINUX_PLATFORM, this.folder, Mcv2NativesTest::unexpected, null);
+    final Resolution off = Natives.resolve(Mcv2.NATIVE_OFF, LINUX_PLATFORM, this.folder, this::unexpected, null);
     final @Nullable Binding offBinding = off.binding();
     assertNull(offBinding);
 
@@ -281,21 +281,21 @@ final class Mcv2NativesTest {
     final Supplier<?> offFactory = NativeTesting.factory(off);
     assertSame(expectedFactory, offFactory);
 
-    final Resolution unknown = Natives.resolve(UNKNOWN_SETTING, LINUX_PLATFORM, this.folder, Mcv2NativesTest::unexpected, null);
+    final Resolution unknown = Natives.resolve(UNKNOWN_SETTING, LINUX_PLATFORM, this.folder, this::unexpected, null);
     final boolean unknownFailed = unknown.failed();
     assertTrue(unknownFailed);
 
     final String unknownDescription = unknown.description();
     assertEquals("Java, unknown mode mcv2.native=sometimes", unknownDescription);
 
-    final Resolution nowhere = Natives.resolve(Mcv2.NATIVE_AUTO, null, this.folder, Mcv2NativesTest::unexpected, null);
+    final Resolution nowhere = Natives.resolve(Mcv2.NATIVE_AUTO, null, this.folder, this::unexpected, null);
     final boolean nowhereFailed = nowhere.failed();
     assertFalse(nowhereFailed);
 
     final String nowhereDescription = nowhere.description();
     assertEquals("Java, no library for this operating system and processor", nowhereDescription);
 
-    final Resolution unlisted = Natives.resolve(Mcv2.NATIVE_AUTO, "solaris-sparc", this.folder, Mcv2NativesTest::unexpected, null);
+    final Resolution unlisted = Natives.resolve(Mcv2.NATIVE_AUTO, "solaris-sparc", this.folder, this::unexpected, null);
     final boolean unlistedFailed = unlisted.failed();
     assertFalse(unlistedFailed);
 

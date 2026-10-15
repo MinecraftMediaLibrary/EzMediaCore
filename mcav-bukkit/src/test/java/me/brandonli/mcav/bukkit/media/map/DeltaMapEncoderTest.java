@@ -39,7 +39,7 @@ final class DeltaMapEncoderTest {
   /**
    * Changes every pixel inside a rectangle of the image to a different color.
    */
-  private static byte[] change(final byte[] image, final int imageWidth, final int left, final int top, final int width, final int height) {
+  private byte[] change(final byte[] image, final int imageWidth, final int left, final int top, final int width, final int height) {
     final byte[] changed = image.clone();
     for (int row = top; row < top + height; row++) {
       for (int column = left; column < left + width; column++) {
@@ -51,7 +51,7 @@ final class DeltaMapEncoderTest {
     return changed;
   }
 
-  private static void assertPatch(
+  private void assertPatch(
     final MapTilePatch patch,
     final int mapId,
     final int left,
@@ -75,13 +75,13 @@ final class DeltaMapEncoderTest {
     assertArrayEquals(expectedColors, colors, "colors");
   }
 
-  private static void assertNothingSent(final List<MapTilePatch> patches) {
+  private void assertNothingSent(final List<MapTilePatch> patches) {
     final boolean empty = patches.isEmpty();
 
     assertTrue(empty, "no patches are sent");
   }
 
-  private static void assertPatchCount(final int expected, final List<MapTilePatch> patches) {
+  private void assertPatchCount(final int expected, final List<MapTilePatch> patches) {
     final int count = patches.size();
 
     assertEquals(expected, count, "number of patches");
@@ -120,9 +120,9 @@ final class DeltaMapEncoderTest {
     final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, MAP_SIZE, MAP_SIZE);
     final byte[] rightColors = MapLayoutTest.copyRectangle(image, 256, MAP_SIZE, 0, MAP_SIZE, MAP_SIZE);
 
-    assertPatchCount(2, patches);
-    assertPatch(left, 10, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
-    assertPatch(right, 11, 0, 0, MAP_SIZE, MAP_SIZE, rightColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(left, 10, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
+    this.assertPatch(right, 11, 0, 0, MAP_SIZE, MAP_SIZE, rightColors);
   }
 
   @Test
@@ -134,7 +134,7 @@ final class DeltaMapEncoderTest {
     final byte[] sameImage = image.clone();
     final List<MapTilePatch> patches = encoder.encode(sameImage);
 
-    assertNothingSent(patches);
+    this.assertNothingSent(patches);
   }
 
   @Test
@@ -143,13 +143,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, MAP_SIZE, 20, 35, 8, 1);
+    final byte[] changed = this.change(image, MAP_SIZE, 20, 35, 8, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 32, 16, 16);
     final MapTilePatch patch = patches.getFirst();
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 16, 32, 16, 16, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 16, 32, 16, 16, expected);
   }
 
   @Test
@@ -158,13 +158,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, MAP_SIZE, 10, 10, 20, 20);
+    final byte[] changed = this.change(image, MAP_SIZE, 10, 10, 20, 20);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 32);
     final MapTilePatch patch = patches.getFirst();
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 0, 0, 32, 32, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 0, 0, 32, 32, expected);
   }
 
   @Test
@@ -173,13 +173,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, MAP_SIZE, 32, 16, 32, 16);
+    final byte[] changed = this.change(image, MAP_SIZE, 32, 16, 32, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 32, 16, 32, 16);
-    assertPatchCount(1, patches);
+    this.assertPatchCount(1, patches);
 
     final MapTilePatch patch = patches.getFirst();
-    assertPatch(patch, 0, 32, 16, 32, 16, expected);
+    this.assertPatch(patch, 0, 32, 16, 32, 16, expected);
   }
 
   @Test
@@ -188,18 +188,18 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] topLeft = change(image, MAP_SIZE, 0, 0, 4, 1);
-    final byte[] belowTopLeft = change(topLeft, MAP_SIZE, 0, 16, 4, 1);
-    final byte[] changed = change(belowTopLeft, MAP_SIZE, 16, 16, 4, 1);
+    final byte[] topLeft = this.change(image, MAP_SIZE, 0, 0, 4, 1);
+    final byte[] belowTopLeft = this.change(topLeft, MAP_SIZE, 0, 16, 4, 1);
+    final byte[] changed = this.change(belowTopLeft, MAP_SIZE, 16, 16, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch column = patches.get(0);
     final MapTilePatch single = patches.get(1);
     final byte[] columnColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 32);
     final byte[] singleColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 16, 16, 16);
 
-    assertPatchCount(2, patches);
-    assertPatch(column, 0, 0, 0, 16, 32, columnColors);
-    assertPatch(single, 0, 16, 16, 16, 16, singleColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(column, 0, 0, 0, 16, 32, columnColors);
+    this.assertPatch(single, 0, 16, 16, 16, 16, singleColors);
   }
 
   @Test
@@ -208,15 +208,15 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 2);
     encoder.encode(image);
-    final byte[] firstRow = change(image, MAP_SIZE, 0, 0, 4, 1);
-    final byte[] secondRow = change(firstRow, MAP_SIZE, 0, 1, 4, 1);
-    final byte[] changed = change(secondRow, MAP_SIZE, 16, 1, 4, 1);
+    final byte[] firstRow = this.change(image, MAP_SIZE, 0, 0, 4, 1);
+    final byte[] secondRow = this.change(firstRow, MAP_SIZE, 0, 1, 4, 1);
+    final byte[] changed = this.change(secondRow, MAP_SIZE, 16, 1, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 2);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 0, 63, 32, 2, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 0, 63, 32, 2, expected);
   }
 
   @Test
@@ -225,13 +225,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] changed = change(image, MAP_SIZE, 0, 100, 4, 28);
+    final byte[] changed = this.change(image, MAP_SIZE, 0, 100, 4, 28);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 96, 16, 32);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 0, 96, 16, 32, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 0, 96, 16, 32, expected);
   }
 
   @Test
@@ -242,15 +242,15 @@ final class DeltaMapEncoderTest {
     final List<MapTilePatch> first = encoder.encode(image);
     final MapTilePatch full = first.getFirst();
 
-    assertPatch(full, 0, 14, 39, 100, 50, image);
+    this.assertPatch(full, 0, 14, 39, 100, 50, image);
 
-    final byte[] changed = change(image, 100, 0, 0, 2, 2);
+    final byte[] changed = this.change(image, 100, 0, 0, 2, 2);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, 100, 0, 0, 2, 9);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 14, 39, 2, 9, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 14, 39, 2, 9, expected);
   }
 
   @Test
@@ -259,17 +259,17 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] left = change(image, MAP_SIZE, 0, 10, 4, 1);
-    final byte[] changed = change(left, MAP_SIZE, 124, 10, 4, 1);
+    final byte[] left = this.change(image, MAP_SIZE, 0, 10, 4, 1);
+    final byte[] changed = this.change(left, MAP_SIZE, 124, 10, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch leftPatch = patches.get(0);
     final MapTilePatch rightPatch = patches.get(1);
     final byte[] leftColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
     final byte[] rightColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 0, 16, 16);
 
-    assertPatchCount(2, patches);
-    assertPatch(leftPatch, 0, 0, 0, 16, 16, leftColors);
-    assertPatch(rightPatch, 0, 112, 0, 16, 16, rightColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(leftPatch, 0, 0, 0, 16, 16, leftColors);
+    this.assertPatch(rightPatch, 0, 112, 0, 16, 16, rightColors);
   }
 
   @Test
@@ -278,10 +278,10 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, MAP_SIZE, 40, 40, 3, 1);
+    final byte[] noisy = this.change(image, MAP_SIZE, 40, 40, 3, 1);
     for (int frame = 0; frame < 6; frame++) {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
-      assertNothingSent(deferred);
+      this.assertNothingSent(deferred);
     }
 
     final List<MapTilePatch> patches = encoder.encode(noisy);
@@ -289,9 +289,9 @@ final class DeltaMapEncoderTest {
     final byte[] expected = MapLayoutTest.copyRectangle(noisy, MAP_SIZE, 32, 32, 16, 16);
     final List<MapTilePatch> afterwards = encoder.encode(noisy);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 32, 32, 16, 16, expected);
-    assertNothingSent(afterwards);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 32, 32, 16, 16, expected);
+    this.assertNothingSent(afterwards);
   }
 
   @Test
@@ -300,23 +300,23 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, MAP_SIZE, 0, 0, 3, 1);
+    final byte[] noisy = this.change(image, MAP_SIZE, 0, 0, 3, 1);
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }
 
     final List<MapTilePatch> reverted = encoder.encode(image);
 
-    assertNothingSent(reverted);
+    this.assertNothingSent(reverted);
 
     for (int frame = 0; frame < 6; frame++) {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
-      assertNothingSent(deferred);
+      this.assertNothingSent(deferred);
     }
 
     final List<MapTilePatch> patches = encoder.encode(noisy);
 
-    assertPatchCount(1, patches);
+    this.assertPatchCount(1, patches);
   }
 
   @Test
@@ -325,8 +325,8 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] motion = change(image, MAP_SIZE, 0, 0, 8, 1);
-    final byte[] changed = change(motion, MAP_SIZE, 80, 80, 2, 1);
+    final byte[] motion = this.change(image, MAP_SIZE, 0, 0, 8, 1);
+    final byte[] changed = this.change(motion, MAP_SIZE, 80, 80, 2, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
@@ -334,8 +334,8 @@ final class DeltaMapEncoderTest {
     final MapTilePatch state = snapshot.getFirst();
     final byte[] stateColors = state.getColors();
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 0, 0, 16, 16, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 0, 0, 16, 16, expected);
     assertArrayEquals(motion, stateColors, "the noise is not part of what the clients display");
   }
 
@@ -352,11 +352,11 @@ final class DeltaMapEncoderTest {
     final int firstMap = firstPatch.getMapId();
     final int secondMap = secondPatch.getMapId();
 
-    assertPatchCount(1, first);
-    assertPatchCount(1, second);
+    this.assertPatchCount(1, first);
+    this.assertPatchCount(1, second);
     assertEquals(0, firstMap);
     assertEquals(1, secondMap);
-    assertNothingSent(third);
+    this.assertNothingSent(third);
   }
 
   @Test
@@ -367,7 +367,7 @@ final class DeltaMapEncoderTest {
     final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     final List<MapTilePatch> patches = encoder.encode(image);
 
-    assertPatchCount(2, patches);
+    this.assertPatchCount(2, patches);
   }
 
   @Test
@@ -377,29 +377,29 @@ final class DeltaMapEncoderTest {
     final byte[] image = MapLayoutTest.createImage(256, MAP_SIZE);
     encoder.encode(image);
     encoder.encode(image);
-    final byte[] bigLeftChange = change(image, 256, 0, 0, 32, 16);
-    final byte[] smallRightChange = change(bigLeftChange, 256, MAP_SIZE, 0, 16, 1);
+    final byte[] bigLeftChange = this.change(image, 256, 0, 0, 32, 16);
+    final byte[] smallRightChange = this.change(bigLeftChange, 256, MAP_SIZE, 0, 16, 1);
     final List<MapTilePatch> third = encoder.encode(smallRightChange);
     final MapTilePatch leftPatch = third.getFirst();
     final byte[] leftColors = MapLayoutTest.copyRectangle(smallRightChange, 256, 0, 0, 32, 16);
 
-    assertPatchCount(1, third);
-    assertPatch(leftPatch, 20, 0, 0, 32, 16, leftColors);
+    this.assertPatchCount(1, third);
+    this.assertPatch(leftPatch, 20, 0, 0, 32, 16, leftColors);
 
-    final byte[] anotherBigLeftChange = change(smallRightChange, 256, 0, 32, 32, 16);
+    final byte[] anotherBigLeftChange = this.change(smallRightChange, 256, 0, 32, 32, 16);
     final List<MapTilePatch> fourth = encoder.encode(anotherBigLeftChange);
     final MapTilePatch rightPatch = fourth.getFirst();
     final byte[] rightColors = MapLayoutTest.copyRectangle(anotherBigLeftChange, 256, MAP_SIZE, 0, 16, 16);
 
-    assertPatchCount(1, fourth);
-    assertPatch(rightPatch, 21, 0, 0, 16, 16, rightColors);
+    this.assertPatchCount(1, fourth);
+    this.assertPatch(rightPatch, 21, 0, 0, 16, 16, rightColors);
 
     final List<MapTilePatch> fifth = encoder.encode(anotherBigLeftChange);
     final MapTilePatch waitingLeftPatch = fifth.getFirst();
     final byte[] waitingLeftColors = MapLayoutTest.copyRectangle(anotherBigLeftChange, 256, 0, 32, 32, 16);
 
-    assertPatchCount(1, fifth);
-    assertPatch(waitingLeftPatch, 20, 0, 32, 32, 16, waitingLeftColors);
+    this.assertPatchCount(1, fifth);
+    this.assertPatch(waitingLeftPatch, 20, 0, 32, 32, 16, waitingLeftColors);
   }
 
   @Test
@@ -423,18 +423,18 @@ final class DeltaMapEncoderTest {
     final byte[] image = MapLayoutTest.createImage(64, 16);
     encoder.encode(image);
 
-    final byte[] leftChange = change(image, 64, 0, 0, 5, 1);
-    final byte[] leftNoise = change(leftChange, 64, 16, 0, 3, 1);
-    final byte[] changed = change(leftNoise, 64, 32, 0, 6, 1);
+    final byte[] leftChange = this.change(image, 64, 0, 0, 5, 1);
+    final byte[] leftNoise = this.change(leftChange, 64, 16, 0, 3, 1);
+    final byte[] changed = this.change(leftNoise, 64, 32, 0, 6, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch right = patches.get(0);
     final MapTilePatch left = patches.get(1);
     final byte[] rightColors = MapLayoutTest.copyRectangle(changed, 64, 32, 0, 16, 8);
     final byte[] leftColors = MapLayoutTest.copyRectangle(changed, 64, 0, 0, 16, 8);
 
-    assertPatchCount(2, patches);
-    assertPatch(right, 1, 0, 56, 16, 8, rightColors);
-    assertPatch(left, 0, 96, 56, 16, 8, leftColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(right, 1, 0, 56, 16, 8, rightColors);
+    this.assertPatch(left, 0, 96, 56, 16, 8, leftColors);
   }
 
   @Test
@@ -443,13 +443,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(100, 50);
     encoder.encode(image);
-    final byte[] changed = change(image, 100, 0, 0, 21, 2);
+    final byte[] changed = this.change(image, 100, 0, 0, 21, 2);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, 100, 0, 0, 34, 9);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 14, 39, 34, 9, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 14, 39, 34, 9, expected);
   }
 
   @Test
@@ -458,17 +458,17 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] block = change(image, MAP_SIZE, 0, 0, 32, 32);
-    final byte[] changed = change(block, MAP_SIZE, 112, 32, 16, 16);
+    final byte[] block = this.change(image, MAP_SIZE, 0, 0, 32, 32);
+    final byte[] changed = this.change(block, MAP_SIZE, 112, 32, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch merged = patches.get(0);
     final MapTilePatch distant = patches.get(1);
     final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 32, 32);
     final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 32, 16, 16);
 
-    assertPatchCount(2, patches);
-    assertPatch(merged, 0, 0, 0, 32, 32, mergedColors);
-    assertPatch(distant, 0, 112, 32, 16, 16, distantColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(merged, 0, 0, 0, 32, 32, mergedColors);
+    this.assertPatch(distant, 0, 112, 32, 16, 16, distantColors);
   }
 
   @Test
@@ -477,15 +477,15 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] corner = change(image, MAP_SIZE, 0, 0, 16, 16);
-    final byte[] changed = change(corner, MAP_SIZE, 96, 112, 32, 16);
+    final byte[] corner = this.change(image, MAP_SIZE, 0, 0, 16, 16);
+    final byte[] changed = this.change(corner, MAP_SIZE, 96, 112, 32, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
-    assertPatchCount(2, patches);
+    this.assertPatchCount(2, patches);
 
     final byte[] first = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
     final byte[] last = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 96, 112, 32, 16);
-    assertPatch(patches.get(0), 0, 0, 0, 16, 16, first);
-    assertPatch(patches.get(1), 0, 96, 112, 32, 16, last);
+    this.assertPatch(patches.get(0), 0, 0, 0, 16, 16, first);
+    this.assertPatch(patches.get(1), 0, 96, 112, 32, 16, last);
   }
 
   @Test
@@ -494,17 +494,17 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] row = change(image, MAP_SIZE, 0, 16, 32, 16);
-    final byte[] changed = change(row, MAP_SIZE, 112, 32, 16, 16);
+    final byte[] row = this.change(image, MAP_SIZE, 0, 16, 32, 16);
+    final byte[] changed = this.change(row, MAP_SIZE, 112, 32, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch merged = patches.get(0);
     final MapTilePatch distant = patches.get(1);
     final byte[] mergedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 16, 32, 16);
     final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 112, 32, 16, 16);
 
-    assertPatchCount(2, patches);
-    assertPatch(merged, 0, 0, 16, 32, 16, mergedColors);
-    assertPatch(distant, 0, 112, 32, 16, 16, distantColors);
+    this.assertPatchCount(2, patches);
+    this.assertPatch(merged, 0, 0, 16, 32, 16, mergedColors);
+    this.assertPatch(distant, 0, 112, 32, 16, 16, distantColors);
   }
 
   @Test
@@ -513,9 +513,9 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] rightEdge = change(image, MAP_SIZE, 112, 0, 16, 16);
-    final byte[] nextRow = change(rightEdge, MAP_SIZE, 0, 16, 16, 16);
-    final byte[] changed = change(nextRow, MAP_SIZE, 48, 64, 16, 16);
+    final byte[] rightEdge = this.change(image, MAP_SIZE, 112, 0, 16, 16);
+    final byte[] nextRow = this.change(rightEdge, MAP_SIZE, 0, 16, 16, 16);
+    final byte[] changed = this.change(nextRow, MAP_SIZE, 48, 64, 16, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch edge = patches.get(0);
     final MapTilePatch wrapped = patches.get(1);
@@ -524,10 +524,10 @@ final class DeltaMapEncoderTest {
     final byte[] wrappedColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 16, 16, 16);
     final byte[] distantColors = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 48, 64, 16, 16);
 
-    assertPatchCount(3, patches);
-    assertPatch(edge, 0, 112, 0, 16, 16, edgeColors);
-    assertPatch(wrapped, 0, 0, 16, 16, 16, wrappedColors);
-    assertPatch(distant, 0, 48, 64, 16, 16, distantColors);
+    this.assertPatchCount(3, patches);
+    this.assertPatch(edge, 0, 112, 0, 16, 16, edgeColors);
+    this.assertPatch(wrapped, 0, 0, 16, 16, 16, wrappedColors);
+    this.assertPatch(distant, 0, 48, 64, 16, 16, distantColors);
   }
 
   @Test
@@ -536,15 +536,15 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 2);
     encoder.encode(image);
-    final byte[] firstRow = change(image, MAP_SIZE, 16, 0, 4, 1);
-    final byte[] secondRow = change(firstRow, MAP_SIZE, 16, 1, 4, 1);
-    final byte[] changed = change(secondRow, MAP_SIZE, 32, 1, 4, 1);
+    final byte[] firstRow = this.change(image, MAP_SIZE, 16, 0, 4, 1);
+    final byte[] secondRow = this.change(firstRow, MAP_SIZE, 16, 1, 4, 1);
+    final byte[] changed = this.change(secondRow, MAP_SIZE, 32, 1, 4, 1);
     final List<MapTilePatch> patches = encoder.encode(changed);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 16, 0, 32, 2);
 
-    assertPatchCount(1, patches);
-    assertPatch(patch, 0, 16, 63, 32, 2, expected);
+    this.assertPatchCount(1, patches);
+    this.assertPatch(patch, 0, 16, 63, 32, 2, expected);
   }
 
   @Test
@@ -553,7 +553,7 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final List<MapTilePatch> snapshot = encoder.snapshot();
 
-    assertNothingSent(snapshot);
+    this.assertNothingSent(snapshot);
   }
 
   @Test
@@ -562,13 +562,13 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, 64);
     encoder.encode(image);
-    final byte[] changed = change(image, MAP_SIZE, 0, 0, 30, 30);
+    final byte[] changed = this.change(image, MAP_SIZE, 0, 0, 30, 30);
     encoder.encode(changed);
     final List<MapTilePatch> snapshot = encoder.snapshot();
     final MapTilePatch patch = snapshot.getFirst();
 
-    assertPatchCount(1, snapshot);
-    assertPatch(patch, 5, 0, 32, MAP_SIZE, 64, changed);
+    this.assertPatchCount(1, snapshot);
+    this.assertPatch(patch, 5, 0, 32, MAP_SIZE, 64, changed);
   }
 
   @Test
@@ -581,7 +581,7 @@ final class DeltaMapEncoderTest {
     final MapTilePatch patch = snapshot.getFirst();
     final int mapId = patch.getMapId();
 
-    assertPatchCount(1, snapshot);
+    this.assertPatchCount(1, snapshot);
     assertEquals(0, mapId);
   }
 
@@ -597,9 +597,9 @@ final class DeltaMapEncoderTest {
     final MapTilePatch patch = afterReset.getFirst();
     final byte[] leftColors = MapLayoutTest.copyRectangle(image, 256, 0, 0, MAP_SIZE, MAP_SIZE);
 
-    assertNothingSent(snapshot);
-    assertPatchCount(1, afterReset);
-    assertPatch(patch, 0, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
+    this.assertNothingSent(snapshot);
+    this.assertPatchCount(1, afterReset);
+    this.assertPatch(patch, 0, 0, 0, MAP_SIZE, MAP_SIZE, leftColors);
   }
 
   @Test
@@ -608,7 +608,7 @@ final class DeltaMapEncoderTest {
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(MAP_SIZE, MAP_SIZE);
     encoder.encode(image);
-    final byte[] noisy = change(image, MAP_SIZE, 0, 0, 3, 1);
+    final byte[] noisy = this.change(image, MAP_SIZE, 0, 0, 3, 1);
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }
@@ -617,11 +617,11 @@ final class DeltaMapEncoderTest {
     encoder.encode(image);
     for (int frame = 0; frame < 6; frame++) {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
-      assertNothingSent(deferred);
+      this.assertNothingSent(deferred);
     }
 
     final List<MapTilePatch> patches = encoder.encode(noisy);
 
-    assertPatchCount(1, patches);
+    this.assertPatchCount(1, patches);
   }
 }

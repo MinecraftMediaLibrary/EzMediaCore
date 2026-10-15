@@ -56,7 +56,7 @@ final class Mcv2KernelPropertyTest {
     return record;
   }
 
-  private static int[] prediction(final Random random, final int size) {
+  private int[] prediction(final Random random, final int size) {
     final int[] prediction = new int[size * size * 3];
     for (int index = 0; index < prediction.length; index++) {
       prediction[index] = switch (random.nextInt(3)) {
@@ -78,7 +78,7 @@ final class Mcv2KernelPropertyTest {
     final int size = SIZES[sizeIndex];
     final Random random = new Random(seed);
     final byte[] record = record(random, 10);
-    final int[] prediction = prediction(random, size);
+    final int[] prediction = this.prediction(random, size);
     final int[] expected = new int[size * size * 3];
     final int[] actual = new int[size * size * 3];
     Mcv2Oracle.compact(prediction, record, quantizer, size, expected);
@@ -110,7 +110,7 @@ final class Mcv2KernelPropertyTest {
   @Property(seed = SEED, tries = 200)
   void shouldMatchTheOracleForPredictions(@ForAll @IntRange(min = 0, max = 2) final int sizeIndex, @ForAll final long seed) {
     final int size = SIZES[sizeIndex];
-    final int[] prediction = prediction(new Random(seed), size);
+    final int[] prediction = this.prediction(new Random(seed), size);
     final int[] expected = new int[size * size * 3];
     final int[] actual = new int[size * size * 3];
     Mcv2Oracle.predicted(prediction, size, expected);
@@ -122,7 +122,7 @@ final class Mcv2KernelPropertyTest {
   }
 
   /** The distortion the kernels measure between the source and a reconstruction of it. */
-  private static long distortion(final int[] source, final int[] out) {
+  private long distortion(final int[] source, final int[] out) {
     long sum = 0;
     for (int offset = 0; offset < source.length; offset += 3) {
       final int redDifference = source[offset] - out[offset];
@@ -141,7 +141,7 @@ final class Mcv2KernelPropertyTest {
    * A kernel started the same way reconstructs the same block, and its distortion is the whole block's; it stops once
    * its cost reaches the limit, and never before the whole block's cost does.
    */
-  private static void assertMeasured(final Random random, final int size, final Kernel kernel) {
+  private void assertMeasured(final Random random, final int size, final Kernel kernel) {
     final int[] source = new int[size * size * 3];
     for (int index = 0; index < source.length; index++) {
       source[index] = random.nextInt(BYTE_VALUE_COUNT);
@@ -160,7 +160,7 @@ final class Mcv2KernelPropertyTest {
     assertTrue(finishedAgain);
     assertArrayEquals(reconstruction, repeated);
 
-    final long distortion = distortion(source, reconstruction);
+    final long distortion = this.distortion(source, reconstruction);
     final long measured = kernels.distortion();
     assertEquals(distortion, measured);
 
@@ -187,7 +187,7 @@ final class Mcv2KernelPropertyTest {
     final int size = SIZES[sizeIndex];
     final Random random = new Random(seed);
     final byte[] record = record(random, 2 + 3 * 64);
-    final int[] prediction = prediction(random, size);
+    final int[] prediction = this.prediction(random, size);
     final int color = random.nextInt(1 << 24);
     final Kernel run = switch (kernel) {
       case 0 -> (kernels, out) -> kernels.predicted(prediction, size, out);
@@ -195,7 +195,7 @@ final class Mcv2KernelPropertyTest {
       case 2 -> (kernels, out) -> kernels.palette(record, size, out);
       default -> (kernels, out) -> kernels.compact(prediction, record, quantizer, size, out);
     };
-    assertMeasured(random, size, run);
+    this.assertMeasured(random, size, run);
   }
 
   /** One kernel call: reconstruct into out, measured as the kernels were last started; returns whether it finished. */

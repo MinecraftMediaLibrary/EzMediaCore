@@ -215,7 +215,7 @@ final class Mcv2PoolTest {
   }
 
   /** Whether a thrown exception is the original, or the copy of it the pool makes for the waiting thread. */
-  private static boolean isOrWraps(final Throwable thrown, final Throwable original) {
+  private boolean isOrWraps(final Throwable thrown, final Throwable original) {
     return thrown.equals(original) || original.equals(thrown.getCause());
   }
 
@@ -226,12 +226,12 @@ final class Mcv2PoolTest {
       final IllegalArgumentException thrownRuntime = assertThrows(IllegalArgumentException.class, () ->
         pool.run(() -> this.raise(runtime))
       );
-      final boolean passesOnRuntime = isOrWraps(thrownRuntime, runtime);
+      final boolean passesOnRuntime = this.isOrWraps(thrownRuntime, runtime);
       assertTrue(passesOnRuntime);
 
       final AssertionError error = new AssertionError("error!");
       final AssertionError thrownError = assertThrows(AssertionError.class, () -> pool.run(() -> this.raise(error)));
-      final boolean passesOnError = isOrWraps(thrownError, error);
+      final boolean passesOnError = this.isOrWraps(thrownError, error);
       assertTrue(passesOnError);
 
       final IOException checked = new IOException("checked!");
@@ -239,7 +239,7 @@ final class Mcv2PoolTest {
       final @Nullable Throwable cause = wrapped.getCause();
       assertInstanceOf(IOException.class, cause);
 
-      final boolean passesOnChecked = isOrWraps(wrapped.getCause(), checked);
+      final boolean passesOnChecked = this.isOrWraps(wrapped.getCause(), checked);
       assertTrue(passesOnChecked);
 
       final ForkJoinPool workers = (ForkJoinPool) Mcv2Internals.field(Pool.class, pool, "pool");

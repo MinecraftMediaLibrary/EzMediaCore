@@ -96,18 +96,18 @@ final class NettyHostingTest {
     this.server.close();
   }
 
-  private static int listenerCount() {
+  private int listenerCount() {
     final Map<Key, ChannelInitializeListener> listeners = ChannelInitializeListenerHolder.getListeners();
     return listeners.size();
   }
 
-  private static EmbeddedChannel connect() {
+  private EmbeddedChannel connect() {
     final EmbeddedChannel channel = new EmbeddedChannel();
     ChannelInitializeListenerHolder.callListeners(channel);
     return channel;
   }
 
-  private static byte[] downloadPack(final EmbeddedChannel channel, final NettyHosting hosting) {
+  private byte[] downloadPack(final EmbeddedChannel channel, final NettyHosting hosting) {
     final String url = hosting.getRawUrl();
     final URI uri = URI.create(url);
     final String path = uri.getRawPath();
@@ -130,13 +130,13 @@ final class NettyHostingTest {
     hosting.start();
 
     try {
-      final EmbeddedChannel channel = connect();
+      final EmbeddedChannel channel = this.connect();
       final ChannelPipeline pipeline = channel.pipeline();
       final List<String> names = pipeline.names();
       final String firstName = names.getFirst();
       final String handlerName = hosting.getHandlerName();
       final ChannelHandler handler = pipeline.get(handlerName);
-      final byte[] bodyBytes = downloadPack(channel, hosting);
+      final byte[] bodyBytes = this.downloadPack(channel, hosting);
 
       assertEquals(handlerName, firstName, "the handler sees the bytes before Minecraft does");
       assertInstanceOf(ResourcePackHttpHandler.class, handler);
@@ -174,7 +174,7 @@ final class NettyHostingTest {
     final URI uri = URI.create(hosting.getRawUrl());
     final String request = GET_PREFIX + uri.getRawPath() + REQUEST_SUFFIX;
     final byte[] bytes = request.getBytes(StandardCharsets.US_ASCII);
-    final EmbeddedChannel channel = connect();
+    final EmbeddedChannel channel = this.connect();
     try {
       this.writeByteByByte(channel, bytes);
 
@@ -209,19 +209,19 @@ final class NettyHostingTest {
 
   @Test
   void shouldRegisterOneListenerPerRunningInstance() {
-    final int before = listenerCount();
+    final int before = this.listenerCount();
     final NettyHosting first = new NettyHosting(this.zip);
     final NettyHosting second = new NettyHosting(this.zip);
 
     first.start();
     first.start();
     second.start();
-    final int running = listenerCount();
+    final int running = this.listenerCount();
     first.shutdown();
     first.shutdown();
-    final int afterFirstShutdown = listenerCount();
+    final int afterFirstShutdown = this.listenerCount();
     second.shutdown();
-    final int after = listenerCount();
+    final int after = this.listenerCount();
 
     final int expectedRunning = before + 2;
     assertEquals(expectedRunning, running, "starting twice registers one listener, and every instance has its own");
@@ -254,13 +254,13 @@ final class NettyHostingTest {
 
     hosting.start();
     final String handlerName = hosting.getHandlerName();
-    final EmbeddedChannel before = connect();
+    final EmbeddedChannel before = this.connect();
     final ChannelPipeline activePipeline = before.pipeline();
     final ChannelHandler active = activePipeline.get(handlerName);
     assertNotNull(active, "the instance handler must be installed before shutdown");
 
     hosting.shutdown();
-    final EmbeddedChannel channel = connect();
+    final EmbeddedChannel channel = this.connect();
 
     final ChannelPipeline pipeline = channel.pipeline();
     final ChannelHandler handler = pipeline.get(handlerName);
@@ -274,8 +274,8 @@ final class NettyHostingTest {
       hosting.start();
       files.verify(() -> Files.readAllBytes(this.zip), times(1));
 
-      final EmbeddedChannel channel = connect();
-      final byte[] bodyBytes = downloadPack(channel, hosting);
+      final EmbeddedChannel channel = this.connect();
+      final byte[] bodyBytes = this.downloadPack(channel, hosting);
 
       assertArrayEquals(PACK, bodyBytes);
 
@@ -296,7 +296,7 @@ final class NettyHostingTest {
 
       hosting.start();
 
-      final EmbeddedChannel channel = connect();
+      final EmbeddedChannel channel = this.connect();
       final ChannelHandler handler = channel.pipeline().get(hosting.getHandlerName());
       assertNotNull(handler, "hosting starts, and the failure is reported when a download is answered");
     } finally {
@@ -308,12 +308,12 @@ final class NettyHostingTest {
   void shouldRefuseToStartWithoutAPack() {
     final Path missing = this.directory.resolve(MISSING_FILE_NAME);
     final NettyHosting hosting = new NettyHosting(missing);
-    final int before = listenerCount();
+    final int before = this.listenerCount();
 
     final InjectorException exception = assertThrows(InjectorException.class, hosting::start);
 
     final String message = exception.getMessage();
-    final int after = listenerCount();
+    final int after = this.listenerCount();
     final String expectedMessage = "Resource pack %s does not exist!".formatted(missing);
     assertEquals(expectedMessage, message);
     assertEquals(before, after);

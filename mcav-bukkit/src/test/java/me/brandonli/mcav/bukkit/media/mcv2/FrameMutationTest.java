@@ -100,7 +100,7 @@ final class FrameMutationTest {
       return false;
     }
 
-    decodeAgainst(parsed, picture, frameId);
+    this.decodeAgainst(parsed, picture, frameId);
 
     return true;
   }
@@ -115,10 +115,10 @@ final class FrameMutationTest {
     assertTrue(notKeyframe, "the fixture contains an inter frame");
 
     final long wrongReference = interFrame.getReferenceId() + 1;
-    decodeAgainst(interFrame, reference, wrongReference);
+    this.decodeAgainst(interFrame, reference, wrongReference);
   }
 
-  private static void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) throws Mcv2Exception {
+  private void decodeAgainst(final Mcv2Decoder.Frame parsed, final byte[] picture, final long id) throws Mcv2Exception {
     final int expectedLength = parsed.getWidth() * parsed.getHeight() * 3;
     if (!parsed.isKeyframe() && (parsed.getReferenceId() != id || expectedLength != picture.length)) {
       final Mcv2Exception mismatch = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(parsed, picture, id));

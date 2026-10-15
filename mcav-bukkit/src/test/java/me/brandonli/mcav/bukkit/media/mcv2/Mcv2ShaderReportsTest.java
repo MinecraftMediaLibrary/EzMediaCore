@@ -68,11 +68,11 @@ final class Mcv2ShaderReportsTest {
   @BeforeEach
   void createReports() {
     this.reports = new Mcv2ShaderReports(this.clock::get);
-    this.alice = player(ALICE, "Alice");
-    this.bob = player(BOB, "Bob");
+    this.alice = this.player(ALICE, "Alice");
+    this.bob = this.player(BOB, "Bob");
   }
 
-  private static Player player(final UUID uuid, final String name) {
+  private Player player(final UUID uuid, final String name) {
     final Player player = mock(Player.class);
     when(player.getUniqueId()).thenReturn(uuid);
     when(player.getName()).thenReturn(name);
@@ -89,7 +89,7 @@ final class Mcv2ShaderReportsTest {
     this.send(player, message);
   }
 
-  private static List<String> messages(final LogCapture logs, final Level level) {
+  private List<String> messages(final LogCapture logs, final Level level) {
     return logs
       .getEvents()
       .stream()
@@ -143,7 +143,7 @@ final class Mcv2ShaderReportsTest {
         "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video.",
         "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video."
       );
-      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages, "one line for each change, none for a report that repeats the last");
     }
   }
@@ -171,10 +171,10 @@ final class Mcv2ShaderReportsTest {
       this.sendLater(this.alice, message);
 
       final List<String> expectedDebugMessages = List.of(MALFORMED_REPORT_MESSAGE);
-      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
 
-      final List<String> informationMessages = messages(logs, Level.INFO);
+      final List<String> informationMessages = this.messages(logs, Level.INFO);
       assertEquals(List.of(), informationMessages);
     }
 
@@ -189,7 +189,7 @@ final class Mcv2ShaderReportsTest {
       this.send(this.alice, new byte[] { version, 1, 1, 0 });
 
       final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report of version %s from Alice.".formatted(version));
-      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
     }
 
@@ -217,7 +217,7 @@ final class Mcv2ShaderReportsTest {
         "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
         "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes."
       );
-      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
     }
 
@@ -251,7 +251,7 @@ final class Mcv2ShaderReportsTest {
       assertTrue(blocksPastTheBurst);
 
       final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report from Alice: more than one a second.");
-      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      final List<String> debugMessages = this.messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
     }
 

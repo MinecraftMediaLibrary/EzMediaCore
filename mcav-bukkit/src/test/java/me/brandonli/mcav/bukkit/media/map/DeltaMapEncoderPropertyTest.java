@@ -61,22 +61,22 @@ final class DeltaMapEncoderPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<EncodingScenario> scenarios() {
-    final Arbitrary<Integer> columns = between(1, 3);
-    final Arbitrary<Integer> rows = between(1, 3);
-    final Arbitrary<Integer> widths = between(1, 3 * MAP_SIZE + 40);
-    final Arbitrary<Integer> heights = between(1, 3 * MAP_SIZE + 40);
-    final Arbitrary<Integer> tinyBudgets = between(1, 600);
-    final Arbitrary<Integer> smallBudgets = between(600, 40_000);
-    final Arbitrary<Integer> largeBudgets = between(40_000, 1 << 20);
+    final Arbitrary<Integer> columns = this.between(1, 3);
+    final Arbitrary<Integer> rows = this.between(1, 3);
+    final Arbitrary<Integer> widths = this.between(1, 3 * MAP_SIZE + 40);
+    final Arbitrary<Integer> heights = this.between(1, 3 * MAP_SIZE + 40);
+    final Arbitrary<Integer> tinyBudgets = this.between(1, 600);
+    final Arbitrary<Integer> smallBudgets = this.between(600, 40_000);
+    final Arbitrary<Integer> largeBudgets = this.between(40_000, 1 << 20);
     final Arbitrary<Integer> budgets = Arbitraries.oneOf(tinyBudgets, smallBudgets, largeBudgets);
-    final Arbitrary<List<FrameEdit>> editsOfFrame = edits();
+    final Arbitrary<List<FrameEdit>> editsOfFrame = this.edits();
     final ListArbitrary<List<FrameEdit>> frames = editsOfFrame.list();
     final ListArbitrary<List<FrameEdit>> someFrames = frames.ofMinSize(1);
     final ListArbitrary<List<FrameEdit>> boundedFrames = someFrames.ofMaxSize(6);
@@ -95,12 +95,12 @@ final class DeltaMapEncoderPropertyTest {
    * Changes of one frame against the previous one: large rectangles, which look like motion, and single pixels, which
    * look like dithering noise and are held back by the encoder.
    */
-  private static Arbitrary<List<FrameEdit>> edits() {
-    final Arbitrary<Integer> positions = between(0, 999);
-    final Arbitrary<Integer> sizes = between(1, PER_MILLE);
+  private Arbitrary<List<FrameEdit>> edits() {
+    final Arbitrary<Integer> positions = this.between(0, 999);
+    final Arbitrary<Integer> sizes = this.between(1, PER_MILLE);
     final Arbitrary<Integer> pixels = Arbitraries.just(1);
     final Arbitrary<Integer> extents = Arbitraries.oneOf(sizes, pixels);
-    final Arbitrary<Integer> colors = between(0, 60);
+    final Arbitrary<Integer> colors = this.between(0, 60);
     final Combinators.Combinator5<Integer, Integer, Integer, Integer, Integer> combined = Combinators.combine(
       positions,
       positions,
@@ -121,7 +121,7 @@ final class DeltaMapEncoderPropertyTest {
 
     for (final byte[] frame : scenario.createFrames()) {
       final List<MapTilePatch> patches = encoder.encode(frame);
-      assertWithinBudget(patches, scenario.getBudget());
+      this.assertWithinBudget(patches, scenario.getBudget());
       for (final MapTilePatch patch : patches) {
         clients.assertCarriesFramePixels(patch, frame);
         clients.apply(patch);
@@ -176,7 +176,7 @@ final class DeltaMapEncoderPropertyTest {
     clients.assertShows(lastFrame);
   }
 
-  private static void assertWithinBudget(final List<MapTilePatch> patches, final int budget) {
+  private void assertWithinBudget(final List<MapTilePatch> patches, final int budget) {
     long bytes = 0;
     final Set<Integer> maps = new HashSet<>();
     for (final MapTilePatch patch : patches) {

@@ -79,7 +79,7 @@ final class ServerPackHostingTest {
     Files.write(this.zip, PACK);
   }
 
-  private static HttpResponse<byte[]> request(final int port, final String method) throws IOException, InterruptedException {
+  private HttpResponse<byte[]> request(final int port, final String method) throws IOException, InterruptedException {
     final URI uri = URI.create("http://127.0.0.1:" + port + "/pack.zip");
     final HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(uri);
     final HttpRequest.BodyPublisher noBody = HttpRequest.BodyPublishers.noBody();
@@ -94,18 +94,18 @@ final class ServerPackHostingTest {
     }
   }
 
-  private static String header(final HttpResponse<?> response, final String name) {
+  private String header(final HttpResponse<?> response, final String name) {
     final HttpHeaders headers = response.headers();
     final Optional<String> value = headers.firstValue(name);
     return value.orElse(null);
   }
 
-  private static void assertServesThePackToGetRequests(final int port) throws IOException, InterruptedException {
-    final HttpResponse<byte[]> get = request(port, GET_METHOD);
+  private void assertServesThePackToGetRequests(final int port) throws IOException, InterruptedException {
+    final HttpResponse<byte[]> get = this.request(port, GET_METHOD);
     final int status = get.statusCode();
     final byte[] body = get.body();
-    final String contentType = header(get, "Content-Type");
-    final String disposition = header(get, "Content-Disposition");
+    final String contentType = this.header(get, "Content-Type");
+    final String disposition = this.header(get, "Content-Disposition");
 
     assertEquals(HTTP_OK, status);
     assertArrayEquals(PACK, body);
@@ -113,10 +113,10 @@ final class ServerPackHostingTest {
     assertEquals("attachment; filename=\"pack.zip\"", disposition);
   }
 
-  private static void assertAnswersHeadRequestsWithTheHeadersOnly(final int port) throws IOException, InterruptedException {
-    final HttpResponse<byte[]> head = request(port, "HEAD");
+  private void assertAnswersHeadRequestsWithTheHeadersOnly(final int port) throws IOException, InterruptedException {
+    final HttpResponse<byte[]> head = this.request(port, "HEAD");
     final int status = head.statusCode();
-    final String length = header(head, "Content-Length");
+    final String length = this.header(head, "Content-Length");
     final byte[] body = head.body();
 
     assertEquals(HTTP_OK, status);
@@ -127,7 +127,7 @@ final class ServerPackHostingTest {
   private void assertServesTheRebuiltPack(final int port) throws IOException, InterruptedException {
     Files.write(this.zip, REBUILT_PACK);
 
-    final HttpResponse<byte[]> rebuilt = request(port, GET_METHOD);
+    final HttpResponse<byte[]> rebuilt = this.request(port, GET_METHOD);
     final byte[] body = rebuilt.body();
 
     assertArrayEquals(REBUILT_PACK, body, "the file is read for every download");
@@ -144,8 +144,8 @@ final class ServerPackHostingTest {
       hosting.start();
       final int portAfterSecondStart = server.getLocalPort();
       assertEquals(port, portAfterSecondStart, "starting again keeps the running server");
-      assertServesThePackToGetRequests(port);
-      assertAnswersHeadRequestsWithTheHeadersOnly(port);
+      this.assertServesThePackToGetRequests(port);
+      this.assertAnswersHeadRequestsWithTheHeadersOnly(port);
 
       this.assertServesTheRebuiltPack(port);
     } finally {
@@ -153,7 +153,7 @@ final class ServerPackHostingTest {
       hosting.shutdown();
     }
 
-    assertThrows(IOException.class, () -> request(port, GET_METHOD));
+    assertThrows(IOException.class, () -> this.request(port, GET_METHOD));
     assertThrows(IllegalStateException.class, server::getLocalPort);
   }
 
@@ -168,7 +168,7 @@ final class ServerPackHostingTest {
 
     try {
       final int port = server.getLocalPort();
-      final HttpResponse<byte[]> get = request(port, GET_METHOD);
+      final HttpResponse<byte[]> get = this.request(port, GET_METHOD);
       final byte[] body = get.body();
       assertArrayEquals(PACK, body);
     } finally {
@@ -181,7 +181,7 @@ final class ServerPackHostingTest {
    *
    * @return the names of the running server threads
    */
-  private static List<String> runningServerThreadNames() {
+  private List<String> runningServerThreadNames() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
     final List<String> names = new ArrayList<>();
@@ -203,9 +203,9 @@ final class ServerPackHostingTest {
     final ServerPackHosting hosting = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, PORT, server);
 
     hosting.start();
-    final List<String> whileRunning = runningServerThreadNames();
+    final List<String> whileRunning = this.runningServerThreadNames();
     hosting.shutdown();
-    final List<String> afterShutdown = runningServerThreadNames();
+    final List<String> afterShutdown = this.runningServerThreadNames();
     final boolean startedThreads = whileRunning.isEmpty();
     final List<String> noThreads = List.of();
 
@@ -221,7 +221,7 @@ final class ServerPackHostingTest {
 
       assertThrows(HttpServerException.class, blocked::start);
 
-      final List<String> afterFailedStart = runningServerThreadNames();
+      final List<String> afterFailedStart = this.runningServerThreadNames();
 
       assertEquals(noThreads, afterFailedStart, "a start that fails releases its threads as well");
     }

@@ -48,20 +48,20 @@ final class MapLayoutPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
+  private Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
     return integers.between(minimum, maximum);
   }
 
   @Provide
   Arbitrary<MapGrid> grids() {
-    final Arbitrary<Integer> smallIds = between(0, 100);
-    final Arbitrary<Integer> largeIds = between(0, 1 << 30);
+    final Arbitrary<Integer> smallIds = this.between(0, 100);
+    final Arbitrary<Integer> largeIds = this.between(0, 1 << 30);
     final Arbitrary<Integer> startMapIds = Arbitraries.oneOf(smallIds, largeIds);
-    final Arbitrary<Integer> columns = between(1, MAXIMUM_SIDE_IN_MAPS);
-    final Arbitrary<Integer> rows = between(1, MAXIMUM_SIDE_IN_MAPS);
-    final Arbitrary<Integer> widths = between(1, MAXIMUM_IMAGE_SIDE);
-    final Arbitrary<Integer> heights = between(1, MAXIMUM_IMAGE_SIDE);
+    final Arbitrary<Integer> columns = this.between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> rows = this.between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> widths = this.between(1, MAXIMUM_IMAGE_SIDE);
+    final Arbitrary<Integer> heights = this.between(1, MAXIMUM_IMAGE_SIDE);
     final Combinators.Combinator5<Integer, Integer, Integer, Integer, Integer> grids = Combinators.combine(
       startMapIds,
       columns,

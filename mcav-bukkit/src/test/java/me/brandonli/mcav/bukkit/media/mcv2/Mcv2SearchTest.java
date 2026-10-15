@@ -202,7 +202,7 @@ final class Mcv2SearchTest {
     }
   }
 
-  private static int vector(final int motionX, final int motionY) {
+  private int vector(final int motionX, final int motionY) {
     return (motionX << 16) | (motionY & 65535);
   }
 
@@ -240,7 +240,7 @@ final class Mcv2SearchTest {
       Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[] { 2, -2, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 }),
       Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[] { 20, -30, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11 }),
     };
-    final int[] expected = { 0, 0, vector(3, -4), 0, vector(2, -2), vector(20, -30) };
+    final int[] expected = { 0, 0, this.vector(3, -4), 0, this.vector(2, -2), this.vector(20, -30) };
     for (int index = 0; index < nodes.length; index++) {
       final int[] field = new int[1];
       fillMotion(field, 8, 8, nodes[index], 0, 0, 8);
@@ -255,7 +255,7 @@ final class Mcv2SearchTest {
     final int[] field = new int[5 * 3];
     fillMotion(field, 40, 20, split, 0, 0, 32);
     fillMotion(field, 40, 20, Mcv2Trees.solid(0, 0, 0), 32, 0, 32);
-    final int[] expected = { vector(4, 0), vector(4, 0), 0, 0, 0, vector(4, 0), vector(4, 0), 0, 0, 0, 0, 0, 0, 0, 0 };
+    final int[] expected = { this.vector(4, 0), this.vector(4, 0), 0, 0, 0, this.vector(4, 0), this.vector(4, 0), 0, 0, 0, 0, 0, 0, 0, 0 };
     assertArrayEquals(expected, field);
   }
 
@@ -264,9 +264,9 @@ final class Mcv2SearchTest {
     final byte[] reference = Mcv2Pictures.scene(64, 64, 0, 0);
     final byte[] source = Mcv2Pictures.scene(64, 64, 2, 3);
     final int[] field = new int[8 * 8];
-    Arrays.fill(field, vector(6, 0));
+    Arrays.fill(field, this.vector(6, 0));
     final Mcv2BlockState job = new Mcv2BlockState(source, reference, 64, 64, false, false, 72, field);
-    final int expectedPreviousMotion = vector(6, 0);
+    final int expectedPreviousMotion = this.vector(6, 0);
     final int previousMotion = job.previousMotion(-5, 100);
     assertEquals(expectedPreviousMotion, previousMotion);
 
@@ -274,26 +274,26 @@ final class Mcv2SearchTest {
     final int freshPreviousMotion = fresh.previousMotion(10, 10);
     assertEquals(0, freshPreviousMotion);
 
-    job.code(16, 1, 0, 0, 0, vector(6, 0));
+    job.code(16, 1, 0, 0, 0, this.vector(6, 0));
     final boolean finiteCost = job.cost(1, 0) < Double.POSITIVE_INFINITY;
     assertTrue(finiteCost);
 
     for (int row = 0; row < 8; row++) {
       for (int column = 0; column < 8; column++) {
-        field[row * 8 + column] = vector(2 * column, -2 * row);
+        field[row * 8 + column] = this.vector(2 * column, -2 * row);
       }
     }
 
-    for (final int parent : new int[] { Mcv2BlockState.NO_VECTOR, vector(-6, -4) }) {
+    for (final int parent : new int[] { Mcv2BlockState.NO_VECTOR, this.vector(-6, -4) }) {
       final Mcv2BlockState seeded = new Mcv2BlockState(source, reference, 64, 64, false, false, 0, field);
       final Object coder = seeded.code(16, 1, 5, 16, 16, parent);
       final int[] expected = {
-        vector(3, -3),
-        vector(1, -3),
-        vector(4, -3),
-        vector(3, -1),
-        vector(3, -4),
-        parent == Mcv2BlockState.NO_VECTOR ? vector(3, -3) : vector(-3, -2),
+        this.vector(3, -3),
+        this.vector(1, -3),
+        this.vector(4, -3),
+        this.vector(3, -1),
+        this.vector(3, -4),
+        parent == Mcv2BlockState.NO_VECTOR ? this.vector(3, -3) : this.vector(-3, -2),
       };
       final int[] seeds = Mcv2BlockState.seeds(coder, "halfSeeds");
       assertArrayEquals(expected, seeds);
@@ -395,7 +395,7 @@ final class Mcv2SearchTest {
     }
 
     final int[] actual = new int[expected.length];
-    Mcv2Internals.call(coderType, child, "predict", new Class<?>[] { int.class, int[].class }, vector(1, 0), actual);
+    Mcv2Internals.call(coderType, child, "predict", new Class<?>[] { int.class, int[].class }, this.vector(1, 0), actual);
     assertArrayEquals(expected, actual);
   }
 

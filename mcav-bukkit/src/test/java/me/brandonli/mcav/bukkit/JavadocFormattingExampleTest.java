@@ -57,7 +57,7 @@ final class JavadocFormattingExampleTest {
 
   private static final String PICTURE_FILE_NAME = "picture.png";
 
-  private static Path writePicture(final Path directory) throws IOException {
+  private Path writePicture(final Path directory) throws IOException {
     final BufferedImage picture = new BufferedImage(PICTURE_WIDTH, PICTURE_HEIGHT, BufferedImage.TYPE_INT_RGB);
     for (int row = 0; row < PICTURE_HEIGHT; row++) {
       for (int column = 0; column < PICTURE_WIDTH; column++) {
@@ -74,7 +74,7 @@ final class JavadocFormattingExampleTest {
   @Test
   void shouldShowTheImageOnTheScoreboardAndRestoreThePreviousScoreboard(@TempDir final Path directory)
     throws IOException, ReflectiveOperationException {
-    final Path file = writePicture(directory);
+    final Path file = this.writePicture(directory);
     try (final FakeServer server = FakeServer.start()) {
       final CraftPlayer viewer = server.addPlayer(VIEWER);
       server.injectModule();

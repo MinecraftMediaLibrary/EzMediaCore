@@ -39,7 +39,7 @@ final class Mcv2MotionLambdaTest {
   private static final int SAMPLES = 200 * 200;
 
   /** A 5x5 grey picture whose four sampled pixels, at the corners, hold the given grey values. */
-  private static byte[] corners(final int topLeft, final int topRight, final int bottomLeft, final int bottomRight) {
+  private byte[] corners(final int topLeft, final int topRight, final int bottomLeft, final int bottomRight) {
     final byte[] rgb = new byte[5 * 5 * 3];
     final int[] values = { topLeft, topRight, bottomLeft, bottomRight };
     final int[] pixels = { 0, 4, 20, 24 };
@@ -57,7 +57,7 @@ final class Mcv2MotionLambdaTest {
     // luma r + 2 g + b of the samples: 40, 80 on the first row, 120, 160 on the second; each blurred sample sums its
     // 3x3 neighbourhood, the edge samples repeated, so the top left one is 4 * 40 + 2 * 80 + 2 * 120 + 160
     final int[] expectedBlur = new int[] { 720, 840, 960, 1080 };
-    final int[] blurred = MotionLambda.blurredLuma(corners(10, 20, 30, 40), 5, 5, Workers.SEQUENTIAL, new int[4], new int[4]);
+    final int[] blurred = MotionLambda.blurredLuma(this.corners(10, 20, 30, 40), 5, 5, Workers.SEQUENTIAL, new int[4], new int[4]);
     assertArrayEquals(expectedBlur, blurred);
     // 3600 over four samples, in units of 36 per luma step
     final double motionFromCurrent = MotionLambda.temporalInformation(new int[] { 720, 840, 960, 1080 }, new int[4], Workers.SEQUENTIAL);
@@ -67,7 +67,7 @@ final class Mcv2MotionLambdaTest {
     assertEquals(25.0, motionFromPrevious);
     // a picture four pixels wide or less has one column of samples
     final int[] expectedNarrowBlur = new int[] { 360 };
-    final int[] narrowBlurred = MotionLambda.blurredLuma(corners(10, 20, 30, 40), 1, 1, Workers.SEQUENTIAL, new int[1], new int[1]);
+    final int[] narrowBlurred = MotionLambda.blurredLuma(this.corners(10, 20, 30, 40), 1, 1, Workers.SEQUENTIAL, new int[1], new int[1]);
     assertArrayEquals(expectedNarrowBlur, narrowBlurred);
   }
 
@@ -144,9 +144,9 @@ final class Mcv2MotionLambdaTest {
     final double lambdaBeforeAnyFrame = motion.lambda(BASE);
     assertEquals(BASE, lambdaBeforeAnyFrame);
 
-    final byte[] still = corners(10, 20, 30, 40);
+    final byte[] still = this.corners(10, 20, 30, 40);
     // ten grey levels brighter: 40 luma, 360 once blurred, 10 in luma units
-    final byte[] brighter = corners(20, 30, 40, 50);
+    final byte[] brighter = this.corners(20, 30, 40, 50);
     motion.observe(still, 5, 5, Workers.SEQUENTIAL);
     final double lambdaAfterOneFrame = motion.lambda(BASE);
     assertEquals(BASE, lambdaAfterOneFrame);

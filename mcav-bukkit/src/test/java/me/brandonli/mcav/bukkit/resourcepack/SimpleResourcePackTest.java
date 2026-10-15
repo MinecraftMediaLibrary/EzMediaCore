@@ -132,7 +132,7 @@ final class SimpleResourcePackTest {
     Files.write(this.credits, CREDITS);
   }
 
-  private static Map<String, byte[]> readZip(final Path zip) throws IOException {
+  private Map<String, byte[]> readZip(final Path zip) throws IOException {
     final Map<String, byte[]> entries = new LinkedHashMap<>();
     try (final InputStream input = Files.newInputStream(zip); final ZipInputStream zipInput = new ZipInputStream(input)) {
       ZipEntry entry = zipInput.getNextEntry();
@@ -147,19 +147,19 @@ final class SimpleResourcePackTest {
     return entries;
   }
 
-  private static List<String> entryNames(final Map<String, byte[]> entries) {
+  private List<String> entryNames(final Map<String, byte[]> entries) {
     final Set<String> names = entries.keySet();
     return List.copyOf(names);
   }
 
-  private static JsonObject parseEntry(final Map<String, byte[]> entries, final String name) {
+  private JsonObject parseEntry(final Map<String, byte[]> entries, final String name) {
     final byte[] content = entries.get(name);
     final String text = new String(content, StandardCharsets.UTF_8);
     final JsonElement element = JsonParser.parseString(text);
     return element.getAsJsonObject();
   }
 
-  private static JsonObject soundEvent(final String name) {
+  private JsonObject soundEvent(final String name) {
     final JsonObject sound = new JsonObject();
     sound.addProperty("name", name);
     sound.addProperty("type", "file");
@@ -172,23 +172,23 @@ final class SimpleResourcePackTest {
     return event;
   }
 
-  private static void addSoundEvent(final JsonObject events, final String value, final String name) {
-    final JsonObject event = soundEvent(name);
+  private void addSoundEvent(final JsonObject events, final String value, final String name) {
+    final JsonObject event = this.soundEvent(name);
     events.add(value, event);
   }
 
-  private static List<Path> listFiles(final Path folder) throws IOException {
+  private List<Path> listFiles(final Path folder) throws IOException {
     try (final Stream<Path> files = Files.list(folder)) {
       return files.toList();
     }
   }
 
-  private static void assertEntry(final byte[] expected, final Map<String, byte[]> entries, final String name) {
+  private void assertEntry(final byte[] expected, final Map<String, byte[]> entries, final String name) {
     final byte[] actual = entries.get(name);
     assertArrayEquals(expected, actual, name);
   }
 
-  private static SimpleResourcePack.FileMover recordingMover(final List<List<CopyOption>> moves, final boolean atomicSupported) {
+  private SimpleResourcePack.FileMover recordingMover(final List<List<CopyOption>> moves, final boolean atomicSupported) {
     return (from, to, options) -> {
       final List<CopyOption> optionList = List.of(options);
       moves.add(optionList);
@@ -217,7 +217,7 @@ final class SimpleResourcePackTest {
     return zip;
   }
 
-  private static void assertMetadata(final Map<String, byte[]> entries) {
+  private void assertMetadata(final Map<String, byte[]> entries) {
     final JsonObject expectedPack = new JsonObject();
     expectedPack.addProperty(DESCRIPTION_KEY, DESCRIPTION);
     expectedPack.addProperty("pack_format", PACK_FORMAT);
@@ -226,7 +226,7 @@ final class SimpleResourcePackTest {
     final JsonObject expectedMeta = new JsonObject();
     expectedMeta.add(PACK_KEY, expectedPack);
 
-    final JsonObject meta = parseEntry(entries, METADATA_ENTRY);
+    final JsonObject meta = this.parseEntry(entries, METADATA_ENTRY);
     final byte[] metaBytes = entries.get(METADATA_ENTRY);
     final String metaText = new String(metaBytes, StandardCharsets.UTF_8);
     final boolean readableDescription = metaText.contains("MCAV <audio> &");
@@ -234,20 +234,20 @@ final class SimpleResourcePackTest {
     assertTrue(readableDescription, "the description is not HTML escaped");
   }
 
-  private static void assertSoundEvents(final Map<String, byte[]> entries) {
+  private void assertSoundEvents(final Map<String, byte[]> entries) {
     final JsonObject expectedMcavSounds = new JsonObject();
-    addSoundEvent(expectedMcavSounds, "audio", AUDIO_SOUND);
-    addSoundEvent(expectedMcavSounds, "music/intro", INTRO_SOUND);
+    this.addSoundEvent(expectedMcavSounds, "audio", AUDIO_SOUND);
+    this.addSoundEvent(expectedMcavSounds, "music/intro", INTRO_SOUND);
     final JsonObject expectedOtherSounds = new JsonObject();
-    addSoundEvent(expectedOtherSounds, "beep", BEEP_SOUND);
+    this.addSoundEvent(expectedOtherSounds, "beep", BEEP_SOUND);
 
-    final JsonObject mcavSounds = parseEntry(entries, MCAV_SOUNDS_ENTRY);
-    final JsonObject otherSounds = parseEntry(entries, OTHER_SOUNDS_ENTRY);
+    final JsonObject mcavSounds = this.parseEntry(entries, MCAV_SOUNDS_ENTRY);
+    final JsonObject otherSounds = this.parseEntry(entries, OTHER_SOUNDS_ENTRY);
     assertEquals(expectedMcavSounds, mcavSounds);
     assertEquals(expectedOtherSounds, otherSounds);
   }
 
-  private static void assertReadableByEveryone(final Path zip) throws IOException {
+  private void assertReadableByEveryone(final Path zip) throws IOException {
     final PosixFileAttributeView permissionView = Files.getFileAttributeView(zip, PosixFileAttributeView.class);
     if (permissionView == null) {
       return;
@@ -272,20 +272,20 @@ final class SimpleResourcePackTest {
 
     final Path zip = this.zipFullPack();
 
-    final Map<String, byte[]> entries = readZip(zip);
-    final List<String> names = entryNames(entries);
+    final Map<String, byte[]> entries = this.readZip(zip);
+    final List<String> names = this.entryNames(entries);
     final Path output = zip.getParent();
-    final List<Path> outputFiles = listFiles(output);
+    final List<Path> outputFiles = this.listFiles(output);
     final List<Path> onlyTheZip = List.of(zip);
     assertEquals(expectedNames, names);
-    assertMetadata(entries);
-    assertSoundEvents(entries);
-    assertEntry(FIRST_SOUND, entries, AUDIO_ENTRY);
-    assertEntry(SECOND_SOUND, entries, INTRO_ENTRY);
-    assertEntry(FIRST_SOUND, entries, BEEP_ENTRY);
-    assertEntry(CREDITS, entries, CREDITS_ENTRY);
+    this.assertMetadata(entries);
+    this.assertSoundEvents(entries);
+    this.assertEntry(FIRST_SOUND, entries, AUDIO_ENTRY);
+    this.assertEntry(SECOND_SOUND, entries, INTRO_ENTRY);
+    this.assertEntry(FIRST_SOUND, entries, BEEP_ENTRY);
+    this.assertEntry(CREDITS, entries, CREDITS_ENTRY);
     assertEquals(onlyTheZip, outputFiles, "no temporary file is left behind");
-    assertReadableByEveryone(zip);
+    this.assertReadableByEveryone(zip);
   }
 
   @Test
@@ -302,13 +302,13 @@ final class SimpleResourcePackTest {
     final Path zip = this.directory.resolve(GENERATED_FILE_NAME);
     pack.zip(zip);
 
-    final Map<String, byte[]> entries = readZip(zip);
+    final Map<String, byte[]> entries = this.readZip(zip);
     final List<String> expectedNames = List.of(METADATA_ENTRY, CREDITS_ENTRY, SHADER_ENTRY, REPLACED_ENTRY);
-    final List<String> names = entryNames(entries);
+    final List<String> names = this.entryNames(entries);
     assertEquals(expectedNames, names);
-    assertEntry(SHADER_SOURCE.getBytes(StandardCharsets.US_ASCII), entries, SHADER_ENTRY);
-    assertEntry(CREDITS, entries, CREDITS_ENTRY);
-    assertEntry(new byte[] { 2 }, entries, REPLACED_ENTRY);
+    this.assertEntry(SHADER_SOURCE.getBytes(StandardCharsets.US_ASCII), entries, SHADER_ENTRY);
+    this.assertEntry(CREDITS, entries, CREDITS_ENTRY);
+    this.assertEntry(new byte[] { 2 }, entries, REPLACED_ENTRY);
     assertThrows(IllegalArgumentException.class, () -> pack.data(METADATA_ENTRY, new byte[0]));
     assertThrows(IllegalArgumentException.class, () -> pack.data("assets/../pack.mcmeta", new byte[0]));
     assertThrows(IllegalArgumentException.class, () -> pack.data("/assets/a.txt", new byte[0]));
@@ -376,8 +376,8 @@ final class SimpleResourcePackTest {
     pack.zip(zip);
 
     final String message = meta.getMessage();
-    final Map<String, byte[]> entries = readZip(zip);
-    final List<String> names = entryNames(entries);
+    final Map<String, byte[]> entries = this.readZip(zip);
+    final List<String> names = this.entryNames(entries);
     assertEquals("Pack path pack.mcmeta is reserved for entries generated by the builder!", message);
     assertEquals(expectedNames, names);
   }
@@ -399,7 +399,7 @@ final class SimpleResourcePackTest {
     final Path target = this.directory.resolve(TARGET_FILE_NAME);
     Files.write(source, CREDITS);
     final List<List<CopyOption>> moves = new ArrayList<>();
-    final SimpleResourcePack.FileMover mover = recordingMover(moves, true);
+    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, true);
 
     SimpleResourcePack.moveIntoPlace(source, target, mover);
 
@@ -416,7 +416,7 @@ final class SimpleResourcePackTest {
     Files.write(source, CREDITS);
     Files.write(target, FIRST_SOUND);
     final List<List<CopyOption>> moves = new ArrayList<>();
-    final SimpleResourcePack.FileMover mover = recordingMover(moves, false);
+    final SimpleResourcePack.FileMover mover = this.recordingMover(moves, false);
 
     SimpleResourcePack.moveIntoPlace(source, target, mover);
 
@@ -441,16 +441,16 @@ final class SimpleResourcePackTest {
     second.sound(AUDIO_SOUND, this.secondSound);
     second.zip(zip);
 
-    final Map<String, byte[]> entries = readZip(zip);
-    final JsonObject meta = parseEntry(entries, METADATA_ENTRY);
+    final Map<String, byte[]> entries = this.readZip(zip);
+    final JsonObject meta = this.parseEntry(entries, METADATA_ENTRY);
     final JsonObject packObject = meta.getAsJsonObject(PACK_KEY);
     final JsonElement descriptionElement = packObject.get(DESCRIPTION_KEY);
     final String description = descriptionElement.getAsString();
-    final JsonObject sounds = parseEntry(entries, MCAV_SOUNDS_ENTRY);
+    final JsonObject sounds = this.parseEntry(entries, MCAV_SOUNDS_ENTRY);
     final int eventCount = sounds.size();
     assertEquals("second", description);
     assertEquals(1, eventCount);
-    assertEntry(SECOND_SOUND, entries, AUDIO_ENTRY);
+    this.assertEntry(SECOND_SOUND, entries, AUDIO_ENTRY);
   }
 
   @Test
@@ -473,8 +473,8 @@ final class SimpleResourcePackTest {
     first.zip(firstZip);
     second.zip(secondZip);
 
-    final Map<String, byte[]> firstEntries = readZip(firstZip);
-    final Map<String, byte[]> secondEntries = readZip(secondZip);
+    final Map<String, byte[]> firstEntries = this.readZip(firstZip);
+    final Map<String, byte[]> secondEntries = this.readZip(secondZip);
     final Set<String> expectedFirstNames = Set.of(METADATA_ENTRY, CREDITS_FILE_NAME, GENERATED_ENTRY, FIRST_SOUND_ENTRY, MCAV_SOUNDS_ENTRY);
     final Set<String> firstNames = firstEntries.keySet();
     assertEquals(expectedFirstNames, firstNames);
@@ -492,30 +492,30 @@ final class SimpleResourcePackTest {
     final JsonElement expectedFirstMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"first\",\"pack_format\":1,\"min_format\":1,\"max_format\":1}}"
     );
-    final JsonObject firstMetadata = parseEntry(firstEntries, METADATA_ENTRY);
+    final JsonObject firstMetadata = this.parseEntry(firstEntries, METADATA_ENTRY);
     assertEquals(expectedFirstMetadata, firstMetadata);
 
     final JsonElement expectedSecondMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"second\",\"pack_format\":2,\"min_format\":2,\"max_format\":2}}"
     );
-    final JsonObject secondMetadata = parseEntry(secondEntries, METADATA_ENTRY);
+    final JsonObject secondMetadata = this.parseEntry(secondEntries, METADATA_ENTRY);
     assertEquals(expectedSecondMetadata, secondMetadata);
 
     final JsonObject firstEvents = new JsonObject();
     final JsonObject secondEvents = new JsonObject();
-    addSoundEvent(firstEvents, "first", FIRST_SOUND_EVENT);
-    addSoundEvent(secondEvents, "second", "mcav:second");
-    final JsonObject firstSounds = parseEntry(firstEntries, MCAV_SOUNDS_ENTRY);
+    this.addSoundEvent(firstEvents, "first", FIRST_SOUND_EVENT);
+    this.addSoundEvent(secondEvents, "second", "mcav:second");
+    final JsonObject firstSounds = this.parseEntry(firstEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(firstEvents, firstSounds);
 
-    final JsonObject secondSounds = parseEntry(secondEntries, MCAV_SOUNDS_ENTRY);
+    final JsonObject secondSounds = this.parseEntry(secondEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(secondEvents, secondSounds);
-    assertEntry(CREDITS, firstEntries, CREDITS_FILE_NAME);
-    assertEntry(SECOND_SOUND, secondEntries, CREDITS_FILE_NAME);
-    assertEntry(FIRST_SOUND, firstEntries, GENERATED_ENTRY);
-    assertEntry(SECOND_SOUND, secondEntries, GENERATED_ENTRY);
-    assertEntry(FIRST_SOUND, firstEntries, FIRST_SOUND_ENTRY);
-    assertEntry(SECOND_SOUND, secondEntries, SECOND_SOUND_ENTRY);
+    this.assertEntry(CREDITS, firstEntries, CREDITS_FILE_NAME);
+    this.assertEntry(SECOND_SOUND, secondEntries, CREDITS_FILE_NAME);
+    this.assertEntry(FIRST_SOUND, firstEntries, GENERATED_ENTRY);
+    this.assertEntry(SECOND_SOUND, secondEntries, GENERATED_ENTRY);
+    this.assertEntry(FIRST_SOUND, firstEntries, FIRST_SOUND_ENTRY);
+    this.assertEntry(SECOND_SOUND, secondEntries, SECOND_SOUND_ENTRY);
   }
 
   @Test
@@ -631,7 +631,7 @@ final class SimpleResourcePackTest {
 
     assertThrows(UncheckedIOException.class, () -> vanished.zip(zip));
 
-    final List<Path> outputFiles = listFiles(output);
+    final List<Path> outputFiles = this.listFiles(output);
     final List<Path> nothing = List.of();
     assertEquals(nothing, outputFiles, "neither the pack nor the temporary file exist");
   }

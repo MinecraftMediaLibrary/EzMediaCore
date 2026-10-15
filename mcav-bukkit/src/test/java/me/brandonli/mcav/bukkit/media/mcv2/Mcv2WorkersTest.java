@@ -121,20 +121,20 @@ final class Mcv2WorkersTest {
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new IllegalStateException(BODY_FAILURE_MESSAGE));
+    this.assertFailureWaitsForSibling(false, new IllegalStateException(BODY_FAILURE_MESSAGE));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAScratchFailure() throws InterruptedException {
-    assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed!"));
+    this.assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed!"));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new AssertionError(BODY_FAILURE_MESSAGE));
+    this.assertFailureWaitsForSibling(false, new AssertionError(BODY_FAILURE_MESSAGE));
   }
 
-  private static void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {
+  private void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {
     final SiblingFailure fixture = new SiblingFailure(failInSupplier, failure);
     final Thread caller = new Thread(fixture::callForEach, "workers-failure-caller");
     try {

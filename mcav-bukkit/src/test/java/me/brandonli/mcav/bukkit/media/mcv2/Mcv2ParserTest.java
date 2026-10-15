@@ -141,12 +141,12 @@ final class Mcv2ParserTest {
   @Test
   void shouldRejectFramesOfTheWrongLength() {
     final byte[] frame = keyframe(8, 8, solid(1, 1, 1));
-    final String truncatedMessage = message(Arrays.copyOf(frame, 19));
+    final String truncatedMessage = this.message(Arrays.copyOf(frame, 19));
     assertEquals(INVALID_LENGTH_MESSAGE, truncatedMessage);
 
     final byte[] huge = new byte[Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1];
     System.arraycopy(frame, 0, huge, 0, 4);
-    final String hugeMessage = message(huge);
+    final String hugeMessage = this.message(huge);
     assertEquals(INVALID_LENGTH_MESSAGE, hugeMessage);
   }
 
@@ -154,14 +154,14 @@ final class Mcv2ParserTest {
   void shouldJudgeTheLengthOfBytesThatStartLikeAFrame() {
     final byte[] magic = new byte[Integer.BYTES];
     Mcv2Decoder.putU32(magic, 0, Mcv2Decoder.MAGIC);
-    final String magicMessage = message(magic);
+    final String magicMessage = this.message(magic);
     assertEquals(INVALID_LENGTH_MESSAGE, magicMessage);
 
     // the shortest and the longest frames pass the length check and reach the header's
-    final String shortestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
+    final String shortestMessage = this.message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
     assertEquals(NOT_A_FRAME_MESSAGE, shortestMessage);
 
-    final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
+    final String longestMessage = this.message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
     assertEquals(NOT_A_FRAME_MESSAGE, longestMessage);
   }
 
@@ -188,11 +188,11 @@ final class Mcv2ParserTest {
   @ParameterizedTest(name = "{1}")
   @MethodSource("headerRules")
   void shouldEnforceEveryHeaderRule(final byte[] frame, final String expected) {
-    final String failureMessage = message(frame);
+    final String failureMessage = this.message(frame);
     assertEquals(expected, failureMessage);
   }
 
-  private static String message(final byte[] frame) {
+  private String message(final byte[] frame) {
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame));
     return exception.getMessage();
   }

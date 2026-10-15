@@ -178,16 +178,16 @@ final class NativeConformanceTest {
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndStreams")
   void shouldReencodeTheEdgeCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, EDGE_FOLDER + stream);
+    this.reencode(level, EDGE_FOLDER + stream);
   }
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndConformanceStreams")
   void shouldReencodeTheConformanceCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
-    reencode(level, CONFORMANCE_FOLDER + stream);
+    this.reencode(level, CONFORMANCE_FOLDER + stream);
   }
 
-  private static void reencode(final Level level, final String stream) throws Mcv2Exception {
+  private void reencode(final Level level, final String stream) throws Mcv2Exception {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(stream));
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       final Mcv2Receiver receiver = new Mcv2Receiver();

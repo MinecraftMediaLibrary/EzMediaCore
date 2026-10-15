@@ -30,7 +30,7 @@ final class Mcv2BlockCoderTest {
   private static final int REFERENCE_LEVEL_BASE = 40;
   private static final int REFERENCE_LEVEL_SPREAD = 160;
 
-  private static byte[] reference(final int low, final int high) {
+  private byte[] reference(final int low, final int high) {
     final Random random = new Random(8);
     final byte[] rgb = new byte[8 * 8 * 3];
     for (int index = 0; index < rgb.length; index++) {
@@ -49,7 +49,7 @@ final class Mcv2BlockCoderTest {
   @Test
   void shouldEndTheLadderOnAPerfectResidual() {
     // Sixteen luma levels require q=2 and sixteen nodes of four.
-    final byte[] reference = reference(40, 200);
+    final byte[] reference = this.reference(40, 200);
     final byte[] source = reference.clone();
     for (int index = 0; index < source.length; index++) {
       source[index] = (byte) ((source[index] & 0xFF) + 16);

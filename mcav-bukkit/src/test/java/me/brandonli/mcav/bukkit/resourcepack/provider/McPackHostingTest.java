@@ -135,7 +135,7 @@ final class McPackHostingTest {
   }
 
   private String downloadUrl(final byte[] pack) throws NoSuchAlgorithmException {
-    final String hash = sha1(pack);
+    final String hash = this.sha1(pack);
     final String downloadFormat = this.service.downloadFormat();
     return downloadFormat.formatted(hash);
   }
@@ -145,30 +145,30 @@ final class McPackHostingTest {
     return uploads.size();
   }
 
-  private static String sha1(final byte[] bytes) throws NoSuchAlgorithmException {
+  private String sha1(final byte[] bytes) throws NoSuchAlgorithmException {
     final MessageDigest digest = MessageDigest.getInstance(HASH_ALGORITHM);
     final byte[] hash = digest.digest(bytes);
     return IoUtils.bytesToHex(hash);
   }
 
-  private static Path getCacheFile() {
+  private Path getCacheFile() {
     final Path cache = IoUtils.getCachedFolder();
     return cache.resolve(CACHE_FILE_NAME);
   }
 
-  private static JsonObject readCache() throws IOException {
-    final Path cacheFile = getCacheFile();
+  private JsonObject readCache() throws IOException {
+    final Path cacheFile = this.getCacheFile();
     final String text = Files.readString(cacheFile);
     final JsonElement element = JsonParser.parseString(text);
     return element.getAsJsonObject();
   }
 
-  private static String cachedUrl(final JsonObject cache, final String hash) {
+  private String cachedUrl(final JsonObject cache, final String hash) {
     final JsonElement element = cache.get(hash);
     return element.getAsString();
   }
 
-  private static byte[] expectedMultipartBody(final String boundary) {
+  private byte[] expectedMultipartBody(final String boundary) {
     final String head =
       "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"pack.zip\"\r\nContent-Type: application/zip\r\n\r\n";
     final String tail = "\r\n--" + boundary + "--\r\n";
@@ -182,13 +182,13 @@ final class McPackHostingTest {
     return output.toByteArray();
   }
 
-  private static void assertIsMultipartUpload(final Upload upload) {
+  private void assertIsMultipartUpload(final Upload upload) {
     final Matcher boundaryMatcher = BOUNDARY.matcher(upload.contentType);
     final boolean multipart = boundaryMatcher.matches();
     assertTrue(multipart, upload.contentType);
 
     final String boundary = boundaryMatcher.group(1);
-    final byte[] expectedBody = expectedMultipartBody(boundary);
+    final byte[] expectedBody = this.expectedMultipartBody(boundary);
     final String method = upload.method;
     assertEquals(POST_METHOD, method);
 
@@ -224,16 +224,16 @@ final class McPackHostingTest {
     hosting.start();
 
     final String url = hosting.getRawUrl();
-    final String hash = sha1(PACK);
+    final String hash = this.sha1(PACK);
     final String expectedUrl = this.downloadUrl(PACK);
     final List<Upload> uploads = this.service.getUploads();
     final int uploadCount = uploads.size();
     final Upload upload = uploads.getFirst();
-    final JsonObject cache = readCache();
-    final String cached = cachedUrl(cache, hash);
+    final JsonObject cache = this.readCache();
+    final String cached = this.cachedUrl(cache, hash);
     assertEquals(expectedUrl, url);
     assertEquals(1, uploadCount, "starting again does not upload again");
-    assertIsMultipartUpload(upload);
+    this.assertIsMultipartUpload(upload);
     assertEquals(url, cached);
   }
 
@@ -276,8 +276,8 @@ final class McPackHostingTest {
 
   @Test
   void shouldUploadThePackAgainWhenTheCachedUrlIsInvalid() throws Exception {
-    final String hash = sha1(PACK);
-    final Path cacheFile = getCacheFile();
+    final String hash = this.sha1(PACK);
+    final Path cacheFile = this.getCacheFile();
     Files.writeString(cacheFile, "{\"" + hash + "\": \"not a url\"}");
     final McPackHosting hosting = this.createHosting(this.zip);
 
@@ -286,8 +286,8 @@ final class McPackHostingTest {
     final String url = hosting.getRawUrl();
     final String expectedUrl = this.downloadUrl(PACK);
     final int uploadCount = this.uploadCount();
-    final JsonObject cache = readCache();
-    final String cached = cachedUrl(cache, hash);
+    final JsonObject cache = this.readCache();
+    final String cached = this.cachedUrl(cache, hash);
     assertEquals(expectedUrl, url);
     assertEquals(1, uploadCount);
     assertEquals(expectedUrl, cached, "the broken entry is replaced");
@@ -305,7 +305,7 @@ final class McPackHostingTest {
     final String secondUrl = second.getRawUrl();
     final String expectedUrl = this.downloadUrl(OTHER_PACK);
     final int uploadCount = this.uploadCount();
-    final JsonObject cache = readCache();
+    final JsonObject cache = this.readCache();
     final int cacheSize = cache.size();
     assertEquals(expectedUrl, secondUrl);
     assertEquals(2, uploadCount);
@@ -320,7 +320,7 @@ final class McPackHostingTest {
     final McPacksException exception = assertThrows(McPacksException.class, hosting::start);
 
     final String message = exception.getMessage();
-    final Path cacheFile = getCacheFile();
+    final Path cacheFile = this.getCacheFile();
     final boolean cached = Files.exists(cacheFile);
     assertEquals("mc-packs.net answered status 500 and rejected the upload!", message);
     assertThrows(IllegalStateException.class, hosting::getRawUrl);
@@ -349,7 +349,7 @@ final class McPackHostingTest {
     final CountDownLatch release = new CountDownLatch(1);
     this.service.setUploadHook(() -> {
       testThread.interrupt();
-      awaitRelease(release);
+      this.awaitRelease(release);
     });
     final McPackHosting hosting = this.createHosting(this.zip);
 
@@ -366,7 +366,7 @@ final class McPackHostingTest {
     }
   }
 
-  private static void awaitRelease(final CountDownLatch release) {
+  private void awaitRelease(final CountDownLatch release) {
     try {
       final boolean released = release.await(10, TimeUnit.SECONDS);
       assertTrue(released, "the test releases the upload");
@@ -395,7 +395,7 @@ final class McPackHostingTest {
 
   @Test
   void shouldTreatCorruptCachesAsEmpty() throws Exception {
-    final Path cacheFile = getCacheFile();
+    final Path cacheFile = this.getCacheFile();
     final McPackHosting corrupt = this.createHosting(this.zip);
     final McPackHosting empty = this.createHosting(this.zip);
 
@@ -405,8 +405,8 @@ final class McPackHostingTest {
     empty.start();
 
     final int uploadCount = this.uploadCount();
-    final JsonObject cache = readCache();
-    final String hash = sha1(PACK);
+    final JsonObject cache = this.readCache();
+    final String hash = this.sha1(PACK);
     final boolean cached = cache.has(hash);
     assertEquals(2, uploadCount);
     assertTrue(cached, "the cache is written again");
@@ -414,7 +414,7 @@ final class McPackHostingTest {
 
   @Test
   void shouldUseTheUploadAndLogAWarningWhenTheCacheCannotBeWritten() throws Exception {
-    final Path cacheFile = getCacheFile();
+    final Path cacheFile = this.getCacheFile();
     Files.createDirectory(cacheFile);
     final McPackHosting hosting = this.createHosting(this.zip);
     final List<LogCapture.RecordedEvent> events;
@@ -446,7 +446,7 @@ final class McPackHostingTest {
    * @param hosting the hosting to start
    * @throws InterruptedException if the test is interrupted while waiting for the thread
    */
-  private static void startInAnotherThread(final McPackHosting hosting) throws InterruptedException {
+  private void startInAnotherThread(final McPackHosting hosting) throws InterruptedException {
     final AtomicReference<Throwable> failure = new AtomicReference<>();
     final Thread starter = new Thread(hosting::start, "pack-upload-lock-probe");
     starter.setDaemon(true);
@@ -467,7 +467,7 @@ final class McPackHostingTest {
     final McPackHosting second = this.createHosting(other);
 
     first.start();
-    assertTimeoutPreemptively(LOCK_TIMEOUT, () -> startInAnotherThread(second), "an upload that finished leaves the lock free");
+    assertTimeoutPreemptively(LOCK_TIMEOUT, () -> this.startInAnotherThread(second), "an upload that finished leaves the lock free");
 
     final String firstUrl = first.getRawUrl();
     final String secondUrl = second.getRawUrl();

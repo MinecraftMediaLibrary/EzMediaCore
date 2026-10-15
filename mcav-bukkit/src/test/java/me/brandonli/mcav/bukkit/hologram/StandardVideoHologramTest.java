@@ -125,7 +125,7 @@ final class StandardVideoHologramTest {
     TimeZone.setDefault(this.previousTimeZone);
   }
 
-  private static UrlParseDump createDump(final String title, final String uploader, final int timestamp, final double duration) {
+  private UrlParseDump createDump(final String title, final String uploader, final int timestamp, final double duration) {
     final JsonObject json = new JsonObject();
     json.addProperty("title", title);
     json.addProperty("uploader", uploader);
@@ -135,13 +135,13 @@ final class StandardVideoHologramTest {
     return gson.fromJson(json, UrlParseDump.class);
   }
 
-  private static int epochSecond(final int day) {
+  private int epochSecond(final int day) {
     final LocalDateTime dateTime = LocalDateTime.of(UPLOAD_YEAR, 1, day, UPLOAD_HOUR, UPLOAD_MINUTE);
     final long seconds = dateTime.toEpochSecond(ZoneOffset.UTC);
     return (int) seconds;
   }
 
-  private static String expectedDate(final int day, final String suffix) {
+  private String expectedDate(final int day, final String suffix) {
     final LocalDateTime dateTime = LocalDateTime.of(UPLOAD_YEAR, 1, day, UPLOAD_HOUR, UPLOAD_MINUTE);
     final DateTimeFormatter monthDay = DateTimeFormatter.ofPattern("MMMM d", Locale.getDefault(Locale.Category.FORMAT));
     final DateTimeFormatter yearTime = DateTimeFormatter.ofPattern(", yyyy h:mm a", Locale.getDefault(Locale.Category.FORMAT));
@@ -150,7 +150,7 @@ final class StandardVideoHologramTest {
     return monthDayText + suffix + yearTimeText;
   }
 
-  private static Component lastText(final TextDisplay display) {
+  private Component lastText(final TextDisplay display) {
     final ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
     verify(display, atLeastOnce()).text(captor.capture());
 
@@ -160,7 +160,7 @@ final class StandardVideoHologramTest {
   /**
    * Counts the progress segments drawn in the color, following the color inheritance of the component tree.
    */
-  private static int countSegments(final Component component, final TextColor inheritedColor, final TextColor color) {
+  private int countSegments(final Component component, final TextColor inheritedColor, final TextColor color) {
     final TextColor ownColor = component.color();
     final TextColor effectiveColor = ownColor == null ? inheritedColor : ownColor;
     int count = 0;
@@ -174,18 +174,18 @@ final class StandardVideoHologramTest {
 
     final List<Component> children = component.children();
     for (final Component child : children) {
-      count += countSegments(child, effectiveColor, color);
+      count += this.countSegments(child, effectiveColor, color);
     }
 
     return count;
   }
 
-  private static int countFilled(final Component component) {
-    return countSegments(component, null, NamedTextColor.GREEN);
+  private int countFilled(final Component component) {
+    return this.countSegments(component, null, NamedTextColor.GREEN);
   }
 
-  private static int countEmpty(final Component component) {
-    return countSegments(component, null, NamedTextColor.GRAY);
+  private int countEmpty(final Component component) {
+    return this.countSegments(component, null, NamedTextColor.GRAY);
   }
 
   @Test
@@ -199,14 +199,14 @@ final class StandardVideoHologramTest {
   @Test
   void shouldSpawnAConfiguredDisplayWithTheMetadataOfTheVideo() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final int timestamp = epochSecond(1);
-    final UrlParseDump dump = createDump("Some Video", "Some Channel", timestamp, 60);
+    final int timestamp = this.epochSecond(1);
+    final UrlParseDump dump = this.createDump("Some Video", "Some Channel", timestamp, 60);
     hologram.spawn(this.location, dump);
     final TextDisplay display = this.spawnedDisplays.getFirst();
     final TextDisplay current = hologram.getDisplay();
-    final Component text = lastText(display);
+    final Component text = this.lastText(display);
     final String plain = PLAIN.serialize(text);
-    final String date = expectedDate(1, "st");
+    final String date = this.expectedDate(1, "st");
     assertSame(display, current);
 
     final String expected = "Some Video\nSome Channel (" + date + ")";
@@ -225,13 +225,13 @@ final class StandardVideoHologramTest {
     final String[] suffixes = { "nd", "rd", "th", "th", "th", "th", "st", "nd", "rd", "st" };
     for (int index = 0; index < days.length; index++) {
       final StandardVideoHologram hologram = new StandardVideoHologram();
-      final int timestamp = epochSecond(days[index]);
-      final UrlParseDump dump = createDump(TITLE, UPLOADER, timestamp, 1);
+      final int timestamp = this.epochSecond(days[index]);
+      final UrlParseDump dump = this.createDump(TITLE, UPLOADER, timestamp, 1);
       hologram.spawn(this.location, dump);
       final TextDisplay display = hologram.getDisplay();
-      final Component text = lastText(display);
+      final Component text = this.lastText(display);
       final String plain = PLAIN.serialize(text);
-      final String date = expectedDate(days[index], suffixes[index]);
+      final String date = this.expectedDate(days[index], suffixes[index]);
       final String expected = "t\nu (" + date + ")";
       assertEquals(expected, plain);
     }
@@ -240,15 +240,15 @@ final class StandardVideoHologramTest {
   @Test
   void shouldUsePlaceholdersForMissingMetadataAndNotParseTagsInIt() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump missing = createDump(null, null, 0, 1);
+    final UrlParseDump missing = this.createDump(null, null, 0, 1);
     hologram.spawn(this.location, missing);
     final TextDisplay first = hologram.getDisplay();
-    final Component missingText = lastText(first);
+    final Component missingText = this.lastText(first);
     final String missingPlain = PLAIN.serialize(missingText);
-    final UrlParseDump tagged = createDump("<red>Title</red>", "<bold>Me", -5, 1);
+    final UrlParseDump tagged = this.createDump("<red>Title</red>", "<bold>Me", -5, 1);
     hologram.spawn(this.location, tagged);
     final TextDisplay second = hologram.getDisplay();
-    final Component taggedText = lastText(second);
+    final Component taggedText = this.lastText(second);
     final String taggedPlain = PLAIN.serialize(taggedText);
     assertEquals("Unknown title\nUnknown uploader (Unknown date)", missingPlain);
     assertEquals("<red>Title</red>\n<bold>Me (Unknown date)", taggedPlain);
@@ -257,9 +257,9 @@ final class StandardVideoHologramTest {
   @Test
   void shouldShowMetadataWithBackslashesAsItIs() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
+    final UrlParseDump dump = this.createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
     hologram.spawn(this.location, dump);
-    final Component text = lastText(hologram.getDisplay());
+    final Component text = this.lastText(hologram.getDisplay());
     final String plain = PLAIN.serialize(text);
     assertEquals("Paths like C:\\\na\\<red>b\\ (Unknown date)", plain);
   }
@@ -267,7 +267,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldReplaceThePreviousDisplayOnANewRequest() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, 1);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, 1);
     hologram.spawn(this.location, dump);
     hologram.spawn(this.location, dump);
     final TextDisplay first = this.spawnedDisplays.get(0);
@@ -281,7 +281,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldRejectInvalidRequests() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, 1);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, 1);
     final Location nowhere = new Location(null, 0, 0, 0);
     assertThrows(NullPointerException.class, () -> hologram.spawn(null, dump));
     assertThrows(NullPointerException.class, () -> hologram.spawn(this.location, null));
@@ -298,7 +298,7 @@ final class StandardVideoHologramTest {
 
   private TextDisplay startHologram(final double duration) {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, duration);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, duration);
     hologram.spawn(this.location, dump);
     hologram.start();
     return this.spawnedDisplays.getLast();
@@ -307,7 +307,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldStartOneProgressTaskThatRunsEverySecond() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, DURATION_SECONDS);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, DURATION_SECONDS);
     hologram.spawn(this.location, dump);
     hologram.start();
     hologram.start();
@@ -322,15 +322,15 @@ final class StandardVideoHologramTest {
   void shouldDrawAnEmptyBarAtTheStartAndFillItOncePerSecond() {
     final TextDisplay display = this.startHologram(DURATION_SECONDS);
     this.server.runTasks();
-    final Component start = lastText(display);
+    final Component start = this.lastText(display);
     final String startPlain = PLAIN.serialize(start);
-    final int startFilled = countFilled(start);
-    final int startEmpty = countEmpty(start);
+    final int startFilled = this.countFilled(start);
+    final int startEmpty = this.countEmpty(start);
 
     this.server.runTasks();
-    final Component oneSecond = lastText(display);
+    final Component oneSecond = this.lastText(display);
     final String oneSecondPlain = PLAIN.serialize(oneSecond);
-    final int oneSecondFilled = countFilled(oneSecond);
+    final int oneSecondFilled = this.countFilled(oneSecond);
 
     final String bar = PROGRESS.repeat(BAR_LENGTH);
     final String expectedStart = UNDATED_TEXT_AT_START + bar + DURATION_TEXT;
@@ -350,9 +350,9 @@ final class StandardVideoHologramTest {
       this.server.runTasks();
     }
 
-    final Component end = lastText(display);
+    final Component end = this.lastText(display);
     final String endPlain = PLAIN.serialize(end);
-    final int endFilled = countFilled(end);
+    final int endFilled = this.countFilled(end);
     final int tasksBeforeFinish = this.server.getScheduledTaskCount();
 
     this.server.runTasks();
@@ -371,7 +371,7 @@ final class StandardVideoHologramTest {
   void shouldRoundFractionalDurationsUpToWholeSeconds() {
     final TextDisplay display = this.startHologram(9.2);
     this.server.runTasks();
-    final Component start = lastText(display);
+    final Component start = this.lastText(display);
     final String startPlain = PLAIN.serialize(start);
     final boolean endsWithDuration = startPlain.endsWith(DURATION_TEXT);
     assertTrue(endsWithDuration, startPlain);
@@ -380,20 +380,20 @@ final class StandardVideoHologramTest {
   @Test
   void shouldShowMinutesAndAnEmptyBarForVideosWithoutDuration() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump longDump = createDump(TITLE, UPLOADER, 0, 125);
+    final UrlParseDump longDump = this.createDump(TITLE, UPLOADER, 0, 125);
     hologram.spawn(this.location, longDump);
     hologram.start();
     this.server.runTasks();
     final TextDisplay longDisplay = hologram.getDisplay();
-    final Component longText = lastText(longDisplay);
+    final Component longText = this.lastText(longDisplay);
     final String longPlain = PLAIN.serialize(longText);
-    final UrlParseDump negativeDump = createDump(TITLE, UPLOADER, 0, -3);
+    final UrlParseDump negativeDump = this.createDump(TITLE, UPLOADER, 0, -3);
     hologram.spawn(this.location, negativeDump);
     hologram.start();
     this.server.runTasks();
     final TextDisplay negativeDisplay = hologram.getDisplay();
-    final Component negativeText = lastText(negativeDisplay);
-    final int negativeFilled = countFilled(negativeText);
+    final Component negativeText = this.lastText(negativeDisplay);
+    final int negativeFilled = this.countFilled(negativeText);
     final String negativePlain = PLAIN.serialize(negativeText);
     this.server.runTasks();
     final int tasks = this.server.getScheduledTaskCount();
@@ -410,7 +410,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldStopTheProgressWhenTheDisplayIsGone() {
     final StandardVideoHologram invalid = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
     invalid.spawn(this.location, dump);
     final TextDisplay invalidDisplay = this.spawnedDisplays.getFirst();
     when(invalidDisplay.isValid()).thenReturn(false);
@@ -431,7 +431,7 @@ final class StandardVideoHologramTest {
   @Test
   void shouldRemoveTheDisplayAndStopTheProgressWhenKilled() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
-    final UrlParseDump dump = createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
+    final UrlParseDump dump = this.createDump(TITLE, UPLOADER, 0, LONG_DURATION_SECONDS);
     hologram.spawn(this.location, dump);
     hologram.start();
     final TextDisplay display = hologram.getDisplay();

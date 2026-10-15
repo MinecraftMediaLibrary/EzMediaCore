@@ -102,9 +102,9 @@ final class ResourcePackFuzzTest {
     try {
       pack.zip(zipped);
       try (final ZipFile zip = new ZipFile(zipped.toFile(), StandardCharsets.UTF_8)) {
-        assertSafeEntries(zip);
-        assertMeta(zip, description);
-        assertSounds(zip, acceptedSounds);
+        this.assertSafeEntries(zip);
+        this.assertMeta(zip, description);
+        this.assertSounds(zip, acceptedSounds);
       }
     } finally {
       Files.deleteIfExists(zipped);
@@ -121,7 +121,7 @@ final class ResourcePackFuzzTest {
     acceptedSounds.add(name);
   }
 
-  private static void assertSafeEntries(final ZipFile zip) {
+  private void assertSafeEntries(final ZipFile zip) {
     final Enumeration<? extends ZipEntry> entries = zip.entries();
     while (entries.hasMoreElements()) {
       final ZipEntry entry = entries.nextElement();
@@ -137,20 +137,20 @@ final class ResourcePackFuzzTest {
     }
   }
 
-  private static void assertMeta(final ZipFile zip, final String description) throws IOException {
-    final JsonObject meta = readJson(zip, "pack.mcmeta");
+  private void assertMeta(final ZipFile zip, final String description) throws IOException {
+    final JsonObject meta = this.readJson(zip, "pack.mcmeta");
     final JsonObject pack = meta.getAsJsonObject("pack");
     final JsonElement written = pack.get("description");
     final String writtenDescription = written.getAsString();
     assertEquals(description, writtenDescription, "the description survives the JSON unchanged");
   }
 
-  private static void assertSounds(final ZipFile zip, final List<String> acceptedSounds) throws IOException {
+  private void assertSounds(final ZipFile zip, final List<String> acceptedSounds) throws IOException {
     for (final String key : acceptedSounds) {
       final int separator = key.indexOf(':');
       final String namespace = key.substring(0, separator);
       final String value = key.substring(separator + 1);
-      final JsonObject sounds = readJson(zip, ASSETS_FOLDER + namespace + SOUNDS_FILE);
+      final JsonObject sounds = this.readJson(zip, ASSETS_FOLDER + namespace + SOUNDS_FILE);
       final boolean registered = sounds.has(value);
       assertTrue(registered, () -> "the sound " + key + " is not registered");
       final ZipEntry file = zip.getEntry(ASSETS_FOLDER + namespace + SOUNDS_FOLDER + value + ".ogg");
@@ -158,7 +158,7 @@ final class ResourcePackFuzzTest {
     }
   }
 
-  private static JsonObject readJson(final ZipFile zip, final String name) throws IOException {
+  private JsonObject readJson(final ZipFile zip, final String name) throws IOException {
     final ZipEntry entry = zip.getEntry(name);
     assertNotNull(entry, () -> "the pack has no " + name);
 

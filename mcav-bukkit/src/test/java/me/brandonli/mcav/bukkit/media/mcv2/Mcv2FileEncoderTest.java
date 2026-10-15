@@ -146,14 +146,14 @@ final class Mcv2FileEncoderTest {
     final int width = 8 * MapLayout.MAP_SIZE;
     final int height = 4 * MapLayout.MAP_SIZE;
     final int limit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * TransportPages.capacity();
-    final byte[] checkerboard = checkerboard(width, height);
+    final byte[] checkerboard = this.checkerboard(width, height);
     final Mcv2 unlimited = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
     final boolean unlimitedFrameTooLarge = unlimited.encode(checkerboard, width, height, 0).length > limit;
     assertTrue(unlimitedFrameTooLarge);
 
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     try (final Pool budget = new Pool(1)) {
-      Mcv2FileEncoder.encode(repeating(checkerboard, 2), width, height, Settings.DEFAULT, budget, out, count -> {});
+      Mcv2FileEncoder.encode(this.repeating(checkerboard, 2), width, height, Settings.DEFAULT, budget, out, count -> {});
     }
 
     final List<byte[]> frames = frames(out.toByteArray());
@@ -187,7 +187,15 @@ final class Mcv2FileEncoderTest {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final Mcv2FileEncoder.Result result;
     try (final Pool budget = new Pool(1)) {
-      result = Mcv2FileEncoder.encode(repeating(checkerboard(WIDTH, HEIGHT), 3), WIDTH, HEIGHT, Settings.DEFAULT, budget, out, _ -> {});
+      result = Mcv2FileEncoder.encode(
+        this.repeating(this.checkerboard(WIDTH, HEIGHT), 3),
+        WIDTH,
+        HEIGHT,
+        Settings.DEFAULT,
+        budget,
+        out,
+        _ -> {}
+      );
     }
 
     long keyframes = 0;
@@ -210,7 +218,7 @@ final class Mcv2FileEncoderTest {
     final long started = System.nanoTime();
     try (final Pool budget = new Pool(1)) {
       result = Mcv2FileEncoder.encode(
-        repeating(checkerboard(WIDTH, HEIGHT), 3),
+        this.repeating(this.checkerboard(WIDTH, HEIGHT), 3),
         WIDTH,
         HEIGHT,
         Settings.DEFAULT,
@@ -251,7 +259,7 @@ final class Mcv2FileEncoderTest {
     assertEquals(expectedFullHdLimit, fullHdLimit);
   }
 
-  private static byte[] checkerboard(final int width, final int height) {
+  private byte[] checkerboard(final int width, final int height) {
     final byte[] picture = new byte[width * height * Mcv2Decoder.CHANNELS];
     for (int pixel = 0; pixel < width * height; pixel++) {
       final byte shade = (byte) ((((pixel % width) + pixel / width) % 2) * 255);
@@ -261,7 +269,7 @@ final class Mcv2FileEncoderTest {
     return picture;
   }
 
-  private static Mcv2FileEncoder.FrameReader repeating(final byte[] picture, final int count) {
+  private Mcv2FileEncoder.FrameReader repeating(final byte[] picture, final int count) {
     return new RepeatingReader(picture, count);
   }
 

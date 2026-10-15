@@ -108,7 +108,7 @@ final class FileServerHandlerFuzzTest {
 
     final List<FileChannel> opened = new ArrayList<>();
     final Path file = content.length == 0 ? EMPTY_FILE : PACK_FILE;
-    final FileServerHandler handler = new FileServerHandler(file, path -> open(path, mode, opened));
+    final FileServerHandler handler = new FileServerHandler(file, path -> this.open(path, mode, opened));
     final RecordingAllocator allocator = new RecordingAllocator();
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.config().setAllocator(allocator);
@@ -134,7 +134,7 @@ final class FileServerHandlerFuzzTest {
       if (index == 0 && sendsOtherMessage && channel.isOpen()) {
         channel.writeInbound(NOT_BYTES);
       }
-      drain(channel, answered);
+      this.drain(channel, answered);
     }
 
     channel.checkException();
@@ -142,7 +142,7 @@ final class FileServerHandlerFuzzTest {
     final boolean timeoutLeft = pipeline.get(FileHttpChannelInitializer.READ_TIMEOUT_NAME) != null;
 
     try {
-      assertBehaviour(request.stream, mode, content, hasReadTimeout, answered, openAfterReads, timeoutLeft);
+      this.assertBehaviour(request.stream, mode, content, hasReadTimeout, answered, openAfterReads, timeoutLeft);
     } finally {
       for (final Object message : answered) {
         this.releaseAnswer(message);
@@ -178,7 +178,7 @@ final class FileServerHandlerFuzzTest {
     }
   }
 
-  private static FileChannel open(final Path path, final OpenMode mode, final List<FileChannel> opened) throws IOException {
+  private FileChannel open(final Path path, final OpenMode mode, final List<FileChannel> opened) throws IOException {
     if (mode == OpenMode.FAILS) {
       throw new NoSuchFileException(path.toString());
     }
@@ -193,7 +193,7 @@ final class FileServerHandlerFuzzTest {
     return fileChannel;
   }
 
-  private static void assertBehaviour(
+  private void assertBehaviour(
     final byte[] stream,
     final OpenMode mode,
     final byte[] content,
@@ -202,12 +202,12 @@ final class FileServerHandlerFuzzTest {
     final boolean openAfterReads,
     final boolean timeoutLeft
   ) throws IOException {
-    final int headerEnd = indexOf(stream, HEADER_TERMINATOR);
+    final int headerEnd = this.indexOf(stream, HEADER_TERMINATOR);
     final boolean complete = headerEnd >= 0 && headerEnd + HEADER_TERMINATOR.length <= MAXIMUM_HEADER_BYTES;
     if (!complete) {
       if (stream.length > MAXIMUM_HEADER_BYTES) {
-        final List<String> expectedAnswers = List.of(status("431 Request Header Fields Too Large"));
-        final List<String> answeredTexts = texts(answered);
+        final List<String> expectedAnswers = List.of(this.status("431 Request Header Fields Too Large"));
+        final List<String> answeredTexts = this.texts(answered);
         assertEquals(expectedAnswers, answeredTexts, "headers past the limit are refused");
         assertFalse(openAfterReads, "a refused connection is closed");
 
@@ -224,19 +224,19 @@ final class FileServerHandlerFuzzTest {
     assertFalse(timeoutLeft, "a complete request no longer has a read timeout");
     assertFalse(openAfterReads, "every answer closes the connection");
 
-    final boolean isGet = startsWith(stream, GET_PREFIX);
-    final boolean isHead = startsWith(stream, HEAD_PREFIX);
+    final boolean isGet = this.startsWith(stream, GET_PREFIX);
+    final boolean isHead = this.startsWith(stream, HEAD_PREFIX);
     if (!isGet && !isHead) {
-      final List<String> expectedAnswers = List.of(status("405 Method Not Allowed"));
-      final List<String> answeredTexts = texts(answered);
+      final List<String> expectedAnswers = List.of(this.status("405 Method Not Allowed"));
+      final List<String> answeredTexts = this.texts(answered);
       assertEquals(expectedAnswers, answeredTexts, "only GET and HEAD are served");
 
       return;
     }
 
     if (mode != OpenMode.OPENS) {
-      final List<String> expectedAnswers = List.of(status("404 Not Found"));
-      final List<String> answeredTexts = texts(answered);
+      final List<String> expectedAnswers = List.of(this.status("404 Not Found"));
+      final List<String> answeredTexts = this.texts(answered);
       assertEquals(expectedAnswers, answeredTexts, "a file that cannot be read is not found");
 
       return;
@@ -262,12 +262,12 @@ final class FileServerHandlerFuzzTest {
       final long regionCount = region.count();
       assertEquals(content.length, regionCount, "the body is the whole file");
 
-      final byte[] body = transfer(region);
+      final byte[] body = this.transfer(region);
       assertArrayEquals(content, body, "the body is the file");
     }
   }
 
-  private static byte[] transfer(final FileRegion region) throws IOException {
+  private byte[] transfer(final FileRegion region) throws IOException {
     final ByteArrayOutputStream body = new ByteArrayOutputStream();
     final WritableByteChannel target = Channels.newChannel(body);
     long position = 0;
@@ -282,7 +282,7 @@ final class FileServerHandlerFuzzTest {
     return body.toByteArray();
   }
 
-  private static void drain(final EmbeddedChannel channel, final List<Object> answered) {
+  private void drain(final EmbeddedChannel channel, final List<Object> answered) {
     Object outbound = channel.readOutbound();
     while (outbound != null) {
       answered.add(outbound);
@@ -293,7 +293,7 @@ final class FileServerHandlerFuzzTest {
     assertNull(inbound, "the handler passes nothing on");
   }
 
-  private static List<String> texts(final List<Object> answered) {
+  private List<String> texts(final List<Object> answered) {
     final List<String> texts = new ArrayList<>();
     for (final Object message : answered) {
       texts.add(text(message));
@@ -307,11 +307,11 @@ final class FileServerHandlerFuzzTest {
     return new String(ByteBufUtil.getBytes(buffer), StandardCharsets.US_ASCII);
   }
 
-  private static String status(final String status) {
+  private String status(final String status) {
     return "HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
   }
 
-  private static int indexOf(final byte[] stream, final byte[] part) {
+  private int indexOf(final byte[] stream, final byte[] part) {
     for (int index = 0; index + part.length <= stream.length; index++) {
       if (Arrays.equals(stream, index, index + part.length, part, 0, part.length)) {
         return index;
@@ -321,7 +321,7 @@ final class FileServerHandlerFuzzTest {
     return -1;
   }
 
-  private static boolean startsWith(final byte[] stream, final byte[] prefix) {
+  private boolean startsWith(final byte[] stream, final byte[] prefix) {
     return stream.length >= prefix.length && Arrays.equals(stream, 0, prefix.length, prefix, 0, prefix.length);
   }
 

@@ -99,7 +99,7 @@ final class DisplayableImageTest {
     this.world = FakeWorld.create();
     this.world.enter(this.viewer);
     this.algorithm = mock(DitherAlgorithm.class);
-    when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(DisplayableImageTest::ditherToPattern);
+    when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(this::ditherToPattern);
   }
 
   @AfterEach
@@ -107,12 +107,12 @@ final class DisplayableImageTest {
     this.server.close();
   }
 
-  private static byte[] ditherToPattern(final InvocationOnMock invocation) {
+  private byte[] ditherToPattern(final InvocationOnMock invocation) {
     final ImageBuffer image = invocation.getArgument(0);
     return MapPackets.pattern(image);
   }
 
-  private static MapConfiguration createMapConfiguration(final boolean shouldResize) {
+  private MapConfiguration createMapConfiguration(final boolean shouldResize) {
     final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(2);
@@ -120,11 +120,11 @@ final class DisplayableImageTest {
     builder.mapBlockHeight(1);
     builder.mapWidthResolution(MAP_RESOLUTION);
     builder.mapHeightResolution(MAP_RESOLUTION);
-    configureResize(builder, shouldResize);
+    this.configureResize(builder, shouldResize);
     return builder.build();
   }
 
-  private static void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
+  private void configureResize(final MapConfiguration.Builder<?> builder, final boolean shouldResize) {
     builder.resize(shouldResize);
   }
 
@@ -135,7 +135,7 @@ final class DisplayableImageTest {
    * @param rows    the number of rows of maps
    * @return the configuration
    */
-  private static MapConfiguration createMapGridConfiguration(final int columns, final int rows) {
+  private MapConfiguration createMapGridConfiguration(final int columns, final int rows) {
     final MapConfiguration.Builder<?> builder = MapConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.map(2);
@@ -143,7 +143,7 @@ final class DisplayableImageTest {
     builder.mapBlockHeight(rows);
     builder.mapWidthResolution(MAP_RESOLUTION);
     builder.mapHeightResolution(MAP_RESOLUTION);
-    configureResize(builder, false);
+    this.configureResize(builder, false);
     return builder.build();
   }
 
@@ -153,7 +153,7 @@ final class DisplayableImageTest {
     return MapPackets.unbundle(packet);
   }
 
-  private static ChatConfiguration createChatConfiguration() {
+  private ChatConfiguration createChatConfiguration() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
@@ -174,7 +174,7 @@ final class DisplayableImageTest {
     return builder.build();
   }
 
-  private static ScoreboardConfiguration createScoreboardConfiguration() {
+  private ScoreboardConfiguration createScoreboardConfiguration() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(List.of(VIEWER));
     builder.character(CHARACTER);
@@ -204,10 +204,10 @@ final class DisplayableImageTest {
 
   @Test
   void shouldCreateTheDisplayForEveryKindOfConfiguration() {
-    final MapConfiguration mapConfiguration = createMapConfiguration(false);
-    final ChatConfiguration chatConfiguration = createChatConfiguration();
+    final MapConfiguration mapConfiguration = this.createMapConfiguration(false);
+    final ChatConfiguration chatConfiguration = this.createChatConfiguration();
     final EntityConfiguration entityConfiguration = this.createEntityConfiguration();
-    final ScoreboardConfiguration scoreboardConfiguration = createScoreboardConfiguration();
+    final ScoreboardConfiguration scoreboardConfiguration = this.createScoreboardConfiguration();
     final BlockConfiguration blockConfiguration = this.createBlockConfiguration();
 
     final DisplayableImage map = DisplayableImage.map(mapConfiguration, this.algorithm);
@@ -225,7 +225,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldRejectMissingConfigurations() {
-    final MapConfiguration mapConfiguration = createMapConfiguration(false);
+    final MapConfiguration mapConfiguration = this.createMapConfiguration(false);
 
     assertThrows(NullPointerException.class, () -> DisplayableImage.map(null, this.algorithm));
     assertThrows(NullPointerException.class, () -> DisplayableImage.map(mapConfiguration, null));
@@ -237,7 +237,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldKeepTheSizeOfMapImagesCenterThemAndClearThemAgain() {
-    final MapConfiguration configuration = createMapConfiguration(false);
+    final MapConfiguration configuration = this.createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(32, 16, GRAY);
 
@@ -262,7 +262,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldClearEveryMapOfTheGridOfAMapImage() {
-    final MapConfiguration configuration = createMapGridConfiguration(2, 2);
+    final MapConfiguration configuration = this.createMapGridConfiguration(2, 2);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
 
     display.release();
@@ -279,7 +279,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldCropMapImagesLargerThanTheMapsEquallyOnEverySide() {
-    final MapConfiguration configuration = createMapConfiguration(false);
+    final MapConfiguration configuration = this.createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(256, 130, GRAY);
 
@@ -300,7 +300,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldResizeMapImagesWhenTheConfigurationAsksForIt() {
-    final MapConfiguration configuration = createMapConfiguration(true);
+    final MapConfiguration configuration = this.createMapConfiguration(true);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(MAP_SIZE, MAP_SIZE, GRAY);
 
@@ -317,7 +317,7 @@ final class DisplayableImageTest {
 
   @Test
   void shouldReplaceThePreviousChatImageAndClearTheChatAgain() {
-    final ChatConfiguration configuration = createChatConfiguration();
+    final ChatConfiguration configuration = this.createChatConfiguration();
     final DisplayableImage display = DisplayableImage.chat(configuration);
     final ImageBuffer image = Images.solid(4, 2, GRAY);
 
@@ -374,7 +374,7 @@ final class DisplayableImageTest {
     final FakeScoreboards scoreboards = FakeScoreboards.install(manager);
     final Scoreboard previous = mock(CraftScoreboard.class);
     FakeScoreboards.trackScoreboard(this.viewer, previous);
-    final ScoreboardConfiguration configuration = createScoreboardConfiguration();
+    final ScoreboardConfiguration configuration = this.createScoreboardConfiguration();
     final DisplayableImage display = DisplayableImage.scoreboard(configuration);
     final ImageBuffer image = Images.solid(1, 1, GRAY);
 

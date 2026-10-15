@@ -46,7 +46,7 @@ final class Mcv2PaletteFitTest {
     Mcv2Internals.javaKernels().finishPalette(source, count, endpoints, colors, selectors);
   }
 
-  private static int[] block(final int[]... pixels) {
+  private int[] block(final int[]... pixels) {
     final int[] source = new int[pixels.length * 3];
     for (int index = 0; index < pixels.length; index++) {
       System.arraycopy(pixels[index], 0, source, index * 3, 3);
@@ -59,7 +59,7 @@ final class Mcv2PaletteFitTest {
   void shouldFitTwoColoursExactly() {
     final int[] dark = { DARK_RED, DARK_GREEN, DARK_BLUE };
     final int[] light = { LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
-    final int[] source = block(light, dark, dark, light, light, dark, light, light);
+    final int[] source = this.block(light, dark, dark, light, light, dark, light, light);
     final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[8];
     fit(source, 8, colors, selectors);
@@ -72,7 +72,7 @@ final class Mcv2PaletteFitTest {
 
   @Test
   void shouldAverageEachClusterAndRoundHalvesUp() {
-    final int[] source = block(new int[] { 0, 0, 0 }, new int[] { 1, 1, 1 }, new int[] { 250, 250, 250 }, new int[] { 255, 255, 255 });
+    final int[] source = this.block(new int[] { 0, 0, 0 }, new int[] { 1, 1, 1 }, new int[] { 250, 250, 250 }, new int[] { 255, 255, 255 });
     final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
@@ -87,7 +87,7 @@ final class Mcv2PaletteFitTest {
   void shouldKeepTheSeedOfAnEmptyCluster() {
     // equal luma everywhere: both endpoints start at the first pixel, so the first iteration puts every pixel in
     // cluster 0 and endpoint 1 keeps its seed; from the second iteration on, the first pixel has a cluster of its own
-    final int[] source = block(new int[] { 100, 50, 0 }, new int[] { 0, 50, 100 }, new int[] { 50, 50, 50 }, new int[] { 50, 50, 50 });
+    final int[] source = this.block(new int[] { 100, 50, 0 }, new int[] { 0, 50, 100 }, new int[] { 50, 50, 50 }, new int[] { 50, 50, 50 });
     final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[4];
     fit(source, 4, colors, selectors);
@@ -102,7 +102,7 @@ final class Mcv2PaletteFitTest {
   void shouldFitAUniformBlockWithOneColour() {
     final int[] colors = new int[ENDPOINTS_LENGTH];
     final byte[] selectors = new byte[2];
-    fit(block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
+    fit(this.block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
     final int[] expectedColors = { 7, 8, 9, 7, 8, 9 };
     assertArrayEquals(expectedColors, colors);
 

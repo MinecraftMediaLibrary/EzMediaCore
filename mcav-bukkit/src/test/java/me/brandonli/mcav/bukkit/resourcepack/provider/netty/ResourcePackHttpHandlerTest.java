@@ -97,7 +97,7 @@ final class ResourcePackHttpHandlerTest {
     Files.write(this.packPath, PACK);
   }
 
-  private static EmbeddedChannel createChannel(final Path pack) {
+  private EmbeddedChannel createChannel(final Path pack) {
     final ResourcePackFile file = new ResourcePackFile(pack);
     final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, ROOT_PATH);
     final EmbeddedChannel channel = new EmbeddedChannel();
@@ -106,31 +106,31 @@ final class ResourcePackHttpHandlerTest {
     return channel;
   }
 
-  private static ByteBuf ascii(final String text) {
+  private ByteBuf ascii(final String text) {
     return Unpooled.copiedBuffer(text, StandardCharsets.US_ASCII);
   }
 
-  private static void writeText(final EmbeddedChannel channel, final String text) {
-    final ByteBuf bytes = ascii(text);
+  private void writeText(final EmbeddedChannel channel, final String text) {
+    final ByteBuf bytes = this.ascii(text);
     channel.writeInbound(bytes);
   }
 
-  private static void writeBytes(final EmbeddedChannel channel, final byte[] bytes) {
+  private void writeBytes(final EmbeddedChannel channel, final byte[] bytes) {
     final ByteBuf buffer = Unpooled.wrappedBuffer(bytes);
     channel.writeInbound(buffer);
   }
 
-  private static RequestType classifyText(final String text) {
-    final ByteBuf bytes = ascii(text);
+  private RequestType classifyText(final String text) {
+    final ByteBuf bytes = this.ascii(text);
     return ResourcePackHttpHandler.classify(bytes);
   }
 
-  private static ChannelHandler findHandler(final EmbeddedChannel channel) {
+  private ChannelHandler findHandler(final EmbeddedChannel channel) {
     final ChannelPipeline pipeline = channel.pipeline();
     return pipeline.get(ResourcePackHttpHandler.NAME);
   }
 
-  private static String readOutboundText(final EmbeddedChannel channel) {
+  private String readOutboundText(final EmbeddedChannel channel) {
     final ByteBuf buffer = channel.readOutbound();
     try {
       return buffer.toString(StandardCharsets.US_ASCII);
@@ -139,7 +139,7 @@ final class ResourcePackHttpHandlerTest {
     }
   }
 
-  private static byte[] readOutboundBytes(final EmbeddedChannel channel) {
+  private byte[] readOutboundBytes(final EmbeddedChannel channel) {
     final ByteBuf buffer = channel.readOutbound();
     try {
       return ByteBufUtil.getBytes(buffer);
@@ -148,7 +148,7 @@ final class ResourcePackHttpHandlerTest {
     }
   }
 
-  private static byte[] readInboundBytes(final EmbeddedChannel channel) {
+  private byte[] readInboundBytes(final EmbeddedChannel channel) {
     final ByteBuf buffer = channel.readInbound();
     try {
       return ByteBufUtil.getBytes(buffer);
@@ -171,12 +171,12 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldServeThePackToGetRequestsAndCloseTheConnection() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
-    final ByteBuf request = ascii("GET / HTTP/1.1\r\nHost: example\r\n\r\n");
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
+    final ByteBuf request = this.ascii("GET / HTTP/1.1\r\nHost: example\r\n\r\n");
 
     channel.writeInbound(request);
-    final String responseHeaders = readOutboundText(channel);
-    final byte[] body = readOutboundBytes(channel);
+    final String responseHeaders = this.readOutboundText(channel);
+    final byte[] body = this.readOutboundBytes(channel);
     final Object passedOn = channel.readInbound();
     final boolean open = channel.isOpen();
     final int requestReferences = request.refCnt();
@@ -190,18 +190,18 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldWaitForTheWholeTargetAndPassAnUnmatchedRequestUnchanged() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
-    writeText(channel, HEAD_PREFIX);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
+    this.writeText(channel, HEAD_PREFIX);
     final Object premature = channel.readOutbound();
     assertNull(premature);
 
-    writeText(channel, "other HTTP/1.1\r\n\r\n");
-    final String passed = new String(readInboundBytes(channel), StandardCharsets.US_ASCII);
+    this.writeText(channel, "other HTTP/1.1\r\n\r\n");
+    final String passed = new String(this.readInboundBytes(channel), StandardCharsets.US_ASCII);
     final Object response = channel.readOutbound();
     assertEquals("HEAD /other HTTP/1.1\r\n\r\n", passed);
     assertNull(response);
 
-    final ChannelHandler handler = findHandler(channel);
+    final ChannelHandler handler = this.findHandler(channel);
     assertNull(handler);
 
     channel.finishAndReleaseAll();
@@ -209,10 +209,10 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldAnswerHeadRequestsWithTheHeadersOnly() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
 
-    writeText(channel, "HEAD / HTTP/1.1\r\n\r\n");
-    final String responseHeaders = readOutboundText(channel);
+    this.writeText(channel, "HEAD / HTTP/1.1\r\n\r\n");
+    final String responseHeaders = this.readOutboundText(channel);
     final Object body = channel.readOutbound();
     final boolean open = channel.isOpen();
 
@@ -223,16 +223,16 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldWaitUntilEnoughBytesArrivedToDecide() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
-    final ByteBuf firstPart = ascii(PARTIAL_METHOD);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
+    final ByteBuf firstPart = this.ascii(PARTIAL_METHOD);
 
     channel.writeInbound(firstPart);
     final Object earlyResponse = channel.readOutbound();
     final Object earlyPassedOn = channel.readInbound();
     final boolean openWhileWaiting = channel.isOpen();
-    writeText(channel, "T / HTTP/1.1\r\n\r\n");
-    final String responseHeaders = readOutboundText(channel);
-    final byte[] body = readOutboundBytes(channel);
+    this.writeText(channel, "T / HTTP/1.1\r\n\r\n");
+    final String responseHeaders = this.readOutboundText(channel);
+    final byte[] body = this.readOutboundBytes(channel);
     final int firstPartReferences = firstPart.refCnt();
 
     assertNull(earlyResponse);
@@ -245,11 +245,11 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldHandMinecraftConnectionsBackUntouchedAndRemoveItself() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
 
-    writeBytes(channel, HANDSHAKE);
-    final byte[] passedOn = readInboundBytes(channel);
-    final ChannelHandler handler = findHandler(channel);
+    this.writeBytes(channel, HANDSHAKE);
+    final byte[] passedOn = this.readInboundBytes(channel);
+    final ChannelHandler handler = this.findHandler(channel);
     final Object response = channel.readOutbound();
     final boolean open = channel.isOpen();
 
@@ -261,13 +261,13 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldHandBackEveryBufferedByteWhenAPartialPrefixTurnsOutToBeMinecraft() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
 
-    writeText(channel, "HE");
-    writeText(channel, "X!");
-    final byte[] passedOn = readInboundBytes(channel);
+    this.writeText(channel, "HE");
+    this.writeText(channel, "X!");
+    final byte[] passedOn = this.readInboundBytes(channel);
     final String passedOnText = new String(passedOn, StandardCharsets.US_ASCII);
-    final ChannelHandler handler = findHandler(channel);
+    final ChannelHandler handler = this.findHandler(channel);
 
     assertEquals("HEX!", passedOnText);
     assertNull(handler);
@@ -275,23 +275,23 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldHandShortMinecraftPacketsBackImmediately() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
     final byte[] ping = { 0x01, 0x00 };
 
-    writeBytes(channel, ping);
-    final byte[] passedOn = readInboundBytes(channel);
+    this.writeBytes(channel, ping);
+    final byte[] passedOn = this.readInboundBytes(channel);
 
     assertArrayEquals(ping, passedOn);
   }
 
   @Test
   void shouldPassMessagesThatAreNotBytesOn() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
     final Object message = "not a byte buffer";
 
     channel.writeInbound(message);
     final Object passedOn = channel.readInbound();
-    final ChannelHandler handler = findHandler(channel);
+    final ChannelHandler handler = this.findHandler(channel);
 
     assertSame(message, passedOn);
     assertInstanceOf(ResourcePackHttpHandler.class, handler, "the handler still waits for the first bytes");
@@ -300,14 +300,14 @@ final class ResourcePackHttpHandlerTest {
   @Test
   void shouldAnswerWithAnErrorAndLogItWhenThePackCannotBeRead() {
     final Path missing = this.directory.resolve(MISSING_FILE_NAME);
-    final EmbeddedChannel channel = createChannel(missing);
+    final EmbeddedChannel channel = this.createChannel(missing);
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(ResourcePackHttpHandler.class)) {
-      writeText(channel, GET_REQUEST);
+      this.writeText(channel, GET_REQUEST);
       events = logs.getEvents();
     }
 
-    final String responseHeaders = readOutboundText(channel);
+    final String responseHeaders = this.readOutboundText(channel);
     final Object body = channel.readOutbound();
     final boolean open = channel.isOpen();
     final LogCapture.RecordedEvent event = events.getFirst();
@@ -324,8 +324,8 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldReleaseBufferedBytesWhenTheConnectionClosesEarly() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
-    final ByteBuf partial = ascii(PARTIAL_METHOD);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
+    final ByteBuf partial = this.ascii(PARTIAL_METHOD);
 
     channel.writeInbound(partial);
     final ChannelFuture closing = channel.close();
@@ -338,9 +338,9 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldReleaseBufferedBytesWhenTheHandlerIsRemoved() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
     final ChannelPipeline pipeline = channel.pipeline();
-    final ByteBuf partial = ascii("HEA");
+    final ByteBuf partial = this.ascii("HEA");
 
     channel.writeInbound(partial);
     pipeline.remove(ResourcePackHttpHandler.NAME);
@@ -361,8 +361,8 @@ final class ResourcePackHttpHandlerTest {
     when(context.pipeline()).thenReturn(mock(ChannelPipeline.class));
     when(context.write(any())).thenReturn(future);
     when(context.writeAndFlush(any())).thenReturn(future);
-    final ByteBuf request = ascii(GET_REQUEST);
-    final ByteBuf late = ascii("more data");
+    final ByteBuf request = this.ascii(GET_REQUEST);
+    final ByteBuf late = this.ascii("more data");
 
     handler.channelRead(context, request);
     handler.channelRead(context, late);
@@ -374,8 +374,8 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldClassifyClientsAsSoonAsTheirMethodIsComplete() {
-    final RequestType get = classifyText("GET ");
-    final RequestType head = classifyText("HEAD ");
+    final RequestType get = this.classifyText("GET ");
+    final RequestType head = this.classifyText("HEAD ");
 
     assertEquals(RequestType.GET, get, "the shortest complete request line is already a GET");
     assertEquals(RequestType.HEAD, head);
@@ -383,9 +383,9 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldReleaseBufferedBytesWhenTheConnectionCloses() {
-    final EmbeddedChannel channel = createChannel(this.packPath);
+    final EmbeddedChannel channel = this.createChannel(this.packPath);
     final ChannelPipeline pipeline = channel.pipeline();
-    final ByteBuf partial = ascii(PARTIAL_METHOD);
+    final ByteBuf partial = this.ascii(PARTIAL_METHOD);
 
     channel.writeInbound(partial);
     pipeline.fireChannelInactive();
@@ -396,14 +396,14 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldClassifyClientsByTheirFirstBytes() {
-    final RequestType get = classifyText("GET /");
-    final RequestType head = classifyText(HEAD_PREFIX);
-    final RequestType partialGet = classifyText("GET");
-    final RequestType partialHead = classifyText("HEAD");
+    final RequestType get = this.classifyText("GET /");
+    final RequestType head = this.classifyText(HEAD_PREFIX);
+    final RequestType partialGet = this.classifyText("GET");
+    final RequestType partialHead = this.classifyText("HEAD");
     final RequestType nothing = ResourcePackHttpHandler.classify(Unpooled.EMPTY_BUFFER);
-    final RequestType post = classifyText("POST / HTTP/1.1");
-    final RequestType lowerCase = classifyText("get / HTTP/1.1");
-    final RequestType noSpace = classifyText("GETX");
+    final RequestType post = this.classifyText("POST / HTTP/1.1");
+    final RequestType lowerCase = this.classifyText("get / HTTP/1.1");
+    final RequestType noSpace = this.classifyText("GETX");
 
     assertEquals(RequestType.GET, get);
     assertEquals(RequestType.HEAD, head);
@@ -417,7 +417,7 @@ final class ResourcePackHttpHandlerTest {
 
   @Test
   void shouldClassifyFromTheReaderIndexWithoutConsumingBytes() {
-    final ByteBuf skipped = ascii("xxGET /");
+    final ByteBuf skipped = this.ascii("xxGET /");
     skipped.skipBytes(2);
 
     final RequestType afterReaderIndex = ResourcePackHttpHandler.classify(skipped);
@@ -445,7 +445,7 @@ final class ResourcePackHttpHandlerTest {
 
   private EmbeddedChannel downloading() {
     final EmbeddedChannel channel = this.gameConnection();
-    writeText(channel, GET_REQUEST_WITH_HOST);
+    this.writeText(channel, GET_REQUEST_WITH_HOST);
     return channel;
   }
 
@@ -486,7 +486,7 @@ final class ResourcePackHttpHandlerTest {
     final ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(ResourcePackHttpHandler.NAME, new ResourcePackHttpHandler(new ResourcePackFile(this.packPath), ROOT_PATH));
     pipeline.addLast(TIMEOUT_HANDLER_NAME, new ReadTimeoutHandler(READ_TIMEOUT_SECONDS));
-    writeText(channel, GET_REQUEST_WITH_HOST);
+    this.writeText(channel, GET_REQUEST_WITH_HOST);
     for (int step = 1; step <= 8; step++) {
       channel.advanceTimeBy(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
       channel.runScheduledPendingTasks();
@@ -521,7 +521,7 @@ final class ResourcePackHttpHandlerTest {
     final EmbeddedChannel channel = this.gameConnection();
     channel.pipeline().addLast("events", new EventRecorder(events));
     channel.pipeline().fireUserEventTriggered("before");
-    writeText(channel, GET_REQUEST_WITH_HOST);
+    this.writeText(channel, GET_REQUEST_WITH_HOST);
     channel.pipeline().fireUserEventTriggered(IdleStateEvent.READER_IDLE_STATE_EVENT);
     channel.pipeline().fireUserEventTriggered("during");
     final List<Object> expectedEvents = List.of("before", IdleStateEvent.READER_IDLE_STATE_EVENT, "during");

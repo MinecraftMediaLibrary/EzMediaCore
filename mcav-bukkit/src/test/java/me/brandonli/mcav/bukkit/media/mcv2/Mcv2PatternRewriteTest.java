@@ -45,7 +45,7 @@ final class Mcv2PatternRewriteTest {
     return record;
   }
 
-  private static boolean pattern(final byte[] palette, final byte[] out) {
+  private boolean pattern(final byte[] palette, final byte[] out) {
     return (boolean) Mcv2Internals.invoke(
       Mcv2.class,
       null,
@@ -60,28 +60,28 @@ final class Mcv2PatternRewriteTest {
   @Test
   void shouldFindTheRepeatingAxisRowsFirst() {
     final byte[] record = new byte[8];
-    final boolean leftHalfIsPattern = pattern(palette((column, row) -> column < 4 ? 1 : 0), record);
+    final boolean leftHalfIsPattern = this.pattern(palette((column, row) -> column < 4 ? 1 : 0), record);
     assertTrue(leftHalfIsPattern);
 
     final byte[] expectedLeftHalf = Mcv2Trees.pattern(8, ENDPOINTS, 0, 0x0f).getRecord();
     assertArrayEquals(expectedLeftHalf, record);
 
-    final boolean topHalfIsPattern = pattern(palette((column, row) -> row < 4 ? 1 : 0), record);
+    final boolean topHalfIsPattern = this.pattern(palette((column, row) -> row < 4 ? 1 : 0), record);
     assertTrue(topHalfIsPattern);
 
     final byte[] expectedTopHalf = Mcv2Trees.pattern(8, ENDPOINTS, 1, 0x0f).getRecord();
     assertArrayEquals(expectedTopHalf, record);
 
-    final boolean blankIsPattern = pattern(palette((column, row) -> 0), record);
+    final boolean blankIsPattern = this.pattern(palette((column, row) -> 0), record);
     assertTrue(blankIsPattern);
 
     final byte[] expectedBlank = Mcv2Trees.pattern(8, ENDPOINTS, 0, 0).getRecord();
     assertArrayEquals(expectedBlank, record);
 
-    final boolean checkerboardIsPattern = pattern(palette((column, row) -> (column + row) & 1), record);
+    final boolean checkerboardIsPattern = this.pattern(palette((column, row) -> (column + row) & 1), record);
     assertFalse(checkerboardIsPattern);
 
-    final boolean cornerIsPattern = pattern(palette((column, row) -> row == 7 && column == 7 ? 1 : 0), record);
+    final boolean cornerIsPattern = this.pattern(palette((column, row) -> row == 7 && column == 7 ? 1 : 0), record);
     assertFalse(cornerIsPattern);
   }
 

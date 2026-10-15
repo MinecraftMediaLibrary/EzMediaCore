@@ -47,12 +47,12 @@ import org.junit.jupiter.api.function.Executable;
 final class NativeKernelsTest {
 
   /** Kernels whose every call fails, so a check that let a bad argument through shows as the wrong exception. */
-  private static NativeKernels failing() {
-    return NativeTesting.kernels(new Binding(Level.SCALAR, (name, descriptor) -> returning(descriptor, null)));
+  private NativeKernels failing() {
+    return NativeTesting.kernels(new Binding(Level.SCALAR, (name, descriptor) -> this.returning(descriptor, null)));
   }
 
   /** A handle of the descriptor's type that returns a value, or throws when the value is null. */
-  private static MethodHandle returning(final FunctionDescriptor descriptor, final @Nullable Object value) {
+  private MethodHandle returning(final FunctionDescriptor descriptor, final @Nullable Object value) {
     final MethodType type = descriptor.toMethodType();
     final MethodHandle body;
     if (value == null) {
@@ -68,18 +68,18 @@ final class NativeKernelsTest {
     return MethodHandles.dropArguments(body, 0, type.parameterList());
   }
 
-  private static void refused(final Executable call) {
+  private void refused(final Executable call) {
     assertThrows(IllegalArgumentException.class, call);
   }
 
   @Test
   void shouldRefuseShortContiguousFitArrays() {
-    final NativeKernels kernels = failing();
-    refused(() -> kernels.fit(new float[8 * 8 - 1], 8, new float[16]));
-    refused(() -> kernels.fit(new float[8 * 8], 8, new float[15]));
+    final NativeKernels kernels = this.failing();
+    this.refused(() -> kernels.fit(new float[8 * 8 - 1], 8, new float[16]));
+    this.refused(() -> kernels.fit(new float[8 * 8], 8, new float[15]));
   }
 
-  private static void failed(final Executable call) {
+  private void failed(final Executable call) {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, call);
     final String message = exception.getMessage();
     assertEquals("MCV2 native kernel failed!", message);
@@ -87,10 +87,10 @@ final class NativeKernelsTest {
 
   @Test
   void shouldForgetTheArraysItWasPassed() {
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final byte[] picture = new byte[16 * 16 * 3];
     final int[] block = new int[8 * 8 * 3];
-    failed(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, block));
+    this.failed(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, block));
     final boolean keepsPicture = kernels.keeps(picture);
     assertTrue(keepsPicture, "a coder passes the same picture block after block");
 
@@ -108,10 +108,10 @@ final class NativeKernelsTest {
     final Object target = Mcv2Internals.construct(
       type,
       new Class<?>[] { Binding.class },
-      new Binding(Level.SCALAR, (name, descriptor) -> returning(descriptor, null))
+      new Binding(Level.SCALAR, (name, descriptor) -> this.returning(descriptor, null))
     );
     final NativeKernels kernels = NativeTesting.view(target);
-    failed(() -> kernels.predict(new byte[16 * 16 * 3], 16, 16, 0, 0, 8, 0, 0, new int[8 * 8 * 3]));
+    this.failed(() -> kernels.predict(new byte[16 * 16 * 3], 16, 16, 0, 0, 8, 0, 0, new int[8 * 8 * 3]));
     final Object[] segments = (Object[]) Mcv2Internals.field(type, target, "cachedSegments");
     final boolean keepsASegment = Arrays.stream(segments).anyMatch(Objects::nonNull);
     assertTrue(keepsASegment);
@@ -124,72 +124,72 @@ final class NativeKernelsTest {
 
   @Test
   void shouldCheckEveryIndexBeforeTheCall() {
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] block = new int[8 * 8 * 3];
     final int[] small = new int[8 * 8 * 3 - 1];
     final byte[] record = new byte[64];
     final float[] floats = new float[8 * 8 * 3];
     final byte[] picture = new byte[16 * 16 * 3];
     kernels.start(block, 0, 1);
-    refused(() -> kernels.predicted(block, 4, block));
-    refused(() -> kernels.predicted(block, 12, block));
-    refused(() -> kernels.predicted(block, 64, block));
-    refused(() -> kernels.predicted(block, 8, small));
-    refused(() -> kernels.predicted(small, 8, block));
+    this.refused(() -> kernels.predicted(block, 4, block));
+    this.refused(() -> kernels.predicted(block, 12, block));
+    this.refused(() -> kernels.predicted(block, 64, block));
+    this.refused(() -> kernels.predicted(block, 8, small));
+    this.refused(() -> kernels.predicted(small, 8, block));
     kernels.start(small, 0, 1);
-    refused(() -> kernels.solid(0, 8, block));
+    this.refused(() -> kernels.solid(0, 8, block));
     kernels.start(block, 0, 1);
-    refused(() -> kernels.palette(new byte[13], 8, block));
-    refused(() -> kernels.compact(small, record, 0, 8, block));
-    refused(() -> kernels.compact(block, new byte[9], 0, 8, block));
+    this.refused(() -> kernels.palette(new byte[13], 8, block));
+    this.refused(() -> kernels.compact(small, record, 0, 8, block));
+    this.refused(() -> kernels.compact(block, new byte[9], 0, 8, block));
     // pictures, and coordinates whose sums could overflow
-    refused(() -> kernels.predict(picture, 0, 16, 0, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 4097, 16, 0, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 16, 0, 0, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 16, 4097, 0, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 17, 16, 0, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, small));
-    refused(() -> kernels.predict(picture, 16, 16, -(1 << 20) - 1, 0, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 16, 16, 0, (1 << 20) + 1, 8, 0, 0, block));
-    refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 1 << 21, 0, block));
-    refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, -(1 << 21), block));
-    refused(() -> kernels.fit(new float[63], 8, floats));
-    refused(() -> kernels.fit(floats, 8, new float[3]));
-    refused(() -> kernels.cluster(block, 8, new int[5]));
-    refused(() -> kernels.finishPalette(block, -1, new int[6], new int[6], new byte[64]));
-    refused(() -> kernels.finishPalette(new int[32 * 32 * 3 + 3], 32 * 32 + 1, new int[6], new int[6], new byte[1025]));
-    refused(() -> kernels.finishPalette(small, 64, new int[6], new int[6], new byte[64]));
-    refused(() -> kernels.finishPalette(block, 64, new int[6], new int[6], new byte[63]));
-    refused(() -> kernels.finishPattern(small, 8, new int[6], new int[6], new byte[64]));
-    refused(() -> kernels.finishPattern(block, 8, new int[6], new int[6], new byte[63]));
-    refused(() -> kernels.seeded(picture, 17, 16, block, 0, 0, 8, 4, new int[0]));
-    refused(() -> kernels.seeded(picture, 16, 16, small, 0, 0, 8, 4, new int[0]));
-    refused(() -> kernels.seeded(picture, 16, 16, block, 1 << 21, 0, 8, 4, new int[0]));
-    refused(() -> kernels.seeded(picture, 16, 16, block, 0, 1 << 21, 8, 4, new int[0]));
-    refused(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, -1, new int[0]));
-    refused(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, (1 << 20) + 1, new int[0]));
-    refused(() -> kernels.loadSource(picture, 16, 16, -1, 0, 8, block));
-    refused(() -> kernels.loadSource(picture, 16, 16, 16, 0, 8, block));
-    refused(() -> kernels.loadSource(picture, 16, 16, 0, -1, 8, block));
-    refused(() -> kernels.loadSource(picture, 16, 16, 0, 16, 8, block));
-    refused(() -> kernels.loadSource(picture, 16, 16, 0, 0, 8, small));
-    refused(() -> kernels.loadSource(new byte[3], 16, 16, 0, 0, 8, block));
-    refused(() -> kernels.halve(block, 0, block));
-    refused(() -> kernels.halve(block, 7, block));
-    refused(() -> kernels.halve(new int[64 * 64 * 3], 64, block));
-    refused(() -> kernels.halve(small, 8, block));
-    refused(() -> kernels.halve(block, 8, new int[4 * 4 * 3 - 1]));
-    refused(() -> kernels.residualTarget(block, block, -1, floats));
-    refused(() -> kernels.residualTarget(new int[32 * 32 * 3 + 3], new int[32 * 32 * 3 + 3], 32 * 32 + 1, new float[32 * 32 * 3 + 3]));
-    refused(() -> kernels.residualTarget(new int[10], block, 64, floats));
-    refused(() -> kernels.residualTarget(block, small, 64, floats));
-    refused(() -> kernels.residualTarget(block, block, 64, new float[10]));
+    this.refused(() -> kernels.predict(picture, 0, 16, 0, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 4097, 16, 0, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 0, 0, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 4097, 0, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 17, 16, 0, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, small));
+    this.refused(() -> kernels.predict(picture, 16, 16, -(1 << 20) - 1, 0, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 16, 0, (1 << 20) + 1, 8, 0, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 1 << 21, 0, block));
+    this.refused(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, -(1 << 21), block));
+    this.refused(() -> kernels.fit(new float[63], 8, floats));
+    this.refused(() -> kernels.fit(floats, 8, new float[3]));
+    this.refused(() -> kernels.cluster(block, 8, new int[5]));
+    this.refused(() -> kernels.finishPalette(block, -1, new int[6], new int[6], new byte[64]));
+    this.refused(() -> kernels.finishPalette(new int[32 * 32 * 3 + 3], 32 * 32 + 1, new int[6], new int[6], new byte[1025]));
+    this.refused(() -> kernels.finishPalette(small, 64, new int[6], new int[6], new byte[64]));
+    this.refused(() -> kernels.finishPalette(block, 64, new int[6], new int[6], new byte[63]));
+    this.refused(() -> kernels.finishPattern(small, 8, new int[6], new int[6], new byte[64]));
+    this.refused(() -> kernels.finishPattern(block, 8, new int[6], new int[6], new byte[63]));
+    this.refused(() -> kernels.seeded(picture, 17, 16, block, 0, 0, 8, 4, new int[0]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, small, 0, 0, 8, 4, new int[0]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, block, 1 << 21, 0, 8, 4, new int[0]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, block, 0, 1 << 21, 8, 4, new int[0]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, -1, new int[0]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, (1 << 20) + 1, new int[0]));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, -1, 0, 8, block));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, 16, 0, 8, block));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, 0, -1, 8, block));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, 0, 16, 8, block));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, 0, 0, 8, small));
+    this.refused(() -> kernels.loadSource(new byte[3], 16, 16, 0, 0, 8, block));
+    this.refused(() -> kernels.halve(block, 0, block));
+    this.refused(() -> kernels.halve(block, 7, block));
+    this.refused(() -> kernels.halve(new int[64 * 64 * 3], 64, block));
+    this.refused(() -> kernels.halve(small, 8, block));
+    this.refused(() -> kernels.halve(block, 8, new int[4 * 4 * 3 - 1]));
+    this.refused(() -> kernels.residualTarget(block, block, -1, floats));
+    this.refused(() -> kernels.residualTarget(new int[32 * 32 * 3 + 3], new int[32 * 32 * 3 + 3], 32 * 32 + 1, new float[32 * 32 * 3 + 3]));
+    this.refused(() -> kernels.residualTarget(new int[10], block, 64, floats));
+    this.refused(() -> kernels.residualTarget(block, small, 64, floats));
+    this.refused(() -> kernels.residualTarget(block, block, 64, new float[10]));
   }
 
   @Test
   void shouldRefuseEachBadArgumentInTheKernelThatTakesIt() {
     // every other argument is valid, so a kernel that skipped the check would reach the failing library instead
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] big = new int[32 * 32 * 3];
     final int[] block = new int[8 * 8 * 3];
     final int[] small = new int[8 * 8 * 3 - 1];
@@ -198,74 +198,74 @@ final class NativeKernelsTest {
     final float[] shortFloats = new float[8 * 8 - 1];
     final byte[] picture = new byte[16 * 16 * 3];
     kernels.start(big, 0, 1);
-    refused(() -> kernels.solid(0, 12, big));
-    refused(() -> kernels.palette(record, 12, big));
-    refused(() -> kernels.compact(big, record, 0, 12, big));
-    refused(() -> kernels.predict(picture, 16, 16, 0, 0, 12, 0, 0, big));
-    refused(() -> kernels.fit(floats, 12, floats));
-    refused(() -> kernels.cluster(big, 12, new int[6]));
-    refused(() -> kernels.finishPattern(big, 12, new int[6], new int[6], new byte[1024]));
-    refused(() -> kernels.seeded(picture, 16, 16, big, 0, 0, 12, 4, new int[0]));
-    refused(() -> kernels.loadSource(picture, 16, 16, 0, 0, 12, big));
-    refused(() -> kernels.cluster(small, 8, new int[6]));
-    refused(() -> kernels.fit(floats, 8, new float[15]));
-    refused(() -> kernels.residualTarget(small, block, 64, floats));
-    refused(() -> kernels.residualTarget(block, block, 64, shortFloats));
+    this.refused(() -> kernels.solid(0, 12, big));
+    this.refused(() -> kernels.palette(record, 12, big));
+    this.refused(() -> kernels.compact(big, record, 0, 12, big));
+    this.refused(() -> kernels.predict(picture, 16, 16, 0, 0, 12, 0, 0, big));
+    this.refused(() -> kernels.fit(floats, 12, floats));
+    this.refused(() -> kernels.cluster(big, 12, new int[6]));
+    this.refused(() -> kernels.finishPattern(big, 12, new int[6], new int[6], new byte[1024]));
+    this.refused(() -> kernels.seeded(picture, 16, 16, big, 0, 0, 12, 4, new int[0]));
+    this.refused(() -> kernels.loadSource(picture, 16, 16, 0, 0, 12, big));
+    this.refused(() -> kernels.cluster(small, 8, new int[6]));
+    this.refused(() -> kernels.fit(floats, 8, new float[15]));
+    this.refused(() -> kernels.residualTarget(small, block, 64, floats));
+    this.refused(() -> kernels.residualTarget(block, block, 64, shortFloats));
   }
 
   @Test
   void shouldPassEveryLimitItselfToTheLibrary() {
     // a comparison one step too strict would refuse the limit instead of reaching the failing library
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] block = new int[8 * 8 * 3];
     final int[] big = new int[32 * 32 * 3];
     final float[] floats = new float[32 * 32 * 3];
     final byte[] line = new byte[4096 * 3];
     final byte[] picture = new byte[16 * 16 * 3];
     kernels.start(block, 0, 1);
-    failed(() -> kernels.predict(line, 1, 4096, 0, 0, 8, 0, 0, block));
-    failed(() -> kernels.predict(line, 4096, 1, 0, 0, 8, 0, 0, block));
-    failed(() -> kernels.predict(picture, 16, 16, -(1 << 20), 1 << 20, 8, -(1 << 20), 1 << 20, block));
-    failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 0, new int[0]));
-    failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 1 << 20, new int[0]));
-    failed(() -> kernels.finishPalette(big, 0, new int[6], new int[6], new byte[0]));
-    failed(() -> kernels.finishPalette(big, 32 * 32, new int[6], new int[6], new byte[32 * 32]));
-    failed(() -> kernels.halve(new int[2 * 2 * 3], 2, new int[3]));
-    failed(() -> kernels.halve(big, 32, new int[16 * 16 * 3]));
-    failed(() -> kernels.residualTarget(big, big, 0, floats));
-    failed(() -> kernels.residualTarget(big, big, 32 * 32, floats));
+    this.failed(() -> kernels.predict(line, 1, 4096, 0, 0, 8, 0, 0, block));
+    this.failed(() -> kernels.predict(line, 4096, 1, 0, 0, 8, 0, 0, block));
+    this.failed(() -> kernels.predict(picture, 16, 16, -(1 << 20), 1 << 20, 8, -(1 << 20), 1 << 20, block));
+    this.failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 0, new int[0]));
+    this.failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 1 << 20, new int[0]));
+    this.failed(() -> kernels.finishPalette(big, 0, new int[6], new int[6], new byte[0]));
+    this.failed(() -> kernels.finishPalette(big, 32 * 32, new int[6], new int[6], new byte[32 * 32]));
+    this.failed(() -> kernels.halve(new int[2 * 2 * 3], 2, new int[3]));
+    this.failed(() -> kernels.halve(big, 32, new int[16 * 16 * 3]));
+    this.failed(() -> kernels.residualTarget(big, big, 0, floats));
+    this.failed(() -> kernels.residualTarget(big, big, 32 * 32, floats));
   }
 
   @Test
   void shouldReportAKernelThatFails() {
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] block = new int[8 * 8 * 3];
     final byte[] record = new byte[64];
     final float[] floats = new float[8 * 8 * 3];
     final byte[] picture = new byte[16 * 16 * 3];
     kernels.start(block, 0, 1);
-    failed(() -> kernels.predicted(block, 8, block));
-    failed(() -> kernels.solid(0, 8, block));
-    failed(() -> kernels.palette(record, 8, block));
-    failed(() -> kernels.compact(block, record, 0, 8, block));
-    failed(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, block));
-    failed(() -> kernels.fit(floats, 8, floats));
-    failed(() -> kernels.cluster(block, 8, new int[6]));
-    failed(() -> kernels.finishPalette(block, 64, new int[6], new int[6], new byte[64]));
-    failed(() -> kernels.finishPattern(block, 8, new int[6], new int[6], new byte[64]));
-    failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 4, new int[0]));
-    failed(() -> kernels.loadSource(picture, 16, 16, 0, 0, 8, block));
-    failed(() -> kernels.halve(block, 8, new int[4 * 4 * 3]));
-    failed(() -> kernels.residualTarget(block, block, 64, floats));
+    this.failed(() -> kernels.predicted(block, 8, block));
+    this.failed(() -> kernels.solid(0, 8, block));
+    this.failed(() -> kernels.palette(record, 8, block));
+    this.failed(() -> kernels.compact(block, record, 0, 8, block));
+    this.failed(() -> kernels.predict(picture, 16, 16, 0, 0, 8, 0, 0, block));
+    this.failed(() -> kernels.fit(floats, 8, floats));
+    this.failed(() -> kernels.cluster(block, 8, new int[6]));
+    this.failed(() -> kernels.finishPalette(block, 64, new int[6], new int[6], new byte[64]));
+    this.failed(() -> kernels.finishPattern(block, 8, new int[6], new int[6], new byte[64]));
+    this.failed(() -> kernels.seeded(picture, 16, 16, block, 0, 0, 8, 4, new int[0]));
+    this.failed(() -> kernels.loadSource(picture, 16, 16, 0, 0, 8, block));
+    this.failed(() -> kernels.halve(block, 8, new int[4 * 4 * 3]));
+    this.failed(() -> kernels.residualTarget(block, block, 64, floats));
   }
 
   @Test
   void shouldKeepTheDistortionOfAFinishedBlockOnly() {
     final NativeKernels stopped = NativeTesting.kernels(
-      new Binding(Level.SCALAR, (name, descriptor) -> returning(descriptor, name.equals("predicted") ? -1L : null))
+      new Binding(Level.SCALAR, (name, descriptor) -> this.returning(descriptor, name.equals("predicted") ? -1L : null))
     );
     final NativeKernels finished = NativeTesting.kernels(
-      new Binding(Level.SCALAR, (name, descriptor) -> returning(descriptor, name.equals("predicted") ? 42L : null))
+      new Binding(Level.SCALAR, (name, descriptor) -> this.returning(descriptor, name.equals("predicted") ? 42L : null))
     );
     final int[] block = new int[8 * 8 * 3];
     finished.start(block, 0, 1);
@@ -309,23 +309,23 @@ final class NativeKernelsTest {
 
   @Test
   void shouldCheckCompactQuantizersAndExactRecordBoundaries() {
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] block = new int[8 * 8 * 3];
     kernels.start(block, 0, 1);
     final byte[] record = new byte[Mcv2Decoder.COMPACT_BYTES];
-    refused(() -> kernels.compact(block, record, -1, 8, block));
-    refused(() -> kernels.compact(block, record, 3, 8, block));
-    refused(() -> kernels.compact(block, new byte[Mcv2Decoder.COMPACT_BYTES - 1], 0, 8, block));
-    failed(() -> kernels.compact(block, record, 0, 8, block));
-    failed(() -> kernels.compact(block, record, 2, 8, block));
+    this.refused(() -> kernels.compact(block, record, -1, 8, block));
+    this.refused(() -> kernels.compact(block, record, 3, 8, block));
+    this.refused(() -> kernels.compact(block, new byte[Mcv2Decoder.COMPACT_BYTES - 1], 0, 8, block));
+    this.failed(() -> kernels.compact(block, record, 0, 8, block));
+    this.failed(() -> kernels.compact(block, record, 2, 8, block));
   }
 
   @Test
   void shouldRefuseShortPaletteColorArraysBeforeDispatch() {
-    final NativeKernels kernels = failing();
+    final NativeKernels kernels = this.failing();
     final int[] block = new int[8 * 8 * 3];
-    refused(() -> kernels.finishPalette(block, 64, new int[6], new int[5], new byte[64]));
-    refused(() -> kernels.finishPattern(block, 8, new int[6], new int[5], new byte[64]));
+    this.refused(() -> kernels.finishPalette(block, 64, new int[6], new int[5], new byte[64]));
+    this.refused(() -> kernels.finishPattern(block, 8, new int[6], new int[5], new byte[64]));
   }
 
   @Test

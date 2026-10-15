@@ -85,12 +85,12 @@ final class PageCrcFuzzTest {
       return;
     }
 
-    final byte[] rebuilt = rebuild(page);
+    final byte[] rebuilt = this.rebuild(page);
     assertArrayEquals(symbols, rebuilt);
   }
 
   /** The symbols of a page, written from its fields as the sender writes them. */
-  private static byte[] rebuild(final TransportPage page) {
+  private byte[] rebuild(final TransportPage page) {
     final byte[] payload = page.getPayload();
     final byte[] raw = new byte[TransportPages.HEADER_BYTES + payload.length];
     Mcv2Decoder.putU32(raw, 0, TransportPages.MAGIC);
