@@ -588,8 +588,8 @@ final class MCPackHostingTest {
       httpServer.createContext("/upload", exchange -> {
         try {
           service.handleUpload(exchange);
-        } catch (final AssertionError failure) {
-          service.handlerFailure.compareAndSet(null, failure);
+        } catch (final AssertionError exception) {
+          service.handlerFailure.compareAndSet(null, exception);
         } finally {
           exchange.close();
         }
@@ -673,9 +673,9 @@ final class MCPackHostingTest {
       try {
         final boolean terminated = this.handlers.awaitTermination(10, TimeUnit.SECONDS);
         assertTrue(terminated, "the upload callbacks finish");
-      } catch (final InterruptedException failure) {
+      } catch (final InterruptedException exception) {
         Thread.currentThread().interrupt();
-        throw new AssertionError("Interrupted while joining upload callbacks!", failure);
+        throw new AssertionError("Interrupted while joining upload callbacks!", exception);
       }
       final @Nullable AssertionError recordedFailure = this.handlerFailure.get();
       assertEquals(null, recordedFailure, "upload assertions reach JUnit");

@@ -324,9 +324,9 @@ public final class Mcv2Channel {
     if (unsent > 0) {
       try {
         PacketUtils.limitUnsent(viewer, unsent);
-      } catch (final RuntimeException refused) {
+      } catch (final RuntimeException exception) {
         // A closing epoll connection may reject this optional backlog limit.
-        LOGGER.debug(UNSENT_LIMIT_REFUSED, viewer, refused);
+        LOGGER.debug(UNSENT_LIMIT_REFUSED, viewer, exception);
       }
     }
 

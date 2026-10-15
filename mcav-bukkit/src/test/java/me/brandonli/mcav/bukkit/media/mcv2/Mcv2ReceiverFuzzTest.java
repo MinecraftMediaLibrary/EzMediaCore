@@ -59,7 +59,7 @@ final class Mcv2ReceiverFuzzTest {
       final byte[] picture;
       try {
         picture = receiver.accept(frame);
-      } catch (final Mcv2Exception refused) {
+      } catch (final Mcv2Exception exception) {
         final long frameIdAfterRefusal = receiver.getFrameId();
         assertEquals(lastId, frameIdAfterRefusal, "a refused frame keeps the last frame");
         continue;

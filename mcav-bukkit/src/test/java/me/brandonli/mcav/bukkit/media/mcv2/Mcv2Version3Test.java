@@ -359,7 +359,7 @@ final class Mcv2Version3Test {
       }
       try {
         Mcv2Decoder.parse(data);
-      } catch (final Mcv2Exception rejected) {
+      } catch (final Mcv2Exception exception) {
         /* Arbitrary input may be malformed. */
       }
     }

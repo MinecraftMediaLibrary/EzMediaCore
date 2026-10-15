@@ -91,7 +91,7 @@ final class ResourcePackFuzzTest {
         } else {
           pack.external(name, TEXT);
         }
-      } catch (final IllegalArgumentException refused) {
+      } catch (final IllegalArgumentException exception) {
         // refusing is always allowed; what was accepted is checked below
       }
     }

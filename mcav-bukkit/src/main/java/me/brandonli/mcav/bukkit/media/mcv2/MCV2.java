@@ -2031,8 +2031,8 @@ public final class MCV2 {
         return this.finished(
           (long) this.binding.predicted.invokeExact(of(prediction), size, of(output), of(this.source), this.rate, this.limit)
         );
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2041,8 +2041,8 @@ public final class MCV2 {
       this.checkScored(size, output);
       try {
         return this.finished((long) this.binding.solid.invokeExact(color, size, of(output), of(this.source), this.rate, this.limit));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2052,8 +2052,8 @@ public final class MCV2 {
       checkLength(record.length, SELECTORS_AT + (size * (long) size) / Byte.SIZE);
       try {
         return this.finished((long) this.binding.palette.invokeExact(of(record), size, of(output), of(this.source), this.rate, this.limit));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2076,8 +2076,8 @@ public final class MCV2 {
             this.limit
           )
         );
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2102,8 +2102,8 @@ public final class MCV2 {
       checkCoordinate(motionY);
       try {
         this.binding.predict.invokeExact(of(reference), width, height, left, top, size, motionX, motionY, of(output));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2114,8 +2114,8 @@ public final class MCV2 {
       checkLength(output.length, GRID_NODES);
       try {
         this.binding.fit.invokeExact(of(values), size, of(FITTING_MATRICES[sizeIndex(size)]), of(output));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2126,8 +2126,8 @@ public final class MCV2 {
       checkLength(endpoints.length, PALETTE_COLORS * CHANNELS);
       try {
         this.binding.cluster.invokeExact(of(source), size, of(endpoints));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2140,8 +2140,8 @@ public final class MCV2 {
       System.arraycopy(endpoints, 0, colors, 0, PALETTE_COLORS * CHANNELS);
       try {
         this.binding.assign.invokeExact(of(source), count, of(colors), of(selectors));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2154,8 +2154,8 @@ public final class MCV2 {
       System.arraycopy(endpoints, 0, colors, 0, PALETTE_COLORS * CHANNELS);
       try {
         return (int) this.binding.assignPattern.invokeExact(of(source), size, of(colors), of(selectors)) != 0;
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2190,8 +2190,8 @@ public final class MCV2 {
           of(seeds),
           seeds.length
         );
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2211,8 +2211,8 @@ public final class MCV2 {
       Preconditions.checkArgument(left >= 0 && left < width && top >= 0 && top < height, "Block outside the picture!");
       try {
         this.binding.loadSource.invokeExact(of(image), width, height, left, top, size, of(source));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2224,8 +2224,8 @@ public final class MCV2 {
       checkBlock(output.length, size / 2);
       try {
         this.binding.halve.invokeExact(of(block), size, of(output));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
 
@@ -2237,8 +2237,8 @@ public final class MCV2 {
       checkLength(target.length, count);
       try {
         this.binding.residualTarget.invokeExact(of(source), of(prediction), count, of(target));
-      } catch (final Throwable failure) {
-        throw new IllegalStateException(CALL_FAILED, failure);
+      } catch (final Throwable exception) {
+        throw new IllegalStateException(CALL_FAILED, exception);
       }
     }
   }

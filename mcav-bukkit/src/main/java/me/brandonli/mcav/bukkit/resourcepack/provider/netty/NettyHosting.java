@@ -162,8 +162,8 @@ public final class NettyHosting implements InjectorHosting {
   private void readPackAhead() {
     try {
       this.packFile.read();
-    } catch (final IOException failure) {
-      LOGGER.warn(PACK_NOT_READ, this.zip, failure);
+    } catch (final IOException exception) {
+      LOGGER.warn(PACK_NOT_READ, this.zip, exception);
     }
   }
 

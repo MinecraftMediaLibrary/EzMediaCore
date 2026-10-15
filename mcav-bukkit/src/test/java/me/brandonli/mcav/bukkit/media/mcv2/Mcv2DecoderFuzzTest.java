@@ -30,7 +30,7 @@ final class Mcv2DecoderFuzzTest {
     final Mcv2Decoder.Frame frame;
     try {
       frame = Mcv2Decoder.parse(data);
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return;
     }
     final int size = frame.getWidth() * frame.getHeight() * 3;
@@ -42,7 +42,7 @@ final class Mcv2DecoderFuzzTest {
     final byte[] picture;
     try {
       picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return;
     }
     final int pictureLength = picture.length;

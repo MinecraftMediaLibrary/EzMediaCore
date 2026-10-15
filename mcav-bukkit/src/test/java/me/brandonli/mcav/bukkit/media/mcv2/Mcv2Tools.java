@@ -406,7 +406,7 @@ final class Mcv2Tools {
     final byte[] picture;
     try {
       picture = receiver.accept(frame);
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return REJECTED;
     }
     pictures.write(picture);

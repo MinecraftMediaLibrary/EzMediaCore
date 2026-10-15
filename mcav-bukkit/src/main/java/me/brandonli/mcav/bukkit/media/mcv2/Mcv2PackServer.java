@@ -649,7 +649,7 @@ public final class Mcv2PackServer {
   private void retireLater(final Published published) {
     try {
       this.writer.execute(() -> this.retire(published));
-    } catch (final RejectedExecutionException shutDown) {
+    } catch (final RejectedExecutionException exception) {
       this.retire(published);
     }
   }

@@ -72,7 +72,7 @@ final class FrameMutationTest {
           final Mcv2Decoder.Frame parsed;
           try {
             parsed = Mcv2Decoder.parse(corrupted);
-          } catch (final Mcv2Exception expected) {
+          } catch (final Mcv2Exception exception) {
             rejected++;
             continue;
           }

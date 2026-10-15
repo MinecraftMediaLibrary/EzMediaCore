@@ -78,7 +78,7 @@ final class PageCrcFuzzTest {
     final TransportPage page;
     try {
       page = TransportPages.readPage(symbols);
-    } catch (final Mcv2Exception rejected) {
+    } catch (final Mcv2Exception exception) {
       return;
     }
     final byte[] rebuilt = rebuild(page);

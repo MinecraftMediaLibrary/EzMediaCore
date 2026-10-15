@@ -636,7 +636,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       final int[] packedColors = data.getPixels();
       try {
         this.dithering.execute(() -> this.dither(dithered, packedColors, width, height));
-      } catch (final RejectedExecutionException released) {
+      } catch (final RejectedExecutionException exception) {
         this.ditheringBusy.set(false);
       }
     }
@@ -748,8 +748,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       }
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
-    } catch (final RuntimeException failure) {
-      LOGGER.error(ENCODER_FAILED, failure);
+    } catch (final RuntimeException exception) {
+      LOGGER.error(ENCODER_FAILED, exception);
     } finally {
       this.stopPipeline(own);
     }
@@ -874,8 +874,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       }
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
-    } catch (final RuntimeException failure) {
-      LOGGER.error(SENDER_FAILED, failure);
+    } catch (final RuntimeException exception) {
+      LOGGER.error(SENDER_FAILED, exception);
     } finally {
       this.stopPipeline(running);
       // Interrupt even after release clears the pipeline, or the screen thread can wait forever.
