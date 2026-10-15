@@ -102,7 +102,9 @@ struct Random {
     mixed_value = (mixed_value ^ (mixed_value >> 27)) * 0x94D049BB133111EBull;
     return mixed_value ^ (mixed_value >> 31);
   }
-  int32_t range(int32_t low, int32_t high) { return low + (int32_t)(next() % (uint64_t)(high - low + 1)); }
+  int32_t range(int32_t low, int32_t high) {
+    return low + (int32_t)(next() % (uint64_t)(high - low + 1));
+  }
   vector<int32_t> integers(size_t count, int32_t low, int32_t high) {
     vector<int32_t> values(count);
     for (auto &value : values) {
@@ -157,7 +159,9 @@ struct Digest {
   template <class ValueType> void add(const vector<ValueType> &values) {
     add(values.data(), values.size() * sizeof(ValueType));
   }
-  template <class ValueType> void add(ValueType value) { add(&value, sizeof(value)); }
+  template <class ValueType> void add(ValueType value) {
+    add(&value, sizeof(value));
+  }
 };
 
 int failures = 0;

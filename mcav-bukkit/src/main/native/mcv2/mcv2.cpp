@@ -120,7 +120,9 @@ inline int32_t wrapping_multiplication(int32_t first, int32_t second) {
 inline int32_t wrapping_shift_left(int32_t first, int32_t shift_distance) {
   return (int32_t)((uint32_t)first << (shift_distance & 31));
 }
-inline int32_t wrapping_shift_right(int32_t first, int32_t shift_distance) { return first >> (shift_distance & 31); }
+inline int32_t wrapping_shift_right(int32_t first, int32_t shift_distance) {
+  return first >> (shift_distance & 31);
+}
 
 inline uint32_t pixel_word(const uint8_t *buffer) {
   return (uint32_t)buffer[0] | (uint32_t)buffer[1] << 8 | (uint32_t)buffer[2] << 16;
@@ -129,14 +131,28 @@ inline uint32_t pixel_word(const uint8_t *buffer) {
 struct ScalarIntVector {
   static constexpr int LANES = 1;
   int32_t lanes;
-  static ScalarIntVector load(const int32_t *buffer) { return {buffer[0]}; }
-  void store(int32_t *buffer) const { buffer[0] = lanes; }
+  static ScalarIntVector load(const int32_t *buffer) {
+    return {buffer[0]};
+  }
+  void store(int32_t *buffer) const {
+    buffer[0] = lanes;
+  }
 
-  void store_bytes(int8_t *buffer) const { buffer[0] = (int8_t)lanes; }
-  static ScalarIntVector broadcast(int32_t value) { return {value}; }
-  static ScalarIntVector zero() { return {0}; }
-  static ScalarIntVector lane_indices() { return {0}; }
-  static ScalarIntVector load_unsigned_bytes(const uint8_t *buffer) { return {buffer[0]}; }
+  void store_bytes(int8_t *buffer) const {
+    buffer[0] = (int8_t)lanes;
+  }
+  static ScalarIntVector broadcast(int32_t value) {
+    return {value};
+  }
+  static ScalarIntVector zero() {
+    return {0};
+  }
+  static ScalarIntVector lane_indices() {
+    return {0};
+  }
+  static ScalarIntVector load_unsigned_bytes(const uint8_t *buffer) {
+    return {buffer[0]};
+  }
   friend ScalarIntVector operator+(ScalarIntVector first, ScalarIntVector second) {
     return {wrapping_addition(first.lanes, second.lanes)};
   }
@@ -152,8 +168,12 @@ struct ScalarIntVector {
   friend ScalarIntVector operator|(ScalarIntVector first, ScalarIntVector second) {
     return {first.lanes | second.lanes};
   }
-  ScalarIntVector shift_left(int32_t shift_distance) const { return {wrapping_shift_left(lanes, shift_distance)}; }
-  ScalarIntVector shift_right(int32_t shift_distance) const { return {wrapping_shift_right(lanes, shift_distance)}; }
+  ScalarIntVector shift_left(int32_t shift_distance) const {
+    return {wrapping_shift_left(lanes, shift_distance)};
+  }
+  ScalarIntVector shift_right(int32_t shift_distance) const {
+    return {wrapping_shift_right(lanes, shift_distance)};
+  }
   static ScalarIntVector minimum(ScalarIntVector first, ScalarIntVector second) {
     return {first.lanes < second.lanes ? first.lanes : second.lanes};
   }
@@ -167,7 +187,9 @@ struct ScalarIntVector {
   static ScalarIntVector less(ScalarIntVector first, ScalarIntVector second) {
     return {first.lanes < second.lanes ? -1 : 0};
   }
-  int32_t sum() const { return lanes; }
+  int32_t sum() const {
+    return lanes;
+  }
   static void load_channels(const int32_t *buffer, ScalarIntVector &red_channels, ScalarIntVector &green_channels,
                             ScalarIntVector &blue_channels) {
     red_channels.lanes = buffer[0];
@@ -185,9 +207,13 @@ struct ScalarIntVector {
     return {((buffer[index >> 3] >> (index & 7)) & 1) ? -1 : 0};
   }
 
-  static ScalarIntVector evens(ScalarIntVector first, ScalarIntVector) { return first; }
+  static ScalarIntVector evens(ScalarIntVector first, ScalarIntVector) {
+    return first;
+  }
 
-  static ScalarIntVector odds(ScalarIntVector, ScalarIntVector second) { return second; }
+  static ScalarIntVector odds(ScalarIntVector, ScalarIntVector second) {
+    return second;
+  }
 };
 
 #if defined(MCV2_SIMD_SCALAR)
@@ -208,22 +234,44 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 
 struct FloatVector {
   float lanes;
-  static FloatVector broadcast(float value) { return {value}; }
-  static FloatVector from_integers(IntVector first) { return {(float)first.lanes}; }
-  friend FloatVector operator+(FloatVector first, FloatVector second) { return {first.lanes + second.lanes}; }
-  friend FloatVector operator-(FloatVector first, FloatVector second) { return {first.lanes - second.lanes}; }
-  friend FloatVector operator*(FloatVector first, FloatVector second) { return {first.lanes * second.lanes}; }
-  void store(float *buffer) const { buffer[0] = lanes; }
+  static FloatVector broadcast(float value) {
+    return {value};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {(float)first.lanes};
+  }
+  friend FloatVector operator+(FloatVector first, FloatVector second) {
+    return {first.lanes + second.lanes};
+  }
+  friend FloatVector operator-(FloatVector first, FloatVector second) {
+    return {first.lanes - second.lanes};
+  }
+  friend FloatVector operator*(FloatVector first, FloatVector second) {
+    return {first.lanes * second.lanes};
+  }
+  void store(float *buffer) const {
+    buffer[0] = lanes;
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = 1;
   double lanes;
-  static DoubleVector broadcast(double value) { return {value}; }
-  static DoubleVector load_floats(const float *buffer) { return {(double)buffer[0]}; }
-  friend DoubleVector operator+(DoubleVector first, DoubleVector second) { return {first.lanes + second.lanes}; }
-  friend DoubleVector operator*(DoubleVector first, DoubleVector second) { return {first.lanes * second.lanes}; }
-  void store(double *buffer) const { buffer[0] = lanes; }
+  static DoubleVector broadcast(double value) {
+    return {value};
+  }
+  static DoubleVector load_floats(const float *buffer) {
+    return {(double)buffer[0]};
+  }
+  friend DoubleVector operator+(DoubleVector first, DoubleVector second) {
+    return {first.lanes + second.lanes};
+  }
+  friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
+    return {first.lanes * second.lanes};
+  }
+  void store(double *buffer) const {
+    buffer[0] = lanes;
+  }
 };
 
 #elif defined(MCV2_SIMD_SSE41) || defined(MCV2_SIMD_SSE2)
@@ -232,11 +280,21 @@ struct DoubleVector {
 template <int BLEND_MASK> inline __m128i blend_integer_lanes(__m128i first, __m128i second) {
   return _mm_castps_si128(_mm_blend_ps(_mm_castsi128_ps(first), _mm_castsi128_ps(second), BLEND_MASK));
 }
-inline __m128i multiply_low_int(__m128i first, __m128i second) { return _mm_mullo_epi32(first, second); }
-inline __m128i minimum_int(__m128i first, __m128i second) { return _mm_min_epi32(first, second); }
-inline __m128i maximum_int(__m128i first, __m128i second) { return _mm_max_epi32(first, second); }
-inline __m128i absolute_int(__m128i first) { return _mm_abs_epi32(first); }
-inline __m128i widen_unsigned_bytes(__m128i bytes) { return _mm_cvtepu8_epi32(bytes); }
+inline __m128i multiply_low_int(__m128i first, __m128i second) {
+  return _mm_mullo_epi32(first, second);
+}
+inline __m128i minimum_int(__m128i first, __m128i second) {
+  return _mm_min_epi32(first, second);
+}
+inline __m128i maximum_int(__m128i first, __m128i second) {
+  return _mm_max_epi32(first, second);
+}
+inline __m128i absolute_int(__m128i first) {
+  return _mm_abs_epi32(first);
+}
+inline __m128i widen_unsigned_bytes(__m128i bytes) {
+  return _mm_cvtepu8_epi32(bytes);
+}
 #else
 
 template <int BLEND_MASK> inline __m128i blend_integer_lanes(__m128i first, __m128i second) {
@@ -281,37 +339,63 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 struct IntVector {
   static constexpr int LANES = 4;
   __m128i lanes;
-  static IntVector load(const int32_t *buffer) { return {_mm_loadu_si128((const __m128i *)buffer)}; }
-  void store(int32_t *buffer) const { _mm_storeu_si128((__m128i *)buffer, lanes); }
+  static IntVector load(const int32_t *buffer) {
+    return {_mm_loadu_si128((const __m128i *)buffer)};
+  }
+  void store(int32_t *buffer) const {
+    _mm_storeu_si128((__m128i *)buffer, lanes);
+  }
   void store_bytes(int8_t *buffer) const {
     const int32_t word = _mm_cvtsi128_si32(_mm_packs_epi16(_mm_packs_epi32(lanes, lanes), _mm_setzero_si128()));
     memcpy(buffer, &word, sizeof(word));
   }
-  static IntVector broadcast(int32_t value) { return {_mm_set1_epi32(value)}; }
-  static IntVector zero() { return {_mm_setzero_si128()}; }
-  static IntVector lane_indices() { return {_mm_setr_epi32(0, 1, 2, 3)}; }
+  static IntVector broadcast(int32_t value) {
+    return {_mm_set1_epi32(value)};
+  }
+  static IntVector zero() {
+    return {_mm_setzero_si128()};
+  }
+  static IntVector lane_indices() {
+    return {_mm_setr_epi32(0, 1, 2, 3)};
+  }
   static IntVector load_unsigned_bytes(const uint8_t *buffer) {
     int32_t word;
     memcpy(&word, buffer, sizeof(word));
     return {widen_unsigned_bytes(_mm_cvtsi32_si128(word))};
   }
-  friend IntVector operator+(IntVector first, IntVector second) { return {_mm_add_epi32(first.lanes, second.lanes)}; }
-  friend IntVector operator-(IntVector first, IntVector second) { return {_mm_sub_epi32(first.lanes, second.lanes)}; }
+  friend IntVector operator+(IntVector first, IntVector second) {
+    return {_mm_add_epi32(first.lanes, second.lanes)};
+  }
+  friend IntVector operator-(IntVector first, IntVector second) {
+    return {_mm_sub_epi32(first.lanes, second.lanes)};
+  }
   friend IntVector operator*(IntVector first, IntVector second) {
     return {multiply_low_int(first.lanes, second.lanes)};
   }
-  friend IntVector operator&(IntVector first, IntVector second) { return {_mm_and_si128(first.lanes, second.lanes)}; }
-  friend IntVector operator|(IntVector first, IntVector second) { return {_mm_or_si128(first.lanes, second.lanes)}; }
+  friend IntVector operator&(IntVector first, IntVector second) {
+    return {_mm_and_si128(first.lanes, second.lanes)};
+  }
+  friend IntVector operator|(IntVector first, IntVector second) {
+    return {_mm_or_si128(first.lanes, second.lanes)};
+  }
   IntVector shift_left(int32_t shift_distance) const {
     return {_mm_sll_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
   IntVector shift_right(int32_t shift_distance) const {
     return {_mm_sra_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
-  static IntVector minimum(IntVector first, IntVector second) { return {minimum_int(first.lanes, second.lanes)}; }
-  static IntVector maximum(IntVector first, IntVector second) { return {maximum_int(first.lanes, second.lanes)}; }
-  static IntVector absolute(IntVector first) { return {absolute_int(first.lanes)}; }
-  static IntVector less(IntVector first, IntVector second) { return {_mm_cmplt_epi32(first.lanes, second.lanes)}; }
+  static IntVector minimum(IntVector first, IntVector second) {
+    return {minimum_int(first.lanes, second.lanes)};
+  }
+  static IntVector maximum(IntVector first, IntVector second) {
+    return {maximum_int(first.lanes, second.lanes)};
+  }
+  static IntVector absolute(IntVector first) {
+    return {absolute_int(first.lanes)};
+  }
+  static IntVector less(IntVector first, IntVector second) {
+    return {_mm_cmplt_epi32(first.lanes, second.lanes)};
+  }
   int32_t sum() const {
     __m128i partial_sum = _mm_add_epi32(lanes, _mm_shuffle_epi32(lanes, _MM_SHUFFLE(1, 0, 3, 2)));
     partial_sum = _mm_add_epi32(partial_sum, _mm_shuffle_epi32(partial_sum, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -374,8 +458,12 @@ struct IntVector {
 
 struct FloatVector {
   __m128 lanes;
-  static FloatVector broadcast(float value) { return {_mm_set1_ps(value)}; }
-  static FloatVector from_integers(IntVector first) { return {_mm_cvtepi32_ps(first.lanes)}; }
+  static FloatVector broadcast(float value) {
+    return {_mm_set1_ps(value)};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {_mm_cvtepi32_ps(first.lanes)};
+  }
   friend FloatVector operator+(FloatVector first, FloatVector second) {
     return {_mm_add_ps(first.lanes, second.lanes)};
   }
@@ -385,13 +473,17 @@ struct FloatVector {
   friend FloatVector operator*(FloatVector first, FloatVector second) {
     return {_mm_mul_ps(first.lanes, second.lanes)};
   }
-  void store(float *buffer) const { _mm_storeu_ps(buffer, lanes); }
+  void store(float *buffer) const {
+    _mm_storeu_ps(buffer, lanes);
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = 2;
   __m128d lanes;
-  static DoubleVector broadcast(double value) { return {_mm_set1_pd(value)}; }
+  static DoubleVector broadcast(double value) {
+    return {_mm_set1_pd(value)};
+  }
   static DoubleVector load_floats(const float *buffer) {
     int64_t pair;
     memcpy(&pair, buffer, sizeof(pair));
@@ -403,7 +495,9 @@ struct DoubleVector {
   friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
     return {_mm_mul_pd(first.lanes, second.lanes)};
   }
-  void store(double *buffer) const { _mm_storeu_pd(buffer, lanes); }
+  void store(double *buffer) const {
+    _mm_storeu_pd(buffer, lanes);
+  }
 };
 
 #elif defined(MCV2_SIMD_AVX2)
@@ -419,15 +513,25 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 struct IntVector {
   static constexpr int LANES = 8;
   __m256i lanes;
-  static IntVector load(const int32_t *buffer) { return {_mm256_loadu_si256((const __m256i *)buffer)}; }
+  static IntVector load(const int32_t *buffer) {
+    return {_mm256_loadu_si256((const __m256i *)buffer)};
+  }
   void store_bytes(int8_t *buffer) const {
     const __m128i words = _mm_packs_epi32(_mm256_castsi256_si128(lanes), _mm256_extracti128_si256(lanes, 1));
     _mm_storel_epi64((__m128i *)buffer, _mm_packs_epi16(words, _mm_setzero_si128()));
   }
-  void store(int32_t *buffer) const { _mm256_storeu_si256((__m256i *)buffer, lanes); }
-  static IntVector broadcast(int32_t value) { return {_mm256_set1_epi32(value)}; }
-  static IntVector zero() { return {_mm256_setzero_si256()}; }
-  static IntVector lane_indices() { return {_mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7)}; }
+  void store(int32_t *buffer) const {
+    _mm256_storeu_si256((__m256i *)buffer, lanes);
+  }
+  static IntVector broadcast(int32_t value) {
+    return {_mm256_set1_epi32(value)};
+  }
+  static IntVector zero() {
+    return {_mm256_setzero_si256()};
+  }
+  static IntVector lane_indices() {
+    return {_mm256_setr_epi32(0, 1, 2, 3, 4, 5, 6, 7)};
+  }
   static IntVector load_unsigned_bytes(const uint8_t *buffer) {
     return {_mm256_cvtepu8_epi32(_mm_loadl_epi64((const __m128i *)buffer))};
   }
@@ -443,17 +547,27 @@ struct IntVector {
   friend IntVector operator&(IntVector first, IntVector second) {
     return {_mm256_and_si256(first.lanes, second.lanes)};
   }
-  friend IntVector operator|(IntVector first, IntVector second) { return {_mm256_or_si256(first.lanes, second.lanes)}; }
+  friend IntVector operator|(IntVector first, IntVector second) {
+    return {_mm256_or_si256(first.lanes, second.lanes)};
+  }
   IntVector shift_left(int32_t shift_distance) const {
     return {_mm256_sll_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
   IntVector shift_right(int32_t shift_distance) const {
     return {_mm256_sra_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
-  static IntVector minimum(IntVector first, IntVector second) { return {_mm256_min_epi32(first.lanes, second.lanes)}; }
-  static IntVector maximum(IntVector first, IntVector second) { return {_mm256_max_epi32(first.lanes, second.lanes)}; }
-  static IntVector absolute(IntVector first) { return {_mm256_abs_epi32(first.lanes)}; }
-  static IntVector less(IntVector first, IntVector second) { return {_mm256_cmpgt_epi32(second.lanes, first.lanes)}; }
+  static IntVector minimum(IntVector first, IntVector second) {
+    return {_mm256_min_epi32(first.lanes, second.lanes)};
+  }
+  static IntVector maximum(IntVector first, IntVector second) {
+    return {_mm256_max_epi32(first.lanes, second.lanes)};
+  }
+  static IntVector absolute(IntVector first) {
+    return {_mm256_abs_epi32(first.lanes)};
+  }
+  static IntVector less(IntVector first, IntVector second) {
+    return {_mm256_cmpgt_epi32(second.lanes, first.lanes)};
+  }
   int32_t sum() const {
     __m128i partial_sum = _mm_add_epi32(_mm256_castsi256_si128(lanes), _mm256_extracti128_si256(lanes, 1));
     partial_sum = _mm_add_epi32(partial_sum, _mm_shuffle_epi32(partial_sum, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -516,8 +630,12 @@ struct IntVector {
 
 struct FloatVector {
   __m256 lanes;
-  static FloatVector broadcast(float value) { return {_mm256_set1_ps(value)}; }
-  static FloatVector from_integers(IntVector first) { return {_mm256_cvtepi32_ps(first.lanes)}; }
+  static FloatVector broadcast(float value) {
+    return {_mm256_set1_ps(value)};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {_mm256_cvtepi32_ps(first.lanes)};
+  }
   friend FloatVector operator+(FloatVector first, FloatVector second) {
     return {_mm256_add_ps(first.lanes, second.lanes)};
   }
@@ -527,21 +645,29 @@ struct FloatVector {
   friend FloatVector operator*(FloatVector first, FloatVector second) {
     return {_mm256_mul_ps(first.lanes, second.lanes)};
   }
-  void store(float *buffer) const { _mm256_storeu_ps(buffer, lanes); }
+  void store(float *buffer) const {
+    _mm256_storeu_ps(buffer, lanes);
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = 4;
   __m256d lanes;
-  static DoubleVector broadcast(double value) { return {_mm256_set1_pd(value)}; }
-  static DoubleVector load_floats(const float *buffer) { return {_mm256_cvtps_pd(_mm_loadu_ps(buffer))}; }
+  static DoubleVector broadcast(double value) {
+    return {_mm256_set1_pd(value)};
+  }
+  static DoubleVector load_floats(const float *buffer) {
+    return {_mm256_cvtps_pd(_mm_loadu_ps(buffer))};
+  }
   friend DoubleVector operator+(DoubleVector first, DoubleVector second) {
     return {_mm256_add_pd(first.lanes, second.lanes)};
   }
   friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
     return {_mm256_mul_pd(first.lanes, second.lanes)};
   }
-  void store(double *buffer) const { _mm256_storeu_pd(buffer, lanes); }
+  void store(double *buffer) const {
+    _mm256_storeu_pd(buffer, lanes);
+  }
 };
 
 #elif defined(MCV2_SIMD_AVX512)
@@ -557,12 +683,24 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 struct IntVector {
   static constexpr int LANES = 16;
   __m512i lanes;
-  static IntVector load(const int32_t *buffer) { return {_mm512_loadu_si512(buffer)}; }
-  void store_bytes(int8_t *buffer) const { _mm_storeu_si128((__m128i *)buffer, _mm512_cvtepi32_epi8(lanes)); }
-  void store(int32_t *buffer) const { _mm512_storeu_si512(buffer, lanes); }
-  static IntVector broadcast(int32_t value) { return {_mm512_set1_epi32(value)}; }
-  static IntVector zero() { return {_mm512_setzero_si512()}; }
-  static IntVector lane_indices() { return {_mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)}; }
+  static IntVector load(const int32_t *buffer) {
+    return {_mm512_loadu_si512(buffer)};
+  }
+  void store_bytes(int8_t *buffer) const {
+    _mm_storeu_si128((__m128i *)buffer, _mm512_cvtepi32_epi8(lanes));
+  }
+  void store(int32_t *buffer) const {
+    _mm512_storeu_si512(buffer, lanes);
+  }
+  static IntVector broadcast(int32_t value) {
+    return {_mm512_set1_epi32(value)};
+  }
+  static IntVector zero() {
+    return {_mm512_setzero_si512()};
+  }
+  static IntVector lane_indices() {
+    return {_mm512_set_epi32(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)};
+  }
   static IntVector load_unsigned_bytes(const uint8_t *buffer) {
     return {_mm512_cvtepu8_epi32(_mm_loadu_si128((const __m128i *)buffer))};
   }
@@ -578,20 +716,30 @@ struct IntVector {
   friend IntVector operator&(IntVector first, IntVector second) {
     return {_mm512_and_si512(first.lanes, second.lanes)};
   }
-  friend IntVector operator|(IntVector first, IntVector second) { return {_mm512_or_si512(first.lanes, second.lanes)}; }
+  friend IntVector operator|(IntVector first, IntVector second) {
+    return {_mm512_or_si512(first.lanes, second.lanes)};
+  }
   IntVector shift_left(int32_t shift_distance) const {
     return {_mm512_sll_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
   IntVector shift_right(int32_t shift_distance) const {
     return {_mm512_sra_epi32(lanes, _mm_cvtsi32_si128(shift_distance & 31))};
   }
-  static IntVector minimum(IntVector first, IntVector second) { return {_mm512_min_epi32(first.lanes, second.lanes)}; }
-  static IntVector maximum(IntVector first, IntVector second) { return {_mm512_max_epi32(first.lanes, second.lanes)}; }
-  static IntVector absolute(IntVector first) { return {_mm512_abs_epi32(first.lanes)}; }
+  static IntVector minimum(IntVector first, IntVector second) {
+    return {_mm512_min_epi32(first.lanes, second.lanes)};
+  }
+  static IntVector maximum(IntVector first, IntVector second) {
+    return {_mm512_max_epi32(first.lanes, second.lanes)};
+  }
+  static IntVector absolute(IntVector first) {
+    return {_mm512_abs_epi32(first.lanes)};
+  }
   static IntVector less(IntVector first, IntVector second) {
     return {_mm512_movm_epi32(_mm512_cmplt_epi32_mask(first.lanes, second.lanes))};
   }
-  int32_t sum() const { return _mm512_reduce_add_epi32(lanes); }
+  int32_t sum() const {
+    return _mm512_reduce_add_epi32(lanes);
+  }
 
   static void load_channels(const int32_t *buffer, IntVector &red_channels, IntVector &green_channels,
                             IntVector &blue_channels) {
@@ -654,8 +802,12 @@ private:
 
 struct FloatVector {
   __m512 lanes;
-  static FloatVector broadcast(float value) { return {_mm512_set1_ps(value)}; }
-  static FloatVector from_integers(IntVector first) { return {_mm512_cvtepi32_ps(first.lanes)}; }
+  static FloatVector broadcast(float value) {
+    return {_mm512_set1_ps(value)};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {_mm512_cvtepi32_ps(first.lanes)};
+  }
   friend FloatVector operator+(FloatVector first, FloatVector second) {
     return {_mm512_add_ps(first.lanes, second.lanes)};
   }
@@ -665,21 +817,29 @@ struct FloatVector {
   friend FloatVector operator*(FloatVector first, FloatVector second) {
     return {_mm512_mul_ps(first.lanes, second.lanes)};
   }
-  void store(float *buffer) const { _mm512_storeu_ps(buffer, lanes); }
+  void store(float *buffer) const {
+    _mm512_storeu_ps(buffer, lanes);
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = 8;
   __m512d lanes;
-  static DoubleVector broadcast(double value) { return {_mm512_set1_pd(value)}; }
-  static DoubleVector load_floats(const float *buffer) { return {_mm512_cvtps_pd(_mm256_loadu_ps(buffer))}; }
+  static DoubleVector broadcast(double value) {
+    return {_mm512_set1_pd(value)};
+  }
+  static DoubleVector load_floats(const float *buffer) {
+    return {_mm512_cvtps_pd(_mm256_loadu_ps(buffer))};
+  }
   friend DoubleVector operator+(DoubleVector first, DoubleVector second) {
     return {_mm512_add_pd(first.lanes, second.lanes)};
   }
   friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
     return {_mm512_mul_pd(first.lanes, second.lanes)};
   }
-  void store(double *buffer) const { _mm512_storeu_pd(buffer, lanes); }
+  void store(double *buffer) const {
+    _mm512_storeu_pd(buffer, lanes);
+  }
 };
 
 #elif defined(MCV2_SIMD_NEON)
@@ -693,14 +853,22 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 struct IntVector {
   static constexpr int LANES = 4;
   int32x4_t lanes;
-  static IntVector load(const int32_t *buffer) { return {vld1q_s32(buffer)}; }
+  static IntVector load(const int32_t *buffer) {
+    return {vld1q_s32(buffer)};
+  }
   void store_bytes(int8_t *buffer) const {
     const int8x8_t bytes = vmovn_s16(vcombine_s16(vmovn_s32(lanes), vdup_n_s16(0)));
     vst1_lane_s32((int32_t *)buffer, vreinterpret_s32_s8(bytes), 0);
   }
-  void store(int32_t *buffer) const { vst1q_s32(buffer, lanes); }
-  static IntVector broadcast(int32_t value) { return {vdupq_n_s32(value)}; }
-  static IntVector zero() { return {vdupq_n_s32(0)}; }
+  void store(int32_t *buffer) const {
+    vst1q_s32(buffer, lanes);
+  }
+  static IntVector broadcast(int32_t value) {
+    return {vdupq_n_s32(value)};
+  }
+  static IntVector zero() {
+    return {vdupq_n_s32(0)};
+  }
   static IntVector lane_indices() {
     static const int32_t lanes[4] = {0, 1, 2, 3};
     return {vld1q_s32(lanes)};
@@ -711,22 +879,42 @@ struct IntVector {
     const uint8x8_t bytes = vreinterpret_u8_u32(vdup_n_u32(word));
     return {vreinterpretq_s32_u32(vmovl_u16(vget_low_u16(vmovl_u8(bytes))))};
   }
-  friend IntVector operator+(IntVector first, IntVector second) { return {vaddq_s32(first.lanes, second.lanes)}; }
-  friend IntVector operator-(IntVector first, IntVector second) { return {vsubq_s32(first.lanes, second.lanes)}; }
-  friend IntVector operator*(IntVector first, IntVector second) { return {vmulq_s32(first.lanes, second.lanes)}; }
-  friend IntVector operator&(IntVector first, IntVector second) { return {vandq_s32(first.lanes, second.lanes)}; }
-  friend IntVector operator|(IntVector first, IntVector second) { return {vorrq_s32(first.lanes, second.lanes)}; }
-  IntVector shift_left(int32_t shift_distance) const { return {vshlq_s32(lanes, vdupq_n_s32(shift_distance & 31))}; }
+  friend IntVector operator+(IntVector first, IntVector second) {
+    return {vaddq_s32(first.lanes, second.lanes)};
+  }
+  friend IntVector operator-(IntVector first, IntVector second) {
+    return {vsubq_s32(first.lanes, second.lanes)};
+  }
+  friend IntVector operator*(IntVector first, IntVector second) {
+    return {vmulq_s32(first.lanes, second.lanes)};
+  }
+  friend IntVector operator&(IntVector first, IntVector second) {
+    return {vandq_s32(first.lanes, second.lanes)};
+  }
+  friend IntVector operator|(IntVector first, IntVector second) {
+    return {vorrq_s32(first.lanes, second.lanes)};
+  }
+  IntVector shift_left(int32_t shift_distance) const {
+    return {vshlq_s32(lanes, vdupq_n_s32(shift_distance & 31))};
+  }
   IntVector shift_right(int32_t shift_distance) const {
     return {vshlq_s32(lanes, vdupq_n_s32(-(shift_distance & 31)))};
   }
-  static IntVector minimum(IntVector first, IntVector second) { return {vminq_s32(first.lanes, second.lanes)}; }
-  static IntVector maximum(IntVector first, IntVector second) { return {vmaxq_s32(first.lanes, second.lanes)}; }
-  static IntVector absolute(IntVector first) { return {vabsq_s32(first.lanes)}; }
+  static IntVector minimum(IntVector first, IntVector second) {
+    return {vminq_s32(first.lanes, second.lanes)};
+  }
+  static IntVector maximum(IntVector first, IntVector second) {
+    return {vmaxq_s32(first.lanes, second.lanes)};
+  }
+  static IntVector absolute(IntVector first) {
+    return {vabsq_s32(first.lanes)};
+  }
   static IntVector less(IntVector first, IntVector second) {
     return {vreinterpretq_s32_u32(vcltq_s32(first.lanes, second.lanes))};
   }
-  int32_t sum() const { return vaddvq_s32(lanes); }
+  int32_t sum() const {
+    return vaddvq_s32(lanes);
+  }
   static void load_channels(const int32_t *buffer, IntVector &red_channels, IntVector &green_channels,
                             IntVector &blue_channels) {
     const int32x4x3_t channel_vectors = vld3q_s32(buffer);
@@ -747,32 +935,54 @@ struct IntVector {
     const int32x4_t byte = vdupq_n_s32((buffer[index >> 3] >> (index & 7)) & 0xF);
     return {vreinterpretq_s32_u32(vtstq_s32(byte, vld1q_s32(lanes)))};
   }
-  static IntVector evens(IntVector first, IntVector second) { return {vuzp1q_s32(first.lanes, second.lanes)}; }
-  static IntVector odds(IntVector first, IntVector second) { return {vuzp2q_s32(first.lanes, second.lanes)}; }
+  static IntVector evens(IntVector first, IntVector second) {
+    return {vuzp1q_s32(first.lanes, second.lanes)};
+  }
+  static IntVector odds(IntVector first, IntVector second) {
+    return {vuzp2q_s32(first.lanes, second.lanes)};
+  }
 };
 
 struct FloatVector {
   float32x4_t lanes;
-  static FloatVector broadcast(float value) { return {vdupq_n_f32(value)}; }
-  static FloatVector from_integers(IntVector first) { return {vcvtq_f32_s32(first.lanes)}; }
-  friend FloatVector operator+(FloatVector first, FloatVector second) { return {vaddq_f32(first.lanes, second.lanes)}; }
-  friend FloatVector operator-(FloatVector first, FloatVector second) { return {vsubq_f32(first.lanes, second.lanes)}; }
-  friend FloatVector operator*(FloatVector first, FloatVector second) { return {vmulq_f32(first.lanes, second.lanes)}; }
-  void store(float *buffer) const { vst1q_f32(buffer, lanes); }
+  static FloatVector broadcast(float value) {
+    return {vdupq_n_f32(value)};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {vcvtq_f32_s32(first.lanes)};
+  }
+  friend FloatVector operator+(FloatVector first, FloatVector second) {
+    return {vaddq_f32(first.lanes, second.lanes)};
+  }
+  friend FloatVector operator-(FloatVector first, FloatVector second) {
+    return {vsubq_f32(first.lanes, second.lanes)};
+  }
+  friend FloatVector operator*(FloatVector first, FloatVector second) {
+    return {vmulq_f32(first.lanes, second.lanes)};
+  }
+  void store(float *buffer) const {
+    vst1q_f32(buffer, lanes);
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = 2;
   float64x2_t lanes;
-  static DoubleVector broadcast(double value) { return {vdupq_n_f64(value)}; }
-  static DoubleVector load_floats(const float *buffer) { return {vcvt_f64_f32(vld1_f32(buffer))}; }
+  static DoubleVector broadcast(double value) {
+    return {vdupq_n_f64(value)};
+  }
+  static DoubleVector load_floats(const float *buffer) {
+    return {vcvt_f64_f32(vld1_f32(buffer))};
+  }
   friend DoubleVector operator+(DoubleVector first, DoubleVector second) {
     return {vaddq_f64(first.lanes, second.lanes)};
   }
   friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
     return {vmulq_f64(first.lanes, second.lanes)};
   }
-  void store(double *buffer) const { vst1q_f64(buffer, lanes); }
+  void store(double *buffer) const {
+    vst1q_f64(buffer, lanes);
+  }
 };
 
 #elif defined(MCV2_SIMD_SVE256) || defined(MCV2_SIMD_SVE512)
@@ -797,12 +1007,24 @@ inline int32_t four_pixel_difference(uint32_t first_pixel, uint32_t second_pixel
 struct IntVector {
   static constexpr int LANES = MCV2_SVE_BITS / 32;
   SveIntLanes lanes;
-  static IntVector load(const int32_t *buffer) { return {svld1_s32(svptrue_b32(), buffer)}; }
-  void store_bytes(int8_t *buffer) const { svst1b_s32(svptrue_b32(), buffer, lanes); }
-  void store(int32_t *buffer) const { svst1_s32(svptrue_b32(), buffer, lanes); }
-  static IntVector broadcast(int32_t value) { return {svdup_n_s32(value)}; }
-  static IntVector zero() { return {svdup_n_s32(0)}; }
-  static IntVector lane_indices() { return {svindex_s32(0, 1)}; }
+  static IntVector load(const int32_t *buffer) {
+    return {svld1_s32(svptrue_b32(), buffer)};
+  }
+  void store_bytes(int8_t *buffer) const {
+    svst1b_s32(svptrue_b32(), buffer, lanes);
+  }
+  void store(int32_t *buffer) const {
+    svst1_s32(svptrue_b32(), buffer, lanes);
+  }
+  static IntVector broadcast(int32_t value) {
+    return {svdup_n_s32(value)};
+  }
+  static IntVector zero() {
+    return {svdup_n_s32(0)};
+  }
+  static IntVector lane_indices() {
+    return {svindex_s32(0, 1)};
+  }
   static IntVector load_unsigned_bytes(const uint8_t *buffer) {
     return {svreinterpret_s32_u32(svld1ub_u32(svptrue_b32(), buffer))};
   }
@@ -833,12 +1055,16 @@ struct IntVector {
   static IntVector maximum(IntVector first, IntVector second) {
     return {svmax_s32_x(svptrue_b32(), first.lanes, second.lanes)};
   }
-  static IntVector absolute(IntVector first) { return {svabs_s32_x(svptrue_b32(), first.lanes)}; }
+  static IntVector absolute(IntVector first) {
+    return {svabs_s32_x(svptrue_b32(), first.lanes)};
+  }
   static IntVector less(IntVector first, IntVector second) {
     return {svsel_s32(svcmplt_s32(svptrue_b32(), first.lanes, second.lanes), svdup_n_s32(-1), svdup_n_s32(0))};
   }
 
-  int32_t sum() const { return (int32_t)(uint32_t)(uint64_t)svaddv_s32(svptrue_b32(), lanes); }
+  int32_t sum() const {
+    return (int32_t)(uint32_t)(uint64_t)svaddv_s32(svptrue_b32(), lanes);
+  }
   static void load_channels(const int32_t *buffer, IntVector &red_channels, IntVector &green_channels,
                             IntVector &blue_channels) {
     const svint32x3_t channel_vectors = svld3_s32(svptrue_b32(), buffer);
@@ -861,14 +1087,22 @@ struct IntVector {
     const svuint32_t bit = svand_n_u32_x(svptrue_b32(), svlsr_u32_x(svptrue_b32(), svdup_n_u32(word), lanes), 1);
     return {svsel_s32(svcmpne_n_u32(svptrue_b32(), bit, 0), svdup_n_s32(-1), svdup_n_s32(0))};
   }
-  static IntVector evens(IntVector first, IntVector second) { return {svuzp1_s32(first.lanes, second.lanes)}; }
-  static IntVector odds(IntVector first, IntVector second) { return {svuzp2_s32(first.lanes, second.lanes)}; }
+  static IntVector evens(IntVector first, IntVector second) {
+    return {svuzp1_s32(first.lanes, second.lanes)};
+  }
+  static IntVector odds(IntVector first, IntVector second) {
+    return {svuzp2_s32(first.lanes, second.lanes)};
+  }
 };
 
 struct FloatVector {
   SveFloatLanes lanes;
-  static FloatVector broadcast(float value) { return {svdup_n_f32(value)}; }
-  static FloatVector from_integers(IntVector first) { return {svcvt_f32_s32_x(svptrue_b32(), first.lanes)}; }
+  static FloatVector broadcast(float value) {
+    return {svdup_n_f32(value)};
+  }
+  static FloatVector from_integers(IntVector first) {
+    return {svcvt_f32_s32_x(svptrue_b32(), first.lanes)};
+  }
   friend FloatVector operator+(FloatVector first, FloatVector second) {
     return {svadd_f32_x(svptrue_b32(), first.lanes, second.lanes)};
   }
@@ -878,13 +1112,17 @@ struct FloatVector {
   friend FloatVector operator*(FloatVector first, FloatVector second) {
     return {svmul_f32_x(svptrue_b32(), first.lanes, second.lanes)};
   }
-  void store(float *buffer) const { svst1_f32(svptrue_b32(), buffer, lanes); }
+  void store(float *buffer) const {
+    svst1_f32(svptrue_b32(), buffer, lanes);
+  }
 };
 
 struct DoubleVector {
   static constexpr int LANES = MCV2_SVE_BITS / 64;
   SveDoubleLanes lanes;
-  static DoubleVector broadcast(double value) { return {svdup_n_f64(value)}; }
+  static DoubleVector broadcast(double value) {
+    return {svdup_n_f64(value)};
+  }
 
   static DoubleVector load_floats(const float *buffer) {
     const SveUnsignedLongLanes words = svld1uw_u64(svptrue_b64(), (const uint32_t *)buffer);
@@ -896,7 +1134,9 @@ struct DoubleVector {
   friend DoubleVector operator*(DoubleVector first, DoubleVector second) {
     return {svmul_f64_x(svptrue_b64(), first.lanes, second.lanes)};
   }
-  void store(double *buffer) const { svst1_f64(svptrue_b64(), buffer, lanes); }
+  void store(double *buffer) const {
+    svst1_f64(svptrue_b64(), buffer, lanes);
+  }
 };
 
 #endif
@@ -917,10 +1157,18 @@ constexpr double DISTORTION_SCALE = 96.0;
 constexpr int32_t NIBBLE_BITS = 4;
 constexpr int32_t NIBBLE_MASK = 15;
 
-inline int32_t logarithm_base_two(int32_t lanes) { return __builtin_ctz((unsigned)lanes); }
-inline int32_t size_index(int32_t size) { return logarithm_base_two(size) - 3; }
-inline int32_t minimum_int(int32_t first, int32_t second) { return first < second ? first : second; }
-inline int32_t maximum_int(int32_t first, int32_t second) { return first > second ? first : second; }
+inline int32_t logarithm_base_two(int32_t lanes) {
+  return __builtin_ctz((unsigned)lanes);
+}
+inline int32_t size_index(int32_t size) {
+  return logarithm_base_two(size) - 3;
+}
+inline int32_t minimum_int(int32_t first, int32_t second) {
+  return first < second ? first : second;
+}
+inline int32_t maximum_int(int32_t first, int32_t second) {
+  return first > second ? first : second;
+}
 inline int32_t clamp_int(int32_t lanes, int32_t low, int32_t high) {
   return minimum_int(maximum_int(lanes, low), high);
 }
@@ -955,7 +1203,9 @@ constexpr Axes make_axes() {
 
 constexpr Axes AXES = make_axes();
 
-inline int32_t shift_of(int32_t size) { return 2 * (logarithm_base_two(size) + 1); }
+inline int32_t shift_of(int32_t size) {
+  return 2 * (logarithm_base_two(size) + 1);
+}
 
 inline IntVector round(IntVector value, int32_t shift) {
   return IntVector::minimum(
@@ -1439,8 +1689,12 @@ constexpr int32_t DIRECTIONS[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 inline int32_t pack_motion(int32_t horizontal_position, int32_t vertical_position) {
   return wrapping_shift_left(horizontal_position, 16) | (vertical_position & 0xFFFF);
 }
-inline int32_t unpack_horizontal_motion(int32_t vector) { return vector >> 16; }
-inline int32_t unpack_vertical_motion(int32_t vector) { return (int16_t)vector; }
+inline int32_t unpack_horizontal_motion(int32_t vector) {
+  return vector >> 16;
+}
+inline int32_t unpack_vertical_motion(int32_t vector) {
+  return (int16_t)vector;
+}
 
 int64_t inside(const uint8_t *reference, int32_t width, const int32_t *source_samples, int32_t block_left,
                int32_t block_top, const int32_t *samples, int32_t motion_x, int32_t motion_y) {
@@ -1888,10 +2142,14 @@ extern "C" int32_t mcv2_cpu_levels(int64_t kernel_capabilities) {
 
 #else
 
-extern "C" int32_t mcv2_cpu_levels(int64_t) { return MCV2_LEVEL_SCALAR; }
+extern "C" int32_t mcv2_cpu_levels(int64_t) {
+  return MCV2_LEVEL_SCALAR;
+}
 
 #endif
 
-extern "C" int32_t mcv2_abi(void) { return MCV2_INTERFACE_VERSION; }
+extern "C" int32_t mcv2_abi(void) {
+  return MCV2_INTERFACE_VERSION;
+}
 #endif
 #endif
