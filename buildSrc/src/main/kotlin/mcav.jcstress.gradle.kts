@@ -60,7 +60,7 @@ val jcstressJar = tasks.register<Jar>("jcstressJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-val ITERATION_TIME = "jcstress: {} tests in {} mode within {} minutes: {} ms per iteration"
+val ITERATION_TIME = "Running {} jcstress tests in {} mode within {} minutes, at {} ms per iteration."
 val mode = providers.gradleProperty("jcstress.mode").getOrElse("quick")
 val budgetMinutes = providers.gradleProperty("jcstress.timeBudgetMinutes").map { it.toInt() }
 val selection = providers.gradleProperty("jcstress.tests")

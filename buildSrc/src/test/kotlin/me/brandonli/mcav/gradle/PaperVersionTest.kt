@@ -47,7 +47,7 @@ class PaperVersionTest {
         val messages: Map<String, String?> = versions.associateWith { version ->
             assertThrows(GradleException::class.java) { PaperVersion.parse(version) }.message
         }
-        val expected: Map<String, String?> = versions.associateWith { "Paper version must name a build, but it is $it" }
+        val expected: Map<String, String?> = versions.associateWith { "Paper version $it must name a build!" }
         assertEquals(expected, messages)
     }
 }

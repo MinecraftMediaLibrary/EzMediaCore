@@ -90,7 +90,7 @@ class LockPythonRequirementsTest {
         task.recordedProcesses = processes.operations
         val failure = assertThrows(GradleException::class.java) { task.lock() }
         val message: String? = failure.message
-        assertEquals("${directory.resolve("uv")} must be uv 0.12.23, but it is uv 0.12.22", message)
+        assertEquals("${directory.resolve("uv")} reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
 
         val commandCount: Int = processes.commands.size
         assertEquals(1, commandCount)

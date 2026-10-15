@@ -49,13 +49,13 @@ class CoverageLintPluginTest {
             .buildAndFail()
 
         val output: String = result.output
-        val firstSkipped: Boolean = output.contains("coverageLint of :first skipped")
+        val firstSkipped: Boolean = output.contains("Skipped coverageLint of :first,")
         assertTrue(firstSkipped, output)
 
-        val secondSkipped: Boolean = output.contains("coverageLint of :second skipped")
+        val secondSkipped: Boolean = output.contains("Skipped coverageLint of :second,")
         assertFalse(secondSkipped, output)
 
-        val uncovered: Boolean = output.contains("no test ran, so none of this code is covered")
+        val uncovered: Boolean = output.contains("no test ran, so none of this code is covered.")
         assertTrue(uncovered, output)
 
         val secondFailed: Boolean = output.contains(":second:coverageLint FAILED")

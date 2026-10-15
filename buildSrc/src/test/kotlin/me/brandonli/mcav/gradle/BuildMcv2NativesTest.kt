@@ -166,7 +166,7 @@ class BuildMcv2NativesTest {
         }
         val thrown = assertThrows(GradleException::class.java) { buildWithWorkers(task) }
         val message: String? = thrown.message
-        assertEquals("Zig could not build MCV2's natives", message)
+        assertEquals("Zig could not build MCV2's natives!", message)
 
         val cause: Throwable? = thrown.cause
         assertSame(failure, cause)
@@ -181,7 +181,7 @@ class BuildMcv2NativesTest {
         val failure = assertThrows(GradleException::class.java) { task.build() }
         val zig = directory.resolve("zig").toString()
         val message: String? = failure.message
-        assertEquals("$zig must be zig test-version, but it is wrong-version", message)
+        assertEquals("$zig reports wrong-version, which is not the zig test-version this build pins!", message)
 
         val staleKept: Boolean = task.outputDirectory.get().file("stale.dll").asFile.exists()
         assertTrue(staleKept)

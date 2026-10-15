@@ -33,9 +33,9 @@ private fun overrideVariable(tool: String): String = tool.uppercase(Locale.ROOT)
 
 fun Project.pinnedSha256(tool: String, version: String, archive: String): Provider<String> = provider {
     val key = "$tool/$version/$archive"
-    pinnedChecksums.getProperty(key) ?: throw GradleException(
-        "tool-checksums.properties pins no SHA-256 for $key; set ${overrideVariable(tool)}=/path/to/$tool $version"
-    )
+    val message =
+        "tool-checksums.properties pins no SHA-256 for $key, so set ${overrideVariable(tool)} to the path of $tool $version!"
+    pinnedChecksums.getProperty(key) ?: throw GradleException(message)
 }
 
 fun Project.toolOverride(tool: String): Provider<RegularFile> =

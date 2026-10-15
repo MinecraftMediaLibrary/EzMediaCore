@@ -57,7 +57,8 @@ object JcstressBudget {
     }
 
     fun iterationMillis(mode: String, budgetMinutes: Int, testCount: Int, cpus: Int): Long {
-        val preset = presets[mode] ?: throw GradleException("Unknown jcstress mode $mode")
+        val message = "Jcstress mode $mode is unknown!"
+        val preset = presets[mode] ?: throw GradleException(message)
         val runs = testCount.toLong() * CONFIGURATIONS * (preset.forks + preset.forks * preset.stressMultiplier)
         val parallelRuns = maxOf(1, cpus / 2)
         val budgetMillis = budgetMinutes * MILLIS_PER_MINUTE

@@ -46,7 +46,8 @@ abstract class JavaLintTask : DefaultTask() {
             logger.error(diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
         }
         if (count > 0) {
-            throw GradleException(failureMessage(count))
+            val message = failureMessage(count)
+            throw GradleException(message)
         }
         report.get().asFile.writeText(successMessage(sources.files.size))
     }

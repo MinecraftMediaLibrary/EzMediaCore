@@ -62,7 +62,10 @@ class ClangFormatTest {
         val processes = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
         val failure = assertThrows(GradleException::class.java) { format(true, processes) }
         val message: String? = failure.message
-        assertEquals("${clangFormat()} must be clang-format 18.1.8, but it is Ubuntu clang-format version 19.1.1", message)
+        assertEquals(
+            "${clangFormat()} reports Ubuntu clang-format version 19.1.1, which is not the clang-format 18.1.8 this build pins!",
+            message
+        )
 
         val commands: List<List<String>> = processes.commands
         assertEquals(listOf(listOf(clangFormat(), "--version")), commands)

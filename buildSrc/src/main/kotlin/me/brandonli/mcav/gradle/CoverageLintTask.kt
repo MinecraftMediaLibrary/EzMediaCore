@@ -33,9 +33,9 @@ import org.gradle.api.tasks.TaskAction
 abstract class CoverageLintTask : DefaultTask() {
 
     private companion object {
-        const val FILTERED = "coverageLint of {} skipped: the tests ran with a filter, so the report covers only part of the code"
+        const val FILTERED = "Skipped coverageLint of {}, since the tests ran with a filter and the report covers only part of the code."
         const val GAP = "{}"
-        const val STALE_EXCEPTION = "{}: warning: '{} | {}' matches no uncovered line, remove it"
+        const val STALE_EXCEPTION = "{}: warning: '{} | {}' matches no uncovered line, so remove it."
     }
 
     @get:InputFiles
@@ -71,9 +71,8 @@ abstract class CoverageLintTask : DefaultTask() {
             logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
         }
         if (gaps.isNotEmpty() || staleExceptions.isNotEmpty()) {
-            throw GradleException(
-                "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale"
-            )
+            val message = "${gaps.size} lines are not fully covered by tests and ${staleExceptions.size} coverage exceptions are stale!"
+            throw GradleException(message)
         }
     }
 }

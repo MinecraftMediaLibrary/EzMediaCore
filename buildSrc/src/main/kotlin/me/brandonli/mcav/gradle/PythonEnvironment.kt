@@ -88,9 +88,9 @@ abstract class PythonEnvironment : DefaultTask() {
         val lock = requirements.get().asFile
         val missing = RequirementsLock.missingPins(lock.readText(), versions.get())
         if (missing.isNotEmpty()) {
-            throw GradleException(
-                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml; run ./gradlew ${lockTask.get()}"
-            )
+            val message =
+                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew ${lockTask.get()} to write it!"
+            throw GradleException(message)
         }
         val uv = uvExecutable.get().asFile
         ToolVersions.verify(processes, uv, "uv", uvVersion.get())

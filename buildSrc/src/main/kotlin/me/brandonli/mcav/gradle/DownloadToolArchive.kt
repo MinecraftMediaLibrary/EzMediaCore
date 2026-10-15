@@ -37,8 +37,8 @@ import org.tukaani.xz.XZInputStream
 abstract class DownloadToolArchive : DefaultTask() {
 
     private companion object {
-        const val DOWNLOADING = "Downloading tool archive {}"
-        const val VERIFIED = "Verified SHA-256 {} for {}"
+        const val DOWNLOADING = "Downloading tool archive {}."
+        const val VERIFIED = "Verified SHA-256 {} of {}."
     }
 
     @get:Input
@@ -64,7 +64,8 @@ abstract class DownloadToolArchive : DefaultTask() {
         val address = archiveUrl.get()
         val expected = sha256.get()
         if (!expected.matches(Regex("[0-9a-f]{64}"))) {
-            throw GradleException("Invalid pinned SHA-256 for $address: expected 64 lowercase hexadecimal digits")
+            val message = "Pinned SHA-256 of $address must be 64 lowercase hexadecimal digits!"
+            throw GradleException(message)
         }
         val archive = temporaryDir.resolve(URI(address).path.substringAfterLast('/'))
         logger.lifecycle(DOWNLOADING, address)
@@ -74,14 +75,17 @@ abstract class DownloadToolArchive : DefaultTask() {
             connection.readTimeout = 120_000
             connection.getInputStream().use { input -> archive.outputStream().use { output -> input.copyTo(output) } }
         } catch (failure: IOException) {
-            throw GradleException("Could not download tool archive from $address: ${failure.message}", failure)
+            val message = "Tool archive $address could not be downloaded!"
+            throw GradleException(message, failure)
         }
         val actual = ToolDigests.sha256(archive)
         if (actual != expected) {
             archive.delete()
-            throw GradleException("SHA-256 mismatch for $address: expected $expected, got $actual; archive was not installed")
+            val message = "Tool archive $address has SHA-256 $actual instead of the pinned $expected, so it was not installed!"
+            throw GradleException(message)
         }
         logger.lifecycle(VERIFIED, expected, address)
+        val formatMessage = "Tool archive $address must be a .zip, .tar.gz or .tar.xz file!"
         val contents = when {
             archive.name.endsWith(".zip") -> archives.zipTree(archive)
             archive.name.endsWith(".tar.gz") -> archives.tarTree(archive)
@@ -90,7 +94,7 @@ abstract class DownloadToolArchive : DefaultTask() {
                 XZInputStream(archive.inputStream()).use { input -> unpacked.outputStream().use { output -> input.copyTo(output) } }
                 archives.tarTree(unpacked)
             }
-            else -> throw GradleException("Unsupported tool archive format: $address (expected .zip, .tar.gz or .tar.xz)")
+            else -> throw GradleException(formatMessage)
         }
         files.sync {
             from(contents)
@@ -100,7 +104,8 @@ abstract class DownloadToolArchive : DefaultTask() {
             }
         }
         if (!installationDirectory.file(executablePath).get().asFile.isFile) {
-            throw GradleException("Tool archive $address does not contain ${executablePath.get()}")
+            val message = "Tool archive $address must contain ${executablePath.get()} to be installed!"
+            throw GradleException(message)
         }
     }
 }

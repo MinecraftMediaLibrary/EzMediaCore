@@ -43,7 +43,7 @@ class CoverageLintTaskTest {
         val task = lint(uncoveredLine = true)
         val failure = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
-        assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale", message)
+        assertEquals("1 lines are not fully covered by tests and 0 coverage exceptions are stale!", message)
     }
 
     @Test
@@ -52,7 +52,7 @@ class CoverageLintTaskTest {
         directory.resolve("exceptions.txt").toFile().writeText("sample/Example.java | serverOnly(); | server constructor\n")
         val failure = assertThrows(GradleException::class.java) { task.lint() }
         val message: String? = failure.message
-        assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale", message)
+        assertEquals("0 lines are not fully covered by tests and 1 coverage exceptions are stale!", message)
     }
 
     @Test

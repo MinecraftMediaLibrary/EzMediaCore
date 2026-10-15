@@ -24,7 +24,7 @@ abstract class LogMessagesTask : JavaLintTask() {
 
     private companion object {
         const val CONCATENATED_MESSAGE =
-            "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead"
+            "{}:{}: error: the message of {} joins strings with +; use SLF4J placeholders for the arguments instead."
     }
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit) {
@@ -37,7 +37,7 @@ abstract class LogMessagesTask : JavaLintTask() {
 
     override fun diagnosticMessage(): String = CONCATENATED_MESSAGE
 
-    override fun failureMessage(count: Int): String = "$count log calls with a concatenated message"
+    override fun failureMessage(count: Int): String = "Found $count log calls with a concatenated message!"
 
     override fun successMessage(fileCount: Int): String = "no log call with a concatenated message in $fileCount files\n"
 }

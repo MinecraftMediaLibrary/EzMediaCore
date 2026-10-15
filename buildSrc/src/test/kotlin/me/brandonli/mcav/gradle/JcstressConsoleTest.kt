@@ -63,7 +63,7 @@ class JcstressConsoleTest {
         val failure = assertThrows(GradleException::class.java) { JcstressConsole.checkNoneSkipped(console) }
         val message: String? = failure.message
         assertEquals(
-            "jcstress skipped 1 test(s), which failed their sanity check and never ran: " +
+            "jcstress skipped 1 tests that failed their sanity check and never ran!\n" +
                 "me.brandonli.mcav.bukkit.media.mcv2.KeyframeRequestRace",
             message,
         )

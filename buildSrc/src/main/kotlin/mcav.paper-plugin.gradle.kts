@@ -229,7 +229,8 @@ tasks.register<Test>("e2eTest") {
     val usesThisBuild = endToEnd
     doFirst {
         if (!usesThisBuild) {
-            throw GradleException("Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build")
+            val message = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
+            throw GradleException(message)
         }
         systemProperty("mcav.e2e.pluginJar", pluginJar.get().asFile.absolutePath)
         systemProperty("mcav.e2e.java", launcher.get().executablePath.asFile.absolutePath)

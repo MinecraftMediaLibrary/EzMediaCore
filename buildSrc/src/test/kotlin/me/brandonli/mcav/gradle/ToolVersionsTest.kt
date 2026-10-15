@@ -37,7 +37,7 @@ class ToolVersionsTest {
             ToolVersions.verify(RecordedProcesses("uv 0.12.22\n").operations, File("uv"), "uv", "0.12.23")
         }
         val message: String? = failure.message
-        assertEquals("uv must be uv 0.12.23, but it is uv 0.12.22", message)
+        assertEquals("uv reports uv 0.12.22, which is not the uv 0.12.23 this build pins!", message)
     }
 
     @Test
@@ -54,7 +54,8 @@ class ToolVersionsTest {
                 ToolVersions.verify(RecordedProcesses(reported).operations, "clang-format", "clang-format", "18.1.8", prefix)
             }.message
         }
-        val expected: Map<String, String?> = reports.associateWith { "clang-format must be clang-format 18.1.8, but it is $it" }
+        val expected: Map<String, String?> =
+            reports.associateWith { "clang-format reports $it, which is not the clang-format 18.1.8 this build pins!" }
         assertEquals(expected, messages)
     }
 
@@ -71,7 +72,7 @@ class ToolVersionsTest {
                 ToolVersions.verify(RecordedProcesses(reported).operations, File("zig"), "zig", "0.16.0", prefix = "", argument = "version")
             }.message
         }
-        val expected: Map<String, String?> = reports.associateWith { "zig must be zig 0.16.0, but it is $it" }
+        val expected: Map<String, String?> = reports.associateWith { "zig reports $it, which is not the zig 0.16.0 this build pins!" }
         assertEquals(expected, messages)
     }
 }

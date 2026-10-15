@@ -48,9 +48,9 @@ class CoverageReportTest {
 
         val gaps = CoverageReport.findGaps(report, directory.toFile(), emptyList())
         assertEquals(listOf(
-            "$source:1: warning: line is not covered by any test",
-            "$source:2: warning: 1 of 2 branches are not covered by any test",
-            "$source:3: warning: 2 of 6 instructions on this line are not covered by any test"
+            "$source:1: warning: line is not covered by any test.",
+            "$source:2: warning: 1 of 2 branches are not covered by any test.",
+            "$source:3: warning: 2 of 6 instructions on this line are not covered by any test."
         ), gaps)
     }
 
@@ -72,7 +72,7 @@ class CoverageReportTest {
         val wrongPath = CoverageException("other/Example.java", "serverOnly();", "different source")
 
         val gaps = CoverageReport.findGaps(report, directory.toFile(), listOf(matching, stale, wrongPath))
-        assertEquals(listOf("$source:2: warning: line is not covered by any test"), gaps)
+        assertEquals(listOf("$source:2: warning: line is not covered by any test."), gaps)
 
         val matchingUsed: Boolean = matching.used
         assertTrue(matchingUsed)
@@ -97,7 +97,7 @@ class CoverageReportTest {
 
         sources.resolve("Example.java").writeText("class Example {}\n")
         val withSources: List<String> = CoverageReport.findGaps(report, sources, emptyList())
-        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered"), withSources)
+        assertEquals(listOf("$sources: warning: no test ran, so none of this code is covered."), withSources)
     }
 
     @Test

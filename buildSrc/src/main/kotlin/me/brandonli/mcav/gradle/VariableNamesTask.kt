@@ -25,7 +25,7 @@ import org.gradle.api.tasks.Input
 abstract class VariableNamesTask : JavaLintTask() {
 
     private companion object {
-        const val UNDESCRIPTIVE = "{}:{}: error: the {} {} says nothing; name what it holds"
+        const val UNDESCRIPTIVE = "{}:{}: error: the {} {} says nothing; name what it holds."
     }
 
     @get:Input
@@ -42,7 +42,7 @@ abstract class VariableNamesTask : JavaLintTask() {
 
     override fun diagnosticMessage(): String = UNDESCRIPTIVE
 
-    override fun failureMessage(count: Int): String = "$count undescriptive variable names"
+    override fun failureMessage(count: Int): String = "Found $count undescriptive variable names!"
 
     override fun successMessage(fileCount: Int): String = "no undescriptive variable name in $fileCount files\n"
 }

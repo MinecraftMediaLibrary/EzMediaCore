@@ -58,17 +58,17 @@ class JavaLintTaskTest {
             Triple(
                 project.tasks.register("logs", LogMessagesTask::class.java).get(),
                 "final class Example { void run() { logger.info(\"joined \" + name); logger.error(\"joined \" + name); } }",
-                "2 log calls with a concatenated message"
+                "Found 2 log calls with a concatenated message!"
             ),
             Triple(
                 project.tasks.register("qualified", QualifiedNamesTask::class.java).get(),
                 "final class Example { java.time.Instant first; java.time.Instant second; }",
-                "2 fully qualified type names in Java code"
+                "Found 2 fully qualified type names in Java code!"
             ),
             Triple(
                 project.tasks.register("variables", VariableNamesTask::class.java).get(),
                 "final class Example { int x; int y; }",
-                "2 undescriptive variable names"
+                "Found 2 undescriptive variable names!"
             )
         )
         val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) ->
@@ -95,6 +95,6 @@ class JavaLintTaskTest {
         task.publishedNames.set(setOf("me.example.Example#x"))
         val failure = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message
-        assertEquals("1 undescriptive variable names", message)
+        assertEquals("Found 1 undescriptive variable names!", message)
     }
 }

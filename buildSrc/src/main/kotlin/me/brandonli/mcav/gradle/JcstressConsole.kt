@@ -25,7 +25,6 @@ import org.gradle.api.GradleException
 
 object JcstressConsole {
 
-    private const val SKIPPED_MESSAGE = "jcstress skipped %d test(s), which failed their sanity check and never ran: %s"
 
     private val skippedLine = Regex("""\[SKIPPED]\s+(\S+)""")
 
@@ -37,7 +36,9 @@ object JcstressConsole {
     fun checkNoneSkipped(console: File) {
         val skipped = skippedTests(console.readLines())
         if (skipped.isNotEmpty()) {
-            throw GradleException(SKIPPED_MESSAGE.format(skipped.size, skipped.joinToString(", ")))
+            val message =
+                "jcstress skipped ${skipped.size} tests that failed their sanity check and never ran!\n${skipped.joinToString("\n")}"
+            throw GradleException(message)
         }
     }
 

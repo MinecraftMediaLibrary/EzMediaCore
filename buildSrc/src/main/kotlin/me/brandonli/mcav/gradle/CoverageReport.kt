@@ -41,7 +41,9 @@ object CoverageExceptions {
     private fun parse(file: File, entry: String): CoverageException {
         val first = entry.indexOf(SEPARATOR)
         val last = entry.lastIndexOf(SEPARATOR)
-        require(first >= 0 && last >= first + SEPARATOR.length) { "$file: expected 'path | source line | reason' but found '$entry'" }
+        require(first >= 0 && last >= first + SEPARATOR.length) {
+            "Coverage exception '$entry' in $file must read 'path | source line | reason'!"
+        }
         val path = entry.substring(0, first)
         val sourceLine = entry.substring(first + SEPARATOR.length, last)
         val reason = entry.substring(last + SEPARATOR.length)
@@ -56,7 +58,7 @@ object CoverageReport {
     fun findGaps(report: File, sourceDirectory: File, exceptions: List<CoverageException>): List<String> {
         if (!report.isFile) {
             val hasSources = sourceDirectory.isDirectory && sourceDirectory.walk().any { it.extension == "java" }
-            return if (hasSources) listOf("$sourceDirectory: warning: no test ran, so none of this code is covered") else emptyList()
+            return if (hasSources) listOf("$sourceDirectory: warning: no test ran, so none of this code is covered.") else emptyList()
         }
         val factory = DocumentBuilderFactory.newInstance()
         factory.setFeature(LOAD_EXTERNAL_DTD, false)
@@ -84,7 +86,7 @@ object CoverageReport {
             val text = sourceLines.getOrNull(number - 1)?.trim() ?: ""
             val exception = exceptions.firstOrNull { !it.used && it.path == relativePath && it.sourceLine == text }
             if (exception == null) {
-                gaps += "$file:$number: warning: $gap"
+                gaps += "$file:$number: warning: $gap."
             } else {
                 exception.used = true
             }

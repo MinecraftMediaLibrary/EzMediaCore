@@ -61,7 +61,10 @@ class DownloadToolArchiveTest {
         task.sha256.set(expected)
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
-        assertEquals("SHA-256 mismatch for ${task.archiveUrl.get()}: expected $expected, got $actual; archive was not installed", message)
+        assertEquals(
+            "Tool archive ${task.archiveUrl.get()} has SHA-256 $actual instead of the pinned $expected, so it was not installed!",
+            message
+        )
 
         val content: String = installed.readText()
         assertEquals("previous verified tool\n", content)
@@ -76,7 +79,7 @@ class DownloadToolArchiveTest {
         task.sha256.set("missing")
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
-        assertEquals("Invalid pinned SHA-256 for ${task.archiveUrl.get()}: expected 64 lowercase hexadecimal digits", message)
+        assertEquals("Pinned SHA-256 of ${task.archiveUrl.get()} must be 64 lowercase hexadecimal digits!", message)
 
         val installed: Boolean = directory.resolve("installed").toFile().exists()
         assertFalse(installed)
@@ -87,8 +90,8 @@ class DownloadToolArchiveTest {
         val task = zippedTool()
         task.archiveUrl.set(directory.resolve("missing.zip").toUri().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
-        val named: Boolean = failure.message!!.startsWith("Could not download tool archive from ${task.archiveUrl.get()}:")
-        assertTrue(named)
+        val message: String? = failure.message
+        assertEquals("Tool archive ${task.archiveUrl.get()} could not be downloaded!", message)
 
         val installed: Boolean = directory.resolve("installed").toFile().exists()
         assertFalse(installed)
@@ -100,7 +103,7 @@ class DownloadToolArchiveTest {
         task.executablePath.set("missing")
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
-        assertEquals("Tool archive ${task.archiveUrl.get()} does not contain missing", message)
+        assertEquals("Tool archive ${task.archiveUrl.get()} must contain missing to be installed!", message)
     }
 
     @Test
@@ -111,7 +114,7 @@ class DownloadToolArchiveTest {
         task.archiveUrl.set(archive.toURI().toString())
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
-        assertEquals("Unsupported tool archive format: ${task.archiveUrl.get()} (expected .zip, .tar.gz or .tar.xz)", message)
+        assertEquals("Tool archive ${task.archiveUrl.get()} must be a .zip, .tar.gz or .tar.xz file!", message)
 
         val installed: Boolean = directory.resolve("installed").toFile().exists()
         assertFalse(installed)

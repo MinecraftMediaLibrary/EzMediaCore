@@ -76,8 +76,8 @@ class PythonEnvironmentTest {
         val failure = assertThrows(GradleException::class.java) { task.install() }
         val message: String? = failure.message
         assertEquals(
-            "${directory.resolve("requirements.lock")} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml; " +
-                "run ./gradlew :lockPythonRequirements",
+            "${directory.resolve("requirements.lock")} does not pin numpy==2.5.3, pytest==9.1.1 of gradle/libs.versions.toml, " +
+                "so run ./gradlew :lockPythonRequirements to write it!",
             message
         )
 

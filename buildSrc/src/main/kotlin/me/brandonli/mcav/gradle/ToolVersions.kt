@@ -40,7 +40,8 @@ object ToolVersions {
         val reported = output.toString(Charsets.UTF_8).trim()
         val actual = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(1)
         if (actual != expected) {
-            throw GradleException("$executable must be $tool $expected, but it is $reported")
+            val message = "$executable reports $reported, which is not the $tool $expected this build pins!"
+            throw GradleException(message)
         }
     }
 }

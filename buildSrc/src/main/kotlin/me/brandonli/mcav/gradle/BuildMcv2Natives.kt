@@ -191,7 +191,8 @@ abstract class BuildMcv2Natives : DefaultTask() {
                     try {
                         result.get()
                     } catch (failure: ExecutionException) {
-                        throw GradleException("Zig could not build MCV2's natives", failure.cause)
+                        val message = "Zig could not build MCV2's natives!"
+                        throw GradleException(message, failure.cause)
                     }
                 }
             } finally {

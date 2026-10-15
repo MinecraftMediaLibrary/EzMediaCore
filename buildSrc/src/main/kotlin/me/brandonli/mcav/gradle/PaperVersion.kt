@@ -25,7 +25,7 @@ internal data class PaperVersion(val minecraft: String, val build: Int) {
 
     companion object {
         fun parse(version: String): PaperVersion {
-            val message = "Paper version must name a build, but it is $version"
+            val message = "Paper version $version must name a build!"
             val match = Regex("(.+)\\.build\\.([0-9]+)(?:-.+)?").matchEntire(version) ?: throw GradleException(message)
             val build = match.groupValues[2].toIntOrNull() ?: throw GradleException(message)
             return PaperVersion(match.groupValues[1], build)
