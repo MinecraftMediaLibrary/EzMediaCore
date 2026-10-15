@@ -65,7 +65,7 @@ public final class VncInputExample {
     });
     final VideoPipelineStep pipeline = builder.build();
 
-    final VncSource.Builder sourceBuilder = VncSource.builder();
+    final VncSourceBuilder sourceBuilder = VncSource.builder();
     sourceBuilder.host("localhost");
     sourceBuilder.port(5900);
     sourceBuilder.screenWidth(WIDTH);

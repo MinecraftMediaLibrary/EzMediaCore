@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Tag;
 
 /**
  * Fuzzes the connection settings of a VNC source, which the sandbox builds from what an operator types: every setting
- * is either refused as {@link VncSource.Builder} documents or ends up in the source exactly as given, two sources of the
+ * is either refused as {@link VncSourceBuilder} documents or ends up in the source exactly as given, two sources of the
  * same settings are equal with the same hash, and the source names its host and port. This is not RFB coverage: the
  * protocol is read by {@code com.shinyhut:vernacular} behind mcav's {@link RfbGuard}, which {@link RfbGuardFuzzTest}
  * fuzzes, and the frames a server sends are converted by the code {@code BufferedImageConversionFuzzTest} in mcav-common
@@ -90,7 +90,7 @@ final class VncSourceFuzzTest {
     final int height,
     final int frameRate
   ) {
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host(host);
     builder.port(port);
     builder.username(username);

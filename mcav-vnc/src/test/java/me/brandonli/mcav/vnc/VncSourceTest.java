@@ -42,8 +42,8 @@ final class VncSourceTest {
 
   private static final int FRAME_RATE = 24;
 
-  private VncSource.Builder fullBuilder() {
-    final VncSource.Builder builder = VncSource.builder();
+  private VncSourceBuilder fullBuilder() {
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host(HOST);
     builder.port(PORT);
     builder.username("user");
@@ -54,8 +54,8 @@ final class VncSourceTest {
     return builder;
   }
 
-  private VncSource build(final Consumer<VncSource.Builder> change) {
-    final VncSource.Builder builder = this.fullBuilder();
+  private VncSource build(final Consumer<VncSourceBuilder> change) {
+    final VncSourceBuilder builder = this.fullBuilder();
     change.accept(builder);
     return builder.build();
   }
@@ -64,7 +64,7 @@ final class VncSourceTest {
   void shouldAvoidAConstantHashAcrossRepresentativeSourceKeys() {
     final Set<Integer> hashes = new HashSet<>();
     for (int index = 0; index < 64; index++) {
-      final VncSource.Builder builder = this.fullBuilder();
+      final VncSourceBuilder builder = this.fullBuilder();
       builder.host("desktop-" + index + ".example.org");
       builder.port(PORT + index);
       builder.screenWidth(WIDTH + index * 16);
@@ -78,7 +78,7 @@ final class VncSourceTest {
 
   @Test
   void shouldBuildSourcesWithEverySetting() {
-    final VncSource.Builder builder = this.fullBuilder();
+    final VncSourceBuilder builder = this.fullBuilder();
     final VncSource source = builder.build();
     final String host = source.getHost();
     final int port = source.getPort();
@@ -98,7 +98,7 @@ final class VncSourceTest {
 
   @Test
   void shouldUseTheDefaultPortFrameRateAndRemoteSize() {
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host("localhost");
     final VncSource source = builder.build();
     final int port = source.getPort();
@@ -118,7 +118,7 @@ final class VncSourceTest {
 
   @Test
   void shouldDescribeTheServerAsAVncUri() {
-    final VncSource.Builder builder = this.fullBuilder();
+    final VncSourceBuilder builder = this.fullBuilder();
     final VncSource source = builder.build();
     final String resource = source.getResource();
     final String name = source.getName();
@@ -130,15 +130,15 @@ final class VncSourceTest {
 
   @Test
   void shouldAcceptTheLimitsOfEveryRange() {
-    final VncSource.Builder builder = VncSource.builder();
-    final VncSource.Builder hostResult = builder.host("h");
-    final VncSource.Builder lowPort = builder.port(1);
-    final VncSource.Builder highPort = builder.port(65535);
-    final VncSource.Builder width = builder.screenWidth(0);
-    final VncSource.Builder height = builder.screenHeight(0);
-    final VncSource.Builder frameRate = builder.targetFrameRate(1);
-    final VncSource.Builder username = builder.username("");
-    final VncSource.Builder password = builder.password("");
+    final VncSourceBuilder builder = VncSource.builder();
+    final VncSourceBuilder hostResult = builder.host("h");
+    final VncSourceBuilder lowPort = builder.port(1);
+    final VncSourceBuilder highPort = builder.port(65535);
+    final VncSourceBuilder width = builder.screenWidth(0);
+    final VncSourceBuilder height = builder.screenHeight(0);
+    final VncSourceBuilder frameRate = builder.targetFrameRate(1);
+    final VncSourceBuilder username = builder.username("");
+    final VncSourceBuilder password = builder.password("");
     assertSame(builder, hostResult);
     assertSame(builder, lowPort);
     assertSame(builder, highPort);
@@ -154,7 +154,7 @@ final class VncSourceTest {
 
   @Test
   void shouldRejectInvalidSettings() {
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     assertThrows(NullPointerException.class, () -> builder.host(null));
     assertThrows(IllegalArgumentException.class, () -> builder.host(" "));
     assertThrows(IllegalArgumentException.class, () -> builder.port(0));
@@ -168,16 +168,16 @@ final class VncSourceTest {
 
   @Test
   void shouldRequireAHost() {
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.port(PORT);
     assertThrows(IllegalStateException.class, builder::build);
   }
 
   @Test
   void shouldCompareEverySetting() {
-    final VncSource.Builder sourceBuilder = this.fullBuilder();
+    final VncSourceBuilder sourceBuilder = this.fullBuilder();
     final VncSource source = sourceBuilder.build();
-    final VncSource.Builder equalBuilder = this.fullBuilder();
+    final VncSourceBuilder equalBuilder = this.fullBuilder();
     final VncSource equal = equalBuilder.build();
     final VncSource otherHost = this.build(builder -> builder.host("example.com"));
     final VncSource otherPort = this.build(builder -> builder.port(5902));
@@ -186,7 +186,7 @@ final class VncSourceTest {
     final VncSource otherWidth = this.build(builder -> builder.screenWidth(320));
     final VncSource otherHeight = this.build(builder -> builder.screenHeight(240));
     final VncSource otherFrameRate = this.build(builder -> builder.targetFrameRate(60));
-    final VncSource.Builder anonymousBuilder = VncSource.builder();
+    final VncSourceBuilder anonymousBuilder = VncSource.builder();
     anonymousBuilder.host(HOST);
     anonymousBuilder.port(PORT);
     anonymousBuilder.screenWidth(WIDTH);

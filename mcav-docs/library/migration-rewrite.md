@@ -221,7 +221,7 @@ recompile, while implementation subclasses may also be affected by the new final
 ## Virtual machines and VNC
 
 Replace `VMPlayer.vm()` with `VMPlayer.create()` and `VNCPlayer.vm()` with `VncPlayer.create()`. Replace
-`VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSource.Builder`, rather than
+`VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSourceBuilder`, rather than
 `VNCSourceImpl.Builder`. Custom players must implement `isPlaying`; the VM player also exposes an audio callback.
 
 Types of `mcav-vnc` whose names held an upper-case acronym now case it as a word, and implementation classes are

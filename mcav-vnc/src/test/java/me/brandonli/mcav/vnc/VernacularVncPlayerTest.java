@@ -226,24 +226,24 @@ final class VernacularVncPlayerTest {
     return false;
   }
 
-  private VncSource.Builder hostBuilder(final int port) {
-    final VncSource.Builder builder = VncSource.builder();
+  private VncSourceBuilder hostBuilder(final int port) {
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host("127.0.0.1");
     builder.port(port);
     return builder;
   }
 
-  private VncSource.Builder hostBuilder(final ServerSocket socket) {
+  private VncSourceBuilder hostBuilder(final ServerSocket socket) {
     final int port = socket.getLocalPort();
     return this.hostBuilder(port);
   }
 
-  private VncSource.Builder hostBuilder(final RfbTestServer server) {
+  private VncSourceBuilder hostBuilder(final RfbTestServer server) {
     final int port = server.getPort();
     return this.hostBuilder(port);
   }
 
-  private VncSource source(final VncSource.Builder builder, final int width, final int height) {
+  private VncSource source(final VncSourceBuilder builder, final int width, final int height) {
     builder.screenWidth(width);
     builder.screenHeight(height);
     builder.targetFrameRate(50);
@@ -251,12 +251,12 @@ final class VernacularVncPlayerTest {
   }
 
   private VncSource source(final ServerSocket socket, final int width, final int height) {
-    final VncSource.Builder builder = this.hostBuilder(socket);
+    final VncSourceBuilder builder = this.hostBuilder(socket);
     return this.source(builder, width, height);
   }
 
   private VncSource source(final RfbTestServer server, final int width, final int height) {
-    final VncSource.Builder builder = this.hostBuilder(server);
+    final VncSourceBuilder builder = this.hostBuilder(server);
     return this.source(builder, width, height);
   }
 
@@ -516,7 +516,7 @@ final class VernacularVncPlayerTest {
   void shouldAuthenticateWithThePassword() {
     final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, PASSWORD);
     final VernacularVncPlayer player = this.player();
-    final VncSource.Builder builder = this.hostBuilder(server);
+    final VncSourceBuilder builder = this.hostBuilder(server);
     builder.username("user");
     builder.password(PASSWORD);
     final VncSource source = builder.build();
@@ -531,7 +531,7 @@ final class VernacularVncPlayerTest {
   void shouldFailToStartWhenThePasswordIsRejected() {
     final RfbTestServer server = this.server(RfbTestServer.Security.PASSWORD, PASSWORD);
     final VernacularVncPlayer player = this.player();
-    final VncSource.Builder builder = this.hostBuilder(server);
+    final VncSourceBuilder builder = this.hostBuilder(server);
     builder.password("wrong");
     final VncSource source = builder.build();
     final PlayerException exception = assertThrows(PlayerException.class, () -> player.start(source));
@@ -792,7 +792,7 @@ final class VernacularVncPlayerTest {
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
     final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
-    final VncSource.Builder builder = this.hostBuilder(listening);
+    final VncSourceBuilder builder = this.hostBuilder(listening);
     builder.username("user");
     builder.password(PASSWORD);
     builder.targetFrameRate(12);
@@ -835,7 +835,7 @@ final class VernacularVncPlayerTest {
     final VernacularClient client = mock(VernacularClient.class);
     final AtomicReference<VernacularConfig> capturedConfiguration = new AtomicReference<>();
     final VernacularVncPlayer player = this.mockedPlayer(client, capturedConfiguration);
-    final VncSource.Builder builder = this.hostBuilder(listening);
+    final VncSourceBuilder builder = this.hostBuilder(listening);
     builder.username("");
     builder.password("");
     final VncSource source = builder.build();

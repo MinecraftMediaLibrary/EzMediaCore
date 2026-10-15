@@ -32,6 +32,7 @@ import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vnc.VncPlayer;
 import me.brandonli.mcav.vnc.VncSource;
+import me.brandonli.mcav.vnc.VncSourceBuilder;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -245,7 +246,7 @@ public final class VncCommand extends AbstractInteractiveCommand<VncPlayer> {
    * @return the source
    */
   static VncSource createSource(final VncAllowList.Entry entry, final Pair<Integer, Integer> resolution, final int targetFps) {
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host(entry.host());
     builder.port(entry.port());
     final String password = entry.password();

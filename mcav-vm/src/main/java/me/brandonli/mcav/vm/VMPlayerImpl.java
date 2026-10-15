@@ -36,6 +36,7 @@ import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 import me.brandonli.mcav.vnc.VncPlayer;
 import me.brandonli.mcav.vnc.VncSource;
+import me.brandonli.mcav.vnc.VncSourceBuilder;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -283,7 +284,7 @@ public final class VMPlayerImpl implements VMPlayer {
     final int width = settings.getWidth();
     final int height = settings.getHeight();
     final int frameRate = settings.getTargetFps();
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host("127.0.0.1");
     builder.port(port);
     builder.screenWidth(width);

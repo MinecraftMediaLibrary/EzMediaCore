@@ -25,7 +25,7 @@ filter is yours and shows the frames; release the returned player to disconnect.
   public static VncPlayer streamLocalDesktop(final VideoFilter display) {
     final VideoPipelineStep pipeline = VideoPipelineStep.of(display);
 
-    final VncSource.Builder builder = VncSource.builder();
+    final VncSourceBuilder builder = VncSource.builder();
     builder.host("localhost");
     builder.port(5900);
     final String password = System.getenv("VNC_PASSWORD");
