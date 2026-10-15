@@ -17,7 +17,8 @@
  */
 
 import com.github.gradle.node.NodeExtension
-import me.brandonli.mcav.gradle.isWindows
+import me.brandonli.mcav.gradle.HostPlatform
+import me.brandonli.mcav.gradle.NodeLayout
 
 plugins {
     id("mcav.mutation")
@@ -25,7 +26,8 @@ plugins {
 
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
-val testNode = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
+val host = HostPlatform.current()
+val testNode = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 tasks.withType<Test>().configureEach {
     dependsOn(nodeSetup)

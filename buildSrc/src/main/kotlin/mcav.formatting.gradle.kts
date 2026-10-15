@@ -17,7 +17,8 @@
  */
 
 import com.github.gradle.node.NodeExtension
-import me.brandonli.mcav.gradle.isWindows
+import me.brandonli.mcav.gradle.HostPlatform
+import me.brandonli.mcav.gradle.NodeLayout
 import me.brandonli.mcav.gradle.libs
 import me.brandonli.mcav.gradle.versionOf
 
@@ -28,7 +29,8 @@ plugins {
 
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
-val nodeExecutable = node.resolvedNodeDir.map { it.file(if (isWindows) "node.exe" else "bin/node").asFile }
+val host = HostPlatform.current()
+val nodeExecutable = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 spotless {
     java {
