@@ -17,6 +17,7 @@
  */
 
 import me.brandonli.mcav.gradle.ExclusiveResource
+import me.brandonli.mcav.gradle.FuzzTargets
 import me.brandonli.mcav.gradle.bundleOf
 import me.brandonli.mcav.gradle.javaExecutable
 import me.brandonli.mcav.gradle.libraryOf
@@ -86,35 +87,46 @@ val propertyTest = tasks.register<Test>("propertyTest") {
     systemProperty("jqwik.tries.default", propertyTries)
 }
 
-val fuzzTest = tasks.register<Test>("fuzzTest") {
-    group = "verification"
-    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test with -Pfuzz.seconds=<n>"
+val fuzzInputs = layout.projectDirectory.dir("src/test/resources")
+val fuzzing = fuzzSeconds > 0
+val fuzzTargets = if (fuzzing) FuzzTargets.find(testSourceSet.java.srcDirs) else emptyList()
+val fuzzTaskNames = fuzzTargets.map { it.taskName() }.toSet() + "fuzzTest"
+
+tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
     testClassesDirs = testSourceSet.output.classesDirs
     classpath = testSourceSet.runtimeClasspath
     useJUnitPlatform {
         includeTags("fuzz")
     }
     include("**/*FuzzTest.class")
-    inputs.files(layout.projectDirectory.dir("src/test/resources"))
+    inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.property("fuzzSeconds", fuzzSeconds)
-    outputs.dir(layout.buildDirectory.dir("jazzer")).withPropertyName("jazzerDirectory")
-    val replaysOnly = fuzzSeconds == 0
-    outputs.cacheIf("only the replay of the committed inputs is deterministic") { replaysOnly }
-    systemProperty("jazzer.internal.basedir", "build/jazzer")
+    outputs.dir(layout.buildDirectory.dir("jazzer/$name")).withPropertyName("jazzerDirectory")
+    systemProperty("jazzer.internal.basedir", "build/jazzer/$name")
     systemProperty("junit.jupiter.execution.timeout.testtemplate.method.default", "30s")
     maxHeapSize = "1g"
-    if (fuzzSeconds > 0) {
+}
+
+val fuzzTasks = fuzzTargets.map { target ->
+    tasks.register<Test>(target.taskName()) {
+        group = "verification"
+        description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
+        filter.includeTestsMatching(target.filterPattern())
         environment("JAZZER_FUZZ", "1")
         systemProperty("jazzer.max_duration", "${fuzzSeconds}s")
         systemProperty("junit.jupiter.execution.timeout.mode", "disabled")
-        forkEvery = 1
         outputs.upToDateWhen { false }
         testLogging {
             events("started", "failed", "skipped")
         }
     }
+}
+
+val fuzzTest = tasks.register<Test>("fuzzTest") {
+    group = "verification"
+    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
+    dependsOn(fuzzTasks)
 }
 
 tasks.check {

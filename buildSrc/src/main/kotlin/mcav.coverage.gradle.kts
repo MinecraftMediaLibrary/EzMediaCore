@@ -63,7 +63,7 @@ val coverageLint = tasks.register<CoverageLintTask>("coverageLint") {
     projectPath = project.path
 }
 
-tasks.withType<Test>().named { it == "propertyTest" || it == "fuzzTest" }.configureEach {
+tasks.withType<Test>().named { it == "propertyTest" || it.startsWith("fuzz") }.configureEach {
     extensions.configure<JacocoTaskExtension> {
         isEnabled = false
     }
