@@ -61,12 +61,12 @@ val catalogVersions: Provider<Directory> = layout.buildDirectory.dir(catalogVers
 val jacocoVersion: Provider<String> = libs.versions.jacoco
 val repositoryHeader: RegularFile = layout.projectDirectory.file(repositoryHeaderPath)
 val generateCatalogVersions: TaskProvider<Task> = tasks.register("generateCatalogVersions") {
-    group = "build"
-    description = "Writes the catalog versions the plugins of this build need outside the main build"
-    inputs.property("jacoco", jacocoVersion)
-    inputs.file(repositoryHeader)
-    outputs.dir(catalogVersions)
-    doLast {
+    this.group = "build"
+    this.description = "Writes the catalog versions the plugins of this build need outside the main build"
+    this.inputs.property("jacoco", jacocoVersion)
+    this.inputs.file(repositoryHeader)
+    this.outputs.dir(catalogVersions)
+    this.doLast {
         val file: File = catalogVersions.get().file(catalogVersionsFile).asFile
         file.parentFile.mkdirs()
         file.writeText(
@@ -94,52 +94,52 @@ val buildClasses: FileTree = sourceSets.main.get().output.classesDirs.asFileTree
 }
 
 tasks.test {
-    useJUnitPlatform {
-        excludeTags(fuzzTag)
+    this.useJUnitPlatform {
+        this.excludeTags(fuzzTag)
     }
 }
 
 // one fuzz test method per class: forkEvery gives each class, and so each method, the JVM of its own that Jazzer needs
 val fuzzTest: TaskProvider<Test> = tasks.register<Test>("fuzzTest") {
-    group = "verification"
-    description = "Replays the committed fuzz inputs of buildSrc, and fuzzes every fuzz test class with -Pfuzz.seconds=<n>"
-    testClassesDirs = testSourceSet.output.classesDirs
-    classpath = testSourceSet.runtimeClasspath
-    useJUnitPlatform {
-        includeTags(fuzzTag)
+    this.group = "verification"
+    this.description = "Replays the committed fuzz inputs of buildSrc, and fuzzes every fuzz test class with -Pfuzz.seconds=<n>"
+    this.testClassesDirs = testSourceSet.output.classesDirs
+    this.classpath = testSourceSet.runtimeClasspath
+    this.useJUnitPlatform {
+        this.includeTags(fuzzTag)
     }
-    forkEvery = 1
-    failOnNoDiscoveredTests = false
-    inputs.files(fuzzInputs)
+    this.forkEvery = 1
+    this.failOnNoDiscoveredTests = false
+    this.inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    systemProperty(jazzerBaseDirectoryProperty, jazzerBaseDirectoryPath)
+    this.systemProperty(jazzerBaseDirectoryProperty, jazzerBaseDirectoryPath)
     if (fuzzSeconds > 0) {
-        environment(jazzerFuzzVariable, enabledValue)
-        systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
-        outputs.upToDateWhen { false }
+        this.environment(jazzerFuzzVariable, enabledValue)
+        this.systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
+        this.outputs.upToDateWhen { false }
     }
 }
 
 tasks.jacocoTestReport {
-    classDirectories.setFrom(buildClasses)
-    reports {
-        xml.required = true
-        html.required = true
+    this.classDirectories.setFrom(buildClasses)
+    this.reports {
+        this.xml.required = true
+        this.html.required = true
     }
 }
 
 tasks.jacocoTestCoverageVerification {
-    classDirectories.setFrom(buildClasses)
-    violationRules {
-        rule {
-            limit {
-                counter = "LINE"
-                minimum = fullCoverage.toBigDecimal()
+    this.classDirectories.setFrom(buildClasses)
+    this.violationRules {
+        this.rule {
+            this.limit {
+                this.counter = "LINE"
+                this.minimum = fullCoverage.toBigDecimal()
             }
-            limit {
-                counter = "BRANCH"
-                minimum = fullCoverage.toBigDecimal()
+            this.limit {
+                this.counter = "BRANCH"
+                this.minimum = fullCoverage.toBigDecimal()
             }
         }
     }
@@ -158,6 +158,6 @@ pitest {
 }
 
 tasks.check {
-    dependsOn(fuzzTest)
-    dependsOn(tasks.jacocoTestCoverageVerification)
+    this.dependsOn(fuzzTest)
+    this.dependsOn(tasks.jacocoTestCoverageVerification)
 }

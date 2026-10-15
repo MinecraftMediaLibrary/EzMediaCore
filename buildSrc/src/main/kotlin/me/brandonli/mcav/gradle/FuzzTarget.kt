@@ -43,7 +43,7 @@ class FuzzTarget(val className: String, val methodName: String) {
      * @return the pattern, the class name and the method name joined by a dot
      */
     fun filterPattern(): String {
-        return "$className$PACKAGE_SEPARATOR$methodName"
+        return "${this.className}$PACKAGE_SEPARATOR${this.methodName}"
     }
 
     /**

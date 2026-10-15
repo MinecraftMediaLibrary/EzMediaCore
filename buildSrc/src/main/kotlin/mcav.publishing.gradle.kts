@@ -51,11 +51,11 @@ java {
 }
 
 tasks.withType<Javadoc>().configureEach {
-    options.encoding = javadocEncoding
+    this.options.encoding = javadocEncoding
 }
 
 tasks.withType<GenerateModuleMetadata>().configureEach {
-    enabled = settings.gradleModuleMetadata.get()
+    this.enabled = settings.gradleModuleMetadata.get()
 }
 
 publishing {
@@ -111,12 +111,12 @@ afterEvaluate {
     val generatedPom: TaskProvider<GenerateMavenPom> = tasks.named<GenerateMavenPom>("generatePomFileForMavenPublication")
     val publishedPom: String = "-D$publishedPomProperty=" + generatedPom.get().destination.absolutePath
     tasks.named<Test>("test") {
-        dependsOn(generatedPom)
-        jvmArgs(publishedPom)
+        this.dependsOn(generatedPom)
+        this.jvmArgs(publishedPom)
     }
     pluginManager.withPlugin("info.solidsoft.pitest") {
         tasks.named("pitest") {
-            dependsOn(generatedPom)
+            this.dependsOn(generatedPom)
         }
     }
 }

@@ -60,20 +60,20 @@ class JupyterBookTest {
 
     abstract class RecordingBook : JupyterBook() {
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = recordedProcesses
+        override val processes: ExecOperations get() = this.recordedProcesses
     }
 
     @Test
     fun shouldGenerateTheConfigurationBeforeTheHtmlBuildAndLetOnlyHtmlLeaveTheTask(): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingBook = project.tasks.register(BOOK_DIRECTORY, RecordingBook::class.java).get()
-        val source: File = directory.resolve(SOURCE_DIRECTORY).toFile()
+        val source: File = this.directory.resolve(SOURCE_DIRECTORY).toFile()
         source.mkdirs()
         source.resolve(BOOK_CONFIG_FILE).writeText("title: Fixture book\n")
         source.resolve(SPHINX_CONFIG_FILE).writeText("html_title = 'Stale title'\n")
         task.sources.from(project.fileTree(source))
-        task.pythonExecutable.set(directory.resolve(MANAGED_PYTHON_DIRECTORY).toFile())
-        task.outputDirectory.set(directory.resolve(HTML_DIRECTORY).toFile())
+        task.pythonExecutable.set(this.directory.resolve(MANAGED_PYTHON_DIRECTORY).toFile())
+        task.outputDirectory.set(this.directory.resolve(HTML_DIRECTORY).toFile())
         val commands: MutableList<List<String>> = mutableListOf<List<String>>()
         val processes: ExecOperations = mock(ExecOperations::class.java)
         val expectedConfiguration: String = "html_title = 'Fixture book'\n"

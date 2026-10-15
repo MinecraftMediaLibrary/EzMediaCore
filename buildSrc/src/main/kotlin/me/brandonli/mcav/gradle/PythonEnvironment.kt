@@ -79,24 +79,25 @@ abstract class PythonEnvironment : DefaultTask() {
 
     fun executable(name: String): Provider<RegularFile> {
         val executablePath: String = HostPlatform.current().virtualEnvironmentExecutable(name)
-        return installationDirectory.file(VIRTUAL_ENVIRONMENT_DIRECTORY + PATH_SEPARATOR + executablePath)
+        return this.installationDirectory.file(VIRTUAL_ENVIRONMENT_DIRECTORY + PATH_SEPARATOR + executablePath)
     }
 
     @TaskAction
     fun install(): Unit {
-        val lock: File = requirements.get().asFile
-        val missing: List<String> = RequirementsLock.missingPins(lock.readText(), versions.get())
+        val lock: File = this.requirements.get().asFile
+        val missing: List<String> = RequirementsLock.missingPins(lock.readText(), this.versions.get())
         if (missing.isNotEmpty()) {
+            val lockTaskPath: String = this.lockTask.get()
             val message: String =
-                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew ${lockTask.get()} to write it!"
+                "$lock does not pin ${missing.joinToString()} of gradle/libs.versions.toml, so run ./gradlew $lockTaskPath to write it!"
             throw GradleException(message)
         }
-        val uv: File = uvExecutable.get().asFile
-        ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
-        val installation: File = installationDirectory.get().asFile
-        val environment: Map<String, String> = UvEnvironment.variables(installation, cacheDirectory.get().asFile)
+        val uv: File = this.uvExecutable.get().asFile
+        ToolVersions.verify(this.processes, uv, UV_TOOL, this.uvVersion.get())
+        val installation: File = this.installationDirectory.get().asFile
+        val environment: Map<String, String> = UvEnvironment.variables(installation, this.cacheDirectory.get().asFile)
         val virtualEnvironment: File = installation.resolve(VIRTUAL_ENVIRONMENT_DIRECTORY)
-        val python: String = pythonVersion.get()
+        val python: String = this.pythonVersion.get()
         val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable(PythonTask.PYTHON_EXECUTABLE)
         val virtualEnvironmentPython: File = virtualEnvironment.resolve(pythonPath)
         listOf(
@@ -105,9 +106,9 @@ abstract class PythonEnvironment : DefaultTask() {
             listOf("pip", "sync", "--python", virtualEnvironmentPython, "--require-hashes",
                 "--only-binary", ":all:", "--default-index", PACKAGE_INDEX, lock)
         ).forEach { arguments ->
-            processes.exec {
-                commandLine(listOf(uv) + arguments)
-                environment(environment)
+            this.processes.exec {
+                this.commandLine(listOf(uv) + arguments)
+                this.environment(environment)
             }
         }
     }

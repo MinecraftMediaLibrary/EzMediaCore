@@ -37,7 +37,7 @@ object JcstressConsole {
         lines.mapNotNull { line -> SKIPPED_LINE.find(line)?.groupValues?.get(TEST_GROUP) }.distinct()
 
     fun checkNoneSkipped(console: File): Unit {
-        val skipped: List<String> = skippedTests(console.readLines())
+        val skipped: List<String> = this.skippedTests(console.readLines())
         if (skipped.isNotEmpty()) {
             val names: String = skipped.joinToString(LINE_SEPARATOR)
             val message: String =

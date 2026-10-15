@@ -88,45 +88,45 @@ val quietMachine: Provider<ExclusiveResource> = gradle.sharedServices.registerIf
 }
 
 tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    failOnNoDiscoveredTests = false
-    maxHeapSize = testHeapSize
-    jvmArgs(
+    this.useJUnitPlatform()
+    this.failOnNoDiscoveredTests = false
+    this.maxHeapSize = testHeapSize
+    this.jvmArgs(
         "--enable-native-access=ALL-UNNAMED",
         "-XX:+EnableDynamicAgentLoading",
         "-Xshare:off",
         "--sun-misc-unsafe-memory-access=allow"
     )
-    systemProperty(networkTestsProperty, networkTests)
-    systemProperty(syncMeasurementProperty, syncMeasurement)
+    this.systemProperty(networkTestsProperty, networkTests)
+    this.systemProperty(syncMeasurementProperty, syncMeasurement)
     if (testJavaHome.isPresent) {
-        executable = HostPlatform.current().javaExecutable(testJavaHome.get())
+        this.executable = HostPlatform.current().javaExecutable(testJavaHome.get())
     }
-    systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
-    systemProperty(jqwikFailuresProperty, previousSeed)
+    this.systemProperty(jqwikDatabaseProperty, "$jqwikDatabasePath-$name")
+    this.systemProperty(jqwikFailuresProperty, previousSeed)
     if (measuresSync) {
-        usesService(quietMachine)
+        this.usesService(quietMachine)
     }
 }
 
 tasks.test {
-    useJUnitPlatform {
-        excludeTags(fuzzTag)
+    this.useJUnitPlatform {
+        this.excludeTags(fuzzTag)
     }
-    systemProperty(jqwikTriesProperty, propertySmokeTries)
-    maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / processorsPerFork).coerceAtLeast(1)
-    systemProperty(jqwikDatabaseProperty, noDatabase)
+    this.systemProperty(jqwikTriesProperty, propertySmokeTries)
+    this.maxParallelForks = if (measuresSync) 1 else (Runtime.getRuntime().availableProcessors() / processorsPerFork).coerceAtLeast(1)
+    this.systemProperty(jqwikDatabaseProperty, noDatabase)
 }
 
 val propertyTest: TaskProvider<Test> = tasks.register<Test>("propertyTest") {
-    group = "verification"
-    description = "Runs the jqwik property tests of this module"
-    testClassesDirs = testSourceSet.output.classesDirs
-    classpath = testSourceSet.runtimeClasspath
-    useJUnitPlatform {
-        includeEngines(jqwikEngine)
+    this.group = "verification"
+    this.description = "Runs the jqwik property tests of this module"
+    this.testClassesDirs = testSourceSet.output.classesDirs
+    this.classpath = testSourceSet.runtimeClasspath
+    this.useJUnitPlatform {
+        this.includeEngines(jqwikEngine)
     }
-    systemProperty(jqwikTriesProperty, propertyTries)
+    this.systemProperty(jqwikTriesProperty, propertyTries)
 }
 
 val fuzzInputs: Directory = layout.projectDirectory.dir(fuzzInputsPath)
@@ -135,42 +135,42 @@ val fuzzTargets: List<FuzzTarget> = if (fuzzing) FuzzTargets.find(testSourceSet.
 val fuzzTaskNames: Set<String> = fuzzTargets.map { it.taskName() }.toSet() + fuzzTestName
 
 tasks.withType<Test>().matching { it.name in fuzzTaskNames }.configureEach {
-    testClassesDirs = testSourceSet.output.classesDirs
-    classpath = testSourceSet.runtimeClasspath
-    useJUnitPlatform {
-        includeTags(fuzzTag)
+    this.testClassesDirs = testSourceSet.output.classesDirs
+    this.classpath = testSourceSet.runtimeClasspath
+    this.useJUnitPlatform {
+        this.includeTags(fuzzTag)
     }
-    include(fuzzTestClasses)
-    inputs.files(fuzzInputs)
+    this.include(fuzzTestClasses)
+    this.inputs.files(fuzzInputs)
         .withPropertyName("fuzzInputs")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    outputs.dir(layout.buildDirectory.dir("$jazzerPath/$name")).withPropertyName("jazzerDirectory")
-    systemProperty(jazzerBaseDirectoryProperty, "$jazzerBaseDirectoryPath/$name")
-    systemProperty(testTemplateTimeoutProperty, replayTimeout)
-    maxHeapSize = fuzzHeapSize
+    this.outputs.dir(layout.buildDirectory.dir("$jazzerPath/$name")).withPropertyName("jazzerDirectory")
+    this.systemProperty(jazzerBaseDirectoryProperty, "$jazzerBaseDirectoryPath/$name")
+    this.systemProperty(testTemplateTimeoutProperty, replayTimeout)
+    this.maxHeapSize = fuzzHeapSize
 }
 
 val fuzzTasks: List<TaskProvider<Test>> = fuzzTargets.map { target ->
     tasks.register<Test>(target.taskName()) {
-        group = "verification"
-        description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
-        filter.includeTestsMatching(target.filterPattern())
-        environment(jazzerFuzzVariable, enabledValue)
-        systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
-        systemProperty(timeoutModeProperty, disabledTimeoutMode)
-        outputs.upToDateWhen { false }
-        testLogging {
-            events("started", "failed", "skipped")
+        this.group = "verification"
+        this.description = "Fuzzes ${target.filterPattern()} for $fuzzSeconds seconds in a JVM of its own"
+        this.filter.includeTestsMatching(target.filterPattern())
+        this.environment(jazzerFuzzVariable, enabledValue)
+        this.systemProperty(jazzerDurationProperty, "${fuzzSeconds}s")
+        this.systemProperty(timeoutModeProperty, disabledTimeoutMode)
+        this.outputs.upToDateWhen { false }
+        this.testLogging {
+            this.events("started", "failed", "skipped")
         }
     }
 }
 
 val fuzzTest: TaskProvider<Test> = tasks.register<Test>(fuzzTestName) {
-    group = "verification"
-    description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
-    dependsOn(fuzzTasks)
+    this.group = "verification"
+    this.description = "Replays the committed fuzz inputs of this module, and fuzzes every fuzz test method with -Pfuzz.seconds=<n>"
+    this.dependsOn(fuzzTasks)
 }
 
 tasks.check {
-    dependsOn(propertyTest, fuzzTest)
+    this.dependsOn(propertyTest, fuzzTest)
 }

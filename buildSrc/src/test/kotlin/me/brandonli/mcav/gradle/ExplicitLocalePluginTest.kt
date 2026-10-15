@@ -45,7 +45,7 @@ class ExplicitLocalePluginTest {
 
     @Test
     fun shouldRequireProductionNumberFormattingToChooseALocale(): Unit {
-        val project: File = directory.toFile()
+        val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'locale-fixture'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.java-library' }\n")
         val catalog: File = project.resolve(CATALOG_PATH)

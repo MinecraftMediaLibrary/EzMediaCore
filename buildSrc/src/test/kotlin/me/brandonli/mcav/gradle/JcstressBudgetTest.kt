@@ -72,7 +72,7 @@ class JcstressBudgetTest {
 
     @Test
     fun shouldCountTheTestsThatTheSelectionMatches(): Unit {
-        val jar: File = directory.resolve(TESTS_JAR).toFile()
+        val jar: File = this.directory.resolve(TESTS_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry(TEST_LIST_ENTRY))
             zip.write(listOf("JCTEST9Sa.b.First,x", "JCTEST10Sa.b.Second,y", "other line").joinToString("\n").toByteArray())
@@ -90,7 +90,7 @@ class JcstressBudgetTest {
 
     @Test
     fun shouldCountNoTestsInAJarWithoutTheList(): Unit {
-        val jar: File = directory.resolve(EMPTY_JAR).toFile()
+        val jar: File = this.directory.resolve(EMPTY_JAR).toFile()
         ZipOutputStream(jar.outputStream()).use { zip ->
             zip.putNextEntry(ZipEntry(OTHER_ENTRY))
             zip.closeEntry()

@@ -39,7 +39,7 @@ object CoverageExceptions {
             return emptyList()
         }
         val entries: List<String> = file.readLines().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith(COMMENT_PREFIX) }
-        return entries.map { entry -> parse(file, entry) }
+        return entries.map { entry -> this.parse(file, entry) }
     }
 
     private fun parse(file: File, entry: String): CoverageException {
@@ -86,7 +86,7 @@ object CoverageReport {
         val gaps: MutableList<String> = mutableListOf<String>()
         for (index in 0 until sourceFiles.length) {
             val sourceFile: Element = sourceFiles.item(index) as Element
-            gaps += findGapsInFile(sourceFile, sourceDirectory, exceptions)
+            gaps += this.findGapsInFile(sourceFile, sourceDirectory, exceptions)
         }
         return gaps
     }
@@ -100,7 +100,7 @@ object CoverageReport {
         val gaps: MutableList<String> = mutableListOf<String>()
         for (index in 0 until lines.length) {
             val line: Element = lines.item(index) as Element
-            val gap: String = describeGap(line) ?: continue
+            val gap: String = this.describeGap(line) ?: continue
             val number: Int = line.getAttribute(LINE_NUMBER_ATTRIBUTE).toInt()
             val text: String = sourceLines.getOrNull(number - FIRST_LINE_NUMBER)?.trim() ?: ""
             val exception: CoverageException? = exceptions.firstOrNull { !it.used && it.path == relativePath && it.sourceLine == text }

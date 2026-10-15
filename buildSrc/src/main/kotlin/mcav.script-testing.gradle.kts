@@ -32,10 +32,10 @@ val host: HostPlatform = HostPlatform.current()
 val testNode: Provider<File> = node.resolvedNodeDir.map { NodeLayout.executable(it, host).asFile }
 
 tasks.withType<Test>().configureEach {
-    dependsOn(nodeSetup)
-    jvmArgs("-D$testNodeProperty=${testNode.get().absolutePath}")
+    this.dependsOn(nodeSetup)
+    this.jvmArgs("-D$testNodeProperty=${testNode.get().absolutePath}")
 }
 
 tasks.named("pitest") {
-    dependsOn(nodeSetup)
+    this.dependsOn(nodeSetup)
 }

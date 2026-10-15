@@ -57,12 +57,12 @@ val packageMarkers: Map<String, String> = mapOf(
 val uvArchive: String = "$uvTool-$uvTarget" + if (host.isWindows) zipExtension else gzipTarExtension
 val uvPath: String = if (host.isWindows) windowsUvExecutable else "$uvTool-$uvTarget/$uvTool"
 val downloadUv: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadUv") {
-    group = "build setup"
-    description = "Downloads the pinned uv and verifies its SHA-256"
-    archiveUrl = "$uvReleasesUrl/$pinnedUvVersion/$uvArchive"
-    sha256 = Tools.pinnedSha256(project, uvTool, pinnedUvVersion, uvArchive)
-    executablePath = uvPath
-    installationDirectory = layout.buildDirectory.dir("$uvToolsPath/$pinnedUvVersion")
+    this.group = "build setup"
+    this.description = "Downloads the pinned uv and verifies its SHA-256"
+    this.archiveUrl = "$uvReleasesUrl/$pinnedUvVersion/$uvArchive"
+    this.sha256 = Tools.pinnedSha256(project, uvTool, pinnedUvVersion, uvArchive)
+    this.executablePath = uvPath
+    this.installationDirectory = layout.buildDirectory.dir("$uvToolsPath/$pinnedUvVersion")
 }
 val selectedUv: Provider<RegularFile> = Tools.selectTool(project, uvTool, downloadUv.flatMap { it.installationDirectory.file(uvPath) })
 val requirementsLock: RegularFile = layout.projectDirectory.file(requirementsLockPath)
@@ -75,28 +75,28 @@ val lockHeader: Provider<String> = providers.fileContents(layout.settingsDirecto
 }
 
 val lockRequirements: TaskProvider<LockPythonRequirements> = tasks.register<LockPythonRequirements>("lockPythonRequirements") {
-    group = "build setup"
-    description = "Regenerates requirements.lock from the Python versions in the catalog"
-    uvExecutable = selectedUv
-    uvVersion = pinnedUvVersion
-    pythonVersion = pinnedPythonVersion
-    versions = pinnedPackages
-    markers = packageMarkers
-    licenseHeader = lockHeader
-    lockFile = requirementsLock
-    installationDirectory = pythonInstallation
-    cacheDirectory = uvCache
+    this.group = "build setup"
+    this.description = "Regenerates requirements.lock from the Python versions in the catalog"
+    this.uvExecutable = selectedUv
+    this.uvVersion = pinnedUvVersion
+    this.pythonVersion = pinnedPythonVersion
+    this.versions = pinnedPackages
+    this.markers = packageMarkers
+    this.licenseHeader = lockHeader
+    this.lockFile = requirementsLock
+    this.installationDirectory = pythonInstallation
+    this.cacheDirectory = uvCache
 }
 tasks.register<PythonEnvironment>("installPythonEnvironment") {
-    group = "build setup"
-    description = "Installs the pinned Python and the hash-locked packages of requirements.lock"
-    mustRunAfter(lockRequirements)
-    uvExecutable = selectedUv
-    uvVersion = pinnedUvVersion
-    pythonVersion = pinnedPythonVersion
-    requirements = requirementsLock
-    versions = pinnedPackages
-    lockTask = lockRequirements.map { it.path }
-    installationDirectory = pythonInstallation
-    cacheDirectory = uvCache
+    this.group = "build setup"
+    this.description = "Installs the pinned Python and the hash-locked packages of requirements.lock"
+    this.mustRunAfter(lockRequirements)
+    this.uvExecutable = selectedUv
+    this.uvVersion = pinnedUvVersion
+    this.pythonVersion = pinnedPythonVersion
+    this.requirements = requirementsLock
+    this.versions = pinnedPackages
+    this.lockTask = lockRequirements.map { it.path }
+    this.installationDirectory = pythonInstallation
+    this.cacheDirectory = uvCache
 }

@@ -79,14 +79,14 @@ abstract class DownloadToolArchive : DefaultTask() {
 
     @TaskAction
     fun install(): Unit {
-        val address: String = archiveUrl.get()
-        val expected: String = sha256.get()
+        val address: String = this.archiveUrl.get()
+        val expected: String = this.sha256.get()
         if (!expected.matches(SHA256_DIGEST)) {
             val message: String = "Pinned SHA-256 of $address must be 64 lowercase hexadecimal digits!"
             throw GradleException(message)
         }
-        val archive: File = temporaryDir.resolve(URI(address).path.substringAfterLast(PATH_SEPARATOR))
-        logger.lifecycle(DOWNLOADING, address)
+        val archive: File = this.temporaryDir.resolve(URI(address).path.substringAfterLast(PATH_SEPARATOR))
+        this.logger.lifecycle(DOWNLOADING, address)
         try {
             val connection: URLConnection = URI(address).toURL().openConnection()
             connection.connectTimeout = CONNECT_TIMEOUT_MILLISECONDS
@@ -102,27 +102,29 @@ abstract class DownloadToolArchive : DefaultTask() {
             val message: String = "Tool archive $address has SHA-256 $actual instead of the pinned $expected, so it was not installed!"
             throw GradleException(message)
         }
-        logger.lifecycle(VERIFIED, expected, address)
+        this.logger.lifecycle(VERIFIED, expected, address)
         val formatMessage: String = "Tool archive $address must be a .zip, .tar.gz or .tar.xz file!"
         val contents: FileTree = when {
-            archive.name.endsWith(ZIP_EXTENSION) -> archives.zipTree(archive)
-            archive.name.endsWith(GZIP_TAR_EXTENSION) -> archives.tarTree(archive)
+            archive.name.endsWith(ZIP_EXTENSION) -> this.archives.zipTree(archive)
+            archive.name.endsWith(GZIP_TAR_EXTENSION) -> this.archives.tarTree(archive)
             archive.name.endsWith(XZ_TAR_EXTENSION) -> {
-                val unpacked: File = temporaryDir.resolve(UNPACKED_TAR)
+                val unpacked: File = this.temporaryDir.resolve(UNPACKED_TAR)
                 XZInputStream(archive.inputStream()).use { input -> unpacked.outputStream().use { output -> input.copyTo(output) } }
-                archives.tarTree(unpacked)
+                this.archives.tarTree(unpacked)
             }
             else -> throw GradleException(formatMessage)
         }
-        files.sync {
-            from(contents)
-            into(installationDirectory)
-            filesMatching(executablePath.get()) {
-                permissions { unix(EXECUTABLE_PERMISSIONS) }
+        val installation: DirectoryProperty = this.installationDirectory
+        val executable: String = this.executablePath.get()
+        this.files.sync {
+            this.from(contents)
+            this.into(installation)
+            this.filesMatching(executable) {
+                this.permissions { this.unix(EXECUTABLE_PERMISSIONS) }
             }
         }
-        if (!installationDirectory.file(executablePath).get().asFile.isFile) {
-            val message: String = "Tool archive $address must contain ${executablePath.get()} to be installed!"
+        if (!this.installationDirectory.file(this.executablePath).get().asFile.isFile) {
+            val message: String = "Tool archive $address must contain ${this.executablePath.get()} to be installed!"
             throw GradleException(message)
         }
     }

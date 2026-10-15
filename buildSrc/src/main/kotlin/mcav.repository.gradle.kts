@@ -86,9 +86,9 @@ spotless {
 }
 
 tasks.register("publishLibraries") {
-    group = "publishing"
-    description = "Publishes the library modules to the snapshot repository and to build/e2e-repository"
-    dependsOn(
+    this.group = "publishing"
+    this.description = "Publishes the library modules to the snapshot repository and to build/e2e-repository"
+    this.dependsOn(
         libraryModules.map { ":$it:publish" }
     )
 }

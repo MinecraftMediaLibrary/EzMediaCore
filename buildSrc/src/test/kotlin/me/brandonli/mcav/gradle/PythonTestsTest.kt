@@ -55,25 +55,25 @@ class PythonTestsTest {
 
     abstract class RecordingTests : PythonTests() {
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = recordedProcesses
+        override val processes: ExecOperations get() = this.recordedProcesses
     }
 
     @Test
     fun shouldRunTheTestFilesInOneProcessEachAndTheTimingTestsAfterThemInASingleProcess(): Unit {
-        val task: RecordingTests = pythonTests(8)
-        val reports: File = directory.resolve(REPORTS_DIRECTORY).toFile()
+        val task: RecordingTests = this.pythonTests(8)
+        val reports: File = this.directory.resolve(REPORTS_DIRECTORY).toFile()
         reports.mkdirs()
         reports.resolve(STALE_REPORT).writeText("<testsuites/>")
-        val processes: RecordedProcesses = RecordedProcesses("") { assertNoStaleReport(reports) }
+        val processes: RecordedProcesses = RecordedProcesses("") { this.assertNoStaleReport(reports) }
         task.recordedProcesses = processes.operations
         task.test()
-        val tests: Path = directory.resolve(TESTS_DIRECTORY)
+        val tests: Path = this.directory.resolve(TESTS_DIRECTORY)
         val commands: List<List<String>> = processes.commands
         assertEquals(
             listOf(
-                pytest(PARALLEL_REPORT) + listOf(WORKERS_OPTION, "3", "--dist", "loadfile") +
+                this.pytest(PARALLEL_REPORT) + listOf(WORKERS_OPTION, "3", "--dist", "loadfile") +
                     listOf(FIRST_TEST, SECOND_TEST, THIRD_TEST).map { tests.resolve(it).toString() },
-                pytest(SERIAL_REPORT) + tests.resolve(TIMING_TEST).toString()
+                this.pytest(SERIAL_REPORT) + tests.resolve(TIMING_TEST).toString()
             ),
             commands
         )
@@ -95,7 +95,7 @@ class PythonTestsTest {
 
     @Test
     fun shouldStartNoMoreProcessesThanGradleMayUse(): Unit {
-        val task: RecordingTests = pythonTests(2)
+        val task: RecordingTests = this.pythonTests(2)
         val processes: RecordedProcesses = RecordedProcesses("")
         task.recordedProcesses = processes.operations
         task.test()
@@ -110,32 +110,32 @@ class PythonTestsTest {
     }
 
     private fun pytest(report: String): List<String> = listOf(
-        directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toString(),
+        this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toString(),
         "-m",
         "pytest",
         "-p",
         "no:cacheprovider",
         "-ra",
         "--rootdir",
-        directory.resolve(TESTS_DIRECTORY).toString(),
+        this.directory.resolve(TESTS_DIRECTORY).toString(),
         "--junitxml",
-        directory.resolve(REPORTS_DIRECTORY).resolve(report).toString()
+        this.directory.resolve(REPORTS_DIRECTORY).resolve(report).toString()
     )
 
     private fun pythonTests(processCount: Int): RecordingTests {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val tests: File = directory.resolve(TESTS_DIRECTORY).toFile()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val tests: File = this.directory.resolve(TESTS_DIRECTORY).toFile()
         tests.mkdirs()
         val parallel: List<File> = listOf(SECOND_TEST, FIRST_TEST, THIRD_TEST).map { tests.resolve(it) }
         val timing: File = tests.resolve(TIMING_TEST)
         (parallel + timing).forEach { it.writeText("") }
         val task: RecordingTests = project.tasks.register("pythonTest", RecordingTests::class.java).get()
-        task.pythonExecutable.set(directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
+        task.pythonExecutable.set(this.directory.resolve(VIRTUAL_ENVIRONMENT_PYTHON).toFile())
         task.testDirectory.set(tests)
         task.parallelTests.from(parallel)
         task.serialTests.from(timing)
         task.processCount.set(processCount)
-        task.reportDirectory.set(directory.resolve(REPORTS_DIRECTORY).toFile())
+        task.reportDirectory.set(this.directory.resolve(REPORTS_DIRECTORY).toFile())
         return task
     }
 }

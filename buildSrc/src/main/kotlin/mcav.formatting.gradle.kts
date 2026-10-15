@@ -88,5 +88,5 @@ spotless {
 }
 
 tasks.matching { it.name.startsWith(spotlessJavaTaskPrefix) }.configureEach {
-    dependsOn(nodeSetup)
+    this.dependsOn(nodeSetup)
 }

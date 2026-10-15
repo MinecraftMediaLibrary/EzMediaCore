@@ -45,30 +45,30 @@ extensions.configure<MCAVPublishingExtension> {
 }
 
 tasks.jar {
-    archiveClassifier = plainClassifier
+    this.archiveClassifier = plainClassifier
 }
 
 tasks.shadowJar {
-    archiveClassifier = ""
-    mergeServiceFiles()
-    filesMatching(noticeFiles) {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    this.archiveClassifier = ""
+    this.mergeServiceFiles()
+    this.filesMatching(noticeFiles) {
+        this.duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
-    transform(ApacheNoticeResourceTransformer::class.java)
-    inputs.property("noticeDuplicates", DuplicatesStrategy.INCLUDE.name)
-    relocatedPackages.forEach { prefix -> relocate(prefix, "$relocationRoot.$prefix") }
+    this.transform(ApacheNoticeResourceTransformer::class.java)
+    this.inputs.property("noticeDuplicates", DuplicatesStrategy.INCLUDE.name)
+    relocatedPackages.forEach { prefix -> this.relocate(prefix, "$relocationRoot.$prefix") }
 }
 
 tasks.assemble {
-    dependsOn(tasks.shadowJar)
+    this.dependsOn(tasks.shadowJar)
 }
 
 val builtJar: String = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
-    jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
-    dependsOn(tasks.shadowJar)
-    jvmArgs(builtJar)
+    this.jvmArgs("--add-opens", "java.base/java.net=ALL-UNNAMED")
+    this.dependsOn(tasks.shadowJar)
+    this.jvmArgs(builtJar)
 }
 tasks.named("pitest") {
-    dependsOn(tasks.shadowJar)
+    this.dependsOn(tasks.shadowJar)
 }

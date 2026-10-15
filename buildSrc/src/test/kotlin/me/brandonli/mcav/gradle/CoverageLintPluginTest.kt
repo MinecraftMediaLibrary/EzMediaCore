@@ -42,7 +42,7 @@ class CoverageLintPluginTest {
 
     @Test
     fun shouldKeepTheCoverageOfAnotherModuleWhenOneModuleIsFiltered(): Unit {
-        val project: File = directory.toFile()
+        val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'coverage-fixture'\ninclude 'first', 'second'\n")
         for (name in listOf("first", "second")) {
             val module: File = project.resolve(name)

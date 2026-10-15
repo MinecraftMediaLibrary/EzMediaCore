@@ -134,11 +134,11 @@ dependencies {
     add(nativeResources.name, project(path = bukkitProjectPath, configuration = nativeResourcesConfiguration))
 }
 tasks.shadowJar {
-    from(nativeResources)
+    this.from(nativeResources)
 }
 
 tasks.assemble {
-    dependsOn(tasks.shadowJar)
+    this.dependsOn(tasks.shadowJar)
 }
 
 val downloadedModules: Provider<List<String>> = configurations.runtimeDownload.map { configuration ->
@@ -147,18 +147,18 @@ val downloadedModules: Provider<List<String>> = configurations.runtimeDownload.m
         .map { "$projectPathPrefix${it.name}" }
 }
 val requiredModuleClasses: TaskProvider<RequiredModuleClassesTask> = tasks.register<RequiredModuleClassesTask>("requiredModuleClasses") {
-    group = "build"
-    description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
-    pluginClasses.from(sourceSets.main.map { it.output.classesDirs })
-    modules.from(
+    this.group = "build"
+    this.description = "Lists the classes of the downloaded modules that the plugin uses, for its loader to check them"
+    this.pluginClasses.from(sourceSets.main.map { it.output.classesDirs })
+    this.modules.from(
         configurations.compileClasspath.map { classpath ->
             val downloaded: List<String> = downloadedModules.get()
             classpath.incoming.artifactView {
-                componentFilter { it is ProjectComponentIdentifier && it.projectPath in downloaded }
+                this.componentFilter { it is ProjectComponentIdentifier && it.projectPath in downloaded }
             }.files
         }
     )
-    output = layout.buildDirectory.dir(requiredClassesPath)
+    this.output = layout.buildDirectory.dir(requiredClassesPath)
 }
 
 sourceSets.main {
@@ -167,9 +167,9 @@ sourceSets.main {
 
 tasks.processResources {
     val dependencyManifestPath: String = dependencyManifestTarget
-    inputs.property("dependencyManifestPath", dependencyManifestPath)
-    filesMatching(dependencyManifestSource) {
-        path = dependencyManifestPath
+    this.inputs.property("dependencyManifestPath", dependencyManifestPath)
+    this.filesMatching(dependencyManifestSource) {
+        this.path = dependencyManifestPath
     }
 }
 
@@ -229,13 +229,18 @@ paperPluginYaml {
 }
 
 tasks.runServer {
-    minecraftVersion(minecraftVersion)
-    build(paperVersion.build)
+    this.minecraftVersion(minecraftVersion)
+    this.build(paperVersion.build)
 }
 
 tasks.withType<AbstractRun>().configureEach {
-    javaLauncher = JavaToolchains.launcher(project, JvmVendorSpec.JETBRAINS)
-    jvmArgs("-Xms$serverHeapSize", "-Xmx$serverHeapSize", "-XX:+AllowEnhancedClassRedefinition", "-XX:+AllowRedefinitionToAddDeleteMethods")
+    this.javaLauncher = JavaToolchains.launcher(project, JvmVendorSpec.JETBRAINS)
+    this.jvmArgs(
+        "-Xms$serverHeapSize",
+        "-Xmx$serverHeapSize",
+        "-XX:+AllowEnhancedClassRedefinition",
+        "-XX:+AllowRedefinitionToAddDeleteMethods"
+    )
 }
 
 val endToEnd: Boolean = providers.gradleProperty(endToEndProperty).map { it.toBoolean() }.getOrElse(false)
@@ -254,11 +259,11 @@ if (endToEnd) {
     repositories.remove(repository)
     repositories.addFirst(repository)
     tasks.named<WriteDependencySet>("writeDependencies") {
-        dependsOn(downloadedModules.map { modules -> modules.map { "$it:$endToEndPublishTaskSuffix" } })
+        this.dependsOn(downloadedModules.map { modules -> modules.map { "$it:$endToEndPublishTaskSuffix" } })
         val publicRepositories: List<String> = repositories.withType<MavenArtifactRepository>()
             .filter { it.url.scheme in publicRepositorySchemes }
             .map { it.url.toString() }
-        repos = listOf("$localRepositoryHost:$endToEndPort/") + publicRepositories
+        this.repos = listOf("$localRepositoryHost:$endToEndPort/") + publicRepositories
     }
 }
 
@@ -272,36 +277,36 @@ dependencies {
 }
 
 tasks.register<Test>(endToEndTestName) {
-    group = "verification"
-    description = "Runs the plugin on a real headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
-    testClassesDirs = endToEndTestSourceSet.output.classesDirs
-    classpath = endToEndTestSourceSet.runtimeClasspath
+    this.group = "verification"
+    this.description = "Runs the plugin on a headless Paper server; needs the internet, -Pmcav.e2e=true and -Pmcav.acceptMinecraftEula=true"
+    this.testClassesDirs = endToEndTestSourceSet.output.classesDirs
+    this.classpath = endToEndTestSourceSet.runtimeClasspath
     val pluginJar: Provider<RegularFile> = tasks.shadowJar.flatMap { it.archiveFile }
-    inputs.file(pluginJar)
-    outputs.upToDateWhen { false }
-    systemProperty(paperFileNameProperty, paperVersion.fileName)
-    systemProperty(voiceChatFileNameProperty, "$voiceChatPlugin-${CatalogUtils.versionOf(libs, voiceChatAlias)}.jar")
-    systemProperty(cacheDirectoryProperty, layout.buildDirectory.dir(endToEndCachePath).get().asFile.absolutePath)
-    systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
-    systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
-    systemProperty(endToEndPortProperty, endToEndPort)
+    this.inputs.file(pluginJar)
+    this.outputs.upToDateWhen { false }
+    this.systemProperty(paperFileNameProperty, paperVersion.fileName)
+    this.systemProperty(voiceChatFileNameProperty, "$voiceChatPlugin-${CatalogUtils.versionOf(libs, voiceChatAlias)}.jar")
+    this.systemProperty(cacheDirectoryProperty, layout.buildDirectory.dir(endToEndCachePath).get().asFile.absolutePath)
+    this.systemProperty(acceptEulaTestProperty, providers.gradleProperty(acceptEulaProperty).getOrElse(disabledValue))
+    this.systemProperty(repositoryDirectoryProperty, endToEndRepository.absolutePath)
+    this.systemProperty(endToEndPortProperty, endToEndPort)
     val launcher: Provider<JavaLauncher> = JavaToolchains.launcher(project)
     val usesThisBuild: Boolean = endToEnd
-    doFirst {
+    this.doFirst {
         if (!usesThisBuild) {
             val message: String = "Run the end-to-end test with -Pmcav.e2e=true, so the server uses the modules of this build!"
             throw GradleException(message)
         }
-        systemProperty(pluginJarProperty, pluginJar.get().asFile.absolutePath)
-        systemProperty(javaProperty, launcher.get().executablePath.asFile.absolutePath)
+        this@register.systemProperty(pluginJarProperty, pluginJar.get().asFile.absolutePath)
+        this@register.systemProperty(javaProperty, launcher.get().executablePath.asFile.absolutePath)
     }
 }
 
 tasks.runServer {
-    systemProperty(legacyFormattingWarningProperty, false)
-    downloadPlugins {
-        modrinth(voiceChatModrinthProject, CatalogUtils.versionOf(libs, voiceChatAlias))
+    this.systemProperty(legacyFormattingWarningProperty, false)
+    this.downloadPlugins {
+        this.modrinth(voiceChatModrinthProject, CatalogUtils.versionOf(libs, voiceChatAlias))
         val spark: String = CatalogUtils.versionOf(libs, sparkAlias)
-        url("$sparkJobUrl/${CatalogUtils.versionOf(libs, sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
+        this.url("$sparkJobUrl/${CatalogUtils.versionOf(libs, sparkBuildAlias)}/artifact/spark-bukkit/build/libs/spark-$spark-bukkit.jar")
     }
 }

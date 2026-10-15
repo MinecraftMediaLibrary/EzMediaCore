@@ -52,7 +52,7 @@ object JcstressBudget {
         ZipFile(jar).use { zip ->
             val entry: ZipEntry = zip.getEntry(TEST_LIST_ENTRY) ?: return 0
             val lines: List<String> = zip.getInputStream(entry).reader().readLines()
-            return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(testName(line))) }
+            return lines.count { line -> line.startsWith(TEST_LINE) && (pattern == null || pattern.containsMatchIn(this.testName(line))) }
         }
     }
 

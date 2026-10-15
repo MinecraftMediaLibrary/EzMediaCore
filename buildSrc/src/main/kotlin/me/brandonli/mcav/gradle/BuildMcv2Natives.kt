@@ -128,16 +128,17 @@ abstract class BuildMcv2Natives : DefaultTask() {
 
     @TaskAction
     fun build(): Unit {
-        ToolVersions.verify(processes, zigExecutable.get().asFile, ZIG_TOOL, zigVersion.get(), prefix = "", argument = ZIG_VERSION_ARGUMENT)
+        val zig: File = this.zigExecutable.get().asFile
+        ToolVersions.verify(this.processes, zig, ZIG_TOOL, this.zigVersion.get(), prefix = "", argument = ZIG_VERSION_ARGUMENT)
         val task: BuildMcv2Natives = this
-        workers.noIsolation().submit(Work::class.java) {
-            zigExecutable.set(task.zigExecutable)
-            sourcesDirectory.set(task.sourcesDirectory)
-            outputDirectory.set(task.outputDirectory)
-            objectsDirectory.set(temporaryDir)
-            cacheDirectory.set(task.cacheDirectory)
-            compilerFlags.set(task.compilerFlags)
-            processCount.set(task.processCount)
+        this.workers.noIsolation().submit(Work::class.java) {
+            this.zigExecutable.set(task.zigExecutable)
+            this.sourcesDirectory.set(task.sourcesDirectory)
+            this.outputDirectory.set(task.outputDirectory)
+            this.objectsDirectory.set(task.temporaryDir)
+            this.cacheDirectory.set(task.cacheDirectory)
+            this.compilerFlags.set(task.compilerFlags)
+            this.processCount.set(task.processCount)
         }
     }
 
@@ -157,10 +158,11 @@ abstract class BuildMcv2Natives : DefaultTask() {
         protected abstract val processes: ExecOperations
 
         override fun execute(): Unit {
-            val output: File = parameters.outputDirectory.get().asFile
+            val output: File = this.parameters.outputDirectory.get().asFile
             output.deleteRecursively()
             val natives: File = output.resolve(NATIVES_PATH)
-            val objectsDirectory: File = parameters.objectsDirectory.get().asFile
+            val objectsDirectory: File = this.parameters.objectsDirectory.get().asFile
+            val compilerFlags: List<String> = this.parameters.compilerFlags.get()
             val libraries: MutableList<File> = mutableListOf<File>()
             val compiles: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
             val links: MutableList<() -> Unit> = mutableListOf<() -> Unit>()
@@ -196,7 +198,7 @@ abstract class BuildMcv2Natives : DefaultTask() {
                         val objectFile: File = objectsDirectory.resolve(platform).resolve("$LEVEL_PREFIX$level$OBJECT_SUFFIX")
                         objectFile.parentFile.mkdirs()
                         compiles += {
-                            runZig(listOf("c++", TARGET_OPTION, target, "-mcpu=baseline") + parameters.compilerFlags.get() + flags +
+                            this.runZig(listOf("c++", TARGET_OPTION, target, "-mcpu=baseline") + compilerFlags + flags +
                                 listOf("-c", "$LEVEL_PREFIX$level$SOURCE_SUFFIX", OUTPUT_OPTION, objectFile.absolutePath))
                         }
                         objectFile.absolutePath
@@ -214,22 +216,22 @@ abstract class BuildMcv2Natives : DefaultTask() {
                         else -> emptyList()
                     }
                     links += {
-                        runZig(listOf("cc", TARGET_OPTION, target, "-shared", "-s") + linkFlags +
+                        this.runZig(listOf("cc", TARGET_OPTION, target, "-shared", "-s") + linkFlags +
                             listOf(OUTPUT_OPTION, library.absolutePath) + objects)
                         library.parentFile.listFiles()!!.filter { it.extension == IMPORT_LIBRARY_EXTENSION }.forEach { it.delete() }
                     }
                     libraries.add(library)
                 }
             }
-            inParallel(compiles)
-            inParallel(links)
-            writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
-            val sources: File = parameters.sourcesDirectory.get().asFile
-            writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sources.listFiles()!!.filter { it.name != CLANG_FORMAT_FILE })
+            this.inParallel(compiles)
+            this.inParallel(links)
+            this.writeManifest(natives.resolve(CHECKSUMS_MANIFEST), natives, libraries)
+            val sources: File = this.parameters.sourcesDirectory.get().asFile
+            this.writeManifest(natives.resolve(SOURCES_MANIFEST), sources, sources.listFiles()!!.filter { it.name != CLANG_FORMAT_FILE })
         }
 
         private fun inParallel(steps: List<() -> Unit>): Unit {
-            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(parameters.processCount.get(), steps.size))
+            val pool: ExecutorService = Executors.newFixedThreadPool(minOf(this.parameters.processCount.get(), steps.size))
             try {
                 pool.invokeAll(steps.map { step -> Callable(step) }).forEach { result ->
                     try {
@@ -245,11 +247,14 @@ abstract class BuildMcv2Natives : DefaultTask() {
         }
 
         private fun runZig(arguments: List<String>): Unit {
-            processes.exec {
-                workingDir(parameters.sourcesDirectory.get().asFile)
-                commandLine(listOf(parameters.zigExecutable.get().asFile.absolutePath) + arguments)
-                environment(SOURCE_DATE_VARIABLE, REPRODUCIBLE_SOURCE_DATE)
-                environment(ZIG_CACHE_VARIABLE, parameters.cacheDirectory.get().asFile.absolutePath)
+            val sources: File = this.parameters.sourcesDirectory.get().asFile
+            val zig: String = this.parameters.zigExecutable.get().asFile.absolutePath
+            val cache: String = this.parameters.cacheDirectory.get().asFile.absolutePath
+            this.processes.exec {
+                this.workingDir(sources)
+                this.commandLine(listOf(zig) + arguments)
+                this.environment(SOURCE_DATE_VARIABLE, REPRODUCIBLE_SOURCE_DATE)
+                this.environment(ZIG_CACHE_VARIABLE, cache)
             }
         }
 

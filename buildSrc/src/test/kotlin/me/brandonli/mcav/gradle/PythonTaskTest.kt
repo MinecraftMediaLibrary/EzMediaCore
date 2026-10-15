@@ -43,18 +43,18 @@ class PythonTaskTest {
 
     @Test
     fun shouldRunATaskThatUsesTheEnvironmentAfterItOnItsLockPythonAndHost(): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val environment: TaskProvider<PythonEnvironment> = project.tasks.register("installPythonEnvironment", PythonEnvironment::class.java)
-        environment.get().requirements.set(directory.resolve(LOCK_FILE).toFile())
+        environment.get().requirements.set(this.directory.resolve(LOCK_FILE).toFile())
         environment.get().pythonVersion.set("3.13.16")
-        environment.get().installationDirectory.set(directory.resolve(PYTHON_DIRECTORY).toFile())
+        environment.get().installationDirectory.set(this.directory.resolve(PYTHON_DIRECTORY).toFile())
         val book: JupyterBook = project.tasks.register("book", JupyterBook::class.java).get()
         book.useEnvironment(environment)
         val dependencies: Set<Task> = book.taskDependencies.getDependencies(book)
         assertEquals(setOf(environment.get()), dependencies)
 
         val requirements: File = book.requirements.get().asFile
-        assertEquals(directory.resolve(LOCK_FILE).toFile(), requirements)
+        assertEquals(this.directory.resolve(LOCK_FILE).toFile(), requirements)
 
         val pythonVersion: String = book.pythonVersion.get()
         assertEquals("3.13.16", pythonVersion)
@@ -64,6 +64,6 @@ class PythonTaskTest {
 
         val pythonExecutable: File = book.pythonExecutable.get().asFile
         val pythonPath: String = HostPlatform.current().virtualEnvironmentExecutable("python")
-        assertEquals(directory.resolve(VIRTUAL_ENVIRONMENT_PATH).resolve(pythonPath).toFile(), pythonExecutable)
+        assertEquals(this.directory.resolve(VIRTUAL_ENVIRONMENT_PATH).resolve(pythonPath).toFile(), pythonExecutable)
     }
 }

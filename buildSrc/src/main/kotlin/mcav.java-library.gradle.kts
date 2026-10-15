@@ -99,19 +99,19 @@ java {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.release = javaRelease
-    options.encoding = sourceEncoding
-    options.compilerArgs.addAll(listOf("-parameters", "-Xlint:all", "-Xlint:-processing", "-Werror"))
-    options.isFork = true
-    options.forkOptions.memoryMaximumSize = compilerHeapSize
-    options.forkOptions.jvmArgumentProviders.add(CommandLineArgumentProvider {
+    this.options.release = javaRelease
+    this.options.encoding = sourceEncoding
+    this.options.compilerArgs.addAll(listOf("-parameters", "-Xlint:all", "-Xlint:-processing", "-Werror"))
+    this.options.isFork = true
+    this.options.forkOptions.memoryMaximumSize = compilerHeapSize
+    this.options.forkOptions.jvmArgumentProviders.add(CommandLineArgumentProvider {
         listOf("--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED")
     })
-    options.errorprone {
-        disableWarningsInGeneratedCode = true
+    this.options.errorprone {
+        this.disableWarningsInGeneratedCode = true
         error(*enforcedChecks.toTypedArray())
         // the style guide keeps stateless private helpers as instance methods called with this.
-        disable("MethodCanBeStatic")
+        this.disable("MethodCanBeStatic")
     }
 }
 
@@ -123,6 +123,6 @@ checkerFramework {
 }
 
 tasks.processResources {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    filteringCharset = sourceEncoding
+    this.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    this.filteringCharset = sourceEncoding
 }

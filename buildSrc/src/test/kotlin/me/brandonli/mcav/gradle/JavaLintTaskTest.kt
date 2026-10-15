@@ -46,8 +46,8 @@ class JavaLintTaskTest {
 
     @Test
     fun shouldKeepTheExactSuccessReportOfEachLint(): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
-        val source: File = directory.resolve(SOURCE_FILE).toFile()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
+        val source: File = this.directory.resolve(SOURCE_FILE).toFile()
         source.writeText("final class Example {}\n")
         val tasks: List<Pair<JavaLintTask, String>> = listOf(
             project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get() to "no log call with a concatenated message in 1 files\n",
@@ -56,7 +56,7 @@ class JavaLintTaskTest {
         )
         val reports: List<String> = tasks.map { (task, _) ->
             task.sources.from(source)
-            task.report.set(directory.resolve(task.name + REPORT_EXTENSION).toFile())
+            task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             task.check()
             task.report.get().asFile.readText()
@@ -66,7 +66,7 @@ class JavaLintTaskTest {
 
     @Test
     fun shouldCountTheViolationsAndKeepTheFailureMessageOfEachLint(): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val tasks: List<Triple<JavaLintTask, String, String>> = listOf(
             Triple(
                 project.tasks.register(LOGS_TASK, LogMessagesTask::class.java).get(),
@@ -85,10 +85,10 @@ class JavaLintTaskTest {
             )
         )
         val outcomes: List<Pair<String?, Boolean>> = tasks.map { (task, input, _) ->
-            val source: File = directory.resolve(task.name + ".java").toFile()
+            val source: File = this.directory.resolve(task.name + ".java").toFile()
             source.writeText(input)
             task.sources.from(source)
-            task.report.set(directory.resolve(task.name + REPORT_EXTENSION).toFile())
+            task.report.set(this.directory.resolve(task.name + REPORT_EXTENSION).toFile())
             if (task is VariableNamesTask) task.publishedNames.set(emptySet())
             val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
             failure.message to task.report.get().asFile.exists()
@@ -99,12 +99,12 @@ class JavaLintTaskTest {
 
     @Test
     fun shouldKeepAPublishedNameWhileTheOtherNamesFail(): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: VariableNamesTask = project.tasks.register(VARIABLES_TASK, VariableNamesTask::class.java).get()
-        val source: File = directory.resolve(SOURCE_FILE).toFile()
+        val source: File = this.directory.resolve(SOURCE_FILE).toFile()
         source.writeText("package me.example;\nfinal class Example { int x; int y; }\n")
         task.sources.from(source)
-        task.report.set(directory.resolve(VARIABLES_REPORT).toFile())
+        task.report.set(this.directory.resolve(VARIABLES_REPORT).toFile())
         task.publishedNames.set(setOf("me.example.Example#x"))
         val failure: GradleException = assertThrows(GradleException::class.java) { task.check() }
         val message: String? = failure.message

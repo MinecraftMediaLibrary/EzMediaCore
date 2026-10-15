@@ -84,18 +84,22 @@ abstract class LockPythonRequirements : DefaultTask() {
 
     @TaskAction
     fun lock(): Unit {
-        val uv: File = uvExecutable.get().asFile
-        ToolVersions.verify(processes, uv, UV_TOOL, uvVersion.get())
-        val requirementsInput: File = temporaryDir.resolve(REQUIREMENTS_INPUT)
-        requirementsInput.writeText(requirementLines(versions.get(), markers.get()).joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
-        val lock: File = lockFile.get().asFile
-        val python: String = pythonVersion.get()
-        processes.exec {
-            commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
+        val uv: File = this.uvExecutable.get().asFile
+        ToolVersions.verify(this.processes, uv, UV_TOOL, this.uvVersion.get())
+        val requirementsInput: File = this.temporaryDir.resolve(REQUIREMENTS_INPUT)
+        val requirements: List<String> = requirementLines(this.versions.get(), this.markers.get())
+        requirementsInput.writeText(requirements.joinToString(LINE_SEPARATOR, postfix = LINE_SEPARATOR))
+        val lock: File = this.lockFile.get().asFile
+        val python: String = this.pythonVersion.get()
+        val installation: File = this.installationDirectory.get().asFile
+        val cache: File = this.cacheDirectory.get().asFile
+        val environment: Map<String, String> = UvEnvironment.variables(installation, cache)
+        this.processes.exec {
+            this.commandLine(uv, "pip", "compile", requirementsInput, "--universal", "--generate-hashes", "--no-header", "--no-annotate",
                 "--python", python, "--python-version", python.substringBeforeLast(VERSION_SEPARATOR), "--only-binary", ":all:",
                 "--default-index", PACKAGE_INDEX, "--output-file", lock, "--quiet")
-            environment(UvEnvironment.variables(installationDirectory.get().asFile, cacheDirectory.get().asFile))
+            this.environment(environment)
         }
-        lock.writeText(licenseHeader.get() + lock.readText())
+        lock.writeText(this.licenseHeader.get() + lock.readText())
     }
 }

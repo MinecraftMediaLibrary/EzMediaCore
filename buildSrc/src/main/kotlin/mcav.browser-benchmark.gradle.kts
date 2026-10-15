@@ -44,15 +44,15 @@ dependencies {
 }
 
 tasks.register<JavaExec>("browserBenchmark") {
-    group = "verification"
-    description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
-    classpath = benchmark.runtimeClasspath
-    mainClass = benchmarkMainClass
+    this.group = "verification"
+    this.description = "Measures the frame rate and latency of a browser backend: -Pbenchmark.backend=<backend> -Pbenchmark.output=<file>"
+    this.classpath = benchmark.runtimeClasspath
+    this.mainClass = benchmarkMainClass
     val backend: Provider<String> = providers.gradleProperty(backendProperty).orElse("")
     val output: Provider<String> = providers.gradleProperty(outputProperty)
         .orElse(layout.buildDirectory.file(defaultOutputPath).map { it.asFile.absolutePath })
-    argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
-    javaLauncher = JavaToolchains.launcher(project)
-    maxHeapSize = benchmarkHeapSize
-    outputs.upToDateWhen { false }
+    this.argumentProviders.add(CommandLineArgumentProvider { listOf(backend.get(), output.get()) })
+    this.javaLauncher = JavaToolchains.launcher(project)
+    this.maxHeapSize = benchmarkHeapSize
+    this.outputs.upToDateWhen { false }
 }

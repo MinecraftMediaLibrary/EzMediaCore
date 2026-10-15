@@ -77,26 +77,29 @@ abstract class PythonTests : PythonTask() {
 
     @TaskAction
     fun test(): Unit {
-        val reports: File = reportDirectory.get().asFile
-        files.delete { delete(reports) }
-        val parallel: List<File> = parallelTests.files.sorted()
-        pytest(reports.resolve(PARALLEL_REPORT), listOf("-n", minOf(processCount.get(), parallel.size).toString(), "--dist", "loadfile") +
+        val reports: File = this.reportDirectory.get().asFile
+        this.files.delete { this.delete(reports) }
+        val parallel: List<File> = this.parallelTests.files.sorted()
+        val forks: String = minOf(this.processCount.get(), parallel.size).toString()
+        this.pytest(reports.resolve(PARALLEL_REPORT), listOf("-n", forks, "--dist", "loadfile") +
             parallel.map { it.path })
-        pytest(reports.resolve(SERIAL_REPORT), serialTests.files.sorted().map { it.path })
+        this.pytest(reports.resolve(SERIAL_REPORT), this.serialTests.files.sorted().map { it.path })
     }
 
     private fun pytest(report: File, arguments: List<String>): Unit {
-        val directory: File = testDirectory.get().asFile
-        processes.exec {
-            workingDir(directory)
-            commandLine(listOf(pythonExecutable.get().asFile.path, "-m", "pytest", "-p", "no:cacheprovider", "-ra",
+        val directory: File = this.testDirectory.get().asFile
+        val python: String = this.pythonExecutable.get().asFile.path
+        val matplotlibConfiguration: String = this.temporaryDir.resolve(MATPLOTLIB_CONFIG_DIRECTORY).path
+        this.processes.exec {
+            this.workingDir(directory)
+            this.commandLine(listOf(python, "-m", "pytest", "-p", "no:cacheprovider", "-ra",
                 "--rootdir", directory.path, "--junitxml", report.path) + arguments)
-            environment(NO_USER_SITE_VARIABLE, ENABLED)
-            environment(NO_BYTECODE_VARIABLE, ENABLED)
-            environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
-            environment(PYTEST_OPTIONS_VARIABLE, NO_OPTIONS)
-            environment(MATPLOTLIB_BACKEND_VARIABLE, HEADLESS_BACKEND)
-            environment(MATPLOTLIB_CONFIG_VARIABLE, temporaryDir.resolve(MATPLOTLIB_CONFIG_DIRECTORY).path)
+            this.environment(NO_USER_SITE_VARIABLE, ENABLED)
+            this.environment(NO_BYTECODE_VARIABLE, ENABLED)
+            this.environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
+            this.environment(PYTEST_OPTIONS_VARIABLE, NO_OPTIONS)
+            this.environment(MATPLOTLIB_BACKEND_VARIABLE, HEADLESS_BACKEND)
+            this.environment(MATPLOTLIB_CONFIG_VARIABLE, matplotlibConfiguration)
         }
     }
 }

@@ -32,7 +32,7 @@ abstract class VariableNamesTask : JavaLintTask() {
     abstract val publishedNames: SetProperty<String>
 
     override fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit {
-        val published: Set<String> = publishedNames.get()
+        val published: Set<String> = this.publishedNames.get()
         VariableNames.findInFiles(files).toSortedMap().forEach { (file, names) ->
             names.filter { it.member !in published }.forEach { found ->
                 reportViolation(file, found.line, listOf(found.kind, found.name))

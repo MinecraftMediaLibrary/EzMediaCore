@@ -55,26 +55,26 @@ checkerFramework {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    options.compilerArgs.remove("-Werror")
-    options.errorprone {
-        excludedPaths = generatedSourcePattern
+    this.options.compilerArgs.remove("-Werror")
+    this.options.errorprone {
+        this.excludedPaths = generatedSourcePattern
     }
 }
 
 val jcstressJar: TaskProvider<Jar> = tasks.register<Jar>("jcstressJar") {
-    group = "build"
-    description = "Packs the jcstress tests with everything they run"
-    archiveClassifier = jcstressClassifier
-    manifest {
-        attributes("Main-Class" to jcstressMainClass)
+    this.group = "build"
+    this.description = "Packs the jcstress tests with everything they run"
+    this.archiveClassifier = jcstressClassifier
+    this.manifest {
+        this.attributes("Main-Class" to jcstressMainClass)
     }
-    from(sourceSets.main.get().output)
+    this.from(sourceSets.main.get().output)
     val runtimeClasspath: NamedDomainObjectProvider<Configuration> = configurations.runtimeClasspath
-    dependsOn(runtimeClasspath)
-    from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
-        exclude(signatureFiles)
+    this.dependsOn(runtimeClasspath)
+    this.from(runtimeClasspath.map { classpath -> classpath.map { if (it.isDirectory) it else zipTree(it) } }) {
+        this.exclude(signatureFiles)
     }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    this.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 val ITERATION_TIME: String = "Running {} jcstress tests in {} mode within {} minutes, at {} ms per iteration."
@@ -85,38 +85,38 @@ val defaultCpus: String = minOf(maximumDefaultCpus, Runtime.getRuntime().availab
 val cpus: String = providers.gradleProperty(cpusProperty).getOrElse(defaultCpus)
 
 tasks.register<JavaExec>("jcstressTest") {
-    group = "verification"
-    description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
+    this.group = "verification"
+    this.description = "Runs the jcstress concurrency tests; -Pjcstress.mode, -Pjcstress.timeBudgetMinutes, -Pjcstress.tests"
     val jar: Provider<RegularFile> = jcstressJar.flatMap { it.archiveFile }
-    inputs.file(jar)
-    classpath = files(jar)
-    mainClass = jcstressMainClass
+    this.inputs.file(jar)
+    this.classpath = files(jar)
+    this.mainClass = jcstressMainClass
     val workingDirectory: Provider<Directory> = layout.buildDirectory.dir(workingPath)
-    workingDir = workingDirectory.get().asFile
+    this.workingDir = workingDirectory.get().asFile
     val arguments: MutableList<String> = mutableListOf("-m", mode, "-c", cpus, "-r", resultsPath, "-v")
     if (selection.isPresent) {
         arguments += listOf("-t", selection.get())
     }
-    args(arguments)
+    this.args(arguments)
     val budget: Int? = budgetMinutes.orNull
     val tests: String? = selection.orNull
     val cpuCount: Int = cpus.toInt()
     val stressMode: String = mode
     val iterationTime: String = ITERATION_TIME
     val console: Provider<RegularFile> = workingDirectory.map { it.file(consolePath) }
-    doFirst {
+    this.doFirst {
         workingDirectory.get().asFile.mkdirs()
-        standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
+        this@register.standardOutput = JcstressConsole.tee(System.out, console.get().asFile)
         if (budget != null) {
             val testCount: Int = JcstressBudget.countTests(jar.get().asFile, tests)
             val iterationMilliseconds: Long = JcstressBudget.iterationMilliseconds(stressMode, budget, testCount, cpuCount)
-            logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMilliseconds)
-            args("-time", iterationMilliseconds.toString())
+            this.logger.lifecycle(iterationTime, testCount, stressMode, budget, iterationMilliseconds)
+            this@register.args("-time", iterationMilliseconds.toString())
         }
     }
-    doLast {
-        standardOutput.close()
+    this.doLast {
+        this@register.standardOutput.close()
         JcstressConsole.checkNoneSkipped(console.get().asFile)
     }
-    outputs.upToDateWhen { false }
+    this.outputs.upToDateWhen { false }
 }

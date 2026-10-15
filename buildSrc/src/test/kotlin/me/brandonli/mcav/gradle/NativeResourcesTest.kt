@@ -54,16 +54,16 @@ class NativeResourcesTest {
 
     @Test
     fun shouldBuildAndPackageTheGeneratedResourceArtifactIntoAShadowConsumer(): Unit {
-        val project: File = directory.toFile()
+        val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'native-resources'\ninclude 'producer', 'consumer'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.python' }\n")
         val catalog: File = project.resolve(CATALOG_PATH)
         catalog.parentFile.mkdirs()
         Path.of(REPOSITORY_DIRECTORY, CATALOG_PATH).toFile().copyTo(catalog)
-        val producer: File = project.resolve(PRODUCER_PROJECT).apply { mkdirs() }
-        val sources: File = producer.resolve(NATIVE_SOURCES_PATH).apply { mkdirs() }
+        val producer: File = project.resolve(PRODUCER_PROJECT).apply { this.mkdirs() }
+        val sources: File = producer.resolve(NATIVE_SOURCES_PATH).apply { this.mkdirs() }
         sources.resolve(NATIVE_SOURCE).writeText("native fixture bytes")
-        val compiler: File = project.resolve(ZIG_EXECUTABLE).apply { writeText("unused fixture compiler") }
+        val compiler: File = project.resolve(ZIG_EXECUTABLE).apply { this.writeText("unused fixture compiler") }
         producer.resolve(BUILD_SCRIPT).writeText("""
             plugins { id 'mcav.natives' }
             tasks.named('buildMcv2Natives') {
@@ -75,7 +75,7 @@ class NativeResourcesTest {
                 }
             }
         """.trimIndent())
-        val consumer: File = project.resolve(CONSUMER_PROJECT).apply { mkdirs() }
+        val consumer: File = project.resolve(CONSUMER_PROJECT).apply { this.mkdirs() }
         consumer.resolve(BUILD_SCRIPT).writeText("""
             plugins {
                 id 'java'
@@ -99,7 +99,7 @@ class NativeResourcesTest {
         val firstOutcome: TaskOutcome = first.task(":producer:buildMcv2Natives")!!.outcome
         assertEquals(TaskOutcome.SUCCESS, firstOutcome)
 
-        val packaged: String? = readLibrary(consumer)
+        val packaged: String? = this.readLibrary(consumer)
         assertEquals("native fixture bytes", packaged)
 
         val unchangedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
@@ -109,7 +109,7 @@ class NativeResourcesTest {
         val changedOutcome: TaskOutcome = runner.build().task(":producer:buildMcv2Natives")!!.outcome
         assertEquals(TaskOutcome.SUCCESS, changedOutcome)
 
-        val repackaged: String? = readLibrary(consumer)
+        val repackaged: String? = this.readLibrary(consumer)
         assertEquals("changed native fixture bytes", repackaged)
     }
 

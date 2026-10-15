@@ -39,22 +39,22 @@ class CatalogPinsTest {
 
     private val repository: File = Path.of(REPOSITORY_DIRECTORY).toFile()
 
-    private val catalog: String = repository.resolve(CATALOG_PATH).readText()
+    private val catalog: String = this.repository.resolve(CATALOG_PATH).readText()
 
-    private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(catalog)!!.groupValues[1]
+    private fun version(name: String): String = Regex("(?m)^$name = \"([^\"]+)\"").find(this.catalog)!!.groupValues[1]
 
     @Test
     fun shouldBuildReadTheDocsWithThePythonMinorOfTheCatalog(): Unit {
-        val readTheDocs: String = repository.resolve(READ_THE_DOCS_CONFIG).readText()
+        val readTheDocs: String = this.repository.resolve(READ_THE_DOCS_CONFIG).readText()
         val minor: String = PYTHON_MINOR_VERSION.find(readTheDocs)!!.groupValues[1]
-        val catalogMinor: String = version("python").split('.').take(2).joinToString(".")
+        val catalogMinor: String = this.version("python").split('.').take(2).joinToString(".")
         assertEquals(catalogMinor, minor)
     }
 
     @Test
     fun shouldPinTheSixHostArchivesOfTheCatalogZigAndUvAndNothingElse(): Unit {
-        val zig: String = version("zig")
-        val uv: String = version("uv")
+        val zig: String = this.version("zig")
+        val uv: String = this.version("uv")
         val archives: List<String> = listOf("Linux", "Windows 11", "Mac OS X").flatMap { system ->
             listOf("amd64", "arm64").map { HostPlatform.normalize(system, it) }
         }.flatMap { host ->
@@ -64,7 +64,7 @@ class CatalogPinsTest {
             )
         }
         val pins: Properties = Properties()
-        repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use { pins.load(it) }
+        this.repository.resolve(TOOL_CHECKSUMS_PATH).inputStream().use { pins.load(it) }
         val pinnedArchives: Set<String> = pins.stringPropertyNames()
         assertEquals(archives.toSet(), pinnedArchives)
     }

@@ -58,24 +58,24 @@ val zigArchive: String = zigFolder + if (system == windowsSystem) zipExtension e
 val zigPath: String = "$zigFolder/$zigTool" + if (system == windowsSystem) executableExtension else ""
 val zigChecksum: Provider<String> = Tools.pinnedSha256(project, zigTool, pinnedZigVersion, zigArchive)
 val downloadZig: TaskProvider<DownloadToolArchive> = tasks.register<DownloadToolArchive>("downloadZig") {
-    group = "build setup"
-    description = "Downloads the pinned Zig and verifies its SHA-256"
-    archiveUrl = "$zigDownloadUrl/$pinnedZigVersion/$zigArchive"
-    sha256 = zigChecksum
-    executablePath = zigPath
-    installationDirectory = layout.buildDirectory.dir("$zigToolsPath/$pinnedZigVersion")
+    this.group = "build setup"
+    this.description = "Downloads the pinned Zig and verifies its SHA-256"
+    this.archiveUrl = "$zigDownloadUrl/$pinnedZigVersion/$zigArchive"
+    this.sha256 = zigChecksum
+    this.executablePath = zigPath
+    this.installationDirectory = layout.buildDirectory.dir("$zigToolsPath/$pinnedZigVersion")
 }
 val nativeSources: Directory = layout.projectDirectory.dir(nativeSourcePath)
 val buildMcv2Natives: TaskProvider<BuildMcv2Natives> = tasks.register<BuildMcv2Natives>("buildMcv2Natives") {
-    group = "build"
-    description = "Compiles MCV2's six native libraries from source"
-    sourcesDirectory = nativeSources
-    zigExecutable = Tools.selectTool(project, zigTool, downloadZig.flatMap { it.installationDirectory.file(zigPath) })
-    zigVersion = pinnedZigVersion
-    toolchainChecksum = Tools.toolOverride(project, zigTool).map { zigOverrideChecksum }.orElse(zigChecksum)
-    outputDirectory = layout.buildDirectory.dir(generatedNativesPath)
-    cacheDirectory = layout.buildDirectory.dir(zigCachePath)
-    processCount = gradle.startParameter.maxWorkerCount
+    this.group = "build"
+    this.description = "Compiles MCV2's six native libraries from source"
+    this.sourcesDirectory = nativeSources
+    this.zigExecutable = Tools.selectTool(project, zigTool, downloadZig.flatMap { it.installationDirectory.file(zigPath) })
+    this.zigVersion = pinnedZigVersion
+    this.toolchainChecksum = Tools.toolOverride(project, zigTool).map { zigOverrideChecksum }.orElse(zigChecksum)
+    this.outputDirectory = layout.buildDirectory.dir(generatedNativesPath)
+    this.cacheDirectory = layout.buildDirectory.dir(zigCachePath)
+    this.processCount = gradle.startParameter.maxWorkerCount
 }
 sourceSets.main {
     resources.srcDir(buildMcv2Natives)
@@ -97,21 +97,21 @@ val selectedClangFormat: Provider<RegularFile> = Tools.selectTool(project, clang
 val formattedSources: ConfigurableFileTree = fileTree(nativeSources) { include(nativeSourcePattern) }
 
 tasks.register<ClangFormat>("formatMcv2Natives") {
-    group = "formatting"
-    description = "Formats the MCV2 native sources with clang-format $pinnedClangFormatVersion"
-    sources.from(formattedSources)
-    clangFormat = selectedClangFormat
-    clangFormatVersion = pinnedClangFormatVersion
-    rewrite = true
+    this.group = "formatting"
+    this.description = "Formats the MCV2 native sources with clang-format $pinnedClangFormatVersion"
+    this.sources.from(formattedSources)
+    this.clangFormat = selectedClangFormat
+    this.clangFormatVersion = pinnedClangFormatVersion
+    this.rewrite = true
 }
 val checkNativesFormat: TaskProvider<ClangFormat> = tasks.register<ClangFormat>("checkMcv2NativesFormat") {
-    group = "verification"
-    description = "Checks that the MCV2 native sources are formatted with clang-format $pinnedClangFormatVersion"
-    sources.from(formattedSources)
-    clangFormat = selectedClangFormat
-    clangFormatVersion = pinnedClangFormatVersion
-    rewrite = false
+    this.group = "verification"
+    this.description = "Checks that the MCV2 native sources are formatted with clang-format $pinnedClangFormatVersion"
+    this.sources.from(formattedSources)
+    this.clangFormat = selectedClangFormat
+    this.clangFormatVersion = pinnedClangFormatVersion
+    this.rewrite = false
 }
 tasks.named("check") {
-    dependsOn(checkNativesFormat)
+    this.dependsOn(checkNativesFormat)
 }

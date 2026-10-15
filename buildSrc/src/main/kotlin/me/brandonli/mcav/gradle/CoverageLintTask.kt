@@ -59,18 +59,18 @@ abstract class CoverageLintTask : DefaultTask() {
 
     @TaskAction
     fun lint(): Unit {
-        if (testsFiltered.get()) {
-            logger.warn(FILTERED, projectPath.get())
+        if (this.testsFiltered.get()) {
+            this.logger.warn(FILTERED, this.projectPath.get())
             return
         }
-        val exceptionFile: File = exceptionsFile.singleFile
+        val exceptionFile: File = this.exceptionsFile.singleFile
         val exceptions: List<CoverageException> = CoverageExceptions.read(exceptionFile)
-        val sources: File = sourceDirectory.get().asFile
-        val gaps: List<String> = CoverageReport.findGaps(report.singleFile, sources, exceptions)
-        gaps.forEach { gap -> logger.error(GAP, gap) }
+        val sources: File = this.sourceDirectory.get().asFile
+        val gaps: List<String> = CoverageReport.findGaps(this.report.singleFile, sources, exceptions)
+        gaps.forEach { gap -> this.logger.error(GAP, gap) }
         val staleExceptions: List<CoverageException> = exceptions.filterNot { it.used }
         staleExceptions.forEach { exception ->
-            logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
+            this.logger.error(STALE_EXCEPTION, exceptionFile, exception.path, exception.sourceLine)
         }
         if (gaps.isNotEmpty() || staleExceptions.isNotEmpty()) {
             val message: String =

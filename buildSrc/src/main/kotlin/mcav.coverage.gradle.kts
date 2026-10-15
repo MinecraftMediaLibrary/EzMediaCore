@@ -40,48 +40,48 @@ jacoco {
 }
 
 val jacocoReport: TaskProvider<JacocoReport> = tasks.named<JacocoReport>("jacocoTestReport") {
-    reports {
-        xml.required = true
-        html.required = true
+    this.reports {
+        this.xml.required = true
+        this.html.required = true
     }
 }
 
 val instrumentedClasses: List<String> = listOf("me.brandonli.*", "org.cef.browser.McavOffscreenBrowser*")
 
 tasks.withType<Test>().configureEach {
-    extensions.configure<JacocoTaskExtension> {
-        includes = instrumentedClasses
+    this.extensions.configure<JacocoTaskExtension> {
+        this.includes = instrumentedClasses
     }
 }
 
 val testTask: TaskProvider<Test> = tasks.named<Test>("test") {
-    finalizedBy(jacocoReport)
+    this.finalizedBy(jacocoReport)
 }
 
 val coverageLint: TaskProvider<CoverageLintTask> = tasks.register<CoverageLintTask>("coverageLint") {
-    group = "verification"
-    description = "Runs the tests and reports every line and branch of production code that no test covers"
-    dependsOn(testTask, jacocoReport)
-    report.from(layout.buildDirectory.file(coverageReportPath))
-    sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
-    exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
-    testsFiltered = testTask.map {
+    this.group = "verification"
+    this.description = "Runs the tests and reports every line and branch of production code that no test covers"
+    this.dependsOn(testTask, jacocoReport)
+    this.report.from(layout.buildDirectory.file(coverageReportPath))
+    this.sourceDirectory = layout.projectDirectory.dir(mainSourcePath)
+    this.exceptionsFile.from(layout.projectDirectory.file(coverageExceptionsPath))
+    this.testsFiltered = testTask.map {
         val filter: DefaultTestFilter = it.filter as DefaultTestFilter
         filter.commandLineIncludePatterns.isNotEmpty() || filter.includePatterns.isNotEmpty() ||
             filter.excludePatterns.isNotEmpty() || it.includes.isNotEmpty() || it.excludes.isNotEmpty()
     }
-    projectPath = project.path
+    this.projectPath = project.path
 }
 
 tasks.withType<Test>().named { it == propertyTestName || it.startsWith(fuzzTaskPrefix) }.configureEach {
-    extensions.configure<JacocoTaskExtension> {
-        isEnabled = false
+    this.extensions.configure<JacocoTaskExtension> {
+        this.isEnabled = false
     }
 }
 
 val coverageGate: Boolean = providers.gradleProperty(coverageProperty).map { !it.equals(disabledValue, ignoreCase = true) }.getOrElse(true)
 if (coverageGate) {
     tasks.check {
-        dependsOn(coverageLint)
+        this.dependsOn(coverageLint)
     }
 }

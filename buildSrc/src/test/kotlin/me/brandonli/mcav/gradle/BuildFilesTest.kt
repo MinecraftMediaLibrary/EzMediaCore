@@ -49,18 +49,18 @@ class BuildFilesTest {
     private val root: File = File(REPOSITORY_DIRECTORY)
 
     private val modules: List<String> = MODULE_ENTRY
-        .findAll(root.resolve(SETTINGS_SCRIPT).readText())
+        .findAll(this.root.resolve(SETTINGS_SCRIPT).readText())
         .map { it.groupValues[1] }
         .toList()
 
-    private val moduleScripts: List<File> = modules.map { root.resolve("$it/build.gradle.kts") }
+    private val moduleScripts: List<File> = this.modules.map { this.root.resolve("$it/build.gradle.kts") }
 
     private val buildScripts: List<File> = listOf(
         SETTINGS_SCRIPT,
         BUILD_SCRIPT,
         BUILD_SOURCE_SETTINGS_SCRIPT,
         BUILD_SOURCE_BUILD_SCRIPT
-    ).map { root.resolve(it) } + moduleScripts
+    ).map { this.root.resolve(it) } + this.moduleScripts
 
     private val sources: List<File> = File(SOURCE_DIRECTORY).walk()
         .filter { it.isFile && (it.name.endsWith(KOTLIN_EXTENSION) || it.name.endsWith(SCRIPT_EXTENSION)) }
@@ -68,27 +68,28 @@ class BuildFilesTest {
 
     @Test
     fun shouldOpenEverySourceOfTheBuildWithTheLicenseHeaderAndNoBuildScript(): Unit {
-        val header: String = root.resolve(HEADER_FILE).readText()
-        val sourcesWithoutHeader: List<String> = sources.filterNot { it.readText().startsWith("$header\n") }.map { it.path }
+        val header: String = this.root.resolve(HEADER_FILE).readText()
+        val sourcesWithoutHeader: List<String> = this.sources.filterNot { it.readText().startsWith("$header\n") }.map { it.path }
         assertEquals(listOf<String>(), sourcesWithoutHeader)
 
-        val scriptsWithHeader: List<String> = buildScripts.filter { it.readText().contains(header) }.map { it.path }
+        val scriptsWithHeader: List<String> = this.buildScripts.filter { it.readText().contains(header) }.map { it.path }
         assertEquals(listOf<String>(), scriptsWithHeader)
     }
 
     @Test
     fun shouldOnlyApplyConventionsAndListDependenciesInEveryModuleScript(): Unit {
-        val offenders: List<String> = moduleScripts.filterNot { MODULE_SCRIPT_LAYOUT.matches(it.readText()) }.map { it.path }
+        val offenders: List<String> = this.moduleScripts.filterNot { MODULE_SCRIPT_LAYOUT.matches(it.readText()) }.map { it.path }
         assertEquals(listOf<String>(), offenders)
     }
 
     @Test
     fun shouldIncludeEveryModuleInOrderAndSortEverySectionOfTheCatalog(): Unit {
-        val directories: Array<File> = root.listFiles { file -> file.name != BUILD_SOURCE_DIRECTORY && file.resolve(BUILD_SCRIPT).isFile }!!
+        val directories: Array<File> =
+            this.root.listFiles { file -> file.name != BUILD_SOURCE_DIRECTORY && file.resolve(BUILD_SCRIPT).isFile }!!
         val sortedModules: List<String> = directories.map { it.name }.sorted()
-        assertEquals(sortedModules, modules)
+        assertEquals(sortedModules, this.modules)
 
-        val sections: List<String> = root.resolve(CATALOG_PATH).readText().split(CATALOG_SECTION_HEADER)
+        val sections: List<String> = this.root.resolve(CATALOG_PATH).readText().split(CATALOG_SECTION_HEADER)
         val names: List<List<String>> = sections.drop(1).map { section ->
             CATALOG_ENTRY.findAll(section).map { it.groupValues[1] }.toList()
         }
@@ -98,7 +99,7 @@ class BuildFilesTest {
 
     @Test
     fun shouldKeepEveryLineOfTheBuildWithin140Columns(): Unit {
-        val longLines: List<String> = (sources + buildScripts).flatMap { file ->
+        val longLines: List<String> = (this.sources + this.buildScripts).flatMap { file ->
             file.readLines().withIndex().filter { it.value.length > 140 }.map { "${file.path}:${it.index + 1}" }
         }
         assertEquals(listOf<String>(), longLines)

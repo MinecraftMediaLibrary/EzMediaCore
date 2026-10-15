@@ -64,84 +64,84 @@ val corepackScript: File = NodeLayout.corepackScript(nodeInstallation, host).asF
 val nodePath: String = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv(pathVariable)
 
 val pnpmProjectInstall: TaskProvider<Exec> = tasks.register<Exec>("pnpmProjectInstall") {
-    group = "build"
-    description = "Installs the pnpm dependencies of the website"
-    dependsOn(nodeSetup)
-    workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
-    environment(pathVariable, nodePath)
-    environment(corepackPromptVariable, disabledPrompt)
-    args(corepackScript.absolutePath, pnpmTool, "install", "--frozen-lockfile")
-    inputs.file(packageJsonPath)
-    inputs.file(pnpmLockPath)
-    outputs.file(installedModulesPath)
+    this.group = "build"
+    this.description = "Installs the pnpm dependencies of the website"
+    this.dependsOn(nodeSetup)
+    this.workingDir = file(websitePath)
+    this.executable = nodeExecutable.absolutePath
+    this.environment(pathVariable, nodePath)
+    this.environment(corepackPromptVariable, disabledPrompt)
+    this.args(corepackScript.absolutePath, pnpmTool, "install", "--frozen-lockfile")
+    this.inputs.file(packageJsonPath)
+    this.inputs.file(pnpmLockPath)
+    this.outputs.file(installedModulesPath)
 }
 
 val buildWebsite: TaskProvider<Exec> = tasks.register<Exec>("buildWebsite") {
-    group = "build"
-    description = "Builds the Next.js website"
-    dependsOn(pnpmProjectInstall)
-    workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
-    environment(pathVariable, nodePath)
-    environment(corepackPromptVariable, disabledPrompt)
-    environment(nodeOptionsVariable, "--max-old-space-size=$nodeHeapMegabytes")
-    args(corepackScript.absolutePath, pnpmTool, "run", "build")
-    inputs.dir(websiteSourcePath)
-    inputs.dir(websitePublicPath)
-    inputs.file(packageJsonPath)
-    inputs.file(pnpmLockPath)
-    inputs.files(websiteConfigurationFiles)
-    outputs.dir(websiteOutputPath)
-    outputs.cacheIf { false }
+    this.group = "build"
+    this.description = "Builds the Next.js website"
+    this.dependsOn(pnpmProjectInstall)
+    this.workingDir = file(websitePath)
+    this.executable = nodeExecutable.absolutePath
+    this.environment(pathVariable, nodePath)
+    this.environment(corepackPromptVariable, disabledPrompt)
+    this.environment(nodeOptionsVariable, "--max-old-space-size=$nodeHeapMegabytes")
+    this.args(corepackScript.absolutePath, pnpmTool, "run", "build")
+    this.inputs.dir(websiteSourcePath)
+    this.inputs.dir(websitePublicPath)
+    this.inputs.file(packageJsonPath)
+    this.inputs.file(pnpmLockPath)
+    this.inputs.files(websiteConfigurationFiles)
+    this.outputs.dir(websiteOutputPath)
+    this.outputs.cacheIf { false }
 }
 
 val testWebsite: TaskProvider<Exec> = tasks.register<Exec>("testWebsite") {
-    group = "verification"
-    description = "Runs the tests of the website"
-    dependsOn(pnpmProjectInstall)
-    workingDir = file(websitePath)
-    executable = nodeExecutable.absolutePath
-    environment(pathVariable, nodePath)
-    environment(corepackPromptVariable, disabledPrompt)
-    args(corepackScript.absolutePath, pnpmTool, "test")
-    inputs.dir(websiteSourcePath)
-    inputs.dir(websiteTestPath)
-    inputs.file(packageJsonPath)
+    this.group = "verification"
+    this.description = "Runs the tests of the website"
+    this.dependsOn(pnpmProjectInstall)
+    this.workingDir = file(websitePath)
+    this.executable = nodeExecutable.absolutePath
+    this.environment(pathVariable, nodePath)
+    this.environment(corepackPromptVariable, disabledPrompt)
+    this.args(corepackScript.absolutePath, pnpmTool, "test")
+    this.inputs.dir(websiteSourcePath)
+    this.inputs.dir(websiteTestPath)
+    this.inputs.file(packageJsonPath)
     val passed: Provider<RegularFile> = layout.buildDirectory.file(websiteTestsPassedPath)
-    outputs.file(passed)
-    doLast {
+    this.outputs.file(passed)
+    this.doLast {
         passed.get().asFile.writeText(passedMarker)
     }
 }
 
 tasks.check {
-    dependsOn(testWebsite)
+    this.dependsOn(testWebsite)
 }
 
 tasks.jar {
-    from(buildWebsite) {
-        into(bundledWebsitePath)
+    this.from(buildWebsite) {
+        this.into(bundledWebsitePath)
     }
 }
 
 tasks.processTestResources {
-    filesMatching(websiteTestResources) {
-        path = "$httpResourcePath/$path"
+    this.filesMatching(websiteTestResources) {
+        this.path = "$httpResourcePath/${this.path}"
     }
 }
 
 tasks.named<Jar>("sourcesJar") {
-    from(buildWebsite) {
-        into(bundledWebsitePath)
+    this.from(buildWebsite) {
+        this.into(bundledWebsitePath)
     }
 }
 
 val builtJar: String = "-D$builtJarProperty=" + layout.buildDirectory.file(builtJarPath).get().asFile.absolutePath
 tasks.test {
-    dependsOn(tasks.jar)
-    jvmArgs(builtJar)
+    this.dependsOn(tasks.jar)
+    this.jvmArgs(builtJar)
 }
 tasks.named("pitest") {
-    dependsOn(tasks.jar)
+    this.dependsOn(tasks.jar)
 }

@@ -61,31 +61,34 @@ abstract class JupyterBook : PythonTask() {
 
     @TaskAction
     fun build(): Unit {
-        val staging: File = temporaryDir
-        files.delete { delete(staging) }
+        val staging: File = this.temporaryDir
+        this.files.delete { this.delete(staging) }
         val book: File = staging.resolve(BOOK_DIRECTORY)
-        files.sync {
-            from(sources)
-            into(book)
+        val notebooks: ConfigurableFileCollection = this.sources
+        this.files.sync {
+            this.from(notebooks)
+            this.into(book)
         }
         val commands: List<List<String>> = listOf(
             listOf("config", "sphinx", BOOK_DIRECTORY),
             listOf("build", BOOK_DIRECTORY, "--path-output", SITE_DIRECTORY, "--warningiserror", "--keep-going", "--all")
         )
+        val python: File = this.pythonExecutable.get().asFile
         commands.forEach { arguments ->
-            processes.exec {
-                workingDir(staging)
-                commandLine(listOf(pythonExecutable.get().asFile, "-c", ENTRY_POINT) + arguments)
-                environment(NO_USER_SITE_VARIABLE, ENABLED)
-                environment(NO_BYTECODE_VARIABLE, ENABLED)
-                environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
-                environment(MATPLOTLIB_CONFIG_VARIABLE, staging.resolve(MATPLOTLIB_CONFIG_DIRECTORY).absolutePath)
-                environment(JUPYTER_CONFIG_VARIABLE, staging.resolve(JUPYTER_CONFIG_DIRECTORY).absolutePath)
+            this.processes.exec {
+                this.workingDir(staging)
+                this.commandLine(listOf(python, "-c", ENTRY_POINT) + arguments)
+                this.environment(NO_USER_SITE_VARIABLE, ENABLED)
+                this.environment(NO_BYTECODE_VARIABLE, ENABLED)
+                this.environment(HASH_SEED_VARIABLE, FIXED_HASH_SEED)
+                this.environment(MATPLOTLIB_CONFIG_VARIABLE, staging.resolve(MATPLOTLIB_CONFIG_DIRECTORY).absolutePath)
+                this.environment(JUPYTER_CONFIG_VARIABLE, staging.resolve(JUPYTER_CONFIG_DIRECTORY).absolutePath)
             }
         }
-        files.sync {
-            from(staging.resolve(HTML_DIRECTORY))
-            into(outputDirectory)
+        val output: DirectoryProperty = this.outputDirectory
+        this.files.sync {
+            this.from(staging.resolve(HTML_DIRECTORY))
+            this.into(output)
         }
     }
 }

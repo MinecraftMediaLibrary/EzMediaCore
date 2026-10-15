@@ -41,15 +41,15 @@ abstract class JavaLintTask : DefaultTask() {
     @TaskAction
     fun check(): Unit {
         var count: Int = 0
-        findViolations(sources.files.sorted()) { file, line, arguments ->
+        this.findViolations(this.sources.files.sorted()) { file, line, arguments ->
             count++
-            logger.error(diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
+            this.logger.error(this.diagnosticMessage(), *(listOf(file, line) + arguments).toTypedArray())
         }
         if (count > 0) {
-            val message: String = failureMessage(count)
+            val message: String = this.failureMessage(count)
             throw GradleException(message)
         }
-        report.get().asFile.writeText(successMessage(sources.files.size))
+        this.report.get().asFile.writeText(this.successMessage(this.sources.files.size))
     }
 
     protected abstract fun findViolations(files: List<File>, reportViolation: (File, Number, List<String>) -> Unit): Unit

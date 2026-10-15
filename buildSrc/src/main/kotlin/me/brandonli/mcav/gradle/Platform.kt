@@ -25,54 +25,54 @@ import org.gradle.api.provider.Provider
 
 class HostPlatform private constructor(val operatingSystem: String, val architecture: String) {
 
-    val isWindows: Boolean get() = operatingSystem.contains(WINDOWS)
+    val isWindows: Boolean get() = this.operatingSystem.contains(WINDOWS)
 
     val zigSystem: String get() = when {
-        isWindows -> WINDOWS
-        operatingSystem.contains(MAC) -> ZIG_MACOS
-        operatingSystem.contains(LINUX) -> LINUX
-        else -> operatingSystem
+        this.isWindows -> WINDOWS
+        this.operatingSystem.contains(MAC) -> ZIG_MACOS
+        this.operatingSystem.contains(LINUX) -> LINUX
+        else -> this.operatingSystem
     }
 
-    val uvTarget: String get() = architecture + when {
-        isWindows -> WINDOWS_UV_TARGET
-        operatingSystem.contains(MAC) -> MACOS_UV_TARGET
+    val uvTarget: String get() = this.architecture + when {
+        this.isWindows -> WINDOWS_UV_TARGET
+        this.operatingSystem.contains(MAC) -> MACOS_UV_TARGET
         else -> LINUX_UV_TARGET
     }
 
     val lwjglNatives: String? get() = when {
-        operatingSystem.contains(MAC) || operatingSystem.contains(DARWIN) -> when (architecture) {
+        this.operatingSystem.contains(MAC) || this.operatingSystem.contains(DARWIN) -> when (this.architecture) {
             AARCH64 -> MACOS_ARM64_NATIVES
             X86_64 -> MACOS_NATIVES
             else -> null
         }
-        operatingSystem.contains(WIN) -> when (architecture) {
+        this.operatingSystem.contains(WIN) -> when (this.architecture) {
             AARCH64 -> WINDOWS_ARM64_NATIVES
             X86_64 -> WINDOWS_NATIVES
             X86, I386, I686 -> WINDOWS_X86_NATIVES
             else -> null
         }
-        operatingSystem.contains(FREEBSD) -> if (architecture == X86_64) FREEBSD_NATIVES else null
-        operatingSystem.contains(LINUX) -> when {
-            architecture == X86_64 -> LINUX_NATIVES
-            architecture == AARCH64 -> LINUX_ARM64_NATIVES
-            architecture == ARM || architecture == ARM32 || architecture.startsWith(ARMV7_PREFIX) -> LINUX_ARM32_NATIVES
-            architecture == PPC64LE -> LINUX_PPC64LE_NATIVES
-            architecture == RISCV64 -> LINUX_RISCV64_NATIVES
+        this.operatingSystem.contains(FREEBSD) -> if (this.architecture == X86_64) FREEBSD_NATIVES else null
+        this.operatingSystem.contains(LINUX) -> when {
+            this.architecture == X86_64 -> LINUX_NATIVES
+            this.architecture == AARCH64 -> LINUX_ARM64_NATIVES
+            this.architecture == ARM || this.architecture == ARM32 || this.architecture.startsWith(ARMV7_PREFIX) -> LINUX_ARM32_NATIVES
+            this.architecture == PPC64LE -> LINUX_PPC64LE_NATIVES
+            this.architecture == RISCV64 -> LINUX_RISCV64_NATIVES
             else -> null
         }
         else -> null
     }
 
-    fun javaExecutable(javaHome: String): String = javaHome + JAVA_BINARY + if (isWindows) EXECUTABLE_EXTENSION else ""
+    fun javaExecutable(javaHome: String): String = javaHome + JAVA_BINARY + if (this.isWindows) EXECUTABLE_EXTENSION else ""
 
     fun virtualEnvironmentExecutable(name: String): String =
-        if (isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
+        if (this.isWindows) "$WINDOWS_SCRIPTS_DIRECTORY$name$EXECUTABLE_EXTENSION" else "$UNIX_BINARIES_DIRECTORY$name"
 
     fun addLwjglTestNatives(dependencies: DependencyHandler, libraries: Iterable<Provider<MinimalExternalModuleDependency>>): Unit {
-        lwjglNatives?.let { natives ->
+        this.lwjglNatives?.let { natives ->
             libraries.forEach { library ->
-                dependencies.add(TEST_RUNTIME_CONFIGURATION, dependencies.variantOf(library) { classifier(natives) })
+                dependencies.add(TEST_RUNTIME_CONFIGURATION, dependencies.variantOf(library) { this.classifier(natives) })
             }
         }
     }

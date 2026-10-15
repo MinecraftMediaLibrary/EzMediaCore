@@ -45,8 +45,8 @@ object LogMessages {
         val text: String = JavaSource.withoutComments(source)
         return CALL.findAll(code)
             .filter { LOGGER.matches(it.groupValues[RECEIVER_GROUP]) }
-            .filter { call -> isConcatenated(arguments(text, code, call.range.last + 1)) }
-            .map { call -> ConcatenatedLogMessage(lineOf(source, call.range.first), call.value.substringBefore(CALL_START)) }
+            .filter { call -> this.isConcatenated(this.arguments(text, code, call.range.last + 1)) }
+            .map { call -> ConcatenatedLogMessage(this.lineOf(source, call.range.first), call.value.substringBefore(CALL_START)) }
             .toList()
     }
 
@@ -85,13 +85,13 @@ object LogMessages {
             var depth: Int = 0
             var plus: Boolean = false
             var literal: Boolean = false
-            code.forEachIndexed { index, character ->
+            this.code.forEachIndexed { index, character ->
                 when {
                     character in OPENING -> depth++
                     character in CLOSING -> depth--
                     depth > 0 -> Unit
                     character == CONCATENATION -> plus = true
-                    text[index] == STRING_QUOTE -> literal = true
+                    this.text[index] == STRING_QUOTE -> literal = true
                 }
             }
             return plus && literal

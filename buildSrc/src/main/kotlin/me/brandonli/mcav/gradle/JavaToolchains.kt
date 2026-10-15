@@ -37,8 +37,8 @@ object JavaToolchains {
         val version: JavaLanguageVersion = this.languageVersion(project)
         val toolchains: JavaToolchainService = project.extensions.getByType<JavaToolchainService>()
         return toolchains.launcherFor {
-            languageVersion.set(version)
-            if (requestedVendor != null) vendor.set(requestedVendor)
+            this.languageVersion.set(version)
+            if (requestedVendor != null) this.vendor.set(requestedVendor)
         }
     }
 }

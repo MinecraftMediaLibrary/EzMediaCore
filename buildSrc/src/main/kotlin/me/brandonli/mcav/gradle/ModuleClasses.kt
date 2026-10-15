@@ -51,11 +51,11 @@ object ModuleClasses {
     }
 
     fun required(pluginClasses: Iterable<File>, modules: Iterable<File>): SortedSet<String> {
-        val inModules: Set<String> = available(modules)
+        val inModules: Set<String> = this.available(modules)
         val used: TreeSet<String> = sortedSetOf<String>()
         pluginClasses.filter { it.isDirectory }.forEach { root ->
             root.walkTopDown().filter { it.isFile && it.name.endsWith(CLASS_SUFFIX) }.forEach { file ->
-                used.addAll(referenced(file.readBytes()).filter { it in inModules })
+                used.addAll(this.referenced(file.readBytes()).filter { it in inModules })
             }
         }
         return used

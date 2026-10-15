@@ -33,12 +33,12 @@ val helperCoverage: Provider<RegularFile> = layout.buildDirectory.file(helperCov
 
 tasks.test {
     val coverage: Provider<RegularFile> = helperCoverage
-    outputs.file(coverage).withPropertyName("helperCoverage")
-    doFirst {
+    this.outputs.file(coverage).withPropertyName("helperCoverage")
+    this.doFirst {
         coverage.get().asFile.delete()
     }
 }
 
 tasks.jacocoTestReport {
-    executionData(helperCoverage)
+    this.executionData(helperCoverage)
 }

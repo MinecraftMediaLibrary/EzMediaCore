@@ -53,7 +53,7 @@ class ModLicensingTest {
 
     @Test
     fun shouldCarryTheExactLicenseAndNoticesInEveryModArchiveWhileKeepingLoaderResourcesSeparate(): Unit {
-        val project: File = directory.toFile()
+        val project: File = this.directory.toFile()
         project.resolve(SETTINGS_SCRIPT).writeText("rootProject.name = 'mcav-mod'\n")
         project.resolve(BUILD_SCRIPT).writeText("plugins { id 'mcav.node'; id 'mcav.mod' }\nversion = '1.0.0-SNAPSHOT'\n")
         val catalog: File = project.resolve(CATALOG_PATH)
@@ -71,7 +71,7 @@ class ModLicensingTest {
             .withPluginClasspath()
             .withArguments("jar", "fabricJar", "neoforgeJar", "--no-parallel", "--max-workers=1")
             .build()
-        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith { describeArchive(it) }
+        val archives: Map<String, List<Any?>> = listOf("plain", "fabric", "neoforge").associateWith { this.describeArchive(it) }
         val expected: Map<String, List<Any?>> = mapOf(
             "plain" to listOf(license, notices, true, true),
             "fabric" to listOf(license, notices, true, false),
@@ -81,10 +81,10 @@ class ModLicensingTest {
     }
 
     private fun describeArchive(classifier: String): List<Any?> =
-        ZipFile(directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
+        ZipFile(this.directory.resolve("build/libs/mcav-mod-1.0.0-SNAPSHOT-$classifier.jar").toFile()).use { archive ->
             listOf(
-                readEntry(archive, LICENSE_ENTRY),
-                readEntry(archive, NOTICES_ENTRY),
+                this.readEntry(archive, LICENSE_ENTRY),
+                this.readEntry(archive, NOTICES_ENTRY),
                 archive.getEntry(FABRIC_METADATA_ENTRY) != null,
                 archive.getEntry(NEOFORGE_METADATA_ENTRY) != null
             )

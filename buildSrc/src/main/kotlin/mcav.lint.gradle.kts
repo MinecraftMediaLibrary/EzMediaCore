@@ -34,26 +34,26 @@ val variableNamesReportPath: String = "reports/variable-names.txt"
 val javaSources: FileTree = layout.projectDirectory.dir(sourcePath).asFileTree.matching { include(javaSourcePattern) }
 
 val qualifiedNames: TaskProvider<QualifiedNamesTask> = tasks.register<QualifiedNamesTask>("qualifiedNames") {
-    group = "verification"
-    description = "Fails on fully qualified type names in the Java code of every source set of this module"
-    sources.from(javaSources)
-    report = layout.buildDirectory.file(qualifiedNamesReportPath)
+    this.group = "verification"
+    this.description = "Fails on fully qualified type names in the Java code of every source set of this module"
+    this.sources.from(javaSources)
+    this.report = layout.buildDirectory.file(qualifiedNamesReportPath)
 }
 
 val logMessages: TaskProvider<LogMessagesTask> = tasks.register<LogMessagesTask>("logMessages") {
-    group = "verification"
-    description = "Fails on log calls that join strings with + in the Java code of every source set of this module"
-    sources.from(javaSources)
-    report = layout.buildDirectory.file(logMessagesReportPath)
+    this.group = "verification"
+    this.description = "Fails on log calls that join strings with + in the Java code of every source set of this module"
+    this.sources.from(javaSources)
+    this.report = layout.buildDirectory.file(logMessagesReportPath)
 }
 
 val variableNames: TaskProvider<VariableNamesTask> = tasks.register<VariableNamesTask>("variableNames") {
-    group = "verification"
-    description = "Fails on one-letter and abbreviated variable names in the Java code of every source set of this module"
-    sources.from(javaSources)
-    report = layout.buildDirectory.file(variableNamesReportPath)
+    this.group = "verification"
+    this.description = "Fails on one-letter and abbreviated variable names in the Java code of every source set of this module"
+    this.sources.from(javaSources)
+    this.report = layout.buildDirectory.file(variableNamesReportPath)
 }
 
 tasks.check {
-    dependsOn(qualifiedNames, logMessages, variableNames)
+    this.dependsOn(qualifiedNames, logMessages, variableNames)
 }

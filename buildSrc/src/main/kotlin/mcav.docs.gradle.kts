@@ -29,14 +29,14 @@ val docsOutputPath: String = "html"
 
 val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
 val buildDocs: TaskProvider<JupyterBook> = tasks.register<JupyterBook>("buildDocs") {
-    group = "documentation"
-    description = "Builds the documentation HTML; a Sphinx warning fails it"
-    useEnvironment(pythonEnvironment)
-    sources.from(fileTree(projectDir) {
-        exclude(excludedDocsSources)
+    this.group = "documentation"
+    this.description = "Builds the documentation HTML; a Sphinx warning fails it"
+    this.useEnvironment(pythonEnvironment)
+    this.sources.from(fileTree(projectDir) {
+        this.exclude(excludedDocsSources)
     })
-    outputDirectory = layout.buildDirectory.dir(docsOutputPath)
+    this.outputDirectory = layout.buildDirectory.dir(docsOutputPath)
 }
 tasks.named("assemble") {
-    dependsOn(buildDocs)
+    this.dependsOn(buildDocs)
 }

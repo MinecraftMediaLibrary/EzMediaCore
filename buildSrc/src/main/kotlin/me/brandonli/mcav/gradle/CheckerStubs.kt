@@ -37,7 +37,7 @@ internal object CheckerStubs {
     }
 
     fun argumentsFor(directory: File, projectName: String): List<String> {
-        val folders: List<File> = forProject(directory, projectName)
+        val folders: List<File> = this.forProject(directory, projectName)
         return if (folders.isEmpty()) emptyList() else listOf("-Astubs=" + folders.joinToString(File.pathSeparator))
     }
 }

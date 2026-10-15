@@ -48,16 +48,19 @@ class ClangFormatTest {
 
     abstract class RecordingFormat : ClangFormat() {
         lateinit var recordedProcesses: ExecOperations
-        override val processes: ExecOperations get() = recordedProcesses
+        override val processes: ExecOperations get() = this.recordedProcesses
     }
 
     @Test
     fun shouldFailTheCheckOnEveryUnformattedLineWithoutChangingTheSources(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
-        format(false, processes)
+        this.format(false, processes)
         val commands: List<List<String>> = processes.commands
         assertEquals(
-            listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "--dry-run", "--Werror", STYLE_OPTION) + sources()),
+            listOf(
+                listOf(this.clangFormat(), VERSION_OPTION),
+                listOf(this.clangFormat(), "--dry-run", "--Werror", STYLE_OPTION) + this.sources()
+            ),
             commands
         )
     }
@@ -65,9 +68,9 @@ class ClangFormatTest {
     @Test
     fun shouldRewriteTheSourcesInPlace(): Unit {
         val processes: RecordedProcesses = RecordedProcesses(VERSION_OUTPUT)
-        format(true, processes)
+        this.format(true, processes)
         val expected: List<List<String>> =
-            listOf(listOf(clangFormat(), VERSION_OPTION), listOf(clangFormat(), "-i", STYLE_OPTION) + sources())
+            listOf(listOf(this.clangFormat(), VERSION_OPTION), listOf(this.clangFormat(), "-i", STYLE_OPTION) + this.sources())
         val commands: List<List<String>> = processes.commands
         assertEquals(expected, commands)
     }
@@ -75,27 +78,27 @@ class ClangFormatTest {
     @Test
     fun shouldTouchNoSourceWithAnotherClangFormatVersion(): Unit {
         val processes: RecordedProcesses = RecordedProcesses("Ubuntu clang-format version 19.1.1\n")
-        val failure: GradleException = assertThrows(GradleException::class.java) { format(true, processes) }
+        val failure: GradleException = assertThrows(GradleException::class.java) { this.format(true, processes) }
         val message: String? = failure.message
         assertEquals(
-            "${clangFormat()} reports Ubuntu clang-format version 19.1.1, which is not the clang-format 18.1.8 this build pins!",
+            "${this.clangFormat()} reports Ubuntu clang-format version 19.1.1, which is not the clang-format 18.1.8 this build pins!",
             message
         )
 
         val commands: List<List<String>> = processes.commands
-        assertEquals(listOf(listOf(clangFormat(), VERSION_OPTION)), commands)
+        assertEquals(listOf(listOf(this.clangFormat(), VERSION_OPTION)), commands)
     }
 
-    private fun clangFormat(): String = directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
+    private fun clangFormat(): String = this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toString()
 
-    private fun sources(): List<String> = listOf(FIRST_SOURCE, SECOND_SOURCE).map { directory.resolve(it).toString() }
+    private fun sources(): List<String> = listOf(FIRST_SOURCE, SECOND_SOURCE).map { this.directory.resolve(it).toString() }
 
     private fun format(rewrite: Boolean, processes: RecordedProcesses): Unit {
-        val project: Project = ProjectBuilder.builder().withProjectDir(directory.toFile()).build()
+        val project: Project = ProjectBuilder.builder().withProjectDir(this.directory.toFile()).build()
         val task: RecordingFormat = project.tasks.register("format", RecordingFormat::class.java).get()
-        val files: List<File> = listOf(SECOND_SOURCE, FIRST_SOURCE).map { directory.resolve(it).toFile() }
+        val files: List<File> = listOf(SECOND_SOURCE, FIRST_SOURCE).map { this.directory.resolve(it).toFile() }
         files.forEach { it.writeText("int main() {}\n") }
-        task.clangFormat.set(directory.resolve(CLANG_FORMAT_EXECUTABLE).toFile())
+        task.clangFormat.set(this.directory.resolve(CLANG_FORMAT_EXECUTABLE).toFile())
         task.clangFormatVersion.set("18.1.8")
         task.sources.from(files)
         task.rewrite.set(rewrite)

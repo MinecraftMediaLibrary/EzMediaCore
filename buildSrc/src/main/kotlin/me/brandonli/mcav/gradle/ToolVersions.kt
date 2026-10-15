@@ -38,8 +38,8 @@ object ToolVersions {
     ): Unit {
         val output: ByteArrayOutputStream = ByteArrayOutputStream()
         processes.exec {
-            commandLine(executable, argument)
-            standardOutput = output
+            this.commandLine(executable, argument)
+            this.standardOutput = output
         }
         val reported: String = output.toString(Charsets.UTF_8).trim()
         val actual: String? = Regex("(?:^|\\s)${Regex.escape(prefix)}(\\S+)").find(reported)?.groupValues?.get(VERSION_GROUP)

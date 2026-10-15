@@ -96,32 +96,32 @@ repositories {
 
 tasks.processResources {
     val modVersion: String = rootProject.version.toString()
-    inputs.property("modVersion", modVersion)
-    filesMatching(listOf(fabricMetadata, neoForgeMetadata)) {
-        expand("version" to modVersion)
+    this.inputs.property("modVersion", modVersion)
+    this.filesMatching(listOf(fabricMetadata, neoForgeMetadata)) {
+        this.expand("version" to modVersion)
     }
 }
 
 tasks.jar {
-    archiveClassifier = plainClassifier
+    this.archiveClassifier = plainClassifier
 }
 
 val fabricJar: TaskProvider<Jar> = tasks.register<Jar>("fabricJar") {
-    group = "build"
-    description = "Assembles the mod for Fabric"
-    archiveClassifier = fabricClassifier
-    from(sourceSets.main.map { it.output })
-    exclude(neoForgeClasses, neoForgeMetadata)
+    this.group = "build"
+    this.description = "Assembles the mod for Fabric"
+    this.archiveClassifier = fabricClassifier
+    this.from(sourceSets.main.map { it.output })
+    this.exclude(neoForgeClasses, neoForgeMetadata)
 }
 
 val neoforgeJar: TaskProvider<Jar> = tasks.register<Jar>("neoforgeJar") {
-    group = "build"
-    description = "Assembles the mod for NeoForge"
-    archiveClassifier = neoForgeClassifier
-    from(sourceSets.main.map { it.output })
-    exclude(fabricClasses, fabricMetadata)
+    this.group = "build"
+    this.description = "Assembles the mod for NeoForge"
+    this.archiveClassifier = neoForgeClassifier
+    this.from(sourceSets.main.map { it.output })
+    this.exclude(fabricClasses, fabricMetadata)
 }
 
 tasks.assemble {
-    dependsOn(fabricJar, neoforgeJar)
+    this.dependsOn(fabricJar, neoforgeJar)
 }

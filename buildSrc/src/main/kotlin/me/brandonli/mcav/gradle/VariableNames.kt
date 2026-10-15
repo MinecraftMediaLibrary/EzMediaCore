@@ -59,7 +59,7 @@ object VariableNames {
         val file: SimpleJavaFileObject = object : SimpleJavaFileObject(URI.create(SOURCE_URI), JavaFileObject.Kind.SOURCE) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
         }
-        return find(listOf(file)).values.single()
+        return this.find(listOf(file)).values.single()
     }
 
     fun findInFiles(files: List<File>): Map<File, List<UndescriptiveName>> {
@@ -68,7 +68,7 @@ object VariableNames {
         fileManager.use {
             val objects: List<JavaFileObject> = it.getJavaFileObjectsFromFiles(files).toList()
             val byUri: Map<URI, File> = files.associateBy { file -> file.toPath().toUri() }
-            return find(objects).mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
+            return this.find(objects).mapKeys { (uri, _) -> byUri[uri] ?: File(uri) }
         }
     }
 
@@ -87,15 +87,15 @@ object VariableNames {
         private val found: MutableList<UndescriptiveName> = mutableListOf<UndescriptiveName>()
 
         fun names(): List<UndescriptiveName> {
-            scan(unit, Unit)
-            return found
+            this.scan(this.unit, Unit)
+            return this.found
         }
 
         override fun visitVariable(node: VariableTree, unused: Unit?): Unit? {
             val name: String = node.name.toString()
-            if (isUndescriptive(name)) {
-                val line: Long = unit.lineMap.getLineNumber(positions.getStartPosition(unit, node))
-                found += UndescriptiveName(line, name, kind(node), "${owner()}$MEMBER_SEPARATOR$name")
+            if (this.isUndescriptive(name)) {
+                val line: Long = this.unit.lineMap.getLineNumber(this.positions.getStartPosition(this.unit, node))
+                this.found += UndescriptiveName(line, name, this.kind(node), "${this.owner()}$MEMBER_SEPARATOR$name")
             }
             return super.visitVariable(node, unused)
         }
@@ -104,7 +104,7 @@ object VariableNames {
             name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
 
         private fun kind(node: VariableTree): String {
-            val parent: Tree = currentPath.parentPath.leaf
+            val parent: Tree = this.currentPath.parentPath.leaf
             return when {
                 parent is ClassTree && parent.kind == Tree.Kind.RECORD && Modifier.STATIC !in node.modifiers.flags -> "record component"
                 parent is ClassTree -> "field"
@@ -119,13 +119,13 @@ object VariableNames {
         }
 
         private fun owner(): String {
-            val types: List<String> = generateSequence(currentPath) { it.parentPath }
+            val types: List<String> = generateSequence(this.currentPath) { it.parentPath }
                 .map { it.leaf }
                 .filterIsInstance<ClassTree>()
                 .map { it.simpleName.toString().ifEmpty { ANONYMOUS_CLASS } }
                 .toList()
                 .asReversed()
-            val packageName: String? = unit.packageName?.toString()
+            val packageName: String? = this.unit.packageName?.toString()
             return (listOfNotNull(packageName) + types).joinToString(PACKAGE_SEPARATOR)
         }
     }

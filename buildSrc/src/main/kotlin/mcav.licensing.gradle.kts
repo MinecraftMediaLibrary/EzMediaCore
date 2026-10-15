@@ -26,11 +26,11 @@ val metadataDirectory: String = "META-INF"
 val bundledLicenseFile: String = "LICENSE-MCAV"
 
 tasks.withType<Jar>().configureEach {
-    from(rootProject.file(licenseFile)) {
-        into(metadataDirectory)
-        rename { bundledLicenseFile }
+    this.from(rootProject.file(licenseFile)) {
+        this.into(metadataDirectory)
+        this.rename { bundledLicenseFile }
     }
-    from(rootProject.file(noticesFile)) {
-        into(metadataDirectory)
+    this.from(rootProject.file(noticesFile)) {
+        this.into(metadataDirectory)
     }
 }

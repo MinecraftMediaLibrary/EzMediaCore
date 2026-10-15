@@ -45,47 +45,47 @@ dependencies {
 }
 
 val writeToolsClasspath: TaskProvider<Task> = tasks.register("writeMcv2ToolsClasspath") {
-    group = "verification"
-    description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
+    this.group = "verification"
+    this.description = "Writes the test runtime classpath that Mcv2ToolsTest starts Mcv2Tools with"
     val output: Provider<RegularFile> = layout.buildDirectory.file(toolsClasspathPath)
     val classpath: Provider<FileCollection> = sourceSets.test.map { it.runtimeClasspath }
-    inputs.files(classpath)
-    outputs.file(output)
-    doLast {
+    this.inputs.files(classpath)
+    this.outputs.file(output)
+    this.doLast {
         output.get().asFile.writeText(classpath.get().asPath)
     }
 }
 
 tasks.test {
-    inputs.files(writeToolsClasspath)
+    this.inputs.files(writeToolsClasspath)
 }
 pluginManager.withPlugin("info.solidsoft.pitest") {
     tasks.named("pitest") {
-        inputs.files(writeToolsClasspath)
+        this.inputs.files(writeToolsClasspath)
     }
 }
 
 val pythonEnvironment: TaskProvider<PythonEnvironment> = rootProject.tasks.named<PythonEnvironment>("installPythonEnvironment")
 val pythonSources: Directory = layout.projectDirectory.dir(pythonSourcePath)
 val pythonTest: TaskProvider<PythonTests> = tasks.register<PythonTests>("pythonTest") {
-    group = "verification"
-    description = "Runs the Python codec tests in parallel processes, then the timing tests alone"
-    useEnvironment(pythonEnvironment)
-    parallelTests.from(fileTree(pythonSources) {
-        include(pythonTestPattern)
-        exclude(timingTestFile)
+    this.group = "verification"
+    this.description = "Runs the Python codec tests in parallel processes, then the timing tests alone"
+    this.useEnvironment(pythonEnvironment)
+    this.parallelTests.from(fileTree(pythonSources) {
+        this.include(pythonTestPattern)
+        this.exclude(timingTestFile)
     })
-    serialTests.from(pythonSources.file(timingTestFile))
-    sources.from(
+    this.serialTests.from(pythonSources.file(timingTestFile))
+    this.sources.from(
         fileTree(pythonSources) { exclude(pythonTestPattern, pythonCachePattern) },
         layout.projectDirectory.dir(testResourcePath),
         layout.projectDirectory.dir(packResourcePath),
         layout.settingsDirectory.dir(docsImagePath)
     )
-    testDirectory = pythonSources
-    processCount = gradle.startParameter.maxWorkerCount
-    reportDirectory = layout.buildDirectory.dir(pythonReportPath)
+    this.testDirectory = pythonSources
+    this.processCount = gradle.startParameter.maxWorkerCount
+    this.reportDirectory = layout.buildDirectory.dir(pythonReportPath)
 }
 tasks.named("check") {
-    dependsOn(pythonTest)
+    this.dependsOn(pythonTest)
 }
