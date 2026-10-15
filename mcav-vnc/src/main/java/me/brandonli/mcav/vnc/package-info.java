@@ -26,9 +26,12 @@
  * <p>The default player separates protocol reception from rendering and keeps only the newest pending frame.
  * Its pipeline receives borrowed image buffers valid during the callback. Release players before unloading
  * the backend, then release caller-owned filters as appropriate. {@link me.brandonli.mcav.vnc.VncModule}
- * does not track or release players. Source builders are mutable and not thread-safe.
+ * does not track or release players. Connection failures are reported as {@link me.brandonli.mcav.vnc.VncException}.
+ * Sources and players are thread-safe; source builders are not.
  *
  * <p>Reference parameters and return values are non-null unless marked {@code @Nullable};
  * nullable values and their meanings are described on the corresponding members.
+ *
+ * @since 1.0.0
  */
 package me.brandonli.mcav.vnc;

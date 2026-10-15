@@ -20,7 +20,11 @@ package me.brandonli.mcav.vnc;
 /**
  * Collects the settings of a {@link VncSource}. The host is required; the port defaults to
  * {@link VncSource#DEFAULT_PORT}, the frame size to the size of the remote screen, and the frame rate to
- * {@link VncSource#DEFAULT_FRAME_RATE}. Builders are mutable and not thread-safe; built sources keep their own settings.
+ * {@link VncSource#DEFAULT_FRAME_RATE}. Built sources keep their own settings.
+ *
+ * <p>Builders are not thread-safe; use one per thread.
+ *
+ * @since 1.0.0
  */
 public interface VncSourceBuilder {
   /**
@@ -30,6 +34,7 @@ public interface VncSourceBuilder {
    * @return this builder
    * @throws NullPointerException     if {@code host} is null
    * @throws IllegalArgumentException if {@code host} is blank
+   * @since 1.0.0
    */
   VncSourceBuilder host(final String host);
 
@@ -39,6 +44,7 @@ public interface VncSourceBuilder {
    * @param port the port from 1 to 65535
    * @return this builder
    * @throws IllegalArgumentException if {@code port} is outside 1 through 65535
+   * @since 1.0.0
    */
   VncSourceBuilder port(final int port);
 
@@ -48,6 +54,7 @@ public interface VncSourceBuilder {
    * @param username the non-null user name; an empty string makes the default player omit this credential
    * @return this builder
    * @throws NullPointerException if {@code username} is null
+   * @since 1.0.0
    */
   VncSourceBuilder username(final String username);
 
@@ -57,6 +64,7 @@ public interface VncSourceBuilder {
    * @param password the non-null password; an empty string makes the default player omit this credential
    * @return this builder
    * @throws NullPointerException if {@code password} is null
+   * @since 1.0.0
    */
   VncSourceBuilder password(final String password);
 
@@ -66,6 +74,7 @@ public interface VncSourceBuilder {
    * @param width the width in pixels, or 0 to keep the width of the remote screen
    * @return this builder
    * @throws IllegalArgumentException if {@code width} is negative
+   * @since 1.0.0
    */
   VncSourceBuilder screenWidth(final int width);
 
@@ -75,6 +84,7 @@ public interface VncSourceBuilder {
    * @param height the height in pixels, or 0 to keep the height of the remote screen
    * @return this builder
    * @throws IllegalArgumentException if {@code height} is negative
+   * @since 1.0.0
    */
   VncSourceBuilder screenHeight(final int height);
 
@@ -84,6 +94,7 @@ public interface VncSourceBuilder {
    * @param targetFrameRate the strictly positive frame rate in frames per second
    * @return this builder
    * @throws IllegalArgumentException if {@code targetFrameRate} is zero or negative
+   * @since 1.0.0
    */
   VncSourceBuilder targetFrameRate(final int targetFrameRate);
 
@@ -92,6 +103,7 @@ public interface VncSourceBuilder {
    *
    * @return a new immutable source; subsequent builder changes do not affect it
    * @throws IllegalStateException if no host was set
+   * @since 1.0.0
    */
   VncSource build();
 }

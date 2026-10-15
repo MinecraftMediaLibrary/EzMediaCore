@@ -60,6 +60,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>When the connection fails while streaming, the failure is reported, the player stops playing, and it can be
  * started again.
+ *
+ * <p>This class is thread-safe: lifecycle calls are serialized, and input may be sent from any thread.
+ *
+ * @since 1.0.0
  */
 public final class VernacularVncPlayer implements VncPlayer {
 
@@ -140,8 +144,15 @@ public final class VernacularVncPlayer implements VncPlayer {
   }
 
   /**
-   * {@inheritDoc}
+   * Connects to the server of {@code source} and starts streaming its screen. The handshake must finish within
+   * the handshake timeout, or the connection is closed and the start fails.
+   *
+   * @param source the server to connect to; credentials and dimensions are read from it
+   * @return true if startup succeeded, false if a session is already active (including paused) or the player
+   *         has been released; a session that failed may be started again before release
+   * @throws VncException         if the server cannot be reached or rejects the connection
    * @throws NullPointerException if {@code source} is null
+   * @since 1.0.0
    */
   @Override
   public boolean start(final VncSource source) {
@@ -464,6 +475,7 @@ public final class VernacularVncPlayer implements VncPlayer {
    * and input forwarding active. An already-running pipeline call may finish.
    *
    * @return true if an active session changed from unpaused to paused; false if inactive or already paused
+   * @since 1.0.0
    */
   @Override
   public boolean pause() {
@@ -495,6 +507,7 @@ public final class VernacularVncPlayer implements VncPlayer {
    * Resumes delivery of subsequent screen updates from a paused active session.
    *
    * @return true if an active session changed from paused to unpaused; false if inactive or already unpaused
+   * @since 1.0.0
    */
   @Override
   public boolean resume() {
@@ -518,6 +531,7 @@ public final class VernacularVncPlayer implements VncPlayer {
    * are not released by this method.
    *
    * @return true for the first release, including before startup; false if already released
+   * @since 1.0.0
    */
   @Override
   public boolean release() {
@@ -593,6 +607,12 @@ public final class VernacularVncPlayer implements VncPlayer {
     }
   }
 
+  /**
+   * Returns whether the player is connected and delivering frames.
+   *
+   * @return true while connected and not paused
+   * @since 1.0.0
+   */
   @Override
   public boolean isPlaying() {
     final boolean active = this.isActive();
@@ -600,6 +620,15 @@ public final class VernacularVncPlayer implements VncPlayer {
     return active && !pausedNow;
   }
 
+  /**
+   * Moves the mouse pointer while a session is active, including while paused. Input is ignored before
+   * connection and after release or a connection failure. Coordinates are scaled to the remote screen and
+   * clamped to its bounds; before its size is known only negative coordinates are clamped to zero.
+   *
+   * @param frameX the horizontal pixel coordinate from the left edge of the streamed frame
+   * @param frameY the vertical pixel coordinate from the top edge of the streamed frame
+   * @since 1.0.0
+   */
   @Override
   public void moveMouse(final int frameX, final int frameY) {
     final @Nullable VernacularClient vncClient = this.getConnectedClient();
@@ -612,8 +641,14 @@ public final class VernacularVncPlayer implements VncPlayer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code type} is null
+   * Moves the mouse pointer as {@link #moveMouse(int, int)} describes, then performs a click. Connection failures
+   * during forwarding are reported to the exception handler.
+   *
+   * @param type   the kind of click
+   * @param frameX the horizontal pixel coordinate from the left edge of the streamed frame
+   * @param frameY the vertical pixel coordinate from the top edge of the streamed frame
+   * @throws NullPointerException if {@code type} is null, even without an active connection
+   * @since 1.0.0
    */
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
@@ -650,8 +685,13 @@ public final class VernacularVncPlayer implements VncPlayer {
   }
 
   /**
-   * {@inheritDoc}
-   * @throws NullPointerException if {@code text} is null
+   * Types text: a key name from the X11 keysym table presses and releases that key, and any other text is typed
+   * character by character. Input is ignored without an active session; forwarding failures are reported to the
+   * exception handler.
+   *
+   * @param text the text or key name; an empty string types nothing
+   * @throws NullPointerException if {@code text} is null, even without an active connection
+   * @since 1.0.0
    */
   @Override
   public void sendKeyEvent(final String text) {
@@ -722,19 +762,35 @@ public final class VernacularVncPlayer implements VncPlayer {
     return new int[] { clampedX, clampedY };
   }
 
+  /**
+   * Returns the slot that holds the video pipeline the frames are sent through.
+   *
+   * @return the video pipeline slot
+   * @since 1.0.0
+   */
   @Override
   public VideoAttachableCallback getVideoAttachableCallback() {
     return this.videoCallback;
   }
 
+  /**
+   * Returns the handler that receives failures.
+   *
+   * @return the handler
+   * @since 1.0.0
+   */
   @Override
   public BiConsumer<String, Throwable> getExceptionHandler() {
     return this.exceptionHandler.getExceptionHandler();
   }
 
   /**
-   * {@inheritDoc}
+   * Sets the handler that receives failures. The handler is called on the thread that failed, which may be the
+   * protocol or render thread, so it must be fast and must not throw.
+   *
+   * @param exceptionHandler the handler
    * @throws NullPointerException if {@code exceptionHandler} is null
+   * @since 1.0.0
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {

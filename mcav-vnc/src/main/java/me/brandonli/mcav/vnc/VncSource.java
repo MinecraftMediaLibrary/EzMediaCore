@@ -25,25 +25,31 @@ import me.brandonli.mcav.media.source.DynamicSource;
  * requested from the server. The default builder produces immutable values that can be shared across threads.
  * Creating a source performs no network I/O and does not create a connection.
  *
- * <pre><code>
- *   final VncSourceBuilder builder = VncSource.builder();
- *   builder.host("localhost");
- *   builder.port(5900);
- *   builder.password("secret");
- *   builder.screenWidth(1280);
- *   builder.screenHeight(720);
- *   builder.targetFrameRate(30);
- *   final VncSource source = builder.build();
- * </code></pre>
+ * {@snippet :
+ * final String host = "localhost";
+ * final String password = "secret";
+ * final int width = 1280;
+ * final int height = 720;
+ * final VncSourceBuilder builder = VncSource.builder();
+ * final VncSource source = builder.host(host).password(password).screenWidth(width).screenHeight(height).build();
+ * }
+ *
+ * <p>Implementations in this library are immutable and thread-safe.
+ *
+ * @since 1.0.0
  */
 public interface VncSource extends DynamicSource {
   /**
    * The port VNC servers listen on unless configured otherwise.
+   *
+   * @since 1.0.0
    */
   int DEFAULT_PORT = 5900;
 
   /**
    * The frame rate requested when none is set.
+   *
+   * @since 1.0.0
    */
   int DEFAULT_FRAME_RATE = 30;
 
@@ -51,6 +57,7 @@ public interface VncSource extends DynamicSource {
    * Creates a builder for a source.
    *
    * @return the builder
+   * @since 1.0.0
    */
   static VncSourceBuilder builder() {
     return new DefaultVncSourceBuilder();
@@ -60,6 +67,7 @@ public interface VncSource extends DynamicSource {
    * Returns the host name or address of the server.
    *
    * @return the host
+   * @since 1.0.0
    */
   String getHost();
 
@@ -67,6 +75,7 @@ public interface VncSource extends DynamicSource {
    * Returns the port of the server.
    *
    * @return the TCP port, from 1 to 65535
+   * @since 1.0.0
    */
   int getPort();
 
@@ -74,6 +83,7 @@ public interface VncSource extends DynamicSource {
    * Returns the user name for servers that require one.
    *
    * @return the user name, or empty if none is sent
+   * @since 1.0.0
    */
   Optional<String> getUsername();
 
@@ -81,6 +91,7 @@ public interface VncSource extends DynamicSource {
    * Returns the password for servers that require one.
    *
    * @return the password, or empty if none is sent
+   * @since 1.0.0
    */
   Optional<String> getPassword();
 
@@ -88,6 +99,7 @@ public interface VncSource extends DynamicSource {
    * Returns the width the frames are scaled to.
    *
    * @return the nonnegative configured width in pixels, or 0 to use each remote frame's width
+   * @since 1.0.0
    */
   int getScreenWidth();
 
@@ -95,6 +107,7 @@ public interface VncSource extends DynamicSource {
    * Returns the height the frames are scaled to.
    *
    * @return the nonnegative configured height in pixels, or 0 to use each remote frame's height
+   * @since 1.0.0
    */
   int getScreenHeight();
 
@@ -102,6 +115,7 @@ public interface VncSource extends DynamicSource {
    * Returns the frame rate requested from the server. The server sends fewer frames when nothing changes.
    *
    * @return the positive requested frame rate in frames per second; this is not a delivery guarantee
+   * @since 1.0.0
    */
   int getTargetFrameRate();
 
@@ -110,6 +124,7 @@ public interface VncSource extends DynamicSource {
    *
    * @return {@code vnc://} followed by the host verbatim, a colon and the decimal port; this does not
    *         escape or bracket the host and is not a general-purpose URI serializer
+   * @since 1.0.0
    */
   @Override
   default String getResource() {
@@ -122,6 +137,7 @@ public interface VncSource extends DynamicSource {
    * Returns the source kind.
    *
    * @return {@code vnc}
+   * @since 1.0.0
    */
   @Override
   default String getName() {

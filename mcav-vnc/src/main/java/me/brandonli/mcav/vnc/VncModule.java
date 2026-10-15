@@ -20,26 +20,44 @@ package me.brandonli.mcav.vnc;
 import me.brandonli.mcav.module.MCAVModule;
 
 /**
- * Registers the VNC backend. Install it with {@code MCAV.api().install(VncModule.class)}; the VNC client is pure
- * Java and needs nothing else.
+ * Registers the VNC backend. The VNC client is pure Java and needs nothing else, so the module only has to be
+ * installed:
+ *
+ * {@snippet :
+ * final MCAVApi api = MCAV.api();
+ * api.install(VncModule.class);
+ * }
+ *
+ * <p>The module holds no state; stopping it does not release players, so release each {@link VncPlayer} you
+ * created.
+ *
+ * <p>This class is thread-safe.
+ *
+ * @since 1.0.0
  */
 public final class VncModule implements MCAVModule {
 
   private static final String MODULE_NAME = "vnc";
 
   /**
-   * Constructs the module. The module loader creates it for you.
+   * Creates the module. The module loader calls this for you.
+   *
+   * @since 1.0.0
    */
   public VncModule() {}
 
   /**
    * Starts the module; no resources are allocated. Players connect independently.
+   *
+   * @since 1.0.0
    */
   @Override
   public void start() {}
 
   /**
    * Stops the module; no players are released. Call {@link VncPlayer#release()} on each owned player.
+   *
+   * @since 1.0.0
    */
   @Override
   public void stop() {}
@@ -48,6 +66,7 @@ public final class VncModule implements MCAVModule {
    * Returns the module identifier.
    *
    * @return {@code vnc}
+   * @since 1.0.0
    */
   @Override
   public String getModuleName() {
