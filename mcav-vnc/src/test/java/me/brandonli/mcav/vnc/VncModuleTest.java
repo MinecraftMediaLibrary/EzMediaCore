@@ -24,20 +24,20 @@ import me.brandonli.mcav.module.MCAVModule;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link VNCModule}.
+ * Tests {@link VncModule}.
  */
-final class VNCModuleTest {
+final class VncModuleTest {
 
   @Test
   void shouldBeNamedVnc() {
-    final VNCModule module = new VNCModule();
+    final VncModule module = new VncModule();
     final String name = module.getModuleName();
     assertEquals("vnc", name);
   }
 
   @Test
   void shouldStartAndStopsWithoutPreparingAnything() {
-    final MCAVModule module = new VNCModule();
+    final MCAVModule module = new VncModule();
     module.start();
     module.stop();
     module.start();
@@ -48,8 +48,8 @@ final class VNCModuleTest {
 
   @Test
   void shouldBeCreatableByTheModuleLoader() throws ReflectiveOperationException {
-    final Constructor<VNCModule> constructor = VNCModule.class.getConstructor();
-    final VNCModule module = constructor.newInstance();
+    final Constructor<VncModule> constructor = VncModule.class.getConstructor();
+    final VncModule module = constructor.newInstance();
     final String name = module.getModuleName();
     assertEquals("vnc", name);
   }

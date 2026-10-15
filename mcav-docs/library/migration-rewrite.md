@@ -220,9 +220,19 @@ recompile, while implementation subclasses may also be affected by the new final
 
 ## Virtual machines and VNC
 
-Replace `VMPlayer.vm()` and `VNCPlayer.vm()` with their `create()` factories. Replace `VNCSource.vnc()` with
-`VNCSource.builder()` and declare builder variables as `VNCSource.Builder`, rather than
+Replace `VMPlayer.vm()` with `VMPlayer.create()` and `VNCPlayer.vm()` with `VncPlayer.create()`. Replace
+`VNCSource.vnc()` with `VncSource.builder()` and declare builder variables as `VncSource.Builder`, rather than
 `VNCSourceImpl.Builder`. Custom players must implement `isPlaying`; the VM player also exposes an audio callback.
+
+Types of `mcav-vnc` whose names held an upper-case acronym now case it as a word:
+
+| Former name | Current name |
+| --- | --- |
+| `VNCModule` | `VncModule` |
+| `VNCPlayer` | `VncPlayer` |
+| `VNCPlayerImpl` | `VncPlayerImpl` |
+| `VNCSource` | `VncSource` |
+| `VNCSourceImpl` | `VncSourceImpl` |
 
 `ExecutableFinder.find` now returns an `Optional<Path>` rather than a string; handle a missing executable before
 using its path. `VMConfiguration.audio`, `diskSize`, `display`, `graphics` and `kvm` are removed. Use the current

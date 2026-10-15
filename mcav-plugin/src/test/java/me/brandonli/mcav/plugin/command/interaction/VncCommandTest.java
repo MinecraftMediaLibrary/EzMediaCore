@@ -43,8 +43,8 @@ import me.brandonli.mcav.plugin.utils.DitheringArgument;
 import me.brandonli.mcav.plugin.utils.MapCodec;
 import me.brandonli.mcav.utils.immutable.Pair;
 import me.brandonli.mcav.utils.interaction.MouseClick;
-import me.brandonli.mcav.vnc.VNCPlayer;
-import me.brandonli.mcav.vnc.VNCSource;
+import me.brandonli.mcav.vnc.VncPlayer;
+import me.brandonli.mcav.vnc.VncSource;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -72,9 +72,9 @@ final class VncCommandTest {
   private PluginDataConfigurationMapper configuration;
   private CommandSender sender;
   private MultiplePlayerSelector selector;
-  private VNCPlayer desktop;
+  private VncPlayer desktop;
   private VideoAttachableCallback callback;
-  private MockedStatic<VNCPlayer> desktops;
+  private MockedStatic<VncPlayer> desktops;
   private MockedStatic<DitherFilter> dithers;
   private MockedConstruction<CompressedMapResult> maps;
 
@@ -92,11 +92,11 @@ final class VncCommandTest {
     this.sender = mock(CommandSender.class);
     this.selector = mock(MultiplePlayerSelector.class);
     when(this.selector.values()).thenReturn(List.of(mock(Player.class)));
-    this.desktop = mock(VNCPlayer.class);
+    this.desktop = mock(VncPlayer.class);
     this.callback = mock(VideoAttachableCallback.class);
     when(this.desktop.getVideoAttachableCallback()).thenReturn(this.callback);
-    this.desktops = Mockito.mockStatic(VNCPlayer.class);
-    this.desktops.when(VNCPlayer::create).thenReturn(this.desktop);
+    this.desktops = Mockito.mockStatic(VncPlayer.class);
+    this.desktops.when(VncPlayer::create).thenReturn(this.desktop);
     this.dithers = Mockito.mockStatic(DitherFilter.class);
     this.dithers.when(() -> DitherFilter.dither(any(), any())).thenReturn(mock(FunctionalVideoFilter.class));
     this.maps = Mockito.mockConstruction(CompressedMapResult.class);
@@ -120,13 +120,13 @@ final class VncCommandTest {
 
   @Test
   void connectsToAListedServerWithThePasswordOfItsEntry() {
-    when(this.desktop.startAsync(any(VNCSource.class), any())).thenReturn(CompletableFuture.completedFuture(true));
+    when(this.desktop.startAsync(any(VncSource.class), any())).thenReturn(CompletableFuture.completedFuture(true));
 
     this.create("1280x720", "127.0.0.1:5901");
 
-    final ArgumentCaptor<VNCSource> sources = ArgumentCaptor.forClass(VNCSource.class);
+    final ArgumentCaptor<VncSource> sources = ArgumentCaptor.forClass(VncSource.class);
     verify(this.desktop).startAsync(sources.capture(), any());
-    final VNCSource source = sources.getValue();
+    final VncSource source = sources.getValue();
     assertEquals("127.0.0.1", source.getHost());
     assertEquals(5901, source.getPort());
     assertEquals("secret", source.getPassword());
@@ -165,7 +165,7 @@ final class VncCommandTest {
 
   @Test
   void tellsTheSenderWhenTheServerCannotBeReached() {
-    when(this.desktop.startAsync(any(VNCSource.class), any())).thenReturn(
+    when(this.desktop.startAsync(any(VncSource.class), any())).thenReturn(
       CompletableFuture.failedFuture(new IllegalStateException("refused"))
     );
 
@@ -177,7 +177,7 @@ final class VncCommandTest {
   @Test
   void aServerWithoutAPasswordGetsNone() {
     final VncAllowList.Entry open = new VncAllowList.Entry("127.0.0.1", 5902, null);
-    final VNCSource source = VncCommand.createSource(open, Pair.pair(640, 480), 10);
+    final VncSource source = VncCommand.createSource(open, Pair.pair(640, 480), 10);
     assertNull(source.getPassword());
   }
 

@@ -32,7 +32,7 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
  * Runs a virtual machine in QEMU and streams its screen and its sound, forwarding mouse and keyboard input to it.
  *
  * <p>The player starts QEMU with a VNC display bound to the local machine and connects a
- * {@link me.brandonli.mcav.vnc.VNCPlayer} to it. A USB tablet is attached so the mouse pointer follows absolute
+ * {@link me.brandonli.mcav.vnc.VncPlayer} to it. A USB tablet is attached so the mouse pointer follows absolute
  * coordinates, and the fastest available accelerator is used unless the configuration sets one. On x86 PC and Q35
  * machines the player adds an Intel HD Audio card and routes the PC speaker, and a second VNC connection receives
  * their sound through QEMU's audio extension, in the format of the audio pipeline; the configuration may not set
@@ -130,7 +130,7 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
 
   /**
    * Moves the mouse pointer while the machine is active, including while paused; otherwise does nothing.
-   * Coordinates are translated and clamped as {@link me.brandonli.mcav.vnc.VNCPlayer#moveMouse(int, int)} describes.
+   * Coordinates are translated and clamped as {@link me.brandonli.mcav.vnc.VncPlayer#moveMouse(int, int)} describes.
    *
    * @param frameX the horizontal pixel coordinate from the left edge of the output frame
    * @param frameY the vertical pixel coordinate from the top edge of the output frame

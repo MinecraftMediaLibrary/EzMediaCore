@@ -36,7 +36,7 @@ import me.brandonli.mcav.media.player.pipeline.builder.PipelineBuilder;
 import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.interaction.MouseClick;
-import me.brandonli.mcav.vnc.VNCModule;
+import me.brandonli.mcav.vnc.VncModule;
 
 /**
  * Boots an ISO image in QEMU, shows the screen in a window, and forwards clicks and typed keys to the machine.
@@ -64,7 +64,7 @@ public final class VMInputExample {
 
     final String iso = args[0];
     final MCAVApi api = MCAV.api();
-    api.install(VNCModule.class, VMModule.class);
+    api.install(VncModule.class, VMModule.class);
 
     final JLabel label = createWindow();
     final VMPlayer player = VMPlayer.create();

@@ -53,7 +53,7 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link VNCPlayer}, built on the Vernacular VNC client.
+ * The default {@link VncPlayer}, built on the Vernacular VNC client.
  *
  * <p>The client delivers screen updates on its own thread; the newest one is handed to a render thread which
  * scales it and runs the pipeline, so slow filters never block the protocol. Input is translated from frame
@@ -62,7 +62,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>When the connection fails while streaming, the failure is reported, the player stops playing, and it can be
  * started again.
  */
-public final class VNCPlayerImpl implements VNCPlayer {
+public final class VncPlayerImpl implements VncPlayer {
 
   private static final Executor HANDSHAKE_DEADLINES = task -> {
     // Closing may block in a socket implementation; one deadline must not hold up another.
@@ -94,11 +94,11 @@ public final class VNCPlayerImpl implements VNCPlayer {
   private volatile @Nullable Session session;
   private volatile @Nullable VernacularClient client;
   private @Nullable Thread renderThread;
-  private volatile @Nullable VNCSource source;
+  private volatile @Nullable VncSource source;
   private volatile int remoteWidth;
   private volatile int remoteHeight;
 
-  VNCPlayerImpl() {
+  VncPlayerImpl() {
     this(VernacularClient::new, Socket::new);
   }
 
@@ -109,7 +109,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    * @param socketFactory creates the unconnected socket of a session
    */
   @VisibleForTesting
-  VNCPlayerImpl(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
+  VncPlayerImpl(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
     this(clientFactory, socketFactory, IDLE_PARK_NANOSECONDS);
   }
 
@@ -121,7 +121,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    * @param idleParkNanoseconds how long an idle renderer waits unless a frame or shutdown wakes it first
    */
   @VisibleForTesting
-  VNCPlayerImpl(
+  VncPlayerImpl(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
     final long idleParkNanoseconds
@@ -139,7 +139,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    *                               closed and the start fails
    */
   @VisibleForTesting
-  VNCPlayerImpl(
+  VncPlayerImpl(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
     final long idleParkNanoseconds,
@@ -166,7 +166,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    * @throws NullPointerException if {@code source} is null
    */
   @Override
-  public boolean start(final VNCSource source) {
+  public boolean start(final VncSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
     this.lock.lock();
     try {
@@ -184,7 +184,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private void resetForNewSession(final VNCSource source) {
+  private void resetForNewSession(final VncSource source) {
     this.stopClient();
     this.stopRenderThread();
 
@@ -198,7 +198,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private void launchSession(final VNCSource source) {
+  private void launchSession(final VncSource source) {
     final Session created = new Session();
 
     final Thread renderWorker = new Thread(() -> this.render(source, created), "mcav-vnc-render");
@@ -222,7 +222,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     renderWorker.start();
   }
 
-  private VernacularClient openSession(final VNCSource source, final Session created, final Thread renderWorker) {
+  private VernacularClient openSession(final VncSource source, final Session created, final Thread renderWorker) {
     final VernacularConfig configuration = this.createConfiguration(source, created, renderWorker);
     final VernacularClient vncClient = this.clientFactory.apply(configuration);
     final Socket socket = this.connect(source);
@@ -259,7 +259,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     return vncClient;
   }
 
-  private String startFailure(final VNCSource source, final boolean timedOut, final @Nullable String message) {
+  private String startFailure(final VncSource source, final boolean timedOut, final @Nullable String message) {
     final String resource = source.getResource();
     if (timedOut) {
       return "VNC session with %s could not start because the server did not finish the handshake within %s ms!".formatted(
@@ -272,7 +272,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
 
   // the client connects on its own thread and would only report failures later, so the socket is opened here; the
   // client reads through a guard, because it trusts the lengths a server sends
-  private Socket connect(final VNCSource source) {
+  private Socket connect(final VncSource source) {
     final String host = source.getHost();
     final int port = source.getPort();
     final InetSocketAddress address = new InetSocketAddress(host, port);
@@ -298,7 +298,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private VernacularConfig createConfiguration(final VNCSource source, final Session created, final Thread renderWorker) {
+  private VernacularConfig createConfiguration(final VncSource source, final Session created, final Thread renderWorker) {
     final VernacularConfig configuration = new VernacularConfig();
     configuration.setColorDepth(ColorDepth.BPP_24_TRUE);
     configuration.setShared(true);
@@ -356,7 +356,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private void render(final VNCSource source, final Session owner) {
+  private void render(final VncSource source, final Session owner) {
     @Nullable ResizeFilter resizeFilter = null;
     @Nullable OriginalVideoMetadata metadata = null;
     while (owner.isAlive()) {
@@ -384,13 +384,13 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private static int frameWidth(final VNCSource source, final BufferedImage frame) {
+  private static int frameWidth(final VncSource source, final BufferedImage frame) {
     final int configuredWidth = source.getScreenWidth();
     final int screenUpdateWidth = frame.getWidth();
     return sizeOrFallback(configuredWidth, screenUpdateWidth);
   }
 
-  private static int frameHeight(final VNCSource source, final BufferedImage frame) {
+  private static int frameHeight(final VncSource source, final BufferedImage frame) {
     final int configuredHeight = source.getScreenHeight();
     final int screenUpdateHeight = frame.getHeight();
     return sizeOrFallback(configuredHeight, screenUpdateHeight);
@@ -656,7 +656,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
   }
 
   private int[] translateCoordinates(final int frameX, final int frameY) {
-    final VNCSource current = Objects.requireNonNull(this.source, "Source must be set while connected!");
+    final VncSource current = Objects.requireNonNull(this.source, "Source must be set while connected!");
     final int targetWidth = this.remoteWidth;
     final int targetHeight = this.remoteHeight;
 

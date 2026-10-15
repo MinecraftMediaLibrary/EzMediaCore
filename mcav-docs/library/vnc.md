@@ -11,21 +11,21 @@ dependencies {
 
 ```java
   final MCAVApi api = MCAV.api();
-  api.install(VNCModule.class);
+  api.install(VncModule.class);
 ```
 
-The `VNCPlayer` connects to a VNC server and streams its screen, which is useful for remote desktops or for monitoring
-remote systems. Describe the server with a `VNCSource`: the host is required, the port defaults to 5900, and the frame
+The `VncPlayer` connects to a VNC server and streams its screen, which is useful for remote desktops or for monitoring
+remote systems. Describe the server with a `VncSource`: the host is required, the port defaults to 5900, and the frame
 size defaults to the size of the remote screen.
 
 The example reads the password from an environment variable, so that no secret ends up in the source. The `display`
 filter is yours and shows the frames; release the returned player to disconnect.
 
 ```java
-  public static VNCPlayer streamLocalDesktop(final VideoFilter display) {
+  public static VncPlayer streamLocalDesktop(final VideoFilter display) {
     final VideoPipelineStep pipeline = VideoPipelineStep.of(display);
 
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     builder.host("localhost");
     builder.port(5900);
     final String password = System.getenv("VNC_PASSWORD");
@@ -35,9 +35,9 @@ filter is yours and shows the frames; release the returned player to disconnect.
     builder.screenWidth(1920);
     builder.screenHeight(1080);
     builder.targetFrameRate(30);
-    final VNCSource source = builder.build();
+    final VncSource source = builder.build();
 
-    final VNCPlayer player = VNCPlayer.create();
+    final VncPlayer player = VncPlayer.create();
     final VideoAttachableCallback videoCallback = player.getVideoAttachableCallback();
     videoCallback.attach(pipeline);
 

@@ -26,14 +26,14 @@ import org.junit.jupiter.api.Tag;
 
 /**
  * Fuzzes the connection settings of a VNC source, which the sandbox builds from what an operator types: every setting
- * is either refused as {@link VNCSource.Builder} documents or ends up in the source exactly as given, two sources of the
+ * is either refused as {@link VncSource.Builder} documents or ends up in the source exactly as given, two sources of the
  * same settings are equal with the same hash, and the source names its host and port. This is not RFB coverage: the
  * protocol is read by {@code com.shinyhut:vernacular} behind mcav's {@link RfbGuard}, which {@link RfbGuardFuzzTest}
  * fuzzes, and the frames a server sends are converted by the code {@code BufferedImageConversionFuzzTest} in mcav-common
  * fuzzes.
  */
 @Tag("fuzz")
-final class VNCSourceFuzzTest {
+final class VncSourceFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
   void shouldKeepEveryAcceptedSettingAsGiven(final FuzzedDataProvider data) {
@@ -45,8 +45,8 @@ final class VNCSourceFuzzTest {
     final int height = data.consumeInt();
     final int frameRate = data.consumeInt();
 
-    final VNCSource first;
-    final VNCSource second;
+    final VncSource first;
+    final VncSource second;
     try {
       first = build(host, port, username, password, width, height, frameRate);
       second = build(host, port, username, password, width, height, frameRate);
@@ -80,7 +80,7 @@ final class VNCSourceFuzzTest {
     assertTrue(named, () -> "the resource " + resource + " names the host and the port");
   }
 
-  private static VNCSource build(
+  private static VncSource build(
     final String host,
     final int port,
     final String username,
@@ -89,7 +89,7 @@ final class VNCSourceFuzzTest {
     final int height,
     final int frameRate
   ) {
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     builder.host(host);
     builder.port(port);
     builder.username(username);

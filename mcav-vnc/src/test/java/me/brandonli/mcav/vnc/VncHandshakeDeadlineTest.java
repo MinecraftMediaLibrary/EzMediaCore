@@ -41,7 +41,7 @@ import java.util.concurrent.locks.LockSupport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-final class VNCHandshakeDeadlineTest {
+final class VncHandshakeDeadlineTest {
 
   @Test
   void shouldGiveConcurrentAsyncStartsIndependentHandshakeDeadlines(@TempDir final Path folder) throws Exception {
@@ -97,7 +97,7 @@ final class VNCHandshakeDeadlineTest {
 
       final CountDownLatch entered = new CountDownLatch(2);
       final List<CountDownLatch> closed = new ArrayList<>();
-      final List<VNCPlayerImpl> players = new ArrayList<>();
+      final List<VncPlayerImpl> players = new ArrayList<>();
       final List<CompletableFuture<Boolean>> starts = new ArrayList<>();
       for (int index = 0; index < 2; index++) {
         final CountDownLatch stopped = new CountDownLatch(1);
@@ -122,11 +122,11 @@ final class VNCHandshakeDeadlineTest {
           .when(client)
           .start(any(Socket.class));
         closed.add(stopped);
-        players.add(new VNCPlayerImpl(_ -> client, () -> socket, 1L, 500));
+        players.add(new VncPlayerImpl(_ -> client, () -> socket, 1L, 500));
       }
       try {
-        for (final VNCPlayerImpl player : players) {
-          starts.add(player.startAsync(VNCSource.builder().host("127.0.0.1").build()));
+        for (final VncPlayerImpl player : players) {
+          starts.add(player.startAsync(VncSource.builder().host("127.0.0.1").build()));
         }
         final boolean bothEntered = entered.await(10, TimeUnit.SECONDS);
         assertTrue(bothEntered, "both common-pool workers are in their handshakes");
@@ -147,7 +147,7 @@ final class VNCHandshakeDeadlineTest {
         for (final CompletableFuture<Boolean> start : starts) {
           start.handle((result, failure) -> null).get(10, TimeUnit.SECONDS);
         }
-        players.forEach(VNCPlayerImpl::release);
+        players.forEach(VncPlayerImpl::release);
       }
     }
   }

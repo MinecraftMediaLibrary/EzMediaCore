@@ -30,12 +30,12 @@ import me.brandonli.mcav.vnc.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests {@link VNCSource}, {@link VNCSourceImpl} and its builder.
+ * Tests {@link VncSource}, {@link VncSourceImpl} and its builder.
  */
-final class VNCSourceTest {
+final class VncSourceTest {
 
-  private static VNCSource.Builder fullBuilder() {
-    final VNCSource.Builder builder = VNCSource.builder();
+  private static VncSource.Builder fullBuilder() {
+    final VncSource.Builder builder = VncSource.builder();
     builder.host("example.org");
     builder.port(5901);
     builder.username("user");
@@ -46,8 +46,8 @@ final class VNCSourceTest {
     return builder;
   }
 
-  private static VNCSource build(final Consumer<VNCSource.Builder> change) {
-    final VNCSource.Builder builder = fullBuilder();
+  private static VncSource build(final Consumer<VncSource.Builder> change) {
+    final VncSource.Builder builder = fullBuilder();
     change.accept(builder);
     return builder.build();
   }
@@ -56,11 +56,11 @@ final class VNCSourceTest {
   void shouldAvoidAConstantHashAcrossRepresentativeSourceKeys() {
     final Set<Integer> hashes = new HashSet<>();
     for (int index = 0; index < 64; index++) {
-      final VNCSource.Builder builder = fullBuilder();
+      final VncSource.Builder builder = fullBuilder();
       builder.host("desktop-" + index + ".example.org");
       builder.port(5900 + index);
       builder.screenWidth(640 + index * 16);
-      final VNCSource source = builder.build();
+      final VncSource source = builder.build();
       final int hash = source.hashCode();
       hashes.add(hash);
     }
@@ -70,8 +70,8 @@ final class VNCSourceTest {
 
   @Test
   void shouldBuildSourcesWithEverySetting() {
-    final VNCSource.Builder builder = fullBuilder();
-    final VNCSource source = builder.build();
+    final VncSource.Builder builder = fullBuilder();
+    final VncSource source = builder.build();
     final String host = source.getHost();
     final int port = source.getPort();
     final String username = source.getUsername();
@@ -90,18 +90,18 @@ final class VNCSourceTest {
 
   @Test
   void shouldUseTheDefaultPortFrameRateAndRemoteSize() {
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     builder.host("localhost");
-    final VNCSource source = builder.build();
+    final VncSource source = builder.build();
     final int port = source.getPort();
     final int frameRate = source.getTargetFrameRate();
     final int width = source.getScreenWidth();
     final int height = source.getScreenHeight();
     final String username = source.getUsername();
     final String password = source.getPassword();
-    assertEquals(VNCSource.DEFAULT_PORT, port);
+    assertEquals(VncSource.DEFAULT_PORT, port);
     assertEquals(5900, port);
-    assertEquals(VNCSource.DEFAULT_FRAME_RATE, frameRate);
+    assertEquals(VncSource.DEFAULT_FRAME_RATE, frameRate);
     assertEquals(0, width);
     assertEquals(0, height);
     assertNull(username);
@@ -110,27 +110,27 @@ final class VNCSourceTest {
 
   @Test
   void shouldDescribeTheServerAsAVncUri() {
-    final VNCSource.Builder builder = fullBuilder();
-    final VNCSource source = builder.build();
+    final VncSource.Builder builder = fullBuilder();
+    final VncSource source = builder.build();
     final String resource = source.getResource();
     final String name = source.getName();
     final String text = source.toString();
     assertEquals("vnc://example.org:5901", resource);
     assertEquals("vnc", name);
-    assertEquals("VNCSource[vnc://example.org:5901, 640x480@24]", text);
+    assertEquals("VncSource[vnc://example.org:5901, 640x480@24]", text);
   }
 
   @Test
   void shouldAcceptTheLimitsOfEveryRange() {
-    final VNCSource.Builder builder = VNCSource.builder();
-    final VNCSource.Builder hostResult = builder.host("h");
-    final VNCSource.Builder lowPort = builder.port(1);
-    final VNCSource.Builder highPort = builder.port(65535);
-    final VNCSource.Builder width = builder.screenWidth(0);
-    final VNCSource.Builder height = builder.screenHeight(0);
-    final VNCSource.Builder frameRate = builder.targetFrameRate(1);
-    final VNCSource.Builder username = builder.username("");
-    final VNCSource.Builder password = builder.password("");
+    final VncSource.Builder builder = VncSource.builder();
+    final VncSource.Builder hostResult = builder.host("h");
+    final VncSource.Builder lowPort = builder.port(1);
+    final VncSource.Builder highPort = builder.port(65535);
+    final VncSource.Builder width = builder.screenWidth(0);
+    final VncSource.Builder height = builder.screenHeight(0);
+    final VncSource.Builder frameRate = builder.targetFrameRate(1);
+    final VncSource.Builder username = builder.username("");
+    final VncSource.Builder password = builder.password("");
     assertSame(builder, hostResult);
     assertSame(builder, lowPort);
     assertSame(builder, highPort);
@@ -139,14 +139,14 @@ final class VNCSourceTest {
     assertSame(builder, frameRate);
     assertSame(builder, username);
     assertSame(builder, password);
-    final VNCSource source = builder.build();
+    final VncSource source = builder.build();
     final int port = source.getPort();
     assertEquals(65535, port);
   }
 
   @Test
   void shouldRejectInvalidSettings() {
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     assertThrows(NullPointerException.class, () -> builder.host(null));
     assertThrows(IllegalArgumentException.class, () -> builder.host(" "));
     assertThrows(IllegalArgumentException.class, () -> builder.port(0));
@@ -160,31 +160,31 @@ final class VNCSourceTest {
 
   @Test
   void shouldRequireAHost() {
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     builder.port(5901);
     assertThrows(IllegalStateException.class, builder::build);
   }
 
   @Test
   void shouldCompareEverySetting() {
-    final VNCSource.Builder sourceBuilder = fullBuilder();
-    final VNCSource source = sourceBuilder.build();
-    final VNCSource.Builder equalBuilder = fullBuilder();
-    final VNCSource equal = equalBuilder.build();
-    final VNCSource otherHost = build(builder -> builder.host("example.com"));
-    final VNCSource otherPort = build(builder -> builder.port(5902));
-    final VNCSource otherUser = build(builder -> builder.username("admin"));
-    final VNCSource otherPassword = build(builder -> builder.password("hunter2"));
-    final VNCSource otherWidth = build(builder -> builder.screenWidth(320));
-    final VNCSource otherHeight = build(builder -> builder.screenHeight(240));
-    final VNCSource otherFrameRate = build(builder -> builder.targetFrameRate(60));
-    final VNCSource.Builder anonymousBuilder = VNCSource.builder();
+    final VncSource.Builder sourceBuilder = fullBuilder();
+    final VncSource source = sourceBuilder.build();
+    final VncSource.Builder equalBuilder = fullBuilder();
+    final VncSource equal = equalBuilder.build();
+    final VncSource otherHost = build(builder -> builder.host("example.com"));
+    final VncSource otherPort = build(builder -> builder.port(5902));
+    final VncSource otherUser = build(builder -> builder.username("admin"));
+    final VncSource otherPassword = build(builder -> builder.password("hunter2"));
+    final VncSource otherWidth = build(builder -> builder.screenWidth(320));
+    final VncSource otherHeight = build(builder -> builder.screenHeight(240));
+    final VncSource otherFrameRate = build(builder -> builder.targetFrameRate(60));
+    final VncSource.Builder anonymousBuilder = VncSource.builder();
     anonymousBuilder.host("example.org");
     anonymousBuilder.port(5901);
     anonymousBuilder.screenWidth(640);
     anonymousBuilder.screenHeight(480);
     anonymousBuilder.targetFrameRate(24);
-    final VNCSource anonymous = anonymousBuilder.build();
+    final VncSource anonymous = anonymousBuilder.build();
     EqualityAssertions.assertEqualityContract(
       source,
       equal,

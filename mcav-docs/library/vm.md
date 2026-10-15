@@ -8,7 +8,7 @@ programs are on the `PATH`.
 
 One of the most unique features of MCAV is streaming virtual machines. Add the `mcav-vm` module together with the
 `mcav-vnc` module it is built on, and install both modules when you create the library instance. `mcav-vm` does not
-bring `mcav-vnc` with it: without its own line the code compiles, then fails when `VNCModule` is loaded.
+bring `mcav-vnc` with it: without its own line the code compiles, then fails when `VncModule` is loaded.
 
 ```kotlin
 dependencies {
@@ -19,7 +19,7 @@ dependencies {
 
 ```java
   final MCAVApi api = MCAV.api();
-  api.install(VNCModule.class, VMModule.class);
+  api.install(VncModule.class, VMModule.class);
   final VMModule vmModule = api.getModule(VMModule.class);
   if (!vmModule.isQemuInstalled()) {
     // QEMU is missing, virtual machines cannot be started

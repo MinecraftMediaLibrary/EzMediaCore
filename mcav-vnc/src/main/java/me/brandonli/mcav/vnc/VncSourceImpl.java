@@ -22,9 +22,9 @@ import java.util.Objects;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link VNCSource}.
+ * The default {@link VncSource}.
  */
-public final class VNCSourceImpl implements VNCSource {
+public final class VncSourceImpl implements VncSource {
 
   private final String host;
   private final int port;
@@ -34,7 +34,7 @@ public final class VNCSourceImpl implements VNCSource {
   private final int height;
   private final int targetFrameRate;
 
-  VNCSourceImpl(
+  VncSourceImpl(
     final String host,
     final int port,
     final @Nullable String username,
@@ -92,7 +92,7 @@ public final class VNCSourceImpl implements VNCSource {
     if (this == other) {
       return true;
     }
-    if (!(other instanceof final VNCSourceImpl source)) {
+    if (!(other instanceof final VncSourceImpl source)) {
       return false;
     }
     return (
@@ -120,11 +120,11 @@ public final class VNCSourceImpl implements VNCSource {
   @Override
   public String toString() {
     final String resource = this.getResource();
-    return "VNCSource[" + resource + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
+    return "VncSource[" + resource + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
   }
 
   /**
-   * The default {@link VNCSource.Builder}.
+   * The default {@link VncSource.Builder}.
    */
   static final class BuilderImpl implements Builder {
 
@@ -192,12 +192,12 @@ public final class VNCSourceImpl implements VNCSource {
     }
 
     @Override
-    public VNCSource build() {
+    public VncSource build() {
       final String configuredHost = this.host;
       if (configuredHost == null) {
         throw new IllegalStateException("Host must be set before the source is built!");
       }
-      return new VNCSourceImpl(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
+      return new VncSourceImpl(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
     }
   }
 }

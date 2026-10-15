@@ -26,17 +26,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * Creating a source performs no network I/O and does not create a connection.
  *
  * <pre><code>
- *   final VNCSource.Builder builder = VNCSource.builder();
+ *   final VncSource.Builder builder = VncSource.builder();
  *   builder.host("localhost");
  *   builder.port(5900);
  *   builder.password("secret");
  *   builder.screenWidth(1280);
  *   builder.screenHeight(720);
  *   builder.targetFrameRate(30);
- *   final VNCSource source = builder.build();
+ *   final VncSource source = builder.build();
  * </code></pre>
  */
-public interface VNCSource extends DynamicSource {
+public interface VncSource extends DynamicSource {
   /**
    * The port VNC servers listen on unless configured otherwise.
    */
@@ -53,7 +53,7 @@ public interface VNCSource extends DynamicSource {
    * @return the builder
    */
   static Builder builder() {
-    return new VNCSourceImpl.BuilderImpl();
+    return new VncSourceImpl.BuilderImpl();
   }
 
   /**
@@ -129,7 +129,7 @@ public interface VNCSource extends DynamicSource {
   }
 
   /**
-   * Collects the settings of a {@link VNCSource}. The host is required; the port defaults to
+   * Collects the settings of a {@link VncSource}. The host is required; the port defaults to
    * {@link #DEFAULT_PORT}, the frame size to the size of the remote screen, and the frame rate to
    * {@link #DEFAULT_FRAME_RATE}. Builders are mutable and not thread-safe; built sources keep their own settings.
    */
@@ -204,6 +204,6 @@ public interface VNCSource extends DynamicSource {
      * @return a new immutable source; subsequent builder changes do not affect it
      * @throws IllegalStateException if no host was set
      */
-    VNCSource build();
+    VncSource build();
   }
 }

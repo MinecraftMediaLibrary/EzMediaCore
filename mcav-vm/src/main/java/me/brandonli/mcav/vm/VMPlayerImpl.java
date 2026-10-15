@@ -34,12 +34,12 @@ import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
 import me.brandonli.mcav.utils.ThrowableUtils;
 import me.brandonli.mcav.utils.audio.DelayedAudioOutput;
 import me.brandonli.mcav.utils.interaction.MouseClick;
-import me.brandonli.mcav.vnc.VNCPlayer;
-import me.brandonli.mcav.vnc.VNCSource;
+import me.brandonli.mcav.vnc.VncPlayer;
+import me.brandonli.mcav.vnc.VncSource;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * The default {@link VMPlayer}: a {@link VMProcess} for QEMU plus a {@link VNCPlayer} attached to its display, and,
+ * The default {@link VMPlayer}: a {@link VMProcess} for QEMU plus a {@link VncPlayer} attached to its display, and,
  * when the machine has sound, a {@link VMAudioClient} that hands it to the audio pipeline through a
  * {@link DelayedAudioOutput}.
  *
@@ -61,7 +61,7 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   private static final int MAX_QUEUED_AUDIO_MILLIS = AUDIO_DELAY_MILLIS + 60;
 
-  private final VNCPlayer vncPlayer;
+  private final VncPlayer vncPlayer;
   private final ExecutableFinder finder;
   private final ProcessFactory processFactory;
   private final AudioConnector audioConnector;
@@ -81,7 +81,7 @@ public final class VMPlayerImpl implements VMPlayer {
    * @return the player
    */
   static VMPlayerImpl createDefault() {
-    final VNCPlayer vncPlayer = VNCPlayer.create();
+    final VncPlayer vncPlayer = VncPlayer.create();
     final ExecutableFinder finder = new ExecutableFinder();
     return new VMPlayerImpl(vncPlayer, finder, VMProcess::create, VMAudioClient::connect);
   }
@@ -96,7 +96,7 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   @VisibleForTesting
   VMPlayerImpl(
-    final VNCPlayer vncPlayer,
+    final VncPlayer vncPlayer,
     final ExecutableFinder finder,
     final ProcessFactory processFactory,
     final AudioConnector audioConnector
@@ -215,7 +215,7 @@ public final class VMPlayerImpl implements VMPlayer {
   /** Connects the VNC player to the display; launchMachine retains responsibility for failed-start cleanup. */
   private void connectDisplay(final VMSettings settings, final VMProcess qemu) {
     final String password = qemu.getPassword();
-    final VNCSource source = createSource(settings, password);
+    final VncSource source = createSource(settings, password);
     final boolean connected = this.vncPlayer.start(source);
     if (!connected) {
       throw new PlayerException("The VNC player could not be started");
@@ -278,12 +278,12 @@ public final class VMPlayerImpl implements VMPlayer {
     return found.get();
   }
 
-  private static VNCSource createSource(final VMSettings settings, final String password) {
+  private static VncSource createSource(final VMSettings settings, final String password) {
     final int port = settings.getPort();
     final int width = settings.getWidth();
     final int height = settings.getHeight();
     final int frameRate = settings.getTargetFps();
-    final VNCSource.Builder builder = VNCSource.builder();
+    final VncSource.Builder builder = VncSource.builder();
     builder.host("127.0.0.1");
     builder.port(port);
     builder.screenWidth(width);

@@ -30,33 +30,33 @@ import me.brandonli.mcav.utils.interaction.MouseClick;
 /**
  * Streams the screen of a VNC server and forwards mouse and keyboard input to it.
  *
- * <p>Frames arrive whenever the remote screen changes, scaled to the size of the {@link VNCSource}. Input
+ * <p>Frames arrive whenever the remote screen changes, scaled to the size of the {@link VncSource}. Input
  * coordinates are in the coordinate system of the streamed frames. Pausing keeps the connection open but stops
  * accepting new frames for delivery; an in-flight filter call may finish. The default player runs the video
  * pipeline on a dedicated daemon renderer, keeps only the newest waiting update and closes each image buffer
  * after its pipeline call. Filters must copy data they retain beyond that call.
  *
  * <p>The caller owns the player and must {@link #release()} it. Release is terminal and closes the connection;
- * stopping {@link VNCModule} does not release players. Attached pipelines and their filters remain caller-owned.
+ * stopping {@link VncModule} does not release players. Attached pipelines and their filters remain caller-owned.
  * Lifecycle calls are serialized. Exception callbacks run on the thread detecting the failure and must return
  * promptly without throwing.
  *
  * <pre><code>
- *   final VNCPlayer player = VNCPlayer.create();
+ *   final VncPlayer player = VncPlayer.create();
  *   final VideoAttachableCallback video = player.getVideoAttachableCallback();
  *   video.attach(pipeline);
  *   player.start(source);
  *   player.sendKeyEvent("Return");
  * </code></pre>
  */
-public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
+public interface VncPlayer extends ControllablePlayer, ReleasablePlayer, ExceptionHandler {
   /**
    * Creates a player.
    *
    * @return the player
    */
-  static VNCPlayer create() {
-    return new VNCPlayerImpl();
+  static VncPlayer create() {
+    return new VncPlayerImpl();
   }
 
   /**
@@ -69,17 +69,17 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    *                                                        connection
    * @throws NullPointerException                           if {@code source} is null
    */
-  boolean start(final VNCSource source);
+  boolean start(final VncSource source);
 
   /**
    * Connects on the common pool.
    *
    * @param source the server to connect to
-   * @return a future that completes with the result of {@link #start(VNCSource)}, or exceptionally if
+   * @return a future that completes with the result of {@link #start(VncSource)}, or exceptionally if
    *         startup fails; cancelling this future does not release the player
    * @throws NullPointerException if {@code source} is null
    */
-  default CompletableFuture<Boolean> startAsync(final VNCSource source) {
+  default CompletableFuture<Boolean> startAsync(final VncSource source) {
     Preconditions.checkNotNull(source, "Source must not be null!");
     final ForkJoinPool pool = ForkJoinPool.commonPool();
     return this.startAsync(source, pool);
@@ -90,12 +90,12 @@ public interface VNCPlayer extends ControllablePlayer, ReleasablePlayer, Excepti
    *
    * @param source   the server to connect to
    * @param executor the non-null caller-owned executor that connects; the player never shuts it down
-   * @return a future that completes with the result of {@link #start(VNCSource)}, or exceptionally if
+   * @return a future that completes with the result of {@link #start(VncSource)}, or exceptionally if
    *         startup fails; cancelling this future does not release the player
    * @throws java.util.concurrent.RejectedExecutionException if the executor refuses the startup task
    * @throws NullPointerException                            if {@code source} or {@code executor} is null
    */
-  default CompletableFuture<Boolean> startAsync(final VNCSource source, final ExecutorService executor) {
+  default CompletableFuture<Boolean> startAsync(final VncSource source, final ExecutorService executor) {
     Preconditions.checkNotNull(source, "Source must not be null!");
     Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(source), executor);
