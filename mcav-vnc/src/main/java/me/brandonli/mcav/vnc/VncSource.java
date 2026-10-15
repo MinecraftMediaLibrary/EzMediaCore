@@ -115,7 +115,7 @@ public interface VncSource extends DynamicSource {
   default String getResource() {
     final String host = this.getHost();
     final int port = this.getPort();
-    return "vnc://" + host + ":" + port;
+    return "vnc://%s:%s".formatted(host, port);
   }
 
   /**

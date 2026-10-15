@@ -151,7 +151,7 @@ final class RfbGuard {
 
   private static int pixelBytes(final int bitsPerPixel) throws IOException {
     if (!SUPPORTED_BITS_PER_PIXEL.contains(bitsPerPixel)) {
-      throw violation(bitsPerPixel + " bits per pixel");
+      throw violation("%s bits per pixel".formatted(bitsPerPixel));
     }
     return bitsPerPixel / Byte.SIZE;
   }
@@ -447,7 +447,7 @@ final class RfbGuard {
     private void reason() throws IOException {
       final long length = unsigned32(this.field, 0);
       if (length > MAXIMUM_REASON) {
-        throw violation("a failure reason of " + length + " bytes");
+        throw violation("a failure reason of %s bytes".formatted(length));
       }
       this.skip(length, Then.CLOSE, Server.VERSION);
     }
@@ -504,7 +504,7 @@ final class RfbGuard {
         case NONE -> this.expect(RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS ? Server.RESULT : Server.INITIALIZATION);
         case VNC -> this.expect(Server.CHALLENGE);
         case MS_LOGON -> this.expect(Server.LOGON_KEYS);
-        default -> throw violation("security type " + type + " that the client does not support");
+        default -> throw violation("security type %s that the client does not support".formatted(type));
       }
     }
 
@@ -526,7 +526,7 @@ final class RfbGuard {
 
     private void resize(final int newWidth, final int newHeight) throws IOException {
       if (newWidth < 1 || newHeight < 1 || newWidth > MAXIMUM_SIDE || newHeight > MAXIMUM_SIDE) {
-        throw violation("a framebuffer of " + newWidth + "x" + newHeight + " pixels");
+        throw violation("a framebuffer of %sx%s pixels".formatted(newWidth, newHeight));
       }
       this.width = newWidth;
       this.height = newHeight;
@@ -534,7 +534,7 @@ final class RfbGuard {
 
     private void bounded(final long length, final int limit, final String what, final Server next) throws IOException {
       if (length > limit) {
-        throw violation("a " + what + " of " + length + " bytes");
+        throw violation("a %s of %s bytes".formatted(what, length));
       }
       this.skip(length, Then.STATE, next);
     }
@@ -546,7 +546,7 @@ final class RfbGuard {
         case SET_COLOUR_MAP_ENTRIES -> this.expect(Server.COLOURS);
         case BELL -> this.expect(Server.MESSAGE);
         case SERVER_CUT_TEXT -> this.expect(Server.TEXT);
-        default -> throw violation("message type " + type);
+        default -> throw violation("message type %s".formatted(type));
       }
     }
 
@@ -578,7 +578,7 @@ final class RfbGuard {
       }
       if (encoding == CURSOR) {
         if (width > MAXIMUM_SIDE || height > MAXIMUM_SIDE) {
-          throw violation("a cursor of " + width + "x" + height + " pixels");
+          throw violation("a cursor of %sx%s pixels".formatted(width, height));
         }
         final long mask = (long) ((width + Byte.SIZE - 1) / Byte.SIZE) * height;
         this.skip((long) width * height * pixel + mask, Then.RECTANGLE, Server.MESSAGE);
@@ -598,14 +598,14 @@ final class RfbGuard {
           this.nextTile();
         }
         case ZLIB -> this.expect(Server.ZLIB_LENGTH);
-        default -> throw violation("encoding " + encoding);
+        default -> throw violation("encoding %s".formatted(encoding));
       }
     }
 
     private void rre() throws IOException {
       final long count = unsigned32(this.field, 0);
       if (count > (long) this.rectangleWidth * this.rectangleHeight) {
-        throw violation(count + " RRE subrectangles in " + this.rectangleWidth + "x" + this.rectangleHeight + " pixels");
+        throw violation("%s RRE subrectangles in %sx%s pixels".formatted(count, this.rectangleWidth, this.rectangleHeight));
       }
       final long each = RfbGuard.this.bytesPerPixel() + (long) SUBRECTANGLE_GEOMETRY;
       this.skip(count * each, Then.RECTANGLE, Server.MESSAGE);
@@ -657,7 +657,7 @@ final class RfbGuard {
       final long length = unsigned32(this.field, 0);
       final long limit = (long) this.rectangleWidth * this.rectangleHeight * RfbGuard.this.bytesPerPixel() + ZLIB_SLACK;
       if (length > limit) {
-        throw violation("zlib data of " + length + " bytes for " + this.rectangleWidth + "x" + this.rectangleHeight + " pixels");
+        throw violation("zlib data of %s bytes for %sx%s pixels".formatted(length, this.rectangleWidth, this.rectangleHeight));
       }
       this.skip(length, Then.RECTANGLE, Server.MESSAGE);
     }
