@@ -97,7 +97,7 @@ final class BukkitModuleTest {
     final Plugin plugin = this.server.getPlugin();
     final IllegalStateException unavailable = new IllegalStateException("Palette unavailable!");
     try (final MockedStatic<BlockPaletteLookup> lookup = Mockito.mockStatic(BlockPaletteLookup.class)) {
-      lookup.when(BlockPaletteLookup::init).thenThrow(unavailable);
+      lookup.when(BlockPaletteLookup::initialize).thenThrow(unavailable);
       final IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> module.inject(plugin));
       assertSame(unavailable, thrown);
     }

@@ -26,16 +26,16 @@ public final class Mcv2Decoder {
   /** Fixed frame header size in bytes. */
   public static final int HEADER_BYTES = 20;
   /** Largest accepted frame length in bytes. */
-  public static final int MAX_FRAME_BYTES = 131071;
+  public static final int MAXIMUM_FRAME_BYTES = 131071;
   /** Largest width or height in pixels. */
-  public static final int MAX_DIMENSION = 4096;
+  public static final int MAXIMUM_DIMENSION = 4096;
   static final int MAGIC = 0x3256434D;
   static final int VERSION = 3;
   static final int ROOT_SIZE = 32;
   static final int SMALLEST_BLOCK = 8;
   static final int BLOCK_SIZES = 3;
   static final int CHANNELS = 3;
-  private static final int MAX_CHANNEL = 255;
+  private static final int MAXIMUM_CHANNEL = 255;
   static final int QUARTERS = 4;
   static final int GROUP_ROOTS = 32;
   static final int CHECKPOINT_GROUPS = 8;
@@ -49,7 +49,7 @@ public final class Mcv2Decoder {
   static final int MODE_SPLIT = 6;
   private static final int MODE_MASK = 31;
   static final int QUANTIZER_SHIFT = 5;
-  static final int MAX_QUANTIZER = 2;
+  static final int MAXIMUM_QUANTIZER = 2;
   static final int COMPACT_BYTES = 10;
   static final int DIMENSIONS_OFFSET = 8;
   /** Header byte offset of the frame id. */
@@ -57,7 +57,7 @@ public final class Mcv2Decoder {
   /** Header byte offset of the reference id. */
   public static final int REFERENCE_ID_OFFSET = 16;
   /** Largest unsigned 32-bit value. */
-  public static final long MAX_U32 = 0xFFFFFFFFL;
+  public static final long MAXIMUM_UNSIGNED_INT = 0xFFFFFFFFL;
 
   private static final long LEGACY_MAGIC = 0x3156434D;
   private static final int LEGACY_VERSION = 2;
@@ -191,7 +191,7 @@ public final class Mcv2Decoder {
     if (bytes.length > Integer.BYTES && bytes[4] == LEGACY_VERSION) {
       throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3!");
     }
-    if (bytes.length < HEADER_BYTES || bytes.length > MAX_FRAME_BYTES) {
+    if (bytes.length < HEADER_BYTES || bytes.length > MAXIMUM_FRAME_BYTES) {
       throw new Mcv2Exception("Invalid frame length!");
     }
     final byte[] data = bytes.clone();
@@ -200,7 +200,7 @@ public final class Mcv2Decoder {
     }
     final int width = u16(data, DIMENSIONS_OFFSET);
     final int height = u16(data, DIMENSIONS_OFFSET + Short.BYTES);
-    if (width < 1 || width > MAX_DIMENSION || height < 1 || height > MAX_DIMENSION) {
+    if (width < 1 || width > MAXIMUM_DIMENSION || height < 1 || height > MAXIMUM_DIMENSION) {
       throw new Mcv2Exception("Invalid dimensions!");
     }
     final boolean keyframe = u32(data, FRAME_ID_OFFSET) == u32(data, REFERENCE_ID_OFFSET);
@@ -257,7 +257,7 @@ public final class Mcv2Decoder {
         final int quantizer = descriptor >> QUANTIZER_SHIFT;
         if (
           mode > MODE_SPLIT ||
-          quantizer > MAX_QUANTIZER ||
+          quantizer > MAXIMUM_QUANTIZER ||
           (quantizer != 0 && mode != MODE_COMPACT) ||
           (this.keyframe && (mode == MODE_MOTION || mode == MODE_COMPACT))
         ) {
@@ -607,7 +607,7 @@ public final class Mcv2Decoder {
   }
 
   static int round(final int value, final int shift) {
-    return Math.min(Math.max((value + (1 << (shift - 1))) >> shift, 0), MAX_CHANNEL);
+    return Math.min(Math.max((value + (1 << (shift - 1))) >> shift, 0), MAXIMUM_CHANNEL);
   }
 
   private static int readColor(final byte[] data, final int arrayOffset) {
@@ -671,7 +671,7 @@ public final class Mcv2Decoder {
   }
 
   static boolean follows(final long nextFrameId, final long lastFrameId) {
-    final long distance = (nextFrameId - lastFrameId) & MAX_U32;
+    final long distance = (nextFrameId - lastFrameId) & MAXIMUM_UNSIGNED_INT;
     return distance != 0 && distance < 1L << 31;
   }
 

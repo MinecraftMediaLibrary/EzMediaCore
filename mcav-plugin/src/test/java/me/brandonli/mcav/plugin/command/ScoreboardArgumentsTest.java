@@ -79,7 +79,7 @@ final class ScoreboardArgumentsTest {
 
   @Test
   void usesTheLineLimitOfTheLibrary() {
-    final int limit = ScoreboardConfiguration.MAX_LINES;
+    final int limit = ScoreboardConfiguration.MAXIMUM_LINES;
     final boolean atLimit = ScoreboardArguments.checkLines(this.sender, "24x" + limit);
     final int above = limit + 1;
     final boolean aboveLimit = ScoreboardArguments.checkLines(this.sender, "24x" + above);

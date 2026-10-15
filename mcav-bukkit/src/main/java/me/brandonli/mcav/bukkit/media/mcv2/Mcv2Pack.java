@@ -45,7 +45,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * Builds the resource pack that decodes MCV2 screens on vanilla clients: one pack for every screen of the server, so
- * any number of screens up to {@link #MAX_SCREENS} play at once.
+ * any number of screens up to {@link #MAXIMUM_SCREENS} play at once.
  *
  * <p>The pack overrides the core text shaders, which draw maps, so the maps that carry pages and anchors are moved into
  * a strip at the top of the screen: each screen owns a run of page slots there, found by the stream id its pages and
@@ -71,7 +71,7 @@ public final class Mcv2Pack {
    * The most screens one pack decodes: each costs the client its decode passes on every frame the chain runs, and its
    * page slots a band of the top of the window.
    */
-  public static final int MAX_SCREENS = 8;
+  public static final int MAXIMUM_SCREENS = 8;
 
   private static final String ROOT = "/mcav/mcv2/pack/";
 
@@ -130,7 +130,7 @@ public final class Mcv2Pack {
   private static final int NO_SYMBOL = -1;
 
   // The map palette needs a multiplier of about 83,000.
-  private static final int MAX_SYMBOL_HASH = 1 << 24;
+  private static final int MAXIMUM_SYMBOL_HASH = 1 << 24;
 
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -160,7 +160,7 @@ public final class Mcv2Pack {
    * @param showsDebugView whether the pack also draws every screen's decoded picture one to one below the strip, for
    *                       testing
    * @param archivePath    where the pack is written, atomically
-   * @throws IllegalArgumentException if there are no screens or more than {@link #MAX_SCREENS}, two share a stream
+   * @throws IllegalArgumentException if there are no screens or more than {@link #MAXIMUM_SCREENS}, two share a stream
    *                                  id, or their outline colours differ
    * @throws UncheckedIOException     if the pack cannot be written
    * @throws NullPointerException     if {@code screens} or {@code archivePath} is null
@@ -194,7 +194,7 @@ public final class Mcv2Pack {
   }
 
   private static void checkScreens(final List<Mcv2Configuration> screens) {
-    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAX_SCREENS, "A pack has 1 to %s screens!", MAX_SCREENS);
+    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAXIMUM_SCREENS, "A pack has 1 to %s screens!", MAXIMUM_SCREENS);
     final Set<Long> streams = screens.stream().map(Mcv2Configuration::getStreamId).collect(Collectors.toSet());
     Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id!");
     final NamedTextColor outline = screens.getFirst().getOutlineColor();
@@ -365,12 +365,12 @@ public final class Mcv2Pack {
   }
 
   static String alphabet(final int[] colors) {
-    return alphabet(colors, MAX_SYMBOL_HASH);
+    return alphabet(colors, MAXIMUM_SYMBOL_HASH);
   }
 
   // A table read per symbol, not a search of the 64 colours: the text shaders read up to 55 symbols for each vertex of a
   // map and 4 for each pixel of the strip, and the search made a wall of page frames cost an integrated GPU 50 ms a frame.
-  static String alphabet(final int[] colors, final int maxMultiplier) {
+  static String alphabet(final int[] colors, final int maximumMultiplier) {
     final Set<Integer> seen = new HashSet<>();
     for (int symbol = 0; symbol < colors.length; symbol++) {
       if (!seen.add(colors[symbol])) {
@@ -378,7 +378,7 @@ public final class Mcv2Pack {
         throw new IllegalStateException(message);
       }
     }
-    final int multiplier = symbolHash(colors, maxMultiplier);
+    final int multiplier = symbolHash(colors, maximumMultiplier);
     final int[] entries = new int[SYMBOL_ENTRIES];
     Arrays.fill(entries, NO_SYMBOL);
     for (int symbol = 0; symbol < colors.length; symbol++) {
@@ -411,9 +411,9 @@ public final class Mcv2Pack {
     return (color * multiplier) >>> SYMBOL_SHIFT;
   }
 
-  private static int symbolHash(final int[] colors, final int maxMultiplier) {
+  private static int symbolHash(final int[] colors, final int maximumMultiplier) {
     final boolean[] taken = new boolean[SYMBOL_ENTRIES];
-    for (int multiplier = 1; multiplier <= maxMultiplier; multiplier += 2) {
+    for (int multiplier = 1; multiplier <= maximumMultiplier; multiplier += 2) {
       Arrays.fill(taken, false);
       boolean distinct = true;
       for (int symbol = 0; symbol < colors.length && distinct; symbol++) {
@@ -428,7 +428,7 @@ public final class Mcv2Pack {
     final String message = String.format(
       Locale.ROOT,
       "No odd multiplier up to %d gives the map colours distinct symbol entries!",
-      maxMultiplier
+      maximumMultiplier
     );
     throw new IllegalStateException(message);
   }

@@ -41,11 +41,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * <p>The block palette is loaded from the {@code mcav/bukkit/blocks.json} resource, which maps the names of full blocks to
  * their average texture color. Most of them are solid, but a few are translucent, such as stained glass. Images are
- * first dithered to the colors of that palette with {@link #getDitheringImpl()}, and every resulting color is then
+ * first dithered to the colors of that palette with {@link #getDither()}, and every resulting color is then
  * converted back into its block with {@link #getMaterial(int)} or {@link #getBlockData(int)}.
  *
  * <p>The palette is loaded lazily the first time it is needed, which takes a moment because the color lookup
- * tables have to be built. Call {@link #init()} during startup to do that work ahead of time. All methods are
+ * tables have to be built. Call {@link #initialize()} during startup to do that work ahead of time. All methods are
  * thread-safe.
  */
 public final class BlockPaletteLookup {
@@ -62,14 +62,14 @@ public final class BlockPaletteLookup {
    * Loads the block palette and builds all lookup tables. Calling this method is optional, but it avoids a delay
    * the first time a block display is used.
    */
-  public static void init() {
+  public static void initialize() {
     Holder.initialize();
   }
 
   /**
    * Returns the block whose average color is the given palette color.
    *
-   * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
+   * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block with the given average color, or {@link Material#AIR} if no block has that color
    */
@@ -86,7 +86,7 @@ public final class BlockPaletteLookup {
    * Returns the default block data of the block whose average color is the given palette color. The block data is
    * cached and shared, so it must not be modified.
    *
-   * @param color the RGB color, which should be one of the colors produced by {@link #getDitheringImpl()}; the
+   * @param color the RGB color, which should be one of the colors produced by {@link #getDither()}; the
    *              alpha channel is ignored
    * @return the block data with the given average color, or air if no block has that color
    */
@@ -107,7 +107,7 @@ public final class BlockPaletteLookup {
    *
    * @return the dithering algorithm for the block palette
    */
-  public static FilterLiteDither getDitheringImpl() {
+  public static FilterLiteDither getDither() {
     return Holder.DITHERING;
   }
 

@@ -59,7 +59,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileServerHandler.class);
   private static final String CLOSE_FAILED = "Could not close a resource pack download connection after an error.";
   private static final ChannelFutureListener LOG_CLOSE_FAILURE = FileServerHandler::logCloseFailure;
-  private static final int MAX_HEADER_BYTES = 8192;
+  private static final int MAXIMUM_HEADER_BYTES = 8192;
   private static final byte[] HEADER_TERMINATOR = { '\r', '\n', '\r', '\n' };
   private static final String STATUS_OK = "200 OK";
   private static final String CONTENT_TYPE = "application/zip";
@@ -119,7 +119,7 @@ final class FileServerHandler extends ChannelInboundHandlerAdapter {
   public void handlerAdded(final ChannelHandlerContext context) {
     Preconditions.checkNotNull(context);
     final ByteBufAllocator allocator = context.alloc();
-    this.requestBuffer = allocator.buffer(256, MAX_HEADER_BYTES);
+    this.requestBuffer = allocator.buffer(256, MAXIMUM_HEADER_BYTES);
   }
 
   /**

@@ -82,20 +82,20 @@ final class Mcv2PacerPropertyTest {
 
     private boolean waiting;
 
-    Simulation(final int sizes, final int presets, final double fps, final double noise, final long seed) {
+    Simulation(final int sizes, final int presets, final double framesPerSecond, final double noise, final long seed) {
       this.pacer = new Mcv2Pacer(
         SIZES.subList(0, sizes),
         presets == 1 ? List.of(Mcv2Pacer.Preset.ONLY) : PRESETS.subList(0, presets),
         true
       );
-      this.interval = Math.round(SECOND / fps);
+      this.interval = Math.round(SECOND / framesPerSecond);
       this.noise = noise;
       this.random = new Random(seed);
     }
 
-    private double costOf(final Mcv2Pacer.Rung rung, final double fullMs) {
+    private double costOf(final Mcv2Pacer.Rung rung, final double fullMilliseconds) {
       final double scale = 1 + this.noise * (2 * this.random.nextDouble() - 1);
-      return (fullMs * scale * rung.width() * rung.height() * rung.preset().cost()) / (1920.0 * 1080.0);
+      return (fullMilliseconds * scale * rung.width() * rung.height() * rung.preset().cost()) / (1920.0 * 1080.0);
     }
 
     private void record(final Mcv2Pacer.Change change, final long at) {
@@ -104,8 +104,8 @@ final class Mcv2PacerPropertyTest {
       this.climbed = !change.down() && !change.from().isDithered();
     }
 
-    /** Plays the video for a while with 1080p frames taking {@code fullMs}. */
-    void play(final double seconds, final double fullMs) {
+    /** Plays the video for a while with 1080p frames taking {@code fullMilliseconds}. */
+    void play(final double seconds, final double fullMilliseconds) {
       final long end = this.now + (long) (seconds * SECOND);
       while (this.now < end) {
         final long arrival = this.now + this.interval;
@@ -118,7 +118,7 @@ final class Mcv2PacerPropertyTest {
           }
           if (this.waiting) {
             this.waiting = false;
-            this.start(this.busyUntil, fullMs);
+            this.start(this.busyUntil, fullMilliseconds);
           }
         }
         this.now = arrival;
@@ -130,14 +130,14 @@ final class Mcv2PacerPropertyTest {
           if (this.encoding) {
             this.waiting = true;
           } else {
-            this.start(arrival, fullMs);
+            this.start(arrival, fullMilliseconds);
           }
         }
       }
     }
 
-    private void start(final long at, final double fullMs) {
-      this.cost = this.costOf(this.pacer.getRung(), fullMs);
+    private void start(final long at, final double fullMilliseconds) {
+      this.cost = this.costOf(this.pacer.getRung(), fullMilliseconds);
       this.busyUntil = at + (long) (this.cost * 1e6);
       this.encoding = true;
     }
@@ -154,8 +154,8 @@ final class Mcv2PacerPropertyTest {
     return Arbitraries.of(24.0, 25.0, 30.0, 50.0, 60.0);
   }
 
-  private static double frameMs(final Mcv2Pacer.Rung rung, final double fps) {
-    return (1000.0 * rung.divisor()) / fps;
+  private static double frameMilliseconds(final Mcv2Pacer.Rung rung, final double framesPerSecond) {
+    return (1000.0 * rung.divisor()) / framesPerSecond;
   }
 
   /**
@@ -164,29 +164,29 @@ final class Mcv2PacerPropertyTest {
    */
   @Property(seed = SEED, tries = 300)
   boolean shouldNeverStayLongOverItsTime(
-    @ForAll("frameRates") final double fps,
+    @ForAll("frameRates") final double framesPerSecond,
     @ForAll @IntRange(min = 1, max = 3) final int sizes,
     @ForAll @IntRange(min = 1, max = 3) final int presets,
-    @ForAll @DoubleRange(min = 1, max = 3000) final double fullMs,
+    @ForAll @DoubleRange(min = 1, max = 3000) final double fullMilliseconds,
     @ForAll @DoubleRange(min = 0, max = 0.1) final double noise,
     @ForAll final long seed
   ) {
-    final Simulation simulation = new Simulation(sizes, presets, fps, noise, seed);
-    simulation.play(180, fullMs);
+    final Simulation simulation = new Simulation(sizes, presets, framesPerSecond, noise, seed);
+    simulation.play(180, fullMilliseconds);
     final List<Stretch> stretches = simulation.finish();
     for (int stretchIndex = 0; stretchIndex < stretches.size(); stretchIndex++) {
       final Stretch stretch = stretches.get(stretchIndex);
       if (stretch.rung().isDithered()) {
         continue;
       }
-      final double rungMs =
-        (fullMs * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (1920.0 * 1080.0);
+      final double rungMilliseconds =
+        (fullMilliseconds * stretch.rung().width() * stretch.rung().height() * stretch.rung().preset().cost()) / (1920.0 * 1080.0);
       final double seconds = (stretch.to() - stretch.from()) / (double) SECOND;
-      final boolean over = rungMs * (1 - noise) > frameMs(stretch.rung(), fps);
+      final boolean over = rungMilliseconds * (1 - noise) > frameMilliseconds(stretch.rung(), framesPerSecond);
       // it waits for the rung's first samples (and, on the first rung, for the encoder to warm up), then a second
-      final double frame = Math.max(rungMs * (1 + noise), frameMs(stretch.rung(), fps)) / 1000;
+      final double frame = Math.max(rungMilliseconds * (1 + noise), frameMilliseconds(stretch.rung(), framesPerSecond)) / 1000;
       final double allowed =
-        Mcv2Pacer.DOWN_SECONDS + (Mcv2Pacer.MIN_SAMPLES + 2) * frame + 1 + (stretchIndex == 0 ? Mcv2Pacer.STARTUP_SECONDS : 0);
+        Mcv2Pacer.DOWN_SECONDS + (Mcv2Pacer.MINIMUM_SAMPLES + 2) * frame + 1 + (stretchIndex == 0 ? Mcv2Pacer.STARTUP_SECONDS : 0);
       if (over && seconds > allowed) {
         return false;
       }
@@ -201,18 +201,18 @@ final class Mcv2PacerPropertyTest {
   /** After a heavy load, once the budget frees up, the pacer climbs back to the top rung. */
   @Property(seed = SEED, tries = 300)
   boolean shouldClimbBackWhenTheLoadDrops(
-    @ForAll("frameRates") final double fps,
+    @ForAll("frameRates") final double framesPerSecond,
     @ForAll @IntRange(min = 1, max = 3) final int sizes,
     @ForAll @IntRange(min = 1, max = 3) final int presets,
-    @ForAll @DoubleRange(min = 20, max = 3000) final double heavyMs,
+    @ForAll @DoubleRange(min = 20, max = 3000) final double heavyMilliseconds,
     @ForAll @DoubleRange(min = 0.05, max = 0.55) final double lightShare,
     @ForAll @DoubleRange(min = 0, max = 0.1) final double noise,
     @ForAll final long seed
   ) {
-    final Simulation simulation = new Simulation(sizes, presets, fps, noise, seed);
-    simulation.play(20, heavyMs);
+    final Simulation simulation = new Simulation(sizes, presets, framesPerSecond, noise, seed);
+    simulation.play(20, heavyMilliseconds);
     // the top rung fits in lightShare of its frame time, with room to spare
-    simulation.play(120, (lightShare * 1000) / fps);
+    simulation.play(120, (lightShare * 1000) / framesPerSecond);
     return simulation.pacer.getRung().equals(simulation.pacer.getLadder().getFirst());
   }
 }

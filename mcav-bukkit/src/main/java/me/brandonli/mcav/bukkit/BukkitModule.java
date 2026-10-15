@@ -65,8 +65,8 @@ public final class BukkitModule implements MCAVModule {
     ServerEnvironment.checkSupported();
 
     injectedPlugin = plugin;
-    BlockPaletteLookup.init();
-    PacketUtils.init();
+    BlockPaletteLookup.initialize();
+    PacketUtils.initialize();
   }
 
   /**
@@ -95,7 +95,7 @@ public final class BukkitModule implements MCAVModule {
     if (plugin == null || !plugin.isEnabled()) {
       return;
     }
-    PacketUtils.init();
+    PacketUtils.initialize();
   }
 
   /**

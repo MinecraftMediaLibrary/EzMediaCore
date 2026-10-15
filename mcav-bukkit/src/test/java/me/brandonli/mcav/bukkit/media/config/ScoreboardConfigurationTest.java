@@ -48,7 +48,7 @@ final class ScoreboardConfigurationTest {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(viewers);
     builder.character(Characters.SMALL_BLACK_SQUARE);
-    builder.lines(ScoreboardConfiguration.MAX_LINES);
+    builder.lines(ScoreboardConfiguration.MAXIMUM_LINES);
     builder.width(30);
 
     final ScoreboardConfiguration configuration = builder.build();

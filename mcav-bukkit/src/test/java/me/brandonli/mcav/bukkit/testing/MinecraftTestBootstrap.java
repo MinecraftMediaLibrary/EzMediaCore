@@ -79,7 +79,7 @@ public final class MinecraftTestBootstrap implements BeforeAllCallback {
       if (initialized == null) {
         throw new IllegalStateException("The scoreboard criteria were initialized before the bootstrap!");
       }
-      BlockPaletteLookup.init();
+      BlockPaletteLookup.initialize();
       bukkit.verify(() -> Bukkit.createBlockData(any(Material.class)), Mockito.atLeastOnce());
     }
     bootstrapped = true;

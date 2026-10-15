@@ -161,7 +161,7 @@ final class Mcv2SupportTest {
     assertEquals(Settings.DEFAULT, configuration.getSettings());
     assertEquals(List.of(this.viewer), List.copyOf(configuration.getViewers()));
     assertEquals(Mcv2Configuration.DEFAULT_BACKLOG_LIMIT, configuration.getBacklogLimit());
-    assertEquals(Mcv2Configuration.MAX_PAGE_SLOTS, configuration.getPageSlots());
+    assertEquals(Mcv2Configuration.MAXIMUM_PAGE_SLOTS, configuration.getPageSlots());
   }
 
   @Test

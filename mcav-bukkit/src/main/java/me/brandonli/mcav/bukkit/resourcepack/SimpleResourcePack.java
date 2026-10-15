@@ -79,9 +79,9 @@ public final class SimpleResourcePack {
 
   private static final String PACK_META_ENTRY = "pack.mcmeta";
 
-  private static final String TEMP_PREFIX = "mcav-pack";
+  private static final String TEMPORARY_FILE_PREFIX = "mcav-pack";
 
-  private static final String TEMP_SUFFIX = ".zip.part";
+  private static final String TEMPORARY_FILE_SUFFIX = ".zip.part";
 
   private static final String READABLE_PERMISSIONS = "rw-r--r--";
 
@@ -265,7 +265,7 @@ public final class SimpleResourcePack {
 
   private void writeAtomically(final Path parent, final Path target, final String packDescription) throws IOException {
     Files.createDirectories(parent);
-    final Path temporaryFile = Files.createTempFile(parent, TEMP_PREFIX, TEMP_SUFFIX);
+    final Path temporaryFile = Files.createTempFile(parent, TEMPORARY_FILE_PREFIX, TEMPORARY_FILE_SUFFIX);
     try {
       final PosixFileAttributeView permissionView = Files.getFileAttributeView(temporaryFile, PosixFileAttributeView.class);
       makeReadable(permissionView);

@@ -128,7 +128,7 @@ final class Mcv2Internals {
     private static final Class<?> TYPE = nested("MotionLambda");
     static final double KNEE = (double) field(TYPE, null, "KNEE");
     static final double EXPONENT = (double) field(TYPE, null, "EXPONENT");
-    static final double MAX_RAISE = (double) field(TYPE, null, "MAX_RAISE");
+    static final double MAXIMUM_RAISE = (double) field(TYPE, null, "MAXIMUM_RAISE");
     static final double SMOOTHING = (double) field(TYPE, null, "SMOOTHING");
     private final Object value = construct(TYPE, new Class<?>[0]);
 

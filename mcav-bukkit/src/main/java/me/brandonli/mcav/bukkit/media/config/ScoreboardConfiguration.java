@@ -37,7 +37,7 @@ public class ScoreboardConfiguration {
   /**
    * The maximum number of lines the sidebar can show.
    */
-  public static final int MAX_LINES = 15;
+  public static final int MAXIMUM_LINES = 15;
 
   private final Collection<UUID> viewers;
   private final String character;
@@ -74,7 +74,7 @@ public class ScoreboardConfiguration {
   /**
    * Returns the height of the image in lines.
    *
-   * @return the number of lines, at most {@link #MAX_LINES}
+   * @return the number of lines, at most {@link #MAXIMUM_LINES}
    */
   public int getLines() {
     return this.lines;
@@ -172,7 +172,7 @@ public class ScoreboardConfiguration {
     /**
      * Sets the height of the image in lines.
      *
-     * @param lines the number of lines, from 1 to {@link #MAX_LINES}
+     * @param lines the number of lines, from 1 to {@link #MAXIMUM_LINES}
      * @return this builder
      */
     public T lines(final int lines) {
@@ -203,7 +203,12 @@ public class ScoreboardConfiguration {
       final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set!");
 
       Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty!");
-      Preconditions.checkArgument(this.lines > 0 && this.lines <= MAX_LINES, "Lines %s must be between 1 and %s!", this.lines, MAX_LINES);
+      Preconditions.checkArgument(
+        this.lines > 0 && this.lines <= MAXIMUM_LINES,
+        "Lines %s must be between 1 and %s!",
+        this.lines,
+        MAXIMUM_LINES
+      );
       Preconditions.checkArgument(this.width > 0, "Width must be positive!");
 
       return new ScoreboardConfiguration(this, configuredViewers, configuredCharacter);

@@ -68,9 +68,9 @@ import org.junit.jupiter.api.Tag;
 @Tag("fuzz")
 final class FileServerHandlerFuzzTest {
 
-  private static final int MAX_HEADER_BYTES = 8192;
-  private static final int MAX_SPLITS = 8;
-  private static final int MAX_FILLER = 12_000;
+  private static final int MAXIMUM_HEADER_BYTES = 8192;
+  private static final int MAXIMUM_SPLITS = 8;
+  private static final int MAXIMUM_FILLER = 12_000;
   private static final byte[] PACK = { 'P', 'K', 3, 4, 9 };
   private static final byte[] HEADER_TERMINATOR = { '\r', '\n', '\r', '\n' };
   private static final byte[] GET_PREFIX = "GET ".getBytes(StandardCharsets.US_ASCII);
@@ -186,9 +186,9 @@ final class FileServerHandlerFuzzTest {
     final boolean timeoutLeft
   ) throws IOException {
     final int headerEnd = indexOf(stream, HEADER_TERMINATOR);
-    final boolean complete = headerEnd >= 0 && headerEnd + HEADER_TERMINATOR.length <= MAX_HEADER_BYTES;
+    final boolean complete = headerEnd >= 0 && headerEnd + HEADER_TERMINATOR.length <= MAXIMUM_HEADER_BYTES;
     if (!complete) {
-      if (stream.length > MAX_HEADER_BYTES) {
+      if (stream.length > MAXIMUM_HEADER_BYTES) {
         final List<String> expectedAnswers = List.of(status("431 Request Header Fields Too Large"));
         final List<String> answeredTexts = texts(answered);
         assertEquals(expectedAnswers, answeredTexts, "headers past the limit are refused");
@@ -314,9 +314,9 @@ final class FileServerHandlerFuzzTest {
     }
 
     private static Request of(final byte[] input, final boolean fillerFirst) {
-      final int splits = (input[1] & 0xFF) % (MAX_SPLITS + 1);
+      final int splits = (input[1] & 0xFF) % (MAXIMUM_SPLITS + 1);
       final int header = 2 + 2 * splits + 3;
-      final int fillerLength = ((byteAt(input, header - 3) << 8) | byteAt(input, header - 2)) % (MAX_FILLER + 1);
+      final int fillerLength = ((byteAt(input, header - 3) << 8) | byteAt(input, header - 2)) % (MAXIMUM_FILLER + 1);
       final byte[] filler = new byte[fillerLength];
       Arrays.fill(filler, (byte) byteAt(input, header - 1));
       final byte[] rest = header < input.length ? Arrays.copyOfRange(input, header, input.length) : new byte[0];
@@ -357,15 +357,15 @@ final class FileServerHandlerFuzzTest {
     }
 
     @Override
-    protected ByteBuf newHeapBuffer(final int initialCapacity, final int maxCapacity) {
-      final ByteBuf buffer = Unpooled.buffer(initialCapacity, maxCapacity);
+    protected ByteBuf newHeapBuffer(final int initialCapacity, final int maximumCapacity) {
+      final ByteBuf buffer = Unpooled.buffer(initialCapacity, maximumCapacity);
       this.allocated.add(buffer);
       return buffer;
     }
 
     @Override
-    protected ByteBuf newDirectBuffer(final int initialCapacity, final int maxCapacity) {
-      final ByteBuf buffer = Unpooled.directBuffer(initialCapacity, maxCapacity);
+    protected ByteBuf newDirectBuffer(final int initialCapacity, final int maximumCapacity) {
+      final ByteBuf buffer = Unpooled.directBuffer(initialCapacity, maximumCapacity);
       this.allocated.add(buffer);
       return buffer;
     }

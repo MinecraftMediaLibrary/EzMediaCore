@@ -87,7 +87,7 @@ final class Mcv2ResultReleaseTest {
       .video(64, 32)
       .pageMap(500)
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       configuration,

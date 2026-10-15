@@ -277,7 +277,7 @@ public final class FakeServer implements AutoCloseable {
 
   /**
    * Adds an online player whose packets are recorded. Players added after {@link #injectModule()} only receive
-   * packets once {@link PacketUtils#init()} runs again.
+   * packets once {@link PacketUtils#initialize()} runs again.
    *
    * @param uuid the UUID of the player
    * @return the player mock, which is a {@link CraftPlayer}
@@ -417,7 +417,7 @@ public final class FakeServer implements AutoCloseable {
   }
 
   /**
-   * Takes a player offline. The connection cache only notices once {@link PacketUtils#init()} runs again.
+   * Takes a player offline. The connection cache only notices once {@link PacketUtils#initialize()} runs again.
    *
    * @param uuid the UUID of the player
    */

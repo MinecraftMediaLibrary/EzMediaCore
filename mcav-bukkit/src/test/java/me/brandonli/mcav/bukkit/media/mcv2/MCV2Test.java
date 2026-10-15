@@ -53,11 +53,11 @@ final class MCV2Test {
       assertArrayEquals(predicted, encodedPredicted);
       final byte[] decoded = Mcv2Decoder.decode(predicted, picture, 1);
       assertArrayEquals(picture, decoded);
-      final int bytes = encoder.getStats().bytes();
+      final int bytes = encoder.getStatistics().bytes();
       assertEquals(40, bytes);
-      final boolean keyframe = encoder.getStats().keyframe();
+      final boolean keyframe = encoder.getStatistics().keyframe();
       assertFalse(keyframe);
-      final double lambda = encoder.getStats().lambda();
+      final double lambda = encoder.getStatistics().lambda();
       assertEquals(72, lambda);
     }
   }
@@ -79,7 +79,7 @@ final class MCV2Test {
           assertArrayEquals(reference, encoderReference);
           final long frameId = frame.getFrameId();
           assertEquals(index, frameId);
-          final boolean withinLimit = data.length <= Mcv2Decoder.MAX_FRAME_BYTES;
+          final boolean withinLimit = data.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
           assertTrue(withinLimit);
           if (!frame.isKeyframe()) {
             final int expectedReferenceId = index - 1;
@@ -134,7 +134,7 @@ final class MCV2Test {
         final int leafSize = parsed.getLeaf(index).size();
         assertEquals(32, leafSize);
       }
-      final boolean withinLimit = first.length <= Mcv2Decoder.MAX_FRAME_BYTES;
+      final boolean withinLimit = first.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
       assertTrue(withinLimit);
 
       final byte[] reference = encoder.getReference();
@@ -156,7 +156,7 @@ final class MCV2Test {
       encoder.setFrameLimit(40);
       final byte[] source = { 10, 20, 30 };
       final byte[] data = encoder.encode(source, 1, 1, 0);
-      final double lambda = encoder.getStats().lambda();
+      final double lambda = encoder.getStatistics().lambda();
       assertEquals(16, lambda);
       final int frameLength = data.length;
       assertEquals(48, frameLength);
@@ -175,8 +175,8 @@ final class MCV2Test {
       final boolean searchWithinElapsed = searched >= 0 && searched <= System.nanoTime() - started;
       assertTrue(searchWithinElapsed);
 
-      final MCV2.Stats stats = encoder.finish(pending).getStats();
-      final boolean measuredWithinElapsed = stats.nanoseconds() >= searched && stats.nanoseconds() <= System.nanoTime() - started;
+      final MCV2.Statistics statistics = encoder.finish(pending).getStatistics();
+      final boolean measuredWithinElapsed = statistics.nanoseconds() >= searched && statistics.nanoseconds() <= System.nanoTime() - started;
       assertTrue(measuredWithinElapsed);
     }
   }
@@ -251,7 +251,7 @@ final class MCV2Test {
       Arrays.fill(source, (byte) 20);
       encoder.encode(source, 32, 32, 2);
       final double raised = 72 * Math.pow(10 / 4.6, 0.79);
-      final double lambda = encoder.getStats().lambda();
+      final double lambda = encoder.getStatistics().lambda();
       assertEquals(raised, lambda);
 
       encoder.switchTo(MCV2.Settings.FAST.withLambda(30));
@@ -265,7 +265,7 @@ final class MCV2Test {
       final long referenceId = next.getReferenceId();
       assertEquals(2, referenceId);
       final double expectedLambda = 30 * Math.pow(10 / 4.6, 0.79);
-      final double lambdaAfterSwitch = encoder.getStats().lambda();
+      final double lambdaAfterSwitch = encoder.getStatistics().lambda();
       assertEquals(expectedLambda, lambdaAfterSwitch);
     }
   }
@@ -312,8 +312,8 @@ final class MCV2Test {
       assertThrows(IllegalStateException.class, () -> encoder.finish(first));
       assertThrows(IllegalStateException.class, () -> encoder.finish(second));
       assertThrows(IllegalStateException.class, () -> encoder.begin(new byte[3], 1, 1, 2));
-      final MCV2.@Nullable Stats stats = encoder.getStats();
-      assertNull(stats);
+      final MCV2.@Nullable Statistics statistics = encoder.getStatistics();
+      assertNull(statistics);
     }
   }
 
@@ -329,8 +329,8 @@ final class MCV2Test {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, false);
       final byte @Nullable [] initialReference = encoder.getReference();
       assertNull(initialReference);
-      final MCV2.@Nullable Stats stats = encoder.getStats();
-      assertNull(stats);
+      final MCV2.@Nullable Statistics statistics = encoder.getStatistics();
+      assertNull(statistics);
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameBudget(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameLimit(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[3], 0, 1, 0));

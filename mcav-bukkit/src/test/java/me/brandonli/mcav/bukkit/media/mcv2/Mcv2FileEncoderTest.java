@@ -136,7 +136,7 @@ final class Mcv2FileEncoderTest {
   void shouldKeepEveryFrameSmallEnoughForTheDefaultPageSlotsOfItsWall() throws Exception {
     final int width = 8 * MapLayout.MAP_SIZE;
     final int height = 4 * MapLayout.MAP_SIZE;
-    final int limit = Mcv2Configuration.MAX_PAGE_SLOTS * TransportPages.capacity();
+    final int limit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * TransportPages.capacity();
     final byte[] checkerboard = checkerboard(width, height);
     final MCV2 unlimited = new MCV2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
     final boolean unlimitedFrameTooLarge = unlimited.encode(checkerboard, width, height, 0).length > limit;
@@ -225,7 +225,7 @@ final class Mcv2FileEncoderTest {
     final int expectedSevenMapLimit = 7 * capacity;
     final int sevenMapLimit = Mcv2FileEncoder.screenFrameLimit(7 * MapLayout.MAP_SIZE, MapLayout.MAP_SIZE);
     assertEquals(expectedSevenMapLimit, sevenMapLimit);
-    final int expectedFullHdLimit = Mcv2Configuration.MAX_PAGE_SLOTS * capacity;
+    final int expectedFullHdLimit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * capacity;
     final int fullHdLimit = Mcv2FileEncoder.screenFrameLimit(1920, 1080);
     assertEquals(expectedFullHdLimit, fullHdLimit);
   }

@@ -55,10 +55,10 @@ final class Mcv2DecoderFormatTest {
     assertEquals(0xBEEF, shortValue);
     final int shortLowByte = data[0] & 0xFF;
     assertEquals(0xEF, shortLowByte);
-    final long intValue = u32(data, 2);
-    assertEquals(0xDEADBEEFL, intValue);
-    final int intLowByte = data[2] & 0xFF;
-    assertEquals(0xEF, intLowByte);
+    final long unsignedValue = u32(data, 2);
+    assertEquals(0xDEADBEEFL, unsignedValue);
+    final int lowByte = data[2] & 0xFF;
+    assertEquals(0xEF, lowByte);
   }
 
   @Test

@@ -90,7 +90,7 @@ final class Mcv2Tools {
 
   private static final int DEFLATE_BUFFER = 1 << 16;
 
-  private static final double MAX_SAMPLE = 255.0;
+  private static final double MAXIMUM_SAMPLE = 255.0;
 
   private static final double EXACT_PSNR = 100.0;
 
@@ -236,7 +236,7 @@ final class Mcv2Tools {
         input.readFully(rgb);
         final long cpuBefore = system.getProcessCpuTime();
         final long allocatedBefore = threadBean.getTotalThreadAllocatedBytes();
-        final long startNanos = System.nanoTime();
+        final long startNanoseconds = System.nanoTime();
         final long frameId = frameIndex;
         if (options.getOrDefault("key", "0").equals("1")) {
           encoder.requestKeyframe();
@@ -245,10 +245,10 @@ final class Mcv2Tools {
         final byte[] data = inBudget
           ? budget.run(() -> encoder.encode(rgb, width, height, frameId))
           : encoder.encode(rgb, width, height, frameId);
-        measured.times[frameIndex] = System.nanoTime() - startNanos;
+        measured.times[frameIndex] = System.nanoTime() - startNanoseconds;
         measured.cpu[frameIndex] = system.getProcessCpuTime() - cpuBefore;
         measured.allocated[frameIndex] = threadBean.getTotalThreadAllocatedBytes() - allocatedBefore;
-        if (encoder.getStats().keyframe()) {
+        if (encoder.getStatistics().keyframe()) {
           measured.keyframes++;
         }
         measured.logical += data.length;
@@ -310,7 +310,7 @@ final class Mcv2Tools {
   }
 
   private static double psnr(final double mse) {
-    return 10 * Math.log10((MAX_SAMPLE * MAX_SAMPLE) / mse);
+    return 10 * Math.log10((MAXIMUM_SAMPLE * MAXIMUM_SAMPLE) / mse);
   }
 
   private static void report(
@@ -416,7 +416,7 @@ final class Mcv2Tools {
   private static final int SOURCE_WIDTH = 1920;
   private static final int SOURCE_HEIGHT = 1080;
   private static final int CHANNELS = 3;
-  private static final int MAX_ARCHIVE_BYTES = 1_000_000;
+  private static final int MAXIMUM_ARCHIVE_BYTES = 1_000_000;
   private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
   private static void generateFixtures(final String[] arguments) throws Exception {
@@ -463,7 +463,7 @@ final class Mcv2Tools {
           encoder.requestKeyframe();
         }
         final byte[] data = encoder.encode(rgb, width, height, id);
-        if (archive.size() + Integer.BYTES + data.length > MAX_ARCHIVE_BYTES) {
+        if (archive.size() + Integer.BYTES + data.length > MAXIMUM_ARCHIVE_BYTES) {
           break;
         }
         frame(archive, data);

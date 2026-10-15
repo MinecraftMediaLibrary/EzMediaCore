@@ -370,7 +370,7 @@ final class Mcv2ChannelTest {
   void shouldHoldBackAViewerWhoseConnectionFellBehind() throws Exception {
     final UUID other = UUID.fromString("00000000-0000-0000-0000-000000000034");
     final CraftPlayer second = this.server.addPlayer(other);
-    PacketUtils.init();
+    PacketUtils.initialize();
     when(this.viewers.isLoaded(other)).thenReturn(true);
     // room for one page and its anchor, not for a second frame on top
     final Mcv2Configuration tight = Mcv2Configuration.builder()
@@ -489,7 +489,7 @@ final class Mcv2ChannelTest {
     this.server.runTasks();
     channel.update();
     this.server.removePlayer(LOADED);
-    PacketUtils.init();
+    PacketUtils.initialize();
     channel.send(frame(0, 0, true));
     // nothing reached a connection, so nothing waits to be written
     final long backlog = channel.getLinks().get(LOADED).getBacklog();

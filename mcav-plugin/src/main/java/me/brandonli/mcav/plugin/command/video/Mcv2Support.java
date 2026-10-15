@@ -183,8 +183,9 @@ public final class Mcv2Support {
   }
 
   private static boolean fitsMcv2(final Pair<Integer, Integer> blocks, final Pair<Integer, Integer> resolution) {
-    final boolean maps = blocks.getFirst() <= Mcv2Configuration.MAX_SIDE && blocks.getSecond() <= Mcv2Configuration.MAX_SIDE;
-    final boolean pixels = resolution.getFirst() <= Mcv2Decoder.MAX_DIMENSION && resolution.getSecond() <= Mcv2Decoder.MAX_DIMENSION;
+    final boolean maps = blocks.getFirst() <= Mcv2Configuration.MAXIMUM_SIDE && blocks.getSecond() <= Mcv2Configuration.MAXIMUM_SIDE;
+    final boolean pixels =
+      resolution.getFirst() <= Mcv2Decoder.MAXIMUM_DIMENSION && resolution.getSecond() <= Mcv2Decoder.MAXIMUM_DIMENSION;
     return maps && pixels;
   }
 

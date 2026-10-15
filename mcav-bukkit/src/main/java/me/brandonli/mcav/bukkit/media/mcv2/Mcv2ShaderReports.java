@@ -36,7 +36,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
 
   static final int VERSION = 1;
 
-  static final int MAX_BYTES = 64;
+  static final int MAXIMUM_BYTES = 64;
 
   static final int BURST = 5;
 
@@ -83,8 +83,8 @@ final class Mcv2ShaderReports implements PluginMessageListener {
   @Override
   public synchronized void onPluginMessageReceived(final String channel, final Player player, final byte[] message) {
     final String name = player.getName();
-    if (message.length > MAX_BYTES) {
-      LOGGER.debug(TOO_LONG, message.length, name, MAX_BYTES);
+    if (message.length > MAXIMUM_BYTES) {
+      LOGGER.debug(TOO_LONG, message.length, name, MAXIMUM_BYTES);
       return;
     }
     final UUID viewerId = player.getUniqueId();

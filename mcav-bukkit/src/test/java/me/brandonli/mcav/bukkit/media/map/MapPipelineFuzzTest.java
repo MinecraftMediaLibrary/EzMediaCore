@@ -37,13 +37,13 @@ import org.junit.jupiter.api.Tag;
 @Tag("fuzz")
 final class MapPipelineFuzzTest {
 
-  private static final int MAX_MAPS_PER_SIDE = 4;
+  private static final int MAXIMUM_MAPS_PER_SIDE = 4;
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
 
   @FuzzTest(maxDuration = "30s")
   void shouldMakeEveryPatchBelongToTheWallAndCarryItsFrame(final FuzzedDataProvider data) {
-    final int columns = data.consumeInt(1, MAX_MAPS_PER_SIDE);
-    final int rows = data.consumeInt(1, MAX_MAPS_PER_SIDE);
+    final int columns = data.consumeInt(1, MAXIMUM_MAPS_PER_SIDE);
+    final int rows = data.consumeInt(1, MAXIMUM_MAPS_PER_SIDE);
     final int mapCount = columns * rows;
     final int startMapId = data.consumeInt(0, Integer.MAX_VALUE - mapCount + 1);
     final int width = data.consumeInt(1, columns * MAP_SIZE + 64);

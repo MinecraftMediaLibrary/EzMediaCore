@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Tag;
 @Tag("fuzz")
 final class Mcv2ReceiverFuzzTest {
 
-  private static final int MAX_FRAMES = 8;
+  private static final int MAXIMUM_FRAMES = 8;
   private static final int THREADS = 3;
   private static final ForkJoinPool POOL = new ForkJoinPool(THREADS);
 
@@ -99,7 +99,7 @@ final class Mcv2ReceiverFuzzTest {
   private static List<byte[]> frames(final byte[] archive) {
     final List<byte[]> frames = new ArrayList<>();
     int offset = 0;
-    while (offset + 4 <= archive.length && frames.size() < MAX_FRAMES) {
+    while (offset + 4 <= archive.length && frames.size() < MAXIMUM_FRAMES) {
       final long length = Mcv2Decoder.u32(archive, offset);
       final int start = offset + 4;
       final int end = (int) Math.min(archive.length, start + length);

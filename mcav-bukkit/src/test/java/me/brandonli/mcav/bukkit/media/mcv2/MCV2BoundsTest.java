@@ -52,7 +52,7 @@ final class MCV2BoundsTest {
     final int firstLength = first.length;
     assertEquals(76064, firstLength);
     final int expectedLambda = 72 * 16;
-    final double lambda = encoder.getStats().lambda();
+    final double lambda = encoder.getStatistics().lambda();
     assertEquals(expectedLambda, lambda);
     final int expectedLeafCount = 128 * 128;
     final int leafCount = Mcv2Decoder.parse(first).getLeafCount();
@@ -99,7 +99,7 @@ final class MCV2BoundsTest {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final boolean withinLimit = data.length <= 131071;
     assertTrue(withinLimit);
-    final double lambda = encoder.getStats().lambda();
+    final double lambda = encoder.getStatistics().lambda();
     assertEquals(0, lambda);
     final int expectedLeafCount = 32 * 32;
     final int leafCount = frame.getLeafCount();

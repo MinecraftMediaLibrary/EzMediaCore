@@ -52,25 +52,25 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public final class Mcv2Configuration {
 
   /** The largest wall side, in maps: an anchor names its column and row with one six-bit symbol each. */
-  public static final int MAX_SIDE = 63;
+  public static final int MAXIMUM_SIDE = 63;
 
   /** The most page slots a pack reserves. */
-  public static final int MAX_PAGE_SLOTS = 8;
+  public static final int MAXIMUM_PAGE_SLOTS = 8;
 
   /** The largest stream id: an anchor carries it in two six-bit symbols. */
-  public static final long MAX_STREAM_ID = 4095;
+  public static final long MAXIMUM_STREAM_ID = 4095;
 
-  private static final int DEFAULT_PAGE_SLOTS = MAX_PAGE_SLOTS;
+  private static final int DEFAULT_PAGE_SLOTS = MAXIMUM_PAGE_SLOTS;
 
   /**
    * The most frames a second a screen shows when none is set: the default live preset keeps up with 1080p video at 30
    * frames a second, but not at 60. A client decodes at most one frame for every frame it draws, so a screen faster
    * than its viewers' clients leaves them waiting for keyframes.
    */
-  public static final double DEFAULT_MAX_FRAME_RATE = 30;
+  public static final double DEFAULT_MAXIMUM_FRAME_RATE = 30;
 
   /** The highest rate a screen may be given, in frames a second. */
-  public static final double MAX_FRAME_RATE = 240;
+  public static final double MAXIMUM_FRAME_RATE = 240;
 
   /**
    * The default backlog threshold: 128 KiB of estimated map-update bytes, including patch overhead and anchors.
@@ -111,7 +111,7 @@ public final class Mcv2Configuration {
 
   private final long firstFrameId;
 
-  private final double maxFrameRate;
+  private final double maximumFrameRate;
 
   private final Settings settings;
 
@@ -142,7 +142,7 @@ public final class Mcv2Configuration {
     this.pageSlots = pageSlots;
     this.streamId = builder.streamId;
     this.firstFrameId = builder.firstFrameId;
-    this.maxFrameRate = builder.maxFrameRate;
+    this.maximumFrameRate = builder.maximumFrameRate;
     this.settings = builder.settings;
     this.outlineColor = builder.outlineColor;
     this.backlogLimit = builder.backlogLimit;
@@ -273,7 +273,7 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Returns how many pages a frame may have; a frame with more is not sent. Defaults to {@value #MAX_PAGE_SLOTS}, or the
+   * Returns how many pages a frame may have; a frame with more is not sent. Defaults to {@value #MAXIMUM_PAGE_SLOTS}, or the
    * number of maps of a smaller wall, because behind every map of the wall hangs one page's frame.
    *
    * @return the page slots
@@ -295,7 +295,7 @@ public final class Mcv2Configuration {
   /**
    * Returns the stream id every page carries; the pack decodes only its own stream.
    *
-   * @return the configured stream id, from 0 through {@value #MAX_STREAM_ID}
+   * @return the configured stream id, from 0 through {@value #MAXIMUM_STREAM_ID}
    */
   public long getStreamId() {
     return this.streamId;
@@ -351,7 +351,7 @@ public final class Mcv2Configuration {
    * Copies the screen with what the resource pack's server gave it with its slot of the pack: the slot's stream id and
    * page maps, and the id of the screen's first frame.
    *
-   * @param streamId     the stream id, 0 to {@value #MAX_STREAM_ID}
+   * @param streamId     the stream id, 0 to {@value #MAXIMUM_STREAM_ID}
    * @param pageMap      the first page map id, not negative
    * @param firstFrameId the id of the screen's first frame, an unsigned 32-bit value
    * @return the copy
@@ -374,7 +374,7 @@ public final class Mcv2Configuration {
       .pageSlots(this.pageSlots)
       .streamId(this.streamId)
       .firstFrameId(this.firstFrameId)
-      .maxFrameRate(this.maxFrameRate)
+      .maximumFrameRate(this.maximumFrameRate)
       .settings(this.settings)
       .outlineColor(this.outlineColor)
       .backlogLimit(this.backlogLimit)
@@ -399,10 +399,10 @@ public final class Mcv2Configuration {
   /**
    * Returns the most frames a second the screen shows; a faster source is thinned to it.
    *
-   * @return the rate, at most {@value #MAX_FRAME_RATE}, or 0 for every frame the source gives
+   * @return the rate, at most {@value #MAXIMUM_FRAME_RATE}, or 0 for every frame the source gives
    */
-  public double getMaxFrameRate() {
-    return this.maxFrameRate;
+  public double getMaximumFrameRate() {
+    return this.maximumFrameRate;
   }
 
   /**
@@ -460,7 +460,7 @@ public final class Mcv2Configuration {
 
     private long firstFrameId;
 
-    private double maxFrameRate = DEFAULT_MAX_FRAME_RATE;
+    private double maximumFrameRate = DEFAULT_MAXIMUM_FRAME_RATE;
 
     private long backlogLimit = DEFAULT_BACKLOG_LIMIT;
 
@@ -537,7 +537,7 @@ public final class Mcv2Configuration {
     /**
      * Sets the width of the wall in maps.
      *
-     * @param columns 1 to {@link #MAX_SIDE}
+     * @param columns 1 to {@link #MAXIMUM_SIDE}
      * @return this builder
      */
     public Builder columns(final int columns) {
@@ -548,7 +548,7 @@ public final class Mcv2Configuration {
     /**
      * Sets the height of the wall in maps.
      *
-     * @param rows 1 to {@link #MAX_SIDE}
+     * @param rows 1 to {@link #MAXIMUM_SIDE}
      * @return this builder
      */
     public Builder rows(final int rows) {
@@ -586,8 +586,8 @@ public final class Mcv2Configuration {
      * Sets how many pages a frame may have. Behind every map of the wall hangs one page's frame, so a wall carries at
      * most as many slots as it has maps; {@link #build()} refuses more.
      *
-     * @param pageSlots 1 to {@link #MAX_PAGE_SLOTS} and at most the wall's maps, or 0 for the default:
-     *                  {@value #MAX_PAGE_SLOTS}, or the wall's maps when it has fewer
+     * @param pageSlots 1 to {@link #MAXIMUM_PAGE_SLOTS} and at most the wall's maps, or 0 for the default:
+     *                  {@value #MAXIMUM_PAGE_SLOTS}, or the wall's maps when it has fewer
      * @return this builder
      */
     public Builder pageSlots(final int pageSlots) {
@@ -598,7 +598,7 @@ public final class Mcv2Configuration {
     /**
      * Sets the stream id every page and anchor carries, which tells the resource pack which of its screens they are.
      *
-     * @param streamId 0 to {@value #MAX_STREAM_ID}: an anchor carries it in two six-bit symbols
+     * @param streamId 0 to {@value #MAXIMUM_STREAM_ID}: an anchor carries it in two six-bit symbols
      * @return this builder
      */
     public Builder streamId(final long streamId) {
@@ -618,14 +618,14 @@ public final class Mcv2Configuration {
     }
 
     /**
-     * Sets the most frames a second the screen shows; defaults to {@link #DEFAULT_MAX_FRAME_RATE}.
+     * Sets the most frames a second the screen shows; defaults to {@link #DEFAULT_MAXIMUM_FRAME_RATE}.
      *
-     * @param maxFrameRate a finite rate from 0 through {@value #MAX_FRAME_RATE} frames per second;
-     *                     0 accepts every source frame
+     * @param maximumFrameRate a finite rate from 0 through {@value #MAXIMUM_FRAME_RATE} frames per second;
+     *                         0 accepts every source frame
      * @return this builder
      */
-    public Builder maxFrameRate(final double maxFrameRate) {
-      this.maxFrameRate = maxFrameRate;
+    public Builder maximumFrameRate(final double maximumFrameRate) {
+      this.maximumFrameRate = maximumFrameRate;
       return this;
     }
 
@@ -709,43 +709,50 @@ public final class Mcv2Configuration {
       final Location configuredOrigin = Preconditions.checkNotNull(this.origin, "Origin must be set!");
       final BlockFace configuredFacing = Preconditions.checkNotNull(this.facing, "Facing must be set!");
       Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative!");
-      Preconditions.checkArgument(this.columns >= 1 && this.columns <= MAX_SIDE, "Columns must be between 1 and %s inclusive!", MAX_SIDE);
-      Preconditions.checkArgument(this.rows >= 1 && this.rows <= MAX_SIDE, "Rows must be between 1 and %s inclusive!", MAX_SIDE);
-      Preconditions.checkArgument(this.videoWidth >= 0 && this.videoWidth <= Mcv2Decoder.MAX_DIMENSION, "Video width must be 0 to 4096!");
       Preconditions.checkArgument(
-        this.videoHeight >= 0 && this.videoHeight <= Mcv2Decoder.MAX_DIMENSION,
+        this.columns >= 1 && this.columns <= MAXIMUM_SIDE,
+        "Columns must be between 1 and %s inclusive!",
+        MAXIMUM_SIDE
+      );
+      Preconditions.checkArgument(this.rows >= 1 && this.rows <= MAXIMUM_SIDE, "Rows must be between 1 and %s inclusive!", MAXIMUM_SIDE);
+      Preconditions.checkArgument(
+        this.videoWidth >= 0 && this.videoWidth <= Mcv2Decoder.MAXIMUM_DIMENSION,
+        "Video width must be 0 to 4096!"
+      );
+      Preconditions.checkArgument(
+        this.videoHeight >= 0 && this.videoHeight <= Mcv2Decoder.MAXIMUM_DIMENSION,
         "Video height must be 0 to 4096!"
       );
 
       final int width = videoSize(this.videoWidth, this.columns);
       final int height = videoSize(this.videoHeight, this.rows);
       Preconditions.checkArgument(
-        width <= Mcv2Decoder.MAX_DIMENSION && height <= Mcv2Decoder.MAX_DIMENSION,
+        width <= Mcv2Decoder.MAXIMUM_DIMENSION && height <= Mcv2Decoder.MAXIMUM_DIMENSION,
         "A wall of %s by %s maps is %s by %s pixels, more than the codec's %s: set a smaller video size!",
         this.columns,
         this.rows,
         width,
         height,
-        Mcv2Decoder.MAX_DIMENSION
+        Mcv2Decoder.MAXIMUM_DIMENSION
       );
       Preconditions.checkArgument(
-        this.pageSlots >= 0 && this.pageSlots <= MAX_PAGE_SLOTS,
+        this.pageSlots >= 0 && this.pageSlots <= MAXIMUM_PAGE_SLOTS,
         "Page slots must be between 0 and %s inclusive!",
-        MAX_PAGE_SLOTS
+        MAXIMUM_PAGE_SLOTS
       );
       Preconditions.checkArgument(
-        this.streamId >= 0 && this.streamId <= MAX_STREAM_ID,
+        this.streamId >= 0 && this.streamId <= MAXIMUM_STREAM_ID,
         "Stream id must be between 0 and %s inclusive!",
-        MAX_STREAM_ID
+        MAXIMUM_STREAM_ID
       );
       Preconditions.checkArgument(
-        this.firstFrameId >= 0 && this.firstFrameId <= Mcv2Decoder.MAX_U32,
+        this.firstFrameId >= 0 && this.firstFrameId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT,
         "First frame id must be an unsigned 32-bit value!"
       );
       Preconditions.checkArgument(
-        this.maxFrameRate >= 0 && this.maxFrameRate <= MAX_FRAME_RATE,
+        this.maximumFrameRate >= 0 && this.maximumFrameRate <= MAXIMUM_FRAME_RATE,
         "Frame rate must be between 0 and %s inclusive!",
-        MAX_FRAME_RATE
+        MAXIMUM_FRAME_RATE
       );
       Preconditions.checkArgument(this.backlogLimit >= 0, "Backlog limit must not be negative!");
       Preconditions.checkArgument(this.unsentLimit >= 0, "Unsent limit must not be negative!");

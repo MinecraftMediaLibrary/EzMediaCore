@@ -151,7 +151,7 @@ public final class Mcv2FileEncoder {
         final long started = System.nanoTime();
         final byte[] frame = budget.run(() -> encoder.encode(pictureBytes, width, height, frameId));
         nanoseconds += System.nanoTime() - started;
-        keyframes += Preconditions.checkNotNull(encoder.getStats()).keyframe() ? 1 : 0;
+        keyframes += Preconditions.checkNotNull(encoder.getStatistics()).keyframe() ? 1 : 0;
         ByteBuffer.wrap(length).order(ByteOrder.LITTLE_ENDIAN).putInt(0, frame.length);
         output.write(length);
         output.write(frame);

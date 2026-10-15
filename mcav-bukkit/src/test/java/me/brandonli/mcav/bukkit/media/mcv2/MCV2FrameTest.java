@@ -80,14 +80,14 @@ final class MCV2FrameTest {
       assertArrayEquals(expected, reference);
       final long frameId = Mcv2Decoder.parse(data).getFrameId();
       assertEquals(index, frameId);
-      final int bytes = Objects.requireNonNull(encoder.getStats()).bytes();
+      final int bytes = Objects.requireNonNull(encoder.getStatistics()).bytes();
       assertEquals(data.length, bytes);
       final boolean expectedKeyframe = index == 0;
-      final boolean keyframe = encoder.getStats().keyframe();
+      final boolean keyframe = encoder.getStatistics().keyframe();
       assertEquals(expectedKeyframe, keyframe);
-      final boolean hasLeaves = encoder.getStats().leaves() > 0;
+      final boolean hasLeaves = encoder.getStatistics().leaves() > 0;
       assertTrue(hasLeaves);
-      final boolean timed = encoder.getStats().nanoseconds() > 0;
+      final boolean timed = encoder.getStatistics().nanoseconds() > 0;
       assertTrue(timed);
     }
     return encoder;
@@ -112,7 +112,7 @@ final class MCV2FrameTest {
 
   private static boolean keyframeAfter(final MCV2 encoder, final byte[] next, final int width, final int height) {
     encoder.encode(next, width, height, 1);
-    return encoder.getStats().keyframe();
+    return encoder.getStatistics().keyframe();
   }
 
   private static byte[] noise(final int width, final int height, final long seed) {
@@ -150,22 +150,22 @@ final class MCV2FrameTest {
     final MCV2 wrapping = encoder(Settings.DEFAULT);
     wrapping.encode(new byte[8 * 8 * 3], 8, 8, 0xFFFFFFFFL);
     wrapping.encode(new byte[8 * 8 * 3], 8, 8, 0);
-    final boolean keyframe = wrapping.getStats().keyframe();
+    final boolean keyframe = wrapping.getStatistics().keyframe();
     assertFalse(keyframe);
   }
 
   @Test
   void shouldStartWithAKeyframeAndPredictWhatFollows() throws Mcv2Exception {
     final MCV2 encoder = encoder(Settings.DEFAULT);
-    final MCV2.@Nullable Stats stats = encoder.getStats();
-    assertNull(stats);
+    final MCV2.@Nullable Statistics statistics = encoder.getStatistics();
+    assertNull(statistics);
     final byte @Nullable [] reference = encoder.getReference();
     assertNull(reference);
 
     final Client client = new Client();
     final byte[] picture = texture(64, 64, 1);
     final byte[] first = encoder.encode(picture, 64, 64, 10);
-    final MCV2.Stats key = encoder.getStats();
+    final MCV2.Statistics key = encoder.getStatistics();
     assertNotNull(key);
     final boolean keyframe = key.keyframe();
     assertTrue(keyframe);
@@ -178,7 +178,7 @@ final class MCV2FrameTest {
     assertArrayEquals(expectedFirst, firstReference);
 
     final byte[] second = encoder.encode(picture, 64, 64, 11);
-    final MCV2.Stats still = encoder.getStats();
+    final MCV2.Statistics still = encoder.getStatistics();
     final boolean stillKeyframe = still.keyframe();
     assertFalse(stillKeyframe);
     final boolean smaller = second.length < first.length;
@@ -200,11 +200,11 @@ final class MCV2FrameTest {
     for (int id = 0; id < 120; id++) {
       interval.encode(picture, 64, 32, id);
       final boolean expectedKeyframe = id == 0;
-      final boolean keyframe = interval.getStats().keyframe();
+      final boolean keyframe = interval.getStatistics().keyframe();
       assertEquals(expectedKeyframe, keyframe);
     }
     interval.encode(picture, 64, 32, 120);
-    final boolean keyframeAtInterval = interval.getStats().keyframe();
+    final boolean keyframeAtInterval = interval.getStatistics().keyframe();
     assertTrue(keyframeAtInterval);
 
     final MCV2 wider = encoder(Settings.DEFAULT);
@@ -271,11 +271,11 @@ final class MCV2FrameTest {
     final Settings settings = Settings.DEFAULT;
     // noise that changes from frame to frame but no movement keeps the profile's lambda, which is all a search without
     // the motion's lambda uses
-    final double steadyLambda = play(settings, 64, 64, 4, 0).getStats().lambda();
+    final double steadyLambda = play(settings, 64, 64, 4, 0).getStatistics().lambda();
     assertEquals(72, steadyLambda);
 
     final MCV2 pan = play(settings, 100, 70, 6, 9);
-    final boolean raised = pan.getStats().lambda() > 72;
+    final boolean raised = pan.getStatistics().lambda() > 72;
     assertTrue(raised);
   }
 
@@ -298,28 +298,28 @@ final class MCV2FrameTest {
     final byte[] expectedInverted = client.decode(encoder.encode(inverted, 64, 64, 1));
     final byte @Nullable [] invertedReference = encoder.getReference();
     assertArrayEquals(expectedInverted, invertedReference);
-    final boolean invertedKeyframe = encoder.getStats().keyframe();
+    final boolean invertedKeyframe = encoder.getStatistics().keyframe();
     assertFalse(invertedKeyframe);
 
     final byte[] resized = encoder.encode(scene(96, 32, 2, 0), 96, 32, 2);
     final byte[] expectedResized = client.decode(resized);
     final byte @Nullable [] resizedReference = encoder.getReference();
     assertArrayEquals(expectedResized, resizedReference);
-    final boolean resizedKeyframe = encoder.getStats().keyframe();
+    final boolean resizedKeyframe = encoder.getStatistics().keyframe();
     assertTrue(resizedKeyframe);
 
     final byte[] next = encoder.encode(scene(96, 32, 3, 0), 96, 32, 3);
     final byte[] expectedNext = client.decode(next);
     final byte @Nullable [] nextReference = encoder.getReference();
     assertArrayEquals(expectedNext, nextReference);
-    final boolean nextKeyframe = encoder.getStats().keyframe();
+    final boolean nextKeyframe = encoder.getStatistics().keyframe();
     assertFalse(nextKeyframe);
 
     final byte[] taller = encoder.encode(scene(96, 48, 4, 0), 96, 48, 4);
     final byte[] expectedTaller = client.decode(taller);
     final byte @Nullable [] tallerReference = encoder.getReference();
     assertArrayEquals(expectedTaller, tallerReference);
-    final boolean tallerKeyframe = encoder.getStats().keyframe();
+    final boolean tallerKeyframe = encoder.getStatistics().keyframe();
     assertTrue(tallerKeyframe);
   }
 
@@ -388,7 +388,7 @@ final class MCV2FrameTest {
       }
       final byte[] data = encoder.encode(scene(96, 64, frameNumber, 3), 96, 64, frameNumber);
       final boolean expectedKeyframe = frameNumber == 0;
-      final boolean keyframe = Objects.requireNonNull(encoder.getStats()).keyframe();
+      final boolean keyframe = Objects.requireNonNull(encoder.getStatistics()).keyframe();
       assertEquals(expectedKeyframe, keyframe, "frame " + frameNumber);
       final byte[] expected = client.decode(data);
       final byte @Nullable [] reference = encoder.getReference();
@@ -422,7 +422,7 @@ final class MCV2FrameTest {
         assertArrayEquals(expectedTrivial, actual, "bound " + bound);
       }
       final int expectedLambda = 72 << expected;
-      final double lambda = Objects.requireNonNull(bounded.getStats()).lambda();
+      final double lambda = Objects.requireNonNull(bounded.getStatistics()).lambda();
       assertEquals(expectedLambda, lambda);
 
       final Client client = new Client();

@@ -114,21 +114,21 @@ final class Mcv2PackTest {
     final String description = metadata.get("description").getAsString();
     assertEquals("mcav MCV2 decoder, 1 screen: 320x180", description);
 
-    final String config = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
-    final boolean declaresOneScreen = config.contains("const int MCV2_SCREENS = 1;");
-    assertTrue(declaresOneScreen, config);
-    final boolean declaresTwoSlots = config.contains("const int MCV2_TOTAL_SLOTS = 2;");
-    assertTrue(declaresTwoSlots, config);
-    final boolean declaresTheStream = config.contains("const uint MCV2_SCREEN_STREAMS[1] = uint[1](9u);");
-    assertTrue(declaresTheStream, config);
-    final boolean declaresTheScreenSlots = config.contains("const int MCV2_SCREEN_SLOTS[1] = int[1](2);");
-    assertTrue(declaresTheScreenSlots, config);
-    final boolean declaresTheFirstSlotOfEachScreen = config.contains("const int MCV2_SCREEN_FIRST_SLOTS[1] = int[1](0);");
-    assertTrue(declaresTheFirstSlotOfEachScreen, config);
-    final boolean showsTheDebugView = config.contains("const bool MCV2_DEBUG_VIEW = true;");
-    assertTrue(showsTheDebugView, config);
-    final boolean declaresTheOutlineColor = config.contains("const ivec3 MCV2_OUTLINE_COLOR = ivec3(255, 170, 0);");
-    assertTrue(declaresTheOutlineColor, config);
+    final String configurationShader = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
+    final boolean declaresOneScreen = configurationShader.contains("const int MCV2_SCREENS = 1;");
+    assertTrue(declaresOneScreen, configurationShader);
+    final boolean declaresTwoSlots = configurationShader.contains("const int MCV2_TOTAL_SLOTS = 2;");
+    assertTrue(declaresTwoSlots, configurationShader);
+    final boolean declaresTheStream = configurationShader.contains("const uint MCV2_SCREEN_STREAMS[1] = uint[1](9u);");
+    assertTrue(declaresTheStream, configurationShader);
+    final boolean declaresTheScreenSlots = configurationShader.contains("const int MCV2_SCREEN_SLOTS[1] = int[1](2);");
+    assertTrue(declaresTheScreenSlots, configurationShader);
+    final boolean declaresTheFirstSlotOfEachScreen = configurationShader.contains("const int MCV2_SCREEN_FIRST_SLOTS[1] = int[1](0);");
+    assertTrue(declaresTheFirstSlotOfEachScreen, configurationShader);
+    final boolean showsTheDebugView = configurationShader.contains("const bool MCV2_DEBUG_VIEW = true;");
+    assertTrue(showsTheDebugView, configurationShader);
+    final boolean declaresTheOutlineColor = configurationShader.contains("const ivec3 MCV2_OUTLINE_COLOR = ivec3(255, 170, 0);");
+    assertTrue(declaresTheOutlineColor, configurationShader);
 
     final String screen = entries.get("assets/mcav/shaders/include/mcv2_screen_0.glsl");
     final boolean declaresTheScreenIndex = screen.contains("const int MCV2_SCREEN_INDEX = 0;");
@@ -264,17 +264,17 @@ final class Mcv2PackTest {
     final int entryCount = entries.size();
     assertEquals(33, entryCount);
 
-    final String config = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
-    final boolean declaresTwoScreens = config.contains("const int MCV2_SCREENS = 2;");
-    assertTrue(declaresTwoScreens, config);
-    final boolean declaresTenSlots = config.contains("const int MCV2_TOTAL_SLOTS = 10;");
-    assertTrue(declaresTenSlots, config);
-    final boolean declaresTheStreams = config.contains("const uint MCV2_SCREEN_STREAMS[2] = uint[2](9u, 3u);");
-    assertTrue(declaresTheStreams, config);
-    final boolean declaresTheScreenSlots = config.contains("const int MCV2_SCREEN_SLOTS[2] = int[2](2, 8);");
-    assertTrue(declaresTheScreenSlots, config);
-    final boolean declaresTheFirstSlotOfEachScreen = config.contains("const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, 2);");
-    assertTrue(declaresTheFirstSlotOfEachScreen, config);
+    final String configurationShader = entries.get("assets/mcav/shaders/include/mcv2_config.glsl");
+    final boolean declaresTwoScreens = configurationShader.contains("const int MCV2_SCREENS = 2;");
+    assertTrue(declaresTwoScreens, configurationShader);
+    final boolean declaresTenSlots = configurationShader.contains("const int MCV2_TOTAL_SLOTS = 10;");
+    assertTrue(declaresTenSlots, configurationShader);
+    final boolean declaresTheStreams = configurationShader.contains("const uint MCV2_SCREEN_STREAMS[2] = uint[2](9u, 3u);");
+    assertTrue(declaresTheStreams, configurationShader);
+    final boolean declaresTheScreenSlots = configurationShader.contains("const int MCV2_SCREEN_SLOTS[2] = int[2](2, 8);");
+    assertTrue(declaresTheScreenSlots, configurationShader);
+    final boolean declaresTheFirstSlotOfEachScreen = configurationShader.contains("const int MCV2_SCREEN_FIRST_SLOTS[2] = int[2](0, 2);");
+    assertTrue(declaresTheFirstSlotOfEachScreen, configurationShader);
 
     final String second = entries.get("assets/mcav/shaders/include/mcv2_screen_1.glsl");
     final boolean declaresTheScreenIndex = second.contains("const int MCV2_SCREEN_INDEX = 1;");
@@ -321,7 +321,7 @@ final class Mcv2PackTest {
     final Mcv2Configuration sameStream = Mcv2ConfigurationTest.complete().streamId(1).build();
     final Mcv2Configuration otherColour = Mcv2ConfigurationTest.complete().streamId(2).outlineColor(NamedTextColor.GOLD).build();
     final List<Mcv2Configuration> tooMany = new ArrayList<>();
-    for (int stream = 0; stream <= Mcv2Pack.MAX_SCREENS; stream++) {
+    for (int stream = 0; stream <= Mcv2Pack.MAXIMUM_SCREENS; stream++) {
       tooMany.add(Mcv2ConfigurationTest.complete().streamId(stream).build());
     }
     assertThrows(IllegalArgumentException.class, () -> Mcv2Pack.write(List.of(), false, zip));

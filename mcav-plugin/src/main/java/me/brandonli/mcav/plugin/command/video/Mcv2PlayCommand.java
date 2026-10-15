@@ -390,7 +390,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
     }
     final int width = size.getFirst();
     final int height = size.getSecond();
-    if (width > Mcv2Decoder.MAX_DIMENSION || height > Mcv2Decoder.MAX_DIMENSION) {
+    if (width > Mcv2Decoder.MAXIMUM_DIMENSION || height > Mcv2Decoder.MAXIMUM_DIMENSION) {
       sender.sendMessage(Message.UNSUPPORTED_DIMENSION.build());
       return;
     }
@@ -682,7 +682,7 @@ public final class Mcv2PlayCommand implements AnnotationCommandFeature {
       }
       // a record no frame can be is refused before it is copied: records of a few bytes each would make the copies
       // take several times the file's size in memory
-      if (length < Mcv2Decoder.HEADER_BYTES || length > Mcv2Decoder.MAX_FRAME_BYTES) {
+      if (length < Mcv2Decoder.HEADER_BYTES || length > Mcv2Decoder.MAXIMUM_FRAME_BYTES) {
         throw new IOException("Invalid MCV2 frame length: " + length);
       }
       final byte[] frame = new byte[(int) length];

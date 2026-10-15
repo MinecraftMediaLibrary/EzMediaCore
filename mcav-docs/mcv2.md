@@ -1360,7 +1360,7 @@ burst of 5; a player without the mod sees MCV2 screens as before.
 - **The picture freezes and jumps every few seconds.** The client draws fewer frames a second than the video has, and a
   missed frame is repaired only by a keyframe the client draws while it is the newest frame, so the slower the client,
   the more keyframes it misses too: one that draws a frame every few seconds can show the same picture for minutes. A
-  faster client fixes it, and so does a lower frame rate for the screen (`maxFrameRate` in the API).
+  faster client fixes it, and so does a lower frame rate for the screen (`maximumFrameRate` in the API).
 - **The pack doesn't download.** Behind Velocity or BungeeCord, set `mcv2.pack.hosting` to `http` with a port the
   players can reach, or to `website`.
 - **The screen steps down.** Its encoder takes longer than the video gives a frame, and the message says by how much.
@@ -1493,7 +1493,7 @@ settings matter:
 | `settings(MCV2.Settings)` | `MCV2.Settings.DEFAULT` | The preset: `DEFAULT` or `FAST` ([presets](#presets)) |
 | `video(width, height)` | the wall's native size, 128 pixels per map | The resolution of the video, up to 4096 on a side; the pack scales it to the wall |
 | `pageSlots(n)` | 8, or one per map of a smaller wall | How many pages a frame may have (8 carry 98,048 bytes); the encoder keeps every frame inside them |
-| `maxFrameRate(fps)` | 30 | Sources that paint faster, such as a browser, are thinned to it: a client decodes at most one frame per frame it draws |
+| `maximumFrameRate(framesPerSecond)` | 30 | Sources that paint faster, such as a browser, are thinned to it: a client decodes at most one frame per frame it draws |
 | `backlogLimit(bytes)`, `unsentLimit(bytes)` | 128 KiB, 32 KiB | Per-viewer backpressure: a viewer whose connection falls behind skips to the next frame they can decode, without holding back the others ([pages on maps](#part-7-pages-on-maps)) |
 
 `setPacingListener` hears every step the screen's pacer takes when the encoder can't keep up (`FAST`, fewer frames a

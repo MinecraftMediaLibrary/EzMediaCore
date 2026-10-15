@@ -82,8 +82,8 @@ public final class LogCapture implements AutoCloseable {
    * @throws InterruptedException if the current thread is interrupted while waiting
    */
   public RecordedEvent awaitEvent(final Duration timeout) throws InterruptedException {
-    final long timeoutMillis = timeout.toMillis();
-    final RecordedEvent event = this.appender.arrivals.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+    final long timeoutMilliseconds = timeout.toMillis();
+    final RecordedEvent event = this.appender.arrivals.poll(timeoutMilliseconds, TimeUnit.MILLISECONDS);
     if (event == null) {
       final String message = "No event was logged before the %s timeout ran out!".formatted(timeout);
       throw new AssertionError(message);

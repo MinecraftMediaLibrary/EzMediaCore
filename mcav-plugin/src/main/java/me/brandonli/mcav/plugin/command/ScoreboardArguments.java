@@ -36,7 +36,7 @@ public final class ScoreboardArguments {
 
   /**
    * Checks that a resolution such as {@code 24x15} fits on a scoreboard, which shows at most
-   * {@value ScoreboardConfiguration#MAX_LINES} lines, and tells the sender when it does not. A resolution that
+   * {@value ScoreboardConfiguration#MAXIMUM_LINES} lines, and tells the sender when it does not. A resolution that
    * cannot be parsed passes this check, so the command reports it like any other invalid resolution.
    *
    * @param sender     who ran the command
@@ -53,7 +53,7 @@ public final class ScoreboardArguments {
       return true;
     }
     final int lines = dimensions.getSecond();
-    if (lines <= ScoreboardConfiguration.MAX_LINES) {
+    if (lines <= ScoreboardConfiguration.MAXIMUM_LINES) {
       return true;
     }
     final Component message = Message.SCOREBOARD_LINES.build();

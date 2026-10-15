@@ -43,7 +43,7 @@ import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 
 /**
  * {@code /mcav video scoreboard}: plays a video to the selected players. The height of the resolution is the
- * number of lines, at most {@value ScoreboardConfiguration#MAX_LINES}.
+ * number of lines, at most {@value ScoreboardConfiguration#MAXIMUM_LINES}.
  */
 public final class VideoScoreboardCommand extends AbstractVideoCommand {
 
@@ -65,7 +65,7 @@ public final class VideoScoreboardCommand extends AbstractVideoCommand {
    * time; a new video command replaces the current video, whatever its display.
    *
    * <p>Requires the permission {@code mcav.command.video.scoreboard}; players and the console can run it. A height
-   * above {@value ScoreboardConfiguration#MAX_LINES} lines is rejected first. The other arguments, the player, and
+   * above {@value ScoreboardConfiguration#MAXIMUM_LINES} lines is rejected first. The other arguments, the player, and
    * the audio output are checked next, and any problem is reported with an error message. The viewers are then told
    * that the video is loading, the media is resolved in the background, and the sender is told once it plays;
    * viewers get a link to the Discord channel or the audio web page when those outputs are chosen.
@@ -76,7 +76,7 @@ public final class VideoScoreboardCommand extends AbstractVideoCommand {
    * @param playerType      the video backend that decodes the media, see {@link PlayerArgument}
    * @param audioType       where the sound is played, see {@link AudioArgument}
    * @param videoResolution the size as {@code <width>x<height>}, in characters per line and lines, such as
-   *                        {@code 24x15}; the height is at most {@value ScoreboardConfiguration#MAX_LINES}
+   *                        {@code 24x15}; the height is at most {@value ScoreboardConfiguration#MAXIMUM_LINES}
    * @param character       the character every pixel is drawn with, in quotes; a full block {@code █} gives the
    *                        most solid picture
    * @param ytDlpOptions    extra options, in quotes; {@code ""} for none, or yt-dlp options such as

@@ -153,11 +153,11 @@ final class PageAssemblerTest {
     final byte @Nullable [] firstEviction = assembler.push(page(0));
     assertNull(firstEviction);
     final int pendingCountAfterFirstEviction = assembler.getPendingCount();
-    assertEquals(PageAssembler.MAX_PENDING, pendingCountAfterFirstEviction);
+    assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterFirstEviction);
     final byte @Nullable [] secondEviction = assembler.push(rewritten(page(1), 12, 1));
     assertNull(secondEviction);
     final int pendingCountAfterSecondEviction = assembler.getPendingCount();
-    assertEquals(PageAssembler.MAX_PENDING, pendingCountAfterSecondEviction);
+    assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterSecondEviction);
     // frame 0 survived the evictions and completes
     final byte @Nullable [] assembled = assembler.push(page(1));
     assertArrayEquals(BIG, assembled);

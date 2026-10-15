@@ -34,10 +34,10 @@ import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.GRID_WEIGHTS;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.GROUP_ROOTS;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.HEADER_BYTES;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAGIC;
-import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAX_DIMENSION;
-import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAX_FRAME_BYTES;
-import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAX_QUANTIZER;
-import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAX_U32;
+import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAXIMUM_DIMENSION;
+import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAXIMUM_FRAME_BYTES;
+import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAXIMUM_QUANTIZER;
+import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MAXIMUM_UNSIGNED_INT;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MODE_COMPACT;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MODE_MOTION;
 import static me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.MODE_PALETTE;
@@ -164,7 +164,7 @@ public final class MCV2 {
    * @param nanoseconds elapsed search and writing time
    * @param lambda      effective lambda, including motion adjustment and any size retries
    */
-  public record Stats(int bytes, boolean keyframe, int leaves, long nanoseconds, double lambda) {}
+  public record Statistics(int bytes, boolean keyframe, int leaves, long nanoseconds, double lambda) {}
 
   /**
    * A finished frame whose bytes and measurements are ready for transmission.
@@ -172,11 +172,11 @@ public final class MCV2 {
   public static final class Encoded {
 
     private final byte[] data;
-    private final Stats stats;
+    private final Statistics statistics;
 
-    private Encoded(final byte[] data, final Stats stats) {
+    private Encoded(final byte[] data, final Statistics statistics) {
       this.data = data;
-      this.stats = stats;
+      this.statistics = statistics;
     }
 
     /**
@@ -193,8 +193,8 @@ public final class MCV2 {
      *
      * @return the frame statistics
      */
-    public Stats getStats() {
-      return this.stats;
+    public Statistics getStatistics() {
+      return this.statistics;
     }
   }
 
@@ -267,7 +267,7 @@ public final class MCV2 {
   private static final int OUTSIDE_BITS = 56;
   private static final int GRID = 4;
   private static final int GRID_NODES = GRID * GRID;
-  private static final int MAX_RECORD = 134;
+  private static final int MAXIMUM_RECORD = 134;
   private static final int NO_VECTOR = 0x80008000;
   private static final int COARSEST_QUANTIZER = 2;
   private static final int PALETTE_COLORS = 2;
@@ -291,7 +291,7 @@ public final class MCV2 {
   private final ArrayDeque<BlockCoder[]> idleCoders = new ArrayDeque<>();
   private final List<BlockCoder[]> busyCoders = new ArrayList<>();
   private final MotionLambda motionLambda = new MotionLambda();
-  private volatile @Nullable Stats stats;
+  private volatile @Nullable Statistics statistics;
   private volatile boolean failed;
   private @Nullable Pending newer;
   private @Nullable Pending older;
@@ -370,8 +370,8 @@ public final class MCV2 {
    *
    * @return statistics, or null before the first finish
    */
-  public @Nullable Stats getStats() {
-    return this.stats;
+  public @Nullable Statistics getStatistics() {
+    return this.statistics;
   }
 
   /**
@@ -418,9 +418,12 @@ public final class MCV2 {
     Preconditions.checkState(!this.failed, STOPPED);
     Preconditions.checkState(this.older == null || this.older.finished, "Two frames are in flight already!");
     Preconditions.checkNotNull(sourcePixels, "Picture must not be null!");
-    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE);
+    Preconditions.checkArgument(
+      width >= 1 && width <= MAXIMUM_DIMENSION && height >= 1 && height <= MAXIMUM_DIMENSION,
+      INVALID_DIMENSIONS_MESSAGE
+    );
     Preconditions.checkArgument(sourcePixels.length == width * height * CHANNELS, "Picture size does not match the dimensions!");
-    Preconditions.checkArgument(frameId >= 0 && frameId <= MAX_U32, "Frame id must be an unsigned 32-bit value!");
+    Preconditions.checkArgument(frameId >= 0 && frameId <= MAXIMUM_UNSIGNED_INT, "Frame id must be an unsigned 32-bit value!");
     Preconditions.checkArgument(this.lastFrameId < 0 || follows(frameId, this.lastFrameId), "Stale or ambiguous frame number!");
     final long started = System.nanoTime();
     final byte[] previous = this.reference;
@@ -466,7 +469,7 @@ public final class MCV2 {
     );
     SearchResult searched = this.search(frame, before, started, false);
     byte[] data = write(width, height, keyframe, searched.roots, frameId, predictsId);
-    final int limit = this.frameLimit == 0 ? MAX_FRAME_BYTES : Math.min(this.frameLimit, MAX_FRAME_BYTES);
+    final int limit = this.frameLimit == 0 ? MAXIMUM_FRAME_BYTES : Math.min(this.frameLimit, MAXIMUM_FRAME_BYTES);
     for (int retry = 0; (data == null || data.length > limit) && lambda > 0 && retry < LIMIT_RETRIES; retry++) {
       lambda = Math.min(lambda * 2, Double.MAX_VALUE);
       frame.lambda = lambda;
@@ -528,14 +531,14 @@ public final class MCV2 {
       }
     }
     pending.finished = true;
-    final Stats result = new Stats(
+    final Statistics result = new Statistics(
       pending.data.length,
       pending.keyframe,
       pending.leaves,
       pending.nanoseconds + System.nanoTime() - started,
       pending.lambda
     );
-    this.stats = result;
+    this.statistics = result;
     return new Encoded(pending.data, result);
   }
 
@@ -571,7 +574,7 @@ public final class MCV2 {
 
     private static final double EXPONENT = 0.79;
 
-    private static final double MAX_RAISE = 4.0;
+    private static final double MAXIMUM_RAISE = 4.0;
 
     private static final double SMOOTHING = 1.0 / 16;
 
@@ -605,7 +608,7 @@ public final class MCV2 {
       if (!(motion > KNEE)) {
         return 1;
       }
-      return Math.min(MAX_RAISE, Math.pow(motion / KNEE, EXPONENT));
+      return Math.min(MAXIMUM_RAISE, Math.pow(motion / KNEE, EXPONENT));
     }
 
     private void observe(final byte[] sourcePixels, final int width, final int height, final Workers workers) {
@@ -1063,8 +1066,8 @@ public final class MCV2 {
     private final int[] reconstruction;
     private final int[] best;
     private final Kernels kernels;
-    private final byte[] record = new byte[MAX_RECORD];
-    private final byte[] palette = new byte[MAX_RECORD];
+    private final byte[] record = new byte[MAXIMUM_RECORD];
+    private final byte[] palette = new byte[MAXIMUM_RECORD];
     private final float[] fit = new float[GRID_NODES];
     private final int[] colors = new int[2 * CHANNELS];
     private final byte[] selectors;
@@ -1079,7 +1082,7 @@ public final class MCV2 {
     private int mode;
     private int quantizer;
     private int length;
-    private final byte[] bestRecord = new byte[MAX_RECORD];
+    private final byte[] bestRecord = new byte[MAXIMUM_RECORD];
     private double rate;
     private boolean skipped;
     private boolean hurried;
@@ -1914,7 +1917,7 @@ public final class MCV2 {
   // Critical downcalls pass the Java arrays to native code unchecked, so every size, span and offset is checked here.
   private static final class NativeKernels implements Kernels {
 
-    private static final int MAX_COORDINATE = 1 << 20;
+    private static final int MAXIMUM_COORDINATE = 1 << 20;
 
     private static final int SELECTORS_AT = PALETTE_COLORS * CHANNELS;
 
@@ -1989,12 +1992,15 @@ public final class MCV2 {
     }
 
     private static void checkPicture(final int length, final int width, final int height) {
-      Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, "Invalid picture size!");
+      Preconditions.checkArgument(
+        width >= 1 && width <= MAXIMUM_DIMENSION && height >= 1 && height <= MAXIMUM_DIMENSION,
+        "Invalid picture size!"
+      );
       checkLength(length, width * (long) height * CHANNELS);
     }
 
     private static void checkCoordinate(final int value) {
-      Preconditions.checkArgument(value >= -MAX_COORDINATE && value <= MAX_COORDINATE, "Coordinate out of range!");
+      Preconditions.checkArgument(value >= -MAXIMUM_COORDINATE && value <= MAXIMUM_COORDINATE, "Coordinate out of range!");
     }
 
     private void checkScored(final int size, final int[] output) {
@@ -2059,7 +2065,7 @@ public final class MCV2 {
 
     @Override
     public boolean compact(final int[] prediction, final byte[] record, final int quantizer, final int size, final int[] output) {
-      Preconditions.checkArgument(quantizer >= 0 && quantizer <= MAX_QUANTIZER, "Invalid quantizer!");
+      Preconditions.checkArgument(quantizer >= 0 && quantizer <= MAXIMUM_QUANTIZER, "Invalid quantizer!");
       this.checkScored(size, output);
       checkBlock(prediction.length, size);
       checkLength(record.length, COMPACT_BYTES);
@@ -2176,7 +2182,7 @@ public final class MCV2 {
       checkBlock(source.length, size);
       checkCoordinate(left);
       checkCoordinate(top);
-      Preconditions.checkArgument(range >= 0 && range <= MAX_COORDINATE, "Invalid range!");
+      Preconditions.checkArgument(range >= 0 && range <= MAXIMUM_COORDINATE, "Invalid range!");
       try {
         return (int) this.binding.seeded.invokeExact(
           of(reference),
@@ -2633,7 +2639,10 @@ public final class MCV2 {
     final long referenceId
   ) {
     Preconditions.checkNotNull(input, "Roots must not be null!");
-    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE);
+    Preconditions.checkArgument(
+      width >= 1 && width <= MAXIMUM_DIMENSION && height >= 1 && height <= MAXIMUM_DIMENSION,
+      INVALID_DIMENSIONS_MESSAGE
+    );
     final int columns = (width + ROOT_SIZE - 1) / ROOT_SIZE;
     Preconditions.checkArgument(input.size() == columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE), "Wrong root count!");
     for (final TreeNode root : input) {
@@ -2671,7 +2680,7 @@ public final class MCV2 {
     for (final TreeNode node : flat) {
       length += node.record.length;
     }
-    if (length > MAX_FRAME_BYTES) {
+    if (length > MAXIMUM_FRAME_BYTES) {
       return null;
     }
     final byte[] data = new byte[length];
@@ -2939,7 +2948,7 @@ public final class MCV2 {
     /**
      * Maximum worker count.
      */
-    public static final int MAX_THREADS = 256;
+    public static final int MAXIMUM_THREADS = 256;
 
     private static final long KEEP_ALIVE_SECONDS = 30;
 
@@ -2960,11 +2969,15 @@ public final class MCV2 {
     /**
      * Creates low-priority daemon workers that share one concurrency limit.
      *
-     * @param threads worker count, 1 through MAX_THREADS
+     * @param threads worker count, 1 through MAXIMUM_THREADS
      * @throws IllegalArgumentException if threads is outside that range
      */
     public Pool(final int threads) {
-      Preconditions.checkArgument(threads >= 1 && threads <= MAX_THREADS, "Threads must be between 1 and %s inclusive!", MAX_THREADS);
+      Preconditions.checkArgument(
+        threads >= 1 && threads <= MAXIMUM_THREADS,
+        "Threads must be between 1 and %s inclusive!",
+        MAXIMUM_THREADS
+      );
       this.threads = threads;
       final AtomicInteger created = new AtomicInteger();
       final ForkJoinPool.ForkJoinWorkerThreadFactory factory = forkJoinPool -> {
@@ -2990,7 +3003,7 @@ public final class MCV2 {
     }
 
     static int defaultThreads(final int processors) {
-      return Math.min(MAX_THREADS, Math.max(1, processors / 2));
+      return Math.min(MAXIMUM_THREADS, Math.max(1, processors / 2));
     }
 
     /**
@@ -3013,10 +3026,14 @@ public final class MCV2 {
      * Sets the worker count for the next shared pool, leaving existing encoders on their pool.
      *
      * @param threads worker count, or zero to use the processor-based default
-     * @throws IllegalArgumentException if threads is negative or exceeds MAX_THREADS
+     * @throws IllegalArgumentException if threads is negative or exceeds MAXIMUM_THREADS
      */
     public static synchronized void setSharedThreads(final int threads) {
-      Preconditions.checkArgument(threads >= 0 && threads <= MAX_THREADS, "Threads must be between 0 and %s inclusive!", MAX_THREADS);
+      Preconditions.checkArgument(
+        threads >= 0 && threads <= MAXIMUM_THREADS,
+        "Threads must be between 0 and %s inclusive!",
+        MAXIMUM_THREADS
+      );
       if (threads != sharedThreads) {
         sharedThreads = threads;
         shared = null;

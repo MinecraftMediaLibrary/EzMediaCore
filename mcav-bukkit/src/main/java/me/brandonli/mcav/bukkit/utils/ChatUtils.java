@@ -39,9 +39,9 @@ public final class ChatUtils {
 
   private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
   private static final char COLOR_CHAR = '§';
-  private static final char HEX_COLOR_MARKER = 'x';
+  private static final char HEXADECIMAL_COLOR_MARKER = 'x';
   private static final int RGB_MASK = 0xFFFFFF;
-  private static final int HEX_COLOR_LENGTH = 14;
+  private static final int HEXADECIMAL_COLOR_LENGTH = 14;
   private static final int CHAT_HISTORY_LINES = 100;
   private static final String CLEAR_CHAT_MESSAGE = "\n".repeat(CHAT_HISTORY_LINES - 1);
 
@@ -59,8 +59,8 @@ public final class ChatUtils {
    */
   public static String getUniqueString(final int index) {
     Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
-    final String hex = Integer.toHexString(index);
-    final char[] digits = hex.toCharArray();
+    final String hexadecimal = Integer.toHexString(index);
+    final char[] digits = hexadecimal.toCharArray();
     final StringBuilder entry = new StringBuilder(digits.length * 2);
     for (final char digit : digits) {
       entry.append(COLOR_CHAR);
@@ -89,7 +89,7 @@ public final class ChatUtils {
     Preconditions.checkArgument(width > 0, "Width must be positive!");
     Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image!");
     final int characterLength = character.length();
-    final int capacity = width * (HEX_COLOR_LENGTH + characterLength);
+    final int capacity = width * (HEXADECIMAL_COLOR_LENGTH + characterLength);
     final StringBuilder builder = new StringBuilder(capacity);
     appendRow(builder, data, character, width, row);
     return builder.toString();
@@ -115,7 +115,7 @@ public final class ChatUtils {
     Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty!");
     Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data!");
     final int characterLength = character.length();
-    final int capacity = width * height * (HEX_COLOR_LENGTH + characterLength) + height;
+    final int capacity = width * height * (HEXADECIMAL_COLOR_LENGTH + characterLength) + height;
     final StringBuilder builder = new StringBuilder(capacity);
     for (int row = 0; row < height; row++) {
       if (row > 0) {
@@ -134,16 +134,16 @@ public final class ChatUtils {
     for (int column = 0; column < width; column++) {
       final int color = data[offset + column] & RGB_MASK;
       if (color != previousColor) {
-        appendHexColor(builder, color);
+        appendHexadecimalColor(builder, color);
         previousColor = color;
       }
       builder.append(character);
     }
   }
 
-  private static void appendHexColor(final StringBuilder builder, final int color) {
+  private static void appendHexadecimalColor(final StringBuilder builder, final int color) {
     builder.append(COLOR_CHAR);
-    builder.append(HEX_COLOR_MARKER);
+    builder.append(HEXADECIMAL_COLOR_MARKER);
     for (int shift = 20; shift >= 0; shift -= 4) {
       final int nibble = (color >> shift) & 0xF;
       final char digit = HEX_DIGITS[nibble];

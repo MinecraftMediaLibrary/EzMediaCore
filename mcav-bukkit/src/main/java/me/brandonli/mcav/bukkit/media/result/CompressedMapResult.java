@@ -85,7 +85,7 @@ public class CompressedMapResult implements DitherResultStep {
   private static final String DITHERING_THREAD_FAILED = "Map dithering thread {} failed with an uncaught exception.";
 
   private final MapConfiguration configuration;
-  private final int maxBytesPerFrame;
+  private final int maximumBytesPerFrame;
   private final Map<UUID, Object> activeViewers;
   private final Map<Integer, BitSet> sentPixels;
   private final Lock lock;
@@ -96,30 +96,30 @@ public class CompressedMapResult implements DitherResultStep {
 
   /**
    * Constructs a new {@code CompressedMapResult} with an ordinary-update budget of
-   * {@link DeltaMapEncoder#DEFAULT_MAX_BYTES_PER_FRAME} bytes per frame.
+   * {@link DeltaMapEncoder#DEFAULT_MAXIMUM_BYTES_PER_FRAME} bytes per frame.
    *
    * @param configuration the configuration describing the map grid and the viewers
    * @throws NullPointerException if the configuration is null
    */
   public CompressedMapResult(final MapConfiguration configuration) {
-    this(configuration, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    this(configuration, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
   }
 
   /**
    * Constructs a new {@code CompressedMapResult}.
    *
-   * @param configuration    the configuration describing the map grid and the viewers
-   * @param maxBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead. The most
-   *                         urgent map is always sent even if it exceeds the budget. Resize cleanup and new-viewer
-   *                         snapshots are additional. Lower values spread motion and scene cuts over more frames
+   * @param configuration        the configuration describing the map grid and the viewers
+   * @param maximumBytesPerFrame the budget for ordinary delta updates, including estimated patch overhead. The most
+   *                             urgent map is always sent even if it exceeds the budget. Resize cleanup and new-viewer
+   *                             snapshots are additional. Lower values spread motion and scene cuts over more frames
    * @throws IllegalArgumentException if the budget is not positive
    * @throws NullPointerException     if {@code configuration} is null
    */
-  public CompressedMapResult(final MapConfiguration configuration, final int maxBytesPerFrame) {
+  public CompressedMapResult(final MapConfiguration configuration, final int maximumBytesPerFrame) {
     Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive!");
+    Preconditions.checkArgument(maximumBytesPerFrame > 0, "Byte budget must be positive!");
     this.configuration = configuration;
-    this.maxBytesPerFrame = maxBytesPerFrame;
+    this.maximumBytesPerFrame = maximumBytesPerFrame;
     this.activeViewers = new HashMap<>();
     this.sentPixels = new TreeMap<>();
     this.lock = new ReentrantLock();
@@ -301,7 +301,7 @@ public class CompressedMapResult implements DitherResultStep {
       }
     }
     final MapLayout layout = new MapLayout(startMapId, columns, rows, width, height);
-    final DeltaMapEncoder createdEncoder = new DeltaMapEncoder(layout, this.maxBytesPerFrame);
+    final DeltaMapEncoder createdEncoder = new DeltaMapEncoder(layout, this.maximumBytesPerFrame);
     this.encoder = createdEncoder;
     this.activeViewers.clear();
     return createdEncoder;

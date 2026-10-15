@@ -43,23 +43,23 @@ import net.jqwik.api.arbitraries.ListArbitrary;
  * budget of a frame wait for later frames, and tiles with only a few changed pixels are held back for a few frames.
  * Both only delay: once the picture stops changing, the clients must end up showing exactly the last frame. The number
  * of frames that takes is bounded, because every frame that sends anything brings at least one tile up to date and at
- * most {@value #MAX_QUIET_FRAMES} frames in a row can send nothing while a tile is still out of date.
+ * most {@value #MAXIMUM_QUIET_FRAMES} frames in a row can send nothing while a tile is still out of date.
  */
 final class DeltaMapEncoderPropertyTest {
 
   private static final String SEED = "20260925";
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
   private static final int TILES_PER_MAP = 64;
-  private static final int MAX_QUIET_FRAMES = 7;
+  private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
 
   /**
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
@@ -140,10 +140,10 @@ final class DeltaMapEncoderPropertyTest {
 
     final byte[] lastFrame = frames.getLast();
     final int coveredMaps = clients.countCoveredMaps();
-    final int frameLimit = MAX_QUIET_FRAMES * (coveredMaps * (TILES_PER_MAP + 1)) + MAX_QUIET_FRAMES;
+    final int frameLimit = MAXIMUM_QUIET_FRAMES * (coveredMaps * (TILES_PER_MAP + 1)) + MAXIMUM_QUIET_FRAMES;
     int quietFrames = 0;
     int extraFrames = 0;
-    while (quietFrames < MAX_QUIET_FRAMES) {
+    while (quietFrames < MAXIMUM_QUIET_FRAMES) {
       final boolean withinLimit = extraFrames < frameLimit;
       assertTrue(withinLimit, () -> "the clients did not catch up within " + frameLimit + " frames");
       final List<MapTilePatch> patches = encoder.encode(lastFrame);

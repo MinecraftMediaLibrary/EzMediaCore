@@ -39,7 +39,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public final class PageAssembler {
 
   /** Frames that may be pending at once. */
-  public static final int MAX_PENDING = 4;
+  public static final int MAXIMUM_PENDING = 4;
 
   private final long streamId;
 
@@ -76,7 +76,7 @@ public final class PageAssembler {
       throw new Mcv2Exception("Wrong stream!");
     }
     final long frameId = page.getFrameId();
-    if (!this.pending.containsKey(frameId) && this.pending.size() >= MAX_PENDING) {
+    if (!this.pending.containsKey(frameId) && this.pending.size() >= MAXIMUM_PENDING) {
       final Iterator<Long> oldest = this.pending.keySet().iterator();
       oldest.next();
       oldest.remove();

@@ -57,7 +57,7 @@ public class EncodeSnapshotRace {
    */
   public EncodeSnapshotRace() {
     final MapLayout layout = new MapLayout(0, 1, 1, SIDE, SIDE);
-    this.encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    this.encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
     final byte[] oldFrame = new byte[SIDE * SIDE];
     Arrays.fill(oldFrame, OLD_COLOR);
     this.encoder.encode(oldFrame);

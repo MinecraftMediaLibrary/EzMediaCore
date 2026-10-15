@@ -889,12 +889,12 @@ final class Mcv2PlayCommandTest {
     assertEquals("Invalid MCV2 frame length: 1", assertThrows(IOException.class, () -> Mcv2PlayCommand.read(tiny)).getMessage());
     final Path empties = Files.write(this.folder.resolve("i.mcs"), concat(shortest, new byte[] { 0, 0, 0, 0 }));
     assertEquals("Invalid MCV2 frame length: 0", assertThrows(IOException.class, () -> Mcv2PlayCommand.read(empties)).getMessage());
-    final Path huge = Files.write(this.folder.resolve("j.mcs"), record(Mcv2Decoder.MAX_FRAME_BYTES + 1));
+    final Path huge = Files.write(this.folder.resolve("j.mcs"), record(Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1));
     assertEquals(
-      "Invalid MCV2 frame length: " + (Mcv2Decoder.MAX_FRAME_BYTES + 1),
+      "Invalid MCV2 frame length: " + (Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1),
       assertThrows(IOException.class, () -> Mcv2PlayCommand.read(huge)).getMessage()
     );
-    final byte[] longest = record(Mcv2Decoder.MAX_FRAME_BYTES);
+    final byte[] longest = record(Mcv2Decoder.MAXIMUM_FRAME_BYTES);
     assertEquals(1, Mcv2PlayCommand.read(Files.write(this.folder.resolve("k.mcs"), longest)).size());
     // every byte of the length counts, little-endian: 16 bytes follow, fewer than any of these lengths
     for (int high = 1; high < 4; high++) {

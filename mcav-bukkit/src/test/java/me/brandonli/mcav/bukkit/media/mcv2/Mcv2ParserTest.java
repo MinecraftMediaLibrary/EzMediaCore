@@ -129,7 +129,7 @@ final class Mcv2ParserTest {
     final String truncatedMessage = message(Arrays.copyOf(frame, 19));
     assertEquals("Invalid frame length!", truncatedMessage);
 
-    final byte[] huge = new byte[Mcv2Decoder.MAX_FRAME_BYTES + 1];
+    final byte[] huge = new byte[Mcv2Decoder.MAXIMUM_FRAME_BYTES + 1];
     System.arraycopy(frame, 0, huge, 0, 4);
     final String hugeMessage = message(huge);
     assertEquals("Invalid frame length!", hugeMessage);
@@ -145,7 +145,7 @@ final class Mcv2ParserTest {
     // the shortest and the longest frames pass the length check and reach the header's
     final String shortestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
     assertEquals("Not an MCV2 version 3 frame!", shortestMessage);
-    final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAX_FRAME_BYTES));
+    final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
     assertEquals("Not an MCV2 version 3 frame!", longestMessage);
   }
 

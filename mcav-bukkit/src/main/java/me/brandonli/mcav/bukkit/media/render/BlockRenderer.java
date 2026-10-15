@@ -125,7 +125,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
 
     final int[] sourcePixels = image.getPixels();
     final int[] pixels = sourcePixels.clone();
-    final FilterLiteDither dither = BlockPaletteLookup.getDitheringImpl();
+    final FilterLiteDither dither = BlockPaletteLookup.getDither();
     dither.dither(pixels, width);
 
     final BlockData[] blocks = new BlockData[pixels.length];

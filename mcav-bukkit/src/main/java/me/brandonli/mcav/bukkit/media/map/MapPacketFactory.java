@@ -46,7 +46,7 @@ public final class MapPacketFactory {
   private static final String VIEWERS_NULL_MESSAGE = "Viewers must not be null!";
   private static final String PATCHES_NULL_MESSAGE = "Patches must not be null!";
 
-  private static final int MAX_PACKETS_PER_BUNDLE = BundlerInfo.BUNDLE_SIZE_LIMIT;
+  private static final int MAXIMUM_PACKETS_PER_BUNDLE = BundlerInfo.BUNDLE_SIZE_LIMIT;
 
   private static final byte DEFAULT_SCALE = 0;
 
@@ -111,8 +111,8 @@ public final class MapPacketFactory {
   public static List<Bundle> bundles(final List<MapTilePatch> patches) {
     Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
     final List<Bundle> bundles = new ArrayList<>();
-    for (int from = 0; from < patches.size(); from += MAX_PACKETS_PER_BUNDLE) {
-      final int to = Math.min(from + MAX_PACKETS_PER_BUNDLE, patches.size());
+    for (int from = 0; from < patches.size(); from += MAXIMUM_PACKETS_PER_BUNDLE) {
+      final int to = Math.min(from + MAXIMUM_PACKETS_PER_BUNDLE, patches.size());
       final List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(to - from);
       long bytes = 0;
       for (final MapTilePatch patch : patches.subList(from, to)) {

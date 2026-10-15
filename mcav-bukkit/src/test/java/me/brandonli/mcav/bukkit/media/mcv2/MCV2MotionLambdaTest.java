@@ -126,7 +126,7 @@ final class MCV2MotionLambdaTest {
     final double slowerCaptureLambda = BASE * MotionLambda.raise(12.333);
     assertEquals(157, slowerCaptureLambda, 2);
     final double raisedFarAbove = MotionLambda.raise(1000);
-    assertEquals(MotionLambda.MAX_RAISE, raisedFarAbove);
+    assertEquals(MotionLambda.MAXIMUM_RAISE, raisedFarAbove);
   }
 
   @Test

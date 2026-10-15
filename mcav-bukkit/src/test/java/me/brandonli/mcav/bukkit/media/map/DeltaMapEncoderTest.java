@@ -103,13 +103,13 @@ final class DeltaMapEncoderTest {
     final MapLayout encoderLayout = encoder.getLayout();
 
     assertSame(layout, encoderLayout);
-    assertEquals(128 * 1024, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    assertEquals(128 * 1024, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
   }
 
   @Test
   void shouldSendEveryCoveredMapCompletelyInTheFirstFrame() {
     final MapLayout layout = new MapLayout(10, 2, 1, 256, 128);
-    final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
+    final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAXIMUM_BYTES_PER_FRAME);
     final byte[] image = MapLayoutTest.createImage(256, 128);
     final List<MapTilePatch> patches = encoder.encode(image);
     final MapTilePatch left = patches.get(0);

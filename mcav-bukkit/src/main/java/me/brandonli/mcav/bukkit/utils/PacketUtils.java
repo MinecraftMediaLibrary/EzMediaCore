@@ -76,7 +76,7 @@ public final class PacketUtils {
    *
    * @throws IllegalStateException if no plugin has been injected
    */
-  public static synchronized void init() {
+  public static synchronized void initialize() {
     final Map<UUID, CachedConnection> previous = Map.copyOf(PLAYER_CONNECTIONS);
     shutdown();
 

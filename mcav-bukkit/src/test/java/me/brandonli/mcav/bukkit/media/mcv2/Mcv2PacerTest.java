@@ -67,14 +67,14 @@ final class Mcv2PacerTest {
 
     private long now;
 
-    Driver(final Mcv2Pacer pacer, final double fps, final long start) {
+    Driver(final Mcv2Pacer pacer, final double framesPerSecond, final long start) {
       this.pacer = pacer;
-      this.interval = Math.round(SECOND / fps);
+      this.interval = Math.round(SECOND / framesPerSecond);
       this.now = start;
     }
 
-    /** Plays the video for a while; every frame the pacer encodes takes {@code fullMs} scaled to its size and preset. */
-    Mcv2Pacer.@Nullable Change play(final double seconds, final double fullMs) {
+    /** Plays the video for a while; every frame the pacer encodes takes {@code fullMilliseconds} scaled to its size and preset. */
+    Mcv2Pacer.@Nullable Change play(final double seconds, final double fullMilliseconds) {
       Mcv2Pacer.Change last = null;
       final long end = this.now + (long) (seconds * SECOND);
       while (this.now < end) {
@@ -86,7 +86,7 @@ final class Mcv2PacerTest {
         }
         if (this.pacer.isEncoded()) {
           final Mcv2Pacer.Rung rung = this.pacer.getRung();
-          final double milliseconds = (fullMs * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
+          final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
           final Mcv2Pacer.Change change = this.pacer.encoded(milliseconds, false, this.now);
           if (change != null) {
             this.changes.add(change);
@@ -156,7 +156,7 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung expectedRung = ladder.getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
-    final boolean frameRateUnknown = Double.isNaN(pacer.getVideoFps());
+    final boolean frameRateUnknown = Double.isNaN(pacer.getVideoFramesPerSecond());
     assertTrue(frameRateUnknown);
     assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of()));
     assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of(new int[] { 1 })));
@@ -209,7 +209,7 @@ final class Mcv2PacerTest {
   void shouldDescribeRungsAndRates() {
     final boolean dithered = Mcv2Pacer.Rung.DITHERED.isDithered();
     assertTrue(dithered);
-    final double ditheredFrameRate = Mcv2Pacer.Rung.DITHERED.fps(60);
+    final double ditheredFrameRate = Mcv2Pacer.Rung.DITHERED.framesPerSecond(60);
     assertEquals(0, ditheredFrameRate);
     final String ditheredDescription = Mcv2Pacer.Rung.DITHERED.describe(60);
     assertEquals("the dithered maps", ditheredDescription);
@@ -217,7 +217,7 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung rung = new Mcv2Pacer.Rung(1280, 720, 4);
     final boolean rungDithered = rung.isDithered();
     assertFalse(rungDithered);
-    final double frameRate = rung.fps(30);
+    final double frameRate = rung.framesPerSecond(30);
     assertEquals(7.5, frameRate);
     final String descriptionAtThirty = rung.describe(30);
     assertEquals("1280x720 at 7.5 fps", descriptionAtThirty);
@@ -246,7 +246,7 @@ final class Mcv2PacerTest {
     final Driver driver = new Driver(pacer, 60, -5 * SECOND);
     final Mcv2Pacer.@Nullable Change change = driver.play(3, 5);
     assertNull(change);
-    final double videoFrameRate = pacer.getVideoFps();
+    final double videoFrameRate = pacer.getVideoFramesPerSecond();
     assertEquals(60, videoFrameRate, 0.1);
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
@@ -254,7 +254,7 @@ final class Mcv2PacerTest {
 
     // two frames at the same time do not change the measured rate
     pacer.arrive(driver.now);
-    final double frameRateAfterSameTime = pacer.getVideoFps();
+    final double frameRateAfterSameTime = pacer.getVideoFramesPerSecond();
     assertEquals(60, frameRateAfterSameTime, 0.1);
     final Mcv2Pacer.@Nullable Change instantChange = pacer.encoded(0, false, 0);
     assertNull(instantChange);
@@ -610,7 +610,7 @@ final class Mcv2PacerTest {
     // the dithering slows the video down to a frame a second; the pacer keeps the video's own rate
     final Driver slow = new Driver(pacer, 1, driver.now);
     slow.play(10, 2000);
-    final double videoFrameRate = pacer.getVideoFps();
+    final double videoFrameRate = pacer.getVideoFramesPerSecond();
     assertEquals(60, videoFrameRate, 0.5);
   }
 
@@ -642,13 +642,13 @@ final class Mcv2PacerTest {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     pacer.arrive(0);
     pacer.arrive(10_000_000);
-    final double firstFrameRate = pacer.getVideoFps();
+    final double firstFrameRate = pacer.getVideoFramesPerSecond();
     assertEquals(100, firstFrameRate, 1e-9);
 
     // a 20 ms interval moves the measure a fifth of the way from 10 ms: to 12 ms
     pacer.arrive(30_000_000);
     final double expectedFrameRate = 1e9 / 12e6;
-    final double smoothedFrameRate = pacer.getVideoFps();
+    final double smoothedFrameRate = pacer.getVideoFramesPerSecond();
     assertEquals(expectedFrameRate, smoothedFrameRate, 1e-9);
   }
 

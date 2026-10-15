@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Tag;
  * Fuzzes the page assembler with a two-page keyframe and five real stream frames (a keyframe and four P frames),
  * reordered, repeated, corrupted, truncated or from another stream. The first input byte is reserved; after it, every four bytes are one step: what to do, which frame,
  * which of its pages, and an argument. A model of the assembler (frames pending by id, the oldest evicted beyond
- * {@link PageAssembler#MAX_PENDING}) says what every step must return: a changed, short or foreign page is always
+ * {@link PageAssembler#MAXIMUM_PENDING}) says what every step must return: a changed, short or foreign page is always
  * rejected and changes nothing, and an intact page returns its frame, byte for byte, exactly when it completes it.
  */
 @Tag("fuzz")
@@ -98,7 +98,7 @@ final class PageAssemblerFuzzTest {
       switch (action % 4) {
         case 0 -> {
           final long id = index;
-          if (!pending.containsKey(id) && pending.size() >= PageAssembler.MAX_PENDING) {
+          if (!pending.containsKey(id) && pending.size() >= PageAssembler.MAXIMUM_PENDING) {
             final Iterator<Long> oldest = pending.keySet().iterator();
             oldest.next();
             oldest.remove();

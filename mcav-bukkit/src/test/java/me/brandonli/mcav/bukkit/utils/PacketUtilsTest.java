@@ -137,7 +137,7 @@ final class PacketUtilsTest {
     final @Nullable Object rejoined = PacketUtils.connectionIdentity(FIRST);
     assertSame(original, rejoined, "a repeated event cannot invalidate a live baseline");
 
-    PacketUtils.init();
+    PacketUtils.initialize();
     final @Nullable Object refreshed = PacketUtils.connectionIdentity(FIRST);
     assertSame(original, refreshed, "refreshing the cache keeps a live connection's identity");
 
@@ -265,13 +265,13 @@ final class PacketUtilsTest {
     assertFalse(embeddedLimited);
 
     final Channel epoll = mock(Channel.class);
-    final ChannelConfig config = mock(ChannelConfig.class);
-    when(epoll.config()).thenReturn(config);
-    when(config.setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L)).thenReturn(true);
+    final ChannelConfig channelConfiguration = mock(ChannelConfig.class);
+    when(epoll.config()).thenReturn(channelConfiguration);
+    when(channelConfiguration.setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L)).thenReturn(true);
     connection.channel = epoll;
     final boolean epollLimited = PacketUtils.limitUnsent(FIRST, 1024);
     assertTrue(epollLimited);
-    verify(config).setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L);
+    verify(channelConfiguration).setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, 1024L);
     assertThrows(NullPointerException.class, () -> PacketUtils.limitUnsent(null, 1));
     assertThrows(IllegalArgumentException.class, () -> PacketUtils.limitUnsent(FIRST, 0));
   }
@@ -324,7 +324,7 @@ final class PacketUtilsTest {
     this.server.injectModule();
     final Listener firstListener = this.captureListener(1);
     try (final MockedStatic<HandlerList> handlerLists = Mockito.mockStatic(HandlerList.class)) {
-      PacketUtils.init();
+      PacketUtils.initialize();
       handlerLists.verify(() -> HandlerList.unregisterAll(firstListener));
     }
     final Listener secondListener = this.captureListener(2);
@@ -348,7 +348,7 @@ final class PacketUtilsTest {
 
   @Test
   void shouldNeedAnInjectedPlugin() {
-    assertThrows(IllegalStateException.class, PacketUtils::init);
+    assertThrows(IllegalStateException.class, PacketUtils::initialize);
   }
 
   @Test

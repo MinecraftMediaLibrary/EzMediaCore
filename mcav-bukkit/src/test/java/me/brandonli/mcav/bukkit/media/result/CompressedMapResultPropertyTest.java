@@ -66,7 +66,7 @@ final class CompressedMapResultPropertyTest {
   private static final UUID SECOND = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final int START_MAP_ID = 3;
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
-  private static final int MAX_QUIET_FRAMES = 7;
+  private static final int MAXIMUM_QUIET_FRAMES = 7;
   private static final short NEVER_SENT = -1;
 
   private FakeServer server;
@@ -87,9 +87,9 @@ final class CompressedMapResultPropertyTest {
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
@@ -150,8 +150,8 @@ final class CompressedMapResultPropertyTest {
 
     int quietFrames = 0;
     int extraFrames = 0;
-    final int frameLimit = MAX_QUIET_FRAMES * (scenario.getMapCount() * 65) + MAX_QUIET_FRAMES;
-    while (quietFrames < MAX_QUIET_FRAMES) {
+    final int frameLimit = MAXIMUM_QUIET_FRAMES * (scenario.getMapCount() * 65) + MAXIMUM_QUIET_FRAMES;
+    while (quietFrames < MAXIMUM_QUIET_FRAMES) {
       final boolean withinLimit = extraFrames < frameLimit;
       assertTrue(withinLimit, "the viewers did not catch up");
       frames.process(result, scenario, lastFrame);
@@ -174,7 +174,7 @@ final class CompressedMapResultPropertyTest {
       return;
     }
     this.server.addPlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     models.connect(SECOND);
   }
 
@@ -184,7 +184,7 @@ final class CompressedMapResultPropertyTest {
       return;
     }
     this.server.removePlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     models.disconnect(SECOND);
   }
 

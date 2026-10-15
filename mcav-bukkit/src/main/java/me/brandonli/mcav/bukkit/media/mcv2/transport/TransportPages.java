@@ -105,7 +105,7 @@ public final class TransportPages {
   /**
    * The number of pages a frame of some length needs.
    *
-   * @param frameBytes the nonnegative frame length in bytes, within {@link Mcv2Decoder#MAX_FRAME_BYTES};
+   * @param frameBytes the nonnegative frame length in bytes, within {@link Mcv2Decoder#MAXIMUM_FRAME_BYTES};
    *                   this helper does not validate the length
    * @return the page count
    */
@@ -191,7 +191,7 @@ public final class TransportPages {
    */
   public static List<byte[]> makePages(final byte[] frame, final long streamId) throws Mcv2Exception {
     Preconditions.checkNotNull(frame, FRAME_NULL_MESSAGE);
-    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAX_U32, STREAM_ID_RANGE_MESSAGE);
+    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, STREAM_ID_RANGE_MESSAGE);
     return makePages(Mcv2Decoder.parse(frame), streamId);
   }
 
@@ -206,7 +206,7 @@ public final class TransportPages {
    */
   public static List<byte[]> makePages(final Frame parsed, final long streamId) {
     Preconditions.checkNotNull(parsed, FRAME_NULL_MESSAGE);
-    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAX_U32, STREAM_ID_RANGE_MESSAGE);
+    Preconditions.checkArgument(streamId >= 0 && streamId <= Mcv2Decoder.MAXIMUM_UNSIGNED_INT, STREAM_ID_RANGE_MESSAGE);
     final byte[] frame = parsed.getData();
     final int capacity = capacity();
     final int count = pageCount(frame.length);
@@ -289,7 +289,7 @@ public final class TransportPages {
     final int count = Mcv2Decoder.u16(header, COUNT_OFFSET);
     if (
       total < Mcv2Decoder.HEADER_BYTES ||
-      total > Mcv2Decoder.MAX_FRAME_BYTES ||
+      total > Mcv2Decoder.MAXIMUM_FRAME_BYTES ||
       count != (total + capacity - 1) / capacity ||
       number >= count
     ) {

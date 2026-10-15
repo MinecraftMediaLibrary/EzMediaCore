@@ -53,7 +53,7 @@ final class ResourcePackHttpHandlerFuzzTest {
   private static final String REQUEST_PATH = "/pack/0123456789abcdef.zip";
   private static final byte[] GET_PREFIX = ("GET " + REQUEST_PATH + " ").getBytes(StandardCharsets.US_ASCII);
   private static final byte[] HEAD_PREFIX = ("HEAD " + REQUEST_PATH + " ").getBytes(StandardCharsets.US_ASCII);
-  private static final int MAX_SPLITS = 8;
+  private static final int MAXIMUM_SPLITS = 8;
   private static final Path PACK_FILE = writePack();
 
   private static Path writePack() {
@@ -173,7 +173,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     if (input.length == 0) {
       return List.of();
     }
-    final int splits = Math.min((input[0] & 0xFF) % (MAX_SPLITS + 1), input.length - 1);
+    final int splits = Math.min((input[0] & 0xFF) % (MAXIMUM_SPLITS + 1), input.length - 1);
     final int start = 1 + splits;
     final byte[] stream = Arrays.copyOfRange(input, start, input.length);
     final int[] cuts = new int[splits];

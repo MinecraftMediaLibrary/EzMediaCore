@@ -111,15 +111,15 @@ final class Mcv2PlaybackTest {
   @Test
   void numbersItsFramesFromTheFirstFrameIdOfItsSlotAcrossTheWrap() {
     when(this.channel.getRecipients()).thenReturn(Set.of(UUID.randomUUID()));
-    final Mcv2Playback playback = new Mcv2Playback(this.channel, stream(), Mcv2Decoder.MAX_U32 - 1);
+    final Mcv2Playback playback = new Mcv2Playback(this.channel, stream(), Mcv2Decoder.MAXIMUM_UNSIGNED_INT - 1);
     playback.run();
-    assertEquals(Mcv2Decoder.MAX_U32 - 1, this.sent(1)[0]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT - 1, this.sent(1)[0]);
     playback.run();
-    assertEquals(Mcv2Decoder.MAX_U32, this.sent(2)[0]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT, this.sent(2)[0]);
     playback.run();
     final long[] third = this.sent(3);
     assertEquals(0, third[0], "the ids wrap like the clients' unsigned 32-bit sequence");
-    assertEquals(Mcv2Decoder.MAX_U32, third[1]);
+    assertEquals(Mcv2Decoder.MAXIMUM_UNSIGNED_INT, third[1]);
   }
 
   @Test

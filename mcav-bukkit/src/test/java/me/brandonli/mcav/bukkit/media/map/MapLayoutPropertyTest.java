@@ -39,16 +39,16 @@ import net.jqwik.api.constraints.IntRange;
 final class MapLayoutPropertyTest {
 
   private static final String SEED = "20260925";
-  private static final int MAX_SIDE_IN_MAPS = 6;
-  private static final int MAX_IMAGE_SIDE = MAX_SIDE_IN_MAPS * MapLayout.MAP_SIZE + 90;
+  private static final int MAXIMUM_SIDE_IN_MAPS = 6;
+  private static final int MAXIMUM_IMAGE_SIDE = MAXIMUM_SIDE_IN_MAPS * MapLayout.MAP_SIZE + 90;
 
   /**
    * Creates integers in a range from a fresh arbitrary: jqwik 1.10 shares the range between an arbitrary and the ones
    * configured from it, so one base configured twice would hand every user the last range.
    */
-  private static Arbitrary<Integer> between(final int min, final int max) {
+  private static Arbitrary<Integer> between(final int minimum, final int maximum) {
     final IntegerArbitrary integers = Arbitraries.integers();
-    return integers.between(min, max);
+    return integers.between(minimum, maximum);
   }
 
   @Provide
@@ -56,10 +56,10 @@ final class MapLayoutPropertyTest {
     final Arbitrary<Integer> smallIds = between(0, 100);
     final Arbitrary<Integer> largeIds = between(0, 1 << 30);
     final Arbitrary<Integer> startMapIds = Arbitraries.oneOf(smallIds, largeIds);
-    final Arbitrary<Integer> columns = between(1, MAX_SIDE_IN_MAPS);
-    final Arbitrary<Integer> rows = between(1, MAX_SIDE_IN_MAPS);
-    final Arbitrary<Integer> widths = between(1, MAX_IMAGE_SIDE);
-    final Arbitrary<Integer> heights = between(1, MAX_IMAGE_SIDE);
+    final Arbitrary<Integer> columns = between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> rows = between(1, MAXIMUM_SIDE_IN_MAPS);
+    final Arbitrary<Integer> widths = between(1, MAXIMUM_IMAGE_SIDE);
+    final Arbitrary<Integer> heights = between(1, MAXIMUM_IMAGE_SIDE);
     final Combinators.Combinator5<Integer, Integer, Integer, Integer, Integer> grids = Combinators.combine(
       startMapIds,
       columns,

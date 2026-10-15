@@ -94,8 +94,8 @@ final class BlockPaletteLookupTest {
 
   @Test
   void shouldDitherImagesToColorsOfThePalette() {
-    final FilterLiteDither dithering = BlockPaletteLookup.getDitheringImpl();
-    final FilterLiteDither sameDithering = BlockPaletteLookup.getDitheringImpl();
+    final FilterLiteDither dithering = BlockPaletteLookup.getDither();
+    final FilterLiteDither sameDithering = BlockPaletteLookup.getDither();
     final Random random = new Random(7);
     final int[] pixels = new int[64];
     for (int index = 0; index < pixels.length; index++) {
@@ -113,12 +113,12 @@ final class BlockPaletteLookupTest {
 
   @Test
   void shouldKeepTheTablesWhenInitializingAgain() {
-    final FilterLiteDither before = BlockPaletteLookup.getDitheringImpl();
+    final FilterLiteDither before = BlockPaletteLookup.getDither();
 
-    BlockPaletteLookup.init();
-    BlockPaletteLookup.init();
+    BlockPaletteLookup.initialize();
+    BlockPaletteLookup.initialize();
 
-    final FilterLiteDither after = BlockPaletteLookup.getDitheringImpl();
+    final FilterLiteDither after = BlockPaletteLookup.getDither();
     assertSame(before, after);
   }
 

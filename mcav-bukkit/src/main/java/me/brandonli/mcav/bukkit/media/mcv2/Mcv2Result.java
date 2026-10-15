@@ -77,7 +77,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>A {@link Mcv2Pacer} keeps the screen within what its budget sustains: when the frames take longer than the video
  * gives them, it first searches less hard, down the preset ladder from the screen's settings
- * ({@code DEFAULT}, then {@code FAST}) on one encoder that switches without a keyframe; then it encodes fewer frames, down to {@link Mcv2Pacer#MIN_FRAME_RATE} a second,
+ * ({@code DEFAULT}, then {@code FAST}) on one encoder that switches without a keyframe; then it encodes fewer frames, down to {@link Mcv2Pacer#MINIMUM_FRAME_RATE} a second,
  * then shows a smaller video when the owner offers smaller sizes ({@link #setSmallerSizes}: each size has its own pack),
  * and when even that is too much, every viewer is shown the dithered maps, which need no encoder, until a later try
  * finds room again. Every step is logged, a step down as a warning, and handed to the
@@ -242,15 +242,15 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     private final byte[] frame;
 
-    private final MCV2.Stats stats;
+    private final MCV2.Statistics statistics;
 
     private final long frameId;
 
     private final Arrival source;
 
-    private Delivery(final byte[] frame, final MCV2.Stats stats, final long frameId, final Arrival source) {
+    private Delivery(final byte[] frame, final MCV2.Statistics statistics, final long frameId, final Arrival source) {
       this.frame = frame;
-      this.stats = stats;
+      this.statistics = statistics;
       this.frameId = frameId;
       this.source = source;
     }
@@ -278,12 +278,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     Statistics() {}
 
-    synchronized void add(final MCV2.Stats stats, final int mapColors) {
+    synchronized void add(final MCV2.Statistics statistics, final int mapColors) {
       this.frames++;
-      this.keyframes += stats.keyframe() ? 1 : 0;
-      this.bytes += stats.bytes();
+      this.keyframes += statistics.keyframe() ? 1 : 0;
+      this.bytes += statistics.bytes();
       this.mapBytes += mapColors;
-      this.nanoseconds += stats.nanoseconds();
+      this.nanoseconds += statistics.nanoseconds();
     }
 
     private synchronized void drop() {
@@ -402,7 +402,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     this.statistics = new Statistics();
     this.clock = clock;
     this.lastFallbackRefresh = clock.getAsLong();
-    this.framesPerNanosecond = configuration.getMaxFrameRate() / NANOSECONDS_PER_SECOND;
+    this.framesPerNanosecond = configuration.getMaximumFrameRate() / NANOSECONDS_PER_SECOND;
     this.ladder = ladder(configuration.getSettings());
     this.presets = presets(this.ladder);
     this.encoders = encoders;
@@ -703,12 +703,12 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       backlog = Math.max(backlog, link.getBacklog());
     }
     event.frameId = delivery.frameId;
-    event.keyframe = delivery.stats.keyframe();
+    event.keyframe = delivery.statistics.keyframe();
     event.bytes = delivery.frame.length;
     event.colors = colors;
     event.arrived = delivery.source.arrived;
     event.sent = System.currentTimeMillis();
-    event.encode = delivery.stats.nanoseconds();
+    event.encode = delivery.statistics.nanoseconds();
     event.sentTo = (int) (after[SENT] - before[SENT]);
     event.behind = (int) (after[BEHIND] - before[BEHIND]);
     event.waiting = (int) (after[UNDECODABLE] - before[UNDECODABLE]);
@@ -744,7 +744,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
           encoder = this.encoderFor(settings, encoder);
         }
         this.send(encoder, arrival, frameId);
-        frameId = (frameId + 1) & Mcv2Decoder.MAX_U32;
+        frameId = (frameId + 1) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT;
       }
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
@@ -801,9 +801,9 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     Delivery delivery = null;
     if (running == null) {
       final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
-      final MCV2.Stats stats = Preconditions.checkNotNull(encoder.getStats());
-      isKeyframe = stats.keyframe();
-      delivery = new Delivery(frame, stats, frameId, arrival);
+      final MCV2.Statistics statistics = Preconditions.checkNotNull(encoder.getStatistics());
+      isKeyframe = statistics.keyframe();
+      delivery = new Delivery(frame, statistics, frameId, arrival);
     } else {
       final MCV2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
       isKeyframe = pending.isKeyframe();
@@ -866,7 +866,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       while (true) {
         final Handoff handoff = running.queue().take();
         final MCV2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
-        this.deliver(new Delivery(encoded.getData(), encoded.getStats(), handoff.frameId(), handoff.source()));
+        this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
         synchronized (this.lock) {
           this.delivered++;
           this.lock.notifyAll();
@@ -886,7 +886,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   private void deliver(final Delivery delivery) {
     final byte[] frame = delivery.frame;
     final long frameId = delivery.frameId;
-    final MCV2.Stats stats = delivery.stats;
+    final MCV2.Statistics statistics = delivery.statistics;
     final Mcv2FrameEvent event = new Mcv2FrameEvent();
     final boolean recorded = event.isEnabled();
     final long[] before = recorded ? this.linkCounts() : new long[LINK_COUNTS];
@@ -903,7 +903,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.statistics.drop();
       return;
     }
-    this.statistics.add(stats, colors);
+    this.statistics.add(statistics, colors);
   }
 
   private void follow(final Mcv2Pacer.Change change) {

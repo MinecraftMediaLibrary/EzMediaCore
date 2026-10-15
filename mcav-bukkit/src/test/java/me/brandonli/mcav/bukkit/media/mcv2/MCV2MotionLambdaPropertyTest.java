@@ -41,7 +41,7 @@ final class MCV2MotionLambdaPropertyTest {
     for (final double information : motions) {
       motion.add(information);
       final double lambda = motion.lambda(base);
-      if (lambda < base || lambda > base * MotionLambda.MAX_RAISE) {
+      if (lambda < base || lambda > base * MotionLambda.MAXIMUM_RAISE) {
         return false;
       }
     }

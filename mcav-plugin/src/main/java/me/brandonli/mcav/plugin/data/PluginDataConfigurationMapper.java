@@ -273,7 +273,7 @@ public final class PluginDataConfigurationMapper {
   private static int readEncoderThreads(final FileConfiguration config) {
     // only a YAML int is taken, as for a port
     final Object value = config.get(MCV2_ENCODER_THREADS, 0);
-    if (!(value instanceof final Integer threads) || threads < 0 || threads > Pool.MAX_THREADS) {
+    if (!(value instanceof final Integer threads) || threads < 0 || threads > Pool.MAXIMUM_THREADS) {
       LOGGER.warn(INVALID_THREADS, MCV2_ENCODER_THREADS, value);
       return 0;
     }

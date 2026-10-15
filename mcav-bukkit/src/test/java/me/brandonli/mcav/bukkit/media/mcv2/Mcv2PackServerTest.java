@@ -117,7 +117,7 @@ final class Mcv2PackServerTest {
 
   private QueuedExecutor writer;
 
-  private final AtomicLong millis = new AtomicLong(NOW);
+  private final AtomicLong milliseconds = new AtomicLong(NOW);
 
   private final List<PackHosting> hostings = new CopyOnWriteArrayList<>();
 
@@ -142,7 +142,7 @@ final class Mcv2PackServerTest {
   }
 
   private Mcv2PackServer packServer(final Function<Path, PackHosting> hosting) {
-    return new Mcv2PackServer(this.folder, hosting, false, this.offered::add, this.refused::add, this.writer, this.millis::get);
+    return new Mcv2PackServer(this.folder, hosting, false, this.offered::add, this.refused::add, this.writer, this.milliseconds::get);
   }
 
   private PackHosting hosting(final Path zip) {
@@ -261,7 +261,7 @@ final class Mcv2PackServerTest {
     first.close();
     first.close();
 
-    this.millis.addAndGet(5_000);
+    this.milliseconds.addAndGet(5_000);
     final Mcv2PackServer.Lease second = this.packs.open(screen(320, Set.of(ALICE, BOB, CAROL)));
 
     final int drained = this.writer.drain();
@@ -384,7 +384,7 @@ final class Mcv2PackServerTest {
   void shouldGiveANewSizeTheSlotFreedFirstInAFullPackAndRefuseAScreenWhenEverySlotPlays() {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
-    for (int slot = 0; slot < Mcv2Pack.MAX_SCREENS; slot++) {
+    for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
       leases.add(this.packs.open(screen(160 + 32 * slot, Set.of())));
     }
     this.settle();
@@ -439,7 +439,7 @@ final class Mcv2PackServerTest {
   @Test
   void shouldKeepTheNewSizeOfAReshapedSlotForTheNextScreenOfThatSize() {
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
-    for (int slot = 0; slot < Mcv2Pack.MAX_SCREENS; slot++) {
+    for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
       leases.add(this.packs.open(screen(160 + 32 * slot, Set.of())));
     }
     this.settle();
@@ -644,7 +644,7 @@ final class Mcv2PackServerTest {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
-    for (int slot = 0; slot < Mcv2Pack.MAX_SCREENS; slot++) {
+    for (int slot = 0; slot < Mcv2Pack.MAXIMUM_SCREENS; slot++) {
       leases.add(this.packs.open(screen(160 + 32 * slot, Set.of(ALICE))));
     }
     this.settle();
@@ -724,7 +724,7 @@ final class Mcv2PackServerTest {
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
 
-    this.millis.addAndGet(2_500);
+    this.milliseconds.addAndGet(2_500);
 
     final long otherPackLoadTime = this.packs.handleStatus(
       new PlayerResourcePackStatusEvent(alice, UUID.randomUUID(), Status.SUCCESSFULLY_LOADED)
@@ -908,7 +908,7 @@ final class Mcv2PackServerTest {
       this.offered::add,
       this.refused::add,
       own,
-      this.millis::get
+      this.milliseconds::get
     );
     blocked.start();
     blocked.open(screen(320, Set.of()));
@@ -1220,13 +1220,13 @@ final class Mcv2PackServerTest {
     machine.close();
     desktop.close();
 
-    this.millis.addAndGet(A_MINUTE - 1);
+    this.milliseconds.addAndGet(A_MINUTE - 1);
     this.server.runLaterTasks();
     this.settle();
     final int hostingCount = this.hostings.size();
     assertEquals(1, hostingCount, "within the minute a screen of either size takes its slot without a reload");
 
-    this.millis.addAndGet(1);
+    this.milliseconds.addAndGet(1);
     this.server.runLaterTasks();
     this.settle();
     final List<String> expectedSlots = List.of("1: 320x96");
@@ -1249,7 +1249,7 @@ final class Mcv2PackServerTest {
     this.load(alice, pack);
     lease.close();
 
-    this.millis.addAndGet(A_MINUTE);
+    this.milliseconds.addAndGet(A_MINUTE);
     this.server.runLaterTasks();
     this.settle();
 
@@ -1295,7 +1295,7 @@ final class Mcv2PackServerTest {
   void shouldReshapeTheSpareLeftFirstInAFullPackWhereverItsSlotIs() throws IOException {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
-    for (int screen = 0; screen < Mcv2Pack.MAX_SCREENS / 2; screen++) {
+    for (int screen = 0; screen < Mcv2Pack.MAXIMUM_SCREENS / 2; screen++) {
       final Mcv2PackServer.Lease lease = this.packs.open(screen(320 + 32 * screen, Set.of()));
       lease.resize(lease.getConfiguration().withVideo(160 + 16 * screen, 90));
       leases.add(lease);
@@ -1334,9 +1334,9 @@ final class Mcv2PackServerTest {
     final Mcv2PackServer.Lease second = this.packs.open(screen(288, Set.of()));
     this.settle();
     first.close();
-    this.millis.addAndGet(20_000);
+    this.milliseconds.addAndGet(20_000);
     second.close();
-    this.millis.addAndGet(40_000);
+    this.milliseconds.addAndGet(40_000);
     // the trim takes the first slot out, and the second has 20 seconds of its grace left: 400 ticks
     this.server.runLaterTasks();
     verify(this.server.getScheduler()).runTaskLater(any(Plugin.class), any(Runnable.class), eq(400L));
@@ -1352,7 +1352,7 @@ final class Mcv2PackServerTest {
     this.settle();
     stopped.close();
 
-    this.millis.addAndGet(A_MINUTE);
+    this.milliseconds.addAndGet(A_MINUTE);
     this.server.runLaterTasks();
     this.settle();
 
@@ -1385,7 +1385,7 @@ final class Mcv2PackServerTest {
     this.packs.shutdown();
     final int hosted = this.hostings.size();
 
-    this.millis.addAndGet(A_MINUTE);
+    this.milliseconds.addAndGet(A_MINUTE);
     final int tasksRun = this.server.runLaterTasks();
     assertEquals(1, tasksRun, "the trim asked for before the shutdown");
 
@@ -1404,7 +1404,7 @@ final class Mcv2PackServerTest {
     this.server.runTasks();
     lease.close();
 
-    this.millis.addAndGet(A_MINUTE);
+    this.milliseconds.addAndGet(A_MINUTE);
     this.server.runLaterTasks();
     this.settle();
 
@@ -1437,7 +1437,7 @@ final class Mcv2PackServerTest {
   void shouldGiveANewScreenOfAnotherSizeTheSpareOfAPlayingScreenOnlyWhenThePackIsFull() {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
-    for (int screen = 0; screen < Mcv2Pack.MAX_SCREENS / 2; screen++) {
+    for (int screen = 0; screen < Mcv2Pack.MAXIMUM_SCREENS / 2; screen++) {
       final Mcv2PackServer.Lease lease = this.packs.open(screen(320 + 32 * screen, Set.of()));
       lease.resize(lease.getConfiguration().withVideo(160 + 16 * screen, 90));
       leases.add(lease);

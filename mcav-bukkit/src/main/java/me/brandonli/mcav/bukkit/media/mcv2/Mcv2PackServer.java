@@ -81,7 +81,7 @@ import org.slf4j.LoggerFactory;
  * else the spare slot of its size a playing screen left, so while screens of sizes the pack already has start and
  * stop, the pack stays the same and no client reloads its resources, a hitch of a second or more. Only a screen of a
  * new size changes the pack: it gets a free slot of another size, else a new slot, else, in a full pack of
- * {@link Mcv2Pack#MAX_SCREENS}, the spare slot a playing screen left. A screen that changes size keeps the slot of the
+ * {@link Mcv2Pack#MAXIMUM_SCREENS}, the spare slot a playing screen left. A screen that changes size keeps the slot of the
  * size it left as its spare while it plays, so stepping back changes nothing, unless a new screen took the spare: one
  * of that size at once, one of another size in a full pack. The slots of a screen that stopped stay in the pack, free,
  * for a minute, then leave it, and once no slot is left the players are asked to remove the pack. A changed pack is
@@ -140,7 +140,7 @@ public final class Mcv2PackServer {
 
   private static final UUID NO_PACK = new UUID(0, 0);
 
-  private static final int PAGE_MAPS = Mcv2Pack.MAX_SCREENS * Mcv2Configuration.MAX_PAGE_SLOTS;
+  private static final int PAGE_MAPS = Mcv2Pack.MAXIMUM_SCREENS * Mcv2Configuration.MAXIMUM_PAGE_SLOTS;
 
   // A reused slot must start ahead of the ids sent by its previous screen.
   private static final long FRAME_ID_INTERVAL_MILLISECONDS = 10;
@@ -340,12 +340,12 @@ public final class Mcv2PackServer {
     }
     final Slot slot = this.acquire(requested);
     if (slot == null) {
-      final String message = "Every one of the %s MCV2 slots plays a screen!".formatted(Mcv2Pack.MAX_SCREENS);
+      final String message = "Every one of the %s MCV2 slots plays a screen!".formatted(Mcv2Pack.MAXIMUM_SCREENS);
       throw new IllegalStateException(message);
     }
     final Lease lease = new Lease(
       requested,
-      (this.millisecondClock.getAsLong() / FRAME_ID_INTERVAL_MILLISECONDS) & Mcv2Decoder.MAX_U32,
+      (this.millisecondClock.getAsLong() / FRAME_ID_INTERVAL_MILLISECONDS) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT,
       slot
     );
     slot.holder = lease;
@@ -368,7 +368,7 @@ public final class Mcv2PackServer {
   }
 
   private static int pageMapOf(final Mcv2Configuration configuration, final Slot slot) {
-    return configuration.getPageMap() + (int) (slot.streamId - 1) * Mcv2Configuration.MAX_PAGE_SLOTS;
+    return configuration.getPageMap() + (int) (slot.streamId - 1) * Mcv2Configuration.MAXIMUM_PAGE_SLOTS;
   }
 
   private @Nullable Slot acquire(final Mcv2Configuration configuration) {
@@ -401,7 +401,7 @@ public final class Mcv2PackServer {
     if (oldestFree != null) {
       changed = oldestFree;
       changed.reshape(configuration);
-    } else if (this.slots.size() < Mcv2Pack.MAX_SCREENS) {
+    } else if (this.slots.size() < Mcv2Pack.MAXIMUM_SCREENS) {
       changed = new Slot(this.unusedStreamId(), configuration);
       this.slots.add(changed);
     } else if (oldestSpare != null) {

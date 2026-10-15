@@ -58,23 +58,23 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
    * How many downloads may run at once. Players download a pack as they join, so a real server stays far below this,
    * while a client that opens connections without finishing them can tie up no more than this many.
    */
-  private static final int MAX_CONNECTIONS = 256;
+  private static final int MAXIMUM_CONNECTIONS = 256;
 
   private static final String BUSY_RESPONSE = "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
 
   private final Path filePath;
-  private final int maxConnections;
+  private final int maximumConnections;
   private final AtomicInteger openConnections;
 
   FileHttpChannelInitializer(final Path filePath) {
-    this(filePath, MAX_CONNECTIONS);
+    this(filePath, MAXIMUM_CONNECTIONS);
   }
 
   @VisibleForTesting
-  FileHttpChannelInitializer(final Path filePath, final int maxConnections) {
-    Preconditions.checkArgument(maxConnections > 0, "Connection limit %s must be positive!", maxConnections);
+  FileHttpChannelInitializer(final Path filePath, final int maximumConnections) {
+    Preconditions.checkArgument(maximumConnections > 0, "Connection limit %s must be positive!", maximumConnections);
     this.filePath = filePath;
-    this.maxConnections = maxConnections;
+    this.maximumConnections = maximumConnections;
     this.openConnections = new AtomicInteger();
   }
 
@@ -84,7 +84,7 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
     final int open = this.openConnections.incrementAndGet();
     final ChannelFuture closed = channel.closeFuture();
     closed.addListener(future -> this.openConnections.decrementAndGet());
-    if (open > this.maxConnections) {
+    if (open > this.maximumConnections) {
       refuse(channel);
       return;
     }

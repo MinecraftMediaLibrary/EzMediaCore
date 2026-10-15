@@ -63,7 +63,7 @@ public final class DeltaMapEncoder {
    * responsive, but a scene cut on a large wall now takes a few more frames to appear completely. Pass a larger
    * budget to the constructor of {@code CompressedMapResult} to get the old behavior back.
    */
-  public static final int DEFAULT_MAX_BYTES_PER_FRAME = 128 * 1024;
+  public static final int DEFAULT_MAXIMUM_BYTES_PER_FRAME = 128 * 1024;
 
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
   private static final int MAP_PIXELS = MAP_SIZE * MAP_SIZE;
@@ -71,12 +71,12 @@ public final class DeltaMapEncoder {
   private static final int TILES_PER_ROW = MAP_SIZE / TILE_SIZE;
   private static final int TILE_COUNT = TILES_PER_ROW * TILES_PER_ROW;
   private static final int NOISE_THRESHOLD = 4;
-  private static final int MAX_NOISE_DEFERRAL = 6;
+  private static final int MAXIMUM_NOISE_DEFERRAL = 6;
   private static final long WAITING_PRIORITY = 1L << 32;
   private static final long INITIAL_PRIORITY = Long.MAX_VALUE;
 
   private final MapLayout layout;
-  private final int maxBytesPerFrame;
+  private final int maximumBytesPerFrame;
   private final byte[][] clientState;
   private final boolean[] synced;
   private final long[] waitingFrames;
@@ -86,19 +86,19 @@ public final class DeltaMapEncoder {
   /**
    * Constructs a new encoder for the specified layout.
    *
-   * @param layout           the layout of the image on the maps
-   * @param maxBytesPerFrame the maximum number of bytes to send per frame; the most urgent map is always sent,
-   *                         even if it alone exceeds the budget
+   * @param layout               the layout of the image on the maps
+   * @param maximumBytesPerFrame the maximum number of bytes to send per frame; the most urgent map is always sent,
+   *                             even if it alone exceeds the budget
    * @throws IllegalArgumentException if the budget is not positive
    * @throws NullPointerException     if {@code layout} is null
    */
-  public DeltaMapEncoder(final MapLayout layout, final int maxBytesPerFrame) {
+  public DeltaMapEncoder(final MapLayout layout, final int maximumBytesPerFrame) {
     Preconditions.checkNotNull(layout, "Layout must not be null!");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive!");
+    Preconditions.checkArgument(maximumBytesPerFrame > 0, "Byte budget must be positive!");
 
     final int mapCount = layout.getMapCount();
     this.layout = layout;
-    this.maxBytesPerFrame = maxBytesPerFrame;
+    this.maximumBytesPerFrame = maximumBytesPerFrame;
     this.clientState = new byte[mapCount][MAP_PIXELS];
     this.synced = new boolean[mapCount];
     this.waitingFrames = new long[mapCount];
@@ -170,7 +170,7 @@ public final class DeltaMapEncoder {
     for (final MapCandidate candidate : candidates) {
       final int map = candidate.getMap();
       final int candidateSize = candidate.getSize();
-      final boolean fitsBudget = usedBytes + candidateSize <= this.maxBytesPerFrame;
+      final boolean fitsBudget = usedBytes + candidateSize <= this.maximumBytesPerFrame;
       final boolean isFirst = accepted.isEmpty();
       if (!fitsBudget && !isFirst) {
         this.waitingFrames[map]++;
@@ -292,7 +292,7 @@ public final class DeltaMapEncoder {
   private boolean shouldDefer(final byte[] noiseFrames, final int tile) {
     final int tileChanges = this.changedPixelsPerTile[tile];
     final boolean looksLikeNoise = tileChanges < NOISE_THRESHOLD;
-    final boolean mayDeferLonger = noiseFrames[tile] < MAX_NOISE_DEFERRAL;
+    final boolean mayDeferLonger = noiseFrames[tile] < MAXIMUM_NOISE_DEFERRAL;
     return looksLikeNoise && mayDeferLonger;
   }
 

@@ -127,8 +127,8 @@ final class MCV2PipelineTest {
       final byte[] expected = control.encode(source, 32, 32, frame);
       final byte[] encoded = encoder.encode(source, 32, 32, frame);
       assertArrayEquals(expected, encoded);
-      final double expectedLambda = control.getStats().lambda();
-      final double lambda = encoder.getStats().lambda();
+      final double expectedLambda = control.getStatistics().lambda();
+      final double lambda = encoder.getStatistics().lambda();
       assertEquals(expectedLambda, lambda);
       final byte @Nullable [] expectedReference = control.getReference();
       final byte @Nullable [] reference = encoder.getReference();
@@ -169,13 +169,13 @@ final class MCV2PipelineTest {
       } finally {
         resume.countDown();
       }
-      final double firstLambda = encoder.finish(first.get()).getStats().lambda();
+      final double firstLambda = encoder.finish(first.get()).getStatistics().lambda();
       assertEquals(72, firstLambda);
 
       final MCV2.Pending requested = encoder.begin(new byte[3], 1, 1, 1);
       final boolean keyframeRequested = requested.isKeyframe();
       assertTrue(keyframeRequested);
-      final double requestedLambda = encoder.finish(requested).getStats().lambda();
+      final double requestedLambda = encoder.finish(requested).getStatistics().lambda();
       assertEquals(55, requestedLambda);
 
       for (int frameId = 2; frameId <= 121; frameId++) {
@@ -259,11 +259,11 @@ final class MCV2PipelineTest {
     ((byte[]) picture.get(frame))[0] ^= 1;
     final MCV2.Encoded encoded = encoder.finish(frame);
     final int expectedBytes = encoded.getData().length;
-    final int bytes = encoded.getStats().bytes();
+    final int bytes = encoded.getStatistics().bytes();
     assertEquals(expectedBytes, bytes);
-    final boolean keyframe = encoded.getStats().keyframe();
+    final boolean keyframe = encoded.getStatistics().keyframe();
     assertTrue(keyframe);
-    final boolean timed = encoded.getStats().nanoseconds() > 0;
+    final boolean timed = encoded.getStatistics().nanoseconds() > 0;
     assertTrue(timed);
   }
 
@@ -282,19 +282,19 @@ final class MCV2PipelineTest {
         keyframes.add(
           encoder
             .finish(frames.get(frameNumber - 1))
-            .getStats()
+            .getStatistics()
             .keyframe()
         );
       }
     }
-    keyframes.add(encoder.finish(frames.get(4)).getStats().keyframe());
+    keyframes.add(encoder.finish(frames.get(4)).getStatistics().keyframe());
     final List<Boolean> expected = List.of(true, false, false, true, false);
     assertEquals(expected, keyframes);
     final boolean requestedKeyframe = frames.get(3).isKeyframe();
     assertTrue(requestedKeyframe);
     final boolean inFlightKeyframe = frames.get(2).isKeyframe();
     assertFalse(inFlightKeyframe);
-    final MCV2.Stats last = encoder.getStats();
+    final MCV2.Statistics last = encoder.getStatistics();
     assertNotNull(last);
     final boolean lastKeyframe = last.keyframe();
     assertFalse(lastKeyframe);

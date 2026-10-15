@@ -131,15 +131,15 @@ final class Mcv2ShaderReportsTest {
 
       final boolean blocksWithShadersUnknown = this.reports.blocksDecoding(ALICE);
       assertFalse(blocksWithShadersUnknown, "a shader pack Iris cannot tell leaves the screens as they were");
-      final List<String> expectedInfoMessages = List.of(
+      final List<String> expectedDebugMessages = List.of(
         "The MCV2 client mod of Alice reports no Iris: MCV2 screens show them the video.",
         "The MCV2 client mod of Alice reports Iris without a shader pack: MCV2 screens show them the video.",
         "The MCV2 client mod of Alice reports Iris with a shader pack in use: MCV2 screens show them the dithered maps.",
         "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video.",
         "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video."
       );
-      final List<String> infoMessages = messages(logs, Level.DEBUG);
-      assertEquals(expectedInfoMessages, infoMessages, "one line for each change, none for a report that repeats the last");
+      final List<String> debugMessages = messages(logs, Level.DEBUG);
+      assertEquals(expectedDebugMessages, debugMessages, "one line for each change, none for a report that repeats the last");
     }
   }
 
@@ -159,8 +159,8 @@ final class Mcv2ShaderReportsTest {
       "01 00 02 00",
     }
   )
-  void shouldIgnoreAMalformedReportWithOneDebugLine(final String hex) {
-    final byte[] message = HexFormat.ofDelimiter(" ").parseHex(hex);
+  void shouldIgnoreAMalformedReportWithOneDebugLine(final String hexadecimal) {
+    final byte[] message = HexFormat.ofDelimiter(" ").parseHex(hexadecimal);
     this.send(this.alice, SHADERS_ON);
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.sendLater(this.alice, message);
@@ -168,8 +168,8 @@ final class Mcv2ShaderReportsTest {
       final List<String> expectedDebugMessages = List.of("Ignoring a malformed MCV2 client report from Alice.");
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
-      final List<String> infoMessages = messages(logs, Level.INFO);
-      assertEquals(List.of(), infoMessages);
+      final List<String> informationMessages = messages(logs, Level.INFO);
+      assertEquals(List.of(), informationMessages);
     }
 
     final boolean blocksDecoding = this.reports.blocksDecoding(ALICE);
@@ -194,10 +194,10 @@ final class Mcv2ShaderReportsTest {
   @Test
   void shouldIgnoreAReportLongerThanTheLongestUnread() {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
-      final byte[] longest = new byte[Mcv2ShaderReports.MAX_BYTES];
+      final byte[] longest = new byte[Mcv2ShaderReports.MAXIMUM_BYTES];
       longest[0] = Mcv2ShaderReports.VERSION;
       this.send(this.alice, longest);
-      final byte[] longer = new byte[Mcv2ShaderReports.MAX_BYTES + 1];
+      final byte[] longer = new byte[Mcv2ShaderReports.MAXIMUM_BYTES + 1];
       longer[0] = Mcv2ShaderReports.VERSION;
       for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
         this.send(this.alice, longer);

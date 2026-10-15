@@ -68,7 +68,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void shouldCreateUniqueInvisibleStringsFromTheHexDigitsOfTheIndex() {
+  void shouldCreateUniqueInvisibleStringsFromTheHexadecimalDigitsOfTheIndex() {
     final String zero = ChatUtils.getUniqueString(0);
     final String ten = ChatUtils.getUniqueString(10);
     final String large = ChatUtils.getUniqueString(0x1f0);

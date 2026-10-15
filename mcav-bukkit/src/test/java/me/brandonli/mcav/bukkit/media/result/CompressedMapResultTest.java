@@ -217,7 +217,7 @@ final class CompressedMapResultTest {
   @Test
   void shouldRefreshEveryViewerOnceThenResumeOrdinaryDeltas() {
     this.server.addPlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final byte[] original = this.nextFrame.clone();
@@ -314,7 +314,7 @@ final class CompressedMapResultTest {
 
     result.process(image, this.algorithm);
     this.server.addPlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     result.process(image, this.algorithm);
     final int firstCount = this.firstViewerPacketCount();
     final List<ClientboundMapItemDataPacket> snapshot = this.packetsOf(SECOND, 0);
@@ -344,10 +344,10 @@ final class CompressedMapResultTest {
 
     result.process(image, this.algorithm);
     this.server.removePlayer(FIRST);
-    PacketUtils.init();
+    PacketUtils.initialize();
     result.process(image, this.algorithm);
     this.server.addPlayer(FIRST);
-    PacketUtils.init();
+    PacketUtils.initialize();
     result.process(image, this.algorithm);
 
     final int count = this.firstViewerPacketCount();
@@ -365,9 +365,9 @@ final class CompressedMapResultTest {
     try (final ImageBuffer image = Images.solid(128, 128, 0xFF000000)) {
       result.process(image, this.algorithm);
       this.server.removePlayer(FIRST);
-      PacketUtils.init();
+      PacketUtils.initialize();
       this.server.addPlayer(FIRST);
-      PacketUtils.init();
+      PacketUtils.initialize();
       if (changesWhileOffline) {
         this.nextFrame = this.changedFrame();
       }
@@ -498,7 +498,7 @@ final class CompressedMapResultTest {
       result.process(image, this.algorithm);
     }
     this.server.addPlayer(SECOND);
-    PacketUtils.init();
+    PacketUtils.initialize();
     final byte[] smallFrame = MapPackets.pattern(64 * 64, 9);
     this.nextFrame = smallFrame;
     try (final ImageBuffer image = Images.solid(64, 64, 0xFF000000)) {

@@ -143,7 +143,7 @@ final class Mcv2ResultTest {
       // one preset, so the pacer steps only frame rates and sizes; the tests of the preset ladder give their own
       .settings(Settings.FAST)
       // every frame the tests give is the screen's; the rate is tested on its own
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
   }
 
@@ -319,7 +319,7 @@ final class Mcv2ResultTest {
       .rows(1)
       .video(64, 32)
       .pageMap(500)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       onlyPack,
@@ -397,12 +397,12 @@ final class Mcv2ResultTest {
       .rows(1)
       .pageMap(500)
       .pageSlots(1)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = this.result(narrow, null);
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(Mcv2ChannelTest.large());
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, true, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, true, 1, 1, 72));
     result.getChannel().requestKeyframe();
     final List<byte[]> heard = new ArrayList<>();
     result.setFrameListener(heard::add);
@@ -483,7 +483,7 @@ final class Mcv2ResultTest {
       .pageMap(500)
       // one preset, so the pacer steps the frame rate and the size, which this is about
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       onlyPack,
@@ -503,13 +503,13 @@ final class Mcv2ResultTest {
     final Mcv2Pacer.@Nullable Rung firstRung = result.getRung();
     assertEquals(expectedFirstRung, firstRung);
 
-    final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
-      clock.addAndGet(encodeNanos.get());
+      clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     // the viewer with the pack is shown the screen, dithered for until then, then every frame is encoded while 5 ms
     // fit a frame's 16.7 ms
@@ -521,7 +521,7 @@ final class Mcv2ResultTest {
     verify(this.algorithm, times(1)).ditherIntoBytes(any());
 
     // at 25 ms a frame the screen steps down to every other frame, and says why
-    encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(25));
+    encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(25));
     this.play(result, clock, encoder, frame, 90);
 
     final int changesAfterSteppingDown = changes.size();
@@ -535,7 +535,7 @@ final class Mcv2ResultTest {
     assertEquals(30, encodedAtHalfRate);
 
     // at two seconds a frame nothing fits: every viewer is dithered for, and the page frames go
-    encodeNanos.set(TimeUnit.SECONDS.toNanos(2));
+    encodeNanoseconds.set(TimeUnit.SECONDS.toNanos(2));
     this.play(result, clock, encoder, frame, 90);
 
     final int changesAfterDithering = changes.size();
@@ -552,7 +552,7 @@ final class Mcv2ResultTest {
     verify(this.algorithm, times(60)).ditherIntoBytes(any());
 
     // thirty seconds later the screen tries encoding again: the page frames return
-    encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
+    encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(5));
     this.play(result, clock, encoder, frame, 35 * 60);
 
     final Mcv2Pacer.Rung retriedFrom = changes.get(2).from();
@@ -584,7 +584,7 @@ final class Mcv2ResultTest {
       .pageMap(500)
       // one preset, so the pacer steps the frame rate and the size, which this is about
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       onlyPack,
@@ -601,21 +601,21 @@ final class Mcv2ResultTest {
       return new Mcv2Channel(configuration, this.viewers, configuration.getVideoWidth() == 32 ? smallScreen : this.screen);
     });
     result.pace();
-    final AtomicLong fullNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong fullNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final List<Integer> widths = new ArrayList<>();
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(invocation -> {
       final int width = invocation.getArgument(1);
       widths.add(width);
-      clock.addAndGet((fullNanos.get() * width * (int) invocation.getArgument(2)) / (64 * 32));
+      clock.addAndGet((fullNanoseconds.get() * width * (int) invocation.getArgument(2)) / (64 * 32));
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 300);
-    fullNanos.set(TimeUnit.MILLISECONDS.toNanos(100));
+    fullNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(100));
     this.play(result, clock, encoder, frame, 120);
 
     // no frame rate of 64x32 fits 100 ms with room; 32x16 at 30 fps does
@@ -642,7 +642,7 @@ final class Mcv2ResultTest {
     assertTrue(encodedSmall, widths.toString());
 
     // the load drops: back to the size it was asked for, once the top rung may be tried again
-    fullNanos.set(TimeUnit.MILLISECONDS.toNanos(4));
+    fullNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(4));
     this.play(result, clock, encoder, Images.solid(64, 32, 0xFF336699), 60 * 30);
 
     final Mcv2Pacer.Rung expectedFullRung = new Mcv2Pacer.Rung(64, 32, 1);
@@ -676,7 +676,7 @@ final class Mcv2ResultTest {
       clock.addAndGet(TimeUnit.SECONDS.toNanos(2));
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
@@ -702,7 +702,7 @@ final class Mcv2ResultTest {
         .video(64, 32)
         .pageMap(500)
         .encoderPool(budget)
-        .maxFrameRate(0)
+        .maximumFrameRate(0)
         .build();
       final Pool ownPool = own.getEncoderPool();
       assertSame(budget, ownPool);
@@ -812,8 +812,8 @@ final class Mcv2ResultTest {
   @Test
   void shouldCountTheKeyframesItSent() {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
-    statistics.add(new MCV2.Stats(10, true, 1, 5, 72), 128);
-    statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
+    statistics.add(new MCV2.Statistics(10, true, 1, 5, 72), 128);
+    statistics.add(new MCV2.Statistics(20, false, 1, 7, 72), 256);
 
     final long frames = statistics.getFrames();
     assertEquals(2, frames);
@@ -824,7 +824,7 @@ final class Mcv2ResultTest {
   @Test
   void shouldCountNoKeyframeForAPredictedFrame() {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
-    statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
+    statistics.add(new MCV2.Statistics(20, false, 1, 7, 72), 256);
 
     final long frames = statistics.getFrames();
     assertEquals(1, frames);
@@ -1048,7 +1048,7 @@ final class Mcv2ResultTest {
     });
     final MCV2.Encoded encoded = mock(MCV2.Encoded.class);
     when(encoded.getData()).thenReturn(Mcv2ChannelTest.keyframe());
-    when(encoded.getStats()).thenReturn(new MCV2.Stats(1, true, 1, 1, 72));
+    when(encoded.getStatistics()).thenReturn(new MCV2.Statistics(1, true, 1, 1, 72));
     when(slow.finish(pending)).thenReturn(encoded);
     final Pool budget = mock(Pool.class);
     when(budget.encoder(any(), anyBoolean())).thenReturn(slow);
@@ -1063,7 +1063,7 @@ final class Mcv2ResultTest {
       .video(64, 32)
       .pageMap(500)
       .encoderPool(budget)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     // no executor given: the result dithers on a thread of its own
     final Mcv2Result result = new Mcv2Result(own, new Mcv2Channel(own, this.viewers, this.screen), this.algorithm, System::nanoTime, null);
@@ -1101,7 +1101,7 @@ final class Mcv2ResultTest {
       .rows(1)
       .video(64, 32)
       .pageMap(500)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       onlyPack,
@@ -1111,19 +1111,19 @@ final class Mcv2ResultTest {
       Runnable::run
     );
     result.pace();
-    final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
-      clock.addAndGet(encodeNanos.get());
+      clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 300);
     // two seconds a frame: nothing fits, and the frame that arrived while the last was encoded is not encoded any more
-    encodeNanos.set(TimeUnit.SECONDS.toNanos(2));
+    encodeNanoseconds.set(TimeUnit.SECONDS.toNanos(2));
     for (int frameNumber = 0; frameNumber < 20 && !result.getRung().isDithered(); frameNumber++) {
       clock.addAndGet(16_666_667L);
       result.applyFilter(frame, this.metadata);
@@ -1157,7 +1157,7 @@ final class Mcv2ResultTest {
     seesSixChunksFrom(Objects.requireNonNull(Bukkit.getPlayer(WITHOUT)), new AtomicReference<>(new Location(WORLD, 0, 64, 5)));
     seesSixChunksFrom(this.server.addPlayer(far), farPosition);
     seesSixChunksFrom(this.server.addPlayer(otherWorld), new AtomicReference<>(new Location(ELSEWHERE, 0, 64, 0)));
-    PacketUtils.init();
+    PacketUtils.initialize();
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration wall = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK, WITHOUT, far, otherWorld))
@@ -1169,7 +1169,7 @@ final class Mcv2ResultTest {
       .video(64, 32)
       .pageMap(500)
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       wall,
@@ -1181,19 +1181,19 @@ final class Mcv2ResultTest {
     result.pace();
     // opened as start opens it, without the threads: the test hands the frames to the encoder itself
     result.getChannel().open();
-    final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
-      clock.addAndGet(encodeNanos.get());
+      clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     this.play(result, clock, encoder, frame, 300);
     // two seconds a frame: the pacer falls back to the dithered maps, which every viewer near the wall is shown
-    encodeNanos.set(TimeUnit.SECONDS.toNanos(2));
+    encodeNanoseconds.set(TimeUnit.SECONDS.toNanos(2));
     for (int frameNumber = 0; frameNumber < 600 && !result.getRung().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
@@ -1218,7 +1218,7 @@ final class Mcv2ResultTest {
     assertFalse(nothingSentNearTheWall, "a viewer who came near the wall sees the dithered maps");
 
     // the load drops: the pacer tries the frames again, and the first frame encoded after its return is a keyframe
-    encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(1));
+    encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(1));
     for (int frameNumber = 0; frameNumber < 60 * 60 && result.getRung().isDithered(); frameNumber++) {
       this.play(result, clock, encoder, frame, 1);
     }
@@ -1243,7 +1243,7 @@ final class Mcv2ResultTest {
     // the next one predicts from and waits for a keyframe
     final UUID second = UUID.fromString("00000000-0000-0000-0000-000000000043");
     this.server.addPlayer(second);
-    PacketUtils.init();
+    PacketUtils.initialize();
     when(this.viewers.isLoaded(second)).thenReturn(true);
     final Mcv2Configuration tight = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK, second))
@@ -1255,7 +1255,7 @@ final class Mcv2ResultTest {
       .pageMap(500)
       .backlogLimit(200)
       .unsentLimit(0)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = this.result(tight, null);
     result.getChannel().update();
@@ -1275,7 +1275,7 @@ final class Mcv2ResultTest {
       for (int id = 0; id < frames.size(); id++) {
         final byte[] frame = frames.get(id);
         when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenReturn(frame);
-        when(encoder.getStats()).thenReturn(new MCV2.Stats(frame.length, id == 0 || id == 4, 1, 1, 72));
+        when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(frame.length, id == 0 || id == 4, 1, 1, 72));
         if (id == 3) {
           this.server.completeWrites(WITH_PACK);
         }
@@ -1323,7 +1323,7 @@ final class Mcv2ResultTest {
       .video(64, 32)
       .pageMap(500)
       .settings(settings)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
   }
 
@@ -1342,7 +1342,7 @@ final class Mcv2ResultTest {
       } else {
         final MCV2.Encoded encoded = mock(MCV2.Encoded.class);
         when(encoded.getData()).thenReturn(Mcv2ChannelTest.keyframe());
-        when(encoded.getStats()).thenReturn(new MCV2.Stats(1, true, 1, 1, 55));
+        when(encoded.getStatistics()).thenReturn(new MCV2.Statistics(1, true, 1, 1, 55));
         when(encoder.finish(pending)).thenAnswer(_ -> {
           gate.await();
           return encoded;
@@ -1506,7 +1506,7 @@ final class Mcv2ResultTest {
   private static MCV2 timedEncoder(
     final Settings settings,
     final AtomicLong clock,
-    final AtomicLong encodeNanos,
+    final AtomicLong encodeNanoseconds,
     final List<Settings> switched
   ) {
     final MCV2 encoder = mock(MCV2.class);
@@ -1522,10 +1522,10 @@ final class Mcv2ResultTest {
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
       final Settings now = current.get();
       final long share = now.fast() ? 3 : 4;
-      clock.addAndGet((encodeNanos.get() * share) / 4);
+      clock.addAndGet((encodeNanoseconds.get() * share) / 4);
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     return encoder;
   }
 
@@ -1533,7 +1533,7 @@ final class Mcv2ResultTest {
   void shouldStepDownTheLivePresetsWithOneEncoder() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration live = packScreen(Settings.DEFAULT);
-    final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final List<MCV2> made = new ArrayList<>();
     final List<Settings> switched = new ArrayList<>();
     final Mcv2Result result = new Mcv2Result(
@@ -1543,7 +1543,7 @@ final class Mcv2ResultTest {
       clock::get,
       Runnable::run,
       settings -> {
-        final MCV2 encoder = timedEncoder(settings, clock, encodeNanos, switched);
+        final MCV2 encoder = timedEncoder(settings, clock, encodeNanoseconds, switched);
         made.add(encoder);
         return encoder;
       }
@@ -1554,7 +1554,7 @@ final class Mcv2ResultTest {
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
-    final MCV2 first = timedEncoder(Settings.DEFAULT, clock, encodeNanos, switched);
+    final MCV2 first = timedEncoder(Settings.DEFAULT, clock, encodeNanoseconds, switched);
     made.add(first);
     MCV2 encoder = this.playSwitching(result, clock, first, frame, 300);
     final int encoderCount = made.size();
@@ -1563,7 +1563,7 @@ final class Mcv2ResultTest {
     assertEquals(Settings.DEFAULT, firstSettings);
 
     // FAST is estimated at 16.2 ms, inside the 16.7 ms frame interval.
-    encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(18));
+    encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(18));
     encoder = this.playSwitching(result, clock, encoder, frame, 120);
     final int changeCount = changes.size();
     assertEquals(1, changeCount);
@@ -1577,7 +1577,7 @@ final class Mcv2ResultTest {
     final List<Settings> expectedSwitches = List.of(Settings.FAST);
     assertEquals(expectedSwitches, switched);
     verify(made.getFirst(), Mockito.atLeast(150)).encode(any(), anyInt(), anyInt(), anyLong());
-    encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
+    encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(5));
     this.playSwitching(result, clock, encoder, frame, 30 * 60);
     final int changeCountAfterClimb = changes.size();
     assertEquals(2, changeCountAfterClimb);
@@ -1631,7 +1631,7 @@ final class Mcv2ResultTest {
       .pageMap(500)
       // one preset, so the pacer steps the frame rate and the size, which this is about
       .settings(Settings.FAST)
-      .maxFrameRate(0)
+      .maximumFrameRate(0)
       .build();
     final Mcv2Result result = new Mcv2Result(
       onlyPack,
@@ -1641,22 +1641,22 @@ final class Mcv2ResultTest {
       Runnable::run
     );
     result.pace();
-    final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
+    final AtomicLong encodeNanoseconds = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
     final MCV2 encoder = mock(MCV2.class);
     when(encoder.encode(any(), anyInt(), anyInt(), anyLong())).thenAnswer(_ -> {
-      clock.addAndGet(encodeNanos.get());
+      clock.addAndGet(encodeNanoseconds.get());
       return Mcv2ChannelTest.keyframe();
     });
-    when(encoder.getStats()).thenReturn(new MCV2.Stats(1, false, 1, 1, 72));
+    when(encoder.getStatistics()).thenReturn(new MCV2.Statistics(1, false, 1, 1, 72));
     final ImageBuffer frame = Images.solid(64, 32, 0xFF336699);
     result.applyFilter(frame, this.metadata);
     this.server.runTasks();
     try (final LogCapture logs = LogCapture.capture(Mcv2Result.class)) {
       this.play(result, clock, encoder, frame, 300);
       // 25 ms a frame steps down to every other frame; 5 ms a frame climbs back once the top is free and has room
-      encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(25));
+      encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(25));
       this.play(result, clock, encoder, frame, 90);
-      encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
+      encodeNanoseconds.set(TimeUnit.MILLISECONDS.toNanos(5));
       this.play(result, clock, encoder, frame, 20 * 60);
       final List<Level> expectedLevels = List.of(Level.WARN, Level.DEBUG);
       final List<Level> levels = logs.getEvents().stream().map(LogCapture.RecordedEvent::getLevel).toList();
@@ -1685,7 +1685,7 @@ final class Mcv2ResultTest {
         .rows(1)
         .video(video[0], video[1])
         .pageMap(500)
-        .maxFrameRate(0)
+        .maximumFrameRate(0)
         .build();
       final Mcv2Result result = new Mcv2Result(
         wide,
