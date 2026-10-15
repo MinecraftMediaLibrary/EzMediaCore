@@ -127,6 +127,7 @@ pitest {
     threads = 4
     outputFormats = setOf("HTML", "XML")
     timestampedReports = false
+    jvmArgs = listOf("--add-opens=java.base/java.lang=ALL-UNNAMED")
 }
 
 tasks.check {
