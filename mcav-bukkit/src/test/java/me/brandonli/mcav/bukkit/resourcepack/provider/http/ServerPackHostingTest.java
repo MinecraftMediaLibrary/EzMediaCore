@@ -123,7 +123,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void servesThePackOverHttpUntilItIsShutDown() throws IOException, InterruptedException {
+  void shouldServeThePackOverHttpUntilItIsShutDown() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
     hosting.start();
@@ -146,7 +146,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void canBeStartedAgainAfterItWasShutDown() throws IOException, InterruptedException {
+  void shouldStartAgainAfterItWasShutDown() throws IOException, InterruptedException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
 
@@ -185,7 +185,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void releasesItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException {
+  void shouldReleaseItsThreadsWhenItStopsAndWhenItCannotStart() throws IOException {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting hosting = new ServerPackHosting(this.zip, "127.0.0.1", 25566, server);
 
@@ -214,7 +214,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void reportsThePortOnlyWhileRunning() {
+  void shouldReportThePortOnlyWhileRunning() {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
 
     final IllegalStateException exception = assertThrows(IllegalStateException.class, server::getLocalPort);
@@ -224,7 +224,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void reportsPortsThatAreInUse() throws IOException {
+  void shouldReportPortsThatAreInUse() throws IOException {
     try (final ServerSocket occupied = new ServerSocket()) {
       final InetSocketAddress anyAddress = new InetSocketAddress(0);
       occupied.setReuseAddress(false);
@@ -243,7 +243,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void describesWherePlayersDownloadThePack() {
+  void shouldDescribeWherePlayersDownloadThePack() {
     final HttpHosting hosting = PackHosting.http(this.zip, "example.org", 25566);
 
     final String url = hosting.getRawUrl();
@@ -260,7 +260,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void bracketsAnIpv6AddressInTheDownloadUrl() {
+  void shouldBracketAnIpv6AddressInTheDownloadUrl() {
     final HttpHosting hosting = PackHosting.http(this.zip, "::1", 25566);
 
     final String url = hosting.getRawUrl();
@@ -269,7 +269,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final FileHttpServer server = new FileHttpServer(ANY_FREE_PORT, this.zip);
     final ServerPackHosting lowest = new ServerPackHosting(this.zip, "host", 1);
     final ServerPackHosting highest = new ServerPackHosting(this.zip, "host", 65535);
@@ -290,7 +290,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessage() {
+  void shouldKeepTheMessageInExceptions() {
     final HttpServerException exception = new HttpServerException("message");
 
     final String message = exception.getMessage();
@@ -301,7 +301,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
     final IOException failure = new IOException("cause");
     final HttpServerException exception = new HttpServerException("message", failure);
 
@@ -313,7 +313,7 @@ final class ServerPackHostingTest {
   }
 
   @Test
-  void exceptionsAreRuntimeExceptions() {
+  void shouldMakeItsExceptionsRuntimeExceptions() {
     final HttpServerException exception = new HttpServerException("message");
     assertInstanceOf(RuntimeException.class, exception, "a port in use is recoverable, so it is no Error");
   }

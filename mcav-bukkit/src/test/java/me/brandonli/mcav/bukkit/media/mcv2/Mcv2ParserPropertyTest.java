@@ -174,7 +174,7 @@ final class Mcv2ParserPropertyTest {
   }
 
   @Property(seed = SEED, tries = 2000)
-  void mutatedFramesParseOrAreRejected(
+  void shouldParseOrRejectMutatedFrames(
     @ForAll @IntRange(min = 0, max = 1000) final int frame,
     @ForAll("mutations") final List<Mutation> mutations
   ) {
@@ -186,7 +186,7 @@ final class Mcv2ParserPropertyTest {
    * that matches them, a frame length that is the real one - so that the index and record parsing see the bytes.
    */
   @Property(seed = SEED, tries = 2000)
-  void randomFramesParseOrAreRejected(
+  void shouldParseOrRejectRandomFrames(
     @ForAll @IntRange(min = 1, max = 200) final int width,
     @ForAll @IntRange(min = 1, max = 130) final int height,
     @ForAll final boolean isKeyframe,
@@ -206,7 +206,7 @@ final class Mcv2ParserPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  void symbolsCarryAnyBytesExactly(@ForAll @Size(max = 2000) final byte[] data) throws Mcv2Exception {
+  void shouldCarryAnyBytesExactlyInSymbols(@ForAll @Size(max = 2000) final byte[] data) throws Mcv2Exception {
     assertArrayEquals(data, TransportPages.fromSymbols(TransportPages.toSymbols(data), data.length));
   }
 
@@ -216,7 +216,7 @@ final class Mcv2ParserPropertyTest {
    * before.
    */
   @Property(seed = SEED, tries = 300)
-  void pagesCarryTheirFrameInAnyOrder(
+  void shouldCarryTheFrameAcrossPagesInAnyOrder(
     @ForAll @IntRange(min = 0, max = 1000) final int index,
     @ForAll @LongRange(min = 0, max = 0xFFFFFFFFL) final long stream,
     @ForAll final long seed

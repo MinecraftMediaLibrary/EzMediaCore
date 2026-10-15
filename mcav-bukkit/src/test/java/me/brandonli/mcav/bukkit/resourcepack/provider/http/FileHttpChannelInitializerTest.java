@@ -84,7 +84,7 @@ final class FileHttpChannelInitializerTest {
   }
 
   @Test
-  void addsTheTimeoutsInFrontOfTheFileHandler() throws ReflectiveOperationException {
+  void shouldAddTheTimeoutsInFrontOfTheFileHandler() throws ReflectiveOperationException {
     final Connection connection = new Connection();
     final SocketChannel channel = connection.channel;
     final ChannelPipeline pipeline = connection.pipeline;
@@ -139,7 +139,7 @@ final class FileHttpChannelInitializerTest {
   }
 
   @Test
-  void refusesMoreConnectionsThanTheLimitAndCountsThemBackDown() {
+  void shouldRefuseMoreConnectionsThanTheLimitAndCountThemBackDown() {
     final FileHttpChannelInitializer initializer = new FileHttpChannelInitializer(this.pack, 2);
     final Connection first = new Connection();
     final Connection second = new Connection();
@@ -169,12 +169,12 @@ final class FileHttpChannelInitializerTest {
   }
 
   @Test
-  void refusesANonPositiveConnectionLimit() {
+  void shouldRefuseANonPositiveConnectionLimit() {
     assertThrows(IllegalArgumentException.class, () -> new FileHttpChannelInitializer(this.pack, 0));
   }
 
   @Test
-  void closesConnectionsThatStaySilentBeforeTheRequestIsComplete() {
+  void shouldCloseConnectionsThatStaySilentBeforeTheRequestIsComplete() {
     final EmbeddedChannel channel = this.createChannel();
     final ByteBuf partialRequest = Unpooled.copiedBuffer("GET / HTTP/1.1\r\n", StandardCharsets.US_ASCII);
     final long almostTimedOut = FileHttpChannelInitializer.READ_TIMEOUT_SECONDS - 1;

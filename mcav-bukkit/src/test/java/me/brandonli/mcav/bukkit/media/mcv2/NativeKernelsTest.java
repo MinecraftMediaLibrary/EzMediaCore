@@ -72,7 +72,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void refusesShortContiguousFitArrays() {
+  void shouldRefuseShortContiguousFitArrays() {
     final NativeKernels kernels = failing();
     refused(() -> kernels.fit(new float[8 * 8 - 1], 8, new float[16]));
     refused(() -> kernels.fit(new float[8 * 8], 8, new float[15]));
@@ -83,7 +83,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void forgetsTheArraysItWasPassed() {
+  void shouldForgetTheArraysItWasPassed() {
     final NativeKernels kernels = failing();
     final byte[] picture = new byte[16 * 16 * 3];
     final int[] block = new int[8 * 8 * 3];
@@ -95,7 +95,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void releasesTheSegmentsThatKeepFrameArraysReachable() {
+  void shouldReleaseTheSegmentsThatKeepFrameArraysReachable() {
     final Class<?> type = Mcv2Internals.nested("NativeKernels");
     final Object target = Mcv2Internals.construct(
       type,
@@ -113,7 +113,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void checksEveryIndexBeforeTheCall() {
+  void shouldCheckEveryIndexBeforeTheCall() {
     final NativeKernels kernels = failing();
     final int[] block = new int[8 * 8 * 3];
     final int[] small = new int[8 * 8 * 3 - 1];
@@ -177,7 +177,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void refusesEachBadArgumentInTheKernelThatTakesIt() {
+  void shouldRefuseEachBadArgumentInTheKernelThatTakesIt() {
     // every other argument is valid, so a kernel that skipped the check would reach the failing library instead
     final NativeKernels kernels = failing();
     final int[] big = new int[32 * 32 * 3];
@@ -204,7 +204,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void passesEveryLimitItselfToTheLibrary() {
+  void shouldPassEveryLimitItselfToTheLibrary() {
     // a comparison one step too strict would refuse the limit instead of reaching the failing library
     final NativeKernels kernels = failing();
     final int[] block = new int[8 * 8 * 3];
@@ -227,7 +227,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void reportsAKernelThatFails() {
+  void shouldReportAKernelThatFails() {
     final NativeKernels kernels = failing();
     final int[] block = new int[8 * 8 * 3];
     final byte[] record = new byte[64];
@@ -250,7 +250,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void keepsTheDistortionOfAFinishedBlockOnly() {
+  void shouldKeepTheDistortionOfAFinishedBlockOnly() {
     final NativeKernels stopped = NativeTesting.kernels(
       new Binding(Level.SCALAR, (name, descriptor) -> returning(descriptor, name.equals("predicted") ? -1L : null))
     );
@@ -269,7 +269,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void computesEveryKernelAsJavaDoesAtEveryLevel() {
+  void shouldComputeEveryKernelAsJavaDoesAtEveryLevel() {
     for (final Level level : NativeTesting.levels()) {
       final NativeKernels kernels = NativeTesting.kernels(level);
       for (int kernel = 0; kernel < KernelDifferential.KERNELS; kernel++) {
@@ -285,7 +285,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void checksCompactQuantizersAndExactRecordBoundaries() {
+  void shouldCheckCompactQuantizersAndExactRecordBoundaries() {
     final NativeKernels kernels = failing();
     final int[] block = new int[8 * 8 * 3];
     kernels.start(block, 0, 1);
@@ -298,7 +298,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void refusesShortPaletteColorArraysBeforeDispatch() {
+  void shouldRefuseShortPaletteColorArraysBeforeDispatch() {
     final NativeKernels kernels = failing();
     final int[] block = new int[8 * 8 * 3];
     refused(() -> kernels.finishPalette(block, 64, new int[6], new int[5], new byte[64]));
@@ -306,7 +306,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void reconstructsTheFixedLumaRecordAtEveryQuantizer() {
+  void shouldReconstructTheFixedLumaRecordAtEveryQuantizer() {
     final int[] source = new int[8 * 8 * 3];
     final int[] prediction = new int[source.length];
     Arrays.fill(source, 128);
@@ -329,7 +329,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void computesContiguousLumaResidualsIncludingTheVectorTail() {
+  void shouldComputeContiguousLumaResidualsIncludingTheVectorTail() {
     final int[] source = new int[17 * 3];
     final int[] prediction = new int[source.length];
     final float[] expected = new float[18];
@@ -357,7 +357,7 @@ final class NativeKernelsTest {
   }
 
   @Test
-  void predictsUnscaledBytesAndKeepsIntegerPaletteMeans() {
+  void shouldPredictUnscaledBytesAndKeepIntegerPaletteMeans() {
     for (final Level level : NativeTesting.levels()) {
       final NativeKernels kernels = NativeTesting.kernels(level);
       final byte[] reference = new byte[8 * 8 * 3];

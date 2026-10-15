@@ -41,7 +41,7 @@ final class MCV2GoldenTest {
   private static final int HEIGHT = 180;
 
   @Test
-  void pinsEightFramesOfThePanningScene() {
+  void shouldPinEightFramesOfThePanningScene() {
     final List<Settings> settings = List.of(Settings.DEFAULT, Settings.FAST);
     final List<String> expected = List.of(
       "65221d9c66059ed6c8178572845687f9548a42235223ca65d6d6f0d29ff38cad",
@@ -76,7 +76,7 @@ final class MCV2GoldenTest {
     "crop-fast.mcs, 4, true",
     "crop-fast.mcs, 4, false",
   })
-  void reproducesTheGoldenEncoder(final String stream, final int threads, final boolean shouldVerify) {
+  void shouldReproduceTheGoldenEncoder(final String stream, final int threads, final boolean shouldVerify) {
     final Settings settings = stream.equals("crop-default.mcs") ? Settings.DEFAULT : Settings.FAST;
     final List<byte[]> expected = Mcv2Fixtures.frames(Mcv2Fixtures.read("encoder/" + stream));
     final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");

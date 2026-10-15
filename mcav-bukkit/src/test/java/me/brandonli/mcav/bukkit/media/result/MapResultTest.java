@@ -118,7 +118,7 @@ final class MapResultTest {
   }
 
   @Test
-  void sendsTheCompletePictureInEveryFrame() {
+  void shouldSendTheCompletePictureInEveryFrame() {
     final MapConfiguration configuration = createConfiguration(false);
     final MapResult result = new MapResult(configuration);
     result.start();
@@ -135,7 +135,7 @@ final class MapResultTest {
   }
 
   @Test
-  void resizesFramesWhenConfigured() {
+  void shouldResizeFramesWhenConfigured() {
     final MapConfiguration configuration = createConfiguration(true);
     final MapResult result = new MapResult(configuration);
     final ImageBuffer image = Images.solid(128, 128, 0xFF102030);
@@ -154,7 +154,7 @@ final class MapResultTest {
 
   @ParameterizedTest
   @ValueSource(ints = { 1, 3 })
-  void shrinkingAFrameClearsTheEntirePreviousPicture(final int columns) {
+  void shouldClearTheEntirePreviousPictureWhenShrinkingAFrame(final int columns) {
     final MapResult result = new MapResult(createGridConfiguration(columns, 1));
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenAnswer(invocation -> {
       final ImageBuffer frame = invocation.getArgument(0);
@@ -192,7 +192,7 @@ final class MapResultTest {
   }
 
   @Test
-  void clearsTheMapsWhenReleased() {
+  void shouldClearTheMapsWhenReleased() {
     final MapConfiguration configuration = createConfiguration(false);
     final MapResult result = new MapResult(configuration);
     result.release();
@@ -203,7 +203,7 @@ final class MapResultTest {
   }
 
   @Test
-  void clearsEveryMapOfTheGridWhenReleased() {
+  void shouldClearEveryMapOfTheGridWhenReleased() {
     final MapConfiguration configuration = createGridConfiguration(2, 2);
     final MapResult result = new MapResult(configuration);
 
@@ -222,7 +222,7 @@ final class MapResultTest {
 
   @ParameterizedTest
   @ValueSource(ints = { 3, 5 })
-  void rejectsDitheredPixelsWhoseLengthDoesNotMatchTheImage(final int length) {
+  void shouldRejectDitheredPixelsWhoseLengthDoesNotMatchTheImage(final int length) {
     final MapResult result = new MapResult(createConfiguration(false));
     when(this.algorithm.ditherIntoBytes(any(ImageBuffer.class))).thenReturn(new byte[length]);
     try (final ImageBuffer image = Images.solid(2, 2, 0xFF102030)) {
@@ -233,7 +233,7 @@ final class MapResultTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final MapConfiguration configuration = createConfiguration(false);
     final MapResult result = new MapResult(configuration);
 

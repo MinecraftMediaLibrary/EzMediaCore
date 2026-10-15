@@ -41,12 +41,12 @@ import org.junit.jupiter.api.Test;
 final class Mcv2DecoderFormatTest {
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Decoder.class);
   }
 
   @Test
-  void readsAndWritesLittleEndianIntegers() {
+  void shouldReadAndWriteLittleEndianIntegers() {
     final byte[] data = new byte[6];
     putU16(data, 0, 0xBEEF);
     putU32(data, 2, 0xDEADBEEFL);
@@ -57,7 +57,7 @@ final class Mcv2DecoderFormatTest {
   }
 
   @Test
-  void sizesEveryFixedRecord() {
+  void shouldSizeEveryFixedRecord() {
     assertEquals(0, recordSize(MODE_SKIP, 32));
     assertEquals(2, recordSize(MODE_MOTION, 32));
     assertEquals(3, recordSize(MODE_SOLID, 8));
@@ -71,21 +71,21 @@ final class Mcv2DecoderFormatTest {
   }
 
   @Test
-  void acceptsOnlyTheThreeLeafSizes() {
+  void shouldAcceptOnlyTheThreeLeafSizes() {
     for (int size = -1; size <= 64; size++) {
       assertEquals(size == 8 || size == 16 || size == 32, Mcv2Decoder.isBlockSize(size));
     }
   }
 
   @Test
-  void sizesPatternRecords() {
+  void shouldSizePatternRecords() {
     assertEquals(6 + 1 + 1, patternSize(8));
     assertEquals(6 + 1 + 4, patternSize(32));
     assertEquals(6 + 1 + 2, patternSize(16));
   }
 
   @Test
-  void sizesTheWalkRegion() throws Mcv2Exception {
+  void shouldSizeTheWalkRegion() throws Mcv2Exception {
     for (int descriptors = 0; descriptors < 40; descriptors++) {
       final byte[] modes = new byte[descriptors];
       final byte[] frame = Mcv2WireFrames.frame(1280, 32, true, modes, new byte[descriptors][0], new int[] { descriptors, 0, 0 });
@@ -94,7 +94,7 @@ final class Mcv2DecoderFormatTest {
   }
 
   @Test
-  void signExtends() {
+  void shouldSignExtendValues() {
     assertEquals(-1, signed(0xF, 4));
     assertEquals(7, signed(0x7, 4));
     assertEquals(-8, signed(0x8, 4));

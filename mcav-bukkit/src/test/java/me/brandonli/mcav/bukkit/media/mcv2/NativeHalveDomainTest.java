@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 final class NativeHalveDomainTest {
 
   @Test
-  void unsupportedSimdRowsAreRefusedBeforeNativeDispatch() {
+  void shouldRefuseUnsupportedSimdRowsBeforeNativeDispatch() {
     final NativeKernels kernels = NativeTesting.kernels(new Binding(Level.AVX2, (_, descriptor) -> failingBoundary(descriptor)));
     assertThrows(IllegalArgumentException.class, () -> kernels.halve(new int[18 * 18 * 3], 18, new int[9 * 9 * 3]));
     // every even size that is no power of two leaves a part of a row to a vector loop of some level

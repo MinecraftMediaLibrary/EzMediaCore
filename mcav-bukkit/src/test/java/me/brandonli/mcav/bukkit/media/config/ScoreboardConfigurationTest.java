@@ -43,7 +43,7 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
     builder.viewers(viewers);
@@ -64,7 +64,7 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
+  void shouldReturnTheSameBuilderFromSetters() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
@@ -80,7 +80,7 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
+  void shouldRejectNullInSetters() {
     final ScoreboardConfiguration.Builder<?> builder = ScoreboardConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
@@ -88,7 +88,7 @@ final class ScoreboardConfigurationTest {
   }
 
   @Test
-  void rejectsMissingOrInvalidValues() {
+  void shouldRejectMissingOrInvalidValues() {
     final ScoreboardConfiguration.Builder<?> noViewers = ScoreboardConfiguration.builder();
     noViewers.character("x");
     noViewers.lines(1);

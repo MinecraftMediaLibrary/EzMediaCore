@@ -94,7 +94,7 @@ final class Mcv2ChannelUnsentLimitTest {
   }
 
   @Test
-  void showsTheScreenToAViewerWhoseConnectionRefusesTheLimit() {
+  void shouldShowTheScreenToAViewerWhoseConnectionRefusesTheLimit() {
     final Mcv2Viewers viewers = viewers();
     final Mcv2Screen screen = screen();
     final Mcv2Configuration configuration = configuration(4096);
@@ -114,7 +114,7 @@ final class Mcv2ChannelUnsentLimitTest {
   }
 
   @Test
-  void leavesTheConnectionAloneForAScreenWithoutALimit() {
+  void shouldLeaveTheConnectionAloneForAScreenWithoutALimit() {
     final Mcv2Screen screen = screen();
     try (final MockedStatic<PacketUtils> packets = mockStatic(PacketUtils.class, CALLS_REAL_METHODS)) {
       final Mcv2Channel channel = new Mcv2Channel(configuration(0), viewers(), screen);

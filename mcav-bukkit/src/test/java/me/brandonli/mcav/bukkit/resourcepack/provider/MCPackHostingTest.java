@@ -182,7 +182,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void keepsUntrustedFileNamesInsideOneMultipartHeader() {
+  void shouldKeepUntrustedFileNamesInsideOneMultipartHeader() {
     final Path path = mock(Path.class);
     final Path name = mock(Path.class);
     when(path.getFileName()).thenReturn(name);
@@ -195,7 +195,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void uploadsThePackAsAMultipartFormAndCachesTheDownloadUrl() throws Exception {
+  void shouldUploadThePackAsAMultipartFormAndCacheTheDownloadUrl() throws Exception {
     final MCPackHosting hosting = this.createHosting(this.zip);
     assertThrows(IllegalStateException.class, hosting::getRawUrl);
 
@@ -217,7 +217,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void reusesTheUploadOfAnIdenticalPackWhileItIsStillAvailable() throws IOException {
+  void shouldReuseTheUploadOfAnIdenticalPackWhileItIsStillAvailable() throws IOException {
     final MCPackHosting first = this.createHosting(this.zip);
     final Path copy = this.directory.resolve("copy.zip");
     final MCPackHosting second = this.createHosting(copy);
@@ -236,7 +236,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void uploadsThePackAgainWhenTheCachedDownloadIsGone() throws Exception {
+  void shouldUploadThePackAgainWhenTheCachedDownloadIsGone() throws Exception {
     final MCPackHosting first = this.createHosting(this.zip);
     final MCPackHosting second = this.createHosting(this.zip);
 
@@ -254,7 +254,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void uploadsThePackAgainWhenTheCachedUrlIsInvalid() throws Exception {
+  void shouldUploadThePackAgainWhenTheCachedUrlIsInvalid() throws Exception {
     final String hash = sha1(PACK);
     final Path cacheFile = getCacheFile();
     Files.writeString(cacheFile, "{\"" + hash + "\": \"not a url\"}");
@@ -273,7 +273,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void uploadsChangedPacksAgain() throws Exception {
+  void shouldUploadChangedPacksAgain() throws Exception {
     final MCPackHosting first = this.createHosting(this.zip);
     final MCPackHosting second = this.createHosting(this.zip);
 
@@ -292,7 +292,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void reportsRejectedUploads() {
+  void shouldReportRejectedUploads() {
     this.service.rejectUploads();
     final MCPackHosting hosting = this.createHosting(this.zip);
 
@@ -307,7 +307,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void reportsUnreachableServices() throws IOException {
+  void shouldReportUnreachableServices() throws IOException {
     final int port;
     try (final ServerSocket socket = new ServerSocket(0)) {
       port = socket.getLocalPort();
@@ -322,7 +322,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void keepsTheInterruptFlagWhenInterruptedDuringTheUpload() {
+  void shouldKeepTheInterruptFlagWhenInterruptedDuringTheUpload() {
     final Thread testThread = Thread.currentThread();
     final CountDownLatch release = new CountDownLatch(1);
     this.service.setUploadHook(() -> {
@@ -355,7 +355,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void reportsPacksThatCannotBeRead() {
+  void shouldReportPacksThatCannotBeRead() {
     final Path missing = this.directory.resolve("missing.zip");
     final MCPackHosting hosting = this.createHosting(missing);
 
@@ -371,7 +371,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void treatsCorruptCachesAsEmpty() throws Exception {
+  void shouldTreatCorruptCachesAsEmpty() throws Exception {
     final Path cacheFile = getCacheFile();
     final MCPackHosting corrupt = this.createHosting(this.zip);
     final MCPackHosting empty = this.createHosting(this.zip);
@@ -390,7 +390,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void usesTheUploadAndLogsAWarningWhenTheCacheCannotBeWritten() throws Exception {
+  void shouldUseTheUploadAndLogAWarningWhenTheCacheCannotBeWritten() throws Exception {
     final Path cacheFile = getCacheFile();
     Files.createDirectory(cacheFile);
     final MCPackHosting hosting = this.createHosting(this.zip);
@@ -435,7 +435,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void leavesTheUploadCacheLockFreeForTheNextPack() throws Exception {
+  void shouldLeaveTheUploadCacheLockFreeForTheNextPack() throws Exception {
     final MCPackHosting first = this.createHosting(this.zip);
     final Path other = this.directory.resolve("other.zip");
     Files.write(other, OTHER_PACK);
@@ -455,7 +455,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void hashesBytesAsLowercaseHexadecimal() {
+  void shouldHashBytesAsLowercaseHexadecimal() {
     final byte[] abc = "abc".getBytes(StandardCharsets.US_ASCII);
 
     final String hash = MCPackHosting.hash(abc, "SHA-1");
@@ -467,7 +467,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void keepsThePackAvailableAfterShutdown() {
+  void shouldKeepThePackAvailableAfterShutdown() {
     final MCPackHosting hosting = this.createHosting(this.zip);
 
     hosting.start();
@@ -481,7 +481,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void isCreatedByTheWebsiteFactory() {
+  void shouldBeCreatedByTheWebsiteFactory() {
     final WebsiteHosting hosting = PackHosting.website(this.zip);
 
     final Path hostedZip = hosting.getZip();
@@ -497,7 +497,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessage() {
+  void shouldKeepTheMessageInExceptions() {
     final MCPacksException exception = new MCPacksException("message");
 
     final String message = exception.getMessage();
@@ -508,7 +508,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
     final IOException failure = new IOException("cause");
     final MCPacksException exception = new MCPacksException("message", failure);
 
@@ -520,7 +520,7 @@ final class MCPackHostingTest {
   }
 
   @Test
-  void exceptionsAreRuntimeExceptions() {
+  void shouldMakeExceptionsRuntimeExceptions() {
     final MCPacksException exception = new MCPacksException("message");
     assertInstanceOf(RuntimeException.class, exception, "a failed upload is recoverable, so it is no Error");
   }

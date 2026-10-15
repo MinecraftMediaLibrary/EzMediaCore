@@ -92,12 +92,12 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Natives.class);
   }
 
   @Test
-  void namesThePlatformsTheJarHasLibrariesFor() {
+  void shouldNameThePlatformsTheJarHasLibrariesFor() {
     assertEquals("linux-x86_64", Natives.platform("Linux", "amd64"));
     assertEquals("linux-x86_64", Natives.platform("linux", "x86_64"));
     assertEquals("linux-aarch64", Natives.platform("Linux", "aarch64"));
@@ -113,7 +113,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void shipsTheLibrariesItsDigestsName() throws IOException {
+  void shouldShipTheLibrariesItsDigestsName() throws IOException {
     final Map<String, String> listed = new HashMap<>();
     try (final InputStream sums = MCV2.class.getResourceAsStream("/mcav/mcv2/natives/SHA256SUMS")) {
       assertNotNull(sums);
@@ -136,7 +136,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void readsALibraryOrNothing() {
+  void shouldReadALibraryOrNothing() {
     assertNull(Natives.read(null));
     assertArrayEquals(new byte[] { 1, 2 }, Natives.read(new ByteArrayInputStream(new byte[] { 1, 2 })));
     final InputStream failing = new InputStream() {
@@ -154,7 +154,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void readsGeneratedDigestsAndRefusesMalformedManifests() {
+  void shouldReadGeneratedDigestsAndRefuseMalformedManifests() {
     final String digest = "a".repeat(64);
     final String entry = digest + "  linux-x86_64/libmcv2kernels.so\n";
     assertEquals(Map.of("linux-x86_64", digest), Natives.digests(new ByteArrayInputStream(entry.getBytes(StandardCharsets.US_ASCII))));
@@ -192,7 +192,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void runsJavaWhenOffUnknownOrWithoutALibrary() {
+  void shouldRunJavaWhenOffUnknownOrWithoutALibrary() {
     final Resolution off = Natives.resolve(MCV2.NATIVE_OFF, "linux-x86_64", this.folder, Mcv2NativesTest::unexpected, null);
     assertNull(off.binding());
     assertFalse(off.failed());
@@ -224,7 +224,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void refusesALibraryThatDoesNotMatchOrCannotBePlaced() throws IOException {
+  void shouldRefuseALibraryThatDoesNotMatchOrCannotBePlaced() throws IOException {
     final String digest = Mcv2Resources.sha256(NOT_A_LIBRARY);
     final Resolution altered = Natives.load("linux-x86_64", "0".repeat(64), NOT_A_LIBRARY, this.folder, null);
     assertTrue(altered.failed());
@@ -242,7 +242,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void extractsOnceUnderItsDigestAndReplacesAnythingElse() throws IOException {
+  void shouldExtractOnceUnderItsDigestAndReplaceAnythingElse() throws IOException {
     final String digest = Mcv2Resources.sha256(NOT_A_LIBRARY);
     final Path folder = this.folder.resolve("created");
     final Path file = Natives.extract(folder, "library", NOT_A_LIBRARY, digest);
@@ -263,7 +263,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void choosesTheBestLevelAtMostTheHighestAsked() {
+  void shouldChooseTheBestLevelAtMostTheHighestAsked() {
     // an Ice Lake: scalar, sse2, sse41, avx2 and avx512
     final int iceLake = 1 | 16 | 2 | 4 | 32;
     assertEquals(Level.AVX512, Natives.level(iceLake, null));
@@ -287,7 +287,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void readsTheProcessorFeaturesLinuxGives() throws IOException {
+  void shouldReadTheProcessorFeaturesLinuxGives() throws IOException {
     assertEquals(0, Natives.hardwareCapabilities(this.folder.resolve("missing")));
     // AT_PAGESZ, AT_HWCAP, AT_NULL, and the start of another entry
     final ByteBuffer vector = ByteBuffer.allocate(56).order(ByteOrder.nativeOrder());
@@ -305,7 +305,7 @@ final class Mcv2NativesTest {
 
   @Test
   @SuppressWarnings("restricted")
-  void passesLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
+  void shouldPassLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
     assumeTrue(NativeTesting.expected(), "no library loads here");
     final long features = Natives.hardwareCapabilities(Path.of("/proc/self/auxv"));
     assumeTrue(features != 0, "Linux must supply processor feature bits");
@@ -327,7 +327,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void warnsOnlyWhenNativeResolutionFails() {
+  void shouldWarnOnlyWhenNativeResolutionFails() {
     Natives.install(this.folder, MCV2.NATIVE_OFF);
     try (final LogCapture logs = LogCapture.capture(MCV2.class)) {
       assertFalse(Natives.resolved().failed());
@@ -357,7 +357,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void runsTheLevelsProcCpuinfoListsTheFeaturesOf() throws IOException {
+  void shouldRunTheLevelsProcCpuinfoListsTheFeaturesOf() throws IOException {
     assumeTrue(NativeTesting.expected(), "no library loads here");
     final Path cpuinfo = Path.of("/proc/cpuinfo");
     assumeTrue(Files.isReadable(cpuinfo), "no /proc/cpuinfo here");
@@ -398,7 +398,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void bindsTheLibraryAndRefusesAWrongOne() {
+  void shouldBindTheLibraryAndRefuseAWrongOne() {
     assumeTrue(NativeTesting.expected(), "no library loads here");
     final SymbolLookup library = NativeTesting.library();
     final int levels = NativeTesting.resolution().levels();
@@ -430,7 +430,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void loadsTheExpectedKernelsAndTellsWhich() throws IOException {
+  void shouldLoadTheExpectedKernelsAndTellWhich() throws IOException {
     Natives.install(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
     if (NativeTesting.expected()) {
       assertTrue(MCV2.describeNatives().startsWith("native "), MCV2.describeNatives());
@@ -457,7 +457,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  void publicInstallationSelectsEachLevelAndPreservesExistingEncoders() {
+  void shouldSelectEachLevelAndPreserveExistingEncodersOnPublicInstallation() {
     // the library loads from NativeTesting's folder, not the temporary one: Windows keeps a loaded library locked, so
     // JUnit could not delete the temporary folder after the test
     MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_OFF);

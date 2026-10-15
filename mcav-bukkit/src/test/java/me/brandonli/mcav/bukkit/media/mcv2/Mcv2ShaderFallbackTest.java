@@ -80,7 +80,7 @@ final class Mcv2ShaderFallbackTest {
   }
 
   @Test
-  void aPlayerReportingShadersInUseGetsTheDitheredMapsUntilTheyReportThemOff() {
+  void shouldShowTheDitheredMapsToAPlayerReportingShadersInUseUntilTheyReportThemOff() {
     this.load(this.player);
     final Mcv2Channel channel = this.channel(List.of(VIEWER));
     channel.update();
@@ -99,7 +99,7 @@ final class Mcv2ShaderFallbackTest {
   }
 
   @Test
-  void aPlayerWhoReportedShadersBeforeTheirPackLoadedIsNeverShownTheFrames() {
+  void shouldNeverShowTheFramesToAPlayerWhoReportedShadersBeforeTheirPackLoaded() {
     this.server.receivePluginMessage(this.latePlayer, CHANNEL, SHADERS_ON);
     this.load(this.latePlayer);
     final Mcv2Channel channel = this.channel(List.of(LATE_VIEWER));
@@ -110,7 +110,7 @@ final class Mcv2ShaderFallbackTest {
   }
 
   @Test
-  void listensToTheChannelWhileRegisteredAndForgetsAPlayerWhoLeft() {
+  void shouldListenToTheChannelWhileRegisteredAndForgetAPlayerWhoLeft() {
     assertTrue(this.server.getMessenger().isIncomingChannelRegistered(this.server.getPlugin(), CHANNEL));
     this.load(this.player);
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_ON);

@@ -194,7 +194,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void createsTheDisplayForEveryKindOfConfiguration() {
+  void shouldCreateTheDisplayForEveryKindOfConfiguration() {
     final MapConfiguration mapConfiguration = createMapConfiguration(false);
     final ChatConfiguration chatConfiguration = createChatConfiguration();
     final EntityConfiguration entityConfiguration = this.createEntityConfiguration();
@@ -215,7 +215,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void rejectsMissingConfigurations() {
+  void shouldRejectMissingConfigurations() {
     final MapConfiguration mapConfiguration = createMapConfiguration(false);
 
     assertThrows(NullPointerException.class, () -> DisplayableImage.map(null, this.algorithm));
@@ -227,7 +227,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void mapImagesKeepTheirSizeAreCenteredAndClearedAgain() {
+  void shouldKeepTheSizeOfMapImagesCenterThemAndClearThemAgain() {
     final MapConfiguration configuration = createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(32, 16, 0xFF808080);
@@ -251,7 +251,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void mapImagesClearEveryMapOfTheirGrid() {
+  void shouldClearEveryMapOfTheGridOfAMapImage() {
     final MapConfiguration configuration = createMapGridConfiguration(2, 2);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
 
@@ -267,7 +267,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void mapImagesLargerThanTheMapsAreCroppedEquallyOnEverySide() {
+  void shouldCropMapImagesLargerThanTheMapsEquallyOnEverySide() {
     final MapConfiguration configuration = createMapConfiguration(false);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(256, 130, 0xFF808080);
@@ -287,7 +287,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void mapImagesAreResizedWhenTheConfigurationAsksForIt() {
+  void shouldResizeMapImagesWhenTheConfigurationAsksForIt() {
     final MapConfiguration configuration = createMapConfiguration(true);
     final DisplayableImage display = DisplayableImage.map(configuration, this.algorithm);
     final ImageBuffer image = Images.solid(128, 128, 0xFF808080);
@@ -303,7 +303,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void chatImagesReplaceThePreviousImageAndClearTheChatAgain() {
+  void shouldReplaceThePreviousChatImageAndClearTheChatAgain() {
     final ChatConfiguration configuration = createChatConfiguration();
     final DisplayableImage display = DisplayableImage.chat(configuration);
     final ImageBuffer image = Images.solid(4, 2, 0xFF808080);
@@ -323,7 +323,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void entityImagesSpawnADisplayAndRemoveItAgain() {
+  void shouldSpawnADisplayForEntityImagesAndRemoveItAgain() {
     final EntityConfiguration configuration = this.createEntityConfiguration();
     final DisplayableImage display = DisplayableImage.entity(configuration);
     final ImageBuffer image = Images.solid(1, 1, 0xFF808080);
@@ -351,7 +351,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void scoreboardImagesShowTheSidebarAndRestoreThePreviousScoreboard() {
+  void shouldShowTheSidebarForScoreboardImagesAndRestoreThePreviousScoreboard() {
     final ScoreboardManager manager = this.server.getScoreboardManager();
     final FakeScoreboards scoreboards = FakeScoreboards.install(manager);
     final Scoreboard previous = mock(CraftScoreboard.class);
@@ -376,7 +376,7 @@ final class DisplayableImageTest {
   }
 
   @Test
-  void blockImagesShowBlocksAndRestoreTheWorldAgain() {
+  void shouldShowBlocksForBlockImagesAndRestoreTheWorldAgain() {
     final BlockConfiguration configuration = this.createBlockConfiguration();
     final DisplayableImage display = DisplayableImage.block(configuration);
     final ImageBuffer image = Images.solid(1, 1, 0xFF000000 | BROWN);

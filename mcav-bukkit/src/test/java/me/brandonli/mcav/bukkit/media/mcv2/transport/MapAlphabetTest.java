@@ -29,12 +29,12 @@ import org.junit.jupiter.api.Test;
 final class MapAlphabetTest {
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(MapAlphabet.class);
   }
 
   @Test
-  void mapsSymbolsToColoursAndBack() throws Mcv2Exception {
+  void shouldMapSymbolsToColoursAndBack() throws Mcv2Exception {
     final byte[] colors = MapAlphabet.toMapColors(new byte[] { 0, 63, 1 });
     assertEquals(128, colors.length);
     assertEquals(4, colors[0]);
@@ -47,7 +47,7 @@ final class MapAlphabetTest {
   }
 
   @Test
-  void refusesSymbolsAndColoursOutsideTheAlphabet() {
+  void shouldRefuseSymbolsAndColoursOutsideTheAlphabet() {
     assertThrows(IllegalArgumentException.class, () -> MapAlphabet.toMapColors(new byte[] { 64 }));
     assertThrows(IllegalArgumentException.class, () -> MapAlphabet.toMapColors(new byte[16385]));
     assertThrows(Mcv2Exception.class, () -> MapAlphabet.fromMapColors(new byte[] { 3 }));

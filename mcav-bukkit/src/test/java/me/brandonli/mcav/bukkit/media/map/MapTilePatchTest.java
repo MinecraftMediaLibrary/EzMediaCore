@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class MapTilePatchTest {
 
   @Test
-  void storesTheRectangleAndItsColorsWithoutCopying() {
+  void shouldStoreTheRectangleAndItsColorsWithoutCopying() {
     final byte[] colors = { 1, 2, 3, 4, 5, 6 };
     final MapTilePatch patch = new MapTilePatch(7, 1, 2, 3, 2, colors);
     final int mapId = patch.getMapId();
@@ -48,7 +48,7 @@ final class MapTilePatchTest {
   }
 
   @Test
-  void estimatesTheEncodedSizeFromTheColorsAndTheOverhead() {
+  void shouldEstimateTheEncodedSizeFromTheColorsAndTheOverhead() {
     final byte[] colors = new byte[6];
     final MapTilePatch patch = new MapTilePatch(0, 0, 0, 3, 2, colors);
     final int size = patch.getEncodedSize();
@@ -57,7 +57,7 @@ final class MapTilePatchTest {
   }
 
   @Test
-  void acceptsPatchesThatTouchTheBorderOfTheMap() {
+  void shouldAcceptPatchesThatTouchTheBorderOfTheMap() {
     final byte[] fullColors = new byte[128 * 128];
     final byte[] cornerColors = new byte[8 * 8];
     final MapTilePatch full = new MapTilePatch(0, 0, 0, 128, 128, fullColors);
@@ -70,7 +70,7 @@ final class MapTilePatchTest {
   }
 
   @Test
-  void rejectsRectanglesOutsideOfTheMap() {
+  void shouldRejectRectanglesOutsideOfTheMap() {
     final byte[] one = new byte[1];
     final byte[] eight = new byte[8];
 
@@ -83,7 +83,7 @@ final class MapTilePatchTest {
   }
 
   @Test
-  void rejectsOriginsWhoseRectangleEndsOverflow() {
+  void shouldRejectOriginsWhoseRectangleEndsOverflow() {
     final byte[] two = new byte[2];
 
     assertThrows(IllegalArgumentException.class, () -> new MapTilePatch(0, Integer.MAX_VALUE, 0, 2, 1, two));
@@ -91,7 +91,7 @@ final class MapTilePatchTest {
   }
 
   @Test
-  void rejectsInvalidIdsAndColors() {
+  void shouldRejectInvalidIdsAndColors() {
     final byte[] one = new byte[1];
     final byte[] two = new byte[2];
 

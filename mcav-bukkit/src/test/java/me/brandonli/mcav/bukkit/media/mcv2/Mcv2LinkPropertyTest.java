@@ -53,7 +53,7 @@ final class Mcv2LinkPropertyTest {
    * that the backlog is what was sent and not yet written.
    */
   @Property(seed = SEED, tries = 400)
-  boolean sendsOnlyFramesTheViewerCanDecode(
+  boolean shouldSendOnlyFramesTheViewerCanDecode(
     @ForAll("streams") final List<Step> steps,
     @ForAll @IntRange(min = 0, max = 1000) final int limit,
     @ForAll final boolean fromKeyframe

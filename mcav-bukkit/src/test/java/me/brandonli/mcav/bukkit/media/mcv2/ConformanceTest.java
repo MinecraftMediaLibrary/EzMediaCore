@@ -54,7 +54,7 @@ final class ConformanceTest {
 
   @ParameterizedTest(name = "{0}/{1}")
   @MethodSource("streams")
-  void decodesEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
+  void shouldDecodeEveryFrameBitExactly(final String folder, final String stream, final List<String> digests) throws Mcv2Exception {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(folder + "/" + stream));
     assertEquals(digests.size(), frames.size(), "frame count");
     final Mcv2Receiver receiver = new Mcv2Receiver();
@@ -79,7 +79,7 @@ final class ConformanceTest {
   /** Every invalid frame in the reference rejection corpus is refused. */
   @ParameterizedTest(name = "{0}")
   @MethodSource("rejected")
-  void refusesEveryFrameOfTheRejectionCorpus(final String name, final byte[] frame) {
+  void shouldRefuseEveryFrameOfTheRejectionCorpus(final String name, final byte[] frame) {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame), name);
   }
 }

@@ -74,7 +74,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void encodesAVideoFileLikeAFrameByFrameEncode() throws Exception {
+  void shouldEncodeAVideoFileLikeAFrameByFrameEncode() throws Exception {
     final Path video = TestMedia.video();
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final List<Long> progress = new ArrayList<>();
@@ -120,7 +120,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void keepsEveryFrameSmallEnoughForTheDefaultPageSlotsOfItsWall() throws Exception {
+  void shouldKeepEveryFrameSmallEnoughForTheDefaultPageSlotsOfItsWall() throws Exception {
     final int width = 8 * MapLayout.MAP_SIZE;
     final int height = 4 * MapLayout.MAP_SIZE;
     final int limit = Mcv2Configuration.MAX_PAGE_SLOTS * TransportPages.capacity();
@@ -140,7 +140,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void readsThePicturesOfAVideo() throws Exception {
+  void shouldReadThePicturesOfAVideo() throws Exception {
     final byte[] rgb = new byte[WIDTH * HEIGHT * Mcv2Decoder.CHANNELS];
     try (final Mcv2FileEncoder.FrameReader reader = Mcv2FileEncoder.ffmpeg(TestMedia.video(), WIDTH, HEIGHT)) {
       assertTrue(reader.read(rgb));
@@ -149,7 +149,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void countsTheKeyframesOfTheStreamItWrites() throws Exception {
+  void shouldCountTheKeyframesOfTheStreamItWrites() throws Exception {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     final Mcv2FileEncoder.Result result;
     try (final Pool budget = new Pool(1)) {
@@ -166,7 +166,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void measuresItsEncodesWithinTheTimeOfTheCall() throws Exception {
+  void shouldMeasureItsEncodesWithinTheTimeOfTheCall() throws Exception {
     final Mcv2FileEncoder.Result result;
     final long started = System.nanoTime();
     try (final Pool budget = new Pool(1)) {
@@ -185,7 +185,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void limitsFramesToTheDefaultPageSlotsOfAWallOfTheVideosNativeSize() {
+  void shouldLimitFramesToTheDefaultPageSlotsOfAWallOfTheVideosNativeSize() {
     final int capacity = TransportPages.capacity();
     assertEquals(capacity, Mcv2FileEncoder.screenFrameLimit(1, 1));
     assertEquals(capacity, Mcv2FileEncoder.screenFrameLimit(MapLayout.MAP_SIZE, MapLayout.MAP_SIZE));
@@ -224,7 +224,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void stopsWhenInterruptedAndClosesTheVideo() {
+  void shouldStopWhenInterruptedAndCloseTheVideo() {
     final AtomicBoolean closed = new AtomicBoolean();
     final Mcv2FileEncoder.FrameReader interrupting = new Mcv2FileEncoder.FrameReader() {
       @Override
@@ -250,7 +250,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void refusesWhatItCannotEncode() throws IOException {
+  void shouldRefuseWhatItCannotEncode() throws IOException {
     final Mcv2FileEncoder.FrameReader none = mock(Mcv2FileEncoder.FrameReader.class);
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     try (final Pool budget = new Pool(1)) {
@@ -270,7 +270,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void closesAVideoThatCannotStart() throws Exception {
+  void shouldCloseAVideoThatCannotStart() throws Exception {
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
     doThrow(new FFmpegFrameGrabber.Exception("no stream")).when(grabber).start();
     doThrow(new FFmpegFrameGrabber.Exception("not open")).when(grabber).close();
@@ -280,7 +280,7 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void reportsFramesItCannotDecodeAndAVideoItCannotClose() throws Exception {
+  void shouldReportFramesItCannotDecodeAndAVideoItCannotClose() throws Exception {
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
     when(grabber.grabImage()).thenThrow(new FFmpegFrameGrabber.Exception("broken"));
     doThrow(new FFmpegFrameGrabber.Exception("stuck")).when(grabber).close();
@@ -294,12 +294,12 @@ final class Mcv2FileEncoderTest {
   }
 
   @Test
-  void cannotBeInstantiated() throws ReflectiveOperationException {
+  void shouldNotBeInstantiable() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2FileEncoder.class);
   }
 
   @Test
-  void packsPaddedRows() {
+  void shouldPackPaddedRows() {
     final Frame frame = new Frame(2, 2, Frame.DEPTH_UBYTE, 3, 8);
     final ByteBuffer pixels = (ByteBuffer) frame.image[0];
     for (int index = 0; index < 16; index++) {

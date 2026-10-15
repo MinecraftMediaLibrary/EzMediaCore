@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2FitsTest {
 
   @Test
-  void recoversTheNodesOfAnInterpolatedField() {
+  void shouldRecoverTheNodesOfAnInterpolatedField() {
     for (int size = 8; size <= 32; size *= 2) {
       for (final int grid : new int[] { 4 }) {
         final float[] nodes = new float[grid * grid];
@@ -48,7 +48,7 @@ final class MCV2FitsTest {
   }
 
   @Test
-  void targetsLumaWithoutChromaResiduals() {
+  void shouldTargetLumaWithoutChromaResiduals() {
     final float[] target = new float[2];
     Mcv2Internals.javaKernels().residualTarget(new int[] { 40, 60, 80, 9, 2, 3 }, new int[] { 0, 255, 128, 9, 2, 3 }, 2, target);
     assertEquals(-99.5f, target[0]);
@@ -56,7 +56,7 @@ final class MCV2FitsTest {
   }
 
   @Test
-  void recoversAnEndpointClampedLinearRamp() {
+  void shouldRecoverAnEndpointClampedLinearRamp() {
     final float[] samples = { -3, -2.75f, -2.25f, -1.75f, -1.25f, -0.75f, -0.25f, 0 };
     final float[] values = new float[8 * 8];
     for (int row = 0; row < 8; row++) {

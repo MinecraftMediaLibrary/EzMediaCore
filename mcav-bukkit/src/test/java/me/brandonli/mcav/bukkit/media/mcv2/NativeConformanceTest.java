@@ -67,7 +67,7 @@ final class NativeConformanceTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void keepsNoFrameOnceItIsEncoded(final Level level) {
+  void shouldKeepNoFrameOnceItIsEncoded(final Level level) {
     final Supplier<?> factory = NativeTesting.factory(level);
     final List<NativeKernels> made = new CopyOnWriteArrayList<>();
     final MCV2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, false, () -> {
@@ -87,7 +87,7 @@ final class NativeConformanceTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void encodesEverySourceFixtureAsJavaDoes(final Level level) {
+  void shouldEncodeEverySourceFixtureAsJavaDoes(final Level level) {
     final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
     final int frameBytes = WIDTH * HEIGHT * 3;
     assertEquals(4 * frameBytes, source.length);
@@ -107,7 +107,7 @@ final class NativeConformanceTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("levels")
-  void pinsTheOutputOfTheLiveProfiles(final Level level) {
+  void shouldPinTheOutputOfTheLiveProfiles(final Level level) {
     final byte[] source = Mcv2Fixtures.read("encoder/crop-320x180x4.rgb");
     final int frameBytes = WIDTH * HEIGHT * 3;
     for (final String stream : List.of("crop-default.mcs", "crop-fast.mcs")) {
@@ -130,13 +130,13 @@ final class NativeConformanceTest {
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndStreams")
-  void reencodesTheEdgeCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
+  void shouldReencodeTheEdgeCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
     reencode(level, "edge/" + stream);
   }
 
   @ParameterizedTest(name = "{0} {1}")
   @MethodSource("levelsAndConformanceStreams")
-  void reencodesTheConformanceCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
+  void shouldReencodeTheConformanceCorpusAsJavaDoes(final Level level, final String stream) throws Mcv2Exception {
     reencode(level, "conformance/" + stream);
   }
 

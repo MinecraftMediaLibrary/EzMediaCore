@@ -51,7 +51,7 @@ import org.mockito.Mockito;
 final class FileDownloadProgressTest {
 
   @Test
-  void keepsAProgressingFileRegionOpenPastTheWriteTimeout(@TempDir final Path folder) throws Exception {
+  void shouldKeepAProgressingFileRegionOpenPastTheWriteTimeout(@TempDir final Path folder) throws Exception {
     final Path pack = folder.resolve("pack.zip");
     Files.write(pack, new byte[4096]);
     final SlowSocket channel = new SlowSocket();
@@ -83,7 +83,7 @@ final class FileDownloadProgressTest {
   }
 
   @Test
-  void forwardsCompletionAndCancelsItsDeadline() {
+  void shouldForwardCompletionAndCancelItsDeadline() {
     final HeldWrite held = new HeldWrite();
     final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
     channel.freezeTime();
@@ -103,7 +103,7 @@ final class FileDownloadProgressTest {
   }
 
   @Test
-  void forwardsTheOriginalWriteFailure() {
+  void shouldForwardTheOriginalWriteFailure() {
     final HeldWrite held = new HeldWrite();
     final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300));
     channel.freezeTime();
@@ -123,7 +123,7 @@ final class FileDownloadProgressTest {
   }
 
   @Test
-  void zeroProgressDoesNotExtendAStalledWrite() {
+  void shouldNotExtendAStalledWriteOnZeroProgress() {
     final HeldWrite held = new HeldWrite();
     final EmbeddedChannel channel = new EmbeddedChannel(held, new ProgressWriteTimeoutHandler(300), new IgnoreTimeout());
     channel.freezeTime();
@@ -142,7 +142,7 @@ final class FileDownloadProgressTest {
   }
 
   @Test
-  void removalCancelsDeadlinesEvenWhenTheWriteMakesLaterProgress() {
+  void shouldCancelDeadlinesOnRemovalEvenWhenTheWriteMakesLaterProgress() {
     final HeldWrite held = new HeldWrite();
     final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);
     final EmbeddedChannel channel = new EmbeddedChannel(held, handler, new IgnoreTimeout());
@@ -164,7 +164,7 @@ final class FileDownloadProgressTest {
   }
 
   @Test
-  void reportsAnExceptionThrownWhileExpiringAWrite() {
+  void shouldReportAnExceptionThrownWhileExpiringAWrite() {
     final EmbeddedChannel channel = new EmbeddedChannel();
     channel.freezeTime();
     final ProgressWriteTimeoutHandler handler = new ProgressWriteTimeoutHandler(300);

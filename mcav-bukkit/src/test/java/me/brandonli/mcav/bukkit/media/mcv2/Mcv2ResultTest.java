@@ -164,7 +164,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void encodesForViewersWithThePackAndDithersForTheOthers() throws InterruptedException {
+  void shouldEncodeForViewersWithThePackAndDitherForTheOthers() throws InterruptedException {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     final Mcv2Result result = new Mcv2Result(this.configuration, channel, this.algorithm);
     try {
@@ -199,7 +199,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void recordsEveryFrameForTheFlightRecorder(@TempDir final Path directory) throws Exception {
+  void shouldRecordEveryFrameForTheFlightRecorder(@TempDir final Path directory) throws Exception {
     // a screen that took over a pack slot numbers its frames from where the pack server said
     final Mcv2Configuration slotted = this.configuration.withSlot(
       this.configuration.getStreamId(),
@@ -238,7 +238,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void fingerprintsTheCentresOfTheFirstBlocks() {
+  void shouldFingerprintTheCentresOfTheFirstBlocks() {
     final byte[] rgb = new byte[1024 * 32 * 3];
     // block 1's centre white, the others black
     final int offset = (16 * 1024 + 48) * 3;
@@ -252,7 +252,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void resizesFramesToTheVideoSizeAndCanLeaveOthersWithout() {
+  void shouldResizeFramesToTheVideoSizeAndLeaveOthersWithoutDithering() {
     final Mcv2Result result = this.result(this.configuration, null);
     final ImageBuffer wide = Images.solid(128, 64, 0xFF000000);
     result.applyFilter(wide, this.metadata);
@@ -269,7 +269,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dithersNothingWhenEveryViewerHasThePack() {
+  void shouldDitherNothingWhenEveryViewerHasThePack() {
     final Mcv2Configuration onlyPack = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
       .origin(new Location(mock(World.class), 0, 64, 0))
@@ -297,7 +297,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dithersOffTheVideoThreadAndLeavesOutTheFramesMeanwhile() throws InterruptedException {
+  void shouldDitherOffTheVideoThreadAndLeaveOutTheFramesMeanwhile() throws InterruptedException {
     final CountDownLatch dithering = new CountDownLatch(1);
     final CountDownLatch finish = new CountDownLatch(1);
     Mockito.doAnswer(invocation -> {
@@ -330,7 +330,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void keepsItsInterruptWhileReleasing() {
+  void shouldKeepItsInterruptWhileReleasing() {
     final Mcv2Result result = this.result(this.configuration, null);
     result.start();
     Thread.currentThread().interrupt();
@@ -340,7 +340,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dropsAFrameWithMorePagesThanTheScreenHas() throws InterruptedException {
+  void shouldDropAFrameWithMorePagesThanTheScreenHas() throws InterruptedException {
     final Mcv2Configuration narrow = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
       .origin(new Location(mock(World.class), 0, 64, 0))
@@ -368,7 +368,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void anEncodeLoopThatFindsNoPipelineEndsAtOnce() throws InterruptedException {
+  void shouldEndTheEncodeLoopAtOnceWhenItFindsNoPipeline() throws InterruptedException {
     final Mcv2Result result = this.result(this.configuration, null);
     // the screen's thread of a start that a release overtook finds no pipeline to stop
     assertTimeoutPreemptively(Duration.ofSeconds(10), () -> result.encodeLoop(mock(MCV2.class)));
@@ -376,7 +376,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void stopsWaitingOnceReleasedOrInterrupted() throws InterruptedException {
+  void shouldStopWaitingOnceReleasedOrInterrupted() throws InterruptedException {
     final Mcv2Result result = this.result(this.configuration, null);
     assertNull(result.take());
     result.start();
@@ -412,7 +412,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void pacesTheFramesToWhatTheBudgetSustains() throws InterruptedException {
+  void shouldPaceTheFramesToWhatTheBudgetSustains() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration onlyPack = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
@@ -483,7 +483,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void stepsDownToASmallerVideoAndBackUp() throws InterruptedException {
+  void shouldStepDownToASmallerVideoAndBackUp() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration onlyPack = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
@@ -557,7 +557,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void staysAtItsLowestFrameRateWithoutDitheredMaps() throws InterruptedException {
+  void shouldStayAtItsLowestFrameRateWithoutDitheredMaps() throws InterruptedException {
     final AtomicLong clock = new AtomicLong();
     final Mcv2Result result = new Mcv2Result(
       this.configuration,
@@ -582,7 +582,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void encodesInTheBudgetItIsGiven() throws InterruptedException {
+  void shouldEncodeInTheBudgetItIsGiven() throws InterruptedException {
     try (final Pool budget = new Pool(1)) {
       final Mcv2Configuration own = Mcv2Configuration.builder()
         .viewers(List.of(WITH_PACK))
@@ -613,7 +613,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void thinsASourceFasterThanTheScreensRate() {
+  void shouldThinASourceFasterThanTheScreensRate() {
     final Mcv2Result result = this.result(
       Mcv2Configuration.builder()
         .viewers(List.of(WITH_PACK))
@@ -652,7 +652,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void convertsBgrToRgbFromThePositionOfTheBuffer() {
+  void shouldConvertBgrToRgbFromThePositionOfTheBuffer() {
     final ByteBuffer bgr = ByteBuffer.wrap(new byte[] { 9, 0x33, 0x22, 0x11, (byte) 0xCC, (byte) 0xBB, (byte) 0xAA, 7 });
     bgr.position(1);
     final byte[] rgb = Mcv2Result.rgbFromBgr(bgr, 2);
@@ -662,7 +662,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void refusesNulls() {
+  void shouldRefuseNulls() {
     assertEquals(
       "Configuration must not be null",
       assertThrows(NullPointerException.class, () -> new Mcv2Result(null, this.viewers, null)).getMessage()
@@ -688,7 +688,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void countsTheKeyframesItSent() {
+  void shouldCountTheKeyframesItSent() {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
     statistics.add(new MCV2.Stats(10, true, 1, 5, 72), 128);
     statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
@@ -697,7 +697,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void countsNoKeyframeForAPredictedFrame() {
+  void shouldCountNoKeyframeForAPredictedFrame() {
     final Mcv2Result.Statistics statistics = new Mcv2Result.Statistics();
     statistics.add(new MCV2.Stats(20, false, 1, 7, 72), 256);
     assertEquals(1, statistics.getFrames());
@@ -705,7 +705,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void pacesFromTheTopOfItsLadderOnceStarted() {
+  void shouldPaceFromTheTopOfItsLadderOnceStarted() {
     final Mcv2Result result = this.result(this.configuration, null);
     assertNull(result.getRung());
     result.start();
@@ -714,7 +714,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void repairsAnUnchangedFallbackAfterVanillaOverwritesItsFirstSnapshot() {
+  void shouldRepairAnUnchangedFallbackAfterVanillaOverwritesItsFirstSnapshot() {
     when(this.viewers.isLoaded(WITH_PACK)).thenReturn(false);
     doAnswer(invocation -> MapPackets.pattern(invocation.getArgument(0)))
       .when(this.algorithm)
@@ -779,7 +779,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dithersAgainOnceStartedAgainAndClearsTheMapsWhenReleased() {
+  void shouldDitherAgainOnceStartedAgainAndClearTheMapsWhenReleased() {
     final Mcv2Result result = new Mcv2Result(
       this.configuration,
       new Mcv2Channel(this.configuration, this.viewers, this.screen),
@@ -803,7 +803,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void clearsTheWallOfTheViewersWithThePackWhenReleased() throws InterruptedException {
+  void shouldClearTheWallOfTheViewersWithThePackWhenReleased() throws InterruptedException {
     // a client with the pack keeps drawing its last decoded picture over a wall whose maps still carry the screen's
     // anchors, so a release clears their maps too, not only the dithered ones
     final Mcv2Result result = new Mcv2Result(
@@ -832,7 +832,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dithersAgainAfterARefusedHandover() {
+  void shouldDitherAgainAfterARefusedHandover() {
     final AtomicInteger handed = new AtomicInteger();
     final Executor refusesOnce = task -> {
       if (handed.getAndIncrement() == 0) {
@@ -880,7 +880,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void endsItsThreadsBeforeReleaseReturns() throws Exception {
+  void shouldEndItsThreadsBeforeReleaseReturns() throws Exception {
     final Set<Thread> before = Set.copyOf(Thread.getAllStackTraces().keySet());
     final CountDownLatch encoding = new CountDownLatch(1);
     final MCV2 slow = mock(MCV2.class);
@@ -933,7 +933,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void dropsTheWaitingFrameWhenItStepsDownToTheDitheredMaps() throws InterruptedException {
+  void shouldDropTheWaitingFrameWhenItStepsDownToTheDitheredMaps() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration onlyPack = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
@@ -988,7 +988,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aViewerTooFarFromTheWallGetsNoDitheredMapsWhenTheyStandInForTheFrames() throws InterruptedException {
+  void shouldGiveNoDitheredMapsToAViewerTooFarFromTheWallWhenTheyStandInForTheFrames() throws InterruptedException {
     when(WORLD.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000a0a0"));
     when(ELSEWHERE.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000b0b0"));
     final UUID far = UUID.fromString("00000000-0000-0000-0000-000000000043");
@@ -1068,7 +1068,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void recordsWhatTheViewersLinksDidWithEachFrame(@TempDir final Path directory) throws Exception {
+  void shouldRecordWhatTheViewersLinksDidWithEachFrame(@TempDir final Path directory) throws Exception {
     // two viewers with the pack; the first one's connection writes nothing, so it falls behind, then misses the frame
     // the next one predicts from and waits for a keyframe
     final UUID second = UUID.fromString("00000000-0000-0000-0000-000000000043");
@@ -1196,7 +1196,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void searchesTheNextFrameWhileTheSenderVerifiesTheLast() throws InterruptedException {
+  void shouldSearchTheNextFrameWhileTheSenderVerifiesTheLast() throws InterruptedException {
     final Mcv2Configuration fast = packScreen(Settings.FAST);
     final List<MCV2> made = new CopyOnWriteArrayList<>();
     final CountDownLatch gate = new CountDownLatch(1);
@@ -1242,7 +1242,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void stopsTheScreenWhenAFrameFailsItsVerification() throws InterruptedException {
+  void shouldStopTheScreenWhenAFrameFailsItsVerification() throws InterruptedException {
     final Mcv2Configuration fast = packScreen(Settings.FAST);
     final List<MCV2> made = new CopyOnWriteArrayList<>();
     final Mcv2Result result = new Mcv2Result(
@@ -1281,7 +1281,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void scalesANonPresetLambdaAndStopsAtFast() {
+  void shouldScaleANonPresetLambdaAndStopAtFast() {
     final Settings settings = new Settings(60, false);
     final Settings fast = new Settings(45.833333333333336, true);
     assertEquals(
@@ -1292,7 +1292,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void buildsAScreenWhoseLambdaTimesTheFastLambdaOverflows() {
+  void shouldBuildAScreenWhoseLambdaTimesTheFastLambdaOverflows() {
     final Settings largest = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     final Mcv2Result result = assertDoesNotThrow(() -> this.result(packScreen(largest), null));
     result.release();
@@ -1303,7 +1303,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void namesThePresetsOfItsLadder() {
+  void shouldNameThePresetsOfItsLadder() {
     final Mcv2Result live = this.result(packScreen(Settings.DEFAULT), null);
     live.pace();
     assertEquals(new Mcv2Pacer.Preset("DEFAULT", 1), live.getRung().preset());
@@ -1344,7 +1344,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void stepsDownTheLivePresetsWithOneEncoder() throws InterruptedException {
+  void shouldStepDownTheLivePresetsWithOneEncoder() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration live = packScreen(Settings.DEFAULT);
     final AtomicLong encodeNanos = new AtomicLong(TimeUnit.MILLISECONDS.toNanos(5));
@@ -1420,7 +1420,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void warnsOfAStepDownAndTellsOfAStepUp() throws InterruptedException {
+  void shouldWarnOfAStepDownAndTellOfAStepUp() throws InterruptedException {
     final AtomicLong clock = new AtomicLong(TimeUnit.SECONDS.toNanos(1));
     final Mcv2Configuration onlyPack = Mcv2Configuration.builder()
       .viewers(List.of(WITH_PACK))
@@ -1466,7 +1466,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void theDitheredMapsShowTheWholeVideoScaledToTheWall() {
+  void shouldShowTheWholeVideoScaledToTheWallOnTheDitheredMaps() {
     final List<String> dithered = new CopyOnWriteArrayList<>();
     final DitherAlgorithm recording = mock(DitherAlgorithm.class);
     when(recording.ditherIntoBytes(any())).thenAnswer(invocation -> {
@@ -1501,7 +1501,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aFrameListenerThatFailsStopsTheScreenInsteadOfLeavingItsEncoderWaitingForever() throws InterruptedException {
+  void shouldStopTheScreenInsteadOfLeavingItsEncoderWaitingForeverWhenAFrameListenerFails() throws InterruptedException {
     final Set<Thread> before = Set.copyOf(Thread.getAllStackTraces().keySet());
     final Mcv2Result result = this.result(this.configuration, this.algorithm);
     result.setFrameListener(_ -> {
@@ -1531,7 +1531,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void anEncoderThatFailsStopsTheScreenAndItsSender() throws InterruptedException {
+  void shouldStopTheScreenAndItsSenderWhenAnEncoderFails() throws InterruptedException {
     final Set<Thread> before = Set.copyOf(Thread.getAllStackTraces().keySet());
     final MCV2 failing = mock(MCV2.class);
     when(failing.getSettings()).thenReturn(Settings.FAST);
@@ -1603,7 +1603,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aReleaseWakesAThreadThatWaitsForAFrame() throws InterruptedException {
+  void shouldWakeAThreadThatWaitsForAFrameOnRelease() throws InterruptedException {
     final Mcv2Result result = this.result(this.configuration, null);
     result.start();
     final AtomicReference<Mcv2Result.Arrival> taken = new AtomicReference<>(
@@ -1623,7 +1623,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aFailedReleaseNotificationAssertionStillStopsItsWaiter() throws InterruptedException {
+  void shouldStillStopTheWaiterWhenTheReleaseNotificationAssertionFails() throws InterruptedException {
     final CountDownLatch neverNotified = new CountDownLatch(1);
     final AtomicReference<Thread> waiting = new AtomicReference<>();
     try (
@@ -1635,7 +1635,7 @@ final class Mcv2ResultTest {
         });
       })
     ) {
-      final AssertionError failure = assertThrows(AssertionError.class, this::aReleaseWakesAThreadThatWaitsForAFrame);
+      final AssertionError failure = assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease);
       assertTrue(failure.getMessage().contains("the release wakes a thread"));
       assertEquals(1, results.constructed().size());
       assertFalse(waiting.get().isAlive(), "a failed release-notification test leaked its waiter");
@@ -1650,7 +1650,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aReleaseFailureStillStopsTheFixtureWaiter() throws InterruptedException {
+  void shouldStillStopTheFixtureWaiterWhenTheReleaseFails() throws InterruptedException {
     final CountDownLatch neverNotified = new CountDownLatch(1);
     final AtomicReference<Thread> waiting = new AtomicReference<>();
     final AssertionError forcedFailure = new AssertionError("forced release assertion");
@@ -1664,7 +1664,7 @@ final class Mcv2ResultTest {
         Mockito.doThrow(forcedFailure).doNothing().when(result).release();
       })
     ) {
-      assertSame(forcedFailure, assertThrows(AssertionError.class, this::aReleaseWakesAThreadThatWaitsForAFrame));
+      assertSame(forcedFailure, assertThrows(AssertionError.class, this::shouldWakeAThreadThatWaitsForAFrameOnRelease));
       assertEquals(1, results.constructed().size());
       assertFalse(waiting.get().isAlive(), "a release failure leaked the fixture waiter");
     } finally {
@@ -1678,7 +1678,7 @@ final class Mcv2ResultTest {
   }
 
   @Test
-  void aSenderThatFailsStopsTheScreenWhileItsThreadCannotBeInterrupted() throws InterruptedException {
+  void shouldStopTheScreenWhenASenderFailsWhileItsThreadCannotBeInterrupted() throws InterruptedException {
     final Mcv2Configuration fast = packScreen(Settings.FAST);
     final CountDownLatch inSecondFrame = new CountDownLatch(1);
     final CountDownLatch secondFrameMayGoOn = new CountDownLatch(1);

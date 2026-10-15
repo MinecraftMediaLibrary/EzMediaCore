@@ -96,7 +96,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void spawnsAHiddenDisplayAndShowsItToOnlineViewers() {
+  void shouldSpawnAHiddenDisplayAndShowItToOnlineViewers() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 
@@ -122,7 +122,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void doesNothingOnATickBeforeTheDisplayWasSpawned() {
+  void shouldDoNothingOnATickBeforeTheDisplayWasSpawned() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Plugin plugin = this.server.getPlugin();
@@ -136,7 +136,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void showsTheDisplayToAViewerWhoComesOnlineAfterTheSpawn() {
+  void shouldShowTheDisplayToAViewerWhoComesOnlineAfterTheSpawn() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component text = Component.literal("frame");
@@ -156,7 +156,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void forgetsAnOfflineVisibilityGrantAndShowsTheEntityToTheRejoinedSession() {
+  void shouldForgetAnOfflineVisibilityGrantAndShowTheEntityToTheRejoinedSession() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -180,7 +180,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void grantsVisibilityToTheReplacementEntityAfterAViewerReturns() {
+  void shouldGrantVisibilityToTheReplacementEntityAfterAViewerReturns() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -196,7 +196,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void spawnsTheDisplayOnlyOnce() {
+  void shouldSpawnTheDisplayOnlyOnce() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 
@@ -209,7 +209,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void setsTheTextOfTheServerEntityOncePerTick() {
+  void shouldSetTheTextOfTheServerEntityOncePerTick() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final int[] sourcePixels = new int[20 * 10];
@@ -248,7 +248,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void skipsFramesBeforeTheDisplayIsShown() {
+  void shouldSkipFramesBeforeTheDisplayIsShown() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component text = Component.literal("frame");
@@ -261,7 +261,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void respawnsTheDisplayOnTheNextFrameOnceItsChunkIsLoadedAgain() {
+  void shouldRespawnTheDisplayOnTheNextFrameOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component text = Component.literal("frame");
@@ -288,7 +288,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void aDisplayThatComesBackBeforeTheFirstFrameIsGivenNoText() {
+  void shouldGiveNoTextToADisplayThatComesBackBeforeTheFirstFrame() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -305,7 +305,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void aDisplayReturningToALoadedChunkUsesTheNewestSubmittedText() {
+  void shouldUseTheNewestSubmittedTextWhenADisplayReturnsToALoadedChunk() {
     final EntityRenderer renderer = new EntityRenderer(this.createConfiguration(this.position));
     final Component beforeUnload = Component.literal("before");
     final Component whileUnloaded = Component.literal("latest");
@@ -328,7 +328,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void aStillImageComesBackWithItsTextOnceItsChunkIsLoadedAgain() {
+  void shouldBringAStillImageBackWithItsTextOnceItsChunkIsLoadedAgain() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component text = Component.literal("still");
@@ -356,7 +356,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void aViewerWhoseGrantPaperTookBackIsShownTheDisplayAgain() {
+  void shouldShowTheDisplayAgainToAViewerWhoseGrantPaperTookBack() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Plugin plugin = this.server.getPlugin();
@@ -378,7 +378,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void waitsForTheChunkToLoadBeforeRespawningTheDisplay() {
+  void shouldWaitForTheChunkToLoadBeforeRespawningTheDisplay() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component text = Component.literal("frame");
@@ -399,7 +399,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void asksAboutTheChunkThatHoldsANegativeBlockPosition() {
+  void shouldAskAboutTheChunkThatHoldsANegativeBlockPosition() {
     final World configuredWorld = this.world.getWorld();
     final Location negative = new Location(configuredWorld, -17, 70, 35);
     final EntityConfiguration configuration = this.createConfiguration(negative);
@@ -416,7 +416,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void stopsRespawningOnceThePositionHasNoWorld() {
+  void shouldStopRespawningOnceThePositionHasNoWorld() {
     final Location movable = this.position.clone();
     final EntityConfiguration configuration = this.createConfiguration(movable);
     final EntityRenderer renderer = new EntityRenderer(configuration);
@@ -435,7 +435,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void removesTheDisplayWhenHidden() {
+  void shouldRemoveTheDisplayWhenHidden() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     final Component lateText = Component.literal("late");
@@ -455,7 +455,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void needsAPositionInAWorld() {
+  void shouldNeedAPositionInAWorld() {
     final Location movable = this.position.clone();
     final EntityConfiguration configuration = this.createConfiguration(movable);
     movable.setWorld(null);
@@ -465,7 +465,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void hidesTheDisplayFromRemovedViewersAndShowsItAgainOnReaddition() {
+  void shouldHideTheDisplayFromRemovedViewersAndShowItAgainOnReaddition() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -483,7 +483,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void queuedShowCannotSpawnAnEntityAfterMainThreadHide() {
+  void shouldNotLetAQueuedShowSpawnAnEntityAfterAMainThreadHide() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     this.server.setPrimaryThread(false);
@@ -498,7 +498,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void queuedHideCannotRemoveAnEntityRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRemoveAnEntityRequestedAgainOnTheMainThread() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
     renderer.show();
@@ -519,7 +519,7 @@ final class EntityRendererTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final EntityConfiguration configuration = this.createConfiguration(this.position);
     final EntityRenderer renderer = new EntityRenderer(configuration);
 

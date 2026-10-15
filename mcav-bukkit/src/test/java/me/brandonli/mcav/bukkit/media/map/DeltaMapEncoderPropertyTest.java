@@ -110,7 +110,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyFrameRespectsTheBudgetAndCarriesOnlyPixelsOfThatFrame(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldRespectTheBudgetAndCarryOnlyPixelsOfThatFrameInEveryFrame(@ForAll("scenarios") final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
@@ -128,7 +128,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void theClientsShowExactlyTheLastFrameOnceThePictureStopsChanging(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldShowExactlyTheLastFrameOnTheClientsOnceThePictureStopsChanging(@ForAll("scenarios") final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, scenario.getBudget());
     final ClientModel clients = new ClientModel(layout);
@@ -154,7 +154,7 @@ final class DeltaMapEncoderPropertyTest {
   }
 
   @Property(seed = SEED)
-  void aResetSendsEveryCoveredMapCompletelyAgain(@ForAll("scenarios") final EncodingScenario scenario) {
+  void shouldSendEveryCoveredMapCompletelyAgainOnAReset(@ForAll("scenarios") final EncodingScenario scenario) {
     final MapLayout layout = scenario.createLayout();
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1 << 30);
     final List<byte[]> frames = scenario.createFrames();

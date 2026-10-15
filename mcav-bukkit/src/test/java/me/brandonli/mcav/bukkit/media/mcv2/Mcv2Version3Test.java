@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 final class Mcv2Version3Test {
 
   @Test
-  void refusesOldVersionsWithReencodeMessage() {
+  void shouldRefuseOldVersionsWithAReencodeMessage() {
     final byte[] data = block(32, 0, 0, new byte[0], true);
     data[4] = 2;
     final String versionTwo = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data)).getMessage();
@@ -47,7 +47,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void determinesKeyframesFromExactlyTheTwoIds() throws Mcv2Exception {
+  void shouldDetermineKeyframesFromExactlyTheTwoIds() throws Mcv2Exception {
     final byte[] data = block(32, 0, 0, new byte[0], false);
     assertFalse(Mcv2Decoder.parse(data).isKeyframe());
     for (final long id : new long[] { 0, 1, 0xFFFFFFFFL }) {
@@ -59,7 +59,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesEveryHeaderField() {
+  void shouldValidateEveryHeaderField() {
     final byte[] valid = block(32, 0, 0, new byte[0], true);
     for (final int offset : new int[] { 0, 1, 2, 3, 4, 5, 6, 7 }) {
       final byte[] bad = valid.clone();
@@ -78,7 +78,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void refusesEveryTruncationAndTrailingBytes() {
+  void shouldRefuseEveryTruncationAndTrailingBytes() {
     final byte[] valid = block(8, 3, 0, new byte[14], true);
     for (int length = 0; length < valid.length; length++) {
       final byte[] bad = Arrays.copyOf(valid, length);
@@ -89,7 +89,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesTemporalKeyframeModes() {
+  void shouldValidateTemporalKeyframeModes() {
     for (final int mode : new int[] { 1, 5 }) {
       final byte[] bad = block(32, mode, 0, new byte[] { 0, 0 }, true);
       assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(bad));
@@ -97,7 +97,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesMasksDirectoryAndCounts() {
+  void shouldValidateMasksDirectoryAndCounts() {
     final byte[] valid = block(32, 0, 0, new byte[0], true);
     for (final int offset : new int[] { 20, 24, 28, 32, 36 }) {
       final byte[] bad = valid.clone();
@@ -112,7 +112,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesAllModeAndQuantizerCombinations() throws Mcv2Exception {
+  void shouldValidateAllModeAndQuantizerCombinations() throws Mcv2Exception {
     for (int descriptor = 0; descriptor < 256; descriptor++) {
       final int mode = descriptor & 31;
       final int quantizer = descriptor >> 5;
@@ -135,7 +135,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesLevelCountsAndNoSplitBelowEight() {
+  void shouldValidateLevelCountsAndNoSplitBelowEight() {
     final byte[] data = block(8, 0, 0, new byte[0], true);
     data[40 + 5] = 6;
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(data));
@@ -145,7 +145,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesWalkCursorAndSplitCount() {
+  void shouldValidateWalkCursorAndSplitCount() {
     final byte[] valid = block(8, 2, 0, new byte[] { 1, 2, 3 }, true);
     for (final int walk : new int[] { 49, 53 }) {
       for (final int value : new int[] { 1, 1 << 17 }) {
@@ -157,7 +157,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void decodesPatternSelectorsForAllSizes() throws Mcv2Exception {
+  void shouldDecodePatternSelectorsForAllSizes() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (int orientation = 0; orientation < 2; orientation++) {
         final byte[] record = new byte[7 + size / 8];
@@ -180,7 +180,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void decodesSolidPaletteAndBlackKeyframeSkipsExactly() throws Mcv2Exception {
+  void shouldDecodeSolidPaletteAndBlackKeyframeSkipsExactly() throws Mcv2Exception {
     final byte[] solid = Mcv2Decoder.decode(block(8, 2, 0, new byte[] { 10, 20, 30 }, true), null, 0);
     for (int offset = 0; offset < solid.length; offset += 3) {
       assertArrayEquals(new byte[] { 10, 20, 30 }, Arrays.copyOfRange(solid, offset, offset + 3));
@@ -204,7 +204,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void predictsWholePixelMotionWithClampedEdgesAndSignedVectors() throws Mcv2Exception {
+  void shouldPredictWholePixelMotionWithClampedEdgesAndSignedVectors() throws Mcv2Exception {
     final byte[] reference = new byte[8 * 8 * 3];
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) index;
@@ -218,7 +218,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void interpolatesSignedGridNodesAndRoundsTiesUp() throws Mcv2Exception {
+  void shouldInterpolateSignedGridNodesAndRoundTiesUp() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       final byte[] reference = new byte[size * size * 3];
       Arrays.fill(reference, (byte) 100);
@@ -234,7 +234,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void appliesAllQuantizersAndSaturatesPositiveAndNegativeResiduals() throws Mcv2Exception {
+  void shouldApplyAllQuantizersAndSaturatePositiveAndNegativeResiduals() throws Mcv2Exception {
     final byte[] reference = new byte[8 * 8 * 3];
     for (final int base : new int[] { 0, 6, 100, 250, 255 }) {
       Arrays.fill(reference, (byte) base);
@@ -252,7 +252,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesInvisibleLeavesAndCropsOutput() throws Mcv2Exception {
+  void shouldValidateInvisibleLeavesAndCropOutput() throws Mcv2Exception {
     final byte[] data = block(16, 2, 0, new byte[] { 10, 20, 30 }, true);
     put(data, 8, 1, 2);
     put(data, 10, 1, 2);
@@ -262,7 +262,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void decodesRowsAndAliasedWholePictures() throws Mcv2Exception {
+  void shouldDecodeRowsAndAliasedWholePictures() throws Mcv2Exception {
     final byte[] data = block(8, 1, 0, new byte[] { -1, 1 }, false);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final byte[] reference = new byte[8 * 8 * 3];
@@ -283,7 +283,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void validatesReferencesAndOwnsParsedData() throws Mcv2Exception {
+  void shouldValidateReferencesAndOwnParsedData() throws Mcv2Exception {
     final byte[] data = block(8, 1, 0, new byte[] { 0, 0 }, false);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0));
@@ -303,7 +303,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void acceptsMaximumDimensionsWithAllRootsAbsent() throws Mcv2Exception {
+  void shouldAcceptMaximumDimensionsWithAllRootsAbsent() throws Mcv2Exception {
     final byte[] data = frame(4096, 4096, true, new byte[0], new byte[0][], new int[3]);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
     assertEquals(16384, parsed.getLeafCount());
@@ -311,7 +311,7 @@ final class Mcv2Version3Test {
   }
 
   @Test
-  void arbitraryBytesNeverEscapeAsUncheckedParserFailures() {
+  void shouldNeverLetArbitraryBytesEscapeAsUncheckedParserFailures() {
     final Random random = new Random(7);
     for (int iteration = 0; iteration < 10000; iteration++) {
       final byte[] data = new byte[random.nextInt(512)];

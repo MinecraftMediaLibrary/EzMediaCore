@@ -70,14 +70,14 @@ final class ServerAddressTest {
   }
 
   @Test
-  void prefersTheAddressConfiguredInTheServerProperties() {
+  void shouldPreferTheAddressConfiguredInTheServerProperties() {
     this.configureServerAddress("10.0.0.5");
     final String address = ServerAddress.getPublicIPAddress();
     assertEquals("10.0.0.5", address);
   }
 
   @Test
-  void looksUpThePublicAddressOnceWhenNoAddressIsConfigured() {
+  void shouldLookUpThePublicAddressOnceWhenNoAddressIsConfigured() {
     this.configureServerAddress("");
     final byte[] body = " 203.0.113.7\n".getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/ip", 200, body);
@@ -95,7 +95,7 @@ final class ServerAddressTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "0.0.0.0", "::", "0:0:0:0:0:0:0:0", "0::0" })
-  void treatsTheWildcardAddressAsNotConfigured(final String wildcard) {
+  void shouldTreatTheWildcardAddressAsNotConfigured(final String wildcard) {
     this.configureServerAddress(wildcard);
     final byte[] body = "2001:db8::1".getBytes(StandardCharsets.US_ASCII);
     this.http.respond("/ip", 200, body);
@@ -105,14 +105,14 @@ final class ServerAddressTest {
   }
 
   @Test
-  void preservesAConfiguredHostname() {
+  void shouldPreserveAConfiguredHostname() {
     this.configureServerAddress("mc.example.org");
     final String address = ServerAddress.getPublicIPAddress();
     assertEquals("mc.example.org", address);
   }
 
   @Test
-  void fallsBackToLocalhostWithoutCachingItWhenTheLookupFails() {
+  void shouldFallBackToLocalhostWithoutCachingItWhenTheLookupFails() {
     this.configureServerAddress("");
     final byte[] error = "unavailable".getBytes(StandardCharsets.US_ASCII);
     final byte[] address = "203.0.113.7".getBytes(StandardCharsets.US_ASCII);
@@ -132,13 +132,13 @@ final class ServerAddressTest {
   }
 
   @Test
-  void requiresAnAddressService() {
+  void shouldRequireAnAddressService() {
     this.configureServerAddress("10.0.0.5");
     assertThrows(NullPointerException.class, () -> ServerAddress.getPublicIPAddress(null));
   }
 
   @Test
-  void recognizesOnlyTheFallbackAddress() {
+  void shouldRecognizeOnlyTheFallbackAddress() {
     final boolean localhost = ServerAddress.isFallbackAddress("localhost");
     final boolean publicAddress = ServerAddress.isFallbackAddress("203.0.113.7");
     final boolean loopback = ServerAddress.isFallbackAddress("127.0.0.1");
@@ -149,7 +149,7 @@ final class ServerAddressTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(ServerAddress.class);
   }
 }

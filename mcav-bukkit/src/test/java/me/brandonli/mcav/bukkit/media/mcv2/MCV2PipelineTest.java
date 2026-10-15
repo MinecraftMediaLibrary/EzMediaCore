@@ -105,7 +105,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void aFailedSearchDoesNotAdvanceMotionHistory() throws ReflectiveOperationException {
+  void shouldNotAdvanceMotionHistoryOnAFailedSearch() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 1, true);
     final MCV2 control = new MCV2(Settings.DEFAULT, POOL, 1, true);
     final Field factory = MCV2.class.getDeclaredField("kernels");
@@ -130,7 +130,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void retainsRequestsAndSettingsChangedDuringBegin() throws Exception {
+  void shouldRetainRequestsAndSettingsChangedDuringBegin() throws Exception {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 1, true);
     final Field factory = MCV2.class.getDeclaredField("kernels");
     factory.setAccessible(true);
@@ -172,7 +172,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void pipelinesToTheStreamItEncodesOneFrameAtATime() throws InterruptedException, ExecutionException, Mcv2Exception {
+  void shouldPipelineToTheStreamItEncodesOneFrameAtATime() throws InterruptedException, ExecutionException, Mcv2Exception {
     final List<Settings> profiles = List.of(Settings.DEFAULT, Settings.FAST);
     for (final Settings settings : profiles) {
       for (final int requestEvery : new int[] { 0, 1, 3 }) {
@@ -188,7 +188,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void keepsOneFrameInFlightAtMost() {
+  void shouldKeepOneFrameInFlightAtMost() {
     final MCV2 encoder = new MCV2(Settings.FAST, POOL, 2, true);
     final MCV2.Pending first = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
@@ -203,7 +203,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void stopsAfterAFrameFailsItsVerification() throws ReflectiveOperationException {
+  void shouldStopAfterAFrameFailsItsVerification() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 2, true);
     final MCV2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     final MCV2.Pending next = encoder.begin(Mcv2Pictures.scene(64, 64, 1, 2), 64, 64, 1);
@@ -224,7 +224,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void verifiesNothingWithoutVerification() throws ReflectiveOperationException {
+  void shouldVerifyNothingWithoutVerification() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 2, false);
     final MCV2.Pending frame = encoder.begin(Mcv2Pictures.scene(64, 64, 0, 2), 64, 64, 0);
     final var picture = MCV2.Pending.class.getDeclaredField("picture");
@@ -237,7 +237,7 @@ final class MCV2PipelineTest {
   }
 
   @Test
-  void keyframesAKeyframeRequestMadeWhileAFrameIsInFlightWithTheFrameAfterIt() {
+  void shouldServeAKeyframeRequestMadeWhileAFrameIsInFlightWithTheFrameAfterIt() {
     final MCV2 encoder = new MCV2(Settings.FAST, POOL, 2, true);
     final List<MCV2.Pending> frames = new ArrayList<>();
     final List<Boolean> keyframes = new ArrayList<>();

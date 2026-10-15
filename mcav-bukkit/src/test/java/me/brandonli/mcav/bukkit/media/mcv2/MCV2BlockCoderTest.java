@@ -41,7 +41,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void aPerfectResidualEndsTheLadder() {
+  void shouldEndTheLadderOnAPerfectResidual() {
     // Sixteen luma levels require q=2 and sixteen nodes of four.
     final byte[] reference = reference(40, 200);
     final byte[] source = reference.clone();
@@ -58,7 +58,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void needsTheFinestQuantizerThatHoldsTheFittedValues() {
+  void shouldNeedTheFinestQuantizerThatHoldsTheFittedValues() {
     final float[] fit = new float[16];
     // the sixteen luma nibbles of the 4x4 grid classes hold -8 to 7 steps
     fit[0] = 7;
@@ -80,7 +80,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void halvesABlockIntoTheRoundedMeansOfItsSquares() {
+  void shouldHalveABlockIntoTheRoundedMeansOfItsSquares() {
     // every 2x2 square of a 4x4 block around its own level, which the square's mean restores
     final int[] block = new int[4 * 4 * 3];
     for (int row = 0; row < 4; row++) {
@@ -103,7 +103,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void aUniformKeyframeBlockIsSolid() {
+  void shouldCodeAUniformKeyframeBlockAsSolid() {
     final byte[] source = new byte[8 * 8 * 3];
     for (int offset = 0; offset < source.length; offset += 3) {
       source[offset] = 10;
@@ -118,7 +118,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void aBlockBelowTheSearchSizeTakesItsParentsVectorWhicheverWayItPoints() {
+  void shouldGiveABlockBelowTheSearchSizeItsParentsVectorWhicheverWayItPoints() {
     final byte[] reference = new byte[32 * 32 * 3];
     final Random random = new Random(45);
     for (int index = 0; index < reference.length; index++) {
@@ -137,7 +137,7 @@ final class MCV2BlockCoderTest {
   }
 
   @Test
-  void largerBlocksSearchForTheirOwnMotion() {
+  void shouldLetLargerBlocksSearchForTheirOwnMotion() {
     final byte[] reference = new byte[32 * 32 * 3];
     final Random random = new Random(658);
     for (int index = 0; index < reference.length; index++) {

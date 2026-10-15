@@ -59,7 +59,7 @@ final class FrameMutationTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("frames")
-  void everyCorruptionIsAcceptedOrDeclared(final String stream, final List<byte[]> frames) throws Mcv2Exception {
+  void shouldAcceptOrDeclareEveryCorruption(final String stream, final List<byte[]> frames) throws Mcv2Exception {
     final Mcv2Decoder.Frame reference = Mcv2Decoder.parse(frames.getFirst());
     final byte[] picture = Mcv2Decoder.decode(reference, null, 0);
     int accepted = 0;
@@ -86,7 +86,7 @@ final class FrameMutationTest {
   }
 
   @Test
-  void checksAReferenceMismatchThroughTheDecoder() throws Mcv2Exception {
+  void shouldCheckAReferenceMismatchThroughTheDecoder() throws Mcv2Exception {
     final List<byte[]> stream = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs"));
     final Mcv2Decoder.Frame keyframe = Mcv2Decoder.parse(stream.getFirst());
     final byte[] reference = Mcv2Decoder.decode(keyframe, null, 0);

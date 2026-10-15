@@ -111,7 +111,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void answersHttpRequestsOnNewConnections() {
+  void shouldAnswerHttpRequestsOnNewConnections() {
     final NettyHosting hosting = new NettyHosting(this.zip);
     hosting.start();
 
@@ -133,7 +133,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void routesEachUrlToItsOwnPackAcrossFragmentedRequests() throws IOException {
+  void shouldRouteEachUrlToItsOwnPackAcrossFragmentedRequests() throws IOException {
     final byte[] otherBytes = { 'P', 'K', 7, 8, 9 };
     final Path other = this.directory.resolve("other.zip");
     Files.write(other, otherBytes);
@@ -181,7 +181,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void registersOneListenerPerRunningInstance() {
+  void shouldRegisterOneListenerPerRunningInstance() {
     final int before = listenerCount();
     final NettyHosting first = new NettyHosting(this.zip);
     final NettyHosting second = new NettyHosting(this.zip);
@@ -202,7 +202,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void givesEveryInstanceItsOwnPipelineName() {
+  void shouldGiveEveryInstanceItsOwnPipelineName() {
     final NettyHosting first = new NettyHosting(this.zip);
     final NettyHosting second = new NettyHosting(this.zip);
 
@@ -215,7 +215,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void stopsAnsweringNewConnectionsWhenShutDown() {
+  void shouldStopAnsweringNewConnectionsWhenShutDown() {
     final NettyHosting hosting = new NettyHosting(this.zip);
 
     hosting.start();
@@ -233,7 +233,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void readsThePackWhenItStartsSoTheNettyThreadNeverReadsIt() {
+  void shouldReadThePackWhenItStartsSoTheNettyThreadNeverReadsIt() {
     final NettyHosting hosting = new NettyHosting(this.zip);
     try (final MockedStatic<Files> files = Mockito.mockStatic(Files.class, CALLS_REAL_METHODS)) {
       hosting.start();
@@ -251,7 +251,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void startsEvenWhenThePackCannotBeReadAhead() throws IOException {
+  void shouldStartEvenWhenThePackCannotBeReadAhead() throws IOException {
     final Path unreadable = this.directory.resolve("unreadable.zip");
     Files.write(unreadable, PACK);
     final NettyHosting hosting = new NettyHosting(unreadable);
@@ -269,7 +269,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void refusesToStartWithoutAPack() {
+  void shouldRefuseToStartWithoutAPack() {
     final Path missing = this.directory.resolve("missing.zip");
     final NettyHosting hosting = new NettyHosting(missing);
     final int before = listenerCount();
@@ -283,7 +283,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void buildsTheUrlFromThePublicAddressAndTheMinecraftPortOnce() {
+  void shouldBuildTheUrlFromThePublicAddressAndTheMinecraftPortOnce() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
     bukkit.when(Bukkit::getIp).thenReturn("203.0.113.9");
     bukkit.when(Bukkit::getPort).thenReturn(25570);
@@ -298,7 +298,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void enclosesIpv6AddressesInBrackets() {
+  void shouldEncloseIpv6AddressesInBrackets() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
     bukkit.when(Bukkit::getIp).thenReturn("2001:db8::5");
     bukkit.when(Bukkit::getPort).thenReturn(25570);
@@ -313,7 +313,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void formatsOnlyIpv6AddressesAsBracketedHosts() {
+  void shouldFormatOnlyIpv6AddressesAsBracketedHosts() {
     final String ipv6 = NettyHosting.formatHost("::1");
     final String ipv4 = NettyHosting.formatHost("203.0.113.9");
     final String hostName = NettyHosting.formatHost("example.org");
@@ -326,7 +326,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void buildsTheUrlAgainWhileThePublicAddressIsUnknown() {
+  void shouldBuildTheUrlAgainWhileThePublicAddressIsUnknown() {
     try (final MockedStatic<ServerAddress> serverAddress = Mockito.mockStatic(ServerAddress.class, Mockito.CALLS_REAL_METHODS)) {
       serverAddress.when(ServerAddress::getPublicIPAddress).thenReturn("localhost", "198.51.100.7", "203.0.113.1");
       final NettyHosting hosting = new NettyHosting(this.zip);
@@ -342,7 +342,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void isCreatedByTheInjectorFactory() {
+  void shouldBeCreatedByTheInjectorFactory() {
     final InjectorHosting hosting = PackHosting.injector(this.zip);
 
     final Path hostedZip = hosting.getZip();
@@ -354,7 +354,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessage() {
+  void shouldKeepTheMessageInExceptions() {
     final InjectorException exception = new InjectorException("message");
 
     final String message = exception.getMessage();
@@ -365,7 +365,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void exceptionsKeepTheMessageAndTheCause() {
+  void shouldKeepTheMessageAndTheCauseInExceptions() {
     final IOException failure = new IOException("cause");
     final InjectorException exception = new InjectorException("message", failure);
 
@@ -377,7 +377,7 @@ final class NettyHostingTest {
   }
 
   @Test
-  void exceptionsAreIllegalStateExceptions() {
+  void shouldMakeExceptionsIllegalStateExceptions() {
     final InjectorException exception = new InjectorException("message");
     assertInstanceOf(IllegalStateException.class, exception, "a missing pack is a state of the server, so it is no Error");
   }

@@ -51,7 +51,7 @@ final class BlockPaletteLookupTest {
   private static final int NOT_IN_PALETTE = 0x010203;
 
   @Test
-  void findsTheBlockOfAPaletteColorAndIgnoresTheAlphaChannel() {
+  void shouldFindTheBlockOfAPaletteColorAndIgnoreTheAlphaChannel() {
     final Material material = BlockPaletteLookup.getMaterial(BROWN_STAINED_GLASS);
     final Material opaque = BlockPaletteLookup.getMaterial(0xFF000000 | BROWN_STAINED_GLASS);
     final Material unknown = BlockPaletteLookup.getMaterial(NOT_IN_PALETTE);
@@ -62,7 +62,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void sharesTheBlockDataOfAPaletteColor() {
+  void shouldShareTheBlockDataOfAPaletteColor() {
     final BlockData data = BlockPaletteLookup.getBlockData(0x7F000000 | BROWN_STAINED_GLASS);
     final BlockData sameData = BlockPaletteLookup.getBlockData(BROWN_STAINED_GLASS);
     final BlockData unknown = BlockPaletteLookup.getBlockData(NOT_IN_PALETTE);
@@ -77,7 +77,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void resolvesEveryBlockOfTheBundledPalette() {
+  void shouldResolveEveryBlockOfTheBundledPalette() {
     final Reader reader = IoUtils.getResourceAsStreamReader("mcav/bukkit/blocks.json");
     final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
     final Set<Map.Entry<String, int[]>> entries = palette.entrySet();
@@ -93,7 +93,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void dithersImagesToColorsOfThePalette() {
+  void shouldDitherImagesToColorsOfThePalette() {
     final FilterLiteDither dithering = BlockPaletteLookup.getDitheringImpl();
     final FilterLiteDither sameDithering = BlockPaletteLookup.getDitheringImpl();
     final Random random = new Random(7);
@@ -112,7 +112,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void initializingAgainKeepsTheTables() {
+  void shouldKeepTheTablesWhenInitializingAgain() {
     final FilterLiteDither before = BlockPaletteLookup.getDitheringImpl();
 
     BlockPaletteLookup.init();
@@ -123,7 +123,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void parsesPalettesInTheirOriginalOrderAndClosesTheReader() throws IOException {
+  void shouldParsePalettesInTheirOriginalOrderAndCloseTheReader() throws IOException {
     try (final TrackingReader reader = new TrackingReader("{\"STONE\": [1, 2, 3], \"DIRT\": [4, 5, 6]}")) {
       final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
 
@@ -138,7 +138,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void rejectsEmptyPalettes() {
+  void shouldRejectEmptyPalettes() {
     final StringReader empty = new StringReader("{}");
     final StringReader nothing = new StringReader("null");
 
@@ -147,7 +147,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void reportsPalettesThatCannotBeRead() throws IOException {
+  void shouldReportPalettesThatCannotBeRead() throws IOException {
     try (final TrackingReader reader = new TrackingReader("{\"STONE\": [1, 2, 3]}")) {
       reader.failOnFirstClose = true;
 
@@ -161,7 +161,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void skipsNamesThatAreUnknownOrNotBlocks() {
+  void shouldSkipNamesThatAreUnknownOrNotBlocks() {
     final Map<String, int[]> palette = new LinkedHashMap<>();
     palette.put("stone", new int[] { 1, 2, 3 });
     palette.put("no_such_block", new int[] { 4, 5, 6 });
@@ -174,7 +174,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void skipsEntriesWithMalformedColors() {
+  void shouldSkipEntriesWithMalformedColors() {
     final Map<String, int[]> palette = new LinkedHashMap<>();
     palette.put("stone", new int[] { 1, 2 });
     palette.put("dirt", null);
@@ -188,7 +188,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void parsesMissingColorsAsNull() {
+  void shouldParseMissingColorsAsNull() {
     final StringReader reader = new StringReader("{\"STONE\": null, \"DIRT\": [4, 5, 6]}");
 
     final Map<String, int[]> palette = BlockPaletteLookup.parsePalette(reader);
@@ -203,7 +203,7 @@ final class BlockPaletteLookupTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(BlockPaletteLookup.class);
   }
 

@@ -107,13 +107,13 @@ final class NativeLibrariesTest {
   private record Expected(Format format, int machine, List<Level> levels) {}
 
   @Test
-  void checksEveryPlatformTheLoaderHasALibraryFor() {
+  void shouldCheckEveryPlatformTheLoaderHasALibraryFor() {
     assertEquals(MCV2.NATIVE_DIGESTS.keySet(), PLATFORMS.keySet());
   }
 
   @ParameterizedTest
   @ValueSource(strings = { "linux-x86_64", "linux-aarch64", "windows-x86_64", "windows-aarch64", "macos-x86_64", "macos-aarch64" })
-  void isBuiltForItsPlatformAndExportsItsLevels(final String platform) throws IOException {
+  void shouldBeBuiltForItsPlatformAndExportItsLevels(final String platform) throws IOException {
     final Expected expected = PLATFORMS.get(platform);
     final NativeLibraryFile library = NativeLibraryFile.read(library(platform));
     assertEquals(expected.format(), library.format(), platform);
@@ -138,12 +138,12 @@ final class NativeLibrariesTest {
   }
 
   @Test
-  void readsOnlyTheThreeFormats() {
+  void shouldReadOnlyTheThreeFormats() {
     assertThrows(IllegalArgumentException.class, () -> NativeLibraryFile.read(new byte[64]));
   }
 
   @Test
-  void wasBuiltFromTheSourcesInTheTree() throws IOException {
+  void shouldBeBuiltFromTheSourcesInTheTree() throws IOException {
     final Map<String, String> built = new TreeMap<>();
     try (final InputStream manifest = MCV2.class.getResourceAsStream("/mcav/mcv2/natives/SOURCES")) {
       assertNotNull(manifest, "no /mcav/mcv2/natives/SOURCES: " + REBUILD);

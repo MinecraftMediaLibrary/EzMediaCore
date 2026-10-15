@@ -216,7 +216,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void packagesTheMetadataSoundsAndFilesIntoAZip() throws IOException {
+  void shouldPackageTheMetadataSoundsAndFilesIntoAZip() throws IOException {
     final List<String> expectedNames = List.of(
       "pack.mcmeta",
       "assets/mcav/sounds/audio.ogg",
@@ -246,7 +246,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void packagesGeneratedContentAndKeepsTheLastSourceOfALocation() throws IOException {
+  void shouldPackageGeneratedContentAndKeepTheLastSourceOfALocation() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(88, "generated");
     final byte[] shader = "#version 330".getBytes(StandardCharsets.US_ASCII);
@@ -273,7 +273,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void zipsTheSamePackToTheSameBytes() throws IOException {
+  void shouldZipTheSamePackToTheSameBytes() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(88, "stable");
     pack.sound("mcav:first", this.firstSound);
@@ -297,7 +297,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsFileLocationsThatAreNotRelativeFiles() {
+  void shouldRejectFileLocationsThatAreNotRelativeFiles() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
 
     final IllegalArgumentException absolute = assertThrows(IllegalArgumentException.class, () ->
@@ -311,7 +311,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsFileLocationsReservedForGeneratedEntries() throws IOException {
+  void shouldRejectFileLocationsReservedForGeneratedEntries() throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final Path zip = this.directory.resolve("pack.zip");
     final List<String> expectedNames = List.of("pack.mcmeta", "pack.png", "assets/mcav/sounds/readme.txt", "assets/mcav/sounds.json.txt");
@@ -334,7 +334,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void makesFilesReadableByEveryoneOnlyOnPosixFileSystems() throws IOException {
+  void shouldMakeFilesReadableByEveryoneOnlyOnPosixFileSystems() throws IOException {
     final PosixFileAttributeView view = mock(PosixFileAttributeView.class);
     final Set<PosixFilePermission> readable = PosixFilePermissions.fromString("rw-r--r--");
 
@@ -345,7 +345,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void movesPacksIntoPlaceAtomicallyWhereSupported() throws IOException {
+  void shouldMovePacksIntoPlaceAtomicallyWhereSupported() throws IOException {
     final Path source = this.directory.resolve("source.zip");
     final Path target = this.directory.resolve("target.zip");
     Files.write(source, CREDITS);
@@ -361,7 +361,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void fallsBackToARegularMoveWhereAtomicMovesAreNotSupported() throws IOException {
+  void shouldFallBackToARegularMoveWhereAtomicMovesAreNotSupported() throws IOException {
     final Path source = this.directory.resolve("source.zip");
     final Path target = this.directory.resolve("target.zip");
     Files.write(source, CREDITS);
@@ -380,7 +380,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void replacesSoundsWithTheSameKeyAndPacksThatAlreadyExist() throws IOException {
+  void shouldReplaceSoundsWithTheSameKeyAndPacksThatAlreadyExist() throws IOException {
     final Path zip = this.directory.resolve("pack.zip");
     final SimpleResourcePack first = SimpleResourcePack.pack();
     final SimpleResourcePack second = SimpleResourcePack.pack();
@@ -405,7 +405,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void createsIndependentBuilders() throws IOException {
+  void shouldCreateIndependentBuilders() throws IOException {
     final SimpleResourcePack first = SimpleResourcePack.pack();
     final SimpleResourcePack second = SimpleResourcePack.pack();
 
@@ -456,7 +456,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void needsMetadataBeforeZipping() {
+  void shouldNeedMetadataBeforeZipping() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final Path zip = this.directory.resolve("pack.zip");
 
@@ -468,7 +468,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsTraversalAndAmbiguousSoundPaths() {
+  void shouldRejectTraversalAndAmbiguousSoundPaths() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final List<String> invalid = List.of(
       "mcav:../../../../outside",
@@ -489,7 +489,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsDotSegmentsThatBypassReservedPaths() {
+  void shouldRejectDotSegmentsThatBypassReservedPaths() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     assertThrows(IllegalArgumentException.class, () -> pack.external("./pack.mcmeta", this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("assets/./mcav/sounds.json", this.credits));
@@ -497,7 +497,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsInvalidSounds() {
+  void shouldRejectInvalidSounds() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final Path missing = this.directory.resolve("missing.ogg");
 
@@ -513,7 +513,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsInvalidFileLocations() {
+  void shouldRejectInvalidFileLocations() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final Path missing = this.directory.resolve("missing.txt");
 
@@ -528,7 +528,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsInvalidMetadata() {
+  void shouldRejectInvalidMetadata() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
 
     assertThrows(IllegalArgumentException.class, () -> pack.meta(0, "pack"));
@@ -536,7 +536,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void rejectsDestinationsWithoutAParent() {
+  void shouldRejectDestinationsWithoutAParent() {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final Path root = this.directory.getRoot();
     pack.meta(1, "pack");
@@ -545,7 +545,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void reportsPacksThatCannotBeWritten() throws IOException {
+  void shouldReportPacksThatCannotBeWritten() throws IOException {
     final SimpleResourcePack blocked = SimpleResourcePack.pack();
     final Path file = this.directory.resolve("file");
     final Path belowFile = file.resolve("pack.zip");
@@ -556,7 +556,7 @@ final class SimpleResourcePackTest {
   }
 
   @Test
-  void leavesNothingBehindWhenASoundVanishesBeforeZipping() throws IOException {
+  void shouldLeaveNothingBehindWhenASoundVanishesBeforeZipping() throws IOException {
     final SimpleResourcePack vanished = SimpleResourcePack.pack();
     final Path output = this.directory.resolve("output");
     final Path zip = output.resolve("pack.zip");

@@ -37,7 +37,7 @@ final class MCV2WriterConformanceTest {
 
   @ParameterizedTest
   @MethodSource("streams")
-  void rebuildsEveryCommittedFrameByteForByte(final String name) throws Mcv2Exception {
+  void shouldRebuildEveryCommittedFrameByteForByte(final String name) throws Mcv2Exception {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(name));
     final List<byte[]> canonical =
       name.startsWith("edge/") &&

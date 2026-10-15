@@ -63,7 +63,7 @@ final class JavaDocFormattingExampleTest {
   }
 
   @Test
-  void showsTheImageOnTheScoreboardAndRestoresThePreviousScoreboard(@TempDir final Path directory)
+  void shouldShowTheImageOnTheScoreboardAndRestoreThePreviousScoreboard(@TempDir final Path directory)
     throws IOException, ReflectiveOperationException {
     final Path file = writePicture(directory);
     try (final FakeServer server = FakeServer.start()) {

@@ -51,7 +51,7 @@ final class EntityConfigurationTest {
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
     builder.viewers(viewers);
@@ -75,7 +75,7 @@ final class EntityConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
+  void shouldReturnTheSameBuilderFromSetters() {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
@@ -93,7 +93,7 @@ final class EntityConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
+  void shouldRejectNullInSetters() {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
@@ -102,7 +102,7 @@ final class EntityConfigurationTest {
   }
 
   @Test
-  void rejectsMissingValues() {
+  void shouldRejectMissingValues() {
     final EntityConfiguration.Builder<?> noViewers = EntityConfiguration.builder();
     noViewers.character("x");
     noViewers.position(POSITION);
@@ -125,7 +125,7 @@ final class EntityConfigurationTest {
   }
 
   @Test
-  void rejectsInvalidValues() {
+  void shouldRejectInvalidValues() {
     final EntityConfiguration.Builder<?> emptyCharacter = completeBuilder();
     emptyCharacter.character("");
     final EntityConfiguration.Builder<?> noWidth = completeBuilder();

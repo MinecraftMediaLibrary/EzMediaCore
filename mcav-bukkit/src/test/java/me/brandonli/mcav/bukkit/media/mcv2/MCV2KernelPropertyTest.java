@@ -66,7 +66,7 @@ final class MCV2KernelPropertyTest {
   }
 
   @Property(seed = SEED, tries = 1600)
-  void compactRecordsMatchTheOracle(
+  void shouldMatchTheOracleForCompactRecords(
     @ForAll @IntRange(min = 0, max = 2) final int sizeIndex,
     @ForAll @IntRange(min = 0, max = 2) final int quantizer,
     @ForAll final long seed
@@ -98,7 +98,7 @@ final class MCV2KernelPropertyTest {
   }
 
   @Property(seed = SEED, tries = 200)
-  void predictionsMatchTheOracle(@ForAll @IntRange(min = 0, max = 2) final int sizeIndex, @ForAll final long seed) {
+  void shouldMatchTheOracleForPredictions(@ForAll @IntRange(min = 0, max = 2) final int sizeIndex, @ForAll final long seed) {
     final int size = SIZES[sizeIndex];
     final int[] prediction = prediction(new Random(seed), size);
     final int[] expected = new int[size * size * 3];
@@ -160,7 +160,7 @@ final class MCV2KernelPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  void measuredKernelsStopOnlyWhenTheyCannotWin(
+  void shouldStopMeasuredKernelsOnlyWhenTheyCannotWin(
     @ForAll @IntRange(min = 0, max = 2) final int sizeIndex,
     @ForAll @IntRange(min = 0, max = 3) final int kernel,
     @ForAll @IntRange(min = 0, max = 2) final int quantizer,

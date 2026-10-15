@@ -158,7 +158,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void servesThePackToGetRequestsAndClosesTheConnection() {
+  void shouldServeThePackToGetRequestsAndCloseTheConnection() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ByteBuf request = ascii("GET / HTTP/1.1\r\nHost: example\r\n\r\n");
 
@@ -177,7 +177,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void waitsForTheWholeTargetAndPassesAnUnmatchedRequestUnchanged() {
+  void shouldWaitForTheWholeTargetAndPassAnUnmatchedRequestUnchanged() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     writeText(channel, "HEAD /");
     final Object premature = channel.readOutbound();
@@ -193,7 +193,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void answersHeadRequestsWithTheHeadersOnly() {
+  void shouldAnswerHeadRequestsWithTheHeadersOnly() {
     final EmbeddedChannel channel = createChannel(this.packPath);
 
     writeText(channel, "HEAD / HTTP/1.1\r\n\r\n");
@@ -207,7 +207,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void waitsUntilEnoughBytesArrivedToDecide() {
+  void shouldWaitUntilEnoughBytesArrivedToDecide() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ByteBuf firstPart = ascii("GE");
 
@@ -229,7 +229,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void handsMinecraftConnectionsBackUntouchedAndRemovesItself() {
+  void shouldHandMinecraftConnectionsBackUntouchedAndRemoveItself() {
     final EmbeddedChannel channel = createChannel(this.packPath);
 
     writeBytes(channel, HANDSHAKE);
@@ -245,7 +245,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void handsBackEveryBufferedByteWhenAPartialPrefixTurnsOutToBeMinecraft() {
+  void shouldHandBackEveryBufferedByteWhenAPartialPrefixTurnsOutToBeMinecraft() {
     final EmbeddedChannel channel = createChannel(this.packPath);
 
     writeText(channel, "HE");
@@ -259,7 +259,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void handsShortMinecraftPacketsBackImmediately() {
+  void shouldHandShortMinecraftPacketsBackImmediately() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final byte[] ping = { 0x01, 0x00 };
 
@@ -270,7 +270,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void passesMessagesThatAreNotBytesOn() {
+  void shouldPassMessagesThatAreNotBytesOn() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final Object message = "not a byte buffer";
 
@@ -283,7 +283,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void answersWithAnErrorAndLogsItWhenThePackCannotBeRead() {
+  void shouldAnswerWithAnErrorAndLogItWhenThePackCannotBeRead() {
     final Path missing = this.directory.resolve("missing.zip");
     final EmbeddedChannel channel = createChannel(missing);
     final List<LogCapture.RecordedEvent> events;
@@ -308,7 +308,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void releasesBufferedBytesWhenTheConnectionClosesEarly() {
+  void shouldReleaseBufferedBytesWhenTheConnectionClosesEarly() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ByteBuf partial = ascii("GE");
 
@@ -322,7 +322,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void releasesBufferedBytesWhenTheHandlerIsRemoved() {
+  void shouldReleaseBufferedBytesWhenTheHandlerIsRemoved() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ChannelPipeline pipeline = channel.pipeline();
     final ByteBuf partial = ascii("HEA");
@@ -337,7 +337,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void dropsEverythingThatArrivesAfterThePackWasServed() {
+  void shouldDropEverythingThatArrivesAfterThePackWasServed() {
     final ResourcePackFile file = new ResourcePackFile(this.packPath);
     final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(file, "/");
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
@@ -358,7 +358,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void classifiesClientsAsSoonAsTheirMethodIsComplete() {
+  void shouldClassifyClientsAsSoonAsTheirMethodIsComplete() {
     final RequestType get = classifyText("GET ");
     final RequestType head = classifyText("HEAD ");
 
@@ -367,7 +367,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void releasesBufferedBytesWhenTheConnectionCloses() {
+  void shouldReleaseBufferedBytesWhenTheConnectionCloses() {
     final EmbeddedChannel channel = createChannel(this.packPath);
     final ChannelPipeline pipeline = channel.pipeline();
     final ByteBuf partial = ascii("GE");
@@ -380,7 +380,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void classifiesClientsByTheirFirstBytes() {
+  void shouldClassifyClientsByTheirFirstBytes() {
     final RequestType get = classifyText("GET /");
     final RequestType head = classifyText("HEAD /");
     final RequestType partialGet = classifyText("GET");
@@ -401,7 +401,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void classifiesFromTheReaderIndexWithoutConsumingBytes() {
+  void shouldClassifyFromTheReaderIndexWithoutConsumingBytes() {
     final ByteBuf skipped = ascii("xxGET /");
     skipped.skipBytes(2);
 
@@ -413,7 +413,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void usesAStablePipelineNamePrefix() {
+  void shouldUseAStablePipelineNamePrefix() {
     assertEquals("mcav_resource_pack_http", ResourcePackHttpHandler.NAME);
   }
 
@@ -466,7 +466,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void aDownloadLongerThanTheGamesReadTimeoutIsNotCut() {
+  void shouldNotCutADownloadLongerThanTheGamesReadTimeout() {
     final EmbeddedChannel channel = this.downloading();
     channel.advanceTimeBy(31, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
@@ -477,7 +477,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void aDownloadThatTakesNothingForAMinuteIsClosed() {
+  void shouldCloseADownloadThatTakesNothingForAMinute() {
     final EmbeddedChannel channel = this.downloading();
     channel.advanceTimeBy(ResourcePackHttpHandler.STALL_SECONDS + 1, TimeUnit.SECONDS);
     channel.runScheduledPendingTasks();
@@ -519,7 +519,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void aDownloadThatKeepsTakingThePackIsNotCutHoweverLongItTakes() throws IOException {
+  void shouldNotCutADownloadThatKeepsTakingThePackHoweverLongItTakes() throws IOException {
     final int size = 1 << 20;
     Files.write(this.packPath, new byte[size]);
     final SlowSocket channel = new SlowSocket();
@@ -545,7 +545,7 @@ final class ResourcePackHttpHandlerTest {
   }
 
   @Test
-  void passesOnTheEventsItDoesNotHandle() {
+  void shouldPassOnTheEventsItDoesNotHandle() {
     final List<Object> events = new ArrayList<>();
     final EmbeddedChannel channel = this.gameConnection();
     channel.pipeline().addLast(

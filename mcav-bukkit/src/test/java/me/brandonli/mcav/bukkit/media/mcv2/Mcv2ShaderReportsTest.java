@@ -97,7 +97,7 @@ final class Mcv2ShaderReportsTest {
   }
 
   @Test
-  void onlyAShaderPackInUseThatMcv2DoesNotDecodeUnderBlocksDecoding() {
+  void shouldBlockDecodingOnlyForAShaderPackInUseThatMcv2DoesNotDecodeUnder() {
     assertFalse(this.reports.hasReported(ALICE), "nothing is known of a player without the mod");
     assertFalse(this.reports.blocksDecoding(ALICE));
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
@@ -143,7 +143,7 @@ final class Mcv2ShaderReportsTest {
       "01 00 02 00",
     }
   )
-  void ignoresAMalformedReportWithOneDebugLine(final String hex) {
+  void shouldIgnoreAMalformedReportWithOneDebugLine(final String hex) {
     final byte[] message = HexFormat.ofDelimiter(" ").parseHex(hex);
     this.send(this.alice, SHADERS_ON);
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
@@ -156,7 +156,7 @@ final class Mcv2ShaderReportsTest {
 
   @ParameterizedTest
   @ValueSource(bytes = { 0, 2, -1 })
-  void ignoresAReportOfAnotherVersion(final byte version) {
+  void shouldIgnoreAReportOfAnotherVersion(final byte version) {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.send(this.alice, new byte[] { version, 1, 1, 0 });
       assertEquals(List.of("Ignoring an MCV2 client report of version " + version + " from Alice"), messages(logs, Level.DEBUG));
@@ -165,7 +165,7 @@ final class Mcv2ShaderReportsTest {
   }
 
   @Test
-  void ignoresAReportLongerThanTheLongestUnread() {
+  void shouldIgnoreAReportLongerThanTheLongestUnread() {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       final byte[] longest = new byte[Mcv2ShaderReports.MAX_BYTES];
       longest[0] = Mcv2ShaderReports.VERSION;
@@ -197,7 +197,7 @@ final class Mcv2ShaderReportsTest {
   }
 
   @Test
-  void allowsABurstThenOneReportASecondToEachPlayer() {
+  void shouldAllowABurstThenOneReportASecondToEachPlayer() {
     for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, report % 2 == 0 ? SHADERS_ON : SHADERS_OFF);
     }
@@ -230,7 +230,7 @@ final class Mcv2ShaderReportsTest {
   }
 
   @Test
-  void forgetsTheReportAndTheAllowanceOfAPlayerWhoLeft() {
+  void shouldForgetTheReportAndTheAllowanceOfAPlayerWhoLeft() {
     for (int report = 0; report < Mcv2ShaderReports.BURST; report++) {
       this.send(this.alice, SHADERS_ON);
     }

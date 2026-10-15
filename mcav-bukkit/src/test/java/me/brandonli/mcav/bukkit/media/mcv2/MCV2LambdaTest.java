@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2LambdaTest {
 
   @Test
-  void anAdmittedFiniteLambdaStillSelectsAKeyframe() {
+  void shouldStillSelectAKeyframeWithAnAdmittedFiniteLambda() {
     final Settings settings = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(settings, pool, 1, true);
@@ -38,7 +38,7 @@ final class MCV2LambdaTest {
   }
 
   @Test
-  void aLiveSearchRedoneForItsFrameLimitAtTheLargestLambdaStillEncodes() {
+  void shouldStillEncodeWhenALiveSearchIsRedoneForItsFrameLimitAtTheLargestLambda() {
     final Settings settings = Settings.DEFAULT.withLambda(Double.MAX_VALUE);
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(settings, pool, 1, true);

@@ -34,7 +34,7 @@ final class MCV2TreeNodeTest {
   private static final Node SOLID = Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[] { 1, 2, 3 });
 
   @Test
-  void skipIsASharedEmptyLeaf() {
+  void shouldMakeSkipASharedEmptyLeaf() {
     final Node skip = Node.skip();
     assertSame(skip.value(), Node.skip().value());
     assertEquals(Mcv2Decoder.MODE_SKIP, skip.getMode());
@@ -44,7 +44,7 @@ final class MCV2TreeNodeTest {
   }
 
   @Test
-  void encodedFramesRetainTheirRecordsWhenTheCoderIsReused() throws Mcv2Exception {
+  void shouldRetainTheRecordsOfEncodedFramesWhenTheCoderIsReused() throws Mcv2Exception {
     final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
     final byte[] source = new byte[64 * 32 * 3];
     for (int pixel = 0; pixel < 64 * 32; pixel++) {
@@ -61,7 +61,7 @@ final class MCV2TreeNodeTest {
   }
 
   @Test
-  void splitsHoldFourChildrenInRasterOrder() {
+  void shouldHoldFourChildrenInRasterOrderInASplit() {
     final Node split = Node.split(SOLID, Node.skip(), Node.skip(), SOLID);
     assertTrue(split.isSplit());
     assertEquals(Mcv2Decoder.MODE_SPLIT, split.getMode());

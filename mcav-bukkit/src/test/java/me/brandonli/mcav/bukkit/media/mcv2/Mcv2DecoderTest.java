@@ -35,12 +35,12 @@ import org.junit.jupiter.api.Test;
 final class Mcv2DecoderTest {
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Decoder.class);
   }
 
   @Test
-  void decodesAKeyframeWithoutAReferenceAndCropsItsEdges() throws Mcv2Exception {
+  void shouldDecodeAKeyframeWithoutAReferenceAndCropItsEdges() throws Mcv2Exception {
     final byte[] frame = keyframe(3, 2, solid(10, 20, 30));
     final byte[] picture = Mcv2Decoder.decode(frame, null, 99);
     assertArrayEquals(new byte[] { 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30, 10, 20, 30 }, picture);
@@ -48,7 +48,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void decodesIntoAPictureOfTheFramesSize() throws Mcv2Exception {
+  void shouldDecodeIntoAPictureOfTheFramesSize() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(keyframe(3, 2, solid(10, 20, 30)));
     final byte[] fresh = Mcv2Decoder.decode(frame, null, 0);
     final byte[] into = new byte[18];
@@ -62,7 +62,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void predictsAPFrameFromItsReference() throws Mcv2Exception {
+  void shouldPredictAPFrameFromItsReference() throws Mcv2Exception {
     final byte[] reference = new byte[2 * 1 * 3];
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) (index * 10);
@@ -72,7 +72,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void decodesTheSamePictureOnAnyNumberOfWorkers() throws Mcv2Exception {
+  void shouldDecodeTheSamePictureOnAnyNumberOfWorkers() throws Mcv2Exception {
     final String stream = Mcv2Fixtures.digests("conformance").keySet().iterator().next();
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/" + stream));
     try (final ForkJoinPool pool = new ForkJoinPool(4)) {
@@ -102,7 +102,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void decodesAPFrameIntoThePictureItIsPredictedFrom() throws Mcv2Exception {
+  void shouldDecodeAPFrameIntoThePictureItIsPredictedFrom() throws Mcv2Exception {
     final String stream = Mcv2Fixtures.digests("conformance").keySet().iterator().next();
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/" + stream));
     byte[] reference = null;
@@ -120,7 +120,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void reportsTheFirstFailingLeafBeforeAnyRowsCanDecode() {
+  void shouldReportTheFirstFailingLeafBeforeAnyRowsCanDecode() {
     final int count = 300;
     final byte[] descriptors = new byte[count];
     Arrays.fill(descriptors, (byte) Mcv2Decoder.MODE_SOLID);
@@ -135,7 +135,7 @@ final class Mcv2DecoderTest {
   }
 
   @Test
-  void refusesAMissingOrMismatchedReference() {
+  void shouldRefuseAMissingOrMismatchedReference() {
     final byte[] frame = predicted(2, 1, motion(0, 0));
     assertEquals("Reference frame mismatch", assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0)).getMessage());
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, new byte[6], 7));

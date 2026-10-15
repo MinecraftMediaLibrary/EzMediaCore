@@ -65,7 +65,7 @@ final class PageCrcFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void acceptsOnlyPagesThatCheck(final byte[] data) {
+  void shouldAcceptOnlyPagesThatCheck(final byte[] data) {
     if (data.length < 3) {
       return;
     }

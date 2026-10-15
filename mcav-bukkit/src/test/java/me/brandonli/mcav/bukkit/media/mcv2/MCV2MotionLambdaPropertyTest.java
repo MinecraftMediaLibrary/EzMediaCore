@@ -33,7 +33,7 @@ final class MCV2MotionLambdaPropertyTest {
   private static final double BASE = 72;
 
   @Property(seed = SEED, tries = 300)
-  boolean staysBetweenTheProfilesLambdaAndFourTimesIt(
+  boolean shouldStayBetweenTheProfilesLambdaAndFourTimesIt(
     @ForAll @Size(min = 1, max = 60) final List<@DoubleRange(min = 0, max = 200) Double> motions,
     @ForAll @DoubleRange(min = 1, max = 2000) final double base
   ) {
@@ -49,7 +49,7 @@ final class MCV2MotionLambdaPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  boolean keepsASteadyLambdaForSteadyMotion(
+  boolean shouldKeepASteadyLambdaForSteadyMotion(
     @ForAll @DoubleRange(min = 0, max = 200) final double information,
     @ForAll @IntRange(min = 1, max = 60) final int frames
   ) {
@@ -64,7 +64,7 @@ final class MCV2MotionLambdaPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  boolean movesTowardANewMotionWithoutOvershootingOrTurningBack(
+  boolean shouldMoveTowardANewMotionWithoutOvershootingOrTurningBack(
     @ForAll @DoubleRange(min = 0, max = 200) final double before,
     @ForAll @DoubleRange(min = 0, max = 200) final double after,
     @ForAll @IntRange(min = 1, max = 120) final int frames
@@ -86,7 +86,7 @@ final class MCV2MotionLambdaPropertyTest {
   }
 
   @Property(seed = SEED, tries = 300)
-  boolean neverGivesMoreMotionALowerLambda(
+  boolean shouldNeverGiveMoreMotionALowerLambda(
     @ForAll @DoubleRange(min = 0, max = 200) final double oneLambda,
     @ForAll @DoubleRange(min = 0, max = 200) final double otherLambda
   ) {

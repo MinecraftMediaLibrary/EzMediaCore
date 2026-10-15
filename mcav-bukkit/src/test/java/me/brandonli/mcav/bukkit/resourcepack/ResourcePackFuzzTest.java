@@ -75,7 +75,7 @@ final class ResourcePackFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void writesOnlySafeEntriesAndExactlyTheAcceptedData(final FuzzedDataProvider data) throws IOException {
+  void shouldWriteOnlySafeEntriesAndExactlyTheAcceptedData(final FuzzedDataProvider data) throws IOException {
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     final String description = data.consumeString(64);
     pack.meta(data.consumeInt(1, 100), description);

@@ -50,19 +50,19 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void absentRootsHaveNoRecordOffset() throws Mcv2Exception {
+  void shouldGiveAbsentRootsNoRecordOffset() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(1, 1, Node.skip()));
     assertEquals(1, frame.getLeafCount());
     assertEquals(-1, frame.getLeaf(0).offset());
   }
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Decoder.class);
   }
 
   @Test
-  void parsesTheHeaderAndTheLeavesOfAKeyframe() throws Mcv2Exception {
+  void shouldParseTheHeaderAndTheLeavesOfAKeyframe() throws Mcv2Exception {
     final byte[] frame = keyframe(40, 20, solid(1, 2, 3), split(Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, palette())));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     assertEquals(40, parsed.getWidth());
@@ -85,7 +85,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void copiesTheInputSoTheCallerMayReuseIt() throws Mcv2Exception {
+  void shouldCopyTheInputSoTheCallerMayReuseIt() throws Mcv2Exception {
     final byte[] frame = keyframe(8, 8, solid(9, 9, 9));
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     frame[12] = 1;
@@ -93,7 +93,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void rejectsBytesThatAreNotAnMcv2Frame() {
+  void shouldRejectBytesThatAreNotAnMcv2Frame() {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V' }));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[48]));
     final Mcv2Exception mcv1 = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V', '1' }));
@@ -102,7 +102,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void rejectsFramesOfTheWrongLength() {
+  void shouldRejectFramesOfTheWrongLength() {
     final byte[] frame = keyframe(8, 8, solid(1, 1, 1));
     assertEquals("Invalid frame length", message(Arrays.copyOf(frame, 19)));
     final byte[] huge = new byte[Mcv2Decoder.MAX_FRAME_BYTES + 1];
@@ -111,7 +111,7 @@ final class Mcv2ParserTest {
   }
 
   @Test
-  void judgesTheLengthOfBytesThatStartLikeAFrame() {
+  void shouldJudgeTheLengthOfBytesThatStartLikeAFrame() {
     final byte[] magic = new byte[Integer.BYTES];
     Mcv2Decoder.putU32(magic, 0, Mcv2Decoder.MAGIC);
     assertEquals("Invalid frame length", message(magic));
@@ -142,7 +142,7 @@ final class Mcv2ParserTest {
 
   @ParameterizedTest(name = "{1}")
   @MethodSource("headerRules")
-  void enforcesEveryHeaderRule(final byte[] frame, final String expected) {
+  void shouldEnforceEveryHeaderRule(final byte[] frame, final String expected) {
     assertEquals(expected, message(frame));
   }
 

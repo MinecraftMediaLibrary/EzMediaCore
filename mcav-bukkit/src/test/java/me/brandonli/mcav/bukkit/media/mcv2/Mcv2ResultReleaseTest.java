@@ -67,7 +67,7 @@ final class Mcv2ResultReleaseTest {
   }
 
   @Test
-  void clearsEveryMapOfAWallOfSeveralMapsForTheViewersWithThePack() {
+  void shouldClearEveryMapOfAWallOfSeveralMapsForTheViewersWithThePack() {
     final Mcv2Viewers viewers = mock(Mcv2Viewers.class);
     when(viewers.isLoaded(WITH_PACK)).thenReturn(true);
     final Mcv2Screen screen = mock(Mcv2Screen.class);

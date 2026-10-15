@@ -71,7 +71,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void everyMapIdLiesInTheRangeOfItsLayout(@ForAll("grids") final MapGrid grid) {
+  void shouldKeepEveryMapIdInTheRangeOfItsLayout(@ForAll("grids") final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final int mapCount = layout.getMapCount();
     final long firstId = grid.getStartMapId();
@@ -96,7 +96,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void theMapsShowEveryVisiblePixelOfTheImageExactlyOnceAndCentered(@ForAll("grids") final MapGrid grid) {
+  void shouldShowEveryVisiblePixelOfTheImageOnTheMapsExactlyOnceAndCentered(@ForAll("grids") final MapGrid grid) {
     final MapLayout layout = grid.createLayout();
     final byte[] image = grid.createImage();
     final List<MapTilePatch> patches = layout.extractAll(image);
@@ -116,7 +116,7 @@ final class MapLayoutPropertyTest {
   }
 
   @Property(seed = SEED)
-  void rejectsGridsWhoseIdsWouldPassTheLargestMapId(
+  void shouldRejectGridsWhoseIdsWouldPassTheLargestMapId(
     @ForAll @IntRange(min = 1, max = 64) final int columns,
     @ForAll @IntRange(min = 1, max = 64) final int rows,
     @ForAll @IntRange(min = 0, max = 4095) final int overshoot

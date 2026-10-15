@@ -46,7 +46,7 @@ final class NativeKernelsPropertyTest {
   }
 
   @Property(seed = SEED, tries = 2000)
-  boolean computesWhatJavaComputes(@ForAll("levels") final @Nullable Level level, @ForAll final long seed) {
+  boolean shouldComputeWhatJavaComputes(@ForAll("levels") final @Nullable Level level, @ForAll final long seed) {
     if (level == null) {
       return true;
     }
@@ -62,7 +62,7 @@ final class NativeKernelsPropertyTest {
   }
 
   @Property(seed = SEED, tries = 30)
-  boolean encodesWhatJavaEncodes(
+  boolean shouldEncodeWhatJavaEncodes(
     @ForAll("levels") final @Nullable Level level,
     @ForAll final long seed,
     @ForAll("searches") final Settings search

@@ -43,7 +43,7 @@ final class ChatConfigurationTest {
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
     builder.viewers(viewers);
@@ -64,7 +64,7 @@ final class ChatConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
+  void shouldReturnTheSameBuilderFromSetters() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
@@ -80,7 +80,7 @@ final class ChatConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
+  void shouldRejectNullInSetters() {
     final ChatConfiguration.Builder<?> builder = ChatConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
@@ -88,7 +88,7 @@ final class ChatConfigurationTest {
   }
 
   @Test
-  void rejectsMissingOrInvalidValues() {
+  void shouldRejectMissingOrInvalidValues() {
     final ChatConfiguration.Builder<?> noViewers = ChatConfiguration.builder();
     noViewers.character("x");
     noViewers.chatWidth(1);

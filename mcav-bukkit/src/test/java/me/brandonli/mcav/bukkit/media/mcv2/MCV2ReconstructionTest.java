@@ -25,14 +25,14 @@ import org.junit.jupiter.api.Test;
 final class MCV2ReconstructionTest {
 
   @Test
-  void roundsHalvesUpAndClamps() {
+  void shouldRoundHalvesUpAndClamp() {
     for (final int[] sample : new int[][] { { -768, 0 }, { 76800, 255 }, { 384, 2 }, { 640, 3 }, { 637, 2 } }) {
       assertEquals(sample[1], Mcv2Decoder.round(sample[0], 8));
     }
   }
 
   @Test
-  void predictsWithWholePixelsAndClampedCoordinates() {
+  void shouldPredictWithWholePixelsAndClampedCoordinates() {
     final byte[] reference = { 0, 0, 0, 40, 40, 40, 80, 80, 80, 120, 120, 120 };
     final Kernels kernels = Mcv2Internals.javaKernels();
     final int[] out = new int[8 * 8 * 3];

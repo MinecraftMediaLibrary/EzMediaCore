@@ -136,7 +136,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void buildsTheLadderFromTheSizes() {
+  void shouldBuildTheLadderFromTheSizes() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final List<Mcv2Pacer.Rung> ladder = pacer.getLadder();
     assertEquals(11, ladder.size());
@@ -153,7 +153,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void buildsALadderOfPresetsBeforeTheFrameRates() {
+  void shouldBuildALadderOfPresetsBeforeTheFrameRates() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
     final List<Mcv2Pacer.Rung> ladder = pacer.getLadder();
     assertEquals(13, ladder.size());
@@ -181,7 +181,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void describesRungsAndRates() {
+  void shouldDescribeRungsAndRates() {
     assertTrue(Mcv2Pacer.Rung.DITHERED.isDithered());
     assertEquals(0, Mcv2Pacer.Rung.DITHERED.fps(60));
     assertEquals("the dithered maps", Mcv2Pacer.Rung.DITHERED.describe(60));
@@ -199,7 +199,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void encodesEveryFrameAtTheTopAndMeasuresTheVideo() {
+  void shouldEncodeEveryFrameAtTheTopAndMeasureTheVideo() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     // nothing is judged before the video's frame rate is known
     assertNull(pacer.encoded(500, false, 0));
@@ -217,7 +217,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void leavesKeyframesOut() {
+  void shouldLeaveKeyframesOut() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -228,7 +228,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownTheFrameRateFirst() {
+  void shouldStepDownTheFrameRateFirst() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -253,7 +253,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownThePresetsBeforeTheFrameRate() {
+  void shouldStepDownThePresetsBeforeTheFrameRate() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
@@ -283,7 +283,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void takesAFasterPresetThatOnlyKeepsUpBeforeALowerFrameRate() {
+  void shouldTakeAFasterPresetThatOnlyKeepsUpBeforeALowerFrameRate() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
@@ -294,7 +294,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownTheFrameRateAtTheFastestPreset() {
+  void shouldStepDownTheFrameRateAtTheFastestPreset() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL), List.of(LIVE, FAST), true);
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
@@ -311,7 +311,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownToALowerFrameRateOnlyWhereItFitsWithRoom() {
+  void shouldStepDownToALowerFrameRateOnlyWhereItFitsWithRoom() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 50, 0);
     driver.play(5, 5);
@@ -322,7 +322,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownToASmallerSizeOnlyWhereItFitsWithRoom() {
+  void shouldStepDownToASmallerSizeOnlyWhereItFitsWithRoom() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -338,7 +338,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownToASmallerSizeWhenNoFrameRateFits() {
+  void shouldStepDownToASmallerSizeWhenNoFrameRateFits() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -350,7 +350,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void fallsBackToTheDitheredMapsAndTriesAgainLaterAndLater() {
+  void shouldFallBackToTheDitheredMapsAndTryAgainLaterAndLater() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -382,7 +382,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsBackUpToTheBestRungThatFitsWithRoom() {
+  void shouldStepBackUpToTheBestRungThatFitsWithRoom() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -405,7 +405,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void keepsOffARungItHadToLeave() {
+  void shouldKeepOffARungItHadToLeave() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -432,7 +432,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void keepsUpBarelyBeforeFallingBackToTheDitheredMaps() {
+  void shouldKeepUpBarelyBeforeFallingBackToTheDitheredMaps() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -443,7 +443,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void waitsForANewEncoderToWarmUp() {
+  void shouldWaitForANewEncoderToWarmUp() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Driver driver = new Driver(pacer, 60, 0);
     // over its time from the first frame, but no step while the encoder warms up
@@ -452,7 +452,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void doesNotMeasureTheVideoOnTheDitheredMaps() {
+  void shouldNotMeasureTheVideoOnTheDitheredMaps() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -465,7 +465,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void neverSkipsFramesOfASlowVideo() {
+  void shouldNeverSkipFramesOfASlowVideo() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 8, 0);
     driver.play(5, 5);
@@ -481,7 +481,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void smoothsTheMeasuredFrameRate() {
+  void shouldSmoothTheMeasuredFrameRate() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     pacer.arrive(0);
     pacer.arrive(10_000_000);
@@ -492,7 +492,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsDownExactlyASecondAfterItsWarmUp() {
+  void shouldStepDownExactlyASecondAfterItsWarmUp() {
     // 30 ms per frame at 50 fps from a first frame at 100 s: nothing is judged for five seconds, the frame at 105 s is
     // the first found over its 20 ms, and the step comes a second later, at 106 s
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
@@ -502,7 +502,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void judgesFromTheTenthMeasuredFrame() {
+  void shouldJudgeFromTheTenthMeasuredFrame() {
     // one frame a second taking 1.5 s: five seconds pass before ten frames are measured (the first frame's interval is
     // unknown), so the frame at 10 s is the first judged, and the step to the dithered maps comes at 11 s
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
@@ -513,7 +513,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void keepsARungWhoseFramesTakeExactlyTheirTime() {
+  void shouldKeepARungWhoseFramesTakeExactlyTheirTime() {
     // 20 ms per frame at 50 fps is not over the 20 ms a frame has
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Exact clock = new Exact(pacer, FRAME_50, 0);
@@ -524,7 +524,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void stepsToTheFirstRungItFitsExactlyTheShareOf() {
+  void shouldStepToTheFirstRungItFitsExactlyTheShareOf() {
     // 34 ms is exactly 0.85 of the 40 ms a frame has at 25 fps
     assertEquals(34.0, Mcv2Pacer.FIT * 40.0);
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
@@ -532,7 +532,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void encodesTheFirstOfEveryThreeFrames() {
+  void shouldEncodeTheFirstOfEveryThreeFrames() {
     // 40 ms per frame at 50 fps fits 16.7 fps' 60 ms with room, not 25 fps' 40 ms
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Exact clock = new Exact(pacer, FRAME_50, 0);
@@ -547,7 +547,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void staysOnTheLowestRungWithoutDitheredMaps() {
+  void shouldStayOnTheLowestRungWithoutDitheredMaps() {
     // 2 s per frame fits nothing; without dithered maps the floor is the lowest rung that keeps 10 fps: 12.5 fps
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL), false);
     final Exact clock = new Exact(pacer, FRAME_50, 0);
@@ -559,7 +559,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void climbsBackOnAClockBeforeZero() {
+  void shouldClimbBackOnAClockBeforeZero() {
     // System.nanoTime may be negative: a rung the pacer never left is never kept off
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, -1000 * SECOND);
@@ -571,7 +571,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void climbsWhenTheRungItLeftIsFreeAndFitsExactlyWithRoom() {
+  void shouldClimbWhenTheRungItLeftIsFreeAndFitsExactlyWithRoom() {
     // 62.5 fps: 25 ms per frame steps down to 31.25 fps; there 11.2 ms is exactly 0.7 of the 16 ms a frame has at the top,
     // which is kept off for ten seconds - 625 frames, so the frame that frees it is one the pacer encodes - and the
     // climb comes five seconds of room later, at the first encoded frame after them: 939 frames after the step
@@ -586,7 +586,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void climbsExactlyFiveSecondsAfterRoomAppears() {
+  void shouldClimbExactlyFiveSecondsAfterRoomAppears() {
     // 50 fps: 30 ms per frame steps down to 25 fps; there 10 ms leaves room at the top once it is free, from the first
     // encoded frame at or after ten seconds (501 frames after the step), and the climb comes exactly five seconds later
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
@@ -599,7 +599,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void aRungHeldAsLongAsItWouldNextBeKeptOffIsKeptOffOnlyTenSecondsAgain() {
+  void shouldKeepOffOnlyTenSecondsAgainARungHeldAsLongAsItWouldNextBeKeptOff() {
     // 50 fps. Leaving the top rung doubles how long it is kept off the next time it is left, unless it held meanwhile
     // as long as that next wait: step down, climb back after ten seconds, hold the top exactly twenty seconds, then
     // leave it at once (61 ms per frame is over at the first frame) - the top is then kept off ten seconds, not twenty
@@ -622,7 +622,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void aRungThatFailsSoonAfterItsReturnIsKeptOffTwiceAsLong() {
+  void shouldKeepOffTwiceAsLongARungThatFailsSoonAfterItsReturn() {
     // 50 fps: step down, climb back after ten seconds, hold the top for six seconds, then leave it at once - the
     // top held less than the twenty seconds it would next be kept off, so it is kept off those twenty seconds
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
@@ -643,7 +643,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void aTryThatHoldsLessThanItsWaitDoesNotShortenTheNextWait() {
+  void shouldNotShortenTheNextWaitWhenATryHoldsLessThanItsWait() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
     final Driver driver = new Driver(pacer, 60, 0);
     driver.play(5, 5);
@@ -670,7 +670,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void aRungThatHoldsExactlyItsNextWaitIsKeptOffOnlyTheFirstWaitAgain() {
+  void shouldKeepOffOnlyTheFirstWaitAgainARungThatHoldsExactlyItsNextWait() {
     // 50 fps: the top fails and is kept off ten seconds, so a second failure would keep it off twenty
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Exact clock = new Exact(pacer, FRAME_50, 0);
@@ -692,7 +692,7 @@ final class Mcv2PacerTest {
   }
 
   @Test
-  void aTryThatHoldsExactlyItsNextWaitShortensThatWaitAgain() {
+  void shouldShortenThatWaitAgainWhenATryHoldsExactlyItsNextWait() {
     // 50 fps, one size: far over at the top, the pacer falls back to the dithered maps; the next fall would wait 60 s
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL));
     final Exact clock = new Exact(pacer, FRAME_50, 0);

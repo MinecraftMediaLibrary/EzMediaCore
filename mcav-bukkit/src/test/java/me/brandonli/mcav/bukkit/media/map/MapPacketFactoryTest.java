@@ -61,7 +61,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void sendsThePatchesOfOneCallAsOneBundleToEveryOnlineViewer() {
+  void shouldSendThePatchesOfOneCallAsOneBundleToEveryOnlineViewer() {
     final MapTilePatch first = new MapTilePatch(3, 1, 2, 2, 1, new byte[] { 5, 6 });
     final MapTilePatch second = new MapTilePatch(4, 0, 0, 1, 1, new byte[] { 7 });
     final List<MapTilePatch> patches = List.of(first, second);
@@ -85,7 +85,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void splitsOnlyWhenUpdatesExceedThe4096PacketProtocolLimit() {
+  void shouldSplitOnlyWhenUpdatesExceedThe4096PacketProtocolLimit() {
     final List<MapTilePatch> patches = new ArrayList<>();
     for (int mapId = 0; mapId < 4097; mapId++) {
       final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
@@ -116,7 +116,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void sendsOneBundleWhenThePatchCountFillsItExactly() {
+  void shouldSendOneBundleWhenThePatchCountFillsItExactly() {
     final List<MapTilePatch> patches = new ArrayList<>();
     for (int mapId = 0; mapId < 4096; mapId++) {
       final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
@@ -135,7 +135,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void sendsNothingWithoutPatchesOrViewers() {
+  void shouldSendNothingWithoutPatchesOrViewers() {
     final MapTilePatch patch = new MapTilePatch(0, 0, 0, 1, 1, new byte[] { 1 });
     final List<MapTilePatch> patches = List.of(patch);
     final List<UUID> viewers = List.of(FIRST);
@@ -152,7 +152,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void clearsMapsWithTheTransparentColor() {
+  void shouldClearMapsWithTheTransparentColor() {
     final List<UUID> viewers = List.of(FIRST);
     MapPacketFactory.clear(viewers, 4, 2);
     final List<Packet<?>> packets = this.server.getSentPackets(FIRST);
@@ -171,7 +171,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void clearingNoMapsSendsNothing() {
+  void shouldSendNothingWhenClearingNoMaps() {
     final List<UUID> viewers = List.of(FIRST);
     MapPacketFactory.clear(viewers, 4, 0);
     final List<Packet<?>> packets = this.server.getSentPackets(FIRST);
@@ -181,7 +181,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void clearsTheExtremeMapIdsAndRejectsOverflowBeforeSending() {
+  void shouldClearTheExtremeMapIdsAndRejectOverflowBeforeSending() {
     final List<UUID> viewers = List.of(FIRST);
     assertEquals(
       "Map ids exceed the integer range",
@@ -211,7 +211,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final List<UUID> viewers = List.of(FIRST);
     final List<MapTilePatch> patches = List.of();
 
@@ -223,7 +223,7 @@ final class MapPacketFactoryTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(MapPacketFactory.class);
   }
 }

@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2Test {
 
   @Test
-  void writesTheHandComputedUniformKeyframeAndPredictedGolden() throws Mcv2Exception {
+  void shouldWriteTheHandComputedUniformKeyframeAndPredictedGolden() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, true);
       final byte[] picture = { 10, 20, 30 };
@@ -55,7 +55,7 @@ final class MCV2Test {
   }
 
   @Test
-  void reconstructionEqualsDecodeForEveryPresetAndOddSize() throws Mcv2Exception {
+  void shouldReconstructExactlyWhatDecodeGivesForEveryPresetAndOddSize() throws Mcv2Exception {
     final Random random = new Random(0x4D435632);
     for (final MCV2.Settings settings : new MCV2.Settings[] { MCV2.Settings.DEFAULT, MCV2.Settings.FAST }) {
       try (final ForkJoinPool pool = new ForkJoinPool(4)) {
@@ -79,7 +79,7 @@ final class MCV2Test {
   }
 
   @Test
-  void writesIdenticalBytesOnOneThroughFourThreads() {
+  void shouldWriteIdenticalBytesOnOneThroughFourThreads() {
     final byte[][] source = new byte[5][128 * 96 * 3];
     final Random random = new Random(7719);
     random.nextBytes(source[0]);
@@ -108,7 +108,7 @@ final class MCV2Test {
   }
 
   @Test
-  void retriesAndFallsBackFromTheSameReference() throws Mcv2Exception {
+  void shouldRetryAndFallBackFromTheSameReference() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT.withLambda(0), pool, 2, true);
       final byte[] source = new byte[63 * 65 * 3];
@@ -130,7 +130,7 @@ final class MCV2Test {
   }
 
   @Test
-  void retriesAtMostFourTimesWhenEvenTheTrivialFrameExceedsTheLimit() throws Mcv2Exception {
+  void shouldRetryAtMostFourTimesWhenEvenTheTrivialFrameExceedsTheLimit() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT.withLambda(1), pool, 1, true);
       encoder.setFrameLimit(40);
@@ -143,7 +143,7 @@ final class MCV2Test {
   }
 
   @Test
-  void measuresOnlyTheTimeSpentBeginningAndFinishing() {
+  void shouldMeasureOnlyTheTimeSpentBeginningAndFinishing() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, true);
       final long started = System.nanoTime();
@@ -156,7 +156,7 @@ final class MCV2Test {
   }
 
   @Test
-  void exhaustedBudgetUsesMeanSolidsAndThenSkip() throws Mcv2Exception {
+  void shouldUseMeanSolidsAndThenSkipWhenTheBudgetIsExhausted() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 2, true);
       encoder.setFrameBudget(1);
@@ -177,7 +177,7 @@ final class MCV2Test {
   }
 
   @Test
-  void keyframesFollowRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
+  void shouldPlaceKeyframesByRequestsSizesIntervalsAndWrappedIds() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(new MCV2.Settings(72, false), pool, 1, true);
       final byte[] black = new byte[3];
@@ -200,7 +200,7 @@ final class MCV2Test {
   }
 
   @Test
-  void switchingSettingsKeepsTheReferenceAndMotionLambda() throws Mcv2Exception {
+  void shouldKeepTheReferenceAndMotionLambdaWhenSwitchingSettings() throws Mcv2Exception {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, true);
       final byte[] source = new byte[32 * 32 * 3];
@@ -221,7 +221,7 @@ final class MCV2Test {
   }
 
   @Test
-  void pipelineMatchesSerialAndEnforcesFinishOrderAndOwnership() {
+  void shouldMatchSerialInThePipelineAndEnforceFinishOrderAndOwnership() {
     try (final ForkJoinPool pool = new ForkJoinPool(2)) {
       final MCV2 serial = new MCV2(MCV2.Settings.DEFAULT, pool, 2, true);
       final MCV2 pipelined = new MCV2(MCV2.Settings.DEFAULT, pool, 2, true);
@@ -244,7 +244,7 @@ final class MCV2Test {
   }
 
   @Test
-  void verificationFailurePermanentlyStopsBothPipelineStages() throws ReflectiveOperationException {
+  void shouldPermanentlyStopBothPipelineStagesOnAVerificationFailure() throws ReflectiveOperationException {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, true);
       final MCV2.Pending first = encoder.begin(new byte[3], 1, 1, 0);
@@ -260,7 +260,7 @@ final class MCV2Test {
   }
 
   @Test
-  void checksSettingsInputsAndReferenceOwnership() {
+  void shouldCheckSettingsInputsAndReferenceOwnership() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       assertThrows(IllegalArgumentException.class, () -> new MCV2.Settings(-1, false));
       assertThrows(IllegalArgumentException.class, () -> new MCV2.Settings(Double.NaN, false));

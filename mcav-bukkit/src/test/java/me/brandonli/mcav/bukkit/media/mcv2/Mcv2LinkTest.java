@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 final class Mcv2LinkTest {
 
   @Test
-  void startsWithAKeyframe() {
+  void shouldStartWithAKeyframe() {
     final Mcv2Link link = new Mcv2Link(1000);
     assertFalse(link.canDecode(false, 0));
     // the id no frame has is never a reference, not even before the first frame
@@ -42,7 +42,7 @@ final class Mcv2LinkTest {
   }
 
   @Test
-  void waitsForTheNextKeyframeWhenFramesPredictFromTheFrameBefore() {
+  void shouldWaitForTheNextKeyframeWhenFramesPredictFromTheFrameBefore() {
     final Mcv2Link link = new Mcv2Link(100);
     assertTrue(link.offer(0, 0, true, 60));
     assertTrue(link.offer(1, 0, false, 60));
@@ -59,7 +59,7 @@ final class Mcv2LinkTest {
   }
 
   @Test
-  void refusesAnOlderKeyframeAfterSendingAPredictedFrame() {
+  void shouldRefuseAnOlderKeyframeAfterSendingAPredictedFrame() {
     final Mcv2Link link = new Mcv2Link(1000);
     assertTrue(link.offer(10, 10, true, 1));
     assertTrue(link.offer(11, 10, false, 1));
@@ -72,7 +72,7 @@ final class Mcv2LinkTest {
   }
 
   @Test
-  void sendsAtTheLimitAndHoldsPastIt() {
+  void shouldSendAtTheLimitAndHoldPastIt() {
     final Mcv2Link link = new Mcv2Link(50);
     assertTrue(link.offer(0, 0, true, 50));
     assertTrue(link.offer(1, 0, false, 1));
@@ -95,7 +95,7 @@ final class Mcv2LinkTest {
   }
 
   @Test
-  void refusesValuesOutOfRange() {
+  void shouldRefuseValuesOutOfRange() {
     assertThrows(IllegalArgumentException.class, () -> new Mcv2Link(-1));
     final Mcv2Link link = new Mcv2Link(10);
     assertThrows(IllegalArgumentException.class, () -> link.offer(-1, 0, true, 1));

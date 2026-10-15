@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Tag;
 final class Mcv2DecoderFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void decodesOrRejectsAnyFrame(final byte[] data) {
+  void shouldDecodeOrRejectAnyFrame(final byte[] data) {
     final Mcv2Decoder.Frame frame;
     try {
       frame = Mcv2Decoder.parse(data);

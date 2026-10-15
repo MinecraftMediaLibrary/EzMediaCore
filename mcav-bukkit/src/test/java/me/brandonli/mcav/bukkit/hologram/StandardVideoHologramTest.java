@@ -170,7 +170,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void basicGivesAStandardVideoHologramThatSpawnsNothingBeforeARequest() {
+  void shouldGiveAStandardVideoHologramFromBasicThatSpawnsNothingBeforeARequest() {
     final Hologram hologram = Hologram.basic();
     final TextDisplay display = hologram.getDisplay();
     assertInstanceOf(StandardVideoHologram.class, hologram);
@@ -178,7 +178,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void spawnsAConfiguredDisplayWithTheMetadataOfTheVideo() {
+  void shouldSpawnAConfiguredDisplayWithTheMetadataOfTheVideo() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final int timestamp = epochSecond(1);
     final UrlParseDump dump = createDump("Some Video", "Some Channel", timestamp, 60);
@@ -199,7 +199,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void writesOrdinalDaysLikeEnglishDoes() {
+  void shouldWriteOrdinalDaysLikeEnglishDoes() {
     final int[] days = { 2, 3, 4, 11, 12, 13, 21, 22, 23, 31 };
     final String[] suffixes = { "nd", "rd", "th", "th", "th", "th", "st", "nd", "rd", "st" };
     for (int index = 0; index < days.length; index++) {
@@ -216,7 +216,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void usesPlaceholdersForMissingMetadataAndDoesNotParseTagsInIt() {
+  void shouldUsePlaceholdersForMissingMetadataAndNotParseTagsInIt() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump missing = createDump(null, null, 0, 1);
     hologram.handleRequest(this.location, missing);
@@ -233,7 +233,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void showsMetadataWithBackslashesAsItIs() {
+  void shouldShowMetadataWithBackslashesAsItIs() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = createDump("Paths like C:\\", "a\\<red>b\\", -5, 1);
     hologram.handleRequest(this.location, dump);
@@ -243,7 +243,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void replacesThePreviousDisplayOnANewRequest() {
+  void shouldReplaceThePreviousDisplayOnANewRequest() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = createDump("t", "u", 0, 1);
     hologram.handleRequest(this.location, dump);
@@ -257,7 +257,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void rejectsInvalidRequests() {
+  void shouldRejectInvalidRequests() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = createDump("t", "u", 0, 1);
     final Location nowhere = new Location(null, 0, 0, 0);
@@ -267,7 +267,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void startingBeforeARequestDoesNothing() {
+  void shouldDoNothingWhenStartingBeforeARequest() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     hologram.start();
     final BukkitScheduler scheduler = this.server.getScheduler();
@@ -283,7 +283,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void startsOneProgressTaskThatRunsEverySecond() {
+  void shouldStartOneProgressTaskThatRunsEverySecond() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = createDump("t", "u", 0, 10);
     hologram.handleRequest(this.location, dump);
@@ -297,7 +297,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void drawsAnEmptyBarAtTheStartAndFillsItOncePerSecond() {
+  void shouldDrawAnEmptyBarAtTheStartAndFillItOncePerSecond() {
     final TextDisplay display = this.startHologram(10);
     this.server.runTasks();
     final Component start = lastText(display);
@@ -319,7 +319,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void fillsTheBarAtTheEndAndStopsOnceTheVideoEnded() {
+  void shouldFillTheBarAtTheEndAndStopOnceTheVideoEnded() {
     final TextDisplay display = this.startHologram(10);
     for (int second = 0; second <= 10; second++) {
       this.server.runTasks();
@@ -341,7 +341,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void roundsFractionalDurationsUpToWholeSeconds() {
+  void shouldRoundFractionalDurationsUpToWholeSeconds() {
     final TextDisplay display = this.startHologram(9.2);
     this.server.runTasks();
     final Component start = lastText(display);
@@ -351,7 +351,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void showsMinutesAndAnEmptyBarForVideosWithoutDuration() {
+  void shouldShowMinutesAndAnEmptyBarForVideosWithoutDuration() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump longDump = createDump("t", "u", 0, 125);
     hologram.handleRequest(this.location, longDump);
@@ -378,7 +378,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void stopsTheProgressWhenTheDisplayIsGone() {
+  void shouldStopTheProgressWhenTheDisplayIsGone() {
     final StandardVideoHologram invalid = new StandardVideoHologram();
     final UrlParseDump dump = createDump("t", "u", 0, 100);
     invalid.handleRequest(this.location, dump);
@@ -399,7 +399,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void killingRemovesTheDisplayAndStopsTheProgress() {
+  void shouldRemoveTheDisplayAndStopTheProgressWhenKilled() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final UrlParseDump dump = createDump("t", "u", 0, 100);
     hologram.handleRequest(this.location, dump);
@@ -415,7 +415,7 @@ final class StandardVideoHologramTest {
   }
 
   @Test
-  void replacingTheDisplayKeepsThePreviousEntity() {
+  void shouldKeepThePreviousEntityWhenReplacingTheDisplay() {
     final StandardVideoHologram hologram = new StandardVideoHologram();
     final TextDisplay first = mock(TextDisplay.class);
     final TextDisplay second = mock(TextDisplay.class);

@@ -93,7 +93,7 @@ final class FileServerHandlerFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void answersOnceByTheMethodWithinTheHeaderLimit(final byte[] input) throws IOException {
+  void shouldAnswerOnceByTheMethodWithinTheHeaderLimit(final byte[] input) throws IOException {
     if (input.length < 2) {
       return;
     }

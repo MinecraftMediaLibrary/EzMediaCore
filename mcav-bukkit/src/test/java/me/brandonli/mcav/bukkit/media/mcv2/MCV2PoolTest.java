@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2PoolTest {
 
   @Test
-  void usesHalfTheProcessorsByDefault() {
+  void shouldUseHalfTheProcessorsByDefault() {
     assertEquals(1, Pool.defaultThreads(1));
     assertEquals(1, Pool.defaultThreads(2));
     assertEquals(1, Pool.defaultThreads(3));
@@ -67,7 +67,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void runsOnLowPriorityDaemonThreadsOfItsOwn() throws InterruptedException {
+  void shouldRunOnLowPriorityDaemonThreadsOfItsOwn() throws InterruptedException {
     try (final Pool pool = new Pool(2)) {
       assertEquals(2, pool.getThreads());
       final Thread thread = pool.run(Thread::currentThread);
@@ -79,7 +79,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void neverUsesMoreThreadsThanItsSize() throws InterruptedException {
+  void shouldNeverUseMoreThreadsThanItsSize() throws InterruptedException {
     try (final Pool pool = new Pool(2)) {
       final Set<Thread> seen = ConcurrentHashMap.newKeySet();
       final AtomicLong total = new AtomicLong();
@@ -122,7 +122,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void blocksAThreadInsteadOfStartingASpare() throws InterruptedException {
+  void shouldBlockAThreadInsteadOfStartingASpare() throws InterruptedException {
     try (final Pool pool = new Pool(1)) {
       final Set<Thread> seen = ConcurrentHashMap.newKeySet();
       final AtomicInteger blocks = new AtomicInteger();
@@ -155,7 +155,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void runsANestedLoopOnASingleThread() throws InterruptedException {
+  void shouldRunANestedLoopOnASingleThread() throws InterruptedException {
     try (final Pool pool = new Pool(1)) {
       final int sum = pool.run(() ->
         ForkJoinTask.getPool()
@@ -167,7 +167,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void encodesInsideTheBudget() throws InterruptedException {
+  void shouldEncodeInsideTheBudget() throws InterruptedException {
     try (final Pool pool = new Pool(2)) {
       final MCV2 encoder = pool.encoder(MCV2.Settings.DEFAULT, true);
       final byte[] rgb = new byte[32 * 16 * 3];
@@ -186,7 +186,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void passesOnWhatATaskThrows() {
+  void shouldPassOnWhatATaskThrows() {
     try (final Pool pool = new Pool(1)) {
       final IllegalArgumentException runtime = new IllegalArgumentException("runtime");
       final IllegalArgumentException thrownRuntime = assertThrows(IllegalArgumentException.class, () ->
@@ -217,7 +217,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void cancelsTheTaskOfAnInterruptedCaller() throws InterruptedException {
+  void shouldCancelTheTaskOfAnInterruptedCaller() throws InterruptedException {
     try (final Pool pool = new Pool(1)) {
       final CountDownLatch started = new CountDownLatch(1);
       final CountDownLatch cancelled = new CountDownLatch(1);
@@ -247,7 +247,7 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void startsNothingForACallerInterruptedBefore() {
+  void shouldStartNothingForACallerInterruptedBefore() {
     try (final Pool pool = new Pool(1)) {
       final AtomicReference<Thread> ran = new AtomicReference<>();
       Thread.currentThread().interrupt();
@@ -263,14 +263,14 @@ final class MCV2PoolTest {
   }
 
   @Test
-  void refusesWorkOnceClosed() {
+  void shouldRefuseWorkOnceClosed() {
     final Pool pool = new Pool(1);
     pool.close();
     assertThrows(RejectedExecutionException.class, () -> pool.run(() -> 1));
   }
 
   @Test
-  void sharesOneBudgetPerServer() {
+  void shouldShareOneBudgetPerServer() {
     try {
       Pool.setSharedThreads(Pool.MAX_THREADS);
       final Pool largest = Pool.shared();

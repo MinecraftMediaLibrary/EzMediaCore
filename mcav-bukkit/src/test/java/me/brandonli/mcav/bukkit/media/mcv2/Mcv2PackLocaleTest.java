@@ -43,7 +43,7 @@ final class Mcv2PackLocaleTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
-  void generatedShaderNumbersDoNotDependOnTheServerLocale(final String languageTag) throws IOException {
+  void shouldGenerateShaderNumbersIndependentOfTheServerLocale(final String languageTag) throws IOException {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     final Mcv2Configuration configuration = Mcv2ConfigurationTest.complete().video(320, 180).pageSlots(2).streamId(9).build();
     try {

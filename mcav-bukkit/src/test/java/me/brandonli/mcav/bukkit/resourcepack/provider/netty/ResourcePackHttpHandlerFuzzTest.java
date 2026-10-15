@@ -70,7 +70,7 @@ final class ResourcePackHttpHandlerFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void answersItsRequestsAndPassesEverythingElseOnUnchanged(final byte[] input) {
+  void shouldAnswerItsRequestsAndPassEverythingElseOnUnchanged(final byte[] input) {
     final List<byte[]> reads = splitIntoReads(input);
     final byte[] stream = join(reads);
     final ResourcePackFile file = new ResourcePackFile(PACK_FILE);

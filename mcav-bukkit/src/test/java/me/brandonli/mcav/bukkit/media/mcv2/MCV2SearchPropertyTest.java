@@ -60,7 +60,7 @@ final class MCV2SearchPropertyTest {
   }
 
   @Property(seed = SEED, tries = 200)
-  boolean endsABlockAtTheEarlySkipExactlyAtOrBelowTheThreshold(
+  boolean shouldEndABlockAtTheEarlySkipExactlyAtOrBelowTheThreshold(
     @ForAll final long seed,
     @ForAll @IntRange(min = 0, max = 30) final int amplitude,
     @ForAll @DoubleRange(min = 1, max = 2000) final double lambda,
@@ -72,7 +72,7 @@ final class MCV2SearchPropertyTest {
   }
 
   @Property(seed = SEED, tries = 200)
-  boolean keepsABlockSkippedAsLambdaGrows(
+  boolean shouldKeepABlockSkippedAsLambdaGrows(
     @ForAll final long seed,
     @ForAll @IntRange(min = 0, max = 30) final int amplitude,
     @ForAll @DoubleRange(min = 1, max = 2000) final double oneLambda,

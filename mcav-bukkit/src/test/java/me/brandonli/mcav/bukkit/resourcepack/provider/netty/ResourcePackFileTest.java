@@ -51,7 +51,7 @@ final class ResourcePackFileTest {
   private Path directory;
 
   @Test
-  void readsTheFileOnlyOnceWhileItIsUnchanged() throws IOException {
+  void shouldReadTheFileOnlyOnceWhileItIsUnchanged() throws IOException {
     final Path pack = this.directory.resolve("pack.zip");
     Files.write(pack, ORIGINAL);
     final ResourcePackFile file = new ResourcePackFile(pack);
@@ -64,7 +64,7 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void readsTheFileAgainWhenItsSizeChanged() throws IOException {
+  void shouldReadTheFileAgainWhenItsSizeChanged() throws IOException {
     final Path pack = this.directory.resolve("pack.zip");
     Files.write(pack, ORIGINAL);
     final FileTime modified = Files.getLastModifiedTime(pack);
@@ -80,7 +80,7 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void readsTheFileAgainWhenItWasModified() throws IOException {
+  void shouldReadTheFileAgainWhenItWasModified() throws IOException {
     final Path pack = this.directory.resolve("pack.zip");
     final Instant firstModification = Instant.parse("2024-01-01T00:00:00Z");
     final Instant secondModification = Instant.parse("2024-01-02T00:00:00Z");
@@ -100,7 +100,7 @@ final class ResourcePackFileTest {
   }
 
   @Test
-  void reportsMissingFiles() {
+  void shouldReportMissingFiles() {
     final Path missing = this.directory.resolve("missing.zip");
     final ResourcePackFile file = new ResourcePackFile(missing);
 
@@ -109,7 +109,7 @@ final class ResourcePackFileTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void detectsSubmillisecondChangesAndReplacements(final boolean replacement) throws IOException {
+  void shouldDetectSubmillisecondChangesAndReplacements(final boolean replacement) throws IOException {
     final Path path = this.directory.resolve("precise.zip");
     final BasicFileAttributes first = mock(BasicFileAttributes.class);
     final BasicFileAttributes second = mock(BasicFileAttributes.class);

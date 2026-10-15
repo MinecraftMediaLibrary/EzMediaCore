@@ -29,7 +29,7 @@ final class MCV2FastFitsTest {
 
   @ParameterizedTest
   @ValueSource(ints = { 8, 16, 32 })
-  void clustersTwoColours(final int size) {
+  void shouldClusterTwoColours(final int size) {
     final int[] source = new int[size * size * 3];
     for (int pixel = 0; pixel < size * size; pixel++) {
       final boolean bright = pixel % size >= size / 2;
@@ -43,7 +43,7 @@ final class MCV2FastFitsTest {
   }
 
   @Test
-  void keepsTheSeedsOfAnEmptyCluster() {
+  void shouldKeepTheSeedsOfAnEmptyCluster() {
     // one colour everywhere: both seeds are that colour, every pixel joins the first, the second keeps its seed
     final int[] source = new int[8 * 8 * 3];
     Arrays.fill(source, 77);

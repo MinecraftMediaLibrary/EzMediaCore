@@ -128,7 +128,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void showsTheScreenBeforeAViewerReceivesFrames() {
+  void shouldShowTheScreenBeforeAViewerReceivesFrames() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     assertSame(this.screen, channel.getScreen());
     assertEquals(Set.of(LOADED, WITHOUT, OFFLINE), channel.update());
@@ -152,7 +152,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void unloadingThePackHidesAnAlreadyShownScreen() {
+  void shouldHideAnAlreadyShownScreenWhenUnloadingThePack() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -173,7 +173,7 @@ final class Mcv2ChannelTest {
 
   @ParameterizedTest
   @ValueSource(ints = { 0, 1, 2 })
-  void aViewerRetiredDuringShowDoesNotKeepALink(final int retirement) {
+  void shouldNotKeepALinkForAViewerRetiredDuringShow(final int retirement) {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     doAnswer(_ -> {
       if (retirement == 2) {
@@ -195,7 +195,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aConcurrentCloseOwnsTheCleanupOfAPublishedLink() {
+  void shouldLetAConcurrentCloseOwnTheCleanupOfAPublishedLink() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     final AtomicInteger loadedChecks = new AtomicInteger();
@@ -217,7 +217,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerRemovedFromTheScreenIsShownItNoMore() {
+  void shouldShowTheScreenNoMoreToAViewerRemovedFromIt() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -232,7 +232,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aRemovedViewerWhoLeftTheServerHasNothingToHide() {
+  void shouldHideNothingFromARemovedViewerWhoLeftTheServer() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -245,7 +245,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void everyViewerRemovedWhileTheScreenClosesIsHidden() {
+  void shouldHideEveryViewerRemovedWhileTheScreenCloses() {
     final UUID second = UUID.fromString("00000000-0000-0000-0000-000000000034");
     final CraftPlayer secondPlayer = this.server.addPlayer(second);
     when(this.viewers.isLoaded(second)).thenReturn(true);
@@ -275,7 +275,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerAddedBackBeforeTheScreenIsHiddenKeepsIt() {
+  void shouldLetAViewerAddedBackBeforeTheScreenIsHiddenKeepIt() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     final Collection<UUID> selected = this.configuration.getViewers();
     channel.update();
@@ -291,7 +291,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerRemovedBeforeTheScreenIsShownIsNotShownIt() {
+  void shouldNotShowTheScreenToAViewerRemovedBeforeItIsShown() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.configuration.getViewers().remove(LOADED);
@@ -301,7 +301,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void sendsPagesAndWithAKeyframeTheAnchors() {
+  void shouldSendPagesAndWithAKeyframeTheAnchors() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -317,7 +317,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void holdsBackAViewerWhoseConnectionFellBehind() throws Exception {
+  void shouldHoldBackAViewerWhoseConnectionFellBehind() throws Exception {
     final UUID other = UUID.fromString("00000000-0000-0000-0000-000000000034");
     final CraftPlayer second = this.server.addPlayer(other);
     PacketUtils.init();
@@ -363,7 +363,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void recordsEverySendForTheFlightRecorder(@TempDir final Path directory) throws Exception {
+  void shouldRecordEverySendForTheFlightRecorder(@TempDir final Path directory) throws Exception {
     final Mcv2Configuration tight = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
       .origin(new Location(mock(World.class), 0, 64, 0))
@@ -410,7 +410,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void forgetsTheBacklogOfAViewerWhoLeft() throws Exception {
+  void shouldForgetTheBacklogOfAViewerWhoLeft() throws Exception {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -428,7 +428,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void sendsEachPageToItsOwnMap() {
+  void shouldSendEachPageToItsOwnMap() {
     // a wall of two maps: a page frame hangs behind each, so it carries two page slots
     final Mcv2Configuration two = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
@@ -457,7 +457,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void dropsAFrameWithMorePagesThanSlots() {
+  void shouldDropAFrameWithMorePagesThanSlots() {
     final Mcv2Configuration narrow = Mcv2Configuration.builder()
       .viewers(List.of(LOADED))
       .origin(new Location(mock(World.class), 0, 64, 0))
@@ -476,7 +476,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void opensAndClosesTheScreen() {
+  void shouldOpenAndCloseTheScreen() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.open();
     verify(this.screen).build();
@@ -498,7 +498,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void forgetsAViewerWhoLeftBeforeTheScreenWasShown() {
+  void shouldForgetAViewerWhoLeftBeforeTheScreenWasShown() {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
     this.server.runTasks();
@@ -547,7 +547,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerWhoRejoinedWhileNoFrameCameIsShownTheScreenAgain() {
+  void shouldShowTheScreenAgainToAViewerWhoRejoinedWhileNoFrameCame() {
     when(this.viewers.getSession(LOADED)).thenReturn(1L);
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.update();
@@ -571,7 +571,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerOutOfSightOfTheWallGetsNoFramesUntilTheyComeBack() {
+  void shouldSendNoFramesToAViewerOutOfSightOfTheWallUntilTheyComeBack() {
     final World world = mock(World.class);
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 400, 64, 0));
     final Mcv2Channel channel = this.watchedFrom(world, position);
@@ -592,7 +592,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aScheduledShowRechecksTheViewersDistance() {
+  void shouldRecheckTheViewersDistanceInAScheduledShow() {
     final World world = mock(World.class);
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, 64, 4));
     final Mcv2Channel channel = this.watchedFrom(world, position);
@@ -612,7 +612,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerInAnotherWorldGetsNoFrames() {
+  void shouldSendNoFramesToAViewerInAnotherWorld() {
     final World world = mock(World.class);
     final World nether = mock(World.class);
     when(nether.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000b0b0"));
@@ -626,13 +626,13 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerRemovedWhileOutOfRangeIsHidden() {
+  void shouldHideAViewerRemovedWhileOutOfRange() {
     final World world = this.configuration.getOrigin().getWorld();
     this.assertHiddenWhenRemovedAt(new Location(world, 400, 64, 0));
   }
 
   @Test
-  void aViewerRemovedWhileInAnotherWorldIsHidden() {
+  void shouldHideAViewerRemovedWhileInAnotherWorld() {
     final World nether = mock(World.class);
     when(nether.getUID()).thenReturn(UUID.fromString("00000000-0000-0000-0000-00000000b0b0"));
     this.assertHiddenWhenRemovedAt(new Location(nether, 0, 64, 4));
@@ -676,7 +676,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerNeverShownTheScreenHasNothingToHideWhenRemovedWhileAway() {
+  void shouldHideNothingFromAViewerNeverShownTheScreenWhenRemovedWhileAway() {
     final World world = this.configuration.getOrigin().getWorld();
     final Mcv2Channel channel = this.seenFrom(new AtomicReference<>(new Location(world, 400, 64, 0)));
     channel.open();
@@ -691,7 +691,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aViewerAtTheEdgeOfTheirViewDistanceDoesNotComeAndGo() {
+  void shouldNotLetAViewerAtTheEdgeOfTheirViewDistanceComeAndGo() {
     final World world = mock(World.class);
     // 96 blocks from the wall's block: the six chunks of the view distance
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 97, 64, 0));
@@ -736,28 +736,28 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void aWideWallReachesAsFarAsItsLastColumn() {
+  void shouldLetAWideWallReachAsFarAsItsLastColumn() {
     // a view distance of 6 chunks and the margin of a viewer who has not left: 128 blocks from the nearest block
     assertTrue(this.receivesFrom(BlockFace.SOUTH, 5, 1, 133, 64.5, 0.5), "128 blocks east of the fifth column");
     assertTrue(this.receivesFrom(BlockFace.WEST, 5, 1, 0.5, 64.5, 133), "128 blocks south of the fifth column");
   }
 
   @Test
-  void aTallWallReachesDownToItsLowestRow() {
+  void shouldLetATallWallReachDownToItsLowestRow() {
     // the third row from the top is the block at y 62
     assertTrue(this.receivesFrom(BlockFace.SOUTH, 1, 3, 0.5, -66, 0.5), "128 blocks below the lowest row");
     assertFalse(this.receivesFrom(BlockFace.SOUTH, 1, 3, 0.5, -67, 0.5), "129 blocks below it");
   }
 
   @Test
-  void aViewerOffTheWallOnTwoAxesIsAsFarAsBothTogether() {
+  void shouldPlaceAViewerOffTheWallOnTwoAxesAsFarAsBothTogether() {
     // 100 blocks off on each of two axes: 141 blocks away, though neither alone is out of reach
     assertFalse(this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 165, 0.5), "east and above");
     assertFalse(this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 64.5, 101), "east and south");
   }
 
   @Test
-  void anOpenedChannelKnowsAtOnceWhoIsTooFar() {
+  void shouldKnowAtOnceWhoIsTooFarWhenTheChannelOpens() {
     final World world = mock(World.class);
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 400, 64, 0));
     final Mcv2Channel channel = this.watchedFrom(world, position);
@@ -769,7 +769,7 @@ final class Mcv2ChannelTest {
   }
 
   @Test
-  void closingStopsMeasuringTheViewersDistances() {
+  void shouldStopMeasuringTheViewersDistancesWhenClosing() {
     final World world = mock(World.class);
     final AtomicReference<Location> position = new AtomicReference<>(new Location(world, 0, 64, 4));
     final Mcv2Channel channel = this.watchedFrom(world, position);

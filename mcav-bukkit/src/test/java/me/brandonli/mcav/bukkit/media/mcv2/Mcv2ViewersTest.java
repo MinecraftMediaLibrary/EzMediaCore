@@ -88,7 +88,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void followsWhatTheClientReports() {
+  void shouldFollowWhatTheClientReports() {
     final Mcv2Viewers viewers = this.viewers();
     final UUID uuid = PLAYER;
     assertNull(viewers.getState(uuid));
@@ -116,7 +116,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void aClientThatLoadsThePackAnewStartsASession() {
+  void shouldStartASessionWhenAClientLoadsThePackAnew() {
     final Mcv2Viewers viewers = this.viewers();
     assertEquals(0L, viewers.getSession(PLAYER), "no session before the pack loaded");
     viewers.handleStatus(this.status(PACK, Status.SUCCESSFULLY_LOADED));
@@ -144,7 +144,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void unregistersTheListenerItReplacesOrStops() {
+  void shouldUnregisterTheListenerItReplacesOrStops() {
     try (final MockedStatic<HandlerList> lists = Mockito.mockStatic(HandlerList.class)) {
       final Mcv2Viewers viewers = this.viewers();
       // nothing registered: nothing to unregister
@@ -162,7 +162,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void listensUntilUnregistered() throws EventException {
+  void shouldListenUntilUnregistered() throws EventException {
     final Mcv2Viewers viewers = this.viewers();
     viewers.unregister();
     viewers.register();
@@ -197,7 +197,7 @@ final class Mcv2ViewersTest {
   }
 
   @Test
-  void aPlayerWhoDeclinedIsNotAskedAgainWhenThePackChanges() {
+  void shouldNotAskAPlayerWhoDeclinedAgainWhenThePackChanges() {
     final Mcv2Viewers viewers = this.viewers();
     final Player other = mock(Player.class);
     final UUID otherId = UUID.fromString("00000000-0000-0000-0000-000000000022");

@@ -44,7 +44,7 @@ final class MCV2PaletteFitTest {
   }
 
   @Test
-  void fitsTwoColoursExactly() {
+  void shouldFitTwoColoursExactly() {
     final int[] dark = { 10, 20, 30 };
     final int[] light = { 200, 210, 220 };
     final int[] source = block(light, dark, dark, light, light, dark, light, light);
@@ -56,7 +56,7 @@ final class MCV2PaletteFitTest {
   }
 
   @Test
-  void meansEachClusterAndRoundsHalvesUp() {
+  void shouldAverageEachClusterAndRoundHalvesUp() {
     final int[] source = block(new int[] { 0, 0, 0 }, new int[] { 1, 1, 1 }, new int[] { 250, 250, 250 }, new int[] { 255, 255, 255 });
     final int[] colors = new int[6];
     final byte[] selectors = new byte[4];
@@ -66,7 +66,7 @@ final class MCV2PaletteFitTest {
   }
 
   @Test
-  void keepsTheSeedOfAnEmptyCluster() {
+  void shouldKeepTheSeedOfAnEmptyCluster() {
     // equal luma everywhere: both endpoints start at the first pixel, so the first iteration puts every pixel in
     // cluster 0 and endpoint 1 keeps its seed; from the second iteration on, the first pixel has a cluster of its own
     final int[] source = block(new int[] { 100, 50, 0 }, new int[] { 0, 50, 100 }, new int[] { 50, 50, 50 }, new int[] { 50, 50, 50 });
@@ -78,7 +78,7 @@ final class MCV2PaletteFitTest {
   }
 
   @Test
-  void fitsAUniformBlockWithOneColour() {
+  void shouldFitAUniformBlockWithOneColour() {
     final int[] colors = new int[6];
     final byte[] selectors = new byte[2];
     fit(block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
@@ -88,7 +88,7 @@ final class MCV2PaletteFitTest {
 
   /** The pattern assignment agrees with the plain one whenever the selectors repeat along an axis, and says when not. */
   @Test
-  void assignsPatternsAndStopsWhereNoneCanHold() {
+  void shouldAssignPatternsAndStopWhereNoneCanHold() {
     final int size = 8;
     final int[] dark = { 10, 20, 30 };
     final int[] light = { 200, 210, 220 };

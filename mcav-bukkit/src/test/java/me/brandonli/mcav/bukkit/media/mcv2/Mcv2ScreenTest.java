@@ -142,7 +142,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void spawnsOneHiddenGlowingPageFrameBehindEveryMap() {
+  void shouldSpawnOneHiddenGlowingPageFrameBehindEveryMap() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     screen.build();
     assertEquals(6, this.frames.size());
@@ -166,7 +166,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void placesTheFramesBehindAWallFacingEast() {
+  void shouldPlaceTheFramesBehindAWallFacingEast() {
     new Mcv2Screen(this.configuration(BlockFace.EAST)).build();
     // facing east, columns count north and the frames hang two blocks west
     assertEquals(new Location(this.world, 8, 64, -4), this.spawned.get(0));
@@ -174,7 +174,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void refusesAnOriginWithoutAWorld() {
+  void shouldRefuseAnOriginWithoutAWorld() {
     final Mcv2Configuration unloaded = mock(Mcv2Configuration.class);
     when(unloaded.getOrigin()).thenReturn(new Location(null, 0, 0, 0));
     final Mcv2Screen screen = new Mcv2Screen(unloaded);
@@ -186,7 +186,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void namesAMapThatNeedNotExist() {
+  void shouldNameAMapThatNeedNotExist() {
     this.statics.close();
     final ItemStack copy = mock(ItemStack.class);
     try (
@@ -207,7 +207,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void showsTheFramesTheirTeamAndTheAnchorsToAPlayer() {
+  void shouldShowTheFramesTheirTeamAndTheAnchorsToAPlayer() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     screen.build();
     screen.show(this.player);
@@ -239,7 +239,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void hidingOneScreenCannotRemoveAnotherScreensTeam() {
+  void shouldNotRemoveAnotherScreensTeamWhenHidingOneScreen() {
     final Mcv2Screen first = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     final Mcv2Screen second = new Mcv2Screen(this.configuration(BlockFace.SOUTH, 11));
     first.build();
@@ -277,7 +277,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void writesTheAnchorOfEveryMapInItsFirstRow() {
+  void shouldWriteTheAnchorOfEveryMapInItsFirstRow() {
     final List<MapTilePatch> anchors = new Mcv2Screen(this.configuration(BlockFace.WEST)).anchors();
     assertEquals(6, anchors.size());
     final MapTilePatch patch = anchors.get(4);
@@ -294,7 +294,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void removesTheFrames() {
+  void shouldRemoveTheFrames() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     screen.build();
     screen.remove();
@@ -305,7 +305,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void keepsTheChunkOfItsFramesLoadedUntilRemoved() {
+  void shouldKeepTheChunkOfItsFramesLoadedUntilRemoved() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     screen.build();
     // the frames hang at x 10 to 12 and z -6: chunk 0, -1
@@ -319,7 +319,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void keepsEveryChunkItsFramesSpanLoaded() {
+  void shouldKeepEveryChunkItsFramesSpanLoaded() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH, 14));
     screen.build();
     // the frames hang at x 14 to 16: chunks 0 and 1
@@ -331,7 +331,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void sharesAChunkWithAnotherScreenUntilBothAreRemoved() {
+  void shouldShareAChunkWithAnotherScreenUntilBothAreRemoved() {
     final Mcv2Screen first = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     final Mcv2Screen second = new Mcv2Screen(this.configuration(BlockFace.SOUTH, 11));
     first.build();
@@ -348,7 +348,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void colorsTheTeam() {
+  void shouldColorTheTeam() {
     final Mcv2Screen screen = new Mcv2Screen(this.configuration(BlockFace.SOUTH));
     final PlayerTeam team = screen.team();
     assertEquals(Optional.of(TeamColor.GOLD), team.getColor());
@@ -357,7 +357,7 @@ final class Mcv2ScreenTest {
   }
 
   @Test
-  void everyPageSlotHangsBehindSomeMapOfTheWall() {
+  void shouldHangEveryPageSlotBehindSomeMapOfTheWall() {
     final Map<String, Set<Integer>> missing = new TreeMap<>();
     for (final int[] wall : new int[][] { { 1, 1 }, { 2, 1 }, { 1, 3 }, { 2, 2 }, { 3, 3 }, { 4, 3 }, { 5, 3 }, { 16, 9 } }) {
       this.items.clear();

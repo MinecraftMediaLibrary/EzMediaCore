@@ -163,7 +163,7 @@ final class Mcv2PacerPropertyTest {
    * two encodes, since it only learns how long a frame takes once the frame is done; and no step up has to be undone.
    */
   @Property(seed = SEED, tries = 300)
-  boolean neverStaysLongOverItsTime(
+  boolean shouldNeverStayLongOverItsTime(
     @ForAll("frameRates") final double fps,
     @ForAll @IntRange(min = 1, max = 3) final int sizes,
     @ForAll @IntRange(min = 1, max = 3) final int presets,
@@ -200,7 +200,7 @@ final class Mcv2PacerPropertyTest {
 
   /** After a heavy load, once the budget frees up, the pacer climbs back to the top rung. */
   @Property(seed = SEED, tries = 300)
-  boolean climbsBackWhenTheLoadDrops(
+  boolean shouldClimbBackWhenTheLoadDrops(
     @ForAll("frameRates") final double fps,
     @ForAll @IntRange(min = 1, max = 3) final int sizes,
     @ForAll @IntRange(min = 1, max = 3) final int presets,

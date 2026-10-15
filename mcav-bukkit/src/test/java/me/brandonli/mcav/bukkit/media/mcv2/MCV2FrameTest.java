@@ -113,13 +113,13 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void keepsTheSettingsItWasMadeWith() {
+  void shouldKeepTheSettingsItWasMadeWith() {
     assertSame(Settings.FAST, encoder(Settings.FAST).getSettings());
     assertSame(Settings.DEFAULT, encoder(Settings.DEFAULT).getSettings());
   }
 
   @Test
-  void refusesInvalidArguments() {
+  void shouldRefuseInvalidArguments() {
     assertThrows(IllegalArgumentException.class, () -> new MCV2(Settings.DEFAULT, POOL, 0, true));
     assertThrows(NullPointerException.class, () -> new MCV2(null, POOL, 1, true));
     assertThrows(NullPointerException.class, () -> new MCV2(Settings.DEFAULT, null, 1, true));
@@ -143,7 +143,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void startsWithAKeyframeAndPredictsWhatFollows() throws Mcv2Exception {
+  void shouldStartWithAKeyframeAndPredictWhatFollows() throws Mcv2Exception {
     final MCV2 encoder = encoder(Settings.DEFAULT);
     assertNull(encoder.getStats());
     assertNull(encoder.getReference());
@@ -166,7 +166,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void startsAgainWithAKeyframeWhenPredictionCannotWork() {
+  void shouldStartAgainWithAKeyframeWhenPredictionCannotWork() {
     final byte[] picture = texture(64, 32, 2);
     final MCV2 interval = encoder(new Settings(72, false));
     for (int id = 0; id < 120; id++) {
@@ -184,7 +184,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void startsAgainWithAKeyframeOnRequest() {
+  void shouldStartAgainWithAKeyframeOnRequest() {
     final byte[] picture = texture(64, 32, 2);
     final MCV2 encoder = encoder(Settings.DEFAULT);
     encoder.encode(picture, 64, 32, 0);
@@ -193,7 +193,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void encodesPicturesThatAreNotWholeBlocks() throws Mcv2Exception {
+  void shouldEncodePicturesThatAreNotWholeBlocks() throws Mcv2Exception {
     final Client client = new Client();
     final MCV2 encoder = encoder(Settings.DEFAULT);
     final byte[] picture = texture(40, 20, 5);
@@ -204,7 +204,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void writesTheSameBytesWithoutVerification() {
+  void shouldWriteTheSameBytesWithoutVerification() {
     final byte[] picture = texture(64, 32, 6);
     final byte[] next = panned(picture, 64, 32, 2);
     final MCV2 checked = new MCV2(Settings.DEFAULT, POOL, 1, true);
@@ -214,13 +214,13 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void decodesEveryFrameOfTheLiveProfile() throws Mcv2Exception {
+  void shouldDecodeEveryFrameOfTheLiveProfile() throws Mcv2Exception {
     play(Settings.DEFAULT, 100, 70, 6, 2);
     play(Settings.DEFAULT, 64, 64, 4, 0);
   }
 
   @Test
-  void raisesTheLambdaOfFastMotion() throws Mcv2Exception {
+  void shouldRaiseTheLambdaOfFastMotion() throws Mcv2Exception {
     final Settings settings = Settings.DEFAULT;
     // noise that changes from frame to frame but no movement keeps the profile's lambda, which is all a search without
     // the motion's lambda uses
@@ -230,14 +230,14 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void decodesEveryFrameOfTheQuarterResolutionSearch() throws Mcv2Exception {
+  void shouldDecodeEveryFrameOfTheQuarterResolutionSearch() throws Mcv2Exception {
     play(Settings.DEFAULT, 100, 70, 5, 5);
     play(Settings.DEFAULT, 64, 64, 4, 2);
     play(Settings.FAST, 100, 70, 4, 3);
   }
 
   @Test
-  void startsAgainAfterASizeChange() throws Mcv2Exception {
+  void shouldStartAgainAfterASizeChange() throws Mcv2Exception {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 2, true);
     final Client client = new Client();
     client.decode(encoder.encode(scene(64, 64, 0, 0), 64, 64, 0));
@@ -259,7 +259,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void endsAFrameSoonAfterItsBudgetWithTheCheapestChoices() throws Mcv2Exception {
+  void shouldEndAFrameSoonAfterItsBudgetWithTheCheapestChoices() throws Mcv2Exception {
     final MCV2 hurried = new MCV2(Settings.DEFAULT, POOL, 2, true);
     assertThrows(IllegalArgumentException.class, () -> hurried.setFrameBudget(-1));
     // a budget every superblock starts past: a keyframe of one solid colour per superblock, SKIP where the colour is
@@ -294,7 +294,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void switchesLiveProfilesWithoutAKeyframe() throws Mcv2Exception {
+  void shouldSwitchLiveProfilesWithoutAKeyframe() throws Mcv2Exception {
     final MCV2 encoder = new MCV2(Settings.DEFAULT, POOL, 2, true);
     final Client client = new Client();
     for (int frameNumber = 0; frameNumber < 8; frameNumber++) {
@@ -312,7 +312,7 @@ final class MCV2FrameTest {
   }
 
   @Test
-  void searchesAFrameOverItsByteBoundAgainAtAHigherLambda() throws Mcv2Exception {
+  void shouldSearchAFrameOverItsByteBoundAgainAtAHigherLambda() throws Mcv2Exception {
     final byte[] picture = noise(96, 64, 5);
     final byte[][] keyframes = new byte[LIMIT_TRIES][];
     for (int attempt = 0; attempt < LIMIT_TRIES; attempt++) {

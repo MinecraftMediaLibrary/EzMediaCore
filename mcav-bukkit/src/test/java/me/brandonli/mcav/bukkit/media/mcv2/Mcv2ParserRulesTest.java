@@ -77,7 +77,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void thePatternFixtureHasASixWordWalkAndThirtyTwoLeaves() throws Mcv2Exception {
+  void shouldHaveASixWordWalkAndThirtyTwoLeavesInThePatternFixture() throws Mcv2Exception {
     final byte[] frame = patterns();
     final Layout layout = Layout.of(frame);
     assertEquals(6 * 4, layout.start() - layout.walk());
@@ -85,7 +85,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void refusesASplitWithAQuantizerInTheDerivedForm() throws Mcv2Exception {
+  void shouldRefuseASplitWithAQuantizerInTheDerivedForm() throws Mcv2Exception {
     final byte[] frame = keyframe(32, 32, split(solid(1, 2, 3)));
     Mcv2Decoder.parse(frame);
     final int descriptor = Layout.of(frame).plane();
@@ -94,7 +94,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void refusesASplitAtTheFirstDescriptorOfTheLastLevel() {
+  void shouldRefuseASplitAtTheFirstDescriptorOfTheLastLevel() {
     final byte[] frame = keyframe(32, 32, Node.split(split(Node.skip()), Node.skip(), Node.skip(), Node.skip()));
     final Layout layout = Layout.of(frame);
     frame[layout.plane() + 1] = Mcv2Decoder.MODE_SKIP;
@@ -103,7 +103,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void diagnosesMissingPresenceBitsAfterAWholeDirectorySpan() {
+  void shouldDiagnoseMissingPresenceBitsAfterAWholeDirectorySpan() {
     final List<Node> roots = new ArrayList<>();
     roots.add(solid(1, 2, 3));
     for (int root = 1; root < 256; root++) {
@@ -114,7 +114,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void refusesEveryInvalidLeafModeInTheDerivedForm() throws Mcv2Exception {
+  void shouldRefuseEveryInvalidLeafModeInTheDerivedForm() throws Mcv2Exception {
     final byte[] frame = predicted(32, 32, motion(1, 1));
     Mcv2Decoder.parse(frame);
     final int descriptor = Layout.of(frame).plane();
@@ -124,7 +124,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void readsEveryStoredCheckpointOfALongDirectory() throws Mcv2Exception {
+  void shouldReadEveryStoredCheckpointOfALongDirectory() throws Mcv2Exception {
     final List<Node> roots = new ArrayList<>();
     for (int index = 0; index < 33 * 9; index++) {
       roots.add(index % 7 == 0 ? motion(1, 1) : Node.skip());
@@ -137,7 +137,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void refusesAnIndexThatCannotContainItsChildQuartet() throws Mcv2Exception {
+  void shouldRefuseAnIndexThatCannotContainItsChildQuartet() throws Mcv2Exception {
     final Node quartet = Node.split(motion(1, 1), motion(2, 2), motion(3, 3), motion(4, 4));
     final byte[] frame = predicted(32, 32, quartet);
     Mcv2Decoder.parse(frame);
@@ -149,7 +149,7 @@ final class Mcv2ParserRulesTest {
   }
 
   @Test
-  void refusesTemporalLeavesInAKeyframe() {
+  void shouldRefuseTemporalLeavesInAKeyframe() {
     for (final Node node : List.of(motion(1, 1), Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[10]))) {
       final byte[] frame = predicted(32, 32, node);
       Mcv2Decoder.putU32(frame, 16, 1);

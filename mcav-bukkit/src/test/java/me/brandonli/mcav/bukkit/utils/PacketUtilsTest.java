@@ -118,7 +118,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void distinguishesReconnectsWhileKeepingAnUnchangedConnectionsIdentity() throws ReflectiveOperationException, EventException {
+  void shouldDistinguishReconnectsWhileKeepingAnUnchangedConnectionsIdentity() throws ReflectiveOperationException, EventException {
     final CraftPlayer first = this.server.addPlayer(FIRST);
     this.server.addPlayer(SECOND);
     this.server.injectModule();
@@ -149,7 +149,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void cachesTheConnectionsOfPlayersThatAreAlreadyOnline() throws ReflectiveOperationException {
+  void shouldCacheTheConnectionsOfPlayersThatAreAlreadyOnline() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.addPlayer(SECOND);
     this.server.injectModule();
@@ -162,7 +162,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void keepsTheCacheInSyncWithJoinsAndQuits() throws ReflectiveOperationException, EventException {
+  void shouldKeepTheCacheInSyncWithJoinsAndQuits() throws ReflectiveOperationException, EventException {
     this.server.injectModule();
     final Listener listener = this.captureListener(1);
     final EventExecutor joinExecutor = this.captureExecutor(PlayerJoinEvent.class, EventPriority.LOWEST);
@@ -185,7 +185,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void ignoresEventsOfOtherTypes() throws ReflectiveOperationException, EventException {
+  void shouldIgnoreEventsOfOtherTypes() throws ReflectiveOperationException, EventException {
     final CraftPlayer first = this.server.addPlayer(FIRST);
     this.server.injectModule();
     final Listener listener = this.captureListener(1);
@@ -207,7 +207,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void handlesJoinsFirstAndQuitsLastWithOneListener() throws ReflectiveOperationException {
+  void shouldHandleJoinsFirstAndQuitsLastWithOneListener() throws ReflectiveOperationException {
     this.server.injectModule();
     final Listener joinListener = this.captureListener(PlayerJoinEvent.class, EventPriority.LOWEST, 1);
     final Listener quitListener = this.captureListener(PlayerQuitEvent.class, EventPriority.MONITOR, 1);
@@ -215,7 +215,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void sendsEveryPacketInOrderToConnectedViewersOnly() throws ReflectiveOperationException {
+  void shouldSendEveryPacketInOrderToConnectedViewersOnly() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
     final Component firstText = Component.literal("first");
@@ -240,7 +240,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void capsTheUnsentBytesOfAConnectionThatTakesTheOption() throws ReflectiveOperationException {
+  void shouldCapTheUnsentBytesOfAConnectionThatTakesTheOption() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
     assertFalse(PacketUtils.limitUnsent(SECOND, 1024));
@@ -261,7 +261,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void writesAPacketWithAListenerToTheConnectionAtOnce() throws ReflectiveOperationException {
+  void shouldWriteAPacketWithAListenerToTheConnectionAtOnce() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
     final Connection connection = useConnection();
@@ -287,7 +287,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void initializingAgainReplacesThePreviousListener() throws ReflectiveOperationException {
+  void shouldReplaceThePreviousListenerWhenInitializingAgain() throws ReflectiveOperationException {
     this.server.injectModule();
     final Listener firstListener = this.captureListener(1);
     try (final MockedStatic<HandlerList> handlerLists = Mockito.mockStatic(HandlerList.class)) {
@@ -299,7 +299,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void shuttingDownUnregistersTheListenerAndForgetsEveryConnection() throws ReflectiveOperationException {
+  void shouldUnregisterTheListenerAndForgetEveryConnectionWhenShuttingDown() throws ReflectiveOperationException {
     this.server.addPlayer(FIRST);
     this.server.injectModule();
     final Listener listener = this.captureListener(1);
@@ -314,12 +314,12 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void needsAnInjectedPlugin() {
+  void shouldNeedAnInjectedPlugin() {
     assertThrows(IllegalStateException.class, PacketUtils::init);
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final List<UUID> viewers = List.of(FIRST);
     assertThrows(NullPointerException.class, () -> PacketUtils.isConnected(null));
     assertThrows(NullPointerException.class, () -> PacketUtils.sendPackets(null));
@@ -327,7 +327,7 @@ final class PacketUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(PacketUtils.class);
   }
 }

@@ -120,7 +120,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void usesMeanSolidsAtTheBudgetDeadlineAndSearchesBeforeIt() throws UnmodifiableClassException {
+  void shouldUseMeanSolidsAtTheBudgetDeadlineAndSearchBeforeIt() throws UnmodifiableClassException {
     final Class<?> encoderType = MCV2.class;
     final Instrumentation instrumentation = PremainAttachAccess.getInstrumentation();
     final Set<String> clockedMethods = ConcurrentHashMap.newKeySet();
@@ -175,7 +175,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void fallsBackDirectlyAtZeroLambdaWhenTheFrameExceedsItsLimit() throws UnmodifiableClassException, Mcv2Exception {
+  void shouldFallBackDirectlyAtZeroLambdaWhenTheFrameExceedsItsLimit() throws UnmodifiableClassException, Mcv2Exception {
     final Class<?> encoderType = MCV2.class;
     final Instrumentation instrumentation = PremainAttachAccess.getInstrumentation();
     final Set<String> clockedMethods = ConcurrentHashMap.newKeySet();
@@ -241,7 +241,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void findsEachLeafsVector() {
+  void shouldFindEachLeafsVector() {
     final Node[] nodes = {
       Node.skip(),
       Mcv2Trees.solid(1, 2, 3),
@@ -259,7 +259,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void keepsOneVectorPerEightPixelCellOfTheLeaves() {
+  void shouldKeepOneVectorPerEightPixelCellOfTheLeaves() {
     final Node split = Node.split(Mcv2Trees.motion(4, 0), Node.skip(), Node.skip(), Node.skip());
     final int[] field = new int[5 * 3];
     fillMotion(field, 40, 20, split, 0, 0, 32);
@@ -268,7 +268,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void seedsTheLocalSearchFromThePreviousFrame() {
+  void shouldSeedTheLocalSearchFromThePreviousFrame() {
     final byte[] reference = Mcv2Pictures.scene(64, 64, 0, 0);
     final byte[] source = Mcv2Pictures.scene(64, 64, 2, 3);
     final int[] field = new int[8 * 8];
@@ -302,7 +302,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void skipsEarlyExactlyAtTheThresholdAndMonotonicallyInLambda() {
+  void shouldSkipEarlyExactlyAtTheThresholdAndMonotonicallyInLambda() {
     final byte[] reference = Mcv2Pictures.scene(32, 32, 0, 0);
     for (final boolean fast : new boolean[] { false, true }) {
       for (int amplitude = 0; amplitude <= 12; amplitude += 2) {
@@ -329,7 +329,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void keepsFastSkipAtExactlyItsSixtyBitBound() {
+  void shouldKeepFastSkipAtExactlyItsSixtyBitBound() {
     final byte[] source = new byte[32 * 32 * 3];
     for (int pixel = 0; pixel < 32 * 32; pixel++) {
       source[pixel * 3] = 3;
@@ -344,7 +344,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void predictsANewChildVectorFromTheReference() throws ReflectiveOperationException {
+  void shouldPredictANewChildVectorFromTheReference() throws ReflectiveOperationException {
     final byte[] reference = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {
@@ -411,7 +411,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void representsCompletelyOutsideChildrenAsBlackWithNoVisibleLeaves() {
+  void shouldRepresentCompletelyOutsideChildrenAsBlackWithNoVisibleLeaves() {
     final byte[] source = new byte[16 * 16 * 3];
     for (int pixel = 0; pixel < 16 * 16; pixel++) {
       source[pixel * 3] = 10;
@@ -429,7 +429,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void splitsOnlyAboveTheThresholdWhenChildrenAreCheaper() {
+  void shouldSplitOnlyAboveTheThresholdWhenChildrenAreCheaper() {
     final byte[] source = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {
@@ -451,7 +451,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void reusesCodersWithoutRetainingBusyEntries() {
+  void shouldReuseCodersWithoutRetainingBusyEntries() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, pool, 1, true);
       final Collection<?> idle = (Collection<?>) Mcv2Internals.field(MCV2.class, encoder, "idleCoders");
@@ -468,7 +468,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void storesOneMotionVectorPerCellAndOnlyTheReducedPictures() {
+  void shouldStoreOneMotionVectorPerCellAndOnlyTheReducedPictures() {
     try (final ForkJoinPool pool = new ForkJoinPool(1)) {
       for (final int[] dimensions : new int[][] { { 65, 37, 33, 19, 17, 10 }, { 71, 39, 36, 20, 18, 10 } }) {
         final int width = dimensions[0];
@@ -505,7 +505,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void keepsASkippedRootBelowTheNormalSplitThresholdEvenWhenOneChildFitsMoreClosely() throws Mcv2Exception {
+  void shouldKeepASkippedRootBelowTheNormalSplitThresholdEvenWhenOneChildFitsMoreClosely() throws Mcv2Exception {
     final byte[] reference = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {
@@ -532,7 +532,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void scalesTheMotionRangeToEachPyramidLevel() {
+  void shouldScaleTheMotionRangeToEachPyramidLevel() {
     for (final boolean fast : new boolean[] { false, true }) {
       final Mcv2BlockState state = new Mcv2BlockState(new byte[32 * 32 * 3], new byte[32 * 32 * 3], 32, 32, false, fast, 72, null);
       final Object frame = Mcv2Internals.field(Mcv2BlockState.class, state, "frame");
@@ -560,7 +560,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void retainsSixteenPixelLeavesBelowTheNormalFineSplitThreshold() throws Mcv2Exception {
+  void shouldRetainSixteenPixelLeavesBelowTheNormalFineSplitThreshold() throws Mcv2Exception {
     final byte[] source = new byte[32 * 32 * 3];
     for (int row = 0; row < 32; row++) {
       for (int column = 0; column < 32; column++) {
@@ -593,7 +593,7 @@ final class MCV2SearchTest {
   }
 
   @Test
-  void halvesAPictureWithItsOddLastRowAndColumnStandingAlone() {
+  void shouldHalveAPictureWithItsOddLastRowAndColumnStandingAlone() {
     final int[] red = { 0, 4, 9, 8, 12, 20, 100, 200, 255 };
     final byte[] picture = new byte[3 * 3 * 3];
     for (int index = 0; index < red.length; index++) {

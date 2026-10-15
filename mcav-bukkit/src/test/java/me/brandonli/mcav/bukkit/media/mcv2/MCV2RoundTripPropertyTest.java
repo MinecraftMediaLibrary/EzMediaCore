@@ -101,7 +101,7 @@ final class MCV2RoundTripPropertyTest {
   }
 
   @Property(seed = SEED, tries = 60)
-  void decodesToThePictureTheEncoderKeeps(
+  void shouldDecodeToThePictureTheEncoderKeeps(
     @ForAll @IntRange(min = 1, max = 96) final int width,
     @ForAll @IntRange(min = 1, max = 72) final int height,
     @ForAll @IntRange(min = 0, max = 3) final int profile,
@@ -123,7 +123,7 @@ final class MCV2RoundTripPropertyTest {
   }
 
   @Property(seed = SEED, tries = 60)
-  void flatKeyframesComeBackExactly(
+  void shouldBringFlatKeyframesBackExactly(
     @ForAll @IntRange(min = 1, max = 130) final int width,
     @ForAll @IntRange(min = 1, max = 100) final int height,
     @ForAll @IntRange(min = 0, max = 3) final int profile,

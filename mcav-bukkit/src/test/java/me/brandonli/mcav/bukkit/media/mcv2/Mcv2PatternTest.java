@@ -33,7 +33,7 @@ final class Mcv2PatternTest {
   }
 
   @Test
-  void resolvesAnInlineRecordAlongColumns() throws Mcv2Exception {
+  void shouldResolveAnInlineRecordAlongColumns() throws Mcv2Exception {
     final byte[] data = Mcv2WireFrames.block(8, 4, 0, INLINE, true);
     final byte[] picture = Mcv2Decoder.decode(data, null, 0);
     assertEquals(0x040506, colorAt(picture, 8, 0, 7));
@@ -46,7 +46,7 @@ final class Mcv2PatternTest {
   }
 
   @Test
-  void rejectsBrokenRecords() {
+  void shouldRejectBrokenRecords() {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, Arrays.copyOf(INLINE, 7), true)));
     final byte[] orientation = INLINE.clone();
     orientation[6] = 2;
@@ -54,7 +54,7 @@ final class Mcv2PatternTest {
   }
 
   @Test
-  void refusesARecordThatRunsPastTheEndOfTheData() {
+  void shouldRefuseARecordThatRunsPastTheEndOfTheData() {
     final byte[] shifted = { 0, 1, 2, 3, 4, 5, 6 };
     assertEquals(
       "Truncated record",

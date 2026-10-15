@@ -81,7 +81,7 @@ final class PageAssemblerFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void assemblesExactlyTheFramesThatArrive(final byte[] data) throws Mcv2Exception {
+  void shouldAssembleExactlyTheFramesThatArrive(final byte[] data) throws Mcv2Exception {
     if (data.length < 1) {
       return;
     }

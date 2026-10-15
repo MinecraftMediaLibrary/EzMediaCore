@@ -53,7 +53,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void fillsInTheDefaults() {
+  void shouldFillInTheDefaults() {
     final Mcv2Configuration configuration = complete().build();
     assertSame(VIEWERS, configuration.getViewers());
     assertEquals(new Location(WORLD, 10, 64, -4), configuration.getOrigin());
@@ -75,7 +75,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void copiesItselfAtAnotherVideoSize() {
+  void shouldCopyItselfAtAnotherVideoSize() {
     try (final Pool budget = new Pool(1)) {
       final Mcv2Configuration original = complete()
         .video(320, 180)
@@ -114,7 +114,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void showsThirtyFramesASecondUnlessToldOtherwise() {
+  void shouldShowThirtyFramesASecondUnlessToldOtherwise() {
     assertEquals(Mcv2Configuration.DEFAULT_MAX_FRAME_RATE, complete().build().getMaxFrameRate());
     assertEquals(30, Mcv2Configuration.DEFAULT_MAX_FRAME_RATE);
     final Mcv2Configuration sixty = complete().maxFrameRate(60).build();
@@ -132,7 +132,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void copiesItselfWithTheStreamASlotGaveIt() {
+  void shouldCopyItselfWithTheStreamASlotGaveIt() {
     final Mcv2Configuration original = complete().video(320, 180).streamId(7).build();
     final Mcv2Configuration slotted = original.withSlot(3, Mcv2Configuration.DEFAULT_PAGE_MAP + 16, Mcv2Decoder.MAX_U32);
     assertEquals(3, slotted.getStreamId());
@@ -149,7 +149,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void keepsWhatWasSet() {
+  void shouldKeepWhatWasSet() {
     final Mcv2Configuration configuration = complete()
       .video(320, 180)
       .pageMap(50)
@@ -172,14 +172,14 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void usesOnePageSlotPerMapOfASmallWall() {
+  void shouldUseOnePageSlotPerMapOfASmallWall() {
     assertEquals(1, complete().columns(1).rows(1).build().getPageSlots());
     assertEquals(3, complete().columns(3).rows(1).build().getPageSlots());
   }
 
   @ParameterizedTest
   @CsvSource({ "SOUTH, EAST, 0", "WEST, SOUTH, 1", "NORTH, WEST, 2", "EAST, NORTH, 3" })
-  void knowsWhereTheMapsRightEdgePoints(final BlockFace facing, final BlockFace right, final int code) {
+  void shouldKnowWhereTheMapsRightEdgePoints(final BlockFace facing, final BlockFace right, final int code) {
     final Mcv2Configuration configuration = complete().facing(facing).build();
     assertEquals(right, configuration.getRight());
     assertEquals(code, configuration.getFacingCode());
@@ -195,7 +195,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void refusesMissingOrInvalidValues() {
+  void shouldRefuseMissingOrInvalidValues() {
     assertThrows(NullPointerException.class, () ->
       Mcv2Configuration.builder()
         .origin(new Location(WORLD, 0, 0, 0))
@@ -242,7 +242,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void acceptsEveryValueAtTheEdgesOfItsRanges() {
+  void shouldAcceptEveryValueAtTheEdgesOfItsRanges() {
     assertEquals(0, complete().map(0).build().getMap());
     assertEquals(1, complete().columns(1).build().getColumns());
     // a side of 63 maps is 8064 pixels at its native size, so it plays a video the codec can take
@@ -292,7 +292,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void keepsThePageMapsOffTheWall() {
+  void shouldKeepThePageMapsOffTheWall() {
     // the wall is maps 7 to 21; four page slots end below it at 3, the default eight at none
     refuses("Page maps must not be maps of the wall", builder -> builder.pageMap(21));
     refuses("Page maps must not be maps of the wall", builder -> builder.pageSlots(4).pageMap(4));
@@ -302,7 +302,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void refusesAWallWhoseNativeSizeIsLargerThanTheCodecTakes() {
+  void shouldRefuseAWallWhoseNativeSizeIsLargerThanTheCodecTakes() {
     final IllegalArgumentException wide = assertThrows(IllegalArgumentException.class, () -> complete().columns(33).build());
     assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size", wide.getMessage());
     assertThrows(IllegalArgumentException.class, () -> complete().rows(33).build());
@@ -312,7 +312,7 @@ final class Mcv2ConfigurationTest {
   }
 
   @Test
-  void refusesMorePageSlotsThanTheWallHasMaps() {
+  void shouldRefuseMorePageSlotsThanTheWallHasMaps() {
     final Mcv2Configuration.Builder square = complete().columns(2).rows(2);
     assertEquals(4, square.pageSlots(0).build().getPageSlots(), "the default of a wall of four maps");
     assertEquals(4, square.pageSlots(4).build().getPageSlots());

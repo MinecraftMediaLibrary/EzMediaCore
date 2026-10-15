@@ -80,7 +80,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void injectingThePluginRegistersListenersAndCachesOnlinePlayers() {
+  void shouldRegisterListenersAndCacheOnlinePlayersWhenInjectingThePlugin() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -92,7 +92,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void failsDuringInjectionWhenPaletteWarmupCannotComplete() {
+  void shouldFailDuringInjectionWhenPaletteWarmupCannotComplete() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     final IllegalStateException unavailable = new IllegalStateException("palette unavailable");
@@ -106,13 +106,13 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void rejectsMissingPlugins() {
+  void shouldRejectMissingPlugins() {
     final BukkitModule module = new BukkitModule();
     assertThrows(NullPointerException.class, () -> module.inject(null));
   }
 
   @Test
-  void refusesUnsupportedServersBeforeInjectingAnything() {
+  void shouldRefuseUnsupportedServersBeforeInjectingAnything() {
     final MockedStatic<Bukkit> bukkit = this.server.getBukkit();
     bukkit.when(Bukkit::getMinecraftVersion).thenReturn("1.20.1");
     final BukkitModule module = new BukkitModule();
@@ -124,14 +124,14 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void failsToProvideThePluginBeforeItWasInjected() {
+  void shouldFailToProvideThePluginBeforeItWasInjected() {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
     final String message = exception.getMessage();
     assertEquals("No plugin has been injected, call BukkitModule#inject(Plugin) first", message);
   }
 
   @Test
-  void startingAgainAfterStoppingRegistersTheListenersAgain() {
+  void shouldRegisterTheListenersAgainWhenStartingAgainAfterStopping() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -145,7 +145,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void startingWhileThePluginIsDisabledDoesNothing() {
+  void shouldDoNothingWhenStartingWhileThePluginIsDisabled() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -158,7 +158,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void startingBeforeThePluginIsInjectedDoesNothing() {
+  void shouldDoNothingWhenStartingBeforeThePluginIsInjected() {
     final BukkitModule module = new BukkitModule();
     final PluginManager pluginManager = this.server.getPluginManager();
     module.start();
@@ -169,7 +169,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void stoppingClearsTheConnectionsButKeepsThePlugin() {
+  void shouldClearTheConnectionsButKeepThePluginWhenStopping() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);
@@ -181,7 +181,7 @@ final class BukkitModuleTest {
   }
 
   @Test
-  void stoppingWithoutAPluginDoesNothing() {
+  void shouldDoNothingWhenStoppingWithoutAPlugin() {
     final BukkitModule module = new BukkitModule();
     final Plugin plugin = this.server.getPlugin();
     module.inject(plugin);

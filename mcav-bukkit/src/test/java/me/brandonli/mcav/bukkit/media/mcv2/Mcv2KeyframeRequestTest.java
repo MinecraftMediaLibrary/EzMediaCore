@@ -26,13 +26,13 @@ import org.junit.jupiter.api.Test;
 final class Mcv2KeyframeRequestTest {
 
   @Test
-  void noFrameNeedsAKeyframeUntilOneIsRequested() {
+  void shouldNeedNoKeyframeUntilOneIsRequested() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     assertFalse(requests.take());
   }
 
   @Test
-  void oneFrameTakesTheRequest() {
+  void shouldLetOnlyOneFrameTakeTheRequest() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
     assertTrue(requests.take());
@@ -40,7 +40,7 @@ final class Mcv2KeyframeRequestTest {
   }
 
   @Test
-  void requestsBeforeAFrameAreTakenByThatFrame() {
+  void shouldLetAFrameTakeTheRequestsMadeBeforeIt() {
     final Mcv2KeyframeRequest requests = new Mcv2KeyframeRequest();
     requests.request();
     requests.request();

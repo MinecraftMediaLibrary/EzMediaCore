@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2WriterTest {
 
   @Test
-  void refusesInvalidDimensionsAndRootCounts() {
+  void shouldRefuseInvalidDimensionsAndRootCounts() {
     final List<Node> one = List.of(solid(1, 1, 1));
     for (final int[] size : new int[][] { { 0, 32 }, { 4097, 32 }, { 32, 0 }, { 32, 4097 } }) {
       assertEquals(
@@ -58,7 +58,7 @@ final class MCV2WriterTest {
   }
 
   @Test
-  void refusesLeavesThatAreNotLeaves() {
+  void shouldRefuseLeavesThatAreNotLeaves() {
     for (int mode = 7; mode <= 31; mode++) {
       final Node node = Node.leaf(mode, 0, new byte[2]);
       assertEquals("Illegal leaf mode " + mode, assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node)).getMessage());
@@ -73,7 +73,7 @@ final class MCV2WriterTest {
   }
 
   @Test
-  void refusesATreeThatDoesNotSerializeToAValidFrame() {
+  void shouldRefuseATreeThatDoesNotSerializeToAValidFrame() {
     for (final Node temporal : List.of(Mcv2Trees.motion(1, 1), Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, new byte[10]))) {
       final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, temporal));
       assertTrue(exception.getMessage().startsWith("The tree does not serialize to a valid frame"));
@@ -87,7 +87,7 @@ final class MCV2WriterTest {
   }
 
   @Test
-  void acceptsAQuantizerOnlyWhereTheModeHasOne() throws Mcv2Exception {
+  void shouldAcceptAQuantizerOnlyWhereTheModeHasOne() throws Mcv2Exception {
     for (final Node node : List.of(
       Node.leaf(Mcv2Decoder.MODE_MOTION, 1, new byte[] { 1, 1 }),
       Node.leaf(Mcv2Decoder.MODE_SOLID, 2, new byte[3])
@@ -105,7 +105,7 @@ final class MCV2WriterTest {
   }
 
   @Test
-  void writesNoDescriptorsForAbsentRoots() throws Mcv2Exception {
+  void shouldWriteNoDescriptorsForAbsentRoots() throws Mcv2Exception {
     final byte[] skipped = predicted(64, 32, Node.skip(), Node.skip());
     assertEquals(40, skipped.length);
     assertEquals(2, Mcv2Decoder.parse(skipped).getLeafCount());

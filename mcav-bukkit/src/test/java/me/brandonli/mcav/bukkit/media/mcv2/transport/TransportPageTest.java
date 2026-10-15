@@ -40,7 +40,7 @@ final class TransportPageTest {
   }
 
   @Test
-  void comparesEveryField() {
+  void shouldCompareEveryField() {
     final TransportPage value = page(1, 2, 0, 1, 2, 48, 1, 6, (byte) 5);
     EqualityAssertions.assertEqualityContract(
       value,

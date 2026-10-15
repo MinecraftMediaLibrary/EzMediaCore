@@ -52,7 +52,7 @@ final class MCV2MotionLambdaTest {
   }
 
   @Test
-  void blursTheLumaOfEveryFourthPixelOverThreeByThreeSamples() {
+  void shouldBlurTheLumaOfEveryFourthPixelOverThreeByThreeSamples() {
     // luma r + 2 g + b of the samples: 40, 80 on the first row, 120, 160 on the second; each blurred sample sums its
     // 3x3 neighbourhood, the edge samples repeated, so the top left one is 4 * 40 + 2 * 80 + 2 * 120 + 160
     assertArrayEquals(
@@ -70,7 +70,7 @@ final class MCV2MotionLambdaTest {
   }
 
   @Test
-  void includesThePreviousSampleRowInTheBlur() {
+  void shouldIncludeThePreviousSampleRowInTheBlur() {
     final byte[] source = new byte[9 * 9 * 3];
     for (int row = 0; row < 9; row++) {
       for (int column = 0; column < 9; column++) {
@@ -84,7 +84,7 @@ final class MCV2MotionLambdaTest {
   }
 
   @Test
-  void measuresTheSameMotionOnManyWorkers() {
+  void shouldMeasureTheSameMotionOnManyWorkers() {
     // many bands of rows and of samples, so every worker has some
     final Random random = new Random(11);
     final byte[] first = new byte[800 * 800 * 3];
@@ -108,7 +108,7 @@ final class MCV2MotionLambdaTest {
   }
 
   @Test
-  void keepsTheLambdaUpToTheKneeAndRaisesItAboveUpToFourTimes() {
+  void shouldKeepTheLambdaUpToTheKneeAndRaiseItAboveUpToFourTimes() {
     assertEquals(1, MotionLambda.raise(Double.NaN));
     assertEquals(1, MotionLambda.raise(0));
     assertEquals(1, MotionLambda.raise(MotionLambda.KNEE));
@@ -120,7 +120,7 @@ final class MCV2MotionLambdaTest {
   }
 
   @Test
-  void averagesTheMotionOfConsecutiveFramesAndStartsOverAtANewSize() {
+  void shouldAverageTheMotionOfConsecutiveFramesAndStartOverAtANewSize() {
     final MotionLambda motion = new MotionLambda();
     assertEquals(BASE, motion.lambda(BASE));
     final byte[] still = corners(10, 20, 30, 40);

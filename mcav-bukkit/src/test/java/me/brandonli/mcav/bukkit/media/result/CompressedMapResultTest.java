@@ -188,7 +188,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void sendsTheCompletePictureFirstAndThenOnlyTheChanges() {
+  void shouldSendTheCompletePictureFirstAndThenOnlyTheChanges() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     result.start();
@@ -214,7 +214,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void refreshesEveryViewerOnceThenResumesOrdinaryDeltas() {
+  void shouldRefreshEveryViewerOnceThenResumeOrdinaryDeltas() {
     this.server.addPlayer(SECOND);
     PacketUtils.init();
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
@@ -251,7 +251,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void refreshLetsAnotherThreadAcquireTheProcessingLock() throws ReflectiveOperationException, InterruptedException {
+  void shouldLetAnotherThreadAcquireTheProcessingLockDuringARefresh() throws ReflectiveOperationException, InterruptedException {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final Field lockField = CompressedMapResult.class.getDeclaredField("lock");
@@ -272,7 +272,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void refreshRetainsHistoricalCleanupWithoutTouchingUnownedPixels() {
+  void shouldRetainHistoricalCleanupOnRefreshWithoutTouchingUnownedPixels() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(128 * 64, 4);
@@ -300,7 +300,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void sendsThePictureToViewersThatStartWatchingLater() {
+  void shouldSendThePictureToViewersThatStartWatchingLater() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final ImageBuffer image = Images.solid(128, 128, 0xFF000000);
@@ -330,7 +330,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void forgetsViewersThatDisconnected() {
+  void shouldForgetViewersThatDisconnected() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final ImageBuffer image = Images.solid(128, 128, 0xFF000000);
@@ -353,7 +353,7 @@ final class CompressedMapResultTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { false, true })
-  void reconnectedViewerGetsSnapshotWithoutAnInterveningFrame(final boolean changesWhileOffline) {
+  void shouldSendAReconnectedViewerASnapshotWithoutAnInterveningFrame(final boolean changesWhileOffline) {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     try (final ImageBuffer image = Images.solid(128, 128, 0xFF000000)) {
@@ -421,7 +421,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void startsOverWhenTheFrameSizeChanges() {
+  void shouldStartOverWhenTheFrameSizeChanges() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final ImageBuffer large = Images.solid(128, 128, 0xFF000000);
@@ -451,7 +451,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void preservesPixelsOutsideBothCenteredPictures() {
+  void shouldPreservePixelsOutsideBothCenteredPictures() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final byte[] originalFrame = MapPackets.pattern(128 * 64, 4);
@@ -480,7 +480,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void clearsFormerlyCoveredMapsForOldAndNewViewersDuringAShrink() {
+  void shouldClearFormerlyCoveredMapsForOldAndNewViewersDuringAShrink() {
     final MapConfiguration configuration = this.createConfiguration(3, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(384 * 128, 4);
@@ -516,7 +516,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void keepsTheNormalByteBudgetAfterOneTimeResizeCleanup() {
+  void shouldKeepTheNormalByteBudgetAfterOneTimeResizeCleanup() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1);
     this.nextFrame = MapPackets.pattern(256 * 128, 4);
@@ -548,7 +548,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void clearsTheClippedOldPictureWhenAnOversizedFrameShrinks() {
+  void shouldClearTheClippedOldPictureWhenAnOversizedFrameShrinks() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(512 * 256, 4);
@@ -572,7 +572,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void clearsHistoricalBordersWhenAViewerMissedTheResize() {
+  void shouldClearHistoricalBordersWhenAViewerMissedTheResize() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     try (final ImageBuffer image = Images.solid(128, 128, 0xFF000000)) {
@@ -603,7 +603,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void retainsExactCoverageAcrossSeveralResizesWithoutClaimingUnviewedPixels() {
+  void shouldRetainExactCoverageAcrossSeveralResizesWithoutClaimingUnviewedPixels() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(128 * 32, 4);
@@ -647,7 +647,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void resizesFramesWhenConfigured() {
+  void shouldResizeFramesWhenConfigured() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, true);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final byte[] frame = MapPackets.pattern(64 * 64, 7);
@@ -664,7 +664,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void sendsAtMostTheDefaultBudgetPerFrame() {
+  void shouldSendAtMostTheDefaultBudgetPerFrame() {
     final MapConfiguration configuration = this.createConfiguration(3, 3, false);
     final CompressedMapResult result = new CompressedMapResult(configuration);
     this.nextFrame = MapPackets.pattern(384 * 384, 4);
@@ -678,7 +678,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void spreadsLargeUpdatesOverSeveralFramesWithASmallBudget() {
+  void shouldSpreadLargeUpdatesOverSeveralFramesWithASmallBudget() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1);
     this.nextFrame = MapPackets.pattern(256 * 128, 4);
@@ -704,7 +704,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void dithersParallelAlgorithmsOnItsOwnDaemonThreads() {
+  void shouldDitherParallelAlgorithmsOnItsOwnDaemonThreads() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final List<ForkJoinPool> pools = new CopyOnWriteArrayList<>();
@@ -753,7 +753,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void logsExceptionsThatEscapeTheDitherThreads() throws InterruptedException {
+  void shouldLogExceptionsThatEscapeTheDitherThreads() throws InterruptedException {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     final RuntimeException failure = new RuntimeException("escaped the dither pool");
@@ -794,7 +794,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void clearsTheMapsWhenReleasedAndIgnoresLaterFrames() throws ReflectiveOperationException {
+  void shouldClearTheMapsWhenReleasedAndIgnoreLaterFrames() throws ReflectiveOperationException {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(256 * 128, 4);
@@ -826,7 +826,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void showsASecondVideoAfterItWasReleasedAndStartedAgain() {
+  void shouldShowASecondVideoAfterItWasReleasedAndStartedAgain() {
     final MapConfiguration configuration = this.createConfiguration(2, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     this.nextFrame = MapPackets.pattern(256 * 128, 4);
@@ -848,7 +848,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void clearsEveryMapOfTheGridOnTheFirstRelease() {
+  void shouldClearEveryMapOfTheGridOnTheFirstRelease() {
     final MapConfiguration configuration = this.createConfiguration(2, 2, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
 
@@ -866,7 +866,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void finishesTheOldClearBeforeAConcurrentRestartCanSendFrames() throws Exception {
+  void shouldFinishTheOldClearBeforeAConcurrentRestartCanSendFrames() throws Exception {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration);
     final CountDownLatch clearing = new CountDownLatch(1);
@@ -915,7 +915,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void letsAnotherThreadInAgainAfterEveryFrameAndAfterTheRelease() {
+  void shouldLetAnotherThreadInAgainAfterEveryFrameAndAfterTheRelease() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
     result.start();
@@ -941,7 +941,7 @@ final class CompressedMapResultTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration);
     assertThrows(NullPointerException.class, () -> new CompressedMapResult(null));

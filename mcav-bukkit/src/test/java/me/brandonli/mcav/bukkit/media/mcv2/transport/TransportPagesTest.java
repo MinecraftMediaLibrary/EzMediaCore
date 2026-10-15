@@ -50,7 +50,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 final class TransportPagesTest {
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(TransportPages.class);
   }
 
@@ -71,7 +71,7 @@ final class TransportPagesTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("vectors")
-  void makesTheReferencePages(final String name, final JsonObject expected) throws Mcv2Exception {
+  void shouldMakeTheReferencePages(final String name, final JsonObject expected) throws Mcv2Exception {
     final String stream = name.substring(0, name.indexOf('#'));
     final int index = Integer.parseInt(name.substring(name.indexOf('#') + 1, name.indexOf('@')));
     final int bits = Integer.parseInt(name.substring(name.indexOf('@') + 1));
@@ -102,7 +102,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void reusesAnImmutableValidatedFrame() throws Mcv2Exception {
+  void shouldReuseAnImmutableValidatedFrame() throws Mcv2Exception {
     final byte[] bytes = Mcv2Trees.twoPages();
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(bytes);
     final List<byte[]> expected = TransportPages.makePages(bytes, 7);
@@ -118,14 +118,14 @@ final class TransportPagesTest {
   }
 
   @Test
-  void knowsThePageCapacities() {
+  void shouldKnowThePageCapacities() {
     assertEquals(12256, TransportPages.capacity());
     assertEquals(1, TransportPages.pageCount(12256));
     assertEquals(2, TransportPages.pageCount(12257));
   }
 
   @Test
-  void packsSymbolsLeastSignificantBitFirst() throws Mcv2Exception {
+  void shouldPackSymbolsLeastSignificantBitFirst() throws Mcv2Exception {
     // A5 has low six bits 37 and high two bits 2.
     assertArrayEquals(new byte[] { 37, 2 }, TransportPages.toSymbols(new byte[] { (byte) 0xA5 }));
     assertArrayEquals(new byte[0], TransportPages.toSymbols(new byte[0]));
@@ -138,7 +138,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void refusesMalformedSymbols() {
+  void shouldRefuseMalformedSymbols() {
     final byte[] symbols = TransportPages.toSymbols(new byte[] { 1, 2, 3 });
     assertThrows(Mcv2Exception.class, () -> TransportPages.fromSymbols(symbols, 4));
     assertThrows(Mcv2Exception.class, () -> TransportPages.fromSymbols(symbols, -1));
@@ -164,7 +164,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void readsAValidPage() throws Mcv2Exception {
+  void shouldReadAValidPage() throws Mcv2Exception {
     final TransportPage read = TransportPages.readPage(page());
     assertEquals(7, read.getStreamId());
     assertEquals(0, read.getFrameId());
@@ -178,7 +178,7 @@ final class TransportPagesTest {
 
   @ParameterizedTest(name = "header byte {0}")
   @ValueSource(ints = { 0, 4, 5, 6, 7 })
-  void refusesAnUnsupportedHeader(final int offset) throws Mcv2Exception {
+  void shouldRefuseAnUnsupportedHeader(final int offset) throws Mcv2Exception {
     final byte[] page = page();
     final byte[] raw = TransportPages.fromSymbols(page, (page.length * 6) / 8);
     final byte[] broken = withHeaderByte(page, offset, raw[offset] + 2);
@@ -186,7 +186,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void refusesInconsistentPageMetadata() throws Mcv2Exception {
+  void shouldRefuseInconsistentPageMetadata() throws Mcv2Exception {
     final byte[] page = page();
     assertEquals(
       "Invalid page metadata",
@@ -211,7 +211,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void refusesPagesOfTheWrongSize() throws Mcv2Exception {
+  void shouldRefusePagesOfTheWrongSize() throws Mcv2Exception {
     final byte[] page = page();
     assertEquals(
       "Oversize map page",
@@ -227,14 +227,14 @@ final class TransportPagesTest {
   }
 
   @Test
-  void refusesAFrameThatIsNotValid() {
+  void shouldRefuseAFrameThatIsNotValid() {
     assertThrows(Mcv2Exception.class, () -> TransportPages.makePages(new byte[48], 1));
     assertThrows(IllegalArgumentException.class, () -> TransportPages.makePages(new byte[48], -1));
     assertThrows(IllegalArgumentException.class, () -> TransportPages.makePages(new byte[48], 1L << 32));
   }
 
   @Test
-  void everyPageNamesTheFrameItsFrameIsPredictedFrom() throws Mcv2Exception {
+  void shouldNameInEveryPageTheFrameItsFrameIsPredictedFrom() throws Mcv2Exception {
     final Node root = Mcv2Trees.motion(1, 1);
     final byte[] frame = Mcv2Trees.write(32, 32, 5, 4, false, List.of(root));
     for (final byte[] page : TransportPages.makePages(frame, 7)) {
@@ -264,7 +264,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void readsThePagesOfTheSmallestAndTheLargestFrames() throws Mcv2Exception {
+  void shouldReadThePagesOfTheSmallestAndTheLargestFrames() throws Mcv2Exception {
     assertEquals(20, TransportPages.readPage(pageOfFrame(20, 0, 1, 20)).getFrameBytes());
     assertEquals(8511, TransportPages.readPage(pageOfFrame(131071, 10, 11, 8511)).getPayload().length);
     assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(19, 0, 1, 19)));
@@ -272,12 +272,12 @@ final class TransportPagesTest {
   }
 
   @Test
-  void aFrameOneByteShortOfAFullPageTakesOnePage() throws Mcv2Exception {
+  void shouldFitAFrameOneByteShortOfAFullPageInOnePage() throws Mcv2Exception {
     assertEquals(1, TransportPages.readPage(pageOfFrame(12_255, 0, 1, 12_255)).getCount());
   }
 
   @Test
-  void refusesAPageNumberedPastTheLastPage() {
+  void shouldRefuseAPageNumberedPastTheLastPage() {
     assertEquals(
       "Invalid page metadata",
       assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(pageOfFrame(100, 1, 1, 100))).getMessage()
@@ -285,7 +285,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void refusesAPageCutRightAfterItsHeaderForItsExtent() throws Mcv2Exception {
+  void shouldRefuseAPageCutRightAfterItsHeaderForItsExtent() throws Mcv2Exception {
     // 43 six-bit symbols hold the whole 32-byte header, so the header reads; the missing payload is what is wrong
     final byte[] page = page();
     assertEquals(
@@ -295,7 +295,7 @@ final class TransportPagesTest {
   }
 
   @Test
-  void chargesWholeRowsAndTheEnvelope() {
+  void shouldChargeWholeRowsAndTheEnvelope() {
     assertEquals(128 + 18 + 256 + 18, TransportPages.wireBytes(List.of(new byte[1], new byte[129]), false, 18));
     assertEquals(2 * (16384 + 5), TransportPages.wireBytes(List.of(new byte[1], new byte[2]), true, 5));
   }

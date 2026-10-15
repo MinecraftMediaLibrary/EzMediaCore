@@ -74,7 +74,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void assemblesPagesInAnyOrderAndAcceptsIdenticalDuplicates() throws Mcv2Exception {
+  void shouldAssemblePagesInAnyOrderAndAcceptIdenticalDuplicates() throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assertEquals(2, pages(BIG).size());
     assertNull(assembler.push(page(1)));
@@ -86,7 +86,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void refusesAnotherStreamAndUnsupportedWidths() {
+  void shouldRefuseAnotherStreamAndUnsupportedWidths() {
     final PageAssembler assembler = new PageAssembler(4, 6);
     assertEquals("Wrong stream", assertThrows(Mcv2Exception.class, () -> assembler.push(page(0))).getMessage());
     assertThrows(IllegalArgumentException.class, () -> new PageAssembler(1, 5));
@@ -104,7 +104,7 @@ final class PageAssemblerTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("disagreements")
-  void dropsAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) throws Mcv2Exception {
+  void shouldDropAFrameWhosePagesDisagree(final String field, final byte[] first, final byte[] second) throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assertNull(assembler.push(first));
     assertEquals("Inconsistent pages", assertThrows(Mcv2Exception.class, () -> assembler.push(second)).getMessage());
@@ -112,7 +112,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void dropsAFrameOnAConflictingDuplicate() throws Mcv2Exception {
+  void shouldDropAFrameOnAConflictingDuplicate() throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(page(0));
     final byte[] conflicting = rewritten(page(0), 40, 0x12345678L);
@@ -121,7 +121,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void keepsAtMostFourFramesPendingAndEvictsTheOldest() throws Mcv2Exception {
+  void shouldKeepAtMostFourFramesPendingAndEvictTheOldest() throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     for (int id = 1; id <= 4; id++) {
       assertNull(assembler.push(rewritten(page(0), 12, id)));
@@ -142,7 +142,7 @@ final class PageAssemblerTest {
 
   @ParameterizedTest(name = "{0}")
   @MethodSource("contradictions")
-  void refusesAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) throws Mcv2Exception {
+  void shouldRefuseAFrameWhoseHeaderContradictsItsPages(final String field, final int offset, final long value) throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     assembler.push(rewritten(page(0), offset, value));
     final byte[] last = rewritten(page(1), offset, value);
@@ -150,7 +150,7 @@ final class PageAssemblerTest {
   }
 
   @Test
-  void refusesACompleteFrameThatIsNotValid() throws Mcv2Exception {
+  void shouldRefuseACompleteFrameThatIsNotValid() throws Mcv2Exception {
     final PageAssembler assembler = new PageAssembler(3, 6);
     // the payload starts with the frame header; a zero width makes the frame invalid
     assembler.push(rewritten(page(0), 40, 0));

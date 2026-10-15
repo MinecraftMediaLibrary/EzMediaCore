@@ -68,7 +68,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void createsUniqueInvisibleStringsFromTheHexDigitsOfTheIndex() {
+  void shouldCreateUniqueInvisibleStringsFromTheHexDigitsOfTheIndex() {
     final String zero = ChatUtils.getUniqueString(0);
     final String ten = ChatUtils.getUniqueString(10);
     final String large = ChatUtils.getUniqueString(0x1f0);
@@ -86,14 +86,14 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void writesAColorCodeOnlyWhenTheColorChanges() {
+  void shouldWriteAColorCodeOnlyWhenTheColorChanges() {
     final int[] pixels = { 0xFF112233, 0x00112233, 0xFF000000, 0x7F445566 };
     final String line = ChatUtils.createRawLine(pixels, "#", 4, 0);
     assertEquals("§x§1§1§2§2§3§3##§x§0§0§0§0§0§0#§x§4§4§5§5§6§6#", line);
   }
 
   @Test
-  void supportsLongPixelMarkersInChatAndRawLines() {
+  void shouldSupportLongPixelMarkersInChatAndRawLines() {
     final String marker = "long pixel marker with spaces";
     final int[] pixels = { RED };
     final String raw = ChatUtils.createRawLine(pixels, marker, 1, 0);
@@ -104,14 +104,14 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void convertsTheRequestedRowOnly() {
+  void shouldConvertTheRequestedRowOnly() {
     final int[] pixels = { RED, RED, GREEN, BLUE };
     final String line = ChatUtils.createRawLine(pixels, "ab", 2, 1);
     assertEquals("§x§0§0§f§f§0§0ab§x§0§0§0§0§f§fab", line);
   }
 
   @Test
-  void rejectsOverflowingImageAndRowBounds() {
+  void shouldRejectOverflowingImageAndRowBounds() {
     final int[] pixels = new int[4];
     assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", 2, Integer.MAX_VALUE));
     assertThrows(IllegalArgumentException.class, () -> ChatUtils.createRawLine(pixels, "#", Integer.MAX_VALUE, 1));
@@ -119,7 +119,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void rejectsRowsOutsideOfTheImage() {
+  void shouldRejectRowsOutsideOfTheImage() {
     final int[] pixels = new int[4];
     assertThrows(NullPointerException.class, () -> ChatUtils.createRawLine(null, "#", 2, 0));
     assertThrows(NullPointerException.class, () -> ChatUtils.createRawLine(pixels, null, 2, 0));
@@ -129,7 +129,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void createsOneColoredLineOfTextPerRow() {
+  void shouldCreateOneColoredLineOfTextPerRow() {
     final int[] pixels = { RED, RED, GREEN, BLUE };
     final Component component = ChatUtils.createChatComponent(pixels, "#", 2, 2);
     final String text = component.getString();
@@ -140,7 +140,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void usesTheFirstPixelsWhenThereIsMoreDataThanNeeded() {
+  void shouldUseTheFirstPixelsWhenThereIsMoreDataThanNeeded() {
     final int[] pixels = { BLUE, GREEN, RED };
     final Component component = ChatUtils.createChatComponent(pixels, "█", 1, 2);
     final String text = component.getString();
@@ -151,7 +151,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void rejectsImagesThatDoNotMatchThePixels() {
+  void shouldRejectImagesThatDoNotMatchThePixels() {
     final int[] pixels = new int[4];
     assertThrows(NullPointerException.class, () -> ChatUtils.createChatComponent(null, "#", 2, 2));
     assertThrows(NullPointerException.class, () -> ChatUtils.createChatComponent(pixels, null, 2, 2));
@@ -161,7 +161,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void clearsTheChatOfOnlineViewersByPushingOutTheHistory() throws ReflectiveOperationException {
+  void shouldClearTheChatOfOnlineViewersByPushingOutTheHistory() throws ReflectiveOperationException {
     final UUID online = UUID.randomUUID();
     final UUID offline = UUID.randomUUID();
     try (final FakeServer server = FakeServer.start()) {
@@ -185,7 +185,7 @@ final class ChatUtilsTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(ChatUtils.class);
   }
 }

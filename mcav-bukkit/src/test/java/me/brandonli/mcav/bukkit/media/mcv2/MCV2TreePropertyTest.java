@@ -31,7 +31,7 @@ import net.jqwik.api.Property;
 final class MCV2TreePropertyTest {
 
   @Property(seed = "20261003", tries = 1000)
-  void randomTreesPreserveEveryLeafAndWalkCheckpoint(@ForAll final long seed) throws Mcv2Exception {
+  void shouldPreserveEveryLeafAndWalkCheckpointInRandomTrees(@ForAll final long seed) throws Mcv2Exception {
     final Random random = new Random(seed);
     final int width = 1 + random.nextInt(100);
     final int height = 1 + random.nextInt(100);

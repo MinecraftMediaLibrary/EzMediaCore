@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Tag;
 final class NativeKernelsFuzzTest {
 
   @FuzzTest(maxDuration = "30s")
-  void computesWhatJavaComputes(final FuzzedDataProvider data) {
+  void shouldComputeWhatJavaComputes(final FuzzedDataProvider data) {
     final List<Level> levels = NativeTesting.levels();
     if (levels.isEmpty()) {
       return;

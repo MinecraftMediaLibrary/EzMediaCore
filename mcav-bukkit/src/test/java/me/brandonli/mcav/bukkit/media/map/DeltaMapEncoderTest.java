@@ -85,7 +85,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void rejectsInvalidArguments() {
+  void shouldRejectInvalidArguments() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] wrongSize = new byte[10];
@@ -97,7 +97,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void exposesItsLayoutAndTheDefaultBudget() {
+  void shouldExposeItsLayoutAndTheDefaultBudget() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final MapLayout encoderLayout = encoder.getLayout();
@@ -107,7 +107,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsEveryCoveredMapCompletelyInTheFirstFrame() {
+  void shouldSendEveryCoveredMapCompletelyInTheFirstFrame() {
     final MapLayout layout = new MapLayout(10, 2, 1, 256, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, DeltaMapEncoder.DEFAULT_MAX_BYTES_PER_FRAME);
     final byte[] image = MapLayoutTest.createImage(256, 128);
@@ -123,7 +123,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsNothingWhenTheFrameDidNotChange() {
+  void shouldSendNothingWhenTheFrameDidNotChange() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -135,7 +135,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsOnlyTheTileThatChanged() {
+  void shouldSendOnlyTheTileThatChanged() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -150,7 +150,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesAdjacentChangedTilesIntoOneRectangle() {
+  void shouldMergeAdjacentChangedTilesIntoOneRectangle() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -165,7 +165,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesHorizontalTileRunsAwayFromTheFirstColumn() {
+  void shouldMergeHorizontalTileRunsAwayFromTheFirstColumn() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -179,7 +179,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsSeparateRectanglesWhenTheyAreSmallerThanTheirBoundingBox() {
+  void shouldSendSeparateRectanglesWhenTheyAreSmallerThanTheirBoundingBox() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -199,7 +199,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsTheBoundingBoxWhenItIsNotLargerThanTheSeparateRectangles() {
+  void shouldSendTheBoundingBoxWhenItIsNotLargerThanTheSeparateRectangles() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 2);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 2);
@@ -216,7 +216,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesChangesThatReachTheBottomOfTheMap() {
+  void shouldMergeChangesThatReachTheBottomOfTheMap() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -231,7 +231,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void clipsChangesToThePartOfTheMapTheImageCovers() {
+  void shouldClipChangesToThePartOfTheMapTheImageCovers() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(100, 50);
@@ -250,7 +250,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void findsSeveralChangesInOneRowUpToTheRightEdge() {
+  void shouldFindSeveralChangesInOneRowUpToTheRightEdge() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -269,7 +269,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void holdsBackNoiseForSixFramesAndThenSendsIt() {
+  void shouldHoldBackNoiseForSixFramesAndThenSendIt() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -290,7 +290,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void forgetsNoiseThatDisappearsOnItsOwn() {
+  void shouldForgetNoiseThatDisappearsOnItsOwn() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -313,7 +313,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsRealMotionWhileHoldingBackNoise() {
+  void shouldSendRealMotionWhileHoldingBackNoise() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -333,7 +333,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void alwaysSendsTheMostUrgentMapEvenIfItExceedsTheBudget() {
+  void shouldAlwaysSendTheMostUrgentMapEvenIfItExceedsTheBudget() {
     final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
     final byte[] image = MapLayoutTest.createImage(256, 128);
@@ -353,7 +353,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsSeveralMapsThatFitIntoTheBudgetTogether() {
+  void shouldSendSeveralMapsThatFitIntoTheBudgetTogether() {
     final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
     final int twoMaps = 2 * (128 * 128 + MapLayout.PATCH_OVERHEAD);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, twoMaps);
@@ -364,7 +364,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsMapsThatHaveBeenWaitingBeforeMapsWithMoreChanges() {
+  void shouldSendMapsThatHaveBeenWaitingBeforeMapsWithMoreChanges() {
     final MapLayout layout = new MapLayout(20, 2, 1, 256, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 600);
     final byte[] image = MapLayoutTest.createImage(256, 128);
@@ -396,7 +396,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void rejectsImagesOfTheWrongSizeInEveryFrame() {
+  void shouldRejectImagesOfTheWrongSizeInEveryFrame() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -410,7 +410,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void sendsTheMapWithTheMostChangedPixelsFirstAndIgnoresHeldBackNoise() {
+  void shouldSendTheMapWithTheMostChangedPixelsFirstAndIgnoreHeldBackNoise() {
     final MapLayout layout = new MapLayout(0, 2, 1, 64, 16);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(64, 16);
@@ -431,7 +431,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void countsTilesFromTheLeftEdgeOfTheMapTheImageStartsAt() {
+  void shouldCountTilesFromTheLeftEdgeOfTheMapTheImageStartsAt() {
     final MapLayout layout = new MapLayout(0, 1, 1, 100, 50);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(100, 50);
@@ -446,7 +446,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesTilesDownwardsOnlyWhileTheWholeRowChanged() {
+  void shouldMergeTilesDownwardsOnlyWhileTheWholeRowChanged() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -465,7 +465,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesTheLastTwoTilesWithoutReadingBeyondTheFinalRow() {
+  void shouldMergeTheLastTwoTilesWithoutReadingBeyondTheFinalRow() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -481,7 +481,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void mergesTilesOfLowerRowsSideways() {
+  void shouldMergeTilesOfLowerRowsSideways() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -500,7 +500,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void neverMergesARunPastTheRightEdgeIntoTheNextRow() {
+  void shouldNeverMergeARunPastTheRightEdgeIntoTheNextRow() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);
@@ -523,7 +523,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void measuresTheBoundingBoxFromItsLeftEdge() {
+  void shouldMeasureTheBoundingBoxFromItsLeftEdge() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 2);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 2);
@@ -540,7 +540,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void snapshotIsEmptyBeforeTheFirstFrame() {
+  void shouldReturnAnEmptySnapshotBeforeTheFirstFrame() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final List<MapTilePatch> snapshot = encoder.snapshot();
@@ -549,7 +549,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void snapshotDescribesWhatTheClientsDisplay() {
+  void shouldDescribeWhatTheClientsDisplayInTheSnapshot() {
     final MapLayout layout = new MapLayout(4, 3, 1, 128, 64);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 64);
@@ -564,7 +564,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void snapshotLeavesOutMapsThatWereNeverSent() {
+  void shouldLeaveMapsThatWereNeverSentOutOfTheSnapshot() {
     final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
     final byte[] image = MapLayoutTest.createImage(256, 128);
@@ -578,7 +578,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void resetSendsTheNextFrameCompletelyAgain() {
+  void shouldSendTheNextFrameCompletelyAgainAfterAReset() {
     final MapLayout layout = new MapLayout(0, 2, 1, 256, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, 1);
     final byte[] image = MapLayoutTest.createImage(256, 128);
@@ -595,7 +595,7 @@ final class DeltaMapEncoderTest {
   }
 
   @Test
-  void resetForgetsHeldBackNoise() {
+  void shouldForgetHeldBackNoiseOnReset() {
     final MapLayout layout = new MapLayout(0, 1, 1, 128, 128);
     final DeltaMapEncoder encoder = new DeltaMapEncoder(layout, LARGE_BUDGET);
     final byte[] image = MapLayoutTest.createImage(128, 128);

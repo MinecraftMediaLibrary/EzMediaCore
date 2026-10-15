@@ -82,7 +82,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void startsOnAnEmptyChat() {
+  void shouldStartOnAnEmptyChat() {
     this.result.start();
 
     final String message = this.getFirstMessage();
@@ -91,7 +91,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void sendsEveryFrameAsOneMessageSizedToTheChat() {
+  void shouldSendEveryFrameAsOneMessageSizedToTheChat() {
     final ImageBuffer image = Images.solid(40, 20, 0xFF336699);
     final OriginalVideoMetadata metadata = mock(OriginalVideoMetadata.class);
 
@@ -111,7 +111,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void clearsTheChatWhenReleased() {
+  void shouldClearTheChatWhenReleased() {
     this.result.release();
 
     final String message = this.getFirstMessage();
@@ -120,7 +120,7 @@ final class ChatResultTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final OriginalVideoMetadata metadata = mock(OriginalVideoMetadata.class);
 
     assertThrows(NullPointerException.class, () -> new ChatResult(null));

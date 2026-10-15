@@ -112,7 +112,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void createsAnOrderedSidebarWithHiddenNumbersAndShowsIt() {
+  void shouldCreateAnOrderedSidebarWithHiddenNumbersAndShowIt() {
     final ScoreboardConfiguration configuration = this.createConfiguration(3);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -138,7 +138,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void duplicateViewersStillRestoreTheirOriginalScoreboard() {
+  void shouldStillRestoreTheOriginalScoreboardOfDuplicateViewers() {
     this.viewers.add(VIEWER);
     this.viewers.add(VIEWER);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(this.createConfiguration(3));
@@ -149,7 +149,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void usesDifferentNamesForEveryRenderer() {
+  void shouldUseDifferentNamesForEveryRenderer() {
     final ScoreboardConfiguration firstConfiguration = this.createConfiguration(1);
     final ScoreboardConfiguration secondConfiguration = this.createConfiguration(1);
     final ScoreboardRenderer first = new ScoreboardRenderer(firstConfiguration);
@@ -168,7 +168,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void createsTheScoreboardOnlyOnce() {
+  void shouldCreateTheScoreboardOnlyOnce() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -180,7 +180,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void drawsEveryImageRowIntoTheSuffixOfItsTeam() {
+  void shouldDrawEveryImageRowIntoTheSuffixOfItsTeam() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final int[] pixels = { 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFF0000FF };
@@ -203,7 +203,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void ignoresFramesBeforeTheScoreboardExists() {
+  void shouldIgnoreFramesBeforeTheScoreboardExists() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Component line = Component.text("line");
@@ -216,7 +216,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void stopsRenderingFramesWhenItIsHidden() {
+  void shouldStopRenderingFramesWhenItIsHidden() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -230,7 +230,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void doesNothingOnATickBeforeTheScoreboardWasCreated() {
+  void shouldDoNothingOnATickBeforeTheScoreboardWasCreated() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 
@@ -240,7 +240,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void putsTheScoreboardOnAViewerWhoComesOnlineAfterItWasCreated() {
+  void shouldPutTheScoreboardOnAViewerWhoComesOnlineAfterItWasCreated() {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -256,7 +256,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void forgetsAnOfflineViewerAndRestoresTheNewSessionsOwnPreviousBoard() {
+  void shouldForgetAnOfflineViewerAndRestoreTheNewSessionsOwnPreviousBoard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -282,7 +282,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresThePreviousScoreboardOfViewersThatStillSeeIt() throws ReflectiveOperationException {
+  void shouldRestoreThePreviousScoreboardOfViewersThatStillSeeIt() throws ReflectiveOperationException {
     final ScoreboardConfiguration configuration = this.createConfiguration(2);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -311,7 +311,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void leavesViewersAloneThatSwitchedToAnotherScoreboard() {
+  void shouldLeaveViewersAloneThatSwitchedToAnotherScoreboard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Scoreboard otherBoard = mock(CraftScoreboard.class, "other plugin");
@@ -325,7 +325,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresAnOnlineRemovedViewerBeforeForgettingThePreviousBoard() {
+  void shouldRestoreAnOnlineRemovedViewerBeforeForgettingThePreviousBoard() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -343,7 +343,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void restoresAViewerRemovedImmediatelyBeforeHide() {
+  void shouldRestoreAViewerRemovedImmediatelyBeforeHide() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -354,7 +354,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void doesNotOverwriteAnotherPluginsBoardWhenAViewerIsRemoved() {
+  void shouldNotOverwriteAnotherPluginsBoardWhenAViewerIsRemoved() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     final Scoreboard replacement = mock(CraftScoreboard.class);
@@ -368,7 +368,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void queuedShowCannotResurrectAScoreboardAfterMainThreadHide() {
+  void shouldNotLetAQueuedShowResurrectAScoreboardAfterMainThreadHide() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     this.server.setPrimaryThread(false);
@@ -384,7 +384,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void queuedHideCannotRemoveAScoreboardRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRemoveAScoreboardRequestedAgainOnMain() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
     renderer.show();
@@ -408,7 +408,7 @@ final class ScoreboardRendererTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final ScoreboardConfiguration configuration = this.createConfiguration(1);
     final ScoreboardRenderer renderer = new ScoreboardRenderer(configuration);
 

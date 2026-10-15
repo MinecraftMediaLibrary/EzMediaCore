@@ -208,7 +208,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void servesTheFirstScreenOnceItsPackIsHostedAndOffersItToTheViewers() throws IOException {
+  void shouldServeTheFirstScreenOnceItsPackIsHostedAndOfferItToTheViewers() throws IOException {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
@@ -237,7 +237,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenOfASizeThePackHasTakesItsFreeSlotWithoutChangingThePack() {
+  void shouldGiveAScreenOfASizeThePackHasItsFreeSlotWithoutChangingThePack() {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
@@ -260,7 +260,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenClosedBeforeTheNextTickOffersNothing() {
+  void shouldOfferNothingWhenAScreenClosesBeforeTheNextTick() {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
@@ -275,7 +275,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenOfANewSizeGetsASlotAndThePlayersSwapThePack() throws IOException {
+  void shouldGiveAScreenOfANewSizeASlotAndSwapThePackForThePlayers() throws IOException {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final Mcv2PackServer.Lease first = this.packs.open(screen(320, Set.of(ALICE)));
@@ -302,7 +302,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void screensThatStartInTheSameTickChangeThePackOnce() {
+  void shouldChangeThePackOnceWhenScreensStartInTheSameTick() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     this.packs.open(screen(320, Set.of(ALICE)));
@@ -315,7 +315,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackAskedForBeforeTheOneBeforeWasWrittenIsTheOnlyOneWritten() {
+  void shouldWriteOnlyAPackAskedForBeforeTheOneBeforeWasWritten() {
     this.packs.start();
     this.packs.open(screen(320, Set.of()));
     this.server.runTasks();
@@ -329,7 +329,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackHostedAfterANewerOneWasAskedForIsNotServed() {
+  void shouldNotServeAPackHostedAfterANewerOneWasAskedFor() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     this.packs.open(screen(320, Set.of(ALICE)));
@@ -347,7 +347,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aFullPackGivesTheSlotFreedFirstANewSizeAndRefusesAScreenWhenEverySlotPlays() {
+  void shouldGiveANewSizeTheSlotFreedFirstInAFullPackAndRefuseAScreenWhenEverySlotPlays() {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int slot = 0; slot < Mcv2Pack.MAX_SCREENS; slot++) {
@@ -376,7 +376,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void refusesAScreenWhosePageMapsCannotReachEverySlot() {
+  void shouldRefuseAScreenWhosePageMapsCannotReachEverySlot() {
     final Mcv2Configuration high = Mcv2ConfigurationTest.complete()
       .pageMap(Integer.MAX_VALUE - 64)
       .build();
@@ -388,7 +388,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aReshapedSlotKeepsItsNewSizeForTheNextScreenOfThatSize() {
+  void shouldKeepTheNewSizeOfAReshapedSlotForTheNextScreenOfThatSize() {
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int slot = 0; slot < Mcv2Pack.MAX_SCREENS; slot++) {
       leases.add(this.packs.open(screen(160 + 32 * slot, Set.of())));
@@ -404,7 +404,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void offersThePackToAViewerAddedInTheGameOnceTheyChangeWorld() throws EventException {
+  void shouldOfferThePackToAViewerAddedInTheGameOnceTheyChangeWorld() throws EventException {
     final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
     this.packs.start();
     final EventExecutor world = this.registered(PlayerChangedWorldEvent.class);
@@ -420,7 +420,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void measuresTheLoadOnlyOfThePackAPlayerWasOffered() {
+  void shouldMeasureTheLoadOnlyOfThePackAPlayerWasOffered() {
     final CraftPlayer alice = this.online(ALICE);
     final Mcv2PackServer.Lease first = this.packs.open(screen(320, Set.of(ALICE)));
     this.settle();
@@ -434,7 +434,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void listensToThePackStatusForItselfAndItsViewersUntilShutDown() {
+  void shouldListenToThePackStatusForItselfAndItsViewersUntilShutDown() {
     try (final MockedStatic<HandlerList> handlers = Mockito.mockStatic(HandlerList.class)) {
       this.packs.start();
       final ArgumentCaptor<Listener> listeners = ArgumentCaptor.forClass(Listener.class);
@@ -453,7 +453,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void deletesThePackItServesWhenShutDown() {
+  void shouldDeleteThePackItServesWhenShutDown() {
     this.packs.open(screen(320, Set.of()));
     this.settle();
     final Path zip = this.folder.resolve("mcav-mcv2-1.zip");
@@ -464,7 +464,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void retiresAPackANewerOneReplacedBeforeItWasServed() {
+  void shouldRetireAPackANewerOneReplacedBeforeItWasServed() {
     this.packs.open(screen(320, Set.of()));
     this.server.runTasks();
     this.writer.drain();
@@ -477,7 +477,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void refusesAScreenWhoseOutlineColourIsNotThePacks() {
+  void shouldRefuseAScreenWhoseOutlineColourIsNotThePacks() {
     this.packs.open(screen(320, Set.of()));
     final Mcv2Configuration gold = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.GOLD).build();
     assertThrows(IllegalArgumentException.class, () -> this.packs.open(gold));
@@ -485,7 +485,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackWhoseScreensAllClosedTakesTheOutlineColourOfTheNextScreen() {
+  void shouldGiveAPackWhoseScreensAllClosedTheOutlineColourOfTheNextScreen() {
     this.packs.open(screen(320, Set.of())).close();
     this.settle();
     final Mcv2Configuration gold = Mcv2ConfigurationTest.complete().outlineColor(NamedTextColor.GOLD).build();
@@ -498,7 +498,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenKeepsTheSlotOfTheSizeItLeftSoSteppingBackChangesNothing() {
+  void shouldKeepTheSlotOfTheSizeAScreenLeftSoSteppingBackChangesNothing() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final Mcv2Configuration full = screen(320, Set.of(ALICE));
@@ -529,7 +529,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenInALaterSlotKeepsItsOwnPageMapsWhenItStepsToAnotherSize() {
+  void shouldKeepThePageMapsOfAScreenInALaterSlotWhenItStepsToAnotherSize() {
     this.packs.start();
     final Mcv2PackServer.Lease first = this.packs.open(screen(320, Set.of()));
     final Mcv2PackServer.Lease second = this.packs.open(screen(288, Set.of()));
@@ -554,7 +554,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aSizeWithoutAFreeSlotIsDitheredForEveryViewer() {
+  void shouldDitherASizeWithoutAFreeSlotForEveryViewer() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
@@ -572,7 +572,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void offersThePackToAViewerWhoJoinsOrChangesWorldWhileTheScreenPlays() throws EventException {
+  void shouldOfferThePackToAViewerWhoJoinsOrChangesWorldWhileTheScreenPlays() throws EventException {
     final Set<UUID> viewers = ConcurrentHashMap.newKeySet();
     viewers.add(ALICE);
     this.packs.start();
@@ -618,7 +618,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void measuresHowLongAClientTookFromTheOfferToThePackLoaded() throws EventException {
+  void shouldMeasureHowLongAClientTookFromTheOfferToThePackLoaded() throws EventException {
     final CraftPlayer alice = this.online(ALICE);
     final CraftPlayer bob = this.online(BOB);
     this.packs.start();
@@ -645,7 +645,7 @@ final class Mcv2PackServerTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "fabric", "neoforge" })
-  void warnsModdedViewersAndAdminsWithoutTreatingTheBrandAsADecoderFailure(final String brand) {
+  void shouldWarnModdedViewersAndAdminsWithoutTreatingTheBrandAsADecoderFailure(final String brand) {
     final CraftPlayer alice = this.online(ALICE);
     when(alice.getName()).thenReturn("Alice");
     when(alice.getClientBrandName()).thenReturn(brand);
@@ -687,7 +687,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void doesNotWarnAModdedViewerWhoseMcv2ClientModReportedTheirShaders() {
+  void shouldNotWarnAModdedViewerWhoseMcv2ClientModReportedTheirShaders() {
     final CraftPlayer alice = this.online(ALICE);
     when(alice.getName()).thenReturn("Alice");
     when(alice.getClientBrandName()).thenReturn("fabric");
@@ -713,7 +713,7 @@ final class Mcv2PackServerTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = "vanilla")
-  void doesNotInferAModdedRendererFromAnUnknownOrVanillaBrand(final @Nullable String brand) {
+  void shouldNotInferAModdedRendererFromAnUnknownOrVanillaBrand(final @Nullable String brand) {
     final CraftPlayer alice = this.online(ALICE);
     when(alice.getClientBrandName()).thenReturn(brand);
     this.packs.start();
@@ -733,7 +733,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void anHttpHostingStopsTheOneBeforeItWhichHoldsItsPort() {
+  void shouldStopThePreviousHttpHostingThatHoldsThePortOfANewOne() {
     final List<HttpHosting> servers = new ArrayList<>();
     this.packs = this.packServer(zip -> {
       final HttpHosting hosting = mock(HttpHosting.class);
@@ -754,7 +754,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackThatCannotBeHostedIsNotServedAndTheNextChangeTriesAgain() {
+  void shouldNotServeAPackThatCannotBeHostedAndTryAgainOnTheNextChange() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs = this.packServer(zip -> {
       if (this.hostings.isEmpty()) {
@@ -775,7 +775,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void clearsThePacksAnEarlierRunLeftAndNothingElse() throws IOException {
+  void shouldClearThePacksAnEarlierRunLeftAndNothingElse() throws IOException {
     Files.writeString(this.folder.resolve("mcav-mcv2-7.zip"), "old");
     Files.writeString(this.folder.resolve("notes.txt"), "kept");
 
@@ -787,7 +787,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aFolderThatCannotBeCreatedIsReportedAndThePackIsNotServed() throws IOException {
+  void shouldReportAFolderThatCannotBeCreatedAndNotServeThePack() throws IOException {
     final Path file = this.folder.resolve("taken");
     Files.writeString(file, "not a folder");
     final QueuedExecutor own = new QueuedExecutor();
@@ -808,7 +808,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void shutdownStopsHostingClosesTheLeasesAndServesNothingMore() {
+  void shouldStopHostingCloseTheLeasesAndServeNothingMoreOnShutdown() {
     final CraftPlayer alice = this.online(ALICE);
     try (final MockedStatic<HandlerList> lists = Mockito.mockStatic(HandlerList.class)) {
       this.packs.start();
@@ -833,7 +833,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackHostedWhileTheServerShutsDownIsStoppedAtOnce() {
+  void shouldStopAtOnceAPackHostedWhileTheServerShutsDown() {
     this.packs = this.packServer(zip -> {
       final PackHosting hosting = this.hosting(zip);
       this.packs.shutdown();
@@ -849,7 +849,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void nothingIsWrittenOrServedAfterShutdown() {
+  void shouldWriteOrServeNothingAfterShutdown() {
     this.packs.open(screen(320, Set.of()));
     this.server.runTasks();
     this.packs.open(screen(160, Set.of()));
@@ -862,7 +862,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void retiresAPackHostedTooLateWhenTheShutdownCouldNotWaitForTheWriter() {
+  void shouldRetireAPackHostedTooLateWhenTheShutdownCouldNotWaitForTheWriter() {
     this.packs.open(screen(320, Set.of()));
     this.server.runTasks();
     this.writer.drain();
@@ -876,14 +876,14 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void shutdownThatIsInterruptedKeepsTheInterrupt() {
+  void shouldKeepTheInterruptWhenShutdownIsInterrupted() {
     this.writer.interrupt = true;
     this.packs.shutdown();
     assertTrue(Thread.interrupted());
   }
 
   @Test
-  void shutdownWithoutStartUnregistersNothing() {
+  void shouldUnregisterNothingWhenShutDownWithoutStart() {
     try (final MockedStatic<HandlerList> lists = Mockito.mockStatic(HandlerList.class)) {
       this.packs.shutdown();
       lists.verifyNoInteractions();
@@ -891,7 +891,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void theDefaultWriterIsAThreadOfItsOwn() throws InterruptedException {
+  void shouldUseAThreadOfItsOwnAsTheDefaultWriter() throws InterruptedException {
     final AtomicReference<Thread> writerThread = new AtomicReference<>();
     final Mcv2PackServer own = new Mcv2PackServer(
       this.folder,
@@ -920,7 +920,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     assertThrows(NullPointerException.class, () -> new Mcv2PackServer(null, this::hosting, false, this.offered::add, this.refused::add));
     assertThrows(NullPointerException.class, () -> new Mcv2PackServer(this.folder, null, false, this.offered::add, this.refused::add));
     assertThrows(NullPointerException.class, () -> new Mcv2PackServer(this.folder, this::hosting, false, null, this.refused::add));
@@ -928,7 +928,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void hashesAFileAndReportsWhatItCannotHash() throws IOException {
+  void shouldHashAFileAndReportWhatItCannotHash() throws IOException {
     final Path file = this.folder.resolve("pack.zip");
     Files.writeString(file, "abc");
     assertEquals("a9993e364706816aba3e25717850c26c9cd0d89d", Mcv2PackServer.hash(file, "SHA-1"));
@@ -937,7 +937,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPackThatCannotBeDeletedIsLeftForTheNextStart() throws IOException {
+  void shouldLeaveAPackThatCannotBeDeletedForTheNextStart() throws IOException {
     this.packs = this.packServer(zip -> {
       final PackHosting hosting = this.hosting(zip);
       // a folder with a file in it cannot be deleted
@@ -954,7 +954,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void describesTheSlotsOfAPack() {
+  void shouldDescribeTheSlotsOfAPack() {
     final Mcv2Configuration first = screen(320, Set.of()).withSlot(1, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
     final Mcv2Configuration second = screen(160, Set.of()).withSlot(2, Mcv2Configuration.DEFAULT_PAGE_MAP, 0);
     assertEquals("slots 1: 320x96, 2: 160x96", Mcv2PackServer.describe(List.of(first, second)));
@@ -1043,7 +1043,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void screensThatPlayOneAfterAnotherShareOneSlotOfThePack() throws IOException {
+  void shouldShareOneSlotOfThePackBetweenScreensThatPlayOneAfterAnother() throws IOException {
     this.packs.start();
     for (int width = 160; width <= 352; width += 32) {
       this.packs.open(screen(width, Set.of())).close();
@@ -1056,7 +1056,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenThatStepsThroughThreeSizesKeepsOnlyTheSlotOfTheSizeItLeftLast() throws IOException {
+  void shouldKeepOnlyTheSlotOfTheSizeLeftLastWhenAScreenStepsThroughThreeSizes() throws IOException {
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of()));
     final Mcv2Configuration playing = lease.getConfiguration();
@@ -1074,7 +1074,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void theSlotsOfScreensThatStoppedLeaveThePackAfterAMinute() throws IOException {
+  void shouldRemoveTheSlotsOfScreensThatStoppedFromThePackAfterAMinute() throws IOException {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final Mcv2PackServer.Lease video = this.packs.open(screen(320, Set.of(ALICE)));
@@ -1100,7 +1100,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void thePlayersRemoveThePackAMinuteAfterTheLastScreenStopped() {
+  void shouldRemoveThePackFromThePlayersAMinuteAfterTheLastScreenStopped() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of(ALICE)));
@@ -1125,7 +1125,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aNewScreenOfTheSizeAPlayingScreenLeftTakesThatScreensSpare() {
+  void shouldGiveANewScreenOfTheSizeAPlayingScreenLeftThatScreensSpare() {
     this.packs.start();
     final Mcv2PackServer.Lease first = this.packs.open(screen(320, Set.of()));
     final Mcv2Configuration requested = first.getConfiguration();
@@ -1144,7 +1144,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aFullPackReshapesTheSpareLeftFirstWhereverItsSlotIs() throws IOException {
+  void shouldReshapeTheSpareLeftFirstInAFullPackWhereverItsSlotIs() throws IOException {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int screen = 0; screen < Mcv2Pack.MAX_SCREENS / 2; screen++) {
@@ -1165,7 +1165,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aClosedScreensSlotIsTrimmedOnTheTickItsGraceEnds() {
+  void shouldTrimTheSlotOfAClosedScreenOnTheTickItsGraceEnds() {
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of()));
     this.settle();
@@ -1175,7 +1175,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aTrimBeforeTheLastGraceEndsAsksAgainForWhatIsLeftOfIt() {
+  void shouldAskAgainForWhatIsLeftOfTheLastGraceWhenTrimmingBeforeItEnds() {
     this.packs.start();
     final Mcv2PackServer.Lease first = this.packs.open(screen(320, Set.of()));
     final Mcv2PackServer.Lease second = this.packs.open(screen(288, Set.of()));
@@ -1190,7 +1190,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aSpareOutlivesTheTrimOfTheSlotsAroundIt() throws IOException {
+  void shouldKeepASpareThroughTheTrimOfTheSlotsAroundIt() throws IOException {
     this.packs.start();
     final Mcv2PackServer.Lease playing = this.packs.open(screen(320, Set.of()));
     final Mcv2Configuration requested = playing.getConfiguration();
@@ -1209,7 +1209,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aPluginBeingDisabledSchedulesNoTrim() {
+  void shouldScheduleNoTrimWhileThePluginIsBeingDisabled() {
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of()));
     this.settle();
@@ -1219,7 +1219,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aTrimDueAfterTheShutdownChangesNothing() {
+  void shouldChangeNothingWhenATrimIsDueAfterTheShutdown() {
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of()));
     this.settle();
@@ -1235,7 +1235,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aScreenThatStoppedBeforeItsPackWasWrittenLeavesNoPackToWithdraw() {
+  void shouldLeaveNoPackToWithdrawWhenAScreenStopsBeforeItsPackWasWritten() {
     final CraftPlayer alice = this.online(ALICE);
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of(ALICE)));
@@ -1253,7 +1253,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aResizeToTheSizeThatPlaysChangesNothing() {
+  void shouldChangeNothingOnAResizeToTheSizeThatPlays() {
     this.packs.start();
     final Mcv2PackServer.Lease lease = this.packs.open(screen(320, Set.of()));
     this.settle();
@@ -1269,7 +1269,7 @@ final class Mcv2PackServerTest {
   }
 
   @Test
-  void aNewScreenOfAnotherSizeTakesTheSpareOfAPlayingScreenOnlyWhenThePackIsFull() {
+  void shouldGiveANewScreenOfAnotherSizeTheSpareOfAPlayingScreenOnlyWhenThePackIsFull() {
     this.packs.start();
     final List<Mcv2PackServer.Lease> leases = new ArrayList<>();
     for (int screen = 0; screen < Mcv2Pack.MAX_SCREENS / 2; screen++) {

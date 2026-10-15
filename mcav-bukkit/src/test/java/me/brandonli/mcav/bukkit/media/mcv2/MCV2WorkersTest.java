@@ -43,7 +43,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2WorkersTest {
 
   @Test
-  void runsEveryIndexInOrderOnTheCallingThreadWithOneScratch() {
+  void shouldRunEveryIndexInOrderOnTheCallingThreadWithOneScratch() {
     final List<Integer> visited = new ArrayList<>();
     final AtomicInteger scratches = new AtomicInteger();
     final Thread caller = Thread.currentThread();
@@ -57,7 +57,7 @@ final class MCV2WorkersTest {
   }
 
   @Test
-  void runsEveryIndexExactlyOnceOnThePool() {
+  void shouldRunEveryIndexExactlyOnceOnThePool() {
     final ForkJoinPool pool = new ForkJoinPool(4);
     try {
       final Workers workers = new Workers(pool, 4);
@@ -81,7 +81,7 @@ final class MCV2WorkersTest {
   }
 
   @Test
-  void usesNoMoreWorkersThanItems() {
+  void shouldUseNoMoreWorkersThanItems() {
     final ForkJoinPool pool = new ForkJoinPool(4);
     try {
       final AtomicInteger scratches = new AtomicInteger();
@@ -97,17 +97,17 @@ final class MCV2WorkersTest {
   }
 
   @Test
-  void waitsForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
+  void shouldWaitForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
     assertFailureWaitsForSibling(false, new IllegalStateException("body failed"));
   }
 
   @Test
-  void waitsForOtherCallbacksBeforePropagatingAScratchFailure() throws InterruptedException {
+  void shouldWaitForOtherCallbacksBeforePropagatingAScratchFailure() throws InterruptedException {
     assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed"));
   }
 
   @Test
-  void waitsForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
+  void shouldWaitForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
     assertFailureWaitsForSibling(false, new AssertionError("body failed"));
   }
 
@@ -194,7 +194,7 @@ final class MCV2WorkersTest {
   }
 
   @Test
-  void runsOnTheCallingThreadWithOneWorker() {
+  void shouldRunOnTheCallingThreadWithOneWorker() {
     final Workers workers = new Workers(ForkJoinPool.commonPool(), 1);
     assertEquals(1, workers.threads());
     final Thread caller = Thread.currentThread();
@@ -202,7 +202,7 @@ final class MCV2WorkersTest {
   }
 
   @Test
-  void refusesNoThreads() {
+  void shouldRefuseNoThreads() {
     assertThrows(IllegalArgumentException.class, () -> new Workers(ForkJoinPool.commonPool(), 0));
   }
 }

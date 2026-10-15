@@ -37,7 +37,7 @@ final class Mcv2LatestFrameTest {
   private final Mcv2LatestFrame<String> slot = new Mcv2LatestFrame<>();
 
   @Test
-  void aNewerFrameReplacesOneNotTakenAndEveryFrameIsTakenOnce() {
+  void shouldReplaceAFrameNotTakenWithANewerOneAndTakeEveryFrameOnce() {
     this.slot.offer("first");
     this.slot.offer("second");
     final String taken = this.slot.poll();
@@ -48,14 +48,14 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void aDroppedFrameIsNotTaken() {
+  void shouldNotTakeADroppedFrame() {
     this.slot.offer("dropped");
     this.slot.clear();
     assertNull(this.slot.poll());
   }
 
   @Test
-  void anOpenSlotWaitsForTheNextFrame() throws Exception {
+  void shouldWaitForTheNextFrameWhenTheSlotIsOpen() throws Exception {
     this.slot.open();
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.offer("next");
@@ -64,7 +64,7 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void closingWakesAnEncoderThatWaitsWithNothing() throws Exception {
+  void shouldWakeAnEncoderThatWaitsWithNothingWhenClosing() throws Exception {
     this.slot.open();
     final CompletableFuture<String> taken = CompletableFuture.supplyAsync(this::takeQuietly);
     this.slot.close();
@@ -73,7 +73,7 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void aClosedSlotTakesNothingAtOnceEvenWithAFrame() throws InterruptedException {
+  void shouldTakeNothingAtOnceFromAClosedSlotEvenWithAFrame() throws InterruptedException {
     this.slot.offer("left over");
     final String taken = this.slot.take();
     this.slot.open();
@@ -85,7 +85,7 @@ final class Mcv2LatestFrameTest {
   }
 
   @Test
-  void anInterruptedTakeThrows() {
+  void shouldThrowWhenATakeIsInterrupted() {
     this.slot.open();
     final Thread currentThread = Thread.currentThread();
     currentThread.interrupt();

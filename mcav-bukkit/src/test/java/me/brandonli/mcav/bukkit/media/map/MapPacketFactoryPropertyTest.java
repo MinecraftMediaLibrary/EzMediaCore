@@ -99,7 +99,7 @@ final class MapPacketFactoryPropertyTest {
   }
 
   @Property(seed = SEED, tries = 60)
-  void sendsEveryPatchInOrderInBundlesOfAtMostTheProtocolLimit(@ForAll("patchCounts") final int patchCount) {
+  void shouldSendEveryPatchInOrderInBundlesOfAtMostTheProtocolLimit(@ForAll("patchCounts") final int patchCount) {
     final List<MapTilePatch> patches = new ArrayList<>(patchCount);
     for (int index = 0; index < patchCount; index++) {
       final byte color = (byte) index;
@@ -130,7 +130,7 @@ final class MapPacketFactoryPropertyTest {
   }
 
   @Property(seed = SEED, tries = 30)
-  void clearingFillsEveryMapOfTheRangeWithTransparency(
+  void shouldFillEveryMapOfTheRangeWithTransparencyWhenClearing(
     @ForAll @IntRange(min = 0, max = 1 << 30) final int startMapId,
     @ForAll("patchCounts") final int mapCount
   ) {
@@ -158,7 +158,7 @@ final class MapPacketFactoryPropertyTest {
    * reaches a client as one bundle, applied in one tick rather than split, and that its size is 16400 bytes a map.
    */
   @Property(seed = SEED, tries = 30)
-  void clearingAWallOfUpTo4096MapsIsOneBundle(@ForAll @IntRange(min = 1, max = BUNDLE_LIMIT) final int mapCount) {
+  void shouldClearAWallOfUpTo4096MapsInOneBundle(@ForAll @IntRange(min = 1, max = BUNDLE_LIMIT) final int mapCount) {
     final List<UUID> viewers = List.of(VIEWER);
     final int before = this.packetCount();
 

@@ -40,7 +40,7 @@ final class NettyHostingLocaleTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
-  void listenerKeysRemainValidInEveryFormattingLocale(final String languageTag) {
+  void shouldKeepListenerKeysValidInEveryFormattingLocale(final String languageTag) {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.forLanguageTag(languageTag));
@@ -53,7 +53,7 @@ final class NettyHostingLocaleTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "ar-EG", "fa-IR", "bn-BD" })
-  void downloadPortsRemainAsciiAfterTheFormattingLocaleChanges(final String languageTag) {
+  void shouldKeepDownloadPortsAsciiAfterTheFormattingLocaleChanges(final String languageTag) {
     final Locale previous = Locale.getDefault(Locale.Category.FORMAT);
     try {
       Locale.setDefault(Locale.Category.FORMAT, Locale.ROOT);

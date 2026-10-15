@@ -146,7 +146,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void showsFramesAsAWallCenteredOnThePositionAndGrowingUpward() {
+  void shouldShowFramesAsAWallCenteredOnThePositionAndGrowingUpward() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(3, 2, BROWN);
@@ -163,7 +163,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void placesTheFirstImageRowAtTheTop() {
+  void shouldPlaceTheFirstImageRowAtTheTop() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final int[] pixels = { BROWN, BROWN, BROWN, MAGENTA, BROWN, BROWN };
@@ -189,7 +189,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void dithersColorsThatNoBlockHasToThePaletteOfTheWall() {
+  void shouldDitherColorsThatNoBlockHasToThePaletteOfTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final int unmappedColor = (1 << 16) | (2 << 8) | 3;
@@ -210,7 +210,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsOnlyTheBlocksThatChangedToViewersWhoAlreadySeeTheWall() {
+  void shouldSendOnlyTheBlocksThatChangedToViewersWhoAlreadySeeTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer first = solidImage(3, 2, BROWN);
@@ -234,7 +234,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheCompleteWallToViewersWhoStartWatchingDuringPlayback() {
+  void shouldSendTheCompleteWallToViewersWhoStartWatchingDuringPlayback() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer first = solidImage(3, 2, BROWN);
@@ -264,7 +264,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheCompleteWallToEveryViewerOnceEveryInterval() {
+  void shouldSendTheCompleteWallToEveryViewerOnceEveryInterval() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(3, 2, BROWN);
@@ -284,7 +284,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheCompleteWallAgainToViewersWhoRejoin() {
+  void shouldSendTheCompleteWallAgainToViewersWhoRejoin() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer first = solidImage(3, 2, BROWN);
@@ -312,7 +312,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void restoresTheOriginalBlocksForViewersWhoAreRemovedDuringPlayback() {
+  void shouldRestoreTheOriginalBlocksForViewersWhoAreRemovedDuringPlayback() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(3, 2, BROWN);
@@ -333,7 +333,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void waitsForTheFirstFrameBeforeSendingAnything() {
+  void shouldWaitForTheFirstFrameBeforeSendingAnything() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -344,7 +344,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void resizesImagesToTheWall() {
+  void shouldResizeImagesToTheWall() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(30, 20, BROWN);
@@ -358,7 +358,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void restoresTheOriginalBlocksWhenHidden() throws ReflectiveOperationException {
+  void shouldRestoreTheOriginalBlocksWhenHidden() throws ReflectiveOperationException {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(3, 2, BROWN);
@@ -382,7 +382,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void restoresBlocksForAViewerRemovedImmediatelyBeforeHide() {
+  void shouldRestoreBlocksForAViewerRemovedImmediatelyBeforeHide() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer image = solidImage(3, 2, BROWN);
@@ -399,7 +399,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void startsOverWithEveryViewerWhenShownAgain() {
+  void shouldStartOverWithEveryViewerWhenShownAgain() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer first = solidImage(3, 2, BROWN);
@@ -421,7 +421,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void capturesTheOriginalBlocksOnlyOnce() {
+  void shouldCaptureTheOriginalBlocksOnlyOnce() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -435,7 +435,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void queuedShowCannotCaptureBlocksAfterMainThreadHide() {
+  void shouldNotLetAQueuedShowCaptureBlocksAfterAMainThreadHide() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final World world = this.world.getWorld();
@@ -450,7 +450,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void queuedHideCannotRestoreABlockWallRequestedAgainOnMain() {
+  void shouldNotLetAQueuedHideRestoreABlockWallRequestedAgainOnTheMainThread() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final ImageBuffer first = solidImage(3, 2, BROWN);
@@ -476,7 +476,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void capturesTheBlocksOnTheMainThreadWhenShownFromAnotherThread() {
+  void shouldCaptureTheBlocksOnTheMainThreadWhenShownFromAnotherThread() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final World configuredWorld = this.world.getWorld();
@@ -490,7 +490,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void ignoresFramesAndTicksWhileNotShown() {
+  void shouldIgnoreFramesAndTicksWhileNotShown() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
     final BlockData brown = BlockPaletteLookup.getBlockData(BROWN);
@@ -504,7 +504,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void needsAPositionInAWorld() {
+  void shouldNeedAPositionInAWorld() {
     final BlockConfiguration configuration = this.createConfiguration();
     final Location position = configuration.getPosition();
     position.setWorld(null);
@@ -514,7 +514,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void rejectsMissingArguments() {
+  void shouldRejectMissingArguments() {
     final BlockConfiguration configuration = this.createConfiguration();
     final BlockRenderer renderer = new BlockRenderer(configuration);
 
@@ -523,7 +523,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void sendsTheWallOnlyToViewersInItsWorld() {
+  void shouldSendTheWallOnlyToViewersInItsWorld() {
     final CraftPlayer elsewhere = this.server.addPlayer(LATE);
     FakeWorld.create().enter(elsewhere);
     this.viewers.add(LATE);
@@ -541,7 +541,7 @@ final class BlockRendererTest {
   }
 
   @Test
-  void aViewerWhoComesBackFromAnotherWorldGetsTheWholeWallAgain() {
+  void shouldSendTheWholeWallAgainToAViewerWhoComesBackFromAnotherWorld() {
     final BlockRenderer renderer = new BlockRenderer(this.createConfiguration());
     renderer.show();
     renderer.render(solidImage(3, 2, BROWN));

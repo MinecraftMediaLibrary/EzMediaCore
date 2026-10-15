@@ -55,7 +55,7 @@ final class MCV2PatternRewriteTest {
   }
 
   @Test
-  void findsTheRepeatingAxisRowsFirst() {
+  void shouldFindTheRepeatingAxisRowsFirst() {
     final byte[] record = new byte[8];
     assertTrue(pattern(palette((column, row) -> column < 4 ? 1 : 0), record));
     assertArrayEquals(Mcv2Trees.pattern(8, ENDPOINTS, 0, 0x0f).getRecord(), record);
@@ -68,7 +68,7 @@ final class MCV2PatternRewriteTest {
   }
 
   @Test
-  void encodesRepeatingSelectorsAsPatternsAtEveryLeafSize() throws Mcv2Exception {
+  void shouldEncodeRepeatingSelectorsAsPatternsAtEveryLeafSize() throws Mcv2Exception {
     for (final int size : new int[] { 8, 16, 32 }) {
       for (final int orientation : new int[] { 0, 1 }) {
         final byte[] palette = new byte[Mcv2Decoder.recordSize(Mcv2Decoder.MODE_PALETTE, size)];
@@ -119,14 +119,14 @@ final class MCV2PatternRewriteTest {
   }
 
   @Test
-  void rebuildsKeyframeSolidsAndPatterns() throws Mcv2Exception {
+  void shouldRebuildKeyframeSolidsAndPatterns() throws Mcv2Exception {
     final Node patterns = Mcv2Trees.split(Mcv2Trees.pattern(16, ENDPOINTS, 1, 0x5a));
     final byte[] data = Mcv2Trees.keyframe(64, 32, Mcv2Trees.solid(4, 5, 6), patterns);
     assertEquals(List.of(Mcv2Trees.solid(4, 5, 6), patterns), Mcv2Trees.read(Mcv2Decoder.parse(data)));
   }
 
   @Test
-  void rebuildsMotionSkipsAndCompactRecords() throws Mcv2Exception {
+  void shouldRebuildMotionSkipsAndCompactRecords() throws Mcv2Exception {
     final Node compact = Node.leaf(Mcv2Decoder.MODE_COMPACT, 2, new byte[] { 0, 0, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55, 0x55 });
     final Node split = Node.split(compact, Node.skip(), Mcv2Trees.motion(1, 1), compact);
     final byte[] data = Mcv2Trees.predicted(96, 32, Mcv2Trees.motion(-2, 3), Node.skip(), split);

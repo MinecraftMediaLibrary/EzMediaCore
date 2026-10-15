@@ -60,7 +60,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void keepsApplyingFramesForARendererThatDoesNotOverrideOnTick() {
+  void shouldKeepApplyingFramesForARendererThatDoesNotOverrideOnTick() {
     final PlainRenderer renderer = new PlainRenderer();
     renderer.startRendering();
     renderer.submit("frame");
@@ -75,7 +75,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void startsOneTaskThatRunsEveryTick() {
+  void shouldStartOneTaskThatRunsEveryTick() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.startRendering();
@@ -87,7 +87,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void appliesOnlyTheLatestFrameAndOnlyOnce() {
+  void shouldApplyOnlyTheLatestFrameAndOnlyOnce() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.submit("first");
@@ -100,7 +100,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void acceptsFramesFromOtherThreads() throws InterruptedException {
+  void shouldAcceptFramesFromOtherThreads() throws InterruptedException {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     final Thread decoder = new Thread(() -> renderer.submit("decoded"));
@@ -113,13 +113,13 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void rejectsMissingFrames() {
+  void shouldRejectMissingFrames() {
     final RecordingRenderer renderer = new RecordingRenderer();
     assertThrows(NullPointerException.class, () -> renderer.submit(null));
   }
 
   @Test
-  void stoppingCancelsTheTaskAndDiscardsThePendingFrame() {
+  void shouldCancelTheTaskAndDiscardThePendingFrameWhenStopping() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.submit("dropped");
@@ -136,7 +136,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void stoppingARendererThatNeverStartedOnlyDiscardsThePendingFrame() {
+  void shouldOnlyDiscardThePendingFrameWhenStoppingARendererThatNeverStarted() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.submit("dropped");
     renderer.stopRendering();
@@ -148,7 +148,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void runsTasksImmediatelyOnTheMainThread() {
+  void shouldRunTasksImmediatelyOnTheMainThread() {
     final AtomicInteger runs = new AtomicInteger();
     MainThreadRenderer.runOnMainThread(runs::incrementAndGet);
     final int count = runs.get();
@@ -158,7 +158,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void schedulesTasksForTheNextTickOffTheMainThread() {
+  void shouldScheduleTasksForTheNextTickOffTheMainThread() {
     this.server.setPrimaryThread(false);
     final AtomicInteger runs = new AtomicInteger();
     final Runnable task = runs::incrementAndGet;
@@ -175,7 +175,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void callsTheTickHookEveryTickWithOrWithoutAFrame() {
+  void shouldCallTheTickHookEveryTickWithOrWithoutAFrame() {
     final RecordingRenderer renderer = new RecordingRenderer();
     renderer.startRendering();
     renderer.submit("frame");
@@ -189,7 +189,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void skipsTasksFromOtherThreadsWithAWarningOnceThePluginIsDisabled() {
+  void shouldSkipTasksFromOtherThreadsWithAWarningOnceThePluginIsDisabled() {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(false);
@@ -215,7 +215,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void appliesOnlyTheLatestQueuedVisibilityRequest() {
+  void shouldApplyOnlyTheLatestQueuedVisibilityRequest() {
     final RecordingRenderer renderer = new RecordingRenderer();
     final AtomicInteger created = new AtomicInteger();
     final AtomicInteger removed = new AtomicInteger();
@@ -234,7 +234,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void doesNotRestartRenderingWhenInitializationSynchronouslyHidesIt() {
+  void shouldNotRestartRenderingWhenInitializationSynchronouslyHidesIt() {
     final RecordingRenderer renderer = new RecordingRenderer();
     final AtomicInteger removed = new AtomicInteger();
     renderer.showDisplay(() -> renderer.hideDisplay(removed::incrementAndGet));
@@ -246,7 +246,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void skipsSchedulingWithAWarningIfDisableRacesTheEnabledCheck() {
+  void shouldSkipSchedulingWithAWarningWhenDisablingRacesTheEnabledCheck() {
     this.server.setPrimaryThread(false);
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(true);
@@ -268,7 +268,7 @@ final class MainThreadRendererTest {
   }
 
   @Test
-  void stillRunsTasksOnTheMainThreadOnceThePluginIsDisabled() {
+  void shouldStillRunTasksOnTheMainThreadOnceThePluginIsDisabled() {
     final Plugin plugin = this.server.getPlugin();
     when(plugin.isEnabled()).thenReturn(false);
     final AtomicInteger runs = new AtomicInteger();

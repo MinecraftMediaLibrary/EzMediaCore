@@ -49,7 +49,7 @@ final class Mcv2ToolsTest {
   }
 
   @Test
-  void benchmarkWritesTheGoldenStreamAndReportsTheKernels() throws Exception {
+  void shouldWriteTheGoldenStreamAndReportTheKernelsOnBenchmark() throws Exception {
     final Path source = folder.resolve("source.rgb");
     Files.write(source, Mcv2Fixtures.read("encoder/crop-320x180x4.rgb"));
     for (final String mode : List.of("off", "auto")) {
@@ -104,7 +104,7 @@ final class Mcv2ToolsTest {
   }
 
   @Test
-  void digestsPrintTheReferenceDigestsAndWriteTheDecodedPictures() throws Exception {
+  void shouldPrintTheReferenceDigestsAndWriteTheDecodedPicturesOnDigests() throws Exception {
     final Path archive = folder.resolve("stream.mcs");
     final Path pictures = folder.resolve("pictures.rgb");
     Files.write(archive, Mcv2Fixtures.read("conformance/proxy-default.mcs"));
@@ -119,14 +119,14 @@ final class Mcv2ToolsTest {
   }
 
   @Test
-  void rejectsUnknownCommandsAndNativeModes() {
+  void shouldRejectUnknownCommandsAndNativeModes() {
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[0]));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "unknown" }));
     assertThrows(IllegalArgumentException.class, () -> Mcv2Tools.main(new String[] { "bench", "natives=unknown" }));
   }
 
   @Test
-  void digestsDistinguishRejectedFramesFromTruncatedArchives() throws Exception {
+  void shouldDistinguishRejectedFramesFromTruncatedArchivesOnDigests() throws Exception {
     final Path archive = folder.resolve("rejected.mcs");
     final byte[] frame = Mcv2Fixtures.frames(Mcv2Fixtures.read("conformance/proxy-default.mcs")).getFirst();
     final byte[] stream = new byte[Integer.BYTES + frame.length];
@@ -142,7 +142,7 @@ final class Mcv2ToolsTest {
   }
 
   @Test
-  void shaderCompilerPreservesSamplerNamesAndReturnsFailedStageCount() throws Exception {
+  void shouldPreserveSamplerNamesAndReturnTheFailedStageCountInTheShaderCompiler() throws Exception {
     final Path pack = folder.resolve("pack");
     final Path post = Files.createDirectories(pack.resolve("assets/mcav/shaders/post"));
     final Path generated = Files.createDirectories(folder.resolve("generated"));

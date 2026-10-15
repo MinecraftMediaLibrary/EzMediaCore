@@ -37,7 +37,7 @@ final class MCV2MotionLambdaBandsTest {
   private static final int LUMA_STEP = 36;
 
   @Test
-  void countsEverySampleOfEveryBandOnce() {
+  void shouldCountEverySampleOfEveryBandOnce() {
     final int[] current = new int[SAMPLES];
     Arrays.fill(current, LUMA_STEP);
     final int[] previous = new int[SAMPLES];

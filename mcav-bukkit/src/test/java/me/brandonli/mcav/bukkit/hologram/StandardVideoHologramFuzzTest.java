@@ -91,7 +91,7 @@ final class StandardVideoHologramFuzzTest {
   }
 
   @FuzzTest(maxDuration = "30s")
-  void showsTheTitleAndTheUploaderAsTheSiteNamedThem(final byte[] input) {
+  void shouldShowTheTitleAndTheUploaderAsTheSiteNamedThem(final byte[] input) {
     if (input.length < HEADER_BYTES) {
       return;
     }

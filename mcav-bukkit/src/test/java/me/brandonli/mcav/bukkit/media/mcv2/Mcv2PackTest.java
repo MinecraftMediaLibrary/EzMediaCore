@@ -54,7 +54,7 @@ final class Mcv2PackTest {
   private Path directory;
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Pack.class);
   }
 
@@ -69,7 +69,7 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void writesThePackOfAScreen() throws IOException {
+  void shouldWriteThePackOfAScreen() throws IOException {
     final Mcv2Configuration configuration = Mcv2ConfigurationTest.complete()
       .video(320, 180)
       .pageSlots(2)
@@ -186,7 +186,7 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void writesOnePackForSeveralScreens() throws IOException {
+  void shouldWriteOnePackForSeveralScreens() throws IOException {
     final Mcv2Configuration small = Mcv2ConfigurationTest.complete().video(320, 180).pageSlots(2).streamId(9).build();
     final Mcv2Configuration large = Mcv2ConfigurationTest.complete().video(640, 360).pageSlots(8).streamId(3).build();
     final Path zip = this.directory.resolve("screens.zip");
@@ -222,7 +222,7 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void refusesScreensThatCannotShareAPack() {
+  void shouldRefuseScreensThatCannotShareAPack() {
     final Path zip = this.directory.resolve("refused.zip");
     final Mcv2Configuration first = Mcv2ConfigurationTest.complete().streamId(1).build();
     final Mcv2Configuration sameStream = Mcv2ConfigurationTest.complete().streamId(1).build();
@@ -239,13 +239,13 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void refusesAScreenPassWithoutTheScreenInclude() {
+  void shouldRefuseAScreenPassWithoutTheScreenInclude() {
     final byte[] pass = "void main() {}".getBytes(StandardCharsets.UTF_8);
     assertThrows(IllegalStateException.class, () -> Mcv2Pack.screenCopy(pass, 0));
   }
 
   @Test
-  void sizesTheCellsOnePerEightPixels() {
+  void shouldSizeTheCellsOnePerEightPixels() {
     final Mcv2Configuration narrow = Mcv2ConfigurationTest.complete().video(16, 9).build();
     assertEquals(2, Mcv2Pack.cellsWidth(narrow));
     assertEquals(2, Mcv2Pack.cellsHeight(narrow));
@@ -255,7 +255,7 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void generatesTheAlphabetFromTheMapPalette() {
+  void shouldGenerateTheAlphabetFromTheMapPalette() {
     final int[] palette = Mcv2Pack.palette();
     assertEquals(64, palette.length);
     for (int symbol = 0; symbol < 64; symbol++) {
@@ -316,7 +316,7 @@ final class Mcv2PackTest {
   }
 
   @Test
-  void reportsAMissingOrUnreadableResource() {
+  void shouldReportAMissingOrUnreadableResource() {
     assertEquals(
       "Missing MCV2 pack resource none",
       assertThrows(IllegalStateException.class, () -> Mcv2Pack.read(null, "none")).getMessage()

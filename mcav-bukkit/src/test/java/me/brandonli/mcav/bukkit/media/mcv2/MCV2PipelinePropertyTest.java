@@ -42,7 +42,7 @@ final class MCV2PipelinePropertyTest {
   );
 
   @Property(seed = SEED, tries = 40)
-  boolean pipelinesToTheSameStream(
+  boolean shouldPipelineToTheSameStream(
     @ForAll @IntRange(min = 0, max = 3) final int profile,
     @ForAll @IntRange(min = 1, max = 4) final int requestEvery,
     @ForAll @IntRange(min = 8, max = 120) final int width,

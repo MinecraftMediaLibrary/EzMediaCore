@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2SettingsTest {
 
   @Test
-  void onlyDefaultSearchesQuarterSizeMotion() throws ReflectiveOperationException {
+  void shouldSearchQuarterSizeMotionOnlyInTheDefaultPreset() throws ReflectiveOperationException {
     for (final Settings settings : new Settings[] { Settings.DEFAULT, Settings.FAST }) {
       final MCV2 encoder = new MCV2(settings, ForkJoinPool.commonPool(), 1, true);
       final Field factory = MCV2.class.getDeclaredField("kernels");
@@ -62,7 +62,7 @@ final class MCV2SettingsTest {
   }
 
   @Test
-  void bothPresetsTryPatternsInPredictedFrames() throws Mcv2Exception {
+  void shouldTryPatternsInPredictedFramesInBothPresets() throws Mcv2Exception {
     final byte[] stripes = new byte[8 * 8 * 3];
     for (int pixel = 0; pixel < 8 * 8; pixel++) {
       Arrays.fill(stripes, pixel * 3, pixel * 3 + 3, (byte) ((pixel & 1) == 0 ? 16 : 240));
@@ -79,7 +79,7 @@ final class MCV2SettingsTest {
   }
 
   @Test
-  void pinsThePresetSearchThresholds() {
+  void shouldPinThePresetSearchThresholds() {
     assertEquals(150, Mcv2Internals.field(MCV2.class, null, "ROOT_SPLIT_BITS"));
     assertEquals(450, Mcv2Internals.field(MCV2.class, null, "NORMAL_STEADY_SPLIT_BITS"));
     assertEquals(900, Mcv2Internals.field(MCV2.class, null, "FAST_STEADY_SPLIT_BITS"));
@@ -90,19 +90,19 @@ final class MCV2SettingsTest {
   }
 
   @Test
-  void keepsTheTwoLivePresetsAsData() {
+  void shouldKeepTheTwoLivePresetsAsData() {
     assertEquals(new Settings(72, false), Settings.DEFAULT);
     assertEquals(new Settings(55, true), Settings.FAST);
   }
 
   @Test
-  void copiesWithOneValueChanged() {
+  void shouldCopyWithOneValueChanged() {
     final Settings settings = new Settings(72, true);
     assertEquals(new Settings(0, true), settings.withLambda(0));
   }
 
   @Test
-  void refusesInvalidValues() {
+  void shouldRefuseInvalidValues() {
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(-1));
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(Double.POSITIVE_INFINITY));
     assertThrows(IllegalArgumentException.class, () -> Settings.DEFAULT.withLambda(Double.NaN));

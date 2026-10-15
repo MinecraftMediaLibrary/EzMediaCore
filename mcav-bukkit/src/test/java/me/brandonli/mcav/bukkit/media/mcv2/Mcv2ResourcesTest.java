@@ -28,18 +28,18 @@ final class Mcv2ResourcesTest {
   private static final String EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
   @Test
-  void isAUtilityClass() throws ReflectiveOperationException {
+  void shouldBeAUtilityClass() throws ReflectiveOperationException {
     UtilityClassAssertions.assertNotInstantiable(Mcv2Resources.class);
   }
 
   @Test
-  void hashesWithSha256() {
+  void shouldHashWithSha256() {
     assertEquals(EMPTY_SHA256, Mcv2Resources.sha256(new byte[0]));
     assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", Mcv2Resources.sha256(new byte[] { 'a', 'b', 'c' }));
   }
 
   @Test
-  void refusesAnUnknownDigest() {
+  void shouldRefuseAnUnknownDigest() {
     assertThrows(IllegalStateException.class, () -> Mcv2Resources.digest(new byte[0], "NOT-A-DIGEST"));
   }
 }

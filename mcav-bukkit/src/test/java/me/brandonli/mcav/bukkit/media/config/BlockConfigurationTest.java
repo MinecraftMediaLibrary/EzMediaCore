@@ -40,7 +40,7 @@ final class BlockConfigurationTest {
   private static final Location POSITION = new Location(WORLD, 1, 2, 3);
 
   @Test
-  void rejectsPositionsWithoutAWorld() {
+  void shouldRejectPositionsWithoutAWorld() {
     final Location nowhere = new Location(null, 1, 2, 3);
     final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
     builder.viewers(List.of());
@@ -55,7 +55,7 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void buildsAConfigurationWithEveryValue() {
+  void shouldBuildAConfigurationWithEveryValue() {
     final List<UUID> viewers = new ArrayList<>();
     final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
     builder.viewers(viewers);
@@ -78,7 +78,7 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void settersReturnTheSameBuilder() {
+  void shouldReturnTheSameBuilderFromSetters() {
     final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
 
     final Object afterViewers = builder.viewers(List.of());
@@ -94,7 +94,7 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void settersRejectNull() {
+  void shouldRejectNullInSetters() {
     final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
 
     assertThrows(NullPointerException.class, () -> builder.viewers(null));
@@ -102,7 +102,7 @@ final class BlockConfigurationTest {
   }
 
   @Test
-  void rejectsMissingOrInvalidValues() {
+  void shouldRejectMissingOrInvalidValues() {
     final BlockConfiguration.Builder<?> noViewers = BlockConfiguration.builder();
     noViewers.position(POSITION);
     noViewers.blockWidth(1);

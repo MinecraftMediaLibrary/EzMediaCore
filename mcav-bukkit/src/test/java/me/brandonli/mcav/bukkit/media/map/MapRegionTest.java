@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 final class MapRegionTest {
 
   @Test
-  void storesBothCoordinateSystems() {
+  void shouldStoreBothCoordinateSystems() {
     final MapRegion region = new MapRegion(1, 2, 3, 4, 5, 6);
     final int localX = region.getLocalX();
     final int localY = region.getLocalY();
@@ -49,7 +49,7 @@ final class MapRegionTest {
   }
 
   @Test
-  void isEmptyWithoutWidthOrHeight() {
+  void shouldBeEmptyWithoutWidthOrHeight() {
     final MapRegion noWidth = new MapRegion(0, 0, 0, 4, 0, 0);
     final MapRegion noHeight = new MapRegion(0, 0, 4, 0, 0, 0);
     final MapRegion negative = new MapRegion(0, 0, -1, -1, 0, 0);

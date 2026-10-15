@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2BoundsTest {
 
   @Test
-  void retriesAndVerifiesTheLargestTrivialFrame() throws Mcv2Exception {
+  void shouldRetryAndVerifyTheLargestTrivialFrame() throws Mcv2Exception {
     final int width = 4096;
     final int height = 4096;
     final byte[] picture = new byte[width * height * 3];
@@ -59,7 +59,7 @@ final class MCV2BoundsTest {
   }
 
   @Test
-  void fallsBackWhenEveryRetryExceedsTheFormatByteLimit() throws Mcv2Exception {
+  void shouldFallBackWhenEveryRetryExceedsTheFormatByteLimit() throws Mcv2Exception {
     final int width = 1024;
     final byte[] picture = new byte[width * width * 3];
     new Random(0x131071).nextBytes(picture);
@@ -97,7 +97,7 @@ final class MCV2BoundsTest {
   }
 
   @Test
-  void theWriterRequestsARetryForAnOversizedTree() {
+  void shouldRequestARetryFromTheWriterForAnOversizedTree() {
     final Node palette = Node.leaf(Mcv2Decoder.MODE_PALETTE, 0, new byte[14]);
     final Node full = Mcv2Trees.split(Mcv2Trees.split(palette));
     final List<Object> roots = Collections.nCopies(128 * 128, full.value());

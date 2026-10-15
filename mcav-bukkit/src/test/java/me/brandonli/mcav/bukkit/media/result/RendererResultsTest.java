@@ -96,7 +96,7 @@ final class RendererResultsTest {
   }
 
   @Test
-  void blockResultsShowFramesAsBlocksAndRestoreTheWorld() {
+  void shouldShowFramesAsBlocksAndRestoreTheWorldInBlockResults() {
     final BlockConfiguration.Builder<?> builder = BlockConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
@@ -133,7 +133,7 @@ final class RendererResultsTest {
   }
 
   @Test
-  void entityResultsShowFramesInATextDisplayAndRemoveIt() {
+  void shouldShowFramesInATextDisplayAndRemoveItInEntityResults() {
     final EntityConfiguration.Builder<?> builder = EntityConfiguration.builder();
     final Location position = this.createPosition();
     builder.viewers(List.of(VIEWER));
@@ -173,7 +173,7 @@ final class RendererResultsTest {
   }
 
   @Test
-  void scoreboardResultsShowFramesOnTheSidebarAndRestoreThePreviousScoreboard() {
+  void shouldShowFramesOnTheSidebarAndRestoreThePreviousScoreboardInScoreboardResults() {
     final ScoreboardManager manager = this.server.getScoreboardManager();
     final FakeScoreboards scoreboards = FakeScoreboards.install(manager);
     final Scoreboard previous = mock(CraftScoreboard.class);
@@ -206,7 +206,7 @@ final class RendererResultsTest {
   }
 
   @Test
-  void offersCharactersThatWorkAsPixels() {
+  void shouldOfferCharactersThatWorkAsPixels() {
     final List<String> characters = List.of(
       Characters.FULL_CHARACTER,
       Characters.WHITE_SQUARE,

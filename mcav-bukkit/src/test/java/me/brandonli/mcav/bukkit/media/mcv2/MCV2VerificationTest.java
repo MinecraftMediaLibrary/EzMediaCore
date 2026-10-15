@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 final class MCV2VerificationTest {
 
   @Test
-  void reusesVerificationStorageUntilThePictureSizeChanges() throws ReflectiveOperationException {
+  void shouldReuseVerificationStorageUntilThePictureSizeChanges() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 3, true);
     final Field storage = MCV2.class.getDeclaredField("verificationPicture");
     storage.setAccessible(true);
@@ -52,7 +52,7 @@ final class MCV2VerificationTest {
   }
 
   @Test
-  void checksTheWholeConformanceAndEdgeCorpusIncludingUnusedCompactClasses() throws Mcv2Exception {
+  void shouldCheckTheWholeConformanceAndEdgeCorpusIncludingUnusedCompactClasses() throws Mcv2Exception {
     for (final String folder : List.of("conformance", "edge")) {
       for (final String stream : Mcv2Fixtures.digests(folder).keySet()) {
         final Map<Long, byte[]> pictures = new HashMap<>();
@@ -121,7 +121,7 @@ final class MCV2VerificationTest {
   }
 
   @Test
-  void partitionsLargeFramesAndDetectsEveryBoundaryPixel() throws Mcv2Exception {
+  void shouldPartitionLargeFramesAndDetectEveryBoundaryPixel() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(
       Mcv2Trees.keyframe(31, 32 * 70 - 3, Mcv2Trees.repeat(Mcv2Trees.solid(17, 31, 63), 70))
     );
@@ -140,7 +140,7 @@ final class MCV2VerificationTest {
   }
 
   @Test
-  void rejectsPictureAndReferenceMismatch() throws Mcv2Exception {
+  void shouldRejectPictureAndReferenceMismatch() throws Mcv2Exception {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(8, 8, Node.skip()));
     final byte[] picture = new byte[8 * 8 * 3];
     assertInstanceOf(
@@ -152,7 +152,7 @@ final class MCV2VerificationTest {
   }
 
   @Test
-  void aBrokenPendingReferenceStopsTheEncoderWithTheDecoderFailure() throws ReflectiveOperationException {
+  void shouldStopTheEncoderWithTheDecoderFailureOnABrokenPendingReference() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(MCV2.Settings.FAST, ForkJoinPool.commonPool(), 1, true);
     final byte[] picture = Mcv2Pictures.scene(32, 32, 0, 2);
     encoder.encode(picture, 32, 32, 0);
@@ -172,7 +172,7 @@ final class MCV2VerificationTest {
   }
 
   @Test
-  void reportsAFrameTheParserRejects() throws ReflectiveOperationException {
+  void shouldReportAFrameTheParserRejects() throws ReflectiveOperationException {
     final MCV2 encoder = new MCV2(MCV2.Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
     final MCV2.Pending pending = encoder.begin(new byte[3], 1, 1, 0);
     final Field data = MCV2.Pending.class.getDeclaredField("data");

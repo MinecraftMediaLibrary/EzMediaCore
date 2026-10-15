@@ -125,7 +125,7 @@ final class CompressedMapResultPropertyTest {
   }
 
   @Property(seed = SEED, tries = 40)
-  void noViewerKeepsThePictureOfAnEarlierFrame(@ForAll("scenarios") final ResizeScenario scenario) {
+  void shouldNotLetAnyViewerKeepThePictureOfAnEarlierFrame(@ForAll("scenarios") final ResizeScenario scenario) {
     final List<UUID> viewers = new CopyOnWriteArrayList<>(List.of(FIRST, SECOND));
     final MapConfiguration configuration = scenario.createConfiguration(viewers);
     final CompressedMapResult result = new CompressedMapResult(configuration, scenario.getBudget());

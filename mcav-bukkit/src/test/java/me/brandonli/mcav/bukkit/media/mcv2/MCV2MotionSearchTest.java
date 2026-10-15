@@ -30,7 +30,7 @@ final class MCV2MotionSearchTest {
   private static final int HEIGHT = 96;
 
   @Test
-  void packsBothPartsOfAVectorIntoOneInt() {
+  void shouldPackBothPartsOfAVectorIntoOneInt() {
     assertEquals(0x0005FFFD, pack(5, -3));
     final int[][] vectors = { { 0, 0 }, { 5, -3 }, { -7, 12 }, { -32768, 32767 }, { 32767, -32768 } };
     for (final int[] vector : vectors) {
@@ -92,7 +92,7 @@ final class MCV2MotionSearchTest {
   }
 
   @Test
-  void findsAWholePixelDisplacement() {
+  void shouldFindAWholePixelDisplacement() {
     final int[] source = block(picture(), 32, 32, 16, 5, -3);
     assertEquals((5 << 16) | (-3 & 0xFFFF), search(source, 8));
   }
@@ -106,14 +106,14 @@ final class MCV2MotionSearchTest {
   }
 
   @Test
-  void seededSearchStartsFromTheBestSeed() {
+  void shouldStartASeededSearchFromTheBestSeed() {
     // the true vector is far from zero but one seed is next to it: the diamond walks the last pixel
     final int[] source = block(picture(), 32, 32, 16, 10, -7);
     assertEquals(vector(10, -7), seeded(source, 24, vector(0, 0), vector(9, -7), vector(9, -7), vector(-30, 40)));
   }
 
   @Test
-  void seededSearchStaysInsideTheRange() {
+  void shouldKeepASeededSearchInsideTheRange() {
     // seeds past the range are clamped to its edge, and so is every step
     final int[] source = block(picture(), 32, 32, 16, 10, 0);
     final int found = seeded(source, 2, vector(100, 0), vector(-100, 0));
@@ -140,7 +140,7 @@ final class MCV2MotionSearchTest {
   }
 
   @Test
-  void usesANonzeroSeedAcrossALocalMinimum() {
+  void shouldUseANonzeroSeedAcrossALocalMinimum() {
     final byte[] reference = sampledCosts(new int[][] { { 0, 0, 100 }, { 2, 2, 0 } });
     assertEquals(
       vector(2, 2),
@@ -149,7 +149,7 @@ final class MCV2MotionSearchTest {
   }
 
   @Test
-  void stopsAfterTwiceTheRangeEvenWhenTheNextStepWouldImprove() {
+  void shouldStopAfterTwiceTheRangeEvenWhenTheNextStepWouldImprove() {
     final byte[] reference = sampledCosts(new int[][] {
       { 0, 0, 100 },
       { -1, 0, 90 },
@@ -162,7 +162,7 @@ final class MCV2MotionSearchTest {
   }
 
   @Test
-  void measuresBlocksNearTheEdgeWithClamping() {
+  void shouldMeasureBlocksNearTheEdgeWithClamping() {
     // a block in the corner, displaced so its samples clamp: the general sampling path
     final byte[] rgb = picture();
     final int[] source = new int[8 * 8 * 3];

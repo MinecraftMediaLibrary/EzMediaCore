@@ -41,7 +41,7 @@ final class MapPipelineFuzzTest {
   private static final int MAP_SIZE = MapLayout.MAP_SIZE;
 
   @FuzzTest(maxDuration = "30s")
-  void everyPatchBelongsToTheWallAndCarriesItsFrame(final FuzzedDataProvider data) {
+  void shouldMakeEveryPatchBelongToTheWallAndCarryItsFrame(final FuzzedDataProvider data) {
     final int columns = data.consumeInt(1, MAX_MAPS_PER_SIDE);
     final int rows = data.consumeInt(1, MAX_MAPS_PER_SIDE);
     final int mapCount = columns * rows;

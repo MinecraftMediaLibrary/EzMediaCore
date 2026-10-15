@@ -36,7 +36,7 @@ import org.mockito.MockedStatic;
 final class ServerEnvironmentTest {
 
   @Test
-  void supportsTheExactVersionAndItsPatchReleasesOnly() {
+  void shouldSupportTheExactVersionAndItsPatchReleasesOnly() {
     final boolean exact = ServerEnvironment.isSupported("26.3");
     final boolean patch = ServerEnvironment.isSupported("26.3.1");
     final boolean longerMinor = ServerEnvironment.isSupported("26.30");
@@ -54,7 +54,7 @@ final class ServerEnvironmentTest {
   }
 
   @Test
-  void acceptsASupportedServer() {
+  void shouldAcceptASupportedServer() {
     try (final FakeServer server = FakeServer.start()) {
       final MockedStatic<Bukkit> bukkit = server.getBukkit();
       bukkit.when(Bukkit::getMinecraftVersion).thenReturn("26.3.3");
@@ -67,7 +67,7 @@ final class ServerEnvironmentTest {
   }
 
   @Test
-  void rejectsAnUnsupportedServerWithAClearMessage() {
+  void shouldRejectAnUnsupportedServerWithAClearMessage() {
     try (final FakeServer server = FakeServer.start()) {
       final MockedStatic<Bukkit> bukkit = server.getBukkit();
       bukkit.when(Bukkit::getMinecraftVersion).thenReturn("1.21.4");
@@ -84,7 +84,7 @@ final class ServerEnvironmentTest {
   }
 
   @Test
-  void cannotBeInstantiated() {
+  void shouldNotBeInstantiable() {
     UtilityClassAssertions.assertNotInstantiable(ServerEnvironment.class);
   }
 }
