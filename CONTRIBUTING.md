@@ -133,11 +133,11 @@ imports; the list is in `buildSrc/src/main/kotlin/mcav.java-library.gradle.kts`.
 
 Three lints of the sources run in `check`. Java code imports the types it names: `qualifiedNames` fails on a fully
 qualified type name, except on a line marked `// fqn: <why>` where two types of one simple name meet in a file. Log
-messages live in constants: `logMessages` fails on a log call whose message does not name a constant (an
-UPPER_SNAKE_CASE field such as `FAILED_TO_START`, a `private static final String` next to the class's logger) or that
-joins strings with `+`; the message's SLF4J placeholders take the other arguments. Names say what they hold:
-`variableNames` fails on a variable, parameter or field named by one letter or by a short form a word says better
-(`buf`, `tmp`, `idx`...); type parameters are a word plus `Type`, such as `<KeyType>`.
+calls never build their message by concatenation: `logMessages` fails on a log call whose arguments join strings with
+`+`, such as `LOGGER.warn("Could not reach " + host)`. Write the template inline and let its SLF4J placeholders take
+the other arguments: `LOGGER.warn("Could not reach {}, retrying.", host)`. Names say what they hold: `variableNames`
+fails on a variable, parameter or field named by one letter or by a short form a word says better (`buf`, `tmp`,
+`idx`...); type parameters are a word plus `Type`, such as `<KeyType>`.
 
 ## Mutation testing
 
