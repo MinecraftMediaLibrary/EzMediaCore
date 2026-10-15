@@ -71,7 +71,7 @@ final class NettyHostingLocaleTest {
       final MockedStatic<ServerAddress> address = Mockito.mockStatic(ServerAddress.class)
     ) {
       server.when(Bukkit::getPort).thenReturn(PORT);
-      address.when(ServerAddress::getPublicIPAddress).thenReturn("127.0.0.1");
+      address.when(ServerAddress::getPublicIpAddress).thenReturn("127.0.0.1");
       final URI uri = URI.create(hosting.getRawUrl());
 
       final int port = uri.getPort();

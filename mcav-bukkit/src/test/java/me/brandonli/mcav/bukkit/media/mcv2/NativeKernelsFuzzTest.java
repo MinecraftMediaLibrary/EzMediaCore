@@ -23,7 +23,7 @@ import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
 import java.util.Arrays;
 import java.util.List;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Tag;
 

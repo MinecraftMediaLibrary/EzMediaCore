@@ -26,8 +26,8 @@ import java.nio.file.Path;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.LongConsumer;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
 import org.bytedeco.ffmpeg.global.avutil;
 import org.bytedeco.ffmpeg.global.swscale;
@@ -138,7 +138,7 @@ public final class Mcv2FileEncoder {
     Preconditions.checkNotNull(output, "Output must not be null!");
     Preconditions.checkNotNull(progress, "Progress must not be null!");
     try (frames) {
-      final MCV2 encoder = budget.encoder(settings, false);
+      final Mcv2 encoder = budget.encoder(settings, false);
       encoder.setFrameLimit(screenFrameLimit(width, height));
       final byte[] pictureBytes = new byte[Math.multiplyExact(Math.multiplyExact(width, height), Mcv2Decoder.CHANNELS)];
       final byte[] length = new byte[Integer.BYTES];

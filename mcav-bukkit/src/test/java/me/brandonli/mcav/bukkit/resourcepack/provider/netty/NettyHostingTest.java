@@ -336,7 +336,7 @@ final class NettyHostingTest {
   @Test
   void shouldBuildTheUrlAgainWhileThePublicAddressIsUnknown() {
     try (final MockedStatic<ServerAddress> serverAddress = Mockito.mockStatic(ServerAddress.class, Mockito.CALLS_REAL_METHODS)) {
-      serverAddress.when(ServerAddress::getPublicIPAddress).thenReturn("localhost", "198.51.100.7", "203.0.113.1");
+      serverAddress.when(ServerAddress::getPublicIpAddress).thenReturn("localhost", "198.51.100.7", "203.0.113.1");
       final NettyHosting hosting = new NettyHosting(this.zip);
 
       final String fallbackUrl = hosting.getRawUrl();

@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -71,7 +71,7 @@ final class NativeConformanceTest {
   void shouldKeepNoFrameOnceItIsEncoded(final Level level) {
     final Supplier<?> factory = NativeTesting.factory(level);
     final List<NativeKernels> made = new CopyOnWriteArrayList<>();
-    final MCV2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, false, () -> {
+    final Mcv2 encoder = NativeTesting.encoder(Settings.DEFAULT, 2, false, () -> {
       final Object kernels = factory.get();
       made.add(NativeTesting.view(kernels));
       return kernels;
@@ -98,8 +98,8 @@ final class NativeConformanceTest {
     assertEquals(expectedLength, sourceLength);
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       for (int threads = 1; threads <= 4; threads++) {
-        final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-        final MCV2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
+        final Mcv2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
+        final Mcv2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
         for (int frameIndex = 0; frameIndex < 4; frameIndex++) {
           final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
           final String context = settings + " frame " + frameIndex + " threads " + threads + " level " + level;
@@ -126,8 +126,8 @@ final class NativeConformanceTest {
       final int sourceLength = source.length;
       assertEquals(expectedLength, sourceLength);
       for (int threads = 1; threads <= 4; threads++) {
-        final MCV2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
-        final MCV2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
+        final Mcv2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());
+        final Mcv2 other = NativeTesting.encoder(settings, threads, true, NativeTesting.factory(level));
         for (int frameIndex = 0; frameIndex < expected.size(); frameIndex++) {
           final byte[] rgb = Arrays.copyOfRange(source, frameIndex * frameBytes, (frameIndex + 1) * frameBytes);
           final String context = stream + " frame " + frameIndex + " threads " + threads + " level " + level;
@@ -161,8 +161,8 @@ final class NativeConformanceTest {
     final List<byte[]> frames = Mcv2Fixtures.frames(Mcv2Fixtures.read(stream));
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       final Mcv2Receiver receiver = new Mcv2Receiver();
-      final MCV2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-      final MCV2 other = NativeTesting.encoder(settings, 3, true, NativeTesting.factory(level));
+      final Mcv2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
+      final Mcv2 other = NativeTesting.encoder(settings, 3, true, NativeTesting.factory(level));
       for (int frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
         final Frame frame = Mcv2Decoder.parse(frames.get(frameIndex));
         final byte[] picture = receiver.accept(frames.get(frameIndex));

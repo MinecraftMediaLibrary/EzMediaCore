@@ -29,7 +29,7 @@ final class Mcv2BlockState {
   private static final Class<?> BUFFERS = Mcv2Internals.nested("Buffers");
   private static final Class<?> FRAME = Mcv2Internals.nested("FrameState");
   private static final Class<?> CODER = Mcv2Internals.nested("BlockCoder");
-  static final int NO_VECTOR = (int) Mcv2Internals.field(MCV2.class, null, "NO_VECTOR");
+  static final int NO_VECTOR = (int) Mcv2Internals.field(Mcv2.class, null, "NO_VECTOR");
   private final Object buffers;
 
   private record Block(int level, int index) {}
@@ -83,7 +83,7 @@ final class Mcv2BlockState {
 
   static byte[] half(final byte[] picture, final int width, final int height, final byte[] out) {
     Mcv2Internals.call(
-      MCV2.class,
+      Mcv2.class,
       null,
       "half",
       new Class<?>[] { byte[].class, int.class, int.class, Mcv2Internals.nested("Workers"), byte[].class },
@@ -136,7 +136,7 @@ final class Mcv2BlockState {
       picture[index] = (byte) source[index];
       reconstruction[index] = (byte) best[index];
     }
-    return MCV2SearchPropertyTest.distortion(picture, reconstruction);
+    return Mcv2SearchPropertyTest.distortion(picture, reconstruction);
   }
 
   double cost(final int level, final int block) {
@@ -161,6 +161,6 @@ final class Mcv2BlockState {
   }
 
   static int neededQuantizer(final float[] fit) {
-    return (int) Mcv2Internals.invoke(MCV2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
+    return (int) Mcv2Internals.invoke(Mcv2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
   }
 }

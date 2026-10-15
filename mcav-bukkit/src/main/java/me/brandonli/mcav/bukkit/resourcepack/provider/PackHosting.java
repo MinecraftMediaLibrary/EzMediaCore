@@ -99,7 +99,7 @@ public interface PackHosting {
    */
   static WebsiteHosting website(final Path path) {
     Preconditions.checkNotNull(path, "Resource pack path must not be null!");
-    return new MCPackHosting(path);
+    return new McPackHosting(path);
   }
 
   /**

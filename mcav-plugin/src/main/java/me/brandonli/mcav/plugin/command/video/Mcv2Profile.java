@@ -17,7 +17,7 @@
  */
 package me.brandonli.mcav.plugin.command.video;
 
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 
 /** The version 3 encoder presets offered by the sandbox. */
 public enum Mcv2Profile {

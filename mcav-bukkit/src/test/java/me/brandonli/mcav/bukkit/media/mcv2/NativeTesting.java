@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Supplier;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Binding;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Resolution;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Binding;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Resolution;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Internals.Kernels;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -63,7 +63,7 @@ final class NativeTesting {
    */
   static boolean expected() {
     final String platform = Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", ""));
-    return !"java".equals(System.getProperty(EXPECT)) && platform != null && MCV2.NATIVE_DIGESTS.containsKey(platform);
+    return !"java".equals(System.getProperty(EXPECT)) && platform != null && Mcv2.NATIVE_DIGESTS.containsKey(platform);
   }
 
   /**
@@ -76,10 +76,10 @@ final class NativeTesting {
     Resolution current = loaded;
     if (current == null) {
       current = Natives.resolve(
-        MCV2.NATIVE_AUTO,
+        Mcv2.NATIVE_AUTO,
         Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")),
         FOLDER,
-        platform -> Natives.read(MCV2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))),
+        platform -> Natives.read(Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))),
         null
       );
       if (expected() && current.binding() == null) {
@@ -119,7 +119,7 @@ final class NativeTesting {
       throw new IllegalStateException("No MCV2 native library loads on this platform!");
     }
     final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
-    final String digest = MCV2.NATIVE_DIGESTS.get(platform);
+    final String digest = Mcv2.NATIVE_DIGESTS.get(platform);
     return SymbolLookup.libraryLookup(FOLDER.resolve("mcv2kernels-" + digest + "-" + Natives.libraryName(platform)), Arena.global());
   }
 
@@ -190,10 +190,10 @@ final class NativeTesting {
     );
   }
 
-  static MCV2 encoder(final Settings settings, final int threads, final boolean verify, final Supplier<?> factory) {
-    final MCV2 encoder = new MCV2(settings, ForkJoinPool.commonPool(), threads, verify);
+  static Mcv2 encoder(final Settings settings, final int threads, final boolean verify, final Supplier<?> factory) {
+    final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), threads, verify);
     try {
-      final Field kernels = MCV2.class.getDeclaredField("kernels");
+      final Field kernels = Mcv2.class.getDeclaredField("kernels");
       kernels.setAccessible(true);
       kernels.set(encoder, factory);
     } catch (final ReflectiveOperationException exception) {

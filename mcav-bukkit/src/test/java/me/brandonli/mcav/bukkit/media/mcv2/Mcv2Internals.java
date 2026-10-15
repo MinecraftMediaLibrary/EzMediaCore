@@ -37,7 +37,7 @@ final class Mcv2Internals {
   }
 
   static Class<?> nested(final String name) {
-    return Arrays.stream(MCV2.class.getDeclaredClasses())
+    return Arrays.stream(Mcv2.class.getDeclaredClasses())
       .filter(type -> type.getSimpleName().equals(name))
       .findFirst()
       .orElseThrow();

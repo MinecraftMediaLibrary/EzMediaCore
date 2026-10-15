@@ -37,8 +37,8 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeLibraryFile.Format;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -108,7 +108,7 @@ final class NativeLibrariesTest {
 
   @Test
   void shouldCheckEveryPlatformTheLoaderHasALibraryFor() {
-    final Set<String> expectedPlatforms = MCV2.NATIVE_DIGESTS.keySet();
+    final Set<String> expectedPlatforms = Mcv2.NATIVE_DIGESTS.keySet();
     final Set<String> platforms = PLATFORMS.keySet();
     assertEquals(expectedPlatforms, platforms);
   }
@@ -157,7 +157,7 @@ final class NativeLibrariesTest {
   @Test
   void shouldBeBuiltFromTheSourcesInTheTree() throws IOException {
     final Map<String, String> built = new TreeMap<>();
-    try (final InputStream manifest = MCV2.class.getResourceAsStream("/mcav/mcv2/natives/SOURCES")) {
+    try (final InputStream manifest = Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/SOURCES")) {
       assertNotNull(manifest, "no /mcav/mcv2/natives/SOURCES: " + REBUILD);
       for (final String line : new String(manifest.readAllBytes(), StandardCharsets.US_ASCII).lines().toList()) {
         final List<String> fields = Splitter.on(' ').omitEmptyStrings().splitToList(line);
@@ -194,7 +194,7 @@ final class NativeLibrariesTest {
 
   private static byte[] library(final String platform) {
     final byte[] bytes = Natives.read(
-      MCV2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))
+      Mcv2.class.getResourceAsStream("/mcav/mcv2/natives/" + platform + "/" + Natives.libraryName(platform))
     );
     assertNotNull(bytes, platform);
     return bytes;

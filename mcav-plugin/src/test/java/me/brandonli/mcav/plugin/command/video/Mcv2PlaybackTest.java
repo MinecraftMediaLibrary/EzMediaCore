@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Channel;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ final class Mcv2PlaybackTest {
   private Mcv2Channel channel;
 
   static List<byte[]> stream() {
-    final MCV2 encoder = new MCV2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
+    final Mcv2 encoder = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, true);
     final byte[] rgb = new byte[32 * 32 * 3];
     for (int at = 0; at < rgb.length; at += 3) {
       rgb[at] = 1;

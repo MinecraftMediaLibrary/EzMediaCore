@@ -107,7 +107,7 @@ public final class NettyHosting implements InjectorHosting {
       return cachedUrl;
     }
 
-    final String address = ServerAddress.getPublicIPAddress();
+    final String address = ServerAddress.getPublicIpAddress();
     final int port = Bukkit.getPort();
     final String host = formatHost(address);
     final String builtUrl = "http://" + host + ":" + port + this.requestPath;

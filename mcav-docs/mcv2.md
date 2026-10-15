@@ -745,7 +745,7 @@ gets the next within four seconds.
 ## Part 9: The Encoder
 
 The format only says what the bytes mean. How the encoder chooses them is up to the encoder: any stream that follows
-the format decodes the same everywhere. MCAV's encoder is the class `MCV2`, and this part explains what it does with
+the format decodes the same everywhere. MCAV's encoder is the class `Mcv2`, and this part explains what it does with
 each frame. It's fast enough to encode 1080p video while it plays, and it's also what encodes video files ahead of
 time.
 
@@ -897,7 +897,7 @@ it's right. You don't need any of it to use MCV2, but it's the map you'd want be
 
 | What | Where | Language |
 |---|---|---|
-| The whole encoder, from an RGB frame to the frame's bytes | `MCV2.java` | Java |
+| The whole encoder, from an RGB frame to the frame's bytes | `Mcv2.java` | Java |
 | The encoder's pixel loops again, with vector instructions | `mcv2.cpp`, plus one few-line file per instruction set | C++ |
 | The decoder the server uses, to check its own frames | `Mcv2Decoder.java` | Java |
 | The decoder the players use | `mcv2.glsl`, plus a few-line stub per pass | GLSL |
@@ -927,13 +927,13 @@ I counted every line, including blank lines and comments.
 
 I got it down from 52,613 to 35,968 lines, mostly by shrinking the encoder and the reference decoder.
 
-### Inside MCV2.java
+### Inside Mcv2.java
 
 The class reads from top to bottom in the order a frame goes through it, and each section starts with a comment that
 says what it is for:
 
-1. **The public API and the encoder's state**: the presets (`MCV2.Settings`), the shared thread budget
-   (`MCV2.Pool`), and `encode`, or `begin` and `finish` for a screen that wants to overlap one frame's encode with the
+1. **The public API and the encoder's state**: the presets (`Mcv2.Settings`), the shared thread budget
+   (`Mcv2.Pool`), and `encode`, or `begin` and `finish` for a screen that wants to overlap one frame's encode with the
    last one's check.
 2. **Frame analysis**: keyframe or P frame, and how much the picture moves (for rate control by motion).
 3. **Motion search**: the quarter- and half-size copies of the picture and the seeded search on each of them.
@@ -1387,8 +1387,8 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
 
   // call on the main thread, in onEnable
   public static Mcv2PackServer setUpMcv2(final Path dataFolder) {
-    MCV2.Pool.setSharedThreads(0);
-    MCV2.installNatives(dataFolder.resolve("natives"), "auto");
+    Mcv2.Pool.setSharedThreads(0);
+    Mcv2.installNatives(dataFolder.resolve("natives"), "auto");
 
     final Path packFolder = dataFolder.resolve("mcv2-pack");
     final boolean debugView = false;
@@ -1404,10 +1404,10 @@ import me.brandonli.mcav.bukkit.resourcepack.provider.PackHosting;
   }
 ```
 
-- **`MCV2.Pool`** is the one encoder budget of the server. Every MCV2 encoder uses `MCV2.Pool.shared()`, so screens
+- **`Mcv2.Pool`** is the one encoder budget of the server. Every MCV2 encoder uses `Mcv2.Pool.shared()`, so screens
   share the threads instead of each taking the machine. `setSharedThreads(0)` keeps the default, half the processors;
   what that buys is in [What It Costs to Encode](#what-it-costs-to-encode).
-- **`MCV2.installNatives`** gives the native kernels a folder to extract their library into; `MCV2.describeNatives()`
+- **`Mcv2.installNatives`** gives the native kernels a folder to extract their library into; `Mcv2.describeNatives()`
   returns the line to log, such as `native avx2 (linux-x86_64)`. Use your data folder, not a temporary folder, which
   hosted servers often mount without execution. Without a library for the platform, the Java kernels encode the same
   stream, and the mode `"off"` instead of `"auto"` turns the native kernels off.
@@ -1455,7 +1455,7 @@ import org.bukkit.entity.ItemFrame;
       .columns(15)
       .rows(9)
       .video(1920, 1080)
-      .settings(MCV2.Settings.DEFAULT)
+      .settings(Mcv2.Settings.DEFAULT)
       .build();
     final Mcv2PackServer.Lease lease = packs.open(requested);
     final Mcv2Configuration configuration = lease.getConfiguration();
@@ -1490,7 +1490,7 @@ settings matter:
 
 | Setting | Default | What it does |
 |---|---|---|
-| `settings(MCV2.Settings)` | `MCV2.Settings.DEFAULT` | The preset: `DEFAULT` or `FAST` ([presets](#presets)) |
+| `settings(Mcv2.Settings)` | `Mcv2.Settings.DEFAULT` | The preset: `DEFAULT` or `FAST` ([presets](#presets)) |
 | `video(width, height)` | the wall's native size, 128 pixels per map | The resolution of the video, up to 4096 on a side; the pack scales it to the wall |
 | `pageSlots(n)` | 8, or one per map of a smaller wall | How many pages a frame may have (8 carry 98,048 bytes); the encoder keeps every frame inside them |
 | `maximumFrameRate(framesPerSecond)` | 30 | Sources that paint faster, such as a browser, are thinned to it: a client decodes at most one frame per frame it draws |
@@ -1518,12 +1518,12 @@ import me.brandonli.mcav.bukkit.media.mcv2.Mcv2FileEncoder;
 
   // call off the main thread
   public static Mcv2FileEncoder.Result preEncode(final Path video, final Path stream) throws IOException, InterruptedException {
-    final MCV2.Pool budget = MCV2.Pool.shared();
+    final Mcv2.Pool budget = Mcv2.Pool.shared();
     try (
       Mcv2FileEncoder.FrameReader frames = Mcv2FileEncoder.ffmpeg(video, 1920, 1080);
       OutputStream output = new BufferedOutputStream(Files.newOutputStream(stream))
     ) {
-      return Mcv2FileEncoder.encode(frames, 1920, 1080, MCV2.Settings.DEFAULT, budget, output, frame -> {});
+      return Mcv2FileEncoder.encode(frames, 1920, 1080, Mcv2.Settings.DEFAULT, budget, output, frame -> {});
     }
   }
 ```
@@ -1533,7 +1533,7 @@ time a frame took: about 7 to 11 ms at 1920x1080 with 12 threads on the i7-8700,
 to almost five times faster than it plays, before the time FFmpeg takes to decode the file.
 
 ```{note}
-MCV2 is part of `mcav-bukkit` only; `mcav-common` holds none of it. The whole encoder is the class `MCV2`, the whole
+MCV2 is part of `mcav-bukkit` only; `mcav-common` holds none of it. The whole encoder is the class `Mcv2`, the whole
 decoder the class `Mcv2Decoder`, both in `me.brandonli.mcav.bukkit.media.mcv2`, and the pages on maps are in its
 `transport` package. The format is [specified](#part-6-the-mcv2-format-piece-by-piece) completely.
 ```
@@ -1693,7 +1693,7 @@ The benchmark accepts `key=value` options: `source`, `width`, `height`, `frames`
 `profile=DEFAULT|FAST`, `lambda`, `loop=none|wrap|pingpong`, `key=1` to request every frame as a keyframe,
 `budget=true|false`, `verify=true|false`, `framebudget` in milliseconds, `out` and `decoded`.
 `natives=auto|off` defaults to `auto`: it extracts and installs the kernels in a temporary directory and reports
-`MCV2.describeNatives()` in the `natives` field of its final JSON line (logging may precede it).
+`Mcv2.describeNatives()` in the `natives` field of its final JSON line (logging may precede it).
 Use `natives=off` for the Java comparison. The `mcv2.native` system property still overrides the option.
 
 | Subcommand | Arguments and purpose |

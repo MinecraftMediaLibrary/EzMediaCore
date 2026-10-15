@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /** Exercises the encoder's private tree writer without exposing it as production API. */
 public final class Mcv2Trees {
 
-  private static final Class<?> TREE = Arrays.stream(MCV2.class.getDeclaredClasses())
+  private static final Class<?> TREE = Arrays.stream(Mcv2.class.getDeclaredClasses())
     .filter(type -> type.getSimpleName().equals("TreeNode"))
     .findFirst()
     .orElseThrow();
@@ -150,7 +150,7 @@ public final class Mcv2Trees {
     final List<Node> roots
   ) {
     return (byte[]) invoke(
-      MCV2.class,
+      Mcv2.class,
       null,
       "write",
       new Class<?>[] { int.class, int.class, boolean.class, List.class, long.class, long.class },

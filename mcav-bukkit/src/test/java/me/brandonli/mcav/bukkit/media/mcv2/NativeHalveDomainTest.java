@@ -23,8 +23,8 @@ import java.lang.foreign.FunctionDescriptor;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Binding;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Binding;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
 import me.brandonli.mcav.bukkit.media.mcv2.NativeTesting.NativeKernels;
 import org.junit.jupiter.api.Test;
 

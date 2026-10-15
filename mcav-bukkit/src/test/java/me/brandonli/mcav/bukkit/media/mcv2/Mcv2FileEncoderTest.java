@@ -38,8 +38,8 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import me.brandonli.mcav.bukkit.media.map.MapLayout;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
 import me.brandonli.mcav.bukkit.testing.TestMedia;
 import me.brandonli.mcav.bukkit.testing.UtilityClassAssertions;
@@ -114,7 +114,7 @@ final class Mcv2FileEncoderTest {
       .sum();
     assertEquals(expectedBytes, writtenBytes);
 
-    final MCV2 alone = new MCV2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
+    final Mcv2 alone = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
     alone.setFrameLimit(TransportPages.capacity());
     try (final Mcv2FileEncoder.FrameReader reader = Mcv2FileEncoder.ffmpeg(video, WIDTH, HEIGHT)) {
       final byte[] rgb = new byte[WIDTH * HEIGHT * 3];
@@ -138,7 +138,7 @@ final class Mcv2FileEncoderTest {
     final int height = 4 * MapLayout.MAP_SIZE;
     final int limit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * TransportPages.capacity();
     final byte[] checkerboard = checkerboard(width, height);
-    final MCV2 unlimited = new MCV2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
+    final Mcv2 unlimited = new Mcv2(Settings.DEFAULT, ForkJoinPool.commonPool(), 1, false);
     final boolean unlimitedFrameTooLarge = unlimited.encode(checkerboard, width, height, 0).length > limit;
     assertTrue(unlimitedFrameTooLarge);
 

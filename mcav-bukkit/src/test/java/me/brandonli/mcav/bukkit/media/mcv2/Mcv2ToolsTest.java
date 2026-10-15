@@ -33,7 +33,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Natives;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Natives;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -45,7 +45,7 @@ final class Mcv2ToolsTest {
 
   @AfterEach
   void restoreNatives() {
-    MCV2.installNatives(NativeTesting.FOLDER, MCV2.NATIVE_AUTO);
+    Mcv2.installNatives(NativeTesting.FOLDER, Mcv2.NATIVE_AUTO);
   }
 
   @Test
@@ -80,14 +80,14 @@ final class Mcv2ToolsTest {
       assertEquals(3, warm);
       final int keyframes = result.get("keyframes").getAsInt();
       assertEquals(1, keyframes);
-      final String expectedNatives = MCV2.describeNatives();
+      final String expectedNatives = Mcv2.describeNatives();
       final String natives = result.get("natives").getAsString();
       assertEquals(expectedNatives, natives);
-      if (mode.equals("off") && System.getProperty(MCV2.NATIVE_PROPERTY) == null) {
+      if (mode.equals("off") && System.getProperty(Mcv2.NATIVE_PROPERTY) == null) {
         final boolean describesJava = result.get("natives").getAsString().startsWith("Java,");
         assertTrue(describesJava);
       }
-      if (mode.equals("auto") && NativeTesting.expected() && System.getProperty(MCV2.NATIVE_PROPERTY) == null) {
+      if (mode.equals("auto") && NativeTesting.expected() && System.getProperty(Mcv2.NATIVE_PROPERTY) == null) {
         final boolean describesNative = result.get("natives").getAsString().startsWith("native ");
         assertTrue(describesNative);
         final boolean bound = Natives.resolved().binding() != null;

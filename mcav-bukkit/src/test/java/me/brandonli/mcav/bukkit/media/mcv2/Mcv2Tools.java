@@ -46,8 +46,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.zip.Deflater;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.Mcv2Decoder.Frame;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.MapAlphabet;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
@@ -131,7 +131,7 @@ final class Mcv2Tools {
    */
   private static void bench(final String[] arguments) throws Exception {
     final Map<String, String> options = arguments(arguments);
-    final Path nativeFolder = installNatives(options.getOrDefault("natives", MCV2.NATIVE_AUTO));
+    final Path nativeFolder = installNatives(options.getOrDefault("natives", Mcv2.NATIVE_AUTO));
     try {
       final int width = Integer.parseInt(options.getOrDefault("width", "1920"));
       final int height = Integer.parseInt(options.getOrDefault("height", "1080"));
@@ -144,7 +144,7 @@ final class Mcv2Tools {
       System.gc();
       final long heapBefore = usedHeap();
       final Pool budget = new Pool(threads);
-      final MCV2 encoder = budget.encoder(settings(options), Boolean.parseBoolean(options.getOrDefault("verify", "false")));
+      final Mcv2 encoder = budget.encoder(settings(options), Boolean.parseBoolean(options.getOrDefault("verify", "false")));
       if (options.containsKey("framebudget")) {
         encoder.setFrameBudget((long) (Double.parseDouble(options.get("framebudget")) * NANOSECONDS_PER_MILLISECOND));
       }
@@ -166,11 +166,11 @@ final class Mcv2Tools {
   }
 
   private static Path installNatives(final String mode) throws IOException {
-    if (!mode.equals(MCV2.NATIVE_AUTO) && !mode.equals(MCV2.NATIVE_OFF)) {
+    if (!mode.equals(Mcv2.NATIVE_AUTO) && !mode.equals(Mcv2.NATIVE_OFF)) {
       throw new IllegalArgumentException("natives must be auto or off!");
     }
     final Path folder = Files.createTempDirectory("mcv2-bench-natives-");
-    MCV2.installNatives(folder, mode);
+    Mcv2.installNatives(folder, mode);
     return folder;
   }
 
@@ -210,7 +210,7 @@ final class Mcv2Tools {
     final int height,
     final int frames,
     final Pool budget,
-    final MCV2 encoder
+    final Mcv2 encoder
   ) throws Exception {
     final long frameBytes = (long) width * height * 3;
     final int sourceFrames = (int) (Files.size(source) / frameBytes);
@@ -353,7 +353,7 @@ final class Mcv2Tools {
       threads,
       Runtime.getRuntime().availableProcessors(),
       encoderHeapMegabytes,
-      JSON.toJson(MCV2.describeNatives())
+      JSON.toJson(Mcv2.describeNatives())
     );
   }
 
@@ -450,7 +450,7 @@ final class Mcv2Tools {
     final Map<String, Object> digests,
     final Map<String, Object> pages
   ) throws Exception {
-    final MCV2 encoder = new MCV2(settings, pool, 1, true);
+    final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
     final Mcv2Receiver receiver = new Mcv2Receiver();
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     final List<String> hashes = new ArrayList<>();
@@ -513,7 +513,7 @@ final class Mcv2Tools {
     if (source.length != bytes * 4) {
       throw new IllegalArgumentException("Expected exactly four 320x180 frames!");
     }
-    final MCV2 encoder = new MCV2(settings, pool, 1, true);
+    final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     for (int id = 0; id < 4; id++) {
       frame(archive, encoder.encode(Arrays.copyOfRange(source, id * bytes, (id + 1) * bytes), 320, 180, id));

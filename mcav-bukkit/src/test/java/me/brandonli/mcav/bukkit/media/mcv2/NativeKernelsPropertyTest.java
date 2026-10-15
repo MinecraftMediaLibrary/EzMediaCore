@@ -20,8 +20,8 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Level;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Level;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import net.jqwik.api.Arbitraries;
 import net.jqwik.api.Arbitrary;
 import net.jqwik.api.ForAll;
@@ -75,8 +75,8 @@ final class NativeKernelsPropertyTest {
     final int height = 30 + random.nextInt(50);
     final int panPerFrame = random.nextInt(7) - 3;
     final Settings settings = search;
-    final MCV2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
-    final MCV2 other = NativeTesting.encoder(settings, 2, true, NativeTesting.factory(level));
+    final Mcv2 java = NativeTesting.encoder(settings, 2, true, NativeTesting.javaFactory());
+    final Mcv2 other = NativeTesting.encoder(settings, 2, true, NativeTesting.factory(level));
     for (int frameNumber = 0; frameNumber < 4; frameNumber++) {
       if (frameNumber == 3) {
         java.requestKeyframe();

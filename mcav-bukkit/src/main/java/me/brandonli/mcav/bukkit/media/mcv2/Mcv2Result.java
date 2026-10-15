@@ -40,8 +40,8 @@ import java.util.function.LongSupplier;
 import me.brandonli.mcav.bukkit.BukkitModule;
 import me.brandonli.mcav.bukkit.media.config.MapConfiguration;
 import me.brandonli.mcav.bukkit.media.map.MapPacketFactory;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Pool;
-import me.brandonli.mcav.bukkit.media.mcv2.MCV2.Settings;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Pool;
+import me.brandonli.mcav.bukkit.media.mcv2.Mcv2.Settings;
 import me.brandonli.mcav.bukkit.media.mcv2.transport.TransportPages;
 import me.brandonli.mcav.bukkit.media.result.CompressedMapResult;
 import me.brandonli.mcav.media.image.ImageBuffer;
@@ -65,13 +65,13 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Frames are encoded inside the screen's encoder budget ({@link Mcv2Configuration#getEncoderPool()}), which every
  * screen of the server shares unless it was given its own, in two steps: the screen's thread searches and writes a frame
- * ({@link MCV2#begin}), then hands it to the screen's sender thread, which verifies it ({@link MCV2#finish})
+ * ({@link Mcv2#begin}), then hands it to the screen's sender thread, which verifies it ({@link Mcv2#finish})
  * and sends it while the next frame is searched: one frame is in flight at most, and a frame is sent only once
  * verified. A frame that fails its verification stops the screen. A keyframe the channel asks for while a frame is in
  * flight comes with the frame after it; another preset begins only after the frame in flight is sent. The screen's
  * threads only wait for the budget. When the encoder is slower than the video, frames that arrive while it works
  * replace each other and only the newest is encoded, which the encoder's previous-frame reference allows. The encoder
- * bounds every frame to what the screen's page slots carry ({@link MCV2#setFrameLimit}): a frame that would take
+ * bounds every frame to what the screen's page slots carry ({@link Mcv2#setFrameLimit}): a frame that would take
  * more pages is searched again at a higher lambda. One that still has more pages than the screen has slots is not sent,
  * and the next is a keyframe.
  *
@@ -161,7 +161,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private final List<Mcv2Pacer.Preset> presets;
 
-  private final Function<Settings, MCV2> encoders;
+  private final Function<Settings, Mcv2> encoders;
 
   private final Mcv2LatestFrame<Arrival> pending;
 
@@ -234,7 +234,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
-  private record Handoff(MCV2 encoder, MCV2.Pending pending, long frameId, Arrival source) {}
+  private record Handoff(Mcv2 encoder, Mcv2.Pending pending, long frameId, Arrival source) {}
 
   private record Pipeline(Pool budget, BlockingQueue<Handoff> queue) {}
 
@@ -242,13 +242,13 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     private final byte[] frame;
 
-    private final MCV2.Statistics statistics;
+    private final Mcv2.Statistics statistics;
 
     private final long frameId;
 
     private final Arrival source;
 
-    private Delivery(final byte[] frame, final MCV2.Statistics statistics, final long frameId, final Arrival source) {
+    private Delivery(final byte[] frame, final Mcv2.Statistics statistics, final long frameId, final Arrival source) {
       this.frame = frame;
       this.statistics = statistics;
       this.frameId = frameId;
@@ -278,7 +278,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
     Statistics() {}
 
-    synchronized void add(final MCV2.Statistics statistics, final int mapColors) {
+    synchronized void add(final Mcv2.Statistics statistics, final int mapColors) {
       this.frames++;
       this.keyframes += statistics.keyframe() ? 1 : 0;
       this.bytes += statistics.bytes();
@@ -378,7 +378,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     final @Nullable DitherAlgorithm fallbackAlgorithm,
     final LongSupplier clock,
     final @Nullable Executor dithering,
-    final Function<Settings, MCV2> encoders
+    final Function<Settings, Mcv2> encoders
   ) {
     Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     Preconditions.checkNotNull(channel, "Channel must not be null!");
@@ -550,7 +550,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       dithered.result().start();
     }
     final Pool encoderPool = this.requested.getEncoderPool();
-    final MCV2 encoder = this.encoders.apply(this.ladder.getFirst());
+    final Mcv2 encoder = this.encoders.apply(this.ladder.getFirst());
 
     final Thread thread = Thread.ofPlatform()
       .daemon()
@@ -729,13 +729,13 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
-  void encodeLoop(final MCV2 first) {
+  void encodeLoop(final Mcv2 first) {
     final Pipeline own;
     synchronized (this.lock) {
       own = this.pipeline;
     }
     long frameId = this.requested.getFirstFrameId();
-    MCV2 encoder = first;
+    Mcv2 encoder = first;
     try {
       for (Arrival arrival = this.take(); arrival != null; arrival = this.take()) {
         final Settings settings = this.settingsFor(arrival);
@@ -759,7 +759,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     return this.ladder.get(this.presets.indexOf(arrival.preset));
   }
 
-  MCV2 encoderFor(final Settings settings, final MCV2 encoder) {
+  Mcv2 encoderFor(final Settings settings, final Mcv2 encoder) {
     encoder.switchTo(settings);
     return encoder;
   }
@@ -783,7 +783,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     return this.pending.take();
   }
 
-  void send(final MCV2 encoder, final Arrival arrival, final long frameId) throws InterruptedException {
+  void send(final Mcv2 encoder, final Arrival arrival, final long frameId) throws InterruptedException {
     final Screen current = this.screen;
     if (current.channel().takeKeyframeRequest()) {
       encoder.requestKeyframe();
@@ -801,11 +801,11 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     Delivery delivery = null;
     if (running == null) {
       final byte[] frame = encoder.encode(arrival.pictureBytes, width, height, frameId);
-      final MCV2.Statistics statistics = Preconditions.checkNotNull(encoder.getStatistics());
+      final Mcv2.Statistics statistics = Preconditions.checkNotNull(encoder.getStatistics());
       isKeyframe = statistics.keyframe();
       delivery = new Delivery(frame, statistics, frameId, arrival);
     } else {
-      final MCV2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
+      final Mcv2.Pending pending = running.budget().run(() -> encoder.begin(arrival.pictureBytes, width, height, frameId));
       isKeyframe = pending.isKeyframe();
       // Count before handoff so drain cannot overlook a frame the sender already owns.
       synchronized (this.lock) {
@@ -865,7 +865,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     try {
       while (true) {
         final Handoff handoff = running.queue().take();
-        final MCV2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
+        final Mcv2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
         this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
         synchronized (this.lock) {
           this.delivered++;
@@ -886,7 +886,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   private void deliver(final Delivery delivery) {
     final byte[] frame = delivery.frame;
     final long frameId = delivery.frameId;
-    final MCV2.Statistics statistics = delivery.statistics;
+    final Mcv2.Statistics statistics = delivery.statistics;
     final Mcv2FrameEvent event = new Mcv2FrameEvent();
     final boolean recorded = event.isEnabled();
     final long[] before = recorded ? this.linkCounts() : new long[LINK_COUNTS];

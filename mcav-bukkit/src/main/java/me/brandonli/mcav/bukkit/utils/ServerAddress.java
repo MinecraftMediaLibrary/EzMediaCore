@@ -52,8 +52,8 @@ public final class ServerAddress {
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now, see
    *     {@link #isFallbackAddress(String)}
    */
-  public static String getPublicIPAddress() {
-    return getPublicIPAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
+  public static String getPublicIpAddress() {
+    return getPublicIpAddress(NetworkUtils.DEFAULT_ADDRESS_SERVICE);
   }
 
   /**
@@ -63,7 +63,7 @@ public final class ServerAddress {
    * @return the public address of the server, or {@code localhost} if it cannot be determined right now
    */
   @VisibleForTesting
-  static String getPublicIPAddress(final URI addressService) {
+  static String getPublicIpAddress(final URI addressService) {
     Preconditions.checkNotNull(addressService, "Address service must not be null!");
     final String configuredAddress = Bukkit.getIp();
     final boolean hasConfiguredAddress = isConfiguredAddress(configuredAddress);
@@ -98,7 +98,7 @@ public final class ServerAddress {
   }
 
   /**
-   * Checks whether an address is the fallback that {@link #getPublicIPAddress()} returns when the public address
+   * Checks whether an address is the fallback that {@link #getPublicIpAddress()} returns when the public address
    * cannot be determined. Callers that cache values derived from the address should not cache the fallback,
    * because a later lookup may succeed.
    *
