@@ -122,6 +122,7 @@ final class BlockConfigurationTest {
 
     assertThrows(NullPointerException.class, noViewers::build);
     assertThrows(NullPointerException.class, noPosition::build);
+
     final IllegalArgumentException noWidthException = assertThrows(IllegalArgumentException.class, noWidth::build);
     final IllegalArgumentException noHeightException = assertThrows(IllegalArgumentException.class, noHeight::build);
     final String noWidthMessage = noWidthException.getMessage();

@@ -62,6 +62,7 @@ final class Mcv2ReceiverFuzzTest {
       } catch (final Mcv2Exception exception) {
         final long frameIdAfterRefusal = receiver.getFrameId();
         assertEquals(lastId, frameIdAfterRefusal, "a refused frame keeps the last frame");
+
         continue;
       }
       final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
@@ -106,6 +107,7 @@ final class Mcv2ReceiverFuzzTest {
       frames.add(Arrays.copyOfRange(archive, start, end));
       offset = end;
     }
+
     return frames;
   }
 }

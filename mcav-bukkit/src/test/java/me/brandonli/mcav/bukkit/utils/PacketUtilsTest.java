@@ -115,6 +115,7 @@ final class PacketUtilsTest {
     final Plugin plugin = this.server.getPlugin();
     final ArgumentCaptor<EventExecutor> captor = ArgumentCaptor.forClass(EventExecutor.class);
     verify(pluginManager).registerEvent(eq(eventType), any(Listener.class), eq(priority), captor.capture(), eq(plugin));
+
     return captor.getValue();
   }
 
@@ -126,6 +127,7 @@ final class PacketUtilsTest {
     final Object original = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
     final @Nullable Object second = PacketUtils.connectionIdentity(SECOND);
     assertNotSame(original, second);
+
     final @Nullable Object late = PacketUtils.connectionIdentity(LATE);
     assertNull(late);
 
@@ -147,6 +149,7 @@ final class PacketUtilsTest {
     join.execute(listener, joined);
     final Object reconnected = Objects.requireNonNull(PacketUtils.connectionIdentity(FIRST));
     assertNotSame(original, reconnected, "a new connection cannot inherit the previous client's map state");
+
     PacketUtils.shutdown();
     final @Nullable Object afterShutdown = PacketUtils.connectionIdentity(FIRST);
     assertNull(afterShutdown);
@@ -253,6 +256,7 @@ final class PacketUtilsTest {
     this.server.injectModule();
     final boolean offlineLimited = PacketUtils.limitUnsent(SECOND, 1024);
     assertFalse(offlineLimited);
+
     final boolean unconnectedLimited = PacketUtils.limitUnsent(FIRST, 1024);
     assertFalse(unconnectedLimited);
 
@@ -292,8 +296,10 @@ final class PacketUtilsTest {
     // frames of a 30 fps MCV2 video into one tick about every other tick
     final @Nullable Object written = channel.readOutbound();
     assertSame(bundle, written, "the packet is written to the connection and flushed at once");
+
     final int writeCount = writes.size();
     assertEquals(1, writeCount);
+
     final ChannelFuture firstWrite = writes.getFirst();
     final boolean firstWriteSucceeded = firstWrite.isSuccess();
     assertTrue(firstWriteSucceeded, "the listener runs once the write is done");
@@ -304,8 +310,10 @@ final class PacketUtilsTest {
 
     final boolean sentToClosed = PacketUtils.sendPacket(FIRST, bundle, writes::add);
     assertTrue(sentToClosed);
+
     final int writeCountAfterClose = writes.size();
     assertEquals(2, writeCountAfterClose);
+
     final ChannelFuture lastWrite = writes.getLast();
     final boolean lastWriteSucceeded = lastWrite.isSuccess();
     assertFalse(lastWriteSucceeded, "a write that fails runs the listener too");
@@ -313,8 +321,10 @@ final class PacketUtilsTest {
     connection.channel = null;
     final boolean sentWithoutChannel = PacketUtils.sendPacket(FIRST, bundle, writes::add);
     assertFalse(sentWithoutChannel, "a connection that is not open yet takes nothing");
+
     final boolean sentOffline = PacketUtils.sendPacket(SECOND, bundle, writes::add);
     assertFalse(sentOffline, "a player who is not online takes nothing");
+
     final int writeCountAfterUnsent = writes.size();
     assertEquals(2, writeCountAfterUnsent, "the listener of a packet that was not sent never runs");
   }
@@ -327,6 +337,7 @@ final class PacketUtilsTest {
       PacketUtils.initialize();
       handlerLists.verify(() -> HandlerList.unregisterAll(firstListener));
     }
+
     final Listener secondListener = this.captureListener(2);
     assertNotSame(firstListener, secondListener);
   }
@@ -342,6 +353,7 @@ final class PacketUtilsTest {
       handlerLists.verify(() -> HandlerList.unregisterAll(listener), times(1));
       handlerLists.verify(() -> HandlerList.unregisterAll(any(Listener.class)), times(1));
     }
+
     final boolean connected = PacketUtils.isConnected(FIRST);
     assertFalse(connected);
   }

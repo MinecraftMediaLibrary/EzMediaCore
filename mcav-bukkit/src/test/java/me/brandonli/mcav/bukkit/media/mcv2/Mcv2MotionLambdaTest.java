@@ -48,6 +48,7 @@ final class Mcv2MotionLambdaTest {
         rgb[pixels[corner] * 3 + channel] = (byte) values[corner];
       }
     }
+
     return rgb;
   }
 
@@ -61,6 +62,7 @@ final class Mcv2MotionLambdaTest {
     // 3600 over four samples, in units of 36 per luma step
     final double motionFromCurrent = MotionLambda.temporalInformation(new int[] { 720, 840, 960, 1080 }, new int[4], Workers.SEQUENTIAL);
     assertEquals(25.0, motionFromCurrent);
+
     final double motionFromPrevious = MotionLambda.temporalInformation(new int[4], new int[] { 720, 840, 960, 1080 }, Workers.SEQUENTIAL);
     assertEquals(25.0, motionFromPrevious);
     // a picture four pixels wide or less has one column of samples
@@ -77,6 +79,7 @@ final class Mcv2MotionLambdaTest {
         Arrays.fill(source, (row * 9 + column) * 3, (row * 9 + column + 1) * 3, (byte) (10 * (row / 4) + column / 4));
       }
     }
+
     final int[] expected = new int[] { 132, 156, 180, 372, 396, 420, 612, 636, 660 };
     final int[] blurred = MotionLambda.blurredLuma(source, 9, 9, Workers.SEQUENTIAL, new int[9], new int[9]);
     assertArrayEquals(expected, blurred);
@@ -104,6 +107,7 @@ final class Mcv2MotionLambdaTest {
     for (int sample = 0; sample < blurred.length; sample++) {
       difference += Math.abs((long) blurred[sample] - other[sample]);
     }
+
     final double expected = difference / (blurred.length * 36.0);
     final double measuredMotion = MotionLambda.temporalInformation(blurred, other, workers);
     assertEquals(expected, measuredMotion);
@@ -113,18 +117,23 @@ final class Mcv2MotionLambdaTest {
   void shouldKeepTheLambdaUpToTheKneeAndRaiseItAboveUpToFourTimes() {
     final double raisedWithoutMotion = MotionLambda.raise(Double.NaN);
     assertEquals(1, raisedWithoutMotion);
+
     final double raisedAtZero = MotionLambda.raise(0);
     assertEquals(1, raisedAtZero);
+
     final double raisedAtKnee = MotionLambda.raise(MotionLambda.KNEE);
     assertEquals(1, raisedAtKnee);
+
     final double expectedAtTwiceTheKnee = Math.pow(2, MotionLambda.EXPONENT);
     final double raisedAtTwiceTheKnee = MotionLambda.raise(2 * MotionLambda.KNEE);
     assertEquals(expectedAtTwiceTheKnee, raisedAtTwiceTheKnee, 1e-12);
     // the two gameplay captures: lambda 195 and 157 at their temporal information
     final double fasterCaptureLambda = BASE * MotionLambda.raise(16.331);
     assertEquals(195, fasterCaptureLambda, 2);
+
     final double slowerCaptureLambda = BASE * MotionLambda.raise(12.333);
     assertEquals(157, slowerCaptureLambda, 2);
+
     final double raisedFarAbove = MotionLambda.raise(1000);
     assertEquals(MotionLambda.MAXIMUM_RAISE, raisedFarAbove);
   }

@@ -120,6 +120,7 @@ final class BlockRendererTest {
         expected.put(position, block);
       }
     }
+
     return expected;
   }
 
@@ -132,12 +133,14 @@ final class BlockRendererTest {
         expected.put(position, original);
       }
     }
+
     return expected;
   }
 
   private static List<Map<? extends Position, BlockData>> captureChanges(final CraftPlayer player, final int expectedCalls) {
     final ArgumentCaptor<Map<? extends Position, BlockData>> captor = ArgumentCaptor.captor();
     verify(player, times(expectedCalls)).sendMultiBlockChange(captor.capture());
+
     return captor.getAllValues();
   }
 
@@ -172,6 +175,7 @@ final class BlockRendererTest {
     for (int index = 0; index < pixels.length; index++) {
       pixels[index] |= OPAQUE_ALPHA;
     }
+
     final ImageBuffer image = ImageBuffer.buffer(pixels, 3, 2);
 
     renderer.show();
@@ -275,6 +279,7 @@ final class BlockRendererTest {
     renderer.render(image);
     this.runTicksUntilTheFullResendIsDue();
     verify(this.viewer, times(1)).sendMultiBlockChange(anyMap());
+
     this.server.runTasks();
 
     final List<Map<? extends Position, BlockData>> changes = captureChanges(this.viewer, 2);
@@ -377,6 +382,7 @@ final class BlockRendererTest {
     final Map<Position, BlockData> expected = this.expectOriginal();
     assertEquals(expected, restored);
     assertEquals(0, tasks, "rendering stopped");
+
     final Field retainedField = BlockRenderer.class.getDeclaredField("activeViewers");
     retainedField.setAccessible(true);
     final Set<?> retained = (Set<?>) retainedField.get(renderer);
@@ -448,6 +454,7 @@ final class BlockRendererTest {
     renderer.hide();
     this.server.runTasks();
     verify(world, never()).getBlockData(anyInt(), anyInt(), anyInt());
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }
@@ -474,6 +481,7 @@ final class BlockRendererTest {
     final Position changedPosition = Position.block(10, 64, -6);
     final Map<Position, BlockData> expected = Map.of(changedPosition, magenta);
     assertEquals(expected, delta, "old queued cleanup must neither restore the wall nor disable subsequent frames");
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(1, tasks);
   }
@@ -487,6 +495,7 @@ final class BlockRendererTest {
     this.server.setPrimaryThread(false);
     renderer.show();
     verify(configuredWorld, never()).getBlockData(anyInt(), anyInt(), anyInt());
+
     this.server.runTasks();
 
     verify(configuredWorld, times(6)).getBlockData(anyInt(), anyInt(), anyInt());
@@ -540,6 +549,7 @@ final class BlockRendererTest {
     renderer.hide();
     this.server.runTasks();
     verify(elsewhere, never()).sendMultiBlockChange(any());
+
     captureChanges(this.viewer, 4);
   }
 

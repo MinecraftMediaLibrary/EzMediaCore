@@ -71,6 +71,7 @@ final class Mcv2DecoderTest {
       SOLID_BLUE,
     };
     assertArrayEquals(expected, picture);
+
     final byte[] decodedFromParsed = Mcv2Decoder.decode(Mcv2Decoder.parse(frame), new byte[1], 5);
     assertArrayEquals(picture, decodedFromParsed);
   }
@@ -83,10 +84,13 @@ final class Mcv2DecoderTest {
     Arrays.fill(into, (byte) 99);
     Mcv2Decoder.decode(frame, null, 0, into);
     assertArrayEquals(fresh, into);
+
     final byte[] small = new byte[17];
     assertThrows(IllegalArgumentException.class, () -> Mcv2Decoder.decode(frame, null, 0, small));
+
     final byte[] expectedSmall = new byte[17];
     assertArrayEquals(expectedSmall, small);
+
     final byte[] decodedAgain = Mcv2Decoder.decode(frame, null, 0);
     assertArrayEquals(fresh, decodedAgain);
   }
@@ -97,6 +101,7 @@ final class Mcv2DecoderTest {
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) (index * 10);
     }
+
     final byte[] frame = predicted(2, 1, motion(1, 0));
     final byte[] expected = new byte[] { 30, 40, 50, 30, 40, 50 };
     final byte[] decoded = Mcv2Decoder.decode(frame, reference, 0);

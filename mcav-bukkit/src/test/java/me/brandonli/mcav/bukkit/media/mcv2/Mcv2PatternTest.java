@@ -38,6 +38,7 @@ final class Mcv2PatternTest {
     final byte[] picture = Mcv2Decoder.decode(data, null, 0);
     final int lastRowColor = colorAt(picture, 8, 0, 7);
     assertEquals(0x040506, lastRowColor);
+
     final int secondColumnColor = colorAt(picture, 8, 1, 0);
     assertEquals(0x010203, secondColumnColor);
 
@@ -53,6 +54,7 @@ final class Mcv2PatternTest {
   @Test
   void shouldRejectBrokenRecords() {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, Arrays.copyOf(INLINE, 7), true)));
+
     final byte[] orientation = INLINE.clone();
     orientation[6] = 2;
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, orientation, true)));

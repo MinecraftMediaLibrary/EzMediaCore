@@ -124,6 +124,7 @@ final class NativeLibrariesTest {
     final Format expectedFormat = expected.format();
     final Format format = library.format();
     assertEquals(expectedFormat, format, platform);
+
     final int expectedMachine = expected.machine();
     final int machine = library.machine();
     assertEquals(expectedMachine, machine, platform);
@@ -134,6 +135,7 @@ final class NativeLibrariesTest {
         entryPoints.add("mcv2_" + level.symbol() + "_" + kernel);
       }
     }
+
     final Set<String> own = new TreeSet<>();
     final Set<String> others = new TreeSet<>();
     for (final String symbol : library.exports()) {
@@ -141,11 +143,14 @@ final class NativeLibrariesTest {
     }
 
     assertEquals(entryPoints, own, platform);
+
     final Set<String> expectedOthers = expected.format() == Format.MACH_O ? MACH_O_LINKER_SYMBOLS : Set.of();
     assertEquals(expectedOthers, others, platform);
+
     if (expected.format() == Format.ELF) {
       final List<String> needed = library.needed();
       assertEquals(List.of(), needed, platform);
+
       final Set<String> undefined = library.undefined();
       assertEquals(Set.of(), undefined, platform);
     }
@@ -161,11 +166,13 @@ final class NativeLibrariesTest {
     final Map<String, String> built = new TreeMap<>();
     try (final InputStream manifest = Mcv2.class.getResourceAsStream(SOURCES_RESOURCE)) {
       assertNotNull(manifest, "no /mcav/mcv2/natives/SOURCES: " + REBUILD);
+
       for (final String line : new String(manifest.readAllBytes(), StandardCharsets.US_ASCII).lines().toList()) {
         final List<String> fields = Splitter.on(' ').omitEmptyStrings().splitToList(line);
         built.put(fields.get(1), fields.get(0));
       }
     }
+
     final Map<String, String> tree = new TreeMap<>();
     try (final Stream<Path> files = Files.list(SOURCES)) {
       for (final Path file : files.toList()) {
@@ -175,6 +182,7 @@ final class NativeLibrariesTest {
         }
       }
     }
+
     assertEquals(tree, built, "the native sources changed since the libraries were built: " + REBUILD);
   }
 
@@ -199,6 +207,7 @@ final class NativeLibrariesTest {
       Mcv2.class.getResourceAsStream(NATIVES_RESOURCE_FOLDER + platform + PATH_SEPARATOR + Natives.libraryName(platform))
     );
     assertNotNull(bytes, platform);
+
     return bytes;
   }
 

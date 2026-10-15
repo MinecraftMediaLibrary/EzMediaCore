@@ -191,10 +191,13 @@ final class McPackHostingTest {
     final byte[] expectedBody = expectedMultipartBody(boundary);
     final String method = upload.method;
     assertEquals(POST_METHOD, method);
+
     final String userAgent = upload.userAgent;
     assertEquals("mcav", userAgent);
+
     final String accept = upload.accept;
     assertEquals("*/*", accept);
+
     final byte[] body = upload.body;
     assertArrayEquals(expectedBody, body);
   }
@@ -330,6 +333,7 @@ final class McPackHostingTest {
     try (final ServerSocket socket = new ServerSocket(0)) {
       port = socket.getLocalPort();
     }
+
     final URI closed = URI.create("http://127.0.0.1:" + port + "/upload");
     final McPackHosting hosting = new McPackHosting(this.zip, closed, UNREACHABLE_DOWNLOAD_FORMAT);
 
@@ -429,6 +433,7 @@ final class McPackHostingTest {
     assertEquals(expectedUrl, url, "the successful upload is used even though it cannot be cached");
     assertEquals(1, uploadCount);
     assertEquals(Level.WARN, level);
+
     final String expectedMessage = "Could not write the upload cache " + cacheFile + ", the pack will be uploaded again next time.";
     assertEquals(expectedMessage, message);
     assertInstanceOf(IOException.class, thrown);
@@ -678,6 +683,7 @@ final class McPackHostingTest {
         Thread.currentThread().interrupt();
         throw new AssertionError("Interrupted while joining upload callbacks!", exception);
       }
+
       final @Nullable AssertionError recordedFailure = this.handlerFailure.get();
       assertEquals(null, recordedFailure, "upload assertions reach JUnit");
     }

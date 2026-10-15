@@ -33,18 +33,21 @@ final class Mcv2DecoderFuzzTest {
     } catch (final Mcv2Exception exception) {
       return;
     }
+
     final int size = frame.getWidth() * frame.getHeight() * 3;
     // A nonuniform reference exposes incorrect motion or residual reads.
     final byte[] reference = new byte[size];
     for (int index = 0; index < size; index++) {
       reference[index] = (byte) (index * 37);
     }
+
     final byte[] picture;
     try {
       picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
     } catch (final Mcv2Exception exception) {
       return;
     }
+
     final int pictureLength = picture.length;
     assertEquals(size, pictureLength);
   }

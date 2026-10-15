@@ -70,6 +70,7 @@ final class Mcv2FileEncoderTest {
       buffer.get(frame);
       frames.add(frame);
     }
+
     return frames;
   }
 
@@ -90,23 +91,30 @@ final class Mcv2FileEncoderTest {
         progress::add
       );
     }
+
     final int count = TestMedia.VIDEO_SECONDS * TestMedia.VIDEO_FRAME_RATE;
     final long frameCount = result.frames();
     assertEquals(count, frameCount);
+
     final int progressCount = progress.size();
     assertEquals(count, progressCount);
+
     final long lastProgress = progress.getLast();
     assertEquals(count, lastProgress);
+
     final boolean hasSeveralKeyframes = result.keyframes() >= 2;
     assertTrue(hasSeveralKeyframes);
+
     final boolean tookTime = result.nanoseconds() > 0;
     assertTrue(tookTime);
+
     final boolean tookTimePerFrame = result.millisecondsPerFrame() > 0;
     assertTrue(tookTimePerFrame);
 
     final List<byte[]> frames = frames(out.toByteArray());
     final int writtenFrameCount = frames.size();
     assertEquals(count, writtenFrameCount);
+
     final long expectedBytes = result.bytes();
     final long writtenBytes = frames
       .stream()
@@ -127,6 +135,7 @@ final class Mcv2FileEncoderTest {
         final long frameId = Mcv2Decoder.parse(frames.get(frameNumber)).getFrameId();
         assertEquals(frameNumber, frameId);
       }
+
       final boolean readPastTheEnd = reader.read(rgb);
       assertFalse(readPastTheEnd);
     }
@@ -146,13 +155,16 @@ final class Mcv2FileEncoderTest {
     try (final Pool budget = new Pool(1)) {
       Mcv2FileEncoder.encode(repeating(checkerboard, 2), width, height, Settings.DEFAULT, budget, out, count -> {});
     }
+
     final List<byte[]> frames = frames(out.toByteArray());
     final int frameCount = frames.size();
     assertEquals(2, frameCount);
+
     for (final byte[] frame : frames) {
       final boolean withinLimit = frame.length <= limit;
       assertTrue(withinLimit, "a frame of " + frame.length + " bytes");
     }
+
     final int expectedLength = checkerboard.length;
     final int decodedLength = Mcv2Decoder.decode(frames.getFirst(), null, 0).length;
     assertEquals(expectedLength, decodedLength);
@@ -177,14 +189,17 @@ final class Mcv2FileEncoderTest {
     try (final Pool budget = new Pool(1)) {
       result = Mcv2FileEncoder.encode(repeating(checkerboard(WIDTH, HEIGHT), 3), WIDTH, HEIGHT, Settings.DEFAULT, budget, out, _ -> {});
     }
+
     long keyframes = 0;
     for (final byte[] frame : frames(out.toByteArray())) {
       if (Mcv2Decoder.parse(frame).isKeyframe()) {
         keyframes++;
       }
     }
+
     final long frameCount = result.frames();
     assertEquals(3, frameCount);
+
     final long countedKeyframes = result.keyframes();
     assertEquals(keyframes, countedKeyframes, "the keyframes in the stream of three frames");
   }
@@ -204,6 +219,7 @@ final class Mcv2FileEncoderTest {
         _ -> {}
       );
     }
+
     final long elapsed = System.nanoTime() - started;
     final boolean withinTheCall = result.nanoseconds() >= 0 && result.nanoseconds() <= elapsed;
     assertTrue(withinTheCall, result.nanoseconds() + " ns in a call of " + elapsed + " ns");
@@ -214,17 +230,22 @@ final class Mcv2FileEncoderTest {
     final int capacity = TransportPages.capacity();
     final int onePixelLimit = Mcv2FileEncoder.screenFrameLimit(1, 1);
     assertEquals(capacity, onePixelLimit);
+
     final int oneMapLimit = Mcv2FileEncoder.screenFrameLimit(MapLayout.MAP_SIZE, MapLayout.MAP_SIZE);
     assertEquals(capacity, oneMapLimit);
+
     final int expectedTwoMapLimit = 2 * capacity;
     final int widerThanOneMapLimit = Mcv2FileEncoder.screenFrameLimit(MapLayout.MAP_SIZE + 1, MapLayout.MAP_SIZE);
     assertEquals(expectedTwoMapLimit, widerThanOneMapLimit);
+
     final int expectedTwoMapLimitForHeight = 2 * capacity;
     final int tallerThanOneMapLimit = Mcv2FileEncoder.screenFrameLimit(MapLayout.MAP_SIZE, MapLayout.MAP_SIZE + 1);
     assertEquals(expectedTwoMapLimitForHeight, tallerThanOneMapLimit);
+
     final int expectedSevenMapLimit = 7 * capacity;
     final int sevenMapLimit = Mcv2FileEncoder.screenFrameLimit(7 * MapLayout.MAP_SIZE, MapLayout.MAP_SIZE);
     assertEquals(expectedSevenMapLimit, sevenMapLimit);
+
     final int expectedFullHdLimit = Mcv2Configuration.MAXIMUM_PAGE_SLOTS * capacity;
     final int fullHdLimit = Mcv2FileEncoder.screenFrameLimit(1920, 1080);
     assertEquals(expectedFullHdLimit, fullHdLimit);
@@ -236,6 +257,7 @@ final class Mcv2FileEncoderTest {
       final byte shade = (byte) ((((pixel % width) + pixel / width) % 2) * 255);
       Arrays.fill(picture, pixel * Mcv2Decoder.CHANNELS, (pixel + 1) * Mcv2Decoder.CHANNELS, shade);
     }
+
     return picture;
   }
 
@@ -248,8 +270,10 @@ final class Mcv2FileEncoderTest {
         if (this.read == count) {
           return false;
         }
+
         System.arraycopy(picture, 0, pictureBytes, 0, picture.length);
         this.read++;
+
         return true;
       }
 
@@ -265,6 +289,7 @@ final class Mcv2FileEncoderTest {
       @Override
       public boolean read(final byte[] rgb) {
         Thread.currentThread().interrupt();
+
         return true;
       }
 
@@ -278,13 +303,16 @@ final class Mcv2FileEncoderTest {
         Mcv2FileEncoder.encode(interrupting, WIDTH, HEIGHT, Settings.DEFAULT, budget, new ByteArrayOutputStream(), _ -> {})
       );
     }
+
     final boolean stillInterrupted = Thread.interrupted();
     assertFalse(stillInterrupted);
+
     final boolean videoClosed = closed.get();
     assertTrue(videoClosed);
 
     final double emptyMillisecondsPerFrame = new Mcv2FileEncoder.Result(0, 0, 0, 0).millisecondsPerFrame();
     assertEquals(0, emptyMillisecondsPerFrame);
+
     final double millisecondsPerFrame = new Mcv2FileEncoder.Result(2, 0, 0, 5_000_000).millisecondsPerFrame();
     assertEquals(2.5, millisecondsPerFrame);
   }
@@ -302,9 +330,11 @@ final class Mcv2FileEncoderTest {
       assertThrows(NullPointerException.class, () -> Mcv2FileEncoder.encode(none, 1, 1, Settings.DEFAULT, budget, null, _ -> {}));
       assertThrows(NullPointerException.class, () -> Mcv2FileEncoder.encode(none, 1, 1, Settings.DEFAULT, budget, out, null));
     }
+
     assertThrows(NullPointerException.class, () -> Mcv2FileEncoder.ffmpeg(null, 1, 1));
     assertThrows(IllegalArgumentException.class, () -> Mcv2FileEncoder.ffmpeg(this.directory, 0, 1));
     assertThrows(IllegalArgumentException.class, () -> Mcv2FileEncoder.ffmpeg(this.directory, 1, 0));
+
     final IOException missing = assertThrows(IOException.class, () -> Mcv2FileEncoder.ffmpeg(this.directory.resolve("missing.mp4"), 8, 8));
     final String message = missing.getMessage();
     final boolean reportsTheOpen = message.startsWith("Cannot open ");
@@ -353,6 +383,7 @@ final class Mcv2FileEncoderTest {
     for (int index = 0; index < 16; index++) {
       pixels.put(index, (byte) index);
     }
+
     final byte[] rgb = new byte[12];
     Mcv2FileEncoder.copy(frame, rgb, 2, 2);
     final byte[] expected = new byte[] { 0, 1, 2, 3, 4, 5, 8, 9, 10, 11, 12, 13 };

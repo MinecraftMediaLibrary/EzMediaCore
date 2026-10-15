@@ -146,6 +146,7 @@ final class CompressedMapResultPropertyTest {
       }
       models.receive(this.server);
     }
+
     if (lastFrame == null) {
       return;
     }
@@ -161,6 +162,7 @@ final class CompressedMapResultPropertyTest {
       quietFrames = sent ? 0 : quietFrames + 1;
       extraFrames++;
     }
+
     final byte[] picture = scenario.createPicture(lastFrame);
     final MapLayout layout = scenario.createLayout(lastFrame);
     models.assertShow(layout, picture);
@@ -175,6 +177,7 @@ final class CompressedMapResultPropertyTest {
     if (online) {
       return;
     }
+
     this.server.addPlayer(SECOND);
     PacketUtils.initialize();
     models.connect(SECOND);
@@ -185,6 +188,7 @@ final class CompressedMapResultPropertyTest {
     if (!online) {
       return;
     }
+
     this.server.removePlayer(SECOND);
     PacketUtils.initialize();
     models.disconnect(SECOND);
@@ -306,6 +310,7 @@ final class CompressedMapResultPropertyTest {
         final int stripe = (row / 8) % 2;
         picture[index] = (byte) (step.color + stripe * 64);
       }
+
       return picture;
     }
 
@@ -368,6 +373,7 @@ final class CompressedMapResultPropertyTest {
         }
         viewer.applied = count;
       }
+
       return received;
     }
 

@@ -163,6 +163,7 @@ final class Mcv2Tools {
     if (arguments.length == 0) {
       throw new IllegalArgumentException("Expected bench, digests, generate-fixtures or shader-compile!");
     }
+
     final String[] options = Arrays.copyOfRange(arguments, 1, arguments.length);
     switch (arguments[0]) {
       case "bench" -> bench(options);
@@ -199,6 +200,7 @@ final class Mcv2Tools {
       if (options.containsKey("framebudget")) {
         encoder.setFrameBudget((long) (Double.parseDouble(options.get("framebudget")) * NANOSECONDS_PER_MILLISECOND));
       }
+
       final Measurement measured = encode(options, source, width, height, frames, budget, encoder);
       final long heapAfter;
       try {
@@ -207,6 +209,7 @@ final class Mcv2Tools {
       } finally {
         Reference.reachabilityFence(encoder);
       }
+
       budget.close();
       report(measured, frames, warm, frameRate, threads, (heapAfter - heapBefore) / BYTES_PER_MEGABYTE);
     } finally {
@@ -220,6 +223,7 @@ final class Mcv2Tools {
     if (!mode.equals(Mcv2.NATIVE_AUTO) && !mode.equals(Mcv2.NATIVE_OFF)) {
       throw new IllegalArgumentException("natives must be auto or off!");
     }
+
     final Path folder = Files.createTempDirectory("mcv2-bench-natives-");
     Mcv2.installNatives(folder, mode);
     return folder;
@@ -231,6 +235,7 @@ final class Mcv2Tools {
       final int separator = argument.indexOf('=');
       options.put(argument.substring(0, separator), argument.substring(separator + 1));
     }
+
     return options;
   }
 
@@ -251,6 +256,7 @@ final class Mcv2Tools {
     if (options.containsKey("lambda")) {
       settings = settings.withLambda(Double.parseDouble(options.get("lambda")));
     }
+
     return settings;
   }
 
@@ -319,6 +325,7 @@ final class Mcv2Tools {
         }
       }
     }
+
     return measured;
   }
 
@@ -348,6 +355,7 @@ final class Mcv2Tools {
       }
       bytes += compressed + TransportPages.PACKET_OVERHEAD;
     }
+
     return bytes;
   }
 
@@ -357,6 +365,7 @@ final class Mcv2Tools {
       final int difference = (rgb[index] & 0xFF) - (picture[index] & 0xFF);
       sum += (long) difference * difference;
     }
+
     return sum;
   }
 
@@ -443,6 +452,7 @@ final class Mcv2Tools {
       line.append(' ').append(token(receiver, frame, sha256, pictures));
       offset += LENGTH_BYTES + (int) length;
     }
+
     return line.toString();
   }
 
@@ -454,6 +464,7 @@ final class Mcv2Tools {
     } catch (final Mcv2Exception exception) {
       return REJECTED;
     }
+
     pictures.write(picture);
     return HexFormat.of().formatHex(sha256.digest(picture));
   }
@@ -496,6 +507,7 @@ final class Mcv2Tools {
       golden(fixtures, pool, Settings.DEFAULT, CROP_DEFAULT_STREAM);
       golden(fixtures, pool, Settings.FAST, CROP_FAST_STREAM);
     }
+
     Files.writeString(fixtures.resolve(DIGESTS_PATH), JSON.toJson(digests) + "\n");
     Files.writeString(fixtures.resolve(PAGES_PATH), JSON.toJson(pages) + "\n");
   }
@@ -542,6 +554,7 @@ final class Mcv2Tools {
           for (final byte[] page : symbols) {
             pageHashes.add(Mcv2Resources.sha256(page));
           }
+
           final Map<String, Object> expected = new LinkedHashMap<>();
           expected.put("pages", pageHashes);
           expected.put("wire", TransportPages.wireBytes(symbols, false, TransportPages.PACKET_OVERHEAD));
@@ -550,6 +563,7 @@ final class Mcv2Tools {
         }
       }
     }
+
     Files.write(fixtures.resolve(CONFORMANCE_FOLDER + name), archive.toByteArray());
     final Map<String, Object> expected = new LinkedHashMap<>();
     expected.put("source", raw);
@@ -576,11 +590,13 @@ final class Mcv2Tools {
     if (source.length != bytes * 4) {
       throw new IllegalArgumentException("Expected exactly four 320x180 frames!");
     }
+
     final Mcv2 encoder = new Mcv2(settings, pool, 1, true);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
     for (int id = 0; id < 4; id++) {
       frame(archive, encoder.encode(Arrays.copyOfRange(source, id * bytes, (id + 1) * bytes), FIXTURE_WIDTH, FIXTURE_HEIGHT, id));
     }
+
     Files.write(fixtures.resolve(ENCODER_FOLDER + name), archive.toByteArray());
     System.out.println(name + ": 4 frames, " + archive.size() + " bytes");
   }
@@ -597,6 +613,7 @@ final class Mcv2Tools {
     for (final String flag : flags) {
       defines.put(flag, "");
     }
+
     return defines;
   }
 
@@ -622,6 +639,7 @@ final class Mcv2Tools {
         failures += compile(pack, generated, vanilla, source, stage, variant.getValue(), output.resolve(variant.getKey() + "." + stage));
       }
     }
+
     final Path post = pack.resolve(POST_SHADER_FOLDER);
     try (final var files = Files.walk(post)) {
       for (final Path source : files.filter(Files::isRegularFile).sorted().toList()) {
@@ -630,6 +648,7 @@ final class Mcv2Tools {
         failures += compile(pack, generated, vanilla, source, stage, Map.of(), output.resolve(name));
       }
     }
+
     System.out.println(failures == 0 ? "every stage compiled" : failures + " stages failed");
     return failures;
   }
@@ -655,9 +674,11 @@ final class Mcv2Tools {
       for (final Map.Entry<String, String> macro : RENDERER_MACROS.entrySet()) {
         Shaderc.shaderc_compile_options_add_macro_definition(options, macro.getKey(), macro.getValue());
       }
+
       for (final Map.Entry<String, String> define : defines.entrySet()) {
         Shaderc.shaderc_compile_options_add_macro_definition(options, define.getKey(), define.getValue());
       }
+
       final List<ByteBuffer> keep = new ArrayList<>();
       Shaderc.shaderc_compile_options_set_include_callbacks(
         options,
@@ -674,6 +695,7 @@ final class Mcv2Tools {
         Shaderc.shaderc_result_release(result);
         return 1;
       }
+
       final ByteBuffer spirv = Shaderc.shaderc_result_get_bytes(result);
       final String glsl = crossCompile(spirv, kind == Shaderc.shaderc_vertex_shader);
       Shaderc.shaderc_result_release(result);
@@ -700,9 +722,11 @@ final class Mcv2Tools {
     if (!Files.exists(file)) {
       file = pack.resolve(ASSETS_FOLDER + namespace + INCLUDE_FOLDER + path);
     }
+
     if (!Files.exists(file) && vanilla != null) {
       file = vanilla.resolve(ASSETS_FOLDER + namespace + INCLUDE_FOLDER + path);
     }
+
     final ShadercIncludeResult result = ShadercIncludeResult.calloc();
     try {
       final ByteBuffer content = MemoryUtil.memUTF8(Files.readString(file), false);
@@ -715,6 +739,7 @@ final class Mcv2Tools {
       keep.add(message);
       result.content(message).source_name(MemoryUtil.memUTF8("", false));
     }
+
     return result.address();
   }
 

@@ -117,6 +117,7 @@ final class MapPipelineFuzzTest {
       bytes += patch.getEncodedSize();
       maps.add(mapId);
     }
+
     final long sent = bytes;
     final boolean withinBudget = sent <= budget || maps.size() == 1;
     assertTrue(withinBudget, () -> sent + " bytes over " + maps.size() + " maps, budget " + budget);

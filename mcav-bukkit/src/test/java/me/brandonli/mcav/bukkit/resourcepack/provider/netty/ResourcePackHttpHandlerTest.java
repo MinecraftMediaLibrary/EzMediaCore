@@ -194,13 +194,16 @@ final class ResourcePackHttpHandlerTest {
     writeText(channel, HEAD_PREFIX);
     final Object premature = channel.readOutbound();
     assertNull(premature);
+
     writeText(channel, "other HTTP/1.1\r\n\r\n");
     final String passed = new String(readInboundBytes(channel), StandardCharsets.US_ASCII);
     final Object response = channel.readOutbound();
     assertEquals("HEAD /other HTTP/1.1\r\n\r\n", passed);
     assertNull(response);
+
     final ChannelHandler handler = findHandler(channel);
     assertNull(handler);
+
     channel.finishAndReleaseAll();
   }
 
@@ -453,8 +456,10 @@ final class ResourcePackHttpHandlerTest {
     channel.runScheduledPendingTasks();
     final boolean open = channel.isOpen();
     assertTrue(open, "the game counts 30 seconds from the request, and a download sends nothing after it");
+
     final @Nullable ReadTimeoutHandler readTimeout = channel.pipeline().get(ReadTimeoutHandler.class);
     assertNull(readTimeout);
+
     final @Nullable ChannelHandler stall = channel.pipeline().get(ResourcePackHttpHandler.STALL_NAME);
     assertInstanceOf(IdleStateHandler.class, stall);
 
@@ -493,6 +498,7 @@ final class ResourcePackHttpHandlerTest {
 
       channel.take(32 * 1024);
     }
+
     final boolean stillRunning = channel.taken() < size;
     assertTrue(stillRunning, "the download is still running");
 
@@ -548,6 +554,7 @@ final class ResourcePackHttpHandlerTest {
         headers.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
         return;
       }
+
       this.content = message;
       this.pending = promise;
     }
@@ -559,6 +566,7 @@ final class ResourcePackHttpHandlerTest {
         ReferenceCountUtil.release(this.content);
         promise.tryFailure(new IOException("Closed!"));
       }
+
       context.fireChannelInactive();
     }
   }

@@ -77,6 +77,7 @@ final class MainThreadRendererTest {
     final List<String> applied = renderer.getAppliedFrames();
     final List<String> expected = List.of(FRAME);
     assertEquals(expected, applied, "a renderer without an onTick of its own still applies its frames");
+
     renderer.stopRendering();
   }
 
@@ -207,6 +208,7 @@ final class MainThreadRendererTest {
       this.server.runTasks();
       events = logs.getEvents();
     }
+
     final int count = runs.get();
     final BukkitScheduler scheduler = this.server.getScheduler();
     final LogCapture.RecordedEvent event = events.getFirst();
@@ -263,10 +265,13 @@ final class MainThreadRendererTest {
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(MainThreadRenderer.class)) {
       assertDoesNotThrow(() -> MainThreadRenderer.runOnMainThread(runs::incrementAndGet));
+
       events = logs.getEvents();
     }
+
     final int count = runs.get();
     assertEquals(0, count);
+
     final int eventCount = events.size();
     assertEquals(1, eventCount);
 

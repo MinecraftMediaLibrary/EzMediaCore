@@ -136,6 +136,7 @@ final class MapResultTest {
     final byte[] colors = MapPackets.pattern(MAP_SIZE * MAP_SIZE, 4);
 
     assertEquals(2, packetCount, "nothing is sent on start, and unchanged frames are sent again");
+
     MapPackets.assertMapPacket(second, 5, 0, 0, MAP_SIZE, MAP_SIZE, colors);
   }
 
@@ -151,6 +152,7 @@ final class MapResultTest {
     for (int row = 0; row < 64; row++) {
       System.arraycopy(picture, row * 64, colors, (row + 32) * MAP_SIZE + 32, 64);
     }
+
     final int width = image.getWidth();
 
     MapPackets.assertMapPacket(packet, 5, 0, 0, MAP_SIZE, MAP_SIZE, colors);
@@ -175,6 +177,7 @@ final class MapResultTest {
       result.process(small, this.algorithm);
       result.process(small, this.algorithm);
     }
+
     final int canvasWidth = columns * MAP_SIZE;
     final byte[] actual = new byte[canvasWidth * MAP_SIZE];
     for (final Packet<?> bundle : this.server.getSentPackets(VIEWER)) {
@@ -189,11 +192,13 @@ final class MapResultTest {
         }
       }
     }
+
     final byte[] expected = new byte[actual.length];
     for (int row = 32; row < 96; row++) {
       final int offset = row * canvasWidth + (canvasWidth - 64) / 2;
       Arrays.fill(expected, offset, offset + 64, (byte) 9);
     }
+
     assertArrayEquals(expected, actual, "the current picture is surrounded by transparent pixels, including uncovered maps");
   }
 
@@ -223,6 +228,7 @@ final class MapResultTest {
     final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
 
     assertEquals(4, mapPacketCount, "every map of the 2x2 grid is cleared");
+
     MapPackets.assertMapPacket(last, 8, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
   }
 
@@ -236,6 +242,7 @@ final class MapResultTest {
       final @Nullable String message = failure.getMessage();
       assertEquals("Image size does not match layout!", message);
     }
+
     final List<Packet<?>> sent = this.server.getSentPackets(VIEWER);
     assertEquals(List.of(), sent, "invalid converted pixels must not reach the viewer");
   }

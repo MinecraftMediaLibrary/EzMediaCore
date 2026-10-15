@@ -79,6 +79,7 @@ public final class LogCapture implements AutoCloseable {
       final String message = "No event was logged before the %s timeout ran out!".formatted(timeout);
       throw new AssertionError(message);
     }
+
     return event;
   }
 

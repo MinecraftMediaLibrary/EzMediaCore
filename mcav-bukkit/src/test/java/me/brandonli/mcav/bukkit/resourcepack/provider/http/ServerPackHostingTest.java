@@ -146,6 +146,7 @@ final class ServerPackHostingTest {
       assertEquals(port, portAfterSecondStart, "starting again keeps the running server");
       assertServesThePackToGetRequests(port);
       assertAnswersHeadRequestsWithTheHeadersOnly(port);
+
       this.assertServesTheRebuiltPack(port);
     } finally {
       hosting.shutdown();
@@ -192,6 +193,7 @@ final class ServerPackHostingTest {
         names.add(name);
       }
     }
+
     return names;
   }
 
@@ -218,6 +220,7 @@ final class ServerPackHostingTest {
       final ServerPackHosting blocked = new ServerPackHosting(this.zip, LOOPBACK_ADDRESS, port);
 
       assertThrows(HttpServerException.class, blocked::start);
+
       final List<String> afterFailedStart = runningServerThreadNames();
 
       assertEquals(noThreads, afterFailedStart, "a start that fails releases its threads as well");
@@ -250,6 +253,7 @@ final class ServerPackHostingTest {
       final String expectedMessage = "Port %s could not be bound for the resource pack server!".formatted(port);
       assertEquals(expectedMessage, message);
       assertNotNull(cause);
+
       hosting.shutdown();
     }
   }

@@ -68,6 +68,7 @@ final class PageAssemblerTest {
       } else {
         Mcv2Decoder.putU32(raw, offset, value);
       }
+
       Mcv2Decoder.putU32(raw, 28, 0);
       final CRC32 crc = new CRC32();
       crc.update(raw);
@@ -86,13 +87,16 @@ final class PageAssemblerTest {
 
     final byte @Nullable [] firstPush = assembler.push(page(1));
     assertNull(firstPush);
+
     final byte @Nullable [] duplicatePush = assembler.push(page(1));
     assertNull(duplicatePush);
+
     final int pendingCountBeforeCompletion = assembler.getPendingCount();
     assertEquals(1, pendingCountBeforeCompletion);
 
     final byte @Nullable [] assembled = assembler.push(page(0));
     assertArrayEquals(BIG, assembled);
+
     final int pendingCountAfterCompletion = assembler.getPendingCount();
     assertEquals(0, pendingCountAfterCompletion);
 
@@ -130,6 +134,7 @@ final class PageAssemblerTest {
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(second));
     final String message = exception.getMessage();
     assertEquals("Inconsistent pages!", message);
+
     final int pendingCount = assembler.getPendingCount();
     assertEquals(0, pendingCount);
   }
@@ -142,6 +147,7 @@ final class PageAssemblerTest {
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(conflicting));
     final String message = exception.getMessage();
     assertEquals("Conflicting page duplicate!", message);
+
     final int pendingCount = assembler.getPendingCount();
     assertEquals(0, pendingCount);
   }
@@ -153,18 +159,23 @@ final class PageAssemblerTest {
       final byte @Nullable [] pending = assembler.push(rewritten(page(0), 12, id));
       assertNull(pending);
     }
+
     // frame 0 evicts frame 1, then frame 1 starts again and evicts frame 2
     final byte @Nullable [] firstEviction = assembler.push(page(0));
     assertNull(firstEviction);
+
     final int pendingCountAfterFirstEviction = assembler.getPendingCount();
     assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterFirstEviction);
+
     final byte @Nullable [] secondEviction = assembler.push(rewritten(page(1), 12, 1));
     assertNull(secondEviction);
+
     final int pendingCountAfterSecondEviction = assembler.getPendingCount();
     assertEquals(PageAssembler.MAXIMUM_PENDING, pendingCountAfterSecondEviction);
     // frame 0 survived the evictions and completes
     final byte @Nullable [] assembled = assembler.push(page(1));
     assertArrayEquals(BIG, assembled);
+
     final int pendingCountAfterCompletion = assembler.getPendingCount();
     assertEquals(3, pendingCountAfterCompletion);
   }
@@ -190,6 +201,7 @@ final class PageAssemblerTest {
     // the payload starts with the frame header; a zero width makes the frame invalid
     assembler.push(rewritten(page(0), 40, 0));
     assertThrows(Mcv2Exception.class, () -> assembler.push(page(1)));
+
     final int pendingCount = assembler.getPendingCount();
     assertEquals(0, pendingCount);
   }

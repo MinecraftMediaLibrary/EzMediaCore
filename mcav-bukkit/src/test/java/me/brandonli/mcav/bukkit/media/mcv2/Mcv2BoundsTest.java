@@ -49,26 +49,32 @@ final class Mcv2BoundsTest {
         picture[offset + 1] = (byte) (root >> 8);
       }
     }
+
     final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, ForkJoinPool.commonPool(), THREADS, true);
     encoder.setFrameBudget(1);
     encoder.setFrameLimit(1);
     final byte[] first = encoder.encode(picture, width, height, 0);
     final int firstLength = first.length;
     assertEquals(76064, firstLength);
+
     final int expectedLambda = 72 * 16;
     final double lambda = encoder.getStatistics().lambda();
     assertEquals(expectedLambda, lambda);
+
     final int expectedLeafCount = 128 * 128;
     final int leafCount = Mcv2Decoder.parse(first).getLeafCount();
     assertEquals(expectedLeafCount, leafCount);
+
     final byte @Nullable [] firstReference = encoder.getReference();
     assertArrayEquals(picture, firstReference);
 
     final byte[] next = encoder.encode(picture, width, height, 1);
     final int nextLength = next.length;
     assertEquals(2336, nextLength);
+
     final long referenceId = Mcv2Decoder.parse(next).getReferenceId();
     assertEquals(0, referenceId);
+
     final byte @Nullable [] nextReference = encoder.getReference();
     assertArrayEquals(picture, nextReference);
   }
@@ -97,23 +103,29 @@ final class Mcv2BoundsTest {
         }
       }
     }
+
     // Zero lambda cannot reduce the detailed frame by raising its rate cost.
     final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT.withLambda(0), ForkJoinPool.commonPool(), THREADS, true);
     final byte[] data = encoder.encode(picture, width, width, 0);
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(data);
     final boolean withinLimit = data.length <= 131071;
     assertTrue(withinLimit);
+
     final double lambda = encoder.getStatistics().lambda();
     assertEquals(0, lambda);
+
     final int expectedLeafCount = 32 * 32;
     final int leafCount = frame.getLeafCount();
     assertEquals(expectedLeafCount, leafCount);
+
     for (int index = 0; index < frame.getLeafCount(); index++) {
       final int size = frame.getLeaf(index).size();
       assertEquals(32, size);
     }
+
     final byte @Nullable [] reference = encoder.getReference();
     assertArrayEquals(expected, reference);
+
     final byte[] decoded = Mcv2Decoder.decode(frame, null, 0);
     assertArrayEquals(expected, decoded);
   }

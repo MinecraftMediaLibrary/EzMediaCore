@@ -48,12 +48,14 @@ final class Mcv2BlockState {
     final int @Nullable [] previous
   ) {
     this.buffers = Mcv2Internals.construct(BUFFERS, new Class<?>[] { int.class, int.class }, width, height);
+
     if (!keyframe) {
       final byte[] half = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, HALF_MEMBER);
       final byte[] quarter = (byte[]) Mcv2Internals.field(BUFFERS, this.buffers, "quarter");
       half(reference, width, height, half);
       half(half, (width + 1) / 2, (height + 1) / 2, quarter);
     }
+
     this.frame = Mcv2Internals.construct(
       FRAME,
       new Class<?>[] {
@@ -136,6 +138,7 @@ final class Mcv2BlockState {
       picture[index] = (byte) source[index];
       reconstruction[index] = (byte) best[index];
     }
+
     return Mcv2SearchPropertyTest.distortion(picture, reconstruction);
   }
 

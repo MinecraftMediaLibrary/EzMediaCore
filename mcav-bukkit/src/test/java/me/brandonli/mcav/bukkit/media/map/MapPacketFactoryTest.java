@@ -95,6 +95,7 @@ final class MapPacketFactoryTest {
       final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
       patches.add(patch);
     }
+
     final List<UUID> viewers = List.of(FIRST);
     MapPacketFactory.send(viewers, patches);
     final List<Packet<?>> packets = this.server.getSentPackets(FIRST);
@@ -111,11 +112,13 @@ final class MapPacketFactoryTest {
     assertEquals(2, bundleCount);
     assertEquals(BUNDLE_PACKET_LIMIT, firstSize);
     assertEquals(1, secondSize);
+
     for (int index = 0; index < firstSize; index++) {
       final ClientboundMapItemDataPacket packet = firstPackets.get(index);
       final MapTilePatch expected = patches.get(index);
       assertMapPacket(packet, expected);
     }
+
     assertMapPacket(lastPacket, lastPatch);
   }
 
@@ -126,6 +129,7 @@ final class MapPacketFactoryTest {
       final MapTilePatch patch = new MapTilePatch(mapId, 0, 0, 1, 1, new byte[] { 1 });
       patches.add(patch);
     }
+
     final List<UUID> viewers = List.of(FIRST);
     MapPacketFactory.send(viewers, patches);
     final List<Packet<?>> packets = this.server.getSentPackets(FIRST);
@@ -192,9 +196,11 @@ final class MapPacketFactoryTest {
     );
     final String overflowMessage = overflow.getMessage();
     assertEquals("Map ids exceed the integer range!", overflowMessage);
+
     final IllegalArgumentException negativeId = assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, -1, 0));
     final String negativeIdMessage = negativeId.getMessage();
     assertEquals("Map id must be non-negative!", negativeIdMessage);
+
     final IllegalArgumentException negativeCount = assertThrows(IllegalArgumentException.class, () ->
       MapPacketFactory.clear(viewers, 0, -1)
     );

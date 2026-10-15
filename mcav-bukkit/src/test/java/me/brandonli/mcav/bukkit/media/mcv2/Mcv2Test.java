@@ -53,12 +53,16 @@ final class Mcv2Test {
       );
       final byte[] encodedPredicted = encoder.encode(picture, 1, 1, 2);
       assertArrayEquals(predicted, encodedPredicted);
+
       final byte[] decoded = Mcv2Decoder.decode(predicted, picture, 1);
       assertArrayEquals(picture, decoded);
+
       final int bytes = encoder.getStatistics().bytes();
       assertEquals(40, bytes);
+
       final boolean keyframe = encoder.getStatistics().keyframe();
       assertFalse(keyframe);
+
       final double lambda = encoder.getStatistics().lambda();
       assertEquals(LAMBDA, lambda);
     }
@@ -104,6 +108,7 @@ final class Mcv2Test {
         source[index][channel]++;
       }
     }
+
     for (final Mcv2.Settings settings : new Mcv2.Settings[] { Mcv2.Settings.DEFAULT, Mcv2.Settings.FAST }) {
       final byte[][] golden = new byte[source.length][];
       for (int threads = 1; threads <= 4; threads++) {
@@ -136,6 +141,7 @@ final class Mcv2Test {
         final int leafSize = parsed.getLeaf(index).size();
         assertEquals(32, leafSize);
       }
+
       final boolean withinLimit = first.length <= Mcv2Decoder.MAXIMUM_FRAME_BYTES;
       assertTrue(withinLimit);
 
@@ -144,8 +150,10 @@ final class Mcv2Test {
       final byte[] second = encoder.encode(source, 63, 65, 1);
       final byte @Nullable [] referenceAfterFallback = encoder.getReference();
       assertArrayEquals(reference, referenceAfterFallback);
+
       final long referenceId = Mcv2Decoder.parse(second).getReferenceId();
       assertEquals(0, referenceId);
+
       final byte[] decoded = Mcv2Decoder.decode(second, reference, 0);
       assertArrayEquals(reference, decoded);
     }
@@ -160,8 +168,10 @@ final class Mcv2Test {
       final byte[] data = encoder.encode(source, 1, 1, 0);
       final double lambda = encoder.getStatistics().lambda();
       assertEquals(16, lambda);
+
       final int frameLength = data.length;
       assertEquals(48, frameLength);
+
       final byte[] decoded = Mcv2Decoder.decode(data, null, 0);
       assertArrayEquals(source, decoded);
     }
@@ -192,18 +202,21 @@ final class Mcv2Test {
       for (int pixel = 0; pixel < 32 * 32; pixel++) {
         source[pixel * 3] = (byte) ((pixel % 32) * 2);
       }
+
       final byte[] first = encoder.encode(source, 32, 32, 0);
       final byte[] decoded = Mcv2Decoder.decode(first, null, 0);
       for (int pixel = 0; pixel < 32 * 32; pixel++) {
         final byte red = decoded[pixel * 3];
         assertEquals(31, red);
       }
+
       final int firstLength = first.length;
       assertEquals(48, firstLength);
 
       source[0] = 10;
       final int secondLength = encoder.encode(source, 32, 32, 1).length;
       assertEquals(40, secondLength);
+
       final byte @Nullable [] reference = encoder.getReference();
       assertArrayEquals(decoded, reference);
     }
@@ -216,20 +229,25 @@ final class Mcv2Test {
       final byte[] black = new byte[3];
       final boolean firstIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0xFFFFFFFEL)).isKeyframe();
       assertTrue(firstIsKeyframe);
+
       final boolean maximumIdIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0xFFFFFFFFL)).isKeyframe();
       assertFalse(maximumIdIsKeyframe);
+
       final boolean wrappedIdIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 0)).isKeyframe();
       assertFalse(wrappedIdIsKeyframe);
+
       for (int id = 1; id <= 117; id++) {
         final boolean idIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, id)).isKeyframe();
         assertFalse(idIsKeyframe);
       }
+
       final boolean intervalIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 118)).isKeyframe();
       assertTrue(intervalIsKeyframe);
 
       encoder.requestKeyframe();
       final boolean requestedIsKeyframe = Mcv2Decoder.parse(encoder.encode(black, 1, 1, 119)).isKeyframe();
       assertTrue(requestedIsKeyframe);
+
       final boolean resizedIsKeyframe = Mcv2Decoder.parse(encoder.encode(new byte[6], 2, 1, 120)).isKeyframe();
       assertTrue(resizedIsKeyframe);
 
@@ -264,8 +282,10 @@ final class Mcv2Test {
       final Mcv2Decoder.Frame next = Mcv2Decoder.parse(encoder.encode(source, 32, 32, 3));
       final boolean keyframe = next.isKeyframe();
       assertFalse(keyframe);
+
       final long referenceId = next.getReferenceId();
       assertEquals(2, referenceId);
+
       final double expectedLambda = 30 * Math.pow(10 / 4.6, 0.79);
       final double lambdaAfterSwitch = encoder.getStatistics().lambda();
       assertEquals(expectedLambda, lambdaAfterSwitch);
@@ -282,11 +302,13 @@ final class Mcv2Test {
       for (final byte[] picture : source) {
         random.nextBytes(picture);
       }
+
       final Mcv2.Pending first = pipelined.begin(source[0], 32, 32, 0);
       final Mcv2.Pending second = pipelined.begin(source[1], 32, 32, 1);
       assertThrows(IllegalStateException.class, () -> pipelined.begin(source[2], 32, 32, 2));
       assertThrows(IllegalStateException.class, () -> pipelined.finish(second));
       assertThrows(IllegalArgumentException.class, () -> serial.finish(first));
+
       final byte[] expectedFirst = serial.encode(source[0], 32, 32, 0);
       final byte[] pipelinedFirst = pipelined.finish(first).getData();
       assertArrayEquals(expectedFirst, pipelinedFirst);
@@ -295,6 +317,7 @@ final class Mcv2Test {
       final byte[] expectedSecond = serial.encode(source[1], 32, 32, 1);
       final byte[] pipelinedSecond = pipelined.finish(second).getData();
       assertArrayEquals(expectedSecond, pipelinedSecond);
+
       final byte[] expectedThird = serial.encode(source[2], 32, 32, 2);
       final byte[] pipelinedThird = pipelined.finish(third).getData();
       assertArrayEquals(expectedThird, pipelinedThird);
@@ -314,6 +337,7 @@ final class Mcv2Test {
       assertThrows(IllegalStateException.class, () -> encoder.finish(first));
       assertThrows(IllegalStateException.class, () -> encoder.finish(second));
       assertThrows(IllegalStateException.class, () -> encoder.begin(new byte[3], 1, 1, 2));
+
       final Mcv2.@Nullable Statistics statistics = encoder.getStatistics();
       assertNull(statistics);
     }
@@ -328,20 +352,24 @@ final class Mcv2Test {
       assertThrows(IllegalArgumentException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, pool, 0, false));
       assertThrows(NullPointerException.class, () -> new Mcv2(null, pool, 1, false));
       assertThrows(NullPointerException.class, () -> new Mcv2(Mcv2.Settings.DEFAULT, null, 1, false));
+
       final Mcv2 encoder = new Mcv2(Mcv2.Settings.DEFAULT, pool, 1, false);
       final byte @Nullable [] initialReference = encoder.getReference();
       assertNull(initialReference);
+
       final Mcv2.@Nullable Statistics statistics = encoder.getStatistics();
       assertNull(statistics);
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameBudget(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.setFrameLimit(-1));
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[3], 0, 1, 0));
+
       final IllegalArgumentException dimensionsException = assertThrows(IllegalArgumentException.class, () ->
         encoder.encode(new byte[3], 4097, 1, 0)
       );
       final String dimensionsMessage = dimensionsException.getMessage();
       assertEquals("Invalid dimensions!", dimensionsMessage);
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[2], 1, 1, 0));
+
       final IllegalArgumentException sizeException = assertThrows(IllegalArgumentException.class, () ->
         encoder.encode(new byte[4], 1, 1, 0)
       );
@@ -356,6 +384,7 @@ final class Mcv2Test {
       encoder.encode(new byte[3], 1, 1, 0);
       assertThrows(IllegalArgumentException.class, () -> encoder.begin(new byte[3], 1, 1, 0));
       assertThrows(IllegalArgumentException.class, () -> encoder.begin(new byte[3], 1, 1, 0x80000000L));
+
       final byte[] reference = encoder.getReference();
       assertNotNull(reference);
 

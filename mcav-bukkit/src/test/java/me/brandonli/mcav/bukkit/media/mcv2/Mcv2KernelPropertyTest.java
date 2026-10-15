@@ -52,6 +52,7 @@ final class Mcv2KernelPropertyTest {
     for (int index = 0; index < length; index++) {
       record[index] = extremeByte(random);
     }
+
     return record;
   }
 
@@ -64,6 +65,7 @@ final class Mcv2KernelPropertyTest {
         default -> random.nextInt(BYTE_VALUE_COUNT);
       };
     }
+
     return prediction;
   }
 
@@ -92,6 +94,7 @@ final class Mcv2KernelPropertyTest {
       reference[index] = (byte) prediction[index];
       prediction[index] = reference[index] & 255;
     }
+
     final int[] wholeExpected = new int[prediction.length];
     Mcv2Oracle.compact(prediction, record, quantizer, size, wholeExpected);
     final byte[] decoded = Mcv2Decoder.decode(Mcv2WireFrames.block(size, 5, quantizer, record, false), reference, 0);
@@ -100,6 +103,7 @@ final class Mcv2KernelPropertyTest {
       final int decodedChannel = decoded[index] & 255;
       assertEquals(expectedChannel, decodedChannel);
     }
+
     assertArrayEquals(expected, actual);
   }
 
@@ -129,6 +133,7 @@ final class Mcv2KernelPropertyTest {
       final int chromaGreen = 2 * greenDifference - redDifference - blueDifference;
       sum += 4L * luma * luma + 4L * chromaOrange * chromaOrange + (long) chromaGreen * chromaGreen;
     }
+
     return sum;
   }
 
@@ -141,6 +146,7 @@ final class Mcv2KernelPropertyTest {
     for (int index = 0; index < source.length; index++) {
       source[index] = random.nextInt(BYTE_VALUE_COUNT);
     }
+
     final double rate = random.nextInt(4000) / 7.0;
     final Kernels kernels = Mcv2Internals.javaKernels();
     final int[] reconstruction = new int[source.length];
@@ -153,6 +159,7 @@ final class Mcv2KernelPropertyTest {
     final boolean finishedAgain = kernel.run(kernels, repeated);
     assertTrue(finishedAgain);
     assertArrayEquals(reconstruction, repeated);
+
     final long distortion = distortion(source, reconstruction);
     final long measured = kernels.distortion();
     assertEquals(distortion, measured);
@@ -165,6 +172,7 @@ final class Mcv2KernelPropertyTest {
     kernels.start(source, rate, Math.nextUp(cost));
     final boolean finishedPastTheLimit = kernel.run(kernels, new int[source.length]);
     assertTrue(finishedPastTheLimit);
+
     final long measuredPastTheLimit = kernels.distortion();
     assertEquals(distortion, measuredPastTheLimit);
   }

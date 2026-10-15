@@ -98,9 +98,11 @@ final class Mcv2Internals {
     if (cause instanceof final RuntimeException runtime) {
       return runtime;
     }
+
     if (cause instanceof final Error error) {
       throw error;
     }
+
     throw new AssertionError(cause);
   }
 

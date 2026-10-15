@@ -40,12 +40,16 @@ final class Mcv2TreeNodeTest {
     final Object expectedValue = skip.value();
     final Object sharedValue = Node.skip().value();
     assertSame(expectedValue, sharedValue);
+
     final int mode = skip.getMode();
     assertEquals(Mcv2Decoder.MODE_SKIP, mode);
+
     final int quantizer = skip.getQuantizer();
     assertEquals(0, quantizer);
+
     final boolean split = skip.isSplit();
     assertFalse(split);
+
     final int recordLength = skip.getRecord().length;
     assertEquals(0, recordLength);
   }
@@ -57,6 +61,7 @@ final class Mcv2TreeNodeTest {
     for (int pixel = 0; pixel < 64 * 32; pixel++) {
       Arrays.fill(source, pixel * 3, pixel * 3 + 3, (byte) (pixel % 64 < 32 ? 17 : 41));
     }
+
     final byte[] expected = source.clone();
     final byte[] data = encoder.encode(source, 64, 32, 0);
     final byte[] saved = data.clone();
@@ -65,6 +70,7 @@ final class Mcv2TreeNodeTest {
     encoder.encode(source, 64, 32, 1);
 
     assertArrayEquals(saved, data);
+
     final byte[] decoded = Mcv2Decoder.decode(Mcv2Decoder.parse(data), null, 0);
     assertArrayEquals(expected, decoded);
   }
@@ -75,11 +81,14 @@ final class Mcv2TreeNodeTest {
 
     final boolean isSplit = split.isSplit();
     assertTrue(isSplit);
+
     final int mode = split.getMode();
     assertEquals(Mcv2Decoder.MODE_SPLIT, mode);
+
     final Object expectedFirstValue = SOLID.value();
     final Object firstValue = split.getChild(0).value();
     assertSame(expectedFirstValue, firstValue);
+
     final Object expectedLastValue = SOLID.value();
     final Object lastValue = split.getChild(3).value();
     assertSame(expectedLastValue, lastValue);

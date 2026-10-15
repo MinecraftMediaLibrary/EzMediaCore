@@ -53,6 +53,7 @@ final class Mcv2SettingsTest {
             if (method.getName().equals("seeded")) {
               widths.add((Integer) arguments[1]);
             }
+
             method.setAccessible(true);
             return method.invoke(delegate, arguments);
           });
@@ -71,6 +72,7 @@ final class Mcv2SettingsTest {
     for (int pixel = 0; pixel < 8 * 8; pixel++) {
       Arrays.fill(stripes, pixel * 3, pixel * 3 + 3, (byte) ((pixel & 1) == 0 ? 16 : 240));
     }
+
     for (final Settings settings : new Settings[] { Settings.DEFAULT, Settings.FAST }) {
       final Mcv2 encoder = new Mcv2(settings, ForkJoinPool.commonPool(), 3, true);
       encoder.encode(new byte[stripes.length], 8, 8, 0);
@@ -90,16 +92,22 @@ final class Mcv2SettingsTest {
   void shouldPinThePresetSearchThresholds() {
     final Object rootSplitBits = Mcv2Internals.field(Mcv2.class, null, "ROOT_SPLIT_BITS");
     assertEquals(150, rootSplitBits);
+
     final Object normalSteadySplitBits = Mcv2Internals.field(Mcv2.class, null, "NORMAL_STEADY_SPLIT_BITS");
     assertEquals(450, normalSteadySplitBits);
+
     final Object fastSteadySplitBits = Mcv2Internals.field(Mcv2.class, null, "FAST_STEADY_SPLIT_BITS");
     assertEquals(900, fastSteadySplitBits);
+
     final Object normalFineSplitBits = Mcv2Internals.field(Mcv2.class, null, "NORMAL_FINE_SPLIT_BITS");
     assertEquals(300, normalFineSplitBits);
+
     final Object fastFineSplitBits = Mcv2Internals.field(Mcv2.class, null, "FAST_FINE_SPLIT_BITS");
     assertEquals(600, fastFineSplitBits);
+
     final Object normalSkipBits = Mcv2Internals.field(Mcv2.class, null, "NORMAL_SKIP_BITS");
     assertEquals(28, normalSkipBits);
+
     final Object fastSkipBits = Mcv2Internals.field(Mcv2.class, null, "FAST_SKIP_BITS");
     assertEquals(60, fastSkipBits);
   }
@@ -108,6 +116,7 @@ final class Mcv2SettingsTest {
   void shouldKeepTheTwoLivePresetsAsData() {
     final Settings expectedDefault = new Settings(LAMBDA, false);
     assertEquals(expectedDefault, Settings.DEFAULT);
+
     final Settings expectedFast = new Settings(55, true);
     assertEquals(expectedFast, Settings.FAST);
   }

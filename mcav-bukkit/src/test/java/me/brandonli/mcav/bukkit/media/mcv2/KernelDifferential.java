@@ -71,6 +71,7 @@ final class KernelDifferential {
     for (int index = 0; index < count; index++) {
       values[index] = random.next(low, high);
     }
+
     return values;
   }
 
@@ -85,6 +86,7 @@ final class KernelDifferential {
         default -> random.next(-1_000_000, 1_000_000) / 3.0f / 1000;
       };
     }
+
     return values;
   }
 
@@ -99,6 +101,7 @@ final class KernelDifferential {
         return false;
       }
     }
+
     return true;
   }
 
@@ -180,12 +183,15 @@ final class KernelDifferential {
         finishedOther = other.compact(prediction, record, quantizer, size, actual);
       }
     }
+
     if (finishedJava != finishedOther) {
       return name + " finished";
     }
+
     if (finishedJava && java.distortion() != other.distortion()) {
       return name + " distortion";
     }
+
     return unless(Arrays.equals(expected, actual), name + " reconstruction");
   }
 
@@ -271,10 +277,12 @@ final class KernelDifferential {
         System.arraycopy(source, 0, source, row * size * 3, size * 3);
       }
     }
+
     final int[] endpoints = new int[6];
     for (int index = 0; index < endpoints.length; index++) {
       endpoints[index] = random.next(0, 255);
     }
+
     final int[] expectedColors = new int[6];
     final int[] actualColors = new int[6];
     final byte[] expected = new byte[size * size];
@@ -284,6 +292,7 @@ final class KernelDifferential {
       other.finishPalette(source, size * size, endpoints, actualColors, actual);
       return unless(Arrays.equals(expectedColors, actualColors) && Arrays.equals(expected, actual), "finishPalette");
     }
+
     final boolean held = java.finishPattern(source, size, endpoints, expectedColors, expected);
     final boolean holds = other.finishPattern(source, size, endpoints, actualColors, actual);
     return unless(held == holds && Arrays.equals(expectedColors, actualColors) && Arrays.equals(expected, actual), "finishPattern");
@@ -300,14 +309,17 @@ final class KernelDifferential {
       // the block itself, so the search has a place to go
       java.loadSource(reference, width, height, blockLeft, blockTop, size, source);
     }
+
     if (random.next(0, 7) == 0) {
       // a channel that is no byte, which the search must cost as an int
       source[random.next(0, channels - 1)] = random.next(EXTREME_LOW, EXTREME_HIGH);
     }
+
     final int[] seeds = new int[random.next(0, 6)];
     for (int seedIndex = 0; seedIndex < seeds.length; seedIndex++) {
       seeds[seedIndex] = (random.next(-40, 40) << 16) | (random.next(-40, 40) & 0xFFFF);
     }
+
     final int range = random.next(0, 24);
     final int expected = java.seeded(reference, width, height, source, blockLeft, blockTop, size, range, seeds);
     final int actual = other.seeded(reference, width, height, source, blockLeft, blockTop, size, range, seeds);

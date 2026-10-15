@@ -122,6 +122,7 @@ final class Mcv2ViewersTest {
     viewers.onResourcePackStatus(this.status(PACK, Status.DISCARDED));
     final Mcv2Viewers.@Nullable PackState refusedState = viewers.getState(uuid);
     assertEquals(Mcv2Viewers.PackState.REFUSED, refusedState);
+
     final List<Player> expectedRefusedOnce = List.of(this.player);
     assertEquals(expectedRefusedOnce, this.refused, REFUSED_ONCE_MESSAGE);
 
@@ -246,6 +247,7 @@ final class Mcv2ViewersTest {
     viewers.onResourcePackStatus(this.status(PACK, Status.DECLINED));
     final Mcv2Viewers.@Nullable PackState declinedState = viewers.getState(PLAYER);
     assertEquals(Mcv2Viewers.PackState.DECLINED, declinedState);
+
     final List<Player> expectedRefused = List.of(this.player);
     assertEquals(expectedRefused, this.refused, REFUSED_ONCE_MESSAGE);
 
@@ -257,8 +259,10 @@ final class Mcv2ViewersTest {
 
     final UUID packId = viewers.getPackId();
     assertEquals(OTHER, packId);
+
     final Mcv2Viewers.@Nullable PackState stateAfterRetarget = viewers.getState(PLAYER);
     assertEquals(Mcv2Viewers.PackState.DECLINED, stateAfterRetarget);
+
     final Mcv2Viewers.@Nullable PackState otherState = viewers.getState(otherId);
     assertNull(otherState, "nobody has the new pack until their client says so");
 
@@ -270,6 +274,7 @@ final class Mcv2ViewersTest {
     viewers.onResourcePackStatus(this.status(OTHER, Status.FAILED_DOWNLOAD));
     final Mcv2Viewers.@Nullable PackState refusedState = viewers.getState(PLAYER);
     assertEquals(Mcv2Viewers.PackState.REFUSED, refusedState);
+
     final List<Player> expectedRefusedOnce = List.of(this.player);
     assertEquals(expectedRefusedOnce, this.refused, "a player who declined is not told again");
     assertThrows(NullPointerException.class, () -> viewers.retarget(null));

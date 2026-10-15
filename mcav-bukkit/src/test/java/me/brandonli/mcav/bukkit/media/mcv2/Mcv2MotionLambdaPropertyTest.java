@@ -45,6 +45,7 @@ final class Mcv2MotionLambdaPropertyTest {
         return false;
       }
     }
+
     return true;
   }
 
@@ -60,6 +61,7 @@ final class Mcv2MotionLambdaPropertyTest {
         return false;
       }
     }
+
     return true;
   }
 
@@ -82,6 +84,7 @@ final class Mcv2MotionLambdaPropertyTest {
       }
       previous = lambda;
     }
+
     return true;
   }
 

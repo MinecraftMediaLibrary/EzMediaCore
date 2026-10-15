@@ -106,6 +106,7 @@ final class MapPacketFactoryPropertyTest {
       final MapTilePatch patch = new MapTilePatch(index, index % 128, 0, 1, 1, new byte[] { color });
       patches.add(patch);
     }
+
     final List<UUID> viewers = List.of(VIEWER, OFFLINE);
     final int before = this.packetCount();
 
@@ -115,6 +116,7 @@ final class MapPacketFactoryPropertyTest {
     final int expectedBundles = (patchCount + BUNDLE_LIMIT - 1) / BUNDLE_LIMIT;
     final int bundleCount = bundles.size();
     assertEquals(expectedBundles, bundleCount, "one bundle per started block of 4096 patches");
+
     int next = 0;
     for (final Packet<?> bundle : bundles) {
       final List<ClientboundMapItemDataPacket> mapPackets = unbundle(bundle);
@@ -127,6 +129,7 @@ final class MapPacketFactoryPropertyTest {
         next++;
       }
     }
+
     assertEquals(patchCount, next, "every patch was sent exactly once");
   }
 
@@ -150,6 +153,7 @@ final class MapPacketFactoryPropertyTest {
         offset++;
       }
     }
+
     assertEquals(mapCount, offset, "every map of the range is cleared once");
   }
 
@@ -168,6 +172,7 @@ final class MapPacketFactoryPropertyTest {
     final List<Packet<?>> bundles = this.packetsSince(before);
     final int bundleCount = bundles.size();
     assertEquals(1, bundleCount, "a clear of up to 4096 maps is one bundle");
+
     final Packet<?> bundle = bundles.getFirst();
     final List<ClientboundMapItemDataPacket> mapPackets = unbundle(bundle);
     long colorBytes = 0;
@@ -177,6 +182,7 @@ final class MapPacketFactoryPropertyTest {
       final byte[] mapColors = patch.mapColors();
       colorBytes += mapColors.length;
     }
+
     final long expectedBytes = (long) mapCount * MAP_PIXELS;
     assertEquals(expectedBytes, colorBytes, "a clear sends one full map of colors per map");
   }

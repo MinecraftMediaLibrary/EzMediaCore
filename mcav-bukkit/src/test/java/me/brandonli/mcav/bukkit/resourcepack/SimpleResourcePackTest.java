@@ -143,6 +143,7 @@ final class SimpleResourcePackTest {
         entry = zipInput.getNextEntry();
       }
     }
+
     return entries;
   }
 
@@ -191,11 +192,13 @@ final class SimpleResourcePackTest {
     return (from, to, options) -> {
       final List<CopyOption> optionList = List.of(options);
       moves.add(optionList);
+
       if (!atomicSupported && optionList.contains(StandardCopyOption.ATOMIC_MOVE)) {
         final String fromText = from.toString();
         final String toText = to.toString();
         throw new AtomicMoveNotSupportedException(fromText, toText, "network share");
       }
+
       Files.move(from, to, options);
     };
   }
@@ -336,6 +339,7 @@ final class SimpleResourcePackTest {
       }
       assertEquals(5, entries);
     }
+
     final LocalDateTime newEntryTime = SimpleResourcePack.entry("a.txt").getTimeLocal();
     assertEquals(fixed, newEntryTime);
   }
@@ -364,6 +368,7 @@ final class SimpleResourcePackTest {
     assertThrows(IllegalArgumentException.class, () -> pack.external(MCAV_SOUNDS_ENTRY, this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external(AUDIO_ENTRY, this.credits));
     assertThrows(IllegalArgumentException.class, () -> pack.external("assets/other/sounds/music/intro.ogg", this.credits));
+
     pack.external(ICON_ENTRY, this.credits);
     pack.external(SOUNDS_README_ENTRY, this.credits);
     pack.external(SOUNDS_TEXT_ENTRY, this.credits);
@@ -454,6 +459,7 @@ final class SimpleResourcePackTest {
     final SimpleResourcePack second = SimpleResourcePack.pack();
 
     assertNotSame(first, second);
+
     first.meta(1, "first");
     second.meta(2, "second");
     first.external(CREDITS_FILE_NAME, this.credits);
@@ -472,6 +478,7 @@ final class SimpleResourcePackTest {
     final Set<String> expectedFirstNames = Set.of(METADATA_ENTRY, CREDITS_FILE_NAME, GENERATED_ENTRY, FIRST_SOUND_ENTRY, MCAV_SOUNDS_ENTRY);
     final Set<String> firstNames = firstEntries.keySet();
     assertEquals(expectedFirstNames, firstNames);
+
     final Set<String> expectedSecondNames = Set.of(
       METADATA_ENTRY,
       CREDITS_FILE_NAME,
@@ -481,11 +488,13 @@ final class SimpleResourcePackTest {
     );
     final Set<String> secondNames = secondEntries.keySet();
     assertEquals(expectedSecondNames, secondNames);
+
     final JsonElement expectedFirstMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"first\",\"pack_format\":1,\"min_format\":1,\"max_format\":1}}"
     );
     final JsonObject firstMetadata = parseEntry(firstEntries, METADATA_ENTRY);
     assertEquals(expectedFirstMetadata, firstMetadata);
+
     final JsonElement expectedSecondMetadata = JsonParser.parseString(
       "{\"pack\":{\"description\":\"second\",\"pack_format\":2,\"min_format\":2,\"max_format\":2}}"
     );
@@ -498,6 +507,7 @@ final class SimpleResourcePackTest {
     addSoundEvent(secondEvents, "second", "mcav:second");
     final JsonObject firstSounds = parseEntry(firstEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(firstEvents, firstSounds);
+
     final JsonObject secondSounds = parseEntry(secondEntries, MCAV_SOUNDS_ENTRY);
     assertEquals(secondEvents, secondSounds);
     assertEntry(CREDITS, firstEntries, CREDITS_FILE_NAME);
@@ -538,6 +548,7 @@ final class SimpleResourcePackTest {
     for (final String key : invalid) {
       assertThrows(IllegalArgumentException.class, () -> pack.sound(key, this.firstSound), key);
     }
+
     pack.sound("mcav:music/v1.2/intro", this.firstSound);
   }
 

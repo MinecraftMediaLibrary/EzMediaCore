@@ -116,12 +116,15 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     if (magic == ELF_MAGIC) {
       return elf(file);
     }
+
     if (magic == MACH_O_64) {
       return machO(file);
     }
+
     if (file.getShort(0) == MZ) {
       return pe(file);
     }
+
     throw new IllegalArgumentException("Not a 64-bit ELF, PE or Mach-O library!");
   }
 
@@ -129,6 +132,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     if (file.get(4) != ELF_CLASS_64 || file.get(5) != ELF_LITTLE_ENDIAN) {
       throw new IllegalArgumentException("Not a 64-bit little-endian ELF file!");
     }
+
     final int machine = Short.toUnsignedInt(file.getShort(18));
     final int sectionHeaders = Math.toIntExact(file.getLong(0x28));
     final int headerSize = Short.toUnsignedInt(file.getShort(0x3a));
@@ -162,6 +166,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
         }
       }
     }
+
     return new NativeLibraryFile(Format.ELF, machine, exports, needed, undefined);
   }
 
@@ -170,12 +175,14 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     if (file.getInt(signature) != PE_SIGNATURE) {
       throw new IllegalArgumentException("No PE signature!");
     }
+
     final int machine = Short.toUnsignedInt(file.getShort(signature + 4));
     final int sections = Short.toUnsignedInt(file.getShort(signature + 6));
     final int optional = signature + 24;
     if (file.getShort(optional) != PE32_PLUS) {
       throw new IllegalArgumentException("Not a PE32+ file!");
     }
+
     final int sectionTable = optional + Short.toUnsignedInt(file.getShort(signature + 20));
     final int exportTable = file.getInt(optional + EXPORT_TABLE);
     final Set<String> exports = new TreeSet<>();
@@ -187,6 +194,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
         exports.add(string(file, offset(file, sectionTable, sections, file.getInt(names + Integer.BYTES * name))));
       }
     }
+
     return new NativeLibraryFile(Format.PE, machine, exports, List.of(), Set.of());
   }
 
@@ -200,6 +208,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
         return address - start + file.getInt(header + 20);
       }
     }
+
     final String message = "Address %s is mapped by no section!".formatted(address);
     throw new IllegalArgumentException(message);
   }
@@ -224,6 +233,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
       }
       command += file.getInt(command + 4);
     }
+
     return new NativeLibraryFile(Format.MACH_O, machine, exports, List.of(), Set.of());
   }
 
@@ -232,6 +242,7 @@ record NativeLibraryFile(NativeLibraryFile.Format format, int machine, Set<Strin
     while (file.get(end) != 0) {
       end++;
     }
+
     final byte[] name = new byte[end - offset];
     file.get(offset, name);
     return new String(name, StandardCharsets.US_ASCII);

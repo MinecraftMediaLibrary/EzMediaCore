@@ -58,6 +58,7 @@ public final class MapPackets {
       final ClientboundMapItemDataPacket mapPacket = assertInstanceOf(ClientboundMapItemDataPacket.class, subPacket);
       mapPackets.add(mapPacket);
     }
+
     return mapPackets;
   }
 
@@ -147,6 +148,7 @@ public final class MapPackets {
     for (int index = 0; index < length; index++) {
       colors[index] = (byte) (offset + (index % 100));
     }
+
     return colors;
   }
 }

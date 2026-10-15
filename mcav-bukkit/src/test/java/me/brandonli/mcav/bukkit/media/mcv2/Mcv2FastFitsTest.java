@@ -39,6 +39,7 @@ final class Mcv2FastFitsTest {
       source[pixel * 3 + 1] = bright ? 210 : 20;
       source[pixel * 3 + 2] = bright ? 220 : 30;
     }
+
     final int[] endpoints = new int[ENDPOINTS_LENGTH];
     Mcv2Internals.javaKernels().cluster(source, size, endpoints);
     final int[] expected = new int[] { 10, 20, 30, 200, 210, 220 };

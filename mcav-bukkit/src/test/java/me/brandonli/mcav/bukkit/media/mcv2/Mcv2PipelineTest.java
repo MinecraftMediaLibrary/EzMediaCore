@@ -72,6 +72,7 @@ final class Mcv2PipelineTest {
       }
       stream.add(encoder.encode(Mcv2Pictures.scene(width, height, frameNumber, panPerFrame), width, height, frameNumber));
     }
+
     return stream;
   }
 
@@ -99,9 +100,11 @@ final class Mcv2PipelineTest {
         }
         verifying = verifier.submit(() -> encoder.finish(pending));
       }
+
       if (verifying != null) {
         stream.add(verifying.get().getData());
       }
+
       return stream;
     } finally {
       verifier.shutdown();
@@ -124,6 +127,7 @@ final class Mcv2PipelineTest {
     final byte[] failed = new byte[32 * 32 * 3];
     Arrays.fill(failed, (byte) 255);
     assertThrows(IllegalStateException.class, () -> encoder.begin(failed, 32, 32, 0));
+
     factory.set(encoder, original);
     for (int frame = 0; frame < 3; frame++) {
       final byte[] source = new byte[failed.length];
@@ -158,6 +162,7 @@ final class Mcv2PipelineTest {
           Thread.currentThread().interrupt();
           throw new AssertionError(exception);
         }
+
         return original.get();
       }
     );
@@ -172,12 +177,14 @@ final class Mcv2PipelineTest {
       } finally {
         resume.countDown();
       }
+
       final double firstLambda = encoder.finish(first.get()).getStatistics().lambda();
       assertEquals(72, firstLambda);
 
       final Mcv2.Pending requested = encoder.begin(new byte[3], 1, 1, 1);
       final boolean keyframeRequested = requested.isKeyframe();
       assertTrue(keyframeRequested);
+
       final double requestedLambda = encoder.finish(requested).getStatistics().lambda();
       assertEquals(55, requestedLambda);
 
@@ -245,6 +252,7 @@ final class Mcv2PipelineTest {
     final IllegalStateException nextException = assertThrows(IllegalStateException.class, () -> encoder.finish(next));
     final String nextMessage = nextException.getMessage();
     assertEquals(STOPPED, nextMessage);
+
     final IllegalStateException beginException = assertThrows(IllegalStateException.class, () ->
       encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)
     );
@@ -264,8 +272,10 @@ final class Mcv2PipelineTest {
     final int expectedBytes = encoded.getData().length;
     final int bytes = encoded.getStatistics().bytes();
     assertEquals(expectedBytes, bytes);
+
     final boolean keyframe = encoded.getStatistics().keyframe();
     assertTrue(keyframe);
+
     final boolean timed = encoded.getStatistics().nanoseconds() > 0;
     assertTrue(timed);
   }
@@ -290,15 +300,20 @@ final class Mcv2PipelineTest {
         );
       }
     }
+
     keyframes.add(encoder.finish(frames.get(4)).getStatistics().keyframe());
     final List<Boolean> expected = List.of(true, false, false, true, false);
     assertEquals(expected, keyframes);
+
     final boolean requestedKeyframe = frames.get(3).isKeyframe();
     assertTrue(requestedKeyframe);
+
     final boolean inFlightKeyframe = frames.get(2).isKeyframe();
     assertFalse(inFlightKeyframe);
+
     final Mcv2.Statistics last = encoder.getStatistics();
     assertNotNull(last);
+
     final boolean lastKeyframe = last.keyframe();
     assertFalse(lastKeyframe);
   }

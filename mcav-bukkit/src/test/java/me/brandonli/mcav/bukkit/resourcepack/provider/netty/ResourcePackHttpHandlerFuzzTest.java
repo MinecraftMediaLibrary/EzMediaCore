@@ -96,9 +96,11 @@ final class ResourcePackHttpHandlerFuzzTest {
       channel.writeInbound(buffer);
       drain(channel, forwarded, answered);
     }
+
     channel.finishAndReleaseAll();
 
     assertBehaviour(stream, forwarded.toByteArray(), answered.toByteArray());
+
     for (final ByteBuf buffer : written) {
       final int references = buffer.refCnt();
       assertEquals(0, references, "a buffer the connection sent was never released");
@@ -124,6 +126,7 @@ final class ResourcePackHttpHandlerFuzzTest {
         final int headerEnd = response.indexOf("\r\n\r\n");
         final boolean hasCompleteHeaders = headerEnd >= 0;
         assertTrue(hasCompleteHeaders, "HEAD has complete response headers");
+
         final int expectedLength = headerEnd + 4;
         final int answeredLength = answered.length;
         assertEquals(expectedLength, answeredLength, "HEAD has no response body");
@@ -135,15 +138,20 @@ final class ResourcePackHttpHandlerFuzzTest {
           .count();
         assertEquals(1L, contentLengthCount, headers);
       }
+
       return;
     }
+
     if (waiting) {
       final int forwardedLength = forwarded.length;
       assertEquals(0, forwardedLength, "the start of a pack request waits for the rest");
+
       final int answeredLength = answered.length;
       assertEquals(0, answeredLength, "the start of a pack request is not answered yet");
+
       return;
     }
+
     final int answeredLength = answered.length;
     assertEquals(0, answeredLength, "only a request for the pack is answered");
     assertArrayEquals(stream, forwarded, "everything else reaches Minecraft byte for byte");
@@ -161,6 +169,7 @@ final class ResourcePackHttpHandlerFuzzTest {
       buffer.release();
       inbound = channel.readInbound();
     }
+
     Object outbound = channel.readOutbound();
     while (outbound != null) {
       final ByteBuf buffer = (ByteBuf) outbound;
@@ -175,6 +184,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     if (input.length == 0) {
       return List.of();
     }
+
     final int splits = Math.min((input[0] & 0xFF) % (MAXIMUM_SPLITS + 1), input.length - 1);
     final int start = 1 + splits;
     final byte[] stream = Arrays.copyOfRange(input, start, input.length);
@@ -182,6 +192,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     for (int index = 0; index < splits; index++) {
       cuts[index] = stream.length == 0 ? 0 : (input[1 + index] & 0xFF) % (stream.length + 1);
     }
+
     Arrays.sort(cuts);
     final List<byte[]> reads = new ArrayList<>();
     int from = 0;
@@ -189,6 +200,7 @@ final class ResourcePackHttpHandlerFuzzTest {
       reads.add(Arrays.copyOfRange(stream, from, cut));
       from = cut;
     }
+
     reads.add(Arrays.copyOfRange(stream, from, stream.length));
     return reads;
   }
@@ -198,6 +210,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     for (final byte[] read : reads) {
       joined.writeBytes(read);
     }
+
     return joined.toByteArray();
   }
 
@@ -205,6 +218,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     if (stream.length < prefix.length) {
       return false;
     }
+
     final byte[] start = Arrays.copyOf(stream, prefix.length);
     return Arrays.equals(start, prefix);
   }
@@ -213,6 +227,7 @@ final class ResourcePackHttpHandlerFuzzTest {
     if (stream.length >= prefix.length) {
       return false;
     }
+
     final byte[] start = Arrays.copyOf(prefix, stream.length);
     return Arrays.equals(start, stream);
   }

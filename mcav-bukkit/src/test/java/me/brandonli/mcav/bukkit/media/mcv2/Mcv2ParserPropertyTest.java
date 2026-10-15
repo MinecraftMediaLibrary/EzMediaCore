@@ -89,6 +89,7 @@ final class Mcv2ParserPropertyTest {
         frames.addAll(folder.equals("edge") ? all : all.subList(0, Math.min(2, all.size())));
       }
     }
+
     frames.add(Mcv2Trees.twoPages());
     return List.copyOf(frames);
   }
@@ -147,6 +148,7 @@ final class Mcv2ParserPropertyTest {
         }
       }
     }
+
     return bytes;
   }
 
@@ -158,17 +160,20 @@ final class Mcv2ParserPropertyTest {
     } catch (final Mcv2Exception exception) {
       return;
     }
+
     final int size = frame.getWidth() * frame.getHeight() * 3;
     final byte[] reference = new byte[size];
     for (int index = 0; index < size; index++) {
       reference[index] = (byte) (index * 37);
     }
+
     final byte[] picture;
     try {
       picture = Mcv2Decoder.decode(frame, reference, frame.getReferenceId());
     } catch (final Mcv2Exception exception) {
       return;
     }
+
     final int pictureLength = picture.length;
     assertEquals(size, pictureLength);
   }
@@ -248,6 +253,7 @@ final class Mcv2ParserPropertyTest {
 
       payloads.writeBytes(page.getPayload());
     }
+
     final byte[] carriedFrame = payloads.toByteArray();
     assertArrayEquals(frame, carriedFrame);
 
@@ -258,6 +264,7 @@ final class Mcv2ParserPropertyTest {
         order.add(number);
       }
     }
+
     Collections.shuffle(order, random);
     final PageAssembler assembler = new PageAssembler(stream, symbolBits);
     final boolean[] seen = new boolean[pages.size()];
@@ -270,6 +277,7 @@ final class Mcv2ParserPropertyTest {
       final byte[] assembled = assembler.push(pages.get(number));
       if (missing == 0) {
         assertArrayEquals(frame, assembled);
+
         return;
       }
       assertNull(assembled);

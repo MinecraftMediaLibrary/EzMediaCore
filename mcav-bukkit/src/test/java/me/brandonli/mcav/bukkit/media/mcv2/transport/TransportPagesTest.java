@@ -64,15 +64,19 @@ final class TransportPagesTest {
     final List<Arguments> arguments = new ArrayList<>();
     final int streamId = root.get("stream_id").getAsInt();
     assertEquals(7, streamId);
+
     final int symbolBits = root.get("symbol_bits").getAsInt();
     assertEquals(6, symbolBits);
+
     for (final JsonElement entry : root.getAsJsonArray("frames")) {
       final JsonObject expected = entry.getAsJsonObject();
       final String name = expected.get("stream").getAsString() + "#" + expected.get("frame").getAsInt() + "@6";
       arguments.add(Arguments.of(name, expected));
     }
+
     final int vectorCount = arguments.size();
     assertEquals(6, vectorCount);
+
     return arguments.stream();
   }
 
@@ -88,23 +92,29 @@ final class TransportPagesTest {
     for (final byte[] page : pages) {
       digests.add(Mcv2Fixtures.sha256(page));
     }
+
     final List<String> reference = new ArrayList<>();
     expected.getAsJsonArray("pages").forEach(element -> reference.add(element.getAsString()));
     assertEquals(reference, digests);
+
     final int expectedPageCount = expected.getAsJsonArray("lengths").size();
     final int pageCount = pages.size();
     assertEquals(expectedPageCount, pageCount);
+
     for (int page = 0; page < pages.size(); page++) {
       final int expectedLength = expected.getAsJsonArray("lengths").get(page).getAsInt();
       final int length = pages.get(page).length;
       assertEquals(expectedLength, length);
     }
+
     final long expectedWire = expected.get("wire").getAsLong();
     final long wire = TransportPages.wireBytes(pages, false, TransportPages.PACKET_OVERHEAD);
     assertEquals(expectedWire, wire);
+
     final long expectedFullWire = expected.get("wire_full").getAsLong();
     final long fullWire = TransportPages.wireBytes(pages, true, TransportPages.PACKET_OVERHEAD);
     assertEquals(expectedFullWire, fullWire);
+
     final PageAssembler assembler = new PageAssembler(7, bits);
     byte[] assembled = null;
     for (final byte[] page : pages) {
@@ -116,6 +126,7 @@ final class TransportPagesTest {
       assertEquals(page.length, usefulSymbols);
       assembled = assembler.push(page);
     }
+
     assertArrayEquals(frame, assembled);
   }
 
@@ -129,11 +140,13 @@ final class TransportPagesTest {
     final int expectedSize = expected.size();
     final int size = pages.size();
     assertEquals(expectedSize, size);
+
     for (int index = 0; index < pages.size(); index++) {
       final byte[] expectedPage = expected.get(index);
       final byte[] page = pages.get(index);
       assertArrayEquals(expectedPage, page);
     }
+
     assertThrows(IllegalArgumentException.class, () -> TransportPages.makePages(parsed, -1));
     assertThrows(IllegalArgumentException.class, () -> TransportPages.makePages(parsed, 1L << 32));
     assertThrows(NullPointerException.class, () -> TransportPages.makePages((Mcv2Decoder.Frame) null, 7));
@@ -143,8 +156,10 @@ final class TransportPagesTest {
   void shouldKnowThePageCapacities() {
     final int capacity = TransportPages.capacity();
     assertEquals(12256, capacity);
+
     final int pageCountAtCapacity = TransportPages.pageCount(12256);
     assertEquals(1, pageCountAtCapacity);
+
     final int pageCountPastCapacity = TransportPages.pageCount(12257);
     assertEquals(2, pageCountPastCapacity);
   }
@@ -155,6 +170,7 @@ final class TransportPagesTest {
     final byte[] expectedSymbols = new byte[] { 37, 2 };
     final byte[] symbols = TransportPages.toSymbols(new byte[] { (byte) 0xA5 });
     assertArrayEquals(expectedSymbols, symbols);
+
     final byte[] expectedEmptySymbols = new byte[0];
     final byte[] emptySymbols = TransportPages.toSymbols(new byte[0]);
     assertArrayEquals(expectedEmptySymbols, emptySymbols);
@@ -173,6 +189,7 @@ final class TransportPagesTest {
     final byte[] symbols = TransportPages.toSymbols(new byte[] { 1, 2, 3 });
     assertThrows(Mcv2Exception.class, () -> TransportPages.fromSymbols(symbols, 4));
     assertThrows(Mcv2Exception.class, () -> TransportPages.fromSymbols(symbols, -1));
+
     final byte[] outside = symbols.clone();
     outside[0] = 64;
     final Mcv2Exception outsideFailure = assertThrows(Mcv2Exception.class, () -> TransportPages.fromSymbols(outside, 3));
@@ -204,18 +221,25 @@ final class TransportPagesTest {
     final TransportPage read = TransportPages.readPage(page());
     final long streamId = read.getStreamId();
     assertEquals(7, streamId);
+
     final long frameId = read.getFrameId();
     assertEquals(0, frameId);
+
     final int number = read.getNumber();
     assertEquals(0, number);
+
     final int count = read.getCount();
     assertEquals(1, count);
+
     final long referenceId = read.getReferenceId();
     assertEquals(0, referenceId);
+
     final int flags = read.getFlags();
     assertEquals(1, flags);
+
     final int symbolBits = read.getSymbolBits();
     assertEquals(6, symbolBits);
+
     final int expectedPayloadLength = read.getFrameBytes();
     final int payloadLength = read.getPayload().length;
     assertEquals(expectedPayloadLength, payloadLength);
@@ -273,6 +297,7 @@ final class TransportPagesTest {
 
     // the useful extent follows from the header; padding symbols after it are not part of the page
     assertThrows(Mcv2Exception.class, () -> TransportPages.readPage(Arrays.copyOf(page, page.length + 1)));
+
     final int usefulSymbols = TransportPages.usefulSymbols(page);
     assertEquals(page.length, usefulSymbols);
   }
@@ -321,6 +346,7 @@ final class TransportPagesTest {
   void shouldReadThePagesOfTheSmallestAndTheLargestFrames() throws Mcv2Exception {
     final int smallestFrameBytes = TransportPages.readPage(pageOfFrame(20, 0, 1, 20)).getFrameBytes();
     assertEquals(20, smallestFrameBytes);
+
     final int largestPayloadLength = TransportPages.readPage(pageOfFrame(131071, 10, 11, 8511)).getPayload().length;
     assertEquals(8511, largestPayloadLength);
 
@@ -355,6 +381,7 @@ final class TransportPagesTest {
     final long expectedWire = 128 + 18 + 256 + 18;
     final long wire = TransportPages.wireBytes(List.of(new byte[1], new byte[129]), false, 18);
     assertEquals(expectedWire, wire);
+
     final long expectedFullWire = 2 * (16384 + 5);
     final long fullWire = TransportPages.wireBytes(List.of(new byte[1], new byte[2]), true, 5);
     assertEquals(expectedFullWire, fullWire);

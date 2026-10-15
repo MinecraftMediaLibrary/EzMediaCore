@@ -49,6 +49,7 @@ public final class PackBuilderExample {
     if (args.length != 1) {
       throw new IllegalArgumentException("Usage: PackBuilderExample <resource-pack-format>");
     }
+
     final int format = Integer.parseInt(args[0]);
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(format, "MCAV example audio");

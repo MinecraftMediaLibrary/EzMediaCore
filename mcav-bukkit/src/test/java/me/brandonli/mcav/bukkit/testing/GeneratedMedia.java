@@ -84,6 +84,7 @@ public final class GeneratedMedia {
     if (COMPLETED.contains(destination) && Files.isRegularFile(destination) && Files.size(destination) > 0) {
       return destination;
     }
+
     COMPLETED.remove(destination);
     final Path parent = Objects.requireNonNull(destination.getParent(), "A media file must have a directory!");
     Files.createDirectories(parent);
@@ -97,10 +98,12 @@ public final class GeneratedMedia {
       log = Files.createTempFile(parent, "mcav-generating-", ".log");
       final List<String> arguments = command.apply(temporary);
       runProcess(arguments, log, timeout);
+
       if (!Files.isRegularFile(temporary) || Files.size(temporary) == 0) {
         final String message = "The fixture command %s succeeded without producing nonempty media!".formatted(arguments);
         throw new IOException(message);
       }
+
       publish(temporary, destination);
       COMPLETED.add(destination);
       return destination;
@@ -145,12 +148,14 @@ public final class GeneratedMedia {
           break;
         }
       }
+
       final int code = process.exitValue();
       if (code != 0) {
         final String diagnostic = readLog(log);
         final String message = "Fixture command failed with exit code %s, see its log below!\n%s".formatted(code, diagnostic);
         throw new IOException(message);
       }
+
       successful = true;
     } finally {
       if (!successful) {
@@ -170,6 +175,7 @@ public final class GeneratedMedia {
     try (final Stream<ProcessHandle> children = process.descendants()) {
       children.forEach(descendants::add);
     }
+
     descendants.forEach(ProcessHandle::destroyForcibly);
     process.destroyForcibly();
     try {
@@ -195,6 +201,7 @@ public final class GeneratedMedia {
         }
       }
     }
+
     if (cleanup != null) {
       if (primary != null) {
         primary.addSuppressed(cleanup);

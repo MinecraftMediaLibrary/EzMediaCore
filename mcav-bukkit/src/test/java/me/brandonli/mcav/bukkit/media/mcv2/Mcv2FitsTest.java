@@ -55,6 +55,7 @@ final class Mcv2FitsTest {
     Mcv2Internals.javaKernels().residualTarget(new int[] { 40, 60, 80, 9, 2, 3 }, new int[] { 0, 255, 128, 9, 2, 3 }, 2, target);
     final float luma = target[0];
     assertEquals(-99.5f, luma);
+
     final float chroma = target[1];
     assertEquals(0, chroma);
   }
@@ -66,6 +67,7 @@ final class Mcv2FitsTest {
     for (int row = 0; row < 8; row++) {
       System.arraycopy(samples, 0, values, row * 8, 8);
     }
+
     final float[] fitted = new float[16];
     Mcv2Internals.javaKernels().fit(values, 8, fitted);
     for (int row = 0; row < 4; row++) {

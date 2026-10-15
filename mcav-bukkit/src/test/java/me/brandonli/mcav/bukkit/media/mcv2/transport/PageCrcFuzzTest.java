@@ -61,6 +61,7 @@ final class PageCrcFuzzTest {
     } catch (final Mcv2Exception exception) {
       throw new AssertionError(exception);
     }
+
     return pages;
   }
 
@@ -69,18 +70,21 @@ final class PageCrcFuzzTest {
     if (data.length < 3) {
       return;
     }
+
     final List<byte[]> pages = PAGES;
     final byte[] original = pages.get((data[1] & 0xFF) % pages.size());
     final byte[] symbols = Arrays.copyOf(original, Math.max(0, original.length + data[2]));
     for (int offset = 3; offset < data.length && offset - 3 < symbols.length; offset++) {
       symbols[offset - 3] ^= data[offset];
     }
+
     final TransportPage page;
     try {
       page = TransportPages.readPage(symbols);
     } catch (final Mcv2Exception exception) {
       return;
     }
+
     final byte[] rebuilt = rebuild(page);
     assertArrayEquals(symbols, rebuilt);
   }

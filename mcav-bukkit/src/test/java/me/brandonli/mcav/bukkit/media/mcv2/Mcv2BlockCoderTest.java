@@ -36,6 +36,7 @@ final class Mcv2BlockCoderTest {
     for (int index = 0; index < rgb.length; index++) {
       rgb[index] = (byte) (low + random.nextInt(high - low));
     }
+
     return rgb;
   }
 
@@ -53,6 +54,7 @@ final class Mcv2BlockCoderTest {
     for (int index = 0; index < source.length; index++) {
       source[index] = (byte) ((source[index] & 0xFF) + 16);
     }
+
     final Mcv2BlockState job = code(source, reference);
     {
       final long distortion = job.distortion(2, 0);
@@ -117,6 +119,7 @@ final class Mcv2BlockCoderTest {
         }
       }
     }
+
     final int[] half = new int[2 * 2 * 3];
     Mcv2Internals.javaKernels().halve(block, 4, half);
     final int[] expectedHalf = new int[] { 20, 21, 22, 60, 61, 62, 100, 101, 102, 140, 141, 142 };
@@ -138,14 +141,17 @@ final class Mcv2BlockCoderTest {
       source[offset + 1] = 20;
       source[offset + 2] = 30;
     }
+
     final Mcv2BlockState job = new Mcv2BlockState(source, new byte[0], 8, 8, true, false, LAMBDA, null);
     job.code(8, 2, 0, 0, 0, Mcv2BlockState.NO_VECTOR);
 
     final int mode = job.mode(2, 0);
     assertEquals(Mcv2Decoder.MODE_SOLID, mode);
+
     final byte[] expectedRecord = new byte[] { 10, 20, 30 };
     final byte[] record = job.record(2, 0);
     assertArrayEquals(expectedRecord, record);
+
     final long distortion = job.distortion(2, 0);
     assertEquals(0, distortion);
   }
@@ -157,10 +163,12 @@ final class Mcv2BlockCoderTest {
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) (REFERENCE_LEVEL_BASE + random.nextInt(REFERENCE_LEVEL_SPREAD));
     }
+
     final byte[] source = reference.clone();
     for (int index = 0; index < source.length; index++) {
       source[index] = (byte) (source[index] + 16);
     }
+
     // The brightness step reaches motion search past the fixed early SKIP threshold.
     for (final int parent : new int[] { -4 << 16, 0x0000fffc, 4 << 16, -1 }) {
       final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
@@ -177,10 +185,12 @@ final class Mcv2BlockCoderTest {
     for (int index = 0; index < reference.length; index++) {
       reference[index] = (byte) (REFERENCE_LEVEL_BASE + random.nextInt(REFERENCE_LEVEL_SPREAD));
     }
+
     final byte[] source = reference.clone();
     for (int index = 0; index < source.length; index++) {
       source[index] = (byte) (source[index] + 16);
     }
+
     for (final int size : new int[] { 16, 32 }) {
       final Mcv2BlockState job = new Mcv2BlockState(source, reference, 32, 32, false, false, LAMBDA, null);
       final int level = size == 16 ? 1 : 0;

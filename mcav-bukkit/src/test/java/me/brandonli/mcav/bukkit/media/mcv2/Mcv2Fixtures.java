@@ -78,6 +78,7 @@ public final class Mcv2Fixtures {
       frames.add(Arrays.copyOfRange(archive, offset + 4, offset + 4 + length));
       offset += 4 + length;
     }
+
     return frames;
   }
 
@@ -100,6 +101,7 @@ public final class Mcv2Fixtures {
       }
       digests.put(entry.getKey(), frames);
     }
+
     return digests;
   }
 

@@ -150,11 +150,13 @@ public final class FakeServer implements AutoCloseable {
     final ScheduledTask scheduled = new ScheduledTask(runnable, false, task);
     doAnswer(_ -> {
       this.laterTasks.remove(scheduled);
+
       return null;
     })
       .when(task)
       .cancel();
     this.laterTasks.add(scheduled);
+
     return task;
   }
 
@@ -177,11 +179,13 @@ public final class FakeServer implements AutoCloseable {
     final ScheduledTask scheduled = new ScheduledTask(runnable, repeating, task);
     doAnswer(_ -> {
       this.tasks.remove(scheduled);
+
       return null;
     })
       .when(task)
       .cancel();
     this.tasks.add(scheduled);
+
     return task;
   }
 
@@ -245,6 +249,7 @@ public final class FakeServer implements AutoCloseable {
       } else {
         inverted.add(entity);
       }
+
       return null;
     })
       .when(player)
@@ -256,6 +261,7 @@ public final class FakeServer implements AutoCloseable {
       } else {
         inverted.remove(entity);
       }
+
       return null;
     })
       .when(player)
@@ -271,6 +277,7 @@ public final class FakeServer implements AutoCloseable {
     this.onlinePlayers.add(player);
     this.sentPackets.put(uuid, packets);
     this.pendingWrites.put(uuid, pending);
+
     return player;
   }
 
@@ -350,6 +357,7 @@ public final class FakeServer implements AutoCloseable {
     for (final ChannelFutureListener listener : writes) {
       listener.operationComplete(mock(ChannelFuture.class));
     }
+
     return writes.size();
   }
 
@@ -391,6 +399,7 @@ public final class FakeServer implements AutoCloseable {
       }
       task.runnable.run();
     }
+
     return snapshot.size();
   }
 
@@ -406,6 +415,7 @@ public final class FakeServer implements AutoCloseable {
       this.laterTasks.remove(task);
       task.runnable.run();
     }
+
     return snapshot.size();
   }
 

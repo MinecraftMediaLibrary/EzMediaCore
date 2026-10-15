@@ -59,8 +59,10 @@ final class Mcv2WorkersTest {
 
     final List<Integer> expected = List.of(0, 1, 2, 3, 4);
     assertEquals(expected, visited);
+
     final int scratchCount = scratches.get();
     assertEquals(1, scratchCount);
+
     final int threadCount = Workers.SEQUENTIAL.threads();
     assertEquals(1, threadCount);
   }
@@ -86,8 +88,10 @@ final class Mcv2WorkersTest {
         final int count = counts.get(position);
         assertEquals(1, count, "index " + position);
       }
+
       final int scratchCount = scratches.get();
       assertEquals(4, scratchCount);
+
       final boolean ranOnCaller = threads.contains(Thread.currentThread());
       assertFalse(ranOnCaller);
     } finally {
@@ -104,6 +108,7 @@ final class Mcv2WorkersTest {
       new Workers(pool, 8).forEach(2, scratches::incrementAndGet, (_, _) -> calls.incrementAndGet());
       final int callCount = calls.get();
       assertEquals(2, callCount);
+
       final int scratchCount = scratches.get();
       assertEquals(2, scratchCount);
 
@@ -158,9 +163,11 @@ final class Mcv2WorkersTest {
     final Runnable fail = () -> {
       await(siblingEntered);
       throwing.countDown();
+
       if (failure instanceof final RuntimeException exception) {
         throw exception;
       }
+
       throw (Error) failure;
     };
     final Thread caller = new Thread(() -> {
@@ -172,12 +179,14 @@ final class Mcv2WorkersTest {
             if (rootWorker && failInSupplier) {
               fail.run();
             }
+
             return rootWorker;
           },
           (rootWorker, _) -> {
             if (rootWorker) {
               fail.run();
             }
+
             siblingEntered.countDown();
             await(releaseSibling);
             siblingFinished.set(true);
@@ -194,6 +203,7 @@ final class Mcv2WorkersTest {
       caller.start();
       final boolean reachedFailure = throwing.await(5, TimeUnit.SECONDS);
       assertTrue(reachedFailure, "the root worker must reach its failure");
+
       final boolean returnedEarly = returned.await(200, TimeUnit.MILLISECONDS);
       assertFalse(returnedEarly, "forEach returned while a sibling callback still owned its state");
     } finally {
@@ -202,9 +212,11 @@ final class Mcv2WorkersTest {
       pool.shutdownNow();
       final boolean terminated = pool.awaitTermination(5, TimeUnit.SECONDS);
       assertTrue(terminated, "worker pool must terminate");
+
       final boolean callerAlive = caller.isAlive();
       assertFalse(callerAlive, "caller must terminate");
     }
+
     final boolean callbacksFinishedFirst = finishedBeforeReturn.get();
     assertTrue(callbacksFinishedFirst, "all callbacks must finish before the failure reaches the caller");
 
@@ -212,6 +224,7 @@ final class Mcv2WorkersTest {
     while (observed != null && observed.getCause() != null) {
       observed = observed.getCause();
     }
+
     assertSame(failure, observed);
   }
 

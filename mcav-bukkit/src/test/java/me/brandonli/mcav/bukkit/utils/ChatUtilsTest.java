@@ -67,6 +67,7 @@ final class ChatUtilsTest {
           colors.add(value);
         }
       }
+
       return Optional.empty();
     };
     component.visit(consumer, Style.EMPTY);
@@ -83,6 +84,7 @@ final class ChatUtilsTest {
       final String entry = ChatUtils.getUniqueString(index);
       entries.add(entry);
     }
+
     final int uniqueCount = entries.size();
     assertEquals("§0", zero);
     assertEquals("§a", ten);

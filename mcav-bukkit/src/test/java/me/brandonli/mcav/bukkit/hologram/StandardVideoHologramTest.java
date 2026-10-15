@@ -153,6 +153,7 @@ final class StandardVideoHologramTest {
   private static Component lastText(final TextDisplay display) {
     final ArgumentCaptor<Component> captor = ArgumentCaptor.forClass(Component.class);
     verify(display, atLeastOnce()).text(captor.capture());
+
     return captor.getValue();
   }
 
@@ -170,10 +171,12 @@ final class StandardVideoHologramTest {
       final int remainingLength = withoutProgress.length();
       count += contentLength - remainingLength;
     }
+
     final List<Component> children = component.children();
     for (final Component child : children) {
       count += countSegments(child, effectiveColor, color);
     }
+
     return count;
   }
 
@@ -205,6 +208,7 @@ final class StandardVideoHologramTest {
     final String plain = PLAIN.serialize(text);
     final String date = expectedDate(1, "st");
     assertSame(display, current);
+
     final String expected = "Some Video\nSome Channel (" + date + ")";
     assertEquals(expected, plain);
     verify(display).setPersistent(false);
@@ -333,6 +337,7 @@ final class StandardVideoHologramTest {
     assertEquals(expectedStart, startPlain);
     assertEquals(0, startFilled);
     assertEquals(BAR_LENGTH, startEmpty);
+
     final String expectedOneSecond = "t\nu (Unknown date)\n00:01 " + bar + DURATION_TEXT;
     assertEquals(expectedOneSecond, oneSecondPlain);
     assertEquals(2, oneSecondFilled);
@@ -344,6 +349,7 @@ final class StandardVideoHologramTest {
     for (int second = 0; second <= DURATION_SECONDS; second++) {
       this.server.runTasks();
     }
+
     final Component end = lastText(display);
     final String endPlain = PLAIN.serialize(end);
     final int endFilled = countFilled(end);
@@ -394,6 +400,7 @@ final class StandardVideoHologramTest {
     final String bar = PROGRESS.repeat(20);
     final String expectedLong = UNDATED_TEXT_AT_START + bar + " 02:05";
     assertEquals(expectedLong, longPlain);
+
     final String expectedNegative = UNDATED_TEXT_AT_START + bar + " 00:00";
     assertEquals(expectedNegative, negativePlain);
     assertEquals(0, negativeFilled);

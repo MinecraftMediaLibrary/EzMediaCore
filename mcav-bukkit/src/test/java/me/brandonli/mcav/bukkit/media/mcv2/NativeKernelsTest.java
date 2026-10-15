@@ -64,6 +64,7 @@ final class NativeKernelsTest {
     } else {
       body = MethodHandles.constant(type.returnType(), value);
     }
+
     return MethodHandles.dropArguments(body, 0, type.parameterList());
   }
 
@@ -96,6 +97,7 @@ final class NativeKernelsTest {
     kernels.forgetArrays();
     final boolean keepsPictureAfterForgetting = kernels.keeps(picture);
     assertFalse(keepsPictureAfterForgetting);
+
     final boolean keepsBlock = kernels.keeps(block);
     assertFalse(keepsBlock);
   }
@@ -269,17 +271,20 @@ final class NativeKernelsTest {
     finished.start(block, 0, 1);
     final boolean finishedPredicted = finished.predicted(block, 8, block);
     assertTrue(finishedPredicted);
+
     final long finishedDistortion = finished.distortion();
     assertEquals(42, finishedDistortion);
 
     stopped.start(block, 0, 1);
     final boolean stoppedPredicted = stopped.predicted(block, 8, block);
     assertFalse(stoppedPredicted);
+
     final long stoppedDistortion = stopped.distortion();
     assertEquals(0, stoppedDistortion);
 
     final Level level = finished.level();
     assertEquals(Level.SCALAR, level);
+
     final String symbol = Level.AVX2.symbol();
     assertEquals("avx2", symbol);
   }
@@ -362,6 +367,7 @@ final class NativeKernelsTest {
         prediction[offset + 2] = 255;
       }
     }
+
     expected[17] = 999;
     for (final Level level : NativeTesting.levels()) {
       final float[] actual = new float[18];

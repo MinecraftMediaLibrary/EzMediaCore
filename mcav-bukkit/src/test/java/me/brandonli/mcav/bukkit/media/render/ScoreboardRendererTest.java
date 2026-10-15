@@ -127,6 +127,7 @@ final class ScoreboardRendererTest {
     final ArgumentCaptor<String> objectiveName = ArgumentCaptor.forClass(String.class);
     final Component emptyTitle = Component.empty();
     verify(board).registerNewObjective(objectiveName.capture(), eq(Criteria.DUMMY), eq(emptyTitle));
+
     final String name = objectiveName.getValue();
     final boolean validName = name.matches(OBJECTIVE_NAME_PATTERN);
     final List<String> teamNames = this.scoreboards.getTeamNames();
@@ -138,6 +139,7 @@ final class ScoreboardRendererTest {
     assertSame(board, current);
     verify(objective).setDisplaySlot(DisplaySlot.SIDEBAR);
     verify(objective).numberFormat(hiddenNumbers);
+
     this.assertLinesAreOrdered();
   }
 
@@ -171,6 +173,7 @@ final class ScoreboardRendererTest {
     final Scoreboard board = this.scoreboards.getBoard();
     final ArgumentCaptor<String> names = ArgumentCaptor.forClass(String.class);
     verify(board, times(2)).registerNewObjective(names.capture(), any(Criteria.class), any(Component.class));
+
     final List<String> objectiveNames = names.getAllValues();
     final String firstName = objectiveNames.get(0);
     final String secondName = objectiveNames.get(1);
@@ -310,12 +313,14 @@ final class ScoreboardRendererTest {
     final List<Team> teams = this.scoreboards.getTeams();
     assertSame(this.previousBoard, viewerBoard);
     assertSame(mainBoard, lateBoard, "viewers that joined later get the main scoreboard");
+
     final Field retainedField = ScoreboardRenderer.class.getDeclaredField("previousScoreboards");
     retainedField.setAccessible(true);
     final Map<?, ?> retained = (Map<?, ?>) retainedField.get(renderer);
     final boolean retainsNothing = retained.isEmpty();
     assertTrue(retainsNothing, "released displays must not retain obsolete rendering state");
     verify(objective, times(1)).unregister();
+
     for (final Team team : teams) {
       verify(team, times(1)).unregister();
     }
@@ -346,6 +351,7 @@ final class ScoreboardRendererTest {
     final Scoreboard current = this.viewer.getScoreboard();
     assertSame(this.previousBoard, current);
     verify(this.viewer, times(1)).setScoreboard(this.previousBoard);
+
     this.viewers.add(VIEWER);
     renderer.onTick();
     renderer.hide();
@@ -390,6 +396,7 @@ final class ScoreboardRendererTest {
     final ScoreboardManager manager = this.server.getScoreboardManager();
     verify(manager, never()).getNewScoreboard();
     verify(this.viewer, never()).setScoreboard(any(Scoreboard.class));
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(0, tasks);
   }
@@ -409,11 +416,13 @@ final class ScoreboardRendererTest {
     final Objective objective = this.scoreboards.getObjective();
     assertSame(board, current);
     verify(objective, never()).unregister();
+
     final Component line = Component.text("still rendering");
     renderer.apply(new Component[] { line });
     final List<Team> teams = this.scoreboards.getTeams();
     final Team team = teams.getFirst();
     verify(team).suffix(line);
+
     final int tasks = this.server.getScheduledTaskCount();
     assertEquals(1, tasks);
   }

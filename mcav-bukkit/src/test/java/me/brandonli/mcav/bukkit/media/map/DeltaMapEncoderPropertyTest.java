@@ -155,6 +155,7 @@ final class DeltaMapEncoderPropertyTest {
       quietFrames = patches.isEmpty() ? quietFrames + 1 : 0;
       extraFrames++;
     }
+
     clients.assertShows(lastFrame);
   }
 
@@ -183,6 +184,7 @@ final class DeltaMapEncoderPropertyTest {
       final int mapId = patch.getMapId();
       maps.add(mapId);
     }
+
     final long sent = bytes;
     final int mapCount = maps.size();
     final boolean withinBudget = sent <= budget || mapCount == 1;
@@ -232,6 +234,7 @@ final class DeltaMapEncoderPropertyTest {
         final int row = index / this.imageWidth;
         frame[index] = (byte) (row % 50);
       }
+
       for (final List<FrameEdit> edits : this.frameEdits) {
         final byte[] next = frame.clone();
         for (final FrameEdit edit : edits) {
@@ -240,6 +243,7 @@ final class DeltaMapEncoderPropertyTest {
         frames.add(next);
         frame = next;
       }
+
       return frames;
     }
 
@@ -354,6 +358,7 @@ final class DeltaMapEncoderPropertyTest {
       final int mapCount = this.layout.getMapCount();
       final boolean inLayout = index >= 0 && index < mapCount;
       assertTrue(inLayout, () -> "patch for map " + mapId + ", which is not part of the layout");
+
       return index;
     }
 
@@ -397,6 +402,7 @@ final class DeltaMapEncoderPropertyTest {
         final short[] restoredMap = restored.maps[index];
         assertArrayEquals(expectedMap, restoredMap, "the snapshot reconstructs every sent pixel of map " + index);
       }
+
       final Set<Integer> snapshotMaps = new HashSet<>();
       for (final MapTilePatch patch : snapshot) {
         final int index = this.indexOf(patch);
@@ -412,6 +418,7 @@ final class DeltaMapEncoderPropertyTest {
           }
         }
       }
+
       for (int index = 0; index < this.maps.length; index++) {
         final boolean received = this.hasReceived(index);
         final boolean inSnapshot = snapshotMaps.contains(index);
@@ -425,6 +432,7 @@ final class DeltaMapEncoderPropertyTest {
           return true;
         }
       }
+
       return false;
     }
 
@@ -436,6 +444,7 @@ final class DeltaMapEncoderPropertyTest {
           covered++;
         }
       }
+
       return covered;
     }
 

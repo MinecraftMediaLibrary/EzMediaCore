@@ -47,6 +47,7 @@ final class DeltaMapEncoderTest {
         changed[index] = (byte) (changed[index] + 1);
       }
     }
+
     return changed;
   }
 
@@ -176,6 +177,7 @@ final class DeltaMapEncoderTest {
     final List<MapTilePatch> patches = encoder.encode(changed);
     final byte[] expected = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 32, 16, 32, 16);
     assertPatchCount(1, patches);
+
     final MapTilePatch patch = patches.getFirst();
     assertPatch(patch, 0, 32, 16, 32, 16, expected);
   }
@@ -281,6 +283,7 @@ final class DeltaMapEncoderTest {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
       assertNothingSent(deferred);
     }
+
     final List<MapTilePatch> patches = encoder.encode(noisy);
     final MapTilePatch patch = patches.getFirst();
     final byte[] expected = MapLayoutTest.copyRectangle(noisy, MAP_SIZE, 32, 32, 16, 16);
@@ -301,6 +304,7 @@ final class DeltaMapEncoderTest {
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }
+
     final List<MapTilePatch> reverted = encoder.encode(image);
 
     assertNothingSent(reverted);
@@ -309,6 +313,7 @@ final class DeltaMapEncoderTest {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
       assertNothingSent(deferred);
     }
+
     final List<MapTilePatch> patches = encoder.encode(noisy);
 
     assertPatchCount(1, patches);
@@ -476,6 +481,7 @@ final class DeltaMapEncoderTest {
     final byte[] changed = change(corner, MAP_SIZE, 96, 112, 32, 16);
     final List<MapTilePatch> patches = encoder.encode(changed);
     assertPatchCount(2, patches);
+
     final byte[] first = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 0, 0, 16, 16);
     final byte[] last = MapLayoutTest.copyRectangle(changed, MAP_SIZE, 96, 112, 32, 16);
     assertPatch(patches.get(0), 0, 0, 0, 16, 16, first);
@@ -606,12 +612,14 @@ final class DeltaMapEncoderTest {
     for (int frame = 0; frame < 5; frame++) {
       encoder.encode(noisy);
     }
+
     encoder.reset();
     encoder.encode(image);
     for (int frame = 0; frame < 6; frame++) {
       final List<MapTilePatch> deferred = encoder.encode(noisy);
       assertNothingSent(deferred);
     }
+
     final List<MapTilePatch> patches = encoder.encode(noisy);
 
     assertPatchCount(1, patches);

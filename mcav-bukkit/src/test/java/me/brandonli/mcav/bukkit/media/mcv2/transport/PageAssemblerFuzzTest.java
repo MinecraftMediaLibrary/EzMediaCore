@@ -67,6 +67,7 @@ final class PageAssemblerFuzzTest {
       Mcv2Decoder.putU32(frame, 16, index == 0 ? 1 : index);
       frames.add(frame);
     }
+
     return frames;
   }
 
@@ -79,6 +80,7 @@ final class PageAssemblerFuzzTest {
     } catch (final Mcv2Exception exception) {
       throw new AssertionError(exception);
     }
+
     return pages;
   }
 
@@ -87,6 +89,7 @@ final class PageAssemblerFuzzTest {
     if (data.length < 1) {
       return;
     }
+
     final int symbolBits = 6;
     final PageAssembler assembler = new PageAssembler(STREAM, symbolBits);
     final Map<Long, Set<Integer>> pending = new LinkedHashMap<>();
@@ -105,12 +108,14 @@ final class PageAssemblerFuzzTest {
             oldest.next();
             oldest.remove();
           }
+
           final Set<Integer> numbers = pending.computeIfAbsent(id, _ -> new HashSet<>());
           numbers.add(number);
           final byte[] assembled = assembler.push(page);
           if (numbers.size() == frame.size()) {
             final byte[] expected = FRAMES.get(index);
             assertArrayEquals(expected, assembled);
+
             pending.remove(id);
           } else {
             assertNull(assembled);

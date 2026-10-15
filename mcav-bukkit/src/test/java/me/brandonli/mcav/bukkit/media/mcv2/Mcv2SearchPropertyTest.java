@@ -37,6 +37,7 @@ final class Mcv2SearchPropertyTest {
       reference[index] = (byte) value;
       source[index] = (byte) Math.clamp(value + random.nextInt(2 * amplitude + 1) - amplitude, 0, 255);
     }
+
     return new byte[][] { source, reference };
   }
 
@@ -51,6 +52,7 @@ final class Mcv2SearchPropertyTest {
       final long chromaGreen = -red + 2 * green - blue;
       sum += 4 * luma * luma + orange * orange + chromaGreen * chromaGreen;
     }
+
     return sum;
   }
 

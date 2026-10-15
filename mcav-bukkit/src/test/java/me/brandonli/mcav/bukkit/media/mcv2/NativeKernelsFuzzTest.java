@@ -42,6 +42,7 @@ final class NativeKernelsFuzzTest {
     if (levels.isEmpty()) {
       return;
     }
+
     final Level level = levels.get(data.consumeInt(0, levels.size() - 1));
     final KernelDifferential.Values values = new KernelDifferential.Values() {
       @Override

@@ -75,6 +75,7 @@ final class GeneratedMediaTest {
     );
     final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     assertNotNull(compiler, "fixture tests run on the build JDK");
+
     final String target = this.directory.toString();
     final String sourcePath = source.toString();
     final int code = compiler.run(null, null, null, "-d", target, sourcePath);
@@ -109,18 +110,23 @@ final class GeneratedMediaTest {
     });
     final String content = Files.readString(generated);
     assertEquals(COMPLETED_MEDIA, content);
+
     final Path expectedPath = output.toAbsolutePath();
     assertEquals(expectedPath, generated);
+
     final Path staged = temporary.get();
     assertNotNull(staged);
+
     final boolean stagedAtTheOutput = staged.equals(output);
     assertFalse(stagedAtTheOutput, "the encoder writes into a temporary sibling");
+
     final Path cached = GeneratedMedia.generate(output, _ -> {
       throw new AssertionError("Successfully generated media must be reused!");
     });
     final int commands = invocations.get();
     assertEquals(generated, cached);
     assertEquals(1, commands);
+
     this.assertNoPartialFiles();
   }
 
@@ -134,14 +140,18 @@ final class GeneratedMediaTest {
     final String message = thrown.getMessage();
     final boolean reportsTheExitCode = message.contains("exit code 7");
     assertTrue(reportsTheExitCode);
+
     final boolean reportsTheDiagnostic = message.contains(DIAGNOSTIC);
     assertTrue(reportsTheDiagnostic);
+
     final String kept = Files.readString(output);
     assertEquals("old complete media", kept, "failed temporary output is never published");
+
     this.assertNoPartialFiles();
     final Path retried = GeneratedMedia.generate(output, path -> this.command(path, SUCCESS_ARGUMENT));
     final String content = Files.readString(retried);
     assertEquals(COMPLETED_MEDIA, content);
+
     this.assertNoPartialFiles();
   }
 
@@ -157,10 +167,13 @@ final class GeneratedMediaTest {
     final String message = thrown.getMessage();
     final boolean reportsTheTimeout = message.contains("took longer than its");
     assertTrue(reportsTheTimeout);
+
     final boolean withinTheDeadline = elapsed < 6_000_000_000L;
     assertTrue(withinTheDeadline, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");
+
     final boolean published = Files.exists(output);
     assertFalse(published);
+
     this.assertNoPartialFiles();
   }
 }

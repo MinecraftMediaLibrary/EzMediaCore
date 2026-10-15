@@ -152,9 +152,11 @@ final class Mcv2ChannelTest {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     final Mcv2Screen shownScreen = channel.getScreen();
     assertSame(this.screen, shownScreen);
+
     final Set<UUID> expectedDithered = Set.of(LOADED, WITHOUT, OFFLINE);
     final Set<UUID> dithered = channel.update();
     assertEquals(expectedDithered, dithered);
+
     final Set<UUID> recipients = channel.getRecipients();
     assertEquals(Set.of(), recipients);
 
@@ -165,13 +167,17 @@ final class Mcv2ChannelTest {
 
     this.server.runTasks();
     verify(this.screen).show(this.player);
+
     final boolean keyframeRequested = channel.takeKeyframeRequest();
     assertTrue(keyframeRequested);
+
     final boolean keyframeRequestedAgain = channel.takeKeyframeRequest();
     assertFalse(keyframeRequestedAgain);
+
     final Set<UUID> expectedDitheredWhenShown = Set.of(WITHOUT, OFFLINE);
     final Set<UUID> ditheredWhenShown = channel.update();
     assertEquals(expectedDitheredWhenShown, ditheredWhenShown);
+
     final Set<UUID> expectedRecipientsWhenShown = Set.of(LOADED);
     final Set<UUID> recipientsWhenShown = channel.getRecipients();
     assertEquals(expectedRecipientsWhenShown, recipientsWhenShown);
@@ -180,11 +186,13 @@ final class Mcv2ChannelTest {
     final Set<UUID> expectedDitheredWhenUnloaded = Set.of(LOADED, WITHOUT, OFFLINE);
     final Set<UUID> ditheredWhenUnloaded = channel.update();
     assertEquals(expectedDitheredWhenUnloaded, ditheredWhenUnloaded);
+
     final Set<UUID> recipientsWhenUnloaded = channel.getRecipients();
     assertEquals(Set.of(), recipientsWhenUnloaded);
 
     channel.show(LOADED);
     verify(this.screen).show(this.player);
+
     channel.requestKeyframe();
     final boolean keyframeRequestedOnDemand = channel.takeKeyframeRequest();
     assertTrue(keyframeRequestedOnDemand);
@@ -200,8 +208,10 @@ final class Mcv2ChannelTest {
     channel.update();
     this.server.runTasks();
     verify(this.screen).hide(this.player);
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links);
+
     final Set<UUID> recipients = channel.getRecipients();
     assertEquals(Set.of(), recipients);
 
@@ -209,6 +219,7 @@ final class Mcv2ChannelTest {
     channel.update();
     this.server.runTasks();
     verify(this.screen, times(2)).show(this.player);
+
     channel.update();
     final Set<UUID> expectedRecipients = Set.of(LOADED);
     final Set<UUID> recipientsWhenReloaded = channel.getRecipients();
@@ -225,9 +236,11 @@ final class Mcv2ChannelTest {
       } else {
         when(this.viewers.isLoaded(LOADED)).thenReturn(false);
       }
+
       if (retirement == 0) {
         channel.update();
       }
+
       return null;
     })
       .when(this.screen)
@@ -248,19 +261,24 @@ final class Mcv2ChannelTest {
       if (loadedChecks.getAndIncrement() == 0) {
         return true;
       }
+
       channel.close();
+
       return false;
     });
     this.server.runTasks();
     final int checks = loadedChecks.get();
     assertEquals(2, checks, "close overlaps the check after link publication");
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links);
+
     final Set<UUID> recipients = channel.getRecipients();
     assertEquals(Set.of(), recipients);
     verify(this.screen).show(this.player);
     verify(this.screen).remove();
     verify(this.screen, never()).hide(this.player);
+
     final boolean keyframeRequested = channel.takeKeyframeRequest();
     assertFalse(keyframeRequested, "a retired show must not request another frame");
   }
@@ -279,8 +297,10 @@ final class Mcv2ChannelTest {
     final Set<UUID> expectedDithered = Set.of(WITHOUT, OFFLINE);
     final Set<UUID> dithered = channel.update();
     assertEquals(expectedDithered, dithered);
+
     final Set<UUID> recipientsAfterRemoval = channel.getRecipients();
     assertEquals(Set.of(), recipientsAfterRemoval);
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links, "the link is retired");
 
@@ -298,6 +318,7 @@ final class Mcv2ChannelTest {
     this.server.removePlayer(LOADED);
     this.server.runTasks();
     verify(this.screen, never()).hide(this.player);
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links);
   }
@@ -324,6 +345,7 @@ final class Mcv2ChannelTest {
       if (closed.compareAndSet(false, true)) {
         channel.close();
       }
+
       hides.add(invocation.getArgument(1));
       return mock(BukkitTask.class);
     })
@@ -348,6 +370,7 @@ final class Mcv2ChannelTest {
     this.server.runTasks();
     verify(this.screen, never()).hide(this.player);
     verify(this.screen, times(2)).show(this.player);
+
     final Set<UUID> expectedLinked = Set.of(LOADED);
     final Set<UUID> linked = channel.getLinks().keySet();
     assertEquals(expectedLinked, linked);
@@ -360,6 +383,7 @@ final class Mcv2ChannelTest {
     this.configuration.getViewers().remove(LOADED);
     this.server.runTasks();
     verify(this.screen, never()).show(this.player);
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links);
   }
@@ -373,6 +397,7 @@ final class Mcv2ChannelTest {
     final int colors = channel.send(keyframe());
     final boolean positiveWholeRows = colors > 0 && colors % MAP_SIZE == 0;
     assertTrue(positiveWholeRows);
+
     final List<ClientboundMapItemDataPacket> first = MapPackets.unbundle(this.server.getSentPackets(LOADED).getFirst());
     final int firstSize = first.size();
     assertEquals(2, firstSize, "the page, then the anchor");
@@ -381,6 +406,7 @@ final class Mcv2ChannelTest {
     final List<ClientboundMapItemDataPacket> second = MapPackets.unbundle(this.server.getSentPackets(LOADED).get(1));
     final int secondSize = second.size();
     assertEquals(1, secondSize);
+
     final List<Packet<?>> sentWithout = this.server.getSentPackets(WITHOUT);
     assertEquals(List.of(), sentWithout);
   }
@@ -408,6 +434,7 @@ final class Mcv2ChannelTest {
     this.server.runTasks();
     channel.update();
     verify(this.screen).show(second);
+
     channel.send(frame(0, 0, true));
     this.server.completeWrites(other);
     channel.send(frame(1, 0, false));
@@ -416,11 +443,14 @@ final class Mcv2ChannelTest {
     this.server.completeWrites(other);
     final int otherPackets = this.server.getSentPackets(other).size();
     assertEquals(3, otherPackets);
+
     final int loadedPackets = this.server.getSentPackets(LOADED).size();
     assertEquals(2, loadedPackets, "the keyframe, and the frame the backlog still allowed");
+
     final Mcv2Link slow = channel.getLinks().get(LOADED);
     final long behind = slow.getBehind();
     assertEquals(1, behind);
+
     final boolean overTheLimit = slow.getBacklog() > BACKLOG_LIMIT;
     assertTrue(overTheLimit);
 
@@ -432,14 +462,17 @@ final class Mcv2ChannelTest {
     channel.send(frame(3, 2, false));
     final int loadedPacketsWhileWaiting = this.server.getSentPackets(LOADED).size();
     assertEquals(2, loadedPacketsWhileWaiting);
+
     final long undecodable = slow.getUndecodable();
     assertEquals(1, undecodable);
 
     channel.send(frame(4, 4, true));
     final int loadedPacketsAfterKeyframe = this.server.getSentPackets(LOADED).size();
     assertEquals(3, loadedPacketsAfterKeyframe);
+
     final int otherPacketsAfterKeyframe = this.server.getSentPackets(other).size();
     assertEquals(5, otherPacketsAfterKeyframe);
+
     final long otherBehind = channel.getLinks().get(other).getBehind();
     assertEquals(0, otherBehind);
   }
@@ -480,22 +513,31 @@ final class Mcv2ChannelTest {
         .toList();
       final int sendCount = sends.size();
       assertEquals(5, sendCount);
+
       final boolean firstIsKeyframe = sends.get(0).getBoolean("keyframe");
       assertTrue(firstIsKeyframe);
+
       final int sentTo = sends.get(1).getInt("sentTo");
       assertEquals(1, sentTo);
+
       final long referenceId = sends.get(1).getLong("referenceId");
       assertEquals(0, referenceId);
+
       final int behind = sends.get(2).getInt("behind");
       assertEquals(1, behind);
+
       final boolean overTheLimit = sends.get(2).getLong("backlog") > BACKLOG_LIMIT;
       assertTrue(overTheLimit);
+
       final int waiting = sends.get(3).getInt("waiting");
       assertEquals(1, waiting);
+
       final int colors = sends.get(4).getInt("colors");
       assertEquals(-1, colors);
+
       final boolean sentRecorded = sends.get(0).getLong("sent") > 0;
       assertTrue(sentRecorded);
+
       final int bytes = sends.get(0).getInt("bytes");
       assertEquals(48, bytes);
     }
@@ -513,8 +555,10 @@ final class Mcv2ChannelTest {
     // nothing reached a connection, so nothing waits to be written
     final long backlog = channel.getLinks().get(LOADED).getBacklog();
     assertEquals(0, backlog);
+
     final long sent = channel.getLinks().get(LOADED).getSent();
     assertEquals(1, sent);
+
     final int writes = this.server.completeWrites(LOADED);
     assertEquals(0, writes);
 
@@ -569,6 +613,7 @@ final class Mcv2ChannelTest {
     final Mcv2Channel channel = new Mcv2Channel(narrow, this.viewers, this.screen);
     final int colors = channel.send(large());
     assertEquals(-1, colors);
+
     final boolean keyframeRequested = channel.takeKeyframeRequest();
     assertTrue(keyframeRequested);
     assertThrows(IllegalArgumentException.class, () -> channel.send(new byte[48]));
@@ -580,6 +625,7 @@ final class Mcv2ChannelTest {
     final Mcv2Channel channel = new Mcv2Channel(this.configuration, this.viewers, this.screen);
     channel.open();
     verify(this.screen).build();
+
     channel.update();
     this.server.runTasks();
     channel.update();
@@ -590,8 +636,10 @@ final class Mcv2ChannelTest {
 
     channel.close();
     verify(this.screen).remove();
+
     final Map<UUID, Mcv2Link> links = channel.getLinks();
     assertEquals(Map.of(), links);
+
     final Set<UUID> recipients = channel.getRecipients();
     assertEquals(Set.of(), recipients);
 
@@ -611,6 +659,7 @@ final class Mcv2ChannelTest {
     // the offline viewer's show found no player; the next update schedules it again
     channel.update();
     verify(this.screen).show(this.player);
+
     final int scheduledTasks = this.server.getScheduledTaskCount();
     assertEquals(1, scheduledTasks);
   }
@@ -680,6 +729,7 @@ final class Mcv2ChannelTest {
 
     this.server.runTasks();
     verify(this.screen).show(rejoined);
+
     channel.update();
     final Set<UUID> expectedRecipientsWhenShown = Set.of(LOADED);
     final Set<UUID> recipientsWhenShown = channel.getRecipients();
@@ -699,6 +749,7 @@ final class Mcv2ChannelTest {
     channel.takeKeyframeRequest();
     final boolean sentColors = channel.send(keyframe()) > 0;
     assertTrue(sentColors);
+
     final List<Packet<?>> sentWhileAway = this.server.getSentPackets(LOADED);
     assertEquals(List.of(), sentWhileAway, "400 blocks away with a view distance of 6 chunks");
 
@@ -731,9 +782,11 @@ final class Mcv2ChannelTest {
       this.server.runTasks();
       final Map<UUID, Mcv2Link> links = channel.getLinks();
       assertEquals(Map.of(), links);
+
       final Set<UUID> recipients = channel.getRecipients();
       assertEquals(Set.of(), recipients);
       verify(this.screen, never()).show(this.player);
+
       final boolean keyframeRequested = channel.takeKeyframeRequest();
       assertFalse(keyframeRequested, "an out-of-range show must not request another frame");
     } finally {
@@ -809,6 +862,7 @@ final class Mcv2ChannelTest {
     channel.update();
     this.server.runTasks();
     verify(this.screen).hide(this.player);
+
     channel.close();
   }
 
@@ -824,6 +878,7 @@ final class Mcv2ChannelTest {
     verify(this.screen, never()).show(this.player);
     // a hide would take away the team of the other screens shown to them
     verify(this.screen, never()).hide(this.player);
+
     channel.close();
   }
 
@@ -890,6 +945,7 @@ final class Mcv2ChannelTest {
     // a view distance of 6 chunks and the margin of a viewer who has not left: 128 blocks from the nearest block
     final boolean receivesEast = this.receivesFrom(BlockFace.SOUTH, 5, 1, 133, STANDING_LEVEL, BLOCK_CENTER);
     assertTrue(receivesEast, "128 blocks east of the fifth column");
+
     final boolean receivesSouth = this.receivesFrom(BlockFace.WEST, 5, 1, BLOCK_CENTER, STANDING_LEVEL, 133);
     assertTrue(receivesSouth, "128 blocks south of the fifth column");
   }
@@ -899,6 +955,7 @@ final class Mcv2ChannelTest {
     // the third row from the top is the block at y 62
     final boolean receivesJustInReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, BLOCK_CENTER, -66, BLOCK_CENTER);
     assertTrue(receivesJustInReach, "128 blocks below the lowest row");
+
     final boolean receivesJustOutOfReach = this.receivesFrom(BlockFace.SOUTH, 1, 3, BLOCK_CENTER, -67, BLOCK_CENTER);
     assertFalse(receivesJustOutOfReach, "129 blocks below it");
   }
@@ -908,6 +965,7 @@ final class Mcv2ChannelTest {
     // 100 blocks off on each of two axes: 141 blocks away, though neither alone is out of reach
     final boolean receivesEastAndAbove = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, 165, BLOCK_CENTER);
     assertFalse(receivesEastAndAbove, "east and above");
+
     final boolean receivesEastAndSouth = this.receivesFrom(BlockFace.SOUTH, 1, 1, 101, STANDING_LEVEL, 101);
     assertFalse(receivesEastAndSouth, "east and south");
   }
@@ -921,6 +979,7 @@ final class Mcv2ChannelTest {
     // before the first measurement of the timer the viewer 400 blocks away is in neither group
     final Set<UUID> dithered = channel.update();
     assertEquals(Set.of(), dithered);
+
     final int scheduledTasks = this.server.getScheduledTaskCount();
     assertEquals(1, scheduledTasks, "only the measurement: the screen is not shown to them");
 

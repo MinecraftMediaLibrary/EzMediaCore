@@ -52,6 +52,7 @@ final class Mcv2ReconstructionTest {
     kernels.predict(reference, 2, 2, 0, 0, 8, -5, -5, out);
     final int clampedFirst = out[0];
     assertEquals(0, clampedFirst);
+
     final int clampedLast = out[(7 * 8 + 7) * 3];
     assertEquals(120, clampedLast);
   }

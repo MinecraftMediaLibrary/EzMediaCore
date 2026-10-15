@@ -88,6 +88,7 @@ final class BukkitModuleTest {
     final boolean connected = PacketUtils.isConnected(PLAYER);
     assertSame(plugin, injected);
     assertTrue(connected);
+
     this.verifyConnectionTrackingRegistered(1);
   }
 
@@ -101,6 +102,7 @@ final class BukkitModuleTest {
       final IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> module.inject(plugin));
       assertSame(unavailable, thrown);
     }
+
     final PluginManager manager = this.server.getPluginManager();
     verifyNoInteractions(manager);
   }
@@ -120,6 +122,7 @@ final class BukkitModuleTest {
     final PluginManager pluginManager = this.server.getPluginManager();
     assertThrows(UnsupportedServerVersionException.class, () -> module.inject(plugin));
     assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
+
     verifyNoInteractions(pluginManager);
   }
 
@@ -141,6 +144,7 @@ final class BukkitModuleTest {
     final boolean connectedAfterRestart = PacketUtils.isConnected(PLAYER);
     assertFalse(connectedWhileStopped);
     assertTrue(connectedAfterRestart, "a restarted module can send packets again");
+
     this.verifyConnectionTrackingRegistered(2);
   }
 
@@ -154,6 +158,7 @@ final class BukkitModuleTest {
     module.start();
     final boolean connected = PacketUtils.isConnected(PLAYER);
     assertFalse(connected);
+
     this.verifyConnectionTrackingRegistered(1);
   }
 
@@ -164,6 +169,7 @@ final class BukkitModuleTest {
     module.start();
     final String name = module.getModuleName();
     assertEquals("bukkit", name);
+
     verifyNoInteractions(pluginManager);
     assertThrows(IllegalStateException.class, BukkitModule::getPlugin);
   }

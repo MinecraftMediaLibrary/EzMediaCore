@@ -92,6 +92,7 @@ final class Mcv2WriterTest {
     for (final byte[] record : new byte[][] { {}, { 3 }, { 0x30 }, { 0 }, { 0, 1, 2 } }) {
       assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, Node.leaf(Mcv2Decoder.MODE_COMPACT, 0, record)));
     }
+
     final byte[] pattern = new byte[11];
     pattern[6] = 2;
     assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, Node.leaf(Mcv2Decoder.MODE_PATTERN, 0, pattern)));
@@ -113,6 +114,7 @@ final class Mcv2WriterTest {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(predicted(64, 32, coarse, compact));
     final int firstQuantizer = frame.getLeaf(0).quantizer();
     assertEquals(2, firstQuantizer);
+
     final int secondQuantizer = frame.getLeaf(1).quantizer();
     assertEquals(1, secondQuantizer);
   }
@@ -122,14 +124,17 @@ final class Mcv2WriterTest {
     final byte[] skipped = predicted(64, 32, Node.skip(), Node.skip());
     final int skippedLength = skipped.length;
     assertEquals(40, skippedLength);
+
     final int leafCount = Mcv2Decoder.parse(skipped).getLeafCount();
     assertEquals(2, leafCount);
 
     final byte[] uniform = keyframe(64, 32, solid(3, 3, 3), solid(3, 3, 3));
     final int uniformLength = uniform.length;
     assertEquals(52, uniformLength);
+
     final long firstGroupMask = Mcv2Decoder.u32(uniform, 20);
     assertEquals(3, firstGroupMask);
+
     final List<Node> expectedRoots = List.of(solid(3, 3, 3), solid(3, 3, 3));
     final List<Node> roots = Mcv2Trees.read(Mcv2Decoder.parse(uniform));
     assertEquals(expectedRoots, roots);

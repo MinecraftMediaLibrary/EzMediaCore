@@ -157,8 +157,10 @@ final class RendererResultsTest {
 
     assertTrue(handled);
     verify(this.viewer).showEntity(plugin, display);
+
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
+
     final String text = textCaptor.getValue().getString();
     assertEquals(CHARACTER, text);
 
@@ -167,6 +169,7 @@ final class RendererResultsTest {
       for (int index = 0; index < characters.length(); index++) {
         colors.add(style.getColor() == null ? -1 : style.getColor().getValue());
       }
+
       return Optional.empty();
     }, Style.EMPTY);
     final List<Integer> expectedColors = List.of(0x000000);
@@ -224,6 +227,7 @@ final class RendererResultsTest {
 
     final List<String> expectedCharacters = List.of("█", "□", "■", "○", "●", "▫", "▪");
     assertEquals(expectedCharacters, characters);
+
     UtilityClassAssertions.assertNotInstantiable(Characters.class);
   }
 }

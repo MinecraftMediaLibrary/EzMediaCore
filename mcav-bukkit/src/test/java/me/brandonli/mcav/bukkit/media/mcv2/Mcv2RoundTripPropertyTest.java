@@ -52,6 +52,7 @@ final class Mcv2RoundTripPropertyTest {
     for (int index = 0; index < rgb.length; index++) {
       rgb[index] = (byte) random.nextInt(256);
     }
+
     for (int shapes = random.nextInt(6); shapes > 0; shapes--) {
       final int left = random.nextInt(width);
       final int top = random.nextInt(height);
@@ -73,6 +74,7 @@ final class Mcv2RoundTripPropertyTest {
         }
       }
     }
+
     return rgb;
   }
 
@@ -82,6 +84,7 @@ final class Mcv2RoundTripPropertyTest {
     if (kind == 3) {
       return picture(random, width, height);
     }
+
     final byte[] rgb = previous.clone();
     if (kind == 1) {
       final int deltaX = random.nextInt(9) - 4;
@@ -98,6 +101,7 @@ final class Mcv2RoundTripPropertyTest {
       final int rows = 1 + random.nextInt(height);
       System.arraycopy(patch, 0, rgb, 0, rows * width * 3);
     }
+
     return rgb;
   }
 
@@ -140,6 +144,7 @@ final class Mcv2RoundTripPropertyTest {
       rgb[offset + 1] = (byte) (color >> 8);
       rgb[offset + 2] = (byte) color;
     }
+
     final Mcv2 encoder = new Mcv2(PROFILES.get(profile).withLambda(lambda), POOL, 2, false);
     final byte[] decoded = new Mcv2Receiver().accept(encoder.encode(rgb, width, height, 0));
     assertArrayEquals(rgb, decoded);

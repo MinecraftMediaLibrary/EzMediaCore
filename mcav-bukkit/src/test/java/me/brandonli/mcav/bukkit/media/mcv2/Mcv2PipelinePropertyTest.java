@@ -59,6 +59,7 @@ final class Mcv2PipelinePropertyTest {
         return false;
       }
     }
+
     return one.size() == two.size();
   }
 }

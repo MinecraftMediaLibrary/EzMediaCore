@@ -58,6 +58,7 @@ final class Mcv2ParserTest {
     final Mcv2Decoder.Frame frame = Mcv2Decoder.parse(Mcv2Trees.predicted(1, 1, Node.skip()));
     final int leafCount = frame.getLeafCount();
     assertEquals(1, leafCount);
+
     final int offset = frame.getLeaf(0).offset();
     assertEquals(-1, offset);
   }
@@ -73,21 +74,29 @@ final class Mcv2ParserTest {
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(frame);
     final int width = parsed.getWidth();
     assertEquals(40, width);
+
     final int height = parsed.getHeight();
     assertEquals(20, height);
+
     final long frameId = parsed.getFrameId();
     assertEquals(0, frameId);
+
     final long referenceId = parsed.getReferenceId();
     assertEquals(0, referenceId);
+
     final boolean keyframe = parsed.isKeyframe();
     assertTrue(keyframe);
+
     final int dataLength = parsed.getData().length;
     assertEquals(frame.length, dataLength);
+
     final byte[] data = parsed.getData();
     assertArrayEquals(frame, data);
+
     final byte[] firstCopy = parsed.getData();
     final byte[] secondCopy = parsed.getData();
     assertNotSame(firstCopy, secondCopy);
+
     final int leafCount = parsed.getLeafCount();
     assertEquals(5, leafCount);
 
@@ -100,6 +109,7 @@ final class Mcv2ParserTest {
     final Mcv2Decoder.Leaf expectedPaletteLeaf = new Mcv2Decoder.Leaf(32, 0, 16, Mcv2Decoder.MODE_PALETTE, 0, parsed.getPayloadStart() + 3);
     final Mcv2Decoder.Leaf paletteLeaf = leaves.get(1);
     assertEquals(expectedPaletteLeaf, paletteLeaf);
+
     final Mcv2Decoder.Leaf expectedSolidLeaf = new Mcv2Decoder.Leaf(0, 0, 32, Mcv2Decoder.MODE_SOLID, 0, parsed.getPayloadStart());
     final Mcv2Decoder.Leaf solidLeaf = leaves.get(0);
     assertEquals(expectedSolidLeaf, solidLeaf);
@@ -120,6 +130,7 @@ final class Mcv2ParserTest {
   void shouldRejectBytesThatAreNotAnMcv2Frame() {
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V' }));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[48]));
+
     final Mcv2Exception mcv1 = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(new byte[] { 'M', 'C', 'V', '1' }));
     final String failureMessage = mcv1.getMessage();
     assertEquals("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!", failureMessage);
@@ -149,6 +160,7 @@ final class Mcv2ParserTest {
     // the shortest and the longest frames pass the length check and reach the header's
     final String shortestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.HEADER_BYTES));
     assertEquals(NOT_A_FRAME_MESSAGE, shortestMessage);
+
     final String longestMessage = message(Arrays.copyOf(magic, Mcv2Decoder.MAXIMUM_FRAME_BYTES));
     assertEquals(NOT_A_FRAME_MESSAGE, longestMessage);
   }

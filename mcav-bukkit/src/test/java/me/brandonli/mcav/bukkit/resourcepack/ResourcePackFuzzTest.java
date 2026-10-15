@@ -156,6 +156,7 @@ final class ResourcePackFuzzTest {
   private static JsonObject readJson(final ZipFile zip, final String name) throws IOException {
     final ZipEntry entry = zip.getEntry(name);
     assertNotNull(entry, () -> "the pack has no " + name);
+
     try (final InputStream stream = zip.getInputStream(entry)) {
       final byte[] bytes = stream.readAllBytes();
       final String json = new String(bytes, StandardCharsets.UTF_8);

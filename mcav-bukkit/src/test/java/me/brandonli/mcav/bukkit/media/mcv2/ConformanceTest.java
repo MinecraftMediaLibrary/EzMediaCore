@@ -53,6 +53,7 @@ final class ConformanceTest {
         arguments.add(Arguments.of(folder, entry.getKey(), entry.getValue()));
       }
     }
+
     return arguments.stream();
   }
 

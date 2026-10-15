@@ -92,6 +92,7 @@ final class Mcv2ShaderFallbackTest {
     final Set<UUID> expectedShadersOnFallback = Set.of(VIEWER);
     final Set<UUID> shadersOnFallback = channel.update();
     assertEquals(expectedShadersOnFallback, shadersOnFallback, "a player reporting shaders in use still gets MCV2 frames");
+
     final Set<UUID> shadersOnRecipients = channel.getRecipients();
     assertEquals(Set.of(), shadersOnRecipients);
 
@@ -100,6 +101,7 @@ final class Mcv2ShaderFallbackTest {
     this.server.runTasks();
     final Set<UUID> shadersOffFallback = channel.update();
     assertEquals(Set.of(), shadersOffFallback, "shaders off, the player is shown the screen again without rejoining");
+
     final Set<UUID> expectedShadersOffRecipients = Set.of(VIEWER);
     final Set<UUID> shadersOffRecipients = channel.getRecipients();
     assertEquals(expectedShadersOffRecipients, shadersOffRecipients);
@@ -113,11 +115,14 @@ final class Mcv2ShaderFallbackTest {
     final Set<UUID> expectedFallback = Set.of(LATE_VIEWER);
     final Set<UUID> fallback = channel.update();
     assertEquals(expectedFallback, fallback);
+
     final int tasks = this.server.runTasks();
     assertEquals(0, tasks, "no show is scheduled for a player who cannot decode");
+
     final Set<UUID> expectedFallbackAgain = Set.of(LATE_VIEWER);
     final Set<UUID> fallbackAgain = channel.update();
     assertEquals(expectedFallbackAgain, fallbackAgain);
+
     final Set<UUID> recipients = channel.getRecipients();
     assertEquals(Set.of(), recipients);
   }
@@ -131,8 +136,10 @@ final class Mcv2ShaderFallbackTest {
     this.server.receivePluginMessage(this.player, CHANNEL, SHADERS_ON);
     final boolean reported = this.viewers.hasShaderReport(VIEWER);
     assertTrue(reported);
+
     final boolean loaded = this.viewers.isLoaded(VIEWER);
     assertFalse(loaded);
+
     final boolean otherReported = this.viewers.hasShaderReport(LATE_VIEWER);
     assertFalse(otherReported, "a report is its sender's alone");
 

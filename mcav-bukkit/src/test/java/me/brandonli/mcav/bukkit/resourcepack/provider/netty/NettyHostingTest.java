@@ -159,6 +159,7 @@ final class NettyHostingTest {
       final String firstUrl = first.getRawUrl();
       final String secondUrl = second.getRawUrl();
       assertNotEquals(firstUrl, secondUrl);
+
       final List<NettyHosting> hosts = List.of(first, second);
       for (final NettyHosting hosting : hosts) {
         final URI uri = URI.create(hosting.getRawUrl());
@@ -174,11 +175,13 @@ final class NettyHostingTest {
             part.writeByte(value);
             channel.writeInbound(part);
           }
+
           final ByteBuf headers = channel.readOutbound();
           final String text = headers.toString(StandardCharsets.US_ASCII);
           headers.release();
           final boolean served = text.startsWith("HTTP/1.1 200 OK");
           assertTrue(served);
+
           final ByteBuf body = channel.readOutbound();
           final byte[] received = ByteBufUtil.getBytes(body);
           body.release();
@@ -213,6 +216,7 @@ final class NettyHostingTest {
 
     final int expectedRunning = before + 2;
     assertEquals(expectedRunning, running, "starting twice registers one listener, and every instance has its own");
+
     final int expectedAfterFirstShutdown = before + 1;
     assertEquals(expectedAfterFirstShutdown, afterFirstShutdown);
     assertEquals(before, after);
@@ -227,8 +231,10 @@ final class NettyHostingTest {
     final String secondName = second.getHandlerName();
 
     assertNotEquals(firstName, secondName, "two instances must not install handlers under one name");
+
     final boolean firstNamePrefixed = firstName.startsWith(ResourcePackHttpHandler.NAME);
     assertTrue(firstNamePrefixed, firstName);
+
     final boolean secondNamePrefixed = secondName.startsWith(ResourcePackHttpHandler.NAME);
     assertTrue(secondNamePrefixed, secondName);
   }
@@ -243,6 +249,7 @@ final class NettyHostingTest {
     final ChannelPipeline activePipeline = before.pipeline();
     final ChannelHandler active = activePipeline.get(handlerName);
     assertNotNull(active, "the instance handler must be installed before shutdown");
+
     hosting.shutdown();
     final EmbeddedChannel channel = connect();
 
@@ -262,6 +269,7 @@ final class NettyHostingTest {
       final byte[] bodyBytes = downloadPack(channel, hosting);
 
       assertArrayEquals(PACK, bodyBytes);
+
       files.verify(() -> Files.readAllBytes(this.zip), times(1));
       files.verify(() -> Files.readAttributes(this.zip, BasicFileAttributes.class), times(2));
     } finally {
@@ -359,6 +367,7 @@ final class NettyHostingTest {
 
       final boolean fallsBackToLocalhost = fallbackUrl.startsWith("http://localhost:25565/mcav/resourcepack_");
       assertTrue(fallsBackToLocalhost);
+
       final boolean usesTheResolvedAddress = resolvedUrl.startsWith("http://198.51.100.7:25565/mcav/resourcepack_");
       assertTrue(usesTheResolvedAddress, "the fallback is not cached");
       assertEquals(resolvedUrl, cachedUrl, "a resolved address is cached");

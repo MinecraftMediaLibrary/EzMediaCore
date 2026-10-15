@@ -157,9 +157,11 @@ final class Mcv2ScreenTest {
     final Location expectedFirstLocation = new Location(this.world, 10, 64, -6);
     final Location firstLocation = this.spawned.get(0);
     assertEquals(expectedFirstLocation, firstLocation);
+
     final Location expectedThirdLocation = new Location(this.world, 12, 64, -6);
     final Location thirdLocation = this.spawned.get(2);
     assertEquals(expectedThirdLocation, thirdLocation);
+
     final Location expectedFifthLocation = new Location(this.world, 11, 63, -6);
     final Location fifthLocation = this.spawned.get(4);
     assertEquals(expectedFifthLocation, fifthLocation);
@@ -189,6 +191,7 @@ final class Mcv2ScreenTest {
     final Location expectedFirstLocation = new Location(this.world, 8, 64, -4);
     final Location firstLocation = this.spawned.get(0);
     assertEquals(expectedFirstLocation, firstLocation);
+
     final Location expectedThirdLocation = new Location(this.world, 8, 64, -6);
     final Location thirdLocation = this.spawned.get(2);
     assertEquals(expectedThirdLocation, thirdLocation);
@@ -202,9 +205,11 @@ final class Mcv2ScreenTest {
     final NullPointerException missingWorld = assertThrows(NullPointerException.class, screen::build);
     final String missingWorldMessage = missingWorld.getMessage();
     assertEquals("The origin must be in a world!", missingWorldMessage);
+
     final NullPointerException missingConfiguration = assertThrows(NullPointerException.class, () -> new Mcv2Screen(null));
     final String missingConfigurationMessage = missingConfiguration.getMessage();
     assertEquals("Configuration must not be null!", missingConfigurationMessage);
+
     final List<ItemFrame> framesAfterFailure = screen.getFrames();
     assertEquals(List.of(), framesAfterFailure, "a failed build leaves no page frames");
   }
@@ -222,13 +227,16 @@ final class Mcv2ScreenTest {
       assertSame(copy, pageItem);
       verify(stacks.constructed().getFirst()).set(DataComponents.MAP_ID, new MapId(2_000_000_123));
     }
+
     this.statics = Mockito.mockStatic(Mcv2Screen.class, Mockito.CALLS_REAL_METHODS);
 
     // in reading order, on a wall of three columns with four slots
     final int topLeftSlot = Mcv2Screen.slot(0, 0, 3, 4);
     assertEquals(0, topLeftSlot);
+
     final int thirdRowSecondColumnSlot = Mcv2Screen.slot(1, 2, 3, 4);
     assertEquals(3, thirdRowSecondColumnSlot);
+
     final int thirdRowThirdColumnSlot = Mcv2Screen.slot(2, 2, 3, 4);
     assertEquals(0, thirdRowThirdColumnSlot);
     // the second row of a wall of two columns goes on with the third slot
@@ -244,27 +252,34 @@ final class Mcv2ScreenTest {
     for (final ItemFrame frame : this.frames) {
       verify(this.player).showEntity(this.server.getPlugin(), frame);
     }
+
     final List<Packet<?>> packets = this.server.getSentPackets(VIEWER);
     final int packetCount = packets.size();
     assertEquals(2, packetCount);
+
     final Packet<?> teamPacket = packets.get(0);
     final ClientboundSetPlayerTeamPacket team = assertInstanceOf(ClientboundSetPlayerTeamPacket.class, teamPacket);
     final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + TEAM_SUFFIX_PATTERN);
     assertTrue(namedAsScreenTeam);
+
     final String expectedName = screen.team().getName();
     final String teamName = team.getName();
     assertEquals(expectedName, teamName);
+
     final Optional<TeamColor> expectedColor = Optional.of(TeamColor.GOLD);
     final Optional<TeamColor> color = team.getParameters().orElseThrow().color();
     assertEquals(expectedColor, color);
+
     final int memberCount = team.getPlayers().size();
     assertEquals(6, memberCount);
+
     final boolean holdsTheFourthFrame = team.getPlayers().contains(this.frames.get(3).getUniqueId().toString());
     assertTrue(holdsTheFourthFrame);
 
     final List<ClientboundMapItemDataPacket> anchors = MapPackets.unbundle(packets.get(1));
     final int anchorCount = anchors.size();
     assertEquals(6, anchorCount);
+
     MapPackets.assertMapPacket(anchors.get(0), screen.anchors().get(0));
     screen.hide(this.player);
     for (final ItemFrame frame : this.frames) {
@@ -301,9 +316,11 @@ final class Mcv2ScreenTest {
       final String firstTeamName = firstTeam.getName();
       final String removedName = removal.getName();
       assertEquals(firstTeamName, removedName);
+
       final String secondTeamName = secondTeam.getName();
       final String removedNameAgain = removal.getName();
       assertNotEquals(secondTeamName, removedNameAgain, "a screen removes only its own team");
+
       final Set<String> expectedMembers = new HashSet<>(
         second
           .getFrames()
@@ -335,8 +352,10 @@ final class Mcv2ScreenTest {
     final MapTilePatch patch = anchors.get(4);
     final int mapId = patch.getMapId();
     assertEquals(104, mapId);
+
     final int row = patch.getY();
     assertEquals(0, row);
+
     final int height = patch.getHeight();
     assertEquals(1, height);
 
@@ -371,9 +390,11 @@ final class Mcv2ScreenTest {
     // the frames hang at x 10 to 12 and z -6: chunk 0, -1
     verify(this.world).addPluginChunkTicket(0, -1, this.server.getPlugin());
     verify(this.world, never()).removePluginChunkTicket(anyInt(), anyInt(), any(Plugin.class));
+
     screen.remove();
     verify(this.world).removePluginChunkTicket(0, -1, this.server.getPlugin());
     verify(this.world).addPluginChunkTicket(anyInt(), anyInt(), any(Plugin.class));
+
     screen.remove();
     verify(this.world).removePluginChunkTicket(anyInt(), anyInt(), any(Plugin.class));
   }
@@ -385,6 +406,7 @@ final class Mcv2ScreenTest {
     // the frames hang at x 14 to 16: chunks 0 and 1
     verify(this.world).addPluginChunkTicket(0, -1, this.server.getPlugin());
     verify(this.world).addPluginChunkTicket(1, -1, this.server.getPlugin());
+
     screen.remove();
     verify(this.world).removePluginChunkTicket(0, -1, this.server.getPlugin());
     verify(this.world).removePluginChunkTicket(1, -1, this.server.getPlugin());
@@ -397,13 +419,16 @@ final class Mcv2ScreenTest {
     first.build();
     second.build();
     verify(this.world).addPluginChunkTicket(0, -1, this.server.getPlugin());
+
     first.remove();
     verify(this.world, never()).removePluginChunkTicket(anyInt(), anyInt(), any(Plugin.class));
+
     second.remove();
     verify(this.world).removePluginChunkTicket(0, -1, this.server.getPlugin());
     // a screen built again holds the chunk again
     first.build();
     verify(this.world, times(2)).addPluginChunkTicket(0, -1, this.server.getPlugin());
+
     first.remove();
   }
 
@@ -415,8 +440,10 @@ final class Mcv2ScreenTest {
     final Optional<TeamColor> expectedColor = Optional.of(TeamColor.GOLD);
     final Optional<TeamColor> color = team.getColor();
     assertEquals(expectedColor, color);
+
     final boolean namedAsScreenTeam = team.getName().matches(Mcv2Screen.TEAM + TEAM_SUFFIX_PATTERN);
     assertTrue(namedAsScreenTeam);
+
     final String expectedName = screen.team().getName();
     final String teamName = team.getName();
     assertEquals(expectedName, teamName);
@@ -447,6 +474,7 @@ final class Mcv2ScreenTest {
         missing.put(wall[0] + "x" + wall[1] + " with " + configuration.getPageSlots() + " slots", absent);
       }
     }
+
     assertEquals(Map.of(), missing, "the page slots no map of the wall hangs in front of");
   }
 }

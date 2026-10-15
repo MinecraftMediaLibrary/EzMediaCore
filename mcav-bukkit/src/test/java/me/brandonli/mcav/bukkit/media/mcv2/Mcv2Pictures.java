@@ -49,6 +49,7 @@ final class Mcv2Pictures {
         rgb[offset + 2] = (byte) Math.max(0, value - 30);
       }
     }
+
     return rgb;
   }
 }

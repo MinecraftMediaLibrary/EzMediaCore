@@ -68,6 +68,7 @@ public final class MinecraftTestBootstrap implements BeforeAllCallback {
     if (bootstrapped) {
       return;
     }
+
     SharedConstants.tryDetectVersion();
     Bootstrap.bootStrap();
     try (final MockedStatic<Bukkit> bukkit = Mockito.mockStatic(Bukkit.class)) {
@@ -79,9 +80,11 @@ public final class MinecraftTestBootstrap implements BeforeAllCallback {
       if (initialized == null) {
         throw new IllegalStateException("The scoreboard criteria were initialized before the bootstrap!");
       }
+
       BlockPaletteLookup.initialize();
       bukkit.verify(() -> Bukkit.createBlockData(any(Material.class)), Mockito.atLeastOnce());
     }
+
     bootstrapped = true;
   }
 

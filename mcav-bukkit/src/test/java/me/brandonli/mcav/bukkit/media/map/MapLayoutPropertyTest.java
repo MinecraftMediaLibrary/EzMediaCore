@@ -81,11 +81,13 @@ final class MapLayoutPropertyTest {
     final int cells = grid.getColumns() * grid.getRows();
 
     assertEquals(cells, mapCount, "one map per cell of the grid");
+
     for (int index = 0; index < mapCount; index++) {
       final long expectedMapId = firstId + index;
       final long mapId = layout.getMapId(index);
       assertEquals(expectedMapId, mapId, "maps are numbered consecutively");
     }
+
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(mapCount));
     assertThrows(IndexOutOfBoundsException.class, () -> layout.getMapId(-1));
 
@@ -116,6 +118,7 @@ final class MapLayoutPropertyTest {
     final int expectedPixels = visibleWidth * visibleHeight;
     final int coveredPixels = coverage.countCoveredOnce();
     assertEquals(expectedPixels, coveredPixels, "every pixel that fits on the grid is shown once");
+
     coverage.assertCentered();
   }
 
@@ -133,6 +136,7 @@ final class MapLayoutPropertyTest {
     final int fits = (int) lastAllowedStart;
 
     assertThrows(IllegalArgumentException.class, () -> new MapLayout(tooLate, columns, rows, 1, 1));
+
     final MapLayout layout = new MapLayout(fits, columns, rows, 1, 1);
     final int lastId = layout.getMapId(mapCount - 1);
     assertEquals(Integer.MAX_VALUE, lastId, "the last map may have the largest id");
@@ -170,6 +174,7 @@ final class MapLayoutPropertyTest {
         final int row = index / this.imageWidth;
         image[index] = (byte) (index * 31 + row * 7);
       }
+
       return image;
     }
 
@@ -244,6 +249,7 @@ final class MapLayoutPropertyTest {
       final int sourceX = region.getSourceX() + left - region.getLocalX();
       final int sourceY = region.getSourceY() + top - region.getLocalY();
       this.checkOffset(gridX - sourceX, gridY - sourceY);
+
       this.mark(patch, sourceX, sourceY);
     }
 
@@ -253,6 +259,7 @@ final class MapLayoutPropertyTest {
         this.offsetX = patchOffsetX;
         this.offsetY = patchOffsetY;
       }
+
       assertEquals(this.offsetX, patchOffsetX, "every map shows the image at the same horizontal position");
       assertEquals(this.offsetY, patchOffsetY, "every map shows the image at the same vertical position");
     }
@@ -280,6 +287,7 @@ final class MapLayoutPropertyTest {
         assertTrue(shownAtMostOnce, "no pixel of the image is shown twice");
         covered += count;
       }
+
       return covered;
     }
 
@@ -291,6 +299,7 @@ final class MapLayoutPropertyTest {
       if (!this.offsetKnown) {
         return;
       }
+
       final int gridWidth = this.grid.getGridWidth();
       final int gridHeight = this.grid.getGridHeight();
       final int imageWidth = this.grid.getImageWidth();

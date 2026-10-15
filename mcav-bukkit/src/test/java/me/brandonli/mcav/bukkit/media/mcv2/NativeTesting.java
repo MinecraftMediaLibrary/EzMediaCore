@@ -95,8 +95,10 @@ final class NativeTesting {
         final String message = "The MCV2 native kernels must load here and did not (%s)!".formatted(current.description());
         throw new IllegalStateException(message);
       }
+
       loaded = current;
     }
+
     return current;
   }
 
@@ -113,6 +115,7 @@ final class NativeTesting {
         levels.add(level);
       }
     }
+
     return levels;
   }
 
@@ -127,6 +130,7 @@ final class NativeTesting {
     if (resolution().binding() == null) {
       throw new IllegalStateException("No MCV2 native library loads on this platform!");
     }
+
     final String platform = Objects.requireNonNull(
       Natives.platform(System.getProperty(OS_NAME_PROPERTY, ""), System.getProperty(OS_ARCHITECTURE_PROPERTY, ""))
     );
@@ -180,11 +184,13 @@ final class NativeTesting {
         if (method.getName().equals("level")) {
           return ((Binding) Mcv2Internals.field(type, kernels, "binding")).level();
         }
+
         if (method.getName().equals("keeps")) {
           final Object array = Objects.requireNonNull(arguments)[0];
           final int slot = (int) Mcv2Internals.invoke(type, null, "slot", new Class<?>[] { Object.class }, array);
           return Mcv2Internals.invoke(type, kernels, "remembers", new Class<?>[] { int.class, Object.class }, slot, array);
         }
+
         return Mcv2Internals.call(
           type,
           kernels,
@@ -205,6 +211,7 @@ final class NativeTesting {
     } catch (final ReflectiveOperationException exception) {
       throw new LinkageError(exception.getMessage(), exception);
     }
+
     return encoder;
   }
 

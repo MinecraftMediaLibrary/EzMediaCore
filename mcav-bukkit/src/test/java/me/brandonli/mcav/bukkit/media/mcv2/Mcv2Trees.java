@@ -56,9 +56,11 @@ public final class Mcv2Trees {
       if (cause instanceof final RuntimeException runtime) {
         throw runtime;
       }
+
       if (cause instanceof final Error error) {
         throw error;
       }
+
       throw new AssertionError(cause);
     } catch (final ReflectiveOperationException exception) {
       throw new LinkageError(exception.getMessage(), exception);
@@ -146,12 +148,14 @@ public final class Mcv2Trees {
       node = Node.leaf(mode, leaf.quantizer(), length == 0 ? new byte[0] : Arrays.copyOfRange(data, offset, offset + length));
       leaves.put(position(leaf.left(), leaf.top(), leaf.size()), node);
     }
+
     final List<Node> roots = new ArrayList<>();
     for (int top = 0; top < frame.getHeight(); top += 32) {
       for (int left = 0; left < frame.getWidth(); left += 32) {
         roots.add(read(leaves, left, top, 32));
       }
     }
+
     return roots;
   }
 
@@ -160,9 +164,11 @@ public final class Mcv2Trees {
     if (leaf != null) {
       return leaf;
     }
+
     if (size == 8) {
       throw new AssertionError("Missing terminal leaf!");
     }
+
     final int half = size / 2;
     return Node.split(
       read(leaves, left, top, half),
@@ -206,6 +212,7 @@ public final class Mcv2Trees {
       ) {
         return false;
       }
+
       if (this.isSplit()) {
         for (int child = 0; child < 4; child++) {
           if (!this.getChild(child).equals(node.getChild(child))) {
@@ -213,6 +220,7 @@ public final class Mcv2Trees {
           }
         }
       }
+
       return true;
     }
 
@@ -224,6 +232,7 @@ public final class Mcv2Trees {
           hash = 31 * hash + this.getChild(child).hashCode();
         }
       }
+
       return hash;
     }
 

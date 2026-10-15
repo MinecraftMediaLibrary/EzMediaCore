@@ -254,6 +254,7 @@ final class DisplayableImageTest {
     final int height = image.getHeight();
     assertEquals(32, width, "a 2:1 image is not stretched to the square resolution");
     assertEquals(16, height);
+
     MapPackets.assertMapPacket(shownPacket, 2, 48, 56, 32, 16, colors);
     MapPackets.assertMapPacket(clearedPacket, 2, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
     assertThrows(NullPointerException.class, () -> display.displayImage(null));
@@ -272,6 +273,7 @@ final class DisplayableImageTest {
     final byte[] transparent = new byte[MAP_SIZE * MAP_SIZE];
 
     assertEquals(4, clearedCount, "every map of the 2x2 grid is cleared");
+
     MapPackets.assertMapPacket(last, 5, 0, 0, MAP_SIZE, MAP_SIZE, transparent);
   }
 
@@ -292,6 +294,7 @@ final class DisplayableImageTest {
       final int targetIndex = row * MAP_SIZE;
       System.arraycopy(source, sourceIndex, expected, targetIndex, MAP_SIZE);
     }
+
     MapPackets.assertMapPacket(shownPacket, 2, 0, 0, MAP_SIZE, MAP_SIZE, expected);
   }
 
@@ -308,6 +311,7 @@ final class DisplayableImageTest {
     final byte[] colors = MapPackets.pattern(MAP_RESOLUTION * MAP_RESOLUTION, 4);
     final int width = image.getWidth();
     assertEquals(MAP_RESOLUTION, width);
+
     MapPackets.assertMapPacket(shownPacket, 2, 32, 32, MAP_RESOLUTION, MAP_RESOLUTION, colors);
   }
 
@@ -346,13 +350,16 @@ final class DisplayableImageTest {
     final Display.TextDisplay handle = entity.getHandle();
     final ArgumentCaptor<net.minecraft.network.chat.Component> textCaptor = ArgumentCaptor.captor(); // fqn: Component is imported as net.kyori.adventure.text.Component
     verify(handle).setText(textCaptor.capture());
+
     final String text = textCaptor.getValue().getString();
     assertEquals(CHARACTER, text);
+
     final List<Integer> colors = new ArrayList<>();
     textCaptor.getValue().visit((style, characters) -> {
       for (int index = 0; index < characters.length(); index++) {
         colors.add(style.getColor() == null ? -1 : style.getColor().getValue());
       }
+
       return Optional.empty();
     }, Style.EMPTY);
     final List<Integer> expectedColors = List.of(GRAY_RGB);

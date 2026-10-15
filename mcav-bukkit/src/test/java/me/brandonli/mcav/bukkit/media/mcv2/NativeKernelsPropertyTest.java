@@ -50,6 +50,7 @@ final class NativeKernelsPropertyTest {
     if (level == null) {
       return true;
     }
+
     final String difference = KernelDifferential.compare(
       KernelDifferential.of(new Random(seed)),
       Mcv2Internals.javaKernels(),
@@ -58,6 +59,7 @@ final class NativeKernelsPropertyTest {
     if (difference != null) {
       throw new AssertionError(difference + " differs at " + level);
     }
+
     return true;
   }
 
@@ -70,6 +72,7 @@ final class NativeKernelsPropertyTest {
     if (level == null) {
       return true;
     }
+
     final Random random = new Random(seed);
     final int width = 40 + random.nextInt(60);
     final int height = 30 + random.nextInt(50);
@@ -88,6 +91,7 @@ final class NativeKernelsPropertyTest {
         throw new AssertionError(message);
       }
     }
+
     return true;
   }
 

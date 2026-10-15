@@ -53,10 +53,13 @@ final class Mcv2DecoderFormatTest {
 
     final int shortValue = u16(data, 0);
     assertEquals(0xBEEF, shortValue);
+
     final int shortLowByte = data[0] & 0xFF;
     assertEquals(0xEF, shortLowByte);
+
     final long unsignedValue = u32(data, 2);
     assertEquals(0xDEADBEEFL, unsignedValue);
+
     final int lowByte = data[2] & 0xFF;
     assertEquals(0xEF, lowByte);
   }
@@ -65,20 +68,27 @@ final class Mcv2DecoderFormatTest {
   void shouldSizeEveryFixedRecord() {
     final int skipSize = recordSize(MODE_SKIP, 32);
     assertEquals(0, skipSize);
+
     final int motionSize = recordSize(MODE_MOTION, 32);
     assertEquals(2, motionSize);
+
     final int solidSize = recordSize(MODE_SOLID, 8);
     assertEquals(3, solidSize);
+
     final int expectedLargePaletteSize = 6 + 128;
     final int largePaletteSize = recordSize(MODE_PALETTE, 32);
     assertEquals(expectedLargePaletteSize, largePaletteSize);
+
     final int expectedSmallPaletteSize = 6 + 8;
     final int smallPaletteSize = recordSize(MODE_PALETTE, 8);
     assertEquals(expectedSmallPaletteSize, smallPaletteSize);
+
     final int smallCompactSize = recordSize(MODE_COMPACT, 8);
     assertEquals(10, smallCompactSize);
+
     final int mediumCompactSize = recordSize(MODE_COMPACT, 16);
     assertEquals(10, mediumCompactSize);
+
     final int largeCompactSize = recordSize(MODE_COMPACT, 32);
     assertEquals(10, largeCompactSize);
 
@@ -100,9 +110,11 @@ final class Mcv2DecoderFormatTest {
     final int expectedSmallSize = 6 + 1 + 1;
     final int smallSize = patternSize(8);
     assertEquals(expectedSmallSize, smallSize);
+
     final int expectedLargeSize = 6 + 1 + 4;
     final int largeSize = patternSize(32);
     assertEquals(expectedLargeSize, largeSize);
+
     final int expectedMediumSize = 6 + 1 + 2;
     final int mediumSize = patternSize(16);
     assertEquals(expectedMediumSize, mediumSize);
@@ -123,16 +135,22 @@ final class Mcv2DecoderFormatTest {
   void shouldSignExtendValues() {
     final int allOnesNibble = signed(0xF, 4);
     assertEquals(-1, allOnesNibble);
+
     final int largestNibble = signed(0x7, 4);
     assertEquals(7, largestNibble);
+
     final int smallestNibble = signed(0x8, 4);
     assertEquals(-8, smallestNibble);
+
     final int smallestShort = signed(0x8000, 16);
     assertEquals(-32768, smallestShort);
+
     final int largestShort = signed(0x7FFF, 16);
     assertEquals(32767, largestShort);
+
     final boolean wideValueNegative = signed(0x1FF, 8) < 0;
     assertTrue(wideValueNegative);
+
     final boolean largestByteNegative = signed(0x7F, 8) < 0;
     assertFalse(largestByteNegative);
   }

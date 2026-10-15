@@ -38,6 +38,7 @@ final class MapLayoutTest {
     for (int index = 0; index < image.length; index++) {
       image[index] = (byte) (index % 251);
     }
+
     return image;
   }
 
@@ -46,6 +47,7 @@ final class MapLayoutTest {
     for (int row = 0; row < height; row++) {
       System.arraycopy(image, (top + row) * imageWidth + left, colors, row * width, width);
     }
+
     return colors;
   }
 

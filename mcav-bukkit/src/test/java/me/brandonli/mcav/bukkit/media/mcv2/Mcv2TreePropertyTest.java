@@ -39,10 +39,12 @@ final class Mcv2TreePropertyTest {
     for (int root = 0; root < ((width + 31) / 32) * ((height + 31) / 32); root++) {
       roots.add(tree(random, 32));
     }
+
     final byte[] data = Mcv2Trees.write(width, height, 2, 1, false, roots);
     final Mcv2Decoder.Frame parsed = Mcv2Decoder.parse(data);
     final List<Node> readRoots = Mcv2Trees.read(parsed);
     assertEquals(roots, readRoots);
+
     final byte[] rewritten = Mcv2Trees.write(width, height, 2, 1, false, Mcv2Trees.read(parsed));
     assertArrayEquals(data, rewritten);
 
@@ -81,6 +83,7 @@ final class Mcv2TreePropertyTest {
     if (size > 8 && random.nextBoolean()) {
       return Node.split(tree(random, size / 2), tree(random, size / 2), tree(random, size / 2), tree(random, size / 2));
     }
+
     final int mode = random.nextInt(6);
     final int quantizer = mode == 5 ? random.nextInt(3) : 0;
     final byte[] record;
@@ -88,6 +91,7 @@ final class Mcv2TreePropertyTest {
       record = new byte[7 + size / 8];
       random.nextBytes(record);
       record[6] &= 1;
+
       if (random.nextBoolean()) {
         System.arraycopy(new byte[] { 0, 0, 0, -1, -1, -1 }, 0, record, 0, 6);
       }
@@ -95,6 +99,7 @@ final class Mcv2TreePropertyTest {
       record = new byte[Mcv2Decoder.recordSize(mode, size)];
       random.nextBytes(record);
     }
+
     return Node.leaf(mode, quantizer, record);
   }
 }

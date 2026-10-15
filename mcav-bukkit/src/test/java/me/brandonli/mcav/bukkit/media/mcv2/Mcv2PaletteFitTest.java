@@ -40,6 +40,7 @@ final class Mcv2PaletteFitTest {
     for (int pixel = 0; pixel < 64; pixel++) {
       System.arraycopy(source, (pixel % count) * 3, tile, pixel * 3, 3);
     }
+
     final int[] endpoints = new int[ENDPOINTS_LENGTH];
     Mcv2Internals.javaKernels().cluster(tile, 8, endpoints);
     Mcv2Internals.javaKernels().finishPalette(source, count, endpoints, colors, selectors);
@@ -50,6 +51,7 @@ final class Mcv2PaletteFitTest {
     for (int index = 0; index < pixels.length; index++) {
       System.arraycopy(pixels[index], 0, source, index * 3, 3);
     }
+
     return source;
   }
 
@@ -63,6 +65,7 @@ final class Mcv2PaletteFitTest {
     fit(source, 8, colors, selectors);
     final int[] expectedColors = { DARK_RED, DARK_GREEN, DARK_BLUE, LIGHT_RED, LIGHT_GREEN, LIGHT_BLUE };
     assertArrayEquals(expectedColors, colors);
+
     final byte[] expectedSelectors = { 1, 0, 0, 1, 1, 0, 1, 1 };
     assertArrayEquals(expectedSelectors, selectors);
   }
@@ -75,6 +78,7 @@ final class Mcv2PaletteFitTest {
     fit(source, 4, colors, selectors);
     final int[] expectedColors = { 1, 1, 1, 253, 253, 253 };
     assertArrayEquals(expectedColors, colors);
+
     final byte[] expectedSelectors = { 0, 0, 1, 1 };
     assertArrayEquals(expectedSelectors, selectors);
   }
@@ -89,6 +93,7 @@ final class Mcv2PaletteFitTest {
     fit(source, 4, colors, selectors);
     final int[] expectedColors = { 33, 50, 67, 100, 50, 0 };
     assertArrayEquals(expectedColors, colors);
+
     final byte[] expectedSelectors = { 1, 0, 0, 0 };
     assertArrayEquals(expectedSelectors, selectors);
   }
@@ -100,6 +105,7 @@ final class Mcv2PaletteFitTest {
     fit(block(new int[] { 7, 8, 9 }, new int[] { 7, 8, 9 }), 2, colors, selectors);
     final int[] expectedColors = { 7, 8, 9, 7, 8, 9 };
     assertArrayEquals(expectedColors, colors);
+
     final byte[] expectedSelectors = { 0, 0 };
     assertArrayEquals(expectedSelectors, selectors);
   }

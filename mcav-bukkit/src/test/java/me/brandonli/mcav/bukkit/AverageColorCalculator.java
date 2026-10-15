@@ -83,6 +83,7 @@ final class AverageColorCalculator {
         colors.put(materialName, averageColor);
       }
     }
+
     return colors;
   }
 
@@ -119,6 +120,7 @@ final class AverageColorCalculator {
         sums[COUNT_INDEX]++;
       }
     }
+
     return sums;
   }
 }

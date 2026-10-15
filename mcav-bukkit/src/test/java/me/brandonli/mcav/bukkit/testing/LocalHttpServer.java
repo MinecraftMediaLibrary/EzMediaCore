@@ -121,11 +121,13 @@ public final class LocalHttpServer implements AutoCloseable {
     final boolean isHeadRequest = method.equals("HEAD");
     final long responseLength = isHeadRequest || body.length == 0 ? -1 : body.length;
     exchange.sendResponseHeaders(response.status, responseLength);
+
     if (!isHeadRequest && body.length > 0) {
       try (final OutputStream output = exchange.getResponseBody()) {
         output.write(body);
       }
     }
+
     exchange.close();
   }
 
@@ -134,10 +136,12 @@ public final class LocalHttpServer implements AutoCloseable {
     if (queue == null) {
       return new Response(404, new byte[0]);
     }
+
     synchronized (queue) {
       if (queue.size() > 1) {
         return queue.removeFirst();
       }
+
       final Response last = queue.peekFirst();
       return last == null ? new Response(404, new byte[0]) : last;
     }

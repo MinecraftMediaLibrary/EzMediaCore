@@ -56,6 +56,7 @@ final class Mcv2VerificationTest {
     encoder.encode(new byte[3], 1, 1, 2);
     final @Nullable Object replaced = storage.get(encoder);
     assertNotSame(first, replaced);
+
     final int replacedLength = ((byte[]) storage.get(encoder)).length;
     assertEquals(3, replacedLength);
   }
@@ -84,6 +85,7 @@ final class Mcv2VerificationTest {
     for (int root = 0; root < ((width + 31) / 32) * ((height + 31) / 32); root++) {
       roots.add(Mcv2TreePropertyTest.tree(random, 32));
     }
+
     final byte[] data = Mcv2Trees.write(width, height, 2, 1, false, roots);
     final byte[] reference = new byte[width * height * 3];
     random.nextBytes(reference);
@@ -93,6 +95,7 @@ final class Mcv2VerificationTest {
 
   private static void compare(final Mcv2Decoder.Frame frame, final byte[] reference, final byte[] picture, final Random random) {
     assertDoesNotThrow(() -> verify(frame, reference, frame.getReferenceId(), picture));
+
     final byte[] wrong = picture.clone();
     wrong[random.nextInt(wrong.length)] ^= 1;
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () ->
@@ -138,6 +141,7 @@ final class Mcv2VerificationTest {
     final byte[] picture = Mcv2Decoder.decode(frame, null, 4);
     final byte[] reference = new byte[0];
     assertDoesNotThrow(() -> verify(frame, reference, 4, picture));
+
     for (final int row : new int[] { 0, 31, 32, 2047, 2048, frame.getHeight() - 1 }) {
       for (final int column : new int[] { 0, 30 }) {
         for (int channel = 0; channel < 3; channel++) {
@@ -156,6 +160,7 @@ final class Mcv2VerificationTest {
     final IllegalStateException shortReference = assertThrows(IllegalStateException.class, () -> verify(frame, new byte[1], 0, picture));
     final @Nullable Throwable shortReferenceCause = shortReference.getCause();
     assertInstanceOf(Mcv2Exception.class, shortReferenceCause);
+
     final IllegalStateException wrongReferenceId = assertThrows(IllegalStateException.class, () -> verify(frame, picture, 5, picture));
     final @Nullable Throwable wrongReferenceIdCause = wrongReferenceId.getCause();
     assertInstanceOf(Mcv2Exception.class, wrongReferenceIdCause);
@@ -177,8 +182,10 @@ final class Mcv2VerificationTest {
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = failure.getMessage();
     assertEquals(DECODER_REJECTION_MESSAGE, message);
+
     final @Nullable Throwable cause = failure.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
+
     final @Nullable String causeMessage = failure.getCause().getMessage();
     assertEquals("Reference frame mismatch!", causeMessage);
 
@@ -197,8 +204,10 @@ final class Mcv2VerificationTest {
     final IllegalStateException error = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = error.getMessage();
     assertEquals(DECODER_REJECTION_MESSAGE, message);
+
     final @Nullable Throwable cause = error.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
+
     final @Nullable String causeMessage = error.getCause().getMessage();
     assertEquals("Not an MCV2 frame!", causeMessage);
 

@@ -37,16 +37,22 @@ final class Mcv2LinkTest {
     // the id no frame has is never a reference, not even before the first frame
     final boolean decodesFromNoFrame = link.canDecode(false, -1);
     assertFalse(decodesFromNoFrame);
+
     final boolean sentPredicted = link.offer(5, 4, false, 10);
     assertFalse(sentPredicted);
+
     final long undecodable = link.getUndecodable();
     assertEquals(1, undecodable);
+
     final boolean sentKeyframe = link.offer(6, 6, true, 10);
     assertTrue(sentKeyframe);
+
     final boolean sentNext = link.offer(7, 6, false, 10);
     assertTrue(sentNext);
+
     final long sent = link.getSent();
     assertEquals(2, sent);
+
     final long backlog = link.getBacklog();
     assertEquals(20, backlog);
   }
@@ -56,6 +62,7 @@ final class Mcv2LinkTest {
     final Mcv2Link link = new Mcv2Link(100);
     final boolean sentKeyframe = link.offer(0, 0, true, 60);
     assertTrue(sentKeyframe);
+
     final boolean sentPredicted = link.offer(1, 0, false, 60);
     assertTrue(sentPredicted);
     // 120 bytes not yet written: frame 2 is held back, and 3 predicts from 2, which the viewer lacks
@@ -65,16 +72,22 @@ final class Mcv2LinkTest {
     link.written(120);
     final boolean sentFromMissing = link.offer(3, 2, false, 60);
     assertFalse(sentFromMissing);
+
     final boolean sentFromUndecodable = link.offer(4, 3, false, 60);
     assertFalse(sentFromUndecodable);
+
     final boolean sentNextKeyframe = link.offer(5, 5, true, 60);
     assertTrue(sentNextKeyframe);
+
     final boolean sentAfterKeyframe = link.offer(6, 5, false, 60);
     assertTrue(sentAfterKeyframe);
+
     final long behind = link.getBehind();
     assertEquals(1, behind);
+
     final long undecodable = link.getUndecodable();
     assertEquals(2, undecodable);
+
     final long sent = link.getSent();
     assertEquals(4, sent);
   }
@@ -84,18 +97,25 @@ final class Mcv2LinkTest {
     final Mcv2Link link = new Mcv2Link(LINK_LIMIT);
     final boolean sentKeyframe = link.offer(10, 10, true, 1);
     assertTrue(sentKeyframe);
+
     final boolean sentPredicted = link.offer(11, 10, false, 1);
     assertTrue(sentPredicted);
+
     final boolean decodesFromKeyframe = link.canDecode(false, 10);
     assertFalse(decodesFromKeyframe);
+
     final boolean sentFromKeyframe = link.offer(12, 10, false, 1);
     assertFalse(sentFromKeyframe);
+
     final boolean decodesFromPredicted = link.canDecode(false, 11);
     assertTrue(decodesFromPredicted);
+
     final boolean sentFromPredicted = link.offer(13, 11, false, 1);
     assertTrue(sentFromPredicted);
+
     final long undecodable = link.getUndecodable();
     assertEquals(1, undecodable);
+
     final long sent = link.getSent();
     assertEquals(3, sent);
   }
@@ -105,39 +125,49 @@ final class Mcv2LinkTest {
     final Mcv2Link link = new Mcv2Link(50);
     final boolean sentKeyframe = link.offer(0, 0, true, 50);
     assertTrue(sentKeyframe);
+
     final boolean sentAtTheLimit = link.offer(1, 0, false, 1);
     assertTrue(sentAtTheLimit);
+
     final boolean sentPastTheLimit = link.offer(2, 1, false, 1);
     assertFalse(sentPastTheLimit);
     // a keyframe still goes out up to twice the limit, the P frames after it only under the limit again
     final boolean sentLateKeyframe = link.offer(3, 3, true, 60);
     assertTrue(sentLateKeyframe);
+
     final boolean sentAfterLateKeyframe = link.offer(4, 3, false, 1);
     assertFalse(sentAfterLateKeyframe);
+
     final boolean sentPastTwiceTheLimit = link.offer(5, 5, true, 1);
     assertFalse(sentPastTwiceTheLimit);
 
     link.written(62);
     final boolean sentOnceWritten = link.offer(6, 3, false, 1);
     assertTrue(sentOnceWritten);
+
     final long behind = link.getBehind();
     assertEquals(3, behind);
 
     final Mcv2Link none = new Mcv2Link(0);
     final boolean sentWithoutLimitKeyframe = none.offer(0, 0, true, 5);
     assertTrue(sentWithoutLimitKeyframe);
+
     final boolean sentWithoutLimitPredicted = none.offer(1, 0, false, 5);
     assertFalse(sentWithoutLimitPredicted);
+
     final boolean sentWithoutLimitNextKeyframe = none.offer(2, 2, true, 5);
     assertFalse(sentWithoutLimitNextKeyframe);
 
     final long largestAllowance = Mcv2Link.allowance(Long.MAX_VALUE);
     assertEquals(Long.MAX_VALUE, largestAllowance);
+
     final long saturatedAllowance = Mcv2Link.allowance(Long.MAX_VALUE / 2 + 1);
     assertEquals(Long.MAX_VALUE, saturatedAllowance);
+
     final long expectedDoubled = Long.MAX_VALUE - 1;
     final long largestDoubledAllowance = Mcv2Link.allowance(Long.MAX_VALUE / 2);
     assertEquals(expectedDoubled, largestDoubledAllowance);
+
     final long doubledAllowance = Mcv2Link.allowance(50);
     assertEquals(100, doubledAllowance);
   }
@@ -145,12 +175,15 @@ final class Mcv2LinkTest {
   @Test
   void shouldRefuseValuesOutOfRange() {
     assertThrows(IllegalArgumentException.class, () -> new Mcv2Link(-1));
+
     final Mcv2Link link = new Mcv2Link(10);
     assertThrows(IllegalArgumentException.class, () -> link.offer(-1, 0, true, 1));
     assertThrows(IllegalArgumentException.class, () -> link.offer(1L << 32, 0, true, 1));
     assertThrows(IllegalArgumentException.class, () -> link.offer(0, 0, true, -1));
+
     final boolean sentLastId = link.offer(0xFFFFFFFFL, 0xFFFFFFFFL, true, 1);
     assertTrue(sentLastId);
+
     final boolean decodesFromLastId = link.canDecode(false, 0xFFFFFFFFL);
     assertTrue(decodesFromLastId);
   }

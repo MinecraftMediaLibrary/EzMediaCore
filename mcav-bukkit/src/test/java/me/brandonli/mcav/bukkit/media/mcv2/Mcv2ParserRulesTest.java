@@ -70,6 +70,7 @@ final class Mcv2ParserRulesTest {
     final int expectedWalkLength = 6 * 4;
     final int walkLength = layout.start() - layout.walk();
     assertEquals(expectedWalkLength, walkLength);
+
     final int leafCount = Mcv2Decoder.parse(frame).getLeafCount();
     assertEquals(32, leafCount);
   }
@@ -81,6 +82,7 @@ final class Mcv2ParserRulesTest {
     final int descriptor = Layout.of(frame).plane();
     final byte descriptorMode = frame[descriptor];
     assertEquals(Mcv2Decoder.MODE_SPLIT, descriptorMode);
+
     final String failureMessage = message(withByte(frame, descriptor, Mcv2Decoder.MODE_SPLIT | (1 << 5)));
     assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
   }
@@ -102,6 +104,7 @@ final class Mcv2ParserRulesTest {
     for (int root = 1; root < 256; root++) {
       roots.add(Node.skip());
     }
+
     final byte[] frame = Mcv2Trees.write(4096, 64, 0, 0, true, roots);
     final String failureMessage = message(withWord(frame, 20, 0));
     assertEquals("Presence count differs from level zero!", failureMessage);
@@ -124,6 +127,7 @@ final class Mcv2ParserRulesTest {
     for (int index = 0; index < 33 * 9; index++) {
       roots.add(index % 7 == 0 ? motion(1, 1) : Node.skip());
     }
+
     final byte[] frame = Mcv2Trees.write(32 * 33, 32 * 9, 1, 0, false, roots);
     final int expectedLeafCount = 33 * 9;
     final int leafCount = Mcv2Decoder.parse(frame).getLeafCount();
@@ -132,6 +136,7 @@ final class Mcv2ParserRulesTest {
     final int groups = (33 * 9 + 31) / 32;
     final long checkpoint = Mcv2Decoder.u32(frame, 20 + groups * 4 + 4);
     assertEquals(37, checkpoint);
+
     final String failureMessage = message(withWord(frame, 20 + groups * 4 + 4, 0));
     assertEquals("Invalid directory checkpoint!", failureMessage);
   }
@@ -144,10 +149,13 @@ final class Mcv2ParserRulesTest {
     final Layout layout = Layout.of(frame);
     final byte rootMode = frame[layout.plane()];
     assertEquals(Mcv2Decoder.MODE_SPLIT, rootMode);
+
     final int planeLength = layout.walk() - layout.plane();
     assertEquals(5, planeLength);
+
     final String indexLengthMessage = message(withWord(frame, layout.counts() + 4, 40));
     assertEquals("Invalid index length!", indexLengthMessage);
+
     final String truncatedMessage = message(Arrays.copyOf(frame, layout.counts() + 11));
     assertEquals("Truncated index!", truncatedMessage);
   }

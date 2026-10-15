@@ -40,6 +40,7 @@ final class Mcv2KeyframeRequestTest {
 
     final boolean firstTaken = requests.take();
     assertTrue(firstTaken);
+
     final boolean secondTaken = requests.take();
     assertFalse(secondTaken, "the frame after it needs no keyframe");
   }
@@ -52,6 +53,7 @@ final class Mcv2KeyframeRequestTest {
 
     final boolean firstTaken = requests.take();
     assertTrue(firstTaken);
+
     final boolean secondTaken = requests.take();
     assertFalse(secondTaken);
   }

@@ -77,6 +77,7 @@ final class FileDownloadProgressTest {
 
         channel.take(128);
       }
+
       final boolean partiallyWritten = channel.bodyBytes > 0 && channel.bodyBytes < 4096;
       assertTrue(partiallyWritten);
 
@@ -89,6 +90,7 @@ final class FileDownloadProgressTest {
       channel.runScheduledPendingTasks();
       final boolean openAfterStall = channel.isOpen();
       assertFalse(openAfterStall, "an actually stalled download is closed");
+
       final int regionReferenceCount = channel.region.refCnt();
       assertEquals(0, regionReferenceCount, "closing releases the owned file region");
     } finally {
@@ -105,6 +107,7 @@ final class FileDownloadProgressTest {
       final ChannelPromise completion = channel.newPromise();
       final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
+
       final boolean done = completion.isDone();
       assertFalse(done);
 
@@ -130,6 +133,7 @@ final class FileDownloadProgressTest {
       final ChannelPromise completion = channel.newPromise();
       final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
+
       final IOException failure = new IOException("Socket closed!");
       held.promise().setFailure(failure);
       final @Nullable Throwable cause = completion.cause();
@@ -179,6 +183,7 @@ final class FileDownloadProgressTest {
       final ChannelPromise completion = channel.newPromise();
       final ChannelFuture submitted = channel.writeOneOutbound(PAYLOAD, completion);
       assertSame(completion, submitted);
+
       channel.pipeline().remove(handler);
       final boolean progressed = held.promise().tryProgress(1, 10);
       assertTrue(progressed);
@@ -287,9 +292,11 @@ final class FileDownloadProgressTest {
           final long written = file.transferTo(sink, file.transferred());
           this.bodyBytes += written;
           outbound.progress(written);
+
           if (file.transferred() == file.count()) {
             outbound.remove();
           }
+
           if (written == 0) {
             return;
           }

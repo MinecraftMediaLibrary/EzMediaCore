@@ -104,6 +104,7 @@ final class Mcv2ToolsTest {
       if (mode.equals("auto") && NativeTesting.expected() && System.getProperty(Mcv2.NATIVE_PROPERTY) == null) {
         final boolean describesNative = result.get("natives").getAsString().startsWith("native ");
         assertTrue(describesNative);
+
         final boolean bound = Natives.resolved().binding() != null;
         assertTrue(bound);
       }
@@ -145,6 +146,7 @@ final class Mcv2ToolsTest {
     for (final byte[] frame : Mcv2Fixtures.frames(Mcv2Fixtures.read(PROXY_DEFAULT_PATH))) {
       decoded.writeBytes(receiver.accept(frame));
     }
+
     final byte[] expectedPictures = decoded.toByteArray();
     final byte[] writtenPictures = Files.readAllBytes(pictures);
     assertArrayEquals(expectedPictures, writtenPictures);
@@ -200,14 +202,17 @@ final class Mcv2ToolsTest {
     final String glsl = Files.readString(output.resolve("sampler.fsh"));
     final boolean keepsSampler = glsl.contains("uniform sampler2D Sampler0;");
     assertTrue(keepsSampler);
+
     final boolean renamesSampler = glsl.contains("_uniform_00_03");
     assertFalse(renamesSampler);
 
     Files.writeString(post.resolve("invalid.fsh"), "#version 330\nvoid main() { invalid shader; }\n");
     final int invalidFailures = compileShaders(arguments);
     assertEquals(1, invalidFailures);
+
     final boolean invalidWritten = Files.exists(output.resolve("invalid.fsh"));
     assertFalse(invalidWritten);
+
     final String samplerAfterFailure = Files.readString(output.resolve("sampler.fsh"));
     assertEquals(glsl, samplerAfterFailure);
   }
@@ -226,11 +231,13 @@ final class Mcv2ToolsTest {
     try (final var stream = process.getInputStream()) {
       output = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
     }
+
     System.out.print(output);
     final int failures = process.waitFor();
     final String summary = failures == 0 ? "every stage compiled" : failures + " stages failed";
     final boolean summarized = output.lines().anyMatch(summary::equals);
     assertTrue(summarized, output);
+
     return failures;
   }
 
@@ -243,6 +250,7 @@ final class Mcv2ToolsTest {
     } finally {
       System.setOut(original);
     }
+
     return output.toString(StandardCharsets.UTF_8);
   }
 }

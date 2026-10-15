@@ -71,6 +71,7 @@ final class NativeConformanceTest {
         arguments.add(Arguments.of(level, stream));
       }
     }
+
     return arguments.stream();
   }
 
@@ -104,6 +105,7 @@ final class NativeConformanceTest {
     final int expectedLength = 4 * frameBytes;
     final int sourceLength = source.length;
     assertEquals(expectedLength, sourceLength);
+
     for (final Settings settings : List.of(Settings.DEFAULT, Settings.FAST)) {
       for (int threads = 1; threads <= 4; threads++) {
         final Mcv2 java = NativeTesting.encoder(settings, threads, true, NativeTesting.javaFactory());

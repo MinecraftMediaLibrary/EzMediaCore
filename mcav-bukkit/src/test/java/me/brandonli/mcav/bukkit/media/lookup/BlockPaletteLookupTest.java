@@ -116,6 +116,7 @@ final class BlockPaletteLookupTest {
     dithering.dither(pixels, 8);
 
     assertSame(dithering, sameDithering);
+
     for (final int pixel : pixels) {
       final Material material = BlockPaletteLookup.getMaterial(pixel);
       assertNotEquals(Material.AIR, material, "every dithered color belongs to a block");
@@ -243,6 +244,7 @@ final class BlockPaletteLookupTest {
       final boolean firstClose = !this.closed;
       this.content.close();
       this.closed = true;
+
       if (firstClose && this.failOnFirstClose) {
         throw new IOException(CLOSE_FAILURE_MESSAGE);
       }

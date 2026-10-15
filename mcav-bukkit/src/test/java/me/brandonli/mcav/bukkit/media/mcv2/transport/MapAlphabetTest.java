@@ -38,20 +38,27 @@ final class MapAlphabetTest {
     final byte[] colors = MapAlphabet.toMapColors(new byte[] { 0, 63, 1 });
     final int colorCount = colors.length;
     assertEquals(128, colorCount);
+
     final byte firstColor = colors[0];
     assertEquals(4, firstColor);
+
     final byte secondColor = colors[1];
     assertEquals(67, secondColor);
+
     final byte thirdColor = colors[2];
     assertEquals(5, thirdColor);
+
     final byte lastColor = colors[127];
     assertEquals(4, lastColor);
+
     final byte[] expectedSymbols = new byte[] { 0, 63 };
     final byte[] symbols = MapAlphabet.fromMapColors(new byte[] { 4, 67 });
     assertArrayEquals(expectedSymbols, symbols);
+
     final byte[] emptyColors = MapAlphabet.toMapColors(new byte[0]);
     final int emptyColorCount = emptyColors.length;
     assertEquals(0, emptyColorCount);
+
     final byte[] fullColors = MapAlphabet.toMapColors(new byte[16384]);
     final int fullColorCount = fullColors.length;
     assertEquals(16384, fullColorCount);

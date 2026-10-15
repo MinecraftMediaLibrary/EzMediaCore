@@ -137,6 +137,7 @@ final class FileServerHandlerTest {
       while (transferred < count) {
         transferred += region.transferTo(target, transferred);
       }
+
       return output.toByteArray();
     } finally {
       region.release();
@@ -305,6 +306,7 @@ final class FileServerHandlerTest {
     final String headers = readOutboundText(channel);
 
     assertEquals(OK_HEADERS, headers, "the headers ended within the limit, so the request is answered");
+
     final byte[] body = readRegion(channel);
     assertArrayEquals(PACK, body);
   }
@@ -409,6 +411,7 @@ final class FileServerHandlerTest {
     handler.handlerAdded(context);
     handler.channelRead(context, requestLine);
     verify(pipeline, never()).remove(timeout);
+
     handler.channelRead(context, headerEnd);
     handler.handlerRemoved(context);
 
@@ -485,6 +488,7 @@ final class FileServerHandlerTest {
 
     final int count = events.size();
     assertEquals(1, count);
+
     final LogCapture.RecordedEvent event = events.getFirst();
     final Level level = event.getLevel();
     final String message = event.getMessage();

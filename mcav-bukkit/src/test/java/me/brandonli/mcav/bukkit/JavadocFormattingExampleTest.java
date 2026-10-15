@@ -64,6 +64,7 @@ final class JavadocFormattingExampleTest {
         picture.setRGB(column, row, row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR);
       }
     }
+
     final Path file = directory.resolve(PICTURE_FILE_NAME);
     final File output = file.toFile();
     ImageIO.write(picture, "png", output);
@@ -88,9 +89,11 @@ final class JavadocFormattingExampleTest {
 
         final Scoreboard board = scoreboards.getBoard();
         verify(viewer).setScoreboard(board);
+
         final List<Team> teams = scoreboards.getTeams();
         final int teamCount = teams.size();
         assertEquals(PICTURE_HEIGHT, teamCount);
+
         for (int row = 0; row < PICTURE_HEIGHT; row++) {
           final int color = row % 2 == 0 ? EVEN_ROW_COLOR : ODD_ROW_COLOR;
           verify(teams.get(row)).suffix(Component.text("█".repeat(PICTURE_WIDTH), TextColor.color(color)));
@@ -98,6 +101,7 @@ final class JavadocFormattingExampleTest {
       } finally {
         display.release();
       }
+
       final Scoreboard restored = viewer.getScoreboard();
       assertSame(previous, restored);
     }

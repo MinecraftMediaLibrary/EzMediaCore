@@ -97,6 +97,7 @@ final class FileServerHandlerFuzzTest {
     if (input.length < 2) {
       return;
     }
+
     final int options = input[0] & 0xFF;
     final OpenMode mode = OpenMode.values()[(options & 0b11) % OpenMode.values().length];
     final boolean hasReadTimeout = (options & 0b100) != 0;
@@ -118,6 +119,7 @@ final class FileServerHandlerFuzzTest {
         new ReadTimeoutHandler(FileHttpChannelInitializer.READ_TIMEOUT_SECONDS)
       );
     }
+
     pipeline.addLast(handler);
 
     final List<ByteBuf> sent = new ArrayList<>();
@@ -134,6 +136,7 @@ final class FileServerHandlerFuzzTest {
       }
       drain(channel, answered);
     }
+
     channel.checkException();
     final boolean openAfterReads = channel.isOpen();
     final boolean timeoutLeft = pipeline.get(FileHttpChannelInitializer.READ_TIMEOUT_NAME) != null;
@@ -148,16 +151,20 @@ final class FileServerHandlerFuzzTest {
           buffer.release();
         }
       }
+
       channel.finishAndReleaseAll();
     }
+
     for (final ByteBuf buffer : sent) {
       final int referenceCount = buffer.refCnt();
       assertEquals(0, referenceCount, "a buffer the connection sent was never released");
     }
+
     for (final ByteBuf buffer : allocator.allocated) {
       final int referenceCount = buffer.refCnt();
       assertEquals(0, referenceCount, "a buffer of the handler outlived the connection");
     }
+
     for (final FileChannel fileChannel : opened) {
       final boolean fileOpen = fileChannel.isOpen();
       assertFalse(fileOpen, "the served file outlived the connection");
@@ -168,11 +175,14 @@ final class FileServerHandlerFuzzTest {
     if (mode == OpenMode.FAILS) {
       throw new NoSuchFileException(path.toString());
     }
+
     final FileChannel fileChannel = FileChannel.open(path, StandardOpenOption.READ);
     opened.add(fileChannel);
+
     if (mode == OpenMode.CANNOT_TELL_SIZE) {
       fileChannel.close();
     }
+
     return fileChannel;
   }
 
@@ -193,45 +203,58 @@ final class FileServerHandlerFuzzTest {
         final List<String> answeredTexts = texts(answered);
         assertEquals(expectedAnswers, answeredTexts, "headers past the limit are refused");
         assertFalse(openAfterReads, "a refused connection is closed");
+
         return;
       }
+
       assertEquals(List.of(), answered, "a request whose headers have not ended yet waits");
       assertTrue(openAfterReads, "a request whose headers have not ended yet keeps its connection");
       assertEquals(hasReadTimeout, timeoutLeft, "a request that waits keeps its read timeout");
+
       return;
     }
 
     assertFalse(timeoutLeft, "a complete request no longer has a read timeout");
     assertFalse(openAfterReads, "every answer closes the connection");
+
     final boolean isGet = startsWith(stream, GET_PREFIX);
     final boolean isHead = startsWith(stream, HEAD_PREFIX);
     if (!isGet && !isHead) {
       final List<String> expectedAnswers = List.of(status("405 Method Not Allowed"));
       final List<String> answeredTexts = texts(answered);
       assertEquals(expectedAnswers, answeredTexts, "only GET and HEAD are served");
+
       return;
     }
+
     if (mode != OpenMode.OPENS) {
       final List<String> expectedAnswers = List.of(status("404 Not Found"));
       final List<String> answeredTexts = texts(answered);
       assertEquals(expectedAnswers, answeredTexts, "a file that cannot be read is not found");
+
       return;
     }
+
     final int expectedAnswerCount = isGet ? 2 : 1;
     final int answerCount = answered.size();
     assertEquals(expectedAnswerCount, answerCount, "a request is answered once: the headers, and for GET the file");
+
     final String headers = text(answered.getFirst());
     final boolean served = headers.startsWith("HTTP/1.1 200 OK\r\n");
     assertTrue(served, () -> "the file is served: " + headers);
+
     final boolean statesTheLength = headers.contains("\r\nContent-Length: " + content.length + "\r\n");
     assertTrue(statesTheLength, () -> "the length is the file's: " + headers);
+
     final boolean headersEnd = headers.endsWith("\r\n\r\n");
     assertTrue(headersEnd, () -> "the headers end: " + headers);
+
     if (isGet) {
       final Object bodyMessage = answered.get(1);
       final FileRegion region = assertInstanceOf(FileRegion.class, bodyMessage);
       final long regionCount = region.count();
       assertEquals(content.length, regionCount, "the body is the whole file");
+
       final byte[] body = transfer(region);
       assertArrayEquals(content, body, "the body is the file");
     }
@@ -248,6 +271,7 @@ final class FileServerHandlerFuzzTest {
       }
       position += written;
     }
+
     return body.toByteArray();
   }
 
@@ -257,6 +281,7 @@ final class FileServerHandlerFuzzTest {
       answered.add(outbound);
       outbound = channel.readOutbound();
     }
+
     final Object inbound = channel.readInbound();
     assertNull(inbound, "the handler passes nothing on");
   }
@@ -266,6 +291,7 @@ final class FileServerHandlerFuzzTest {
     for (final Object message : answered) {
       texts.add(text(message));
     }
+
     return texts;
   }
 
@@ -284,6 +310,7 @@ final class FileServerHandlerFuzzTest {
         return index;
       }
     }
+
     return -1;
   }
 
@@ -329,6 +356,7 @@ final class FileServerHandlerFuzzTest {
         final int value = (byteAt(input, 2 + 2 * index) << 8) | byteAt(input, 3 + 2 * index);
         cuts[index] = value % (stream.length + 1);
       }
+
       Arrays.sort(cuts);
       final List<byte[]> reads = new ArrayList<>();
       int from = 0;
@@ -336,6 +364,7 @@ final class FileServerHandlerFuzzTest {
         reads.add(Arrays.copyOfRange(stream, from, cut));
         from = cut;
       }
+
       reads.add(Arrays.copyOfRange(stream, from, stream.length));
       return new Request(stream, reads);
     }

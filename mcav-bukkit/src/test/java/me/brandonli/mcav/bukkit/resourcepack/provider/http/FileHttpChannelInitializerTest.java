@@ -107,6 +107,7 @@ final class FileHttpChannelInitializerTest {
     final ReadTimeoutHandler readTimeout = assertInstanceOf(ReadTimeoutHandler.class, timeoutHandler);
     final long timeoutMilliseconds = readTimeout.getReaderIdleTimeInMillis();
     assertEquals(30_000, timeoutMilliseconds);
+
     final WriteTimeoutHandler writeTimeout = assertInstanceOf(WriteTimeoutHandler.class, writeTimeoutHandler);
     final Field timeoutField = WriteTimeoutHandler.class.getDeclaredField("timeoutNanos");
     timeoutField.setAccessible(true);
@@ -137,6 +138,7 @@ final class FileHttpChannelInitializerTest {
 
     final ArgumentCaptor<Object> answers = ArgumentCaptor.forClass(Object.class);
     verify(refused.channel).writeAndFlush(answers.capture());
+
     final Object answer = answers.getValue();
     final ByteBuf bytes = assertInstanceOf(ByteBuf.class, answer);
     final String text = bytes.toString(StandardCharsets.US_ASCII);

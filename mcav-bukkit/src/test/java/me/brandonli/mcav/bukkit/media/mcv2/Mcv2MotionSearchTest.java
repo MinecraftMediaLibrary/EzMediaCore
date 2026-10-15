@@ -55,6 +55,7 @@ final class Mcv2MotionSearchTest {
         rgb[offset + 2] = (byte) (2 * (int) (60 + 30 * Math.sin((column + row) / 10.0)));
       }
     }
+
     return rgb;
   }
 
@@ -76,6 +77,7 @@ final class Mcv2MotionSearchTest {
         }
       }
     }
+
     return source;
   }
 
@@ -148,6 +150,7 @@ final class Mcv2MotionSearchTest {
         }
       }
     }
+
     return reference;
   }
 
@@ -190,9 +193,11 @@ final class Mcv2MotionSearchTest {
         }
       }
     }
+
     final int found = Mcv2Internals.javaKernels().seeded(rgb, WIDTH, HEIGHT, source, 0, 0, 8, 4, new int[] { vector(-4, -4) });
     final boolean withinRange = Math.abs(found >> 16) <= 4 && Math.abs((short) found) <= 4;
     assertEquals(true, withinRange);
+
     final int expected = vector(-4, -4);
     assertEquals(expected, found, "the clamped corner has an exact four-pixel displacement");
   }

@@ -72,20 +72,26 @@ final class Mcv2PacerTest {
     final List<Mcv2Pacer.Rung> ladder = pacer.getLadder();
     final int size = ladder.size();
     assertEquals(11, size);
+
     final Mcv2Pacer.Rung expectedFirst = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1);
     final Mcv2Pacer.Rung first = ladder.getFirst();
     assertEquals(expectedFirst, first);
+
     final Mcv2Pacer.Rung expectedFifth = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 6);
     final Mcv2Pacer.Rung fifth = ladder.get(4);
     assertEquals(expectedFifth, fifth);
+
     final Mcv2Pacer.Rung expectedSixth = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 1);
     final Mcv2Pacer.Rung sixth = ladder.get(5);
     assertEquals(expectedSixth, sixth);
+
     final Mcv2Pacer.Rung last = ladder.getLast();
     assertEquals(Mcv2Pacer.Rung.DITHERED, last);
+
     final Mcv2Pacer.Rung expectedRung = ladder.getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
+
     final boolean frameRateUnknown = Double.isNaN(pacer.getVideoFramesPerSecond());
     assertTrue(frameRateUnknown);
     assertThrows(IllegalArgumentException.class, () -> new Mcv2Pacer(List.of()));
@@ -100,24 +106,31 @@ final class Mcv2PacerTest {
     final List<Mcv2Pacer.Rung> ladder = pacer.getLadder();
     final int size = ladder.size();
     assertEquals(13, size);
+
     final Mcv2Pacer.Rung expectedFirst = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, LIVE);
     final Mcv2Pacer.Rung first = ladder.getFirst();
     assertEquals(expectedFirst, first);
+
     final Mcv2Pacer.Rung expectedSecond = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, FAST);
     final Mcv2Pacer.Rung second = ladder.get(1);
     assertEquals(expectedSecond, second);
+
     final Mcv2Pacer.Rung expectedThird = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 2, FAST);
     final Mcv2Pacer.Rung third = ladder.get(2);
     assertEquals(expectedThird, third);
+
     final Mcv2Pacer.Rung expectedSixth = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 6, FAST);
     final Mcv2Pacer.Rung sixth = ladder.get(5);
     assertEquals(expectedSixth, sixth);
+
     final Mcv2Pacer.Rung expectedSeventh = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 1, LIVE);
     final Mcv2Pacer.Rung seventh = ladder.get(6);
     assertEquals(expectedSeventh, seventh);
+
     final Mcv2Pacer.Rung expectedEighth = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 1, FAST);
     final Mcv2Pacer.Rung eighth = ladder.get(7);
     assertEquals(expectedEighth, eighth);
+
     final Mcv2Pacer.Rung last = ladder.getLast();
     assertEquals(Mcv2Pacer.Rung.DITHERED, last);
     // one preset is the ladder of a screen that does not step through presets
@@ -139,26 +152,35 @@ final class Mcv2PacerTest {
   void shouldDescribeRungsAndRates() {
     final boolean dithered = Mcv2Pacer.Rung.DITHERED.isDithered();
     assertTrue(dithered);
+
     final double ditheredFrameRate = Mcv2Pacer.Rung.DITHERED.framesPerSecond(60);
     assertEquals(0, ditheredFrameRate);
+
     final String ditheredDescription = Mcv2Pacer.Rung.DITHERED.describe(60);
     assertEquals("the dithered maps", ditheredDescription);
 
     final Mcv2Pacer.Rung rung = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 4);
     final boolean rungDithered = rung.isDithered();
     assertFalse(rungDithered);
+
     final double frameRate = rung.framesPerSecond(30);
     assertEquals(7.5, frameRate);
+
     final String descriptionAtThirty = rung.describe(30);
     assertEquals("1280x720 at 7.5 fps", descriptionAtThirty);
+
     final String descriptionAtSixty = rung.describe(60);
     assertEquals("1280x720 at 15 fps", descriptionAtSixty);
+
     final Mcv2Pacer.Preset preset = rung.preset();
     assertEquals(Mcv2Pacer.Preset.ONLY, preset);
+
     final String fastDescription = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 4, FAST).describe(60);
     assertEquals("1280x720 at 15 fps with the live-fast search", fastDescription);
+
     final String roundedRate = Mcv2Pacer.rate(29.97);
     assertEquals("30", roundedRate);
+
     final String fractionalRate = Mcv2Pacer.rate(12.5);
     assertEquals("12.5", fractionalRate);
     // exactly a twentieth from a whole number is not whole any more
@@ -176,8 +198,10 @@ final class Mcv2PacerTest {
     final Driver driver = new Driver(pacer, 60, -5 * SECOND);
     final Mcv2Pacer.@Nullable Change change = driver.play(3, 5);
     assertNull(change);
+
     final double videoFrameRate = pacer.getVideoFramesPerSecond();
     assertEquals(60, videoFrameRate, 0.1);
+
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -186,6 +210,7 @@ final class Mcv2PacerTest {
     pacer.arrive(driver.now);
     final double frameRateAfterSameTime = pacer.getVideoFramesPerSecond();
     assertEquals(60, frameRateAfterSameTime, 0.1);
+
     final Mcv2Pacer.@Nullable Change instantChange = pacer.encoded(0, false, 0);
     assertNull(instantChange);
     assertThrows(IllegalArgumentException.class, () -> pacer.encoded(-1, false, 0));
@@ -202,6 +227,7 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.@Nullable Change change = pacer.encoded(1000, true, driver.now + (frameNumber * SECOND) / 60);
       assertNull(change);
     }
+
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -215,14 +241,18 @@ final class Mcv2PacerTest {
     // 25 ms per frame is more than the 16.7 ms a frame has at 60 fps, and fits in 30 fps' 33.3 ms
     final Mcv2Pacer.Change change = driver.play(2, 25);
     assertNotNull(change);
+
     final boolean stepsDown = change.down();
     assertTrue(stepsDown);
+
     final Mcv2Pacer.Rung expectedFrom = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1);
     final Mcv2Pacer.Rung from = change.from();
     assertEquals(expectedFrom, from);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 2);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
+
     final String description = change.describe();
     assertEquals(
       "MCV2 screen steps down to 1920x1080 at 30 fps: encoding 1920x1080 takes 25.0 ms per frame, more than the 16.7 ms" +
@@ -236,6 +266,7 @@ final class Mcv2PacerTest {
       pacer.arrive(driver.now + (frameNumber * SECOND) / 60);
       encoded += pacer.isEncoded() ? 1 : 0;
     }
+
     assertEquals(5, encoded);
   }
 
@@ -247,12 +278,15 @@ final class Mcv2PacerTest {
     // 22 ms per frame is more than the 20 ms a frame has at 50 fps; the faster preset's predicted 11 ms fits 17 ms
     final Mcv2Pacer.Change change = driver.play(2, 22);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedFrom = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, LIVE);
     final Mcv2Pacer.Rung from = change.from();
     assertEquals(expectedFrom, from);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, FAST);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
+
     final String description = change.describe();
     assertEquals(
       "MCV2 screen steps down to 1920x1080 at 50 fps with the live-fast search: encoding 1920x1080 with the live search" +
@@ -264,6 +298,7 @@ final class Mcv2PacerTest {
     driver.play(20, 22);
     final int changeCount = driver.changes.size();
     assertEquals(1, changeCount);
+
     final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, FAST);
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -271,6 +306,7 @@ final class Mcv2PacerTest {
     // once the budget frees, the slower preset is predicted at 5 ms, within 0.7 of 20 ms: the pacer climbs back to it
     final Mcv2Pacer.Change climbed = driver.play(20, 5);
     assertNotNull(climbed);
+
     final String climbDescription = climbed.describe();
     assertEquals(
       "MCV2 screen steps back up to 1920x1080 at 50 fps with the live search: encoding 1920x1080 with the live-fast search" +
@@ -290,6 +326,7 @@ final class Mcv2PacerTest {
     // 38 ms per frame: the faster preset's 19 ms keeps up with 20 ms without fitting 17 ms, and keeps every frame
     final Mcv2Pacer.Change change = driver.play(2, 38);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1, FAST);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -303,6 +340,7 @@ final class Mcv2PacerTest {
     // 44 ms per frame: the faster preset's 22 ms does not keep up with 20 ms at 50 fps, and fits 34 ms at 25 fps
     final Mcv2Pacer.Change change = driver.play(2, 44);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 2, FAST);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -311,9 +349,11 @@ final class Mcv2PacerTest {
     // with the slower preset and 35.6 ms with the faster, which fits 16.7 fps (51 ms)
     final Mcv2Pacer.Change smaller = driver.play(4, 160);
     assertNotNull(smaller);
+
     final Mcv2Pacer.Rung expectedSmallerTo = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 3, FAST);
     final Mcv2Pacer.Rung smallerTo = smaller.to();
     assertEquals(expectedSmallerTo, smallerTo);
+
     final int changeCount = driver.changes.size();
     assertEquals(2, changeCount);
   }
@@ -326,6 +366,7 @@ final class Mcv2PacerTest {
     // 38 ms per frame keeps up with every other frame's 40 ms without fitting 34 ms; every third frame's 51 ms fits
     final Mcv2Pacer.Change change = driver.play(2, 38);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 3);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -339,6 +380,7 @@ final class Mcv2PacerTest {
     // 55 ms per frame fits every fourth frame's 56.7 ms
     final Mcv2Pacer.Change first = driver.play(3, 55);
     assertNotNull(first);
+
     final Mcv2Pacer.Rung expectedFirstTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 4);
     final Mcv2Pacer.Rung firstTo = first.to();
     assertEquals(expectedFirstTo, firstTo);
@@ -347,6 +389,7 @@ final class Mcv2PacerTest {
     // ms, and fits every sixth frame's 85 ms
     final Mcv2Pacer.Change change = driver.play(4, 140);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 6);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -360,9 +403,11 @@ final class Mcv2PacerTest {
     // 100 ms fits no frame rate of 1080p down to 10 fps (85 ms), and 720p's predicted 44.4 ms fits 15 fps (56.7 ms)
     final Mcv2Pacer.Change change = driver.play(4, 100);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 4);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
+
     final int changeCount = driver.changes.size();
     assertEquals(1, changeCount);
   }
@@ -375,10 +420,13 @@ final class Mcv2PacerTest {
     // 2000 ms at 1080p, 889 ms at 720p: nothing fits, not even 720p at 10 fps
     final Mcv2Pacer.Change dithered = driver.play(2, 2000);
     assertNotNull(dithered);
+
     final boolean stepsDown = dithered.down();
     assertTrue(stepsDown);
+
     final boolean onDitheredMaps = pacer.getRung().isDithered();
     assertTrue(onDitheredMaps);
+
     final boolean describesTheFallBack = dithered
       .describe()
       .startsWith("MCV2 screen steps down to the dithered maps: encoding 1920x1080 takes 2000.0 ms");
@@ -387,8 +435,10 @@ final class Mcv2PacerTest {
     // nothing is encoded, and a frame reported meanwhile changes nothing
     final Mcv2Pacer.@Nullable Change meanwhile = driver.play(28, 2000);
     assertNull(meanwhile);
+
     final boolean encoded = pacer.isEncoded();
     assertFalse(encoded);
+
     final Mcv2Pacer.@Nullable Change reported = pacer.encoded(1, false, driver.now);
     assertNull(reported);
 
@@ -398,15 +448,20 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Change tried = driver.changes.get(1);
     final Mcv2Pacer.Rung from = tried.from();
     assertEquals(Mcv2Pacer.Rung.DITHERED, from);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 6);
     final Mcv2Pacer.Rung to = tried.to();
     assertEquals(expectedTo, to);
+
     final boolean triedStepsDown = tried.down();
     assertFalse(triedStepsDown);
+
     final String description = tried.describe();
     assertEquals("MCV2 screen tries encoding again at 1280x720 at 10 fps after showing the dithered maps", description);
+
     final int changeCount = driver.changes.size();
     assertEquals(3, changeCount);
+
     final boolean stillDithered = pacer.getRung().isDithered();
     assertTrue(stillDithered);
 
@@ -435,12 +490,15 @@ final class Mcv2PacerTest {
     driver.play(30, 9);
     final int changeCount = driver.changes.size();
     assertEquals(3, changeCount);
+
     final Mcv2Pacer.Change first = driver.changes.get(1);
     final boolean stepsDown = first.down();
     assertFalse(stepsDown);
+
     final Mcv2Pacer.Rung expectedFirstTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 2);
     final Mcv2Pacer.Rung firstTo = first.to();
     assertEquals(expectedFirstTo, firstTo);
+
     final String description = first.describe();
     assertEquals(
       "MCV2 screen steps back up to 1920x1080 at 30 fps: encoding 1280x720 takes 4.0 ms per frame, well within the 66.7 ms" +
@@ -450,6 +508,7 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung expectedSecondTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1);
     final Mcv2Pacer.Rung secondTo = driver.changes.get(2).to();
     assertEquals(expectedSecondTo, secondTo);
+
     final Mcv2Pacer.Rung expectedRungAfterClimb = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 1);
     final Mcv2Pacer.Rung rungAfterClimb = pacer.getRung();
     assertEquals(expectedRungAfterClimb, rungAfterClimb);
@@ -512,6 +571,7 @@ final class Mcv2PacerTest {
     // 90 ms fits 10 fps (100 ms) without the room the pacer likes, but it keeps up: better than the dithered maps
     final Mcv2Pacer.Change change = driver.play(3, 90);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 6);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -524,6 +584,7 @@ final class Mcv2PacerTest {
     // over its time from the first frame, but no step while the encoder warms up
     final Mcv2Pacer.@Nullable Change warmingUp = driver.play(4.9, 100);
     assertNull(warmingUp);
+
     final Mcv2Pacer.@Nullable Change warmedUp = driver.play(2, 100);
     assertNotNull(warmedUp);
   }
@@ -552,6 +613,7 @@ final class Mcv2PacerTest {
     // at 8 fps every rung that skips frames would fall under 10 fps: 1080p's 150 ms miss its 125 ms, 720p's 67 fit
     final Mcv2Pacer.Change change = driver.play(3, 150);
     assertNotNull(change);
+
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(SMALL_WIDTH, SMALL_HEIGHT, 1);
     final Mcv2Pacer.Rung to = change.to();
     assertEquals(expectedTo, to);
@@ -591,6 +653,7 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung expectedTo = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 2);
     final Mcv2Pacer.Rung to = clock.until(30, 1000).to();
     assertEquals(expectedTo, to);
+
     final long expectedNow = 106 * SECOND;
     final long now = clock.now;
     assertEquals(expectedNow, now);
@@ -606,6 +669,7 @@ final class Mcv2PacerTest {
     final long expectedNow = 11 * SECOND;
     final long now = clock.now;
     assertEquals(expectedNow, now);
+
     final boolean dithered = pacer.getRung().isDithered();
     assertTrue(dithered);
   }
@@ -619,6 +683,7 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.@Nullable Change change = clock.frame(20);
       assertNull(change);
     }
+
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -651,6 +716,7 @@ final class Mcv2PacerTest {
       pacer.arrive(clock.now);
       encoded[frameNumber] = pacer.isEncoded();
     }
+
     final boolean[] expectedEncoded = new boolean[] { true, false, false, true, false, false };
     assertArrayEquals(expectedEncoded, encoded);
   }
@@ -668,6 +734,7 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.@Nullable Change change = clock.frame(2000);
       assertNull(change);
     }
+
     final Mcv2Pacer.Rung expectedRung = new Mcv2Pacer.Rung(FULL_WIDTH, FULL_HEIGHT, 4);
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -709,6 +776,7 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung expectedClimbTo = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung climbTo = climb.to();
     assertEquals(expectedClimbTo, climbTo);
+
     final long expectedNow = stepped + 939 * FRAME_62;
     final long now = clock.now;
     assertEquals(expectedNow, now);
@@ -729,6 +797,7 @@ final class Mcv2PacerTest {
     final long expectedNow = stepped + 751 * FRAME_50;
     final long now = clock.now;
     assertEquals(expectedNow, now);
+
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung);
@@ -760,6 +829,7 @@ final class Mcv2PacerTest {
     while (!pacer.getRung().equals(pacer.getLadder().getFirst()) && clock.now < stepped + 30 * SECOND) {
       clock.frame(10);
     }
+
     final boolean climbedBackSoon = clock.now < stepped + 20 * SECOND;
     assertTrue(climbedBackSoon, CLIMBED_BACK_PREFIX + (clock.now - stepped) / NANOSECONDS_PER_SECOND + AFTER_THE_STEP_SUFFIX);
   }
@@ -774,10 +844,12 @@ final class Mcv2PacerTest {
     final Mcv2Pacer.Rung expectedTo = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung to = clock.until(10, 2000).to();
     assertEquals(expectedTo, to);
+
     for (int frameNumber = 0; frameNumber < 300; frameNumber++) {
       final Mcv2Pacer.@Nullable Change change = clock.frame(10);
       assertNull(change);
     }
+
     final boolean stepsDown = clock.until(61, 1000).down();
     assertTrue(stepsDown);
 
@@ -785,11 +857,14 @@ final class Mcv2PacerTest {
     while (!pacer.getRung().equals(pacer.getLadder().getFirst()) && clock.now < stepped + 60 * SECOND) {
       clock.frame(10);
     }
+
     final boolean keptOffTwentySeconds = clock.now >= stepped + 20 * SECOND;
     assertTrue(keptOffTwentySeconds, CLIMBED_BACK_PREFIX + (clock.now - stepped) / NANOSECONDS_PER_SECOND + AFTER_THE_STEP_SUFFIX);
+
     final Mcv2Pacer.Rung expectedRung = pacer.getLadder().getFirst();
     final Mcv2Pacer.Rung rung = pacer.getRung();
     assertEquals(expectedRung, rung, "the held-off rung eventually returns");
+
     final boolean climbedBeforeDeadline = clock.now < stepped + 60 * SECOND;
     assertTrue(climbedBeforeDeadline, "the climb occurred before the loop deadline");
   }
@@ -820,15 +895,20 @@ final class Mcv2PacerTest {
     while (driver.changes.size() == changes && driver.now < fellBack + 120 * SECOND) {
       driver.play(1, 2000);
     }
+
     final boolean waitedAboutSixtySeconds = driver.now - fellBack >= 58 * SECOND;
     assertTrue(waitedAboutSixtySeconds, TRIED_AGAIN_PREFIX + (driver.now - fellBack) / NANOSECONDS_PER_SECOND + AFTER_FALLING_BACK_SUFFIX);
+
     final boolean retried = driver.changes.size() > changes;
     assertTrue(retried, "the encoded retry actually occurred");
+
     final Mcv2Pacer.Change retry = driver.changes.get(changes);
     final boolean fromDithered = retry.from().isDithered();
     assertTrue(fromDithered);
+
     final boolean toDithered = retry.to().isDithered();
     assertFalse(toDithered);
+
     final boolean retriedBeforeDeadline = driver.now < fellBack + 120 * SECOND;
     assertTrue(retriedBeforeDeadline, "the retry occurred before the loop deadline");
   }
@@ -847,9 +927,11 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.@Nullable Change change = clock.frame(10);
       assertNull(change);
     }
+
     // one frame far over, so no later frame of the hold counts, then a second of frames over
     final Mcv2Pacer.@Nullable Change farOver = clock.frame(1000);
     assertNull(farOver);
+
     final boolean stepsDown = clock.until(30, 1000).down();
     assertTrue(stepsDown);
 
@@ -857,6 +939,7 @@ final class Mcv2PacerTest {
     while (!pacer.getRung().equals(pacer.getLadder().getFirst()) && clock.now < stepped + 60 * SECOND) {
       clock.frame(10);
     }
+
     // the hold ended the doubled wait: ten seconds kept off and five of room, not twenty and five
     final boolean climbedBackSoon = clock.now - stepped < 20 * SECOND;
     assertTrue(climbedBackSoon, CLIMBED_BACK_PREFIX + (clock.now - stepped) / NANOSECONDS_PER_SECOND + AFTER_THE_STEP_SUFFIX);
@@ -871,6 +954,7 @@ final class Mcv2PacerTest {
     while (!fall.to().isDithered()) {
       fall = clock.until(1000, 100_000);
     }
+
     // 30 seconds later the lowest encoded rung is tried: at 60 ms a frame it keeps up, with no room to climb
     final Mcv2Pacer.Change tried = clock.until(60, 2000);
     final boolean triedDithered = tried.to().isDithered();
@@ -883,6 +967,7 @@ final class Mcv2PacerTest {
       final Mcv2Pacer.@Nullable Change change = clock.frame(60);
       assertNull(change);
     }
+
     // every frame after it is far over, so no later frame of the try counts, and the pacer falls back again
     final boolean fellBackAgain = clock.until(1000, 1000).to().isDithered();
     assertTrue(fellBackAgain);
@@ -936,6 +1021,7 @@ final class Mcv2PacerTest {
           }
         }
       }
+
       return last;
     }
   }
@@ -962,6 +1048,7 @@ final class Mcv2PacerTest {
       if (tried != null) {
         return tried;
       }
+
       return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now) : null;
     }
 
@@ -973,6 +1060,7 @@ final class Mcv2PacerTest {
           return change;
         }
       }
+
       final String message = "No change in %s frames!".formatted(limit);
       throw new AssertionError(message);
     }

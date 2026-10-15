@@ -81,6 +81,7 @@ final class Mcv2LinkPropertyTest {
         if (over || !(isKeyframe || reference == clientLast)) {
           return false;
         }
+
         clientLast = id;
         outstanding += step.bytes();
         inFlight.add((long) step.bytes());
@@ -91,6 +92,7 @@ final class Mcv2LinkPropertyTest {
         return false;
       }
     }
+
     return link.getSent() + link.getBehind() + link.getUndecodable() == steps.size();
   }
 

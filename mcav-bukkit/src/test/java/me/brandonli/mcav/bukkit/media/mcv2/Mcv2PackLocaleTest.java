@@ -62,9 +62,11 @@ final class Mcv2PackLocaleTest {
       final Map<String, String> actual = this.shaders(configuration, LOCALIZED_PACK_FILE_NAME);
       final boolean empty = expected.isEmpty();
       assertFalse(empty);
+
       final Set<String> expectedNames = expected.keySet();
       final Set<String> actualNames = actual.keySet();
       assertEquals(expectedNames, actualNames);
+
       for (final Map.Entry<String, String> shader : expected.entrySet()) {
         final String expectedShader = shader.getValue();
         final @Nullable String actualShader = actual.get(shader.getKey());
@@ -92,6 +94,7 @@ final class Mcv2PackLocaleTest {
         }
       }
     }
+
     return shaders;
   }
 }

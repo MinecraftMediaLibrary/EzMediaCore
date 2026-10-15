@@ -95,6 +95,7 @@ final class StandardVideoHologramFuzzTest {
     if (input.length < HEADER_BYTES) {
       return;
     }
+
     final int flags = input[0];
     final int timestamp = ByteBuffer.wrap(input, 1, Integer.BYTES).getInt();
     final String text = new String(input, HEADER_BYTES, input.length - HEADER_BYTES, StandardCharsets.UTF_8);
@@ -119,6 +120,7 @@ final class StandardVideoHologramFuzzTest {
     final String start = title + "\n" + uploader + " (";
     final boolean shownAsNamed = plain.startsWith(start) && plain.endsWith(")");
     assertTrue(shownAsNamed, () -> "shown as named: [" + start + "...)] but was [" + plain + "]");
+
     if (reportedTimestamp <= 0) {
       final String expected = start + "Unknown date)";
       assertEquals(expected, plain, "a video without a date says so");
