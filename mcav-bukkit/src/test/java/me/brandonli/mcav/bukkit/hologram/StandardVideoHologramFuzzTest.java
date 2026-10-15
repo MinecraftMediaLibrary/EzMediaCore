@@ -111,7 +111,7 @@ final class StandardVideoHologramFuzzTest {
     final UrlParseDump dump = gson.fromJson(json, UrlParseDump.class);
 
     SHOWN.set(null);
-    new StandardVideoHologram().handleRequest(LOCATION, dump);
+    new StandardVideoHologram().spawn(LOCATION, dump);
     final String plain = PLAIN.serialize(SHOWN.get());
 
     final String title = reportedTitle == null ? "Unknown title" : reportedTitle;

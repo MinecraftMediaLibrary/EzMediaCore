@@ -185,7 +185,7 @@ final class Mcv2PackServerTest {
   }
 
   private void load(final Player player, final UUID pack) {
-    this.packs.getViewers().handleStatus(new PlayerResourcePackStatusEvent(player, pack, Status.SUCCESSFULLY_LOADED));
+    this.packs.getViewers().onResourcePackStatus(new PlayerResourcePackStatusEvent(player, pack, Status.SUCCESSFULLY_LOADED));
   }
 
   /** The slots of the pack hosted last, as its manifest names them: "stream id: width x height", in strip order. */
@@ -482,7 +482,7 @@ final class Mcv2PackServerTest {
     this.packs.open(screen(160, Set.of(BOB)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
-    final long loadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+    final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
     assertEquals(-1, loadTime);
   }
 
@@ -693,7 +693,9 @@ final class Mcv2PackServerTest {
     verify(carol, never()).sendResourcePacks(any(ResourcePackRequest.class));
 
     // Alice declined; changing world does not ask her again
-    this.packs.getViewers().handleStatus(new PlayerResourcePackStatusEvent(alice, this.packs.getViewers().getPackId(), Status.DECLINED));
+    this.packs
+      .getViewers()
+      .onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, this.packs.getViewers().getPackId(), Status.DECLINED));
     world.execute(listener, new PlayerChangedWorldEvent(alice, mock(World.class)));
     this.server.runTasks();
     verify(alice).sendResourcePacks(any(ResourcePackRequest.class));
@@ -717,7 +719,7 @@ final class Mcv2PackServerTest {
     final EventExecutor quit = this.registered(PlayerQuitEvent.class);
     final Listener listener = this.listener(PlayerJoinEvent.class);
     final PlayerResourcePackStatusEvent early = new PlayerResourcePackStatusEvent(alice, UUID.randomUUID(), Status.SUCCESSFULLY_LOADED);
-    final long earlyLoadTime = this.packs.handleStatus(early);
+    final long earlyLoadTime = this.packs.onResourcePackStatus(early);
     assertEquals(-1, earlyLoadTime, "no pack is served yet");
 
     this.packs.open(screen(320, Set.of(ALICE, BOB)));
@@ -726,21 +728,23 @@ final class Mcv2PackServerTest {
 
     this.milliseconds.addAndGet(2_500);
 
-    final long otherPackLoadTime = this.packs.handleStatus(
+    final long otherPackLoadTime = this.packs.onResourcePackStatus(
       new PlayerResourcePackStatusEvent(alice, UUID.randomUUID(), Status.SUCCESSFULLY_LOADED)
     );
     assertEquals(-1, otherPackLoadTime);
-    final long downloadedLoadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.DOWNLOADED));
+    final long downloadedLoadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.DOWNLOADED));
     assertEquals(-1, downloadedLoadTime);
-    final long loadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+    final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
     assertEquals(2_500, loadTime);
-    final long repeatedLoadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+    final long repeatedLoadTime = this.packs.onResourcePackStatus(
+      new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED)
+    );
     assertEquals(-1, repeatedLoadTime, "measured once");
 
     // the registered listeners reach the same code, and a player who left is forgotten
     status.execute(listener, new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
     quit.execute(listener, new PlayerQuitEvent(bob, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
-    final long departedLoadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(bob, pack, Status.SUCCESSFULLY_LOADED));
+    final long departedLoadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(bob, pack, Status.SUCCESSFULLY_LOADED));
     assertEquals(-1, departedLoadTime);
   }
 
@@ -754,15 +758,17 @@ final class Mcv2PackServerTest {
     this.packs.open(screen(320, Set.of(ALICE)));
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
-    final long downloadedLoadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.DOWNLOADED));
+    final long downloadedLoadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.DOWNLOADED));
     assertEquals(-1, downloadedLoadTime);
     verify(alice, never()).sendMessage(any(Component.class));
 
     this.load(alice, pack);
     try (final LogCapture logs = LogCapture.capture(Mcv2PackServer.class)) {
-      final long loadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+      final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
       assertEquals(0, loadTime);
-      final long repeatedLoadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+      final long repeatedLoadTime = this.packs.onResourcePackStatus(
+        new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED)
+      );
       assertEquals(-1, repeatedLoadTime);
       verify(alice).sendMessage(
         Component.text(
@@ -803,7 +809,7 @@ final class Mcv2PackServerTest {
     this.server.receivePluginMessage(alice, "mcav:mcv2", new byte[] { 1, 1, 0, 0 });
     this.load(alice, pack);
     try (final LogCapture logs = LogCapture.capture(Mcv2PackServer.class)) {
-      final long loadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+      final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
       assertEquals(0, loadTime);
       verify(alice, never()).sendMessage(any(Component.class));
       final boolean noWarnings = logs
@@ -828,7 +834,7 @@ final class Mcv2PackServerTest {
     this.settle();
     final UUID pack = this.packs.getViewers().getPackId();
     try (final LogCapture logs = LogCapture.capture(Mcv2PackServer.class)) {
-      final long loadTime = this.packs.handleStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
+      final long loadTime = this.packs.onResourcePackStatus(new PlayerResourcePackStatusEvent(alice, pack, Status.SUCCESSFULLY_LOADED));
       assertEquals(0, loadTime);
       verify(alice, never()).sendMessage(any(Component.class));
       final boolean noWarnings = logs

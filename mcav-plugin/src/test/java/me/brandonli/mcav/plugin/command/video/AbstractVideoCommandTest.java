@@ -365,7 +365,7 @@ final class AbstractVideoCommandTest {
     final UrlParseDump dump = this.verifyPlayedWithDump(AudioArgument.NONE);
     final InOrder order = inOrder(this.hologram, this.manager);
     order.verify(this.manager).setHologram(this.hologram);
-    order.verify(this.hologram).handleRequest(location, dump);
+    order.verify(this.hologram).spawn(location, dump);
     order.verify(this.hologram).start();
   }
 

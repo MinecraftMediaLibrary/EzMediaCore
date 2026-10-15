@@ -26,13 +26,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * A floating text display that shows information about the video that is playing, such as its title, uploader,
  * and a progress bar.
  *
- * <p>A hologram goes through three steps: {@link #handleRequest(Location, UrlParseDump)} spawns the display with
+ * <p>A hologram goes through three steps: {@link #spawn(Location, UrlParseDump)} spawns the display with
  * the metadata of the video, {@link #start()} starts the progress bar, and {@link #kill()} removes the display
  * again. All methods must be called on the main thread.
  *
  * <pre><code>
  *   final Hologram hologram = Hologram.basic();
- *   hologram.handleRequest(location, dump);
+ *   hologram.spawn(location, dump);
  *   hologram.start();
  *   // when playback ends
  *   hologram.kill();
@@ -60,10 +60,10 @@ public interface Hologram {
    * @throws NullPointerException     if the location or metadata is null
    * @throws IllegalArgumentException if the location has no world
    */
-  void handleRequest(final Location location, final UrlParseDump dump);
+  void spawn(final Location location, final UrlParseDump dump);
 
   /**
-   * Starts the progress bar. Has no effect before {@link #handleRequest(Location, UrlParseDump)} was called.
+   * Starts the progress bar. Has no effect before {@link #spawn(Location, UrlParseDump)} was called.
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
    */
   void start();

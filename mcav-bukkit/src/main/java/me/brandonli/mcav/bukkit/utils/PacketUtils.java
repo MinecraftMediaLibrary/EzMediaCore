@@ -83,8 +83,8 @@ public final class PacketUtils {
     final Plugin plugin = BukkitModule.getPlugin();
     final Listener listener = new ConnectionListener();
     final PluginManager pluginManager = Bukkit.getPluginManager();
-    final EventExecutor joinExecutor = (_, event) -> handleJoin(event);
-    final EventExecutor quitExecutor = (_, event) -> handleQuit(event);
+    final EventExecutor joinExecutor = (_, event) -> onPlayerJoin(event);
+    final EventExecutor quitExecutor = (_, event) -> onPlayerQuit(event);
     pluginManager.registerEvent(PlayerJoinEvent.class, listener, EventPriority.LOWEST, joinExecutor, plugin);
     pluginManager.registerEvent(PlayerQuitEvent.class, listener, EventPriority.MONITOR, quitExecutor, plugin);
     connectionListener = listener;
@@ -220,14 +220,14 @@ public final class PacketUtils {
     return cached == null ? null : cached.listener().connection.channel;
   }
 
-  private static void handleJoin(final Event event) {
+  private static void onPlayerJoin(final Event event) {
     if (event instanceof final PlayerJoinEvent joinEvent) {
       final Player player = joinEvent.getPlayer();
       addPlayerConnection(player, PLAYER_CONNECTIONS.get(player.getUniqueId()));
     }
   }
 
-  private static void handleQuit(final Event event) {
+  private static void onPlayerQuit(final Event event) {
     if (event instanceof final PlayerQuitEvent quitEvent) {
       final Player player = quitEvent.getPlayer();
       removePlayerConnection(player);

@@ -44,7 +44,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * A hologram that shows the title, the uploader, the upload date, and a progress bar of a video. The progress bar
  * advances every 20 server ticks until the metadata duration, rounded up to whole seconds, is reached.
  * It is independent of player position and slows down with the server tick rate. Create an instance with
- * {@link Hologram#basic()}, populate it with {@link #handleRequest(Location, UrlParseDump)}, then start it.
+ * {@link Hologram#basic()}, populate it with {@link #spawn(Location, UrlParseDump)}, then start it.
  */
 public class StandardVideoHologram extends VideoHologram {
 
@@ -89,7 +89,7 @@ public class StandardVideoHologram extends VideoHologram {
    * @throws IllegalArgumentException if the location has no world
    */
   @Override
-  public void handleRequest(final Location location, final UrlParseDump dump) {
+  public void spawn(final Location location, final UrlParseDump dump) {
     Preconditions.checkNotNull(location, "Location must not be null!");
     Preconditions.checkNotNull(dump, "Video metadata must not be null!");
     final World world = location.getWorld();
@@ -165,7 +165,7 @@ public class StandardVideoHologram extends VideoHologram {
 
   /**
    * Starts the progress bar, which advances every 20 server ticks until the duration of the video is reached or the
-   * display is removed. Has no effect before {@link #handleRequest(Location, UrlParseDump)} was called or while the
+   * display is removed. Has no effect before {@link #spawn(Location, UrlParseDump)} was called or while the
    * progress bar is already running.
    * @throws IllegalStateException if a display is present but no plugin has been injected into BukkitModule
    */

@@ -303,7 +303,7 @@ public final class Mcv2PackServer {
     final PluginManager manager = Bukkit.getPluginManager();
     final EventExecutor join = (_, event) -> this.offerLater(((PlayerJoinEvent) event).getPlayer());
     final EventExecutor world = (_, event) -> this.offerLater(((PlayerChangedWorldEvent) event).getPlayer());
-    final EventExecutor status = (_, event) -> this.handleStatus((PlayerResourcePackStatusEvent) event);
+    final EventExecutor status = (_, event) -> this.onResourcePackStatus((PlayerResourcePackStatusEvent) event);
     final EventExecutor quit = (_, event) -> this.forget(((PlayerQuitEvent) event).getPlayer().getUniqueId());
     manager.registerEvent(PlayerJoinEvent.class, events, EventPriority.MONITOR, join, BukkitModule.getPlugin());
     manager.registerEvent(PlayerChangedWorldEvent.class, events, EventPriority.MONITOR, world, BukkitModule.getPlugin());
@@ -619,7 +619,7 @@ public final class Mcv2PackServer {
     return false;
   }
 
-  synchronized long handleStatus(final PlayerResourcePackStatusEvent event) {
+  synchronized long onResourcePackStatus(final PlayerResourcePackStatusEvent event) {
     final Published pack = this.current;
     if (
       pack == null || !pack.packId().equals(event.getID()) || event.getStatus() != PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED

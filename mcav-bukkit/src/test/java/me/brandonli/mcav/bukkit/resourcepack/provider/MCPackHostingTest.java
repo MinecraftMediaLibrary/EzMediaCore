@@ -587,20 +587,20 @@ final class MCPackHostingTest {
       final PackService service = new PackService(httpServer);
       httpServer.createContext("/upload", exchange -> {
         try {
-          service.handleUpload(exchange);
+          service.recordUpload(exchange);
         } catch (final AssertionError exception) {
           service.handlerFailure.compareAndSet(null, exception);
         } finally {
           exchange.close();
         }
       });
-      httpServer.createContext("/pack/", service::handleDownload);
+      httpServer.createContext("/pack/", service::answerDownload);
       httpServer.setExecutor(service.handlers);
       httpServer.start();
       return service;
     }
 
-    private void handleUpload(final HttpExchange exchange) throws IOException {
+    private void recordUpload(final HttpExchange exchange) throws IOException {
       final byte[] body;
       try (final InputStream input = exchange.getRequestBody()) {
         body = input.readAllBytes();
@@ -623,7 +623,7 @@ final class MCPackHostingTest {
       }
     }
 
-    private void handleDownload(final HttpExchange exchange) throws IOException {
+    private void answerDownload(final HttpExchange exchange) throws IOException {
       final String method = exchange.getRequestMethod();
       this.downloadMethods.add(method);
       final int status = this.downloadsAvailable ? 200 : 404;

@@ -136,7 +136,7 @@ final class Mcv2ShaderFallbackTest {
     final boolean otherReported = this.viewers.hasShaderReport(LATE_VIEWER);
     assertFalse(otherReported, "a report is its sender's alone");
 
-    this.viewers.handleQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
+    this.viewers.onPlayerQuit(new PlayerQuitEvent(this.player, (Component) null, PlayerQuitEvent.QuitReason.DISCONNECTED));
     final boolean reportedAfterQuit = this.viewers.hasShaderReport(VIEWER);
     assertFalse(reportedAfterQuit);
 
@@ -154,7 +154,9 @@ final class Mcv2ShaderFallbackTest {
   }
 
   private void load(final CraftPlayer viewer) {
-    this.viewers.handleStatus(new PlayerResourcePackStatusEvent(viewer, PACK, PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED));
+    this.viewers.onResourcePackStatus(
+      new PlayerResourcePackStatusEvent(viewer, PACK, PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED)
+    );
   }
 
   private Mcv2Channel channel(final List<UUID> selected) {

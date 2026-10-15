@@ -143,13 +143,13 @@ public class CompressedMapResult implements DitherResultStep {
       if (this.released) {
         return;
       }
-      this.processFrame(samples, algorithm);
+      this.ditherAndSendFrame(samples, algorithm);
     } finally {
       this.lock.unlock();
     }
   }
 
-  private void processFrame(final ImageBuffer samples, final DitherAlgorithm algorithm) {
+  private void ditherAndSendFrame(final ImageBuffer samples, final DitherAlgorithm algorithm) {
     this.resizeIfConfigured(samples);
     final byte[] dithered = this.dither(samples, algorithm);
 

@@ -571,7 +571,7 @@ public abstract class AbstractVideoCommand implements AnnotationCommandFeature {
     final Hologram hologram = Hologram.basic();
     this.manager.setHologram(hologram);
     try {
-      hologram.handleRequest(location, dump);
+      hologram.spawn(location, dump);
       hologram.start();
     } catch (final RuntimeException | Error exception) {
       ThrowableUtils.throwIfFatal(exception);

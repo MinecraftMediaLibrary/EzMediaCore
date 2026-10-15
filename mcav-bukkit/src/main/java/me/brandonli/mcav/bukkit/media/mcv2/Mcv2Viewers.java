@@ -110,8 +110,8 @@ public final class Mcv2Viewers {
     this.unregister();
     final Listener events = new Listener() {};
     final PluginManager manager = Bukkit.getPluginManager();
-    final EventExecutor status = (_, event) -> this.handleStatus((PlayerResourcePackStatusEvent) event);
-    final EventExecutor quit = (_, event) -> this.handleQuit((PlayerQuitEvent) event);
+    final EventExecutor status = (_, event) -> this.onResourcePackStatus((PlayerResourcePackStatusEvent) event);
+    final EventExecutor quit = (_, event) -> this.onPlayerQuit((PlayerQuitEvent) event);
     manager.registerEvent(PlayerResourcePackStatusEvent.class, events, EventPriority.MONITOR, status, BukkitModule.getPlugin());
     manager.registerEvent(PlayerQuitEvent.class, events, EventPriority.MONITOR, quit, BukkitModule.getPlugin());
     Bukkit.getMessenger().registerIncomingPluginChannel(BukkitModule.getPlugin(), Mcv2ShaderReports.CHANNEL, this.shaderReports);
@@ -207,7 +207,7 @@ public final class Mcv2Viewers {
     return this.sessions.getOrDefault(player, 0L);
   }
 
-  void handleStatus(final PlayerResourcePackStatusEvent event) {
+  void onResourcePackStatus(final PlayerResourcePackStatusEvent event) {
     if (!this.packId.equals(event.getID())) {
       return;
     }
@@ -236,7 +236,7 @@ public final class Mcv2Viewers {
     }
   }
 
-  void handleQuit(final PlayerQuitEvent event) {
+  void onPlayerQuit(final PlayerQuitEvent event) {
     final UUID player = event.getPlayer().getUniqueId();
     this.states.remove(player);
     this.sessions.remove(player);
