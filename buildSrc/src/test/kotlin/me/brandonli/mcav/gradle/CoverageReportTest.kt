@@ -107,4 +107,20 @@ class CoverageReportTest {
             assertThrows(IllegalArgumentException::class.java) { CoverageExceptions.read(file) }
         }
     }
+
+    @Test
+    fun shouldReadAMissingSourceAsBlankLinesAndSkipALineWithoutInstructions(): Unit {
+        val report = directory.resolve("report.xml").toFile()
+        report.writeText("""
+            <report name="fixture"><package name="sample"><sourcefile name="Missing.java">
+              <line nr="1" mi="3" ci="0" mb="0" cb="0"/>
+              <line nr="2" mi="0" ci="0" mb="0" cb="0"/>
+            </sourcefile></package></report>
+        """.trimIndent())
+        val blankLine = CoverageException("sample/Missing.java", "", "generated source")
+
+        val gaps: List<String> = CoverageReport.findGaps(report, directory.toFile(), listOf(blankLine))
+        assertEquals(emptyList<String>(), gaps)
+        assertTrue(blankLine.used)
+    }
 }

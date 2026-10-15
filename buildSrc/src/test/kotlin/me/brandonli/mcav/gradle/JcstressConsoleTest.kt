@@ -25,6 +25,7 @@ import org.gradle.api.GradleException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 
@@ -93,5 +94,24 @@ class JcstressConsoleTest {
         val file = this.directory.resolve("console.txt").toFile()
         file.writeText(lines.joinToString("\n"))
         return file
+    }
+
+    @Test
+    fun shouldFlushTheConsoleAndTheFile(): Unit {
+        var flushed = false
+        val shown = object : ByteArrayOutputStream() {
+            override fun flush(): Unit {
+                flushed = true
+            }
+        }
+        val file = this.directory.resolve("console.txt").toFile()
+        val tee = JcstressConsole.tee(shown, file)
+        tee.write("[OK] one".toByteArray())
+        tee.flush()
+
+        val written: String = file.readText()
+        tee.close()
+        assertTrue(flushed)
+        assertEquals("[OK] one", written)
     }
 }

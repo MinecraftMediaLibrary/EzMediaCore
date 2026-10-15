@@ -19,6 +19,7 @@
 package me.brandonli.mcav.gradle
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class LogMessagesTest {
@@ -137,5 +138,13 @@ class LogMessagesTest {
     fun readsParenthesesAndCommasInLiteralsAsText() {
         val source = "LOGGER.info(STARTED, \"(,\", ')', \"at \" + name);\nLOGGER.info(\"x\");"
         assertEquals(listOf(1), LogMessages.find(source).map { it.line })
+    }
+
+    @Test
+    fun shouldReadNoArgumentsFromACallThatTheSourceNeverCloses(): Unit {
+        val source = "LOGGER.info(\"Started \" + name"
+
+        val found: List<ConcatenatedLogMessage> = LogMessages.find(source)
+        assertTrue(found.isEmpty())
     }
 }

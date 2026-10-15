@@ -18,8 +18,11 @@
 
 package me.brandonli.mcav.gradle
 
+import java.io.File
+import java.nio.file.Path
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 class VariableNamesTest {
 
@@ -109,5 +112,41 @@ class VariableNamesTest {
         val found = VariableNames.find(source)
         assertEquals(listOf("me.example.Frame.Leaf#x", "me.example.Frame.<anonymous>#q"), found.map { it.member })
         assertEquals(listOf(3L, 6L), found.map { it.line })
+    }
+
+    @Test
+    fun shouldReportAOneLetterStaticFieldOfARecordAsAField(): Unit {
+        val source = """
+            package example;
+            record Point(int width) {
+              static int x;
+            }
+        """.trimIndent()
+
+        val kinds: List<String> = VariableNames.find(source).map { "${it.name}: ${it.kind}" }
+        assertEquals(listOf("x: field"), kinds)
+    }
+
+    @Test
+    fun shouldNotReportAOneCharacterNameThatIsNoLetter(): Unit {
+        val source = """
+            package example;
+            final class Dollars {
+              private final int $ = 1;
+            }
+        """.trimIndent()
+
+        val found: List<UndescriptiveName> = VariableNames.find(source)
+        assertEquals(emptyList<UndescriptiveName>(), found)
+    }
+
+    @Test
+    fun shouldKeyAFileByItsNormalizedPathWhenTheGivenPathTakesADetour(@TempDir directory: Path): Unit {
+        val file: File = directory.resolve("Sample.java").toFile()
+        file.writeText("final class Sample {\n  private int x;\n}\n")
+        val detour: File = directory.resolve("sub/../Sample.java").toFile()
+
+        val found: Map<File, List<UndescriptiveName>> = VariableNames.findInFiles(listOf(detour))
+        assertEquals(setOf(file), found.keys)
     }
 }

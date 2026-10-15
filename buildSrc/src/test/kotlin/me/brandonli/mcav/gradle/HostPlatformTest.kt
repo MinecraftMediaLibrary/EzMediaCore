@@ -19,12 +19,30 @@
 package me.brandonli.mcav.gradle
 
 import java.util.Locale
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
+import org.gradle.api.provider.Provider
+import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class HostPlatformTest {
+
+    private companion object {
+
+        const val JAVA_HOME: String = "/opt/jdk"
+        const val PYTHON: String = "python"
+
+        const val LWJGL_GROUP: String = "org.lwjgl"
+        const val LWJGL_NAME: String = "lwjgl"
+        const val LWJGL_VERSION: String = "3.3.6"
+    }
 
     @Test
     fun theSixDownloadHostsKeepTheirArchiveAndClassifierMappings() {
@@ -78,5 +96,84 @@ class HostPlatformTest {
         } finally {
             Locale.setDefault(previous)
         }
+    }
+
+    @Test
+    fun shouldPlaceTheJavaAndVirtualEnvironmentExecutablesOfEachSystem(): Unit {
+        val linux: HostPlatform = HostPlatform.normalize("Linux", "amd64")
+        val windows: HostPlatform = HostPlatform.normalize("Windows 11", "amd64")
+
+        val linuxJava: String = linux.javaExecutable(JAVA_HOME)
+        assertEquals("/opt/jdk/bin/java", linuxJava)
+
+        val windowsJava: String = windows.javaExecutable(JAVA_HOME)
+        assertEquals("/opt/jdk/bin/java.exe", windowsJava)
+
+        val linuxPython: String = linux.venvExecutable(PYTHON)
+        assertEquals("bin/python", linuxPython)
+
+        val windowsPython: String = windows.venvExecutable(PYTHON)
+        assertEquals("Scripts/python.exe", windowsPython)
+    }
+
+    @Test
+    fun shouldPlaceTheExecutablesOfThisHost(): Unit {
+        val host: HostPlatform = HostPlatform.current()
+
+        val java: String = javaExecutable(JAVA_HOME)
+        val expectedJava: String = host.javaExecutable(JAVA_HOME)
+        assertEquals(expectedJava, java)
+
+        val python: String = venvExecutable(PYTHON)
+        val expectedPython: String = host.venvExecutable(PYTHON)
+        assertEquals(expectedPython, python)
+    }
+
+    @Test
+    fun shouldAddTheLwjglNativesOfAHostThatHasThem(): Unit {
+        val project: Project = this.javaProject()
+        val linux: HostPlatform = HostPlatform.normalize("Linux", "amd64")
+        project.dependencies.addLwjglTestNatives(linux, listOf(this.lwjgl(project)))
+
+        val classifiers: List<String?> = this.testRuntimeClassifiers(project)
+        assertEquals(listOf("natives-linux"), classifiers)
+    }
+
+    @Test
+    fun shouldAddNoLwjglNativesForAHostWithoutThem(): Unit {
+        val project: Project = this.javaProject()
+        val unknown: HostPlatform = HostPlatform.normalize("Plan 9", "amd64")
+        project.dependencies.addLwjglTestNatives(unknown, listOf(this.lwjgl(project)))
+
+        val classifiers: List<String?> = this.testRuntimeClassifiers(project)
+        assertEquals(emptyList<String?>(), classifiers)
+    }
+
+    @Test
+    fun shouldAddTheLwjglNativesOfThisHost(): Unit {
+        val project: Project = this.javaProject()
+        project.dependencies.addLwjglTestNatives(listOf(this.lwjgl(project)))
+
+        val classifiers: List<String?> = this.testRuntimeClassifiers(project)
+        val expected: List<String?> = listOfNotNull(HostPlatform.current().lwjglNatives)
+        assertEquals(expected, classifiers)
+    }
+
+    private fun javaProject(): Project {
+        val project: Project = ProjectBuilder.builder().build()
+        project.pluginManager.apply("java")
+        return project
+    }
+
+    private fun lwjgl(project: Project): Provider<MinimalExternalModuleDependency> {
+        return project.provider<MinimalExternalModuleDependency> {
+            DefaultMinimalDependency(DefaultModuleIdentifier.newId(LWJGL_GROUP, LWJGL_NAME), DefaultMutableVersionConstraint(LWJGL_VERSION))
+        }
+    }
+
+    private fun testRuntimeClassifiers(project: Project): List<String?> {
+        val dependencies: Iterable<ExternalModuleDependency> =
+            project.configurations.getByName("testRuntimeOnly").dependencies.filterIsInstance<ExternalModuleDependency>()
+        return dependencies.map { it.artifacts.single().classifier }
     }
 }

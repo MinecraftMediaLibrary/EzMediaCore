@@ -128,6 +128,6 @@ class FuzzTargetsTest {
         assertEquals(same.hashCode(), target.hashCode())
         assertNotEquals(otherMethod, target)
         assertNotEquals(otherClass, target)
-        assertNotEquals(CLASS_NAME, target)
+        assertNotEquals(target, CLASS_NAME)
     }
 }

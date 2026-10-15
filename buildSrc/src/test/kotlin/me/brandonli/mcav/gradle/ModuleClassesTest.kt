@@ -84,6 +84,7 @@ class ModuleClassesTest {
     fun requiresTheModuleClassesThePluginUsesThatTheDownloadedModulesHold() {
         val plugin = folder.resolve("plugin").toFile()
         File(plugin, "me/brandonli/mcav/plugin").mkdirs()
+        File(plugin, "me/brandonli/mcav/plugin/README.txt").writeText("not a class")
         File(plugin, "me/brandonli/mcav/plugin/MCAVSandbox.class").writeBytes(
             classBytes(
                 "me/brandonli/mcav/plugin/MCAVSandbox",
