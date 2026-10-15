@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider;
 import com.code_intelligence.jazzer.junit.FuzzTest;
+import java.util.Optional;
 import org.junit.jupiter.api.Tag;
 
 /**
@@ -57,15 +58,15 @@ final class VncSourceFuzzTest {
     }
     final String builtHost = first.getHost();
     final int builtPort = first.getPort();
-    final String builtUsername = first.getUsername();
-    final String builtPassword = first.getPassword();
+    final Optional<String> builtUsername = first.getUsername();
+    final Optional<String> builtPassword = first.getPassword();
     final int builtWidth = first.getScreenWidth();
     final int builtHeight = first.getScreenHeight();
     final int builtFrameRate = first.getTargetFrameRate();
     assertEquals(host, builtHost);
     assertEquals(port, builtPort);
-    assertEquals(username, builtUsername);
-    assertEquals(password, builtPassword);
+    assertEquals(Optional.of(username), builtUsername);
+    assertEquals(Optional.of(password), builtPassword);
     assertEquals(width, builtWidth);
     assertEquals(height, builtHeight);
     assertEquals(frameRate, builtFrameRate);

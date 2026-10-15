@@ -18,12 +18,12 @@
 package me.brandonli.mcav.vnc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import me.brandonli.mcav.vnc.testing.EqualityAssertions;
@@ -82,15 +82,15 @@ final class VncSourceTest {
     final VncSource source = builder.build();
     final String host = source.getHost();
     final int port = source.getPort();
-    final String username = source.getUsername();
-    final String password = source.getPassword();
+    final Optional<String> username = source.getUsername();
+    final Optional<String> password = source.getPassword();
     final int width = source.getScreenWidth();
     final int height = source.getScreenHeight();
     final int frameRate = source.getTargetFrameRate();
     assertEquals(HOST, host);
     assertEquals(PORT, port);
-    assertEquals("user", username);
-    assertEquals("secret", password);
+    assertEquals(Optional.of("user"), username);
+    assertEquals(Optional.of("secret"), password);
     assertEquals(WIDTH, width);
     assertEquals(HEIGHT, height);
     assertEquals(FRAME_RATE, frameRate);
@@ -105,15 +105,15 @@ final class VncSourceTest {
     final int frameRate = source.getTargetFrameRate();
     final int width = source.getScreenWidth();
     final int height = source.getScreenHeight();
-    final String username = source.getUsername();
-    final String password = source.getPassword();
+    final Optional<String> username = source.getUsername();
+    final Optional<String> password = source.getPassword();
     assertEquals(VncSource.DEFAULT_PORT, port);
     assertEquals(5900, port);
     assertEquals(VncSource.DEFAULT_FRAME_RATE, frameRate);
     assertEquals(0, width);
     assertEquals(0, height);
-    assertNull(username);
-    assertNull(password);
+    assertEquals(Optional.empty(), username);
+    assertEquals(Optional.empty(), password);
   }
 
   @Test
@@ -125,7 +125,7 @@ final class VncSourceTest {
     final String text = source.toString();
     assertEquals("vnc://example.org:5901", resource);
     assertEquals("vnc", name);
-    assertEquals("VncSource[vnc://example.org:5901, 640x480@24]", text);
+    assertEquals("DefaultVncSource{host=example.org, port=5901, width=640, height=480, targetFrameRate=24}", text);
   }
 
   @Test

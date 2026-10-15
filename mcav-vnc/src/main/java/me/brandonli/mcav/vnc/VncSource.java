@@ -17,8 +17,8 @@
  */
 package me.brandonli.mcav.vnc;
 
+import java.util.Optional;
 import me.brandonli.mcav.media.source.DynamicSource;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * A VNC server to stream: its address, optional credentials, the size frames are scaled to, and the frame rate
@@ -73,16 +73,16 @@ public interface VncSource extends DynamicSource {
   /**
    * Returns the user name for servers that require one.
    *
-   * @return the user name, or null if none is sent
+   * @return the user name, or empty if none is sent
    */
-  @Nullable String getUsername();
+  Optional<String> getUsername();
 
   /**
    * Returns the password for servers that require one.
    *
-   * @return the password, or null if none is sent
+   * @return the password, or empty if none is sent
    */
-  @Nullable String getPassword();
+  Optional<String> getPassword();
 
   /**
    * Returns the width the frames are scaled to.

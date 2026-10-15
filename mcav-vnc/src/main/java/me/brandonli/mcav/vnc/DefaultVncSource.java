@@ -17,8 +17,10 @@
  */
 package me.brandonli.mcav.vnc;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import java.util.Objects;
+import java.util.Optional;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
@@ -53,11 +55,6 @@ public final class DefaultVncSource implements VncSource {
   }
 
   @Override
-  public @Nullable String getUsername() {
-    return this.username;
-  }
-
-  @Override
   public String getHost() {
     return this.host;
   }
@@ -68,8 +65,13 @@ public final class DefaultVncSource implements VncSource {
   }
 
   @Override
-  public @Nullable String getPassword() {
-    return this.password;
+  public Optional<String> getUsername() {
+    return Optional.ofNullable(this.username);
+  }
+
+  @Override
+  public Optional<String> getPassword() {
+    return Optional.ofNullable(this.password);
   }
 
   @Override
@@ -92,9 +94,11 @@ public final class DefaultVncSource implements VncSource {
     if (this == other) {
       return true;
     }
+
     if (!(other instanceof final DefaultVncSource source)) {
       return false;
     }
+
     return (
       this.host.equals(source.host) &&
       this.port == source.port &&
@@ -119,8 +123,13 @@ public final class DefaultVncSource implements VncSource {
 
   @Override
   public String toString() {
-    final String resource = this.getResource();
-    return "VncSource[" + resource + ", " + this.width + "x" + this.height + "@" + this.targetFrameRate + "]";
+    return MoreObjects.toStringHelper(this)
+      .add("host", this.host)
+      .add("port", this.port)
+      .add("width", this.width)
+      .add("height", this.height)
+      .add("targetFrameRate", this.targetFrameRate)
+      .toString();
   }
 
   /**
@@ -200,6 +209,7 @@ public final class DefaultVncSource implements VncSource {
       if (configuredHost == null) {
         throw new IllegalStateException("Host must be set before the source is built!");
       }
+
       return new DefaultVncSource(configuredHost, this.port, this.username, this.password, this.width, this.height, this.targetFrameRate);
     }
   }

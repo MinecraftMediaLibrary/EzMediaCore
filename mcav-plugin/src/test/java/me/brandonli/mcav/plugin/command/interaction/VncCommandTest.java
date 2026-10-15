@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import me.brandonli.mcav.bukkit.media.result.CompressedMapResult;
 import me.brandonli.mcav.media.player.attachable.VideoAttachableCallback;
@@ -129,7 +130,7 @@ final class VncCommandTest {
     final VncSource source = sources.getValue();
     assertEquals("127.0.0.1", source.getHost());
     assertEquals(5901, source.getPort());
-    assertEquals("secret", source.getPassword());
+    assertEquals(Optional.of("secret"), source.getPassword());
     assertEquals(1280, source.getScreenWidth());
     assertEquals(720, source.getScreenHeight());
     assertEquals(20, source.getTargetFrameRate());
@@ -178,7 +179,7 @@ final class VncCommandTest {
   void aServerWithoutAPasswordGetsNone() {
     final VncAllowList.Entry open = new VncAllowList.Entry("127.0.0.1", 5902, null);
     final VncSource source = VncCommand.createSource(open, Pair.pair(640, 480), 10);
-    assertNull(source.getPassword());
+    assertEquals(Optional.empty(), source.getPassword());
   }
 
   @Test

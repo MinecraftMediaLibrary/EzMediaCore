@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -244,7 +245,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       this.closeQuietly(socket);
 
       final String reason = failure.getMessage();
-      final String message = this.startFailure(source, expired.get(), reason);
+      final String message = this.startFailure(source, expired, reason);
       throw new PlayerException(message, failure);
     }
 
@@ -265,7 +266,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       this.closeQuietly(socket);
 
       final String reason = exception.getMessage();
-      final String message = this.startFailure(source, expired.get(), reason);
+      final String message = this.startFailure(source, expired, reason);
       throw new PlayerException(message, exception);
     } finally {
       deadline.cancel(false);
@@ -285,9 +286,9 @@ public final class VernacularVncPlayer implements VncPlayer {
     this.closeQuietly(socket);
   }
 
-  private String startFailure(final VncSource source, final boolean timedOut, final @Nullable String message) {
+  private String startFailure(final VncSource source, final AtomicBoolean expired, final @Nullable String message) {
     final String resource = source.getResource();
-    if (timedOut) {
+    if (expired.get()) {
       return "VNC session with %s could not start because the server did not finish the handshake within %s ms!".formatted(
         resource,
         this.handshakeTimeoutMilliseconds
@@ -336,17 +337,19 @@ public final class VernacularVncPlayer implements VncPlayer {
     configuration.setScreenUpdateListener(image -> this.onScreenUpdate(created, image, renderWorker));
     configuration.setErrorListener(error -> this.onError(created, error));
 
-    final @Nullable String username = source.getUsername();
-    if (username != null && !username.isEmpty()) {
-      configuration.setUsernameSupplier(() -> username);
-    }
+    final Optional<String> username = source.getUsername();
+    final Optional<String> sentUsername = username.filter(this::isSent);
+    sentUsername.ifPresent(value -> configuration.setUsernameSupplier(() -> value));
 
-    final @Nullable String password = source.getPassword();
-    if (password != null && !password.isEmpty()) {
-      configuration.setPasswordSupplier(() -> password);
-    }
+    final Optional<String> password = source.getPassword();
+    final Optional<String> sentPassword = password.filter(this::isSent);
+    sentPassword.ifPresent(value -> configuration.setPasswordSupplier(() -> value));
 
     return configuration;
+  }
+
+  private boolean isSent(final String credential) {
+    return !credential.isEmpty();
   }
 
   private void onScreenUpdate(final Session owner, final Image image, final Thread renderWorker) {

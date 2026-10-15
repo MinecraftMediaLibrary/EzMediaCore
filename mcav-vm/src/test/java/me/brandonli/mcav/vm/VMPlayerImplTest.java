@@ -205,7 +205,7 @@ final class VMPlayerImplTest {
     final int sourceWidth = source.getScreenWidth();
     final int sourceHeight = source.getScreenHeight();
     final int sourceFrameRate = source.getTargetFrameRate();
-    final String sourcePassword = source.getPassword();
+    final Optional<String> sourcePassword = source.getPassword();
 
     final int port = settings.getPort();
     final int width = settings.getWidth();
@@ -216,7 +216,7 @@ final class VMPlayerImplTest {
     assertEquals(width, sourceWidth);
     assertEquals(height, sourceHeight);
     assertEquals(frameRate, sourceFrameRate);
-    assertEquals(PASSWORD, sourcePassword, "the display asks for the password of its machine");
+    assertEquals(Optional.of(PASSWORD), sourcePassword, "the display asks for the password of its machine");
   }
 
   @Test
