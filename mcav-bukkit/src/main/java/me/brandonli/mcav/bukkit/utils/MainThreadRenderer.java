@@ -111,19 +111,19 @@ public abstract class MainThreadRenderer<FrameType> {
       generation = ++this.visibilityGeneration;
     }
 
-    runOnMainThread(() -> {
-      synchronized (this) {
-        if (generation != this.visibilityGeneration) {
-          return;
-        }
+    runOnMainThread(() -> this.showIfCurrent(generation, initialize));
+  }
 
-        initialize.run();
-        // An initialization callback may synchronously request hide on this same main thread.
-        if (generation == this.visibilityGeneration) {
-          this.startRendering();
-        }
-      }
-    });
+  private synchronized void showIfCurrent(final long generation, final Runnable initialize) {
+    if (generation != this.visibilityGeneration) {
+      return;
+    }
+
+    initialize.run();
+    // An initialization callback may synchronously request hide on this same main thread.
+    if (generation == this.visibilityGeneration) {
+      this.startRendering();
+    }
   }
 
   /**
@@ -142,13 +142,13 @@ public abstract class MainThreadRenderer<FrameType> {
       this.stopRendering();
     }
 
-    runOnMainThread(() -> {
-      synchronized (this) {
-        if (generation == this.visibilityGeneration) {
-          remove.run();
-        }
-      }
-    });
+    runOnMainThread(() -> this.hideIfCurrent(generation, remove));
+  }
+
+  private synchronized void hideIfCurrent(final long generation, final Runnable remove) {
+    if (generation == this.visibilityGeneration) {
+      remove.run();
+    }
   }
 
   /**

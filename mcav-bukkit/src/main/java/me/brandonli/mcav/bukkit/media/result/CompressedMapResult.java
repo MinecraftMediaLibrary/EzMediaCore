@@ -263,21 +263,28 @@ public class CompressedMapResult implements DitherResultStep {
       final int nextClear = pixels.nextClearBit(first);
       final int right = Math.min(nextClear, (top + 1) * size);
       final int width = right - first;
-      int height = 1;
-      while (top + height < size) {
-        final int nextRowStart = (top + height) * size + left;
-        final int nextRowClear = pixels.nextClearBit(nextRowStart);
-        if (nextRowClear < nextRowStart + width) {
-          break;
-        }
-        height++;
-      }
+      final int height = clearRunHeight(pixels, left, top, width);
       final byte[] transparent = new byte[width * height];
       final MapTilePatch clear = new MapTilePatch(mapId, left, top, width, height, transparent);
       clears.add(clear);
       setCoverage(pixels, clear, false);
       first = pixels.nextSetBit(0);
     }
+  }
+
+  private static int clearRunHeight(final BitSet pixels, final int left, final int top, final int width) {
+    final int size = MapLayout.MAP_SIZE;
+    int height = 1;
+    while (top + height < size) {
+      final int nextRowStart = (top + height) * size + left;
+      final int nextRowClear = pixels.nextClearBit(nextRowStart);
+      if (nextRowClear < nextRowStart + width) {
+        break;
+      }
+      height++;
+    }
+
+    return height;
   }
 
   /**

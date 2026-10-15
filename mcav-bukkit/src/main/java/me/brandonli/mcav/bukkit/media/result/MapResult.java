@@ -96,16 +96,20 @@ public class MapResult implements DitherResultStep {
       final MapRegion region = layout.getRegion(index);
       final byte[] colors = new byte[MapLayout.MAP_SIZE * MapLayout.MAP_SIZE];
       if (!region.isEmpty()) {
-        for (int row = 0; row < region.getHeight(); row++) {
-          final int source = (region.getSourceY() + row) * width + region.getSourceX();
-          final int target = (region.getLocalY() + row) * MapLayout.MAP_SIZE + region.getLocalX();
-          System.arraycopy(image, source, colors, target, region.getWidth());
-        }
+        copyRegion(image, width, region, colors);
       }
       patches.add(new MapTilePatch(layout.getMapId(index), 0, 0, MapLayout.MAP_SIZE, MapLayout.MAP_SIZE, colors));
     }
 
     return patches;
+  }
+
+  private static void copyRegion(final byte[] image, final int width, final MapRegion region, final byte[] colors) {
+    for (int row = 0; row < region.getHeight(); row++) {
+      final int source = (region.getSourceY() + row) * width + region.getSourceX();
+      final int target = (region.getLocalY() + row) * MapLayout.MAP_SIZE + region.getLocalX();
+      System.arraycopy(image, source, colors, target, region.getWidth());
+    }
   }
 
   private void resizeIfConfigured(final ImageBuffer samples) {

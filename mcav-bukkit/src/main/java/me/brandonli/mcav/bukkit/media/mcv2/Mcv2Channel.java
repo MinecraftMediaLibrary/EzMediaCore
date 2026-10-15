@@ -236,35 +236,39 @@ public final class Mcv2Channel {
     final Set<UUID> others = ConcurrentHashMap.newKeySet();
     final Set<UUID> far = this.farAway;
     for (final UUID viewer : selected) {
-      final Mcv2Link link = this.links.get(viewer);
-      if (far.contains(viewer)) {
-        // Not hidden: hiding removes the scoreboard team shared by every screen shown to this viewer.
-        this.scheduled.remove(viewer);
-
-        if (this.links.remove(viewer) != null) {
-          this.away.add(viewer);
-        }
-      } else if (!this.viewers.isLoaded(viewer)) {
-        others.add(viewer);
-        this.scheduled.remove(viewer);
-
-        if (this.links.remove(viewer) != null) {
-          Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.hide(viewer));
-        }
-      } else if (link != null) {
-        receiving.put(viewer, link);
-      } else {
-        others.add(viewer);
-
-        if (this.scheduled.add(viewer)) {
-          Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.show(viewer));
-        }
-      }
+      this.sortViewer(viewer, far, receiving, others);
     }
 
     this.recipients = Collections.unmodifiableMap(receiving);
 
     return others;
+  }
+
+  private void sortViewer(final UUID viewer, final Set<UUID> far, final Map<UUID, Mcv2Link> receiving, final Set<UUID> others) {
+    final Mcv2Link link = this.links.get(viewer);
+    if (far.contains(viewer)) {
+      // Not hidden: hiding removes the scoreboard team shared by every screen shown to this viewer.
+      this.scheduled.remove(viewer);
+
+      if (this.links.remove(viewer) != null) {
+        this.away.add(viewer);
+      }
+    } else if (!this.viewers.isLoaded(viewer)) {
+      others.add(viewer);
+      this.scheduled.remove(viewer);
+
+      if (this.links.remove(viewer) != null) {
+        Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.hide(viewer));
+      }
+    } else if (link != null) {
+      receiving.put(viewer, link);
+    } else {
+      others.add(viewer);
+
+      if (this.scheduled.add(viewer)) {
+        Bukkit.getScheduler().runTask(BukkitModule.getPlugin(), () -> this.show(viewer));
+      }
+    }
   }
 
   private void retireRemoved(final Set<UUID> selected) {
@@ -429,10 +433,7 @@ public final class Mcv2Channel {
       final long behind = link.getBehind();
       if (link.offer(header.getFrameId(), header.getReferenceId(), isKeyframe, bytes)) {
         event.sentTo++;
-
-        for (final MapPacketFactory.Bundle bundle : bundles) {
-          bundle.send(viewer, () -> link.written(bundle.bytes()));
-        }
+        this.sendBundles(viewer, link, bundles);
       } else if (link.getBehind() > behind) {
         event.behind++;
       } else {
@@ -445,6 +446,12 @@ public final class Mcv2Channel {
     event.sent = System.currentTimeMillis();
     event.commit();
     return colors;
+  }
+
+  private void sendBundles(final UUID viewer, final Mcv2Link link, final List<MapPacketFactory.Bundle> bundles) {
+    for (final MapPacketFactory.Bundle bundle : bundles) {
+      bundle.send(viewer, () -> link.written(bundle.bytes()));
+    }
   }
 
   /**

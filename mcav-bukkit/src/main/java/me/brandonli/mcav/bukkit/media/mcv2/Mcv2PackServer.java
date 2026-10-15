@@ -347,11 +347,11 @@ public final class Mcv2PackServer {
         continue;
       }
       final boolean free = slot.spareOf == null;
-      if (slot.geometry.equals(geometry)) {
-        if (free) {
-          return slot;
-        }
-
+      final boolean sameSize = slot.geometry.equals(geometry);
+      if (sameSize && free) {
+        return slot;
+      }
+      if (sameSize) {
         spareOfThatSize = slot;
       } else if (free) {
         oldestFree = oldestFree == null || slot.released < oldestFree.released ? slot : oldestFree;
@@ -672,15 +672,17 @@ public final class Mcv2PackServer {
   private void clearFolder() {
     try {
       Files.createDirectories(this.folder);
-      try (
-        final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + GLOB_WILDCARD + FILE_SUFFIX)
-      ) {
-        for (final Path file : previousArchives) {
-          Files.deleteIfExists(file);
-        }
-      }
+      this.deletePreviousArchives();
     } catch (final IOException exception) {
       LOGGER.warn(FOLDER_FAILED, this.folder, exception);
+    }
+  }
+
+  private void deletePreviousArchives() throws IOException {
+    try (final DirectoryStream<Path> previousArchives = Files.newDirectoryStream(this.folder, FILE_PREFIX + GLOB_WILDCARD + FILE_SUFFIX)) {
+      for (final Path file : previousArchives) {
+        Files.deleteIfExists(file);
+      }
     }
   }
 
@@ -854,42 +856,53 @@ public final class Mcv2PackServer {
       Preconditions.checkNotNull(resized, CONFIGURATION_NULL_MESSAGE);
 
       synchronized (Mcv2PackServer.this) {
-        Preconditions.checkState(!this.closed, "The lease was closed!");
+        return this.switchTo(resized);
+      }
+    }
 
-        final Geometry geometry = Geometry.of(resized);
-        if (!this.playing.geometry.equals(geometry)) {
-          final Slot left = this.ownSpare();
-          final Slot slot;
-          if (left != null && left.geometry.equals(geometry)) {
-            slot = left;
-          } else {
-            if (left != null) {
-              Mcv2PackServer.this.free(left);
-            }
+    private Mcv2Channel switchTo(final Mcv2Configuration resized) {
+      Preconditions.checkState(!this.closed, "The lease was closed!");
 
-            this.spare = null;
-            slot = Mcv2PackServer.this.acquire(resized);
-            if (slot == null) {
-              LOGGER.warn(NO_SLOT, resized.getVideoWidth(), resized.getVideoHeight());
-              return new Mcv2Channel(resized, Mcv2PackServer.this.nobody);
-            }
-          }
-
-          slot.spareOf = null;
-          slot.holder = this;
-          // Returning to this size must work without another pack reload.
-          this.playing.holder = null;
-          this.playing.spareOf = this;
-          this.playing.released = ++Mcv2PackServer.this.releases;
-          this.spare = this.playing;
-          this.playing = slot;
+      final Geometry geometry = Geometry.of(resized);
+      if (!this.playing.geometry.equals(geometry)) {
+        final Slot slot = this.findSlot(resized, geometry);
+        if (slot == null) {
+          LOGGER.warn(NO_SLOT, resized.getVideoWidth(), resized.getVideoHeight());
+          return new Mcv2Channel(resized, Mcv2PackServer.this.nobody);
         }
 
-        return new Mcv2Channel(
-          resized.withSlot(this.playing.streamId, pageMapOf(this.requested, this.playing), this.firstFrameId),
-          Mcv2PackServer.this.viewers
-        );
+        this.play(slot);
       }
+
+      return new Mcv2Channel(
+        resized.withSlot(this.playing.streamId, pageMapOf(this.requested, this.playing), this.firstFrameId),
+        Mcv2PackServer.this.viewers
+      );
+    }
+
+    private @Nullable Slot findSlot(final Mcv2Configuration resized, final Geometry geometry) {
+      final Slot left = this.ownSpare();
+      if (left != null && left.geometry.equals(geometry)) {
+        return left;
+      }
+
+      if (left != null) {
+        Mcv2PackServer.this.free(left);
+      }
+
+      this.spare = null;
+      return Mcv2PackServer.this.acquire(resized);
+    }
+
+    private void play(final Slot slot) {
+      slot.spareOf = null;
+      slot.holder = this;
+      // Returning to this size must work without another pack reload.
+      this.playing.holder = null;
+      this.playing.spareOf = this;
+      this.playing.released = ++Mcv2PackServer.this.releases;
+      this.spare = this.playing;
+      this.playing = slot;
     }
 
     /**

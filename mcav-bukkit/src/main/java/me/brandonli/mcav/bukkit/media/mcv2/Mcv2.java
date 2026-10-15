@@ -99,6 +99,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
@@ -514,166 +515,84 @@ public final class Mcv2 {
     final int[] seeds
   ) {
     final int[] samples = SAMPLES[sizeIndex(size)];
-    final int lowX = 0 - range;
-    final int highX = 0 + range;
-    final int lowY = 0 - range;
-    final int highY = 0 + range;
-    int bestX = 0;
-    int bestY = 0;
-    long best = motionCost(reference, width, height, source, blockLeft, blockTop, size, samples, bestX, bestY);
+    final MotionSearch search = new MotionSearch(reference, width, height, source, blockLeft, blockTop, size, samples);
     for (int seedIndex = 0; seedIndex < seeds.length; seedIndex++) {
-      final int seedX = Math.min(Math.max(motionX(seeds[seedIndex]), lowX), highX);
-      final int seedY = Math.min(Math.max(motionY(seeds[seedIndex]), lowY), highY);
-
-      boolean seen = seedX == 0 && seedY == 0;
-      for (int earlierIndex = 0; earlierIndex < seedIndex && !seen; earlierIndex++) {
-        seen =
-          seedX == Math.min(Math.max(motionX(seeds[earlierIndex]), lowX), highX) &&
-          seedY == Math.min(Math.max(motionY(seeds[earlierIndex]), lowY), highY);
+      final int seedX = clampMotion(motionX(seeds[seedIndex]), range);
+      final int seedY = clampMotion(motionY(seeds[seedIndex]), range);
+      if (isSeedRepeated(seeds, seedIndex, seedX, seedY, range)) {
+        continue;
       }
-      if (!seen) {
-        final long error = motionCost(reference, width, height, source, blockLeft, blockTop, size, samples, seedX, seedY);
-        if (error < best) {
-          best = error;
-          bestX = seedX;
-          bestY = seedY;
-        }
-      }
+      search.consider(seedX, seedY);
     }
 
     for (int steps = 0; steps < WINDOW_SIDES * range; steps++) {
-      final int centreX = bestX;
-      final int centreY = bestY;
+      final int centreX = search.bestX;
+      final int centreY = search.bestY;
       for (int directionIndex = 0; directionIndex < DIRECTIONS.length; directionIndex++) {
-        final int candidateX = Math.min(Math.max(centreX + DIRECTIONS[directionIndex][0], lowX), highX);
-        final int candidateY = Math.min(Math.max(centreY + DIRECTIONS[directionIndex][1], lowY), highY);
-        final long error = motionCost(reference, width, height, source, blockLeft, blockTop, size, samples, candidateX, candidateY);
-        if (error < best) {
-          best = error;
-          bestX = candidateX;
-          bestY = candidateY;
-        }
+        final int candidateX = clampMotion(centreX + DIRECTIONS[directionIndex][0], range);
+        final int candidateY = clampMotion(centreY + DIRECTIONS[directionIndex][1], range);
+        search.consider(candidateX, candidateY);
       }
-      if (bestX == centreX && bestY == centreY) {
+      if (search.bestX == centreX && search.bestY == centreY) {
         break;
       }
     }
 
-    return packMotion(bestX, bestY);
+    return packMotion(search.bestX, search.bestY);
   }
 
-  private static long motionCost(
-    final byte[] reference,
-    final int width,
-    final int height,
-    final int[] source,
-    final int blockLeft,
-    final int blockTop,
-    final int size,
-    final int[] samples,
-    final int motionX,
-    final int motionY
-  ) {
-    final int left = blockLeft + samples[0] + motionX;
-    final int right = blockLeft + samples[SAMPLED - 1] + motionX;
-    final int top = blockTop + samples[0] + motionY;
-    final int bottom = blockTop + samples[SAMPLED - 1] + motionY;
-    if (left >= 0 && top >= 0 && right < width && bottom < height) {
-      long sum = 0;
-      for (int sampleRow = 0; sampleRow < SAMPLED; sampleRow++) {
-        final int row = (blockTop + samples[sampleRow] + motionY) * width + blockLeft + motionX;
-        final int line = samples[sampleRow] * size;
-        for (int sampleColumn = 0; sampleColumn < SAMPLED; sampleColumn++) {
-          final int arrayOffset = (row + samples[sampleColumn]) * CHANNELS;
-          final int target = (line + samples[sampleColumn]) * CHANNELS;
-          sum += Math.abs((reference[arrayOffset] & BYTE_MASK) - source[target]);
-          sum += Math.abs((reference[arrayOffset + GREEN_OFFSET] & BYTE_MASK) - source[target + GREEN_OFFSET]);
-          sum += Math.abs((reference[arrayOffset + BLUE_OFFSET] & BYTE_MASK) - source[target + BLUE_OFFSET]);
-        }
-      }
+  private static int clampMotion(final int component, final int range) {
+    return Math.min(Math.max(component, 0 - range), 0 + range);
+  }
 
-      return sum;
+  private static boolean isSeedRepeated(final int[] seeds, final int seedIndex, final int seedX, final int seedY, final int range) {
+    boolean seen = seedX == 0 && seedY == 0;
+    for (int earlierIndex = 0; earlierIndex < seedIndex && !seen; earlierIndex++) {
+      seen = seedX == clampMotion(motionX(seeds[earlierIndex]), range) && seedY == clampMotion(motionY(seeds[earlierIndex]), range);
     }
 
-    long sum = 0;
-    for (int sampleRow = 0; sampleRow < SAMPLED; sampleRow++) {
-      final int row = Math.min(Math.max(blockTop + samples[sampleRow] + motionY, 0), height - 1);
-      for (int sampleColumn = 0; sampleColumn < SAMPLED; sampleColumn++) {
-        final int column = Math.min(Math.max(blockLeft + samples[sampleColumn] + motionX, 0), width - 1);
-        final int arrayOffset = (row * width + column) * CHANNELS;
-        final int target = (samples[sampleRow] * size + samples[sampleColumn]) * CHANNELS;
-        for (int channel = 0; channel < CHANNELS; channel++) {
-          sum += Math.abs((reference[arrayOffset + channel] & BYTE_MASK) - source[target + channel]);
-        }
-      }
-    }
-
-    return sum;
+    return seen;
   }
 
   private static void half(final byte[] picture, final int width, final int height, final Workers workers, final byte[] output) {
-    final int halfWidth = (width + 1) / PYRAMID_SCALE;
     final int halfHeight = (height + 1) / PYRAMID_SCALE;
-    workers.forEach(halfHeight, row -> {
-      final int topRow = PYRAMID_SCALE * row;
-      final int bottomRow = Math.min(topRow + 1, height - 1);
-      for (int column = 0; column < halfWidth; column++) {
-        final int leftColumn = PYRAMID_SCALE * column;
-        final int rightColumn = Math.min(leftColumn + 1, width - 1);
-        for (int channel = 0; channel < CHANNELS; channel++) {
-          final int sum =
-            (picture[(topRow * width + leftColumn) * CHANNELS + channel] & BYTE_MASK) +
-            (picture[(topRow * width + rightColumn) * CHANNELS + channel] & BYTE_MASK) +
-            (picture[(bottomRow * width + leftColumn) * CHANNELS + channel] & BYTE_MASK) +
-            (picture[(bottomRow * width + rightColumn) * CHANNELS + channel] & BYTE_MASK);
-          output[(row * halfWidth + column) * CHANNELS + channel] = (byte) ((sum + QUAD_AVERAGE_ROUNDING) >> QUAD_AVERAGE_SHIFT);
-        }
+    workers.forEach(halfHeight, row -> halfRow(picture, width, height, row, output));
+  }
+
+  private static void halfRow(final byte[] picture, final int width, final int height, final int row, final byte[] output) {
+    final int halfWidth = (width + 1) / PYRAMID_SCALE;
+    final int topRow = PYRAMID_SCALE * row;
+    final int bottomRow = Math.min(topRow + 1, height - 1);
+    for (int column = 0; column < halfWidth; column++) {
+      final int leftColumn = PYRAMID_SCALE * column;
+      final int rightColumn = Math.min(leftColumn + 1, width - 1);
+      for (int channel = 0; channel < CHANNELS; channel++) {
+        final int sum =
+          (picture[(topRow * width + leftColumn) * CHANNELS + channel] & BYTE_MASK) +
+          (picture[(topRow * width + rightColumn) * CHANNELS + channel] & BYTE_MASK) +
+          (picture[(bottomRow * width + leftColumn) * CHANNELS + channel] & BYTE_MASK) +
+          (picture[(bottomRow * width + rightColumn) * CHANNELS + channel] & BYTE_MASK);
+        output[(row * halfWidth + column) * CHANNELS + channel] = (byte) ((sum + QUAD_AVERAGE_ROUNDING) >> QUAD_AVERAGE_SHIFT);
       }
-    });
+    }
   }
 
   private SearchResult search(final FrameState frame, final boolean[] before, final long started, final boolean trivial) {
     final Buffers buffers = frame.buffers;
-    final int columns = buffers.columns;
-    final TreeNode[] roots = new TreeNode[buffers.roots];
-    final int[] leafCounts = new int[buffers.roots];
-    final int[] motion = new int[((frame.width + SMALLEST_BLOCK - 1) / SMALLEST_BLOCK) *
-      ((frame.height + SMALLEST_BLOCK - 1) / SMALLEST_BLOCK)];
-    final boolean[] splits = new boolean[buffers.roots];
-    final double rootThreshold = ROOT_SPLIT_BITS * frame.lambda;
-    final double fineThreshold = (frame.fast ? FAST_FINE_SPLIT_BITS : NORMAL_FINE_SPLIT_BITS) * frame.lambda;
-    final double steady = (frame.fast ? FAST_STEADY_SPLIT_BITS : NORMAL_STEADY_SPLIT_BITS) * frame.lambda;
+    final BooleanSupplier late = () -> trivial || (this.frameBudget > 0 && System.nanoTime() - started >= this.frameBudget);
+    final RootSearch rootSearch = new RootSearch(frame, before, late);
     try {
-      this.workers.forEach(
-        buffers.roots,
-        () -> this.coders(frame),
-        (coders, index) -> {
-          final int left = (index % columns) * ROOT_SIZE;
-          final int top = (index / columns) * ROOT_SIZE;
-          final double threshold = !frame.keyframe && !before[index] ? steady : rootThreshold;
-          final boolean late = trivial || (this.frameBudget > 0 && System.nanoTime() - started >= this.frameBudget);
-          for (final BlockCoder coder : coders) {
-            coder.hurried = late;
-          }
-
-          final Choice chosen = descend(frame, coders, 0, left, top, NO_VECTOR, threshold, fineThreshold);
-          final TreeNode root = chosen.node();
-          roots[index] = root;
-          splits[index] = root.isSplit();
-          fillMotion(motion, frame.width, frame.height, root, left, top, ROOT_SIZE);
-          leafCounts[index] = chosen.leaves();
-        }
-      );
+      this.workers.forEach(buffers.roots, () -> this.coders(frame), rootSearch::searchRoot);
     } finally {
       this.releaseCoders();
     }
 
     int leaves = 0;
-    for (final int count : leafCounts) {
+    for (final int count : rootSearch.leafCounts) {
       leaves += count;
     }
 
-    return new SearchResult(List.of(roots), leaves, motion, splits);
+    return new SearchResult(List.of(rootSearch.roots), leaves, rootSearch.motion, rootSearch.splits);
   }
 
   private static Choice descend(
@@ -733,13 +652,7 @@ public final class Mcv2 {
     synchronized (this.idleCoders) {
       coders = this.idleCoders.poll();
       if (coders == null) {
-        coders = new BlockCoder[] {
-          new BlockCoder(frame, ROOT_SIZE, this.kernels.get()),
-          new BlockCoder(frame, ROOT_SIZE / QUARTERS_PER_SIDE, this.kernels.get()),
-          new BlockCoder(frame, SMALLEST_BLOCK, this.kernels.get()),
-        };
-        coders[1].root = coders[0];
-        coders[FINEST_LEVEL].root = coders[0];
+        coders = this.createCoders(frame);
       }
 
       this.busyCoders.add(coders);
@@ -752,16 +665,31 @@ public final class Mcv2 {
     return coders;
   }
 
+  private BlockCoder[] createCoders(final FrameState frame) {
+    final BlockCoder[] coders = {
+      new BlockCoder(frame, ROOT_SIZE, this.kernels.get()),
+      new BlockCoder(frame, ROOT_SIZE / QUARTERS_PER_SIDE, this.kernels.get()),
+      new BlockCoder(frame, SMALLEST_BLOCK, this.kernels.get()),
+    };
+    coders[1].root = coders[0];
+    coders[FINEST_LEVEL].root = coders[0];
+    return coders;
+  }
+
   private void releaseCoders() {
     synchronized (this.idleCoders) {
       for (final BlockCoder[] coders : this.busyCoders) {
-        for (final BlockCoder coder : coders) {
-          coder.kernels.forgetArrays();
-        }
+        this.forgetCoderArrays(coders);
       }
 
       this.idleCoders.addAll(this.busyCoders);
       this.busyCoders.clear();
+    }
+  }
+
+  private void forgetCoderArrays(final BlockCoder[] coders) {
+    for (final BlockCoder coder : coders) {
+      coder.kernels.forgetArrays();
     }
   }
 
@@ -806,54 +734,94 @@ public final class Mcv2 {
   private static float[][] fittingMatrices() {
     final float[][] matrices = new float[BLOCK_SIZES][];
     for (int index = 0; index < BLOCK_SIZES; index++) {
-      final int size = SMALLEST_BLOCK << index;
-      final double[][] basis = new double[size][GRID];
-      for (int pixel = 0; pixel < size; pixel++) {
-        final double position = Math.min(Math.max(((pixel + CENTRE_OFFSET) * GRID) / size - CENTRE_OFFSET, 0), GRID - 1);
-        final int lower = (int) position;
-        final int upper = Math.min(lower + 1, GRID - 1);
-        basis[pixel][lower] += 1 - (position - lower);
-        basis[pixel][upper] += position - lower;
-      }
-      final double[][] inverse = new double[GRID][AUGMENTED_COLUMNS];
-      for (int row = 0; row < GRID; row++) {
-        for (int column = 0; column < GRID; column++) {
-          for (int pixel = 0; pixel < size; pixel++) {
-            inverse[row][column] += basis[pixel][row] * basis[pixel][column];
-          }
-        }
-        inverse[row][GRID + row] = 1;
-      }
-      // Independent interpolation columns make the Gram matrix positive definite.
-      for (int pivot = 0; pivot < GRID; pivot++) {
-        final double scale = inverse[pivot][pivot];
-        for (int column = 0; column < AUGMENTED_COLUMNS; column++) {
-          inverse[pivot][column] /= scale;
-        }
-        for (int row = 0; row < GRID; row++) {
-          if (row == pivot) {
-            continue;
-          }
-          final double factor = inverse[row][pivot];
-          for (int column = 0; column < AUGMENTED_COLUMNS; column++) {
-            inverse[row][column] -= factor * inverse[pivot][column];
-          }
-        }
-      }
-      final float[] matrix = new float[GRID * size];
-      for (int node = 0; node < GRID; node++) {
-        for (int pixel = 0; pixel < size; pixel++) {
-          double value = 0;
-          for (int column = 0; column < GRID; column++) {
-            value += inverse[node][GRID + column] * basis[pixel][column];
-          }
-          matrix[node * size + pixel] = (float) value;
-        }
-      }
-      matrices[index] = matrix;
+      matrices[index] = fittingMatrix(SMALLEST_BLOCK << index);
     }
 
     return matrices;
+  }
+
+  private static float[] fittingMatrix(final int size) {
+    final double[][] basis = interpolationBasis(size);
+    final double[][] inverse = augmentedGramMatrix(basis, size);
+    invertAugmented(inverse);
+    return projectionMatrix(inverse, basis, size);
+  }
+
+  private static double[][] interpolationBasis(final int size) {
+    final double[][] basis = new double[size][GRID];
+    for (int pixel = 0; pixel < size; pixel++) {
+      final double position = Math.min(Math.max(((pixel + CENTRE_OFFSET) * GRID) / size - CENTRE_OFFSET, 0), GRID - 1);
+      final int lower = (int) position;
+      final int upper = Math.min(lower + 1, GRID - 1);
+      basis[pixel][lower] += 1 - (position - lower);
+      basis[pixel][upper] += position - lower;
+    }
+
+    return basis;
+  }
+
+  private static double[][] augmentedGramMatrix(final double[][] basis, final int size) {
+    final double[][] inverse = new double[GRID][AUGMENTED_COLUMNS];
+    for (int row = 0; row < GRID; row++) {
+      for (int column = 0; column < GRID; column++) {
+        inverse[row][column] = basisProduct(basis, size, row, column);
+      }
+      inverse[row][GRID + row] = 1;
+    }
+
+    return inverse;
+  }
+
+  private static double basisProduct(final double[][] basis, final int size, final int row, final int column) {
+    double sum = 0;
+    for (int pixel = 0; pixel < size; pixel++) {
+      sum += basis[pixel][row] * basis[pixel][column];
+    }
+
+    return sum;
+  }
+
+  // Independent interpolation columns make the Gram matrix positive definite.
+  private static void invertAugmented(final double[][] inverse) {
+    for (int pivot = 0; pivot < GRID; pivot++) {
+      final double scale = inverse[pivot][pivot];
+      for (int column = 0; column < AUGMENTED_COLUMNS; column++) {
+        inverse[pivot][column] /= scale;
+      }
+      eliminatePivotColumn(inverse, pivot);
+    }
+  }
+
+  private static void eliminatePivotColumn(final double[][] inverse, final int pivot) {
+    for (int row = 0; row < GRID; row++) {
+      if (row == pivot) {
+        continue;
+      }
+      final double factor = inverse[row][pivot];
+      for (int column = 0; column < AUGMENTED_COLUMNS; column++) {
+        inverse[row][column] -= factor * inverse[pivot][column];
+      }
+    }
+  }
+
+  private static float[] projectionMatrix(final double[][] inverse, final double[][] basis, final int size) {
+    final float[] matrix = new float[GRID * size];
+    for (int node = 0; node < GRID; node++) {
+      for (int pixel = 0; pixel < size; pixel++) {
+        matrix[node * size + pixel] = (float) projectPixel(inverse, basis, node, pixel);
+      }
+    }
+
+    return matrix;
+  }
+
+  private static double projectPixel(final double[][] inverse, final double[][] basis, final int node, final int pixel) {
+    double value = 0;
+    for (int column = 0; column < GRID; column++) {
+      value += inverse[node][GRID + column] * basis[pixel][column];
+    }
+
+    return value;
   }
 
   private static int pixelError(final int red, final int green, final int blue) {
@@ -896,16 +864,7 @@ public final class Mcv2 {
 
     for (int depth = 0; depth < BLOCK_SIZES; depth++) {
       levels[depth] = level.size();
-      final List<TreeNode> children = new ArrayList<>();
-      for (final TreeNode node : level) {
-        flat.add(node);
-        if (node.isSplit()) {
-          for (int corner = 0; corner < QUARTERS; corner++) {
-            children.add(node.getChild(corner));
-          }
-        }
-      }
-      level = children;
+      level = flattenLevel(level, flat);
     }
 
     final int groups = (roots.size() + GROUP_ROOTS - 1) / GROUP_ROOTS;
@@ -932,13 +891,7 @@ public final class Mcv2 {
     putU32(data, REFERENCE_ID_OFFSET, referenceId);
     int seen = 0;
     for (int group = 0; group < groups; group++) {
-      long mask = 0;
-      final int from = group * GROUP_ROOTS;
-      for (int index = from; index < Math.min(roots.size(), from + GROUP_ROOTS); index++) {
-        if (roots.get(index).mode != MODE_SKIP) {
-          mask |= 1L << (index - from);
-        }
-      }
+      final long mask = presenceMask(roots, group * GROUP_ROOTS);
       putU32(data, HEADER_BYTES + group * Integer.BYTES, mask);
       if (group % CHECKPOINT_GROUPS == 0) {
         putU32(data, HEADER_BYTES + (groups + group / CHECKPOINT_GROUPS) * Integer.BYTES, seen);
@@ -970,6 +923,35 @@ public final class Mcv2 {
     return data;
   }
 
+  private static List<TreeNode> flattenLevel(final List<TreeNode> level, final List<TreeNode> flat) {
+    final List<TreeNode> children = new ArrayList<>();
+    for (final TreeNode node : level) {
+      flat.add(node);
+      if (node.isSplit()) {
+        addChildren(node, children);
+      }
+    }
+
+    return children;
+  }
+
+  private static void addChildren(final TreeNode node, final List<TreeNode> children) {
+    for (int corner = 0; corner < QUARTERS; corner++) {
+      children.add(node.getChild(corner));
+    }
+  }
+
+  private static long presenceMask(final List<TreeNode> roots, final int from) {
+    long mask = 0;
+    for (int index = from; index < Math.min(roots.size(), from + GROUP_ROOTS); index++) {
+      if (roots.get(index).mode != MODE_SKIP) {
+        mask |= 1L << (index - from);
+      }
+    }
+
+    return mask;
+  }
+
   private static void validateTree(final TreeNode node, final int size, final boolean keyframe) {
     if (node.isSplit()) {
       Preconditions.checkArgument(size > SMALLEST_BLOCK, "Split below the bounded depth!");
@@ -999,31 +981,46 @@ public final class Mcv2 {
 
   private static boolean patternRecord(final byte[] paletteRecord, final int size, final byte[] patternOutput) {
     for (int orientation = 0; orientation < PATTERN_ORIENTATIONS; orientation++) {
-      boolean repeats = true;
-      for (int row = 0; row < size && repeats; row++) {
-        for (int column = 0; column < size; column++) {
-          final int axis = orientation == 0 ? paletteBit(paletteRecord, column) : paletteBit(paletteRecord, row * size);
-          if (paletteBit(paletteRecord, row * size + column) != axis) {
-            repeats = false;
-            break;
-          }
-        }
-      }
-      if (repeats) {
-        System.arraycopy(paletteRecord, 0, patternOutput, 0, PALETTE_COLORS * CHANNELS);
-        patternOutput[PALETTE_COLORS * CHANNELS] = (byte) orientation;
-        final int arrayOffset = PALETTE_COLORS * CHANNELS + 1;
-        Arrays.fill(patternOutput, arrayOffset, arrayOffset + size / Byte.SIZE, (byte) 0);
-        for (int position = 0; position < size; position++) {
-          final int value = orientation == 0 ? paletteBit(paletteRecord, position) : paletteBit(paletteRecord, position * size);
-          patternOutput[arrayOffset + position / Byte.SIZE] |= (byte) (value << (position % Byte.SIZE));
-        }
+      if (isPatternRepeated(paletteRecord, size, orientation)) {
+        writePattern(paletteRecord, size, orientation, patternOutput);
 
         return true;
       }
     }
 
     return false;
+  }
+
+  private static boolean isPatternRepeated(final byte[] paletteRecord, final int size, final int orientation) {
+    for (int row = 0; row < size; row++) {
+      if (!isPatternRowRepeated(paletteRecord, size, orientation, row)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private static boolean isPatternRowRepeated(final byte[] paletteRecord, final int size, final int orientation, final int row) {
+    for (int column = 0; column < size; column++) {
+      final int axis = orientation == 0 ? paletteBit(paletteRecord, column) : paletteBit(paletteRecord, row * size);
+      if (paletteBit(paletteRecord, row * size + column) != axis) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private static void writePattern(final byte[] paletteRecord, final int size, final int orientation, final byte[] patternOutput) {
+    System.arraycopy(paletteRecord, 0, patternOutput, 0, PALETTE_COLORS * CHANNELS);
+    patternOutput[PALETTE_COLORS * CHANNELS] = (byte) orientation;
+    final int arrayOffset = PALETTE_COLORS * CHANNELS + 1;
+    Arrays.fill(patternOutput, arrayOffset, arrayOffset + size / Byte.SIZE, (byte) 0);
+    for (int position = 0; position < size; position++) {
+      final int value = orientation == 0 ? paletteBit(paletteRecord, position) : paletteBit(paletteRecord, position * size);
+      patternOutput[arrayOffset + position / Byte.SIZE] |= (byte) (value << (position % Byte.SIZE));
+    }
   }
 
   private static int paletteBit(final byte[] paletteRecord, final int index) {
@@ -1079,22 +1076,7 @@ public final class Mcv2 {
       final int bands = (frame.getHeight() + ROOT_SIZE - 1) / ROOT_SIZE;
       final AtomicReference<@Nullable Mcv2Exception> failure = new AtomicReference<>();
       final AtomicBoolean same = new AtomicBoolean(true);
-      this.workers.forEach(bands, band -> {
-        final int from = band * ROOT_SIZE;
-        final int to = Math.min(frame.getHeight(), from + ROOT_SIZE);
-        try {
-          Mcv2Decoder.decodeRows(frame, pending.predictFrom, pending.referenceId, decoded, from, to);
-        } catch (final Mcv2Exception exception) {
-          failure.compareAndSet(null, exception);
-          return;
-        }
-
-        final int first = from * frame.getWidth() * CHANNELS;
-        final int last = to * frame.getWidth() * CHANNELS;
-        if (!Arrays.equals(decoded, first, last, pending.picture, first, last)) {
-          same.set(false);
-        }
-      });
+      this.workers.forEach(bands, band -> this.verifyBand(frame, pending, decoded, band, failure, same));
       final Mcv2Exception error = failure.get();
       if (error != null) {
         throw error;
@@ -1103,6 +1085,30 @@ public final class Mcv2 {
       Preconditions.checkState(same.get(), "MCV2 live picture and decoded picture disagree!");
     } catch (final Mcv2Exception exception) {
       throw new IllegalStateException("The encoder wrote a frame the decoder rejects!", exception);
+    }
+  }
+
+  private void verifyBand(
+    final Mcv2Decoder.Frame frame,
+    final Pending pending,
+    final byte[] decoded,
+    final int band,
+    final AtomicReference<@Nullable Mcv2Exception> failure,
+    final AtomicBoolean same
+  ) {
+    final int from = band * ROOT_SIZE;
+    final int to = Math.min(frame.getHeight(), from + ROOT_SIZE);
+    try {
+      Mcv2Decoder.decodeRows(frame, pending.predictFrom, pending.referenceId, decoded, from, to);
+    } catch (final Mcv2Exception exception) {
+      failure.compareAndSet(null, exception);
+      return;
+    }
+
+    final int first = from * frame.getWidth() * CHANNELS;
+    final int last = to * frame.getWidth() * CHANNELS;
+    if (!Arrays.equals(decoded, first, last, pending.picture, first, last)) {
+      same.set(false);
     }
   }
 
@@ -1362,30 +1368,35 @@ public final class Mcv2 {
       final int rows = (height + SAMPLING - 1) / SAMPLING;
       final int bands = (rows + BAND_ROWS - 1) / BAND_ROWS;
 
-      workers.forEach(bands, band -> {
-        for (int row = band * BAND_ROWS; row < Math.min(rows, (band + 1) * BAND_ROWS); row++) {
-          final int line = row * SAMPLING * width;
-          int left = luma(sourcePixels, line);
-          int middle = left;
-          for (int column = 0; column < columns; column++) {
-            final int right = column + 1 < columns ? luma(sourcePixels, line + (column + 1) * SAMPLING) : middle;
-            across[row * columns + column] = left + middle + right;
-            left = middle;
-            middle = right;
-          }
-        }
-      });
-      workers.forEach(bands, band -> {
-        for (int row = band * BAND_ROWS; row < Math.min(rows, (band + 1) * BAND_ROWS); row++) {
-          final int above = Math.max(row - 1, 0) * columns;
-          final int arrayOffset = row * columns;
-          final int below = Math.min(row + 1, rows - 1) * columns;
-          for (int column = 0; column < columns; column++) {
-            blurred[arrayOffset + column] = across[above + column] + across[arrayOffset + column] + across[below + column];
-          }
-        }
-      });
+      workers.forEach(bands, band -> blurAcross(sourcePixels, width, rows, band, across));
+      workers.forEach(bands, band -> blurDown(columns, rows, band, across, blurred));
       return blurred;
+    }
+
+    private static void blurAcross(final byte[] sourcePixels, final int width, final int rows, final int band, final int[] across) {
+      final int columns = (width + SAMPLING - 1) / SAMPLING;
+      for (int row = band * BAND_ROWS; row < Math.min(rows, (band + 1) * BAND_ROWS); row++) {
+        final int line = row * SAMPLING * width;
+        int left = luma(sourcePixels, line);
+        int middle = left;
+        for (int column = 0; column < columns; column++) {
+          final int right = column + 1 < columns ? luma(sourcePixels, line + (column + 1) * SAMPLING) : middle;
+          across[row * columns + column] = left + middle + right;
+          left = middle;
+          middle = right;
+        }
+      }
+    }
+
+    private static void blurDown(final int columns, final int rows, final int band, final int[] across, final int[] blurred) {
+      for (int row = band * BAND_ROWS; row < Math.min(rows, (band + 1) * BAND_ROWS); row++) {
+        final int above = Math.max(row - 1, 0) * columns;
+        final int arrayOffset = row * columns;
+        final int below = Math.min(row + 1, rows - 1) * columns;
+        for (int column = 0; column < columns; column++) {
+          blurred[arrayOffset + column] = across[above + column] + across[arrayOffset + column] + across[below + column];
+        }
+      }
     }
 
     private static int luma(final byte[] sourcePixels, final int pixel) {
@@ -1614,32 +1625,10 @@ public final class Mcv2 {
 
     private void evaluate(final int parent) {
       if (!this.frame.keyframe) {
-        this.predict(0, this.zeroPrediction);
-        this.eligible(0);
-        this.kernels.predicted(this.zeroPrediction, this.size, this.reconstruction);
-        this.score(MODE_SKIP, 0, 0);
-
-        if (this.hurried || this.cost() <= (this.frame.fast ? FAST_SKIP_BITS : NORMAL_SKIP_BITS) * this.frame.lambda) {
-          this.skipped = true;
+        this.evaluateTemporal(parent);
+        if (this.skipped) {
           return;
         }
-
-        this.localVector = this.size == SMALLEST_BLOCK ? parent : this.searchMotion(parent);
-        this.predict(this.localVector, this.localPrediction);
-        boolean closer = false;
-        if (this.localVector != 0) {
-          // The SKIP bound already pays for MOTION's two bytes.
-          this.eligible(MOTION_BYTES);
-          this.record[0] = (byte) motionX(this.localVector);
-          this.record[1] = (byte) motionY(this.localVector);
-
-          if (this.kernels.predicted(this.localPrediction, this.size, this.reconstruction)) {
-            this.score(MODE_MOTION, 0, MOTION_BYTES);
-            closer = true;
-          }
-        }
-
-        this.compact(closer);
       }
 
       this.solid();
@@ -1651,6 +1640,42 @@ public final class Mcv2 {
 
       this.pattern();
       this.palette();
+    }
+
+    private void evaluateTemporal(final int parent) {
+      this.predict(0, this.zeroPrediction);
+      this.eligible(0);
+      this.kernels.predicted(this.zeroPrediction, this.size, this.reconstruction);
+      this.score(MODE_SKIP, 0, 0);
+
+      if (this.hurried || this.cost() <= (this.frame.fast ? FAST_SKIP_BITS : NORMAL_SKIP_BITS) * this.frame.lambda) {
+        this.skipped = true;
+        return;
+      }
+
+      this.localVector = this.size == SMALLEST_BLOCK ? parent : this.searchMotion(parent);
+      this.predict(this.localVector, this.localPrediction);
+      boolean closer = false;
+      if (this.localVector != 0) {
+        closer = this.scoreMotion();
+      }
+
+      this.compact(closer);
+    }
+
+    private boolean scoreMotion() {
+      // The SKIP bound already pays for MOTION's two bytes.
+      this.eligible(MOTION_BYTES);
+      this.record[0] = (byte) motionX(this.localVector);
+      this.record[1] = (byte) motionY(this.localVector);
+
+      if (!this.kernels.predicted(this.localPrediction, this.size, this.reconstruction)) {
+        return false;
+      }
+
+      this.score(MODE_MOTION, 0, MOTION_BYTES);
+
+      return true;
     }
 
     private double cost() {
@@ -1681,18 +1706,22 @@ public final class Mcv2 {
     private void loadSource() {
       final BlockCoder parent = this.root;
       if (parent != null) {
-        final int rowLength = this.size * CHANNELS;
-        for (int row = 0; row < this.size; row++) {
-          System.arraycopy(
-            parent.source,
-            ((this.top - parent.top + row) * ROOT_SIZE + this.left - parent.left) * CHANNELS,
-            this.source,
-            row * rowLength,
-            rowLength
-          );
-        }
+        this.copyFromRoot(parent, parent.source, this.source);
       } else {
         this.kernels.loadSource(this.frame.source, this.frame.width, this.frame.height, this.left, this.top, this.size, this.source);
+      }
+    }
+
+    private void copyFromRoot(final BlockCoder parent, final int[] from, final int[] output) {
+      final int rowLength = this.size * CHANNELS;
+      for (int row = 0; row < this.size; row++) {
+        System.arraycopy(
+          from,
+          ((this.top - parent.top + row) * ROOT_SIZE + this.left - parent.left) * CHANNELS,
+          output,
+          row * rowLength,
+          rowLength
+        );
       }
     }
 
@@ -1701,16 +1730,7 @@ public final class Mcv2 {
       final int[] from =
         parent == null ? null : vector == 0 ? parent.zeroPrediction : vector == parent.localVector ? parent.localPrediction : null;
       if (parent != null && from != null) {
-        final int rowLength = this.size * CHANNELS;
-        for (int row = 0; row < this.size; row++) {
-          System.arraycopy(
-            from,
-            ((this.top - parent.top + row) * ROOT_SIZE + this.left - parent.left) * CHANNELS,
-            output,
-            row * rowLength,
-            rowLength
-          );
-        }
+        this.copyFromRoot(parent, from, output);
       } else {
         this.kernels.predict(
           this.frame.reference,
@@ -2910,10 +2930,7 @@ public final class Mcv2 {
         final int rowLength = size * CHANNELS;
         for (int row = 0; row < size; row++) {
           final int from = ((top + row) * width + left) * CHANNELS;
-          final int destinationOffset = row * rowLength;
-          for (int offset = 0; offset < rowLength; offset++) {
-            output[destinationOffset + offset] = reference[from + offset] & BYTE_MASK;
-          }
+          this.widen(reference, from, output, row * rowLength, rowLength);
         }
 
         return;
@@ -2924,11 +2941,14 @@ public final class Mcv2 {
         for (int column = 0; column < size; column++) {
           final int sourceColumn = Math.min(Math.max(left + column, 0), width - 1);
           final int from = (sourceRow * width + sourceColumn) * CHANNELS;
-          final int destinationOffset = (row * size + column) * CHANNELS;
-          for (int channel = 0; channel < CHANNELS; channel++) {
-            output[destinationOffset + channel] = reference[from + channel] & BYTE_MASK;
-          }
+          this.widen(reference, from, output, (row * size + column) * CHANNELS, CHANNELS);
         }
+      }
+    }
+
+    private void widen(final byte[] reference, final int from, final int[] output, final int destinationOffset, final int length) {
+      for (int offset = 0; offset < length; offset++) {
+        output[destinationOffset + offset] = reference[from + offset] & BYTE_MASK;
       }
     }
 
@@ -2937,44 +2957,65 @@ public final class Mcv2 {
       final float[] matrix = FITTING_MATRICES[sizeIndex(size)];
       for (int row = 0; row < size; row++) {
         for (int nodeColumn = 0; nodeColumn < GRID; nodeColumn++) {
-          double sum = 0;
-          for (int column = 0; column < size; column++) {
-            sum += (double) values[row * size + column] * matrix[nodeColumn * size + column];
-          }
-          this.fitScratch[row * GRID + nodeColumn] = sum;
+          this.fitScratch[row * GRID + nodeColumn] = this.fitRow(values, matrix, size, row, nodeColumn);
         }
       }
 
       for (int nodeRow = 0; nodeRow < GRID; nodeRow++) {
         for (int nodeColumn = 0; nodeColumn < GRID; nodeColumn++) {
-          double sum = 0;
-          for (int row = 0; row < size; row++) {
-            sum += matrix[nodeRow * size + row] * this.fitScratch[row * GRID + nodeColumn];
-          }
-          output[nodeRow * GRID + nodeColumn] = (float) sum;
+          output[nodeRow * GRID + nodeColumn] = (float) this.fitColumn(matrix, size, nodeRow, nodeColumn);
         }
       }
+    }
+
+    private double fitRow(final float[] values, final float[] matrix, final int size, final int row, final int nodeColumn) {
+      double sum = 0;
+      for (int column = 0; column < size; column++) {
+        sum += (double) values[row * size + column] * matrix[nodeColumn * size + column];
+      }
+
+      return sum;
+    }
+
+    private double fitColumn(final float[] matrix, final int size, final int nodeRow, final int nodeColumn) {
+      double sum = 0;
+      for (int row = 0; row < size; row++) {
+        sum += matrix[nodeRow * size + row] * this.fitScratch[row * GRID + nodeColumn];
+      }
+
+      return sum;
     }
 
     @Override
     public void cluster(final int[] source, final int size, final int[] endpoints) {
       final int step = size >= SAMPLED_SIZE ? SAMPLED_STEP : 1;
+      this.seedEndpoints(source, size, step, endpoints);
+      for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+        Arrays.fill(this.clusterScratch, 0, CLUSTER_SUMS, 0);
+        this.assignClusters(source, size, step, endpoints);
+        this.moveEndpoints(endpoints);
+      }
+    }
+
+    // The darkest and the brightest sampled pixels, the first of each in row order.
+    private void seedEndpoints(final int[] source, final int size, final int step, final int[] endpoints) {
+      final int samplesPerSide = (size + step - 1) / step;
       int low = 0;
       int high = 0;
       int lowLuma = Integer.MAX_VALUE;
       int highLuma = Integer.MIN_VALUE;
-      for (int row = 0; row < size; row += step) {
-        for (int column = 0; column < size; column += step) {
-          final int arrayOffset = (row * size + column) * CHANNELS;
-          final int luma = source[arrayOffset] + LUMA_GREEN_WEIGHT * source[arrayOffset + GREEN_OFFSET] + source[arrayOffset + BLUE_OFFSET];
-          if (luma < lowLuma) {
-            lowLuma = luma;
-            low = arrayOffset;
-          }
-          if (luma > highLuma) {
-            highLuma = luma;
-            high = arrayOffset;
-          }
+      for (int sample = 0; sample < samplesPerSide * samplesPerSide; sample++) {
+        final int row = (sample / samplesPerSide) * step;
+        final int column = (sample % samplesPerSide) * step;
+        final int arrayOffset = (row * size + column) * CHANNELS;
+        final int luma = source[arrayOffset] + LUMA_GREEN_WEIGHT * source[arrayOffset + GREEN_OFFSET] + source[arrayOffset + BLUE_OFFSET];
+        if (luma < lowLuma) {
+          lowLuma = luma;
+          low = arrayOffset;
+        }
+        if (luma > highLuma) {
+          highLuma = luma;
+          high = arrayOffset;
         }
       }
 
@@ -2982,42 +3023,46 @@ public final class Mcv2 {
         endpoints[channel] = source[low + channel];
         endpoints[CHANNELS + channel] = source[high + channel];
       }
+    }
 
-      for (int iteration = 0; iteration < ITERATIONS; iteration++) {
-        final int firstRed = endpoints[0];
-        final int firstGreen = endpoints[GREEN_OFFSET];
-        final int firstBlue = endpoints[BLUE_OFFSET];
-        final int secondRed = endpoints[CHANNELS];
-        final int secondGreen = endpoints[CHANNELS + GREEN_OFFSET];
-        final int secondBlue = endpoints[CHANNELS + BLUE_OFFSET];
-        Arrays.fill(this.clusterScratch, 0, CLUSTER_SUMS, 0);
-        for (int row = 0; row < size; row += step) {
-          for (int column = 0; column < size; column += step) {
-            final int arrayOffset = (row * size + column) * CHANNELS;
-            final int red = source[arrayOffset];
-            final int green = source[arrayOffset + GREEN_OFFSET];
-            final int blue = source[arrayOffset + BLUE_OFFSET];
-            final int firstDistance =
-              (red - firstRed) * (red - firstRed) + (green - firstGreen) * (green - firstGreen) + (blue - firstBlue) * (blue - firstBlue);
-            final int secondDistance =
-              (red - secondRed) * (red - secondRed) +
-              (green - secondGreen) * (green - secondGreen) +
-              (blue - secondBlue) * (blue - secondBlue);
-            final int nearest = secondDistance < firstDistance ? 1 : 0;
-            this.clusterScratch[nearest * CHANNELS] += red;
-            this.clusterScratch[nearest * CHANNELS + GREEN_OFFSET] += green;
-            this.clusterScratch[nearest * CHANNELS + BLUE_OFFSET] += blue;
-            this.clusterScratch[CLUSTER_COUNTS_OFFSET + nearest]++;
-          }
+    private void assignClusters(final int[] source, final int size, final int step, final int[] endpoints) {
+      for (int row = 0; row < size; row += step) {
+        for (int column = 0; column < size; column += step) {
+          this.assignCluster(source, (row * size + column) * CHANNELS, endpoints);
         }
-        for (int endpoint = 0; endpoint < PALETTE_COLORS; endpoint++) {
-          final long members = this.clusterScratch[CLUSTER_COUNTS_OFFSET + endpoint];
-          if (members > 0) {
-            for (int channel = 0; channel < CHANNELS; channel++) {
-              final long mean = (this.clusterScratch[endpoint * CHANNELS + channel] + members / ROUNDING_DIVISOR) / members;
-              endpoints[endpoint * CHANNELS + channel] = (int) mean;
-            }
-          }
+      }
+    }
+
+    private void assignCluster(final int[] source, final int arrayOffset, final int[] endpoints) {
+      final int red = source[arrayOffset];
+      final int green = source[arrayOffset + GREEN_OFFSET];
+      final int blue = source[arrayOffset + BLUE_OFFSET];
+      final int firstRed = endpoints[0];
+      final int firstGreen = endpoints[GREEN_OFFSET];
+      final int firstBlue = endpoints[BLUE_OFFSET];
+      final int secondRed = endpoints[CHANNELS];
+      final int secondGreen = endpoints[CHANNELS + GREEN_OFFSET];
+      final int secondBlue = endpoints[CHANNELS + BLUE_OFFSET];
+      final int firstDistance =
+        (red - firstRed) * (red - firstRed) + (green - firstGreen) * (green - firstGreen) + (blue - firstBlue) * (blue - firstBlue);
+      final int secondDistance =
+        (red - secondRed) * (red - secondRed) + (green - secondGreen) * (green - secondGreen) + (blue - secondBlue) * (blue - secondBlue);
+      final int nearest = secondDistance < firstDistance ? 1 : 0;
+      this.clusterScratch[nearest * CHANNELS] += red;
+      this.clusterScratch[nearest * CHANNELS + GREEN_OFFSET] += green;
+      this.clusterScratch[nearest * CHANNELS + BLUE_OFFSET] += blue;
+      this.clusterScratch[CLUSTER_COUNTS_OFFSET + nearest]++;
+    }
+
+    private void moveEndpoints(final int[] endpoints) {
+      for (int endpoint = 0; endpoint < PALETTE_COLORS; endpoint++) {
+        final long members = this.clusterScratch[CLUSTER_COUNTS_OFFSET + endpoint];
+        if (members <= 0) {
+          continue;
+        }
+        for (int channel = 0; channel < CHANNELS; channel++) {
+          final long mean = (this.clusterScratch[endpoint * CHANNELS + channel] + members / ROUNDING_DIVISOR) / members;
+          endpoints[endpoint * CHANNELS + channel] = (int) mean;
         }
       }
     }
@@ -3069,15 +3114,19 @@ public final class Mcv2 {
       for (int row = 0; row < half; row++) {
         for (int column = 0; column < half; column++) {
           final int arrayOffset = (PYRAMID_SCALE * row * size + PYRAMID_SCALE * column) * CHANNELS;
-          for (int channel = 0; channel < CHANNELS; channel++) {
-            final int sum =
-              block[arrayOffset + channel] +
-              block[arrayOffset + CHANNELS + channel] +
-              block[arrayOffset + rowLength + channel] +
-              block[arrayOffset + rowLength + CHANNELS + channel];
-            output[(row * half + column) * CHANNELS + channel] = (sum + QUAD_AVERAGE_ROUNDING) >> QUAD_AVERAGE_SHIFT;
-          }
+          this.averageQuad(block, arrayOffset, rowLength, output, (row * half + column) * CHANNELS);
         }
+      }
+    }
+
+    private void averageQuad(final int[] block, final int arrayOffset, final int rowLength, final int[] output, final int outputOffset) {
+      for (int channel = 0; channel < CHANNELS; channel++) {
+        final int sum =
+          block[arrayOffset + channel] +
+          block[arrayOffset + CHANNELS + channel] +
+          block[arrayOffset + rowLength + channel] +
+          block[arrayOffset + rowLength + CHANNELS + channel];
+        output[outputOffset + channel] = (sum + QUAD_AVERAGE_ROUNDING) >> QUAD_AVERAGE_SHIFT;
       }
     }
 
@@ -3115,6 +3164,153 @@ public final class Mcv2 {
         final float blue = prediction[offset + BLUE_OFFSET];
         target[pixel] = luma - (red + LUMA_GREEN_WEIGHT * green + blue) * LUMA_NORMALIZATION;
       }
+    }
+  }
+
+  private static final class MotionSearch {
+
+    private final byte[] reference;
+    private final int width;
+    private final int height;
+    private final int[] source;
+    private final int blockLeft;
+    private final int blockTop;
+    private final int size;
+    private final int[] samples;
+
+    private long best;
+    private int bestX;
+    private int bestY;
+
+    MotionSearch(
+      final byte[] reference,
+      final int width,
+      final int height,
+      final int[] source,
+      final int blockLeft,
+      final int blockTop,
+      final int size,
+      final int[] samples
+    ) {
+      this.reference = reference;
+      this.width = width;
+      this.height = height;
+      this.source = source;
+      this.blockLeft = blockLeft;
+      this.blockTop = blockTop;
+      this.size = size;
+      this.samples = samples;
+      this.best = this.cost(0, 0);
+    }
+
+    void consider(final int motionX, final int motionY) {
+      final long error = this.cost(motionX, motionY);
+      if (error < this.best) {
+        this.best = error;
+        this.bestX = motionX;
+        this.bestY = motionY;
+      }
+    }
+
+    private long cost(final int motionX, final int motionY) {
+      final int left = this.blockLeft + this.samples[0] + motionX;
+      final int right = this.blockLeft + this.samples[SAMPLED - 1] + motionX;
+      final int top = this.blockTop + this.samples[0] + motionY;
+      final int bottom = this.blockTop + this.samples[SAMPLED - 1] + motionY;
+      if (left >= 0 && top >= 0 && right < this.width && bottom < this.height) {
+        return this.interiorCost(motionX, motionY);
+      }
+
+      return this.clampedCost(motionX, motionY);
+    }
+
+    private long interiorCost(final int motionX, final int motionY) {
+      long sum = 0;
+      for (int sampleRow = 0; sampleRow < SAMPLED; sampleRow++) {
+        final int row = (this.blockTop + this.samples[sampleRow] + motionY) * this.width + this.blockLeft + motionX;
+        final int line = this.samples[sampleRow] * this.size;
+        for (int sampleColumn = 0; sampleColumn < SAMPLED; sampleColumn++) {
+          final int arrayOffset = (row + this.samples[sampleColumn]) * CHANNELS;
+          final int target = (line + this.samples[sampleColumn]) * CHANNELS;
+          sum += Math.abs((this.reference[arrayOffset] & BYTE_MASK) - this.source[target]);
+          sum += Math.abs((this.reference[arrayOffset + GREEN_OFFSET] & BYTE_MASK) - this.source[target + GREEN_OFFSET]);
+          sum += Math.abs((this.reference[arrayOffset + BLUE_OFFSET] & BYTE_MASK) - this.source[target + BLUE_OFFSET]);
+        }
+      }
+
+      return sum;
+    }
+
+    private long clampedCost(final int motionX, final int motionY) {
+      long sum = 0;
+      for (int sampleRow = 0; sampleRow < SAMPLED; sampleRow++) {
+        final int row = Math.min(Math.max(this.blockTop + this.samples[sampleRow] + motionY, 0), this.height - 1);
+        for (int sampleColumn = 0; sampleColumn < SAMPLED; sampleColumn++) {
+          final int column = Math.min(Math.max(this.blockLeft + this.samples[sampleColumn] + motionX, 0), this.width - 1);
+          final int arrayOffset = (row * this.width + column) * CHANNELS;
+          final int target = (this.samples[sampleRow] * this.size + this.samples[sampleColumn]) * CHANNELS;
+          sum += this.pixelDistance(arrayOffset, target);
+        }
+      }
+
+      return sum;
+    }
+
+    private long pixelDistance(final int arrayOffset, final int target) {
+      long sum = 0;
+      for (int channel = 0; channel < CHANNELS; channel++) {
+        sum += Math.abs((this.reference[arrayOffset + channel] & BYTE_MASK) - this.source[target + channel]);
+      }
+
+      return sum;
+    }
+  }
+
+  private static final class RootSearch {
+
+    private final FrameState frame;
+    private final boolean[] before;
+    private final BooleanSupplier late;
+    private final int columns;
+    private final double rootThreshold;
+    private final double fineThreshold;
+    private final double steady;
+
+    private final TreeNode[] roots;
+    private final int[] leafCounts;
+    private final int[] motion;
+    private final boolean[] splits;
+
+    RootSearch(final FrameState frame, final boolean[] before, final BooleanSupplier late) {
+      final Buffers buffers = frame.buffers;
+      this.frame = frame;
+      this.before = before;
+      this.late = late;
+      this.columns = buffers.columns;
+      this.rootThreshold = ROOT_SPLIT_BITS * frame.lambda;
+      this.fineThreshold = (frame.fast ? FAST_FINE_SPLIT_BITS : NORMAL_FINE_SPLIT_BITS) * frame.lambda;
+      this.steady = (frame.fast ? FAST_STEADY_SPLIT_BITS : NORMAL_STEADY_SPLIT_BITS) * frame.lambda;
+      this.roots = new TreeNode[buffers.roots];
+      this.leafCounts = new int[buffers.roots];
+      this.motion = new int[((frame.width + SMALLEST_BLOCK - 1) / SMALLEST_BLOCK) * ((frame.height + SMALLEST_BLOCK - 1) / SMALLEST_BLOCK)];
+      this.splits = new boolean[buffers.roots];
+    }
+
+    void searchRoot(final BlockCoder[] coders, final int index) {
+      final int left = (index % this.columns) * ROOT_SIZE;
+      final int top = (index / this.columns) * ROOT_SIZE;
+      final double threshold = !this.frame.keyframe && !this.before[index] ? this.steady : this.rootThreshold;
+      final boolean late = this.late.getAsBoolean();
+      for (final BlockCoder coder : coders) {
+        coder.hurried = late;
+      }
+
+      final Choice chosen = descend(this.frame, coders, 0, left, top, NO_VECTOR, threshold, this.fineThreshold);
+      final TreeNode root = chosen.node();
+      this.roots[index] = root;
+      this.splits[index] = root.isSplit();
+      fillMotion(this.motion, this.frame.width, this.frame.height, root, left, top, ROOT_SIZE);
+      this.leafCounts[index] = chosen.leaves();
     }
   }
 
@@ -3195,16 +3391,7 @@ public final class Mcv2 {
         .submit(() ->
           IntStream.range(0, workers)
             .parallel()
-            .forEach(_ -> {
-              try {
-                final ScratchType state = scratch.get();
-                for (int index = next.getAndIncrement(); index < count; index = next.getAndIncrement()) {
-                  body.accept(state, index);
-                }
-              } catch (final RuntimeException | Error exception) {
-                failure.compareAndSet(null, exception);
-              }
-            })
+            .forEach(_ -> this.runWorker(count, scratch, body, next, failure))
         )
         .join();
       final Throwable reported = failure.get();
@@ -3214,6 +3401,23 @@ public final class Mcv2 {
 
       if (reported instanceof final Error error) {
         throw error;
+      }
+    }
+
+    private <ScratchType> void runWorker(
+      final int count,
+      final Supplier<ScratchType> scratch,
+      final ObjIntConsumer<ScratchType> body,
+      final AtomicInteger next,
+      final AtomicReference<@Nullable Throwable> failure
+    ) {
+      try {
+        final ScratchType state = scratch.get();
+        for (int index = next.getAndIncrement(); index < count; index = next.getAndIncrement()) {
+          body.accept(state, index);
+        }
+      } catch (final RuntimeException | Error exception) {
+        failure.compareAndSet(null, exception);
       }
     }
   }

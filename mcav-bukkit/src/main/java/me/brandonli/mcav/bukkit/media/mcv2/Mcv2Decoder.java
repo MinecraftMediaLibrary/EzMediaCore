@@ -549,27 +549,16 @@ public final class Mcv2Decoder {
       int splits = 0;
       int firstSplits = 0;
       for (int index = 0; index < descriptors; index++) {
-        final int descriptor = this.data[descriptorsAt + index] & BYTE_MASK;
-        final int mode = descriptor & MODE_MASK;
-        final int quantizer = descriptor >> QUANTIZER_SHIFT;
-        if (
-          mode > MODE_SPLIT ||
-          quantizer > MAXIMUM_QUANTIZER ||
-          (quantizer != 0 && mode != MODE_COMPACT) ||
-          (this.keyframe && (mode == MODE_MOTION || mode == MODE_COMPACT))
-        ) {
-          throw new Mcv2Exception("Invalid descriptor!");
+        final int mode = this.readDescriptorMode(descriptorsAt + index);
+        if (mode != MODE_SPLIT) {
+          continue;
         }
-        if (mode == MODE_SPLIT) {
-          if (index >= lastLevel) {
-            throw new Mcv2Exception("Split below the bounded depth!");
-          }
-
-          splits++;
-
-          if (index < firstChildren) {
-            firstSplits++;
-          }
+        if (index >= lastLevel) {
+          throw new Mcv2Exception("Split below the bounded depth!");
+        }
+        splits++;
+        if (index < firstChildren) {
+          firstSplits++;
         }
       }
 
@@ -653,11 +642,7 @@ public final class Mcv2Decoder {
         if (group % CHECKPOINT_GROUPS == 0 && u32(this.data, HEADER_BYTES + (groups + group / CHECKPOINT_GROUPS) * Integer.BYTES) != seen) {
           throw new Mcv2Exception("Invalid directory checkpoint!");
         }
-        for (int bit = 0; bit < valid; bit++) {
-          if (((mask >>> bit) & 1) != 0) {
-            present[seen++] = group * GROUP_ROOTS + bit;
-          }
-        }
+        seen = this.listPresent(present, seen, mask, valid, group);
       }
 
       if (seen != count) {
@@ -665,6 +650,33 @@ public final class Mcv2Decoder {
       }
 
       return present;
+    }
+
+    private int listPresent(final int[] present, final int seen, final long mask, final int valid, final int group) {
+      int listed = seen;
+      for (int bit = 0; bit < valid; bit++) {
+        if (((mask >>> bit) & 1) != 0) {
+          present[listed++] = group * GROUP_ROOTS + bit;
+        }
+      }
+
+      return listed;
+    }
+
+    private int readDescriptorMode(final int position) throws Mcv2Exception {
+      final int descriptor = this.data[position] & BYTE_MASK;
+      final int mode = descriptor & MODE_MASK;
+      final int quantizer = descriptor >> QUANTIZER_SHIFT;
+      if (
+        mode > MODE_SPLIT ||
+        quantizer > MAXIMUM_QUANTIZER ||
+        (quantizer != 0 && mode != MODE_COMPACT) ||
+        (this.keyframe && (mode == MODE_MOTION || mode == MODE_COMPACT))
+      ) {
+        throw new Mcv2Exception("Invalid descriptor!");
+      }
+
+      return mode;
     }
 
     private int recordLength(final int mode, final int size, final int offset) throws Mcv2Exception {
@@ -686,109 +698,156 @@ public final class Mcv2Decoder {
     private final Frame frame;
     private final byte[] reference;
     private final byte[] output;
-    private final int[] nodes = new int[GRID * GRID];
-    private final int[] rows = new int[GRID * ROOT_SIZE];
+    private final int[] nodes;
+    private final int[] rows;
+
+    private int left;
+    private int top;
+    private int size;
+    private int mode;
+    private int quantizer;
+    private int offset;
+    private int motionX;
+    private int motionY;
+    private int color0;
+    private int color1;
+    private int word;
+    private int orientation;
+    private int scale;
+    private int shift;
 
     private Context(final Frame frame, final byte[] reference, final byte[] output) {
       this.frame = frame;
       this.reference = reference;
       this.output = output;
+      this.nodes = new int[GRID * GRID];
+      this.rows = new int[GRID * ROOT_SIZE];
     }
 
     private void leaf(final int arrayOffset, final int fromRow, final int toRow) {
       final int[] leaves = this.frame.leaves;
-      final int left = leaves[arrayOffset];
-      final int top = leaves[arrayOffset + TOP_INDEX];
-      final int size = leaves[arrayOffset + SIZE_INDEX];
-      final int mode = leaves[arrayOffset + MODE_INDEX];
-      final int quantizer = leaves[arrayOffset + QUANTIZER_INDEX];
-      final int offset = leaves[arrayOffset + RECORD_OFFSET_INDEX];
-      final int firstRow = Math.max(top, fromRow);
-      final int lastRow = Math.min(top + size, toRow);
-      final int right = Math.min(left + size, this.frame.width);
-      if (firstRow >= lastRow || left >= right) {
+      final int leafLeft = leaves[arrayOffset];
+      final int leafTop = leaves[arrayOffset + TOP_INDEX];
+      final int leafSize = leaves[arrayOffset + SIZE_INDEX];
+      final int firstRow = Math.max(leafTop, fromRow);
+      final int lastRow = Math.min(leafTop + leafSize, toRow);
+      final int right = Math.min(leafLeft + leafSize, this.frame.width);
+      if (firstRow >= lastRow || leafLeft >= right) {
         return;
       }
 
-      final byte[] data = this.frame.data;
-      int motionX = 0;
-      int motionY = 0;
-      int color0 = 0;
-      int color1 = 0;
-      int word = 0;
-      int orientation = 0;
-      if (mode == MODE_SOLID || mode == MODE_PALETTE) {
-        color0 = readColor(data, offset);
-
-        if (mode == MODE_PALETTE) {
-          color1 = readColor(data, offset + CHANNELS);
-        }
-      } else if (mode == MODE_PATTERN) {
-        color0 = readColor(data, offset);
-        color1 = readColor(data, offset + CHANNELS);
-        word = offset + RECORD_COLORS * CHANNELS;
-        orientation = data[word];
-        word++;
-      } else if (mode == MODE_MOTION) {
-        motionX = data[offset];
-        motionY = data[offset + 1];
-      } else if (mode == MODE_COMPACT) {
-        motionX = data[offset];
-        motionY = data[offset + 1];
-        for (int node = 0; node < GRID * GRID; node++) {
-          this.nodes[node] = signed(
-            (data[offset + MOTION_BYTES + node / NODES_PER_BYTE] & BYTE_MASK) >> ((node % NODES_PER_BYTE) * NODE_BITS),
-            NODE_BITS
-          );
-        }
-
-        horizontal(this.nodes, size, this.rows);
-      }
-
-      final int scale = HALF_PIXEL_SCALE * HALF_PIXEL_SCALE * size * size;
-      final int shift = INTERPOLATED_AXES * (Integer.numberOfTrailingZeros(size) + 1);
+      this.left = leafLeft;
+      this.top = leafTop;
+      this.size = leafSize;
+      this.mode = leaves[arrayOffset + MODE_INDEX];
+      this.quantizer = leaves[arrayOffset + QUANTIZER_INDEX];
+      this.offset = leaves[arrayOffset + RECORD_OFFSET_INDEX];
+      this.readRecord();
+      this.scale = HALF_PIXEL_SCALE * HALF_PIXEL_SCALE * leafSize * leafSize;
+      this.shift = INTERPOLATED_AXES * (Integer.numberOfTrailingZeros(leafSize) + 1);
       for (int row = firstRow; row < lastRow; row++) {
-        final int localRow = row - top;
-        final int lower = GRID_LOWER[sizeIndex(size)][localRow];
-        final int upper = GRID_UPPER[sizeIndex(size)][localRow];
-        final int weight = GRID_WEIGHTS[sizeIndex(size)][localRow];
-        final int sourceRow = Math.min(Math.max(row + motionY, 0), this.frame.height - 1) * this.frame.width;
-        for (int column = left; column < right; column++) {
-          final int localColumn = column - left;
-          final int target = (row * this.frame.width + column) * CHANNELS;
-          int color = color0;
-          if (mode == MODE_PALETTE) {
-            final int pixel = localRow * size + localColumn;
-            color = ((data[offset + RECORD_COLORS * CHANNELS + pixel / Byte.SIZE] >> (pixel % Byte.SIZE)) & 1) == 0 ? color0 : color1;
-          } else if (mode == MODE_PATTERN) {
-            final int axis = orientation == 0 ? localColumn : localRow;
-            color = ((data[word + axis / Byte.SIZE] >> (axis % Byte.SIZE)) & 1) == 0 ? color0 : color1;
-          }
-          if (mode == MODE_MOTION || mode == MODE_COMPACT || (mode == MODE_SKIP && !this.frame.keyframe)) {
-            final int source = (sourceRow + Math.min(Math.max(column + motionX, 0), this.frame.width - 1)) * CHANNELS;
-            if (mode != MODE_COMPACT) {
-              System.arraycopy(this.reference, source, this.output, target, CHANNELS);
-              continue;
-            }
-
-            final int luma =
-              this.rows[lower * size + localColumn] * (HALF_PIXEL_SCALE * size - weight) + this.rows[upper * size + localColumn] * weight;
-            this.output[target] = (byte) round((this.reference[source] & BYTE_MASK) * scale + (luma << quantizer), shift);
-            this.output[target + GREEN_OFFSET] = (byte) round(
-              (this.reference[source + GREEN_OFFSET] & BYTE_MASK) * scale + (luma << quantizer),
-              shift
-            );
-            this.output[target + BLUE_OFFSET] = (byte) round(
-              (this.reference[source + BLUE_OFFSET] & BYTE_MASK) * scale + (luma << quantizer),
-              shift
-            );
-          } else {
-            this.output[target] = (byte) (color >> RED_SHIFT);
-            this.output[target + GREEN_OFFSET] = (byte) (color >> GREEN_SHIFT);
-            this.output[target + BLUE_OFFSET] = (byte) color;
-          }
-        }
+        this.decodeRow(row, right);
       }
+    }
+
+    private void readRecord() {
+      final byte[] data = this.frame.data;
+      this.motionX = 0;
+      this.motionY = 0;
+      this.color0 = 0;
+      this.color1 = 0;
+      this.word = 0;
+      this.orientation = 0;
+      if (this.mode == MODE_SOLID || this.mode == MODE_PALETTE) {
+        this.color0 = readColor(data, this.offset);
+
+        if (this.mode == MODE_PALETTE) {
+          this.color1 = readColor(data, this.offset + CHANNELS);
+        }
+      } else if (this.mode == MODE_PATTERN) {
+        this.color0 = readColor(data, this.offset);
+        this.color1 = readColor(data, this.offset + CHANNELS);
+        this.word = this.offset + RECORD_COLORS * CHANNELS;
+        this.orientation = data[this.word];
+        this.word++;
+      } else if (this.mode == MODE_MOTION) {
+        this.motionX = data[this.offset];
+        this.motionY = data[this.offset + 1];
+      } else if (this.mode == MODE_COMPACT) {
+        this.motionX = data[this.offset];
+        this.motionY = data[this.offset + 1];
+        this.readNodes(data);
+        horizontal(this.nodes, this.size, this.rows);
+      }
+    }
+
+    private void readNodes(final byte[] data) {
+      for (int node = 0; node < GRID * GRID; node++) {
+        this.nodes[node] = signed(
+          (data[this.offset + MOTION_BYTES + node / NODES_PER_BYTE] & BYTE_MASK) >> ((node % NODES_PER_BYTE) * NODE_BITS),
+          NODE_BITS
+        );
+      }
+    }
+
+    private void decodeRow(final int row, final int right) {
+      final int localRow = row - this.top;
+      final int lower = GRID_LOWER[sizeIndex(this.size)][localRow];
+      final int upper = GRID_UPPER[sizeIndex(this.size)][localRow];
+      final int weight = GRID_WEIGHTS[sizeIndex(this.size)][localRow];
+      final int sourceRow = Math.min(Math.max(row + this.motionY, 0), this.frame.height - 1) * this.frame.width;
+      for (int column = this.left; column < right; column++) {
+        final int localColumn = column - this.left;
+        final int target = (row * this.frame.width + column) * CHANNELS;
+        if (this.isPredicted()) {
+          final int source = (sourceRow + Math.min(Math.max(column + this.motionX, 0), this.frame.width - 1)) * CHANNELS;
+          this.predictPixel(source, target, lower * this.size + localColumn, upper * this.size + localColumn, weight);
+          continue;
+        }
+        final int color = this.pixelColor(localRow, localColumn);
+        this.output[target] = (byte) (color >> RED_SHIFT);
+        this.output[target + GREEN_OFFSET] = (byte) (color >> GREEN_SHIFT);
+        this.output[target + BLUE_OFFSET] = (byte) color;
+      }
+    }
+
+    private boolean isPredicted() {
+      return this.mode == MODE_MOTION || this.mode == MODE_COMPACT || (this.mode == MODE_SKIP && !this.frame.keyframe);
+    }
+
+    private void predictPixel(final int source, final int target, final int lowerRow, final int upperRow, final int weight) {
+      if (this.mode != MODE_COMPACT) {
+        System.arraycopy(this.reference, source, this.output, target, CHANNELS);
+        return;
+      }
+
+      final int luma = this.rows[lowerRow] * (HALF_PIXEL_SCALE * this.size - weight) + this.rows[upperRow] * weight;
+      this.output[target] = (byte) round((this.reference[source] & BYTE_MASK) * this.scale + (luma << this.quantizer), this.shift);
+      this.output[target + GREEN_OFFSET] = (byte) round(
+        (this.reference[source + GREEN_OFFSET] & BYTE_MASK) * this.scale + (luma << this.quantizer),
+        this.shift
+      );
+      this.output[target + BLUE_OFFSET] = (byte) round(
+        (this.reference[source + BLUE_OFFSET] & BYTE_MASK) * this.scale + (luma << this.quantizer),
+        this.shift
+      );
+    }
+
+    private int pixelColor(final int localRow, final int localColumn) {
+      final byte[] data = this.frame.data;
+      if (this.mode == MODE_PALETTE) {
+        final int pixel = localRow * this.size + localColumn;
+        return ((data[this.offset + RECORD_COLORS * CHANNELS + pixel / Byte.SIZE] >> (pixel % Byte.SIZE)) & 1) == 0
+          ? this.color0
+          : this.color1;
+      }
+
+      if (this.mode == MODE_PATTERN) {
+        final int axis = this.orientation == 0 ? localColumn : localRow;
+        return ((data[this.word + axis / Byte.SIZE] >> (axis % Byte.SIZE)) & 1) == 0 ? this.color0 : this.color1;
+      }
+
+      return this.color0;
     }
   }
 }

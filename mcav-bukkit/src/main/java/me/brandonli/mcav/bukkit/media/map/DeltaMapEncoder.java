@@ -445,17 +445,21 @@ public final class DeltaMapEncoder {
     final boolean[] pending = toPendingTiles(tiles);
     final List<PatchRectangle> rectangles = new ArrayList<>();
     for (int tileY = 0; tileY < TILES_PER_ROW; tileY++) {
-      for (int tileX = 0; tileX < TILES_PER_ROW; tileX++) {
-        final int tile = tileY * TILES_PER_ROW + tileX;
-        if (!pending[tile]) {
-          continue;
-        }
-        final PatchRectangle rectangle = takeRun(pending, tileX, tileY, region);
-        rectangles.add(rectangle);
-      }
+      takeRowRuns(pending, tileY, region, rectangles);
     }
 
     return rectangles;
+  }
+
+  private static void takeRowRuns(final boolean[] pending, final int tileY, final MapRegion region, final List<PatchRectangle> rectangles) {
+    for (int tileX = 0; tileX < TILES_PER_ROW; tileX++) {
+      final int tile = tileY * TILES_PER_ROW + tileX;
+      if (!pending[tile]) {
+        continue;
+      }
+      final PatchRectangle rectangle = takeRun(pending, tileX, tileY, region);
+      rectangles.add(rectangle);
+    }
   }
 
   private static boolean[] toPendingTiles(final long tiles) {

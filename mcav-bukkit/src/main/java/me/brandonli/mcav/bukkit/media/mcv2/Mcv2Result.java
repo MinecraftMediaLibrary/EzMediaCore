@@ -401,11 +401,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     synchronized (this.lock) {
       final Mcv2Pacer screenPacer = this.pacer;
       if (screenPacer != null) {
-        tried = screenPacer.arrive(this.clock.getAsLong());
-        if (tried != null) {
-          this.follow(tried);
-        }
-
+        tried = this.followArrival(screenPacer);
         encode = screenPacer.isEncoded();
         preset = screenPacer.getRung().preset();
       } else {
@@ -546,30 +542,43 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     }
   }
 
+  private Mcv2Pacer.@Nullable Change followArrival(final Mcv2Pacer screenPacer) {
+    final Mcv2Pacer.@Nullable Change change = screenPacer.arrive(this.clock.getAsLong());
+    if (change != null) {
+      this.follow(change);
+    }
+
+    return change;
+  }
+
   void encodeLoop(final Mcv2 first) {
     final Pipeline own;
     synchronized (this.lock) {
       own = this.pipeline;
     }
 
-    long frameId = this.requested.getFirstFrameId();
-    Mcv2 encoder = first;
     try {
-      for (Arrival arrival = this.take(); arrival != null; arrival = this.take()) {
-        final Settings settings = this.settingsFor(arrival);
-        if (!settings.equals(encoder.getSettings())) {
-          this.drain();
-          encoder = this.encoderFor(settings, encoder);
-        }
-        this.send(encoder, arrival, frameId);
-        frameId = (frameId + 1) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT;
-      }
+      this.encodeArrivals(first);
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
     } catch (final RuntimeException exception) {
       LOGGER.error(ENCODER_FAILED, exception);
     } finally {
       this.stopPipeline(own);
+    }
+  }
+
+  private void encodeArrivals(final Mcv2 first) throws InterruptedException {
+    long frameId = this.requested.getFirstFrameId();
+    Mcv2 encoder = first;
+    for (Arrival arrival = this.take(); arrival != null; arrival = this.take()) {
+      final Settings settings = this.settingsFor(arrival);
+      if (!settings.equals(encoder.getSettings())) {
+        this.drain();
+        encoder = this.encoderFor(settings, encoder);
+      }
+      this.send(encoder, arrival, frameId);
+      frameId = (frameId + 1) & Mcv2Decoder.MAXIMUM_UNSIGNED_INT;
     }
   }
 
@@ -639,10 +648,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     synchronized (this.lock) {
       final Mcv2Pacer screenPacer = this.pacer;
       if (screenPacer != null) {
-        change = screenPacer.encoded((finished - started) / NANOSECONDS_PER_MILLISECOND, isKeyframe, finished);
-        if (change != null) {
-          this.follow(change);
-        }
+        change = this.followEncoding(screenPacer, (finished - started) / NANOSECONDS_PER_MILLISECOND, isKeyframe, finished);
       }
     }
 
@@ -653,6 +659,20 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (delivery != null) {
       this.deliver(delivery);
     }
+  }
+
+  private Mcv2Pacer.@Nullable Change followEncoding(
+    final Mcv2Pacer screenPacer,
+    final double encodeMilliseconds,
+    final boolean isKeyframe,
+    final long finished
+  ) {
+    final Mcv2Pacer.@Nullable Change change = screenPacer.encoded(encodeMilliseconds, isKeyframe, finished);
+    if (change != null) {
+      this.follow(change);
+    }
+
+    return change;
   }
 
   void drain() throws InterruptedException {
@@ -688,13 +708,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   private void deliverLoop(final Pipeline running, final Thread screenThread) {
     try {
       while (true) {
-        final Handoff handoff = running.queue().take();
-        final Mcv2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
-        this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
-        synchronized (this.lock) {
-          this.delivered++;
-          this.lock.notifyAll();
-        }
+        this.deliverNext(running);
       }
     } catch (final InterruptedException exception) {
       Thread.currentThread().interrupt();
@@ -704,6 +718,16 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.stopPipeline(running);
       // Interrupt even after release clears the pipeline, or the screen thread can wait forever.
       screenThread.interrupt();
+    }
+  }
+
+  private void deliverNext(final Pipeline running) throws InterruptedException {
+    final Handoff handoff = running.queue().take();
+    final Mcv2.Encoded encoded = running.budget().run(() -> handoff.encoder().finish(handoff.pending()));
+    this.deliver(new Delivery(encoded.getData(), encoded.getStatistics(), handoff.frameId(), handoff.source()));
+    synchronized (this.lock) {
+      this.delivered++;
+      this.lock.notifyAll();
     }
   }
 

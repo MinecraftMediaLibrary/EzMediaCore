@@ -97,6 +97,8 @@ public final class Mcv2Pacer {
   // System.nanoTime() may be negative, so zero cannot mark an absent timestamp.
   private static final long NEVER = Long.MIN_VALUE;
 
+  private static final int NO_RUNG = -1;
+
   private final List<Rung> ladder;
 
   private final long[] blockedUntil;
@@ -328,12 +330,9 @@ public final class Mcv2Pacer {
 
     final Rung from = this.getRung();
     for (final double share : new double[] { FIT, HIGH }) {
-      for (int next = this.current + 1; next < encoded; next++) {
-        final Rung rung = this.ladder.get(next);
-        final boolean sameFrames = rung.pixels() == from.pixels() && rung.divisor() == from.divisor();
-        if (this.isAllowed(rung) && this.predict(next) <= (sameFrames ? HIGH : share) * this.frameMilliseconds(rung)) {
-          return this.move(next, true, this.smoothed, frameMilliseconds);
-        }
+      final int next = this.findFittingRungBelow(from, share, encoded);
+      if (next != NO_RUNG) {
+        return this.move(next, true, this.smoothed, frameMilliseconds);
       }
     }
 
@@ -349,6 +348,18 @@ public final class Mcv2Pacer {
     this.retrySeconds = Math.min(MAXIMUM_RETRY_SECONDS, this.retrySeconds * BACKOFF_FACTOR);
 
     return change;
+  }
+
+  private int findFittingRungBelow(final Rung from, final double share, final int encoded) {
+    for (int next = this.current + 1; next < encoded; next++) {
+      final Rung rung = this.ladder.get(next);
+      final boolean sameFrames = rung.pixels() == from.pixels() && rung.divisor() == from.divisor();
+      if (this.isAllowed(rung) && this.predict(next) <= (sameFrames ? HIGH : share) * this.frameMilliseconds(rung)) {
+        return next;
+      }
+    }
+
+    return NO_RUNG;
   }
 
   private int encodedRungs() {

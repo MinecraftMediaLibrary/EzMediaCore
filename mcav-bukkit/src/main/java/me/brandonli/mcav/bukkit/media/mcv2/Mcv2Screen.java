@@ -150,23 +150,29 @@ public final class Mcv2Screen {
           .add(right.getModX() * column + back.getModX() * BLOCKS_BEHIND, -row, right.getModZ() * column + back.getModZ() * BLOCKS_BEHIND);
         final int slot = slot(column, row, this.configuration.getColumns(), this.configuration.getPageSlots());
         final ItemStack page = pageItem(this.configuration.getPageMap() + slot);
-        final HeldChunk chunk = new HeldChunk(world, behind.getBlockX() >> CHUNK_SHIFT, behind.getBlockZ() >> CHUNK_SHIFT);
-        if (this.chunks.add(chunk)) {
-          hold(chunk);
-        }
-        final ItemFrame frame = world.spawn(behind, ItemFrame.class, spawned -> {
-          spawned.setVisibleByDefault(false);
-          spawned.setPersistent(false);
-          spawned.setFacingDirection(back, true);
-          spawned.setItem(page, false);
-          spawned.setGlowing(true);
-          spawned.setInvulnerable(true);
-          spawned.setFixed(true);
-          spawned.setSilent(true);
-        });
+        this.holdChunkAt(world, behind);
+        final ItemFrame frame = world.spawn(behind, ItemFrame.class, spawned -> this.preparePageFrame(spawned, back, page));
         this.frames.add(frame);
       }
     }
+  }
+
+  private void holdChunkAt(final World world, final Location location) {
+    final HeldChunk chunk = new HeldChunk(world, location.getBlockX() >> CHUNK_SHIFT, location.getBlockZ() >> CHUNK_SHIFT);
+    if (this.chunks.add(chunk)) {
+      hold(chunk);
+    }
+  }
+
+  private void preparePageFrame(final ItemFrame frame, final BlockFace back, final ItemStack page) {
+    frame.setVisibleByDefault(false);
+    frame.setPersistent(false);
+    frame.setFacingDirection(back, true);
+    frame.setItem(page, false);
+    frame.setGlowing(true);
+    frame.setInvulnerable(true);
+    frame.setFixed(true);
+    frame.setSilent(true);
   }
 
   static ItemStack pageItem(final int mapId) {
@@ -265,10 +271,7 @@ public final class Mcv2Screen {
     final List<MapTilePatch> patches = new ArrayList<>(columns * rows);
     for (int row = 0; row < rows; row++) {
       for (int column = 0; column < columns; column++) {
-        final byte[] symbols = new byte[MapLayout.MAP_SIZE];
-        for (int index = 0; index < SIGNATURE.length; index++) {
-          symbols[index] = (byte) SIGNATURE[index];
-        }
+        final byte[] symbols = this.signedSymbols();
         final int symbolOffset = SIGNATURE.length;
         symbols[symbolOffset] = (byte) column;
         symbols[symbolOffset + ROW_SYMBOL] = (byte) row;
@@ -286,6 +289,15 @@ public final class Mcv2Screen {
     }
 
     return patches;
+  }
+
+  private byte[] signedSymbols() {
+    final byte[] symbols = new byte[MapLayout.MAP_SIZE];
+    for (int index = 0; index < SIGNATURE.length; index++) {
+      symbols[index] = (byte) SIGNATURE[index];
+    }
+
+    return symbols;
   }
 
   /**
