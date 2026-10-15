@@ -46,8 +46,6 @@ object VariableNames {
 
     private val ABBREVIATIONS = setOf("buf", "tmp", "cfg", "idx", "cnt", "val", "res", "sb", "ctx", "mgr", "str", "arr", "len", "num")
 
-    private const val UNNAMED = "_"
-
     fun find(source: String): List<UndescriptiveName> {
         val file = object : SimpleJavaFileObject(URI.create("string:///Source.java"), JavaFileObject.Kind.SOURCE) {
             override fun getCharContent(ignoreEncodingErrors: Boolean): CharSequence = source
@@ -94,7 +92,7 @@ object VariableNames {
         }
 
         private fun isUndescriptive(name: String): Boolean =
-            name != UNNAMED && name.isNotEmpty() && (name.length == 1 || name in ABBREVIATIONS)
+            name in ABBREVIATIONS || (name.length == 1 && name[0].isLetter())
 
         private fun kind(node: VariableTree): String {
             val parent = currentPath.parentPath.leaf
