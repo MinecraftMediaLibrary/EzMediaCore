@@ -190,9 +190,9 @@ abstract class BuildMcv2Natives : DefaultTask() {
                 pool.invokeAll(steps.map { step -> Callable(step) }).forEach { result ->
                     try {
                         result.get()
-                    } catch (failure: ExecutionException) {
+                    } catch (exception: ExecutionException) {
                         val message = "Zig could not build MCV2's natives!"
-                        throw GradleException(message, failure.cause)
+                        throw GradleException(message, exception.cause)
                     }
                 }
             } finally {

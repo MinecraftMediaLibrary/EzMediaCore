@@ -74,9 +74,9 @@ abstract class DownloadToolArchive : DefaultTask() {
             connection.connectTimeout = 30_000
             connection.readTimeout = 120_000
             connection.getInputStream().use { input -> archive.outputStream().use { output -> input.copyTo(output) } }
-        } catch (failure: IOException) {
+        } catch (exception: IOException) {
             val message = "Tool archive $address could not be downloaded!"
-            throw GradleException(message, failure)
+            throw GradleException(message, exception)
         }
         val actual = ToolDigests.sha256(archive)
         if (actual != expected) {
