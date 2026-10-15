@@ -111,7 +111,7 @@ final class RfbGuard {
   }
 
   private int bytesPerPixel() {
-    return this.clientBytesPerPixel > 0 ? this.clientBytesPerPixel : this.server.serverBytesPerPixel;
+    return this.clientBytesPerPixel != UNKNOWN ? this.clientBytesPerPixel : this.server.serverBytesPerPixel;
   }
 
   private IOException violation(final String what) {
