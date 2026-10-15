@@ -24,22 +24,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-/**
- * A connected socket whose streams pass through an {@link RfbGuard}: the VNC client reads only what the guard let
- * through. The client uses a socket only for its streams, and closing this closes the connection.
- */
+// A connected socket whose streams pass through an RfbGuard: the VNC client reads only what the guard let through. The
+// client uses a socket only for its streams, and closing this closes the connection.
 final class GuardedSocket extends Socket {
 
   private final Socket socket;
   private final InputStream input;
   private final OutputStream output;
 
-  /**
-   * Guards a connected socket.
-   *
-   * @param socket the connection
-   * @throws IOException if its streams cannot be opened
-   */
   GuardedSocket(final Socket socket) throws IOException {
     Preconditions.checkNotNull(socket, "Socket must not be null!");
 

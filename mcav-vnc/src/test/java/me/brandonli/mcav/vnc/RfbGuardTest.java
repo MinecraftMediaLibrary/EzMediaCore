@@ -70,11 +70,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-/**
- * Tests {@link RfbGuard}: every handshake the client supports passes, every message and encoding is framed so the
- * messages after it pass too, and every length or size above its bound, and every byte the protocol does not allow,
- * is refused before the client would read it.
- */
+// Tests RfbGuard: every handshake the client supports passes, every message and encoding is framed so the messages
+// after it pass too, and every length or size above its bound, and every byte the protocol does not allow, is refused
+// before the client would read it.
 final class RfbGuardTest {
 
   private static final int SIDE = 64;
@@ -92,13 +90,13 @@ final class RfbGuardTest {
     assertTrue(named, message);
   }
 
-  /** The guard waits for a server message: a bell passes, and the byte after it is refused as a message type. */
+  // The guard waits for a server message: a bell passes, and the byte after it is refused as a message type.
   private void assertAtAMessage(final RfbSession session) throws IOException {
     session.server(new byte[] { BELL });
     this.assertRefused(session, new byte[] { 9 }, "message type 9");
   }
 
-  /** Data the guard only counts, of a byte that is no message type, so data read as a message is refused. */
+  // Data the guard only counts, of a byte that is no message type, so data read as a message is refused.
   private byte[] pixels(final int length) {
     final byte[] bytes = new byte[length];
     Arrays.fill(bytes, (byte) 0x55);

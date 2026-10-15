@@ -23,9 +23,6 @@ import java.lang.reflect.Constructor;
 import me.brandonli.mcav.module.MCAVModule;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VncModule}.
- */
 final class VncModuleTest {
 
   private static final String MODULE_NAME = "vnc";

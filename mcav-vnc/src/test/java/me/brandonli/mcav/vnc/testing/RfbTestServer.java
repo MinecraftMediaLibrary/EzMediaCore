@@ -40,14 +40,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * A minimal RFB 3.8 (VNC) server on the loopback interface for tests.
- *
- * <p>The server serves one client at a time. It answers every framebuffer update request with the whole screen as
- * one raw-encoded rectangle filled with the current color, and records the key and pointer events it receives.
- * Answers can be held back with {@link #setAnswering(boolean)}, so a client can be observed before it has seen the
- * size of the screen.
- */
+// A minimal RFB 3.8 (VNC) server on the loopback interface for tests. The server serves one client at a time. It
+// answers every framebuffer update request with the whole screen as one raw-encoded rectangle filled with the current
+// color, and records the key and pointer events it receives. Answers can be held back with #setAnswering(boolean), so a
+// client can be observed before it has seen the size of the screen.
 public final class RfbTestServer implements AutoCloseable {
 
   private static final byte[] VERSION = "RFB 003.008\n".getBytes(StandardCharsets.US_ASCII);
@@ -71,25 +67,11 @@ public final class RfbTestServer implements AutoCloseable {
   private static final int GREEN_SHIFT = 8;
   private static final int BLUE_SHIFT = 0;
 
-  /**
-   * How the server treats the security handshake.
-   */
   public enum Security {
-    /**
-     * Offers no authentication.
-     */
     NONE,
-    /**
-     * Requires VNC authentication with the password given to {@link #start(int, int, Security, String)}.
-     */
     PASSWORD,
-    /**
-     * Only offers a security type no client knows.
-     */
     UNSUPPORTED,
-    /**
-     * Closes every connection right after accepting it, before the protocol version is sent.
-     */
+    // Closes every connection right after accepting it, before the protocol version is sent.
     HANG_UP,
   }
 
@@ -139,26 +121,10 @@ public final class RfbTestServer implements AutoCloseable {
     this.acceptThread.setDaemon(true);
   }
 
-  /**
-   * Starts a server without authentication.
-   *
-   * @param width  the width of the remote screen
-   * @param height the height of the remote screen
-   * @return the running server
-   */
   public static RfbTestServer start(final int width, final int height) {
     return start(width, height, Security.NONE, "");
   }
 
-  /**
-   * Starts a server.
-   *
-   * @param width    the width of the remote screen
-   * @param height   the height of the remote screen
-   * @param security how the security handshake is answered
-   * @param password the password required by {@link Security#PASSWORD}
-   * @return the running server
-   */
   public static RfbTestServer start(final int width, final int height, final Security security, final String password) {
     Preconditions.checkArgument(width > 0, "Width %s must be positive!", width);
     Preconditions.checkArgument(height > 0, "Height %s must be positive!", height);
@@ -175,30 +141,16 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gets the port the server listens on.
-   *
-   * @return the port
-   */
   public int getPort() {
     return this.serverSocket.getLocalPort();
   }
 
-  /**
-   * Sets the color the screen is filled with from the next update on.
-   *
-   * @param rgb the color as packed RGB
-   */
   public void setColor(final int rgb) {
     this.color = rgb & 0xFFFFFF;
   }
 
-  /**
-   * Sets whether update requests are answered. Requests received while not answering are answered once answering
-   * is enabled again.
-   *
-   * @param answer true to answer requests
-   */
+  // Sets whether update requests are answered. Requests received while not answering are answered once answering is
+  // enabled again.
   public void setAnswering(final boolean answer) {
     this.answering.set(answer);
     if (answer) {
@@ -206,9 +158,7 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Sends a message type the RFB protocol does not define, which makes a client fail.
-   */
+  // Sends a message type the RFB protocol does not define, which makes a client fail.
   public void sendUnknownMessage() {
     final DataOutputStream current = this.output;
     if (current == null) {
@@ -224,82 +174,42 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Gets the key events received so far.
-   *
-   * @return a copy of the key events in the order they arrived
-   */
   public List<ReceivedKey> getKeys() {
     synchronized (this.keys) {
       return List.copyOf(this.keys);
     }
   }
 
-  /**
-   * Gets the pointer events received so far.
-   *
-   * @return a copy of the pointer events in the order they arrived
-   */
   public List<ReceivedPointer> getPointers() {
     synchronized (this.pointers) {
       return List.copyOf(this.pointers);
     }
   }
 
-  /**
-   * Gets how many key events were received so far.
-   *
-   * @return the number of key events
-   */
   public int getKeyCount() {
     synchronized (this.keys) {
       return this.keys.size();
     }
   }
 
-  /**
-   * Gets how many pointer events were received so far.
-   *
-   * @return the number of pointer events
-   */
   public int getPointerCount() {
     synchronized (this.pointers) {
       return this.pointers.size();
     }
   }
 
-  /**
-   * Gets how many framebuffer updates were sent.
-   *
-   * @return the number of updates
-   */
   public int getUpdatesSent() {
     return this.updatesSent.get();
   }
 
-  /**
-   * Gets how many connections were accepted.
-   *
-   * @return the number of connections
-   */
   public int getConnections() {
     return this.connections.get();
   }
 
-  /**
-   * Checks whether a client passed VNC authentication with the right password.
-   *
-   * @return true if the right password was sent
-   */
   public boolean isAuthenticated() {
     return this.authenticated.get();
   }
 
-  /**
-   * Gets the latch that opens once the first client disconnects after the handshake.
-   *
-   * @return the latch
-   */
   public CountDownLatch getDisconnected() {
     return this.disconnected;
   }
@@ -594,9 +504,7 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * Stops accepting connections and waits up to two seconds for the connection being served to end.
-   */
+  // Stops accepting connections and waits up to two seconds for the connection being served to end.
   @Override
   public void close() {
     try {
@@ -610,9 +518,6 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * The pixel format a client asked for.
-   */
   private static final class PixelLayout {
 
     private static final PixelLayout SERVER = new PixelLayout(
@@ -655,12 +560,7 @@ public final class RfbTestServer implements AutoCloseable {
       this.blueShift = blueShift;
     }
 
-    /**
-     * Encodes a color as one pixel of this layout in the byte order negotiated by SetPixelFormat.
-     *
-     * @param rgb the color as packed RGB
-     * @return the bytes of the pixel
-     */
+    // Encodes a color as one pixel of this layout in the byte order negotiated by SetPixelFormat.
     byte[] encode(final int rgb) {
       final int red = (rgb >> RED_SHIFT) & BYTE_MASK;
       final int green = (rgb >> GREEN_SHIFT) & BYTE_MASK;
@@ -685,9 +585,6 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * A key event a client sent.
-   */
   public static final class ReceivedKey {
 
     private final int keysym;
@@ -698,20 +595,10 @@ public final class RfbTestServer implements AutoCloseable {
       this.down = down;
     }
 
-    /**
-     * Gets the keysym.
-     *
-     * @return the keysym
-     */
     public int getKeysym() {
       return this.keysym;
     }
 
-    /**
-     * Checks whether the key was pressed or released.
-     *
-     * @return true if pressed
-     */
     public boolean isDown() {
       return this.down;
     }
@@ -724,9 +611,6 @@ public final class RfbTestServer implements AutoCloseable {
     }
   }
 
-  /**
-   * A pointer event a client sent.
-   */
   public static final class ReceivedPointer {
 
     private final int buttonMask;
@@ -739,29 +623,14 @@ public final class RfbTestServer implements AutoCloseable {
       this.screenY = screenY;
     }
 
-    /**
-     * Gets the pressed buttons, bit 0 being the left button.
-     *
-     * @return the button mask
-     */
     public int getButtonMask() {
       return this.buttonMask;
     }
 
-    /**
-     * Gets the x coordinate on the remote screen.
-     *
-     * @return the x coordinate
-     */
     public int getX() {
       return this.screenX;
     }
 
-    /**
-     * Gets the y coordinate on the remote screen.
-     *
-     * @return the y coordinate
-     */
     public int getY() {
       return this.screenY;
     }

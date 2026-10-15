@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.net.Socket;
 import org.junit.jupiter.api.Test;
 
-/**
- * The socket the VNC client connects through answers for the socket it guards, and closes it.
- */
+// The socket the VNC client connects through answers for the socket it guards, and closes it.
 final class GuardedSocketTest {
 
   @Test

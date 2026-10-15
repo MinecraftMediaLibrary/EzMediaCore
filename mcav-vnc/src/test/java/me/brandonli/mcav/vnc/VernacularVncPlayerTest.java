@@ -91,13 +91,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
-/**
- * Tests {@link VernacularVncPlayer} and the default methods of {@link VncPlayer}.
- *
- * <p>Most tests talk to a {@link RfbTestServer} on the loopback interface, so the whole path from the socket to the
- * pipeline is exercised. Tests of failures the real client cannot produce on demand use a mocked
- * {@link VernacularClient} whose listeners are driven by the test.
- */
+// Tests VernacularVncPlayer and the default methods of VncPlayer. Most tests talk to a RfbTestServer on the loopback
+// interface, so the whole path from the socket to the pipeline is exercised. Tests of failures the real client cannot
+// produce on demand use a mocked VernacularClient whose listeners are driven by the test.
 final class VernacularVncPlayerTest {
 
   private static final int RED = 0xFF0000;
@@ -144,11 +140,9 @@ final class VernacularVncPlayerTest {
     }
   }
 
-  /**
-   * Loads the OpenCV libraries that every frame goes through before any test runs. JavaCV loads them on first use,
-   * which takes seconds on a busy machine, and that one-time cost would otherwise count against the timeout of
-   * whichever test receives the first frame.
-   */
+  // Loads the OpenCV libraries that every frame goes through before any test runs. JavaCV loads them on first use,
+  // which takes seconds on a busy machine, and that one-time cost would otherwise count against the timeout of
+  // whichever test receives the first frame.
   @BeforeAll
   static void loadImageLibraries() {
     final BufferedImage frame = new BufferedImage(2, 2, BufferedImage.TYPE_INT_RGB);
@@ -1347,11 +1341,7 @@ final class VernacularVncPlayerTest {
     }
   }
 
-  /**
-   * Gets the render threads of every player that is alive, which all carry the same name.
-   *
-   * @return the live render threads
-   */
+  // Gets the render threads of every player that is alive, which all carry the same name.
   private List<Thread> renderThreads() {
     final Map<Thread, StackTraceElement[]> stackTraces = Thread.getAllStackTraces();
     final Set<Thread> threads = stackTraces.keySet();
@@ -1519,11 +1509,7 @@ final class VernacularVncPlayerTest {
     assertFalse(stale, "and it is never rendered");
   }
 
-  /**
-   * Gets the one render thread that is alive, failing the test when a thread of an earlier session is still running.
-   *
-   * @return the render thread
-   */
+  // Gets the one render thread that is alive, failing the test when a thread of an earlier session is still running.
   private Thread onlyRenderThread() {
     final List<Thread> threads = this.renderThreads();
     final int count = threads.size();
@@ -1531,13 +1517,9 @@ final class VernacularVncPlayerTest {
     return threads.getFirst();
   }
 
-  /**
-   * Checks whether a render thread parked because it found no update, which the render loop does with a timed park.
-   * A render thread that is held inside a filter waits with a timeout as well, so this only tells the two apart once
-   * the threads of earlier sessions have stopped.
-   *
-   * @return true once a render thread waits for the next update
-   */
+  // Checks whether a render thread parked because it found no update, which the render loop does with a timed park. A
+  // render thread that is held inside a filter waits with a timeout as well, so this only tells the two apart once the
+  // threads of earlier sessions have stopped.
   private boolean anyRenderThreadWaitsForAnUpdate() {
     final List<Thread> threads = this.renderThreads();
     for (final Thread thread : threads) {
@@ -1549,13 +1531,7 @@ final class VernacularVncPlayerTest {
     return false;
   }
 
-  /**
-   * Pushes a first screen update and waits until the render thread is busy with it, so the next update stays waiting.
-   *
-   * @param capturedConfiguration  the configuration of the client, whose listener receives the update
-   * @param entered opens once the filter of the render thread runs
-   * @throws InterruptedException if the test is interrupted
-   */
+  // Pushes a first screen update and waits until the render thread is busy with it, so the next update stays waiting.
   private void pushAndAwaitBusyRenderThread(final AtomicReference<VernacularConfig> capturedConfiguration, final CountDownLatch entered)
     throws InterruptedException {
     final BufferedImage first = this.image(SQUARE_SIDE, SQUARE_SIDE, RED);
@@ -1564,13 +1540,7 @@ final class VernacularVncPlayerTest {
     assertTrue(filtering);
   }
 
-  /**
-   * Creates a filter that holds the render thread inside its first frame and records every frame as usual.
-   *
-   * @param entered opens once the first frame is being filtered
-   * @param proceed lets the first frame finish
-   * @return the filter
-   */
+  // Creates a filter that holds the render thread inside its first frame and records every frame as usual.
   private VideoFilter blockingThenRecording(final CountDownLatch entered, final CountDownLatch proceed) {
     final AtomicBoolean firstFrame = new AtomicBoolean(true);
     return (image, metadata) -> {
@@ -1984,13 +1954,8 @@ final class VernacularVncPlayerTest {
     this.assertDoesNotBlock("another thread releases after a release", () -> player.release());
   }
 
-  /**
-   * Asserts that an action which takes the lock of the player finishes on another thread, which it only does while
-   * no lock is left held.
-   *
-   * @param description what must not block
-   * @param action      the action
-   */
+  // Asserts that an action which takes the lock of the player finishes on another thread, which it only does while no
+  // lock is left held.
   private void assertDoesNotBlock(final String description, final Runnable action) {
     final CountDownLatch finished = new CountDownLatch(1);
     final Runnable probe = () -> {
@@ -2014,9 +1979,6 @@ final class VernacularVncPlayerTest {
     }
   }
 
-  /**
-   * A frame the pipeline received.
-   */
   private static final class RecordedFrame {
 
     private final int width;
@@ -2043,9 +2005,6 @@ final class VernacularVncPlayerTest {
     }
   }
 
-  /**
-   * A socket that refuses to connect and fails to close.
-   */
   private static final class FailingSocket extends Socket {
 
     private volatile boolean closeAttempted;
@@ -2062,11 +2021,7 @@ final class VernacularVncPlayerTest {
     }
   }
 
-  /**
-   * Keeps every worker of the common pool busy until the returned latch opens, as the tasks of other plugins can.
-   *
-   * @return the latch that frees the workers
-   */
+  // Keeps every worker of the common pool busy until the returned latch opens, as the tasks of other plugins can.
   private CountDownLatch occupyTheCommonPool() throws InterruptedException {
     final int workers = ForkJoinPool.getCommonPoolParallelism();
     final CountDownLatch busy = new CountDownLatch(workers);
@@ -2129,7 +2084,7 @@ final class VernacularVncPlayerTest {
     assertTimeoutPreemptively(Duration.ofSeconds(5), player::release);
   }
 
-  /** A socket whose first close, the deadline's, takes a second to return once the socket is closed, as a close can. */
+  // A socket whose first close, the deadline's, takes a second to return once the socket is closed, as a close can.
   private static final class SlowToClose extends Socket {
 
     private final AtomicBoolean first = new AtomicBoolean(true);

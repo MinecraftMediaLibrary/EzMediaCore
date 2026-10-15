@@ -26,34 +26,29 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-/**
- * Checks what a VNC server sends before the VNC client reads it. The client library allocates what the server's
- * length fields name - the desktop name, the clipboard text, the framebuffer - without a bound, so a hostile server
- * could make the Minecraft server's JVM allocate gigabytes. The guard follows the protocol (RFB 3.3, 3.7 and 3.8, RFC
- * 6143) byte by byte on both directions of the connection, and checks every length and size before the client sees
- * it: a length above its bound, a message type or encoding the client cannot decode anyway, or bytes where the
- * protocol allows none end the connection with an {@link IOException} instead of reaching the client.
- *
- * <p>It frames the security types the client supports (none, VNC authentication and MS-Logon II), and the server
- * messages and rectangle encodings the client decodes (raw, copy rectangle, RRE, hextile, zlib, and the desktop size
- * and cursor pseudo-encodings). The client's own messages are only read to learn the version and security type it
- * chose and the pixel format it asked for, which decide how the server's messages are framed.
- */
+// Checks what a VNC server sends before the VNC client reads it. The client library allocates what the server's length
+// fields name - the desktop name, the clipboard text, the framebuffer - without a bound, so a hostile server could make
+// the Minecraft server's JVM allocate gigabytes. The guard follows the protocol (RFB 3.3, 3.7 and 3.8, RFC 6143) byte
+// by byte on both directions of the connection, and checks every length and size before the client sees it: a length
+// above its bound, a message type or encoding the client cannot decode anyway, or bytes where the protocol allows none
+// end the connection with an IOException instead of reaching the client. It frames the security types the client
+// supports (none, VNC authentication and MS-Logon II), and the server messages and rectangle encodings the client
+// decodes (raw, copy rectangle, RRE, hextile, zlib, and the desktop size and cursor pseudo-encodings). The client's own
+// messages are only read to learn the version and security type it chose and the pixel format it asked for, which
+// decide how the server's messages are framed.
 final class RfbGuard {
 
-  /** The largest framebuffer side accepted: a 4K desktop fits, and the client's picture stays under 64 MiB. */
+  // The largest framebuffer side accepted: a 4K desktop fits, and the client's picture stays under 64 MiB.
   static final int MAXIMUM_SIDE = 4096;
 
-  /** The longest desktop name accepted, in bytes. */
   static final int MAXIMUM_NAME = 4096;
 
-  /** The longest failure reason accepted, in bytes. */
   static final int MAXIMUM_REASON = 4096;
 
-  /** The longest clipboard text accepted, in bytes; the client does not use it. */
+  // The longest clipboard text accepted, in bytes; the client does not use it.
   static final int MAXIMUM_TEXT = 1 << 20;
 
-  /** Compressed zlib data may exceed what it decompresses to by a little; this is the room allowed. */
+  // Compressed zlib data may exceed what it decompresses to by a little; this is the room allowed.
   static final int ZLIB_SLACK = 1 << 16;
 
   private static final int VERSION_BYTES = 12;
@@ -93,40 +88,22 @@ final class RfbGuard {
     this.clientBytesPerPixel = UNKNOWN;
   }
 
-  /**
-   * Wraps the stream the server's bytes arrive on.
-   *
-   * @param input the stream of the connection
-   * @return the stream the client reads, which fails instead of passing on a byte the protocol does not allow there
-   */
   InputStream serverInput(final InputStream input) {
     Preconditions.checkNotNull(input, "Input must not be null!");
     return new GuardedInput(input);
   }
 
-  /**
-   * Wraps the stream the client's bytes leave on.
-   *
-   * @param output the stream of the connection
-   * @return the stream the client writes, which passes every byte on unchanged
-   */
   OutputStream clientOutput(final OutputStream output) {
     Preconditions.checkNotNull(output, "Output must not be null!");
     return new ObservedOutput(output);
   }
 
-  /**
-   * Checks bytes the server sent, in order.
-   *
-   * @throws IOException if they break the protocol or a bound
-   */
   void acceptServer(final byte[] buffer, final int offset, final int length) throws IOException {
     synchronized (this.lock) {
       this.server.accept(buffer, offset, length);
     }
   }
 
-  /** Reads bytes the client sent, in order. */
   void acceptClient(final byte[] buffer, final int offset, final int length) {
     synchronized (this.lock) {
       this.client.accept(buffer, offset, length);
@@ -226,7 +203,6 @@ final class RfbGuard {
     }
   }
 
-  /** What the server's parser does with the next byte. */
   private enum Mode {
     FIELD,
     SKIP,
@@ -236,7 +212,7 @@ final class RfbGuard {
     CLOSED,
   }
 
-  /** A field of the server's side of the protocol, with its length in bytes. */
+  // A field of the server's side of the protocol, with its length in bytes.
   private enum Server {
     VERSION(VERSION_BYTES),
     SECURITY_TYPE(Integer.BYTES),
@@ -272,13 +248,11 @@ final class RfbGuard {
     }
   }
 
-  /** What the server's parser does when a field is complete. */
   @FunctionalInterface
   private interface Step {
     void run() throws IOException;
   }
 
-  /** What follows a run of skipped bytes. */
   private enum Then {
     STATE,
     RECTANGLE,
@@ -286,7 +260,6 @@ final class RfbGuard {
     CLOSE,
   }
 
-  /** Follows the server's side of the protocol. */
   private final class ServerParser {
 
     private static final int COLOUR_ENTRY = 6;
@@ -776,14 +749,13 @@ final class RfbGuard {
     }
   }
 
-  /** What the client's parser does with the next byte. */
   private enum ClientMode {
     FIELD,
     SKIP,
     UNTRACKED,
   }
 
-  /** A field of the client's side of the protocol, as far as the server's framing depends on it. */
+  // A field of the client's side of the protocol, as far as the server's framing depends on it.
   private enum Client {
     VERSION,
     CHOICE,
@@ -792,7 +764,6 @@ final class RfbGuard {
     BODY,
   }
 
-  /** Follows the client's side of the protocol. */
   private final class ClientParser {
 
     private static final int VNC_RESPONSE = 16;

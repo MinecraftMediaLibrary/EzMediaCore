@@ -36,9 +36,7 @@ import me.brandonli.mcav.media.player.pipeline.builder.VideoPipelineStepBuilder;
 import me.brandonli.mcav.media.player.pipeline.step.VideoPipelineStep;
 import me.brandonli.mcav.utils.interaction.MouseClick;
 
-/**
- * Shows the screen of the VNC server at {@code localhost:5900} in a window and forwards clicks to it.
- */
+// Shows the screen of the VNC server at localhost:5900 in a window and forwards clicks to it.
 public final class VncInputExample {
 
   private static final int WIDTH = 1024;
@@ -48,9 +46,7 @@ public final class VncInputExample {
     throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
-  /**
-   * Opens the window, connects to the server, and releases everything when the JVM exits.
-   */
+  // Opens the window, connects to the server, and releases everything when the JVM exits.
   static void main() {
     final MCAVApi api = MCAV.api();
     api.install(VncModule.class);

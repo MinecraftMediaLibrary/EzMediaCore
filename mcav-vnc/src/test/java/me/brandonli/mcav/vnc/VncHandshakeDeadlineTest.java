@@ -82,16 +82,11 @@ final class VncHandshakeDeadlineTest {
     }
   }
 
-  /** Keeps the common pool size independent of the surrounding test worker. */
+  // Keeps the common pool size independent of the surrounding test worker.
   public static final class DeadlineProbe {
 
     private DeadlineProbe() {}
 
-    /**
-     * Runs two stalled handshakes until their own deadlines close them.
-     * @param arguments unused
-     * @throws Exception if a fixture operation fails
-     */
     public static void main(final String[] arguments) throws Exception {
       final ForkJoinPool pool = ForkJoinPool.commonPool();
       final int parallelism = pool.getParallelism();

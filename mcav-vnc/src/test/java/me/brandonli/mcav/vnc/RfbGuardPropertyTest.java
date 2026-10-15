@@ -49,11 +49,9 @@ import java.util.Random;
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 
-/**
- * Properties of {@link RfbGuard} on generated server streams: every message of a valid session passes whatever
- * chunks the bytes arrive in, so the guard follows the protocol and not the reads; and a session with one byte
- * changed either passes or is refused with an {@link IOException}, never another failure.
- */
+// Properties of RfbGuard on generated server streams: every message of a valid session passes whatever chunks the bytes
+// arrive in, so the guard follows the protocol and not the reads; and a session with one byte changed either passes or
+// is refused with an IOException, never another failure.
 final class RfbGuardPropertyTest {
 
   private static final String SEED = "20260928";
@@ -98,7 +96,7 @@ final class RfbGuardPropertyTest {
     }
   }
 
-  /** A run of valid server messages, each type and encoding the client decodes. */
+  // A run of valid server messages, each type and encoding the client decodes.
   private byte[] messages(final Random random) {
     final ByteArrayOutputStream out = new ByteArrayOutputStream();
     for (int messageIndex = 0; messageIndex < MESSAGES; messageIndex++) {

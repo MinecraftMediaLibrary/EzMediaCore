@@ -22,10 +22,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-/**
- * Drives an {@link RfbGuard} through a VNC conversation in protocol order, the way a client and a server take turns:
- * each side's bytes are built with the helpers here, which write RFB's big-endian fields.
- */
+// Drives an RfbGuard through a VNC conversation in protocol order, the way a client and a server take turns: each
+// side's bytes are built with the helpers here, which write RFB's big-endian fields.
 final class RfbSession {
 
   static final int NONE = 1;
@@ -75,25 +73,22 @@ final class RfbSession {
     return this.guard;
   }
 
-  /** The server sends bytes; the guard throws if they break the protocol or a bound. */
+  // The server sends bytes; the guard throws if they break the protocol or a bound.
   void server(final byte[] bytes) throws IOException {
     this.guard.acceptServer(bytes, 0, bytes.length);
   }
 
-  /** The client sends bytes. */
   void client(final byte[] bytes) {
     this.guard.acceptClient(bytes, 0, bytes.length);
   }
 
-  /**
-   * Runs the handshake up to and including the server initialisation and the client's pixel format of four bytes a
-   * pixel.
-   */
+  // Runs the handshake up to and including the server initialisation and the client's pixel format of four bytes a
+  // pixel.
   void handshake(final int minor, final int security, final int width, final int height) throws IOException {
     this.handshake(minor, security, width, height, BITS_PER_PIXEL_32);
   }
 
-  /** Runs the handshake up to and including the server initialisation and the client's pixel format. */
+  // Runs the handshake up to and including the server initialisation and the client's pixel format.
   void handshake(final int minor, final int security, final int width, final int height, final int clientBits) throws IOException {
     this.server(version(minor));
     this.client(version(minor));
@@ -162,7 +157,6 @@ final class RfbSession {
     return concat(new byte[] { 0, 0, 0, 0 }, pixelFormat(bitsPerPixel));
   }
 
-  /** A framebuffer update header announcing some rectangles. */
   static byte[] update(final int rectangles) {
     return concat(new byte[] { 0, 0 }, unsigned16(rectangles));
   }

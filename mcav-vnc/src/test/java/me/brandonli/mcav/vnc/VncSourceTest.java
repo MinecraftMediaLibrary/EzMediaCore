@@ -29,9 +29,6 @@ import java.util.function.Consumer;
 import me.brandonli.mcav.vnc.testing.EqualityAssertions;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link VncSource}, {@link DefaultVncSource} and its builder.
- */
 final class VncSourceTest {
 
   private static final String HOST = "example.org";

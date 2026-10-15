@@ -31,10 +31,7 @@ import me.brandonli.mcav.json.GsonProvider;
 import me.brandonli.mcav.utils.IoUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-/**
- * The X11 keysym table used to translate key names such as {@code Return} into the codes the VNC protocol
- * sends.
- */
+// The X11 keysym table used to translate key names such as Return into the codes the VNC protocol sends.
 final class KeySymbols {
 
   private static final String RESOURCE = "mcav/vnc/keysyms.json";
@@ -49,13 +46,7 @@ final class KeySymbols {
     return parse(reader);
   }
 
-  /**
-   * Reads a keysym table, a JSON object that maps key names to hexadecimal codes, and closes the reader.
-   *
-   * @param reader the reader of the table
-   * @return the codes by key name
-   * @throws VncException if the table is empty or cannot be read
-   */
+  // Reads a keysym table, a JSON object that maps key names to hexadecimal codes, and closes the reader.
   @VisibleForTesting
   static Map<String, Integer> parse(final Reader reader) {
     final Gson gson = GsonProvider.getSimple();
@@ -88,12 +79,6 @@ final class KeySymbols {
     return Map.copyOf(symbols);
   }
 
-  /**
-   * Looks up the keysym of a key name.
-   *
-   * @param name the key name, such as {@code Return}
-   * @return the keysym, or empty if the name is not a key
-   */
   static OptionalInt lookup(final String name) {
     Preconditions.checkNotNull(name, "Name must not be null!");
 

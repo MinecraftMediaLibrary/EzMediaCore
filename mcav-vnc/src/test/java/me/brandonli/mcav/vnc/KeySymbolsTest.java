@@ -32,9 +32,6 @@ import me.brandonli.mcav.vnc.testing.UtilityClassAssertions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests {@link KeySymbols}.
- */
 final class KeySymbolsTest {
 
   @Test
@@ -110,9 +107,7 @@ final class KeySymbolsTest {
     UtilityClassAssertions.assertNotInstantiable(KeySymbols.class);
   }
 
-  /**
-   * A reader of a string that remembers whether it was closed and can fail to close.
-   */
+  // A reader of a string that remembers whether it was closed and can fail to close.
   private static final class ClosingReader extends Reader {
 
     private final StringReader content;

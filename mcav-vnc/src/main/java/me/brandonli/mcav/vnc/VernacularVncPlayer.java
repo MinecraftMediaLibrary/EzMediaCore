@@ -100,24 +100,12 @@ public final class VernacularVncPlayer implements VncPlayer {
     this(VernacularClient::new, Socket::new);
   }
 
-  /**
-   * Constructs a player that creates its VNC clients and sockets with the given factories.
-   *
-   * @param clientFactory creates the client of a session from its configuration
-   * @param socketFactory creates the unconnected socket of a session
-   */
   @VisibleForTesting
   VernacularVncPlayer(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
     this(clientFactory, socketFactory, IDLE_PARK_NANOSECONDS);
   }
 
-  /**
-   * Constructs a player with a replaceable idle wait so wake-up behavior can be tested without timing races.
-   *
-   * @param clientFactory creates the client of a session
-   * @param socketFactory creates its socket
-   * @param idleParkNanoseconds how long an idle renderer waits unless a frame or shutdown wakes it first
-   */
+  // Constructs a player with a replaceable idle wait so wake-up behavior can be tested without timing races.
   @VisibleForTesting
   VernacularVncPlayer(
     final Function<VernacularConfig, VernacularClient> clientFactory,
@@ -127,15 +115,6 @@ public final class VernacularVncPlayer implements VncPlayer {
     this(clientFactory, socketFactory, idleParkNanoseconds, HANDSHAKE_TIMEOUT_MILLISECONDS);
   }
 
-  /**
-   * Constructs a player with a replaceable idle wait and handshake deadline.
-   *
-   * @param clientFactory          creates the client of a session
-   * @param socketFactory          creates its socket
-   * @param idleParkNanoseconds          how long an idle renderer waits unless a frame or shutdown wakes it first
-   * @param handshakeTimeoutMilliseconds how long the server may take to complete the handshake before the connection is
-   *                               closed and the start fails
-   */
   @VisibleForTesting
   VernacularVncPlayer(
     final Function<VernacularConfig, VernacularClient> clientFactory,
@@ -472,12 +451,8 @@ public final class VernacularVncPlayer implements VncPlayer {
     return current != null && current.isAlive();
   }
 
-  /**
-   * Checks whether a screen update is waiting for the render thread. Pausing and starting a session drop the update
-   * that is waiting, so that a frame of a paused or of an ended session is never shown. Visible for testing.
-   *
-   * @return true while an update waits to be rendered
-   */
+  // Checks whether a screen update is waiting for the render thread. Pausing and starting a session drop the update
+  // that is waiting, so that a frame of a paused or of an ended session is never shown. Visible for testing.
   @VisibleForTesting
   boolean hasPendingFrame() {
     final BufferedImage pending = this.latestFrame.get();
@@ -767,10 +742,8 @@ public final class VernacularVncPlayer implements VncPlayer {
     this.exceptionHandler.setExceptionHandler(exceptionHandler);
   }
 
-  /**
-   * The state of one connection. Errors the client reports while the handshake runs fail the start; the hand-over
-   * from the handshake to the running session is atomic, so no error falls between the two.
-   */
+  // The state of one connection. Errors the client reports while the handshake runs fail the start; the hand-over from
+  // the handshake to the running session is atomic, so no error falls between the two.
   private static final class Session {
 
     private final AtomicBoolean alive;
@@ -783,12 +756,6 @@ public final class VernacularVncPlayer implements VncPlayer {
       this.starting = true;
     }
 
-    /**
-     * Records an error if the handshake is still running.
-     *
-     * @param error the error
-     * @return true if the error belongs to the handshake
-     */
     private synchronized boolean recordStartupError(
       final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
     ) {
@@ -803,11 +770,7 @@ public final class VernacularVncPlayer implements VncPlayer {
       return true;
     }
 
-    /**
-     * Ends the handshake: the session comes alive unless an error was recorded.
-     *
-     * @return the first error of the handshake, or null if it succeeded
-     */
+    // Ends the handshake: the session comes alive unless an error was recorded.
     private synchronized com.shinyhut.vernacular.client.exceptions.@Nullable VncException finishStartup() {
       this.starting = false;
 
@@ -819,29 +782,15 @@ public final class VernacularVncPlayer implements VncPlayer {
       return failure;
     }
 
-    /**
-     * Allows updates during the handshake and while streaming, but rejects callbacks after the session ends.
-     *
-     * @return true while the session can still produce frames
-     */
+    // Allows updates during the handshake and while streaming, but rejects callbacks after the session ends.
     private synchronized boolean acceptsFrames() {
       return this.starting || this.alive.get();
     }
 
-    /**
-     * Checks whether the session is running.
-     *
-     * @return true if the handshake succeeded and the session has not ended
-     */
     private boolean isAlive() {
       return this.alive.get();
     }
 
-    /**
-     * Ends the session.
-     *
-     * @return true if the session was alive
-     */
     boolean end() {
       return this.alive.getAndSet(false);
     }

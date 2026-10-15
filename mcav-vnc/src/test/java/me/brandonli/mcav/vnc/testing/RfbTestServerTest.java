@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** Checks the fixture against RFB 3.8 wire bytes independently of the Vernacular client. */
+// Checks the fixture against RFB 3.8 wire bytes independently of the Vernacular client.
 final class RfbTestServerTest {
 
   private static final byte[] VERSION = "RFB 003.008\n".getBytes(StandardCharsets.US_ASCII);
