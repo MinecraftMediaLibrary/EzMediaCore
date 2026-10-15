@@ -52,7 +52,7 @@ final class NativeTesting {
   private static @Nullable Resolution loaded;
 
   private NativeTesting() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -83,7 +83,8 @@ final class NativeTesting {
         null
       );
       if (expected() && current.binding() == null) {
-        throw new IllegalStateException("The MCV2 native kernels must load here and did not: " + current.description());
+        final String message = "The MCV2 native kernels must load here and did not (%s)!".formatted(current.description());
+        throw new IllegalStateException(message);
       }
       loaded = current;
     }
@@ -115,7 +116,7 @@ final class NativeTesting {
   @SuppressWarnings("restricted")
   static SymbolLookup library() {
     if (resolution().binding() == null) {
-      throw new IllegalStateException("No MCV2 native library loads on this platform");
+      throw new IllegalStateException("No MCV2 native library loads on this platform!");
     }
     final String platform = Objects.requireNonNull(Natives.platform(System.getProperty("os.name", ""), System.getProperty("os.arch", "")));
     final String digest = MCV2.NATIVE_DIGESTS.get(platform);

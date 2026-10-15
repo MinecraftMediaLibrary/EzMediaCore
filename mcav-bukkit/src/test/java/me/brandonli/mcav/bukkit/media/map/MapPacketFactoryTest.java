@@ -187,15 +187,15 @@ final class MapPacketFactoryTest {
       MapPacketFactory.clear(viewers, Integer.MAX_VALUE, 2)
     );
     final String overflowMessage = overflow.getMessage();
-    assertEquals("Map ids exceed the integer range", overflowMessage);
+    assertEquals("Map ids exceed the integer range!", overflowMessage);
     final IllegalArgumentException negativeId = assertThrows(IllegalArgumentException.class, () -> MapPacketFactory.clear(viewers, -1, 0));
     final String negativeIdMessage = negativeId.getMessage();
-    assertEquals("Map id must be non-negative", negativeIdMessage);
+    assertEquals("Map id must be non-negative!", negativeIdMessage);
     final IllegalArgumentException negativeCount = assertThrows(IllegalArgumentException.class, () ->
       MapPacketFactory.clear(viewers, 0, -1)
     );
     final String negativeCountMessage = negativeCount.getMessage();
-    assertEquals("Map count must be non-negative", negativeCountMessage);
+    assertEquals("Map count must be non-negative!", negativeCountMessage);
 
     final List<Packet<?>> before = this.server.getSentPackets(FIRST);
     final boolean nothingSentBefore = before.isEmpty();

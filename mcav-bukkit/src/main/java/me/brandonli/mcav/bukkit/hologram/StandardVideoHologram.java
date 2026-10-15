@@ -90,10 +90,10 @@ public class StandardVideoHologram extends VideoHologram {
    */
   @Override
   public void handleRequest(final Location location, final UrlParseDump dump) {
-    Preconditions.checkNotNull(location, "Location must not be null");
-    Preconditions.checkNotNull(dump, "Video metadata must not be null");
+    Preconditions.checkNotNull(location, "Location must not be null!");
+    Preconditions.checkNotNull(dump, "Video metadata must not be null!");
     final World world = location.getWorld();
-    Preconditions.checkArgument(world != null, "Location must have a world");
+    Preconditions.checkArgument(world != null, "Location must have a world!");
 
     this.kill();
     final Component metadata = createMetadataText(dump);

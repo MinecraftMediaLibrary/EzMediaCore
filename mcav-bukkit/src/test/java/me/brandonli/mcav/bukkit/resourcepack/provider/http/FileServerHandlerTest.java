@@ -367,8 +367,8 @@ final class FileServerHandlerTest {
   @Test
   void shouldAnswerNotFoundAndCloseTheFileWhenItsSizeCannotBeRead() throws IOException {
     final FileChannel broken = mock(FileChannel.class);
-    when(broken.size()).thenThrow(new IOException("size failed"));
-    doThrow(new IOException("close failed")).when(broken).close();
+    when(broken.size()).thenThrow(new IOException("Size failed!"));
+    doThrow(new IOException("Close failed!")).when(broken).close();
     final FileServerHandler handler = new FileServerHandler(this.pack, _ -> broken);
     final EmbeddedChannel channel = new EmbeddedChannel(handler);
 
@@ -444,7 +444,7 @@ final class FileServerHandlerTest {
   void shouldCloseTheConnectionOnErrors() {
     final EmbeddedChannel channel = createChannel(this.pack);
     final ChannelPipeline pipeline = channel.pipeline();
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException("Connection reset!");
 
     pipeline.fireExceptionCaught(reset);
     final boolean open = channel.isOpen();
@@ -455,12 +455,12 @@ final class FileServerHandlerTest {
   @Test
   void shouldLogAConnectionThatCannotBeClosedAfterAnError() {
     final EmbeddedChannel channel = new EmbeddedChannel();
-    final IOException closeFailure = new IOException("close failed");
+    final IOException closeFailure = new IOException("Close failed!");
     final ChannelFuture failedClose = channel.newFailedFuture(closeFailure);
     final ChannelHandlerContext context = mock(ChannelHandlerContext.class);
     when(context.close()).thenReturn(failedClose);
     final FileServerHandler handler = new FileServerHandler(this.pack);
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException("Connection reset!");
 
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(FileServerHandler.class)) {
@@ -475,7 +475,7 @@ final class FileServerHandlerTest {
     final String message = event.getMessage();
     final Throwable thrown = event.getThrown();
     assertEquals(Level.DEBUG, level);
-    assertEquals("Could not close a resource pack download connection after an error", message);
+    assertEquals("Could not close a resource pack download connection after an error.", message);
     assertSame(closeFailure, thrown);
   }
 
@@ -483,7 +483,7 @@ final class FileServerHandlerTest {
   void shouldLogNothingWhenTheConnectionClosesAfterAnError() {
     final EmbeddedChannel channel = createChannel(this.pack);
     final ChannelPipeline pipeline = channel.pipeline();
-    final IOException reset = new IOException("connection reset");
+    final IOException reset = new IOException("Connection reset!");
 
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(FileServerHandler.class)) {

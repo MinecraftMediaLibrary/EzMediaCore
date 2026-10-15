@@ -54,7 +54,7 @@ public class MapResult implements DitherResultStep {
    * @throws NullPointerException if {@code configuration} is null
    */
   public MapResult(final MapConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Map configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
     this.configuration = configuration;
   }
 
@@ -68,8 +68,8 @@ public class MapResult implements DitherResultStep {
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
     this.resizeIfConfigured(samples);
 
     final byte[] dithered = algorithm.ditherIntoBytes(samples);
@@ -87,7 +87,7 @@ public class MapResult implements DitherResultStep {
 
   private static List<MapTilePatch> completeGrid(final MapLayout layout, final byte[] image) {
     final int width = layout.getImageWidth();
-    Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout");
+    Preconditions.checkArgument(image.length == width * layout.getImageHeight(), "Image size does not match layout!");
     final List<MapTilePatch> patches = new ArrayList<>(layout.getMapCount());
     for (int index = 0; index < layout.getMapCount(); index++) {
       final MapRegion region = layout.getRegion(index);

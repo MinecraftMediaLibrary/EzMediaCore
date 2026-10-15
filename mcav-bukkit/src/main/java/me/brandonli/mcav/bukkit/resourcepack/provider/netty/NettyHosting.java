@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 public final class NettyHosting implements InjectorHosting {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(NettyHosting.class);
-  private static final String PACK_NOT_READ = "Could not read the resource pack {} ahead of the first download";
+  private static final String PACK_NOT_READ = "Could not read the resource pack {} ahead of the first download.";
   private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
   private static final String KEY_NAMESPACE = "mcav";
 
@@ -75,7 +75,7 @@ public final class NettyHosting implements InjectorHosting {
    * @throws NullPointerException if {@code zip} is null
    */
   public NettyHosting(final Path zip) {
-    Preconditions.checkNotNull(zip, "Resource pack path must not be null");
+    Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
     final int instanceNumber = INSTANCE_COUNTER.incrementAndGet();
     @Subst("resourcepack_1")
     final String keyValue = "resourcepack_" + instanceNumber;
@@ -142,7 +142,7 @@ public final class NettyHosting implements InjectorHosting {
   public synchronized void start() {
     final boolean exists = Files.isRegularFile(this.zip);
     if (!exists) {
-      final String message = "Resource pack does not exist: %s".formatted(this.zip);
+      final String message = "Resource pack %s does not exist!".formatted(this.zip);
       throw new InjectorException(message);
     }
 

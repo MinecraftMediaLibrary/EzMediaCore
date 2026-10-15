@@ -41,7 +41,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 public final class MapPackets {
 
   private MapPackets() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

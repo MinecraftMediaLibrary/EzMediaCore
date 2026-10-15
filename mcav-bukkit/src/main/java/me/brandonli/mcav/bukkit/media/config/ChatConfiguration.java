@@ -144,7 +144,7 @@ public class ChatConfiguration {
      * @throws NullPointerException if the viewers are null
      */
     public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
+      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
     }
@@ -160,7 +160,7 @@ public class ChatConfiguration {
      * @throws NullPointerException if the character is null
      */
     public T character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null");
+      Preconditions.checkNotNull(character, "Character must not be null!");
       this.character = character;
       return this.self();
     }
@@ -195,12 +195,12 @@ public class ChatConfiguration {
      * @throws NullPointerException     if the viewers or the character were not set
      */
     public ChatConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set");
+      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
+      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set!");
 
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty");
-      Preconditions.checkArgument(this.chatWidth > 0, "Chat width must be positive");
-      Preconditions.checkArgument(this.chatHeight > 0, "Chat height must be positive");
+      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty!");
+      Preconditions.checkArgument(this.chatWidth > 0, "Chat width must be positive!");
+      Preconditions.checkArgument(this.chatHeight > 0, "Chat height must be positive!");
 
       return new ChatConfiguration(this, configuredViewers, configuredCharacter);
     }

@@ -131,7 +131,8 @@ final class Mcv2PacerTest {
           return change;
         }
       }
-      throw new AssertionError("No change in " + limit + " frames");
+      final String message = "No change in %s frames!".formatted(limit);
+      throw new AssertionError(message);
     }
   }
 

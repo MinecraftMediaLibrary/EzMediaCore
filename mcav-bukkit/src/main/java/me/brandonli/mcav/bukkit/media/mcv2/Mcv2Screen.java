@@ -79,6 +79,8 @@ public final class Mcv2Screen {
   /** The prefix of the per-screen team names of the page frames. */
   public static final String TEAM = "mcav_mcv2";
 
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
+
   private static final AtomicInteger NEXT_TEAM_ID = new AtomicInteger();
 
   private final String teamName;
@@ -103,7 +105,7 @@ public final class Mcv2Screen {
    * @throws NullPointerException if {@code configuration} is null
    */
   public Mcv2Screen(final Mcv2Configuration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     this.configuration = configuration;
     this.teamName = TEAM + Integer.toUnsignedString(NEXT_TEAM_ID.getAndIncrement(), 36);
     this.frames = new ArrayList<>();
@@ -122,9 +124,9 @@ public final class Mcv2Screen {
    * @throws NullPointerException if the origin no longer resolves to a world
    */
   public void build() {
-    Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist");
+    Preconditions.checkState(this.frames.isEmpty(), "The page frames already exist!");
     final Location origin = this.configuration.getOrigin();
-    final World world = Preconditions.checkNotNull(origin.getWorld(), "The origin must be in a world");
+    final World world = Preconditions.checkNotNull(origin.getWorld(), "The origin must be in a world!");
     final BlockFace right = this.configuration.getRight();
     final BlockFace back = this.configuration.getFacing().getOppositeFace();
     for (int row = 0; row < this.configuration.getRows(); row++) {
@@ -176,7 +178,7 @@ public final class Mcv2Screen {
    * @throws NullPointerException if {@code player} is null
    */
   public void show(final Player player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.showEntity(plugin, frame);
@@ -194,7 +196,7 @@ public final class Mcv2Screen {
    * @throws NullPointerException if {@code player} is null
    */
   public void hide(final Player player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     final Plugin plugin = BukkitModule.getPlugin();
     for (final ItemFrame frame : this.frames) {
       player.hideEntity(plugin, frame);

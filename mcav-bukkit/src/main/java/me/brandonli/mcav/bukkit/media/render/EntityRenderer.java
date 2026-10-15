@@ -74,7 +74,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * @throws NullPointerException if the configuration is null
    */
   public EntityRenderer(final EntityConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     this.configuration = configuration;
     this.shownTo = new HashSet<>();
   }
@@ -97,7 +97,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     final int width = this.configuration.getEntityWidth();
     final int height = this.configuration.getEntityHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -126,7 +126,7 @@ public final class EntityRenderer extends MainThreadRenderer<Component> {
     final Location location = configuredPosition.clone();
     final World world = location.getWorld();
     if (world == null) {
-      throw new IllegalStateException("Entity position has no world");
+      throw new IllegalStateException("Entity position has no world!");
     }
 
     final TextDisplay display = world.spawn(location, TextDisplay.class, EntityRenderer::configureDisplay);

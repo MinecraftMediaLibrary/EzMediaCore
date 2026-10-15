@@ -46,7 +46,7 @@ final class AverageColorCalculator {
   private static final int COUNT_INDEX = 3;
 
   private AverageColorCalculator() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

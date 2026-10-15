@@ -161,7 +161,7 @@ public class EntityConfiguration {
      * @throws NullPointerException if the viewers are null
      */
     public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
+      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
     }
@@ -177,7 +177,7 @@ public class EntityConfiguration {
      * @throws NullPointerException if the character is null
      */
     public T character(final String character) {
-      Preconditions.checkNotNull(character, "Character must not be null");
+      Preconditions.checkNotNull(character, "Character must not be null!");
       this.character = character;
       return this.self();
     }
@@ -214,7 +214,7 @@ public class EntityConfiguration {
      * @throws NullPointerException if the position is null
      */
     public T position(final Location position) {
-      Preconditions.checkNotNull(position, "Position must not be null");
+      Preconditions.checkNotNull(position, "Position must not be null!");
       this.position = position;
       return this.self();
     }
@@ -228,15 +228,15 @@ public class EntityConfiguration {
      * @throws NullPointerException     if the viewers, the character, or the position were not set
      */
     public EntityConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set");
-      final Location configuredPosition = Preconditions.checkNotNull(this.position, "Position must be set");
+      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
+      final String configuredCharacter = Preconditions.checkNotNull(this.character, "Character must be set!");
+      final Location configuredPosition = Preconditions.checkNotNull(this.position, "Position must be set!");
 
       final World world = configuredPosition.getWorld();
-      Preconditions.checkArgument(world != null, "Position must have a world");
-      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty");
-      Preconditions.checkArgument(this.entityWidth > 0, "Entity width must be positive");
-      Preconditions.checkArgument(this.entityHeight > 0, "Entity height must be positive");
+      Preconditions.checkArgument(world != null, "Position must have a world!");
+      Preconditions.checkArgument(!configuredCharacter.isEmpty(), "Character must not be empty!");
+      Preconditions.checkArgument(this.entityWidth > 0, "Entity width must be positive!");
+      Preconditions.checkArgument(this.entityHeight > 0, "Entity height must be positive!");
 
       return new EntityConfiguration(this, configuredViewers, configuredCharacter, configuredPosition);
     }

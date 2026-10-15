@@ -84,7 +84,8 @@ final class NativeKernelsPropertyTest {
       }
       final byte[] picture = Mcv2Pictures.scene(width, height, frameNumber + random.nextInt(3), panPerFrame);
       if (!Arrays.equals(java.encode(picture, width, height, frameNumber), other.encode(picture, width, height, frameNumber))) {
-        throw new AssertionError("frame " + frameNumber + " differs at " + level);
+        final String message = "Frame %s differs at level %s!".formatted(frameNumber, level);
+        throw new AssertionError(message);
       }
     }
     return true;

@@ -140,7 +140,7 @@ public final class MCV2 {
      * @throws IllegalArgumentException if lambda is negative or nonfinite
      */
     public Settings {
-      Preconditions.checkArgument(lambda >= 0 && Double.isFinite(lambda), "Lambda must be finite and non-negative");
+      Preconditions.checkArgument(lambda >= 0 && Double.isFinite(lambda), "Lambda must be finite and non-negative!");
     }
 
     /**
@@ -246,7 +246,12 @@ public final class MCV2 {
     }
   }
 
-  private static final String STOPPED = "The encoder stopped after a frame failed its verification";
+  private static final String SETTINGS_NULL_MESSAGE = "Settings must not be null!";
+  private static final String INVALID_DIMENSIONS_MESSAGE = "Invalid dimensions!";
+  private static final String INVALID_BLOCK_SIZE_MESSAGE = "Invalid block size!";
+  private static final String INVALID_PIXEL_COUNT_MESSAGE = "Invalid pixel count!";
+
+  private static final String STOPPED = "The encoder stopped after a frame failed its verification!";
   private static final int LIMIT_RETRIES = 4;
   private static final int MOTION_RANGE = 24;
   private static final int NORMAL_SKIP_BITS = 28;
@@ -303,8 +308,8 @@ public final class MCV2 {
    * @throws IllegalArgumentException if threads is less than one
    */
   public MCV2(final Settings settings, final ForkJoinPool pool, final int threads, final boolean verify) {
-    this.settings = Preconditions.checkNotNull(settings, "Settings must not be null");
-    this.workers = new Workers(Preconditions.checkNotNull(pool, "Pool must not be null"), threads);
+    this.settings = Preconditions.checkNotNull(settings, SETTINGS_NULL_MESSAGE);
+    this.workers = new Workers(Preconditions.checkNotNull(pool, "Pool must not be null!"), threads);
     this.shouldVerify = verify;
     this.kernels = Natives.resolved().factory();
     this.framesSinceKey = KEY_INTERVAL;
@@ -317,7 +322,7 @@ public final class MCV2 {
    * @throws IllegalArgumentException if the budget is negative
    */
   public void setFrameBudget(final long nanoseconds) {
-    Preconditions.checkArgument(nanoseconds >= 0, "The frame budget must not be negative");
+    Preconditions.checkArgument(nanoseconds >= 0, "The frame budget must not be negative!");
     this.frameBudget = nanoseconds;
   }
 
@@ -330,7 +335,7 @@ public final class MCV2 {
    * @throws IllegalArgumentException if bytes is negative
    */
   public void setFrameLimit(final int bytes) {
-    Preconditions.checkArgument(bytes >= 0, "The frame limit must not be negative");
+    Preconditions.checkArgument(bytes >= 0, "The frame limit must not be negative!");
     this.frameLimit = bytes;
   }
 
@@ -348,7 +353,7 @@ public final class MCV2 {
    * @throws NullPointerException if next is null
    */
   public void switchTo(final Settings next) {
-    this.settings = Preconditions.checkNotNull(next, "Settings must not be null");
+    this.settings = Preconditions.checkNotNull(next, SETTINGS_NULL_MESSAGE);
   }
 
   /**
@@ -411,12 +416,12 @@ public final class MCV2 {
    */
   public Pending begin(final byte[] sourcePixels, final int width, final int height, final long frameId) {
     Preconditions.checkState(!this.failed, STOPPED);
-    Preconditions.checkState(this.older == null || this.older.finished, "Two frames are in flight already");
-    Preconditions.checkNotNull(sourcePixels, "Picture must not be null");
-    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, "Invalid dimensions");
-    Preconditions.checkArgument(sourcePixels.length == width * height * CHANNELS, "Picture size does not match the dimensions");
-    Preconditions.checkArgument(frameId >= 0 && frameId <= MAX_U32, "Frame id must be an unsigned 32-bit value");
-    Preconditions.checkArgument(this.lastFrameId < 0 || follows(frameId, this.lastFrameId), "Stale or ambiguous frame number");
+    Preconditions.checkState(this.older == null || this.older.finished, "Two frames are in flight already!");
+    Preconditions.checkNotNull(sourcePixels, "Picture must not be null!");
+    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE);
+    Preconditions.checkArgument(sourcePixels.length == width * height * CHANNELS, "Picture size does not match the dimensions!");
+    Preconditions.checkArgument(frameId >= 0 && frameId <= MAX_U32, "Frame id must be an unsigned 32-bit value!");
+    Preconditions.checkArgument(this.lastFrameId < 0 || follows(frameId, this.lastFrameId), "Stale or ambiguous frame number!");
     final long started = System.nanoTime();
     final byte[] previous = this.reference;
     final boolean requested = this.keyframeRequested.getAndSet(false);
@@ -471,7 +476,7 @@ public final class MCV2 {
     if (data == null || data.length > limit) {
       searched = this.search(frame, before, started, true);
       data = write(width, height, keyframe, searched.roots, frameId, predictsId);
-      Preconditions.checkState(Objects.nonNull(data), "Trivial frame exceeds the format bound");
+      Preconditions.checkState(Objects.nonNull(data), "Trivial frame exceeds the format bound!");
     }
     final Pending pending = new Pending(
       this,
@@ -508,11 +513,11 @@ public final class MCV2 {
    */
   @SuppressWarnings("ReferenceEquality")
   public Encoded finish(final Pending pending) {
-    Preconditions.checkNotNull(pending, "Frame must not be null");
+    Preconditions.checkNotNull(pending, "Frame must not be null!");
     Preconditions.checkState(!this.failed, STOPPED);
-    Preconditions.checkArgument(pending.owner == this, "The pending frame belongs to another encoder");
-    Preconditions.checkState(!pending.finished, "The frame is finished already");
-    Preconditions.checkState(this.older == null || this.older.finished || pending == this.older, "Finish frames in creation order");
+    Preconditions.checkArgument(pending.owner == this, "The pending frame belongs to another encoder!");
+    Preconditions.checkState(!pending.finished, "The frame is finished already!");
+    Preconditions.checkState(this.older == null || this.older.finished || pending == this.older, "Finish frames in creation order!");
     final long started = System.nanoTime();
     if (this.shouldVerify) {
       try {
@@ -1555,9 +1560,9 @@ public final class MCV2 {
 
     private static final FunctionDescriptor LEVELS = FunctionDescriptor.of(JAVA_INT, JAVA_LONG);
 
-    private static final String ACTIVE = "MCV2 kernels: {}";
+    private static final String ACTIVE = "MCV2 kernels: {}.";
 
-    private static final String FAILED = "MCV2 native kernels did not load, so the Java kernels run: {}";
+    private static final String FAILED = "MCV2 native kernels did not load ({}), so the Java kernels run.";
 
     private static @Nullable Path directory;
 
@@ -1566,13 +1571,13 @@ public final class MCV2 {
     private static @Nullable Resolution resolution;
 
     private Natives() {
-      throw new UnsupportedOperationException("Utility class cannot be instantiated");
+      throw new UnsupportedOperationException("Utility class cannot be instantiated!");
     }
 
     static synchronized void install(final Path folder, final String mode) {
-      Preconditions.checkNotNull(mode, "Native mode must not be null");
-      Preconditions.checkArgument(NATIVE_AUTO.equals(mode) || NATIVE_OFF.equals(mode), "The MCV2 native mode must be auto or off");
-      directory = Preconditions.checkNotNull(folder, "Native folder must not be null");
+      Preconditions.checkNotNull(mode, "Native mode must not be null!");
+      Preconditions.checkArgument(NATIVE_AUTO.equals(mode) || NATIVE_OFF.equals(mode), "The MCV2 native mode must be auto or off!");
+      directory = Preconditions.checkNotNull(folder, "Native folder must not be null!");
       configured = mode;
       resolution = null;
     }
@@ -1913,7 +1918,7 @@ public final class MCV2 {
 
     private static final int SELECTORS_AT = PALETTE_COLORS * CHANNELS;
 
-    private static final String CALL_FAILED = "MCV2 native kernel failed";
+    private static final String CALL_FAILED = "MCV2 native kernel failed!";
 
     private static final int SEGMENTS = 256;
 
@@ -1972,11 +1977,11 @@ public final class MCV2 {
     }
 
     private static void checkSize(final int size) {
-      Preconditions.checkArgument(isBlockSize(size), "Invalid block size");
+      Preconditions.checkArgument(isBlockSize(size), INVALID_BLOCK_SIZE_MESSAGE);
     }
 
     private static void checkLength(final int length, final long count) {
-      Preconditions.checkArgument(length >= count, "Array too short");
+      Preconditions.checkArgument(length >= count, "Array too short!");
     }
 
     private static void checkBlock(final int length, final int size) {
@@ -1984,12 +1989,12 @@ public final class MCV2 {
     }
 
     private static void checkPicture(final int length, final int width, final int height) {
-      Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, "Invalid picture size");
+      Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, "Invalid picture size!");
       checkLength(length, width * (long) height * CHANNELS);
     }
 
     private static void checkCoordinate(final int value) {
-      Preconditions.checkArgument(value >= -MAX_COORDINATE && value <= MAX_COORDINATE, "Coordinate out of range");
+      Preconditions.checkArgument(value >= -MAX_COORDINATE && value <= MAX_COORDINATE, "Coordinate out of range!");
     }
 
     private void checkScored(final int size, final int[] output) {
@@ -2054,7 +2059,7 @@ public final class MCV2 {
 
     @Override
     public boolean compact(final int[] prediction, final byte[] record, final int quantizer, final int size, final int[] output) {
-      Preconditions.checkArgument(quantizer >= 0 && quantizer <= MAX_QUANTIZER, "Invalid quantizer");
+      Preconditions.checkArgument(quantizer >= 0 && quantizer <= MAX_QUANTIZER, "Invalid quantizer!");
       this.checkScored(size, output);
       checkBlock(prediction.length, size);
       checkLength(record.length, COMPACT_BYTES);
@@ -2128,7 +2133,7 @@ public final class MCV2 {
 
     @Override
     public void finishPalette(final int[] source, final int count, final int[] endpoints, final int[] colors, final byte[] selectors) {
-      Preconditions.checkArgument(count >= 0 && count <= ROOT_SIZE * ROOT_SIZE, "Invalid pixel count");
+      Preconditions.checkArgument(count >= 0 && count <= ROOT_SIZE * ROOT_SIZE, INVALID_PIXEL_COUNT_MESSAGE);
       checkLength(source.length, count * (long) CHANNELS);
       checkLength(selectors.length, count);
       checkLength(colors.length, PALETTE_COLORS * CHANNELS);
@@ -2171,7 +2176,7 @@ public final class MCV2 {
       checkBlock(source.length, size);
       checkCoordinate(left);
       checkCoordinate(top);
-      Preconditions.checkArgument(range >= 0 && range <= MAX_COORDINATE, "Invalid range");
+      Preconditions.checkArgument(range >= 0 && range <= MAX_COORDINATE, "Invalid range!");
       try {
         return (int) this.binding.seeded.invokeExact(
           of(reference),
@@ -2203,7 +2208,7 @@ public final class MCV2 {
       checkPicture(image.length, width, height);
       checkSize(size);
       checkBlock(source.length, size);
-      Preconditions.checkArgument(left >= 0 && left < width && top >= 0 && top < height, "Block outside the picture");
+      Preconditions.checkArgument(left >= 0 && left < width && top >= 0 && top < height, "Block outside the picture!");
       try {
         this.binding.loadSource.invokeExact(of(image), width, height, left, top, size, of(source));
       } catch (final Throwable failure) {
@@ -2214,7 +2219,7 @@ public final class MCV2 {
     @Override
     public void halve(final int[] block, final int size, final int[] output) {
       // SIMD row steps require power-of-two block sizes to avoid array overruns.
-      Preconditions.checkArgument(size >= 2 && size <= ROOT_SIZE && Integer.bitCount(size) == 1, "Invalid block size");
+      Preconditions.checkArgument(size >= 2 && size <= ROOT_SIZE && Integer.bitCount(size) == 1, INVALID_BLOCK_SIZE_MESSAGE);
       checkBlock(block.length, size);
       checkBlock(output.length, size / 2);
       try {
@@ -2226,7 +2231,7 @@ public final class MCV2 {
 
     @Override
     public void residualTarget(final int[] source, final int[] prediction, final int count, final float[] target) {
-      Preconditions.checkArgument(count >= 0 && count <= ROOT_SIZE * ROOT_SIZE, "Invalid pixel count");
+      Preconditions.checkArgument(count >= 0 && count <= ROOT_SIZE * ROOT_SIZE, INVALID_PIXEL_COUNT_MESSAGE);
       checkLength(source.length, count * (long) CHANNELS);
       checkLength(prediction.length, count * (long) CHANNELS);
       checkLength(target.length, count);
@@ -2627,10 +2632,10 @@ public final class MCV2 {
     final long frameId,
     final long referenceId
   ) {
-    Preconditions.checkNotNull(input, "Roots must not be null");
-    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, "Invalid dimensions");
+    Preconditions.checkNotNull(input, "Roots must not be null!");
+    Preconditions.checkArgument(width >= 1 && width <= MAX_DIMENSION && height >= 1 && height <= MAX_DIMENSION, INVALID_DIMENSIONS_MESSAGE);
     final int columns = (width + ROOT_SIZE - 1) / ROOT_SIZE;
-    Preconditions.checkArgument(input.size() == columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE), "Wrong root count");
+    Preconditions.checkArgument(input.size() == columns * ((height + ROOT_SIZE - 1) / ROOT_SIZE), "Wrong root count!");
     for (final TreeNode root : input) {
       validateTree(root, ROOT_SIZE, keyframe);
     }
@@ -2715,24 +2720,24 @@ public final class MCV2 {
 
   private static void validateTree(final TreeNode node, final int size, final boolean keyframe) {
     if (node.isSplit()) {
-      Preconditions.checkArgument(size > SMALLEST_BLOCK, "Split below the bounded depth");
+      Preconditions.checkArgument(size > SMALLEST_BLOCK, "Split below the bounded depth!");
       for (int corner = 0; corner < QUARTERS; corner++) {
         validateTree(node.getChild(corner), size / 2, keyframe);
       }
       return;
     }
     final int mode = node.mode;
-    Preconditions.checkArgument(mode <= MODE_COMPACT, "Illegal leaf mode %s", mode);
-    Preconditions.checkArgument(mode == MODE_COMPACT || node.quantizer == 0, "Quantizer on a mode without one");
+    Preconditions.checkArgument(mode <= MODE_COMPACT, "Leaf mode %s is illegal!", mode);
+    Preconditions.checkArgument(mode == MODE_COMPACT || node.quantizer == 0, "Quantizer on a mode without one!");
     Preconditions.checkArgument(
       !keyframe || (mode != MODE_MOTION && mode != MODE_COMPACT),
-      "The tree does not serialize to a valid frame: temporal keyframe leaf"
+      "The tree does not serialize to a valid frame: temporal keyframe leaf!"
     );
     final byte[] record = node.record;
     final int length = recordSize(mode, size);
-    Preconditions.checkArgument(record.length == length, "Record length disagrees with its mode");
+    Preconditions.checkArgument(record.length == length, "Record length disagrees with its mode!");
     if (mode == MODE_PATTERN) {
-      Preconditions.checkArgument((record[2 * CHANNELS] & 255) <= 1, "Invalid pattern orientation");
+      Preconditions.checkArgument((record[2 * CHANNELS] & 255) <= 1, "Invalid pattern orientation!");
     }
   }
 
@@ -2861,9 +2866,9 @@ public final class MCV2 {
       if (error != null) {
         throw error;
       }
-      Preconditions.checkState(same.get(), "MCV2 live picture and decoded picture disagree");
+      Preconditions.checkState(same.get(), "MCV2 live picture and decoded picture disagree!");
     } catch (final Mcv2Exception exception) {
-      throw new IllegalStateException("The encoder wrote a frame the decoder rejects", exception);
+      throw new IllegalStateException("The encoder wrote a frame the decoder rejects!", exception);
     }
   }
 
@@ -2875,7 +2880,7 @@ public final class MCV2 {
     private final int threads;
 
     private Workers(final ForkJoinPool pool, final int threads) {
-      Preconditions.checkArgument(threads >= 1, "At least one thread is needed");
+      Preconditions.checkArgument(threads >= 1, "At least one thread is needed!");
       this.pool = pool;
       this.threads = threads;
     }
@@ -2940,7 +2945,7 @@ public final class MCV2 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Pool.class);
 
-    private static final String THREAD_FAILED = "MCV2 encoder thread {} failed";
+    private static final String THREAD_FAILED = "MCV2 encoder thread {} failed.";
 
     private static final ThreadGroup GROUP = lowPriorityGroup();
 
@@ -2959,7 +2964,7 @@ public final class MCV2 {
      * @throws IllegalArgumentException if threads is outside that range
      */
     public Pool(final int threads) {
-      Preconditions.checkArgument(threads >= 1 && threads <= MAX_THREADS, "Threads must be 1 to %s", MAX_THREADS);
+      Preconditions.checkArgument(threads >= 1 && threads <= MAX_THREADS, "Threads must be between 1 and %s inclusive!", MAX_THREADS);
       this.threads = threads;
       final AtomicInteger created = new AtomicInteger();
       final ForkJoinPool.ForkJoinWorkerThreadFactory factory = forkJoinPool -> {
@@ -3011,7 +3016,7 @@ public final class MCV2 {
      * @throws IllegalArgumentException if threads is negative or exceeds MAX_THREADS
      */
     public static synchronized void setSharedThreads(final int threads) {
-      Preconditions.checkArgument(threads >= 0 && threads <= MAX_THREADS, "Threads must be 0 to %s", MAX_THREADS);
+      Preconditions.checkArgument(threads >= 0 && threads <= MAX_THREADS, "Threads must be between 0 and %s inclusive!", MAX_THREADS);
       if (threads != sharedThreads) {
         sharedThreads = threads;
         shared = null;
@@ -3050,10 +3055,10 @@ public final class MCV2 {
      * @throws IllegalStateException if the job throws a checked exception
      */
     public <ResultType> ResultType run(final Callable<ResultType> task) throws InterruptedException {
-      Preconditions.checkNotNull(task, "Task must not be null");
+      Preconditions.checkNotNull(task, "Task must not be null!");
 
       if (Thread.interrupted()) {
-        throw new InterruptedException("Interrupted before the task started");
+        throw new InterruptedException("Interrupted before the task started!");
       }
       final ForkJoinTask<ResultType> job = this.pool.submit(task);
       try {
@@ -3069,7 +3074,7 @@ public final class MCV2 {
         if (cause instanceof final Error error) {
           throw error;
         }
-        throw new IllegalStateException("An encode failed", cause);
+        throw new IllegalStateException("An encode failed!", cause);
       }
     }
 

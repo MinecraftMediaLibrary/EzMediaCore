@@ -220,7 +220,7 @@ final class ServerPackHostingTest {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, server::getLocalPort);
     final String message = exception.getMessage();
 
-    assertEquals("The resource pack server is not running", message);
+    assertEquals("The resource pack server is not running!", message);
   }
 
   @Test
@@ -236,7 +236,7 @@ final class ServerPackHostingTest {
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
 
-      final String expectedMessage = "Failed to start the resource pack server on port " + port;
+      final String expectedMessage = "Port %s could not be bound for the resource pack server!".formatted(port);
       assertEquals(expectedMessage, message);
       assertNotNull(cause);
       hosting.shutdown();
@@ -292,30 +292,30 @@ final class ServerPackHostingTest {
 
   @Test
   void shouldKeepTheMessageInExceptions() {
-    final HttpServerException exception = new HttpServerException("message");
+    final HttpServerException exception = new HttpServerException("Message!");
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseInExceptions() {
-    final IOException failure = new IOException("cause");
-    final HttpServerException exception = new HttpServerException("message", failure);
+    final IOException failure = new IOException("Cause!");
+    final HttpServerException exception = new HttpServerException("Message!", failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertSame(failure, cause);
   }
 
   @Test
   void shouldMakeItsExceptionsRuntimeExceptions() {
-    final HttpServerException exception = new HttpServerException("message");
+    final HttpServerException exception = new HttpServerException("Message!");
     assertInstanceOf(RuntimeException.class, exception, "a port in use is recoverable, so it is no Error");
   }
 }

@@ -95,6 +95,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class Mcv2Result implements FunctionalVideoFilter {
 
+  private static final String LISTENER_NULL_MESSAGE = "Listener must not be null!";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2Result.class);
 
   private static final long JOIN_SECONDS = 10;
@@ -112,13 +114,13 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private static final int UNDECODABLE = 2;
 
-  private static final String FRAME_TOO_LARGE = "MCV2 frame {} of {} bytes needs more than {} pages; it is not sent";
+  private static final String FRAME_TOO_LARGE = "MCV2 frame {} of {} bytes needs more than {} pages; it is not sent.";
 
-  private static final String PACING_STEP = "{}";
+  private static final String PACING_STEP = "{}.";
 
-  private static final String ENCODER_FAILED = "The MCV2 screen stops: encoding a frame failed";
+  private static final String ENCODER_FAILED = "The MCV2 screen stops: encoding a frame failed.";
 
-  private static final String SENDER_FAILED = "The MCV2 screen stops: verifying or sending a frame failed";
+  private static final String SENDER_FAILED = "The MCV2 screen stops: verifying or sending a frame failed.";
 
   private static final double NANOSECONDS_PER_SECOND = 1e9;
 
@@ -378,8 +380,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     final @Nullable Executor dithering,
     final Function<Settings, MCV2> encoders
   ) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(channel, "Channel must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(channel, "Channel must not be null!");
     this.requested = configuration;
     this.screen = new Screen(configuration, channel);
     this.fallbackViewers = ConcurrentHashMap.newKeySet();
@@ -487,8 +489,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code sizes} or {@code resizer} is null
    */
   public void setSmallerSizes(final List<int[]> sizes, final Resizer resizer) {
-    Preconditions.checkNotNull(sizes, "Sizes must not be null");
-    Preconditions.checkNotNull(resizer, "Resizer must not be null");
+    Preconditions.checkNotNull(sizes, "Sizes must not be null!");
+    Preconditions.checkNotNull(resizer, "Resizer must not be null!");
     this.smaller = List.copyOf(sizes);
     this.resizer = resizer;
   }
@@ -503,7 +505,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code listener} is null
    */
   public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
-    Preconditions.checkNotNull(listener, "Listener must not be null");
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
     this.pacingListener = listener;
   }
 
@@ -520,7 +522,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code listener} is null
    */
   public void setFrameListener(final Consumer<byte[]> listener) {
-    Preconditions.checkNotNull(listener, "Listener must not be null");
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
     this.frameListener = listener;
   }
 
@@ -586,8 +588,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     if (!this.takeFrame(this.clock.getAsLong())) {
       return false;
     }
@@ -851,8 +853,8 @@ public final class Mcv2Result implements FunctionalVideoFilter {
       this.pending.close();
       this.lock.notifyAll();
 
-      screenThread = Objects.requireNonNull(this.worker, "A running pipeline has its screen's thread");
-      delivery = Objects.requireNonNull(this.sender, "A running pipeline has its sender");
+      screenThread = Objects.requireNonNull(this.worker, "A running pipeline has its screen's thread!");
+      delivery = Objects.requireNonNull(this.sender, "A running pipeline has its sender!");
     }
 
     screenThread.interrupt();
@@ -948,7 +950,7 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     if (change.down()) {
       LOGGER.warn(PACING_STEP, change.describe());
     } else {
-      LOGGER.info(PACING_STEP, change.describe());
+      LOGGER.debug(PACING_STEP, change.describe());
     }
     this.pacingListener.accept(change);
   }

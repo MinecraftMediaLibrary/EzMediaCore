@@ -338,13 +338,13 @@ final class MCV2Test {
         encoder.encode(new byte[3], 4097, 1, 0)
       );
       final String dimensionsMessage = dimensionsException.getMessage();
-      assertEquals("Invalid dimensions", dimensionsMessage);
+      assertEquals("Invalid dimensions!", dimensionsMessage);
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[2], 1, 1, 0));
       final IllegalArgumentException sizeException = assertThrows(IllegalArgumentException.class, () ->
         encoder.encode(new byte[4], 1, 1, 0)
       );
       final String sizeMessage = sizeException.getMessage();
-      assertEquals("Picture size does not match the dimensions", sizeMessage);
+      assertEquals("Picture size does not match the dimensions!", sizeMessage);
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[3], 1, 1, -1));
       assertThrows(IllegalArgumentException.class, () -> encoder.encode(new byte[3], 1, 1, 0x100000000L));
       assertThrows(NullPointerException.class, () -> encoder.encode(null, 1, 1, 0));

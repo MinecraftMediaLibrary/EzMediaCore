@@ -139,7 +139,7 @@ final class Mcv2DecoderTest {
     final byte[] frame = Mcv2WireFrames.frame(4096, 96, false, descriptors, records, new int[] { count, 0, 0 });
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.parse(frame));
     final String message = exception.getMessage();
-    assertEquals("Invalid pattern selector", message);
+    assertEquals("Invalid pattern selector!", message);
   }
 
   @Test
@@ -147,7 +147,7 @@ final class Mcv2DecoderTest {
     final byte[] frame = predicted(2, 1, motion(0, 0));
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, null, 0));
     final String message = exception.getMessage();
-    assertEquals("Reference frame mismatch", message);
+    assertEquals("Reference frame mismatch!", message);
 
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, new byte[6], 7));
     assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(frame, new byte[5], 0));

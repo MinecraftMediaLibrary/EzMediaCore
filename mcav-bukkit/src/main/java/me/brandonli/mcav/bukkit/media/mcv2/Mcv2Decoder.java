@@ -68,7 +68,7 @@ public final class Mcv2Decoder {
   private static final byte[] NO_REFERENCE = new byte[0];
 
   private Mcv2Decoder() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   record Leaf(int left, int top, int size, int mode, int quantizer, int offset) {}
@@ -181,27 +181,27 @@ public final class Mcv2Decoder {
    * @throws Mcv2Exception if any version 3 validation rule fails, including unsupported older versions
    */
   public static Frame parse(final byte[] bytes) throws Mcv2Exception {
-    Preconditions.checkNotNull(bytes, "Frame bytes must not be null");
+    Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
     if (bytes.length >= Integer.BYTES && u32(bytes, 0) == LEGACY_MAGIC) {
-      throw new Mcv2Exception("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3");
+      throw new Mcv2Exception("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!");
     }
     if (bytes.length < Integer.BYTES || u32(bytes, 0) != MAGIC) {
-      throw new Mcv2Exception("Not an MCV2 frame");
+      throw new Mcv2Exception("Not an MCV2 frame!");
     }
     if (bytes.length > Integer.BYTES && bytes[4] == LEGACY_VERSION) {
-      throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3");
+      throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3!");
     }
     if (bytes.length < HEADER_BYTES || bytes.length > MAX_FRAME_BYTES) {
-      throw new Mcv2Exception("Invalid frame length");
+      throw new Mcv2Exception("Invalid frame length!");
     }
     final byte[] data = bytes.clone();
     if (u32(data, 4) != VERSION) {
-      throw new Mcv2Exception("Not an MCV2 version 3 frame");
+      throw new Mcv2Exception("Not an MCV2 version 3 frame!");
     }
     final int width = u16(data, DIMENSIONS_OFFSET);
     final int height = u16(data, DIMENSIONS_OFFSET + Short.BYTES);
     if (width < 1 || width > MAX_DIMENSION || height < 1 || height > MAX_DIMENSION) {
-      throw new Mcv2Exception("Invalid dimensions");
+      throw new Mcv2Exception("Invalid dimensions!");
     }
     final boolean keyframe = u32(data, FRAME_ID_OFFSET) == u32(data, REFERENCE_ID_OFFSET);
     return new Parser(data, width, height, keyframe).parse();
@@ -232,7 +232,7 @@ public final class Mcv2Decoder {
       final int countsAt = HEADER_BYTES + (groups + checkpoints) * Integer.BYTES;
       final int descriptorsAt = countsAt + BLOCK_SIZES * Integer.BYTES;
       if (descriptorsAt > this.data.length) {
-        throw new Mcv2Exception("Truncated index");
+        throw new Mcv2Exception("Truncated index!");
       }
       // Unsigned counts must fit the input before narrowing to int.
       final long levelZero = u32(this.data, countsAt);
@@ -241,7 +241,7 @@ public final class Mcv2Decoder {
       final long count = levelZero + levelOne + levelTwo;
       final long start = descriptorsAt + count + ((count + WALK_SPAN - 1) / WALK_SPAN) * Integer.BYTES;
       if (start > this.data.length) {
-        throw new Mcv2Exception("Invalid index length");
+        throw new Mcv2Exception("Invalid index length!");
       }
       this.start = (int) start;
       final int descriptors = (int) count;
@@ -261,11 +261,11 @@ public final class Mcv2Decoder {
           (quantizer != 0 && mode != MODE_COMPACT) ||
           (this.keyframe && (mode == MODE_MOTION || mode == MODE_COMPACT))
         ) {
-          throw new Mcv2Exception("Invalid descriptor");
+          throw new Mcv2Exception("Invalid descriptor!");
         }
         if (mode == MODE_SPLIT) {
           if (index >= lastLevel) {
-            throw new Mcv2Exception("Split below the bounded depth");
+            throw new Mcv2Exception("Split below the bounded depth!");
           }
           splits++;
           if (index < firstChildren) {
@@ -274,7 +274,7 @@ public final class Mcv2Decoder {
         }
       }
       if ((long) QUARTERS * firstSplits != levelOne || (long) QUARTERS * (splits - firstSplits) != levelTwo) {
-        throw new Mcv2Exception("Level counts disagree with splits");
+        throw new Mcv2Exception("Level counts disagree with splits!");
       }
       final int[] positions = new int[descriptors * POSITION_INTS];
       for (int index = 0; index < firstChildren; index++) {
@@ -307,7 +307,7 @@ public final class Mcv2Decoder {
           index % WALK_SPAN == 0 &&
           u32(this.data, walksAt + (index / WALK_SPAN) * Integer.BYTES) != (cursor | ((long) splits << CURSOR_BITS))
         ) {
-          throw new Mcv2Exception("Invalid walk checkpoint");
+          throw new Mcv2Exception("Invalid walk checkpoint!");
         }
         final int descriptor = this.data[descriptorsAt + index] & 0xFF;
         final int mode = descriptor & MODE_MASK;
@@ -322,7 +322,7 @@ public final class Mcv2Decoder {
         leaf(leaves, leaf++, positions[arrayOffset], positions[arrayOffset + 1], size, mode, descriptor >> QUANTIZER_SHIFT, offset);
       }
       if (this.start + cursor != payloadEnd) {
-        throw new Mcv2Exception("Records do not end at the frame end");
+        throw new Mcv2Exception("Records do not end at the frame end!");
       }
       int listed = 0;
       for (int root = 0; root < this.roots; root++) {
@@ -342,10 +342,10 @@ public final class Mcv2Decoder {
         final long mask = u32(this.data, HEADER_BYTES + group * Integer.BYTES);
         final int valid = Math.min(GROUP_ROOTS, this.roots - group * GROUP_ROOTS);
         if (mask >>> valid != 0 || Long.bitCount(mask) > count - seen) {
-          throw new Mcv2Exception("Invalid presence mask");
+          throw new Mcv2Exception("Invalid presence mask!");
         }
         if (group % CHECKPOINT_GROUPS == 0 && u32(this.data, HEADER_BYTES + (groups + group / CHECKPOINT_GROUPS) * Integer.BYTES) != seen) {
-          throw new Mcv2Exception("Invalid directory checkpoint");
+          throw new Mcv2Exception("Invalid directory checkpoint!");
         }
         for (int bit = 0; bit < valid; bit++) {
           if (((mask >>> bit) & 1) != 0) {
@@ -354,7 +354,7 @@ public final class Mcv2Decoder {
         }
       }
       if (seen != count) {
-        throw new Mcv2Exception("Presence count differs from level zero");
+        throw new Mcv2Exception("Presence count differs from level zero!");
       }
       return present;
     }
@@ -362,10 +362,10 @@ public final class Mcv2Decoder {
     private int recordLength(final int mode, final int size, final int offset) throws Mcv2Exception {
       final int length = recordSize(mode, size);
       if (length > this.data.length - offset) {
-        throw new Mcv2Exception("Truncated record");
+        throw new Mcv2Exception("Truncated record!");
       }
       if (mode == MODE_PATTERN && (this.data[offset + 2 * CHANNELS] & 0xFF) > 1) {
-        throw new Mcv2Exception("Invalid pattern selector");
+        throw new Mcv2Exception("Invalid pattern selector!");
       }
       return length;
     }
@@ -453,9 +453,9 @@ public final class Mcv2Decoder {
     final int toRow
   ) throws Mcv2Exception {
     final byte[] prediction = reference(frame, reference, referenceId);
-    Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame");
-    Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range");
-    Preconditions.checkArgument(!samePicture(prediction, output), "Row decoding needs a separate reference");
+    Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame!");
+    Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range!");
+    Preconditions.checkArgument(!samePicture(prediction, output), "Row decoding needs a separate reference!");
     final Context context = new Context(frame, prediction, output);
     for (int arrayOffset = 0; arrayOffset < frame.leaves.length; arrayOffset += LEAF_INTS) {
       context.leaf(arrayOffset, fromRow, toRow);
@@ -467,7 +467,7 @@ public final class Mcv2Decoder {
       return NO_REFERENCE;
     }
     if (reference == null || referenceId != frame.referenceId || reference.length != frame.width * frame.height * CHANNELS) {
-      throw new Mcv2Exception("Reference frame mismatch");
+      throw new Mcv2Exception("Reference frame mismatch!");
     }
     return reference;
   }
@@ -699,7 +699,7 @@ public final class Mcv2Decoder {
       case MODE_SOLID -> CHANNELS;
       case MODE_PALETTE -> 2 * CHANNELS + (size * size) / Byte.SIZE;
       case MODE_PATTERN -> patternSize(size);
-      default -> throw new IllegalArgumentException("Invalid record mode");
+      default -> throw new IllegalArgumentException("Invalid record mode!");
     };
   }
 }

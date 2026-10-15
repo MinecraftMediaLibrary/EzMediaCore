@@ -38,7 +38,7 @@ public final class MapAlphabet {
   public static final int SIZE = 1 << SYMBOL_BITS;
 
   private MapAlphabet() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -50,12 +50,12 @@ public final class MapAlphabet {
    * @throws NullPointerException if {@code symbols} is null
    */
   public static byte[] toMapColors(final byte[] symbols) {
-    Preconditions.checkNotNull(symbols, "Symbols must not be null");
-    Preconditions.checkArgument(symbols.length <= TransportPages.PAGE_SYMBOLS, "A map holds at most 16384 symbols");
+    Preconditions.checkNotNull(symbols, "Symbols must not be null!");
+    Preconditions.checkArgument(symbols.length <= TransportPages.PAGE_SYMBOLS, "A map holds at most 16384 symbols!");
     final byte[] colors = new byte[Math.ceilDiv(symbols.length, TransportPages.MAP_SIDE) * TransportPages.MAP_SIDE];
     for (int index = 0; index < colors.length; index++) {
       final int symbol = index < symbols.length ? Byte.toUnsignedInt(symbols[index]) : 0;
-      Preconditions.checkArgument(symbol < SIZE, "Symbol %s is outside the six-bit alphabet", symbol);
+      Preconditions.checkArgument(symbol < SIZE, "Symbol %s is outside the six-bit alphabet!", symbol);
       colors[index] = (byte) (symbol + FIRST_COLOR);
     }
     return colors;
@@ -70,12 +70,12 @@ public final class MapAlphabet {
    * @throws NullPointerException if {@code colors} is null
    */
   public static byte[] fromMapColors(final byte[] colors) throws Mcv2Exception {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
     final byte[] symbols = new byte[colors.length];
     for (int index = 0; index < colors.length; index++) {
       final int symbol = Byte.toUnsignedInt(colors[index]) - FIRST_COLOR;
       if (symbol < 0 || symbol >= SIZE) {
-        throw new Mcv2Exception("Map colour outside the alphabet");
+        throw new Mcv2Exception("Map colour outside the alphabet!");
       }
       symbols[index] = (byte) symbol;
     }

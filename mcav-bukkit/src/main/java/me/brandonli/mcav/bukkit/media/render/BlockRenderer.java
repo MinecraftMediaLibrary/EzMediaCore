@@ -93,7 +93,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * @throws NullPointerException if the configuration is null
    */
   public BlockRenderer(final BlockConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     this.configuration = configuration;
     this.activeViewers = new HashSet<>();
   }
@@ -117,7 +117,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     final int width = this.configuration.getBlockWidth();
     final int height = this.configuration.getBlockHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);
@@ -152,7 +152,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
     final Location origin = this.configuration.getPosition();
     final World world = origin.getWorld();
     if (world == null) {
-      throw new IllegalStateException("Block position has no world");
+      throw new IllegalStateException("Block position has no world!");
     }
 
     final int blockCount = this.getBlockCount();
@@ -360,7 +360,7 @@ public final class BlockRenderer extends MainThreadRenderer<BlockData[]> {
   }
 
   private Map<Position, BlockData> createOriginalBlockMap(final Position[] currentPositions) {
-    final BlockData[] original = Objects.requireNonNull(this.originalBlocks, "Original blocks were not captured");
+    final BlockData[] original = Objects.requireNonNull(this.originalBlocks, "Original blocks were not captured!");
     return createBlockMap(currentPositions, original);
   }
 

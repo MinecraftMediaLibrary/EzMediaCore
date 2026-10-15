@@ -37,7 +37,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -67,7 +66,7 @@ import org.slf4j.LoggerFactory;
 public class MCPackHosting implements WebsiteHosting {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MCPackHosting.class);
-  private static final String UPLOAD_CACHE_NOT_WRITTEN = "Could not write the upload cache {}, the pack will be uploaded again next time";
+  private static final String UPLOAD_CACHE_NOT_WRITTEN = "Could not write the upload cache {}, the pack will be uploaded again next time.";
   private static final URI UPLOAD_URI = URI.create("https://mc-packs.net");
   private static final String DOWNLOAD_URL_FORMAT = "https://download.mc-packs.net/pack/%s.zip";
   private static final String HASH_ALGORITHM = "SHA-1";
@@ -102,9 +101,9 @@ public class MCPackHosting implements WebsiteHosting {
    */
   @VisibleForTesting
   MCPackHosting(final Path zip, final URI uploadUri, final String downloadUrlFormat) {
-    Preconditions.checkNotNull(zip, "Resource pack path must not be null");
-    Preconditions.checkNotNull(uploadUri, "Upload URI must not be null");
-    Preconditions.checkNotNull(downloadUrlFormat, "Download URL format must not be null");
+    Preconditions.checkNotNull(zip, "Resource pack path must not be null!");
+    Preconditions.checkNotNull(uploadUri, "Upload URI must not be null!");
+    Preconditions.checkNotNull(downloadUrlFormat, "Download URL format must not be null!");
     this.zip = zip;
     this.uploadUri = uploadUri;
     this.downloadUrlFormat = downloadUrlFormat;
@@ -125,7 +124,7 @@ public class MCPackHosting implements WebsiteHosting {
   public String getRawUrl() {
     final String currentUrl = this.url;
     if (currentUrl == null) {
-      throw new IllegalStateException("The resource pack has not been uploaded yet, call start() first");
+      throw new IllegalStateException("The resource pack has not been uploaded yet, call start() first!");
     }
     return currentUrl;
   }
@@ -169,7 +168,7 @@ public class MCPackHosting implements WebsiteHosting {
       final byte[] hash = digest.digest(bytes);
       return IoUtils.bytesToHex(hash);
     } catch (final NoSuchAlgorithmException exception) {
-      final String message = "Hash algorithm %s is not available".formatted(algorithm);
+      final String message = "Hash algorithm %s is not available!".formatted(algorithm);
       throw new IllegalStateException(message, exception);
     }
   }
@@ -257,11 +256,7 @@ public class MCPackHosting implements WebsiteHosting {
       final HttpResponse<String> response = client.send(request, bodyHandler);
       final int status = response.statusCode();
       if (status != HTTP_OK) {
-        final String message = String.format(
-          Locale.getDefault(Locale.Category.FORMAT),
-          "mc-packs.net rejected the upload with status %d",
-          status
-        );
+        final String message = "mc-packs.net answered status %s and rejected the upload!".formatted(status);
         throw new MCPacksException(message);
       }
     } catch (final IOException exception) {
@@ -270,7 +265,7 @@ public class MCPackHosting implements WebsiteHosting {
     } catch (final InterruptedException exception) {
       final Thread currentThread = Thread.currentThread();
       currentThread.interrupt();
-      throw new MCPacksException("Interrupted while uploading the resource pack", exception);
+      throw new MCPacksException("Interrupted while uploading the resource pack!", exception);
     }
   }
 
@@ -286,7 +281,7 @@ public class MCPackHosting implements WebsiteHosting {
     try {
       return Files.readAllBytes(this.zip);
     } catch (final IOException exception) {
-      final String message = "Resource pack cannot be read: %s".formatted(this.zip);
+      final String message = "Resource pack %s cannot be read!".formatted(this.zip);
       throw new MCPacksException(message, exception);
     }
   }
@@ -294,7 +289,7 @@ public class MCPackHosting implements WebsiteHosting {
   @VisibleForTesting
   String createMultipartHead(final String boundary) {
     final Path zipFileName = this.zip.getFileName();
-    final Path fileNamePath = Objects.requireNonNull(zipFileName, "The resource pack has no file name");
+    final Path fileNamePath = Objects.requireNonNull(zipFileName, "The resource pack has no file name!");
     final String fileName = fileNamePath.toString();
     final String safeFileName = fileName.replaceAll("[\\p{Cntrl}\"\\\\]", "");
     return (

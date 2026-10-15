@@ -85,7 +85,8 @@ public final class LogCapture implements AutoCloseable {
     final long timeoutMillis = timeout.toMillis();
     final RecordedEvent event = this.appender.arrivals.poll(timeoutMillis, TimeUnit.MILLISECONDS);
     if (event == null) {
-      throw new AssertionError("No event was logged within " + timeout);
+      final String message = "No event was logged before the %s timeout ran out!".formatted(timeout);
+      throw new AssertionError(message);
     }
     return event;
   }

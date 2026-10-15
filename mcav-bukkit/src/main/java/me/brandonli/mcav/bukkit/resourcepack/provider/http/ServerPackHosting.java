@@ -68,7 +68,7 @@ public class ServerPackHosting implements HttpHosting {
   ServerPackHosting(final Path zip, final String hostName, final int port, final FileHttpServer server) {
     Preconditions.checkNotNull(zip);
     Preconditions.checkNotNull(hostName);
-    Preconditions.checkArgument(port > 0 && port <= 65535, "Port must be between 1 and 65535");
+    Preconditions.checkArgument(port > 0 && port <= 65535, "Port must be between 1 and 65535!");
     Preconditions.checkNotNull(server);
     this.zip = zip;
     this.hostName = hostName;

@@ -43,12 +43,15 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
  */
 public final class MapPacketFactory {
 
+  private static final String VIEWERS_NULL_MESSAGE = "Viewers must not be null!";
+  private static final String PATCHES_NULL_MESSAGE = "Patches must not be null!";
+
   private static final int MAX_PACKETS_PER_BUNDLE = BundlerInfo.BUNDLE_SIZE_LIMIT;
 
   private static final byte DEFAULT_SCALE = 0;
 
   private MapPacketFactory() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -60,8 +63,8 @@ public final class MapPacketFactory {
    * @throws NullPointerException if {@code viewers} or {@code patches} is null
    */
   public static void send(final Collection<UUID> viewers, final List<MapTilePatch> patches) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkNotNull(patches, "Patches must not be null");
+    Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
+    Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
     if (patches.isEmpty() || viewers.isEmpty()) {
       return;
     }
@@ -90,7 +93,7 @@ public final class MapPacketFactory {
      * @throws NullPointerException if the viewer or callback is null
      */
     public void send(final UUID viewer, final Runnable written) {
-      Preconditions.checkNotNull(written, "Callback must not be null");
+      Preconditions.checkNotNull(written, "Callback must not be null!");
       if (!PacketUtils.sendPacket(viewer, this.packet, _ -> written.run())) {
         written.run();
       }
@@ -106,7 +109,7 @@ public final class MapPacketFactory {
    * @throws NullPointerException if {@code patches} is null
    */
   public static List<Bundle> bundles(final List<MapTilePatch> patches) {
-    Preconditions.checkNotNull(patches, "Patches must not be null");
+    Preconditions.checkNotNull(patches, PATCHES_NULL_MESSAGE);
     final List<Bundle> bundles = new ArrayList<>();
     for (int from = 0; from < patches.size(); from += MAX_PACKETS_PER_BUNDLE) {
       final int to = Math.min(from + MAX_PACKETS_PER_BUNDLE, patches.size());
@@ -136,11 +139,11 @@ public final class MapPacketFactory {
    * @throws NullPointerException if {@code viewers} is null
    */
   public static void clear(final Collection<UUID> viewers, final int startMapId, final int count) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative");
-    Preconditions.checkArgument(count >= 0, "Map count must be non-negative");
+    Preconditions.checkNotNull(viewers, VIEWERS_NULL_MESSAGE);
+    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative!");
+    Preconditions.checkArgument(count >= 0, "Map count must be non-negative!");
     final long lastMapId = (long) startMapId + count - 1;
-    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids exceed the integer range");
+    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids exceed the integer range!");
 
     final int size = MapLayout.MAP_SIZE;
     final byte[] transparent = new byte[size * size];

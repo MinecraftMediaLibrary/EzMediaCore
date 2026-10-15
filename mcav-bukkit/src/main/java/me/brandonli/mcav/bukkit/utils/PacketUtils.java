@@ -58,12 +58,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class PacketUtils {
 
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
+
   private static final Map<UUID, CachedConnection> PLAYER_CONNECTIONS = new ConcurrentHashMap<>();
 
   private static volatile @Nullable Listener connectionListener;
 
   private PacketUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -118,7 +120,7 @@ public final class PacketUtils {
    * @throws NullPointerException if {@code player} is null
    */
   public static boolean isConnected(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     return PLAYER_CONNECTIONS.containsKey(player);
   }
 
@@ -132,7 +134,7 @@ public final class PacketUtils {
    * @throws NullPointerException if {@code player} is null
    */
   public static @Nullable Object connectionIdentity(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     final CachedConnection cached = PLAYER_CONNECTIONS.get(player);
     return cached == null ? null : cached.identity();
   }
@@ -146,8 +148,8 @@ public final class PacketUtils {
    * @throws NullPointerException if {@code viewers} or {@code packets} is null
    */
   public static void sendPackets(final Collection<UUID> viewers, final Packet<?>... packets) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkNotNull(packets, "Packets must not be null");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+    Preconditions.checkNotNull(packets, "Packets must not be null!");
     for (final UUID viewer : viewers) {
       final CachedConnection connection = PLAYER_CONNECTIONS.get(viewer);
       if (connection == null) {
@@ -176,9 +178,9 @@ public final class PacketUtils {
    * @throws NullPointerException if {@code viewer}, {@code packet} or {@code listener} is null
    */
   public static boolean sendPacket(final UUID viewer, final Packet<?> packet, final ChannelFutureListener listener) {
-    Preconditions.checkNotNull(viewer, "Viewer must not be null");
-    Preconditions.checkNotNull(packet, "Packet must not be null");
-    Preconditions.checkNotNull(listener, "Listener must not be null");
+    Preconditions.checkNotNull(viewer, "Viewer must not be null!");
+    Preconditions.checkNotNull(packet, "Packet must not be null!");
+    Preconditions.checkNotNull(listener, "Listener must not be null!");
     final Channel channel = channel(viewer);
     if (channel == null) {
       return false;
@@ -207,8 +209,8 @@ public final class PacketUtils {
    * @throws NullPointerException if {@code player} is null
    */
   public static boolean limitUnsent(final UUID player, final int bytes) {
-    Preconditions.checkNotNull(player, "Player must not be null");
-    Preconditions.checkArgument(bytes > 0, "Bytes must be positive");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
+    Preconditions.checkArgument(bytes > 0, "Bytes must be positive!");
     final Channel channel = channel(player);
     return channel != null && channel.config().setOption(EpollChannelOption.TCP_NOTSENT_LOWAT, (long) bytes);
   }

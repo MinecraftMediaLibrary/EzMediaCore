@@ -31,7 +31,6 @@ import io.netty.util.concurrent.Future;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -90,11 +89,7 @@ final class FileHttpServer {
       terminate(acceptors);
       terminate(workers);
       final Throwable cause = bindFuture.cause();
-      final String message = String.format(
-        Locale.getDefault(Locale.Category.FORMAT),
-        "Failed to start the resource pack server on port %d",
-        this.port
-      );
+      final String message = "Port %s could not be bound for the resource pack server!".formatted(this.port);
       throw new HttpServerException(message, cause);
     }
 
@@ -125,7 +120,7 @@ final class FileHttpServer {
   synchronized int getLocalPort() {
     final Channel channel = this.serverChannel;
     if (channel == null) {
-      throw new IllegalStateException("The resource pack server is not running");
+      throw new IllegalStateException("The resource pack server is not running!");
     }
     final SocketAddress address = channel.localAddress();
     final InetSocketAddress socketAddress = (InetSocketAddress) address;

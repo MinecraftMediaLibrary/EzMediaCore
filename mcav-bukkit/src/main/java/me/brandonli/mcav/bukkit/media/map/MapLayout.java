@@ -37,6 +37,9 @@ import org.checkerframework.checker.initialization.qual.UnderInitialization;
  */
 public final class MapLayout {
 
+  private static final String IMAGE_NULL_MESSAGE = "Image must not be null!";
+  private static final String IMAGE_SIZE_MISMATCH_MESSAGE = "Image size does not match layout!";
+
   /**
    * The width and height of a single map in pixels.
    */
@@ -92,22 +95,22 @@ public final class MapLayout {
     final int imageWidth,
     final int imageHeight
   ) {
-    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative");
-    Preconditions.checkArgument(columns > 0 && rows > 0, "Map grid must be at least 1x1");
-    Preconditions.checkArgument(imageWidth > 0 && imageHeight > 0, "Image must not be empty");
+    Preconditions.checkArgument(startMapId >= 0, "Map id must be non-negative!");
+    Preconditions.checkArgument(columns > 0 && rows > 0, "Map grid must be at least 1x1!");
+    Preconditions.checkArgument(imageWidth > 0 && imageHeight > 0, "Image must not be empty!");
 
     final long longMapCount = (long) columns * rows;
-    Preconditions.checkArgument(longMapCount <= Integer.MAX_VALUE, "Map grid of %sx%s maps has too many maps", columns, rows);
+    Preconditions.checkArgument(longMapCount <= Integer.MAX_VALUE, "Map grid of %sx%s maps has too many maps!", columns, rows);
     final long lastMapId = startMapId + longMapCount - 1;
-    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids %s to %s exceed the largest map id", startMapId, lastMapId);
+    Preconditions.checkArgument(lastMapId <= Integer.MAX_VALUE, "Map ids %s to %s exceed the largest map id!", startMapId, lastMapId);
 
     final long longGridWidth = (long) columns * MAP_SIZE;
     final long longGridHeight = (long) rows * MAP_SIZE;
     final long largestGridSide = Math.max(longGridWidth, longGridHeight);
-    Preconditions.checkArgument(largestGridSide <= Integer.MAX_VALUE, "Map grid of %sx%s maps is too large", columns, rows);
+    Preconditions.checkArgument(largestGridSide <= Integer.MAX_VALUE, "Map grid of %sx%s maps is too large!", columns, rows);
 
     final long pixelCount = (long) imageWidth * imageHeight;
-    Preconditions.checkArgument(pixelCount <= Integer.MAX_VALUE, "Image of %sx%s pixels is too large", imageWidth, imageHeight);
+    Preconditions.checkArgument(pixelCount <= Integer.MAX_VALUE, "Image of %sx%s pixels is too large!", imageWidth, imageHeight);
   }
 
   private MapRegion[] computeRegions(@UnderInitialization MapLayout this) {
@@ -225,10 +228,10 @@ public final class MapLayout {
    * @throws NullPointerException if {@code image} is null
    */
   public MapTilePatch extractPatch(final byte[] image, final int index, final int left, final int top, final int width, final int height) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
     final int expectedLength = this.imageWidth * this.imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
     final MapRegion region = this.regions[index];
     checkInsideRegion(region, index, left, top, width, height);
@@ -263,7 +266,7 @@ public final class MapLayout {
     final boolean insideVertically = top >= regionY && height > 0 && height <= regionY + regionHeight - top;
     Preconditions.checkArgument(
       insideHorizontally && insideVertically,
-      "Rectangle of %sx%s pixels at (%s, %s) is not inside the region of map %s",
+      "Rectangle of %sx%s pixels at (%s, %s) in map %s is outside its region!",
       width,
       height,
       left,
@@ -281,9 +284,9 @@ public final class MapLayout {
    * @throws NullPointerException if {@code image} is null
    */
   public List<MapTilePatch> extractAll(final byte[] image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, IMAGE_NULL_MESSAGE);
     final int expectedLength = this.imageWidth * this.imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, IMAGE_SIZE_MISMATCH_MESSAGE);
 
     final List<MapTilePatch> patches = new ArrayList<>(this.regions.length);
     for (int index = 0; index < this.regions.length; index++) {

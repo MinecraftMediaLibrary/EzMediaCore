@@ -37,7 +37,7 @@ public final class Mcv2Trees {
     .orElseThrow();
 
   private Mcv2Trees() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   public record Node(Object value) {
@@ -237,7 +237,7 @@ public final class Mcv2Trees {
       return leaf;
     }
     if (size == 8) {
-      throw new AssertionError("Missing terminal leaf");
+      throw new AssertionError("Missing terminal leaf!");
     }
     final int half = size / 2;
     return Node.split(

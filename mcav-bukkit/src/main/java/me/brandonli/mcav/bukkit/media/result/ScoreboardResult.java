@@ -46,7 +46,7 @@ public class ScoreboardResult implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code configuration} is null
    */
   public ScoreboardResult(final ScoreboardConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Scoreboard configuration must not be null!");
     this.renderer = new ScoreboardRenderer(configuration);
   }
 
@@ -68,8 +68,8 @@ public class ScoreboardResult implements FunctionalVideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     this.renderer.render(data);
     return true;
   }

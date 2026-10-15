@@ -84,7 +84,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    * @throws NullPointerException if the configuration is null
    */
   public ScoreboardRenderer(final ScoreboardConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     final int lines = configuration.getLines();
     this.configuration = configuration;
     this.previousScoreboards = new HashMap<>();
@@ -108,7 +108,7 @@ public final class ScoreboardRenderer extends MainThreadRenderer<Component[]> {
    * @throws IllegalStateException if the image has been released
    */
   public void render(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     final int width = this.configuration.getWidth();
     final int lines = this.configuration.getLines();
     final ResizeFilter resize = new ResizeFilter(width, lines);

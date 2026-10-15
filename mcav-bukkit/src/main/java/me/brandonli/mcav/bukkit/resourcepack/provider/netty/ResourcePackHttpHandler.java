@@ -80,7 +80,7 @@ final class ResourcePackHttpHandler extends ChannelInboundHandlerAdapter {
   private static final int CHUNK_BYTES = 8 * 1024;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourcePackHttpHandler.class);
-  private static final String PACK_NOT_READ = "Could not read the resource pack for an HTTP download";
+  private static final String PACK_NOT_READ = "Could not read the resource pack for an HTTP download.";
   private static final byte[] GET = "GET ".getBytes(StandardCharsets.US_ASCII);
   private static final byte[] HEAD = "HEAD ".getBytes(StandardCharsets.US_ASCII);
   private static final String STATUS_OK = "200 OK";

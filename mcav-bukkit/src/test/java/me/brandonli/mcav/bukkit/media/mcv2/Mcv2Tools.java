@@ -67,7 +67,7 @@ final class Mcv2Tools {
 
   static void main(final String[] arguments) throws Exception {
     if (arguments.length == 0) {
-      throw new IllegalArgumentException("Expected bench, digests, generate-fixtures or shader-compile");
+      throw new IllegalArgumentException("Expected bench, digests, generate-fixtures or shader-compile!");
     }
     final String[] options = Arrays.copyOfRange(arguments, 1, arguments.length);
     switch (arguments[0]) {
@@ -75,7 +75,10 @@ final class Mcv2Tools {
       case "digests" -> digests(options);
       case "generate-fixtures" -> generateFixtures(options);
       case "shader-compile" -> System.exit(shaderCompile(options));
-      default -> throw new IllegalArgumentException("Unknown subcommand " + arguments[0]);
+      default -> {
+        final String message = "Subcommand %s is unknown!".formatted(arguments[0]);
+        throw new IllegalArgumentException(message);
+      }
     }
   }
 
@@ -164,7 +167,7 @@ final class Mcv2Tools {
 
   private static Path installNatives(final String mode) throws IOException {
     if (!mode.equals(MCV2.NATIVE_AUTO) && !mode.equals(MCV2.NATIVE_OFF)) {
-      throw new IllegalArgumentException("natives must be auto or off");
+      throw new IllegalArgumentException("natives must be auto or off!");
     }
     final Path folder = Files.createTempDirectory("mcv2-bench-natives-");
     MCV2.installNatives(folder, mode);
@@ -189,7 +192,10 @@ final class Mcv2Tools {
     Settings settings = switch (profile.toUpperCase(Locale.ROOT)) {
       case "DEFAULT" -> Settings.DEFAULT;
       case "FAST" -> Settings.FAST;
-      default -> throw new IllegalArgumentException("Unknown profile " + profile + "; valid profiles: DEFAULT, FAST");
+      default -> {
+        final String message = "Profile %s is unknown, the valid profiles are DEFAULT and FAST!".formatted(profile);
+        throw new IllegalArgumentException(message);
+      }
     };
     if (options.containsKey("lambda")) {
       settings = settings.withLambda(Double.parseDouble(options.get("lambda")));
@@ -463,7 +469,8 @@ final class Mcv2Tools {
         frame(archive, data);
         final byte[] picture = receiver.accept(data);
         if (!Arrays.equals(picture, encoder.getReference())) {
-          throw new IllegalStateException("Reference differs for " + name + " frame " + id);
+          final String message = "Reference for %s frame %s differs!".formatted(name, id);
+          throw new IllegalStateException(message);
         }
         hashes.add(Mcv2Resources.sha256(picture));
         if (name.equals("proxy-default.mcs") && id < 4) {
@@ -504,7 +511,7 @@ final class Mcv2Tools {
     final byte[] source = Files.readAllBytes(fixtures.resolve("encoder/crop-320x180x4.rgb"));
     final int bytes = 320 * 180 * CHANNELS;
     if (source.length != bytes * 4) {
-      throw new IllegalArgumentException("Expected exactly four 320x180 frames");
+      throw new IllegalArgumentException("Expected exactly four 320x180 frames!");
     }
     final MCV2 encoder = new MCV2(settings, pool, 1, true);
     final ByteArrayOutputStream archive = new ByteArrayOutputStream();
@@ -746,7 +753,8 @@ final class Mcv2Tools {
 
   private static void check(final int result, final String step) {
     if (result != Spvc.SPVC_SUCCESS) {
-      throw new IllegalStateException("SPIRV-Cross failed at " + step + ": " + result);
+      final String message = "SPIRV-Cross failed at %s with result %s!".formatted(step, result);
+      throw new IllegalStateException(message);
     }
   }
 }

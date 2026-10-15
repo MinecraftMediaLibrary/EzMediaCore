@@ -144,9 +144,9 @@ final class EntityConfigurationTest {
     final String noWidthMessage = noWidthException.getMessage();
     final String noHeightMessage = noHeightException.getMessage();
     final String noWorldMessage = noWorldException.getMessage();
-    assertEquals("Character must not be empty", emptyCharacterMessage);
-    assertEquals("Entity width must be positive", noWidthMessage);
-    assertEquals("Entity height must be positive", noHeightMessage);
-    assertEquals("Position must have a world", noWorldMessage);
+    assertEquals("Character must not be empty!", emptyCharacterMessage);
+    assertEquals("Entity width must be positive!", noWidthMessage);
+    assertEquals("Entity height must be positive!", noHeightMessage);
+    assertEquals("Position must have a world!", noWorldMessage);
   }
 }

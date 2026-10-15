@@ -53,6 +53,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class Mcv2Viewers {
 
+  private static final String PACK_ID_NULL_MESSAGE = "Pack id must not be null!";
+  private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
+
   /** What a player's client reported for the pack. */
   public enum PackState {
     /** The pack was requested and the client has not finished loading it. */
@@ -87,8 +90,8 @@ public final class Mcv2Viewers {
    * @throws NullPointerException if {@code packId} or {@code onRefused} is null
    */
   public Mcv2Viewers(final UUID packId, final Consumer<Player> onRefused) {
-    Preconditions.checkNotNull(packId, "Pack id must not be null");
-    Preconditions.checkNotNull(onRefused, "Refused callback must not be null");
+    Preconditions.checkNotNull(packId, PACK_ID_NULL_MESSAGE);
+    Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
     this.packId = packId;
     this.onRefused = onRefused;
     this.states = new ConcurrentHashMap<>();
@@ -136,7 +139,7 @@ public final class Mcv2Viewers {
    * @throws NullPointerException if {@code newPackId} is null
    */
   public void retarget(final UUID newPackId) {
-    Preconditions.checkNotNull(newPackId, "Pack id must not be null");
+    Preconditions.checkNotNull(newPackId, PACK_ID_NULL_MESSAGE);
     this.packId = newPackId;
     this.states.values().removeIf(state -> state != PackState.DECLINED);
     this.sessions.clear();
@@ -158,7 +161,7 @@ public final class Mcv2Viewers {
    * @throws NullPointerException if {@code player} is null
    */
   public void requested(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     this.states.put(player, PackState.REQUESTED);
   }
 
@@ -170,7 +173,7 @@ public final class Mcv2Viewers {
    * @throws NullPointerException if {@code player} is null
    */
   public @Nullable PackState getState(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     return this.states.get(player);
   }
 
@@ -200,7 +203,7 @@ public final class Mcv2Viewers {
    * @throws NullPointerException if {@code player} is null
    */
   public long getSession(final UUID player) {
-    Preconditions.checkNotNull(player, "Player must not be null");
+    Preconditions.checkNotNull(player, PLAYER_NULL_MESSAGE);
     return this.sessions.getOrDefault(player, 0L);
   }
 

@@ -101,7 +101,7 @@ final class PageAssemblerTest {
     final PageAssembler assembler = new PageAssembler(4, 6);
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(page(0)));
     final String message = exception.getMessage();
-    assertEquals("Wrong stream", message);
+    assertEquals("Wrong stream!", message);
 
     assertThrows(IllegalArgumentException.class, () -> new PageAssembler(1, 5));
     assertThrows(IllegalArgumentException.class, () -> new PageAssembler(1, 9));
@@ -125,7 +125,7 @@ final class PageAssemblerTest {
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(second));
     final String message = exception.getMessage();
-    assertEquals("Inconsistent pages", message);
+    assertEquals("Inconsistent pages!", message);
     final int pendingCount = assembler.getPendingCount();
     assertEquals(0, pendingCount);
   }
@@ -137,7 +137,7 @@ final class PageAssemblerTest {
     final byte[] conflicting = rewritten(page(0), 40, 0x12345678L);
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(conflicting));
     final String message = exception.getMessage();
-    assertEquals("Conflicting page duplicate", message);
+    assertEquals("Conflicting page duplicate!", message);
     final int pendingCount = assembler.getPendingCount();
     assertEquals(0, pendingCount);
   }
@@ -177,7 +177,7 @@ final class PageAssemblerTest {
     final byte[] last = rewritten(page(1), offset, value);
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> assembler.push(last));
     final String message = exception.getMessage();
-    assertEquals("Frame and page identity mismatch", message);
+    assertEquals("Frame and page identity mismatch!", message);
   }
 
   @Test

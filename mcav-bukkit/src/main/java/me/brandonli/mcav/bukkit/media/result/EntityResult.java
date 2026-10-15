@@ -47,7 +47,7 @@ public class EntityResult implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code configuration} is null
    */
   public EntityResult(final EntityConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Entity configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Entity configuration must not be null!");
     this.renderer = new EntityRenderer(configuration);
   }
 
@@ -69,8 +69,8 @@ public class EntityResult implements FunctionalVideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     this.renderer.render(data);
     return true;
   }

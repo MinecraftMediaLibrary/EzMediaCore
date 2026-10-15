@@ -73,7 +73,7 @@ import org.slf4j.LoggerFactory;
 public final class Mcv2Channel {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2Channel.class);
-  private static final String UNSENT_LIMIT_REFUSED = "The connection of viewer {} refused the limit of unsent bytes";
+  private static final String UNSENT_LIMIT_REFUSED = "The connection of viewer {} refused the limit of unsent bytes.";
 
   private static final int RANGE_MARGIN = 32;
 
@@ -115,9 +115,9 @@ public final class Mcv2Channel {
   }
 
   Mcv2Channel(final Mcv2Configuration configuration, final Mcv2Viewers viewers, final Mcv2Screen screen) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
-    Preconditions.checkNotNull(screen, "Screen must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
+    Preconditions.checkNotNull(screen, "Screen must not be null!");
     this.configuration = configuration;
     this.viewers = viewers;
     this.screen = screen;
@@ -206,7 +206,7 @@ public final class Mcv2Channel {
       return false;
     }
     // Bukkit throws if the location's world has unloaded.
-    final World wall = Objects.requireNonNull(this.configuration.getOrigin().getWorld(), "A screen's origin is in a world");
+    final World wall = Objects.requireNonNull(this.configuration.getOrigin().getWorld(), "A screen's origin is in a world!");
     if (!wall.getUID().equals(player.getWorld().getUID())) {
       return true;
     }
@@ -398,14 +398,15 @@ public final class Mcv2Channel {
    * @throws NullPointerException if {@code frame} is null
    */
   public int send(final byte[] frame) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
     final Frame header;
     final List<byte[]> pages;
     try {
       header = Mcv2Decoder.parse(frame);
       pages = TransportPages.makePages(header, this.configuration.getStreamId());
     } catch (final Mcv2Exception exception) {
-      throw new IllegalArgumentException("Not a valid MCV2 frame: " + exception.getMessage(), exception);
+      final String message = "Not a valid MCV2 frame (%s)!".formatted(exception.getMessage());
+      throw new IllegalArgumentException(message, exception);
     }
     final Mcv2SendEvent event = new Mcv2SendEvent();
     event.frameId = header.getFrameId();

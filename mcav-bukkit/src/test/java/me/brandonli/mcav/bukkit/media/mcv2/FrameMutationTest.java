@@ -104,7 +104,7 @@ final class FrameMutationTest {
     if (!parsed.isKeyframe() && (parsed.getReferenceId() != id || expectedLength != picture.length)) {
       final Mcv2Exception mismatch = assertThrows(Mcv2Exception.class, () -> Mcv2Decoder.decode(parsed, picture, id));
       final String message = mismatch.getMessage();
-      assertEquals("Reference frame mismatch", message);
+      assertEquals("Reference frame mismatch!", message);
       return;
     }
     final byte[] decoded = parsed.isKeyframe() ? Mcv2Decoder.decode(parsed, null, 0) : Mcv2Decoder.decode(parsed, picture, id);

@@ -53,10 +53,12 @@ import org.bytedeco.javacv.FrameGrabber;
  */
 public final class Mcv2FileEncoder {
 
+  private static final String SIZE_NOT_POSITIVE_MESSAGE = "Size must be positive!";
+
   private static final double NANOSECONDS_PER_MILLISECOND = 1e6;
 
   private Mcv2FileEncoder() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /** The frames of a video, one after another, as RGB bytes of one size. */
@@ -129,12 +131,12 @@ public final class Mcv2FileEncoder {
     final OutputStream output,
     final LongConsumer progress
   ) throws IOException, InterruptedException {
-    Preconditions.checkNotNull(frames, "Frames must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Size must be positive");
-    Preconditions.checkNotNull(settings, "Settings must not be null");
-    Preconditions.checkNotNull(budget, "Budget must not be null");
-    Preconditions.checkNotNull(output, "Output must not be null");
-    Preconditions.checkNotNull(progress, "Progress must not be null");
+    Preconditions.checkNotNull(frames, "Frames must not be null!");
+    Preconditions.checkArgument(width > 0 && height > 0, SIZE_NOT_POSITIVE_MESSAGE);
+    Preconditions.checkNotNull(settings, "Settings must not be null!");
+    Preconditions.checkNotNull(budget, "Budget must not be null!");
+    Preconditions.checkNotNull(output, "Output must not be null!");
+    Preconditions.checkNotNull(progress, "Progress must not be null!");
     try (frames) {
       final MCV2 encoder = budget.encoder(settings, false);
       encoder.setFrameLimit(screenFrameLimit(width, height));
@@ -188,8 +190,8 @@ public final class Mcv2FileEncoder {
    * @throws NullPointerException if {@code video} is null
    */
   public static FrameReader ffmpeg(final Path video, final int width, final int height) throws IOException {
-    Preconditions.checkNotNull(video, "Video must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Size must be positive");
+    Preconditions.checkNotNull(video, "Video must not be null!");
+    Preconditions.checkArgument(width > 0 && height > 0, SIZE_NOT_POSITIVE_MESSAGE);
     return open(new FFmpegFrameGrabber(video.toFile()), video.toString(), width, height);
   }
 
@@ -203,7 +205,8 @@ public final class Mcv2FileEncoder {
       grabber.start();
     } catch (final FFmpegFrameGrabber.Exception exception) {
       closeQuietly(grabber);
-      throw new IOException("Cannot open " + name + ": " + exception.getMessage(), exception);
+      final String message = "Cannot open %s (%s)!".formatted(name, exception.getMessage());
+      throw new IOException(message, exception);
     }
     return new GrabberReader(grabber, width, height);
   }
@@ -236,7 +239,8 @@ public final class Mcv2FileEncoder {
       try {
         frame = this.grabber.grabImage();
       } catch (final FFmpegFrameGrabber.Exception exception) {
-        throw new IOException("Cannot decode the video: " + exception.getMessage(), exception);
+        final String message = "Cannot decode the video (%s)!".formatted(exception.getMessage());
+        throw new IOException(message, exception);
       }
       if (frame == null) {
         return false;
@@ -250,13 +254,14 @@ public final class Mcv2FileEncoder {
       try {
         this.grabber.close();
       } catch (final FrameGrabber.Exception exception) {
-        throw new IOException("Cannot close the video: " + exception.getMessage(), exception);
+        final String message = "Cannot close the video (%s)!".formatted(exception.getMessage());
+        throw new IOException(message, exception);
       }
     }
   }
 
   static void copy(final Frame frame, final byte[] pictureBytes, final int width, final int height) {
-    Preconditions.checkState(frame.imageWidth == width && frame.imageHeight == height, "The frame is not %sx%s", width, height);
+    Preconditions.checkState(frame.imageWidth == width && frame.imageHeight == height, "The frame must be %sx%s pixels!", width, height);
     final ByteBuffer pixels = ((ByteBuffer) frame.image[0]).duplicate();
     final int rowBytes = width * Mcv2Decoder.CHANNELS;
     for (int row = 0; row < height; row++) {

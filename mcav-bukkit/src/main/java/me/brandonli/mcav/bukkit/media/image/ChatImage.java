@@ -48,7 +48,7 @@ public class ChatImage implements DisplayableImage {
    */
   @Override
   public void displayImage(final ImageBuffer image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     final int width = this.configuration.getChatWidth();
     final int height = this.configuration.getChatHeight();
     final ResizeFilter resize = new ResizeFilter(width, height);

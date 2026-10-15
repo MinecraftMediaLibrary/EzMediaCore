@@ -48,9 +48,9 @@ public abstract class MainThreadRenderer<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MainThreadRenderer.class);
   private static final String TASK_SKIPPED_WHILE_DISABLED =
-    "Skipped a task because the plugin {} is disabled; release displays on the main thread during shutdown";
+    "Skipped a task because the plugin {} is disabled; release displays on the main thread during shutdown.";
   private static final String TASK_SKIPPED_BEFORE_SCHEDULING =
-    "Skipped a task because the plugin {} became disabled before scheduling; release displays on the main thread during shutdown";
+    "Skipped a task because the plugin {} became disabled before scheduling; release displays on the main thread during shutdown.";
   private static final long START_DELAY_TICKS = 0L;
   private static final long PERIOD_TICKS = 1L;
 
@@ -103,7 +103,7 @@ public abstract class MainThreadRenderer<T> {
    * @throws NullPointerException if {@code initialize} is null
    */
   protected final void showDisplay(final Runnable initialize) {
-    Preconditions.checkNotNull(initialize, "Initialization must not be null");
+    Preconditions.checkNotNull(initialize, "Initialization must not be null!");
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
@@ -130,7 +130,7 @@ public abstract class MainThreadRenderer<T> {
    * @throws NullPointerException if {@code remove} is null
    */
   protected final void hideDisplay(final Runnable remove) {
-    Preconditions.checkNotNull(remove, "Removal must not be null");
+    Preconditions.checkNotNull(remove, "Removal must not be null!");
     final long generation;
     synchronized (this) {
       generation = ++this.visibilityGeneration;
@@ -156,7 +156,7 @@ public abstract class MainThreadRenderer<T> {
    * @throws NullPointerException if {@code frame} is null
    */
   protected void submit(final T frame) {
-    Preconditions.checkNotNull(frame, "Frame must not be null");
+    Preconditions.checkNotNull(frame, "Frame must not be null!");
     this.pendingFrame.set(frame);
   }
 
@@ -195,7 +195,7 @@ public abstract class MainThreadRenderer<T> {
    * @throws NullPointerException if {@code task} is null
    */
   public static void runOnMainThread(final Runnable task) {
-    Preconditions.checkNotNull(task, "Task must not be null");
+    Preconditions.checkNotNull(task, "Task must not be null!");
     final boolean onMainThread = Bukkit.isPrimaryThread();
     if (onMainThread) {
       task.run();

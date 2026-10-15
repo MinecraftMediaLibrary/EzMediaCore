@@ -21,7 +21,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 final class Mcv2WireFrames {
 
   private Mcv2WireFrames() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   static byte[] block(final int size, final int mode, final int quantizer, final byte[] record, final boolean keyframe) {

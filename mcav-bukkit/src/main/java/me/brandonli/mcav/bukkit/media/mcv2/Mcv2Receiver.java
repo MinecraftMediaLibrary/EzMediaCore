@@ -59,10 +59,10 @@ public final class Mcv2Receiver {
   public byte[] accept(final byte[] data) throws Mcv2Exception {
     final Frame frame = Mcv2Decoder.parse(data);
     if (this.frameId >= 0 && !Mcv2Decoder.follows(frame.getFrameId(), this.frameId)) {
-      throw new Mcv2Exception("Stale or ambiguous frame number");
+      throw new Mcv2Exception("Stale or ambiguous frame number!");
     }
     if (!frame.isKeyframe() && (frame.getWidth() != this.width || frame.getHeight() != this.height)) {
-      throw new Mcv2Exception("Reference frame dimensions mismatch");
+      throw new Mcv2Exception("Reference frame dimensions mismatch!");
     }
     final byte[] result = Mcv2Decoder.decode(frame, this.reference, this.frameId);
     this.reference = result;

@@ -121,17 +121,17 @@ final class MCV2WorkersTest {
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAFailure() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new IllegalStateException("body failed"));
+    assertFailureWaitsForSibling(false, new IllegalStateException("body failed!"));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAScratchFailure() throws InterruptedException {
-    assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed"));
+    assertFailureWaitsForSibling(true, new IllegalStateException("scratch failed!"));
   }
 
   @Test
   void shouldWaitForOtherCallbacksBeforePropagatingAnError() throws InterruptedException {
-    assertFailureWaitsForSibling(false, new AssertionError("body failed"));
+    assertFailureWaitsForSibling(false, new AssertionError("body failed!"));
   }
 
   private static void assertFailureWaitsForSibling(final boolean failInSupplier, final Throwable failure) throws InterruptedException {

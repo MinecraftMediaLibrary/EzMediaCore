@@ -25,7 +25,7 @@ import java.util.HexFormat;
 public final class Mcv2Resources {
 
   private Mcv2Resources() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

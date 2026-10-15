@@ -50,7 +50,7 @@ final class MCV2PipelineTest {
 
   private static final ForkJoinPool POOL = ForkJoinPool.commonPool();
 
-  private static final String STOPPED = "The encoder stopped after a frame failed its verification";
+  private static final String STOPPED = "The encoder stopped after a frame failed its verification!";
 
   /** Encodes a panning scene one frame at a time. */
   static List<byte[]> sequential(
@@ -115,7 +115,7 @@ final class MCV2PipelineTest {
     factory.set(
       encoder,
       (Supplier<?>) () -> {
-        throw new IllegalStateException("search failed");
+        throw new IllegalStateException("search failed!");
       }
     );
     final byte[] failed = new byte[32 * 32 * 3];
@@ -217,13 +217,13 @@ final class MCV2PipelineTest {
       encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2)
     );
     final String beginMessage = beginException.getMessage();
-    assertEquals("Two frames are in flight already", beginMessage);
+    assertEquals("Two frames are in flight already!", beginMessage);
 
     encoder.finish(first);
     encoder.begin(Mcv2Pictures.scene(64, 64, 2, 2), 64, 64, 2);
     final IllegalStateException finishException = assertThrows(IllegalStateException.class, () -> encoder.finish(first));
     final String finishMessage = finishException.getMessage();
-    assertEquals("The frame is finished already", finishMessage);
+    assertEquals("The frame is finished already!", finishMessage);
     assertThrows(NullPointerException.class, () -> encoder.finish(null));
   }
 
@@ -237,7 +237,7 @@ final class MCV2PipelineTest {
     ((byte[]) picture.get(frame))[0] ^= 1;
     final IllegalStateException finishException = assertThrows(IllegalStateException.class, () -> encoder.finish(frame));
     final String finishMessage = finishException.getMessage();
-    assertEquals("MCV2 live picture and decoded picture disagree", finishMessage);
+    assertEquals("MCV2 live picture and decoded picture disagree!", finishMessage);
     // the frame in flight predicts from the failed frame's picture: it is never finished, and nothing is encoded after
     final IllegalStateException nextException = assertThrows(IllegalStateException.class, () -> encoder.finish(next));
     final String nextMessage = nextException.getMessage();

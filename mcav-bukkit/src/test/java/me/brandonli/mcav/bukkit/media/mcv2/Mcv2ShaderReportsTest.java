@@ -132,13 +132,13 @@ final class Mcv2ShaderReportsTest {
       final boolean blocksWithShadersUnknown = this.reports.blocksDecoding(ALICE);
       assertFalse(blocksWithShadersUnknown, "a shader pack Iris cannot tell leaves the screens as they were");
       final List<String> expectedInfoMessages = List.of(
-        "The MCV2 client mod of Alice reports no Iris: MCV2 screens show them the video",
-        "The MCV2 client mod of Alice reports Iris without a shader pack: MCV2 screens show them the video",
-        "The MCV2 client mod of Alice reports Iris with a shader pack in use: MCV2 screens show them the dithered maps",
-        "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video",
-        "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video"
+        "The MCV2 client mod of Alice reports no Iris: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris without a shader pack: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris with a shader pack in use: MCV2 screens show them the dithered maps.",
+        "The MCV2 client mod of Alice reports Iris with a shader pack MCV2 decodes under: MCV2 screens show them the video.",
+        "The MCV2 client mod of Alice reports Iris, whose shader pack the mod cannot tell: MCV2 screens show them the video."
       );
-      final List<String> infoMessages = messages(logs, Level.INFO);
+      final List<String> infoMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedInfoMessages, infoMessages, "one line for each change, none for a report that repeats the last");
     }
   }
@@ -165,7 +165,7 @@ final class Mcv2ShaderReportsTest {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.sendLater(this.alice, message);
 
-      final List<String> expectedDebugMessages = List.of("Ignoring a malformed MCV2 client report from Alice");
+      final List<String> expectedDebugMessages = List.of("Ignoring a malformed MCV2 client report from Alice.");
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
       final List<String> infoMessages = messages(logs, Level.INFO);
@@ -182,7 +182,7 @@ final class Mcv2ShaderReportsTest {
     try (final LogCapture logs = LogCapture.capture(Mcv2ShaderReports.class)) {
       this.send(this.alice, new byte[] { version, 1, 1, 0 });
 
-      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report of version " + version + " from Alice");
+      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report of version %s from Alice.".formatted(version));
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
     }
@@ -204,12 +204,12 @@ final class Mcv2ShaderReportsTest {
       }
 
       final List<String> expectedDebugMessages = List.of(
-        "Ignoring a malformed MCV2 client report from Alice",
-        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64",
-        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64"
+        "Ignoring a malformed MCV2 client report from Alice.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes.",
+        "Ignoring an MCV2 client report of 65 bytes from Alice: a report has at most 64 bytes."
       );
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
@@ -242,7 +242,7 @@ final class Mcv2ShaderReportsTest {
 
       final boolean blocksPastTheBurst = this.reports.blocksDecoding(ALICE);
       assertTrue(blocksPastTheBurst);
-      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report from Alice: more than one a second");
+      final List<String> expectedDebugMessages = List.of("Ignoring an MCV2 client report from Alice: more than one a second.");
       final List<String> debugMessages = messages(logs, Level.DEBUG);
       assertEquals(expectedDebugMessages, debugMessages);
     }

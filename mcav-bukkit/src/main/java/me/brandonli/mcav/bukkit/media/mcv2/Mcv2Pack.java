@@ -135,7 +135,7 @@ public final class Mcv2Pack {
   private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
   private Mcv2Pack() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -148,7 +148,7 @@ public final class Mcv2Pack {
    * @throws NullPointerException if {@code configuration} or {@code archivePath} is null
    */
   public static void write(final Mcv2Configuration configuration, final boolean showsDebugView, final Path archivePath) {
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
     write(List.of(configuration), showsDebugView, archivePath);
   }
 
@@ -166,8 +166,8 @@ public final class Mcv2Pack {
    * @throws NullPointerException if {@code screens} or {@code archivePath} is null
    */
   public static void write(final List<Mcv2Configuration> screens, final boolean showsDebugView, final Path archivePath) {
-    Preconditions.checkNotNull(screens, "Screens must not be null");
-    Preconditions.checkNotNull(archivePath, "Zip must not be null");
+    Preconditions.checkNotNull(screens, "Screens must not be null!");
+    Preconditions.checkNotNull(archivePath, "Zip must not be null!");
     checkScreens(screens);
     final SimpleResourcePack pack = SimpleResourcePack.pack();
     pack.meta(PACK_FORMAT, describe(screens));
@@ -194,12 +194,12 @@ public final class Mcv2Pack {
   }
 
   private static void checkScreens(final List<Mcv2Configuration> screens) {
-    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAX_SCREENS, "A pack has 1 to %s screens", MAX_SCREENS);
+    Preconditions.checkArgument(!screens.isEmpty() && screens.size() <= MAX_SCREENS, "A pack has 1 to %s screens!", MAX_SCREENS);
     final Set<Long> streams = screens.stream().map(Mcv2Configuration::getStreamId).collect(Collectors.toSet());
-    Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id");
+    Preconditions.checkArgument(streams.size() == screens.size(), "Every screen of a pack needs its own stream id!");
     final NamedTextColor outline = screens.getFirst().getOutlineColor();
     final boolean oneOutline = screens.stream().allMatch(screen -> screen.getOutlineColor().equals(outline));
-    Preconditions.checkArgument(oneOutline, "The screens of a pack share one outline colour");
+    Preconditions.checkArgument(oneOutline, "The screens of a pack share one outline colour!");
   }
 
   static String describe(final List<Mcv2Configuration> screens) {
@@ -222,12 +222,14 @@ public final class Mcv2Pack {
 
   static byte[] read(final @Nullable InputStream stream, final String file) {
     if (stream == null) {
-      throw new IllegalStateException("Missing MCV2 pack resource " + file);
+      final String message = "MCV2 pack resource %s is missing!".formatted(file);
+      throw new IllegalStateException(message);
     }
     try (stream) {
       return stream.readAllBytes();
     } catch (final IOException exception) {
-      throw new UncheckedIOException("Cannot read MCV2 pack resource " + file, exception);
+      final String message = "MCV2 pack resource %s cannot be read!".formatted(file);
+      throw new UncheckedIOException(message, exception);
     }
   }
 
@@ -237,7 +239,7 @@ public final class Mcv2Pack {
 
   static String screenCopy(final byte[] source, final int screen) {
     final String text = new String(source, StandardCharsets.UTF_8);
-    Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl");
+    Preconditions.checkState(text.contains(SCREEN_INCLUDE), "A screen's pass must include mcv2_screen.glsl!");
     return text.replace(SCREEN_INCLUDE, "#include <mcav:" + screenInclude(screen) + ">");
   }
 
@@ -372,13 +374,8 @@ public final class Mcv2Pack {
     final Set<Integer> seen = new HashSet<>();
     for (int symbol = 0; symbol < colors.length; symbol++) {
       if (!seen.add(colors[symbol])) {
-        throw new IllegalStateException(
-          String.format(
-            Locale.getDefault(Locale.Category.FORMAT),
-            "Map colours %d and another symbol are the same RGB",
-            symbol + MapAlphabet.FIRST_COLOR
-          )
-        );
+        final String message = "Map colours %s and another symbol are the same RGB!".formatted(symbol + MapAlphabet.FIRST_COLOR);
+        throw new IllegalStateException(message);
       }
     }
     final int multiplier = symbolHash(colors, maxMultiplier);
@@ -428,9 +425,12 @@ public final class Mcv2Pack {
         return multiplier;
       }
     }
-    throw new IllegalStateException(
-      String.format(Locale.ROOT, "No odd multiplier up to %d gives the map colours distinct symbol entries", maxMultiplier)
+    final String message = String.format(
+      Locale.ROOT,
+      "No odd multiplier up to %d gives the map colours distinct symbol entries!",
+      maxMultiplier
     );
+    throw new IllegalStateException(message);
   }
 
   // Minecraft's shaderc inserts an include every time it is named, including through another include.

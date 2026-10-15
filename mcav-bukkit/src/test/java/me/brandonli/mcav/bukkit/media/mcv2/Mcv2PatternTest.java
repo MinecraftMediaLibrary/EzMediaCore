@@ -65,6 +65,6 @@ final class Mcv2PatternTest {
       Mcv2Decoder.parse(Mcv2WireFrames.block(8, 4, 0, shifted, true))
     );
     final String message = exception.getMessage();
-    assertEquals("Truncated record", message);
+    assertEquals("Truncated record!", message);
   }
 }

@@ -219,7 +219,7 @@ public class MapConfiguration {
      * @throws NullPointerException if the viewers are null
      */
     public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
+      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
     }
@@ -288,13 +288,13 @@ public class MapConfiguration {
      * @throws NullPointerException     if the viewers were not set
      */
     public MapConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
+      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
 
-      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative");
-      Preconditions.checkArgument(this.mapBlockWidth > 0, "Map block width must be positive");
-      Preconditions.checkArgument(this.mapBlockHeight > 0, "Map block height must be positive");
-      Preconditions.checkArgument(this.mapWidthResolution >= 0, "Map width resolution must not be negative");
-      Preconditions.checkArgument(this.mapHeightResolution >= 0, "Map height resolution must not be negative");
+      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative!");
+      Preconditions.checkArgument(this.mapBlockWidth > 0, "Map block width must be positive!");
+      Preconditions.checkArgument(this.mapBlockHeight > 0, "Map block height must be positive!");
+      Preconditions.checkArgument(this.mapWidthResolution >= 0, "Map width resolution must not be negative!");
+      Preconditions.checkArgument(this.mapHeightResolution >= 0, "Map height resolution must not be negative!");
 
       final int widthResolution = resolveResolution(this.mapWidthResolution, this.mapBlockWidth);
       final int heightResolution = resolveResolution(this.mapHeightResolution, this.mapBlockHeight);
@@ -305,7 +305,7 @@ public class MapConfiguration {
       if (configuredResolution > 0) {
         return configuredResolution;
       }
-      Preconditions.checkArgument(maps <= Integer.MAX_VALUE / MapLayout.MAP_SIZE, "Native map resolution exceeds the integer range");
+      Preconditions.checkArgument(maps <= Integer.MAX_VALUE / MapLayout.MAP_SIZE, "Native map resolution exceeds the integer range!");
       return MapLayout.MAP_SIZE * maps;
     }
   }

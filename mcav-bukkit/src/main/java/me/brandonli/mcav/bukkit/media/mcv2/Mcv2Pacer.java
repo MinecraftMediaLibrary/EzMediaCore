@@ -111,8 +111,8 @@ public final class Mcv2Pacer {
      * @throws IllegalArgumentException if the cost is not positive and finite
      */
     public Preset {
-      Preconditions.checkNotNull(name, "Name must not be null");
-      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite");
+      Preconditions.checkNotNull(name, "Name must not be null!");
+      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite!");
     }
 
     private String suffix() {
@@ -310,18 +310,18 @@ public final class Mcv2Pacer {
    * @throws NullPointerException if the sizes or one of its arrays is null, or presets is null
    */
   public Mcv2Pacer(final List<int[]> sizes, final List<Preset> presets, final boolean dithered) {
-    Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed");
-    Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed");
+    Preconditions.checkArgument(!sizes.isEmpty(), "At least one size is needed!");
+    Preconditions.checkArgument(!presets.isEmpty(), "At least one preset is needed!");
     for (int index = 1; index < presets.size(); index++) {
       Preconditions.checkArgument(
         presets.get(index).cost() < presets.get(index - 1).cost(),
-        "Each preset must cost less than the one before"
+        "Each preset must cost less than the one before!"
       );
     }
     final Preset fastest = presets.getLast();
     final List<Rung> rungs = new ArrayList<>();
     for (final int[] size : sizes) {
-      Preconditions.checkArgument(size.length == 2 && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height");
+      Preconditions.checkArgument(size.length == 2 && size[0] > 0 && size[1] > 0, "Sizes must be positive width and height!");
       for (final Preset preset : presets.subList(0, presets.size() - 1)) {
         rungs.add(new Rung(size[0], size[1], 1, preset));
       }
@@ -411,7 +411,7 @@ public final class Mcv2Pacer {
    * @throws IllegalArgumentException if milliseconds is negative, NaN or infinite
    */
   public @Nullable Change encoded(final double milliseconds, final boolean isKeyframe, final long now) {
-    Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative");
+    Preconditions.checkArgument(milliseconds >= 0 && Double.isFinite(milliseconds), "Time must be finite and non-negative!");
     final Rung rung = this.getRung();
     if (isKeyframe || rung.isDithered() || Double.isNaN(this.videoInterval)) {
       return null;

@@ -196,10 +196,10 @@ final class Mcv2ScreenTest {
     final Mcv2Screen screen = new Mcv2Screen(unloaded);
     final NullPointerException missingWorld = assertThrows(NullPointerException.class, screen::build);
     final String missingWorldMessage = missingWorld.getMessage();
-    assertEquals("The origin must be in a world", missingWorldMessage);
+    assertEquals("The origin must be in a world!", missingWorldMessage);
     final NullPointerException missingConfiguration = assertThrows(NullPointerException.class, () -> new Mcv2Screen(null));
     final String missingConfigurationMessage = missingConfiguration.getMessage();
-    assertEquals("Configuration must not be null", missingConfigurationMessage);
+    assertEquals("Configuration must not be null!", missingConfigurationMessage);
     final List<ItemFrame> framesAfterFailure = screen.getFrames();
     assertEquals(List.of(), framesAfterFailure, "a failed build leaves no page frames");
   }

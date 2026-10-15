@@ -38,7 +38,7 @@ public final class ServerAddress {
   private static volatile @Nullable String publicAddress;
 
   private ServerAddress() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -64,7 +64,7 @@ public final class ServerAddress {
    */
   @VisibleForTesting
   static String getPublicIPAddress(final URI addressService) {
-    Preconditions.checkNotNull(addressService, "Address service must not be null");
+    Preconditions.checkNotNull(addressService, "Address service must not be null!");
     final String configuredAddress = Bukkit.getIp();
     final boolean hasConfiguredAddress = isConfiguredAddress(configuredAddress);
     if (hasConfiguredAddress) {
@@ -107,7 +107,7 @@ public final class ServerAddress {
    * @throws NullPointerException if the address is null
    */
   public static boolean isFallbackAddress(final String address) {
-    Preconditions.checkNotNull(address, "Address must not be null");
+    Preconditions.checkNotNull(address, "Address must not be null!");
     return address.equals(FALLBACK_ADDRESS);
   }
 }

@@ -261,7 +261,7 @@ final class NettyHostingTest {
     Files.write(unreadable, PACK);
     final NettyHosting hosting = new NettyHosting(unreadable);
     try (final MockedStatic<Files> files = Mockito.mockStatic(Files.class, CALLS_REAL_METHODS)) {
-      files.when(() -> Files.readAllBytes(unreadable)).thenThrow(new IOException("no permission"));
+      files.when(() -> Files.readAllBytes(unreadable)).thenThrow(new IOException("No permission!"));
 
       hosting.start();
 
@@ -283,7 +283,7 @@ final class NettyHostingTest {
 
     final String message = exception.getMessage();
     final int after = listenerCount();
-    final String expectedMessage = "Resource pack does not exist: " + missing;
+    final String expectedMessage = "Resource pack %s does not exist!".formatted(missing);
     assertEquals(expectedMessage, message);
     assertEquals(before, after);
   }
@@ -365,30 +365,30 @@ final class NettyHostingTest {
 
   @Test
   void shouldKeepTheMessageInExceptions() {
-    final InjectorException exception = new InjectorException("message");
+    final InjectorException exception = new InjectorException("Message!");
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseInExceptions() {
-    final IOException failure = new IOException("cause");
-    final InjectorException exception = new InjectorException("message", failure);
+    final IOException failure = new IOException("Cause!");
+    final InjectorException exception = new InjectorException("Message!", failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertSame(failure, cause);
   }
 
   @Test
   void shouldMakeExceptionsIllegalStateExceptions() {
-    final InjectorException exception = new InjectorException("message");
+    final InjectorException exception = new InjectorException("Message!");
     assertInstanceOf(IllegalStateException.class, exception, "a missing pack is a state of the server, so it is no Error");
   }
 }

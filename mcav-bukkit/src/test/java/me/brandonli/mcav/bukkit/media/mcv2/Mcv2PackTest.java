@@ -399,7 +399,7 @@ final class Mcv2PackTest {
     clash[5] = clash[4];
     final IllegalStateException clashException = assertThrows(IllegalStateException.class, () -> Mcv2Pack.alphabet(clash));
     final String clashMessage = clashException.getMessage();
-    assertEquals("Map colours 9 and another symbol are the same RGB", clashMessage);
+    assertEquals("Map colours 9 and another symbol are the same RGB!", clashMessage);
 
     final int[] two = { 0x010203, 0x040506 };
     final String empty = " 4294967295u,";
@@ -423,24 +423,24 @@ final class Mcv2PackTest {
     assertEquals(expectedTwoColorAlphabet, alphabetUpToSixtyFive);
     final IllegalStateException exhaustedException = assertThrows(IllegalStateException.class, () -> Mcv2Pack.alphabet(two, 63));
     final String exhaustedMessage = exhaustedException.getMessage();
-    assertEquals("No odd multiplier up to 63 gives the map colours distinct symbol entries", exhaustedMessage);
+    assertEquals("No odd multiplier up to 63 gives the map colours distinct symbol entries!", exhaustedMessage);
   }
 
   @Test
   void shouldReportAMissingOrUnreadableResource() {
     final IllegalStateException missingException = assertThrows(IllegalStateException.class, () -> Mcv2Pack.read(null, "none"));
     final String missingMessage = missingException.getMessage();
-    assertEquals("Missing MCV2 pack resource none", missingMessage);
+    assertEquals("MCV2 pack resource none is missing!", missingMessage);
 
     final InputStream broken = new InputStream() {
       @Override
       public int read() throws IOException {
-        throw new IOException("broken");
+        throw new IOException("broken!");
       }
 
       @Override
       public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-        throw new IOException("broken");
+        throw new IOException("broken!");
       }
     };
     assertThrows(UncheckedIOException.class, () -> Mcv2Pack.read(broken, "broken"));

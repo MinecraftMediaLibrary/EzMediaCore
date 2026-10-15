@@ -157,7 +157,7 @@ final class BlockPaletteLookupTest {
       final Throwable cause = exception.getCause();
       final String message = exception.getMessage();
       assertInstanceOf(IOException.class, cause);
-      assertEquals("close failed", message);
+      assertEquals("Close failed!", message);
     }
   }
 
@@ -233,7 +233,7 @@ final class BlockPaletteLookupTest {
       this.content.close();
       this.closed = true;
       if (firstClose && this.failOnFirstClose) {
-        throw new IOException("close failed");
+        throw new IOException("Close failed!");
       }
     }
   }

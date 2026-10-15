@@ -39,7 +39,7 @@ final class MCV2WriterTest {
         Mcv2Trees.write(size[0], size[1], 0, 0, true, one)
       );
       final String message = exception.getMessage();
-      assertEquals("Invalid dimensions", message);
+      assertEquals("Invalid dimensions!", message);
     }
 
     assertThrows(IllegalArgumentException.class, () -> Mcv2Trees.write(64, 32, 0, 0, true, one));
@@ -63,7 +63,7 @@ final class MCV2WriterTest {
   void shouldRefuseLeavesThatAreNotLeaves() {
     for (int mode = 7; mode <= 31; mode++) {
       final Node node = Node.leaf(mode, 0, new byte[2]);
-      final String expected = "Illegal leaf mode " + mode;
+      final String expected = "Leaf mode %s is illegal!".formatted(mode);
       final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node));
       final String message = exception.getMessage();
       assertEquals(expected, message);
@@ -72,12 +72,12 @@ final class MCV2WriterTest {
     final Node shortRecord = Node.leaf(Mcv2Decoder.MODE_SOLID, 0, new byte[2]);
     final IllegalArgumentException shortRecordException = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, shortRecord));
     final String shortRecordMessage = shortRecordException.getMessage();
-    assertEquals("Record length disagrees with its mode", shortRecordMessage);
+    assertEquals("Record length disagrees with its mode!", shortRecordMessage);
 
     final Node deep = split(split(split(solid(1, 1, 1))));
     final IllegalArgumentException deepException = assertThrows(IllegalArgumentException.class, () -> keyframe(32, 32, deep));
     final String deepMessage = deepException.getMessage();
-    assertEquals("Split below the bounded depth", deepMessage);
+    assertEquals("Split below the bounded depth!", deepMessage);
   }
 
   @Test
@@ -105,7 +105,7 @@ final class MCV2WriterTest {
     )) {
       final IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> predicted(32, 32, node));
       final String message = exception.getMessage();
-      assertEquals("Quantizer on a mode without one", message);
+      assertEquals("Quantizer on a mode without one!", message);
     }
 
     final Node coarse = Node.leaf(Mcv2Decoder.MODE_COMPACT, 2, new byte[10]);

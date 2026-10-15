@@ -82,7 +82,7 @@ public class CompressedMapResult implements DitherResultStep {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CompressedMapResult.class);
 
-  private static final String DITHERING_THREAD_FAILED = "Uncaught exception in map dithering thread {}";
+  private static final String DITHERING_THREAD_FAILED = "Map dithering thread {} failed with an uncaught exception.";
 
   private final MapConfiguration configuration;
   private final int maxBytesPerFrame;
@@ -116,8 +116,8 @@ public class CompressedMapResult implements DitherResultStep {
    * @throws NullPointerException if {@code configuration} is null
    */
   public CompressedMapResult(final MapConfiguration configuration, final int maxBytesPerFrame) {
-    Preconditions.checkNotNull(configuration, "Map configuration must not be null");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive");
+    Preconditions.checkNotNull(configuration, "Map configuration must not be null!");
+    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive!");
     this.configuration = configuration;
     this.maxBytesPerFrame = maxBytesPerFrame;
     this.activeViewers = new HashMap<>();
@@ -136,8 +136,8 @@ public class CompressedMapResult implements DitherResultStep {
    */
   @Override
   public void process(final ImageBuffer samples, final DitherAlgorithm algorithm) {
-    Preconditions.checkNotNull(samples, "Samples must not be null");
-    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null");
+    Preconditions.checkNotNull(samples, "Samples must not be null!");
+    Preconditions.checkNotNull(algorithm, "Dither algorithm must not be null!");
     this.lock.lock();
     try {
       if (this.released) {

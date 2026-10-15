@@ -34,7 +34,7 @@ import me.brandonli.mcav.media.source.file.FileSource;
 public final class JavaDocFormattingExample {
 
   private JavaDocFormattingExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
   /**

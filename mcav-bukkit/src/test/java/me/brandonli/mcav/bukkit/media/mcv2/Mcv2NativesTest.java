@@ -162,12 +162,12 @@ final class Mcv2NativesTest {
     final InputStream failing = new InputStream() {
       @Override
       public int read() throws IOException {
-        throw new IOException("unreadable");
+        throw new IOException("unreadable!");
       }
 
       @Override
       public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-        throw new IOException("unreadable");
+        throw new IOException("unreadable!");
       }
     };
     assertThrows(UncheckedIOException.class, () -> Natives.read(failing));
@@ -202,12 +202,12 @@ final class Mcv2NativesTest {
     final InputStream failing = new InputStream() {
       @Override
       public int read() throws IOException {
-        throw new IOException("unreadable manifest");
+        throw new IOException("unreadable manifest!");
       }
 
       @Override
       public int read(final byte[] buffer, final int offset, final int length) throws IOException {
-        throw new IOException("unreadable manifest");
+        throw new IOException("unreadable manifest!");
       }
     };
     final Map<String, String> failingDigests = Natives.digests(failing);
@@ -215,7 +215,8 @@ final class Mcv2NativesTest {
   }
 
   private static byte @Nullable [] unexpected(final String platform) {
-    throw new AssertionError("no library should be read for " + platform);
+    final String message = "No library should be read for %s!".formatted(platform);
+    throw new AssertionError(message);
   }
 
   @Test
@@ -260,7 +261,7 @@ final class Mcv2NativesTest {
       "linux-x86_64",
       this.folder,
       platform -> {
-        throw new UncheckedIOException(new IOException("unreadable"));
+        throw new UncheckedIOException(new IOException("unreadable!"));
       },
       null
     );
@@ -397,9 +398,9 @@ final class Mcv2NativesTest {
   @Test
   @SuppressWarnings("restricted")
   void shouldPassLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
+    assumeTrue(NativeTesting.expected(), "no library loads here!");
     final long features = Natives.hardwareCapabilities(Path.of("/proc/self/auxv"));
-    assumeTrue(features != 0, "Linux must supply processor feature bits");
+    assumeTrue(features != 0, "Linux must supply processor feature bits!");
     final AtomicLong received = new AtomicLong(-1);
     final MethodHandle capture = MethodHandles.lookup()
       .findVirtual(AtomicLong.class, "getAndSet", MethodType.methodType(long.class, long.class))
@@ -455,9 +456,9 @@ final class Mcv2NativesTest {
 
   @Test
   void shouldRunTheLevelsProcCpuinfoListsTheFeaturesOf() throws IOException {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
+    assumeTrue(NativeTesting.expected(), "no library loads here!");
     final Path cpuinfo = Path.of("/proc/cpuinfo");
-    assumeTrue(Files.isReadable(cpuinfo), "no /proc/cpuinfo here");
+    assumeTrue(Files.isReadable(cpuinfo), "no /proc/cpuinfo here!");
     final Set<String> flags = new HashSet<>();
     for (final String line : Files.readAllLines(cpuinfo)) {
       // x86-64 lists its features as flags, AArch64 as Features
@@ -508,7 +509,7 @@ final class Mcv2NativesTest {
 
   @Test
   void shouldBindTheLibraryAndRefuseAWrongOne() {
-    assumeTrue(NativeTesting.expected(), "no library loads here");
+    assumeTrue(NativeTesting.expected(), "no library loads here!");
     final SymbolLookup library = NativeTesting.library();
     final int levels = NativeTesting.resolution().levels();
     // The resolution's platform, as bind passes the library the hardware capabilities (SVE's permission) only for Linux

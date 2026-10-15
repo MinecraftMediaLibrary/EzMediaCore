@@ -56,7 +56,7 @@ final class GeneratedMediaTest {
       class FixtureWriter {
         public static void main(String[] args) throws Exception {
           Path output = Path.of(args[1]);
-          if (!output.toString().endsWith(".mp4")) throw new AssertionError("format extension was lost");
+          if (!output.toString().endsWith(".mp4")) throw new AssertionError("Format extension was lost!");
           Files.writeString(output, args[0].equals("success") ? "completed media" : "partial media");
           if (args[0].equals("failure")) { System.err.println("fixture encoder diagnostic"); System.exit(7); }
           if (args[0].equals("timeout")) { Thread.sleep(30_000L); }
@@ -107,7 +107,7 @@ final class GeneratedMediaTest {
     final boolean stagedAtTheOutput = staged.equals(output);
     assertFalse(stagedAtTheOutput, "the encoder writes into a temporary sibling");
     final Path cached = GeneratedMedia.generate(output, _ -> {
-      throw new AssertionError("successfully generated media must be reused");
+      throw new AssertionError("Successfully generated media must be reused!");
     });
     final int commands = invocations.get();
     assertEquals(generated, cached);
@@ -146,7 +146,7 @@ final class GeneratedMediaTest {
     );
     final long elapsed = System.nanoTime() - before;
     final String message = thrown.getMessage();
-    final boolean reportsTheTimeout = message.contains("exceeded");
+    final boolean reportsTheTimeout = message.contains("took longer than its");
     assertTrue(reportsTheTimeout);
     final boolean withinTheDeadline = elapsed < 6_000_000_000L;
     assertTrue(withinTheDeadline, "the deadline plus bounded process cleanup must not wait for the 30 second fixture");

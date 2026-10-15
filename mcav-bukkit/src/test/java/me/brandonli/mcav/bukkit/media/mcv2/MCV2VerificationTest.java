@@ -95,7 +95,7 @@ final class MCV2VerificationTest {
       verify(frame, reference, frame.getReferenceId(), wrong)
     );
     final @Nullable String message = failure.getMessage();
-    assertEquals("MCV2 live picture and decoded picture disagree", message);
+    assertEquals("MCV2 live picture and decoded picture disagree!", message);
   }
 
   private static void verify(final Mcv2Decoder.Frame frame, final byte[] reference, final long referenceId, final byte[] picture) {
@@ -172,15 +172,15 @@ final class MCV2VerificationTest {
     referenceId.setLong(pending, -1);
     final IllegalStateException failure = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = failure.getMessage();
-    assertEquals("The encoder wrote a frame the decoder rejects", message);
+    assertEquals("The encoder wrote a frame the decoder rejects!", message);
     final @Nullable Throwable cause = failure.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
     final @Nullable String causeMessage = failure.getCause().getMessage();
-    assertEquals("Reference frame mismatch", causeMessage);
+    assertEquals("Reference frame mismatch!", causeMessage);
 
     final IllegalStateException stopped = assertThrows(IllegalStateException.class, () -> encoder.begin(picture, 32, 32, 2));
     final @Nullable String stoppedMessage = stopped.getMessage();
-    assertEquals("The encoder stopped after a frame failed its verification", stoppedMessage);
+    assertEquals("The encoder stopped after a frame failed its verification!", stoppedMessage);
   }
 
   @Test
@@ -192,11 +192,11 @@ final class MCV2VerificationTest {
     ((byte[]) data.get(pending))[0] = 0;
     final IllegalStateException error = assertThrows(IllegalStateException.class, () -> encoder.finish(pending));
     final @Nullable String message = error.getMessage();
-    assertEquals("The encoder wrote a frame the decoder rejects", message);
+    assertEquals("The encoder wrote a frame the decoder rejects!", message);
     final @Nullable Throwable cause = error.getCause();
     assertInstanceOf(Mcv2Exception.class, cause);
     final @Nullable String causeMessage = error.getCause().getMessage();
-    assertEquals("Not an MCV2 frame", causeMessage);
+    assertEquals("Not an MCV2 frame!", causeMessage);
 
     assertThrows(IllegalStateException.class, () -> encoder.encode(new byte[3], 1, 1, 1));
   }

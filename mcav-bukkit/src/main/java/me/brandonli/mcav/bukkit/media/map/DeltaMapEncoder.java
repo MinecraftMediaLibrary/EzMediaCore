@@ -93,8 +93,8 @@ public final class DeltaMapEncoder {
    * @throws NullPointerException if {@code layout} is null
    */
   public DeltaMapEncoder(final MapLayout layout, final int maxBytesPerFrame) {
-    Preconditions.checkNotNull(layout, "Layout must not be null");
-    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive");
+    Preconditions.checkNotNull(layout, "Layout must not be null!");
+    Preconditions.checkArgument(maxBytesPerFrame > 0, "Byte budget must be positive!");
 
     final int mapCount = layout.getMapCount();
     this.layout = layout;
@@ -125,11 +125,11 @@ public final class DeltaMapEncoder {
    * @throws NullPointerException if {@code image} is null
    */
   public List<MapTilePatch> encode(final byte[] image) {
-    Preconditions.checkNotNull(image, "Image must not be null");
+    Preconditions.checkNotNull(image, "Image must not be null!");
     final int imageWidth = this.layout.getImageWidth();
     final int imageHeight = this.layout.getImageHeight();
     final int expectedLength = imageWidth * imageHeight;
-    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout");
+    Preconditions.checkArgument(image.length == expectedLength, "Image size does not match layout!");
 
     final List<MapCandidate> candidates = this.collectCandidates(image);
     if (candidates.isEmpty()) {

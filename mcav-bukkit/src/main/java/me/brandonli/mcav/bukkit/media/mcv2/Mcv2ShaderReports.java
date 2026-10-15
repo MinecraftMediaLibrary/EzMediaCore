@@ -44,15 +44,15 @@ final class Mcv2ShaderReports implements PluginMessageListener {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2ShaderReports.class);
 
-  private static final String TOO_LONG = "Ignoring an MCV2 client report of {} bytes from {}: a report has at most {}";
+  private static final String TOO_LONG = "Ignoring an MCV2 client report of {} bytes from {}: a report has at most {} bytes.";
 
-  private static final String TOO_OFTEN = "Ignoring an MCV2 client report from {}: more than one a second";
+  private static final String TOO_OFTEN = "Ignoring an MCV2 client report from {}: more than one a second.";
 
-  private static final String UNKNOWN_VERSION = "Ignoring an MCV2 client report of version {} from {}";
+  private static final String UNKNOWN_VERSION = "Ignoring an MCV2 client report of version {} from {}.";
 
-  private static final String MALFORMED = "Ignoring a malformed MCV2 client report from {}";
+  private static final String MALFORMED = "Ignoring a malformed MCV2 client report from {}.";
 
-  private static final String REPORTED = "The MCV2 client mod of {} reports {}: MCV2 screens show them {}";
+  private static final String REPORTED = "The MCV2 client mod of {} reports {}: MCV2 screens show them {}.";
 
   private static final String DITHERED_MAPS = "the dithered maps";
 
@@ -98,7 +98,7 @@ final class Mcv2ShaderReports implements PluginMessageListener {
     }
     final Report before = this.reports.put(viewerId, report);
     if (!Objects.equals(before, report)) {
-      LOGGER.info(REPORTED, name, report.describe(), report.blocksDecoding() ? DITHERED_MAPS : VIDEO);
+      LOGGER.debug(REPORTED, name, report.describe(), report.blocksDecoding() ? DITHERED_MAPS : VIDEO);
     }
   }
 

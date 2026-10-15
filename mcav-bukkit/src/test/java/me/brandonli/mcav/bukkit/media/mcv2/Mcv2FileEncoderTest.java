@@ -314,11 +314,11 @@ final class Mcv2FileEncoderTest {
   @Test
   void shouldCloseAVideoThatCannotStart() throws Exception {
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
-    doThrow(new FFmpegFrameGrabber.Exception("no stream")).when(grabber).start();
-    doThrow(new FFmpegFrameGrabber.Exception("not open")).when(grabber).close();
+    doThrow(new FFmpegFrameGrabber.Exception("no stream!")).when(grabber).start();
+    doThrow(new FFmpegFrameGrabber.Exception("not open!")).when(grabber).close();
     final IOException thrown = assertThrows(IOException.class, () -> Mcv2FileEncoder.open(grabber, "clip.mp4", 8, 8));
     final String message = thrown.getMessage();
-    final boolean reportsTheStart = message.startsWith("Cannot open clip.mp4: no stream");
+    final boolean reportsTheStart = message.startsWith("Cannot open clip.mp4 (no stream");
     assertTrue(reportsTheStart, thrown.getMessage());
 
     verify(grabber).close();
@@ -327,17 +327,17 @@ final class Mcv2FileEncoderTest {
   @Test
   void shouldReportFramesItCannotDecodeAndAVideoItCannotClose() throws Exception {
     final FFmpegFrameGrabber grabber = mock(FFmpegFrameGrabber.class);
-    when(grabber.grabImage()).thenThrow(new FFmpegFrameGrabber.Exception("broken"));
-    doThrow(new FFmpegFrameGrabber.Exception("stuck")).when(grabber).close();
+    when(grabber.grabImage()).thenThrow(new FFmpegFrameGrabber.Exception("broken!"));
+    doThrow(new FFmpegFrameGrabber.Exception("stuck!")).when(grabber).close();
     final Mcv2FileEncoder.GrabberReader reader = new Mcv2FileEncoder.GrabberReader(grabber, 8, 8);
     final IOException decodeFailure = assertThrows(IOException.class, () -> reader.read(new byte[192]));
     final String decodeMessage = decodeFailure.getMessage();
-    final boolean reportsTheDecode = decodeMessage.startsWith("Cannot decode the video: broken");
+    final boolean reportsTheDecode = decodeMessage.startsWith("Cannot decode the video (broken");
     assertTrue(reportsTheDecode);
 
     final IOException closeFailure = assertThrows(IOException.class, reader::close);
     final String closeMessage = closeFailure.getMessage();
-    final boolean reportsTheClose = closeMessage.startsWith("Cannot close the video: stuck");
+    final boolean reportsTheClose = closeMessage.startsWith("Cannot close the video (stuck");
     assertTrue(reportsTheClose);
   }
 

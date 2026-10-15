@@ -302,28 +302,30 @@ final class Mcv2ConfigurationTest {
         .rows(1)
         .build()
     );
-    refuses("Origin must be in a world", builder -> builder.origin(new Location(null, 0, 0, 0)));
-    refuses("Frames must face a horizontal direction: UP", builder -> builder.facing(BlockFace.UP));
-    refuses("Frames must face a horizontal direction: NORTH_EAST", builder -> builder.facing(BlockFace.NORTH_EAST));
-    refuses("Map id must be set and non-negative", builder -> builder.map(-1));
-    refuses("Columns must be 1 to 63", builder -> builder.columns(0));
-    refuses("Columns must be 1 to 63", builder -> builder.columns(Mcv2Configuration.MAX_SIDE + 1));
-    refuses("Rows must be 1 to 63", builder -> builder.rows(0));
-    refuses("Rows must be 1 to 63", builder -> builder.rows(Mcv2Configuration.MAX_SIDE + 1));
-    refuses("Video width must be 0 to 4096", builder -> builder.video(-1, 10));
-    refuses("Video width must be 0 to 4096", builder -> builder.video(4097, 10));
-    refuses("Video height must be 0 to 4096", builder -> builder.video(10, -1));
-    refuses("Video height must be 0 to 4096", builder -> builder.video(10, 4097));
-    refuses("Page slots must be 0 to 8", builder -> builder.pageSlots(-1));
-    refuses("Page slots must be 0 to 8", builder -> builder.pageSlots(Mcv2Configuration.MAX_PAGE_SLOTS + 1));
-    refuses("Stream id must be 0 to 4095", builder -> builder.streamId(-1));
-    refuses("Stream id must be 0 to 4095", builder -> builder.streamId(Mcv2Configuration.MAX_STREAM_ID + 1));
-    refuses("Backlog limit must not be negative", builder -> builder.backlogLimit(-1));
-    refuses("Unsent limit must not be negative", builder -> builder.unsentLimit(-1));
-    refuses("Page map ids must be non-negative ints", builder -> builder.pageMap(-1));
-    refuses("Page map ids must be non-negative ints", builder -> builder.pageMap(Integer.MAX_VALUE));
-    refuses("Map ids exceed the integer range", builder -> builder.map(Integer.MAX_VALUE));
-    refuses("The outline colour must not be black", builder -> builder.outlineColor(NamedTextColor.BLACK));
+    refuses("Origin must be in a world!", builder -> builder.origin(new Location(null, 0, 0, 0)));
+    refuses("Facing UP is not horizontal, but frames must face a horizontal direction!", builder -> builder.facing(BlockFace.UP));
+    refuses("Facing NORTH_EAST is not horizontal, but frames must face a horizontal direction!", builder ->
+      builder.facing(BlockFace.NORTH_EAST)
+    );
+    refuses("Map id must be set and non-negative!", builder -> builder.map(-1));
+    refuses("Columns must be between 1 and 63 inclusive!", builder -> builder.columns(0));
+    refuses("Columns must be between 1 and 63 inclusive!", builder -> builder.columns(Mcv2Configuration.MAX_SIDE + 1));
+    refuses("Rows must be between 1 and 63 inclusive!", builder -> builder.rows(0));
+    refuses("Rows must be between 1 and 63 inclusive!", builder -> builder.rows(Mcv2Configuration.MAX_SIDE + 1));
+    refuses("Video width must be 0 to 4096!", builder -> builder.video(-1, 10));
+    refuses("Video width must be 0 to 4096!", builder -> builder.video(4097, 10));
+    refuses("Video height must be 0 to 4096!", builder -> builder.video(10, -1));
+    refuses("Video height must be 0 to 4096!", builder -> builder.video(10, 4097));
+    refuses("Page slots must be between 0 and 8 inclusive!", builder -> builder.pageSlots(-1));
+    refuses("Page slots must be between 0 and 8 inclusive!", builder -> builder.pageSlots(Mcv2Configuration.MAX_PAGE_SLOTS + 1));
+    refuses("Stream id must be between 0 and 4095 inclusive!", builder -> builder.streamId(-1));
+    refuses("Stream id must be between 0 and 4095 inclusive!", builder -> builder.streamId(Mcv2Configuration.MAX_STREAM_ID + 1));
+    refuses("Backlog limit must not be negative!", builder -> builder.backlogLimit(-1));
+    refuses("Unsent limit must not be negative!", builder -> builder.unsentLimit(-1));
+    refuses("Page map ids must be non-negative ints!", builder -> builder.pageMap(-1));
+    refuses("Page map ids must be non-negative ints!", builder -> builder.pageMap(Integer.MAX_VALUE));
+    refuses("Map ids exceed the integer range!", builder -> builder.map(Integer.MAX_VALUE));
+    refuses("The outline colour must not be black!", builder -> builder.outlineColor(NamedTextColor.BLACK));
   }
 
   @Test
@@ -399,9 +401,9 @@ final class Mcv2ConfigurationTest {
   @Test
   void shouldKeepThePageMapsOffTheWall() {
     // the wall is maps 7 to 21; four page slots end below it at 3, the default eight at none
-    refuses("Page maps must not be maps of the wall", builder -> builder.pageMap(21));
-    refuses("Page maps must not be maps of the wall", builder -> builder.pageSlots(4).pageMap(4));
-    refuses("Page maps must not be maps of the wall", builder -> builder.pageMap(0));
+    refuses("Page maps must not be maps of the wall!", builder -> builder.pageMap(21));
+    refuses("Page maps must not be maps of the wall!", builder -> builder.pageSlots(4).pageMap(4));
+    refuses("Page maps must not be maps of the wall!", builder -> builder.pageMap(0));
 
     final int pageMapBelowTheWall = complete().pageSlots(4).pageMap(3).build().getPageMap();
     assertEquals(3, pageMapBelowTheWall);
@@ -413,7 +415,7 @@ final class Mcv2ConfigurationTest {
   void shouldRefuseAWallWhoseNativeSizeIsLargerThanTheCodecTakes() {
     final IllegalArgumentException wide = assertThrows(IllegalArgumentException.class, () -> complete().columns(33).build());
     final String message = wide.getMessage();
-    assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size", message);
+    assertEquals("A wall of 33 by 3 maps is 4224 by 384 pixels, more than the codec's 4096: set a smaller video size!", message);
     assertThrows(IllegalArgumentException.class, () -> complete().rows(33).build());
 
     final int wideVideoWidth = complete().columns(33).video(4096, 0).build().getVideoWidth();
@@ -435,6 +437,6 @@ final class Mcv2ConfigurationTest {
 
     final IllegalArgumentException refused = assertThrows(IllegalArgumentException.class, () -> square.pageSlots(5).build());
     final String message = refused.getMessage();
-    assertEquals("A wall of 4 maps cannot carry 5 page slots: one page frame hangs behind each map", message);
+    assertEquals("A wall of 4 maps cannot carry 5 page slots: one page frame hangs behind each map!", message);
   }
 }

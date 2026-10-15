@@ -212,7 +212,7 @@ final class MCV2PoolTest {
   @Test
   void shouldPassOnWhatATaskThrows() {
     try (final Pool pool = new Pool(1)) {
-      final IllegalArgumentException runtime = new IllegalArgumentException("runtime");
+      final IllegalArgumentException runtime = new IllegalArgumentException("runtime!");
       final IllegalArgumentException thrownRuntime = assertThrows(IllegalArgumentException.class, () ->
         pool.run(() -> {
           throw runtime;
@@ -221,7 +221,7 @@ final class MCV2PoolTest {
       final boolean passesOnRuntime = isOrWraps(thrownRuntime, runtime);
       assertTrue(passesOnRuntime);
 
-      final AssertionError error = new AssertionError("error");
+      final AssertionError error = new AssertionError("error!");
       final AssertionError thrownError = assertThrows(AssertionError.class, () ->
         pool.run(() -> {
           throw error;
@@ -230,7 +230,7 @@ final class MCV2PoolTest {
       final boolean passesOnError = isOrWraps(thrownError, error);
       assertTrue(passesOnError);
 
-      final IOException checked = new IOException("checked");
+      final IOException checked = new IOException("checked!");
       final IllegalStateException wrapped = assertThrows(IllegalStateException.class, () ->
         pool.run(() -> {
           throw checked;
@@ -242,7 +242,7 @@ final class MCV2PoolTest {
       assertTrue(passesOnChecked);
 
       final ForkJoinPool workers = (ForkJoinPool) Mcv2Internals.field(Pool.class, pool, "pool");
-      workers.getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), new IllegalStateException("outside a task"));
+      workers.getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), new IllegalStateException("outside a task!"));
       assertThrows(NullPointerException.class, () -> pool.run(null));
     }
   }

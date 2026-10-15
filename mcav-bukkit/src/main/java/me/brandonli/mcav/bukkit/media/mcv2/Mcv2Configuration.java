@@ -343,7 +343,7 @@ public final class Mcv2Configuration {
    * @throws IllegalArgumentException if the size is out of range
    */
   public Mcv2Configuration withVideo(final int width, final int height) {
-    Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive");
+    Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive!");
     return this.toBuilder().video(width, height).build();
   }
 
@@ -482,7 +482,7 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code viewers} is null
      */
     public Builder viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
+      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this;
     }
@@ -498,8 +498,8 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code origin} is null
      */
     public Builder origin(final Location origin) {
-      Preconditions.checkNotNull(origin, "Origin must not be null");
-      Preconditions.checkArgument(origin.getWorld() != null, "Origin must be in a world");
+      Preconditions.checkNotNull(origin, "Origin must not be null!");
+      Preconditions.checkArgument(origin.getWorld() != null, "Origin must be in a world!");
       this.origin = origin.toBlockLocation();
       return this;
     }
@@ -513,8 +513,12 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code facing} is null
      */
     public Builder facing(final BlockFace facing) {
-      Preconditions.checkNotNull(facing, "Facing must not be null");
-      Preconditions.checkArgument(facing.isCartesian() && facing.getModY() == 0, "Frames must face a horizontal direction: %s", facing);
+      Preconditions.checkNotNull(facing, "Facing must not be null!");
+      Preconditions.checkArgument(
+        facing.isCartesian() && facing.getModY() == 0,
+        "Facing %s is not horizontal, but frames must face a horizontal direction!",
+        facing
+      );
       this.facing = facing;
       return this;
     }
@@ -634,7 +638,7 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code settings} is null
      */
     public Builder settings(final Settings settings) {
-      Preconditions.checkNotNull(settings, "Settings must not be null");
+      Preconditions.checkNotNull(settings, "Settings must not be null!");
       this.settings = settings;
       return this;
     }
@@ -649,8 +653,8 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code outlineColor} is null
      */
     public Builder outlineColor(final NamedTextColor outlineColor) {
-      Preconditions.checkNotNull(outlineColor, "Outline color must not be null");
-      Preconditions.checkArgument(outlineColor.value() != 0, "The outline colour must not be black");
+      Preconditions.checkNotNull(outlineColor, "Outline color must not be null!");
+      Preconditions.checkArgument(outlineColor.value() != 0, "The outline colour must not be black!");
       this.outlineColor = outlineColor;
       return this;
     }
@@ -688,7 +692,7 @@ public final class Mcv2Configuration {
      * @throws NullPointerException if {@code encoderPool} is null
      */
     public Builder encoderPool(final Pool encoderPool) {
-      this.encoderPool = Preconditions.checkNotNull(encoderPool, "Encoder pool must not be null");
+      this.encoderPool = Preconditions.checkNotNull(encoderPool, "Encoder pool must not be null!");
       return this;
     }
 
@@ -701,53 +705,64 @@ public final class Mcv2Configuration {
      *                                  set, is larger than 4096 pixels
      */
     public Mcv2Configuration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final Location configuredOrigin = Preconditions.checkNotNull(this.origin, "Origin must be set");
-      final BlockFace configuredFacing = Preconditions.checkNotNull(this.facing, "Facing must be set");
-      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative");
-      Preconditions.checkArgument(this.columns >= 1 && this.columns <= MAX_SIDE, "Columns must be 1 to %s", MAX_SIDE);
-      Preconditions.checkArgument(this.rows >= 1 && this.rows <= MAX_SIDE, "Rows must be 1 to %s", MAX_SIDE);
-      Preconditions.checkArgument(this.videoWidth >= 0 && this.videoWidth <= Mcv2Decoder.MAX_DIMENSION, "Video width must be 0 to 4096");
-      Preconditions.checkArgument(this.videoHeight >= 0 && this.videoHeight <= Mcv2Decoder.MAX_DIMENSION, "Video height must be 0 to 4096");
+      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
+      final Location configuredOrigin = Preconditions.checkNotNull(this.origin, "Origin must be set!");
+      final BlockFace configuredFacing = Preconditions.checkNotNull(this.facing, "Facing must be set!");
+      Preconditions.checkArgument(this.map >= 0, "Map id must be set and non-negative!");
+      Preconditions.checkArgument(this.columns >= 1 && this.columns <= MAX_SIDE, "Columns must be between 1 and %s inclusive!", MAX_SIDE);
+      Preconditions.checkArgument(this.rows >= 1 && this.rows <= MAX_SIDE, "Rows must be between 1 and %s inclusive!", MAX_SIDE);
+      Preconditions.checkArgument(this.videoWidth >= 0 && this.videoWidth <= Mcv2Decoder.MAX_DIMENSION, "Video width must be 0 to 4096!");
+      Preconditions.checkArgument(
+        this.videoHeight >= 0 && this.videoHeight <= Mcv2Decoder.MAX_DIMENSION,
+        "Video height must be 0 to 4096!"
+      );
 
       final int width = videoSize(this.videoWidth, this.columns);
       final int height = videoSize(this.videoHeight, this.rows);
       Preconditions.checkArgument(
         width <= Mcv2Decoder.MAX_DIMENSION && height <= Mcv2Decoder.MAX_DIMENSION,
-        "A wall of %s by %s maps is %s by %s pixels, more than the codec's %s: set a smaller video size",
+        "A wall of %s by %s maps is %s by %s pixels, more than the codec's %s: set a smaller video size!",
         this.columns,
         this.rows,
         width,
         height,
         Mcv2Decoder.MAX_DIMENSION
       );
-      Preconditions.checkArgument(this.pageSlots >= 0 && this.pageSlots <= MAX_PAGE_SLOTS, "Page slots must be 0 to %s", MAX_PAGE_SLOTS);
-      Preconditions.checkArgument(this.streamId >= 0 && this.streamId <= MAX_STREAM_ID, "Stream id must be 0 to %s", MAX_STREAM_ID);
+      Preconditions.checkArgument(
+        this.pageSlots >= 0 && this.pageSlots <= MAX_PAGE_SLOTS,
+        "Page slots must be between 0 and %s inclusive!",
+        MAX_PAGE_SLOTS
+      );
+      Preconditions.checkArgument(
+        this.streamId >= 0 && this.streamId <= MAX_STREAM_ID,
+        "Stream id must be between 0 and %s inclusive!",
+        MAX_STREAM_ID
+      );
       Preconditions.checkArgument(
         this.firstFrameId >= 0 && this.firstFrameId <= Mcv2Decoder.MAX_U32,
-        "First frame id must be an unsigned 32-bit value"
+        "First frame id must be an unsigned 32-bit value!"
       );
       Preconditions.checkArgument(
         this.maxFrameRate >= 0 && this.maxFrameRate <= MAX_FRAME_RATE,
-        "Frame rate must be 0 to %s",
+        "Frame rate must be between 0 and %s inclusive!",
         MAX_FRAME_RATE
       );
-      Preconditions.checkArgument(this.backlogLimit >= 0, "Backlog limit must not be negative");
-      Preconditions.checkArgument(this.unsentLimit >= 0, "Unsent limit must not be negative");
+      Preconditions.checkArgument(this.backlogLimit >= 0, "Backlog limit must not be negative!");
+      Preconditions.checkArgument(this.unsentLimit >= 0, "Unsent limit must not be negative!");
       final int maps = this.columns * this.rows;
       final int slots = this.pageSlots > 0 ? this.pageSlots : defaultPageSlots(maps);
       // A slot without a wall map is invisible to the client and prevents frame reassembly.
       Preconditions.checkArgument(
         slots <= maps,
-        "A wall of %s maps cannot carry %s page slots: one page frame hangs behind each map",
+        "A wall of %s maps cannot carry %s page slots: one page frame hangs behind each map!",
         maps,
         slots
       );
       final long lastMap = (long) this.map + (long) this.columns * this.rows - 1;
       final long lastPage = (long) this.pageMap + slots - 1;
-      Preconditions.checkArgument(this.pageMap >= 0 && lastPage <= Integer.MAX_VALUE, "Page map ids must be non-negative ints");
-      Preconditions.checkArgument(lastMap <= Integer.MAX_VALUE, "Map ids exceed the integer range");
-      Preconditions.checkArgument(lastPage < this.map || this.pageMap > lastMap, "Page maps must not be maps of the wall");
+      Preconditions.checkArgument(this.pageMap >= 0 && lastPage <= Integer.MAX_VALUE, "Page map ids must be non-negative ints!");
+      Preconditions.checkArgument(lastMap <= Integer.MAX_VALUE, "Map ids exceed the integer range!");
+      Preconditions.checkArgument(lastPage < this.map || this.pageMap > lastMap, "Page maps must not be maps of the wall!");
       return new Mcv2Configuration(this, configuredViewers, configuredOrigin, configuredFacing, slots);
     }
   }

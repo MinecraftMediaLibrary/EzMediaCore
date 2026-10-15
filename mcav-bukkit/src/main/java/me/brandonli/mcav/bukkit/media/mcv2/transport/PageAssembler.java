@@ -53,7 +53,7 @@ public final class PageAssembler {
    * @throws IllegalArgumentException if the symbol width is not 6
    */
   public PageAssembler(final long streamId, final int symbolBits) {
-    Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Unsupported symbol width: %s", symbolBits);
+    Preconditions.checkArgument(symbolBits == MapAlphabet.SYMBOL_BITS, "Symbol width %s is unsupported!", symbolBits);
     this.streamId = streamId;
   }
 
@@ -73,7 +73,7 @@ public final class PageAssembler {
   public byte @Nullable [] push(final byte[] symbols) throws Mcv2Exception {
     final TransportPage page = TransportPages.readPage(symbols);
     if (page.getStreamId() != this.streamId) {
-      throw new Mcv2Exception("Wrong stream");
+      throw new Mcv2Exception("Wrong stream!");
     }
     final long frameId = page.getFrameId();
     if (!this.pending.containsKey(frameId) && this.pending.size() >= MAX_PENDING) {
@@ -91,13 +91,13 @@ public final class PageAssembler {
         page.getFlags() == first.getFlags();
       if (!consistent) {
         this.pending.remove(frameId);
-        throw new Mcv2Exception("Inconsistent pages");
+        throw new Mcv2Exception("Inconsistent pages!");
       }
     }
     final TransportPage previous = parts.get(page.getNumber());
     if (previous != null && !previous.equals(page)) {
       this.pending.remove(frameId);
-      throw new Mcv2Exception("Conflicting page duplicate");
+      throw new Mcv2Exception("Conflicting page duplicate!");
     }
     parts.put(page.getNumber(), page);
     if (parts.size() != page.getCount()) {
@@ -118,7 +118,7 @@ public final class PageAssembler {
     if (
       parsed.getFrameId() != frameId || parsed.getReferenceId() != page.getReferenceId() || (parsed.isKeyframe() ? 1 : 0) != page.getFlags()
     ) {
-      throw new Mcv2Exception("Frame and page identity mismatch");
+      throw new Mcv2Exception("Frame and page identity mismatch!");
     }
     return data;
   }

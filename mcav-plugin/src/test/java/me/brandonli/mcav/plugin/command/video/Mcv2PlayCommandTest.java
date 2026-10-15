@@ -340,7 +340,7 @@ final class Mcv2PlayCommandTest {
       List.of(
         Message.UNSUPPORTED_DIMENSION.build(),
         Message.MCV2_FILE_ERROR.build("Not a stream file: missing.mcs"),
-        Message.MCV2_FILE_ERROR.build("Not an MCV2 frame")
+        Message.MCV2_FILE_ERROR.build("Not an MCV2 frame!")
       ),
       messages.getAllValues()
     );

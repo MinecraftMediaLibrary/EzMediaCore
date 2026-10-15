@@ -59,7 +59,7 @@ final class NativeKernelsTest {
       body = MethodHandles.insertArguments(
         MethodHandles.throwException(type.returnType(), IllegalStateException.class),
         0,
-        new IllegalStateException("the library failed")
+        new IllegalStateException("the library failed!")
       );
     } else {
       body = MethodHandles.constant(type.returnType(), value);
@@ -81,7 +81,7 @@ final class NativeKernelsTest {
   private static void failed(final Executable call) {
     final IllegalStateException exception = assertThrows(IllegalStateException.class, call);
     final String message = exception.getMessage();
-    assertEquals("MCV2 native kernel failed", message);
+    assertEquals("MCV2 native kernel failed!", message);
   }
 
   @Test

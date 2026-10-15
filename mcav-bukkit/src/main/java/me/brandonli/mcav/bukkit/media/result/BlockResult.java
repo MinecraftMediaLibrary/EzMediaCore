@@ -46,7 +46,7 @@ public class BlockResult implements FunctionalVideoFilter {
    * @throws NullPointerException if {@code configuration} is null
    */
   public BlockResult(final BlockConfiguration configuration) {
-    Preconditions.checkNotNull(configuration, "Block configuration must not be null");
+    Preconditions.checkNotNull(configuration, "Block configuration must not be null!");
     this.renderer = new BlockRenderer(configuration);
   }
 
@@ -69,8 +69,8 @@ public class BlockResult implements FunctionalVideoFilter {
    */
   @Override
   public boolean applyFilter(final ImageBuffer data, final OriginalVideoMetadata metadata) {
-    Preconditions.checkNotNull(data, "Frame must not be null");
-    Preconditions.checkNotNull(metadata, "Metadata must not be null");
+    Preconditions.checkNotNull(data, "Frame must not be null!");
+    Preconditions.checkNotNull(metadata, "Metadata must not be null!");
     this.renderer.render(data);
     return true;
   }

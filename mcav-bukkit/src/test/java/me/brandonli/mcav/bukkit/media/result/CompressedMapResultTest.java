@@ -176,7 +176,7 @@ final class CompressedMapResultTest {
     worker.join();
     final Throwable thrown = failure.get();
     if (thrown != null) {
-      throw new AssertionError("the work on the other thread failed", thrown);
+      throw new AssertionError("The work on the other thread failed!", thrown);
     }
   }
 
@@ -767,7 +767,7 @@ final class CompressedMapResultTest {
   void shouldLogExceptionsThatEscapeTheDitherThreads() throws InterruptedException {
     final MapConfiguration configuration = this.createConfiguration(1, 1, false);
     final CompressedMapResult result = new CompressedMapResult(configuration, 1 << 20);
-    final RuntimeException failure = new RuntimeException("escaped the dither pool");
+    final RuntimeException failure = new RuntimeException("Escaped the dither pool!");
     final ParallelDitherAlgorithm parallel = createFailingAlgorithm(failure);
 
     final LogCapture.RecordedEvent event;
@@ -782,7 +782,7 @@ final class CompressedMapResultTest {
     final Level level = event.getLevel();
     final String message = event.getMessage();
     final Throwable thrown = event.getThrown();
-    final boolean namesTheThread = message.startsWith("Uncaught exception in map dithering thread mcav-map-dither-");
+    final boolean namesTheThread = message.startsWith("Map dithering thread mcav-map-dither-");
     assertEquals(Level.ERROR, level);
     assertTrue(namesTheThread, message);
     assertSame(failure, thrown);

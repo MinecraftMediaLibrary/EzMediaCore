@@ -53,17 +53,17 @@ public final class MapTilePatch {
    * @throws NullPointerException if {@code colors} is null
    */
   public MapTilePatch(final int mapId, final int left, final int top, final int width, final int height, final byte[] colors) {
-    Preconditions.checkNotNull(colors, "Colors must not be null");
-    Preconditions.checkArgument(mapId >= 0, "Map id must be non-negative");
+    Preconditions.checkNotNull(colors, "Colors must not be null!");
+    Preconditions.checkArgument(mapId >= 0, "Map id must be non-negative!");
 
     final boolean negativeOrigin = left < 0 || top < 0;
     final boolean emptySize = width <= 0 || height <= 0;
     final boolean exceedsMap = (long) left + width > MapLayout.MAP_SIZE || (long) top + height > MapLayout.MAP_SIZE;
     final boolean insideMap = !negativeOrigin && !emptySize && !exceedsMap;
-    Preconditions.checkArgument(insideMap, "Patch is outside of the map bounds");
+    Preconditions.checkArgument(insideMap, "Patch is outside of the map bounds!");
 
     final int expectedLength = width * height;
-    Preconditions.checkArgument(colors.length == expectedLength, "Patch colors must contain exactly width * height bytes");
+    Preconditions.checkArgument(colors.length == expectedLength, "Patch colors must contain exactly width * height bytes!");
 
     this.mapId = mapId;
     this.left = left;

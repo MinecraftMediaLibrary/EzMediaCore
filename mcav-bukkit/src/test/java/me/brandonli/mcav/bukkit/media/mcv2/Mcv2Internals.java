@@ -33,7 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 final class Mcv2Internals {
 
   private Mcv2Internals() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   static Class<?> nested(final String name) {

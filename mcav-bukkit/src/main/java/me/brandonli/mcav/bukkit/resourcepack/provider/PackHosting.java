@@ -85,8 +85,8 @@ public interface PackHosting {
    * @throws NullPointerException if {@code path} or {@code hostName} is null
    */
   static HttpHosting http(final Path path, final String hostName, final int port) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
-    Preconditions.checkNotNull(hostName, "Host name must not be null");
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
+    Preconditions.checkNotNull(hostName, "Host name must not be null!");
     return new ServerPackHosting(path, hostName, port);
   }
 
@@ -98,7 +98,7 @@ public interface PackHosting {
    * @throws NullPointerException if {@code path} is null
    */
   static WebsiteHosting website(final Path path) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
     return new MCPackHosting(path);
   }
 
@@ -110,7 +110,7 @@ public interface PackHosting {
    * @throws NullPointerException if {@code path} is null
    */
   static InjectorHosting injector(final Path path) {
-    Preconditions.checkNotNull(path, "Resource pack path must not be null");
+    Preconditions.checkNotNull(path, "Resource pack path must not be null!");
     return new NettyHosting(path);
   }
 }

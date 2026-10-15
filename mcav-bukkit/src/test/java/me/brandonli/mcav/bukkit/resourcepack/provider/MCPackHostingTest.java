@@ -306,7 +306,7 @@ final class MCPackHostingTest {
     final String message = exception.getMessage();
     final Path cacheFile = getCacheFile();
     final boolean cached = Files.exists(cacheFile);
-    assertEquals("mc-packs.net rejected the upload with status 500", message);
+    assertEquals("mc-packs.net answered status 500 and rejected the upload!", message);
     assertThrows(IllegalStateException.class, hosting::getRawUrl);
     assertFalse(cached, "failed uploads are not cached");
   }
@@ -342,7 +342,7 @@ final class MCPackHostingTest {
       final String message = exception.getMessage();
       final Throwable cause = exception.getCause();
       assertTrue(interrupted);
-      assertEquals("Interrupted while uploading the resource pack", message);
+      assertEquals("Interrupted while uploading the resource pack!", message);
       assertInstanceOf(InterruptedException.class, cause);
     } finally {
       release.countDown();
@@ -370,7 +370,7 @@ final class MCPackHostingTest {
     final Throwable cause = exception.getCause();
     final List<Upload> uploads = this.service.getUploads();
     final boolean nothingUploaded = uploads.isEmpty();
-    final String expectedMessage = "Resource pack cannot be read: " + missing;
+    final String expectedMessage = "Resource pack %s cannot be read!".formatted(missing);
     assertEquals(expectedMessage, message);
     assertInstanceOf(NoSuchFileException.class, cause);
     assertTrue(nothingUploaded);
@@ -416,7 +416,7 @@ final class MCPackHostingTest {
     assertEquals(expectedUrl, url, "the successful upload is used even though it cannot be cached");
     assertEquals(1, uploadCount);
     assertEquals(Level.WARN, level);
-    final String expectedMessage = "Could not write the upload cache " + cacheFile + ", the pack will be uploaded again next time";
+    final String expectedMessage = "Could not write the upload cache " + cacheFile + ", the pack will be uploaded again next time.";
     assertEquals(expectedMessage, message);
     assertInstanceOf(IOException.class, thrown);
   }
@@ -437,7 +437,7 @@ final class MCPackHostingTest {
     starter.join();
     final Throwable thrown = failure.get();
     if (thrown != null) {
-      throw new AssertionError("uploading on another thread failed", thrown);
+      throw new AssertionError("Uploading on another thread failed!", thrown);
     }
   }
 
@@ -505,30 +505,30 @@ final class MCPackHostingTest {
 
   @Test
   void shouldKeepTheMessageInExceptions() {
-    final MCPacksException exception = new MCPacksException("message");
+    final MCPacksException exception = new MCPacksException("Message!");
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertNull(cause);
   }
 
   @Test
   void shouldKeepTheMessageAndTheCauseInExceptions() {
-    final IOException failure = new IOException("cause");
-    final MCPacksException exception = new MCPacksException("message", failure);
+    final IOException failure = new IOException("Cause!");
+    final MCPacksException exception = new MCPacksException("Message!", failure);
 
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
 
-    assertEquals("message", message);
+    assertEquals("Message!", message);
     assertSame(failure, cause);
   }
 
   @Test
   void shouldMakeExceptionsRuntimeExceptions() {
-    final MCPacksException exception = new MCPacksException("message");
+    final MCPacksException exception = new MCPacksException("Message!");
     assertInstanceOf(RuntimeException.class, exception, "a failed upload is recoverable, so it is no Error");
   }
 
@@ -675,7 +675,7 @@ final class MCPackHostingTest {
         assertTrue(terminated, "the upload callbacks finish");
       } catch (final InterruptedException failure) {
         Thread.currentThread().interrupt();
-        throw new AssertionError("Interrupted while joining upload callbacks", failure);
+        throw new AssertionError("Interrupted while joining upload callbacks!", failure);
       }
       final @Nullable AssertionError recordedFailure = this.handlerFailure.get();
       assertEquals(null, recordedFailure, "upload assertions reach JUnit");

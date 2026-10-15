@@ -37,7 +37,7 @@ public final class ServerEnvironment {
   private static final String PATCH_PREFIX = SUPPORTED_MINECRAFT_VERSION + ".";
 
   private ServerEnvironment() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -71,7 +71,7 @@ public final class ServerEnvironment {
    * @throws NullPointerException if {@code version} is null
    */
   public static boolean isSupported(final String version) {
-    Preconditions.checkNotNull(version, "Version must not be null");
+    Preconditions.checkNotNull(version, "Version must not be null!");
     final boolean exactMatch = version.equals(SUPPORTED_MINECRAFT_VERSION);
     final boolean patchRelease = version.startsWith(PATCH_PREFIX);
     return exactMatch || patchRelease;

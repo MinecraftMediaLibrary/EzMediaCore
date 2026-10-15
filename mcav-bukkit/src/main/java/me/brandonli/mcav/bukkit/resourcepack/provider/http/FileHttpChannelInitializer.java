@@ -72,7 +72,7 @@ final class FileHttpChannelInitializer extends ChannelInitializer<SocketChannel>
 
   @VisibleForTesting
   FileHttpChannelInitializer(final Path filePath, final int maxConnections) {
-    Preconditions.checkArgument(maxConnections > 0, "The connection limit must be positive but was %s", maxConnections);
+    Preconditions.checkArgument(maxConnections > 0, "Connection limit %s must be positive!", maxConnections);
     this.filePath = filePath;
     this.maxConnections = maxConnections;
     this.openConnections = new AtomicInteger();

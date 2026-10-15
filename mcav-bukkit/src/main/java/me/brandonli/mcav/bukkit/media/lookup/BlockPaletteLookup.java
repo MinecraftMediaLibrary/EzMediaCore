@@ -55,7 +55,7 @@ public final class BlockPaletteLookup {
   private static final int RGB_COMPONENTS = 3;
 
   private BlockPaletteLookup() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -179,7 +179,7 @@ public final class BlockPaletteLookup {
     try (reader) {
       final Map<String, int @Nullable []> palette = gson.fromJson(reader, type);
       if (palette == null || palette.isEmpty()) {
-        final String message = "Block palette resource is empty";
+        final String message = "Block palette resource is empty!";
         final IOException emptyPalette = new IOException(message);
         throw new UncheckedIOException(message, emptyPalette);
       }

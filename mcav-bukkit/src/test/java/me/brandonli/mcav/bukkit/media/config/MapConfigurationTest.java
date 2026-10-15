@@ -156,8 +156,8 @@ final class MapConfigurationTest {
 
     final String widthMessage = widthException.getMessage();
     final String heightMessage = heightException.getMessage();
-    assertEquals("Map width resolution must not be negative", widthMessage);
-    assertEquals("Map height resolution must not be negative", heightMessage);
+    assertEquals("Map width resolution must not be negative!", widthMessage);
+    assertEquals("Map height resolution must not be negative!", heightMessage);
   }
 
   @Test

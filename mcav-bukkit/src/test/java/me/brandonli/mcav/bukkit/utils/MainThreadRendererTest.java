@@ -211,7 +211,7 @@ final class MainThreadRendererTest {
     verify(scheduler, never()).runTask(any(Plugin.class), any(Runnable.class));
     assertEquals(1, eventCount);
     assertEquals(Level.WARN, level);
-    assertEquals("Skipped a task because the plugin MCAV is disabled; release displays on the main thread during shutdown", message);
+    assertEquals("Skipped a task because the plugin MCAV is disabled; release displays on the main thread during shutdown.", message);
   }
 
   @Test
@@ -252,7 +252,7 @@ final class MainThreadRendererTest {
     when(plugin.isEnabled()).thenReturn(true);
     when(plugin.getName()).thenReturn("MCAV");
     final BukkitScheduler scheduler = this.server.getScheduler();
-    when(scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenThrow(new IllegalPluginAccessException("disabled after check"));
+    when(scheduler.runTask(any(Plugin.class), any(Runnable.class))).thenThrow(new IllegalPluginAccessException("Disabled after check!"));
     final AtomicInteger runs = new AtomicInteger();
     final List<LogCapture.RecordedEvent> events;
     try (final LogCapture logs = LogCapture.capture(MainThreadRenderer.class)) {

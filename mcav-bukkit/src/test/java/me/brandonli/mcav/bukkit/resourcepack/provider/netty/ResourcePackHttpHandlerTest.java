@@ -303,7 +303,7 @@ final class ResourcePackHttpHandlerTest {
     assertNull(body);
     assertFalse(open);
     assertEquals(Level.WARN, level);
-    assertEquals("Could not read the resource pack for an HTTP download", message);
+    assertEquals("Could not read the resource pack for an HTTP download.", message);
     assertInstanceOf(NoSuchFileException.class, thrown);
   }
 
@@ -442,7 +442,7 @@ final class ResourcePackHttpHandlerTest {
       final ChannelPromise promise = this.pending;
       if (promise != null) {
         ReferenceCountUtil.release(this.content);
-        promise.tryFailure(new IOException("closed"));
+        promise.tryFailure(new IOException("Closed!"));
       }
       context.fireChannelInactive();
     }

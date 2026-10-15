@@ -787,21 +787,21 @@ final class Mcv2ResultTest {
   void shouldRefuseNulls() {
     final NullPointerException noConfiguration = assertThrows(NullPointerException.class, () -> new Mcv2Result(null, this.viewers, null));
     final String noConfigurationMessage = noConfiguration.getMessage();
-    assertEquals("Configuration must not be null", noConfigurationMessage);
+    assertEquals("Configuration must not be null!", noConfigurationMessage);
     final NullPointerException noChannel = assertThrows(NullPointerException.class, () ->
       new Mcv2Result(this.configuration, (Mcv2Channel) null, null)
     );
     final String noChannelMessage = noChannel.getMessage();
-    assertEquals("Channel must not be null", noChannelMessage);
+    assertEquals("Channel must not be null!", noChannelMessage);
 
     final Mcv2Result result = new Mcv2Result(this.configuration, this.viewers, this.algorithm);
     try (final ImageBuffer image = Images.solid(64, 32, 0)) {
       final NullPointerException noFrame = assertThrows(NullPointerException.class, () -> result.applyFilter(null, this.metadata));
       final String noFrameMessage = noFrame.getMessage();
-      assertEquals("Frame must not be null", noFrameMessage);
+      assertEquals("Frame must not be null!", noFrameMessage);
       final NullPointerException noMetadata = assertThrows(NullPointerException.class, () -> result.applyFilter(image, null));
       final String noMetadataMessage = noMetadata.getMessage();
-      assertEquals("Metadata must not be null", noMetadataMessage);
+      assertEquals("Metadata must not be null!", noMetadataMessage);
       final long frames = result.getStatistics().getFrames();
       assertEquals(0, frames, "invalid input cannot publish a frame");
     } finally {
@@ -986,7 +986,7 @@ final class Mcv2ResultTest {
     final AtomicInteger handed = new AtomicInteger();
     final Executor refusesOnce = task -> {
       if (handed.getAndIncrement() == 0) {
-        throw new RejectedExecutionException("released");
+        throw new RejectedExecutionException("released!");
       }
       task.run();
     };
@@ -1338,7 +1338,7 @@ final class Mcv2ResultTest {
       final MCV2.Pending pending = mock(MCV2.Pending.class);
       when(encoder.begin(any(), anyInt(), anyInt(), anyLong())).thenReturn(pending);
       if (failing) {
-        when(encoder.finish(pending)).thenThrow(new IllegalStateException("MCV2 live picture and decoded picture disagree"));
+        when(encoder.finish(pending)).thenThrow(new IllegalStateException("MCV2 live picture and decoded picture disagree!"));
       } else {
         final MCV2.Encoded encoded = mock(MCV2.Encoded.class);
         when(encoded.getData()).thenReturn(Mcv2ChannelTest.keyframe());
@@ -1658,7 +1658,7 @@ final class Mcv2ResultTest {
       this.play(result, clock, encoder, frame, 90);
       encodeNanos.set(TimeUnit.MILLISECONDS.toNanos(5));
       this.play(result, clock, encoder, frame, 20 * 60);
-      final List<Level> expectedLevels = List.of(Level.WARN, Level.INFO);
+      final List<Level> expectedLevels = List.of(Level.WARN, Level.DEBUG);
       final List<Level> levels = logs.getEvents().stream().map(LogCapture.RecordedEvent::getLevel).toList();
       assertEquals(expectedLevels, levels);
     }
@@ -1706,7 +1706,7 @@ final class Mcv2ResultTest {
     final Set<Thread> before = Set.copyOf(Thread.getAllStackTraces().keySet());
     final Mcv2Result result = this.result(this.configuration, this.algorithm);
     result.setFrameListener(_ -> {
-      throw new IllegalStateException("a listener that fails");
+      throw new IllegalStateException("a listener that fails!");
     });
     try (final LogCapture logs = LogCapture.capture(Mcv2Result.class)) {
       result.start();
@@ -1737,7 +1737,7 @@ final class Mcv2ResultTest {
     final Set<Thread> before = Set.copyOf(Thread.getAllStackTraces().keySet());
     final MCV2 failing = mock(MCV2.class);
     when(failing.getSettings()).thenReturn(Settings.FAST);
-    when(failing.begin(any(), anyInt(), anyInt(), anyLong())).thenThrow(new IllegalArgumentException("a size the codec cannot carry"));
+    when(failing.begin(any(), anyInt(), anyInt(), anyLong())).thenThrow(new IllegalArgumentException("a size the codec cannot carry!"));
     final Mcv2Configuration fast = packScreen(Settings.FAST);
     final Mcv2Result result = new Mcv2Result(
       fast,
@@ -1862,7 +1862,7 @@ final class Mcv2ResultTest {
   void shouldStillStopTheFixtureWaiterWhenTheReleaseFails() throws InterruptedException {
     final CountDownLatch neverNotified = new CountDownLatch(1);
     final AtomicReference<Thread> waiting = new AtomicReference<>();
-    final AssertionError forcedFailure = new AssertionError("forced release assertion");
+    final AssertionError forcedFailure = new AssertionError("forced release assertion!");
     try (
       final MockedConstruction<Mcv2Result> results = Mockito.mockConstruction(Mcv2Result.class, (result, _) -> {
         when(result.take()).thenAnswer(_ -> {
@@ -1914,7 +1914,7 @@ final class Mcv2ResultTest {
       .setFrameLimit(anyInt());
     when(encoder.finish(first)).thenAnswer(_ -> {
       firstFrameMayFail.await();
-      throw new IllegalStateException("MCV2 live picture and decoded picture disagree");
+      throw new IllegalStateException("MCV2 live picture and decoded picture disagree!");
     });
     final Mcv2Result result = new Mcv2Result(
       fast,

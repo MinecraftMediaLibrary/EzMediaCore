@@ -45,7 +45,7 @@ public final class Mcv2Fixtures {
   private static final String ROOT = "/mcv2/";
 
   private Mcv2Fixtures() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

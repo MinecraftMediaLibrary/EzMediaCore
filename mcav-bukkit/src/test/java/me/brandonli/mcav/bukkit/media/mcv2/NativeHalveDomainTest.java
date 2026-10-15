@@ -56,7 +56,7 @@ final class NativeHalveDomainTest {
     final MethodHandle failure = MethodHandles.insertArguments(
       MethodHandles.throwException(type.returnType(), IllegalStateException.class),
       0,
-      new IllegalStateException("unexpected simulated native dispatch")
+      new IllegalStateException("unexpected simulated native dispatch!")
     );
     return MethodHandles.dropArguments(failure, 0, type.parameterList());
   }

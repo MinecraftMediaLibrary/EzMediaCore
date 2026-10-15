@@ -21,7 +21,7 @@ package me.brandonli.mcav.bukkit.media.mcv2;
 final class Mcv2Oracle {
 
   private Mcv2Oracle() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   private static int roundedChannel(final double value) {

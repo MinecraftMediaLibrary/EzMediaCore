@@ -47,7 +47,7 @@ final class Mcv2ReceiverTest {
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5, 2)));
     final String message = exception.getMessage();
-    assertEquals("Stale or ambiguous frame number", message);
+    assertEquals("Stale or ambiguous frame number!", message);
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(4, 2)));
     assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(5 + 0x80000000L, 2)));
     final long frameIdAfterRejections = receiver.getFrameId();
@@ -61,7 +61,7 @@ final class Mcv2ReceiverTest {
 
     final Mcv2Exception exception = assertThrows(Mcv2Exception.class, () -> receiver.accept(keyframeWithId(0, 2)));
     final String message = exception.getMessage();
-    assertEquals("Stale or ambiguous frame number", message);
+    assertEquals("Stale or ambiguous frame number!", message);
     final long frameId = receiver.getFrameId();
     assertEquals(0, frameId);
   }
@@ -112,14 +112,14 @@ final class Mcv2ReceiverTest {
     final byte[] wrongShape = Mcv2Trees.write(16, 8, 1, 0, false, List.of(motion(0, 0)));
     final Mcv2Exception shapeException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongShape));
     final String shapeMessage = shapeException.getMessage();
-    assertEquals("Reference frame dimensions mismatch", shapeMessage);
+    assertEquals("Reference frame dimensions mismatch!", shapeMessage);
     final long frameIdAfterWrongShape = receiver.getFrameId();
     assertEquals(0, frameIdAfterWrongShape);
 
     final byte[] wrongHeight = Mcv2Trees.write(8, 8, 1, 0, false, List.of(motion(0, 0)));
     final Mcv2Exception heightException = assertThrows(Mcv2Exception.class, () -> receiver.accept(wrongHeight));
     final String heightMessage = heightException.getMessage();
-    assertEquals("Reference frame dimensions mismatch", heightMessage);
+    assertEquals("Reference frame dimensions mismatch!", heightMessage);
     final long frameIdAfterWrongHeight = receiver.getFrameId();
     assertEquals(0, frameIdAfterWrongHeight);
 

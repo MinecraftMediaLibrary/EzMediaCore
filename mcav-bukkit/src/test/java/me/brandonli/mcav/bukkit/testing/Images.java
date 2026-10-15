@@ -26,7 +26,7 @@ import me.brandonli.mcav.media.image.ImageBuffer;
 public final class Images {
 
   private Images() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

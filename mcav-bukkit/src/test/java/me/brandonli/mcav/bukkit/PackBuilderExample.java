@@ -32,7 +32,7 @@ public final class PackBuilderExample {
   private static final URI VIDEO = URI.create("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4");
 
   private PackBuilderExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
   /**

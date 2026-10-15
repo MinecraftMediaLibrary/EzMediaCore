@@ -147,7 +147,7 @@ public class BlockConfiguration {
      * @throws NullPointerException if the viewers are null
      */
     public T viewers(final Collection<UUID> viewers) {
-      Preconditions.checkNotNull(viewers, "Viewers must not be null");
+      Preconditions.checkNotNull(viewers, "Viewers must not be null!");
       this.viewers = viewers;
       return this.self();
     }
@@ -162,7 +162,7 @@ public class BlockConfiguration {
      * @throws NullPointerException if the position is null
      */
     public T position(final Location position) {
-      Preconditions.checkNotNull(position, "Position must not be null");
+      Preconditions.checkNotNull(position, "Position must not be null!");
       this.position = position;
       return this.self();
     }
@@ -197,13 +197,13 @@ public class BlockConfiguration {
      * @throws NullPointerException     if the viewers or the position were not set
      */
     public BlockConfiguration build() {
-      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set");
-      final Location configuredPosition = Preconditions.checkNotNull(this.position, "Position must be set");
+      final Collection<UUID> configuredViewers = Preconditions.checkNotNull(this.viewers, "Viewers must be set!");
+      final Location configuredPosition = Preconditions.checkNotNull(this.position, "Position must be set!");
 
       final World world = configuredPosition.getWorld();
-      Preconditions.checkArgument(world != null, "Position must have a world");
-      Preconditions.checkArgument(this.blockWidth > 0, "Block width must be positive");
-      Preconditions.checkArgument(this.blockHeight > 0, "Block height must be positive");
+      Preconditions.checkArgument(world != null, "Position must have a world!");
+      Preconditions.checkArgument(this.blockWidth > 0, "Block width must be positive!");
+      Preconditions.checkArgument(this.blockHeight > 0, "Block height must be positive!");
 
       return new BlockConfiguration(this, configuredViewers, configuredPosition);
     }

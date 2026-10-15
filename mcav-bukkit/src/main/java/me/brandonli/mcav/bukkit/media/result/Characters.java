@@ -59,6 +59,6 @@ public final class Characters {
   public static final String SMALL_BLACK_SQUARE = "▪";
 
   private Characters() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 }

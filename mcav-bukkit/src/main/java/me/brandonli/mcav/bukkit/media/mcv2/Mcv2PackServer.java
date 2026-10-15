@@ -101,13 +101,15 @@ import org.slf4j.LoggerFactory;
  */
 public final class Mcv2PackServer {
 
+  private static final String CONFIGURATION_NULL_MESSAGE = "Configuration must not be null!";
+
   private static final Logger LOGGER = LoggerFactory.getLogger(Mcv2PackServer.class);
 
-  private static final String PACK_SERVED = "Serving the MCV2 pack {} with {} at {}";
+  private static final String PACK_SERVED = "Serving the MCV2 pack {} with {} at {} to the online players.";
 
-  private static final String PACK_FAILED = "Cannot serve the MCV2 pack with {}";
+  private static final String PACK_FAILED = "Cannot serve the MCV2 pack with {}.";
 
-  private static final String PACK_LOADED = "{} loaded the MCV2 pack {} {} ms after it was offered";
+  private static final String PACK_LOADED = "{} loaded the MCV2 pack {} {} ms after it was offered.";
 
   private static final String MODDED_CLIENT_LOADED =
     "MCV2 pack loaded by {} (client brand {}) without the MCAV MCV2 Client mod, so active shaders cannot be verified. " +
@@ -118,11 +120,11 @@ public final class Mcv2PackServer {
     "mod, which shows you the dithered maps while Iris shaders are on, or turn off Iris shaders. Without the mod, MCAV " +
     "cannot detect active shader settings.";
 
-  private static final String NO_SLOT = "No MCV2 slot is free for a {}x{} video: the screen is dithered at that size";
+  private static final String NO_SLOT = "No MCV2 slot is free for a {}x{} video: the screen is dithered at that size.";
 
-  private static final String FOLDER_FAILED = "Cannot clear the old MCV2 packs from {}";
+  private static final String FOLDER_FAILED = "Cannot clear the old MCV2 packs from {}.";
 
-  private static final String PACK_WITHDRAWN = "No MCV2 screen plays any more: the players remove the MCV2 pack {}";
+  private static final String PACK_WITHDRAWN = "No MCV2 screen plays any more: the players remove the MCV2 pack {}.";
 
   private static final String FILE_PREFIX = "mcav-mcv2-";
 
@@ -262,10 +264,10 @@ public final class Mcv2PackServer {
     final ExecutorService writer,
     final LongSupplier millisecondClock
   ) {
-    Preconditions.checkNotNull(folder, "Folder must not be null");
-    Preconditions.checkNotNull(hosting, "Hosting must not be null");
-    Preconditions.checkNotNull(onOffered, "Offered callback must not be null");
-    Preconditions.checkNotNull(onRefused, "Refused callback must not be null");
+    Preconditions.checkNotNull(folder, "Folder must not be null!");
+    Preconditions.checkNotNull(hosting, "Hosting must not be null!");
+    Preconditions.checkNotNull(onOffered, "Offered callback must not be null!");
+    Preconditions.checkNotNull(onRefused, "Refused callback must not be null!");
     this.folder = folder;
     this.hosting = hosting;
     this.showsDebugView = showsDebugView;
@@ -324,23 +326,22 @@ public final class Mcv2PackServer {
    * @throws NullPointerException if {@code requested} is null
    */
   public synchronized Lease open(final Mcv2Configuration requested) {
-    Preconditions.checkNotNull(requested, "Configuration must not be null");
-    Preconditions.checkState(!this.stopped, "The MCV2 pack server was shut down");
+    Preconditions.checkNotNull(requested, CONFIGURATION_NULL_MESSAGE);
+    Preconditions.checkState(!this.stopped, "The MCV2 pack server was shut down!");
     Preconditions.checkArgument(
       requested.getPageMap() <= Integer.MAX_VALUE - PAGE_MAPS,
-      "The page maps of every slot of the pack must be ints: the first page map is at most %s",
+      "The first page map must be at most %s, so that the page maps of every slot of the pack are ints!",
       Integer.MAX_VALUE - PAGE_MAPS
     );
     final boolean sameColour = this.slots.isEmpty() || this.slots.getFirst().template.getOutlineColor().equals(requested.getOutlineColor());
-    Preconditions.checkArgument(sameColour || this.leases.isEmpty(), "The screens of a pack share one outline colour");
+    Preconditions.checkArgument(sameColour || this.leases.isEmpty(), "The screens of a pack share one outline colour!");
     if (!sameColour) {
       this.slots.clear();
     }
     final Slot slot = this.acquire(requested);
     if (slot == null) {
-      throw new IllegalStateException(
-        String.format(Locale.getDefault(Locale.Category.FORMAT), "Every one of the %d MCV2 slots plays a screen", Mcv2Pack.MAX_SCREENS)
-      );
+      final String message = "Every one of the %s MCV2 slots plays a screen!".formatted(Mcv2Pack.MAX_SCREENS);
+      throw new IllegalStateException(message);
     }
     final Lease lease = new Lease(
       requested,
@@ -631,7 +632,7 @@ public final class Mcv2PackServer {
       return -1;
     }
     final long took = this.millisecondClock.getAsLong() - since;
-    LOGGER.info(PACK_LOADED, player.getName(), pack.packId(), took);
+    LOGGER.debug(PACK_LOADED, player.getName(), pack.packId(), took);
     this.adviseModdedViewer(player);
     return took;
   }
@@ -738,7 +739,7 @@ public final class Mcv2PackServer {
       }
       return HexFormat.of().formatHex(digest.digest());
     } catch (final IOException exception) {
-      throw new UncheckedIOException("Cannot hash the MCV2 pack", exception);
+      throw new UncheckedIOException("Cannot hash the MCV2 pack!", exception);
     } catch (final NoSuchAlgorithmException exception) {
       throw new IllegalStateException(algorithm + " is not available", exception);
     }
@@ -807,9 +808,9 @@ public final class Mcv2PackServer {
      */
     @Override
     public Mcv2Channel resize(final Mcv2Configuration resized) {
-      Preconditions.checkNotNull(resized, "Configuration must not be null");
+      Preconditions.checkNotNull(resized, CONFIGURATION_NULL_MESSAGE);
       synchronized (Mcv2PackServer.this) {
-        Preconditions.checkState(!this.closed, "The lease was closed");
+        Preconditions.checkState(!this.closed, "The lease was closed!");
         final Geometry geometry = Geometry.of(resized);
         if (!this.playing.geometry.equals(geometry)) {
           final Slot left = this.ownSpare();

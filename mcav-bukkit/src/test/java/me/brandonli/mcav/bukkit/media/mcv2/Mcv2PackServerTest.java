@@ -415,7 +415,7 @@ final class Mcv2PackServerTest {
 
     final IllegalStateException full = assertThrows(IllegalStateException.class, () -> this.packs.open(screen(544, Set.of())));
     final String message = full.getMessage();
-    assertEquals("Every one of the 8 MCV2 slots plays a screen", message);
+    assertEquals("Every one of the 8 MCV2 slots plays a screen!", message);
 
     this.settle();
     final int hostingCount = this.hostings.size();
@@ -866,7 +866,7 @@ final class Mcv2PackServerTest {
     this.packs = this.packServer(zip -> {
       if (this.hostings.isEmpty()) {
         this.hostings.add(mock(PackHosting.class));
-        throw new IllegalStateException("upload failed");
+        throw new IllegalStateException("upload failed!");
       }
       return this.hosting(zip);
     });
@@ -1123,7 +1123,7 @@ final class Mcv2PackServerTest {
     @Override
     public void execute(final Runnable command) {
       if (this.isShutdown) {
-        throw new RejectedExecutionException("shut down");
+        throw new RejectedExecutionException("shut down!");
       }
       this.queue.add(command);
     }
@@ -1161,7 +1161,7 @@ final class Mcv2PackServerTest {
     @Override
     public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
       if (this.interrupt) {
-        throw new InterruptedException("interrupted");
+        throw new InterruptedException("interrupted!");
       }
       this.drain();
       return true;

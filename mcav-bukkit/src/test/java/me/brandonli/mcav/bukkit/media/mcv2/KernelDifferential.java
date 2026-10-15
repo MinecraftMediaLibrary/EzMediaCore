@@ -61,7 +61,7 @@ final class KernelDifferential {
   }
 
   private KernelDifferential() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

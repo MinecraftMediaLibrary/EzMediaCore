@@ -34,6 +34,9 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
  */
 public final class ChatUtils {
 
+  private static final String PIXELS_NULL_MESSAGE = "Pixels must not be null!";
+  private static final String CHARACTER_NULL_MESSAGE = "Character must not be null!";
+
   private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
   private static final char COLOR_CHAR = '§';
   private static final char HEX_COLOR_MARKER = 'x';
@@ -43,7 +46,7 @@ public final class ChatUtils {
   private static final String CLEAR_CHAT_MESSAGE = "\n".repeat(CHAT_HISTORY_LINES - 1);
 
   private ChatUtils() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -55,7 +58,7 @@ public final class ChatUtils {
    * @throws IllegalArgumentException if the index is negative
    */
   public static String getUniqueString(final int index) {
-    Preconditions.checkArgument(index >= 0, "Index must be non-negative");
+    Preconditions.checkArgument(index >= 0, "Index must be non-negative!");
     final String hex = Integer.toHexString(index);
     final char[] digits = hex.toCharArray();
     final StringBuilder entry = new StringBuilder(digits.length * 2);
@@ -81,10 +84,10 @@ public final class ChatUtils {
    * @throws NullPointerException if {@code data} or {@code character} is null
    */
   public static String createRawLine(final int[] data, final String character, final int width, final int row) {
-    Preconditions.checkNotNull(data, "Pixels must not be null");
-    Preconditions.checkNotNull(character, "Character must not be null");
-    Preconditions.checkArgument(width > 0, "Width must be positive");
-    Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image");
+    Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
+    Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
+    Preconditions.checkArgument(width > 0, "Width must be positive!");
+    Preconditions.checkArgument(row >= 0 && (row + 1L) * width <= data.length, "Row is outside of the image!");
     final int characterLength = character.length();
     final int capacity = width * (HEX_COLOR_LENGTH + characterLength);
     final StringBuilder builder = new StringBuilder(capacity);
@@ -107,10 +110,10 @@ public final class ChatUtils {
    * @throws NullPointerException if {@code data} or {@code character} is null
    */
   public static Component createChatComponent(final int[] data, final String character, final int width, final int height) {
-    Preconditions.checkNotNull(data, "Pixels must not be null");
-    Preconditions.checkNotNull(character, "Character must not be null");
-    Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty");
-    Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data");
+    Preconditions.checkNotNull(data, PIXELS_NULL_MESSAGE);
+    Preconditions.checkNotNull(character, CHARACTER_NULL_MESSAGE);
+    Preconditions.checkArgument(width > 0 && height > 0, "Image must not be empty!");
+    Preconditions.checkArgument((long) width * height <= data.length, "Image dimensions exceed the pixel data!");
     final int characterLength = character.length();
     final int capacity = width * height * (HEX_COLOR_LENGTH + characterLength) + height;
     final StringBuilder builder = new StringBuilder(capacity);
@@ -122,7 +125,7 @@ public final class ChatUtils {
     }
     final String text = builder.toString();
     final Component component = CraftChatMessage.fromStringOrNull(text, true);
-    return Objects.requireNonNull(component, "Text with color codes always converts to a component");
+    return Objects.requireNonNull(component, "Text with color codes always converts to a component!");
   }
 
   private static void appendRow(final StringBuilder builder, final int[] data, final String character, final int width, final int row) {
@@ -157,7 +160,7 @@ public final class ChatUtils {
    * @throws NullPointerException if {@code viewers} is null
    */
   public static void clearChat(final Collection<UUID> viewers) {
-    Preconditions.checkNotNull(viewers, "Viewers must not be null");
+    Preconditions.checkNotNull(viewers, "Viewers must not be null!");
     final Component message = Component.literal(CLEAR_CHAT_MESSAGE);
     final ClientboundSystemChatPacket packet = new ClientboundSystemChatPacket(message, false);
     PacketUtils.sendPackets(viewers, packet);

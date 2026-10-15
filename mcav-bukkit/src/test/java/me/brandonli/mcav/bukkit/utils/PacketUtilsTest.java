@@ -153,7 +153,7 @@ final class PacketUtilsTest {
 
     final NullPointerException exception = assertThrows(NullPointerException.class, () -> PacketUtils.connectionIdentity(null));
     final @Nullable String message = exception.getMessage();
-    assertEquals("Player must not be null", message);
+    assertEquals("Player must not be null!", message);
   }
 
   @Test

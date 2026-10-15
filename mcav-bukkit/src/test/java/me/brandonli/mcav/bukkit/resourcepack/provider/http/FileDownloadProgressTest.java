@@ -124,7 +124,7 @@ final class FileDownloadProgressTest {
       final ChannelPromise completion = channel.newPromise();
       final ChannelFuture submitted = channel.writeOneOutbound("payload", completion);
       assertSame(completion, submitted);
-      final IOException failure = new IOException("socket closed");
+      final IOException failure = new IOException("Socket closed!");
       held.promise().setFailure(failure);
       final @Nullable Throwable cause = completion.cause();
       assertSame(failure, cause);
@@ -157,7 +157,7 @@ final class FileDownloadProgressTest {
       final boolean open = channel.isOpen();
       assertFalse(open);
 
-      held.promise().setFailure(new IOException("closed after timeout"));
+      held.promise().setFailure(new IOException("Closed after timeout!"));
     } finally {
       channel.finishAndReleaseAll();
     }
@@ -198,7 +198,7 @@ final class FileDownloadProgressTest {
     final ChannelHandlerContext context = Mockito.mock(ChannelHandlerContext.class);
     final ChannelProgressivePromise progress = channel.newProgressivePromise();
     final ChannelPromise completion = channel.newPromise();
-    final RuntimeException failure = new IllegalStateException("timeout reporting failed");
+    final RuntimeException failure = new IllegalStateException("Timeout reporting failed!");
     Mockito.when(context.executor()).thenReturn(channel.eventLoop());
     Mockito.when(context.newProgressivePromise()).thenReturn(progress);
     Mockito.when(context.write("payload", progress)).thenReturn(progress);
