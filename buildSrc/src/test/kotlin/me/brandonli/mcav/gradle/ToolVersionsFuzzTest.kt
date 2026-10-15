@@ -20,7 +20,15 @@ package me.brandonli.mcav.gradle
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
+import java.io.OutputStream
+import java.lang.reflect.Method
+import java.lang.reflect.Proxy
+import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
+import org.gradle.process.ExecSpec
+import org.gradle.process.JavaExecSpec
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 
@@ -67,13 +75,59 @@ class ToolVersionsFuzzTest {
     }
 
     private fun verifies(output: String, expected: String): Boolean {
-        val processes: RecordedProcesses = RecordedProcesses(output)
+        val processes: ExecOperations = PrintingProcesses(output)
         try {
-            ToolVersions.verify(processes.operations, TOOL, TOOL, expected, PREFIX)
+            ToolVersions.verify(processes, TOOL, TOOL, expected, PREFIX)
         } catch (exception: GradleException) {
             return false
         }
 
         return true
+    }
+
+    // Mockito's inline mocks retransform classes under Jazzer's agent and crash the fuzzing JVM, so a JDK proxy stands
+    // in for the process instead
+    private class PrintingProcesses(private val output: String) : ExecOperations {
+
+        override fun exec(action: Action<in ExecSpec>): ExecResult {
+            val streams: MutableList<OutputStream> = mutableListOf()
+            val loader: ClassLoader = ExecSpec::class.java.classLoader
+            val interfaces: Array<Class<*>> = arrayOf(ExecSpec::class.java)
+            val spec: ExecSpec = Proxy.newProxyInstance(loader, interfaces) { proxy: Any, method: Method, arguments: Array<Any?>? ->
+                this.record(proxy, method, arguments, streams)
+            } as ExecSpec
+            action.execute(spec)
+
+            val bytes: ByteArray = this.output.toByteArray(Charsets.UTF_8)
+            streams.forEach { it.write(bytes) }
+            return ExitedNormally
+        }
+
+        override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
+            throw UnsupportedOperationException("Tool versions never start a Java process!")
+        }
+
+        private fun record(proxy: Any, method: Method, arguments: Array<Any?>?, streams: MutableList<OutputStream>): Any? {
+            if (method.name == "setStandardOutput") {
+                streams += arguments!![0] as OutputStream
+            }
+
+            return if (method.returnType.isInstance(proxy)) proxy else null
+        }
+    }
+
+    private object ExitedNormally : ExecResult {
+
+        override fun getExitValue(): Int {
+            return 0
+        }
+
+        override fun assertNormalExitValue(): ExecResult {
+            return this
+        }
+
+        override fun rethrowFailure(): ExecResult {
+            return this
+        }
     }
 }
