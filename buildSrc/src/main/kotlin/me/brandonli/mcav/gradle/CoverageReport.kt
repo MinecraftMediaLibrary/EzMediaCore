@@ -41,7 +41,7 @@ object CoverageExceptions {
     private fun parse(file: File, entry: String): CoverageException {
         val first = entry.indexOf(SEPARATOR)
         val last = entry.lastIndexOf(SEPARATOR)
-        require(first >= 0 && last > first) { "$file: expected 'path | source line | reason' but found '$entry'" }
+        require(first >= 0 && last >= first + SEPARATOR.length) { "$file: expected 'path | source line | reason' but found '$entry'" }
         val path = entry.substring(0, first)
         val sourceLine = entry.substring(first + SEPARATOR.length, last)
         val reason = entry.substring(last + SEPARATOR.length)
