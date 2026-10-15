@@ -35,7 +35,7 @@ final class RfbGuardFuzzTest {
 
   private static final int SIDE = 64;
 
-  private static final int MAX_CHUNK = 512;
+  private static final int MAXIMUM_CHUNK = 512;
 
   @FuzzTest(maxDuration = "30s")
   void shouldCheckWhatAConnectedServerSends(final FuzzedDataProvider data) throws IOException {
@@ -65,7 +65,7 @@ final class RfbGuardFuzzTest {
   private static void feed(final RfbSession session, final FuzzedDataProvider data) {
     try {
       while (data.remainingBytes() > 0) {
-        session.server(data.consumeBytes(data.consumeInt(1, MAX_CHUNK)));
+        session.server(data.consumeBytes(data.consumeInt(1, MAXIMUM_CHUNK)));
       }
     } catch (final IOException exception) {
       // the one failure the guard may report

@@ -72,11 +72,11 @@ public final class VNCPlayerImpl implements VNCPlayer {
 
   private static final int LEFT_BUTTON = 1;
   private static final int RIGHT_BUTTON = 3;
-  private static final long IDLE_PARK_NANOS = TimeUnit.MILLISECONDS.toNanos(10);
-  private static final long STOP_TIMEOUT_MILLIS = 2_000L;
-  private static final int CONNECT_TIMEOUT_MILLIS = 10_000;
+  private static final long IDLE_PARK_NANOSECONDS = TimeUnit.MILLISECONDS.toNanos(10);
+  private static final long STOP_TIMEOUT_MILLISECONDS = 2_000L;
+  private static final int CONNECT_TIMEOUT_MILLISECONDS = 10_000;
   // the handshake as a whole, not each read: a server that sends a byte now and then would keep a read timeout happy
-  private static final long HANDSHAKE_TIMEOUT_MILLIS = 10_000L;
+  private static final long HANDSHAKE_TIMEOUT_MILLISECONDS = 10_000L;
 
   private final Function<VernacularConfig, VernacularClient> clientFactory;
   private final Supplier<Socket> socketFactory;
@@ -85,8 +85,8 @@ public final class VNCPlayerImpl implements VNCPlayer {
   private final Lock lock;
   private final Object frameLock;
   private final Object deliveryLock;
-  private final long idleParkNanos;
-  private final long handshakeTimeoutMillis;
+  private final long idleParkNanoseconds;
+  private final long handshakeTimeoutMilliseconds;
   private final AtomicBoolean paused;
   private final AtomicBoolean released;
   private final AtomicReference<@Nullable BufferedImage> latestFrame;
@@ -110,7 +110,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
    */
   @VisibleForTesting
   VNCPlayerImpl(final Function<VernacularConfig, VernacularClient> clientFactory, final Supplier<Socket> socketFactory) {
-    this(clientFactory, socketFactory, IDLE_PARK_NANOS);
+    this(clientFactory, socketFactory, IDLE_PARK_NANOSECONDS);
   }
 
   /**
@@ -118,15 +118,15 @@ public final class VNCPlayerImpl implements VNCPlayer {
    *
    * @param clientFactory creates the client of a session
    * @param socketFactory creates its socket
-   * @param idleParkNanos how long an idle renderer waits unless a frame or shutdown wakes it first
+   * @param idleParkNanoseconds how long an idle renderer waits unless a frame or shutdown wakes it first
    */
   @VisibleForTesting
   VNCPlayerImpl(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
-    final long idleParkNanos
+    final long idleParkNanoseconds
   ) {
-    this(clientFactory, socketFactory, idleParkNanos, HANDSHAKE_TIMEOUT_MILLIS);
+    this(clientFactory, socketFactory, idleParkNanoseconds, HANDSHAKE_TIMEOUT_MILLISECONDS);
   }
 
   /**
@@ -134,28 +134,28 @@ public final class VNCPlayerImpl implements VNCPlayer {
    *
    * @param clientFactory          creates the client of a session
    * @param socketFactory          creates its socket
-   * @param idleParkNanos          how long an idle renderer waits unless a frame or shutdown wakes it first
-   * @param handshakeTimeoutMillis how long the server may take to complete the handshake before the connection is
+   * @param idleParkNanoseconds          how long an idle renderer waits unless a frame or shutdown wakes it first
+   * @param handshakeTimeoutMilliseconds how long the server may take to complete the handshake before the connection is
    *                               closed and the start fails
    */
   @VisibleForTesting
   VNCPlayerImpl(
     final Function<VernacularConfig, VernacularClient> clientFactory,
     final Supplier<Socket> socketFactory,
-    final long idleParkNanos,
-    final long handshakeTimeoutMillis
+    final long idleParkNanoseconds,
+    final long handshakeTimeoutMilliseconds
   ) {
-    Preconditions.checkArgument(idleParkNanos > 0, "Idle wait %s must be positive!", idleParkNanos);
-    Preconditions.checkArgument(handshakeTimeoutMillis > 0, "Handshake timeout %s must be positive!", handshakeTimeoutMillis);
+    Preconditions.checkArgument(idleParkNanoseconds > 0, "Idle wait %s must be positive!", idleParkNanoseconds);
+    Preconditions.checkArgument(handshakeTimeoutMilliseconds > 0, "Handshake timeout %s must be positive!", handshakeTimeoutMilliseconds);
     this.clientFactory = clientFactory;
     this.socketFactory = socketFactory;
-    this.handshakeTimeoutMillis = handshakeTimeoutMillis;
+    this.handshakeTimeoutMilliseconds = handshakeTimeoutMilliseconds;
     this.videoCallback = VideoAttachableCallback.create();
     this.exceptionHandler = ExceptionHandler.createDefault();
     this.lock = new ReentrantLock();
     this.frameLock = new Object();
     this.deliveryLock = new Object();
-    this.idleParkNanos = idleParkNanos;
+    this.idleParkNanoseconds = idleParkNanoseconds;
     this.paused = new AtomicBoolean(false);
     this.released = new AtomicBoolean(false);
     this.latestFrame = new AtomicReference<>();
@@ -223,8 +223,8 @@ public final class VNCPlayerImpl implements VNCPlayer {
   }
 
   private VernacularClient openSession(final VNCSource source, final Session created, final Thread renderWorker) {
-    final VernacularConfig config = this.createConfig(source, created, renderWorker);
-    final VernacularClient vncClient = this.clientFactory.apply(config);
+    final VernacularConfig configuration = this.createConfiguration(source, created, renderWorker);
+    final VernacularClient vncClient = this.clientFactory.apply(configuration);
     final Socket socket = this.connect(source);
     // The handshake holds the player lock; its deadline also prevents release() from waiting forever.
     final AtomicBoolean expired = new AtomicBoolean();
@@ -235,7 +235,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
         expired.set(true);
         closeQuietly(socket);
       },
-      CompletableFuture.delayedExecutor(this.handshakeTimeoutMillis, TimeUnit.MILLISECONDS, HANDSHAKE_DEADLINES)
+      CompletableFuture.delayedExecutor(this.handshakeTimeoutMilliseconds, TimeUnit.MILLISECONDS, HANDSHAKE_DEADLINES)
     );
     try {
       vncClient.start(socket);
@@ -264,7 +264,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     if (timedOut) {
       return "VNC session with %s could not start because the server did not finish the handshake within %s ms!".formatted(
         resource,
-        this.handshakeTimeoutMillis
+        this.handshakeTimeoutMilliseconds
       );
     }
     return "VNC session with %s could not start because of \"%s\"!".formatted(resource, message);
@@ -278,7 +278,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     final InetSocketAddress address = new InetSocketAddress(host, port);
     final Socket socket = this.socketFactory.get();
     try {
-      socket.connect(address, CONNECT_TIMEOUT_MILLIS);
+      socket.connect(address, CONNECT_TIMEOUT_MILLISECONDS);
       socket.setTcpNoDelay(true);
       return new GuardedSocket(socket);
     } catch (final IOException exception) {
@@ -298,25 +298,25 @@ public final class VNCPlayerImpl implements VNCPlayer {
     }
   }
 
-  private VernacularConfig createConfig(final VNCSource source, final Session created, final Thread renderWorker) {
-    final VernacularConfig config = new VernacularConfig();
-    config.setColorDepth(ColorDepth.BPP_24_TRUE);
-    config.setShared(true);
-    config.setUseLocalMousePointer(false);
+  private VernacularConfig createConfiguration(final VNCSource source, final Session created, final Thread renderWorker) {
+    final VernacularConfig configuration = new VernacularConfig();
+    configuration.setColorDepth(ColorDepth.BPP_24_TRUE);
+    configuration.setShared(true);
+    configuration.setUseLocalMousePointer(false);
     final int frameRate = source.getTargetFrameRate();
-    config.setTargetFramesPerSecond(frameRate);
-    config.setScreenUpdateListener(image -> this.onScreenUpdate(created, image, renderWorker));
-    config.setErrorListener(error -> this.onError(created, error));
+    configuration.setTargetFramesPerSecond(frameRate);
+    configuration.setScreenUpdateListener(image -> this.onScreenUpdate(created, image, renderWorker));
+    configuration.setErrorListener(error -> this.onError(created, error));
 
     final String username = source.getUsername();
     if (username != null && !username.isEmpty()) {
-      config.setUsernameSupplier(() -> username);
+      configuration.setUsernameSupplier(() -> username);
     }
     final String password = source.getPassword();
     if (password != null && !password.isEmpty()) {
-      config.setPasswordSupplier(() -> password);
+      configuration.setPasswordSupplier(() -> password);
     }
-    return config;
+    return configuration;
   }
 
   private void onScreenUpdate(final Session owner, final Image image, final Thread renderWorker) {
@@ -362,7 +362,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
     while (owner.isAlive()) {
       final BufferedImage frame = this.latestFrame.getAndSet(null);
       if (frame == null) {
-        LockSupport.parkNanos(this.idleParkNanos);
+        LockSupport.parkNanos(this.idleParkNanoseconds);
         continue;
       }
 
@@ -554,7 +554,7 @@ public final class VNCPlayerImpl implements VNCPlayer {
       return;
     }
     try {
-      thread.join(STOP_TIMEOUT_MILLIS);
+      thread.join(STOP_TIMEOUT_MILLISECONDS);
     } catch (final InterruptedException exception) {
       final Thread current = Thread.currentThread();
       current.interrupt();

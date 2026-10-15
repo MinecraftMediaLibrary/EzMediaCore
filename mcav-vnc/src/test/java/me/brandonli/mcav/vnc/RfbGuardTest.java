@@ -23,7 +23,7 @@ import static me.brandonli.mcav.vnc.RfbSession.VNC;
 import static me.brandonli.mcav.vnc.RfbSession.concat;
 import static me.brandonli.mcav.vnc.RfbSession.cutText;
 import static me.brandonli.mcav.vnc.RfbSession.rectangle;
-import static me.brandonli.mcav.vnc.RfbSession.serverInit;
+import static me.brandonli.mcav.vnc.RfbSession.serverInitialization;
 import static me.brandonli.mcav.vnc.RfbSession.setPixelFormat;
 import static me.brandonli.mcav.vnc.RfbSession.unsigned16;
 import static me.brandonli.mcav.vnc.RfbSession.unsigned32;
@@ -177,7 +177,7 @@ final class RfbGuardTest {
     final RfbSession session = new RfbSession();
     session.server(version(8));
     session.client(version(8));
-    assertRefused(session, concat(new byte[] { 0 }, unsigned32(RfbGuard.MAX_REASON + 1)), "failure reason");
+    assertRefused(session, concat(new byte[] { 0 }, unsigned32(RfbGuard.MAXIMUM_REASON + 1)), "failure reason");
   }
 
   @Test
@@ -207,25 +207,25 @@ final class RfbGuardTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = { 0, RfbGuard.MAX_SIDE + 1 })
+  @ValueSource(ints = { 0, RfbGuard.MAXIMUM_SIDE + 1 })
   void shouldRefuseAFramebufferWidthOutsideItsBounds(final int width) throws IOException {
     final RfbSession session = new RfbSession();
     session.server(version(3));
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    assertRefused(session, serverInit(width, SIDE, 32, "desktop"), "framebuffer");
+    assertRefused(session, serverInitialization(width, SIDE, 32, "desktop"), "framebuffer");
   }
 
   @ParameterizedTest
-  @ValueSource(ints = { 0, RfbGuard.MAX_SIDE + 1 })
+  @ValueSource(ints = { 0, RfbGuard.MAXIMUM_SIDE + 1 })
   void shouldRefuseAFramebufferHeightOutsideItsBounds(final int height) throws IOException {
     final RfbSession session = new RfbSession();
     session.server(version(3));
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    assertRefused(session, serverInit(SIDE, height, 32, "desktop"), "framebuffer");
+    assertRefused(session, serverInitialization(SIDE, height, 32, "desktop"), "framebuffer");
   }
 
   @Test
@@ -235,7 +235,7 @@ final class RfbGuardTest {
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    assertRefused(session, serverInit(SIDE, SIDE, 24, "desktop"), "24 bits per pixel");
+    assertRefused(session, serverInitialization(SIDE, SIDE, 24, "desktop"), "24 bits per pixel");
   }
 
   @Test
@@ -245,14 +245,14 @@ final class RfbGuardTest {
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    final byte[] header = concat(unsigned16(SIDE), unsigned16(SIDE), RfbSession.pixelFormat(32), unsigned32(RfbGuard.MAX_NAME + 1L));
+    final byte[] header = concat(unsigned16(SIDE), unsigned16(SIDE), RfbSession.pixelFormat(32), unsigned32(RfbGuard.MAXIMUM_NAME + 1L));
     assertRefused(session, header, "desktop name");
   }
 
   @Test
   void shouldAcceptClipboardTextWithinItsBound() throws IOException {
     final RfbSession session = connected();
-    session.server(cutText(RfbGuard.MAX_TEXT));
+    session.server(cutText(RfbGuard.MAXIMUM_TEXT));
     session.server(cutText(0));
     assertAtAMessage(session);
   }
@@ -290,7 +290,7 @@ final class RfbGuardTest {
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    session.server(serverInit(SIDE, SIDE, 16, "desktop"));
+    session.server(serverInitialization(SIDE, SIDE, 16, "desktop"));
     session.server(concat(update(1), rectangle(0, 0, 2, 2, 0), pixels(2 * 2 * 2)));
     assertAtAMessage(session);
   }
@@ -302,7 +302,7 @@ final class RfbGuardTest {
     session.client(version(3));
     session.server(unsigned32(NONE));
     session.client(new byte[] { 1 });
-    session.server(serverInit(SIDE, SIDE, 8, "desktop"));
+    session.server(serverInitialization(SIDE, SIDE, 8, "desktop"));
     session.client(setPixelFormat(24));
     session.server(concat(update(1), rectangle(0, 0, 2, 2, 0), pixels(2 * 2)));
     assertAtAMessage(session);
@@ -360,7 +360,7 @@ final class RfbGuardTest {
     final RfbSession session = connected();
     session.server(concat(update(1), rectangle(0, 0, SIDE * 2, SIDE, -223)));
     session.server(concat(update(1), rectangle(SIDE, 0, SIDE, 1, 1), unsigned32(0)));
-    assertRefused(session, concat(update(1), rectangle(0, 0, RfbGuard.MAX_SIDE + 1, SIDE, -223)), "framebuffer");
+    assertRefused(session, concat(update(1), rectangle(0, 0, RfbGuard.MAXIMUM_SIDE + 1, SIDE, -223)), "framebuffer");
   }
 
   @Test
@@ -375,8 +375,8 @@ final class RfbGuardTest {
   @ValueSource(ints = { 0, 1 })
   void shouldRefuseACursorAboveItsBound(final int tallInsteadOfWide) throws IOException {
     final RfbSession session = connected();
-    final int wide = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAX_SIDE + 1;
-    final int tall = tallInsteadOfWide == 1 ? RfbGuard.MAX_SIDE + 1 : 1;
+    final int wide = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAXIMUM_SIDE + 1;
+    final int tall = tallInsteadOfWide == 1 ? RfbGuard.MAXIMUM_SIDE + 1 : 1;
     assertRefused(session, concat(update(1), rectangle(0, 0, wide, tall, -239)), "cursor");
   }
 
@@ -461,7 +461,7 @@ final class RfbGuardTest {
     session.client(new byte[] { NONE });
     session.server(unsigned32(0));
     session.client(new byte[] { 1 });
-    session.server(serverInit(SIDE, SIDE, 32, "desktop"));
+    session.server(serverInitialization(SIDE, SIDE, 32, "desktop"));
     assertAtAMessage(session);
   }
 
@@ -484,8 +484,8 @@ final class RfbGuardTest {
     guard.acceptClient(new byte[] { NONE }, 0, 1);
     guard.acceptServer(concat(new byte[] { 9 }, unsigned32(0)), 1, 4);
     guard.acceptClient(new byte[] { 1 }, 0, 1);
-    final byte[] init = serverInit(SIDE, SIDE, 32, "desktop");
-    guard.acceptServer(init, 0, init.length);
+    final byte[] initialization = serverInitialization(SIDE, SIDE, 32, "desktop");
+    guard.acceptServer(initialization, 0, initialization.length);
     guard.acceptServer(new byte[] { 2 }, 0, 1);
     final IOException refused = assertThrows(IOException.class, () -> guard.acceptServer(new byte[] { 9 }, 0, 1));
     final String message = refused.getMessage();
@@ -498,15 +498,15 @@ final class RfbGuardTest {
     final RfbSession session = new RfbSession();
     session.server(version(8));
     session.client(version(8));
-    session.server(concat(new byte[] { 0 }, unsigned32(RfbGuard.MAX_REASON), pixels(RfbGuard.MAX_REASON)));
+    session.server(concat(new byte[] { 0 }, unsigned32(RfbGuard.MAXIMUM_REASON), pixels(RfbGuard.MAXIMUM_REASON)));
     assertRefused(session, new byte[] { 2 }, "after the connection ended");
   }
 
   @ParameterizedTest
   @ValueSource(ints = { 0, 1 })
   void shouldAcceptAFramebufferOfOnePixelAcrossAndTheLargestSide(final int tallInsteadOfWide) throws IOException {
-    final int width = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAX_SIDE;
-    final int height = tallInsteadOfWide == 1 ? RfbGuard.MAX_SIDE : 1;
+    final int width = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAXIMUM_SIDE;
+    final int height = tallInsteadOfWide == 1 ? RfbGuard.MAXIMUM_SIDE : 1;
     final RfbSession session = new RfbSession();
     session.handshake(8, NONE, width, height);
     session.server(concat(update(1), rectangle(width - 1, height - 1, 1, 1, 0), pixels(4)));
@@ -517,8 +517,8 @@ final class RfbGuardTest {
   @ValueSource(ints = { 0, 1 })
   void shouldAcceptACursorOfTheLargestSide(final int tallInsteadOfWide) throws IOException {
     final RfbSession session = connected();
-    final int wide = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAX_SIDE;
-    final int tall = tallInsteadOfWide == 1 ? RfbGuard.MAX_SIDE : 1;
+    final int wide = tallInsteadOfWide == 1 ? 1 : RfbGuard.MAXIMUM_SIDE;
+    final int tall = tallInsteadOfWide == 1 ? RfbGuard.MAXIMUM_SIDE : 1;
     session.server(concat(update(1), rectangle(0, 0, wide, tall, -239), pixels(wide * tall * 4 + ((wide + 7) / 8) * tall)));
     assertAtAMessage(session);
   }

@@ -325,7 +325,7 @@ public final class RfbTestServer implements AutoCloseable {
 
     input.readUnsignedByte();
     this.layout = PixelLayout.SERVER;
-    this.writeServerInit(clientOutput);
+    this.writeServerInitialization(clientOutput);
     this.output = clientOutput;
     try {
       this.readMessages(input);
@@ -403,12 +403,12 @@ public final class RfbTestServer implements AutoCloseable {
     }
 
     final Cipher cipher = Cipher.getInstance("DES/ECB/NoPadding");
-    final SecretKeySpec keySpec = new SecretKeySpec(key, "DES");
-    cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+    final SecretKeySpec keySpecification = new SecretKeySpec(key, "DES");
+    cipher.init(Cipher.ENCRYPT_MODE, keySpecification);
     return cipher.doFinal(challenge);
   }
 
-  private void writeServerInit(final DataOutputStream clientOutput) throws IOException {
+  private void writeServerInitialization(final DataOutputStream clientOutput) throws IOException {
     clientOutput.writeShort(this.width);
     clientOutput.writeShort(this.height);
     clientOutput.writeByte(32);
@@ -505,14 +505,14 @@ public final class RfbTestServer implements AutoCloseable {
     input.readUnsignedByte();
     final boolean bigEndian = input.readUnsignedByte() != 0;
     input.readUnsignedByte();
-    final int redMax = input.readUnsignedShort();
-    final int greenMax = input.readUnsignedShort();
-    final int blueMax = input.readUnsignedShort();
+    final int redMaximum = input.readUnsignedShort();
+    final int greenMaximum = input.readUnsignedShort();
+    final int blueMaximum = input.readUnsignedShort();
     final int redShift = input.readUnsignedByte();
     final int greenShift = input.readUnsignedByte();
     final int blueShift = input.readUnsignedByte();
     discard(input, 3);
-    this.layout = new PixelLayout(bitsPerPixel / 8, bigEndian, redMax, greenMax, blueMax, redShift, greenShift, blueShift);
+    this.layout = new PixelLayout(bitsPerPixel / 8, bigEndian, redMaximum, greenMaximum, blueMaximum, redShift, greenShift, blueShift);
   }
 
   private void answerPendingRequests() {
@@ -585,9 +585,9 @@ public final class RfbTestServer implements AutoCloseable {
 
     private final int bytesPerPixel;
     private final boolean bigEndian;
-    private final int redMax;
-    private final int greenMax;
-    private final int blueMax;
+    private final int redMaximum;
+    private final int greenMaximum;
+    private final int blueMaximum;
     private final int redShift;
     private final int greenShift;
     private final int blueShift;
@@ -595,18 +595,18 @@ public final class RfbTestServer implements AutoCloseable {
     PixelLayout(
       final int bytesPerPixel,
       final boolean bigEndian,
-      final int redMax,
-      final int greenMax,
-      final int blueMax,
+      final int redMaximum,
+      final int greenMaximum,
+      final int blueMaximum,
       final int redShift,
       final int greenShift,
       final int blueShift
     ) {
       this.bytesPerPixel = bytesPerPixel;
       this.bigEndian = bigEndian;
-      this.redMax = redMax;
-      this.greenMax = greenMax;
-      this.blueMax = blueMax;
+      this.redMaximum = redMaximum;
+      this.greenMaximum = greenMaximum;
+      this.blueMaximum = blueMaximum;
       this.redShift = redShift;
       this.greenShift = greenShift;
       this.blueShift = blueShift;
@@ -622,9 +622,9 @@ public final class RfbTestServer implements AutoCloseable {
       final int red = (rgb >> 16) & 0xFF;
       final int green = (rgb >> 8) & 0xFF;
       final int blue = rgb & 0xFF;
-      final long redBits = scaleChannel(red, this.redMax, this.redShift);
-      final long greenBits = scaleChannel(green, this.greenMax, this.greenShift);
-      final long blueBits = scaleChannel(blue, this.blueMax, this.blueShift);
+      final long redBits = scaleChannel(red, this.redMaximum, this.redShift);
+      final long greenBits = scaleChannel(green, this.greenMaximum, this.greenShift);
+      final long blueBits = scaleChannel(blue, this.blueMaximum, this.blueShift);
       final long value = redBits | greenBits | blueBits;
 
       final byte[] bytes = new byte[this.bytesPerPixel];
@@ -636,8 +636,8 @@ public final class RfbTestServer implements AutoCloseable {
       return bytes;
     }
 
-    private static long scaleChannel(final int channel, final int max, final int shift) {
-      final int scaled = (channel * max) / 255;
+    private static long scaleChannel(final int channel, final int maximum, final int shift) {
+      final int scaled = (channel * maximum) / 255;
       return (long) scaled << shift;
     }
   }

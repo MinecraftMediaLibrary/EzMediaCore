@@ -86,7 +86,7 @@ final class RfbSession {
       }
     }
     this.client(new byte[] { 1 });
-    this.server(serverInit(width, height, 32, "desktop"));
+    this.server(serverInitialization(width, height, 32, "desktop"));
     this.client(setPixelFormat(clientBits));
   }
 
@@ -118,7 +118,7 @@ final class RfbSession {
     return format;
   }
 
-  static byte[] serverInit(final int width, final int height, final int bitsPerPixel, final String name) {
+  static byte[] serverInitialization(final int width, final int height, final int bitsPerPixel, final String name) {
     final byte[] text = name.getBytes(StandardCharsets.UTF_8);
     return concat(unsigned16(width), unsigned16(height), pixelFormat(bitsPerPixel), unsigned32(text.length), text);
   }

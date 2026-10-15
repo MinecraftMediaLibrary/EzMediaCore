@@ -41,16 +41,16 @@ import java.nio.charset.StandardCharsets;
 final class RfbGuard {
 
   /** The largest framebuffer side accepted: a 4K desktop fits, and the client's picture stays under 64 MiB. */
-  static final int MAX_SIDE = 4096;
+  static final int MAXIMUM_SIDE = 4096;
 
   /** The longest desktop name accepted, in bytes. */
-  static final int MAX_NAME = 4096;
+  static final int MAXIMUM_NAME = 4096;
 
   /** The longest failure reason accepted, in bytes. */
-  static final int MAX_REASON = 4096;
+  static final int MAXIMUM_REASON = 4096;
 
   /** The longest clipboard text accepted, in bytes; the client does not use it. */
-  static final int MAX_TEXT = 1 << 20;
+  static final int MAXIMUM_TEXT = 1 << 20;
 
   /** Compressed zlib data may exceed what it decompresses to by a little; this is the room allowed. */
   static final int ZLIB_SLACK = 1 << 16;
@@ -63,9 +63,9 @@ final class RfbGuard {
 
   private static final int MS_LOGON = 113;
 
-  private static final int MIN_MINOR_WITH_TYPE_LIST = 7;
+  private static final int MINIMUM_MINOR_WITH_TYPE_LIST = 7;
 
-  private static final int MIN_MINOR_WITH_REASONS = 8;
+  private static final int MINIMUM_MINOR_WITH_REASONS = 8;
 
   private final Object lock = new Object();
 
@@ -225,7 +225,7 @@ final class RfbGuard {
     LOGON_KEYS(24),
     RESULT(Integer.BYTES),
     // the framebuffer's size, its pixel format and the length of its name
-    INIT(24),
+    INITIALIZATION(24),
     MESSAGE(1),
     // padding and the number of rectangles
     UPDATE(3),
@@ -282,7 +282,7 @@ final class RfbGuard {
     private static final int TILE_SUBRECTANGLES = 8;
     private static final int TILE_COLOURED = 16;
 
-    private final byte[] field = new byte[Server.INIT.bytes];
+    private final byte[] field = new byte[Server.INITIALIZATION.bytes];
 
     private Mode mode = Mode.FIELD;
 
@@ -390,7 +390,7 @@ final class RfbGuard {
         case REASON_LENGTH -> this::reason;
         case CHALLENGE, LOGON_KEYS -> () -> this.expect(Server.RESULT);
         case RESULT -> this::result;
-        case INIT -> this::init;
+        case INITIALIZATION -> this::initialization;
         case MESSAGE -> this::message;
         case UPDATE -> this::update;
         case RECTANGLE -> this::rectangle;
@@ -399,7 +399,7 @@ final class RfbGuard {
         case SUBRECTANGLES -> this::subrectangles;
         case ZLIB_LENGTH -> this::zlib;
         case COLOURS -> () -> this.skip((long) COLOUR_ENTRY * unsigned16(this.field, 3), Then.STATE, Server.MESSAGE);
-        case TEXT -> () -> this.bounded(unsigned32(this.field, 3), MAX_TEXT, "clipboard text", Server.MESSAGE);
+        case TEXT -> () -> this.bounded(unsigned32(this.field, 3), MAXIMUM_TEXT, "clipboard text", Server.MESSAGE);
       };
       step.run();
     }
@@ -407,7 +407,7 @@ final class RfbGuard {
     /** A failure reason, after which the server closes the connection. */
     private void reason() throws IOException {
       final long length = unsigned32(this.field, 0);
-      if (length > MAX_REASON) {
+      if (length > MAXIMUM_REASON) {
         throw violation("a failure reason of " + length + " bytes");
       }
       this.skip(length, Then.CLOSE, Server.VERSION);
@@ -427,7 +427,7 @@ final class RfbGuard {
         throw violation("security data before the client chose a version");
       }
       this.mode = Mode.FIELD;
-      this.expect(minor >= MIN_MINOR_WITH_TYPE_LIST ? Server.SECURITY_COUNT : Server.SECURITY_TYPE);
+      this.expect(minor >= MINIMUM_MINOR_WITH_TYPE_LIST ? Server.SECURITY_COUNT : Server.SECURITY_TYPE);
       return at;
     }
 
@@ -462,7 +462,7 @@ final class RfbGuard {
         throw violation("data before the client chose a security type");
       }
       switch (type) {
-        case NONE -> this.expect(RfbGuard.this.minorVersion >= MIN_MINOR_WITH_REASONS ? Server.RESULT : Server.INIT);
+        case NONE -> this.expect(RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS ? Server.RESULT : Server.INITIALIZATION);
         case VNC -> this.expect(Server.CHALLENGE);
         case MS_LOGON -> this.expect(Server.LOGON_KEYS);
         default -> throw violation("security type " + type + " that the client does not support");
@@ -471,22 +471,22 @@ final class RfbGuard {
 
     private void result() {
       if (unsigned32(this.field, 0) == 0) {
-        this.expect(Server.INIT);
-      } else if (RfbGuard.this.minorVersion >= MIN_MINOR_WITH_REASONS) {
+        this.expect(Server.INITIALIZATION);
+      } else if (RfbGuard.this.minorVersion >= MINIMUM_MINOR_WITH_REASONS) {
         this.expect(Server.REASON_LENGTH);
       } else {
         this.close();
       }
     }
 
-    private void init() throws IOException {
+    private void initialization() throws IOException {
       this.resize(unsigned16(this.field, 0), unsigned16(this.field, 2));
       this.serverBytesPerPixel = pixelBytes(unsigned8(this.field, 4));
-      this.bounded(unsigned32(this.field, 20), MAX_NAME, "desktop name", Server.MESSAGE);
+      this.bounded(unsigned32(this.field, 20), MAXIMUM_NAME, "desktop name", Server.MESSAGE);
     }
 
     private void resize(final int newWidth, final int newHeight) throws IOException {
-      if (newWidth < 1 || newHeight < 1 || newWidth > MAX_SIDE || newHeight > MAX_SIDE) {
+      if (newWidth < 1 || newHeight < 1 || newWidth > MAXIMUM_SIDE || newHeight > MAXIMUM_SIDE) {
         throw violation("a framebuffer of " + newWidth + "x" + newHeight + " pixels");
       }
       this.width = newWidth;
@@ -538,7 +538,7 @@ final class RfbGuard {
         return;
       }
       if (encoding == CURSOR) {
-        if (width > MAX_SIDE || height > MAX_SIDE) {
+        if (width > MAXIMUM_SIDE || height > MAXIMUM_SIDE) {
           throw violation("a cursor of " + width + "x" + height + " pixels");
         }
         final long mask = (long) ((width + 7) / 8) * height;
@@ -645,7 +645,7 @@ final class RfbGuard {
 
     private static final int VNC_RESPONSE = 16;
     private static final int LOGON_RESPONSE = 8 + 256 + 64;
-    private static final int CLIENT_INIT = 1;
+    private static final int CLIENT_INITIALIZATION = 1;
     private static final int SET_PIXEL_FORMAT = 0;
     private static final int SET_ENCODINGS = 2;
     private static final int UPDATE_REQUEST = 3;
@@ -698,7 +698,7 @@ final class RfbGuard {
 
     private int collect(final byte[] buffer, final int at) {
       if (this.state == Client.HANDSHAKE && this.need == 0) {
-        this.need = this.response() + CLIENT_INIT;
+        this.need = this.response() + CLIENT_INITIALIZATION;
       }
       if (this.have < this.field.length) {
         this.field[this.have] = buffer[at];
@@ -751,7 +751,7 @@ final class RfbGuard {
         minor = minor * 10 + digit;
       }
       RfbGuard.this.minorVersion = minor;
-      if (minor >= MIN_MINOR_WITH_TYPE_LIST) {
+      if (minor >= MINIMUM_MINOR_WITH_TYPE_LIST) {
         this.expect(Client.CHOICE, 1);
       } else {
         this.expect(Client.HANDSHAKE, 0);
