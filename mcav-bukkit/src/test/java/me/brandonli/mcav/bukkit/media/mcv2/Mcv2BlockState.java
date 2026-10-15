@@ -34,8 +34,6 @@ final class Mcv2BlockState {
   private static final String HALF_MEMBER = "half";
   private final Object buffers;
 
-  private record Block(int level, int index) {}
-
   private final Map<Block, Object> coders = new HashMap<>();
   private final Object frame;
 
@@ -165,4 +163,6 @@ final class Mcv2BlockState {
   static int neededQuantizer(final float[] fit) {
     return (int) Mcv2Internals.invoke(Mcv2.class, null, "neededQuantizer", new Class<?>[] { float[].class }, fit);
   }
+
+  private record Block(int level, int index) {}
 }

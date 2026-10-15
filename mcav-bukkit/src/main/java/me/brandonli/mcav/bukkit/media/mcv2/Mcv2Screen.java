@@ -174,15 +174,6 @@ public final class Mcv2Screen {
   }
 
   /**
-   * Returns the page frames.
-   *
-   * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
-   */
-  public List<ItemFrame> getFrames() {
-    return List.copyOf(this.frames);
-  }
-
-  /**
    * Shows the screen to a player with the pack: the page frames, their team and the anchors. Call on the main thread.
    *
    * @param player the player
@@ -241,8 +232,6 @@ public final class Mcv2Screen {
     }
   }
 
-  private record HeldChunk(World world, int chunkX, int chunkZ) {}
-
   PlayerTeam team() {
     final PlayerTeam team = new PlayerTeam(new Scoreboard(), this.teamName);
     final String name = NamedTextColor.NAMES.keyOrThrow(this.configuration.getOutlineColor());
@@ -289,4 +278,15 @@ public final class Mcv2Screen {
     }
     return patches;
   }
+
+  /**
+   * Returns the page frames.
+   *
+   * @return an unmodifiable list snapshot in wall order, containing live screen-owned entity references
+   */
+  public List<ItemFrame> getFrames() {
+    return List.copyOf(this.frames);
+  }
+
+  private record HeldChunk(World world, int chunkX, int chunkZ) {}
 }

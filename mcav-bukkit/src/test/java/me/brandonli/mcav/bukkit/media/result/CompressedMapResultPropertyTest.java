@@ -277,18 +277,6 @@ final class CompressedMapResultPropertyTest {
       return builder.build();
     }
 
-    private int getBudget() {
-      return this.budget;
-    }
-
-    private List<Step> getSteps() {
-      return this.steps;
-    }
-
-    private int getMapCount() {
-      return this.columns * this.rows;
-    }
-
     private int widthOf(final Step step) {
       final int maximum = this.columns * MAP_SIZE + 60;
       return Math.max(1, (step.widthShare * maximum) / PER_MILLE);
@@ -319,6 +307,18 @@ final class CompressedMapResultPropertyTest {
         picture[index] = (byte) (step.color + stripe * 64);
       }
       return picture;
+    }
+
+    private int getBudget() {
+      return this.budget;
+    }
+
+    private List<Step> getSteps() {
+      return this.steps;
+    }
+
+    private int getMapCount() {
+      return this.columns * this.rows;
     }
 
     @Override

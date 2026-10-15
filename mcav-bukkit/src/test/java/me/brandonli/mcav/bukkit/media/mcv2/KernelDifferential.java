@@ -40,26 +40,6 @@ final class KernelDifferential {
 
   private static final int EXTREME_HIGH = (1 << 30) - 1;
 
-  /** Where the inputs come from. */
-  interface Values {
-    /**
-     * Gives an int in a range.
-     *
-     * @param low  the least value
-     * @param high the greatest value
-     * @return the value
-     */
-    int next(int low, int high);
-
-    /**
-     * Gives bytes.
-     *
-     * @param count how many
-     * @return the bytes
-     */
-    byte[] bytes(int count);
-  }
-
   private KernelDifferential() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
@@ -374,5 +354,25 @@ final class KernelDifferential {
         yield unless(same(expected, actual), "residualTarget");
       }
     };
+  }
+
+  /** Where the inputs come from. */
+  interface Values {
+    /**
+     * Gives an int in a range.
+     *
+     * @param low  the least value
+     * @param high the greatest value
+     * @return the value
+     */
+    int next(int low, int high);
+
+    /**
+     * Gives bytes.
+     *
+     * @param count how many
+     * @return the bytes
+     */
+    byte[] bytes(int count);
   }
 }

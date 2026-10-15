@@ -111,8 +111,283 @@ public final class Mcv2Decoder {
 
   private static final int FRAME_ID_WINDOW_BITS = 31;
 
+  static final int[][] GRID_LOWER = new int[BLOCK_SIZES][];
+  static final int[][] GRID_UPPER = new int[BLOCK_SIZES][];
+  static final int[][] GRID_WEIGHTS = new int[BLOCK_SIZES][];
+
+  static {
+    for (int index = 0; index < BLOCK_SIZES; index++) {
+      final int size = SMALLEST_BLOCK << index;
+      final int span = HALF_PIXEL_SCALE * size;
+      GRID_LOWER[index] = new int[size];
+      GRID_UPPER[index] = new int[size];
+      GRID_WEIGHTS[index] = new int[size];
+      for (int pixel = 0; pixel < size; pixel++) {
+        final int position = Math.min(Math.max((HALF_PIXEL_SCALE * pixel + 1) * GRID - size, 0), (GRID - 1) * span);
+        GRID_LOWER[index][pixel] = position / span;
+        GRID_UPPER[index][pixel] = Math.min(position / span + 1, GRID - 1);
+        GRID_WEIGHTS[index][pixel] = position % span;
+      }
+    }
+  }
+
   private Mcv2Decoder() {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
+  }
+
+  /**
+   * Validates every header, tree, checkpoint and record before retaining an owned copy.
+   *
+   * @param bytes one complete frame
+   * @return immutable validated frame
+   * @throws NullPointerException if bytes is null
+   * @throws Mcv2Exception        if any version 3 validation rule fails, including unsupported older versions
+   */
+  public static Frame parse(final byte[] bytes) throws Mcv2Exception {
+    Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
+    if (bytes.length >= Integer.BYTES && u32(bytes, MAGIC_OFFSET) == LEGACY_MAGIC) {
+      throw new Mcv2Exception("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!");
+    }
+    if (bytes.length < Integer.BYTES || u32(bytes, MAGIC_OFFSET) != MAGIC) {
+      throw new Mcv2Exception("Not an MCV2 frame!");
+    }
+    if (bytes.length > Integer.BYTES && bytes[VERSION_OFFSET] == LEGACY_VERSION) {
+      throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3!");
+    }
+    if (bytes.length < HEADER_BYTES || bytes.length > MAXIMUM_FRAME_BYTES) {
+      throw new Mcv2Exception("Invalid frame length!");
+    }
+    final byte[] data = bytes.clone();
+    if (u32(data, VERSION_OFFSET) != VERSION) {
+      throw new Mcv2Exception("Not an MCV2 version 3 frame!");
+    }
+    final int width = u16(data, DIMENSIONS_OFFSET);
+    final int height = u16(data, DIMENSIONS_OFFSET + Short.BYTES);
+    if (width < 1 || width > MAXIMUM_DIMENSION || height < 1 || height > MAXIMUM_DIMENSION) {
+      throw new Mcv2Exception("Invalid dimensions!");
+    }
+    final boolean keyframe = u32(data, FRAME_ID_OFFSET) == u32(data, REFERENCE_ID_OFFSET);
+    return new Parser(data, width, height, keyframe).parse();
+  }
+
+  private static void position(final int[] positions, final int index, final int left, final int top, final int size) {
+    final int arrayOffset = index * POSITION_INTS;
+    positions[arrayOffset] = left;
+    positions[arrayOffset + TOP_INDEX] = top;
+    positions[arrayOffset + SIZE_INDEX] = size;
+  }
+
+  private static void leaf(
+    final int[] leaves,
+    final int index,
+    final int left,
+    final int top,
+    final int size,
+    final int mode,
+    final int quantizer,
+    final int offset
+  ) {
+    final int arrayOffset = index * LEAF_INTS;
+    leaves[arrayOffset] = left;
+    leaves[arrayOffset + TOP_INDEX] = top;
+    leaves[arrayOffset + SIZE_INDEX] = size;
+    leaves[arrayOffset + MODE_INDEX] = mode;
+    leaves[arrayOffset + QUANTIZER_INDEX] = quantizer;
+    leaves[arrayOffset + RECORD_OFFSET_INDEX] = offset;
+  }
+
+  /**
+   * Parses and reconstructs a complete frame.
+   *
+   * @param bytes       complete encoded frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
+   * @param referenceId id of that picture; ignored for keyframes
+   * @return newly allocated RGB24 picture
+   * @throws NullPointerException if bytes is null
+   * @throws Mcv2Exception        if syntax or reference validation fails
+   */
+  public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+    return decode(parse(bytes), reference, referenceId);
+  }
+
+  /**
+   * Reconstructs a validated frame into a new RGB24 array.
+   *
+   * @param frame       validated frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
+   * @param referenceId id of that picture; ignored for keyframes
+   * @return newly allocated RGB24 picture
+   * @throws NullPointerException if frame is null
+   * @throws Mcv2Exception        if the required reference is missing or has the wrong id or byte length
+   */
+  public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+    final byte[] output = new byte[frame.width * frame.height * CHANNELS];
+    decode(frame, reference, referenceId, output);
+    return output;
+  }
+
+  /**
+   * Reconstructs a complete frame. An output alias of the reference uses an owned snapshot.
+   *
+   * @param frame       validated frame
+   * @param reference   previous RGB24 picture; may be null for keyframes
+   * @param referenceId id of that picture; ignored for keyframes
+   * @param output      array of exactly width * height * 3 bytes
+   * @throws NullPointerException     if frame or output is null
+   * @throws IllegalArgumentException if output has the wrong length
+   * @throws Mcv2Exception            if the required reference is missing or has the wrong id or byte length
+   */
+  public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output)
+    throws Mcv2Exception {
+    final byte[] prediction = reference(frame, reference, referenceId);
+    decodeRows(frame, samePicture(prediction, output) ? prediction.clone() : prediction, referenceId, output, 0, frame.height);
+  }
+
+  static void decodeRows(
+    final Frame frame,
+    final byte @Nullable [] reference,
+    final long referenceId,
+    final byte[] output,
+    final int fromRow,
+    final int toRow
+  ) throws Mcv2Exception {
+    final byte[] prediction = reference(frame, reference, referenceId);
+    Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame!");
+    Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range!");
+    Preconditions.checkArgument(!samePicture(prediction, output), "Row decoding needs a separate reference!");
+    final Context context = new Context(frame, prediction, output);
+    for (int arrayOffset = 0; arrayOffset < frame.leaves.length; arrayOffset += LEAF_INTS) {
+      context.leaf(arrayOffset, fromRow, toRow);
+    }
+  }
+
+  private static byte[] reference(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
+    if (frame.keyframe) {
+      return NO_REFERENCE;
+    }
+    if (reference == null || referenceId != frame.referenceId || reference.length != frame.width * frame.height * CHANNELS) {
+      throw new Mcv2Exception("Reference frame mismatch!");
+    }
+    return reference;
+  }
+
+  @SuppressWarnings("ReferenceEquality") // pictures are pooled buffers told apart by identity, not content
+  private static boolean samePicture(final byte[] first, final byte[] second) {
+    return first == second;
+  }
+
+  static void horizontal(final int[] nodes, final int size, final int[] rows) {
+    final int[] lower = GRID_LOWER[sizeIndex(size)];
+    final int[] upper = GRID_UPPER[sizeIndex(size)];
+    final int[] weights = GRID_WEIGHTS[sizeIndex(size)];
+    final int span = HALF_PIXEL_SCALE * size;
+    for (int row = 0; row < GRID; row++) {
+      for (int column = 0; column < size; column++) {
+        final int weight = weights[column];
+        rows[row * size + column] = nodes[row * GRID + lower[column]] * (span - weight) + nodes[row * GRID + upper[column]] * weight;
+      }
+    }
+  }
+
+  static int round(final int value, final int shift) {
+    return Math.min(Math.max((value + (1 << (shift - 1))) >> shift, 0), MAXIMUM_CHANNEL);
+  }
+
+  private static int readColor(final byte[] data, final int arrayOffset) {
+    return (
+      ((data[arrayOffset] & BYTE_MASK) << RED_SHIFT) |
+      ((data[arrayOffset + GREEN_OFFSET] & BYTE_MASK) << GREEN_SHIFT) |
+      (data[arrayOffset + BLUE_OFFSET] & BYTE_MASK)
+    );
+  }
+
+  /**
+   * Reads an unsigned little-endian 16-bit integer.
+   *
+   * @param data        source bytes
+   * @param arrayOffset first byte offset
+   * @return unsigned value
+   * @throws IndexOutOfBoundsException if either byte lies outside data
+   */
+  public static int u16(final byte[] data, final int arrayOffset) {
+    return (data[arrayOffset] & BYTE_MASK) | ((data[arrayOffset + SECOND_BYTE_OFFSET] & BYTE_MASK) << SECOND_BYTE_SHIFT);
+  }
+
+  /**
+   * Reads an unsigned little-endian 32-bit integer.
+   *
+   * @param data        source bytes
+   * @param arrayOffset first byte offset
+   * @return unsigned value
+   * @throws IndexOutOfBoundsException if any byte lies outside data
+   */
+  public static long u32(final byte[] data, final int arrayOffset) {
+    return (
+      (data[arrayOffset] & LONG_BYTE_MASK) |
+      ((data[arrayOffset + SECOND_BYTE_OFFSET] & LONG_BYTE_MASK) << SECOND_BYTE_SHIFT) |
+      ((data[arrayOffset + THIRD_BYTE_OFFSET] & LONG_BYTE_MASK) << THIRD_BYTE_SHIFT) |
+      ((data[arrayOffset + FOURTH_BYTE_OFFSET] & LONG_BYTE_MASK) << FOURTH_BYTE_SHIFT)
+    );
+  }
+
+  /**
+   * Writes the low 16 bits in little-endian order.
+   *
+   * @param data        destination bytes
+   * @param arrayOffset first byte offset
+   * @param value       value to write
+   * @throws IndexOutOfBoundsException if either byte lies outside data
+   */
+  public static void putU16(final byte[] data, final int arrayOffset, final int value) {
+    data[arrayOffset] = (byte) value;
+    data[arrayOffset + SECOND_BYTE_OFFSET] = (byte) (value >>> SECOND_BYTE_SHIFT);
+  }
+
+  /**
+   * Writes the low 32 bits in little-endian order.
+   *
+   * @param data        destination bytes
+   * @param arrayOffset first byte offset
+   * @param value       value to write
+   * @throws IndexOutOfBoundsException if any byte lies outside data
+   */
+  public static void putU32(final byte[] data, final int arrayOffset, final long value) {
+    for (int index = 0; index < Integer.BYTES; index++) {
+      data[arrayOffset + index] = (byte) (value >>> (index * Byte.SIZE));
+    }
+  }
+
+  static boolean follows(final long nextFrameId, final long lastFrameId) {
+    final long distance = (nextFrameId - lastFrameId) & MAXIMUM_UNSIGNED_INT;
+    return distance != 0 && distance < 1L << FRAME_ID_WINDOW_BITS;
+  }
+
+  static boolean isBlockSize(final int size) {
+    return size == SMALLEST_BLOCK || size == QUARTERS_PER_SIDE * SMALLEST_BLOCK || size == ROOT_SIZE;
+  }
+
+  static int sizeIndex(final int size) {
+    return Integer.numberOfTrailingZeros(size) - SMALLEST_BLOCK_SHIFT;
+  }
+
+  static int signed(final int value, final int bits) {
+    return (value << (Integer.SIZE - bits)) >> (Integer.SIZE - bits);
+  }
+
+  static int patternSize(final int size) {
+    return RECORD_COLORS * CHANNELS + 1 + size / Byte.SIZE;
+  }
+
+  static int recordSize(final int mode, final int size) {
+    return switch (mode) {
+      case MODE_SKIP, MODE_SPLIT -> 0;
+      case MODE_MOTION -> MOTION_BYTES;
+      case MODE_COMPACT -> COMPACT_BYTES;
+      case MODE_SOLID -> CHANNELS;
+      case MODE_PALETTE -> RECORD_COLORS * CHANNELS + (size * size) / Byte.SIZE;
+      case MODE_PATTERN -> patternSize(size);
+      default -> throw new IllegalArgumentException("Invalid record mode!");
+    };
   }
 
   record Leaf(int left, int top, int size, int mode, int quantizer, int offset) {}
@@ -138,6 +413,19 @@ public final class Mcv2Decoder {
       this.keyframe = parser.keyframe;
       this.payloadStart = parser.start;
       this.leaves = leaves;
+    }
+
+    Leaf getLeaf(final int index) {
+      Preconditions.checkElementIndex(index, this.getLeafCount(), "Leaf index");
+      final int arrayOffset = index * LEAF_INTS;
+      return new Leaf(
+        this.leaves[arrayOffset],
+        this.leaves[arrayOffset + TOP_INDEX],
+        this.leaves[arrayOffset + SIZE_INDEX],
+        this.leaves[arrayOffset + MODE_INDEX],
+        this.leaves[arrayOffset + QUANTIZER_INDEX],
+        this.leaves[arrayOffset + RECORD_OFFSET_INDEX]
+      );
     }
 
     /**
@@ -201,54 +489,6 @@ public final class Mcv2Decoder {
     int getLeafCount() {
       return this.leaves.length / LEAF_INTS;
     }
-
-    Leaf getLeaf(final int index) {
-      Preconditions.checkElementIndex(index, this.getLeafCount(), "Leaf index");
-      final int arrayOffset = index * LEAF_INTS;
-      return new Leaf(
-        this.leaves[arrayOffset],
-        this.leaves[arrayOffset + TOP_INDEX],
-        this.leaves[arrayOffset + SIZE_INDEX],
-        this.leaves[arrayOffset + MODE_INDEX],
-        this.leaves[arrayOffset + QUANTIZER_INDEX],
-        this.leaves[arrayOffset + RECORD_OFFSET_INDEX]
-      );
-    }
-  }
-
-  /**
-   * Validates every header, tree, checkpoint and record before retaining an owned copy.
-   *
-   * @param bytes one complete frame
-   * @return immutable validated frame
-   * @throws NullPointerException if bytes is null
-   * @throws Mcv2Exception        if any version 3 validation rule fails, including unsupported older versions
-   */
-  public static Frame parse(final byte[] bytes) throws Mcv2Exception {
-    Preconditions.checkNotNull(bytes, "Frame bytes must not be null!");
-    if (bytes.length >= Integer.BYTES && u32(bytes, MAGIC_OFFSET) == LEGACY_MAGIC) {
-      throw new Mcv2Exception("MCV1 version 1 is no longer supported; re-encode as MCV2 version 3!");
-    }
-    if (bytes.length < Integer.BYTES || u32(bytes, MAGIC_OFFSET) != MAGIC) {
-      throw new Mcv2Exception("Not an MCV2 frame!");
-    }
-    if (bytes.length > Integer.BYTES && bytes[VERSION_OFFSET] == LEGACY_VERSION) {
-      throw new Mcv2Exception("MCV2 version 2 is no longer supported; re-encode as version 3!");
-    }
-    if (bytes.length < HEADER_BYTES || bytes.length > MAXIMUM_FRAME_BYTES) {
-      throw new Mcv2Exception("Invalid frame length!");
-    }
-    final byte[] data = bytes.clone();
-    if (u32(data, VERSION_OFFSET) != VERSION) {
-      throw new Mcv2Exception("Not an MCV2 version 3 frame!");
-    }
-    final int width = u16(data, DIMENSIONS_OFFSET);
-    final int height = u16(data, DIMENSIONS_OFFSET + Short.BYTES);
-    if (width < 1 || width > MAXIMUM_DIMENSION || height < 1 || height > MAXIMUM_DIMENSION) {
-      throw new Mcv2Exception("Invalid dimensions!");
-    }
-    final boolean keyframe = u32(data, FRAME_ID_OFFSET) == u32(data, REFERENCE_ID_OFFSET);
-    return new Parser(data, width, height, keyframe).parse();
   }
 
   private static final class Parser {
@@ -415,112 +655,6 @@ public final class Mcv2Decoder {
     }
   }
 
-  private static void position(final int[] positions, final int index, final int left, final int top, final int size) {
-    final int arrayOffset = index * POSITION_INTS;
-    positions[arrayOffset] = left;
-    positions[arrayOffset + TOP_INDEX] = top;
-    positions[arrayOffset + SIZE_INDEX] = size;
-  }
-
-  private static void leaf(
-    final int[] leaves,
-    final int index,
-    final int left,
-    final int top,
-    final int size,
-    final int mode,
-    final int quantizer,
-    final int offset
-  ) {
-    final int arrayOffset = index * LEAF_INTS;
-    leaves[arrayOffset] = left;
-    leaves[arrayOffset + TOP_INDEX] = top;
-    leaves[arrayOffset + SIZE_INDEX] = size;
-    leaves[arrayOffset + MODE_INDEX] = mode;
-    leaves[arrayOffset + QUANTIZER_INDEX] = quantizer;
-    leaves[arrayOffset + RECORD_OFFSET_INDEX] = offset;
-  }
-
-  /**
-   * Parses and reconstructs a complete frame.
-   *
-   * @param bytes       complete encoded frame
-   * @param reference   previous RGB24 picture; may be null for keyframes
-   * @param referenceId id of that picture; ignored for keyframes
-   * @return newly allocated RGB24 picture
-   * @throws NullPointerException if bytes is null
-   * @throws Mcv2Exception        if syntax or reference validation fails
-   */
-  public static byte[] decode(final byte[] bytes, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
-    return decode(parse(bytes), reference, referenceId);
-  }
-
-  /**
-   * Reconstructs a validated frame into a new RGB24 array.
-   *
-   * @param frame       validated frame
-   * @param reference   previous RGB24 picture; may be null for keyframes
-   * @param referenceId id of that picture; ignored for keyframes
-   * @return newly allocated RGB24 picture
-   * @throws NullPointerException if frame is null
-   * @throws Mcv2Exception        if the required reference is missing or has the wrong id or byte length
-   */
-  public static byte[] decode(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
-    final byte[] output = new byte[frame.width * frame.height * CHANNELS];
-    decode(frame, reference, referenceId, output);
-    return output;
-  }
-
-  /**
-   * Reconstructs a complete frame. An output alias of the reference uses an owned snapshot.
-   *
-   * @param frame       validated frame
-   * @param reference   previous RGB24 picture; may be null for keyframes
-   * @param referenceId id of that picture; ignored for keyframes
-   * @param output      array of exactly width * height * 3 bytes
-   * @throws NullPointerException     if frame or output is null
-   * @throws IllegalArgumentException if output has the wrong length
-   * @throws Mcv2Exception            if the required reference is missing or has the wrong id or byte length
-   */
-  public static void decode(final Frame frame, final byte @Nullable [] reference, final long referenceId, final byte[] output)
-    throws Mcv2Exception {
-    final byte[] prediction = reference(frame, reference, referenceId);
-    decodeRows(frame, samePicture(prediction, output) ? prediction.clone() : prediction, referenceId, output, 0, frame.height);
-  }
-
-  static void decodeRows(
-    final Frame frame,
-    final byte @Nullable [] reference,
-    final long referenceId,
-    final byte[] output,
-    final int fromRow,
-    final int toRow
-  ) throws Mcv2Exception {
-    final byte[] prediction = reference(frame, reference, referenceId);
-    Preconditions.checkArgument(output.length == frame.width * frame.height * CHANNELS, "Output size does not match the frame!");
-    Preconditions.checkArgument(fromRow >= 0 && fromRow <= toRow && toRow <= frame.height, "Invalid row range!");
-    Preconditions.checkArgument(!samePicture(prediction, output), "Row decoding needs a separate reference!");
-    final Context context = new Context(frame, prediction, output);
-    for (int arrayOffset = 0; arrayOffset < frame.leaves.length; arrayOffset += LEAF_INTS) {
-      context.leaf(arrayOffset, fromRow, toRow);
-    }
-  }
-
-  private static byte[] reference(final Frame frame, final byte @Nullable [] reference, final long referenceId) throws Mcv2Exception {
-    if (frame.keyframe) {
-      return NO_REFERENCE;
-    }
-    if (reference == null || referenceId != frame.referenceId || reference.length != frame.width * frame.height * CHANNELS) {
-      throw new Mcv2Exception("Reference frame mismatch!");
-    }
-    return reference;
-  }
-
-  @SuppressWarnings("ReferenceEquality") // pictures are pooled buffers told apart by identity, not content
-  private static boolean samePicture(final byte[] first, final byte[] second) {
-    return first == second;
-  }
-
   private static final class Context {
 
     private final Frame frame;
@@ -625,139 +759,5 @@ public final class Mcv2Decoder {
         }
       }
     }
-  }
-
-  static final int[][] GRID_LOWER = new int[BLOCK_SIZES][];
-  static final int[][] GRID_UPPER = new int[BLOCK_SIZES][];
-  static final int[][] GRID_WEIGHTS = new int[BLOCK_SIZES][];
-
-  static {
-    for (int index = 0; index < BLOCK_SIZES; index++) {
-      final int size = SMALLEST_BLOCK << index;
-      final int span = HALF_PIXEL_SCALE * size;
-      GRID_LOWER[index] = new int[size];
-      GRID_UPPER[index] = new int[size];
-      GRID_WEIGHTS[index] = new int[size];
-      for (int pixel = 0; pixel < size; pixel++) {
-        final int position = Math.min(Math.max((HALF_PIXEL_SCALE * pixel + 1) * GRID - size, 0), (GRID - 1) * span);
-        GRID_LOWER[index][pixel] = position / span;
-        GRID_UPPER[index][pixel] = Math.min(position / span + 1, GRID - 1);
-        GRID_WEIGHTS[index][pixel] = position % span;
-      }
-    }
-  }
-
-  static void horizontal(final int[] nodes, final int size, final int[] rows) {
-    final int[] lower = GRID_LOWER[sizeIndex(size)];
-    final int[] upper = GRID_UPPER[sizeIndex(size)];
-    final int[] weights = GRID_WEIGHTS[sizeIndex(size)];
-    final int span = HALF_PIXEL_SCALE * size;
-    for (int row = 0; row < GRID; row++) {
-      for (int column = 0; column < size; column++) {
-        final int weight = weights[column];
-        rows[row * size + column] = nodes[row * GRID + lower[column]] * (span - weight) + nodes[row * GRID + upper[column]] * weight;
-      }
-    }
-  }
-
-  static int round(final int value, final int shift) {
-    return Math.min(Math.max((value + (1 << (shift - 1))) >> shift, 0), MAXIMUM_CHANNEL);
-  }
-
-  private static int readColor(final byte[] data, final int arrayOffset) {
-    return (
-      ((data[arrayOffset] & BYTE_MASK) << RED_SHIFT) |
-      ((data[arrayOffset + GREEN_OFFSET] & BYTE_MASK) << GREEN_SHIFT) |
-      (data[arrayOffset + BLUE_OFFSET] & BYTE_MASK)
-    );
-  }
-
-  /**
-   * Reads an unsigned little-endian 16-bit integer.
-   *
-   * @param data        source bytes
-   * @param arrayOffset first byte offset
-   * @return unsigned value
-   * @throws IndexOutOfBoundsException if either byte lies outside data
-   */
-  public static int u16(final byte[] data, final int arrayOffset) {
-    return (data[arrayOffset] & BYTE_MASK) | ((data[arrayOffset + SECOND_BYTE_OFFSET] & BYTE_MASK) << SECOND_BYTE_SHIFT);
-  }
-
-  /**
-   * Reads an unsigned little-endian 32-bit integer.
-   *
-   * @param data        source bytes
-   * @param arrayOffset first byte offset
-   * @return unsigned value
-   * @throws IndexOutOfBoundsException if any byte lies outside data
-   */
-  public static long u32(final byte[] data, final int arrayOffset) {
-    return (
-      (data[arrayOffset] & LONG_BYTE_MASK) |
-      ((data[arrayOffset + SECOND_BYTE_OFFSET] & LONG_BYTE_MASK) << SECOND_BYTE_SHIFT) |
-      ((data[arrayOffset + THIRD_BYTE_OFFSET] & LONG_BYTE_MASK) << THIRD_BYTE_SHIFT) |
-      ((data[arrayOffset + FOURTH_BYTE_OFFSET] & LONG_BYTE_MASK) << FOURTH_BYTE_SHIFT)
-    );
-  }
-
-  /**
-   * Writes the low 16 bits in little-endian order.
-   *
-   * @param data        destination bytes
-   * @param arrayOffset first byte offset
-   * @param value       value to write
-   * @throws IndexOutOfBoundsException if either byte lies outside data
-   */
-  public static void putU16(final byte[] data, final int arrayOffset, final int value) {
-    data[arrayOffset] = (byte) value;
-    data[arrayOffset + SECOND_BYTE_OFFSET] = (byte) (value >>> SECOND_BYTE_SHIFT);
-  }
-
-  /**
-   * Writes the low 32 bits in little-endian order.
-   *
-   * @param data        destination bytes
-   * @param arrayOffset first byte offset
-   * @param value       value to write
-   * @throws IndexOutOfBoundsException if any byte lies outside data
-   */
-  public static void putU32(final byte[] data, final int arrayOffset, final long value) {
-    for (int index = 0; index < Integer.BYTES; index++) {
-      data[arrayOffset + index] = (byte) (value >>> (index * Byte.SIZE));
-    }
-  }
-
-  static boolean follows(final long nextFrameId, final long lastFrameId) {
-    final long distance = (nextFrameId - lastFrameId) & MAXIMUM_UNSIGNED_INT;
-    return distance != 0 && distance < 1L << FRAME_ID_WINDOW_BITS;
-  }
-
-  static boolean isBlockSize(final int size) {
-    return size == SMALLEST_BLOCK || size == QUARTERS_PER_SIDE * SMALLEST_BLOCK || size == ROOT_SIZE;
-  }
-
-  static int sizeIndex(final int size) {
-    return Integer.numberOfTrailingZeros(size) - SMALLEST_BLOCK_SHIFT;
-  }
-
-  static int signed(final int value, final int bits) {
-    return (value << (Integer.SIZE - bits)) >> (Integer.SIZE - bits);
-  }
-
-  static int patternSize(final int size) {
-    return RECORD_COLORS * CHANNELS + 1 + size / Byte.SIZE;
-  }
-
-  static int recordSize(final int mode, final int size) {
-    return switch (mode) {
-      case MODE_SKIP, MODE_SPLIT -> 0;
-      case MODE_MOTION -> MOTION_BYTES;
-      case MODE_COMPACT -> COMPACT_BYTES;
-      case MODE_SOLID -> CHANNELS;
-      case MODE_PALETTE -> RECORD_COLORS * CHANNELS + (size * size) / Byte.SIZE;
-      case MODE_PATTERN -> patternSize(size);
-      default -> throw new IllegalArgumentException("Invalid record mode!");
-    };
   }
 }

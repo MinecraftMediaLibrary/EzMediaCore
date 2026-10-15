@@ -60,15 +60,6 @@ final class Mcv2FrameTest {
     return Mcv2Pictures.scene(width, height, frame, pan);
   }
 
-  private static final class Client {
-
-    private final Mcv2Receiver receiver = new Mcv2Receiver();
-
-    private byte[] decode(final byte[] data) throws Mcv2Exception {
-      return Objects.requireNonNull(this.receiver.accept(data));
-    }
-  }
-
   private static Mcv2 play(final Settings settings, final int width, final int height, final int frames, final int pan)
     throws Mcv2Exception {
     final Mcv2 encoder = encoder(settings);
@@ -438,5 +429,14 @@ final class Mcv2FrameTest {
     final byte[] unboundedKeyframe = unbounded.encode(picture, 96, 64, 0);
     assertArrayEquals(expectedFirstKeyframe, unboundedKeyframe);
     assertThrows(IllegalArgumentException.class, () -> unbounded.setFrameLimit(-1));
+  }
+
+  private static final class Client {
+
+    private final Mcv2Receiver receiver = new Mcv2Receiver();
+
+    private byte[] decode(final byte[] data) throws Mcv2Exception {
+      return Objects.requireNonNull(this.receiver.accept(data));
+    }
   }
 }

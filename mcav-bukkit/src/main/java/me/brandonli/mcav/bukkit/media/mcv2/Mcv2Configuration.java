@@ -155,10 +155,6 @@ public final class Mcv2Configuration {
     this.unsentLimit = builder.unsentLimit;
   }
 
-  private static int videoSize(final int size, final int maps) {
-    return size > 0 ? size : MapLayout.MAP_SIZE * maps;
-  }
-
   /**
    * Creates a new builder.
    *
@@ -168,31 +164,8 @@ public final class Mcv2Configuration {
     return new Builder();
   }
 
-  /**
-   * Returns the players who watch the screen.
-   *
-   * @return the UUIDs of the viewers, not copied
-   */
-  public Collection<UUID> getViewers() {
-    return this.viewers;
-  }
-
-  /**
-   * Returns the block the top-left frame of the wall hangs in.
-   *
-   * @return a copy of the location
-   */
-  public Location getOrigin() {
-    return this.origin.clone();
-  }
-
-  /**
-   * Returns the direction the frames of the wall face, towards the viewers.
-   *
-   * @return north, south, east or west
-   */
-  public BlockFace getFacing() {
-    return this.facing;
+  private static int videoSize(final int size, final int maps) {
+    return size > 0 ? size : MapLayout.MAP_SIZE * maps;
   }
 
   /**
@@ -221,6 +194,105 @@ public final class Mcv2Configuration {
       case WEST -> FACING_WEST;
       default -> FACING_NORTH;
     };
+  }
+
+  /**
+   * Returns the page slots a screen has when its configuration names none.
+   *
+   * @param maps the maps of the wall
+   * @return the default page slots of such a wall
+   */
+  static int defaultPageSlots(final int maps) {
+    return Math.min(DEFAULT_PAGE_SLOTS, maps);
+  }
+
+  /**
+   * Copies the screen with another video size, for a screen that steps down to a smaller video, or back up.
+   *
+   * @param width  the video width, 1 to 4096
+   * @param height the video height, 1 to 4096
+   * @return the copy
+   * @throws IllegalArgumentException if the size is out of range
+   */
+  public Mcv2Configuration withVideo(final int width, final int height) {
+    Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive!");
+    return this.toBuilder().video(width, height).build();
+  }
+
+  /**
+   * Copies the screen with what the resource pack's server gave it with its slot of the pack: the slot's stream id and
+   * page maps, and the id of the screen's first frame.
+   *
+   * @param streamId     the stream id, 0 to {@value #MAXIMUM_STREAM_ID}
+   * @param pageMap      the first page map id, not negative
+   * @param firstFrameId the id of the screen's first frame, an unsigned 32-bit value
+   * @return the copy
+   * @throws IllegalArgumentException if a value is out of range, or a page map is a map of the wall
+   */
+  public Mcv2Configuration withSlot(final long streamId, final int pageMap, final long firstFrameId) {
+    return this.toBuilder().streamId(streamId).pageMap(pageMap).firstFrameId(firstFrameId).build();
+  }
+
+  private Builder toBuilder() {
+    final Builder builder = builder()
+      .viewers(this.viewers)
+      .origin(this.origin)
+      .facing(this.facing)
+      .map(this.map)
+      .columns(this.columns)
+      .rows(this.rows)
+      .video(this.videoWidth, this.videoHeight)
+      .pageMap(this.pageMap)
+      .pageSlots(this.pageSlots)
+      .streamId(this.streamId)
+      .firstFrameId(this.firstFrameId)
+      .maximumFrameRate(this.maximumFrameRate)
+      .settings(this.settings)
+      .outlineColor(this.outlineColor)
+      .backlogLimit(this.backlogLimit)
+      .unsentLimit(this.unsentLimit);
+    final Pool pool = this.encoderPool;
+    if (pool != null) {
+      builder.encoderPool(pool);
+    }
+    return builder;
+  }
+
+  /**
+   * Returns the encoder budget the screen encodes in: the one it was given, or the server's shared budget.
+   *
+   * @return the budget
+   */
+  public Pool getEncoderPool() {
+    final Pool pool = this.encoderPool;
+    return pool != null ? pool : Pool.shared();
+  }
+
+  /**
+   * Returns the players who watch the screen.
+   *
+   * @return the UUIDs of the viewers, not copied
+   */
+  public Collection<UUID> getViewers() {
+    return this.viewers;
+  }
+
+  /**
+   * Returns the block the top-left frame of the wall hangs in.
+   *
+   * @return a copy of the location
+   */
+  public Location getOrigin() {
+    return this.origin.clone();
+  }
+
+  /**
+   * Returns the direction the frames of the wall face, towards the viewers.
+   *
+   * @return north, south, east or west
+   */
+  public BlockFace getFacing() {
+    return this.facing;
   }
 
   /**
@@ -288,16 +360,6 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Returns the page slots a screen has when its configuration names none.
-   *
-   * @param maps the maps of the wall
-   * @return the default page slots of such a wall
-   */
-  static int defaultPageSlots(final int maps) {
-    return Math.min(DEFAULT_PAGE_SLOTS, maps);
-  }
-
-  /**
    * Returns the stream id every page carries; the pack decodes only its own stream.
    *
    * @return the configured stream id, from 0 through {@value #MAXIMUM_STREAM_ID}
@@ -340,58 +402,6 @@ public final class Mcv2Configuration {
   }
 
   /**
-   * Copies the screen with another video size, for a screen that steps down to a smaller video, or back up.
-   *
-   * @param width  the video width, 1 to 4096
-   * @param height the video height, 1 to 4096
-   * @return the copy
-   * @throws IllegalArgumentException if the size is out of range
-   */
-  public Mcv2Configuration withVideo(final int width, final int height) {
-    Preconditions.checkArgument(width >= 1 && height >= 1, "Video size must be positive!");
-    return this.toBuilder().video(width, height).build();
-  }
-
-  /**
-   * Copies the screen with what the resource pack's server gave it with its slot of the pack: the slot's stream id and
-   * page maps, and the id of the screen's first frame.
-   *
-   * @param streamId     the stream id, 0 to {@value #MAXIMUM_STREAM_ID}
-   * @param pageMap      the first page map id, not negative
-   * @param firstFrameId the id of the screen's first frame, an unsigned 32-bit value
-   * @return the copy
-   * @throws IllegalArgumentException if a value is out of range, or a page map is a map of the wall
-   */
-  public Mcv2Configuration withSlot(final long streamId, final int pageMap, final long firstFrameId) {
-    return this.toBuilder().streamId(streamId).pageMap(pageMap).firstFrameId(firstFrameId).build();
-  }
-
-  private Builder toBuilder() {
-    final Builder builder = builder()
-      .viewers(this.viewers)
-      .origin(this.origin)
-      .facing(this.facing)
-      .map(this.map)
-      .columns(this.columns)
-      .rows(this.rows)
-      .video(this.videoWidth, this.videoHeight)
-      .pageMap(this.pageMap)
-      .pageSlots(this.pageSlots)
-      .streamId(this.streamId)
-      .firstFrameId(this.firstFrameId)
-      .maximumFrameRate(this.maximumFrameRate)
-      .settings(this.settings)
-      .outlineColor(this.outlineColor)
-      .backlogLimit(this.backlogLimit)
-      .unsentLimit(this.unsentLimit);
-    final Pool pool = this.encoderPool;
-    if (pool != null) {
-      builder.encoderPool(pool);
-    }
-    return builder;
-  }
-
-  /**
    * Returns the id of the screen's first frame: the frames after it count up from it, so a screen that takes over the
    * pack slot of an earlier one is newer to the clients than anything the earlier one sent.
    *
@@ -418,16 +428,6 @@ public final class Mcv2Configuration {
    */
   public int getUnsentLimit() {
     return this.unsentLimit;
-  }
-
-  /**
-   * Returns the encoder budget the screen encodes in: the one it was given, or the server's shared budget.
-   *
-   * @return the budget
-   */
-  public Pool getEncoderPool() {
-    final Pool pool = this.encoderPool;
-    return pool != null ? pool : Pool.shared();
   }
 
   /**

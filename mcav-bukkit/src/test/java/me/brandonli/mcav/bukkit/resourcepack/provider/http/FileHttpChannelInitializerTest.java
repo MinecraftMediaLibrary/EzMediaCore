@@ -117,30 +117,6 @@ final class FileHttpChannelInitializerTest {
     assertInstanceOf(FileServerHandler.class, fileHandler);
   }
 
-  /**
-   * A socket channel whose pipeline and close future are observable, as a connection of the server.
-   */
-  private static final class Connection {
-
-    private final SocketChannel channel;
-    private final ChannelPipeline pipeline;
-    private final ChannelPromise closed;
-
-    private Connection() {
-      this.channel = mock(SocketChannel.class);
-      this.pipeline = mock(ChannelPipeline.class);
-      this.closed = new DefaultChannelPromise(this.channel, ImmediateEventExecutor.INSTANCE);
-      final ChannelPromise written = new DefaultChannelPromise(this.channel, ImmediateEventExecutor.INSTANCE);
-      when(this.channel.pipeline()).thenReturn(this.pipeline);
-      when(this.channel.closeFuture()).thenReturn(this.closed);
-      when(this.channel.writeAndFlush(any())).thenReturn(written);
-    }
-
-    private void close() {
-      this.closed.setSuccess();
-    }
-  }
-
   @Test
   void shouldRefuseMoreConnectionsThanTheLimitAndCountThemBackDown() {
     final FileHttpChannelInitializer initializer = new FileHttpChannelInitializer(this.pack, 2);
@@ -194,5 +170,29 @@ final class FileHttpChannelInitializerTest {
 
     assertTrue(openBeforeTimeout);
     assertFalse(openAfterTimeout, "a slow client cannot keep the connection open forever");
+  }
+
+  /**
+   * A socket channel whose pipeline and close future are observable, as a connection of the server.
+   */
+  private static final class Connection {
+
+    private final SocketChannel channel;
+    private final ChannelPipeline pipeline;
+    private final ChannelPromise closed;
+
+    private Connection() {
+      this.channel = mock(SocketChannel.class);
+      this.pipeline = mock(ChannelPipeline.class);
+      this.closed = new DefaultChannelPromise(this.channel, ImmediateEventExecutor.INSTANCE);
+      final ChannelPromise written = new DefaultChannelPromise(this.channel, ImmediateEventExecutor.INSTANCE);
+      when(this.channel.pipeline()).thenReturn(this.pipeline);
+      when(this.channel.closeFuture()).thenReturn(this.closed);
+      when(this.channel.writeAndFlush(any())).thenReturn(written);
+    }
+
+    private void close() {
+      this.closed.setSuccess();
+    }
   }
 }

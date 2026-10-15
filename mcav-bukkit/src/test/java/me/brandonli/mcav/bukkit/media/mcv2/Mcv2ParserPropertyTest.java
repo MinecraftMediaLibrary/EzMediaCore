@@ -93,9 +93,6 @@ final class Mcv2ParserPropertyTest {
     return List.copyOf(frames);
   }
 
-  /** One change to a frame: its kind, where and with what, each reduced to the frame at hand when applied. */
-  private record Mutation(int kind, int position, int value) {}
-
   @Provide
   Arbitrary<List<Mutation>> mutations() {
     final Arbitrary<Mutation> mutation = Combinators.combine(
@@ -278,4 +275,7 @@ final class Mcv2ParserPropertyTest {
       assertNull(assembled);
     }
   }
+
+  /** One change to a frame: its kind, where and with what, each reduced to the frame at hand when applied. */
+  private record Mutation(int kind, int position, int value) {}
 }

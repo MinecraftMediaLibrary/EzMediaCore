@@ -193,46 +193,6 @@ public final class Mcv2PackServer {
 
   private @Nullable Listener listener;
 
-  private record Geometry(int width, int height, int pageSlots) {
-    private static Geometry of(final Mcv2Configuration configuration) {
-      return new Geometry(configuration.getVideoWidth(), configuration.getVideoHeight(), configuration.getPageSlots());
-    }
-  }
-
-  private record Published(int generation, UUID packId, PackHosting hosting, ResourcePackRequest request, String screens) {}
-
-  private static final class Slot {
-
-    private final long streamId;
-
-    private Geometry geometry;
-
-    private Mcv2Configuration template;
-
-    private @Nullable Lease holder;
-
-    private @Nullable Lease spareOf;
-
-    private long released;
-
-    private long releasedAt;
-
-    private Slot(final long streamId, final Mcv2Configuration configuration) {
-      this.streamId = streamId;
-      this.geometry = Geometry.of(configuration);
-      this.template = configuration.withSlot(streamId, configuration.getPageMap(), 0);
-    }
-
-    private void reshape(final Mcv2Configuration configuration) {
-      this.geometry = Geometry.of(configuration);
-      this.template = configuration.withSlot(this.streamId, configuration.getPageMap(), 0);
-    }
-
-    private boolean isFree() {
-      return this.holder == null && this.spareOf == null;
-    }
-  }
-
   /**
    * Constructs a server that writes the pack into a folder of its own and hosts it with the given strategy. Nothing is
    * written or served before {@link #start()} and the first {@link #open(Mcv2Configuration)}.
@@ -292,15 +252,6 @@ public final class Mcv2PackServer {
     this.offered = new HashMap<>();
     this.running = new CopyOnWriteArrayList<>();
     this.generation = new AtomicInteger();
-  }
-
-  /**
-   * Returns who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
-   *
-   * @return the viewers
-   */
-  public Mcv2Viewers getViewers() {
-    return this.viewers;
   }
 
   /**
@@ -766,6 +717,55 @@ public final class Mcv2PackServer {
   }
 
   /**
+   * Returns who loaded the pack, which every screen of the server shares: a new pack starts with nobody.
+   *
+   * @return the viewers
+   */
+  public Mcv2Viewers getViewers() {
+    return this.viewers;
+  }
+
+  private record Geometry(int width, int height, int pageSlots) {
+    private static Geometry of(final Mcv2Configuration configuration) {
+      return new Geometry(configuration.getVideoWidth(), configuration.getVideoHeight(), configuration.getPageSlots());
+    }
+  }
+
+  private record Published(int generation, UUID packId, PackHosting hosting, ResourcePackRequest request, String screens) {}
+
+  private static final class Slot {
+
+    private final long streamId;
+
+    private Geometry geometry;
+
+    private Mcv2Configuration template;
+
+    private @Nullable Lease holder;
+
+    private @Nullable Lease spareOf;
+
+    private long released;
+
+    private long releasedAt;
+
+    private Slot(final long streamId, final Mcv2Configuration configuration) {
+      this.streamId = streamId;
+      this.geometry = Geometry.of(configuration);
+      this.template = configuration.withSlot(streamId, configuration.getPageMap(), 0);
+    }
+
+    private void reshape(final Mcv2Configuration configuration) {
+      this.geometry = Geometry.of(configuration);
+      this.template = configuration.withSlot(this.streamId, configuration.getPageMap(), 0);
+    }
+
+    private boolean isFree() {
+      return this.holder == null && this.spareOf == null;
+    }
+  }
+
+  /**
    * A screen's hold on the pack: the slot of the video size it plays at, and, while it plays, the slot of the size it
    * left last as its spare, until it is closed. It is the screen's {@link Mcv2Result.Resizer}: a size it has no slot
    * for gets one, which may change the pack once, and stepping back to the size it left last changes nothing, unless
@@ -796,16 +796,6 @@ public final class Mcv2PackServer {
     private @Nullable Slot ownSpare() {
       final Slot left = this.spare;
       return left != null && left.spareOf == this ? left : null;
-    }
-
-    /**
-     * Returns the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
-     * first frame gets.
-     *
-     * @return the configuration to create the screen's result or channel with
-     */
-    public Mcv2Configuration getConfiguration() {
-      return this.configuration;
     }
 
     /**
@@ -878,6 +868,16 @@ public final class Mcv2PackServer {
         Mcv2PackServer.this.free(this.playing);
         Mcv2PackServer.this.leases.remove(this);
       }
+    }
+
+    /**
+     * Returns the screen as it plays in its slot: the requested screen with the slot's stream id, and the frame id its
+     * first frame gets.
+     *
+     * @return the configuration to create the screen's result or channel with
+     */
+    public Mcv2Configuration getConfiguration() {
+      return this.configuration;
     }
   }
 }

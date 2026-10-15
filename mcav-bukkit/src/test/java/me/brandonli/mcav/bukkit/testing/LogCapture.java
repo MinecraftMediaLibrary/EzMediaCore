@@ -64,15 +64,6 @@ public final class LogCapture implements AutoCloseable {
   }
 
   /**
-   * Gets the recorded events, in order.
-   *
-   * @return the events
-   */
-  public List<RecordedEvent> getEvents() {
-    return List.copyOf(this.appender.events);
-  }
-
-  /**
    * Waits for the next event that has not been returned by this method yet. Events are handed out in the order
    * they were recorded, so the first call returns the first event, even if it was logged before the call.
    *
@@ -99,6 +90,15 @@ public final class LogCapture implements AutoCloseable {
     this.logger.removeAppender(this.appender);
     this.logger.setLevel(this.previousLevel);
     this.appender.stop();
+  }
+
+  /**
+   * Gets the recorded events, in order.
+   *
+   * @return the events
+   */
+  public List<RecordedEvent> getEvents() {
+    return List.copyOf(this.appender.events);
   }
 
   /**

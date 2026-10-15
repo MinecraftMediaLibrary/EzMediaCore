@@ -147,15 +147,6 @@ public final class MapLayout {
   }
 
   /**
-   * Returns the number of maps in the grid.
-   *
-   * @return the number of maps
-   */
-  public int getMapCount() {
-    return this.regions.length;
-  }
-
-  /**
    * Returns the id of the map at the specified index.
    *
    * @param index the index of the map, counted row by row from the top left
@@ -165,24 +156,6 @@ public final class MapLayout {
   public int getMapId(final int index) {
     Preconditions.checkElementIndex(index, this.regions.length, "Map index");
     return this.startMapId + index;
-  }
-
-  /**
-   * Returns the width of the image in pixels.
-   *
-   * @return the image width
-   */
-  public int getImageWidth() {
-    return this.imageWidth;
-  }
-
-  /**
-   * Returns the height of the image in pixels.
-   *
-   * @return the image height
-   */
-  public int getImageHeight() {
-    return this.imageHeight;
   }
 
   /**
@@ -305,5 +278,32 @@ public final class MapLayout {
       patches.add(patch);
     }
     return patches;
+  }
+
+  /**
+   * Returns the number of maps in the grid.
+   *
+   * @return the number of maps
+   */
+  public int getMapCount() {
+    return this.regions.length;
+  }
+
+  /**
+   * Returns the width of the image in pixels.
+   *
+   * @return the image width
+   */
+  public int getImageWidth() {
+    return this.imageWidth;
+  }
+
+  /**
+   * Returns the height of the image in pixels.
+   *
+   * @return the image height
+   */
+  public int getImageHeight() {
+    return this.imageHeight;
   }
 }

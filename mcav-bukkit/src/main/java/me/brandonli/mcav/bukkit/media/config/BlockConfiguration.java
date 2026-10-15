@@ -52,6 +52,15 @@ public class BlockConfiguration {
   }
 
   /**
+   * Creates a new builder for a block configuration.
+   *
+   * @return a new builder
+   */
+  public static Builder<?> builder() {
+    return new BlockResultBuilder();
+  }
+
+  /**
    * Returns the players who see the block wall.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
@@ -104,15 +113,6 @@ public class BlockConfiguration {
     protected BlockResultBuilder self() {
       return this;
     }
-  }
-
-  /**
-   * Creates a new builder for a block configuration.
-   *
-   * @return a new builder
-   */
-  public static Builder<?> builder() {
-    return new BlockResultBuilder();
   }
 
   /**

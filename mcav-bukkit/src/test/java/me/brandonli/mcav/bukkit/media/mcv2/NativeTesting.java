@@ -171,11 +171,6 @@ final class NativeTesting {
     return factory(Resolution.java("test", false));
   }
 
-  interface NativeKernels extends Kernels {
-    Level level();
-    boolean keeps(Object array);
-  }
-
   static NativeKernels view(final Object kernels) {
     final Class<?> type = Mcv2Internals.nested(NATIVE_KERNELS_CLASS);
     return (NativeKernels) Proxy.newProxyInstance(
@@ -211,5 +206,10 @@ final class NativeTesting {
       throw new LinkageError(exception.getMessage(), exception);
     }
     return encoder;
+  }
+
+  interface NativeKernels extends Kernels {
+    Level level();
+    boolean keeps(Object array);
   }
 }

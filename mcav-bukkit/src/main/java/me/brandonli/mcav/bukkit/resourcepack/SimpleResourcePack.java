@@ -117,13 +117,6 @@ public final class SimpleResourcePack {
     this.format = -1;
   }
 
-  private static Gson createGson() {
-    final GsonBuilder builder = new GsonBuilder();
-    builder.setPrettyPrinting();
-    builder.disableHtmlEscaping();
-    return builder.create();
-  }
-
   /**
    * Creates a new, empty resource pack builder.
    *
@@ -131,6 +124,13 @@ public final class SimpleResourcePack {
    */
   public static SimpleResourcePack pack() {
     return new SimpleResourcePack();
+  }
+
+  private static Gson createGson() {
+    final GsonBuilder builder = new GsonBuilder();
+    builder.setPrettyPrinting();
+    builder.disableHtmlEscaping();
+    return builder.create();
   }
 
   /**
@@ -319,22 +319,6 @@ public final class SimpleResourcePack {
     }
   }
 
-  /**
-   * Moves files, like {@link Files#move(Path, Path, CopyOption...)}.
-   */
-  @FunctionalInterface
-  interface FileMover {
-    /**
-     * Moves a file.
-     *
-     * @param source  the file to move
-     * @param target  the destination
-     * @param options how the file is moved
-     * @throws IOException if the file cannot be moved
-     */
-    void move(Path source, Path target, CopyOption... options) throws IOException;
-  }
-
   private void writeZip(final Path target, final String packDescription) throws IOException {
     try (final OutputStream fileOutput = Files.newOutputStream(target); final ZipOutputStream zip = new ZipOutputStream(fileOutput)) {
       final String packMeta = this.createPackMeta(packDescription);
@@ -421,5 +405,21 @@ public final class SimpleResourcePack {
     zip.putNextEntry(entry(name));
     Files.copy(file, zip);
     zip.closeEntry();
+  }
+
+  /**
+   * Moves files, like {@link Files#move(Path, Path, CopyOption...)}.
+   */
+  @FunctionalInterface
+  interface FileMover {
+    /**
+     * Moves a file.
+     *
+     * @param source  the file to move
+     * @param target  the destination
+     * @param options how the file is moved
+     * @throws IOException if the file cannot be moved
+     */
+    void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 }

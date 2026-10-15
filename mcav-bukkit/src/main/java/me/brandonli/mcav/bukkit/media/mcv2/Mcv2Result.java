@@ -195,159 +195,6 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private @Nullable Resizer resizer;
 
-  private record Screen(Mcv2Configuration configuration, Mcv2Channel channel) {}
-
-  /**
-   * What a screen's owner does to show the video at another size: the pack decodes one video size, so a smaller video
-   * needs its pack offered to the viewers, and a channel of its own.
-   */
-  @FunctionalInterface
-  public interface Resizer {
-    /**
-     * Offers the viewers the pack of the screen at another video size and creates its channel, not opened yet. Called
-     * on the main thread.
-     *
-     * @param configuration the screen at the new size
-     * @return the channel that sends the video at that size
-     */
-    Mcv2Channel resize(Mcv2Configuration configuration);
-  }
-
-  private record Fallback(CompressedMapResult result, DitherAlgorithm algorithm) {}
-
-  static final class Arrival {
-
-    private final byte[] pictureBytes;
-
-    private final int width;
-
-    private final int height;
-
-    private final long arrived;
-
-    private final Mcv2Pacer.Preset preset;
-
-    Arrival(final byte[] pictureBytes, final int width, final int height, final long arrived, final Mcv2Pacer.Preset preset) {
-      this.pictureBytes = pictureBytes;
-      this.width = width;
-      this.height = height;
-      this.arrived = arrived;
-      this.preset = preset;
-    }
-  }
-
-  private record Handoff(Mcv2 encoder, Mcv2.Pending pending, long frameId, Arrival source) {}
-
-  private record Pipeline(Pool budget, BlockingQueue<Handoff> queue) {}
-
-  private static final class Delivery {
-
-    private final byte[] frame;
-
-    private final Mcv2.Statistics statistics;
-
-    private final long frameId;
-
-    private final Arrival source;
-
-    private Delivery(final byte[] frame, final Mcv2.Statistics statistics, final long frameId, final Arrival source) {
-      this.frame = frame;
-      this.statistics = statistics;
-      this.frameId = frameId;
-      this.source = source;
-    }
-  }
-
-  /**
-   * What the result has done so far.
-   *
-   * <p>Each getter is synchronized, but several getter calls are not one atomic snapshot. Counts describe
-   * frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
-   */
-  public static final class Statistics {
-
-    private long frames;
-
-    private long keyframes;
-
-    private long dropped;
-
-    private long bytes;
-
-    private long mapBytes;
-
-    private long nanoseconds;
-
-    Statistics() {}
-
-    synchronized void add(final Mcv2.Statistics statistics, final int mapColors) {
-      this.frames++;
-      this.keyframes += statistics.keyframe() ? 1 : 0;
-      this.bytes += statistics.bytes();
-      this.mapBytes += mapColors;
-      this.nanoseconds += statistics.nanoseconds();
-    }
-
-    private synchronized void drop() {
-      this.dropped++;
-    }
-
-    /**
-     * Returns the number of frames sent.
-     *
-     * @return the frames
-     */
-    public synchronized long getFrames() {
-      return this.frames;
-    }
-
-    /**
-     * Returns the number of keyframes sent.
-     *
-     * @return the keyframes
-     */
-    public synchronized long getKeyframes() {
-      return this.keyframes;
-    }
-
-    /**
-     * Returns the number of frames not sent because they had more pages than the screen has page slots.
-     *
-     * @return the dropped frames
-     */
-    public synchronized long getDropped() {
-      return this.dropped;
-    }
-
-    /**
-     * Returns the MCV2 bytes of the frames sent.
-     *
-     * @return the frame bytes
-     */
-    public synchronized long getBytes() {
-      return this.bytes;
-    }
-
-    /**
-     * Returns accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
-     * Anchors, packet overhead and actual recipient counts are excluded.
-     *
-     * @return the map bytes per viewer
-     */
-    public synchronized long getMapBytes() {
-      return this.mapBytes;
-    }
-
-    /**
-     * Returns the time spent encoding the frames sent.
-     *
-     * @return the encode time in nanoseconds
-     */
-    public synchronized long getNanoseconds() {
-      return this.nanoseconds;
-    }
-  }
-
   /**
    * Constructs a new result.
    *
@@ -452,34 +299,6 @@ public final class Mcv2Result implements FunctionalVideoFilter {
   }
 
   /**
-   * Returns what the result has done so far.
-   *
-   * @return the statistics, updated as frames are sent
-   */
-  public Statistics getStatistics() {
-    return this.statistics;
-  }
-
-  /**
-   * Returns the channel that delivers the frames.
-   *
-   * @return the channel
-   */
-  public Mcv2Channel getChannel() {
-    return this.screen.channel();
-  }
-
-  /**
-   * Returns the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
-   * down to.
-   *
-   * @return the configuration
-   */
-  public Mcv2Configuration getConfiguration() {
-    return this.screen.configuration();
-  }
-
-  /**
    * Lets the screen step down to smaller video sizes when its encoder budget cannot sustain the size it was asked for,
    * before it falls back to the dithered maps. Call before {@link #start()}.
    *
@@ -495,37 +314,6 @@ public final class Mcv2Result implements FunctionalVideoFilter {
     Preconditions.checkNotNull(resizer, "Resizer must not be null!");
     this.smaller = List.copyOf(sizes);
     this.resizer = resizer;
-  }
-
-  /**
-   * Sets who is told of the pacer's steps besides the server log, for example the operator who started the screen.
-   *
-   * <p>The callback may run on different threads on different calls; it must be thread-safe, nonblocking and
-   * must schedule Bukkit world changes on the main thread. Callback exceptions are not swallowed at the call site.
-   *
-   * @param listener called with every step, on the thread that caused it
-   * @throws NullPointerException if {@code listener} is null
-   */
-  public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
-    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
-    this.pacingListener = listener;
-  }
-
-  /**
-   * Sets who hears every frame the screen sends, as the bytes of its bitstream, for example to record the stream the
-   * viewers were sent and decode it again with the reference decoder. A frame too large for the screen's page slots is
-   * not sent, and not heard.
-   *
-   * <p>The callback receives the actual encoded array without a defensive copy. Treat it as read-only and
-   * copy it before handing it to code that may mutate it. A callback that throws stops the screen: the failure is
-   * logged, and no later frame is encoded or sent.
-   *
-   * @param listener called with every frame sent, on the thread that sends the frames, which it should not hold up
-   * @throws NullPointerException if {@code listener} is null
-   */
-  public void setFrameListener(final Consumer<byte[]> listener) {
-    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
-    this.frameListener = listener;
   }
 
   /**
@@ -1000,5 +788,217 @@ public final class Mcv2Result implements FunctionalVideoFilter {
 
   private static long size(final int width, final int height) {
     return ((long) width << Integer.SIZE) | height;
+  }
+
+  /**
+   * Returns what the result has done so far.
+   *
+   * @return the statistics, updated as frames are sent
+   */
+  public Statistics getStatistics() {
+    return this.statistics;
+  }
+
+  /**
+   * Returns the channel that delivers the frames.
+   *
+   * @return the channel
+   */
+  public Mcv2Channel getChannel() {
+    return this.screen.channel();
+  }
+
+  /**
+   * Returns the screen's configuration now: the one it was created with, or a copy at the smaller video size it stepped
+   * down to.
+   *
+   * @return the configuration
+   */
+  public Mcv2Configuration getConfiguration() {
+    return this.screen.configuration();
+  }
+
+  /**
+   * Sets who is told of the pacer's steps besides the server log, for example the operator who started the screen.
+   *
+   * <p>The callback may run on different threads on different calls; it must be thread-safe, nonblocking and
+   * must schedule Bukkit world changes on the main thread. Callback exceptions are not swallowed at the call site.
+   *
+   * @param listener called with every step, on the thread that caused it
+   * @throws NullPointerException if {@code listener} is null
+   */
+  public void setPacingListener(final Consumer<Mcv2Pacer.Change> listener) {
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+    this.pacingListener = listener;
+  }
+
+  /**
+   * Sets who hears every frame the screen sends, as the bytes of its bitstream, for example to record the stream the
+   * viewers were sent and decode it again with the reference decoder. A frame too large for the screen's page slots is
+   * not sent, and not heard.
+   *
+   * <p>The callback receives the actual encoded array without a defensive copy. Treat it as read-only and
+   * copy it before handing it to code that may mutate it. A callback that throws stops the screen: the failure is
+   * logged, and no later frame is encoded or sent.
+   *
+   * @param listener called with every frame sent, on the thread that sends the frames, which it should not hold up
+   * @throws NullPointerException if {@code listener} is null
+   */
+  public void setFrameListener(final Consumer<byte[]> listener) {
+    Preconditions.checkNotNull(listener, LISTENER_NULL_MESSAGE);
+    this.frameListener = listener;
+  }
+
+  private record Screen(Mcv2Configuration configuration, Mcv2Channel channel) {}
+
+  /**
+   * What a screen's owner does to show the video at another size: the pack decodes one video size, so a smaller video
+   * needs its pack offered to the viewers, and a channel of its own.
+   */
+  @FunctionalInterface
+  public interface Resizer {
+    /**
+     * Offers the viewers the pack of the screen at another video size and creates its channel, not opened yet. Called
+     * on the main thread.
+     *
+     * @param configuration the screen at the new size
+     * @return the channel that sends the video at that size
+     */
+    Mcv2Channel resize(Mcv2Configuration configuration);
+  }
+
+  private record Fallback(CompressedMapResult result, DitherAlgorithm algorithm) {}
+
+  static final class Arrival {
+
+    private final byte[] pictureBytes;
+
+    private final int width;
+
+    private final int height;
+
+    private final long arrived;
+
+    private final Mcv2Pacer.Preset preset;
+
+    Arrival(final byte[] pictureBytes, final int width, final int height, final long arrived, final Mcv2Pacer.Preset preset) {
+      this.pictureBytes = pictureBytes;
+      this.width = width;
+      this.height = height;
+      this.arrived = arrived;
+      this.preset = preset;
+    }
+  }
+
+  private record Handoff(Mcv2 encoder, Mcv2.Pending pending, long frameId, Arrival source) {}
+
+  private record Pipeline(Pool budget, BlockingQueue<Handoff> queue) {}
+
+  private static final class Delivery {
+
+    private final byte[] frame;
+
+    private final Mcv2.Statistics statistics;
+
+    private final long frameId;
+
+    private final Arrival source;
+
+    private Delivery(final byte[] frame, final Mcv2.Statistics statistics, final long frameId, final Arrival source) {
+      this.frame = frame;
+      this.statistics = statistics;
+      this.frameId = frameId;
+      this.source = source;
+    }
+  }
+
+  /**
+   * What the result has done so far.
+   *
+   * <p>Each getter is synchronized, but several getter calls are not one atomic snapshot. Counts describe
+   * frames accepted by the channel, not multiplied by recipients or acknowledged by clients.
+   */
+  public static final class Statistics {
+
+    private long frames;
+
+    private long keyframes;
+
+    private long dropped;
+
+    private long bytes;
+
+    private long mapBytes;
+
+    private long nanoseconds;
+
+    Statistics() {}
+
+    synchronized void add(final Mcv2.Statistics statistics, final int mapColors) {
+      this.frames++;
+      this.keyframes += statistics.keyframe() ? 1 : 0;
+      this.bytes += statistics.bytes();
+      this.mapBytes += mapColors;
+      this.nanoseconds += statistics.nanoseconds();
+    }
+
+    private synchronized void drop() {
+      this.dropped++;
+    }
+
+    /**
+     * Returns the number of frames sent.
+     *
+     * @return the frames
+     */
+    public synchronized long getFrames() {
+      return this.frames;
+    }
+
+    /**
+     * Returns the number of keyframes sent.
+     *
+     * @return the keyframes
+     */
+    public synchronized long getKeyframes() {
+      return this.keyframes;
+    }
+
+    /**
+     * Returns the number of frames not sent because they had more pages than the screen has page slots.
+     *
+     * @return the dropped frames
+     */
+    public synchronized long getDropped() {
+      return this.dropped;
+    }
+
+    /**
+     * Returns the MCV2 bytes of the frames sent.
+     *
+     * @return the frame bytes
+     */
+    public synchronized long getBytes() {
+      return this.bytes;
+    }
+
+    /**
+     * Returns accumulated page-map color bytes per potential recipient: every page as whole 128-color rows.
+     * Anchors, packet overhead and actual recipient counts are excluded.
+     *
+     * @return the map bytes per viewer
+     */
+    public synchronized long getMapBytes() {
+      return this.mapBytes;
+    }
+
+    /**
+     * Returns the time spent encoding the frames sent.
+     *
+     * @return the encode time in nanoseconds
+     */
+    public synchronized long getNanoseconds() {
+      return this.nanoseconds;
+    }
   }
 }

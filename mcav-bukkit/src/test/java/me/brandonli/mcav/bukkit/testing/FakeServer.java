@@ -119,6 +119,15 @@ public final class FakeServer implements AutoCloseable {
     this.bukkit = this.mockBukkit();
   }
 
+  /**
+   * Starts a fake server for the current thread.
+   *
+   * @return the running server
+   */
+  public static FakeServer start() {
+    return new FakeServer();
+  }
+
   private void stubScheduler() {
     final Answer<BukkitTask> repeatingTask = invocation -> {
       final Runnable runnable = invocation.getArgument(1);
@@ -163,15 +172,6 @@ public final class FakeServer implements AutoCloseable {
     return staticBukkit;
   }
 
-  /**
-   * Starts a fake server for the current thread.
-   *
-   * @return the running server
-   */
-  public static FakeServer start() {
-    return new FakeServer();
-  }
-
   private BukkitTask schedule(final Runnable runnable, final boolean repeating) {
     final BukkitTask task = mock(BukkitTask.class);
     final ScheduledTask scheduled = new ScheduledTask(runnable, repeating, task);
@@ -186,60 +186,6 @@ public final class FakeServer implements AutoCloseable {
   }
 
   /**
-   * Gets the static mock of {@link Bukkit}, for stubbing more methods.
-   *
-   * @return the static mock
-   */
-  public MockedStatic<Bukkit> getBukkit() {
-    return this.bukkit;
-  }
-
-  /**
-   * Gets the plugin that is injected by {@link #injectModule()}.
-   *
-   * @return the plugin mock
-   */
-  public Plugin getPlugin() {
-    return this.plugin;
-  }
-
-  /**
-   * Gets the plugin manager.
-   *
-   * @return the plugin manager mock
-   */
-  public PluginManager getPluginManager() {
-    return this.pluginManager;
-  }
-
-  /**
-   * Gets the scheduler.
-   *
-   * @return the scheduler mock
-   */
-  public BukkitScheduler getScheduler() {
-    return this.scheduler;
-  }
-
-  /**
-   * Gets the scoreboard manager.
-   *
-   * @return the scoreboard manager mock
-   */
-  public ScoreboardManager getScoreboardManager() {
-    return this.scoreboardManager;
-  }
-
-  /**
-   * Gets the messenger of plugin channels, through which a test delivers what a client sends on one.
-   *
-   * @return the messenger, Bukkit's own
-   */
-  public Messenger getMessenger() {
-    return this.messenger;
-  }
-
-  /**
    * Delivers a plugin message that a player's client sent in the game, through the messenger, as the server does.
    *
    * @param player  the player
@@ -250,15 +196,6 @@ public final class FakeServer implements AutoCloseable {
     final PlayerGameConnection connection = mock(PlayerGameConnection.class);
     when(connection.getPlayer()).thenReturn(player);
     this.messenger.dispatchIncomingMessage(connection, channel, message);
-  }
-
-  /**
-   * Sets whether {@link Bukkit#isPrimaryThread()} reports the main thread.
-   *
-   * @param primaryThread true to report the main thread
-   */
-  public void setPrimaryThread(final boolean primaryThread) {
-    this.primaryThread = primaryThread;
   }
 
   /**
@@ -473,15 +410,6 @@ public final class FakeServer implements AutoCloseable {
   }
 
   /**
-   * Gets the number of tasks that are scheduled and not cancelled.
-   *
-   * @return the number of scheduled tasks
-   */
-  public int getScheduledTaskCount() {
-    return this.tasks.size();
-  }
-
-  /**
    * Clears the connection cache, forgets the injected plugin, and removes the static mock of {@link Bukkit}.
    */
   @Override
@@ -505,6 +433,78 @@ public final class FakeServer implements AutoCloseable {
     } catch (final ReflectiveOperationException exception) {
       throw new IllegalStateException(exception);
     }
+  }
+
+  /**
+   * Gets the static mock of {@link Bukkit}, for stubbing more methods.
+   *
+   * @return the static mock
+   */
+  public MockedStatic<Bukkit> getBukkit() {
+    return this.bukkit;
+  }
+
+  /**
+   * Gets the plugin that is injected by {@link #injectModule()}.
+   *
+   * @return the plugin mock
+   */
+  public Plugin getPlugin() {
+    return this.plugin;
+  }
+
+  /**
+   * Gets the plugin manager.
+   *
+   * @return the plugin manager mock
+   */
+  public PluginManager getPluginManager() {
+    return this.pluginManager;
+  }
+
+  /**
+   * Gets the scheduler.
+   *
+   * @return the scheduler mock
+   */
+  public BukkitScheduler getScheduler() {
+    return this.scheduler;
+  }
+
+  /**
+   * Gets the scoreboard manager.
+   *
+   * @return the scoreboard manager mock
+   */
+  public ScoreboardManager getScoreboardManager() {
+    return this.scoreboardManager;
+  }
+
+  /**
+   * Gets the messenger of plugin channels, through which a test delivers what a client sends on one.
+   *
+   * @return the messenger, Bukkit's own
+   */
+  public Messenger getMessenger() {
+    return this.messenger;
+  }
+
+  /**
+   * Sets whether {@link Bukkit#isPrimaryThread()} reports the main thread.
+   *
+   * @param primaryThread true to report the main thread
+   */
+  public void setPrimaryThread(final boolean primaryThread) {
+    this.primaryThread = primaryThread;
+  }
+
+  /**
+   * Gets the number of tasks that are scheduled and not cancelled.
+   *
+   * @return the number of scheduled tasks
+   */
+  public int getScheduledTaskCount() {
+    return this.tasks.size();
   }
 
   /**

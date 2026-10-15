@@ -111,33 +111,6 @@ public final class FakeScoreboards {
   }
 
   /**
-   * Gets the scoreboard handed out by {@link ScoreboardManager#getNewScoreboard()}.
-   *
-   * @return the new scoreboard
-   */
-  public Scoreboard getBoard() {
-    return this.board;
-  }
-
-  /**
-   * Gets the main scoreboard of the server.
-   *
-   * @return the main scoreboard
-   */
-  public Scoreboard getMainBoard() {
-    return this.mainBoard;
-  }
-
-  /**
-   * Gets the objective registered on the new scoreboard.
-   *
-   * @return the objective
-   */
-  public Objective getObjective() {
-    return this.objective;
-  }
-
-  /**
    * Gets the teams registered on the new scoreboard, in registration order.
    *
    * @return the teams
@@ -165,5 +138,32 @@ public final class FakeScoreboards {
    */
   public Score getScore(final String entry) {
     return this.scores.get(entry);
+  }
+
+  /**
+   * Gets the scoreboard handed out by {@link ScoreboardManager#getNewScoreboard()}.
+   *
+   * @return the new scoreboard
+   */
+  public Scoreboard getBoard() {
+    return this.board;
+  }
+
+  /**
+   * Gets the main scoreboard of the server.
+   *
+   * @return the main scoreboard
+   */
+  public Scoreboard getMainBoard() {
+    return this.mainBoard;
+  }
+
+  /**
+   * Gets the objective registered on the new scoreboard.
+   *
+   * @return the objective
+   */
+  public Objective getObjective() {
+    return this.objective;
   }
 }

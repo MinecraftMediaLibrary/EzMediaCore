@@ -131,24 +131,6 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Returns the screen.
-   *
-   * @return the screen
-   */
-  public Mcv2Screen getScreen() {
-    return this.screen;
-  }
-
-  /**
-   * Returns the configuration of the screen the channel sends to: its video size, stream id and viewers.
-   *
-   * @return the configuration
-   */
-  public Mcv2Configuration getConfiguration() {
-    return this.configuration;
-  }
-
-  /**
    * Spawns the screen's page frames, and starts measuring how far the viewers are from the wall, unless the channel
    * still measures them since the dithered maps took the page frames' place. Call on the main thread.
    * @throws IllegalStateException if the screen is already built or no plugin has been injected
@@ -353,24 +335,6 @@ public final class Mcv2Channel {
   }
 
   /**
-   * Returns the viewers that receive frames.
-   *
-   * @return the viewers shown the screen, as of the last {@link #update()}
-   */
-  public Set<UUID> getRecipients() {
-    return Set.copyOf(this.recipients.keySet());
-  }
-
-  /**
-   * Returns the links of the viewers shown the screen: what each was sent, missed and has not yet written.
-   *
-   * @return the links by viewer, a live view
-   */
-  public Map<UUID, Mcv2Link> getLinks() {
-    return Collections.unmodifiableMap(this.links);
-  }
-
-  /**
    * Asks for the next frame to be a keyframe.
    */
   public void requestKeyframe() {
@@ -457,5 +421,41 @@ public final class Mcv2Channel {
     event.sent = System.currentTimeMillis();
     event.commit();
     return colors;
+  }
+
+  /**
+   * Returns the screen.
+   *
+   * @return the screen
+   */
+  public Mcv2Screen getScreen() {
+    return this.screen;
+  }
+
+  /**
+   * Returns the configuration of the screen the channel sends to: its video size, stream id and viewers.
+   *
+   * @return the configuration
+   */
+  public Mcv2Configuration getConfiguration() {
+    return this.configuration;
+  }
+
+  /**
+   * Returns the viewers that receive frames.
+   *
+   * @return the viewers shown the screen, as of the last {@link #update()}
+   */
+  public Set<UUID> getRecipients() {
+    return Set.copyOf(this.recipients.keySet());
+  }
+
+  /**
+   * Returns the links of the viewers shown the screen: what each was sent, missed and has not yet written.
+   *
+   * @return the links by viewer, a live view
+   */
+  public Map<UUID, Mcv2Link> getLinks() {
+    return Collections.unmodifiableMap(this.links);
   }
 }

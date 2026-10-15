@@ -227,16 +227,6 @@ public class McPackHosting implements WebsiteHosting {
     // the upload cannot be undone and stays available for other servers
   }
 
-  /**
-   * Returns the resource pack zip that is uploaded to mc-packs.net.
-   *
-   * @return the path to the resource pack zip
-   */
-  @Override
-  public Path getZip() {
-    return this.zip;
-  }
-
   private void upload(final byte[] pack) {
     final UUID boundaryId = UUID.randomUUID();
     final String boundary = BOUNDARY_PREFIX + boundaryId;
@@ -363,5 +353,15 @@ public class McPackHosting implements WebsiteHosting {
     } catch (final IOException exception) {
       LOGGER.warn(UPLOAD_CACHE_NOT_WRITTEN, cacheFile, exception);
     }
+  }
+
+  /**
+   * Returns the resource pack zip that is uploaded to mc-packs.net.
+   *
+   * @return the path to the resource pack zip
+   */
+  @Override
+  public Path getZip() {
+    return this.zip;
   }
 }

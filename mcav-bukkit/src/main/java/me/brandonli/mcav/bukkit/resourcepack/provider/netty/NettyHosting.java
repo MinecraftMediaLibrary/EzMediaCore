@@ -177,16 +177,6 @@ public final class NettyHosting implements InjectorHosting {
     }
   }
 
-  /**
-   * Returns the name this instance installs its handler under in the Netty pipeline. Visible for testing.
-   *
-   * @return the pipeline name, which is unique per instance
-   */
-  @VisibleForTesting
-  String getHandlerName() {
-    return this.handlerName;
-  }
-
   private void installHandler(final Channel channel) {
     final ChannelPipeline pipeline = channel.pipeline();
     final ResourcePackHttpHandler handler = new ResourcePackHttpHandler(this.packFile, this.requestPath);
@@ -202,6 +192,16 @@ public final class NettyHosting implements InjectorHosting {
       ChannelInitializeListenerHolder.removeListener(this.listenerKey);
       this.running = false;
     }
+  }
+
+  /**
+   * Returns the name this instance installs its handler under in the Netty pipeline. Visible for testing.
+   *
+   * @return the pipeline name, which is unique per instance
+   */
+  @VisibleForTesting
+  String getHandlerName() {
+    return this.handlerName;
   }
 
   /**

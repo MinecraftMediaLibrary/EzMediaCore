@@ -107,15 +107,6 @@ public final class DeltaMapEncoder {
   }
 
   /**
-   * Returns the layout this encoder was created for.
-   *
-   * @return the layout
-   */
-  public MapLayout getLayout() {
-    return this.layout;
-  }
-
-  /**
    * Encodes the next frame into the patches that should be sent to the clients. The returned patches are
    * considered delivered, so every client must receive all of them for the following frames to be correct.
    *
@@ -534,6 +525,15 @@ public final class DeltaMapEncoder {
       final int targetIndex = (top + row) * MAP_SIZE + left;
       System.arraycopy(colors, sourceIndex, state, targetIndex, width);
     }
+  }
+
+  /**
+   * Returns the layout this encoder was created for.
+   *
+   * @return the layout
+   */
+  public MapLayout getLayout() {
+    return this.layout;
   }
 
   /**

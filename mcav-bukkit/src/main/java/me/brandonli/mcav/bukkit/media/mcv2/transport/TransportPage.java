@@ -69,6 +69,10 @@ public final class TransportPage {
     this.payload = payload;
   }
 
+  byte[] payload() {
+    return this.payload;
+  }
+
   /**
    * Returns the stream id.
    *
@@ -148,10 +152,6 @@ public final class TransportPage {
    */
   public byte[] getPayload() {
     return this.payload.clone();
-  }
-
-  byte[] payload() {
-    return this.payload;
   }
 
   @Override

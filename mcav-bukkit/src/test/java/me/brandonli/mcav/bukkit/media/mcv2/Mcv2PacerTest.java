@@ -66,89 +66,6 @@ final class Mcv2PacerTest {
   /** A preset that takes half the time: every time below stays an exact double. */
   private static final Mcv2Pacer.Preset FAST = new Mcv2Pacer.Preset("live-fast", 0.5);
 
-  /**
-   * Drives a pacer with a video at a frame rate; an encoded frame takes a time that grows with the pixels of its size
-   * and with the cost of its preset.
-   */
-  private static final class Driver {
-
-    private final Mcv2Pacer pacer;
-
-    private final long interval;
-
-    private final List<Mcv2Pacer.Change> changes = new ArrayList<>();
-
-    private long now;
-
-    Driver(final Mcv2Pacer pacer, final double framesPerSecond, final long start) {
-      this.pacer = pacer;
-      this.interval = Math.round(SECOND / framesPerSecond);
-      this.now = start;
-    }
-
-    /** Plays the video for a while; every frame the pacer encodes takes {@code fullMilliseconds} scaled to its size and preset. */
-    Mcv2Pacer.@Nullable Change play(final double seconds, final double fullMilliseconds) {
-      Mcv2Pacer.Change last = null;
-      final long end = this.now + (long) (seconds * SECOND);
-      while (this.now < end) {
-        this.now += this.interval;
-        final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
-        if (tried != null) {
-          this.changes.add(tried);
-          last = tried;
-        }
-        if (this.pacer.isEncoded()) {
-          final Mcv2Pacer.Rung rung = this.pacer.getRung();
-          final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
-          final Mcv2Pacer.Change change = this.pacer.encoded(milliseconds, false, this.now);
-          if (change != null) {
-            this.changes.add(change);
-            last = change;
-          }
-        }
-      }
-      return last;
-    }
-  }
-
-  /** Drives a pacer frame by frame at an exact interval; every frame it encodes takes the time given. */
-  private static final class Exact {
-
-    private final Mcv2Pacer pacer;
-
-    private final long interval;
-
-    private long now;
-
-    Exact(final Mcv2Pacer pacer, final long interval, final long first) {
-      this.pacer = pacer;
-      this.interval = interval;
-      this.now = first - interval;
-    }
-
-    /** The next frame: it arrives, and if the pacer encodes it, it takes the given time; the change it caused, or null. */
-    Mcv2Pacer.@Nullable Change frame(final double milliseconds) {
-      this.now += this.interval;
-      final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
-      if (tried != null) {
-        return tried;
-      }
-      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now) : null;
-    }
-
-    /** Frames until one causes a change, which it returns; the clock is then at that frame. */
-    Mcv2Pacer.Change until(final double milliseconds, final int limit) {
-      for (int frameNumber = 0; frameNumber < limit; frameNumber++) {
-        final Mcv2Pacer.Change change = this.frame(milliseconds);
-        if (change != null) {
-          return change;
-        }
-      }
-      final String message = "No change in %s frames!".formatted(limit);
-      throw new AssertionError(message);
-    }
-  }
-
   @Test
   void shouldBuildTheLadderFromTheSizes() {
     final Mcv2Pacer pacer = new Mcv2Pacer(List.of(FULL, SMALL));
@@ -976,5 +893,88 @@ final class Mcv2PacerTest {
     final long expectedWait = 30 * SECOND;
     final long wait = clock.now - fellBack;
     assertEquals(expectedWait, wait, TRIED_AGAIN_PREFIX + (clock.now - fellBack) / NANOSECONDS_PER_SECOND + AFTER_FALLING_BACK_SUFFIX);
+  }
+
+  /**
+   * Drives a pacer with a video at a frame rate; an encoded frame takes a time that grows with the pixels of its size
+   * and with the cost of its preset.
+   */
+  private static final class Driver {
+
+    private final Mcv2Pacer pacer;
+
+    private final long interval;
+
+    private final List<Mcv2Pacer.Change> changes = new ArrayList<>();
+
+    private long now;
+
+    Driver(final Mcv2Pacer pacer, final double framesPerSecond, final long start) {
+      this.pacer = pacer;
+      this.interval = Math.round(SECOND / framesPerSecond);
+      this.now = start;
+    }
+
+    /** Plays the video for a while; every frame the pacer encodes takes {@code fullMilliseconds} scaled to its size and preset. */
+    Mcv2Pacer.@Nullable Change play(final double seconds, final double fullMilliseconds) {
+      Mcv2Pacer.Change last = null;
+      final long end = this.now + (long) (seconds * SECOND);
+      while (this.now < end) {
+        this.now += this.interval;
+        final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
+        if (tried != null) {
+          this.changes.add(tried);
+          last = tried;
+        }
+        if (this.pacer.isEncoded()) {
+          final Mcv2Pacer.Rung rung = this.pacer.getRung();
+          final double milliseconds = (fullMilliseconds * rung.width() * rung.height() * rung.preset().cost()) / (FULL[0] * FULL[1]);
+          final Mcv2Pacer.Change change = this.pacer.encoded(milliseconds, false, this.now);
+          if (change != null) {
+            this.changes.add(change);
+            last = change;
+          }
+        }
+      }
+      return last;
+    }
+  }
+
+  /** Drives a pacer frame by frame at an exact interval; every frame it encodes takes the time given. */
+  private static final class Exact {
+
+    private final Mcv2Pacer pacer;
+
+    private final long interval;
+
+    private long now;
+
+    Exact(final Mcv2Pacer pacer, final long interval, final long first) {
+      this.pacer = pacer;
+      this.interval = interval;
+      this.now = first - interval;
+    }
+
+    /** The next frame: it arrives, and if the pacer encodes it, it takes the given time; the change it caused, or null. */
+    Mcv2Pacer.@Nullable Change frame(final double milliseconds) {
+      this.now += this.interval;
+      final Mcv2Pacer.Change tried = this.pacer.arrive(this.now);
+      if (tried != null) {
+        return tried;
+      }
+      return this.pacer.isEncoded() ? this.pacer.encoded(milliseconds, false, this.now) : null;
+    }
+
+    /** Frames until one causes a change, which it returns; the clock is then at that frame. */
+    Mcv2Pacer.Change until(final double milliseconds, final int limit) {
+      for (int frameNumber = 0; frameNumber < limit; frameNumber++) {
+        final Mcv2Pacer.Change change = this.frame(milliseconds);
+        if (change != null) {
+          return change;
+        }
+      }
+      final String message = "No change in %s frames!".formatted(limit);
+      throw new AssertionError(message);
+    }
   }
 }

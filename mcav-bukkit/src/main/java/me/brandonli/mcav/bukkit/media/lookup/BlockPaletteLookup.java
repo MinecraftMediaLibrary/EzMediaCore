@@ -118,58 +118,6 @@ public final class BlockPaletteLookup {
   }
 
   /**
-   * Holds the lookup tables. The tables are built when this class is first accessed, which the JVM guarantees to
-   * happen exactly once and in a thread-safe way.
-   */
-  private static final class Holder {
-
-    private static final Map<Integer, Material> MATERIALS;
-    private static final Map<Integer, BlockData> BLOCK_DATA;
-    private static final FilterLiteDither DITHERING;
-    private static final BlockData AIR;
-
-    static {
-      final Reader reader = IoUtils.getResourceAsStreamReader(PALETTE_RESOURCE);
-      final Map<String, int @Nullable []> palette = parsePalette(reader);
-      final Map<Integer, Material> materials = resolveMaterials(palette);
-
-      MATERIALS = materials;
-      BLOCK_DATA = createBlockData(materials);
-      AIR = Material.AIR.createBlockData();
-      DITHERING = createDithering(materials);
-    }
-
-    private static void initialize() {
-      // Calling any static method triggers the class initialization above.
-    }
-
-    private static Map<Integer, BlockData> createBlockData(final Map<Integer, Material> materials) {
-      final Map<Integer, BlockData> blockData = new HashMap<>();
-      for (final Map.Entry<Integer, Material> entry : materials.entrySet()) {
-        final Integer color = entry.getKey();
-        final Material material = entry.getValue();
-        final BlockData data = material.createBlockData();
-        blockData.put(color, data);
-      }
-      return Map.copyOf(blockData);
-    }
-
-    private static FilterLiteDither createDithering(final Map<Integer, Material> materials) {
-      final Set<Integer> colorSet = materials.keySet();
-      final int colorCount = colorSet.size();
-      final int[] colors = new int[colorCount];
-      int index = 0;
-      for (final Integer color : colorSet) {
-        colors[index] = color;
-        index++;
-      }
-
-      final DitherPalette ditherPalette = DitherPalette.colors(colors);
-      return new FilterLiteDither(ditherPalette);
-    }
-  }
-
-  /**
    * Reads a block palette, which maps block names to their average color as an array of red, green, and blue.
    * The reader is closed afterward.
    *
@@ -226,5 +174,57 @@ public final class BlockPaletteLookup {
       materials.put(color, material);
     }
     return Map.copyOf(materials);
+  }
+
+  /**
+   * Holds the lookup tables. The tables are built when this class is first accessed, which the JVM guarantees to
+   * happen exactly once and in a thread-safe way.
+   */
+  private static final class Holder {
+
+    private static final Map<Integer, Material> MATERIALS;
+    private static final Map<Integer, BlockData> BLOCK_DATA;
+    private static final FilterLiteDither DITHERING;
+    private static final BlockData AIR;
+
+    static {
+      final Reader reader = IoUtils.getResourceAsStreamReader(PALETTE_RESOURCE);
+      final Map<String, int @Nullable []> palette = parsePalette(reader);
+      final Map<Integer, Material> materials = resolveMaterials(palette);
+
+      MATERIALS = materials;
+      BLOCK_DATA = createBlockData(materials);
+      AIR = Material.AIR.createBlockData();
+      DITHERING = createDithering(materials);
+    }
+
+    private static void initialize() {
+      // Calling any static method triggers the class initialization above.
+    }
+
+    private static Map<Integer, BlockData> createBlockData(final Map<Integer, Material> materials) {
+      final Map<Integer, BlockData> blockData = new HashMap<>();
+      for (final Map.Entry<Integer, Material> entry : materials.entrySet()) {
+        final Integer color = entry.getKey();
+        final Material material = entry.getValue();
+        final BlockData data = material.createBlockData();
+        blockData.put(color, data);
+      }
+      return Map.copyOf(blockData);
+    }
+
+    private static FilterLiteDither createDithering(final Map<Integer, Material> materials) {
+      final Set<Integer> colorSet = materials.keySet();
+      final int colorCount = colorSet.size();
+      final int[] colors = new int[colorCount];
+      int index = 0;
+      for (final Integer color : colorSet) {
+        colors[index] = color;
+        index++;
+      }
+
+      final DitherPalette ditherPalette = DitherPalette.colors(colors);
+      return new FilterLiteDither(ditherPalette);
+    }
   }
 }

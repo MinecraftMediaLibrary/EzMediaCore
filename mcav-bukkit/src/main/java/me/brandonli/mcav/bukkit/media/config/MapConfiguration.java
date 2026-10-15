@@ -74,6 +74,15 @@ public class MapConfiguration {
   }
 
   /**
+   * Creates a new builder for a map configuration.
+   *
+   * @return a new builder
+   */
+  public static Builder<?> builder() {
+    return new MapResultBuilder();
+  }
+
+  /**
    * Checks whether frames should be resized to the configured resolution before they are displayed.
    *
    * @return true if frames should be resized, false otherwise
@@ -155,15 +164,6 @@ public class MapConfiguration {
     protected MapResultBuilder self() {
       return this;
     }
-  }
-
-  /**
-   * Creates a new builder for a map configuration.
-   *
-   * @return a new builder
-   */
-  public static Builder<?> builder() {
-    return new MapResultBuilder();
   }
 
   /**

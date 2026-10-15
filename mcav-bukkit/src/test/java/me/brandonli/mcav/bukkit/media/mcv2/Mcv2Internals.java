@@ -104,6 +104,14 @@ final class Mcv2Internals {
     throw new AssertionError(cause);
   }
 
+  static Kernels javaKernels() {
+    final Class<?> type = nested("Kernels");
+    final Object target = construct(nested("JavaKernels"), new Class<?>[0]);
+    return (Kernels) Proxy.newProxyInstance(Kernels.class.getClassLoader(), new Class<?>[] { Kernels.class }, (_, method, arguments) ->
+      call(type, target, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments)
+    );
+  }
+
   static final class Workers {
 
     private static final Class<?> TYPE = nested("Workers");
@@ -214,13 +222,5 @@ final class Mcv2Internals {
     void residualTarget(int[] source, int[] prediction, int count, float[] target);
 
     default void forgetArrays() {}
-  }
-
-  static Kernels javaKernels() {
-    final Class<?> type = nested("Kernels");
-    final Object target = construct(nested("JavaKernels"), new Class<?>[0]);
-    return (Kernels) Proxy.newProxyInstance(Kernels.class.getClassLoader(), new Class<?>[] { Kernels.class }, (_, method, arguments) ->
-      call(type, target, method.getName(), method.getParameterTypes(), arguments == null ? new Object[0] : arguments)
-    );
   }
 }

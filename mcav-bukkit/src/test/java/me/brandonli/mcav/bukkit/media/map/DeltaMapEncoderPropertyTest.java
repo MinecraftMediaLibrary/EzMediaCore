@@ -221,10 +221,6 @@ final class DeltaMapEncoderPropertyTest {
       return new MapLayout(7, this.columns, this.rows, this.imageWidth, this.imageHeight);
     }
 
-    private int getBudget() {
-      return this.budget;
-    }
-
     /**
      * Builds the frames: the first starts from a picture with a different color in every row, and every frame applies
      * its edits to the previous one.
@@ -245,6 +241,10 @@ final class DeltaMapEncoderPropertyTest {
         frame = next;
       }
       return frames;
+    }
+
+    private int getBudget() {
+      return this.budget;
     }
 
     @Override

@@ -429,37 +429,6 @@ final class ResourcePackHttpHandlerTest {
     assertEquals("mcav_resource_pack_http", ResourcePackHttpHandler.NAME);
   }
 
-  /** Holds back the pack's content, like a client that takes the download slowly, and fails it when the connection closes. */
-  private static final class SlowClient extends ChannelDuplexHandler {
-
-    private int writes;
-
-    private @Nullable Object content;
-
-    private @Nullable ChannelPromise pending;
-
-    @Override
-    public void write(final ChannelHandlerContext context, final Object message, final ChannelPromise promise) {
-      if (++this.writes == 1) {
-        final ChannelFuture headers = context.write(message, promise);
-        headers.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
-        return;
-      }
-      this.content = message;
-      this.pending = promise;
-    }
-
-    @Override
-    public void channelInactive(final ChannelHandlerContext context) {
-      final ChannelPromise promise = this.pending;
-      if (promise != null) {
-        ReferenceCountUtil.release(this.content);
-        promise.tryFailure(new IOException("Closed!"));
-      }
-      context.fireChannelInactive();
-    }
-  }
-
   /** The pipeline of a game connection: the slow client, this handler in front, then the game's 30-second read timeout. */
   private EmbeddedChannel gameConnection() {
     final EmbeddedChannel channel = new EmbeddedChannel();
@@ -501,39 +470,6 @@ final class ResourcePackHttpHandlerTest {
     assertFalse(open, "a client that stopped reading does not hold the game's port forever");
 
     channel.finishAndReleaseAll();
-  }
-
-  /**
-   * A connection whose client takes what is written to it only as fast as the test lets it, as a slow socket does: what
-   * it has not taken waits in the channel's outbound buffer, a write is complete once all of it is taken, and the
-   * channel is not writable while too much waits.
-   */
-  private static final class SlowSocket extends EmbeddedChannel {
-
-    private long allowance;
-
-    private long taken;
-
-    /** Lets the client take more bytes, and writes as much as it takes. */
-    private void take(final int bytes) {
-      this.allowance += bytes;
-      this.flushOutbound();
-      this.runPendingTasks();
-    }
-
-    private long taken() {
-      return this.taken;
-    }
-
-    @Override
-    protected void doWrite(final ChannelOutboundBuffer outbound) {
-      while (this.allowance > 0 && outbound.current() instanceof final ByteBuf buffer) {
-        final int bytes = (int) Math.min(this.allowance, buffer.readableBytes());
-        this.allowance -= bytes;
-        this.taken += bytes;
-        outbound.removeBytes(bytes);
-      }
-    }
   }
 
   @Test
@@ -594,5 +530,69 @@ final class ResourcePackHttpHandlerTest {
     assertEquals(expectedEvents, events);
 
     channel.finishAndReleaseAll();
+  }
+
+  /** Holds back the pack's content, like a client that takes the download slowly, and fails it when the connection closes. */
+  private static final class SlowClient extends ChannelDuplexHandler {
+
+    private int writes;
+
+    private @Nullable Object content;
+
+    private @Nullable ChannelPromise pending;
+
+    @Override
+    public void write(final ChannelHandlerContext context, final Object message, final ChannelPromise promise) {
+      if (++this.writes == 1) {
+        final ChannelFuture headers = context.write(message, promise);
+        headers.addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+        return;
+      }
+      this.content = message;
+      this.pending = promise;
+    }
+
+    @Override
+    public void channelInactive(final ChannelHandlerContext context) {
+      final ChannelPromise promise = this.pending;
+      if (promise != null) {
+        ReferenceCountUtil.release(this.content);
+        promise.tryFailure(new IOException("Closed!"));
+      }
+      context.fireChannelInactive();
+    }
+  }
+
+  /**
+   * A connection whose client takes what is written to it only as fast as the test lets it, as a slow socket does: what
+   * it has not taken waits in the channel's outbound buffer, a write is complete once all of it is taken, and the
+   * channel is not writable while too much waits.
+   */
+  private static final class SlowSocket extends EmbeddedChannel {
+
+    private long allowance;
+
+    private long taken;
+
+    /** Lets the client take more bytes, and writes as much as it takes. */
+    private void take(final int bytes) {
+      this.allowance += bytes;
+      this.flushOutbound();
+      this.runPendingTasks();
+    }
+
+    private long taken() {
+      return this.taken;
+    }
+
+    @Override
+    protected void doWrite(final ChannelOutboundBuffer outbound) {
+      while (this.allowance > 0 && outbound.current() instanceof final ByteBuf buffer) {
+        final int bytes = (int) Math.min(this.allowance, buffer.readableBytes());
+        this.allowance -= bytes;
+        this.taken += bytes;
+        outbound.removeBytes(bytes);
+      }
+    }
   }
 }

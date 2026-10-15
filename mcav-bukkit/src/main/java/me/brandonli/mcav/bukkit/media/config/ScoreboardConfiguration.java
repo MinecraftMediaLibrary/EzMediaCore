@@ -52,6 +52,15 @@ public class ScoreboardConfiguration {
   }
 
   /**
+   * Creates a new builder for a scoreboard configuration.
+   *
+   * @return a new builder
+   */
+  public static Builder<?> builder() {
+    return new ScoreboardResultBuilder();
+  }
+
+  /**
    * Returns the players who see the scoreboard.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
@@ -105,15 +114,6 @@ public class ScoreboardConfiguration {
     protected ScoreboardResultBuilder self() {
       return this;
     }
-  }
-
-  /**
-   * Creates a new builder for a scoreboard configuration.
-   *
-   * @return a new builder
-   */
-  public static Builder<?> builder() {
-    return new ScoreboardResultBuilder();
   }
 
   /**

@@ -48,6 +48,15 @@ public class ChatConfiguration {
   }
 
   /**
+   * Creates a new builder for a chat configuration.
+   *
+   * @return a new builder
+   */
+  public static Builder<?> builder() {
+    return new ChatResultBuilder();
+  }
+
+  /**
    * Returns the players who see the chat image.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
@@ -101,15 +110,6 @@ public class ChatConfiguration {
     protected ChatResultBuilder self() {
       return this;
     }
-  }
-
-  /**
-   * Creates a new builder for a chat configuration.
-   *
-   * @return a new builder
-   */
-  public static Builder<?> builder() {
-    return new ChatResultBuilder();
   }
 
   /**

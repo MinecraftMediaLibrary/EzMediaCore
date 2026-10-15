@@ -32,9 +32,6 @@ final class Mcv2LinkPropertyTest {
 
   private static final String SEED = "20260926";
 
-  /** One step of a stream: a frame (its size, and whether it is a keyframe) and how much the connection wrote before. */
-  private record Step(boolean isKeyframe, int bytes, int drained) {}
-
   @Provide
   Arbitrary<List<Step>> streams() {
     final Arbitrary<Step> step = Combinators.combine(
@@ -96,4 +93,7 @@ final class Mcv2LinkPropertyTest {
     }
     return link.getSent() + link.getBehind() + link.getUndecodable() == steps.size();
   }
+
+  /** One step of a stream: a frame (its size, and whether it is a keyframe) and how much the connection wrote before. */
+  private record Step(boolean isKeyframe, int bytes, int drained) {}
 }

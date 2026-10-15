@@ -108,8 +108,6 @@ final class NativeLibrariesTest {
     new Expected(Format.MACH_O, CPU_TYPE_ARM64, AARCH64)
   );
 
-  private record Expected(Format format, int machine, List<Level> levels) {}
-
   @Test
   void shouldCheckEveryPlatformTheLoaderHasALibraryFor() {
     final Set<String> expectedPlatforms = Mcv2.NATIVE_DIGESTS.keySet();
@@ -203,4 +201,6 @@ final class NativeLibrariesTest {
     assertNotNull(bytes, platform);
     return bytes;
   }
+
+  private record Expected(Format format, int machine, List<Level> levels) {}
 }

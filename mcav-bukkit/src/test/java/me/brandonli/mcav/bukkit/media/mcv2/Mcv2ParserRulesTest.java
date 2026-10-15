@@ -39,21 +39,6 @@ final class Mcv2ParserRulesTest {
 
   private static final String INVALID_DESCRIPTOR_MESSAGE = "Invalid descriptor!";
 
-  private record Layout(int counts, int plane, int walk, int start) {
-    private static Layout of(final byte[] frame) {
-      final int width = Mcv2Decoder.u16(frame, 8);
-      final int height = Mcv2Decoder.u16(frame, 10);
-      final int roots = ((width + 31) / 32) * ((height + 31) / 32);
-      final int groups = (roots + 31) / 32;
-      final int counts = 20 + 4 * (groups + (groups + 7) / 8);
-      final int descriptors = (int) (Mcv2Decoder.u32(frame, counts) +
-        Mcv2Decoder.u32(frame, counts + 4) +
-        Mcv2Decoder.u32(frame, counts + 8));
-      final int walk = counts + 12 + descriptors;
-      return new Layout(counts, counts + 12, walk, walk + 4 * ((descriptors + 7) / 8));
-    }
-  }
-
   private static Node patterns8() {
     return split(split(pattern(8, ENDPOINTS, 1, 0x3C)));
   }
@@ -174,6 +159,21 @@ final class Mcv2ParserRulesTest {
       Mcv2Decoder.putU32(frame, 16, 1);
       final String failureMessage = message(frame);
       assertEquals(INVALID_DESCRIPTOR_MESSAGE, failureMessage);
+    }
+  }
+
+  private record Layout(int counts, int plane, int walk, int start) {
+    private static Layout of(final byte[] frame) {
+      final int width = Mcv2Decoder.u16(frame, 8);
+      final int height = Mcv2Decoder.u16(frame, 10);
+      final int roots = ((width + 31) / 32) * ((height + 31) / 32);
+      final int groups = (roots + 31) / 32;
+      final int counts = 20 + 4 * (groups + (groups + 7) / 8);
+      final int descriptors = (int) (Mcv2Decoder.u32(frame, counts) +
+        Mcv2Decoder.u32(frame, counts + 4) +
+        Mcv2Decoder.u32(frame, counts + 8));
+      final int walk = counts + 12 + descriptors;
+      return new Layout(counts, counts + 12, walk, walk + 4 * ((descriptors + 7) / 8));
     }
   }
 }

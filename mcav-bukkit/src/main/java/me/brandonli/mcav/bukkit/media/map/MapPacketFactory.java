@@ -74,33 +74,6 @@ public final class MapPacketFactory {
   }
 
   /**
-   * A bundle of map data packets, and their estimated size in bytes before network compression.
-   * The record retains the packet without copying; it does not validate either component.
-   *
-   * @param packet the bundle
-   * @param bytes  the sum of its patches' {@link MapTilePatch#getEncodedSize()}
-   */
-  public record Bundle(ClientboundBundlePacket packet, long bytes) {
-    /**
-     * Sends the bundle to one player and runs a callback once its write completed or failed, or at once when the
-     * player is not connected, since nothing reaches a connection then. May be called from any thread.
-     *
-     * <p>Write completion is not a client rendering acknowledgment. The callback must be safe to run on a
-     * connection thread and should not block; it receives no success/failure flag.
-     *
-     * @param viewer  the UUID of the player
-     * @param written run once, on the player's connection thread or on this one
-     * @throws NullPointerException if the viewer or callback is null
-     */
-    public void send(final UUID viewer, final Runnable written) {
-      Preconditions.checkNotNull(written, "Callback must not be null!");
-      if (!PacketUtils.sendPacket(viewer, this.packet, _ -> written.run())) {
-        written.run();
-      }
-    }
-  }
-
-  /**
    * Converts patches into the bundles {@link #send} sends, without sending them, for a caller that sends them to
    * each viewer itself: up to 4096 patches to a bundle, in order.
    *
@@ -169,5 +142,32 @@ public final class MapPacketFactory {
     final Optional<List<MapDecoration>> decorations = Optional.empty();
     final Optional<MapItemSavedData.MapPatch> colorPatch = Optional.of(mapPatch);
     return new ClientboundMapItemDataPacket(id, DEFAULT_SCALE, false, decorations, colorPatch);
+  }
+
+  /**
+   * A bundle of map data packets, and their estimated size in bytes before network compression.
+   * The record retains the packet without copying; it does not validate either component.
+   *
+   * @param packet the bundle
+   * @param bytes  the sum of its patches' {@link MapTilePatch#getEncodedSize()}
+   */
+  public record Bundle(ClientboundBundlePacket packet, long bytes) {
+    /**
+     * Sends the bundle to one player and runs a callback once its write completed or failed, or at once when the
+     * player is not connected, since nothing reaches a connection then. May be called from any thread.
+     *
+     * <p>Write completion is not a client rendering acknowledgment. The callback must be safe to run on a
+     * connection thread and should not block; it receives no success/failure flag.
+     *
+     * @param viewer  the UUID of the player
+     * @param written run once, on the player's connection thread or on this one
+     * @throws NullPointerException if the viewer or callback is null
+     */
+    public void send(final UUID viewer, final Runnable written) {
+      Preconditions.checkNotNull(written, "Callback must not be null!");
+      if (!PacketUtils.sendPacket(viewer, this.packet, _ -> written.run())) {
+        written.run();
+      }
+    }
   }
 }

@@ -55,6 +55,15 @@ public class EntityConfiguration {
   }
 
   /**
+   * Creates a new builder for an entity configuration.
+   *
+   * @return a new builder
+   */
+  public static Builder<?> builder() {
+    return new EntityResultBuilder();
+  }
+
+  /**
    * Returns the players who see the entity.
    *
    * @return the original mutable-or-immutable collection supplied to the builder, without a copy; use a
@@ -117,15 +126,6 @@ public class EntityConfiguration {
     protected EntityResultBuilder self() {
       return this;
     }
-  }
-
-  /**
-   * Creates a new builder for an entity configuration.
-   *
-   * @return a new builder
-   */
-  public static Builder<?> builder() {
-    return new EntityResultBuilder();
   }
 
   /**

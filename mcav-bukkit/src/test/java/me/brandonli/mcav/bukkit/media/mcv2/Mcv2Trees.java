@@ -40,82 +40,6 @@ public final class Mcv2Trees {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  public record Node(Object value) {
-    static Node leaf(final int mode, final int quantizer, final byte[] record) {
-      return new Node(invoke(TREE, null, "leaf", new Class<?>[] { int.class, int.class, byte[].class }, mode, quantizer, record));
-    }
-
-    static Node skip() {
-      return new Node(invoke(TREE, null, "skip", new Class<?>[0]));
-    }
-
-    static Node split(final Node topLeft, final Node topRight, final Node bottomLeft, final Node bottomRight) {
-      return new Node(
-        invoke(
-          TREE,
-          null,
-          "split",
-          new Class<?>[] { TREE, TREE, TREE, TREE },
-          topLeft.value,
-          topRight.value,
-          bottomLeft.value,
-          bottomRight.value
-        )
-      );
-    }
-
-    @Override
-    public boolean equals(final @Nullable Object other) {
-      if (
-        !(other instanceof final Node node) ||
-        this.getMode() != node.getMode() ||
-        this.getQuantizer() != node.getQuantizer() ||
-        !Arrays.equals(this.getRecord(), node.getRecord())
-      ) {
-        return false;
-      }
-      if (this.isSplit()) {
-        for (int child = 0; child < 4; child++) {
-          if (!this.getChild(child).equals(node.getChild(child))) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      int hash = Objects.hash(this.getMode(), this.getQuantizer(), Arrays.hashCode(this.getRecord()));
-      if (this.isSplit()) {
-        for (int child = 0; child < 4; child++) {
-          hash = 31 * hash + this.getChild(child).hashCode();
-        }
-      }
-      return hash;
-    }
-
-    int getMode() {
-      return (int) Mcv2Internals.field(TREE, this.value, "mode");
-    }
-
-    int getQuantizer() {
-      return (int) Mcv2Internals.field(TREE, this.value, "quantizer");
-    }
-
-    byte[] getRecord() {
-      return ((byte[]) Mcv2Internals.field(TREE, this.value, "record")).clone();
-    }
-
-    boolean isSplit() {
-      return (boolean) invoke(TREE, this.value, "isSplit", new Class<?>[0]);
-    }
-
-    Node getChild(final int index) {
-      return new Node(invoke(TREE, this.value, "getChild", new Class<?>[] { int.class }, index));
-    }
-  }
-
   private static Object invoke(
     final Class<?> owner,
     final @Nullable Object target,
@@ -246,5 +170,81 @@ public final class Mcv2Trees {
       read(leaves, left, top + half, half),
       read(leaves, left + half, top + half, half)
     );
+  }
+
+  public record Node(Object value) {
+    static Node leaf(final int mode, final int quantizer, final byte[] record) {
+      return new Node(invoke(TREE, null, "leaf", new Class<?>[] { int.class, int.class, byte[].class }, mode, quantizer, record));
+    }
+
+    static Node skip() {
+      return new Node(invoke(TREE, null, "skip", new Class<?>[0]));
+    }
+
+    static Node split(final Node topLeft, final Node topRight, final Node bottomLeft, final Node bottomRight) {
+      return new Node(
+        invoke(
+          TREE,
+          null,
+          "split",
+          new Class<?>[] { TREE, TREE, TREE, TREE },
+          topLeft.value,
+          topRight.value,
+          bottomLeft.value,
+          bottomRight.value
+        )
+      );
+    }
+
+    @Override
+    public boolean equals(final @Nullable Object other) {
+      if (
+        !(other instanceof final Node node) ||
+        this.getMode() != node.getMode() ||
+        this.getQuantizer() != node.getQuantizer() ||
+        !Arrays.equals(this.getRecord(), node.getRecord())
+      ) {
+        return false;
+      }
+      if (this.isSplit()) {
+        for (int child = 0; child < 4; child++) {
+          if (!this.getChild(child).equals(node.getChild(child))) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      int hash = Objects.hash(this.getMode(), this.getQuantizer(), Arrays.hashCode(this.getRecord()));
+      if (this.isSplit()) {
+        for (int child = 0; child < 4; child++) {
+          hash = 31 * hash + this.getChild(child).hashCode();
+        }
+      }
+      return hash;
+    }
+
+    int getMode() {
+      return (int) Mcv2Internals.field(TREE, this.value, "mode");
+    }
+
+    int getQuantizer() {
+      return (int) Mcv2Internals.field(TREE, this.value, "quantizer");
+    }
+
+    byte[] getRecord() {
+      return ((byte[]) Mcv2Internals.field(TREE, this.value, "record")).clone();
+    }
+
+    boolean isSplit() {
+      return (boolean) invoke(TREE, this.value, "isSplit", new Class<?>[0]);
+    }
+
+    Node getChild(final int index) {
+      return new Node(invoke(TREE, this.value, "getChild", new Class<?>[] { int.class }, index));
+    }
   }
 }

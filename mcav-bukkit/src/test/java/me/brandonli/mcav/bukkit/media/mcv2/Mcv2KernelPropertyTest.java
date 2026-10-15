@@ -117,12 +117,6 @@ final class Mcv2KernelPropertyTest {
     assertArrayEquals(expected, actual);
   }
 
-  /** One kernel call: reconstruct into out, measured as the kernels were last started; returns whether it finished. */
-  @FunctionalInterface
-  private interface Kernel {
-    boolean run(Kernels kernels, int[] out);
-  }
-
   /** The distortion the kernels measure between the source and a reconstruction of it. */
   private static long distortion(final int[] source, final int[] out) {
     long sum = 0;
@@ -194,5 +188,11 @@ final class Mcv2KernelPropertyTest {
       default -> (kernels, out) -> kernels.compact(prediction, record, quantizer, size, out);
     };
     assertMeasured(random, size, run);
+  }
+
+  /** One kernel call: reconstruct into out, measured as the kernels were last started; returns whether it finished. */
+  @FunctionalInterface
+  private interface Kernel {
+    boolean run(Kernels kernels, int[] out);
   }
 }

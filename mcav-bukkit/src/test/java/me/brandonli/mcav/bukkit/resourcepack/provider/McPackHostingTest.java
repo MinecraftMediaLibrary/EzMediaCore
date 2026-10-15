@@ -659,24 +659,12 @@ final class McPackHostingTest {
       return "http://127.0.0.1:" + port + "/pack/%s.zip";
     }
 
-    private List<Upload> getUploads() {
-      return List.copyOf(this.uploads);
-    }
-
-    private List<String> getDownloadMethods() {
-      return List.copyOf(this.downloadMethods);
-    }
-
     private void rejectUploads() {
       this.uploadStatus = REJECTED_STATUS;
     }
 
     private void removeDownloads() {
       this.downloadsAvailable = false;
-    }
-
-    private void setUploadHook(final Runnable hook) {
-      this.uploadHook = hook;
     }
 
     @Override
@@ -692,6 +680,18 @@ final class McPackHostingTest {
       }
       final @Nullable AssertionError recordedFailure = this.handlerFailure.get();
       assertEquals(null, recordedFailure, "upload assertions reach JUnit");
+    }
+
+    private List<Upload> getUploads() {
+      return List.copyOf(this.uploads);
+    }
+
+    private List<String> getDownloadMethods() {
+      return List.copyOf(this.downloadMethods);
+    }
+
+    private void setUploadHook(final Runnable hook) {
+      this.uploadHook = hook;
     }
   }
 }

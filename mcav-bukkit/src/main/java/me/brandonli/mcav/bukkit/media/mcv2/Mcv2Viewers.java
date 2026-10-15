@@ -56,18 +56,6 @@ public final class Mcv2Viewers {
   private static final String PACK_ID_NULL_MESSAGE = "Pack id must not be null!";
   private static final String PLAYER_NULL_MESSAGE = "Player must not be null!";
 
-  /** What a player's client reported for the pack. */
-  public enum PackState {
-    /** The pack was requested and the client has not finished loading it. */
-    REQUESTED,
-    /** The client loaded the pack. */
-    LOADED,
-    /** The client could not download or apply the pack. */
-    REFUSED,
-    /** The player declined the pack, and is not asked again while online, whichever pack follows. */
-    DECLINED,
-  }
-
   private volatile UUID packId;
 
   private final Consumer<Player> onRefused;
@@ -143,15 +131,6 @@ public final class Mcv2Viewers {
     this.packId = newPackId;
     this.states.values().removeIf(state -> state != PackState.DECLINED);
     this.sessions.clear();
-  }
-
-  /**
-   * Returns the id of the pack followed.
-   *
-   * @return the id of the pack's request
-   */
-  public UUID getPackId() {
-    return this.packId;
   }
 
   /**
@@ -241,5 +220,26 @@ public final class Mcv2Viewers {
     this.states.remove(player);
     this.sessions.remove(player);
     this.shaderReports.forget(player);
+  }
+
+  /**
+   * Returns the id of the pack followed.
+   *
+   * @return the id of the pack's request
+   */
+  public UUID getPackId() {
+    return this.packId;
+  }
+
+  /** What a player's client reported for the pack. */
+  public enum PackState {
+    /** The pack was requested and the client has not finished loading it. */
+    REQUESTED,
+    /** The client loaded the pack. */
+    LOADED,
+    /** The client could not download or apply the pack. */
+    REFUSED,
+    /** The player declined the pack, and is not asked again while online, whichever pack follows. */
+    DECLINED,
   }
 }

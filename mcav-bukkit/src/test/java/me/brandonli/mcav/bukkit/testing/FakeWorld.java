@@ -98,15 +98,6 @@ public final class FakeWorld {
   }
 
   /**
-   * Gets the world mock.
-   *
-   * @return the world
-   */
-  public World getWorld() {
-    return this.world;
-  }
-
-  /**
    * Gets the block data mock of a block, which is the same for every call with the same coordinates.
    *
    * @param blockX the x coordinate
@@ -117,6 +108,15 @@ public final class FakeWorld {
   public BlockData getOriginalBlock(final int blockX, final int blockY, final int blockZ) {
     final String key = blockX + "," + blockY + "," + blockZ;
     return this.blocks.computeIfAbsent(key, name -> mock(BlockData.class, "block " + name));
+  }
+
+  /**
+   * Gets the world mock.
+   *
+   * @return the world
+   */
+  public World getWorld() {
+    return this.world;
   }
 
   /**

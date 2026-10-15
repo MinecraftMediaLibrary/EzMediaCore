@@ -1143,63 +1143,6 @@ final class Mcv2PackServerTest {
     return listeners.getValue();
   }
 
-  /** Runs what it is given only when the test drains it, like a writer thread that has not got to it yet. */
-  private static final class QueuedExecutor extends AbstractExecutorService {
-
-    private final Deque<Runnable> queue = new ArrayDeque<>();
-
-    private boolean isShutdown;
-
-    private boolean interrupt;
-
-    @Override
-    public void execute(final Runnable command) {
-      if (this.isShutdown) {
-        throw new RejectedExecutionException("shut down!");
-      }
-      this.queue.add(command);
-    }
-
-    int drain() {
-      int ran = 0;
-      for (Runnable next = this.queue.poll(); next != null; next = this.queue.poll()) {
-        next.run();
-        ran++;
-      }
-      return ran;
-    }
-
-    @Override
-    public void shutdown() {
-      this.isShutdown = true;
-    }
-
-    @Override
-    public List<Runnable> shutdownNow() {
-      this.isShutdown = true;
-      return List.copyOf(this.queue);
-    }
-
-    @Override
-    public boolean isShutdown() {
-      return this.isShutdown;
-    }
-
-    @Override
-    public boolean isTerminated() {
-      return this.isShutdown && this.queue.isEmpty();
-    }
-
-    @Override
-    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
-      if (this.interrupt) {
-        throw new InterruptedException("interrupted!");
-      }
-      this.drain();
-      return true;
-    }
-  }
-
   @Test
   void shouldShareOneSlotOfThePackBetweenScreensThatPlayOneAfterAnother() throws IOException {
     this.packs.start();
@@ -1493,5 +1436,62 @@ final class Mcv2PackServerTest {
       .getConfiguration()
       .getStreamId();
     assertEquals(3, steppedBackStreamId);
+  }
+
+  /** Runs what it is given only when the test drains it, like a writer thread that has not got to it yet. */
+  private static final class QueuedExecutor extends AbstractExecutorService {
+
+    private final Deque<Runnable> queue = new ArrayDeque<>();
+
+    private boolean isShutdown;
+
+    private boolean interrupt;
+
+    @Override
+    public void execute(final Runnable command) {
+      if (this.isShutdown) {
+        throw new RejectedExecutionException("shut down!");
+      }
+      this.queue.add(command);
+    }
+
+    int drain() {
+      int ran = 0;
+      for (Runnable next = this.queue.poll(); next != null; next = this.queue.poll()) {
+        next.run();
+        ran++;
+      }
+      return ran;
+    }
+
+    @Override
+    public void shutdown() {
+      this.isShutdown = true;
+    }
+
+    @Override
+    public List<Runnable> shutdownNow() {
+      this.isShutdown = true;
+      return List.copyOf(this.queue);
+    }
+
+    @Override
+    public boolean awaitTermination(final long timeout, final TimeUnit unit) throws InterruptedException {
+      if (this.interrupt) {
+        throw new InterruptedException("interrupted!");
+      }
+      this.drain();
+      return true;
+    }
+
+    @Override
+    public boolean isShutdown() {
+      return this.isShutdown;
+    }
+
+    @Override
+    public boolean isTerminated() {
+      return this.isShutdown && this.queue.isEmpty();
+    }
   }
 }

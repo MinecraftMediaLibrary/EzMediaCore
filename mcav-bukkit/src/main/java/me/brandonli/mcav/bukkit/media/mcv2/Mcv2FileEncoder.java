@@ -61,45 +61,6 @@ public final class Mcv2FileEncoder {
     throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
-  /** The frames of a video, one after another, as RGB bytes of one size. */
-  public interface FrameReader extends AutoCloseable {
-    /**
-     * Reads the next frame.
-     *
-     * @param pictureBytes where the frame's pixels go, three bytes per pixel, row by row
-     * @return false once the video has no more frames
-     * @throws IOException if the video cannot be read
-     */
-    boolean read(byte[] pictureBytes) throws IOException;
-
-    /**
-     * Releases the video.
-     *
-     * @throws IOException if the video cannot be released
-     */
-    @Override
-    void close() throws IOException;
-  }
-
-  /**
-   * What an encode did.
-   *
-   * @param frames      the frames encoded
-   * @param keyframes   how many of them were keyframes
-   * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
-   * @param nanoseconds the time the encodes took, waiting for the budget's threads included
-   */
-  public record Result(long frames, long keyframes, long bytes, long nanoseconds) {
-    /**
-     * Returns the mean time a frame took.
-     *
-     * @return milliseconds per frame, 0 without frames
-     */
-    public double millisecondsPerFrame() {
-      return this.frames == 0 ? 0 : this.nanoseconds / NANOSECONDS_PER_MILLISECOND / this.frames;
-    }
-  }
-
   /**
    * Encodes every frame a reader has into a stream.
    *
@@ -219,6 +180,55 @@ public final class Mcv2FileEncoder {
     }
   }
 
+  static void copy(final Frame frame, final byte[] pictureBytes, final int width, final int height) {
+    Preconditions.checkState(frame.imageWidth == width && frame.imageHeight == height, "The frame must be %sx%s pixels!", width, height);
+    final ByteBuffer pixels = ((ByteBuffer) frame.image[0]).duplicate();
+    final int rowBytes = width * Mcv2Decoder.CHANNELS;
+    for (int row = 0; row < height; row++) {
+      pixels.position(row * frame.imageStride);
+      pixels.get(pictureBytes, row * rowBytes, rowBytes);
+    }
+  }
+
+  /** The frames of a video, one after another, as RGB bytes of one size. */
+  public interface FrameReader extends AutoCloseable {
+    /**
+     * Reads the next frame.
+     *
+     * @param pictureBytes where the frame's pixels go, three bytes per pixel, row by row
+     * @return false once the video has no more frames
+     * @throws IOException if the video cannot be read
+     */
+    boolean read(byte[] pictureBytes) throws IOException;
+
+    /**
+     * Releases the video.
+     *
+     * @throws IOException if the video cannot be released
+     */
+    @Override
+    void close() throws IOException;
+  }
+
+  /**
+   * What an encode did.
+   *
+   * @param frames      the frames encoded
+   * @param keyframes   how many of them were keyframes
+   * @param bytes       the MCV2 frame bytes, excluding each four-byte length prefix
+   * @param nanoseconds the time the encodes took, waiting for the budget's threads included
+   */
+  public record Result(long frames, long keyframes, long bytes, long nanoseconds) {
+    /**
+     * Returns the mean time a frame took.
+     *
+     * @return milliseconds per frame, 0 without frames
+     */
+    public double millisecondsPerFrame() {
+      return this.frames == 0 ? 0 : this.nanoseconds / NANOSECONDS_PER_MILLISECOND / this.frames;
+    }
+  }
+
   static final class GrabberReader implements FrameReader {
 
     private final FFmpegFrameGrabber grabber;
@@ -257,16 +267,6 @@ public final class Mcv2FileEncoder {
         final String message = "Cannot close the video (%s)!".formatted(exception.getMessage());
         throw new IOException(message, exception);
       }
-    }
-  }
-
-  static void copy(final Frame frame, final byte[] pictureBytes, final int width, final int height) {
-    Preconditions.checkState(frame.imageWidth == width && frame.imageHeight == height, "The frame must be %sx%s pixels!", width, height);
-    final ByteBuffer pixels = ((ByteBuffer) frame.image[0]).duplicate();
-    final int rowBytes = width * Mcv2Decoder.CHANNELS;
-    for (int row = 0; row < height; row++) {
-      pixels.position(row * frame.imageStride);
-      pixels.get(pictureBytes, row * rowBytes, rowBytes);
     }
   }
 }

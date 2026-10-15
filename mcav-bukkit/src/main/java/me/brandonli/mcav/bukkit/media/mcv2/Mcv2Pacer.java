@@ -97,147 +97,6 @@ public final class Mcv2Pacer {
   // System.nanoTime() may be negative, so zero cannot mark an absent timestamp.
   private static final long NEVER = Long.MIN_VALUE;
 
-  /**
-   * A preset of the ladder: how hard the screen's encoder searches.
-   *
-   * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
-   *             does not step through presets
-   * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
-   */
-  public record Preset(String name, double cost) {
-    /** The one preset of a screen that does not step through presets. */
-    public static final Preset ONLY = new Preset("", 1);
-
-    /**
-     * Constructs and validates a preset used to compare expected search costs.
-     *
-     * @param name the non-null diagnostic name, possibly empty for an unnamed single preset
-     * @param cost the strictly positive finite relative cost; only ratios between presets matter
-     * @throws NullPointerException     if name is null
-     * @throws IllegalArgumentException if the cost is not positive and finite
-     */
-    public Preset {
-      Preconditions.checkNotNull(name, "Name must not be null!");
-      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite!");
-    }
-
-    private String suffix() {
-      return this.name.isEmpty() ? "" : " with the " + this.name + " search";
-    }
-  }
-
-  /**
-   * A rung of the ladder.
-   *
-   * <p>Direct construction does not validate components. Use positive pixel dimensions, a positive frame
-   * divisor and a non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
-   *
-   * @param width   the video width, or 0 for the dithered maps
-   * @param height  the video height, or 0 for the dithered maps
-   * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
-   * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
-   */
-  public record Rung(int width, int height, int divisor, Preset preset) {
-    /** The dithered maps, the lowest rung. */
-    public static final Rung DITHERED = new Rung(0, 0, 0);
-
-    /**
-     * Creates a rung of a screen that does not step through presets.
-     *
-     * @param width   the video width, or 0 for the dithered maps
-     * @param height  the video height, or 0 for the dithered maps
-     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
-     */
-    public Rung(final int width, final int height, final int divisor) {
-      this(width, height, divisor, Preset.ONLY);
-    }
-
-    /**
-     * Checks whether this is the dithered maps.
-     *
-     * @return true for the dithered maps
-     */
-    public boolean isDithered() {
-      return this.divisor == 0;
-    }
-
-    /**
-     * Returns the frames per second this rung encodes of a video.
-     *
-     * @param videoFrameRate the video's frames per second
-     * @return the encoded frames per second, 0 for the dithered maps
-     */
-    public double framesPerSecond(final double videoFrameRate) {
-      return this.isDithered() ? 0 : videoFrameRate / this.divisor;
-    }
-
-    private long pixels() {
-      return (long) this.width * this.height;
-    }
-
-    /**
-     * Describes the rung for a message.
-     *
-     * @param videoFrameRate the video's frames per second
-     * @return for example {@code 1920x1080 at 30 fps}, {@code 1920x1080 at 30 fps with the FAST search} on a
-     *         ladder of presets, or {@code the dithered maps}
-     */
-    public String describe(final double videoFrameRate) {
-      return this.isDithered()
-        ? "the dithered maps"
-        : String.format(
-            Locale.getDefault(Locale.Category.FORMAT),
-            "%dx%d at %s fps%s",
-            this.width,
-            this.height,
-            rate(this.framesPerSecond(videoFrameRate)),
-            this.preset.suffix()
-          );
-    }
-  }
-
-  static String rate(final double frameRate) {
-    final long whole = Math.round(frameRate);
-    return Math.abs(frameRate - whole) < WHOLE_RATE ? Long.toString(whole) : String.format(Locale.ROOT, "%.1f", frameRate);
-  }
-
-  /**
-   * A step of the pacer.
-   *
-   * @param from               the rung before
-   * @param to                 the rung now
-   * @param down               whether the step went down the ladder
-   * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
-   * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
-   * @param videoFrameRate     the video's frames per second as measured
-   */
-  public record Change(Rung from, Rung to, boolean down, double encodeMilliseconds, double frameMilliseconds, double videoFrameRate) {
-    /**
-     * Describes the step for the server's operator: what was chosen and why.
-     *
-     * @return the message
-     */
-    public String describe() {
-      if (this.from.isDithered()) {
-        return "MCV2 screen tries encoding again at %s after showing the dithered maps".formatted(this.to.describe(this.videoFrameRate));
-      }
-      final String timing = String.format(
-        Locale.ROOT,
-        "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",
-        this.from.width(),
-        this.from.height(),
-        this.from.preset().suffix(),
-        this.encodeMilliseconds,
-        this.down ? "more than" : "well within",
-        this.frameMilliseconds,
-        rate(this.from.framesPerSecond(this.videoFrameRate))
-      );
-      return this.down
-        ? "MCV2 screen steps down to %s: %s with the encoder threads it has".formatted(this.to.describe(this.videoFrameRate), timing)
-        : "MCV2 screen steps back up to %s: %s".formatted(this.to.describe(this.videoFrameRate), timing);
-    }
-  }
-
   private final List<Rung> ladder;
 
   private final long[] blockedUntil;
@@ -345,31 +204,9 @@ public final class Mcv2Pacer {
     Arrays.fill(this.blockSeconds, BLOCK_SECONDS);
   }
 
-  /**
-   * Returns the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
-   *
-   * @return the unmodifiable ladder, whose immutable rungs may be shared
-   */
-  public List<Rung> getLadder() {
-    return this.ladder;
-  }
-
-  /**
-   * Returns the rung the screen is on.
-   *
-   * @return the rung
-   */
-  public Rung getRung() {
-    return this.ladder.get(this.current);
-  }
-
-  /**
-   * Returns the video's frames per second, as measured from the frames it hands over.
-   *
-   * @return the frame rate, or NaN before two frames arrived
-   */
-  public double getVideoFramesPerSecond() {
-    return NANOSECONDS_PER_SECOND / this.videoInterval;
+  static String rate(final double frameRate) {
+    final long whole = Math.round(frameRate);
+    return Math.abs(frameRate - whole) < WHOLE_RATE ? Long.toString(whole) : String.format(Locale.ROOT, "%.1f", frameRate);
   }
 
   /**
@@ -548,5 +385,168 @@ public final class Mcv2Pacer {
 
   private static long seconds(final double value) {
     return (long) (value * NANOSECONDS_PER_SECOND);
+  }
+
+  /**
+   * Returns the rungs of the ladder, top first; the last is {@link Rung#DITHERED} when the screen can fall back to it.
+   *
+   * @return the unmodifiable ladder, whose immutable rungs may be shared
+   */
+  public List<Rung> getLadder() {
+    return this.ladder;
+  }
+
+  /**
+   * Returns the rung the screen is on.
+   *
+   * @return the rung
+   */
+  public Rung getRung() {
+    return this.ladder.get(this.current);
+  }
+
+  /**
+   * Returns the video's frames per second, as measured from the frames it hands over.
+   *
+   * @return the frame rate, or NaN before two frames arrived
+   */
+  public double getVideoFramesPerSecond() {
+    return NANOSECONDS_PER_SECOND / this.videoInterval;
+  }
+
+  /**
+   * A preset of the ladder: how hard the screen's encoder searches.
+   *
+   * @param name the preset's name in messages, for example {@code FAST}; empty for the one preset of a screen that
+   *             does not step through presets
+   * @param cost its encode time relative to the other presets of the ladder, which the pacer's predictions scale by
+   */
+  public record Preset(String name, double cost) {
+    /** The one preset of a screen that does not step through presets. */
+    public static final Preset ONLY = new Preset("", 1);
+
+    /**
+     * Constructs and validates a preset used to compare expected search costs.
+     *
+     * @param name the non-null diagnostic name, possibly empty for an unnamed single preset
+     * @param cost the strictly positive finite relative cost; only ratios between presets matter
+     * @throws NullPointerException     if name is null
+     * @throws IllegalArgumentException if the cost is not positive and finite
+     */
+    public Preset {
+      Preconditions.checkNotNull(name, "Name must not be null!");
+      Preconditions.checkArgument(cost > 0 && Double.isFinite(cost), "Cost must be positive and finite!");
+    }
+
+    private String suffix() {
+      return this.name.isEmpty() ? "" : " with the " + this.name + " search";
+    }
+  }
+
+  /**
+   * A rung of the ladder.
+   *
+   * <p>Direct construction does not validate components. Use positive pixel dimensions, a positive frame
+   * divisor and a non-null preset for encoded rungs; {@link #DITHERED} is the canonical zero-divisor sentinel.
+   *
+   * @param width   the video width, or 0 for the dithered maps
+   * @param height  the video height, or 0 for the dithered maps
+   * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+   * @param preset  how hard the encoder searches; {@link Preset#ONLY} on the dithered maps
+   */
+  public record Rung(int width, int height, int divisor, Preset preset) {
+    /** The dithered maps, the lowest rung. */
+    public static final Rung DITHERED = new Rung(0, 0, 0);
+
+    /**
+     * Creates a rung of a screen that does not step through presets.
+     *
+     * @param width   the video width, or 0 for the dithered maps
+     * @param height  the video height, or 0 for the dithered maps
+     * @param divisor every how many frames of the video one is encoded, or 0 for the dithered maps
+     */
+    public Rung(final int width, final int height, final int divisor) {
+      this(width, height, divisor, Preset.ONLY);
+    }
+
+    /**
+     * Checks whether this is the dithered maps.
+     *
+     * @return true for the dithered maps
+     */
+    public boolean isDithered() {
+      return this.divisor == 0;
+    }
+
+    /**
+     * Returns the frames per second this rung encodes of a video.
+     *
+     * @param videoFrameRate the video's frames per second
+     * @return the encoded frames per second, 0 for the dithered maps
+     */
+    public double framesPerSecond(final double videoFrameRate) {
+      return this.isDithered() ? 0 : videoFrameRate / this.divisor;
+    }
+
+    private long pixels() {
+      return (long) this.width * this.height;
+    }
+
+    /**
+     * Describes the rung for a message.
+     *
+     * @param videoFrameRate the video's frames per second
+     * @return for example {@code 1920x1080 at 30 fps}, {@code 1920x1080 at 30 fps with the FAST search} on a
+     *         ladder of presets, or {@code the dithered maps}
+     */
+    public String describe(final double videoFrameRate) {
+      return this.isDithered()
+        ? "the dithered maps"
+        : String.format(
+            Locale.getDefault(Locale.Category.FORMAT),
+            "%dx%d at %s fps%s",
+            this.width,
+            this.height,
+            rate(this.framesPerSecond(videoFrameRate)),
+            this.preset.suffix()
+          );
+    }
+  }
+
+  /**
+   * A step of the pacer.
+   *
+   * @param from               the rung before
+   * @param to                 the rung now
+   * @param down               whether the step went down the ladder
+   * @param encodeMilliseconds the smoothed encode time per frame that decided the step, 0 for a try from the dithered maps
+   * @param frameMilliseconds  the time a frame had on the rung before, 0 on the dithered maps
+   * @param videoFrameRate     the video's frames per second as measured
+   */
+  public record Change(Rung from, Rung to, boolean down, double encodeMilliseconds, double frameMilliseconds, double videoFrameRate) {
+    /**
+     * Describes the step for the server's operator: what was chosen and why.
+     *
+     * @return the message
+     */
+    public String describe() {
+      if (this.from.isDithered()) {
+        return "MCV2 screen tries encoding again at %s after showing the dithered maps".formatted(this.to.describe(this.videoFrameRate));
+      }
+      final String timing = String.format(
+        Locale.ROOT,
+        "encoding %dx%d%s takes %.1f ms per frame, %s the %.1f ms a frame has at %s fps",
+        this.from.width(),
+        this.from.height(),
+        this.from.preset().suffix(),
+        this.encodeMilliseconds,
+        this.down ? "more than" : "well within",
+        this.frameMilliseconds,
+        rate(this.from.framesPerSecond(this.videoFrameRate))
+      );
+      return this.down
+        ? "MCV2 screen steps down to %s: %s with the encoder threads it has".formatted(this.to.describe(this.videoFrameRate), timing)
+        : "MCV2 screen steps back up to %s: %s".formatted(this.to.describe(this.videoFrameRate), timing);
+    }
   }
 }

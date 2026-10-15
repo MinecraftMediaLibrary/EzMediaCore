@@ -87,25 +87,6 @@ final class Mcv2Tools {
 
   private static final String READ_MODE = "r";
 
-  private Mcv2Tools() {}
-
-  static void main(final String[] arguments) throws Exception {
-    if (arguments.length == 0) {
-      throw new IllegalArgumentException("Expected bench, digests, generate-fixtures or shader-compile!");
-    }
-    final String[] options = Arrays.copyOfRange(arguments, 1, arguments.length);
-    switch (arguments[0]) {
-      case "bench" -> bench(options);
-      case "digests" -> digests(options);
-      case "generate-fixtures" -> generateFixtures(options);
-      case "shader-compile" -> System.exit(shaderCompile(options));
-      default -> {
-        final String message = "Subcommand %s is unknown!".formatted(arguments[0]);
-        throw new IllegalArgumentException(message);
-      }
-    }
-  }
-
   private static final double NANOSECONDS_PER_MILLISECOND = 1e6;
 
   private static final double BYTES_PER_MEGABYTE = 1048576.0;
@@ -122,30 +103,76 @@ final class Mcv2Tools {
 
   private static final int STREAM_ID = 1;
 
-  private static final class Measurement {
+  private static final int LENGTH_BYTES = 4;
 
-    private final long[] times;
+  private static final String TRUNCATED = "truncated";
 
-    private final long[] cpu;
+  private static final String REJECTED = "reject";
 
-    private final long[] allocated;
+  private static final int SOURCE_WIDTH = 1920;
+  private static final int SOURCE_HEIGHT = 1080;
 
-    private long logical;
+  private static final int FIXTURE_WIDTH = 320;
+  private static final int FIXTURE_HEIGHT = 180;
 
-    private long wire;
+  private static final int CHANNELS = 3;
+  private static final int MAXIMUM_ARCHIVE_BYTES = 1_000_000;
+  private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
-    private long zlib;
+  private static final int VULKAN_1_2 = (1 << 22) | (2 << 12);
 
-    private long keyframes;
+  // the macros GlslCompiler defines for every shader on a device with a zero-to-one depth range; it also defines
+  // RENDERPEARL_INSTANCE_INDEX_INCLUDES_BASE_INSTANCE on devices with shader draw parameters, which no shader reads
+  private static final Map<String, String> RENDERER_MACROS = Map.of("RENDERPEARL_DEPTH_IS_ZERO_TO_ONE", "");
 
-    private double psnrSum;
+  // what GlslCompiler defines on drivers that need depth invariance spelled out; only the transparency includes read it
+  private static final String EXPLICIT_DEPTH_INVARIANCE = "RENDERPEARL_EXPLICIT_DEPTH_INVARIANCE";
 
-    private double mseSum;
+  // RenderPipelines' OIT snippet: a wavelet of rank 2, LevelRenderer.OIT_COEFFICIENT_COUNT = 2^3 coefficients, a
+  // quarter of them per transmittance target
+  private static final Map<String, String> OIT = Map.of(
+    "OIT",
+    "",
+    "OIT_WAVELET_RANK",
+    "2",
+    "OIT_COEFF_COUNT",
+    "8",
+    "OIT_COEFF_ATTACHMENT_COUNT",
+    "2"
+  );
 
-    private Measurement(final int frames) {
-      this.times = new long[frames];
-      this.cpu = new long[frames];
-      this.allocated = new long[frames];
+  private static final Map<String, Map<String, String>> TEXT_VARIANTS = new LinkedHashMap<>();
+
+  static {
+    TEXT_VARIANTS.put("text", Map.of());
+    TEXT_VARIANTS.put("text_grayscale", Map.of("IS_GRAYSCALE", "1"));
+    TEXT_VARIANTS.put("text_see_through", Map.of("IS_SEE_THROUGH", "1"));
+    TEXT_VARIANTS.put("text_grayscale_see_through", Map.of("IS_GRAYSCALE", "1", "IS_SEE_THROUGH", "1"));
+    TEXT_VARIANTS.put("gui_text", Map.of("IS_GUI", "1"));
+    TEXT_VARIANTS.put("oit_text_depth_bounds", with(OIT, "OIT_ALPHA_ONLY", "OIT_DEPTH_BOUNDS"));
+    TEXT_VARIANTS.put("oit_text_transmittance", with(OIT, "OIT_ALPHA_ONLY", "OIT_TRANSMITTANCE"));
+    TEXT_VARIANTS.put("oit_text_accumulate", with(OIT, "OIT_ACCUMULATE"));
+    TEXT_VARIANTS.put("oit_text_depth_bounds_invariant", with(OIT, "OIT_ALPHA_ONLY", "OIT_DEPTH_BOUNDS", EXPLICIT_DEPTH_INVARIANCE));
+    TEXT_VARIANTS.put("oit_text_transmittance_invariant", with(OIT, "OIT_ALPHA_ONLY", "OIT_TRANSMITTANCE", EXPLICIT_DEPTH_INVARIANCE));
+    TEXT_VARIANTS.put("oit_text_accumulate_invariant", with(OIT, "OIT_ACCUMULATE", EXPLICIT_DEPTH_INVARIANCE));
+  }
+
+  private Mcv2Tools() {}
+
+  static void main(final String[] arguments) throws Exception {
+    if (arguments.length == 0) {
+      throw new IllegalArgumentException("Expected bench, digests, generate-fixtures or shader-compile!");
+    }
+    final String[] options = Arrays.copyOfRange(arguments, 1, arguments.length);
+    switch (arguments[0]) {
+      case "bench" -> bench(options);
+      case "digests" -> digests(options);
+      case "generate-fixtures" -> generateFixtures(options);
+      case "shader-compile" -> System.exit(shaderCompile(options));
+      default -> {
+        final String message = "Subcommand %s is unknown!".formatted(arguments[0]);
+        throw new IllegalArgumentException(message);
+      }
     }
   }
 
@@ -385,12 +412,6 @@ final class Mcv2Tools {
     return (bytes * Byte.SIZE) / seconds / BITS_PER_MEGABIT;
   }
 
-  private static final int LENGTH_BYTES = 4;
-
-  private static final String TRUNCATED = "truncated";
-
-  private static final String REJECTED = "reject";
-
   /**
    * Prints each archive path followed by one lowercase RGB SHA-256 or {@code reject} token per frame. A missing length
    * prefix or payload emits {@code truncated} and ends that archive. {@code --rgb FILE} concatenates accepted pictures.
@@ -436,16 +457,6 @@ final class Mcv2Tools {
     pictures.write(picture);
     return HexFormat.of().formatHex(sha256.digest(picture));
   }
-
-  private static final int SOURCE_WIDTH = 1920;
-  private static final int SOURCE_HEIGHT = 1080;
-
-  private static final int FIXTURE_WIDTH = 320;
-  private static final int FIXTURE_HEIGHT = 180;
-
-  private static final int CHANNELS = 3;
-  private static final int MAXIMUM_ARCHIVE_BYTES = 1_000_000;
-  private static final Gson JSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
   private static void generateFixtures(final String[] arguments) throws Exception {
     final Path sources = Path.of(arguments[0]);
@@ -579,44 +590,6 @@ final class Mcv2Tools {
     Mcv2Decoder.putU32(length, 0, data.length);
     out.writeBytes(length);
     out.writeBytes(data);
-  }
-
-  private static final int VULKAN_1_2 = (1 << 22) | (2 << 12);
-
-  // the macros GlslCompiler defines for every shader on a device with a zero-to-one depth range; it also defines
-  // RENDERPEARL_INSTANCE_INDEX_INCLUDES_BASE_INSTANCE on devices with shader draw parameters, which no shader reads
-  private static final Map<String, String> RENDERER_MACROS = Map.of("RENDERPEARL_DEPTH_IS_ZERO_TO_ONE", "");
-
-  // what GlslCompiler defines on drivers that need depth invariance spelled out; only the transparency includes read it
-  private static final String EXPLICIT_DEPTH_INVARIANCE = "RENDERPEARL_EXPLICIT_DEPTH_INVARIANCE";
-
-  // RenderPipelines' OIT snippet: a wavelet of rank 2, LevelRenderer.OIT_COEFFICIENT_COUNT = 2^3 coefficients, a
-  // quarter of them per transmittance target
-  private static final Map<String, String> OIT = Map.of(
-    "OIT",
-    "",
-    "OIT_WAVELET_RANK",
-    "2",
-    "OIT_COEFF_COUNT",
-    "8",
-    "OIT_COEFF_ATTACHMENT_COUNT",
-    "2"
-  );
-
-  private static final Map<String, Map<String, String>> TEXT_VARIANTS = new LinkedHashMap<>();
-
-  static {
-    TEXT_VARIANTS.put("text", Map.of());
-    TEXT_VARIANTS.put("text_grayscale", Map.of("IS_GRAYSCALE", "1"));
-    TEXT_VARIANTS.put("text_see_through", Map.of("IS_SEE_THROUGH", "1"));
-    TEXT_VARIANTS.put("text_grayscale_see_through", Map.of("IS_GRAYSCALE", "1", "IS_SEE_THROUGH", "1"));
-    TEXT_VARIANTS.put("gui_text", Map.of("IS_GUI", "1"));
-    TEXT_VARIANTS.put("oit_text_depth_bounds", with(OIT, "OIT_ALPHA_ONLY", "OIT_DEPTH_BOUNDS"));
-    TEXT_VARIANTS.put("oit_text_transmittance", with(OIT, "OIT_ALPHA_ONLY", "OIT_TRANSMITTANCE"));
-    TEXT_VARIANTS.put("oit_text_accumulate", with(OIT, "OIT_ACCUMULATE"));
-    TEXT_VARIANTS.put("oit_text_depth_bounds_invariant", with(OIT, "OIT_ALPHA_ONLY", "OIT_DEPTH_BOUNDS", EXPLICIT_DEPTH_INVARIANCE));
-    TEXT_VARIANTS.put("oit_text_transmittance_invariant", with(OIT, "OIT_ALPHA_ONLY", "OIT_TRANSMITTANCE", EXPLICIT_DEPTH_INVARIANCE));
-    TEXT_VARIANTS.put("oit_text_accumulate_invariant", with(OIT, "OIT_ACCUMULATE", EXPLICIT_DEPTH_INVARIANCE));
   }
 
   private static Map<String, String> with(final Map<String, String> base, final String... flags) {
@@ -807,6 +780,33 @@ final class Mcv2Tools {
     if (result != Spvc.SPVC_SUCCESS) {
       final String message = "SPIRV-Cross failed at %s with result %s!".formatted(step, result);
       throw new IllegalStateException(message);
+    }
+  }
+
+  private static final class Measurement {
+
+    private final long[] times;
+
+    private final long[] cpu;
+
+    private final long[] allocated;
+
+    private long logical;
+
+    private long wire;
+
+    private long zlib;
+
+    private long keyframes;
+
+    private double psnrSum;
+
+    private double mseSum;
+
+    private Measurement(final int frames) {
+      this.times = new long[frames];
+      this.cpu = new long[frames];
+      this.allocated = new long[frames];
     }
   }
 }
