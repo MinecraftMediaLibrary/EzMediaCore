@@ -29,7 +29,7 @@ class TaskDescriptionsTest {
         val conventions = File("src/main/kotlin").listFiles { file -> file.name.endsWith(".gradle.kts") }!!.toList()
         val scripts = conventions + File("build.gradle.kts")
         val registration = Regex(
-            """tasks\.register(<\w+>)?\("\w+"\) \{\n( +)group = "[a-z ]+"\n\2description = "[A-Z][a-z]+s [^"\n]*[^."]"\n"""
+            """tasks\.register(<\w+>)?\("\w+"\) \{\n( +)(this\.|)group = "[a-z ]+"\n\2\3description = "[A-Z][a-z]+s [^"\n]*[^."]"\n"""
         )
         for (script in scripts.sorted()) {
             val text = script.readText()
