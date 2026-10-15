@@ -371,10 +371,7 @@ public final class VernacularVncPlayer implements VncPlayer {
     final Session failed,
     final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
   ) {
-    final boolean duringStartup = failed.recordStartupError(error);
-    if (duringStartup) {
-      return;
-    }
+    failed.recordStartupError(error);
 
     final boolean wasAlive = failed.end();
     if (wasAlive) {
@@ -812,18 +809,13 @@ public final class VernacularVncPlayer implements VncPlayer {
       this.starting = true;
     }
 
-    private synchronized boolean recordStartupError(
+    // Keeps the first error of the handshake; a session that is still starting is not alive, so it reports nothing.
+    private synchronized void recordStartupError(
       final com.shinyhut.vernacular.client.exceptions.VncException error // fqn: clashes with the VncException of this module
     ) {
-      if (!this.starting) {
-        return false;
-      }
-
-      if (this.startupError == null) {
+      if (this.starting && this.startupError == null) {
         this.startupError = error;
       }
-
-      return true;
     }
 
     // Ends the handshake: the session comes alive unless an error was recorded.
