@@ -122,7 +122,7 @@ final class NativeTesting {
    * @return its symbols
    * @throws IllegalStateException if no library loads here
    */
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // a library lookup is a restricted method of the foreign function API
   static SymbolLookup library() {
     if (resolution().binding() == null) {
       throw new IllegalStateException("No MCV2 native library loads on this platform!");

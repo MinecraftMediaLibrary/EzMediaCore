@@ -516,7 +516,7 @@ public final class Mcv2Decoder {
     return reference;
   }
 
-  @SuppressWarnings("ReferenceEquality")
+  @SuppressWarnings("ReferenceEquality") // pictures are pooled buffers told apart by identity, not content
   private static boolean samePicture(final byte[] first, final byte[] second) {
     return first == second;
   }

@@ -552,7 +552,7 @@ public final class Mcv2 {
    * @throws IllegalArgumentException if another encoder owns pending
    * @throws IllegalStateException    if order is wrong, pending is finished, or verification fails
    */
-  @SuppressWarnings("ReferenceEquality")
+  @SuppressWarnings("ReferenceEquality") // the pending frame must be the very frame this encoder created first
   public Encoded finish(final Pending pending) {
     Preconditions.checkNotNull(pending, "Frame must not be null!");
     Preconditions.checkState(!this.failed, STOPPED);
@@ -915,7 +915,7 @@ public final class Mcv2 {
       this.quarter = new byte[((halfWidth + 1) / PYRAMID_SCALE) * ((halfHeight + 1) / PYRAMID_SCALE) * CHANNELS];
     }
 
-    @SuppressWarnings("ReferenceEquality")
+    @SuppressWarnings("ReferenceEquality") // pictures are pooled buffers told apart by identity, not content
     private byte[] spare(final byte[] reference, final byte[] verifying, final byte[] verifyingReference) {
       for (int index = 0; index < this.pictures.length - 1; index++) {
         final byte[] picture = this.pictures[index];
@@ -1821,7 +1821,7 @@ public final class Mcv2 {
       return load(platform, digest, bytes, folder, highest);
     }
 
-    @SuppressWarnings("restricted")
+    @SuppressWarnings("restricted") // loading the kernel library is a restricted method of the foreign function API
     static Resolution load(
       final String platform,
       final String digest,
@@ -1867,7 +1867,7 @@ public final class Mcv2 {
       return file;
     }
 
-    @SuppressWarnings("restricted")
+    @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
     static Resolution bind(final SymbolLookup library, final String platform, final @Nullable String highest, final int expected) {
       final Linker linker = Linker.nativeLinker();
       try {
@@ -2029,7 +2029,7 @@ public final class Mcv2 {
       this.residualTarget = handle.apply("residual_target", RESIDUAL_TARGET);
     }
 
-    @SuppressWarnings("restricted")
+    @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
     static Binding of(final SymbolLookup library, final Level level) {
       final Linker linker = Linker.nativeLinker();
       return new Binding(level, (name, descriptor) ->
@@ -2086,7 +2086,7 @@ public final class Mcv2 {
       return this.remembers(slot, array) ? this.cachedSegments[slot] : this.remember(slot, array, MemorySegment.ofArray(array));
     }
 
-    @SuppressWarnings("ReferenceEquality")
+    @SuppressWarnings("ReferenceEquality") // the cache is keyed by array identity, not content
     private boolean remembers(final int slot, final Object array) {
       return this.cachedArrays[slot] == array;
     }

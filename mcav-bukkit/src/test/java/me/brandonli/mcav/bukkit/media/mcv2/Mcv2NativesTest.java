@@ -426,7 +426,7 @@ final class Mcv2NativesTest {
   }
 
   @Test
-  @SuppressWarnings("restricted")
+  @SuppressWarnings("restricted") // the Linker downcalls are restricted methods of the foreign function API
   void shouldPassLinuxFeatureBitsToTheNativeLevelQuery() throws ReflectiveOperationException {
     assumeTrue(NativeTesting.expected(), NO_LIBRARY_MESSAGE);
     final long features = Natives.hardwareCapabilities(Path.of(AUXILIARY_VECTOR_PATH));
