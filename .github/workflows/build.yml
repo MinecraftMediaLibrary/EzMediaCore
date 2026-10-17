@@ -88,7 +88,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          cp mcav-plugin/build/libs/*-all.jar dist/
+          cp mcav-plugin/build/libs/*-all.jar mcav-mod/build/libs/*-fabric.jar mcav-mod/build/libs/*-neoforge.jar dist/
           ls -la dist/
 
       - name: Upload build artifact
