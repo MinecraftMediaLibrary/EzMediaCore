@@ -212,7 +212,7 @@ jobs:
         run: sh ./gradlew --console=plain :mcav-plugin:e2eTest -Pmcav.e2e=true -Pmcav.acceptMinecraftEula=true
 
       - name: Upload test reports
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: test-reports-e2e
