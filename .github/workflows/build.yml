@@ -184,9 +184,46 @@ jobs:
           path: '*/build/jazzer/'
           if-no-files-found: ignore
 
+  e2e:
+    name: End-to-end test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Linux system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb qemu-system-x86 qemu-utils libgtk2.0-0t64 mesa-utils libgl1-mesa-dri \
+            libva2 libva-drm2 libx11-xcb1 libxcb-shm0 libasound2t64 libpulse0 libsndfile1 libmp3lame0 \
+            libmpg123-0t64 libvorbisenc2 libopus0 libvlc-dev libvlccore-dev vlc-plugin-base vlc-plugin-video-output
+
+      - name: End-to-end test
+        timeout-minutes: 60
+        shell: bash
+        run: sh ./gradlew --console=plain :mcav-plugin:e2eTest -Pmcav.e2e=true -Pmcav.acceptMinecraftEula=true
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports-e2e
+          path: |
+            mcav-plugin/build/reports/
+            mcav-plugin/build/test-results/
+          if-no-files-found: ignore
+
   release:
     name: Publish Release
-    needs: [ build, property, jcstress, fuzz ]
+    needs: [ build, property, jcstress, fuzz, e2e ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/rewrite' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     permissions:
