@@ -1,0 +1,215 @@
+name: Build
+
+on:
+  push:
+    branches: [ rewrite, master ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ rewrite, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-24.04
+          - name: windows-x64
+            os: windows-2025
+          - name: macos-arm64
+            os: macos-15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Linux system deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb qemu-system-x86 qemu-utils libgtk2.0-0t64 mesa-utils libgl1-mesa-dri
+
+      - name: Build and test (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' sh ./gradlew --console=plain clean build -Pmcav.networkTests=true --no-parallel
+
+      - name: Build and test
+        if: runner.os != 'Linux'
+        shell: bash
+        run: sh ./gradlew --console=plain clean build -Pmcav.networkTests=true -Pmcav.coverage=false --no-parallel
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports-${{ matrix.name }}
+          path: |
+            */build/reports/
+            */build/test-results/
+          if-no-files-found: ignore
+
+      - name: Stage artifacts
+        if: matrix.name == 'linux-x64'
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp mcav-plugin/build/libs/*-all.jar dist/
+          ls -la dist/
+
+      - name: Upload build artifact
+        if: matrix.name == 'linux-x64'
+        uses: actions/upload-artifact@v7
+        with:
+          name: mcav-${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+
+  property:
+    name: Property tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install Linux system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb qemu-system-x86 qemu-utils libgtk2.0-0t64 mesa-utils libgl1-mesa-dri
+
+      - name: Property tests
+        shell: bash
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' sh ./gradlew --console=plain propertyTest -Pmcav.networkTests=true
+
+  jcstress:
+    name: Concurrency tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Concurrency tests
+        timeout-minutes: 15
+        shell: bash
+        run: sh ./gradlew --console=plain jcstressTest -Pjcstress.mode=quick -Pjcstress.timeBudgetMinutes=15
+
+  fuzz:
+    name: Fuzz tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Fuzz tests
+        timeout-minutes: 45
+        shell: bash
+        run: sh ./gradlew --console=plain --no-parallel --continue fuzzTest -Pfuzz.seconds=60
+
+      - name: Upload crash reproducers
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-crashes
+          path: '*/build/jazzer/'
+          if-no-files-found: ignore
+
+  release:
+    name: Publish Release
+    needs: [ build, property, jcstress, fuzz ]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/rewrite' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        shell: bash
+        run: ls -la artifacts/
+
+      - name: Compute release metadata
+        id: meta
+        shell: bash
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          COMMIT_SUBJECT=$(git log -1 --pretty=%s)
+          COMMIT_BODY=$(git log -1 --pretty=%b)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+            NAME="$TAG - $COMMIT_SUBJECT"
+            PRERELEASE=false
+          else
+            DATE=$(date -u +'%Y-%m-%d')
+            TAG="build-${DATE}-${SHORT_SHA}"
+            NAME="${DATE} - ${COMMIT_SUBJECT}"
+            PRERELEASE=true
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          {
+            echo "name<<META_EOF"
+            echo "$NAME"
+            echo "META_EOF"
+            echo "body<<META_EOF"
+            echo "Automated build from commit \`$SHORT_SHA\` (${GITHUB_SHA})."
+            echo ""
+            echo "**$COMMIT_SUBJECT**"
+            if [ -n "$COMMIT_BODY" ]; then
+              echo ""
+              echo "$COMMIT_BODY"
+            fi
+            echo "META_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          body: ${{ steps.meta.outputs.body }}
+          prerelease: ${{ steps.meta.outputs.prerelease }}
+          target_commitish: ${{ github.sha }}
+          files: artifacts/**/*
+          fail_on_unmatched_files: true
