@@ -39,7 +39,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb qemu-system-x86 qemu-utils libgtk2.0-0t64 mesa-utils libgl1-mesa-dri
+          sudo apt-get install -y xvfb qemu-system-x86 qemu-utils libgtk2.0-0t64 mesa-utils libgl1-mesa-dri \
+            libva2 libva-drm2 libx11-xcb1 libxcb-shm0 libasound2t64 libpulse0 libsndfile1 libmp3lame0 \
+            libmpg123-0t64 libvorbisenc2 libopus0 libvlc-dev libvlccore-dev vlc-plugin-base vlc-plugin-video-output
 
       - name: Build and test (Linux)
         if: runner.os == 'Linux'
