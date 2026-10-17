@@ -19,8 +19,8 @@ The MCAV plugin works on **Paper** servers only, not on **Spigot** or **Bukkit**
 2026-09-27; the plugin is built and tested against build 49.
 ```
 
-1) Download the latest JAR from the TeamCity CI page [here](https://ci.brandonli.me/repository/download/mcav_Build/.lastFinished/mcav-plugin-1.0.0-v26.3-all.jar).
-   If CI asks you to sign in and you do not have access, [build the plugin from source](../library/compile.md);
+1) Download `mcav-plugin-1.0.0-v26.3-all.jar` from the newest release on the GitHub releases page
+   [here](https://github.com/PulseBeat02/mcav/releases), or [build the plugin from source](../library/compile.md);
    the jar is `mcav-plugin/build/libs/mcav-plugin-1.0.0-v26.3-all.jar`.
 2) Place the JAR file into the `plugins` folder of your server.
 3) Start the server.
