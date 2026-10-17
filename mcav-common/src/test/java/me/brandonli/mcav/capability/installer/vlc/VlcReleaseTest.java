@@ -63,7 +63,7 @@ final class VlcReleaseTest {
   private static final long PLAYBACK_TIMEOUT_MINUTES = 15L;
 
   private static final String CHECKSUM_SUFFIX = ".sha256";
-  private static final String VIDEO_LAN_HOST = "get.videolan.org";
+  private static final String VIDEO_LAN_HOST = "download.videolan.org";
 
   private static final int HTTP_OK = 200;
 
@@ -84,8 +84,7 @@ final class VlcReleaseTest {
   @Test
   void shouldBundleHashesThatMatchTheChecksumsVideoLanPublishesNextToItsDownloads() throws IOException, InterruptedException {
     final List<Download> downloads = this.readDownloads().filter(this::isHostedByVideoLan).toList();
-    // get.videolan.org redirects to mirrors, some of them plain http
-    try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build()) {
+    try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
       for (final Download download : downloads) {
         final String url = download.getUrl();
         final String published = fetchChecksum(client, url + CHECKSUM_SUFFIX);
