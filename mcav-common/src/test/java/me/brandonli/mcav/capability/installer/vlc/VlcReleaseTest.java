@@ -20,9 +20,13 @@ package me.brandonli.mcav.capability.installer.vlc;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.hash.HashingInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -31,11 +35,14 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import me.brandonli.mcav.capability.installer.Download;
 import me.brandonli.mcav.capability.installer.FileMode;
 import me.brandonli.mcav.testing.TestMedia;
@@ -45,9 +52,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-// Checks the bundled VLC downloads against the release VideoLAN publishes, then installs the build of this machine from
-// the real download and plays a video through it. These tests download files from the internet, so they only run when
-// the mcav.networkTests system property is true, which ./gradlew test -Pmcav.networkTests=true sets.
+// Checks the bundled VLC downloads against the checksums VideoLAN publishes, or against the file itself where VideoLAN
+// does not host it, then installs the build of this machine from the real download and plays a video through it. These
+// tests download files from the internet, so they only run when the mcav.networkTests system property is true, which
+// ./gradlew test -Pmcav.networkTests=true sets.
 final class VlcReleaseTest {
 
   private static final Duration TIMEOUT = Duration.ofMinutes(2);
@@ -55,6 +63,7 @@ final class VlcReleaseTest {
   private static final long PLAYBACK_TIMEOUT_MINUTES = 15L;
 
   private static final String CHECKSUM_SUFFIX = ".sha256";
+  private static final String VIDEO_LAN_HOST = "get.videolan.org";
 
   private static final int HTTP_OK = 200;
 
@@ -73,9 +82,10 @@ final class VlcReleaseTest {
   }
 
   @Test
-  void shouldBundleHashesThatMatchTheChecksumsVideoLanPublishesNextToEveryDownload() throws IOException, InterruptedException {
-    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
-    try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
+  void shouldBundleHashesThatMatchTheChecksumsVideoLanPublishesNextToItsDownloads() throws IOException, InterruptedException {
+    final List<Download> downloads = this.readDownloads().filter(this::isHostedByVideoLan).toList();
+    // get.videolan.org redirects to mirrors, some of them plain http
+    try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build()) {
       for (final Download download : downloads) {
         final String url = download.getUrl();
         final String published = fetchChecksum(client, url + CHECKSUM_SUFFIX);
@@ -94,6 +104,48 @@ final class VlcReleaseTest {
 
     final String body = response.body().strip();
     return WHITESPACE_PATTERN.split(body, 2)[0];
+  }
+
+  @Test
+  void shouldBundleHashesThatMatchTheDownloadsVideoLanDoesNotHost() throws IOException, InterruptedException {
+    final List<Download> downloads = this.readDownloads().filter(Predicate.not(this::isHostedByVideoLan)).toList();
+    try (final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
+      for (final Download download : downloads) {
+        final String url = download.getUrl();
+        final String actual = this.hashDownload(client, url);
+        final Optional<String> bundled = download.getHash();
+        final Optional<String> expected = Optional.of(actual);
+        assertEquals(expected, bundled, url);
+      }
+    }
+  }
+
+  private Stream<Download> readDownloads() {
+    final Download[] downloads = IoUtils.readDownloadsFromJsonResource(VLC_DOWNLOADS_RESOURCE);
+    return Arrays.stream(downloads);
+  }
+
+  private boolean isHostedByVideoLan(final Download download) {
+    final String url = download.getUrl();
+    final URI uri = URI.create(url);
+    final String host = uri.getHost();
+    return VIDEO_LAN_HOST.equals(host);
+  }
+
+  private String hashDownload(final HttpClient client, final String url) throws IOException, InterruptedException {
+    final URI uri = URI.create(url);
+    final HttpRequest request = HttpRequest.newBuilder(uri).timeout(TIMEOUT).build();
+    final HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+    final int statusCode = response.statusCode();
+    assertEquals(HTTP_OK, statusCode, url);
+
+    final InputStream download = response.body();
+    try (final HashingInputStream body = new HashingInputStream(Hashing.sha256(), download)) {
+      body.transferTo(OutputStream.nullOutputStream());
+
+      final HashCode hash = body.hash();
+      return hash.toString();
+    }
   }
 
   @Test
