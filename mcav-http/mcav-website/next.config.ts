@@ -25,7 +25,7 @@ const SOURCES = [
     "src",
     "public",
     "package.json",
-    "package-lock.json",
+    "pnpm-lock.yaml",
     "next.config.ts",
     "third-party-notices.mjs",
     "tsconfig.json",
