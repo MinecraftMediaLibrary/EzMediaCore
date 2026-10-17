@@ -51,6 +51,9 @@ jobs:
       - name: Build and run the OS-gated tests
         if: runner.os != 'Linux'
         shell: bash
+        env:
+          TMP: ${{ runner.temp }}
+          TEMP: ${{ runner.temp }}
         run: |
           printf 'allprojects { tasks.withType(Test).configureEach { forkEvery = 1 } }\n' > "$RUNNER_TEMP/fork-every.gradle"
           sh ./gradlew --console=plain --init-script "$RUNNER_TEMP/fork-every.gradle" --no-parallel --continue \
