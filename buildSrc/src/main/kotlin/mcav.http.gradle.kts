@@ -26,18 +26,22 @@ plugins {
 
 val node = rootProject.extensions.getByType<NodeExtension>()
 val nodeSetup = rootProject.tasks.named("nodeSetup")
-val corepack = node.resolvedNodeDir.get().file(if (isWindows) "corepack.cmd" else "bin/corepack").asFile
-val nodePath = corepack.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
+val nodeDirectory: Directory = node.resolvedNodeDir.get()
+val nodeExecutable: File = nodeDirectory.file(if (isWindows) "node.exe" else "bin/node").asFile
+// node-gradle unpacks the bin/corepack symlink as an empty file, so corepack runs through node
+val corepackScript: String = if (isWindows) "node_modules/corepack/dist/corepack.js" else "lib/node_modules/corepack/dist/corepack.js"
+val corepack: File = nodeDirectory.file(corepackScript).asFile
+val nodePath: String = nodeExecutable.parentFile.absolutePath + File.pathSeparator + System.getenv("PATH")
 
 val pnpmProjectInstall = tasks.register<Exec>("pnpmProjectInstall") {
     group = "build"
     description = "Installs the pnpm dependencies of the website"
     dependsOn(nodeSetup)
     workingDir = file("mcav-website")
-    executable = corepack.absolutePath
+    executable = nodeExecutable.absolutePath
     environment("PATH", nodePath)
     environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
-    args("pnpm", "install", "--frozen-lockfile")
+    args(corepack.absolutePath, "pnpm", "install", "--frozen-lockfile")
     inputs.file("mcav-website/package.json")
     inputs.file("mcav-website/pnpm-lock.yaml")
     outputs.file("mcav-website/node_modules/.modules.yaml")
@@ -48,11 +52,11 @@ val buildWebsite = tasks.register<Exec>("buildWebsite") {
     description = "Builds the Next.js website"
     dependsOn(pnpmProjectInstall)
     workingDir = file("mcav-website")
-    executable = corepack.absolutePath
+    executable = nodeExecutable.absolutePath
     environment("PATH", nodePath)
     environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
     environment("NODE_OPTIONS", "--max-old-space-size=4096")
-    args("pnpm", "run", "build")
+    args(corepack.absolutePath, "pnpm", "run", "build")
     inputs.dir("mcav-website/src")
     inputs.dir("mcav-website/public")
     inputs.file("mcav-website/package.json")
@@ -70,10 +74,10 @@ val testWebsite = tasks.register<Exec>("testWebsite") {
     description = "Runs the tests of the website"
     dependsOn(pnpmProjectInstall)
     workingDir = file("mcav-website")
-    executable = corepack.absolutePath
+    executable = nodeExecutable.absolutePath
     environment("PATH", nodePath)
     environment("COREPACK_ENABLE_DOWNLOAD_PROMPT", "0")
-    args("pnpm", "test")
+    args(corepack.absolutePath, "pnpm", "test")
     inputs.dir("mcav-website/src")
     inputs.dir("mcav-website/test")
     inputs.file("mcav-website/package.json")
