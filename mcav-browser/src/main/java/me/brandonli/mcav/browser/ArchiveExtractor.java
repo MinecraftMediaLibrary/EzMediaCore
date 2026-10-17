@@ -22,6 +22,7 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.Channels;
 import java.nio.file.FileSystem;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -31,6 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
@@ -211,14 +213,10 @@ final class ArchiveExtractor {
     createFolders(parent, supportsPosix);
     long written = 0L;
     final byte[] buffer = new byte[BUFFER_BYTES];
-    try (
-      final OutputStream out = Files.newOutputStream(
-        destination,
-        StandardOpenOption.CREATE_NEW,
-        StandardOpenOption.WRITE,
-        LinkOption.NOFOLLOW_LINKS
-      )
-    ) {
+    // CREATE_NEW refuses an existing link, and zipfs rejects NOFOLLOW_LINKS
+    final Set<StandardOpenOption> options = Set.of(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+    final FileAttribute<?>[] permissions = initialPermissions(REGULAR, supportsPosix);
+    try (final OutputStream out = Channels.newOutputStream(Files.newByteChannel(destination, options, permissions))) {
       int count = tar.read(buffer);
       while (count >= 0) {
         written += count;
@@ -259,12 +257,21 @@ final class ArchiveExtractor {
       missing.add(current);
       current = Objects.requireNonNull(current.getParent(), "The root of a file system exists");
     }
-    Files.createDirectories(folder);
+    final FileAttribute<?>[] permissions = initialPermissions(FOLDER, supportsPosix);
+    Files.createDirectories(folder, permissions);
     if (supportsPosix) {
       for (final Path created : missing) {
         Files.setPosixFilePermissions(created, FOLDER);
       }
     }
+  }
+
+  // a failed extraction never leaves a file or folder wider than its final permissions
+  private static FileAttribute<?>[] initialPermissions(final Set<PosixFilePermission> permissions, final boolean supportsPosix) {
+    if (!supportsPosix) {
+      return new FileAttribute<?>[0];
+    }
+    return new FileAttribute<?>[] { PosixFilePermissions.asFileAttribute(permissions) };
   }
 
   /**
