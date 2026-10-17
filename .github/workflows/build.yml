@@ -141,8 +141,21 @@ jobs:
         run: sh ./gradlew --console=plain jcstressTest -Pjcstress.mode=quick -Pjcstress.timeBudgetMinutes=15
 
   fuzz:
-    name: Fuzz tests
+    name: Fuzz ${{ matrix.name }}
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: browser
+            tasks: :mcav-browser:fuzzTest
+          - name: bukkit
+            tasks: :mcav-bukkit:fuzzTest
+          - name: common
+            tasks: :mcav-common:fuzzTest
+          - name: other
+            tasks: fuzzTest -x :mcav-browser:fuzzTest -x :mcav-bukkit:fuzzTest -x :mcav-common:fuzzTest
+
     steps:
       - uses: actions/checkout@v6
 
@@ -158,13 +171,13 @@ jobs:
       - name: Fuzz tests
         timeout-minutes: 45
         shell: bash
-        run: sh ./gradlew --console=plain --no-parallel --continue fuzzTest -Pfuzz.seconds=60
+        run: sh ./gradlew --console=plain --no-parallel --continue ${{ matrix.tasks }} -Pfuzz.seconds=60
 
       - name: Upload crash reproducers
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: fuzz-crashes
+          name: fuzz-crashes-${{ matrix.name }}
           path: '*/build/jazzer/'
           if-no-files-found: ignore
 
