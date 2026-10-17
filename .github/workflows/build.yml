@@ -48,10 +48,27 @@ jobs:
         shell: bash
         run: xvfb-run -a -s '-screen 0 1920x1080x24' sh ./gradlew --console=plain clean build -Pmcav.networkTests=true --no-parallel
 
-      - name: Build and test
+      - name: Build and run the OS-gated tests
         if: runner.os != 'Linux'
         shell: bash
-        run: sh ./gradlew --console=plain clean build -Pmcav.networkTests=true -Pmcav.coverage=false --no-parallel
+        run: |
+          printf 'allprojects { tasks.withType(Test).configureEach { forkEvery = 1 } }\n' > "$RUNNER_TEMP/fork-every.gradle"
+          sh ./gradlew --console=plain --init-script "$RUNNER_TEMP/fork-every.gradle" --no-parallel --continue \
+            -Pmcav.networkTests=true -Pmcav.coverage=false assemble \
+            :mcav-common:test --rerun \
+              --tests '*.capability.installer.vlc.VlcInstallerTest' \
+              --tests '*.capability.installer.vlc.discovery.PlatformDiscoveryStrategiesTest' \
+              --tests '*.capability.installer.vlc.discovery.DirectoryProviderDiscoveryStrategyTest' \
+              --tests '*.capability.installer.vlc.installation.ManualInstallationStrategyTest' \
+              --tests '*.capability.installer.vlc.NativeVlcDiscoveryTest' \
+              --tests '*.capability.installer.ytdlp.YtdlpInstallerTest' \
+              --tests '*.utils.os.PlatformTest' \
+              --tests '*.media.player.multimedia.vlc.VlcPlayerIntegrationTest' \
+              --tests '*.media.player.pipeline.filter.audio.DirectAudioOutputTest' \
+              --tests '*.media.player.pipeline.filter.video.FaceDetectionFilterTest' \
+              --tests '*.media.player.multimedia.cv.OpenCvPlayersTest' \
+            :mcav-lwjgl:test --rerun --tests '*.GlTextureFilterTest' \
+            :mcav-vm:test --rerun --tests '*.VMPlayerImplTest' --tests '*.VMProcessTest' --tests '*.ExecutableFinderTest'
 
       - name: Upload test reports
         if: failure()
