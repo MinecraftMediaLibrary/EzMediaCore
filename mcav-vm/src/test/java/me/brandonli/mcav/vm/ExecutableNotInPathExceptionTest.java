@@ -32,7 +32,7 @@ final class ExecutableNotInPathExceptionTest {
   void shouldNameTheMissingProgram() {
     final ExecutableNotInPathException exception = new ExecutableNotInPathException("qemu-system-arm");
     final String message = exception.getMessage();
-    assertEquals("The program qemu-system-arm is not installed or not on the PATH", message);
+    assertEquals("Program qemu-system-arm is not installed or not on the PATH!", message);
     assertInstanceOf(RuntimeException.class, exception);
   }
 
@@ -42,6 +42,6 @@ final class ExecutableNotInPathExceptionTest {
       throw new ExecutableNotInPathException(null);
     });
     final String message = exception.getMessage();
-    assertEquals("Executable must not be null", message);
+    assertEquals("Executable must not be null!", message);
   }
 }

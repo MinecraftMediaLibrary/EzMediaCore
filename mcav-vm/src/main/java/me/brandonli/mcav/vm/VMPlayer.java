@@ -103,10 +103,10 @@ public interface VMPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
     final VMConfiguration configuration,
     final ExecutorService executor
   ) {
-    Preconditions.checkNotNull(settings, "Settings must not be null");
-    Preconditions.checkNotNull(architecture, "Architecture must not be null");
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
-    Preconditions.checkNotNull(executor, "Executor must not be null");
+    Preconditions.checkNotNull(settings, "Settings must not be null!");
+    Preconditions.checkNotNull(architecture, "Architecture must not be null!");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
+    Preconditions.checkNotNull(executor, "Executor must not be null!");
     return CompletableFuture.supplyAsync(() -> this.start(settings, architecture, configuration), executor);
   }
 

@@ -32,7 +32,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public final class EqualityAssertions {
 
   private EqualityAssertions() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**
@@ -44,9 +44,9 @@ public final class EqualityAssertions {
    * @param differentValues instances that must not be equal to the value, ideally each differing in one property
    */
   public static void assertEqualityContract(final Object value, final Object equalValue, final Object... differentValues) {
-    Preconditions.checkNotNull(value, "Value must not be null");
-    Preconditions.checkNotNull(equalValue, "Equal value must not be null");
-    Preconditions.checkNotNull(differentValues, "Different values must not be null");
+    Preconditions.checkNotNull(value, "Value must not be null!");
+    Preconditions.checkNotNull(equalValue, "Equal value must not be null!");
+    Preconditions.checkNotNull(differentValues, "Different values must not be null!");
 
     final int hash = value.hashCode();
     final List<Object> equalValues = List.of(value, equalValue);

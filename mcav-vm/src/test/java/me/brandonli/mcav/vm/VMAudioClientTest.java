@@ -183,7 +183,7 @@ class VMAudioClientTest {
     });
     final ProtocolException refused = assertThrows(ProtocolException.class, this::connect);
     final String message = refused.getMessage();
-    assertEquals("The VNC server refused the connection: Authentication failed", message);
+    assertEquals("VNC server refused the connection because of \"Authentication failed\"!", message);
     served.get(10, TimeUnit.SECONDS);
   }
 
@@ -271,7 +271,7 @@ class VMAudioClientTest {
       }
     });
     final VMAudioClient.Sink failing = (samples, length) -> {
-      throw new IllegalStateException("sink broke");
+      throw new IllegalStateException("sink broke!");
     };
     try (
       final VMAudioClient client = VMAudioClient.connect(this.address(), PASSWORD, failing, (message, failure) ->
@@ -466,7 +466,7 @@ class VMAudioClientTest {
       VMAudioClient.connect(this.address(), "", (samples, length) -> {}, (message, cause) -> {})
     );
     final String message = failure.getMessage();
-    assertEquals("The VNC server asks for authentication, which the audio connection does not do", message);
+    assertEquals("VNC server asks for authentication, which the audio connection does not do!", message);
     served.join();
   }
 
@@ -475,7 +475,7 @@ class VMAudioClientTest {
     final AtomicInteger closed = new AtomicInteger();
     VMAudioClient.closeQuietly(() -> {
       closed.incrementAndGet();
-      throw new IOException("gone");
+      throw new IOException("gone!");
     });
     final int closeCalls = closed.get();
     assertEquals(1, closeCalls);
@@ -485,7 +485,7 @@ class VMAudioClientTest {
     final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
     while (!condition.getAsBoolean()) {
       if (System.nanoTime() > deadline) {
-        throw new AssertionError("timed out");
+        throw new AssertionError("Condition did not hold in time!");
       }
       Thread.onSpinWait();
     }

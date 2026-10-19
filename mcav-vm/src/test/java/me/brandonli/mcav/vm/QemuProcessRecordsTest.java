@@ -258,7 +258,7 @@ final class QemuProcessRecordsTest {
     final FileSystem fileSystem = mock(FileSystem.class);
     final FileSystemProvider provider = mock(FileSystemProvider.class);
     final BasicFileAttributes attributes = mock(BasicFileAttributes.class);
-    final IOException unlistable = new IOException("Permission denied");
+    final IOException unlistable = new IOException("Permission denied!");
     when(folder.getFileSystem()).thenReturn(fileSystem);
     when(fileSystem.provider()).thenReturn(provider);
     when(provider.readAttributesIfExists(folder, BasicFileAttributes.class)).thenReturn(attributes);

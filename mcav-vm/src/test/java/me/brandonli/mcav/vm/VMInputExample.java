@@ -48,7 +48,7 @@ public final class VMInputExample {
   private static final int HEIGHT = 768;
 
   private VMInputExample() {
-    throw new UnsupportedOperationException("Example class cannot be instantiated");
+    throw new UnsupportedOperationException("Example class cannot be instantiated!");
   }
 
   /**

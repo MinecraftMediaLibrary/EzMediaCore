@@ -54,6 +54,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  */
 public final class VMConfiguration {
 
+  private static final String MEMORY_NOT_POSITIVE_MESSAGE = "Memory %s must be positive!";
+
+  private static final String DISK_PATH_NULL_MESSAGE = "Disk path must not be null!";
+
+  private static final String KEY_NULL_MESSAGE = "Key must not be null!";
+  private static final String KEY_BLANK_MESSAGE = "Key must not be blank!";
+  private static final String VALUE_NULL_MESSAGE = "Value must not be null!";
+
   private final Map<String, String> options;
   private final List<String> repeatable;
   private final Set<String> flags;
@@ -81,7 +89,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code memoryMB} is zero or negative
    */
   public VMConfiguration memory(final int memoryMB) {
-    Preconditions.checkArgument(memoryMB > 0, "Memory must be positive but was %s", memoryMB);
+    Preconditions.checkArgument(memoryMB > 0, MEMORY_NOT_POSITIVE_MESSAGE, memoryMB);
     return this.option("m", memoryMB + "M");
   }
 
@@ -96,8 +104,8 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code unit} is null
    */
   public VMConfiguration memory(final int amount, final String unit) {
-    Preconditions.checkArgument(amount > 0, "Memory must be positive but was %s", amount);
-    Preconditions.checkNotNull(unit, "Unit must not be null");
+    Preconditions.checkArgument(amount > 0, MEMORY_NOT_POSITIVE_MESSAGE, amount);
+    Preconditions.checkNotNull(unit, "Unit must not be null!");
     return this.option("m", amount + unit);
   }
 
@@ -109,7 +117,7 @@ public final class VMConfiguration {
    * @throws IllegalArgumentException if {@code cores} is zero or negative
    */
   public VMConfiguration cores(final int cores) {
-    Preconditions.checkArgument(cores > 0, "Cores must be positive but was %s", cores);
+    Preconditions.checkArgument(cores > 0, "Cores %s must be positive!", cores);
     final String value = String.valueOf(cores);
     return this.option("smp", value);
   }
@@ -122,7 +130,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code isoPath} is null
    */
   public VMConfiguration cdrom(final String isoPath) {
-    Preconditions.checkNotNull(isoPath, "ISO path must not be null");
+    Preconditions.checkNotNull(isoPath, "ISO path must not be null!");
     return this.option("cdrom", isoPath);
   }
 
@@ -134,7 +142,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code hdaPath} is null
    */
   public VMConfiguration hda(final String hdaPath) {
-    Preconditions.checkNotNull(hdaPath, "Disk path must not be null");
+    Preconditions.checkNotNull(hdaPath, DISK_PATH_NULL_MESSAGE);
     return this.option("hda", hdaPath);
   }
 
@@ -146,7 +154,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code hdbPath} is null
    */
   public VMConfiguration hdb(final String hdbPath) {
-    Preconditions.checkNotNull(hdbPath, "Disk path must not be null");
+    Preconditions.checkNotNull(hdbPath, DISK_PATH_NULL_MESSAGE);
     return this.option("hdb", hdbPath);
   }
 
@@ -158,7 +166,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code bootOrder} is null
    */
   public VMConfiguration boot(final String bootOrder) {
-    Preconditions.checkNotNull(bootOrder, "Boot order must not be null");
+    Preconditions.checkNotNull(bootOrder, "Boot order must not be null!");
     return this.option("boot", bootOrder);
   }
 
@@ -170,7 +178,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code networkConfiguration} is null
    */
   public VMConfiguration network(final String networkConfiguration) {
-    Preconditions.checkNotNull(networkConfiguration, "Network configuration must not be null");
+    Preconditions.checkNotNull(networkConfiguration, "Network configuration must not be null!");
     return this.option("nic", networkConfiguration);
   }
 
@@ -182,7 +190,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code model} is null
    */
   public VMConfiguration cpu(final String model) {
-    Preconditions.checkNotNull(model, "CPU model must not be null");
+    Preconditions.checkNotNull(model, "CPU model must not be null!");
     return this.option("cpu", model);
   }
 
@@ -194,7 +202,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code machineType} is null
    */
   public VMConfiguration machine(final String machineType) {
-    Preconditions.checkNotNull(machineType, "Machine type must not be null");
+    Preconditions.checkNotNull(machineType, "Machine type must not be null!");
     return this.option("machine", machineType);
   }
 
@@ -207,7 +215,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code accelerator} is null
    */
   public VMConfiguration accelerator(final String accelerator) {
-    Preconditions.checkNotNull(accelerator, "Accelerator must not be null");
+    Preconditions.checkNotNull(accelerator, "Accelerator must not be null!");
     return this.option("accel", accelerator);
   }
 
@@ -219,7 +227,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code adapter} is null
    */
   public VMConfiguration vga(final String adapter) {
-    Preconditions.checkNotNull(adapter, "Adapter must not be null");
+    Preconditions.checkNotNull(adapter, "Adapter must not be null!");
     return this.option("vga", adapter);
   }
 
@@ -231,7 +239,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code drive} is null
    */
   public VMConfiguration drive(final String drive) {
-    Preconditions.checkNotNull(drive, "Drive must not be null");
+    Preconditions.checkNotNull(drive, "Drive must not be null!");
     return this.repeatable("drive", drive);
   }
 
@@ -243,7 +251,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code device} is null
    */
   public VMConfiguration device(final String device) {
-    Preconditions.checkNotNull(device, "Device must not be null");
+    Preconditions.checkNotNull(device, "Device must not be null!");
     return this.repeatable("device", device);
   }
 
@@ -257,9 +265,9 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} or {@code value} is null
    */
   public VMConfiguration option(final String key, final String value) {
-    Preconditions.checkNotNull(key, "Key must not be null");
-    Preconditions.checkNotNull(value, "Value must not be null");
-    Preconditions.checkArgument(!key.isBlank(), "Key must not be blank");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+    Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
+    Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
     this.options.put(key, value);
     return this;
   }
@@ -274,9 +282,9 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} or {@code value} is null
    */
   public VMConfiguration repeatable(final String key, final String value) {
-    Preconditions.checkNotNull(key, "Key must not be null");
-    Preconditions.checkNotNull(value, "Value must not be null");
-    Preconditions.checkArgument(!key.isBlank(), "Key must not be blank");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
+    Preconditions.checkNotNull(value, VALUE_NULL_MESSAGE);
+    Preconditions.checkArgument(!key.isBlank(), KEY_BLANK_MESSAGE);
     this.repeatable.add("-" + key);
     this.repeatable.add(value);
     return this;
@@ -291,8 +299,8 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code flag} is null
    */
   public VMConfiguration flag(final String flag) {
-    Preconditions.checkNotNull(flag, "Flag must not be null");
-    Preconditions.checkArgument(!flag.isBlank(), "Flag must not be blank");
+    Preconditions.checkNotNull(flag, "Flag must not be null!");
+    Preconditions.checkArgument(!flag.isBlank(), "Flag must not be blank!");
     this.flags.add(flag);
     return this;
   }
@@ -305,7 +313,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} is null
    */
   public VMConfiguration remove(final String key) {
-    Preconditions.checkNotNull(key, "Key must not be null");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     this.options.remove(key);
     this.flags.remove(key);
 
@@ -333,7 +341,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} is null
    */
   public boolean has(final String key) {
-    Preconditions.checkNotNull(key, "Key must not be null");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     final List<String> values = this.getAll(key);
     return this.options.containsKey(key) || this.flags.contains(key) || !values.isEmpty();
   }
@@ -347,7 +355,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} is null
    */
   public List<String> getAll(final String key) {
-    Preconditions.checkNotNull(key, "Key must not be null");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     final String argument = "-" + key;
     final List<String> values = new ArrayList<>();
     for (int index = 0; index < this.repeatable.size(); index += 2) {
@@ -368,7 +376,7 @@ public final class VMConfiguration {
    * @throws NullPointerException if {@code key} is null
    */
   public @Nullable String get(final String key) {
-    Preconditions.checkNotNull(key, "Key must not be null");
+    Preconditions.checkNotNull(key, KEY_NULL_MESSAGE);
     return this.options.get(key);
   }
 

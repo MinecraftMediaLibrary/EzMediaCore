@@ -68,12 +68,13 @@ final class VMSoundTest {
 
   private static void assumeQemuInstalled() {
     final Optional<Path> qemu = new ExecutableFinder().find(VMPlayer.Architecture.X86_64.getCommand());
-    assumeTrue(qemu.isPresent(), "QEMU for x86-64 is not installed");
+    assumeTrue(qemu.isPresent(), "QEMU for x86-64 is not installed!");
   }
 
   private Path bootSector(final String name) throws IOException {
     final Path image = this.directory.resolve(name);
-    try (final InputStream resource = Objects.requireNonNull(VMSoundTest.class.getResourceAsStream("/guests/" + name), name)) {
+    final String message = "Guest image %s is missing from the test resources!".formatted(name);
+    try (final InputStream resource = Objects.requireNonNull(VMSoundTest.class.getResourceAsStream("/guests/" + name), message)) {
       Files.copy(resource, image);
     }
     return image;
@@ -199,7 +200,10 @@ final class VMSoundTest {
 
   @Test
   void shouldKeepTheSoundOfTheGuestWithItsPicture() throws IOException {
-    assumeTrue(Boolean.getBoolean("mcav.syncMeasurement"), "times real events; run with -Pmcav.syncMeasurement=true on a quiet machine");
+    assumeTrue(
+      Boolean.getBoolean("mcav.syncMeasurement"),
+      "Test times real events, so run it with -Pmcav.syncMeasurement=true on a quiet machine!"
+    );
     assumeQemuInstalled();
     final List<long[]> sound = new CopyOnWriteArrayList<>();
     final List<long[]> picture = new CopyOnWriteArrayList<>();

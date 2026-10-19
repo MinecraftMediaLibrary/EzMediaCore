@@ -34,6 +34,8 @@ public final class FakeProcess extends Process {
 
   private static final long LONGEST_WAIT_MILLIS = 200L;
 
+  private static final String TEXT_NULL_MESSAGE = "Text must not be null!";
+
   private final InputStream output;
   private final CountDownLatch exited;
   private final AtomicInteger destroyCalls;
@@ -61,7 +63,7 @@ public final class FakeProcess extends Process {
    * @return the process
    */
   public static FakeProcess running(final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
     final InputStream stream = new ByteArrayInputStream(bytes);
     return new FakeProcess(stream);
@@ -74,7 +76,7 @@ public final class FakeProcess extends Process {
    * @return the process
    */
   public static FakeProcess running(final InputStream stream) {
-    Preconditions.checkNotNull(stream, "Stream must not be null");
+    Preconditions.checkNotNull(stream, "Stream must not be null!");
     return new FakeProcess(stream);
   }
 
@@ -86,7 +88,7 @@ public final class FakeProcess extends Process {
    * @return the process
    */
   public static FakeProcess exited(final int exitCode, final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, TEXT_NULL_MESSAGE);
     final FakeProcess process = running(text);
     process.exit(exitCode);
     return process;
@@ -105,7 +107,7 @@ public final class FakeProcess extends Process {
    * @param delayMillis the delay before the process exits
    */
   public void delayingForcedExit(final long delayMillis) {
-    Preconditions.checkArgument(delayMillis > 0, "Delay must be positive");
+    Preconditions.checkArgument(delayMillis > 0, "Delay %s must be positive!", delayMillis);
     this.forcedExitDelayMillis = delayMillis;
   }
 
@@ -187,13 +189,13 @@ public final class FakeProcess extends Process {
 
   @Override
   public boolean waitFor(final long timeout, final TimeUnit unit) throws InterruptedException {
-    Preconditions.checkNotNull(unit, "Unit must not be null");
+    Preconditions.checkNotNull(unit, "Unit must not be null!");
     if (this.interruptsWaits) {
-      throw new InterruptedException("interrupted on purpose");
+      throw new InterruptedException("interrupted on purpose!");
     }
     if (this.interruptsFirstWait) {
       this.interruptsFirstWait = false;
-      throw new InterruptedException("the first wait is interrupted on purpose");
+      throw new InterruptedException("the first wait is interrupted on purpose!");
     }
     final int codeOnWait = this.exitCodeOnWait;
     if (codeOnWait >= 0) {
@@ -207,7 +209,7 @@ public final class FakeProcess extends Process {
   @Override
   public int exitValue() {
     if (this.exited.getCount() > 0) {
-      throw new IllegalThreadStateException("process has not exited");
+      throw new IllegalThreadStateException("process has not exited!");
     }
     return this.exitCode;
   }

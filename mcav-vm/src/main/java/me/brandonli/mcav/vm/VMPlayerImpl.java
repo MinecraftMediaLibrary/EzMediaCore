@@ -119,9 +119,9 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   @Override
   public boolean start(final VMSettings settings, final Architecture architecture, final VMConfiguration configuration) {
-    Preconditions.checkNotNull(settings, "Settings must not be null");
-    Preconditions.checkNotNull(architecture, "Architecture must not be null");
-    Preconditions.checkNotNull(configuration, "Configuration must not be null");
+    Preconditions.checkNotNull(settings, "Settings must not be null!");
+    Preconditions.checkNotNull(architecture, "Architecture must not be null!");
+    Preconditions.checkNotNull(configuration, "Configuration must not be null!");
 
     this.lock.lock();
     try {
@@ -170,7 +170,8 @@ public final class VMPlayerImpl implements VMPlayer {
     this.running.set(false);
     this.shutdownMachine();
     if (this.process != null) {
-      throw new PlayerException("The previous QEMU process is still alive after shutdown");
+      final String message = "Previous QEMU process is still alive after its shutdown!";
+      throw new PlayerException(message);
     }
   }
 
@@ -219,7 +220,8 @@ public final class VMPlayerImpl implements VMPlayer {
     final VncSource source = createSource(settings, password);
     final boolean connected = this.vncPlayer.start(source);
     if (!connected) {
-      throw new PlayerException("The VNC player could not be started");
+      final String message = "VNC player could not be started!";
+      throw new PlayerException(message);
     }
   }
 
@@ -308,7 +310,7 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   @Override
   public void sendMouseEvent(final MouseClick type, final int frameX, final int frameY) {
-    Preconditions.checkNotNull(type, "Mouse click type must not be null");
+    Preconditions.checkNotNull(type, "Mouse click type must not be null!");
     final boolean active = this.isActive();
     if (active) {
       this.vncPlayer.sendMouseEvent(type, frameX, frameY);
@@ -321,7 +323,7 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   @Override
   public void sendKeyEvent(final String text) {
-    Preconditions.checkNotNull(text, "Text must not be null");
+    Preconditions.checkNotNull(text, "Text must not be null!");
     final boolean active = this.isActive();
     if (active) {
       this.vncPlayer.sendKeyEvent(text);
@@ -424,7 +426,7 @@ public final class VMPlayerImpl implements VMPlayer {
    */
   @Override
   public void setExceptionHandler(final BiConsumer<String, Throwable> exceptionHandler) {
-    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null");
+    Preconditions.checkNotNull(exceptionHandler, "Exception handler must not be null!");
     this.vncPlayer.setExceptionHandler(exceptionHandler);
   }
 

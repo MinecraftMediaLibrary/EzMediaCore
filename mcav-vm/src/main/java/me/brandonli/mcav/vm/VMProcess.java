@@ -98,12 +98,6 @@ final class VMProcess {
   );
 
   private static final Logger LOGGER = LoggerFactory.getLogger(VMProcess.class);
-  private static final String ACCELERATOR_FAILED = "QEMU failed with the {} accelerator, retrying with software emulation: {}";
-  private static final String STARTING = "Starting QEMU: {}";
-  private static final String QEMU_OUTPUT = "qemu: {}";
-  private static final String READER_NOT_STOPPED = "QEMU output reader did not stop within {} ms";
-  private static final String STILL_ALIVE = "QEMU is still alive after forced termination";
-  private static final String SECRET_NOT_DELETED = "The password file of the virtual machine could not be deleted: {}";
   private static final String LOCALHOST = "127.0.0.1";
   private static final Set<String> MACHINE_OPTIONS = Set.of("machine", "M");
   private static final List<String> NETWORK_OPTIONS = List.of("nic", "netdev", "net", "nodefaults");
@@ -306,8 +300,9 @@ final class VMProcess {
       Files.writeString(file, this.password, StandardCharsets.US_ASCII, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
       return folder;
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Failed to write the password of the display: " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "Password of the display could not be written because of \"%s\"!".formatted(reason);
+      throw new PlayerException(message, exception);
     }
   }
 
@@ -316,7 +311,7 @@ final class VMProcess {
       Files.deleteIfExists(folder.resolve(PASSWORD_FILE));
       Files.deleteIfExists(folder);
     } catch (final IOException exception) {
-      LOGGER.warn(SECRET_NOT_DELETED, folder, exception);
+      LOGGER.warn("The password folder {} of the virtual machine could not be deleted.", folder, exception);
     }
   }
 
@@ -336,7 +331,7 @@ final class VMProcess {
         throw exception;
       }
 
-      LOGGER.warn(ACCELERATOR_FAILED, accelerator, reason);
+      LOGGER.warn("QEMU failed on the {} accelerator with \"{}\", retrying with software emulation.", accelerator, reason);
       this.launch(SOFTWARE_ACCELERATOR, passwordFile);
     }
   }
@@ -352,12 +347,14 @@ final class VMProcess {
   static void checkModuleOptions(final VMConfiguration configuration) {
     for (final String option : List.of("vnc", "audio", "audiodev")) {
       if (configuration.has(option)) {
-        throw new PlayerException("mcav sets -" + option + " of the machine itself; remove it from the configuration");
+        final String message = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
+        throw new PlayerException(message);
       }
     }
     for (final String machine : machineValues(configuration)) {
       if (machine.contains("pcspk-audiodev")) {
-        throw new PlayerException("mcav routes the PC speaker of the machine itself; remove pcspk-audiodev from -machine");
+        final String message = "PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!";
+        throw new PlayerException(message);
       }
     }
   }
@@ -430,7 +427,8 @@ final class VMProcess {
       probe.bind(address);
     } catch (final IOException exception) {
       final String reason = exception.getMessage();
-      throw new PlayerException("The VNC port " + port + " is already in use: " + reason, exception);
+      final String message = "VNC port %s is already in use because of \"%s\"!".formatted(port, reason);
+      throw new PlayerException(message, exception);
     }
   }
 
@@ -451,14 +449,15 @@ final class VMProcess {
   private void launch(final @Nullable String accelerator, final Path passwordFile) {
     final List<String> command = this.buildCommand(accelerator, passwordFile);
     final String rendered = String.join(" ", command);
-    LOGGER.info(STARTING, rendered);
+    LOGGER.debug("QEMU is started with the command line {}.", rendered);
 
     final Process started;
     try {
       started = this.launcher.launch(command);
     } catch (final IOException exception) {
-      final String message = exception.getMessage();
-      throw new PlayerException("Failed to start QEMU: " + message, exception);
+      final String reason = exception.getMessage();
+      final String message = "QEMU could not be started because of \"%s\"!".formatted(reason);
+      throw new PlayerException(message, exception);
     }
     this.process = started;
 
@@ -693,7 +692,7 @@ final class VMProcess {
     if (line.isBlank()) {
       return;
     }
-    LOGGER.debug(QEMU_OUTPUT, line);
+    LOGGER.debug("QEMU printed \"{}\".", line);
     synchronized (this.outputTail) {
       this.outputTail.addLast(line);
       while (this.outputTail.size() > OUTPUT_TAIL_LINES) {
@@ -729,7 +728,8 @@ final class VMProcess {
 
     final String output = this.getOutputTail();
     this.shutdown();
-    throw new PlayerException("The QEMU display on port " + port + " did not become reachable: " + output);
+    final String message = "QEMU display on port %s did not become reachable, and QEMU printed \"%s\"!".formatted(port, output);
+    throw new PlayerException(message);
   }
 
   private void checkAlive(final Process started) {
@@ -742,11 +742,12 @@ final class VMProcess {
     this.awaitOutput();
     final String output = this.getOutputTail();
     this.process = null;
-    throw new PlayerException("QEMU exited with code " + exitCode + ": " + output);
+    final String message = "QEMU exited with code %s, printing \"%s\"!".formatted(exitCode, output);
+    throw new PlayerException(message);
   }
 
   private void awaitOutput() {
-    final Thread drain = Objects.requireNonNull(this.drainThread, "The output is drained while QEMU runs");
+    final Thread drain = Objects.requireNonNull(this.drainThread, "Output of QEMU must be drained while QEMU runs!");
     final long timeoutNanos = TimeUnit.MILLISECONDS.toNanos(OUTPUT_TIMEOUT_MILLIS);
     final long deadline = System.nanoTime() + timeoutNanos;
     boolean interrupted = Thread.interrupted();
@@ -755,7 +756,7 @@ final class VMProcess {
         final long remaining = deadline - System.nanoTime();
         if (remaining <= 0) {
           drain.interrupt();
-          LOGGER.warn(READER_NOT_STOPPED, OUTPUT_TIMEOUT_MILLIS);
+          LOGGER.warn("QEMU output reader did not stop within {} ms.", OUTPUT_TIMEOUT_MILLIS);
           return;
         }
         try {
@@ -782,7 +783,8 @@ final class VMProcess {
       final Thread current = Thread.currentThread();
       current.interrupt();
       this.shutdown();
-      throw new PlayerException("Interrupted while waiting for QEMU", exception);
+      final String message = "Waiting for QEMU was interrupted!";
+      throw new PlayerException(message, exception);
     }
   }
 
@@ -837,7 +839,7 @@ final class VMProcess {
         this.process = null;
         this.launcher.ended(current);
       } else {
-        LOGGER.warn(STILL_ALIVE);
+        LOGGER.warn("QEMU is still alive after its forced termination.");
       }
     } finally {
       if (interrupted) {

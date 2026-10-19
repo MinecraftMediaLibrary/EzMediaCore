@@ -49,11 +49,7 @@ import org.slf4j.LoggerFactory;
 final class QemuProcessRecords {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(QemuProcessRecords.class);
-  private static final String STOPPED = "Stopped QEMU process {}, which a server that ended without releasing it left running";
-  private static final String NOT_RECORDED = "QEMU process {} could not be recorded; if this server is killed, it keeps running";
-  private static final String NOT_FORGOTTEN = "The record of QEMU process {} could not be deleted";
-  private static final String NOT_READ = "The records of QEMU processes in {} could not be read";
-  private static final String RECORD_NOT_READ = "The record {} of a QEMU process could not be read";
+  private static final String NOT_RECORDED = "QEMU process {} could not be recorded, so it keeps running if this server is killed.";
   private static final String SUFFIX = ".qemu";
   private static final Duration STOP_TIMEOUT = Duration.ofSeconds(10);
 
@@ -126,7 +122,7 @@ final class QemuProcessRecords {
     try {
       Files.deleteIfExists(this.fileOf(pid));
     } catch (final IOException exception) {
-      LOGGER.warn(NOT_FORGOTTEN, pid, exception);
+      LOGGER.warn("The record of QEMU process {} could not be deleted.", pid, exception);
     }
   }
 
@@ -146,7 +142,7 @@ final class QemuProcessRecords {
         stopped += this.reapRecord(record);
       }
     } catch (final IOException exception) {
-      LOGGER.warn(NOT_READ, this.folder, exception);
+      LOGGER.warn("The records of QEMU processes in {} could not be read.", this.folder, exception);
     }
     return stopped;
   }
@@ -155,7 +151,7 @@ final class QemuProcessRecords {
     try {
       return this.reapOne(record);
     } catch (final IOException exception) {
-      LOGGER.warn(RECORD_NOT_READ, record, exception);
+      LOGGER.warn("The record {} of a QEMU process could not be read.", record, exception);
       return 0;
     }
   }
@@ -194,7 +190,7 @@ final class QemuProcessRecords {
       process.destroyForcibly();
     }
     final long pid = process.pid();
-    LOGGER.warn(STOPPED, pid);
+    LOGGER.warn("Stopped QEMU process {}, which a server that ended without releasing it left running.", pid);
   }
 
   private static Optional<Instant> startOf(final ProcessHandle process) {

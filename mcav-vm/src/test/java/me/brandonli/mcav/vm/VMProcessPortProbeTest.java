@@ -51,7 +51,7 @@ final class VMProcessPortProbeTest {
       assertTrue(reuseEnabled);
       final AtomicBoolean reuseAtBind = new AtomicBoolean(true);
       final AtomicBoolean reachedBind = new AtomicBoolean();
-      final IOException stopped = new IOException("stop at the port-probe boundary");
+      final IOException stopped = new IOException("stop at the port-probe boundary!");
       final MockSettings settings = withSettings();
       settings.defaultAnswer(AdditionalAnswers.delegatesTo(delegate));
       try (
@@ -70,7 +70,7 @@ final class VMProcessPortProbeTest {
         final Path executable = Path.of("unused-qemu");
         final Path kvm = Path.of("unused-kvm");
         final VMProcess.Launcher launcher = _ -> {
-          throw new AssertionError("QEMU must not launch after the port probe fails");
+          throw new AssertionError("QEMU must not launch after the port probe fails!");
         };
         final VMProcess process = new VMProcess(
           display,
@@ -82,7 +82,7 @@ final class VMProcessPortProbeTest {
           kvm,
           1,
           () -> {
-            throw new AssertionError("no password is written after the port probe fails");
+            throw new AssertionError("no password is written after the port probe fails!");
           }
         );
         final PlayerException failure = assertThrows(PlayerException.class, process::start);

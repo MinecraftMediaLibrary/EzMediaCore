@@ -283,7 +283,7 @@ final class VMProcessTest {
     final VMProcess process = this.reachable(Os.WINDOWS, failed, failedAgain);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
-    assertEquals("QEMU exited with code 2: could not open disk image alpine.qcow2", message);
+    assertEquals("QEMU exited with code 2, printing \"could not open disk image alpine.qcow2\"!", message);
   }
 
   @Test
@@ -294,7 +294,7 @@ final class VMProcessTest {
     final String message = exception.getMessage();
     final int launches = this.commands.size();
     final boolean alive = process.isAlive();
-    assertEquals("QEMU exited with code 1: could not open disk image alpine.qcow2", message);
+    assertEquals("QEMU exited with code 1, printing \"could not open disk image alpine.qcow2\"!", message);
     assertEquals(1, launches);
     assertFalse(alive);
   }
@@ -328,7 +328,7 @@ final class VMProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
-    assertEquals("QEMU exited with code 3: tcg accel failed to start", message);
+    assertEquals("QEMU exited with code 3, printing \"tcg accel failed to start\"!", message);
     assertEquals(1, launches);
   }
 
@@ -573,7 +573,7 @@ final class VMProcessTest {
   void shouldStopTheStartBeforeQemuWhenThePasswordCannotBeWritten() {
     final VMSettings settings = this.reachableSettings();
     final VMProcess.Launcher launcher = command -> {
-      throw new AssertionError("QEMU must not start without the password of its display");
+      throw new AssertionError("QEMU must not start without the password of its display!");
     };
     final VMProcess process = new VMProcess(
       settings,
@@ -585,19 +585,19 @@ final class VMProcessTest {
       this.missingKvm,
       SHORT_TIMEOUT_MILLIS,
       () -> {
-        throw new IOException("disk full");
+        throw new IOException("disk full!");
       }
     );
     final PlayerException failure = assertThrows(PlayerException.class, process::start);
     final String message = failure.getMessage();
     final boolean alive = process.isAlive();
-    assertEquals("Failed to write the password of the display: disk full", message);
+    assertEquals("Password of the display could not be written because of \"disk full!\"!", message);
     assertFalse(alive);
   }
 
   @Test
   void shouldDeleteThePasswordOfAFailedStart() {
-    final VMProcess process = this.reachable(Os.LINUX, new IOException("no QEMU"));
+    final VMProcess process = this.reachable(Os.LINUX, new IOException("no QEMU!"));
     assertThrows(PlayerException.class, process::start);
     final Path folder = this.directory.resolve("secret");
     final boolean folderLeft = Files.exists(folder);
@@ -703,7 +703,7 @@ final class VMProcessTest {
   private List<String> x86Command(final VMConfiguration configuration) {
     final VMSettings settings = new VMSettings(5903, 64, 48, 10);
     final VMProcess.Launcher launcher = command -> {
-      throw new IOException("not started");
+      throw new IOException("not started!");
     };
     final VMProcess process = new VMProcess(
       settings,
@@ -897,7 +897,7 @@ final class VMProcessTest {
       final VMConfiguration configuration = VMConfiguration.builder();
       configuration.option(option, "x");
       final PlayerException refused = assertThrows(PlayerException.class, () -> VMProcess.checkModuleOptions(configuration));
-      final String expected = "mcav sets -" + option + " of the machine itself; remove it from the configuration";
+      final String expected = "Option -%s is set by MCAV itself and must be removed from the configuration!".formatted(option);
       final String message = refused.getMessage();
       assertEquals(expected, message);
     }
@@ -905,7 +905,7 @@ final class VMProcessTest {
     speaker.machine("pc,pcspk-audiodev=snd0");
     final PlayerException refused = assertThrows(PlayerException.class, () -> VMProcess.checkModuleOptions(speaker));
     final String message = refused.getMessage();
-    assertEquals("mcav routes the PC speaker of the machine itself; remove pcspk-audiodev from -machine", message);
+    assertEquals("PC speaker is routed by MCAV itself, so pcspk-audiodev must be removed from -machine!", message);
     final VMConfiguration fine = VMConfiguration.builder();
     fine.machine("q35");
     VMProcess.checkModuleOptions(fine);
@@ -979,13 +979,13 @@ final class VMProcessTest {
 
   @Test
   void shouldFailWhenQemuCannotBeLaunched() {
-    final IOException failure = new IOException("CreateProcess error=2");
+    final IOException failure = new IOException("CreateProcess error=2!");
     final VMProcess process = this.reachable(Os.FREEBSD, failure);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final Throwable cause = exception.getCause();
     final boolean alive = process.isAlive();
-    assertEquals("Failed to start QEMU: CreateProcess error=2", message);
+    assertEquals("QEMU could not be started because of \"CreateProcess error=2!\"!", message);
     assertSame(failure, cause);
     assertFalse(alive);
   }
@@ -1024,7 +1024,8 @@ final class VMProcessTest {
       kept.add("line-" + number);
     }
     final String separator = System.lineSeparator();
-    final String expected = "QEMU exited with code 2: " + String.join(separator, kept);
+    final String lines = String.join(separator, kept);
+    final String expected = "QEMU exited with code 2, printing \"%s\"!".formatted(lines);
     assertEquals(expected, message);
   }
 
@@ -1037,7 +1038,7 @@ final class VMProcessTest {
     final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
-    final String expected = "QEMU exited with code 1: " + suffix;
+    final String expected = "QEMU exited with code 1, printing \"%s\"!".formatted(suffix);
     assertEquals(expected, message);
   }
 
@@ -1048,7 +1049,7 @@ final class VMProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
-    final String expected = "QEMU exited with code 1: first" + separator + "last words";
+    final String expected = "QEMU exited with code 1, printing \"first%slast words\"!".formatted(separator);
     assertEquals(expected, message);
   }
 
@@ -1061,7 +1062,7 @@ final class VMProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final String separator = System.lineSeparator();
-    final String expected = "QEMU exited with code 1: first" + separator + "second";
+    final String expected = "QEMU exited with code 1, printing \"first%ssecond\"!".formatted(separator);
     assertEquals(expected, message);
   }
 
@@ -1073,7 +1074,7 @@ final class VMProcessTest {
     final VMProcess process = this.reachable(Os.FREEBSD, failed);
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
-    assertEquals("QEMU exited with code 1: Gerät nicht gefunden: 磁盘", message);
+    assertEquals("QEMU exited with code 1, printing \"Gerät nicht gefunden: 磁盘\"!", message);
   }
 
   @Test
@@ -1088,7 +1089,8 @@ final class VMProcessTest {
     final boolean alive = process.isAlive();
     final int destroyCalls = qemu.getDestroyCalls();
     final boolean qemuAlive = qemu.isAlive();
-    final String expected = "The QEMU display on port " + port + " did not become reachable: VNC server running on 127.0.0.1:5999";
+    final String expected =
+      "QEMU display on port %s did not become reachable, and QEMU printed \"VNC server running on 127.0.0.1:5999\"!".formatted(port);
     assertEquals(expected, message);
     assertFalse(alive);
     assertEquals(1, destroyCalls);
@@ -1113,7 +1115,7 @@ final class VMProcessTest {
     final Throwable cause = exception.getCause();
     final boolean alive = qemu.isAlive();
     final int forcibleCalls = qemu.getForcibleDestroyCalls();
-    assertEquals("Interrupted while waiting for QEMU", message);
+    assertEquals("Waiting for QEMU was interrupted!", message);
     assertInstanceOf(InterruptedException.class, cause);
     assertFalse(alive);
     assertEquals(1, forcibleCalls);
@@ -1135,7 +1137,7 @@ final class VMProcessTest {
       assertTrue(interrupted, "the interrupt must be kept for the caller");
     }
     final String message = exception.getMessage();
-    final boolean messageStartsWith = message.startsWith("QEMU exited with code 4: ");
+    final boolean messageStartsWith = message.startsWith("QEMU exited with code 4, printing ");
     assertTrue(messageStartsWith, message);
   }
 
@@ -1209,7 +1211,7 @@ final class VMProcessTest {
         final boolean withinTheDeadline = nanos > 0 && nanos <= maximum;
         assertTrue(withinTheDeadline, "every forced wait must stay within the total ten-second deadline");
         if (interruptedOnce.compareAndSet(false, true)) {
-          throw new InterruptedException("interrupt while forced exit is pending");
+          throw new InterruptedException("interrupt while forced exit is pending!");
         }
       }
       return invocation.callRealMethod();
@@ -1354,7 +1356,7 @@ final class VMProcessTest {
       }
       Thread.sleep(1L);
     }
-    fail("shutdown must be waiting inside awaitOutput's timed join");
+    fail("Shutdown must be waiting inside the timed join of awaitOutput!");
   }
 
   @Test
@@ -1391,7 +1393,7 @@ final class VMProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final int launches = this.commands.size();
-    final boolean namesPort = message.startsWith("The VNC port " + this.port + " is already in use");
+    final boolean namesPort = message.startsWith("VNC port " + this.port + " is already in use");
     final boolean otherOpen = !other.isClosed();
     assertTrue(namesPort, message);
     assertEquals(0, launches);
@@ -1406,7 +1408,7 @@ final class VMProcessTest {
     final PlayerException exception = assertThrows(PlayerException.class, process::start);
     final String message = exception.getMessage();
     final boolean alive = process.isAlive();
-    assertEquals("QEMU exited with code 1: Failed to start VNC server: address in use", message);
+    assertEquals("QEMU exited with code 1, printing \"Failed to start VNC server: address in use\"!", message);
     assertFalse(alive);
   }
 
@@ -1538,7 +1540,7 @@ final class VMProcessTest {
       }
       final long now = System.nanoTime();
       if (now - deadline > 0) {
-        fail("The output of QEMU is never drained");
+        fail("Output of QEMU is never drained!");
       }
       LockSupport.parkNanos(pauseNanos);
     }
@@ -1574,7 +1576,7 @@ final class VMProcessTest {
       assertTrue(interrupted, "the interrupt of the waiting thread must reach the caller");
     }
     final String message = exception.getMessage();
-    assertEquals("Interrupted while waiting for QEMU", message);
+    assertEquals("Waiting for QEMU was interrupted!", message);
   }
 
   /**
@@ -1706,13 +1708,13 @@ final class VMProcessTest {
 
     @Override
     public int read() throws IOException {
-      throw new IOException("read single bytes is not supported");
+      throw new IOException("read single bytes is not supported!");
     }
 
     @Override
     public int read(final byte @NonNull [] buffer, final int offset, final int length) throws IOException {
       if (this.delivered) {
-        throw new IOException("Stream closed");
+        throw new IOException("Stream closed!");
       }
       this.delivered = true;
       System.arraycopy(this.content, 0, buffer, offset, this.content.length);

@@ -38,7 +38,7 @@ public final class VncPasswords {
   private static final int RESULT_BYTES = 4;
 
   private VncPasswords() {
-    throw new UnsupportedOperationException("Utility class cannot be instantiated");
+    throw new UnsupportedOperationException("Utility class cannot be instantiated!");
   }
 
   /**

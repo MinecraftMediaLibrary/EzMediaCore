@@ -38,7 +38,9 @@ public class ExecutableNotInPathException extends RuntimeException {
    * @throws NullPointerException if the name is null
    */
   public ExecutableNotInPathException(final String executable) {
-    Preconditions.checkNotNull(executable, "Executable must not be null");
-    super("The program " + executable + " is not installed or not on the PATH");
+    Preconditions.checkNotNull(executable, "Executable must not be null!");
+
+    final String message = "Program %s is not installed or not on the PATH!".formatted(executable);
+    super(message);
   }
 }

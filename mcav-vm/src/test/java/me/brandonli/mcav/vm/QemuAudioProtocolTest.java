@@ -211,7 +211,7 @@ class QemuAudioProtocolTest {
       QemuAudioProtocol.readVersion(input("RFB 003.007\n".getBytes(StandardCharsets.US_ASCII)))
     );
     final String message = old.getMessage();
-    assertEquals("The VNC server speaks RFB 3.7 instead of 3.8", message);
+    assertEquals("VNC server speaks RFB 3.7 instead of RFB 3.8 or later!", message);
     assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readVersion(input("RFB 002.009\n".getBytes(StandardCharsets.US_ASCII))));
   }
 
@@ -226,12 +226,12 @@ class QemuAudioProtocolTest {
       QemuAudioProtocol.negotiateSecurity(input(refusal), new DataOutputStream(new ByteArrayOutputStream()), "")
     );
     final String refusedMessage = refused.getMessage();
-    assertEquals("The VNC server refused the connection: full", refusedMessage);
+    assertEquals("VNC server refused the connection because of \"full\"!", refusedMessage);
     final ProtocolException password = assertThrows(ProtocolException.class, () ->
       QemuAudioProtocol.negotiateSecurity(input(new byte[] { 1, 2 }), new DataOutputStream(new ByteArrayOutputStream()), "")
     );
     final String passwordMessage = password.getMessage();
-    assertEquals("The VNC server asks for authentication, which the audio connection does not do", passwordMessage);
+    assertEquals("VNC server asks for authentication, which the audio connection does not do!", passwordMessage);
     final byte[] failed = bytes(out -> {
       out.writeInt(1);
       out.writeInt(2);
@@ -244,7 +244,7 @@ class QemuAudioProtocolTest {
     });
     final ProtocolException tooLong = assertThrows(ProtocolException.class, () -> QemuAudioProtocol.readSecurityResult(input(huge)));
     final String tooLongMessage = tooLong.getMessage();
-    assertEquals("The VNC server sent a text of 4294967295 bytes, more than 4096", tooLongMessage);
+    assertEquals("VNC server sent a text of 4294967295 bytes, more than the 4096 bytes allowed!", tooLongMessage);
   }
 
   @Test
@@ -298,7 +298,7 @@ class QemuAudioProtocolTest {
   void shouldEndTheConnectionOnAMessageItNeverAskedFor() {
     final ProtocolException type = assertThrows(ProtocolException.class, () -> read(out -> out.writeByte(7)));
     final String typeMessage = type.getMessage();
-    assertEquals("The VNC server sent message type 7, which the audio connection does not expect", typeMessage);
+    assertEquals("VNC server sent message type 7, which the audio connection does not expect!", typeMessage);
     final ProtocolException picture = assertThrows(ProtocolException.class, () ->
       read(out -> {
         out.writeByte(0);
@@ -309,7 +309,7 @@ class QemuAudioProtocolTest {
       })
     );
     final String pictureMessage = picture.getMessage();
-    assertEquals("The VNC server sent a rectangle of encoding 0, which the audio connection never asks for", pictureMessage);
+    assertEquals("VNC server sent a rectangle of encoding 0, which the audio connection never asks for!", pictureMessage);
     final ProtocolException many = assertThrows(ProtocolException.class, () ->
       read(out -> {
         out.writeByte(0);
@@ -318,7 +318,7 @@ class QemuAudioProtocolTest {
       })
     );
     final String manyMessage = many.getMessage();
-    assertEquals("The VNC server announced 17 rectangles, more than 16", manyMessage);
+    assertEquals("VNC server announced 17 rectangles, more than the 16 allowed!", manyMessage);
     assertThrows(ProtocolException.class, () -> read(out -> out.write(new byte[] { (byte) 255, 2, 0, 0 })));
     assertThrows(ProtocolException.class, () -> read(out -> out.write(new byte[] { (byte) 255, 1, 0, 9 })));
   }
@@ -364,7 +364,7 @@ class QemuAudioProtocolTest {
       })
     );
     final String audioMessage = audio.getMessage();
-    assertEquals("The VNC server sent 65540 bytes of audio, not whole frames of at most 65536", audioMessage);
+    assertEquals("VNC server sent 65540 bytes of audio, not whole frames of at most 65536 bytes!", audioMessage);
     assertThrows(ProtocolException.class, () ->
       read(out -> {
         out.write(new byte[] { (byte) 255, 1, 0, 2 });
@@ -379,7 +379,7 @@ class QemuAudioProtocolTest {
       })
     );
     final String clipboardMessage = clipboard.getMessage();
-    assertEquals("The VNC server sent 4294967295 bytes of clipboard text, more than 1048576", clipboardMessage);
+    assertEquals("VNC server sent 4294967295 bytes of clipboard text, more than the 1048576 bytes allowed!", clipboardMessage);
     assertThrows(EOFException.class, () ->
       read(out -> {
         out.write(new byte[] { (byte) 255, 1, 0, 2 });
