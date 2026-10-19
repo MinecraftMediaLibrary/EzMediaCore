@@ -71,7 +71,7 @@ jobs:
               --tests '*.media.player.pipeline.filter.video.FaceDetectionFilterTest' \
               --tests '*.media.player.multimedia.cv.OpenCvPlayersTest' \
             :mcav-lwjgl:test --rerun --tests '*.GlTextureFilterTest' \
-            :mcav-vm:test --rerun --tests '*.VmPlayerImplTest' --tests '*.VmProcessTest' --tests '*.ExecutableFinderTest'
+            :mcav-vm:test --rerun --tests '*.QemuVmPlayerTest' --tests '*.VmProcessTest' --tests '*.ExecutableFinderTest'
 
       - name: Upload test reports
         if: failure()

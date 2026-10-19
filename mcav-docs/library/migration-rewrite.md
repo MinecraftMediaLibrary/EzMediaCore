@@ -234,7 +234,7 @@ classes are named for how they work:
 | `VMConfiguration` | `VmConfiguration` |
 | `VMModule` | `VmModule` |
 | `VMPlayer` | `VmPlayer` |
-| `VMPlayerImpl` | `VmPlayerImpl` |
+| `VMPlayerImpl` | `QemuVmPlayer` |
 | `VMSettings` | `VmSettings` |
 | `VNCModule` | `VncModule` |
 | `VNCPlayer` | `VncPlayer` |

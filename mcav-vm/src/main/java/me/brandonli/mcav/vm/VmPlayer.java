@@ -63,7 +63,7 @@ public interface VmPlayer extends ControllablePlayer, ReleasablePlayer, Exceptio
    * @return the player
    */
   static VmPlayer create() {
-    return VmPlayerImpl.createDefault();
+    return QemuVmPlayer.createDefault();
   }
 
   /**

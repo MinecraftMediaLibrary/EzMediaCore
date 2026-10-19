@@ -48,7 +48,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * playing, ignores input, and can be started again. A sound connection that cannot be made is reported, and the
  * machine runs without sound.
  */
-public final class VmPlayerImpl implements VmPlayer {
+public final class QemuVmPlayer implements VmPlayer {
 
   /**
    * How long the sound of the guest is held before the pipeline gets it, in milliseconds. QEMU sends the sound of the
@@ -81,10 +81,10 @@ public final class VmPlayerImpl implements VmPlayer {
    *
    * @return the player
    */
-  static VmPlayerImpl createDefault() {
+  static QemuVmPlayer createDefault() {
     final VncPlayer vncPlayer = VncPlayer.create();
     final ExecutableFinder finder = new ExecutableFinder();
-    return new VmPlayerImpl(vncPlayer, finder, VmProcess::create, VmAudioClient::connect);
+    return new QemuVmPlayer(vncPlayer, finder, VmProcess::create, VmAudioClient::connect);
   }
 
   /**
@@ -96,7 +96,7 @@ public final class VmPlayerImpl implements VmPlayer {
    * @param audioConnector connects to the sound of the machine
    */
   @VisibleForTesting
-  VmPlayerImpl(
+  QemuVmPlayer(
     final VncPlayer vncPlayer,
     final ExecutableFinder finder,
     final ProcessFactory processFactory,
