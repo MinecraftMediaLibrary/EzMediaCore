@@ -39,7 +39,7 @@ object Tools {
     fun pinnedSha256(project: Project, tool: String, version: String, archive: String): Provider<String> = project.provider {
         val key: String = "$tool/$version/$archive"
         val message: String =
-            "tool-checksums.properties pins no SHA-256 for $key, so set ${this.overrideVariable(tool)} to the path of $tool $version!"
+            "tool-checksums.properties pins no SHA-256 for $key, so set ${this.overrideVariable(tool)} to a $tool $version binary!"
         PINNED_CHECKSUMS.getProperty(key) ?: throw GradleException(message)
     }
 

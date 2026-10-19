@@ -49,7 +49,7 @@ class ToolsTest {
             assertThrows(GradleException::class.java) { Tools.pinnedSha256(project, "clang-format", "1.0", CLANG_ARCHIVE).get() }
         val message: String? = failure.message
         val expected: String =
-            "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip, so set CLANG_FORMAT to the path of clang-format 1.0!"
+            "tool-checksums.properties pins no SHA-256 for clang-format/1.0/clang.zip, so set CLANG_FORMAT to a clang-format 1.0 binary!"
         assertEquals(expected, message)
     }
 
